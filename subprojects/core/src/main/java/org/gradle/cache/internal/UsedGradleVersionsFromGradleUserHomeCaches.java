@@ -17,6 +17,7 @@
 package org.gradle.cache.internal;
 
 import com.google.common.collect.Sets;
+import org.gradle.cache.scopes.GlobalScopedCache;
 import org.gradle.util.GradleVersion;
 
 import java.util.SortedSet;
@@ -25,8 +26,8 @@ public class UsedGradleVersionsFromGradleUserHomeCaches implements UsedGradleVer
 
     private final VersionSpecificCacheDirectoryScanner directoryScanner;
 
-    public UsedGradleVersionsFromGradleUserHomeCaches(CacheScopeMapping cacheScopeMapping) {
-        directoryScanner = new VersionSpecificCacheDirectoryScanner(cacheScopeMapping.getRootDirectory(null));
+    public UsedGradleVersionsFromGradleUserHomeCaches(GlobalScopedCache globalScopedCache) {
+        directoryScanner = new VersionSpecificCacheDirectoryScanner(globalScopedCache.getRootDir());
     }
 
     @Override

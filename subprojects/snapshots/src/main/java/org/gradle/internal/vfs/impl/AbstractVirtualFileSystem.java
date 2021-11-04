@@ -20,10 +20,13 @@ import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.MetadataSnapshot;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.vfs.VirtualFileSystem;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
 
 public abstract class AbstractVirtualFileSystem implements VirtualFileSystem {
+    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractVirtualFileSystem.class);
 
     protected final VfsRootReference rootReference;
 
@@ -32,13 +35,13 @@ public abstract class AbstractVirtualFileSystem implements VirtualFileSystem {
     }
 
     @Override
-    public Optional<FileSystemLocationSnapshot> getSnapshot(String absolutePath) {
-        return rootReference.getRoot().getSnapshot(absolutePath);
+    public Optional<FileSystemLocationSnapshot> findSnapshot(String absolutePath) {
+        return rootReference.getRoot().findSnapshot(absolutePath);
     }
 
     @Override
-    public Optional<MetadataSnapshot> getMetadata(String absolutePath) {
-        return rootReference.getRoot().getMetadata(absolutePath);
+    public Optional<MetadataSnapshot> findMetadata(String absolutePath) {
+        return rootReference.getRoot().findMetadata(absolutePath);
     }
 
     @Override
@@ -48,6 +51,7 @@ public abstract class AbstractVirtualFileSystem implements VirtualFileSystem {
 
     @Override
     public void invalidate(Iterable<String> locations) {
+        LOGGER.debug("Invalidating VFS paths: {}", locations);
         rootReference.update(root -> {
             SnapshotHierarchy result = root;
             for (String location : locations) {
@@ -60,8 +64,10 @@ public abstract class AbstractVirtualFileSystem implements VirtualFileSystem {
 
     @Override
     public void invalidateAll() {
+        LOGGER.debug("Invalidating the whole VFS");
         rootReference.update(root -> updateNotifyingListeners(diffListener -> {
-            root.visitSnapshotRoots(diffListener::nodeRemoved);
+            root.rootSnapshots()
+                .forEach(diffListener::nodeRemoved);
             return root.empty();
         }));
     }

@@ -24,6 +24,7 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileCollection;
@@ -68,6 +69,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
+
+import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
 
 /**
  * A plugin for building java gradle plugins. Automatically generates plugin descriptors. Emits warnings for common error conditions. <p> Provides a direct integration with TestKit by declaring the
@@ -190,13 +193,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
                 SourceSet sourceSet = extension.getPluginSourceSet();
                 Configuration runtimeClasspath = project.getConfigurations().getByName(sourceSet.getRuntimeClasspathConfigurationName());
                 ArtifactView view = runtimeClasspath.getIncoming().artifactView(config -> {
-                    config.componentFilter(componentId -> {
-                        if (componentId instanceof OpaqueComponentIdentifier) {
-                            DependencyFactory.ClassPathNotation classPathNotation = ((OpaqueComponentIdentifier) componentId).getClassPathNotation();
-                            return classPathNotation != DependencyFactory.ClassPathNotation.GRADLE_API && classPathNotation != DependencyFactory.ClassPathNotation.LOCAL_GROOVY;
-                        }
-                        return true;
-                    });
+                    config.componentFilter(spec(JavaGradlePluginPlugin::excludeGradleApi));
                 });
                 return pluginUnderTestMetadataTask.getProject().getObjects().fileCollection().from(
                     sourceSet.getOutput(),
@@ -204,6 +201,14 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
                 );
             });
         });
+    }
+
+    private static boolean excludeGradleApi(ComponentIdentifier componentId) {
+        if (componentId instanceof OpaqueComponentIdentifier) {
+            DependencyFactory.ClassPathNotation classPathNotation = ((OpaqueComponentIdentifier) componentId).getClassPathNotation();
+            return classPathNotation != DependencyFactory.ClassPathNotation.GRADLE_API && classPathNotation != DependencyFactory.ClassPathNotation.LOCAL_GROOVY;
+        }
+        return true;
     }
 
     private void establishTestKitAndPluginClasspathDependencies(Project project, GradlePluginDevelopmentExtension extension, TaskProvider<PluginUnderTestMetadata> pluginClasspathTask) {

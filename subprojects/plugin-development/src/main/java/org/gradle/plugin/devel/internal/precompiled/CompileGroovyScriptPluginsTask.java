@@ -27,6 +27,7 @@ import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
+import org.gradle.api.tasks.IgnoreEmptyDirectories;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputDirectory;
@@ -72,9 +73,10 @@ abstract class CompileGroovyScriptPluginsTask extends DefaultTask {
     @Inject
     abstract protected CompileOperationFactory getCompileOperationFactory();
 
-    @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
     @SkipWhenEmpty
+    @IgnoreEmptyDirectories
+    @PathSensitive(PathSensitivity.RELATIVE)
     abstract ConfigurableFileCollection getScriptFiles();
 
     @Classpath

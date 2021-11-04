@@ -22,6 +22,7 @@ import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.buildinit.plugins.internal.ProjectLayoutSetupRegistry;
+import org.gradle.buildinit.plugins.internal.action.InitBuiltInCommand;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.workers.WorkerExecutor;
@@ -30,6 +31,11 @@ import org.gradle.workers.WorkerExecutor;
  * Provides the various build initialization services.
  */
 public class BuildInitServices extends AbstractPluginServiceRegistry {
+    @Override
+    public void registerGlobalServices(ServiceRegistration registration) {
+        registration.add(InitBuiltInCommand.class);
+    }
+
     @Override
     public void registerProjectServices(ServiceRegistration registration) {
         registration.addProvider(new ProjectScopeBuildInitServices());

@@ -16,16 +16,15 @@
 
 package org.gradle.tooling.internal.provider
 
-import org.gradle.api.internal.GradleInternal
+
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.changedetection.state.FileHasherStatistics
-import org.gradle.internal.file.StatStatistics
-import org.gradle.internal.invocation.BuildAction
 import org.gradle.internal.buildtree.BuildActionRunner
 import org.gradle.internal.buildtree.BuildTreeLifecycleController
+import org.gradle.internal.file.StatStatistics
+import org.gradle.internal.invocation.BuildAction
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.internal.operations.BuildOperationRunner
-import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.snapshot.impl.DirectorySnapshotterStatistics
 import org.gradle.internal.watch.options.FileSystemWatchingSettingsFinalizedProgressDetails
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem
@@ -41,33 +40,34 @@ class FileSystemWatchingBuildActionRunnerTest extends Specification {
     def watchingHandler = Mock(BuildLifecycleAwareVirtualFileSystem)
     def startParameter = Stub(StartParameterInternal)
     def buildOperationRunner = Mock(BuildOperationRunner)
-    def buildController = Stub(BuildTreeLifecycleController) {
-        getGradle() >> Stub(GradleInternal) {
-            getStartParameter() >> startParameter
-            getServices() >> Stub(ServiceRegistry) {
-                get(BuildLifecycleAwareVirtualFileSystem) >> watchingHandler
-                get(BuildOperationRunner) >> buildOperationRunner
-                get(FileHasherStatistics.Collector) >> Stub(FileHasherStatistics.Collector)
-                get(StatStatistics.Collector) >> Stub(StatStatistics.Collector)
-                get(DirectorySnapshotterStatistics.Collector) >> Stub(DirectorySnapshotterStatistics.Collector)
-            }
-        }
-    }
+    def buildController = Stub(BuildTreeLifecycleController)
     def delegate = Mock(BuildActionRunner)
-    def buildAction = Mock(BuildAction)
+    def buildAction = Stub(BuildAction)
     def buildOperationProgressEventEmitter = Mock(BuildOperationProgressEventEmitter)
 
-    def "watching virtual file system is informed about watching the file system being #watchMode.description (VFS logging: #vfsLogging, watch logging: #watchLogging)"() {
+    def runner = new FileSystemWatchingBuildActionRunner(
+        buildOperationProgressEventEmitter,
+        watchingHandler,
+        Stub(StatStatistics.Collector),
+        Stub(FileHasherStatistics.Collector),
+        Stub(DirectorySnapshotterStatistics.Collector),
+        buildOperationRunner,
+        delegate)
+
+    def setup() {
         _ * startParameter.getSystemPropertiesArgs() >> [:]
+        _ * buildAction.startParameter >> startParameter
+    }
+
+    def "watching virtual file system is informed about watching the file system being #watchMode.description (VFS logging: #vfsLogging, watch logging: #watchLogging)"() {
         _ * startParameter.watchFileSystemMode >> watchMode
+        _ * startParameter.projectCacheDir >> null
         _ * startParameter.isWatchFileSystemDebugLogging() >> (watchLogging == WatchLogging.DEBUG)
         _ * startParameter.isVfsVerboseLogging() >> (vfsLogging == VfsLogging.VERBOSE)
-        _ * startParameter.isVfsDebugLogging() >> false
-
-        def runner = new FileSystemWatchingBuildActionRunner(buildOperationProgressEventEmitter, delegate)
 
         when:
         runner.run(buildAction, buildController)
+
         then:
         1 * watchingHandler.afterBuildStarted(watchMode, vfsLogging, watchLogging, buildOperationRunner) >> actuallyEnabled
 
@@ -95,5 +95,40 @@ class FileSystemWatchingBuildActionRunnerTest extends Specification {
         WatchMode.ENABLED  | VfsLogging.NORMAL  | WatchLogging.DEBUG  | true
         WatchMode.DISABLED | VfsLogging.NORMAL  | WatchLogging.NORMAL | false
         WatchMode.DISABLED | VfsLogging.NORMAL  | WatchLogging.DEBUG  | false
+    }
+
+    def "watching enabled by default is disabled when project cache dir is specified"() {
+        _ * startParameter.watchFileSystemMode >> WatchMode.DEFAULT
+        _ * startParameter.projectCacheDir >> Mock(File)
+
+        when:
+        runner.run(buildAction, buildController)
+
+        then:
+        1 * watchingHandler.afterBuildStarted(WatchMode.DISABLED, _, _, buildOperationRunner)
+
+        then:
+        1 * buildOperationProgressEventEmitter.emitNowForCurrent(_)
+
+        then:
+        1 * delegate.run(buildAction, buildController)
+
+        then:
+        1 * watchingHandler.beforeBuildFinished(WatchMode.DISABLED, _, _, buildOperationRunner, _)
+
+        then:
+        0 * _
+    }
+
+    def "fails when watching is enabled and project cache dir is specified"() {
+        _ * startParameter.watchFileSystemMode >> WatchMode.ENABLED
+        _ * startParameter.projectCacheDir >> Mock(File)
+
+        when:
+        runner.run(buildAction, buildController)
+
+        then:
+        def ex = thrown IllegalStateException
+        ex.message == "Enabling file system watching via --watch-fs (or via the org.gradle.vfs.watch property) with --project-cache-dir also specified is not supported; remove either option to fix this problem"
     }
 }

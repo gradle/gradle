@@ -17,6 +17,7 @@
 package org.gradle.configurationcache.fingerprint
 
 import com.google.common.collect.Sets.newConcurrentHashSet
+import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.execution.internal.TaskInputsListener
@@ -120,7 +121,11 @@ class ConfigurationCacheFingerprintWriter(
         ignoreValueSources = true
     }
 
-    override fun onDynamicVersionSelection(requested: ModuleComponentSelector, expiry: Expiry) {
+    override fun onDynamicVersionSelection(requested: ModuleComponentSelector, expiry: Expiry, versions: Set<ModuleVersionIdentifier>) {
+        // Only consider repositories serving at least one version of the requested module.
+        // This is meant to avoid repetitively expiring cache entries due to a 404 response for the requested module metadata
+        // from one of the configured repositories.
+        if (versions.isEmpty()) return
         val expireAt = host.buildStartTime + expiry.keepFor.toMillis()
         onChangingValue(ConfigurationCacheFingerprint.DynamicDependencyVersion(requested.displayName, expireAt))
     }

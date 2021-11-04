@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal.tasks.execution;
 
-import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.properties.CacheableOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec;
+import org.gradle.api.internal.tasks.properties.TaskProperties;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingDisabledReasonCategory;
 import org.gradle.internal.execution.history.OverlappingOutputs;
@@ -43,9 +43,8 @@ public class DefaultTaskCacheabilityResolver implements TaskCacheabilityResolver
 
     @Override
     public Optional<CachingDisabledReason> shouldDisableCaching(
-        boolean hasDeclaredOutputs,
-        ImmutableSortedSet<OutputFilePropertySpec> outputFileProperties,
         TaskInternal task,
+        TaskProperties taskProperties,
         Collection<SelfDescribingSpec<TaskInternal>> cacheIfSpecs,
         Collection<SelfDescribingSpec<TaskInternal>> doNotCacheIfSpecs,
         @Nullable OverlappingOutputs overlappingOutputs
@@ -64,7 +63,7 @@ public class DefaultTaskCacheabilityResolver implements TaskCacheabilityResolver
             return Optional.of(CACHING_NOT_ENABLED);
         }
 
-        if (!hasDeclaredOutputs) {
+        if (!taskProperties.hasDeclaredOutputs()) {
             return Optional.of(NO_OUTPUTS_DECLARED);
         }
 
@@ -74,7 +73,12 @@ public class DefaultTaskCacheabilityResolver implements TaskCacheabilityResolver
                 "Gradle does not know how file '" + relativePath + "' was created (output property '" + overlappingOutputs.getPropertyName() + "'). Task output caching requires exclusive access to output paths to guarantee correctness (i.e. multiple tasks are not allowed to produce output in the same location)."));
         }
 
-        for (OutputFilePropertySpec spec : outputFileProperties) {
+        Optional<String> reasonNotToTrackState = task.getReasonNotToTrackState();
+        if (reasonNotToTrackState.isPresent()) {
+            return Optional.of(new CachingDisabledReason(CachingDisabledReasonCategory.DISABLE_CONDITION_SATISFIED, "Task is untracked because: " + reasonNotToTrackState.get()));
+        }
+
+        for (OutputFilePropertySpec spec : taskProperties.getOutputFileProperties()) {
             if (!(spec instanceof CacheableOutputFilePropertySpec)) {
                 return Optional.of(new CachingDisabledReason(
                     CachingDisabledReasonCategory.NON_CACHEABLE_OUTPUT,

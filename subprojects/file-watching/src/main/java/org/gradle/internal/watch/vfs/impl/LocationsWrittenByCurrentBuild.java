@@ -16,15 +16,13 @@
 
 package org.gradle.internal.watch.vfs.impl;
 
-import org.gradle.internal.file.DefaultFileHierarchySet;
 import org.gradle.internal.file.FileHierarchySet;
 import org.gradle.internal.vfs.FileSystemAccess;
 
-import java.io.File;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class LocationsWrittenByCurrentBuild implements FileSystemAccess.WriteListener {
-    private final AtomicReference<FileHierarchySet> producedByCurrentBuild = new AtomicReference<>(DefaultFileHierarchySet.of());
+    private final AtomicReference<FileHierarchySet> producedByCurrentBuild = new AtomicReference<>(FileHierarchySet.empty());
     private volatile boolean buildRunning;
 
     @Override
@@ -33,7 +31,7 @@ public class LocationsWrittenByCurrentBuild implements FileSystemAccess.WriteLis
             producedByCurrentBuild.updateAndGet(currentValue -> {
                 FileHierarchySet newValue = currentValue;
                 for (String location : locations) {
-                    newValue = newValue.plus(new File(location));
+                    newValue = newValue.plus(location);
                 }
                 return newValue;
             });
@@ -45,12 +43,12 @@ public class LocationsWrittenByCurrentBuild implements FileSystemAccess.WriteLis
     }
 
     public void buildStarted() {
-        producedByCurrentBuild.set(DefaultFileHierarchySet.of());
+        producedByCurrentBuild.set(FileHierarchySet.empty());
         buildRunning = true;
     }
 
     public void buildFinished() {
         buildRunning = false;
-        producedByCurrentBuild.set(DefaultFileHierarchySet.of());
+        producedByCurrentBuild.set(FileHierarchySet.empty());
     }
 }

@@ -16,11 +16,12 @@
 
 package org.gradle.tooling.provider.model.internal
 
-import org.gradle.api.internal.GradleInternal
+
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.configuration.internal.UserCodeApplicationContext
+import org.gradle.internal.Describables
 import org.gradle.internal.Factory
 import org.gradle.internal.operations.BuildOperationContext
 import org.gradle.internal.operations.BuildOperationExecutor
@@ -68,43 +69,6 @@ class DefaultToolingModelBuilderRegistryTest extends Specification {
         0 * _
     }
 
-    def "wraps model builder in build operation and lock and code application context for all projects when target is build instance"() {
-        def builder1 = Mock(ToolingModelBuilder)
-        def builder2 = Mock(ToolingModelBuilder)
-        def application = Mock(UserCodeApplicationContext.Application)
-        def gradle = Stub(GradleInternal)
-        def project = Stub(ProjectInternal)
-
-        when:
-        registry.register(builder1)
-        registry.register(builder2)
-
-        then:
-        userCodeApplicationContext.current() >> application
-        0 * _
-
-        when:
-        def actualBuilder = registry.locateForClientOperation("model", false, gradle)
-
-        then:
-        builder1.canBuild("model") >> false
-        builder2.canBuild("model") >> true
-        0 * _
-
-        when:
-        def result = actualBuilder.build(null)
-
-        then:
-        result == "result"
-
-        and:
-        1 * buildOperationExecutor.call(_) >> { CallableBuildOperation operation -> operation.call(Stub(BuildOperationContext)) }
-        1 * projectStateRegistry.withMutableStateOfAllProjects(_) >> { Factory factory -> factory.create() }
-        1 * application.reapply(_) >> { Supplier supplier -> supplier.get() }
-        1 * builder2.buildAll("model", project) >> "result"
-        0 * _
-    }
-
     def "wraps model builder in build operation and lock and code application context for project when target is project"() {
         def builder1 = Mock(ToolingModelBuilder)
         def builder2 = Mock(ToolingModelBuilder)
@@ -121,11 +85,13 @@ class DefaultToolingModelBuilderRegistryTest extends Specification {
         0 * _
 
         when:
-        def actualBuilder = registry.locateForClientOperation("model", false, project)
+        def actualBuilder = registry.locateForClientOperation("model", false, projectState)
 
         then:
         builder1.canBuild("model") >> false
         builder2.canBuild("model") >> true
+        projectState.mutableModel >> project
+        projectState.displayName >> Describables.of("<project>")
 
         when:
         def result = actualBuilder.build(null)
@@ -135,7 +101,6 @@ class DefaultToolingModelBuilderRegistryTest extends Specification {
 
         and:
         1 * buildOperationExecutor.call(_) >> { CallableBuildOperation operation -> operation.call(Stub(BuildOperationContext)) }
-        1 * projectStateRegistry.stateFor(project) >> projectState
         1 * projectState.fromMutableState(_) >> { Function f -> f.apply(project) }
         1 * application.reapply(_) >> { Supplier supplier -> supplier.get() }
         1 * builder2.buildAll("model", project) >> "result"
@@ -181,7 +146,7 @@ class DefaultToolingModelBuilderRegistryTest extends Specification {
 
     def "fails when no parameterized builder is available for requested model"() {
         when:
-        registry.locateForClientOperation("model", true, Stub(ProjectInternal))
+        registry.locateForClientOperation("model", true, Stub(ProjectState))
 
         then:
         UnknownModelException e = thrown()
@@ -201,7 +166,7 @@ class DefaultToolingModelBuilderRegistryTest extends Specification {
         builder2.canBuild("model") >> true
 
         when:
-        registry.locateForClientOperation("model", true, Stub(ProjectInternal))
+        registry.locateForClientOperation("model", true, Stub(ProjectState))
 
         then:
         UnknownModelException e = thrown()
@@ -210,17 +175,19 @@ class DefaultToolingModelBuilderRegistryTest extends Specification {
 
     def "wraps parameterized model builder in build operation and all project lock"() {
         def builder = Mock(ParameterizedToolingModelBuilder)
-        def gradle = Stub(GradleInternal)
         def project = Stub(ProjectInternal)
+        def projectState = Mock(ProjectState)
 
         given:
         registry.register(builder)
 
         and:
         builder.canBuild("model") >> true
+        projectState.mutableModel >> project
+        projectState.displayName >> Describables.of("<project>")
 
         expect:
-        def actualBuilder = registry.locateForClientOperation("model", true, gradle)
+        def actualBuilder = registry.locateForClientOperation("model", true, projectState)
 
         when:
         def result = actualBuilder.build("param")
@@ -230,7 +197,7 @@ class DefaultToolingModelBuilderRegistryTest extends Specification {
 
         and:
         1 * buildOperationExecutor.call(_) >> { CallableBuildOperation operation -> operation.call(Stub(BuildOperationContext)) }
-        1 * projectStateRegistry.withMutableStateOfAllProjects(_) >> { Factory factory -> factory.create() }
+        1 * projectState.fromMutableState(_) >> { Function factory -> factory.apply(project) }
         1 * builder.buildAll("model", "param", project) >> "result"
         0 * _
     }

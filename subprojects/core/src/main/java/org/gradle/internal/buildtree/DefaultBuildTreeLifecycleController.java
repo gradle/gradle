@@ -18,45 +18,47 @@ package org.gradle.internal.buildtree;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.composite.internal.IncludedBuildTaskGraph;
-import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.internal.build.BuildLifecycleController;
+import org.gradle.internal.build.BuildToolingModelAction;
 import org.gradle.internal.build.ExecutionResult;
+import org.gradle.internal.build.StateTransitionController;
 
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleController {
-    private boolean completed;
+    private enum State implements StateTransitionController.State {
+        NotStarted, Complete
+    }
+
+    private final StateTransitionController<State> state = new StateTransitionController<>(State.NotStarted);
     private final BuildLifecycleController buildLifecycleController;
     private final IncludedBuildTaskGraph taskGraph;
     private final BuildTreeWorkPreparer workPreparer;
     private final BuildTreeWorkExecutor workExecutor;
     private final BuildTreeModelCreator modelCreator;
     private final BuildTreeFinishExecutor finishExecutor;
-    private final ExceptionAnalyser exceptionAnalyser;
 
-    public DefaultBuildTreeLifecycleController(BuildLifecycleController buildLifecycleController,
-                                               IncludedBuildTaskGraph taskGraph,
-                                               BuildTreeWorkPreparer workPreparer,
-                                               BuildTreeWorkExecutor workExecutor,
-                                               BuildTreeModelCreator modelCreator,
-                                               BuildTreeFinishExecutor finishExecutor,
-                                               ExceptionAnalyser exceptionAnalyser) {
+    public DefaultBuildTreeLifecycleController(
+        BuildLifecycleController buildLifecycleController,
+        IncludedBuildTaskGraph taskGraph,
+        BuildTreeWorkPreparer workPreparer,
+        BuildTreeWorkExecutor workExecutor,
+        BuildTreeModelCreator modelCreator,
+        BuildTreeFinishExecutor finishExecutor
+    ) {
         this.buildLifecycleController = buildLifecycleController;
         this.taskGraph = taskGraph;
         this.workPreparer = workPreparer;
         this.modelCreator = modelCreator;
         this.workExecutor = workExecutor;
         this.finishExecutor = finishExecutor;
-        this.exceptionAnalyser = exceptionAnalyser;
     }
 
     @Override
-    public GradleInternal getGradle() {
-        if (completed) {
-            throw new IllegalStateException("Cannot use Gradle object after build has finished.");
-        }
-        return buildLifecycleController.getGradle();
+    public void beforeBuild(Consumer<? super GradleInternal> action) {
+        state.inState(State.NotStarted, () -> action.accept(buildLifecycleController.getGradle()));
     }
 
     @Override
@@ -65,8 +67,9 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
     }
 
     @Override
-    public <T> T fromBuildModel(boolean runTasks, Function<? super GradleInternal, T> action) {
+    public <T> T fromBuildModel(boolean runTasks, BuildToolingModelAction<? extends T> action) {
         return runBuild(() -> {
+            modelCreator.beforeTasks(action);
             if (runTasks) {
                 ExecutionResult<Void> result = doScheduleAndRunTasks();
                 if (!result.getFailures().isEmpty()) {
@@ -94,26 +97,20 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
     }
 
     private <T> T runBuild(Supplier<ExecutionResult<? extends T>> action) {
-        if (completed) {
-            throw new IllegalStateException("Cannot run more than one action for this build.");
-        }
-        completed = true;
+        return state.transition(State.NotStarted, State.Complete, () -> {
+            ExecutionResult<? extends T> result;
+            try {
+                result = action.get();
+            } catch (Throwable t) {
+                result = ExecutionResult.failed(t);
+            }
 
-        ExecutionResult<? extends T> result;
-        try {
-            result = action.get();
-        } catch (Throwable t) {
-            result = ExecutionResult.failed(t);
-        }
+            RuntimeException finalReportableFailure = finishExecutor.finishBuildTree(result.getFailures());
+            if (finalReportableFailure != null) {
+                throw finalReportableFailure;
+            }
 
-        ExecutionResult<Void> finishResult = finishExecutor.finishBuildTree(result.getFailures());
-        result = result.withFailures(finishResult);
-
-        RuntimeException finalReportableFailure = exceptionAnalyser.transform(result.getFailures());
-        if (finalReportableFailure != null) {
-            throw finalReportableFailure;
-        }
-
-        return result.getValue();
+            return result.getValue();
+        });
     }
 }

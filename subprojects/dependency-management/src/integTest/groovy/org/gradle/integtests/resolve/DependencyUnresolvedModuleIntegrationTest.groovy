@@ -26,7 +26,6 @@ import org.gradle.test.fixtures.maven.MavenRepository
 import org.gradle.test.fixtures.server.http.HttpResource
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 import static org.gradle.internal.resource.transport.http.JavaSystemPropertiesHttpTimeoutSettings.SOCKET_TIMEOUT_SYSTEM_PROPERTY
@@ -209,19 +208,23 @@ class DependencyUnresolvedModuleIntegrationTest extends AbstractHttpDependencyRe
         downloadedLibsDir.assertContainsDescendants('a-1.0.jar')
     }
 
-    @Ignore
+    @ToBeFixedForConfigurationCache
     def "skips subsequent dependency resolution if HTTP connection exceeds timeout"() {
         given:
         MavenHttpModule moduleB = publishMavenModule(mavenHttpRepo, 'b')
         MavenHttpModule moduleC = publishMavenModule(mavenHttpRepo, 'c')
+        def moduleD = mavenHttpRepo.module(GROUP_ID, 'd', VERSION).dependsOn(moduleA).publish()
+        def moduleE = mavenHttpRepo.module(GROUP_ID, 'e', VERSION).dependsOn(moduleB).dependsOn(moduleC).publish()
 
         buildFile << """
             ${mavenRepository(mavenHttpRepo)}
-            ${customConfigDependencyAssignment(moduleA, moduleB, moduleC)}
+            ${customConfigDependencyAssignment(moduleD, moduleE)}
             ${configSyncTask()}
         """
 
         when:
+        moduleD.pom.expectGet()
+        moduleE.pom.expectGet()
         moduleA.pom.expectGetBlocking()
         fails('resolve', '--max-workers=1')
 
@@ -366,7 +369,6 @@ class DependencyUnresolvedModuleIntegrationTest extends AbstractHttpDependencyRe
     private void assertDependencyListingReadTimeout(String group, String module, String version) {
         failure.assertHasCause("Could not resolve ${group}:${module}:${version}.")
         failure.assertHasCause("Failed to list versions for ${group}:${module}.")
-        failure.assertHasCause("Could not get resource '${mavenHttpRepo.uri.toString()}/${group}/${module}/maven-metadata.xml'.")
         failure.assertHasCause("Unable to load Maven meta-data from ${mavenHttpRepo.uri.toString()}/${group}/${module}/maven-metadata.xml.")
         failure.assertHasCause("Could not GET '${mavenHttpRepo.uri.toString()}/${group}/${module}/maven-metadata.xml'.")
         failure.assertHasCause("Read timed out")
@@ -375,7 +377,6 @@ class DependencyUnresolvedModuleIntegrationTest extends AbstractHttpDependencyRe
     private void assertDependencyListingInternalServerError(String group, String module, String version) {
         failure.assertHasCause("Could not resolve ${group}:${module}:${version}.")
         failure.assertHasCause("Failed to list versions for ${group}:${module}.")
-        failure.assertHasCause("Could not get resource '${mavenHttpRepo.uri.toString()}/${group}/${module}/maven-metadata.xml'.")
         failure.assertHasCause("Unable to load Maven meta-data from ${mavenHttpRepo.uri.toString()}/${group}/${module}/maven-metadata.xml.")
         failure.assertHasCause("Could not GET '${mavenHttpRepo.uri.toString()}/${group}/${module}/maven-metadata.xml'. Received status code 500 from server: broken")
     }
@@ -383,7 +384,6 @@ class DependencyUnresolvedModuleIntegrationTest extends AbstractHttpDependencyRe
     private void assertDependencyListingUnauthorizedError(String group, String module, String version) {
         failure.assertHasCause("Could not resolve ${group}:${module}:${version}.")
         failure.assertHasCause("Failed to list versions for ${group}:${module}.")
-        failure.assertHasCause("Could not get resource '${mavenHttpRepo.uri.toString()}/${group}/${module}/maven-metadata.xml'.")
         failure.assertHasCause("Unable to load Maven meta-data from ${mavenHttpRepo.uri.toString()}/${group}/${module}/maven-metadata.xml.")
         failure.assertHasCause("Could not GET '${mavenHttpRepo.uri.toString()}/${group}/${module}/maven-metadata.xml'. Received status code 401 from server: Unauthorized")
     }

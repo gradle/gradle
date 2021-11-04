@@ -16,21 +16,31 @@
 
 package org.gradle.composite.internal;
 
+import org.gradle.StartParameter;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.initialization.BuildCancellationToken;
+import org.gradle.internal.Actions;
 import org.gradle.internal.build.BuildLifecycleControllerFactory;
 import org.gradle.internal.build.BuildState;
+import org.gradle.internal.build.PublicBuildPath;
 import org.gradle.internal.build.RootBuildState;
 import org.gradle.internal.build.StandAloneNestedBuild;
 import org.gradle.internal.buildtree.BuildTreeState;
+import org.gradle.internal.buildtree.NestedBuildTree;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.session.CrossBuildSessionState;
+import org.gradle.plugin.management.internal.PluginRequests;
 import org.gradle.util.Path;
+
+import java.io.File;
+
+import static org.gradle.api.internal.SettingsInternal.BUILD_SRC;
 
 @ServiceScope(Scopes.BuildTree.class)
 public class BuildStateFactory {
@@ -42,13 +52,15 @@ public class BuildStateFactory {
     private final BuildCancellationToken buildCancellationToken;
     private final ProjectStateRegistry projectStateRegistry;
 
-    public BuildStateFactory(BuildTreeState buildTreeState,
-                             BuildLifecycleControllerFactory buildLifecycleControllerFactory,
-                             ListenerManager listenerManager,
-                             GradleUserHomeScopeServiceRegistry userHomeDirServiceRegistry,
-                             CrossBuildSessionState crossBuildSessionState,
-                             BuildCancellationToken buildCancellationToken,
-                             ProjectStateRegistry projectStateRegistry) {
+    public BuildStateFactory(
+        BuildTreeState buildTreeState,
+        BuildLifecycleControllerFactory buildLifecycleControllerFactory,
+        ListenerManager listenerManager,
+        GradleUserHomeScopeServiceRegistry userHomeDirServiceRegistry,
+        CrossBuildSessionState crossBuildSessionState,
+        BuildCancellationToken buildCancellationToken,
+        ProjectStateRegistry projectStateRegistry
+    ) {
         this.buildTreeState = buildTreeState;
         this.buildLifecycleControllerFactory = buildLifecycleControllerFactory;
         this.listenerManager = listenerManager;
@@ -63,13 +75,45 @@ public class BuildStateFactory {
     }
 
     public StandAloneNestedBuild createNestedBuild(BuildIdentifier buildIdentifier, Path identityPath, BuildDefinition buildDefinition, BuildState owner) {
-        return new DefaultNestedBuild(buildIdentifier, identityPath, buildDefinition, owner, buildTreeState, buildLifecycleControllerFactory, projectStateRegistry);
+        DefaultNestedBuild build = new DefaultNestedBuild(buildIdentifier, identityPath, buildDefinition, owner, buildTreeState, buildLifecycleControllerFactory, projectStateRegistry);
+        // Expose any contributions from the parent's settings
+        build.getMutableModel().setClassLoaderScope(() -> owner.getMutableModel().getSettings().getClassLoaderScope());
+        return build;
     }
 
-    public RootOfNestedBuildTree createNestedTree(BuildDefinition buildDefinition,
-                                                  BuildIdentifier buildIdentifier,
-                                                  Path identityPath,
-                                                  BuildState owner) {
-        return new RootOfNestedBuildTree(buildDefinition, buildIdentifier, identityPath, owner, userHomeDirServiceRegistry, crossBuildSessionState, buildCancellationToken);
+    public NestedBuildTree createNestedTree(
+        BuildDefinition buildDefinition,
+        BuildIdentifier buildIdentifier,
+        Path identityPath,
+        BuildState owner
+    ) {
+        return new DefaultNestedBuildTree(buildDefinition, buildIdentifier, identityPath, owner, userHomeDirServiceRegistry, crossBuildSessionState, buildCancellationToken);
+    }
+
+    public BuildDefinition buildDefinitionFor(File buildSrcDir, BuildState owner) {
+        PublicBuildPath publicBuildPath = owner.getMutableModel().getServices().get(PublicBuildPath.class);
+        StartParameterInternal buildSrcStartParameter = buildSrcStartParameterFor(buildSrcDir, owner.getMutableModel().getStartParameter());
+        BuildDefinition buildDefinition = BuildDefinition.fromStartParameterForBuild(
+            buildSrcStartParameter,
+            BUILD_SRC,
+            buildSrcDir,
+            PluginRequests.EMPTY,
+            Actions.doNothing(),
+            publicBuildPath,
+            true
+        );
+        @SuppressWarnings("deprecation")
+        File customBuildFile = buildSrcStartParameter.getBuildFile();
+        assert customBuildFile == null;
+        return buildDefinition;
+    }
+
+    private StartParameterInternal buildSrcStartParameterFor(File buildSrcDir, StartParameter containingBuildParameters) {
+        final StartParameterInternal buildSrcStartParameter = (StartParameterInternal) containingBuildParameters.newBuild();
+        buildSrcStartParameter.setCurrentDir(buildSrcDir);
+        buildSrcStartParameter.setProjectProperties(containingBuildParameters.getProjectProperties());
+        buildSrcStartParameter.doNotSearchUpwards();
+        buildSrcStartParameter.setProfile(containingBuildParameters.isProfile());
+        return buildSrcStartParameter;
     }
 }

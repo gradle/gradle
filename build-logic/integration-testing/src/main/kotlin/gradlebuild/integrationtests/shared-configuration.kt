@@ -22,7 +22,7 @@ import gradlebuild.basics.repoRoot
 import gradlebuild.integrationtests.extension.IntegrationTestExtension
 import gradlebuild.integrationtests.tasks.IntegrationTest
 import gradlebuild.modules.extension.ExternalModulesExtension
-import gradlebuild.testing.TestType
+import gradlebuild.basics.testing.TestType
 import gradlebuild.testing.services.BuildBucketProvider
 import org.gradle.api.Action
 import org.gradle.api.Project

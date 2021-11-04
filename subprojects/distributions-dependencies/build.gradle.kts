@@ -11,8 +11,8 @@ plugins {
     id("gradlebuild.platform")
 }
 
-val antVersion = "1.10.9"
-val archunitVersion = "0.20.0"
+val antVersion = "1.10.11"
+val archunitVersion = "0.20.1"
 val asmVersion = "9.1"
 val awsS3Version = "1.11.948"
 val bouncycastleVersion = "1.68"
@@ -21,7 +21,7 @@ val jacksonVersion = "2.12.1"
 val jaxbVersion = "3.0.0"
 val jettyVersion = "9.4.36.v20210114"
 val mavenVersion = "3.6.3"
-val nativePlatformVersion = "0.22-milestone-20"
+val nativePlatformVersion = "0.22-milestone-21"
 val slf4jVersion = "1.7.30"
 val sshdVersion = "2.0.0" // Upgrade requires changes in package names and tests fail on expectations (but work otherwise)
 val tomljVersion = "1.0.0"
@@ -30,7 +30,7 @@ val bytebuddyVersion = "1.10.20"
 
 dependencies {
     constraints {
-        api(libs.ansiControlSequenceUtil) { version { strictly("0.2") }}
+        api(libs.ansiControlSequenceUtil) { version { strictly("0.3") }}
         api(libs.ant)                   { version { strictly(antVersion) }}
         api(libs.antLauncher)           { version { strictly(antVersion) }}
         api(libs.asm)                   { version { strictly(asmVersion) }}
@@ -43,14 +43,16 @@ dependencies {
         api(libs.awsS3S3)               { version { strictly(awsS3Version) }}
         api(libs.awsS3Sts)              { version { strictly(awsS3Version) }}
         api(libs.bouncycastlePgp)       { version { strictly(bouncycastleVersion) }}
-        api(libs.bouncycastlePkix)       { version { strictly(bouncycastleVersion) }}
+        api(libs.bouncycastlePkix)      { version { strictly(bouncycastleVersion) }}
         api(libs.bouncycastleProvider)  { version { strictly(bouncycastleVersion) }}
         api(libs.bsh)                   { version { strictly("2.0b6") }}
+        api(libs.capsule)               { version { strictly("0.6.3") }}
         api(libs.commonsCodec)          { version { strictly("1.15") }}
-        api(libs.commonsCompress)       { version { strictly("1.20") }}
+        api(libs.commonsCompress)       { version { strictly("1.21") }}
         api(libs.commonsHttpclient)     { version { strictly("4.5.13") }}
         api(libs.commonsIo)             { version { strictly("2.6") }}
         api(libs.commonsLang)           { version { strictly("2.6") }}
+        api(libs.commonsLang3)          { version { strictly("3.12.0") }}
         api(libs.commonsMath)           { version { strictly("3.6.1") }}
         api(libs.fastutil)              { version { strictly("8.5.2") }}
         api(libs.gcs)                   { version { strictly("v1-rev171-1.25.0") }}
@@ -58,7 +60,7 @@ dependencies {
         api(libs.googleHttpClient)      { version { strictly(googleApiVersion); because("our GCS version requires 1.25.0") }}
         api(libs.googleHttpClientJackson2) { version { strictly(googleApiVersion); because("our GCS version requires 1.25.0") }}
         api(libs.googleOauthClient)     { version { strictly(googleApiVersion); because("our GCS version requires 1.25.0") }}
-        api(libs.gradleProfiler)        { version { strictly("0.17.0-alpha07") }}
+        api(libs.gradleProfiler)        { version { strictly("0.17.0-alpha10") }}
         api(libs.groovy)                { version { strictly(libs.groovyVersion) }}
         api(libs.groovyAnt)             { version { strictly(libs.groovyVersion) }}
         api(libs.groovyAstbuilder)      { version { strictly(libs.groovyVersion) }}
@@ -144,7 +146,6 @@ dependencies {
         api(libs.bytebuddyAgent)        { version { strictly(bytebuddyVersion) }}
         api(libs.cglib)                 { version { strictly("3.2.6") }}
         api(libs.equalsverifier)        { version { strictly("2.1.6") }}
-        api(libs.flightrecorder)        { version { strictly("7.0.0-alpha01") }}
         api(libs.guice)                 { version { strictly("4.2.3") }}
         api(libs.httpmime)              { version { strictly("4.5.10") }}
         api(libs.jacksonKotlin)         { version { strictly("2.9.2") }}
@@ -154,15 +155,15 @@ dependencies {
         api(libs.jettyWebApp)           { version { strictly(jettyVersion) }}
         api(libs.jsoup)                 { version { strictly("1.11.3") }}
         api(libs.jtar)                  { version { strictly("2.3") }}
-        api(libs.kotlinCoroutines)      { version { strictly("1.4.1") }}
-        api(libs.kotlinCoroutinesDebug) { version { strictly("1.4.1") }}
-        api(libs.littleproxy)           { version { strictly("1.1.3"); because("latest officially released version is incompatible with Guava >= 20") }}
+        api(libs.kotlinCoroutines)      { version { strictly("1.5.2") }}
+        api(libs.kotlinCoroutinesDebug) { version { strictly("1.5.2") }}
+        api(libs.littleproxy)           { version { strictly("2.0.5") }}
         api(libs.mina)                  { version { strictly("2.0.17") }}
         api(libs.mockitoCore)           { version { strictly("3.7.7") }}
         api(libs.mockitoKotlin)         { version { strictly("1.6.0") }}
         api(libs.mockitoKotlin2)        { version { strictly("2.2.0") }}
         api(libs.mySqlConnector)        { version { strictly("8.0.17") }}
-        api(libs.sampleCheck)           { version { strictly("0.12.6") }}
+        api(libs.samplesCheck)          { version { strictly("1.0.0") }}
         api(libs.snappy)                { version { strictly("0.4") }}
         api(libs.spock)                 { version { strictly("2.0-groovy-3.0") }}
         api(libs.spockJUnit4)           { version { strictly("2.0-groovy-3.0") }}

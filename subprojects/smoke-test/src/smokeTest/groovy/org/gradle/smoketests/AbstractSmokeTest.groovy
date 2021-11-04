@@ -34,9 +34,8 @@ import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
+import spock.lang.TempDir
 
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.createMirrorInitScript
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl
@@ -59,42 +58,45 @@ abstract class AbstractSmokeTest extends Specification {
          */
 
         // https://plugins.gradle.org/plugin/nebula.dependency-recommender
-        static nebulaDependencyRecommender = "10.0.1"
+        static nebulaDependencyRecommender = "11.0.0"
 
         // https://plugins.gradle.org/plugin/nebula.plugin-plugin
-        static nebulaPluginPlugin = "15.4.0"
+        static nebulaPluginPlugin = "16.0.1"
 
         // https://plugins.gradle.org/plugin/nebula.lint
-        static nebulaLint = "16.23.0"
+        static nebulaLint = "17.2.3"
+
+        // https://plugins.gradle.org/plugin/org.jetbrains.gradle.plugin.idea-ext
+        static ideaExt = "1.1"
 
         // https://plugins.gradle.org/plugin/nebula.dependency-lock
         // TODO: Re-add "8.8.x", "9.4.x" and "10.1.x" if fixed:
         //   https://github.com/nebula-plugins/gradle-dependency-lock-plugin/issues/215
-        static nebulaDependencyLock = Versions.of("11.2.0")
+        static nebulaDependencyLock = Versions.of("12.1.0")
 
         // https://plugins.gradle.org/plugin/nebula.resolution-rules
-        static nebulaResolutionRules = "7.8.7"
+        static nebulaResolutionRules = "9.0.0"
 
         // https://plugins.gradle.org/plugin/com.github.johnrengelman.shadow
-        static shadow = Versions.of("4.0.4", "6.0.0", "6.1.0", "7.0.0")
+        static shadow = Versions.of("4.0.4", "6.0.0", "6.1.0", "7.0.0", "7.1.0")
 
         // https://github.com/asciidoctor/asciidoctor-gradle-plugin/releases
         static asciidoctor = Versions.of("3.3.2")
 
         // https://plugins.gradle.org/plugin/com.github.spotbugs
-        static spotbugs = "4.7.1"
+        static spotbugs = "4.7.6"
 
         // https://plugins.gradle.org/plugin/com.bmuschko.docker-java-application
-        static docker = "7.0.0"
+        static docker = "7.1.0"
 
         // https://plugins.gradle.org/plugin/com.bmuschko.tomcat
-        static tomcat = "2.5"
+        static tomcat = "2.7.0"
 
         // https://plugins.gradle.org/plugin/io.spring.dependency-management
         static springDependencyManagement = "1.0.11.RELEASE"
 
         // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-gradle-plugin
-        static springBoot = "2.5.0"
+        static springBoot = "2.5.5"
 
         // https://developer.android.com/studio/releases/build-tools
         static androidTools = "30.0.2"
@@ -108,64 +110,64 @@ abstract class AbstractSmokeTest extends Specification {
         })
 
         // https://plugins.gradle.org/plugin/org.gretty
-        static gretty = "3.0.4"
+        static gretty = "3.0.6"
 
         // https://plugins.gradle.org/plugin/org.ajoberstar.grgit
         static grgit = "4.1.0"
 
         // https://plugins.gradle.org/plugin/com.github.ben-manes.versions
-        static gradleVersions = "0.38.0"
+        static gradleVersions = "0.39.0"
 
         // https://plugins.gradle.org/plugin/org.gradle.playframework
         static playframework = "0.12"
 
         // https://plugins.gradle.org/plugin/net.ltgt.errorprone
-        static errorProne = "2.0.1"
+        static errorProne = "2.0.2"
 
         // https://plugins.gradle.org/plugin/com.google.protobuf
-        static protobufPlugin = "0.8.16"
+        static protobufPlugin = "0.8.17"
         static protobufTools = "3.17.1"
 
         // https://plugins.gradle.org/plugin/org.gradle.test-retry
         static testRetryPlugin = "1.3.1"
 
         // https://plugins.gradle.org/plugin/com.jfrog.artifactory
-        static artifactoryPlugin = "4.21.0"
+        static artifactoryPlugin = "4.24.20"
         static artifactoryRepoOSSVersion = "6.16.0"
 
         // https://plugins.gradle.org/plugin/io.freefair.aspectj
-        static aspectj = "6.0.0-m2"
+        static aspectj = "6.2.0"
 
         // https://plugins.gradle.org/plugin/de.undercouch.download
-        static undercouchDownload = Versions.of("4.1.1")
+        static undercouchDownload = Versions.of("4.1.2")
 
         // https://github.com/micronaut-projects/micronaut-gradle-plugin/releases
-        static micronaut = Versions.of("1.5.0")
+        static micronaut = Versions.of("2.0.6")
 
         // https://plugins.gradle.org/plugin/com.gorylenko.gradle-git-properties
         static gradleGitProperties = Versions.of("2.3.1")
 
         // https://plugins.gradle.org/plugin/org.flywaydb.flyway
-        static flyway = Versions.of("7.9.1")
+        static flyway = Versions.of("8.0.0")
 
         // https://plugins.gradle.org/plugin/net.ltgt.apt
         static apt = Versions.of("0.21")
 
         // https://plugins.gradle.org/plugin/io.gitlab.arturbosch.detekt
-        static detekt = Versions.of("1.17.1")
+        static detekt = Versions.of("1.18.1")
 
         // https://plugins.gradle.org/plugin/com.diffplug.spotless
-        static spotless = Versions.of("5.12.5")
+        static spotless = Versions.of("5.16.0")
 
         // https://plugins.gradle.org/plugin/com.google.cloud.tools.jib
-        static jib = Versions.of("3.0.0")
+        static jib = Versions.of("3.1.4")
 
         // https://plugins.gradle.org/plugin/io.freefair.lombok
-        static lombok = Versions.of("6.0.0-m2")
+        static lombok = Versions.of("6.2.0")
 
         // https://plugins.gradle.org/plugin/org.jetbrains.kotlin.plugin.allopen
         // https://plugins.gradle.org/plugin/org.jetbrains.kotlin.plugin.spring
-        static kotlinPlugins = Versions.of("1.4.21-2", "1.4.31", "1.5.21")
+        static kotlinPlugins = Versions.of("1.4.21-2", "1.4.31", "1.5.31", "1.6.0-M1")
 
         // https://plugins.gradle.org/plugin/com.moowork.grunt
         // https://plugins.gradle.org/plugin/com.moowork.gulp
@@ -173,10 +175,10 @@ abstract class AbstractSmokeTest extends Specification {
         static node = Versions.of("1.3.1")
 
         // https://plugins.gradle.org/plugin/org.jlleitschuh.gradle.ktlint
-        static ktlint = Versions.of("10.0.0")
+        static ktlint = Versions.of("10.2.0")
 
         // https://plugins.gradle.org/plugin/com.github.node-gradle.node
-        static newNode = Versions.of("3.1.0")
+        static newNode = Versions.of("3.1.1")
     }
 
     static class Versions implements Iterable<String> {
@@ -206,15 +208,15 @@ abstract class AbstractSmokeTest extends Specification {
 
     private static final String INIT_SCRIPT_LOCATION = "org.gradle.smoketests.init.script"
 
-    @Rule
-    final TemporaryFolder testProjectDir = new TemporaryFolder()
+    @TempDir
+    File testProjectDir
     File buildFile
 
     File settingsFile
 
     def setup() {
-        buildFile = new File(testProjectDir.root, defaultBuildFileName)
-        settingsFile = new File(testProjectDir.root, "settings.gradle")
+        buildFile = new File(testProjectDir, defaultBuildFileName)
+        settingsFile = new File(testProjectDir, "settings.gradle")
     }
 
     protected String getDefaultBuildFileName() {
@@ -222,11 +224,11 @@ abstract class AbstractSmokeTest extends Specification {
     }
 
     void withKotlinBuildFile() {
-        buildFile = new File(testProjectDir.root, "${getDefaultBuildFileName()}.kts")
+        buildFile = new File(testProjectDir, "${getDefaultBuildFileName()}.kts")
     }
 
     TestFile file(String filename) {
-        def file = new TestFile(testProjectDir.root, filename)
+        def file = new TestFile(testProjectDir, filename)
         def parentDir = file.getParentFile()
         assert parentDir.isDirectory() || parentDir.mkdirs()
 
@@ -237,7 +239,7 @@ abstract class AbstractSmokeTest extends Specification {
         def gradleRunner = GradleRunner.create()
             .withGradleInstallation(IntegrationTestBuildContext.INSTANCE.gradleHomeDir)
             .withTestKitDir(IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir)
-            .withProjectDir(testProjectDir.root)
+            .withProjectDir(testProjectDir)
             .forwardOutput()
             .withArguments(
                 tasks.toList() + outputParameters() + repoMirrorParameters() + configurationCacheParameters()
@@ -309,7 +311,7 @@ abstract class AbstractSmokeTest extends Specification {
 
     protected void useSample(String sampleDirectory) {
         def smokeTestDirectory = new File(this.getClass().getResource(sampleDirectory).toURI())
-        FileUtils.copyDirectory(smokeTestDirectory, testProjectDir.root)
+        FileUtils.copyDirectory(smokeTestDirectory, testProjectDir)
     }
 
     protected SmokeTestGradleRunner useAgpVersion(String agpVersion, SmokeTestGradleRunner runner) {

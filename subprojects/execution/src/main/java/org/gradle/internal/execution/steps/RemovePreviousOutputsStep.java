@@ -69,7 +69,7 @@ public class RemovePreviousOutputsStep<C extends InputChangesContext, R extends 
     }
 
     private void cleanupOverlappingOutputs(BeforeExecutionContext context, UnitOfWork work) {
-        context.getAfterPreviousExecutionState().ifPresent(previousOutputs -> {
+        context.getPreviousExecutionState().ifPresent(previousOutputs -> {
             Set<File> outputDirectoriesToPreserve = new HashSet<>();
             work.visitOutputs(context.getWorkspace(), new UnitOfWork.OutputVisitor() {
                 @Override

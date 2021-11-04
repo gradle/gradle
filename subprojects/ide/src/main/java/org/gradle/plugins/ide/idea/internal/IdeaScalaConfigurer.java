@@ -138,6 +138,9 @@ public class IdeaScalaConfigurer {
         if (runtime != null) {
             FileCollection scalaClasspath = runtime.inferScalaClasspath(files);
             File compilerJar = runtime.findScalaJar(scalaClasspath, "compiler");
+            if (compilerJar == null) {
+                compilerJar = runtime.findScalaJar(scalaClasspath, "compiler_3");
+            }
             String scalaVersion = compilerJar != null ? runtime.getScalaVersion(compilerJar) : DEFAULT_SCALA_PLATFORM_VERSION;
             return createScalaSdkFromScalaVersion(scalaVersion, scalaClasspath, useScalaSdk);
         } else {

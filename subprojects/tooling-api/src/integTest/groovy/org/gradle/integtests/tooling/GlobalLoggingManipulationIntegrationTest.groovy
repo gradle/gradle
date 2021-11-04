@@ -41,6 +41,7 @@ class GlobalLoggingManipulationIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         toolingApi.requireIsolatedToolingApi()
         sync.start()
+        settingsFile.touch()
     }
 
     def cleanup() {

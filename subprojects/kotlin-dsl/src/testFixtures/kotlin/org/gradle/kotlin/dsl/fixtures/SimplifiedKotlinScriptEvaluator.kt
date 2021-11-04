@@ -23,6 +23,7 @@ import org.gradle.api.internal.file.temp.GradleUserHomeTemporaryFileProvider
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.configuration.DefaultImportsReader
 import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.internal.Describables
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
@@ -131,7 +132,7 @@ class SimplifiedKotlinScriptEvaluator(
     private
     fun scriptSourceFor(script: String): ScriptSource = mock {
         on { fileName } doReturn "script.gradle.kts"
-        on { displayName } doReturn "<test script>"
+        on { shortDisplayName } doReturn Describables.of("<test script>")
         on { resource } doReturn StringTextResource("<test script>", script)
     }
 

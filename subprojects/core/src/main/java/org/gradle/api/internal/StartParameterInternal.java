@@ -23,16 +23,7 @@ import org.gradle.internal.buildoption.BuildOption;
 import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.watch.vfs.WatchMode;
 
-import javax.annotation.Nullable;
 import java.io.File;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-
-import static com.google.common.collect.Lists.newArrayList;
-import static com.google.common.collect.Sets.newLinkedHashSet;
-import static org.gradle.api.internal.SettingsInternal.BUILD_SRC;
-import static org.gradle.internal.Cast.uncheckedCast;
 
 public class StartParameterInternal extends StartParameter {
     private WatchMode watchFileSystemMode = WatchMode.DEFAULT;
@@ -91,7 +82,7 @@ public class StartParameterInternal extends StartParameter {
     }
 
     public boolean isSearchUpwards() {
-        return searchUpwards && !useLocationAsProjectRoot(getProjectDir(), getTaskNames());
+        return searchUpwards;
     }
 
     public void doNotSearchUpwards() {
@@ -189,30 +180,5 @@ public class StartParameterInternal extends StartParameter {
 
     public void setConfigurationCacheQuiet(boolean configurationCacheQuiet) {
         this.configurationCacheQuiet = configurationCacheQuiet;
-    }
-
-    public boolean addTaskNames(Iterable<String> taskPaths) {
-        Set<String> allTasks = newLinkedHashSet(getTaskNames());
-        boolean added = allTasks.addAll(
-            taskPaths instanceof Collection
-                ? uncheckedCast(taskPaths)
-                : newArrayList(taskPaths)
-        );
-        if (added) {
-            setTaskNames(allTasks);
-        }
-        return added;
-    }
-
-    /**
-     * The following special behavior wrt. how the build root is discovered, is implemented:
-     * - If the current folder is called 'buildSrc', we do not search upwards for a settings file
-     * - If the build runs the 'init' task, we do not search upwards for a settings file
-     *
-     * This has an influence on deciding which 'gradle.properties' to load (in the launcher) and which 'settings.gradle(.kts)' to use (in the daemon)
-     */
-    public static boolean useLocationAsProjectRoot(@Nullable File potentialProjectLocation, List<String> requestedTaskNames) {
-        return requestedTaskNames.contains("init")
-            || potentialProjectLocation != null && potentialProjectLocation.getName().equals(BUILD_SRC);
     }
 }

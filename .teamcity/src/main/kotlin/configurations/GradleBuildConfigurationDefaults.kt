@@ -70,15 +70,15 @@ fun BuildFeatures.publishBuildStatusToGithub(model: CIBuildModel) {
     }
 }
 
-fun BuildFeatures.triggeredOnPullRequests() {
+fun BuildFeatures.triggeredOnPullRequests(model: CIBuildModel) {
     pullRequests {
-        vcsRootExtId = "GradleMaster"
+        vcsRootExtId = "Gradle_Branches_GradlePersonalBranches"
         provider = github {
             authType = token {
                 token = "%github.bot-gradle.token%"
             }
             filterAuthorRole = PullRequests.GitHubRoleFilter.MEMBER
-            filterTargetBranch = branchesFilterExcluding()
+            filterTargetBranch = model.branch.branchFilter()
         }
     }
 }
@@ -217,15 +217,15 @@ fun applyDefaultDependencies(model: CIBuildModel, buildType: BuildType, notQuick
         buildType.dependencies {
             dependency(RelativeId(stageTriggerId(model, StageNames.QUICK_FEEDBACK_LINUX_ONLY))) {
                 snapshot {
-                    onDependencyFailure = FailureAction.CANCEL
-                    onDependencyCancel = FailureAction.CANCEL
+                    onDependencyFailure = FailureAction.FAIL_TO_START
+                    onDependencyCancel = FailureAction.FAIL_TO_START
                 }
             }
         }
     }
-    if (buildType !is CompileAll) {
+    if (buildType !is CompileAllProduction) {
         buildType.dependencies {
-            compileAllDependency(CompileAll.buildTypeId(model))
+            compileAllDependency(CompileAllProduction.buildTypeId(model))
         }
     }
 }

@@ -22,7 +22,6 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.util.GradleVersion
-import org.gradle.testkit.runner.GradleRunner
 
 class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
 
@@ -39,11 +38,11 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
         def androidPluginVersion = AGP_VERSIONS.getLatestOfMinor("4.2")
         def arch = OperatingSystem.current().macOsX ? 'MacosX64' : 'LinuxX64'
 
-        def expectedMetadata = new File(testProjectDir.root, 'expected-metadata')
-        def actualRepo = new File(testProjectDir.root, 'producer/repo')
+        def expectedMetadata = new File(testProjectDir, 'expected-metadata')
+        def actualRepo = new File(testProjectDir, 'producer/repo')
 
         when:
-        buildFile = new File(testProjectDir.root, "producer/${defaultBuildFileName}.kts")
+        buildFile = new File(testProjectDir, "producer/${defaultBuildFileName}.kts")
         replaceVariablesInBuildFile(
             kotlinVersion: kotlinVersion,
             androidPluginVersion: androidPluginVersion)
@@ -61,7 +60,7 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
         }
 
         when:
-        buildFile = new File(testProjectDir.root, "consumer/${defaultBuildFileName}.kts")
+        buildFile = new File(testProjectDir, "consumer/${defaultBuildFileName}.kts")
         replaceVariablesInBuildFile(
             kotlinVersion: kotlinVersion,
             androidPluginVersion: androidPluginVersion)
@@ -118,19 +117,21 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
         result.output.split('\n').findAll { !it.empty && !it.toLowerCase().contains('warning') }
     }
 
-    private GradleRunner setIllegalAccessPermitForJDK16KotlinCompilerDaemonOptions(GradleRunner runner) {
+    private static SmokeTestGradleRunner setIllegalAccessPermitForJDK16KotlinCompilerDaemonOptions(SmokeTestGradleRunner runner) {
         if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_16)) {
             // https://youtrack.jetbrains.com/issue/KT-44266#focus=Comments-27-4639508.0-0
-            runner.withJvmArguments("--illegal-access=permit", "-Dkotlin.daemon.jvm.options=--illegal-access=permit")
+            runner.withJvmArguments("-Dkotlin.daemon.jvm.options=" +
+                "--add-exports=java.base/sun.nio.ch=ALL-UNNAMED," +
+                "--add-opens=java.base/java.util=ALL-UNNAMED")
         }
         return runner
     }
 
     private BuildResult publish() {
         setIllegalAccessPermitForJDK16KotlinCompilerDaemonOptions(runner('publish'))
-            .withProjectDir(new File(testProjectDir.root, 'producer'))
+            .withProjectDir(new File(testProjectDir, 'producer'))
             .forwardOutput()
-            // this deprecation is coming from the Kotlin plugin
+        // this deprecation is coming from the Kotlin plugin
             .expectDeprecationWarning("The AbstractCompile.destinationDir property has been deprecated. " +
                 "This is scheduled to be removed in Gradle 8.0. " +
                 "Please use the destinationDirectory property instead. " +
@@ -141,7 +142,7 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
 
     private BuildResult consumer(String runTask) {
         setIllegalAccessPermitForJDK16KotlinCompilerDaemonOptions(runner(runTask, '-q'))
-            .withProjectDir(new File(testProjectDir.root, 'consumer'))
+            .withProjectDir(new File(testProjectDir, 'consumer'))
             .forwardOutput()
             .build()
     }
@@ -149,7 +150,7 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
     // Reevaluate if this is still needed when upgrading android plugin. Currently required with version 4.2.2
     private BuildResult consumerWithJdk16WorkaroundForAndroidManifest(String runTask) {
         def runner = runner(runTask, '-q')
-            .withProjectDir(new File(testProjectDir.root, 'consumer'))
+            .withProjectDir(new File(testProjectDir, 'consumer'))
             .forwardOutput()
         if (JavaVersion.current().isJava9Compatible()) {
             runner.withJvmArguments("--add-opens", "java.base/java.io=ALL-UNNAMED")

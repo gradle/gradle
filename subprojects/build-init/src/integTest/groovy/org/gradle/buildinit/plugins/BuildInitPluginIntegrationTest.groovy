@@ -16,6 +16,7 @@
 package org.gradle.buildinit.plugins
 
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
+import org.gradle.buildinit.plugins.internal.BuildScriptBuilder
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.hamcrest.Matcher
@@ -45,6 +46,7 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
     @Unroll
     def "creates a simple project with #scriptDsl build scripts when no pom file present and no type specified"() {
         given:
+        useTestDirectoryThatIsNotEmbeddedInAnotherBuild()
         def dslFixture = ScriptDslFixture.of(scriptDsl, targetDir, null)
 
         when:
@@ -58,6 +60,32 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
             allOf(
                 containsString("This is a general purpose Gradle build"),
                 containsString("Learn more about Gradle by exploring our samples at")))
+
+        expect:
+        succeeds 'help'
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
+    }
+
+    @Unroll
+    def "creates a simple project with #scriptDsl build scripts when no pom file present and no type specified which uses @Incubating APIs"() {
+        given:
+        useTestDirectoryThatIsNotEmbeddedInAnotherBuild()
+        def dslFixture = ScriptDslFixture.of(scriptDsl, targetDir, null)
+
+        when:
+        runInitWith scriptDsl, '--incubating'
+
+        then:
+        commonFilesGenerated(scriptDsl, dslFixture)
+
+        and:
+        dslFixture.buildFile.assertContents(
+            allOf(
+                containsString("This is a general purpose Gradle build"),
+                containsString("Learn more about Gradle by exploring our samples at"),
+                containsString(BuildScriptBuilder.getIncubatingApisWarning())))
 
         expect:
         succeeds 'help'
@@ -153,12 +181,12 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
 
         when:
         executer.usingSettingsFile(customSettings)
-        executer.expectDocumentedDeprecationWarning("Specifying custom settings file location has been deprecated. This is scheduled to be removed in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#configuring_custom_build_layout");
+        executer.expectDocumentedDeprecationWarning("Specifying custom settings file location has been deprecated. This is scheduled to be removed in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#configuring_custom_build_layout")
         runInitWith targetScriptDsl as BuildInitDsl
 
         then:
         result.assertTasksExecuted(":init")
-        outputContains("This Gradle project appears to be part of an existing multi-project Gradle build. Skipping build initialization.")
+        outputContains("The settings file '${customSettings.name}' already exists. Skipping build initialization.")
 
         and:
         !targetDslFixture.buildFile.exists()
@@ -264,6 +292,7 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
 
     def "displays all build types and modifiers in help command output"() {
         when:
+        targetDir.file("settings.gradle").touch()
         run('help', '--task', 'init')
 
         then:
@@ -272,6 +301,15 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
                Available values are:
                     groovy
                     kotlin
+
+     --incubating     Allow the generated build to use new features and APIs
+
+     --insecure-protocol     How to handle insecure URLs used for Maven Repositories.
+                             Available values are:
+                                  ALLOW
+                                  FAIL
+                                  UPGRADE
+                                  WARN
 
      --package     Set the package for source files.
 
@@ -307,35 +345,97 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
                      scala-library""")
     }
 
-    def "does not warn or fail when initializing inside another build"() {
-        given:
-        def sub = file("sub")
-        sub.mkdirs()
-        executer.inDirectory(sub)
-
+    def "can initialize in a directory that is under another build's root directory"() {
         when:
-        file("settings.gradle") << "rootProject.name = 'root'"
+        containerDir.file("settings.gradle") << "rootProject.name = 'root'"
 
         then:
         succeeds "init"
+        targetDir.file("settings.gradle").assertIsFile()
+        targetDir.file("build.gradle").assertIsFile()
     }
 
-    def "ignores gradle properties for existing build when initializing inside another project"() {
-        given:
-        def sub = file("sub")
-        sub.mkdirs()
-        executer.inDirectory(sub)
-
+    def "fails when initializing in a project directory of another build that contains a build script"() {
         when:
-        file("settings.gradle") << "rootProject.name = 'root'"
-        file("gradle.properties") << "org.gradle.jvmargs=-Xmx=BAD"
+        containerDir.file("settings.gradle") << """
+            rootProject.name = 'root'
+            include('${targetDir.name}')
+        """
+        targetDir.file("build.gradle") << """
+            // empty
+        """
+
+        then:
+        fails "init"
+        failure.assertHasDescription("Task 'init' not found in project ':some-thing'.")
+        targetDir.assertHasDescendants("build.gradle")
+    }
+
+    def "fails when initializing in a project directory of another build that does not contain a build script"() {
+        when:
+        containerDir.file("settings.gradle") << """
+            rootProject.name = 'root'
+            include('${targetDir.name}')
+        """
+
+        then:
+        fails "init"
+        failure.assertHasDescription("Task 'init' not found in project ':some-thing'.")
+        targetDir.listFiles().size() == 0 // Is still empty
+    }
+
+    def "warns when initializing in root project directory of another single project build that does not contain a build script"() {
+        when:
+        containerDir.file("settings.gradle") << """
+            rootProject.name = 'root'
+            rootProject.projectDir = file('${targetDir.name}')
+        """
 
         then:
         succeeds "init"
+        outputContains("The settings file '..${File.separatorChar}settings.gradle' already exists. Skipping build initialization.")
+        targetDir.list().size() == 0 // ensure nothing generated
     }
 
-    private ExecutionResult runInitWith(BuildInitDsl dsl) {
-        run 'init', '--dsl', dsl.id
+    def "can create build in user home directory"() {
+        when:
+        useTestDirectoryThatIsNotEmbeddedInAnotherBuild()
+        def dotGradleDir = targetDir.file('.gradle')
+        dotGradleDir.mkdirs()
+        def gradlePropertiesFile = dotGradleDir.file("gradle.properties").touch()
+        gradlePropertiesFile << """
+            foo=bar
+        """
+        def snapshot = gradlePropertiesFile.snapshot()
+        executer.withGradleUserHomeDir(dotGradleDir)
+        executer.withArguments("--project-cache-dir", dotGradleDir.path)
+
+        then:
+        succeeds "init"
+        targetDir.file("gradlew").assertIsFile()
+        targetDir.file("settings.gradle").assertIsFile()
+        targetDir.file("build.gradle").assertIsFile()
+        targetDir.file(".gradle/gradle.properties").assertHasNotChangedSince(snapshot)
+    }
+
+    def "can create build in user home directory when user home directory has custom name"() {
+        when:
+        useTestDirectoryThatIsNotEmbeddedInAnotherBuild()
+        def dotGradleDir = targetDir.file('.guh')
+        dotGradleDir.mkdirs()
+        executer.withGradleUserHomeDir(dotGradleDir)
+
+        then:
+        succeeds "init"
+        targetDir.file("gradlew").assertIsFile()
+        targetDir.file("settings.gradle").assertIsFile()
+        targetDir.file("build.gradle").assertIsFile()
+    }
+
+    private ExecutionResult runInitWith(BuildInitDsl dsl, String... initOptions) {
+        def tasks = ['init', '--dsl', dsl.id]
+        tasks.addAll(initOptions)
+        run tasks
     }
 
     private static pomValuesUsed(ScriptDslFixture dslFixture) {

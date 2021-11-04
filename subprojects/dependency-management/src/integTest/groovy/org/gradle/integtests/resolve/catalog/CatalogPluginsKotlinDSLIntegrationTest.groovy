@@ -192,14 +192,57 @@ dependencyResolutionManagement {
         outputContains message
     }
 
-    def "can apply a plugin declared in a catalog via buildscript"() {
-        String taskName = 'greet'
-        String message = 'Hello from plugin!'
-        String pluginId = 'com.acme.greeter'
+    def "can apply a plugin alias that has sub-accessors"() {
         String pluginVersion = '1.5'
-        def plugin = new PluginBuilder(file("greeter"))
-            .addPluginWithPrintlnTask(taskName, message, pluginId)
+        String firstLevelTask = 'greet'
+        String firstLevelPluginId = 'com.acme.greeter'
+        String secondLevelPluginTask = 'greet-second'
+        String secondLevelPluginId = 'com.acme.greeter.second'
+        new PluginBuilder(file("greeter"))
+            .addPluginWithPrintlnTask(firstLevelTask, 'Hello from first plugin!', firstLevelPluginId, "FirstPlugin")
+            .addPluginWithPrintlnTask(secondLevelPluginTask, 'Hello from second plugin!', secondLevelPluginId, "SecondPlugin")
             .publishAs("some", "artifact", pluginVersion, pluginPortal, executer)
+            .allowAll()
+
+        // We use the Groovy DSL for settings because that's not what we want to
+        // test and the setup would be more complicated with Kotlin
+        settingsFile << """
+dependencyResolutionManagement {
+    versionCatalogs {
+        libs {
+            alias("greeter").toPluginId("$firstLevelPluginId").version("$pluginVersion")
+            alias("greeter-second").toPluginId("$secondLevelPluginId").version("$pluginVersion")
+        }
+    }
+}"""
+        buildFile.renameTo(file('fixture.gradle'))
+        buildKotlinFile << """
+            plugins {
+                alias(libs.plugins.greeter)
+                alias(libs.plugins.greeter.second)
+            }
+        """
+
+        when:
+        succeeds(firstLevelTask, secondLevelPluginTask)
+
+        then:
+        outputContains 'Hello from first plugin!'
+        outputContains 'Hello from second plugin!'
+    }
+
+    def "can apply a plugin via buildscript and also sub-accessor plugin"() {
+        String pluginVersion = '1.5'
+        String firstPluginId = 'com.acme.greeter'
+        new PluginBuilder(file("greeter"))
+            .addPluginWithPrintlnTask('greet', 'Hello from first plugin!', firstPluginId, "FirstPlugin")
+            .publishAs("some", "artifact", pluginVersion, pluginPortal, executer)
+            .allowAll()
+        String secondPluginId = 'com.acme.greeter2'
+        new PluginBuilder(file("greeter-second"))
+            .addPluginWithPrintlnTask('greet2', 'Hello from second plugin!', secondPluginId, "SecondPlugin")
+            .publishAs("some", "artifact2", pluginVersion, pluginPortal, executer)
+            .allowAll()
 
         // We use the Groovy DSL for settings because that's not what we want to
         // test and the setup would be more complicated with Kotlin
@@ -208,6 +251,7 @@ dependencyResolutionManagement {
     versionCatalogs {
         libs {
             alias('greeter').to('some', 'artifact').version('1.5')
+            alias('greeter-second').to('some', 'artifact2').version('1.5')
         }
     }
 }"""
@@ -221,17 +265,18 @@ dependencyResolutionManagement {
                 }
                 dependencies {
                     classpath(libs.greeter)
+                    classpath(libs.greeter.second)
                 }
             }
-            apply<org.gradle.test.TestPlugin>()
+            apply<org.gradle.test.FirstPlugin>()
+            apply<org.gradle.test.SecondPlugin>()
         """
 
         when:
-        plugin.pluginModule.allowAll()
-        succeeds taskName
+        succeeds('greet', 'greet2')
 
         then:
-        outputContains message
-
+        outputContains 'Hello from first plugin!'
+        outputContains 'Hello from second plugin!'
     }
 }

@@ -16,11 +16,8 @@
 package org.gradle.api.internal.catalog;
 
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.cache.CacheRepository;
-import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
-import org.gradle.cache.internal.VersionStrategy;
-import org.gradle.initialization.layout.ProjectCacheDir;
+import org.gradle.cache.scopes.BuildTreeScopedCache;
 import org.gradle.internal.execution.workspace.WorkspaceProvider;
 import org.gradle.internal.execution.workspace.impl.DefaultImmutableWorkspaceProvider;
 import org.gradle.internal.file.FileAccessTimeJournal;
@@ -30,10 +27,10 @@ import java.io.Closeable;
 public class DependenciesAccessorsWorkspaceProvider implements WorkspaceProvider, Closeable {
     private final DefaultImmutableWorkspaceProvider delegate;
 
-    public DependenciesAccessorsWorkspaceProvider(ProjectCacheDir projectCacheDir, CacheScopeMapping cacheScopeMapping, CacheRepository cacheRepository, FileAccessTimeJournal fileAccessTimeJournal, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, StringInterner stringInterner) {
+    public DependenciesAccessorsWorkspaceProvider(BuildTreeScopedCache scopedCache, FileAccessTimeJournal fileAccessTimeJournal, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, StringInterner stringInterner) {
         this.delegate = DefaultImmutableWorkspaceProvider.withBuiltInHistory(
-            cacheRepository
-                .cache(cacheScopeMapping.getBaseDirectory(projectCacheDir.getDir(), "dependencies-accessors", VersionStrategy.CachePerVersion))
+            scopedCache
+                .cache("dependencies-accessors")
                 .withDisplayName("dependencies-accessors"),
             fileAccessTimeJournal,
             inMemoryCacheDecoratorFactory,

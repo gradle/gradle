@@ -31,7 +31,7 @@ public interface BuildTreeModelControllerServices {
      *     <li>{@link org.gradle.api.internal.BuildType}</li>
      *     <li>{@link BuildModelParameters}</li>
      *     <li>{@link BuildActionModelRequirements}</li>
-     * <ul>
+     * </ul>
      */
     Supplier servicesForBuildTree(BuildActionModelRequirements actionModelRequirements);
 

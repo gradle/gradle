@@ -16,16 +16,21 @@
 
 package org.gradle.configurationcache
 
-import org.gradle.api.internal.GradleInternal
+import org.gradle.internal.build.BuildToolingModelAction
 import org.gradle.internal.buildtree.BuildTreeModelCreator
-import java.util.function.Function
 
 
 class ConfigurationCacheAwareBuildTreeModelCreator(
     private val delegate: BuildTreeModelCreator,
     private val cache: BuildTreeConfigurationCache
 ) : BuildTreeModelCreator {
-    override fun <T : Any> fromBuildModel(action: Function<in GradleInternal, T>): T {
+    override fun <T : Any> beforeTasks(action: BuildToolingModelAction<out T>) {
+        cache.maybePrepareModel {
+            delegate.beforeTasks(action)
+        }
+    }
+
+    override fun <T : Any> fromBuildModel(action: BuildToolingModelAction<out T>): T {
         return cache.loadOrCreateModel {
             delegate.fromBuildModel(action)
         }

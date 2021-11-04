@@ -18,18 +18,19 @@ package org.gradle.internal.buildtree;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.internal.build.BuildToolingModelAction;
 
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
  * Controls the lifecycle of the build tree, allowing a single action to be run against the build tree.
  */
 public interface BuildTreeLifecycleController {
-
     /**
-     * @return The {@link org.gradle.api.internal.GradleInternal} object that represents the build invocation.
+     * Performs some setup of the mutable model, prior to any execution. Must be called prior to one of the other methods.
      */
-    GradleInternal getGradle();
+    void beforeBuild(Consumer<? super GradleInternal> action);
 
     /**
      * Runs the given action against an empty build model. Does not attempt to perform any configuration or run any tasks.
@@ -53,5 +54,5 @@ public interface BuildTreeLifecycleController {
      *
      * <p>Does not call the given action when task execution fails.
      */
-    <T> T fromBuildModel(boolean runTasks, Function<? super GradleInternal, T> action);
+    <T> T fromBuildModel(boolean runTasks, BuildToolingModelAction<? extends T> action);
 }

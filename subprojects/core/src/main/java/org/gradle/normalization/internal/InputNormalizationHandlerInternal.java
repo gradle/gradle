@@ -18,7 +18,33 @@ package org.gradle.normalization.internal;
 
 import org.gradle.normalization.InputNormalizationHandler;
 
+import javax.annotation.Nullable;
+
 public interface InputNormalizationHandlerInternal extends InputNormalizationHandler {
     @Override
     RuntimeClasspathNormalizationInternal getRuntimeClasspath();
+
+    /**
+     * Returns the configuration of input normalization in a configuration-cache friendly form.
+     * Input normalization cannot be further configured after this call.
+     *
+     * @return the configuration of input normalization or {@code null} if there is no user-defined state.
+     */
+    @Nullable
+    CachedState computeCachedState();
+
+    /**
+     * Configures input normalization from cached state data.
+     */
+    void configureFromCachedState(CachedState state);
+
+    /**
+     * The opaque representation of the input normalization state, intended to be serialized in the configuration cache.
+     */
+    interface CachedState {
+        /**
+         * @return the configuration of runtime classpath normalization
+         */
+        RuntimeClasspathNormalizationInternal.CachedState getRuntimeClasspathState();
+    }
 }

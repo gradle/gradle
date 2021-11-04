@@ -28,6 +28,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.Depe
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.writer.WriteDependencyVerificationFile;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.ExternalResourceCachePolicy;
 import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingCost;
+import org.gradle.api.internal.artifacts.verification.signatures.BuildTreeDefinedKeys;
 import org.gradle.api.internal.artifacts.verification.signatures.SignatureVerificationServiceFactory;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.internal.properties.GradleProperties;
@@ -36,15 +37,16 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.Factory;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.ModuleSources;
+import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.hash.ChecksumService;
+import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.resolve.ArtifactResolveException;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -53,26 +55,33 @@ import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
+import org.gradle.internal.resource.ExternalResource;
+import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ReadableContent;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.transfer.ExternalResourceConnector;
-import org.gradle.internal.resource.transfer.ExternalResourceReadResponse;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
 
 import javax.annotation.Nullable;
-import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 import java.util.List;
 
+@ServiceScope(Scopes.BuildTree.class)
 public class StartParameterResolutionOverride {
     private final StartParameter startParameter;
     private final File gradleDir;
+    private final Lazy<BuildTreeDefinedKeys> keyRing;
 
     public StartParameterResolutionOverride(StartParameter startParameter, File gradleDir) {
         this.startParameter = startParameter;
         this.gradleDir = gradleDir;
+        this.keyRing = Lazy.locking().of(() -> {
+            File keyringsFile = DependencyVerificationOverride.keyringsFile(gradleDir);
+            return new BuildTreeDefinedKeys(keyringsFile);
+        });
     }
 
     public void applyToCachePolicy(CachePolicy cachePolicy) {
@@ -98,12 +107,12 @@ public class StartParameterResolutionOverride {
                                                                          Factory<GradleProperties> gradlePropertiesFactory) {
         List<String> checksums = startParameter.getWriteDependencyVerifications();
         if (!checksums.isEmpty()) {
+            File verificationsFile = DependencyVerificationOverride.dependencyVerificationsFile(gradleDir);
             return DisablingVerificationOverride.of(
-                new WriteDependencyVerificationFile(gradleDir, buildOperationExecutor, checksums, checksumService, signatureVerificationServiceFactory, startParameter.isDryRun(), startParameter.isExportKeys())
+                new WriteDependencyVerificationFile(verificationsFile, keyRing.get(), buildOperationExecutor, checksums, checksumService, signatureVerificationServiceFactory, startParameter.isDryRun(), startParameter.isExportKeys())
             );
         } else {
             File verificationsFile = DependencyVerificationOverride.dependencyVerificationsFile(gradleDir);
-            File keyringsFile = DependencyVerificationOverride.keyringsFile(gradleDir);
             if (verificationsFile.exists()) {
                 if (startParameter.getDependencyVerificationMode() == DependencyVerificationMode.OFF) {
                     return DependencyVerificationOverride.NO_VERIFICATION;
@@ -111,7 +120,7 @@ public class StartParameterResolutionOverride {
                 try {
                     File sessionReportDir = computeReportDirectory(timeProvider);
                     return DisablingVerificationOverride.of(
-                        new ChecksumAndSignatureVerificationOverride(buildOperationExecutor, startParameter.getGradleUserHomeDir(), verificationsFile, keyringsFile, checksumService, signatureVerificationServiceFactory, startParameter.getDependencyVerificationMode(), documentationRegistry, sessionReportDir, gradlePropertiesFactory)
+                        new ChecksumAndSignatureVerificationOverride(buildOperationExecutor, startParameter.getGradleUserHomeDir(), verificationsFile, keyRing.get(), checksumService, signatureVerificationServiceFactory, startParameter.getDependencyVerificationMode(), documentationRegistry, sessionReportDir, gradlePropertiesFactory)
                     );
                 } catch (Exception e) {
                     return new FailureVerificationOverride(e);
@@ -199,29 +208,29 @@ public class StartParameterResolutionOverride {
     private static class OfflineExternalResourceConnector implements ExternalResourceConnector {
         @Nullable
         @Override
-        public ExternalResourceReadResponse openResource(URI location, boolean revalidate) throws ResourceException {
+        public <T> T withContent(ExternalResourceName location, boolean revalidate, ExternalResource.ContentAndMetadataAction<T> action) throws ResourceException {
             throw offlineResource(location);
         }
 
         @Nullable
         @Override
-        public ExternalResourceMetaData getMetaData(URI location, boolean revalidate) throws ResourceException {
+        public ExternalResourceMetaData getMetaData(ExternalResourceName location, boolean revalidate) throws ResourceException {
             throw offlineResource(location);
         }
 
         @Nullable
         @Override
-        public List<String> list(URI parent) throws ResourceException {
+        public List<String> list(ExternalResourceName parent) throws ResourceException {
             throw offlineResource(parent);
         }
 
         @Override
-        public void upload(ReadableContent resource, URI destination) throws IOException {
-            throw new ResourceException(destination, String.format("Cannot upload to '%s' in offline mode.", destination));
+        public void upload(ReadableContent resource, ExternalResourceName destination) throws IOException {
+            throw new ResourceException(destination.getUri(), String.format("Cannot upload to '%s' in offline mode.", destination.getUri()));
         }
 
-        private ResourceException offlineResource(URI source) {
-            return new ResourceException(source, String.format("No cached resource '%s' available for offline mode.", source));
+        private ResourceException offlineResource(ExternalResourceName source) {
+            return new ResourceException(source.getUri(), String.format("No cached resource '%s' available for offline mode.", source.getUri()));
         }
     }
 
@@ -278,15 +287,7 @@ public class StartParameterResolutionOverride {
 
         @Override
         public void stop() {
-            if (delegate instanceof Stoppable) {
-                ((Stoppable) delegate).stop();
-            } else if (delegate instanceof Closeable) {
-                try {
-                    ((Closeable) delegate).close();
-                } catch (IOException e) {
-                    throw UncheckedException.throwAsUncheckedException(e);
-                }
-            }
+            CompositeStoppable.stoppable(delegate).stop();
         }
     }
 }

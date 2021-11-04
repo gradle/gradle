@@ -16,7 +16,7 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
-import org.gradle.cache.internal.DefaultCacheScopeMapping
+import org.gradle.cache.internal.scopes.DefaultCacheScopeMapping
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.cache.CachingIntegrationFixture

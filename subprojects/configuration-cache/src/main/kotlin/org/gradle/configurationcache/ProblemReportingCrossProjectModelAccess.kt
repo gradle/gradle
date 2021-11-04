@@ -85,6 +85,7 @@ import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.normalization.InputNormalizationHandler
+import org.gradle.normalization.internal.InputNormalizationHandlerInternal
 import org.gradle.process.ExecResult
 import org.gradle.process.ExecSpec
 import org.gradle.process.JavaExecSpec
@@ -715,7 +716,7 @@ class ProblemReportingCrossProjectModelAccess(
             return delegate.components
         }
 
-        override fun getNormalization(): InputNormalizationHandler {
+        override fun getNormalization(): InputNormalizationHandlerInternal {
             onAccess()
             return delegate.normalization
         }

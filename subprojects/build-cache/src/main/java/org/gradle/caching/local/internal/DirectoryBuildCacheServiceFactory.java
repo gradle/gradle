@@ -21,11 +21,10 @@ import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
-import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.CleanupActionFactory;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
-import org.gradle.cache.internal.VersionStrategy;
+import org.gradle.cache.scopes.GlobalScopedCache;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.local.DirectoryBuildCache;
@@ -50,7 +49,7 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
     private static final int FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP = 1;
 
     private final CacheRepository cacheRepository;
-    private final CacheScopeMapping cacheScopeMapping;
+    private final GlobalScopedCache globalScopedCache;
     private final PathToFileResolver resolver;
     private final DirectoryBuildCacheFileStoreFactory fileStoreFactory;
     private final CleanupActionFactory cleanupActionFactory;
@@ -58,10 +57,10 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
     private final TemporaryFileProvider temporaryFileProvider;
 
     @Inject
-    public DirectoryBuildCacheServiceFactory(CacheRepository cacheRepository, CacheScopeMapping cacheScopeMapping, PathToFileResolver resolver, DirectoryBuildCacheFileStoreFactory fileStoreFactory,
+    public DirectoryBuildCacheServiceFactory(CacheRepository cacheRepository, GlobalScopedCache globalScopedCache, PathToFileResolver resolver, DirectoryBuildCacheFileStoreFactory fileStoreFactory,
                                              CleanupActionFactory cleanupActionFactory, FileAccessTimeJournal fileAccessTimeJournal, TemporaryFileProvider temporaryFileProvider) {
         this.cacheRepository = cacheRepository;
-        this.cacheScopeMapping = cacheScopeMapping;
+        this.globalScopedCache = globalScopedCache;
         this.resolver = resolver;
         this.fileStoreFactory = fileStoreFactory;
         this.cleanupActionFactory = cleanupActionFactory;
@@ -76,7 +75,7 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
         if (cacheDirectory != null) {
             target = resolver.resolve(cacheDirectory);
         } else {
-            target = cacheScopeMapping.getBaseDirectory(null, BUILD_CACHE_KEY, VersionStrategy.SharedCache);
+            target = globalScopedCache.baseDirForCrossVersionCache(BUILD_CACHE_KEY);
         }
         checkDirectory(target);
 

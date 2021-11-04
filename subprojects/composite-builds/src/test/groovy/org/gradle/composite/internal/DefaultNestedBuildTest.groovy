@@ -40,7 +40,6 @@ class DefaultNestedBuildTest extends Specification {
     def tree = Mock(BuildTreeState)
     def factory = Mock(BuildLifecycleControllerFactory)
     def controller = Mock(BuildLifecycleController)
-    def parentGradle = Mock(GradleInternal)
     def gradle = Mock(GradleInternal)
     def action = Mock(Function)
     def sessionServices = new DefaultServiceRegistry()
@@ -52,8 +51,7 @@ class DefaultNestedBuildTest extends Specification {
 
     DefaultNestedBuild build() {
         _ * owner.currentPrefixForProjectsInChildBuilds >> Path.path(":owner")
-        _ * owner.mutableModel >> parentGradle
-        _ * factory.newInstance(buildDefinition, _, parentGradle, _) >> controller
+        _ * factory.newInstance(buildDefinition, _, owner, _) >> controller
         _ * buildDefinition.name >> "nested"
         sessionServices.add(Stub(BuildOperationExecutor))
         sessionServices.add(exceptionAnalyzer)
@@ -66,7 +64,7 @@ class DefaultNestedBuildTest extends Specification {
     }
 
     def "stops controller on stop"() {
-        sessionServices.add(new BuildModelParameters(false, false, false, false))
+        sessionServices.add(Stub(BuildModelParameters))
         def build = build()
 
         when:
@@ -78,7 +76,7 @@ class DefaultNestedBuildTest extends Specification {
 
     def "runs action and finishes build when model is not required by root build"() {
         given:
-        sessionServices.add(new BuildModelParameters(false, false, false, false))
+        sessionServices.add(new BuildModelParameters(false, false, false, false, false))
         def build = build()
 
         when:
@@ -94,12 +92,12 @@ class DefaultNestedBuildTest extends Specification {
         }
         1 * controller.executeTasks() >> ExecutionResult.succeeded()
         1 * includedBuildTaskGraph.awaitTaskCompletion() >> ExecutionResult.succeeded()
-        1 * controller.finishBuild(_)
+        1 * controller.finishBuild(_) >> ExecutionResult.succeeded()
     }
 
     def "runs action but does not finish build when model is required by root build"() {
         given:
-        sessionServices.add(new BuildModelParameters(false, false, false, true))
+        sessionServices.add(new BuildModelParameters(false, false, false, true, false))
         def build = build()
 
         when:
@@ -120,7 +118,7 @@ class DefaultNestedBuildTest extends Specification {
 
     def "can have null result"() {
         given:
-        sessionServices.add(new BuildModelParameters(false, false, false, false))
+        sessionServices.add(Stub(BuildModelParameters))
         def build = build()
 
         when:

@@ -61,6 +61,7 @@ dependencies {
     implementation(project(":native"))
     implementation(project(":build-option"))
 
+    implementation(libs.capsule)
     implementation(libs.groovy)
     implementation(libs.groovyJson)
     implementation(libs.slf4jApi)

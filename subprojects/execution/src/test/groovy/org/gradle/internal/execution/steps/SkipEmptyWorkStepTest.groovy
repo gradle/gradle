@@ -18,22 +18,22 @@ package org.gradle.internal.execution.steps
 
 import com.google.common.collect.ImmutableSortedMap
 import org.gradle.internal.execution.ExecutionOutcome
-import org.gradle.internal.execution.history.AfterPreviousExecutionState
 import org.gradle.internal.execution.history.ExecutionHistoryStore
+import org.gradle.internal.execution.history.PreviousExecutionState
 import org.gradle.internal.snapshot.FileSystemSnapshot
 import spock.lang.Unroll
 
-class SkipEmptyWorkStepTest extends StepSpec<AfterPreviousExecutionContext> {
+class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
     def step = new SkipEmptyWorkStep<>(delegate)
-    def afterPreviousExecutionState = Mock(AfterPreviousExecutionState)
+    def previousExecutionState = Mock(PreviousExecutionState)
 
     def delegateResult = Mock(CachingResult)
     def outputSnapshots = ImmutableSortedMap.<String, FileSystemSnapshot>of()
     def executionHistoryStore = Mock(ExecutionHistoryStore)
 
     @Override
-    protected AfterPreviousExecutionContext createContext() {
-        Stub(AfterPreviousExecutionContext)
+    protected PreviousExecutionContext createContext() {
+        Stub(PreviousExecutionContext)
     }
 
     def setup() {
@@ -47,8 +47,8 @@ class SkipEmptyWorkStepTest extends StepSpec<AfterPreviousExecutionContext> {
         then:
         result == delegateResult
 
-        _ * context.afterPreviousExecutionState >> Optional.of(afterPreviousExecutionState)
-        1 * afterPreviousExecutionState.outputFilesProducedByWork >> outputSnapshots
+        _ * context.previousExecutionState >> Optional.of(previousExecutionState)
+        1 * previousExecutionState.outputFilesProducedByWork >> outputSnapshots
         _ * work.skipIfInputsEmpty(outputSnapshots) >> Optional.empty()
 
         then:
@@ -64,8 +64,8 @@ class SkipEmptyWorkStepTest extends StepSpec<AfterPreviousExecutionContext> {
         then:
         result.executionResult.get().outcome == outcome
 
-        _ * context.afterPreviousExecutionState >> Optional.of(afterPreviousExecutionState)
-        1 * afterPreviousExecutionState.outputFilesProducedByWork >> outputSnapshots
+        _ * context.previousExecutionState >> Optional.of(previousExecutionState)
+        1 * previousExecutionState.outputFilesProducedByWork >> outputSnapshots
         _ * work.skipIfInputsEmpty(outputSnapshots) >> Optional.of(outcome)
 
         then:

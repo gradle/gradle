@@ -124,6 +124,35 @@ class ConfigurationCacheSupportedTypesIntegrationTest extends AbstractConfigurat
     }
 
     @Unroll
+    def "keeps iteration order of #type instances"() {
+        given:
+        buildFile << """
+            abstract class SomeTask extends DefaultTask {
+                private def underTest = $init
+                @TaskAction def action() {
+                    println("ORDER=${'$'}{$iterate}")
+                }
+            }
+            tasks.register("ok", SomeTask)
+        """
+
+        when:
+        configurationCacheRun "ok"
+        def expected = result.output.readLines().find { it.startsWith("ORDER=") }.substring(6)
+
+        and:
+        configurationCacheRun "ok"
+
+        then:
+        outputContains(expected)
+
+        where:
+        type      | init                                               | iterate
+        'HashSet' | "['first', 'second', 'third'] as HashSet"          | "underTest.join(', ')"
+        'HashMap' | "['first': 1, 'second': 2, 'third': 3] as HashMap" | 'underTest.collect { k,v -> "$k=$v" }.join(", ")'
+    }
+
+    @Unroll
     def "restores task fields whose value is instance of plugin specific version of Guava #type"() {
         buildFile << """
             import ${type.name}

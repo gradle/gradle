@@ -16,6 +16,7 @@
 
 package org.gradle.internal.build.event.types;
 
+import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalTransformDescriptor;
 
@@ -27,7 +28,7 @@ public class DefaultTransformDescriptor extends DefaultOperationDescriptor imple
     private final String subjectName;
     private final Set<InternalOperationDescriptor> dependencies;
 
-    public DefaultTransformDescriptor(Object id, String displayName, Object parentId, String transformerName, String subjectName, Set<InternalOperationDescriptor> dependencies) {
+    public DefaultTransformDescriptor(OperationIdentifier id, String displayName, OperationIdentifier parentId, String transformerName, String subjectName, Set<InternalOperationDescriptor> dependencies) {
         super(id, displayName, displayName, parentId);
         this.transformerName = transformerName;
         this.subjectName = subjectName;

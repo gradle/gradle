@@ -23,7 +23,6 @@ import org.gradle.api.artifacts.DependencySubstitutions;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.tasks.TaskReference;
 import org.gradle.initialization.IncludedBuildSpec;
@@ -74,7 +73,7 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
         this.projectStateRegistry = projectStateRegistry;
         BuildScopeServices buildScopeServices = new BuildScopeServices(buildTree.getServices());
         // Use a defensive copy of the build definition, as it may be mutated during build execution
-        this.buildLifecycleController = buildLifecycleControllerFactory.newInstance(buildDefinition.newInstance(), this, owner.getMutableModel(), buildScopeServices);
+        this.buildLifecycleController = buildLifecycleControllerFactory.newInstance(buildDefinition.newInstance(), this, owner, buildScopeServices);
         this.workGraph = new DefaultBuildWorkGraph(buildLifecycleController.getGradle().getTaskGraph(), projectStateRegistry, buildLifecycleController);
         this.model = instantiator.newInstance(IncludedBuildImpl.class, this);
     }
@@ -152,28 +151,13 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
     }
 
     @Override
-    public Path getIdentityPathForProject(Path projectPath) {
+    public Path calculateIdentityPathForProject(Path projectPath) {
         return getIdentityPath().append(projectPath);
     }
 
     @Override
     public Action<? super DependencySubstitutions> getRegisteredDependencySubstitutions() {
         return buildDefinition.getDependencySubstitutions();
-    }
-
-    @Override
-    public boolean hasInjectedSettingsPlugins() {
-        return !buildDefinition.getInjectedPluginRequests().isEmpty();
-    }
-
-    @Override
-    public SettingsInternal loadSettings() {
-        return buildLifecycleController.getLoadedSettings();
-    }
-
-    @Override
-    public SettingsInternal getLoadedSettings() {
-        return getGradle().getSettings();
     }
 
     @Override

@@ -26,6 +26,7 @@ import org.gradle.api.logging.Logging
 import org.gradle.api.logging.LoggingManager
 import org.gradle.api.plugins.PluginAware
 import org.gradle.api.provider.Provider
+import org.gradle.api.provider.ProviderConvertible
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.precompile.PrecompiledScriptDependenciesResolver
 import org.gradle.kotlin.dsl.support.DefaultKotlinScript
@@ -111,6 +112,10 @@ open class PrecompiledSettingsScript(
                     pluginManager.apply(notation.get().pluginId)
                     return NullPluginDependencySpec
                 }
+
+                override fun alias(notation: ProviderConvertible<PluginDependency>): PluginDependencySpec {
+                    return alias(notation.asProvider())
+                }
             }
         )
     }
@@ -183,6 +188,10 @@ open class PrecompiledProjectScript(
                 override fun alias(notation: Provider<PluginDependency>): PluginDependencySpec {
                     pluginManager.apply(notation.get().pluginId)
                     return NullPluginDependencySpec
+                }
+
+                override fun alias(notation: ProviderConvertible<PluginDependency>): PluginDependencySpec {
+                    return alias(notation.asProvider())
                 }
             }
         )

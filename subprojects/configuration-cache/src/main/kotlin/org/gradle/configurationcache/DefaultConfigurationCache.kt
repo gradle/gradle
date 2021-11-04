@@ -35,6 +35,7 @@ import org.gradle.initialization.GradlePropertiesController
 import org.gradle.internal.Factory
 import org.gradle.internal.buildtree.BuildActionModelRequirements
 import org.gradle.internal.classpath.Instrumented
+import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.vfs.FileSystemAccess
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem
@@ -58,13 +59,13 @@ class DefaultConfigurationCache internal constructor(
      */
     @Suppress("unused")
     private val fileSystemAccess: FileSystemAccess
-) : BuildTreeConfigurationCache {
+) : BuildTreeConfigurationCache, Stoppable {
 
     interface Host {
 
         val currentBuild: VintageGradleBuild
 
-        fun createBuild(rootProjectName: String): ConfigurationCacheBuild
+        fun createBuild(settingsFile: File?, rootProjectName: String): ConfigurationCacheBuild
 
         fun <T> service(serviceType: Class<T>): T
 
@@ -113,9 +114,19 @@ class DefaultConfigurationCache internal constructor(
         if (canLoad) {
             loadWorkGraph()
         } else {
-            prepareForConfiguration()
-            scheduler()
-            saveWorkGraph()
+            runWorkThatContributesToCacheEntry {
+                scheduler()
+                saveWorkGraph()
+            }
+        }
+    }
+
+    override fun maybePrepareModel(action: () -> Unit) {
+        if (canLoad) {
+            return
+        }
+        runWorkThatContributesToCacheEntry {
+            action()
         }
     }
 
@@ -123,10 +134,11 @@ class DefaultConfigurationCache internal constructor(
         if (canLoad) {
             return loadModel().uncheckedCast()
         }
-        prepareForConfiguration()
-        val model = creator()
-        saveModel(model)
-        return model
+        return runWorkThatContributesToCacheEntry {
+            val model = creator()
+            saveModel(model)
+            model
+        }
     }
 
     private
@@ -188,6 +200,10 @@ class DefaultConfigurationCache internal constructor(
         }
     }
 
+    override fun stop() {
+        Instrumented.discardListener()
+    }
+
     private
     fun checkFingerprint(): CheckedFingerprint {
         return cacheRepository.useForFingerprintCheck(
@@ -197,10 +213,22 @@ class DefaultConfigurationCache internal constructor(
     }
 
     private
-    fun prepareForConfiguration() {
+    fun <T> runWorkThatContributesToCacheEntry(action: () -> T): T {
+        prepareForWork()
+        val result = action()
+        finishWork()
+        return result
+    }
+
+    private
+    fun prepareForWork() {
         prepareConfigurationTimeBarrier()
         startCollectingCacheFingerprint()
         Instrumented.setListener(systemPropertyListener)
+    }
+
+    private
+    fun finishWork() {
     }
 
     private
@@ -309,7 +337,7 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun startCollectingCacheFingerprint() {
-        cacheFingerprintController.startCollectingFingerprint {
+        cacheFingerprintController.maybeStartCollectingFingerprint {
             cacheFingerprintWriterContextFor(it)
         }
     }
@@ -358,9 +386,7 @@ class DefaultConfigurationCache internal constructor(
     private
     fun registerWatchableBuildDirectories(buildDirs: Set<File>) {
         if (buildDirs.isNotEmpty()) {
-            buildDirs.forEach(
-                virtualFileSystem::registerWatchableHierarchy
-            )
+            buildDirs.forEach(virtualFileSystem::registerWatchableHierarchy)
         }
     }
 

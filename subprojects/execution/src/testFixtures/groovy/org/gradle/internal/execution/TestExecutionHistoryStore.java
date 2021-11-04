@@ -16,18 +16,15 @@
 
 package org.gradle.internal.execution;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.caching.internal.origin.OriginMetadata;
-import org.gradle.internal.execution.history.AfterPreviousExecutionState;
+import org.gradle.internal.execution.history.AfterExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
-import org.gradle.internal.execution.history.impl.DefaultAfterPreviousExecutionState;
+import org.gradle.internal.execution.history.PreviousExecutionState;
+import org.gradle.internal.execution.history.impl.DefaultPreviousExecutionState;
 import org.gradle.internal.execution.history.impl.SerializableFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
-import org.gradle.internal.snapshot.FileSystemSnapshot;
-import org.gradle.internal.snapshot.ValueSnapshot;
-import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -38,31 +35,22 @@ import static com.google.common.collect.Maps.transformValues;
 
 public class TestExecutionHistoryStore implements ExecutionHistoryStore {
 
-    private final Map<String, AfterPreviousExecutionState> executionHistory = new HashMap<>();
+    private final Map<String, PreviousExecutionState> executionHistory = new HashMap<>();
 
     @Override
-    public Optional<AfterPreviousExecutionState> load(String key) {
+    public Optional<PreviousExecutionState> load(String key) {
         return Optional.ofNullable(executionHistory.get(key));
     }
 
     @Override
-    public void store(
-        String key,
-        OriginMetadata originMetadata,
-        ImplementationSnapshot implementation,
-        ImmutableList<ImplementationSnapshot> additionalImplementations,
-        ImmutableSortedMap<String, ValueSnapshot> inputProperties,
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileProperties,
-        ImmutableSortedMap<String, FileSystemSnapshot> outputFileProperties,
-        boolean successful
-    ) {
-        executionHistory.put(key, new DefaultAfterPreviousExecutionState(
+    public void store(String key, OriginMetadata originMetadata, boolean successful, AfterExecutionState executionState) {
+        executionHistory.put(key, new DefaultPreviousExecutionState(
             originMetadata,
-            implementation,
-            additionalImplementations,
-            inputProperties,
-            prepareForSerialization(inputFileProperties),
-            outputFileProperties,
+            executionState.getImplementation(),
+            executionState.getAdditionalImplementations(),
+            executionState.getInputProperties(),
+            prepareForSerialization(executionState.getInputFileProperties()),
+            executionState.getOutputFilesProducedByWork(),
             successful
         ));
     }
@@ -75,11 +63,11 @@ public class TestExecutionHistoryStore implements ExecutionHistoryStore {
     private static ImmutableSortedMap<String, FileCollectionFingerprint> prepareForSerialization(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fingerprints) {
         return copyOfSorted(transformValues(
             fingerprints,
-            value -> new SerializableFileCollectionFingerprint(value.getFingerprints(), value.getRootHashes(), value.getStrategyConfigurationHash())
+            value -> value.archive(SerializableFileCollectionFingerprint::new)
         ));
     }
 
-    public Map<String, AfterPreviousExecutionState> getExecutionHistory() {
+    public Map<String, PreviousExecutionState> getExecutionHistory() {
         return executionHistory;
     }
 }

@@ -16,20 +16,19 @@
 
 package org.gradle.nativeplatform.internal.modulemap
 
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
+import spock.lang.TempDir
 
 import static org.gradle.nativeplatform.internal.modulemap.GenerateModuleMapFile.generateFile
 import static org.gradle.util.internal.TextUtil.normaliseLineSeparators
 
 class GenerateModuleMapFileTest extends Specification {
-    @Rule TemporaryFolder tempDir = new TemporaryFolder()
+    @TempDir File tempDir
 
     def "can generate a simple module map file"() {
-        def moduleMapFile = tempDir.newFile("module.modulemap")
-        def headers = tempDir.newFolder('headers')
-        def moreHeaders = tempDir.newFolder('moreHeaders')
+        def moduleMapFile = new File(tempDir, "module.modulemap")
+        def headers = new File(tempDir, 'headers').tap { mkdirs() }
+        def moreHeaders = new File(tempDir, 'moreHeaders').tap { mkdirs() }
 
         when:
         generateFile(moduleMapFile, "foo", [headers.absolutePath, moreHeaders.absolutePath])
@@ -44,9 +43,9 @@ class GenerateModuleMapFileTest extends Specification {
     }
 
     def "does not include non-existent directories"() {
-        def moduleMapFile = tempDir.newFile("module.modulemap")
-        def headers = tempDir.newFolder('headers')
-        def moreHeaders = tempDir.newFolder('moreHeaders')
+        def moduleMapFile = new File(tempDir, "module.modulemap")
+        def headers = new File(tempDir, 'headers').tap { mkdirs() }
+        def moreHeaders = new File(tempDir, 'moreHeaders').tap { mkdirs() }
 
         when:
         generateFile(moduleMapFile, "foo", [headers.absolutePath, moreHeaders.absolutePath, new File('does-not-exist').absolutePath])
@@ -61,9 +60,9 @@ class GenerateModuleMapFileTest extends Specification {
     }
 
     def "creates parent directory if necessary"() {
-        def moduleMapFile = new File(tempDir.root, "maps/module.modulemap")
-        def headers = tempDir.newFolder('headers')
-        def moreHeaders = tempDir.newFolder('moreHeaders')
+        def moduleMapFile = new File(tempDir, "maps/module.modulemap")
+        def headers = new File(tempDir, 'headers').tap { mkdirs() }
+        def moreHeaders = new File(tempDir, 'moreHeaders').tap { mkdirs() }
 
         given:
         assert !moduleMapFile.parentFile.exists()

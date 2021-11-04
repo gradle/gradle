@@ -19,13 +19,14 @@ package org.gradle.buildinit.plugins;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.specs.Spec;
-import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
+import org.gradle.buildinit.InsecureProtocolOption;
 import org.gradle.buildinit.tasks.InitBuild;
+import org.gradle.internal.file.RelativeFilePathResolver;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.concurrent.Callable;
 
@@ -40,39 +41,41 @@ public class BuildInitPlugin implements Plugin<Project> {
     public void apply(Project project) {
         if (project.getParent() == null) {
             project.getTasks().register("init", InitBuild.class, initBuild -> {
-
                 initBuild.setGroup("Build Setup");
                 initBuild.setDescription("Initializes a new Gradle build.");
 
+                RelativeFilePathResolver resolver = ((ProjectInternal) project).getFileResolver();
                 File buildFile = project.getBuildFile();
-                boolean hasSubProjects = !project.getSubprojects().isEmpty();
+                FileDetails buildFileDetails = FileDetails.of(buildFile, resolver);
+                File settingsFile = ((ProjectInternal) project).getGradle().getSettings().getSettingsScript().getResource().getLocation().getFile();
+                FileDetails settingsFileDetails = FileDetails.of(settingsFile, resolver);
 
-                initBuild.onlyIf(new InitBuildOnlyIfSpec(buildFile, hasSubProjects, project.getLayout(), initBuild.getLogger()));
-                initBuild.dependsOn(new InitBuildDependsOnCallable(buildFile, hasSubProjects, project.getLayout()));
+                initBuild.onlyIf(new InitBuildOnlyIfSpec(buildFileDetails, settingsFileDetails, initBuild.getLogger()));
+                initBuild.dependsOn(new InitBuildDependsOnCallable(buildFileDetails, settingsFileDetails));
 
                 ProjectInternal.DetachedResolver detachedResolver = ((ProjectInternal) project).newDetachedResolver();
                 initBuild.getProjectLayoutRegistry().getBuildConverter().configureClasspath(detachedResolver, project.getObjects());
+
+                initBuild.getInsecureProtocol().convention(InsecureProtocolOption.WARN);
             });
         }
     }
 
     private static class InitBuildOnlyIfSpec implements Spec<Task> {
 
-        private final File buildFile;
-        private final boolean hasSubProjects;
-        private final ProjectLayout layout;
+        private final FileDetails buildFile;
+        private final FileDetails settingsFile;
         private final Logger logger;
 
-        private InitBuildOnlyIfSpec(File buildFile, boolean hasSubProjects, ProjectLayout layout, Logger logger) {
+        private InitBuildOnlyIfSpec(FileDetails buildFile, FileDetails settingsFile, Logger logger) {
             this.buildFile = buildFile;
-            this.hasSubProjects = hasSubProjects;
-            this.layout = layout;
+            this.settingsFile = settingsFile;
             this.logger = logger;
         }
 
         @Override
         public boolean isSatisfiedBy(Task element) {
-            String skippedMsg = reasonToSkip(buildFile, layout, hasSubProjects);
+            String skippedMsg = reasonToSkip(buildFile, settingsFile);
             if (skippedMsg != null) {
                 logger.warn(skippedMsg);
                 return false;
@@ -83,19 +86,17 @@ public class BuildInitPlugin implements Plugin<Project> {
 
     private static class InitBuildDependsOnCallable implements Callable<String> {
 
-        private final File buildFile;
-        private final boolean hasSubProjects;
-        private final ProjectLayout layout;
+        private final FileDetails buildFile;
+        private final FileDetails settingsFile;
 
-        private InitBuildDependsOnCallable(File buildFile, boolean hasSubProjects, ProjectLayout layout) {
+        private InitBuildDependsOnCallable(FileDetails buildFile, FileDetails settingsFile) {
             this.buildFile = buildFile;
-            this.hasSubProjects = hasSubProjects;
-            this.layout = layout;
+            this.settingsFile = settingsFile;
         }
 
         @Override
         public String call() {
-            if (reasonToSkip(buildFile, layout, hasSubProjects) == null) {
+            if (reasonToSkip(buildFile, settingsFile) == null) {
                 return "wrapper";
             } else {
                 return null;
@@ -103,26 +104,33 @@ public class BuildInitPlugin implements Plugin<Project> {
         }
     }
 
-    private static String reasonToSkip(File buildFile, ProjectLayout layout, boolean hasSubProjects) {
-        for (BuildInitDsl dsl : BuildInitDsl.values()) {
-            String buildFileName = dsl.fileNameFor("build");
-            if (layout.getProjectDirectory().file(buildFileName).getAsFile().exists()) {
-                return "The build file '" + buildFileName + "' already exists. Skipping build initialization.";
-            }
-            String settingsFileName = dsl.fileNameFor("settings");
-            if (layout.getProjectDirectory().file(settingsFileName).getAsFile().exists()) {
-                return "The settings file '" + settingsFileName + "' already exists. Skipping build initialization.";
-            }
+    private static String reasonToSkip(FileDetails buildFile, FileDetails settingsFile) {
+        if (buildFile != null && buildFile.file.exists()) {
+            return "The build file '" + buildFile.pathForDisplay + "' already exists. Skipping build initialization.";
         }
 
-        if (buildFile != null && buildFile.exists()) {
-            return "The build file '" + buildFile.getName() + "' already exists. Skipping build initialization.";
-        }
-
-        if (hasSubProjects) {
-            return "This Gradle project appears to be part of an existing multi-project Gradle build. Skipping build initialization.";
+        if (settingsFile != null && settingsFile.file.exists()) {
+            return "The settings file '" + settingsFile.pathForDisplay + "' already exists. Skipping build initialization.";
         }
 
         return null;
+    }
+
+    private static class FileDetails {
+        final File file;
+        final String pathForDisplay;
+
+        public FileDetails(File file, String pathForDisplay) {
+            this.file = file;
+            this.pathForDisplay = pathForDisplay;
+        }
+
+        @Nullable
+        public static FileDetails of(@Nullable File file, RelativeFilePathResolver resolver) {
+            if (file == null) {
+                return null;
+            }
+            return new FileDetails(file, resolver.resolveForDisplay(file));
+        }
     }
 }

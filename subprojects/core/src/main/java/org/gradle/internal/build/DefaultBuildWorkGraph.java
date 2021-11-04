@@ -67,18 +67,19 @@ public class DefaultBuildWorkGraph implements BuildWorkGraph {
             tasks.add(node.getTask());
         }
         tasksScheduled = true;
-        projectStateRegistry.withMutableStateOfAllProjects(() -> controller.populateWorkGraph(taskGraph -> {
-            for (Task task : tasks) {
-                taskGraph.addEntryTasks(Collections.singletonList(task));
-            }
-        }));
+        projectStateRegistry.withMutableStateOfAllProjects(() -> {
+            controller.prepareToScheduleTasks();
+            controller.populateWorkGraph(taskGraph -> {
+                for (Task task : tasks) {
+                    taskGraph.addEntryTasks(Collections.singletonList(task));
+                }
+            });
+        });
     }
 
     @Override
-    public void prepareForExecution() {
-        if (tasksScheduled) {
-            taskGraph.populate();
-        }
+    public void prepareForExecution(boolean alwaysPopulateWorkGraph) {
+        controller.finalizeWorkGraph(alwaysPopulateWorkGraph || tasksScheduled);
         updateTasksPriorToExecution();
     }
 

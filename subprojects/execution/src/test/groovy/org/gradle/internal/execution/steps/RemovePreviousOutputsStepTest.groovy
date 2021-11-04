@@ -20,9 +20,9 @@ import com.google.common.collect.ImmutableSortedMap
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.UnitOfWork.OutputVisitor
-import org.gradle.internal.execution.history.AfterPreviousExecutionState
 import org.gradle.internal.execution.history.BeforeExecutionState
 import org.gradle.internal.execution.history.OverlappingOutputs
+import org.gradle.internal.execution.history.PreviousExecutionState
 import org.gradle.internal.file.TreeType
 import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -31,7 +31,7 @@ import org.junit.Rule
 class RemovePreviousOutputsStepTest extends StepSpec<InputChangesContext> implements SnasphotterFixture {
     @Rule
     TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
-    def afterPreviousExecution = Mock(AfterPreviousExecutionState)
+    def previousExecutionState = Mock(PreviousExecutionState)
     def beforeExecutionState = Mock(BeforeExecutionState)
     def delegateResult = Mock(Result)
     def outputChangeListener = Mock(OutputChangeListener)
@@ -186,8 +186,8 @@ class RemovePreviousOutputsStepTest extends StepSpec<InputChangesContext> implem
             visitor.visitOutputProperty("dir", TreeType.DIRECTORY, outputs.dir, TestFiles.fixed(outputs.dir))
             visitor.visitOutputProperty("file", TreeType.FILE, outputs.file, TestFiles.fixed(outputs.file))
         }
-        _ * context.afterPreviousExecutionState >> Optional.of(afterPreviousExecution)
-        1 * afterPreviousExecution.outputFilesProducedByWork >> ImmutableSortedMap.of("dir", outputs.dirSnapshot, "file", outputs.fileSnapshot)
+        _ * context.previousExecutionState >> Optional.of(previousExecutionState)
+        1 * previousExecutionState.outputFilesProducedByWork >> ImmutableSortedMap.of("dir", outputs.dirSnapshot, "file", outputs.fileSnapshot)
         1 * outputChangeListener.beforeOutputChange({ Iterable<String> paths -> paths as List == [outputs.dir.absolutePath] })
         1 * outputChangeListener.beforeOutputChange({ Iterable<String> paths -> paths as List == [outputs.file.absolutePath] })
     }

@@ -152,7 +152,7 @@ public final class BuildOperationDescriptor {
 
         /**
          * Define the parent of the operation. Needs to be the state of an operations that is running at the same time
-         * the described operation will run (see: {@link org.gradle.internal.operations.BuildOperationRunner#getCurrentOperation()}).
+         * the described operation will run (see: {@code org.gradle.internal.operations.BuildOperationRunner#getCurrentOperation()}).
          * If parent ID is not set, The last started operation of the executing thread will be used as parent.
          *
          * Note: you should use this <em>only</em> for a build operation that is started in some other thread.

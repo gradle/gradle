@@ -190,11 +190,6 @@ public interface GradleExecuter extends Stoppable {
     GradleExecuter withBuildCacheEnabled();
 
     /**
-     * Don't set temp folder explicitly.
-     */
-    GradleExecuter withNoExplicitTmpDir();
-
-    /**
      * Don't set native services dir explicitly.
      */
     GradleExecuter withNoExplicitNativeServicesDir();

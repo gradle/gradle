@@ -4,6 +4,8 @@ plugins {
     id("gradlebuild.shaded-jar")
 }
 
+description = "Gradle Tooling API - the programmatic API to invoke Gradle"
+
 gradlebuildJava.usedInToolingApi()
 
 tasks.named<Jar>("sourcesJar") {

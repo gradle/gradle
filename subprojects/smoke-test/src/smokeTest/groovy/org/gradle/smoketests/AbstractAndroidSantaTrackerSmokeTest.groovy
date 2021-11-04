@@ -17,6 +17,7 @@
 package org.gradle.smoketests
 
 import org.gradle.api.JavaVersion
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.internal.scan.config.fixtures.ApplyGradleEnterprisePluginFixture
 import org.gradle.test.fixtures.file.TestFile
@@ -34,6 +35,8 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
     @Rule
     TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
     TestFile homeDir
+
+    String kotlinVersion = TestedVersions.kotlin.latest()
 
     def setup() {
         homeDir = temporaryFolder.createDir("test-kit-home")
@@ -73,7 +76,16 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
     }
 
     protected SmokeTestGradleRunner runnerForLocation(File projectDir, String agpVersion, String... tasks) {
-        def runner = runner(*[["-DagpVersion=$agpVersion", "-DkotlinVersion=${TestedVersions.kotlin.latest()}", "--stacktrace"], tasks].flatten())
+        def runnerArgs = [["-DagpVersion=$agpVersion", "-DkotlinVersion=$kotlinVersion", "--stacktrace"], tasks].flatten()
+        if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_16)) {
+            // fall back to using Java 11 (LTS) for Android tests
+            // Kapt is not compatible with JDK 16+, https://youtrack.jetbrains.com/issue/KT-45545,
+            // or Java 17 for now: https://youtrack.jetbrains.com/issue/KT-47583
+            // perhaps we should always run Android tests on Java 11 instead of having some of them skipped by a precondition
+            def jdk = AvailableJavaHomes.getJdk(JavaVersion.VERSION_11)
+            runnerArgs += "-Dorg.gradle.java.home=${jdk.javaHome}"
+        }
+        def runner = runner(*runnerArgs)
             .withProjectDir(projectDir)
             .withTestKitDir(homeDir)
             .forwardOutput()

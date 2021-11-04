@@ -27,6 +27,9 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.remote.internal.inet.InetAddressFactory
+import org.gradle.internal.service.ServiceRegistry
+import org.gradle.internal.service.ServiceRegistryBuilder
+import org.gradle.internal.service.scopes.GradleUserHomeScopeServices
 import org.gradle.internal.time.Time
 
 import java.util.concurrent.Executors
@@ -224,12 +227,14 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
             import org.gradle.cache.PersistentCache
             import org.gradle.cache.FileLockManager
             import org.gradle.cache.internal.filelock.LockOptionsBuilder
-            import org.gradle.cache.internal.CacheRepositoryServices
             import org.gradle.internal.logging.events.OutputEventListener
             import org.gradle.internal.nativeintegration.services.NativeServices
+            import ${ServiceRegistry.name}
+            import ${ServiceRegistryBuilder.name}
             import org.gradle.internal.service.DefaultServiceRegistry
             import org.gradle.internal.service.scopes.GlobalScopeServices
             import org.gradle.workers.WorkParameters
+            import ${GradleUserHomeScopeServices.name}
 
             task doWorkInWorker(type: WorkerTask)
 
@@ -263,20 +268,23 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
             }
 
             class ZincCompilerServices extends DefaultServiceRegistry {
-                private static ZincCompilerServices instance;
+                private static ServiceRegistry instance;
 
                 private ZincCompilerServices(File gradleUserHome) {
                     super(NativeServices.getInstance());
 
                     add(OutputEventListener.class, OutputEventListener.NO_OP);
                     addProvider(new GlobalScopeServices(true));
-                    addProvider(new CacheRepositoryServices(gradleUserHome, null));
                 }
 
-                public static ZincCompilerServices getInstance(File gradleUserHome) {
+                public static ServiceRegistry getInstance(File gradleUserHome) {
                     if (instance == null) {
                         NativeServices.initializeOnWorker(gradleUserHome);
-                        instance = new ZincCompilerServices(gradleUserHome);
+                        ServiceRegistry global = new ZincCompilerServices(gradleUserHome);
+                        ServiceRegistryBuilder builder = ServiceRegistryBuilder.builder();
+                        builder.parent(global);
+                        builder.provider(new GradleUserHomeScopeServices(global));
+                        instance = builder.build();
                     }
                     return instance;
                 }

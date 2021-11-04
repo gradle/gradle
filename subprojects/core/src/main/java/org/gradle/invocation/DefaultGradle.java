@@ -65,17 +65,19 @@ import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.Path;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Supplier;
 
 public abstract class DefaultGradle extends AbstractPluginAware implements GradleInternal {
 
     private SettingsInternal settings;
     private ProjectInternal rootProject;
     private ProjectInternal defaultProject;
-    private final GradleInternal parent;
+    private final BuildState parent;
     private final StartParameter startParameter;
     private final ServiceRegistry services;
     private final ListenerBroadcast<BuildListener> buildListenerBroadcast;
@@ -85,10 +87,10 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     private final MutableActionSet<Project> rootProjectActions = new MutableActionSet<Project>();
     private boolean projectsLoaded;
     private Path identityPath;
-    private ClassLoaderScope classLoaderScope;
+    private Supplier<? extends ClassLoaderScope> classLoaderScope;
     private ClassLoaderScope baseProjectClassLoaderScope;
 
-    public DefaultGradle(GradleInternal parent, StartParameter startParameter, ServiceRegistryFactory parentRegistry) {
+    public DefaultGradle(@Nullable BuildState parent, StartParameter startParameter, ServiceRegistryFactory parentRegistry) {
         this.parent = parent;
         this.startParameter = startParameter;
         this.services = parentRegistry.createFor(this);
@@ -137,7 +139,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
 
     @Override
     public GradleInternal getParent() {
-        return parent;
+        return parent == null ? null : parent.getMutableModel();
     }
 
     @Override
@@ -254,6 +256,9 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
 
     @Override
     public ProjectInternal getDefaultProject() {
+        if (defaultProject == null) {
+            throw new IllegalStateException("The default project is not yet available for " + this + ".");
+        }
         return defaultProject;
     }
 
@@ -463,7 +468,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     }
 
     @Override
-    public void setClassLoaderScope(ClassLoaderScope classLoaderScope) {
+    public void setClassLoaderScope(Supplier<? extends ClassLoaderScope> classLoaderScope) {
         if (this.classLoaderScope != null) {
             throw new IllegalStateException("Class loader scope already used");
         }
@@ -473,60 +478,44 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     @Override
     public ClassLoaderScope getClassLoaderScope() {
         if (classLoaderScope == null) {
-            classLoaderScope = services.get(ClassLoaderScopeRegistry.class).getCoreAndPluginsScope();
+            classLoaderScope = () -> getClassLoaderScopeRegistry().getCoreAndPluginsScope();
         }
-        return classLoaderScope;
+        return classLoaderScope.get();
     }
+
+    @Inject
+    protected abstract ClassLoaderScopeRegistry getClassLoaderScopeRegistry();
 
     @Override
     @Inject
     public abstract ProjectRegistry<ProjectInternal> getProjectRegistry();
 
     @Inject
-    protected TextUriResourceLoader.Factory getResourceLoaderFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract TextUriResourceLoader.Factory getResourceLoaderFactory();
 
     @Inject
-    protected ScriptHandlerFactory getScriptHandlerFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ScriptHandlerFactory getScriptHandlerFactory();
 
     @Inject
-    protected ScriptPluginFactory getScriptPluginFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ScriptPluginFactory getScriptPluginFactory();
 
     @Inject
-    protected FileResolver getFileResolver() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract FileResolver getFileResolver();
 
     @Inject
-    protected CurrentGradleInstallation getCurrentGradleInstallation() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract CurrentGradleInstallation getCurrentGradleInstallation();
 
     @Inject
-    protected ListenerManager getListenerManager() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ListenerManager getListenerManager();
 
     @Inject
-    protected ListenerBuildOperationDecorator getListenerBuildOperationDecorator() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ListenerBuildOperationDecorator getListenerBuildOperationDecorator();
 
     @Override
     @Inject
-    public PluginManagerInternal getPluginManager() {
-        throw new UnsupportedOperationException();
-    }
+    public abstract PluginManagerInternal getPluginManager();
 
     @Override
     @Inject
-    public PublicBuildPath getPublicBuildPath() {
-        throw new UnsupportedOperationException();
-    }
-
+    public abstract PublicBuildPath getPublicBuildPath();
 }

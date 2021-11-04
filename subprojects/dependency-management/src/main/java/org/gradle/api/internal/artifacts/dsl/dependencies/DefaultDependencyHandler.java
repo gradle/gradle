@@ -46,11 +46,11 @@ import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.artifacts.dependencies.DefaultMinimalDependencyVariant;
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory;
 import org.gradle.api.internal.catalog.DependencyBundleValueSource;
-import org.gradle.api.internal.catalog.ExternalModuleDependencyFactory;
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderConvertible;
 import org.gradle.api.provider.ValueSource;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
@@ -68,7 +68,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static org.gradle.api.internal.artifacts.ArtifactAttributes.ARTIFACT_FORMAT;
+import static org.gradle.api.artifacts.type.ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE;
 import static org.gradle.internal.component.external.model.TestFixturesSupport.TEST_FIXTURES_CAPABILITY_APPENDIX;
 
 public abstract class DefaultDependencyHandler implements DependencyHandler, MethodMixIn {
@@ -174,8 +174,8 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
                 .nagUser();
             return doAddConfiguration(configuration, (Configuration) dependencyNotation);
         }
-        if (dependencyNotation instanceof ExternalModuleDependencyFactory.ProviderConvertible<?>) {
-            return doAddProvider(configuration, ((ExternalModuleDependencyFactory.ProviderConvertible<?>) dependencyNotation).asProvider(), configureClosure);
+        if (dependencyNotation instanceof ProviderConvertible<?>) {
+            return doAddProvider(configuration, ((ProviderConvertible<?>) dependencyNotation).asProvider(), configureClosure);
         }
         if (dependencyNotation instanceof Provider<?>) {
             return doAddProvider(configuration, (Provider<?>) dependencyNotation, configureClosure);
@@ -315,7 +315,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
     }
 
     private void configureSchema() {
-        attributesSchema.attribute(ARTIFACT_FORMAT);
+        attributesSchema.attribute(ARTIFACT_TYPE_ATTRIBUTE);
     }
 
     @Override
@@ -414,6 +414,20 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
             DefaultExternalModuleDependencyVariantSpec spec = objects.newInstance(DefaultExternalModuleDependencyVariantSpec.class, objects, dep);
             variantSpec.execute(spec);
             return new DefaultMinimalDependencyVariant(dep, spec.attributesAction, spec.capabilitiesMutator, spec.classifier, spec.artifactType);
+        });
+    }
+
+    /**
+     * Implemented here instead as a default method of DependencyHandler like most of other methods with `Provider<MinimalExternalModuleDependency>` argument
+     * since we don't want to expose enforcedPlatform on many places since we might deprecate enforcedPlatform in the future
+     *
+     * @param dependencyProvider the dependency provider
+     */
+    @Override
+    public Provider<MinimalExternalModuleDependency> enforcedPlatform(Provider<MinimalExternalModuleDependency> dependencyProvider) {
+        return variantOf(dependencyProvider, spec -> {
+            DefaultExternalModuleDependencyVariantSpec defaultSpec = (DefaultExternalModuleDependencyVariantSpec) spec;
+            defaultSpec.attributesAction = attrs -> attrs.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.ENFORCED_PLATFORM));
         });
     }
 

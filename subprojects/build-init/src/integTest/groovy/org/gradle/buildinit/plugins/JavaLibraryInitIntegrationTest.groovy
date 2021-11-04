@@ -33,9 +33,10 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
     @Override
     String subprojectName() { 'lib' }
 
+    @Unroll
     def "defaults to Groovy build scripts"() {
         when:
-        run ('init', '--type', 'java-library')
+        run ('init', '--type', 'java-library' )
 
         then:
         dslFixtureFor(GROOVY).assertGradleFilesGenerated()
@@ -43,6 +44,7 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
 
     @Unroll
     def "creates sample source if no source present with #scriptDsl build scripts"() {
+        def dslFixture = dslFixtureFor(scriptDsl)
         when:
         run('init', '--type', 'java-library', '--dsl', scriptDsl.id)
 
@@ -52,12 +54,34 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
 
         and:
         commonJvmFilesGenerated(scriptDsl)
-        def dslFixture = dslFixtureFor(scriptDsl)
+        dslFixture.assertDoesNotUseTestSuites()
         buildFileSeparatesImplementationAndApi(dslFixture)
 
         when:
         run("build")
 
+        then:
+        assertTestPassed("some.thing.LibraryTest", "someLibraryMethodReturnsTrue")
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
+    }
+
+    @Unroll
+    def "creates build using test suites with #scriptDsl build scripts when using --incubating"() {
+        def dslFixture = dslFixtureFor(scriptDsl)
+
+        when:
+        run ('init', '--type', 'java-library', '--incubating', '--dsl', scriptDsl.id)
+        then:
+        subprojectDir.file("src/main/java").assertHasDescendants(SAMPLE_LIBRARY_CLASS)
+        subprojectDir.file("src/test/java").assertHasDescendants(SAMPLE_LIBRARY_TEST_CLASS)
+        and:
+        commonJvmFilesGenerated(scriptDsl)
+        dslFixture.assertHasTestSuite('test')
+
+        when:
+        succeeds('test')
         then:
         assertTestPassed("some.thing.LibraryTest", "someLibraryMethodReturnsTrue")
 
@@ -157,7 +181,38 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         assertTestPassed("my.lib.LibraryTest", "someLibraryMethodReturnsTrue")
 
         where:
-        [scriptDsl, testFramework] << [ScriptDslFixture.SCRIPT_DSLS, [BuildInitTestFramework.JUNIT, BuildInitTestFramework.TESTNG]].combinations()
+        [scriptDsl, testFramework] << [
+                ScriptDslFixture.SCRIPT_DSLS,
+                [ BuildInitTestFramework.JUNIT, BuildInitTestFramework.TESTNG, BuildInitTestFramework.JUNIT_JUPITER ]
+        ].combinations()
+    }
+
+    @Unroll
+    def "creates sample source with package and #testFramework and #scriptDsl build scripts with --incubating"() {
+        def dslFixture = dslFixtureFor(scriptDsl)
+
+        when:
+        run('init', '--type', 'java-library', '--test-framework', testFramework.id, '--package', 'my.lib', '--dsl', scriptDsl.id, '--incubating')
+
+        then:
+        subprojectDir.file("src/main/java").assertHasDescendants("my/lib/Library.java")
+        subprojectDir.file("src/test/java").assertHasDescendants("my/lib/LibraryTest.java")
+
+        and:
+        commonJvmFilesGenerated(scriptDsl as BuildInitDsl)
+        dslFixture.assertHasTestSuite('test')
+
+        when:
+        run("build")
+
+        then:
+        assertTestPassed("my.lib.LibraryTest", "someLibraryMethodReturnsTrue")
+
+        where:
+        [scriptDsl, testFramework] << [
+                ScriptDslFixture.SCRIPT_DSLS,
+                [ BuildInitTestFramework.JUNIT, BuildInitTestFramework.TESTNG, BuildInitTestFramework.JUNIT_JUPITER ]
+        ].combinations()
     }
 
     @Unroll
@@ -171,6 +226,31 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
 
         and:
         commonJvmFilesGenerated(scriptDsl)
+
+        when:
+        run("build")
+
+        then:
+        assertTestPassed("my.lib.LibraryTest", "someLibraryMethod returns true")
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
+    }
+
+    @Unroll
+    def "creates sample source with package and spock and #scriptDsl build scripts with --incubating"() {
+        def dslFixture = dslFixtureFor(scriptDsl)
+
+        when:
+        run('init', '--type', 'java-library', '--test-framework', 'spock', '--package', 'my.lib', '--dsl', scriptDsl.id, '--incubating')
+
+        then:
+        subprojectDir.file("src/main/java").assertHasDescendants("my/lib/Library.java")
+        subprojectDir.file("src/test/groovy").assertHasDescendants("my/lib/LibraryTest.groovy")
+
+        and:
+        commonJvmFilesGenerated(scriptDsl)
+        dslFixture.assertHasTestSuite('test')
 
         when:
         run("build")

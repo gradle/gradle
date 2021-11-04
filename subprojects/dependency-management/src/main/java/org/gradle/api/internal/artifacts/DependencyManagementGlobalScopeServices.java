@@ -48,7 +48,6 @@ import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.CompileClasspath;
 import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.IgnoreEmptyDirectories;
-import org.gradle.work.NormalizeLineEndings;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputDirectory;
 import org.gradle.api.tasks.InputFile;
@@ -72,6 +71,7 @@ import org.gradle.internal.typeconversion.CrossBuildCachingNotationConverter;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.gradle.work.Incremental;
+import org.gradle.work.NormalizeLineEndings;
 
 class DependencyManagementGlobalScopeServices {
     FileResourceRepository createFileResourceRepository(FileSystem fileSystem) {

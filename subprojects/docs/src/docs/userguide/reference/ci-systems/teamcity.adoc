@@ -100,7 +100,7 @@ Next, we can set up the project and run a build in TeamCity.
 == Create a TeamCity build
 
 Setting up a new Gradle build in TeamCity requires just a few clicks:
-TeamCity comes bundled with a Gradle plugin, so you do not need to install plugins additionally. However, it is recommended that you install the https://plugins.jetbrains.com/plugin/9326-integration-for-gradle-and-maven-build-scans/[TeamCity Build Scan plugin].
+TeamCity comes bundled with a Gradle plugin, so you do not need to install plugins additionally. However, it is recommended that you install the https://plugins.jetbrains.com/plugin/9326-gradle-build-scan-integration[Gradle Build Scan plugin].
 
 On the *Administration | Projects* page click _Create project_,
 use the option _From the repository URL_ and enter the URL of the GitHub repository: `https://github.com/gradle/gradle-site-plugin.git`.
@@ -146,7 +146,7 @@ image::ci-systems/teamcity-tests.png[]
 The information on parameters and environment of the build is available
 on the _Parameters_ tab of the build results.
 
-If you installed the https://plugins.jetbrains.com/plugin/9326-integration-for-gradle-and-maven-build-scans/[TeamCity Build Scan plugin], you will see a link to the build scan in the Build Results view:
+If you installed the https://plugins.jetbrains.com/plugin/9326-gradle-build-scan-integration[Gradle Build Scan plugin], you will see a link to the build scan in the Build Results view:
 
 image::ci-systems/teamcity-build-scan-plugin.png[]
 
@@ -155,19 +155,19 @@ Otherwise, the link to the link:https://scans.gradle.com[build scan] for the giv
 image::ci-systems/teamcity-log-link.png[]
 
 There are various options to trigger TeamCity builds continuously:
-from link:https://www.jetbrains.com/help/teamcity/configuring-build-triggers.html[polling the repository] periodically,
-to link:https://www.jetbrains.com/help/teamcity/configuring-schedule-triggers.html[building on a set schedule],
-or via link:https://www.jetbrains.com/help/teamcity/configuring-vcs-post-commit-hooks-for-teamcity.html[post-commit hook].
+from link:https://confluence.jetbrains.com/display/TCDL/Configuring+Build+Triggers[polling the repository] periodically,
+to link:https://confluence.jetbrains.com/display/TCDL/Configuring+Schedule+Triggers[building on a set schedule],
+or via link:https://confluence.jetbrains.com/display/TCDL/Configuring+VCS+Post-Commit+Hooks+for+TeamCity[post-commit hook].
 
 
 == Further reading
 
 You can learn more about advanced TeamCity usage through these resources:
 
-* https://www.jetbrains.com/help/teamcity/build-dependencies-setup.htmlBuild chains and dependencies]
-* https://www.jetbrains.com/help/teamcity/pre-tested-delayed-commit.html[Remote run and pre-tested commit]
+* https://confluence.jetbrains.com/display/TCD18/Build+Dependencies+Setup[Build chains and dependencies]
+* https://confluence.jetbrains.com/display/TCD18/Pre-Tested+%28Delayed%29+Commit[Remote run and pre-tested commit]
 
-More information is available in https://www.jetbrains.com/help/teamcity/teamcity-documentation.html[TeamCity documentation].
+More information is available in https://confluence.jetbrains.com/display/TCD18/TeamCity+Documentation[TeamCity documentation].
 Follow the https://blog.jetbrains.com/teamcity/[TeamCity blog] for the latest news.
 
 

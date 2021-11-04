@@ -64,8 +64,11 @@ fun <T : MutableCollection<Any?>> collectionCodec(factory: (Int) -> T) = codec(
 )
 
 
+/**
+ * Decodes HashMap instances as LinkedHashMap to preserve original iteration order.
+ */
 internal
-val hashMapCodec: Codec<HashMap<Any?, Any?>> = mapCodec { HashMap<Any?, Any?>(it) }
+val hashMapCodec: Codec<HashMap<Any?, Any?>> = mapCodec { LinkedHashMap<Any?, Any?>(it) }
 
 
 internal

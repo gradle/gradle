@@ -1,24 +1,33 @@
 The Gradle team is excited to announce Gradle @version@.
 
-This release adds [several usability improvements](#usability), such as toolchain support for Scala projects, and [improves build cache hits](#performance) between operating systems.
+This release [introduces a declarative test suite API](#test-suites) for JVM projects, adds [support for building projects with Java 17](#java17),  and updates the Scala plugin to support [Scala 3](#scala).
 
-There are also changes to make the [remote HTTP build cache more resilient](#http-build-cache) when encountering problems and several [bug fixes](#fixed-issues) .
+There are also changes to make builds [more reliable](#reliability), provide [additional details to IDEs when downloading dependencies](#tooling-api), improve [untracked files in custom plugins](#untracked), several [bug fixes](#fixed-issues) and more.
 
 We would like to thank the following community members for their contributions to this release of Gradle:
 
-[Ned Twigg](https://github.com/nedtwigg),
-[Oliver Kopp](https://github.com/koppor),
-[Björn Kautler](https://github.com/Vampire),
-[naftalmm](https://github.com/naftalmm),
-[Peter Runge](https://github.com/causalnet),
-[Konstantin Gribov](https://github.com/grossws),
-[Zoroark](https://github.com/utybo),
+[Attix Zhang](https://github.com/attix-zhang),
+[anatawa12](https://github.com/anatawa12),
+[Anil Kumar Myla](https://github.com/anilkumarmyla),
+[Marcono1234](https://github.com/Marcono1234),
+[Nicola Corti](https://github.com/cortinico),
+[Scott Palmer](https://github.com/swpalmer),
+[Marcin Zajączkowski](https://github.com/szpak),
+[Alex Landau](https://github.com/AlexLandau),
 [Stefan Oehme](https://github.com/oehme),
-[Martin Kealey](https://github.com/kurahaupo),
-[KotlinIsland](https://github.com/KotlinIsland),
-[Herbert von Broeuschmeul](https://github.com/HvB)
+[yinghao niu](https://github.com/towith),
+[Björn Kautler](https://github.com/Vampire),
+[Tomasz Godzik](https://github.com/tgodzik),
+[Kristian Kraljic](https://github.com/kristian),
+[Matthew Haughton](https://github.com/3flex),
+[Raphael Fuchs](https://github.com/REPLicated),
+[Sebastian Schuberth](https://github.com/sschuberth),
+[Roberto Perez Alcolea](https://github.com/rpalcolea),
+[Xin Wang](https://github.com/scaventz)
+
 
 ## Upgrade instructions
+
 Switch your build to use Gradle @version@ by updating your wrapper:
 
 `./gradlew wrapper --gradle-version=@version@`
@@ -27,149 +36,173 @@ See the [Gradle 7.x upgrade guide](userguide/upgrading_version_7.html#changes_@b
 
 For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).
 
-<a name="usability"></a>
 ## New features and usability improvements
 
-### Java toolchain support for Scala projects
+<a name="java17"></a>
+### Support for Java 17
 
-[Java toolchains](userguide/toolchains.html) provide an easy way to declare which Java version your project should be built with. By default, Gradle will [detect installed JDKs](userguide/toolchains.html#sec:auto_detection) or automatically download new toolchain versions.
+Gradle now supports running on and building with [Java 17](https://openjdk.java.net/projects/jdk/17/).
 
-With this release, toolchain support has been added to the [Scala plugin](userguide/scala_plugin.html).
+In previous Gradle versions, running Gradle itself on Java 17 resulted in an error. JVM projects could have been built with Java 17 [using toolchains](userguide/toolchains.html).
 
-### Preserving escape sequences when copying files
+As of Gradle 7.3, both running Gradle itself and building JVM projects with Java 17 is fully supported.
 
-Previously, it was impossible to prevent Gradle from expanding escape sequences in a copied file when a `Copy` task also used [`expand(Map)`](dsl/org.gradle.api.tasks.Copy.html#org.gradle.api.tasks.Copy:expand(java.util.Map)). The default behavior is to convert each escape sequence into the corresponding character in the destination file. For example, the literal string `\t` becomes a tab character. This might be undesirable when escape sequences in processed files should be preserved as-is.
+<a name="test-suites"></a>
+### Declarative test suites in JVM projects
 
-This release adds [`Copy.expand(Map,Action)`](dsl/org.gradle.api.tasks.Copy.html#org.gradle.api.tasks.Copy:expand(java.util.Map,%20org.gradle.api.Action)) that allows you to disable the automatic conversion of escape sequences.
+When [testing Java & JVM projects](userguide/java_testing.html), you often need to group tests classes together to organize them into manageable chunks, so that you can run them with different frequencies or at distinct points in your build pipeline. For example, you may want to define groups of _unit tests_, _integration tests_, and _functional tests_.
 
-```groovy
-processResources {
-    expand([myProp: "myValue"]) {
-        // Do not replace \n or \t with characters
-        escapeBackslash = true
+Previously, grouping tests correctly required thorough knowledge of how to modify and connect various domain objects in Gradle, like SourceSets, configurations and tasks.  If you wanted to divide tests into different groups, you needed to understand how these separate parts interact with one another.
+
+With Gradle 7.3, the [JVM Test Suite Plugin](userguide/jvm_test_suite_plugin.html) simplifies the creation of such groups of tests. We refer to these groups as **Test Suites**.  Note that this is not to be confused with testing framework suites, like [JUnit4’s Suite](https://junit.org/junit4/javadoc/4.13/org/junit/runners/Suite.html).
+
+Test Suites are a high-level concept which can be referred to directly and consistently in build scripts. You can configure dependencies, sources and the testing framework used by the tests without having to worry about the low-level details.
+
+For example, you can create an _integration testing_, test suite by adding the following snippet to a Java project:
+
+```
+testing {
+    suites {
+        // Add a new test suite
+        integrationTest(JvmTestSuite) {
+            // Use JUnit Jupiter as a testing framework
+            useJUnitJupiter('5.7.1')
+
+            // depend on the production code for tests
+            dependencies {
+                implementation project
+            }
+        }
     }
+}
+
+// Run integration tests as part of check
+tasks.named('check') {
+    dependsOn(testing.suites.integrationTest)
 }
 ```
 
-This method is available to all tasks and specs of type [`ContentFilterable`](javadoc/org/gradle/api/file/ContentFilterable.html).
+This functionality is available automatically for all JVM-based projects that apply the `java` plugin. The built-in `test` task has been re-implemented on top of test suites. See more in the [user manual](userguide/jvm_test_suite_plugin.html).
 
-### Improved credentials handling for HTTP header-based authentication
+This API is [incubating](userguide/feature_lifecycle.html) and will likely change in future releases as more functionality is added.
 
-Like for password credentials and AWS credentials for repositories, Gradle now looks for credentials for repositories that use [HTTP header-based authentication](userguide/declaring_repositories.html#sec:handling_credentials) in Gradle properties.
+<a name="scala"></a>
+### Scala 3 support
 
-If the name of your project's repository is `mySecureRepository`, Gradle will search for properties with the names `mySecureRepositoryAuthHeaderName` and `mySecureRepositoryAuthHeaderValue` once you've configured the repository to use [`HttpHeaderCredentials`](dsl/org.gradle.api.credentials.HttpHeaderCredentials.html#org.gradle.api.credentials.HttpHeaderCredentials):
+The Scala plugin allows users to compile their Scala code using Gradle and the Zinc incremental compiler underneath.
 
-```
-repositories {
-    maven {
-        name = 'mySecureRepository'
-        credentials(HttpHeaderCredentials)
-        // url = uri(<<some repository url>>)
-    }
-}
-```
+The Scala plugin is now able to compile Scala 3 code. All existing configuration options should still be usable with the newest language version.
 
-### `dependencies` and `dependencyInsight` support configuration name abbreviation
+The newest version of Scala 3 brings about numerous features while keeping compatibility with most of the existing Scala 2 code. To see more about the language features go to [overview of the new features in Scala 3](https://docs.scala-lang.org/scala3/new-in-scala3.html).
 
-The [dependencies task](userguide/viewing_debugging_dependencies.html#sec:listing_dependencies) and [depedencyInsight task](userguide/viewing_debugging_dependencies.html#sec:identifying_reason_dependency_selection) reports can be used to list the dependencies used by your project and to identify why a particular version of a dependency was selected.
+### Explore new behavior with `gradle init`
 
-When using those reports from the command line and selecting a configuration using the `--configuration` parameter, you can now use an abbreviated camelCase notation in the [same way as subproject and task names](userguide/command_line_interface.html#sec:name_abbreviation).
+When you initialize a new Gradle project using [`gradle init`](userguide/build_init_plugin.html#build_init_plugin), Gradle will now ask if you want to try new but unstable features in the build. This will allow you to try out new features before they become stable. You can always ask for this behavior by running `gradle init --incubating` when generating a new project.
 
-For example, the command-line `gradle dependencies --configuration tRC` can be used instead of `gradle dependencies --configuration testRuntimeClasspath` as long as the abbreviation `tRC` is unambiguous.
+Currently, builds generated with this option will only enable [Test Suites](#test-suites), but other new APIs or behaviors may be added as they are introduced.
 
 ### Version catalog improvements
 
-[Version catalog](userguide/platforms.html#sub:version-catalog-declaration) is a [feature preview](userguide/feature_lifecycle.html#feature_preview) that provides a convenient API for referencing dependencies and their versions.
+[Version catalog](userguide/platforms.html#sub:version-catalog-declaration) is a [feature preview](userguide/feature_lifecycle.html#feature_preview) that provides a convenient API for referencing dependencies and their versions. It received the following improvement in this release.
 
-#### Declaring sub-accessors
+#### Lifted restrictions for alias names
 
-In previous Gradle releases, it wasn't possible to declare a [version catalog](userguide/platforms.html#sub:version-catalog) where an alias would also contain sub-aliases.
-For example, it wasn't possible to declare both an alias `jackson` and `jackson.xml`, you would have had to create aliases `jackson.core` and `jackson.xml`.
+In previous Gradle releases it was not possible to declare aliases with the suffix `plugin`, `version` and other restricted keywords. With this release these restrictions are now lifted. Check the [documentation](userguide/platforms.html#sub:mapping-aliases-to-accessors) for details.
 
-This limitation is now lifted.
+#### Version catalog type unsafe API changes
 
-#### Declaring plugin versions
+When using the type unsafe API, all methods accepting [alias references](userguide/platforms.html#sub:mapping-aliases-to-accessors) now can use the exact same string as the alias definition. This means that you can declare and reference `groovy-json` instead of being forced to use `groovy.json` in the type unsafe API.
 
-Version catalogs already supported declaring versions of your libraries, but they were not accessible to the `plugins` and `buildscript` blocks.
-This limitation is now lifted, and it's possible to declare plugins, for example in the TOML file:
-```toml
-[versions]
-jmh = "0.6.5"
-[plugins]
-jmh = { id = "me.champeau.jmh", version.ref="jmh" }
-```
-which allows using them in the plugins block like this:
-```kotlin
-plugins {
-    alias(libs.plugins.jmh)
-}
-```
+Note that access to the type unsafe API has changed, please see the [upgrade guide](userguide/upgrading_version_7.html#changes_7.3).
 
-<a name="performance"></a>
-## Performance improvements
+#### Consistent version catalog accessors support in more scenarios
 
-### More cache hits between operating systems
+With more possibilities for declaring aliases, some accessors were not supported in specific APIs related to plugin or dependency declarations. This release fixes those issues and accessors can be used consistently in more contexts.
 
-For [up-to-date](userguide/more_about_tasks.html#sec:up_to_date_checks) checks and the [build cache](userguide/build_cache.html), Gradle needs to determine if two directory structures contain the same contents.  When line endings in text files differ (e.g. when checking out source code on different operating systems) this can appear like the inputs of a task are different, even though the task may not actually produce different outputs.  This difference can cause tasks to re-execute unnecessarily, producing identical outputs that could otherwise have been retrieved from the build cache.
+For plugins, if you have `kotlin.js` and `kotlin.js.action` plugins, both can be used in the `plugins` block.
 
-A new annotation has been introduced that allows task authors to specify that an input should not be sensitive to differences in line endings.  Inputs annotated with [@InputFiles](javadoc/org/gradle/api/tasks/InputFiles.html), [@InputDirectory](javadoc/org/gradle/api/tasks/InputDirectory.html) or [@Classpath](javadoc/org/gradle/api/tasks/Classpath.html) can additionally be annotated with [@NormalizeLineEndings](javadoc/org/gradle/work/NormalizeLineEndings.html) to specify that line endings in text files should be normalized during build cache and up-to-date checks so that files that only differ by line endings will be considered identical.  Binary files, on the other hand, will not be affected by this annotation.
+Declarations of dependencies with `platform`, `enforcedPlatform`, `testFixtures` and `force` support all accessor types.
 
-```groovy
-abstract class MyTask extends DefaultTask {
-    @InputFiles
-    @PathSensitive(PathSensitivity.RELATIVE)
-    @NormalizeLineEndings
-    ConfigurableFileCollection getInputFiles();
-}
-```
 
-The [JavaCompile](javadoc/org/gradle/api/tasks/compile/JavaCompile.html) task has been updated to normalize line endings in source files when doing up-to-date checks and build cache key calculations.
+<a name="reliability"></a>
+## Reliability improvements
 
-See the [User manual](userguide/more_about_tasks.html#sec:up_to_date_checks) for more information.
+### More robust file system watching
 
-### Configuration cache support for Groovy and Scala projects
+When running an incremental build, Gradle needs to understand what has changed since the previous build on the file system. To do this it relies on the operating system's [file system events](userguide/gradle_daemon.html#sec:daemon_watch_fs) whenever possible.
 
-Projects that are written in Groovy or Scala can enable the experimental [configuration cache](userguide/configuration_cache.html) without generating errors from the built-in `groovy` and `scala` plugins. Configuration caching is a feature that reduces build times by caching the result of the configuration phase and reusing the result for subsequent builds.
+However, these file system events can be unreliable in some environments, which could cause Gradle to ignore some changes.
 
-See the full set of [supported plugins](userguide/configuration_cache.html#config_cache:plugins).
+To prevent this, Gradle now detects the reliability of file system events and automatically disables the file system watching optimization in case of issues.
 
-<a name="http-build-cache"></a>
-## Remote build cache reliability improvements
+### Allow copying single files into directories which contain unreadable files.
 
-The [Gradle build cache](userguide/build_cache.html) is a cache mechanism that aims to save time by reusing outputs produced by other builds. A remote build cache works by storing build outputs and allowing builds to fetch these outputs from the cache when it is determined that inputs have not changed, avoiding the expensive work of regenerating them.
+Sometimes you want to copy files into a directory that contains unreadable files or into one that is not exclusively owned by the build.
+For example when you are deploying single files into application servers or installing executables.
 
-This release improves the reliability of interactions with a remote build cache.
+Doing so may fail or be slow because Gradle tries to track all the content in the destination directory.
 
-### Automatic retry of uploads on temporary network error
+In order to work around such issues, you can now use the method [`Task.doNotTrackState()`](dsl/org.gradle.api.Task.html#org.gradle.api.Task:doNotTrackState(java.lang.String)) on `Copy` tasks that forces Gradle to ignore content in the destination directory.
 
-Previously, only load (i.e. GET) requests that failed during request transmission would be automatically retried. Now, store (i.e. PUT) requests are also retried.
+See the samples in the user manual about [Deploying single files into application servers](userguide/working_with_files.html#sec:copy_deploy) and [Installing executables](userguide/working_with_files.html#sec:install_executable).
 
-This prevents temporary problems, such as connection drops, read or write timeouts, or low-level network failures, to cause cache operations to fail and disable the remote cache for the remainder of the build.
+### Input normalization support in configuration cache
 
-Requests will be retried up to 3 times. If the problem persists, the cache operation will fail and the remote cache will be disabled for the remainder of the build.
+The [input normalization](userguide/more_about_tasks.html#sec:configure_input_normalization) is now correctly tracked by the experimental [configuration cache](userguide/configuration_cache.html). Task up-to-date checks now consider normalization rules when the configuration cache is enabled, leading to faster builds.
 
-### Follow redirects by default
+## Plugin development improvements
 
-Redirect responses are now followed by default with no additional configuration needed.
+Initializing new plugin projects using the [Build Init Plugin](userguide/build_init_plugin.html#build_init_plugin) can also benefit from [the `--incubating` option](#explore-new-behavior-with-gradle-init).
 
-This can be leveraged to gracefully migrate to new cache locations, utilize some form of request signing to read to and write from other systems, or reroute requests from certain users or geographies to other locations.
+<a name="untracked"></a>
+### Allow plugin authors to declare tasks as untracked
 
-For more information on the effect of different types of redirects, consult the [User manual](userguide/build_cache.html#sec:build_cache_redirects).
+For up-to-date checks and the build cache, Gradle needs to track the state of the inputs and outputs of a task.
+It is not always desirable or possible for Gradle to fully track the state of the input and output files.
 
-### Use Expect-Continue to avoid redundant uploads
+For example:
+- The input or output locations contain unreadable files like pipes where Gradle cannot track the content.
+- The input or output is stored remotely, for example in a database, and its state cannot be tracked.
+- Another tool like Git already takes care of keeping the state, so it doesn't make sense for Gradle to do additional bookkeeping.
+- The build does not own the output location exclusively and Gradle would need to track the state of a potentially large amount of content.
 
-It is now possible to opt-in to the use of [Expect-Continue](https://www.w3.org/Protocols/rfc2616/rfc2616-sec8.html#sec8.2.3) for upload requests.
+Gradle 7.3 introduces the annotation [`@UntrackedTask`](javadoc/org/gradle/api/tasks/UntrackedTask.html) and the method [`Task.doNotTrackState()`](dsl/org.gradle.api.Task.html#org.gradle.api.Task:doNotTrackState(java.lang.String)) to declare that Gradle should not track the state of a task.
+This allows tasks to implement the above use-cases.
 
-This is useful when build cache upload requests are regularly rejected or redirected by the server,
-as it avoids the overhead of transmitting the large file just to have it rejected or redirected.
+If a task is untracked, then Gradle does not do any optimizations when running the task.
+For example, such a task will always be out of date and never come from the build cache.
 
-Consult the [User manual](userguide/build_cache.html#sec:build_cache_expect_continue) for more on the use of expect-continue.
+The method [`Task.doNotTrackState()`](dsl/org.gradle.api.Task.html#org.gradle.api.Task:doNotTrackState(java.lang.String)) is a replacement for `Task.outputs.upToDateWhen { false }` if you want your task to never be up-to-date.
+It has the advantage that there is no time spent on capturing state that would be discarded anyway.
+
+See the samples in the user manual about [Integrating an external tool which does its own up-to-date checking](userguide/more_about_tasks.html#sec:untracked_external_tool).
+
+<a name="tooling-api"></a>
+## Improvements for tooling providers
+
+The Tooling API allows applications to embed Gradle. This API is used by IDEs such as IDEA, Android Studio
+and Buildship to integrate Gradle into the IDE.
+
+### File download progress events
+
+When a build downloads many files or very large files, for example when resolving dependencies, Gradle may appear to be unresponsive due to the lack of any logging or console output.
+
+This release adds new events that notify the IDE as files are downloaded. This allows IDEs to show better progress information while Gradle is running and during IDE import/sync.
+
+## Security improvements
+
+Both `ant` and `common-compress` bundled libraries have been updated to resolve reported vulnerabilities.
+Head over to [the upgrade guide](userguide/upgrading_version_7.html#changes_7.3) for version and resolved vulnerabilities.
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 
 The following are the features that have been promoted in this Gradle release.
+
+### Disabling caching by default
+
+The [`@DisableCachingByDefault` annotation](userguide/build_cache.html#sec:task_output_caching_disabled_by_default) is now a stable feature.
 
 ## Fixed issues
 

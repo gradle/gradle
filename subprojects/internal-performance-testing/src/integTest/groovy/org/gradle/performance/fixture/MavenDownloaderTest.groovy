@@ -23,22 +23,23 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Assume
 import org.junit.AssumptionViolatedException
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
+import spock.lang.TempDir
 import spock.lang.Unroll
+
+import java.nio.file.Files
 
 @Requires([TestPrecondition.ONLINE])
 class MavenDownloaderTest extends Specification {
 
-    @Rule
-    TemporaryFolder tmpDir = new TemporaryFolder()
+    @TempDir
+    File tmpDir
 
     def installRoot
     def downloader
 
     def setup() {
-        installRoot = tmpDir.newFolder()
+        installRoot = Files.createTempDirectory(tmpDir.toPath(), null).toFile()
         downloader = new MavenInstallationDownloader(installRoot)
         if (JavaVersion.current().isJava7()) {
             System.setProperty("https.protocols", "TLSv1.2")

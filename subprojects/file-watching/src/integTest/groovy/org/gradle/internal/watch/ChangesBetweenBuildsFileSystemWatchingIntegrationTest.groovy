@@ -17,6 +17,8 @@
 package org.gradle.internal.watch
 
 import org.gradle.integtests.fixtures.TestBuildCache
+import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.internal.watch.registry.impl.WatchableHierarchies
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -35,7 +37,7 @@ class ChangesBetweenBuildsFileSystemWatchingIntegrationTest extends AbstractFile
         mainSourceFile.text = sourceFileWithGreeting("Hello World!")
 
         when:
-        withWatchFs().run "run"
+        runWithWatchingEnabled("run")
         then:
         outputContains "Hello World!"
         executedAndNotSkipped ":compileJava", ":classes", ":run"
@@ -43,7 +45,7 @@ class ChangesBetweenBuildsFileSystemWatchingIntegrationTest extends AbstractFile
         when:
         mainSourceFile.text = sourceFileWithGreeting("Hello VFS!")
         waitForChangesToBePickedUp()
-        withWatchFs().run "run"
+        runWithWatchingEnabled "run"
         then:
         outputContains "Hello VFS!"
         executedAndNotSkipped ":compileJava", ":classes", ":run"
@@ -58,14 +60,14 @@ class ChangesBetweenBuildsFileSystemWatchingIntegrationTest extends AbstractFile
         """
 
         when:
-        withWatchFs().run "hello"
+        runWithWatchingEnabled "hello"
         then:
         outputContains "Hello from original task!"
 
         when:
         taskSourceFile.text = taskWithGreeting("Hello from modified task!")
         waitForChangesToBePickedUp()
-        withWatchFs().run "hello"
+        runWithWatchingEnabled "hello"
         then:
         outputContains "Hello from modified task!"
     }
@@ -75,7 +77,7 @@ class ChangesBetweenBuildsFileSystemWatchingIntegrationTest extends AbstractFile
         buildFile.text = """
             println "Hello from the build!"
         """
-        withWatchFs().run "help"
+        runWithWatchingEnabled "help"
         then:
         outputContains "Hello from the build!"
 
@@ -83,7 +85,7 @@ class ChangesBetweenBuildsFileSystemWatchingIntegrationTest extends AbstractFile
         buildFile.text = """
             println "Hello from the modified build!"
         """
-        withWatchFs().run "help"
+        runWithWatchingEnabled "help"
         then:
         outputContains "Hello from the modified build!"
     }
@@ -93,7 +95,7 @@ class ChangesBetweenBuildsFileSystemWatchingIntegrationTest extends AbstractFile
         buildKotlinFile.text = """
             println("Hello from the build!")
         """
-        withWatchFs().run "help"
+        runWithWatchingEnabled "help"
         then:
         outputContains "Hello from the build!"
 
@@ -101,7 +103,7 @@ class ChangesBetweenBuildsFileSystemWatchingIntegrationTest extends AbstractFile
         buildKotlinFile.text = """
             println("Hello from the modified build!")
         """
-        withWatchFs().run "help"
+        runWithWatchingEnabled "help"
         then:
         outputContains "Hello from the modified build!"
     }
@@ -111,7 +113,7 @@ class ChangesBetweenBuildsFileSystemWatchingIntegrationTest extends AbstractFile
         settingsFile.text = """
             println "Hello from settings!"
         """
-        withWatchFs().run "help"
+        runWithWatchingEnabled "help"
         then:
         outputContains "Hello from settings!"
 
@@ -119,7 +121,7 @@ class ChangesBetweenBuildsFileSystemWatchingIntegrationTest extends AbstractFile
         settingsFile.text = """
             println "Hello from modified settings!"
         """
-        withWatchFs().run "help"
+        runWithWatchingEnabled "help"
         then:
         outputContains "Hello from modified settings!"
     }
@@ -135,14 +137,14 @@ class ChangesBetweenBuildsFileSystemWatchingIntegrationTest extends AbstractFile
         mainSourceFile.text = sourceFileWithGreeting("Hello World!")
 
         when:
-        withoutWatchFs().run "run"
+        runWithWatchingDisabled "run"
         then:
         outputContains "Hello World!"
         executedAndNotSkipped ":compileJava", ":classes", ":run"
 
         when:
         mainSourceFile.text = sourceFileWithGreeting("Hello VFS!")
-        withWatchFs().run "run"
+        runWithWatchingEnabled "run"
         then:
         outputContains "Hello VFS!"
         executedAndNotSkipped ":compileJava", ":classes", ":run"
@@ -159,14 +161,14 @@ class ChangesBetweenBuildsFileSystemWatchingIntegrationTest extends AbstractFile
         mainSourceFile.text = sourceFileWithGreeting("Hello World!")
 
         when:
-        withWatchFs().run "run"
+        runWithWatchingEnabled "run"
         then:
         outputContains "Hello World!"
         executedAndNotSkipped ":compileJava", ":classes", ":run"
 
         when:
         mainSourceFile.text = sourceFileWithGreeting("Hello VFS!")
-        withoutWatchFs().run "run"
+        runWithWatchingDisabled "run"
         then:
         outputContains "Hello VFS!"
         executedAndNotSkipped ":compileJava", ":classes", ":run"
@@ -218,7 +220,7 @@ class ChangesBetweenBuildsFileSystemWatchingIntegrationTest extends AbstractFile
         sourceFile.text = "Hello Old World!"
 
         when:
-        run "run"
+        runWithWatchingEnabled "run"
         then:
         targetFile.text == "Hello Old World!"
         executedAndNotSkipped ":run"
@@ -232,9 +234,25 @@ class ChangesBetweenBuildsFileSystemWatchingIntegrationTest extends AbstractFile
         buildFile.text = buildFileContents
         sourceFile.text = "Hello New World!"
 
-        run "run"
+        runWithWatchingEnabled "run"
         then:
         targetFile.text == "Hello New World!"
         executedAndNotSkipped ":run"
+    }
+
+    ExecutionResult runWithWatchingEnabled(String... tasks) {
+        def result = withWatchFs().run tasks
+        assertOutputContainsNoInvalidation()
+        return result
+    }
+
+    ExecutionResult runWithWatchingDisabled(String... tasks) {
+        def result = withoutWatchFs().run tasks
+        assertOutputContainsNoInvalidation()
+        return result
+    }
+
+    void assertOutputContainsNoInvalidation() {
+        outputDoesNotContain(WatchableHierarchies.INVALIDATING_HIERARCHY_MESSAGE)
     }
 }

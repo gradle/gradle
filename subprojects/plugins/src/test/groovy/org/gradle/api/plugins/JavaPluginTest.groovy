@@ -209,38 +209,38 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         project.pluginManager.apply(JavaPlugin)
 
         when:
-        SourceSet set = project.sourceSets[SourceSet.MAIN_SOURCE_SET_NAME]
+        SourceSet mainSourceSet = project.sourceSets[SourceSet.MAIN_SOURCE_SET_NAME]
 
         then:
-        set.java.srcDirs == toLinkedSet(project.file('src/main/java'))
-        set.resources.srcDirs == toLinkedSet(project.file('src/main/resources'))
-        set.compileClasspath.is(project.configurations.compileClasspath)
-        set.annotationProcessorPath.is(project.configurations.annotationProcessor)
-        set.java.destinationDirectory.set(new File(project.buildDir, 'classes/java/main'))
-        set.output.resourcesDir == new File(project.buildDir, 'resources/main')
-        set.getOutput().getBuildDependencies().getDependencies(null)*.name == [ JavaPlugin.CLASSES_TASK_NAME ]
-        set.output.generatedSourcesDirs.files == toLinkedSet(new File(project.buildDir, 'generated/sources/annotationProcessor/java/main'))
-        set.output.generatedSourcesDirs.buildDependencies.getDependencies(null)*.name == [ JavaPlugin.COMPILE_JAVA_TASK_NAME ]
-        set.runtimeClasspath.sourceCollections.contains(project.configurations.runtimeClasspath)
-        set.runtimeClasspath.contains(new File(project.buildDir, 'classes/java/main'))
+        mainSourceSet.java.srcDirs == toLinkedSet(project.file('src/main/java'))
+        mainSourceSet.resources.srcDirs == toLinkedSet(project.file('src/main/resources'))
+        mainSourceSet.compileClasspath.is(project.configurations.compileClasspath)
+        mainSourceSet.annotationProcessorPath.is(project.configurations.annotationProcessor)
+        mainSourceSet.java.destinationDirectory.set(new File(project.buildDir, 'classes/java/main'))
+        mainSourceSet.output.resourcesDir == new File(project.buildDir, 'resources/main')
+        mainSourceSet.getOutput().getBuildDependencies().getDependencies(null)*.name == [ JavaPlugin.CLASSES_TASK_NAME ]
+        mainSourceSet.output.generatedSourcesDirs.files == toLinkedSet(new File(project.buildDir, 'generated/sources/annotationProcessor/java/main'))
+        mainSourceSet.output.generatedSourcesDirs.buildDependencies.getDependencies(null)*.name == [ JavaPlugin.COMPILE_JAVA_TASK_NAME ]
+        mainSourceSet.runtimeClasspath.sourceCollections.contains(project.configurations.runtimeClasspath)
+        mainSourceSet.runtimeClasspath.contains(new File(project.buildDir, 'classes/java/main'))
 
         when:
-        set = project.sourceSets[SourceSet.TEST_SOURCE_SET_NAME]
+        SourceSet testSourceSet = project.sourceSets[SourceSet.TEST_SOURCE_SET_NAME]
 
         then:
-        set.java.srcDirs == toLinkedSet(project.file('src/test/java'))
-        set.resources.srcDirs == toLinkedSet(project.file('src/test/resources'))
-        set.compileClasspath.sourceCollections.contains(project.configurations.testCompileClasspath)
-        set.compileClasspath.contains(new File(project.buildDir, 'classes/java/main'))
-        set.annotationProcessorPath.is(project.configurations.testAnnotationProcessor)
-        set.java.destinationDirectory.set(new File(project.buildDir, 'classes/java/test'))
-        set.output.resourcesDir == new File(project.buildDir, 'resources/test')
-        set.getOutput().getBuildDependencies().getDependencies(null)*.name == [ JavaPlugin.TEST_CLASSES_TASK_NAME ]
-        set.output.generatedSourcesDirs.files == toLinkedSet(new File(project.buildDir, 'generated/sources/annotationProcessor/java/test'))
-        set.output.generatedSourcesDirs.buildDependencies.getDependencies(null)*.name == [ JavaPlugin.COMPILE_TEST_JAVA_TASK_NAME ]
-        set.runtimeClasspath.sourceCollections.contains(project.configurations.testRuntimeClasspath)
-        set.runtimeClasspath.contains(new File(project.buildDir, 'classes/java/main'))
-        set.runtimeClasspath.contains(new File(project.buildDir, 'classes/java/test'))
+        testSourceSet.java.srcDirs == toLinkedSet(project.file('src/test/java'))
+        testSourceSet.resources.srcDirs == toLinkedSet(project.file('src/test/resources'))
+        testSourceSet.compileClasspath.sourceCollections.contains(project.configurations.testCompileClasspath)
+        testSourceSet.compileClasspath.contains(new File(project.buildDir, 'classes/java/main'))
+        testSourceSet.annotationProcessorPath.is(project.configurations.testAnnotationProcessor)
+        testSourceSet.java.destinationDirectory.set(new File(project.buildDir, 'classes/java/test'))
+        testSourceSet.output.resourcesDir == new File(project.buildDir, 'resources/test')
+        testSourceSet.getOutput().getBuildDependencies().getDependencies(null)*.name == [ JavaPlugin.TEST_CLASSES_TASK_NAME ]
+        testSourceSet.output.generatedSourcesDirs.files == toLinkedSet(new File(project.buildDir, 'generated/sources/annotationProcessor/java/test'))
+        testSourceSet.output.generatedSourcesDirs.buildDependencies.getDependencies(null)*.name == [ JavaPlugin.COMPILE_TEST_JAVA_TASK_NAME ]
+        testSourceSet.runtimeClasspath.sourceCollections.contains(project.configurations.testRuntimeClasspath)
+        testSourceSet.runtimeClasspath.contains(new File(project.buildDir, 'classes/java/main'))
+        testSourceSet.runtimeClasspath.contains(new File(project.buildDir, 'classes/java/test'))
     }
 
     def "creates mappings for custom source sets"() {

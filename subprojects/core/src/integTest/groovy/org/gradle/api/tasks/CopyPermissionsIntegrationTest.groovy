@@ -26,7 +26,7 @@ import spock.lang.Unroll
 import static org.junit.Assert.assertTrue
 
 @Unroll
-class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
+class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements UnreadableCopyDestinationFixture {
 
     @Requires(TestPrecondition.FILE_PERMISSIONS)
     def "file permissions are preserved in copy action"() {
@@ -268,12 +268,13 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
 
     @Requires(TestPrecondition.FILE_PERMISSIONS)
     @Issue('https://github.com/gradle/gradle/issues/9576')
-    def "unreadable #type not produced by task is ignored"() {
+    def "unreadable #type not produced by task causes a deprecation warning"() {
         given:
         def input = file("readableFile.txt").createFile()
 
         def outputDirectory = file("output")
-        def unreadableOutput = create(file("${outputDirectory.name}/unreadable${type.capitalize()}")).makeUnreadable()
+        def unreadableOutput = file("${outputDirectory.name}/unreadable${type.capitalize()}")
+        create(unreadableOutput).makeUnreadable()
 
         buildFile << """
             task copy(type: Copy) {
@@ -283,16 +284,54 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        succeeds 'copy'
+        executer.withStackTraceChecksDisabled()
+        expectUnreadableCopyDestinationDeprecationWarning()
+        succeeds "copy", "--info"
         then:
         outputDirectory.list().contains input.name
+        outputContains("Cannot access output property 'destinationDir' of task ':copy'")
+        outputContains(expectedError(unreadableOutput))
 
         cleanup:
         unreadableOutput.makeReadable()
 
         where:
-        type        | create
-        'file'      | { it.createFile() }
-        'directory' | { it.createDir() }
+        type        | create              | expectedError
+        'file'      | { it.createFile() } | { "java.io.UncheckedIOException: Failed to create MD5 hash for file '${it.absolutePath}' as it does not exist." }
+        'directory' | { it.createDir() }  | { "java.nio.file.AccessDeniedException: ${it.absolutePath}" }
+    }
+
+    @Requires(TestPrecondition.FILE_PERMISSIONS)
+    @Issue('https://github.com/gradle/gradle/issues/9576')
+    def "can copy into destination directory with unreadable file when using doNotTrackState"() {
+        given:
+        def input = file("readableFile.txt").createFile()
+
+        def outputDirectory = file("output")
+        def unreadableOutput = file("${outputDirectory.name}/unreadableFile")
+        unreadableOutput.createFile().makeUnreadable()
+
+        buildFile << """
+            task copy(type: Copy) {
+                from '${input.name}'
+                into '${outputDirectory.name}'
+                doNotTrackState("Destination contains unreadable files")
+            }
+        """
+
+        when:
+        run "copy"
+        then:
+        executedAndNotSkipped(":copy")
+        outputDirectory.list().contains input.name
+
+        when:
+        run "copy"
+        then:
+        executedAndNotSkipped(":copy")
+        outputDirectory.list().contains input.name
+
+        cleanup:
+        unreadableOutput.makeReadable()
     }
 }

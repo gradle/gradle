@@ -40,14 +40,14 @@ import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.exceptions.MultiCauseException
-import org.gradle.internal.execution.DefaultOutputSnapshotter
+import org.gradle.internal.execution.impl.DefaultOutputSnapshotter
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.WorkValidationContext
 import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinterRegistry
 import org.gradle.internal.execution.fingerprint.impl.DefaultInputFingerprinter
-import org.gradle.internal.execution.history.AfterPreviousExecutionState
 import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.execution.history.OverlappingOutputDetector
+import org.gradle.internal.execution.history.PreviousExecutionState
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector
 import org.gradle.internal.execution.impl.DefaultExecutionEngine
 import org.gradle.internal.execution.impl.DefaultWorkValidationContext
@@ -59,7 +59,7 @@ import org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep
 import org.gradle.internal.execution.steps.ExecuteStep
 import org.gradle.internal.execution.steps.IdentifyStep
 import org.gradle.internal.execution.steps.IdentityCacheStep
-import org.gradle.internal.execution.steps.LoadExecutionStateStep
+import org.gradle.internal.execution.steps.LoadPreviousExecutionStateStep
 import org.gradle.internal.execution.steps.RemovePreviousOutputsStep
 import org.gradle.internal.execution.steps.ResolveCachingStateStep
 import org.gradle.internal.execution.steps.ResolveChangesStep
@@ -107,7 +107,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         getInputFileProperties() >> ImmutableSortedSet.of()
         getOutputFileProperties() >> ImmutableSortedSet.of()
     }
-    def previousState = Stub(AfterPreviousExecutionState) {
+    def previousState = Stub(PreviousExecutionState) {
         getInputProperties() >> ImmutableSortedMap.of()
         getInputFileProperties() >> ImmutableSortedMap.of()
 
@@ -160,7 +160,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         new IdentifyStep<>(
         new IdentityCacheStep<>(
         new AssignWorkspaceStep<>(
-        new LoadExecutionStateStep<>(
+        new LoadPreviousExecutionStateStep<>(
         new SkipEmptyWorkStep<>(
         new CaptureStateBeforeExecutionStep(buildOperationExecutor, classloaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
         new ValidateStep<>(virtualFileSystem, validationWarningReporter,

@@ -16,17 +16,18 @@
 
 import gradlebuild.basics.BuildEnvironment
 import gradlebuild.classycle.tasks.Classycle
+import gradlebuild.cleanup.tasks.KillLeakingJavaProcesses
 import gradlebuild.docs.FindBrokenInternalLinks
 import gradlebuild.integrationtests.tasks.DistributionTest
 import gradlebuild.performance.tasks.PerformanceTest
 import gradlebuild.testcleanup.extension.TestFileCleanUpExtension
-import gradlebuild.cleanup.tasks.KillLeakingJavaProcesses
 import me.champeau.gradle.japicmp.JapicmpTask
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultSerializer
 import java.io.FileOutputStream
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.LinkOption
+import java.util.stream.Collectors
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
@@ -48,8 +49,8 @@ if (BuildEnvironment.isCiServer && project.name != "gradle-kotlin-dsl-accessors"
         val failedTasks = failedTasks()
         val executedTasks = executedTasks()
         val tmpTestFiles = tmpTestFiles()
-        prepareReportsForCiPublishing(failedTasks, executedTasks, tmpTestFiles)
-        cleanUp(tmpTestFiles)
+        prepareReportsForCiPublishing(if (tmpTestFiles.isEmpty()) failedTasks else executedTasks, executedTasks, tmpTestFiles.keys)
+        cleanUp(tmpTestFiles.keys)
         if (!isCleanupRunnerStep(gradle!!)) {
             verifyTestFilesCleanup(failedTasks, tmpTestFiles)
         }
@@ -64,7 +65,7 @@ fun isCleanupRunnerStep(gradle: Gradle) =
 /**
  * After archiving the test files, do a cleanup to get rid of TeamCity "XX published a lot of small artifacts" warning.
  */
-fun cleanUp(filesToCleanUp: List<File>) {
+fun cleanUp(filesToCleanUp: Collection<File>) {
     try {
         delete(filesToCleanUp)
     } catch (e: Exception) {
@@ -73,28 +74,32 @@ fun cleanUp(filesToCleanUp: List<File>) {
     }
 }
 
-fun verifyTestFilesCleanup(failedTasks: List<Task>, tmpTestFiles: List<File>) {
+fun verifyTestFilesCleanup(failedTasks: List<Task>, tmpTestFiles: Map<File, List<String>>) {
     if (failedTasks.any { it is Test }) {
         println("Leftover files: $tmpTestFiles")
         return
     }
 
     if (tmpTestFiles.isNotEmpty()) {
+        val nonEmptyDirs = tmpTestFiles.entries.joinToString("\n") { (dir, relativePaths) ->
+            "${dir.absolutePath}:\n ${relativePaths.joinToString("\n ")}"
+        }
+        val errorMessage = "Found non-empty test files dir:\n$nonEmptyDirs"
         if (testFilesCleanup.reportOnly.get()) {
-            println("Found non-empty test files dir:\n${tmpTestFiles.joinToString("\n") { it.absolutePath }}")
+            println(errorMessage)
         } else {
-            throw GradleException("Found non-empty test files dir:\n${tmpTestFiles.joinToString("\n") { it.absolutePath }}")
+            throw GradleException(errorMessage)
         }
     }
 }
 
-fun prepareReportsForCiPublishing(failedTasks: List<Task>, executedTasks: List<Task>, tmpTestFiles: List<File>) {
-    val failedTaskCustomReports = failedTasks.flatMap { it.failedTaskGenericHtmlReports() }
+fun prepareReportsForCiPublishing(tasksToCollectReports: List<Task>, executedTasks: List<Task>, tmpTestFiles: Collection<File>) {
+    val collectedTaskHtmlReports = tasksToCollectReports.flatMap { it.failedTaskGenericHtmlReports() }
     val attachedReports = executedTasks.flatMap { it.attachedReportLocations() }
-    val executedTaskCustomReports = failedTasks.flatMap { it.failedTaskCustomReports() }
+    val executedTaskCustomReports = tasksToCollectReports.flatMap { it.customReports() }
     val testDistributionTraceJsons = executedTasks.filterIsInstance<Test>().flatMap { it.findTraceJson() }
 
-    val allReports = failedTaskCustomReports + attachedReports + executedTaskCustomReports + tmpTestFiles + testDistributionTraceJsons
+    val allReports = collectedTaskHtmlReports + attachedReports + executedTaskCustomReports + tmpTestFiles + testDistributionTraceJsons
     allReports.forEach { report ->
         prepareReportForCiPublishing(report)
     }
@@ -110,10 +115,22 @@ fun Task.findTraceJson(): List<File> {
     }
 }
 
-fun tmpTestFiles() =
-    layout.buildDirectory.dir("tmp/test files").get().asFile.listFiles()?.filter { dir ->
-        Files.walk(dir.toPath()).use { paths -> !paths.allMatch { it.toFile().isDirectory } }
-    } ?: emptyList()
+/**
+ * Returns non-empty directories: the mapping of directory to at most 4 leftover files' relative path in the directory.
+ */
+fun tmpTestFiles(): Map<File, List<String>> = layout.buildDirectory.dir("tmp/test files").get().asFile
+    .listFiles()
+    ?.associateWith { dir ->
+        val dirPath = dir.toPath()
+        Files.walk(dirPath).use { paths ->
+            paths.filter { !it.toFile().isDirectory }
+                .limit(4)
+                .map { dirPath.relativize(it).toString() }
+                .collect(Collectors.toList())
+        }
+    }?.filter {
+        it.value.isNotEmpty()
+    } ?: emptyMap()
 
 fun executedTasks() = gradle.taskGraph.allTasks.filter { it.project == project && it.state.executed }
 
@@ -143,7 +160,7 @@ fun Task.failedTaskGenericHtmlReports() = when (this) {
     else -> emptyList()
 }
 
-fun Task.failedTaskCustomReports() = when (this) {
+fun Task.customReports() = when (this) {
     is ValidatePlugins -> listOf(outputFile.get().asFile)
     is Classycle -> listOf(reportFile.get().asFile)
     is FindBrokenInternalLinks -> listOf(reportFile.get().asFile)

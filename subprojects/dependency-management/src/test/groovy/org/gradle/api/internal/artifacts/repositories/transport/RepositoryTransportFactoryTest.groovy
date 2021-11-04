@@ -46,8 +46,8 @@ class RepositoryTransportFactoryTest extends Specification {
         connectorFactory2.getSupportedProtocols() >> (["protocol2a", "protocol2b"] as Set)
         connectorFactory2.getSupportedAuthentication() >> ([] as Set)
         List<ResourceConnectorFactory> resourceConnectorFactories = Lists.newArrayList(connectorFactory1, connectorFactory2)
-        StartParameterResolutionOverride override = new StartParameterResolutionOverride(new StartParameter(), Mock(File))
-        repositoryTransportFactory = new RepositoryTransportFactory(resourceConnectorFactories, null, null, null, null, null, null, override, producerGuard, Mock(FileResourceRepository), TestUtil.checksumService, Stub(FileResourceListener))
+        StartParameterResolutionOverride override = new StartParameterResolutionOverride(new StartParameter(), new File("dummy"))
+        repositoryTransportFactory = new RepositoryTransportFactory(resourceConnectorFactories, null, null, null, null, null, override, producerGuard, Mock(FileResourceRepository), TestUtil.checksumService, Stub(FileResourceListener))
     }
 
     RepositoryTransport createTransport(String scheme, String name, Collection<Authentication> authentications) {

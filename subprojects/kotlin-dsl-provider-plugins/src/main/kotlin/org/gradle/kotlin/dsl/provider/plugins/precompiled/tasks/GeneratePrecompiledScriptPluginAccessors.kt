@@ -29,6 +29,7 @@ import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Classpath
+import org.gradle.api.tasks.IgnoreEmptyDirectories
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFiles
@@ -42,7 +43,7 @@ import org.gradle.initialization.BuildLayoutParameters
 import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.initialization.DefaultProjectDescriptor
 import org.gradle.internal.Try
-import org.gradle.internal.build.NestedRootBuildRunner.createNestedRootBuild
+import org.gradle.internal.build.NestedRootBuildRunner.createNestedBuildTree
 import org.gradle.internal.classpath.CachedClasspathTransformer
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
@@ -104,6 +105,7 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
     abstract val metadataOutputDir: DirectoryProperty
 
     @get:InputDirectory
+    @get:IgnoreEmptyDirectories
     @get:PathSensitive(PathSensitivity.RELATIVE)
     abstract val compiledPluginsBlocksDir: DirectoryProperty
 
@@ -112,6 +114,7 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
     lateinit var plugins: List<PrecompiledScriptPlugin>
 
     @get:InputFiles
+    @get:IgnoreEmptyDirectories
     @get:PathSensitive(PathSensitivity.RELATIVE)
     @Suppress("unused")
     internal
@@ -321,7 +324,7 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
         val buildLogicClassPath = buildLogicClassPath()
         val projectDir = uniqueTempDirectory()
         val startParameter = projectSchemaBuildStartParameterFor(projectDir)
-        return createNestedRootBuild("$path:${projectDir.name}", startParameter, services).run { controller ->
+        return createNestedBuildTree("$path:${projectDir.name}", startParameter, services).run { controller ->
             controller.withEmptyBuild { settings ->
                 Try.ofFailable {
                     val gradle = settings.gradle

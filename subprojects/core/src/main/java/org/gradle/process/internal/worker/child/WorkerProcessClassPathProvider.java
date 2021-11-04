@@ -23,10 +23,10 @@ import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.ClassPathProvider;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.specs.Spec;
-import org.gradle.cache.CacheRepository;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.filelock.LockOptionsBuilder;
+import org.gradle.cache.scopes.GlobalScopedCache;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.ClassLoaderHierarchy;
@@ -71,7 +71,7 @@ import java.util.zip.ZipOutputStream;
 
 public class WorkerProcessClassPathProvider implements ClassPathProvider {
     private static final Logger LOGGER = LoggerFactory.getLogger(WorkerProcessClassPathProvider.class);
-    private final CacheRepository cacheRepository;
+    private final GlobalScopedCache cacheRepository;
     private final ModuleRegistry moduleRegistry;
     private final Object lock = new Object();
     private ClassPath workerClassPath;
@@ -152,7 +152,7 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider {
         "asm"
     };
 
-    public WorkerProcessClassPathProvider(CacheRepository cacheRepository, ModuleRegistry moduleRegistry) {
+    public WorkerProcessClassPathProvider(GlobalScopedCache cacheRepository, ModuleRegistry moduleRegistry) {
         this.cacheRepository = cacheRepository;
         this.moduleRegistry = moduleRegistry;
     }

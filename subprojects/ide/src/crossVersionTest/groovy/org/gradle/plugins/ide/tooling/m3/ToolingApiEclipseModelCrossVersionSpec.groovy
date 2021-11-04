@@ -20,6 +20,7 @@ import org.gradle.integtests.tooling.fixture.WithOldConfigurationsSupport
 import org.gradle.tooling.model.ExternalDependency
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject
+import spock.lang.Unroll
 
 class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification implements WithOldConfigurationsSupport {
 
@@ -188,8 +189,11 @@ dependencies {
         minimalProject != null
     }
 
+    @Unroll
     def "can build the eclipse project dependencies for a java project"() {
-
+        projectDir.file("gradle.properties") << """
+            org.gradle.parallel=$parallel
+        """
         projectDir.file('settings.gradle').text = '''
 include "a", "a:b"
 rootProject.name = 'root'
@@ -227,6 +231,9 @@ project(':a') {
 
         fullProject.projectDependencies.any { it.path == 'root' }
         fullProject.projectDependencies.any { it.path == 'b' }
+
+        where:
+        parallel << [true, false]
     }
 
     def "can build project dependencies with targetProject references for complex scenarios"() {

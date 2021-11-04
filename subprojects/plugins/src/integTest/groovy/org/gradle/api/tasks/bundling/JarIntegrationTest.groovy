@@ -22,6 +22,7 @@ import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.test.fixtures.archive.JarTestFixture
+import org.gradle.util.internal.TextUtil
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -703,6 +704,97 @@ class JarIntegrationTest extends AbstractIntegrationSpec implements ValidationMe
         def jar = new JarTestFixture(file('build/test.jar'))
         jar.manifest.mainAttributes.getValue('attr') == 'value'
         jar.manifest.mainAttributes.getValue('version') == '1.0'
+    }
+
+    def "can use Provider values in manifest attribute when merging with manifest file"() {
+        given:
+        def manifest = file("MANIFEST.MF") << "$manifestContent"
+        buildFile << """
+            task jar(type: Jar) {
+                manifest {
+                    from("${TextUtil.normaliseFileSeparators(manifest.absolutePath)}")
+                    attributes(attr: provider { "value" })
+                    attributes(version: archiveVersion)
+                }
+                destinationDirectory = buildDir
+                archiveFileName = 'test.jar'
+                archiveVersion = "1.0"
+            }
+        """
+
+        when:
+        succeeds 'jar'
+
+        then:
+        def jar = new JarTestFixture(file('build/test.jar'))
+        jar.manifest.mainAttributes.getValue('attr') == 'value'
+        jar.manifest.mainAttributes.getValue('version') == "$expectedVersion"
+
+        where:
+        manifestContent << ["", "version: 0.0.1"]
+        expectedVersion << ["1.0", "0.0.1"]
+    }
+
+    def "attribute value evaluates lazily"() {
+        given:
+        buildFile << """
+            def versionNumber = objects.property(String)
+            versionNumber.set("1.0")
+
+            task jar(type: Jar) {
+                manifest {
+                    attributes(attr: provider { "value" })
+                    attributes(version: archiveVersion)
+                }
+                destinationDirectory = buildDir
+                archiveFileName = 'test.jar'
+                archiveVersion = versionNumber
+            }
+
+            afterEvaluate {
+                versionNumber.set("2.0")
+            }
+        """
+
+        when:
+        succeeds 'jar'
+
+        then:
+        def jar = new JarTestFixture(file('build/test.jar'))
+        jar.manifest.mainAttributes.getValue('attr') == 'value'
+        jar.manifest.mainAttributes.getValue('version') == "2.0"
+    }
+
+    def "attribute value evaluates lazily when merging with manifest file"() {
+        given:
+        def manifest = file("MANIFEST.MF") << ""
+        buildFile << """
+            def versionNumber = objects.property(String)
+            versionNumber.set("1.0")
+
+            task jar(type: Jar) {
+                manifest {
+                    from("${TextUtil.normaliseFileSeparators(manifest.absolutePath)}")
+                    attributes(attr: provider { "value" })
+                    attributes(version: archiveVersion)
+                }
+                destinationDirectory = buildDir
+                archiveFileName = 'test.jar'
+                archiveVersion = versionNumber
+            }
+
+            afterEvaluate {
+                versionNumber.set("2.0")
+            }
+        """
+
+        when:
+        succeeds 'jar'
+
+        then:
+        def jar = new JarTestFixture(file('build/test.jar'))
+        jar.manifest.mainAttributes.getValue('attr') == 'value'
+        jar.manifest.mainAttributes.getValue('version') == "2.0"
     }
 
     private static String customJarManifestTask() {

@@ -100,7 +100,7 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
         def runner = runnerForLocationExpectingLintDeprecations(checkoutDir, agpVersion, "lintDebug",
             [
                 "wearable-2.3.0.jar (com.google.android.wearable:wearable:2.3.0)",
-                "kotlin-android-extensions-runtime-1.5.10.jar (org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.5.10)"
+                "kotlin-android-extensions-runtime-${kotlinVersion}.jar (org.jetbrains.kotlin:kotlin-android-extensions-runtime:${kotlinVersion})"
             ])
         def result = runner.buildAndFail()
 
@@ -112,7 +112,7 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
         result = runnerForLocationExpectingLintDeprecations(checkoutDir, agpVersion, "lintDebug",
             [
                 "wearable-2.3.0.jar (com.google.android.wearable:wearable:2.3.0)",
-                "kotlin-android-extensions-runtime-1.5.10.jar (org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.5.10)",
+                "kotlin-android-extensions-runtime-${kotlinVersion}.jar (org.jetbrains.kotlin:kotlin-android-extensions-runtime:${kotlinVersion})",
                 "appcompat-1.0.2.aar (androidx.appcompat:appcompat:1.0.2)"
             ])
             .buildAndFail()
@@ -127,7 +127,6 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
 
     private SmokeTestGradleRunner runnerForLocationExpectingLintDeprecations(File location, String agpVersion, String task, List<String> artifacts) {
         SmokeTestGradleRunner runner = runnerForLocationMaybeExpectingWorkerExecutorDeprecation(location, agpVersion, task)
-        runner.ignoreDeprecationWarnings()
         artifacts.each { artifact ->
             runner.expectLegacyDeprecationWarningIf(
                 agpVersion.startsWith("4.1"),

@@ -58,6 +58,7 @@ import org.gradle.api.internal.tasks.properties.annotations.OutputFilePropertyAn
 import org.gradle.api.internal.tasks.properties.annotations.OutputFilesPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.TypeAnnotationHandler;
+import org.gradle.api.internal.tasks.properties.annotations.UntrackedTaskTypeAnnotationHandler;
 import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.provider.Property;
@@ -67,7 +68,6 @@ import org.gradle.api.tasks.CompileClasspath;
 import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.Destroys;
 import org.gradle.api.tasks.IgnoreEmptyDirectories;
-import org.gradle.work.NormalizeLineEndings;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputDirectory;
 import org.gradle.api.tasks.InputFile;
@@ -82,6 +82,7 @@ import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.OutputFiles;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.SkipWhenEmpty;
+import org.gradle.api.tasks.UntrackedTask;
 import org.gradle.api.tasks.options.OptionValues;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.internal.instantiation.InstantiationScheme;
@@ -93,6 +94,7 @@ import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.work.DisableCachingByDefault;
 import org.gradle.work.Incremental;
+import org.gradle.work.NormalizeLineEndings;
 
 import java.lang.annotation.Annotation;
 import java.util.Collection;
@@ -141,7 +143,8 @@ public class ExecutionGlobalServices {
             ImmutableSet.of(
                 CacheableTask.class,
                 CacheableTransform.class,
-                DisableCachingByDefault.class
+                DisableCachingByDefault.class,
+                UntrackedTask.class
             ),
             ModifierAnnotationCategory.asMap(builder.build()),
             ImmutableSet.of(
@@ -243,6 +246,10 @@ public class ExecutionGlobalServices {
 
     TypeAnnotationHandler createCacheableTaskAnnotationHandler() {
         return new CacheableTaskTypeAnnotationHandler();
+    }
+
+    TypeAnnotationHandler createUntrackedAnnotationHandler() {
+        return new UntrackedTaskTypeAnnotationHandler();
     }
 
     PropertyAnnotationHandler createConsoleAnnotationHandler() {

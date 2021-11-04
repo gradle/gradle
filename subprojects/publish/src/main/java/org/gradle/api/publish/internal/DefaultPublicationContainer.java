@@ -25,7 +25,7 @@ import org.gradle.internal.reflect.Instantiator;
 
 public class DefaultPublicationContainer extends DefaultPolymorphicDomainObjectContainer<Publication> implements PublicationContainer {
     public DefaultPublicationContainer(Instantiator instantiator, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
-        super(Publication.class, instantiator, collectionCallbackActionDecorator);
+        super(Publication.class, instantiator, instantiator, collectionCallbackActionDecorator);
     }
 
     @Override

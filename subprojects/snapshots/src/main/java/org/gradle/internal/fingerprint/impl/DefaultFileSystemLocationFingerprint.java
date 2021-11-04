@@ -20,7 +20,6 @@ import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
-import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 
 public class DefaultFileSystemLocationFingerprint implements FileSystemLocationFingerprint {
     private final HashCode normalizedContentHash;
@@ -29,10 +28,6 @@ public class DefaultFileSystemLocationFingerprint implements FileSystemLocationF
     public DefaultFileSystemLocationFingerprint(String normalizedPath, FileType type, HashCode contentHash) {
         this.normalizedContentHash = hashForType(type, contentHash);
         this.normalizedPath = normalizedPath;
-    }
-
-    public DefaultFileSystemLocationFingerprint(String normalizedPath, FileSystemLocationSnapshot snapshot) {
-        this(normalizedPath, snapshot.getType(), snapshot.getHash());
     }
 
     private static HashCode hashForType(FileType fileType, HashCode hash) {

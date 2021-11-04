@@ -289,6 +289,58 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         GradleThread.setUnmanaged()
     }
 
+    def "action can provide progress updates as status string or items completed"() {
+        setup:
+        GradleThread.setManaged()
+
+        and:
+        def buildOperation = Mock(RunnableBuildOperation)
+        def operationDetailsBuilder = displayName("<some-operation>").name("<op>").progressDisplayName("<some-op>")
+        def progressLogger = Spy(NoOpProgressLoggerFactory.Logger)
+        def progressLogger2 = Spy(NoOpProgressLoggerFactory.Logger)
+
+        when:
+        operationExecutor.run(buildOperation)
+
+        then:
+        1 * buildOperation.description() >> operationDetailsBuilder
+        1 * progressLoggerFactory.newOperation(_ as Class, _ as BuildOperationDescriptor) >> progressLogger
+        1 * progressLogger.start("<some-operation>", "<some-op>")
+
+        then:
+        1 * buildOperation.run(_) >> { BuildOperationContext context ->
+            context.progress("progress 1")
+            context.progress("progress 2")
+            context.progress(2, 4, "gold pieces", "progress 3")
+        }
+
+        1 * progressLoggerFactory.newOperation(_ as Class, progressLogger) >> progressLogger2
+
+        then:
+        1 * progressLogger2.start("<some-operation>", "progress 1")
+
+        then:
+        1 * progressLogger2.progress("progress 2")
+
+        then:
+        1 * progressLogger2.progress("progress 3")
+        1 * listener.progress(_, _) >> { OperationIdentifier operationIdentifier, OperationProgressEvent progressEvent ->
+            assert progressEvent.details instanceof OperationProgressDetails
+            assert progressEvent.details.progress == 2
+            assert progressEvent.details.total == 4
+            assert progressEvent.details.units == "gold pieces"
+        }
+
+        then:
+        1 * progressLogger2.completed()
+
+        then:
+        1 * progressLogger.completed(null, false)
+
+        cleanup:
+        GradleThread.setUnmanaged()
+    }
+
     def "multiple threads can run independent operations concurrently"() {
         def id1
         def id2
@@ -541,7 +593,6 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         ex.message == 'No operation is currently running.'
     }
 
-
     def "can nest operations on unmanaged threads"() {
         when:
         async {
@@ -550,7 +601,7 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
             operationExecutor.run(new RunnableBuildOperation() {
                 void run(BuildOperationContext outerContext) {
                     assert operationExecutor.currentOperation.id != null
-                    assert operationExecutor.currentOperation.parentId.id < 0
+                    assert operationExecutor.currentOperation.parentId == null
 
                     operationExecutor.run(new RunnableBuildOperation() {
                         void run(BuildOperationContext innerContext) {}

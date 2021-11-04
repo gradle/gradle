@@ -29,6 +29,11 @@ It explains:
 
 But first, we look at the basics of JVM testing in Gradle.
 
+[NOTE]
+====
+A new configuration DSL for modeling test execution phases is available via the incubating <<jvm_test_suite_plugin.adoc#jvm_test_suite_plugin,JVM Test Suite>> plugin.
+====
+
 [[sec:java_testing_basics]]
 == The basics
 
@@ -391,7 +396,7 @@ There are some known limitations of using JUnit 5 with Gradle, for example that 
 [[compiling_and_executing_junit_jupiter_tests]]
 === Compiling and executing JUnit Jupiter tests
 
-To enable JUnit Jupiter support in Gradle, all you need to do is add the following dependencies:
+To enable JUnit Jupiter support in Gradle, all you need to do is add the following dependency:
 
 .JUnit Jupiter dependencies
 ====
@@ -464,9 +469,12 @@ Given a parameterized test method named `aTestMethod` that takes two parameters,
 [[sec:configuring_java_integration_tests]]
 == Configuring integration tests
 
-A common requirement for projects is to incorporate integration tests in one form or another. Their aim is to verify that the various parts of the project are working together properly. This often means that they require special execution setup and dependencies compared to unit tests.
+A common requirement for projects is to incorporate integration tests in one form or another.
+Their aim is to verify that the various parts of the project are working together properly.
+This often means that they require special execution setup and dependencies compared to unit tests.
 
-The simplest way to add integration tests to your build is by taking these steps:
+The simplest way to add integration tests to your build is by leveraging the incubating <<jvm_test_suite_plugin.adoc#jvm_test_suite_plugin,JVM Test Suite>> plugin.
+If an incubating solution is not something for you, here are the steps you need to take in your build:
 
  1. Create a new <<building_java_projects.adoc#sec:java_source_sets,source set>> for them
  2. Add the dependencies you need to the appropriate configurations for that source set

@@ -31,6 +31,7 @@ class KotlinLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
     @Override
     String subprojectName() { 'lib' }
 
+    @Unroll
     def "defaults to kotlin build scripts"() {
         when:
         run ('init', '--type', 'kotlin-library')
@@ -41,6 +42,8 @@ class KotlinLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
 
     @Unroll
     def "creates sample source if no source present with #scriptDsl build scripts"() {
+        def dslFixture = dslFixtureFor(scriptDsl)
+
         when:
         run('init', '--type', 'kotlin-library', '--dsl', scriptDsl.id)
 
@@ -50,10 +53,34 @@ class KotlinLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
 
         and:
         commonJvmFilesGenerated(scriptDsl)
+        dslFixture.assertDoesNotUseTestSuites()
 
         when:
         run("build")
 
+        then:
+        assertTestPassed("some.thing.LibraryTest", "someLibraryMethodReturnsTrue")
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
+    }
+
+    @Unroll
+    def "creates build using test suites with #scriptDsl build scripts when using --incubating"() {
+        def dslFixture = dslFixtureFor(scriptDsl)
+
+        when:
+        run ('init', '--type', 'kotlin-library', '--dsl', scriptDsl.id, '--incubating')
+        then:
+        subprojectDir.file("src/main/kotlin").assertHasDescendants(SAMPLE_LIBRARY_CLASS)
+        subprojectDir.file("src/test/kotlin").assertHasDescendants(SAMPLE_LIBRARY_TEST_CLASS)
+
+        and:
+        commonJvmFilesGenerated(scriptDsl)
+        dslFixture.assertHasTestSuite('test')
+
+        when:
+        succeeds('test')
         then:
         assertTestPassed("some.thing.LibraryTest", "someLibraryMethodReturnsTrue")
 

@@ -29,8 +29,8 @@ import org.gradle.internal.vfs.impl.VfsRootReference;
 import org.gradle.internal.watch.WatchingNotSupportedException;
 import org.gradle.internal.watch.registry.FileWatcherRegistry;
 import org.gradle.internal.watch.registry.FileWatcherRegistryFactory;
-import org.gradle.internal.watch.registry.SnapshotCollectingDiffListener;
 import org.gradle.internal.watch.registry.impl.DaemonDocumentationIndex;
+import org.gradle.internal.watch.registry.impl.SnapshotCollectingDiffListener;
 import org.gradle.internal.watch.vfs.BuildFinishedFileSystemWatchingBuildOperationType;
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem;
 import org.gradle.internal.watch.vfs.BuildStartedFileSystemWatchingBuildOperationType;
@@ -38,15 +38,16 @@ import org.gradle.internal.watch.vfs.FileSystemWatchingStatistics;
 import org.gradle.internal.watch.vfs.VfsLogging;
 import org.gradle.internal.watch.vfs.WatchLogging;
 import org.gradle.internal.watch.vfs.WatchMode;
-import org.gradle.internal.watch.vfs.WatchableFileSystemDetector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.CheckReturnValue;
+import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -58,24 +59,27 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
     private final FileWatcherRegistryFactory watcherRegistryFactory;
     private final DaemonDocumentationIndex daemonDocumentationIndex;
     private final LocationsWrittenByCurrentBuild locationsWrittenByCurrentBuild;
-    private final Set<File> watchableHierarchies = new HashSet<>();
-    private final WatchableFileSystemDetector watchableFileSystemDetector;
+    private Logger warningLogger = LOGGER;
+
+    /**
+     * Watchable hierarchies registered before the {@link FileWatcherRegistry} has been started.
+     */
+    private final Set<File> watchableHierarchiesRegisteredEarly = new LinkedHashSet<>();
 
     private FileWatcherRegistry watchRegistry;
     private Exception reasonForNotWatchingFiles;
+    private boolean stateInvalidatedAtStartOfBuild;
 
     public WatchingVirtualFileSystem(
         FileWatcherRegistryFactory watcherRegistryFactory,
         VfsRootReference rootReference,
         DaemonDocumentationIndex daemonDocumentationIndex,
-        LocationsWrittenByCurrentBuild locationsWrittenByCurrentBuild,
-        WatchableFileSystemDetector watchableFileSystemDetector
+        LocationsWrittenByCurrentBuild locationsWrittenByCurrentBuild
     ) {
         super(rootReference);
         this.watcherRegistryFactory = watcherRegistryFactory;
         this.daemonDocumentationIndex = daemonDocumentationIndex;
         this.locationsWrittenByCurrentBuild = locationsWrittenByCurrentBuild;
-        this.watchableFileSystemDetector = watchableFileSystemDetector;
     }
 
     @Override
@@ -93,6 +97,8 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
 
     @Override
     public boolean afterBuildStarted(WatchMode watchMode, VfsLogging vfsLogging, WatchLogging watchLogging, BuildOperationRunner buildOperationRunner) {
+        warningLogger = watchMode.loggerForWarnings(LOGGER);
+        stateInvalidatedAtStartOfBuild = false;
         reasonForNotWatchingFiles = null;
         rootReference.update(currentRoot -> buildOperationRunner.call(new CallableBuildOperation<SnapshotHierarchy>() {
             @Override
@@ -102,19 +108,19 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
                     FileSystemWatchingStatistics statisticsSinceLastBuild;
                     if (watchRegistry == null) {
                         context.setStatus("Starting file system watching");
-                        startWatching(currentRoot);
-                        newRoot = currentRoot.empty();
+                        newRoot = startWatching(currentRoot, watchMode);
                         statisticsSinceLastBuild = null;
                     } else {
                         FileWatcherRegistry.FileWatchingStatistics statistics = watchRegistry.getAndResetStatistics();
                         if (hasDroppedStateBecauseOfErrorsReceivedWhileWatching(statistics)) {
                             newRoot = stopWatchingAndInvalidateHierarchyAfterError(currentRoot);
                         } else {
-                            newRoot = watchRegistry.buildStarted(currentRoot);
+                            newRoot = watchRegistry.updateVfsOnBuildStarted(currentRoot, watchMode);
                         }
+                        stateInvalidatedAtStartOfBuild = newRoot != currentRoot;
                         statisticsSinceLastBuild = new DefaultFileSystemWatchingStatistics(statistics, newRoot);
                         if (vfsLogging == VfsLogging.VERBOSE) {
-                            LOGGER.warn("Received {} file system events since last build while watching {} hierarchies",
+                            LOGGER.warn("Received {} file system events since last build while watching {} locations",
                                 statisticsSinceLastBuild.getNumberOfReceivedEvents(),
                                 statisticsSinceLastBuild.getNumberOfWatchedHierarchies());
                             LOGGER.warn("Virtual file system retained information about {} files, {} directories and {} missing files since last build",
@@ -122,6 +128,9 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
                                 statisticsSinceLastBuild.getRetainedDirectories(),
                                 statisticsSinceLastBuild.getRetainedMissingFiles()
                             );
+                            if (stateInvalidatedAtStartOfBuild) {
+                                LOGGER.warn("Parts of the virtual file system have been invalidated since they didn't support watching");
+                            }
                         }
                     }
                     if (watchRegistry != null) {
@@ -164,7 +173,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
     public void registerWatchableHierarchy(File watchableHierarchy) {
         rootReference.update(currentRoot -> {
             if (watchRegistry == null) {
-                watchableHierarchies.add(watchableHierarchy);
+                watchableHierarchiesRegisteredEarly.add(watchableHierarchy);
                 return currentRoot;
             }
             return withWatcherChangeErrorHandling(
@@ -179,11 +188,11 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
         rootReference.update(currentRoot -> buildOperationRunner.call(new CallableBuildOperation<SnapshotHierarchy>() {
             @Override
             public SnapshotHierarchy call(BuildOperationContext context) {
-                watchableHierarchies.clear();
+                watchableHierarchiesRegisteredEarly.clear();
                 if (watchMode.isEnabled()) {
                     if (reasonForNotWatchingFiles != null) {
                         // Log exception again so it doesn't get lost.
-                        logWatchingError(reasonForNotWatchingFiles, FILE_WATCHING_ERROR_MESSAGE_AT_END_OF_BUILD);
+                        logWatchingError(reasonForNotWatchingFiles, FILE_WATCHING_ERROR_MESSAGE_AT_END_OF_BUILD, watchMode);
                         reasonForNotWatchingFiles = null;
                     }
                     SnapshotHierarchy newRoot;
@@ -196,11 +205,11 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
                         if (hasDroppedStateBecauseOfErrorsReceivedWhileWatching(statistics)) {
                             newRoot = stopWatchingAndInvalidateHierarchyAfterError(currentRoot);
                         } else {
-                            newRoot = withWatcherChangeErrorHandling(currentRoot, () -> watchRegistry.buildFinished(currentRoot, watchMode, maximumNumberOfWatchedHierarchies));
+                            newRoot = withWatcherChangeErrorHandling(currentRoot, () -> watchRegistry.updateVfsOnBuildFinished(currentRoot, watchMode, maximumNumberOfWatchedHierarchies));
                         }
                         statisticsDuringBuild = new DefaultFileSystemWatchingStatistics(statistics, newRoot);
                         if (vfsLogging == VfsLogging.VERBOSE) {
-                            LOGGER.warn("Received {} file system events during the current build while watching {} hierarchies",
+                            LOGGER.warn("Received {} file system events during the current build while watching {} locations",
                                 statisticsDuringBuild.getNumberOfReceivedEvents(),
                                 statisticsDuringBuild.getNumberOfWatchedHierarchies());
                             LOGGER.warn("Virtual file system retains information about {} files, {} directories and {} missing files until next build",
@@ -208,10 +217,15 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
                                 statisticsDuringBuild.getRetainedDirectories(),
                                 statisticsDuringBuild.getRetainedMissingFiles()
                             );
+                            if (stateInvalidatedAtStartOfBuild) {
+                                LOGGER.warn("Parts of the virtual file system have been removed at the start of the build since they didn't support watching");
+                            }
                         }
                     }
                     boolean stoppedWatchingDuringTheBuild = watchRegistry == null;
                     context.setResult(new BuildFinishedFileSystemWatchingBuildOperationType.Result() {
+                        private final boolean stateInvalidatedAtStartOfBuild = WatchingVirtualFileSystem.this.stateInvalidatedAtStartOfBuild;
+
                         @Override
                         public boolean isWatchingEnabled() {
                             return true;
@@ -220,6 +234,11 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
                         @Override
                         public boolean isStoppedWatchingDuringTheBuild() {
                             return stoppedWatchingDuringTheBuild;
+                        }
+
+                        @Override
+                        public boolean isStateInvalidatedAtStartOfBuild() {
+                            return stateInvalidatedAtStartOfBuild;
                         }
 
                         @Override
@@ -240,12 +259,15 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
                     .details(BuildFinishedFileSystemWatchingBuildOperationType.Details.INSTANCE);
             }
         }));
+        // Log problems to daemon log
+        warningLogger = LOGGER;
     }
 
     /**
      * Start watching the known areas of the file system for changes.
      */
-    private void startWatching(SnapshotHierarchy currentRoot) {
+    @CheckReturnValue
+    private SnapshotHierarchy startWatching(SnapshotHierarchy currentRoot, WatchMode watchMode) {
         try {
             watchRegistry = watcherRegistryFactory.createFileWatcherRegistry(new FileWatcherRegistry.ChangeHandler() {
                 @Override
@@ -268,11 +290,14 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
                     stopWatchingAndInvalidateHierarchyAfterError();
                 }
             });
-            watchableHierarchies.forEach(watchableHierarchy -> watchRegistry.registerWatchableHierarchy(watchableHierarchy, currentRoot));
-            watchableHierarchies.clear();
+            SnapshotHierarchy newRoot = watchRegistry.updateVfsOnBuildStarted(currentRoot.empty(), watchMode);
+            watchableHierarchiesRegisteredEarly.forEach(watchableHierarchy -> watchRegistry.registerWatchableHierarchy(watchableHierarchy, newRoot));
+            watchableHierarchiesRegisteredEarly.clear();
+            return newRoot;
         } catch (Exception ex) {
-            logWatchingError(ex, FILE_WATCHING_ERROR_MESSAGE_DURING_BUILD);
+            logWatchingError(ex, FILE_WATCHING_ERROR_MESSAGE_DURING_BUILD, null);
             closeUnderLock();
+            return currentRoot.empty();
         }
     }
 
@@ -319,38 +344,38 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
         try {
             return supplier.get();
         } catch (Exception ex) {
-            logWatchingError(ex, FILE_WATCHING_ERROR_MESSAGE_DURING_BUILD);
+            logWatchingError(ex, FILE_WATCHING_ERROR_MESSAGE_DURING_BUILD, null);
             return stopWatchingAndInvalidateHierarchyAfterError(currentRoot);
         }
     }
 
-    private void logWatchingError(Exception exception, String fileWatchingErrorMessage) {
+    private void logWatchingError(Exception exception, String fileWatchingErrorMessage, @Nullable WatchMode watchMode) {
         if (exception instanceof InotifyInstanceLimitTooLowException) {
-            LOGGER.warn("{}. The inotify instance limit is too low. See {} for more details.",
+            warningLogger.warn("{}. The inotify instance limit is too low. See {} for more details.",
                 fileWatchingErrorMessage,
                 daemonDocumentationIndex.getLinkToSection("sec:inotify_instances_limit")
             );
         } else if (exception instanceof InotifyWatchesLimitTooLowException) {
-            LOGGER.warn("{}. The inotify watches limit is too low.", fileWatchingErrorMessage);
+            warningLogger.warn("{}. The inotify watches limit is too low.", fileWatchingErrorMessage);
         } else if (exception instanceof WatchingNotSupportedException) {
             // No stacktrace here, since this is a known shortcoming of our implementation
-            LOGGER.warn("{}. {}.", fileWatchingErrorMessage, exception.getMessage());
+            warningLogger.warn("{}. {}.", fileWatchingErrorMessage, exception.getMessage());
         } else {
-            LOGGER.warn(fileWatchingErrorMessage, exception);
+            warningLogger.warn(fileWatchingErrorMessage, exception);
         }
         reasonForNotWatchingFiles = exception;
     }
 
     /**
      * Stop watching the known areas of the file system, and invalidate
-     * the parts that have been changed since calling {@link #startWatching(SnapshotHierarchy)}}.
+     * the parts that have been changed since calling {@link #startWatching(SnapshotHierarchy, WatchMode)}}.
      */
     private void stopWatchingAndInvalidateHierarchyAfterError() {
         rootReference.update(this::stopWatchingAndInvalidateHierarchyAfterError);
     }
 
     private SnapshotHierarchy stopWatchingAndInvalidateHierarchyAfterError(SnapshotHierarchy currentRoot) {
-        LOGGER.error("Stopping file watching and invalidating VFS after an error happened");
+        warningLogger.error("Stopping file watching and invalidating VFS after an error happened");
         return stopWatchingAndInvalidateHierarchy(currentRoot);
     }
 
@@ -369,11 +394,11 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
 
     private boolean hasDroppedStateBecauseOfErrorsReceivedWhileWatching(FileWatcherRegistry.FileWatchingStatistics statistics) {
         if (statistics.isUnknownEventEncountered()) {
-            LOGGER.warn("Dropped VFS state due to lost state");
+            warningLogger.warn("Dropped VFS state due to lost state");
             return true;
         }
         if (statistics.getErrorWhileReceivingFileChanges().isPresent()) {
-            LOGGER.warn("Dropped VFS state due to error while receiving file changes", statistics.getErrorWhileReceivingFileChanges().get());
+            warningLogger.warn("Dropped VFS state due to error while receiving file changes", statistics.getErrorWhileReceivingFileChanges().get());
             return true;
         }
         return false;
@@ -381,6 +406,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
 
     @Override
     public void close() {
+        LOGGER.debug("Closing VFS, dropping state");
         rootReference.update(currentRoot -> {
             closeUnderLock();
             return currentRoot.empty();

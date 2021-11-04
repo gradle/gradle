@@ -16,11 +16,58 @@
 
 package org.gradle.configurationcache
 
+import org.gradle.api.Plugin
+import org.gradle.api.Project
 import org.gradle.initialization.LoadProjectsBuildOperationType
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheRecreateOption
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import spock.lang.Issue
 
 class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+
+    @Issue("https://github.com/gradle/gradle/issues/18064")
+    def "can build plugin with project dependencies"() {
+        given:
+        settingsFile << """
+            include 'my-lib'
+            include 'my-plugin'
+        """
+        file('my-lib/build.gradle') << """
+            plugins { id 'java' }
+        """
+        file('my-plugin/build.gradle') << """
+            plugins { id 'java-gradle-plugin' }
+
+            dependencies {
+              implementation project(":my-lib")
+            }
+
+            gradlePlugin {
+              plugins {
+                myPlugin {
+                  id = 'com.example.my-plugin'
+                  implementationClass = 'com.example.MyPlugin'
+                }
+              }
+            }
+        """
+        file('src/main/java/com/example/MyPlugin.java') << """
+            package com.example;
+            public class MyPlugin implements $Plugin.name<$Project.name> {
+              @Override
+              public void apply($Project.name project) {
+              }
+            }
+        """
+        def configurationCache = newConfigurationCacheFixture()
+
+        when:
+        configurationCacheRun "build"
+        configurationCacheRun "build"
+
+        then:
+        configurationCache.assertStateLoaded()
+    }
 
     def "can copy zipTree"() {
         given:
@@ -54,6 +101,7 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
 
     def "configuration cache for help on empty project"() {
         given:
+        settingsFile.createFile()
         configurationCacheRun "help"
         def firstRunOutput = removeVfsLogOutput(result.normalizedOutput)
             .replaceAll(/Calculating task graph as no configuration cache is available for tasks: help\n/, '')

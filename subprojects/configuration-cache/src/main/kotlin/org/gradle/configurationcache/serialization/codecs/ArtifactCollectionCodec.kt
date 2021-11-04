@@ -80,6 +80,7 @@ private
 class FixedFileArtifactSpec(
     val id: ComponentArtifactIdentifier,
     val variantAttributes: AttributeContainer,
+    val capabilities: List<Capability>,
     val variantDisplayName: DisplayName,
     val file: File
 )
@@ -111,8 +112,8 @@ class CollectingArtifactVisitor : ArtifactVisitor {
         failures.add(failure)
     }
 
-    override fun visitArtifact(variantName: DisplayName, variantAttributes: AttributeContainer, capabilities: MutableList<out Capability>, artifact: ResolvableArtifact) {
-        elements.add(FixedFileArtifactSpec(artifact.id, variantAttributes, variantName, artifact.file))
+    override fun visitArtifact(variantName: DisplayName, variantAttributes: AttributeContainer, capabilities: List<Capability>, artifact: ResolvableArtifact) {
+        elements.add(FixedFileArtifactSpec(artifact.id, variantAttributes, capabilities, variantName, artifact.file))
     }
 
     override fun endVisitCollection(source: FileCollectionInternal.Source) {
@@ -163,7 +164,7 @@ class FixedArtifactCollection(
                         DefaultResolvedArtifactResult(
                             element.id,
                             element.variantAttributes,
-                            emptyList(),
+                            element.capabilities,
                             element.variantDisplayName,
                             Artifact::class.java,
                             element.file

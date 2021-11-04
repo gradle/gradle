@@ -60,7 +60,7 @@ abstract class AbstractFileSystemNodeWithChildrenTest<NODE extends FileSystemNod
         this.selectedChildPath = spec.selectedChildPath
         if (selectedChildPath != null) {
             def selectedChildIndex = indexOfSelectedChild
-            this.selectedChild = selectedChildIndex == -1 ? null : children.entries().get(selectedChildIndex).value
+            this.selectedChild = selectedChildIndex == -1 ? null : children.stream().toList().get(selectedChildIndex).value
         }
     }
 
@@ -76,18 +76,18 @@ abstract class AbstractFileSystemNodeWithChildrenTest<NODE extends FileSystemNod
     }
 
     ChildMap<FileSystemNode> childrenWithSelectedChildReplacedBy(String replacementPath, FileSystemNode replacement) {
-        def newChildren = new ArrayList<ChildMap.Entry<FileSystemNode>>(children.entries())
+        def newChildren = children.stream().toList()
         newChildren.set(indexOfSelectedChild, new ChildMap.Entry<FileSystemNode>(replacementPath, replacement))
         return ChildMapFactory.childMapFromSorted(newChildren)
     }
 
     int getIndexOfSelectedChild() {
-        return children.entries()*.path.indexOf(selectedChildPath)
+        return children.stream().toList()*.path.indexOf(selectedChildPath)
     }
 
     ChildMap<FileSystemNode> childrenWithAdditionalChild(String path, FileSystemNode newChild) {
         def targetPath = VfsRelativePath.of(path)
-        def newEntries = new ArrayList<ChildMap.Entry<FileSystemNode>>(children.entries())
+        def newEntries = children.stream().toList()
         int insertPosition = -1 - SearchUtil.<ChildMap.Entry<FileSystemNode>>binarySearch(newEntries) { candidate ->
             targetPath.compareToFirstSegment(candidate.path, CASE_SENSITIVE)
         }
@@ -96,14 +96,14 @@ abstract class AbstractFileSystemNodeWithChildrenTest<NODE extends FileSystemNod
     }
 
     ChildMap<CHILD> childrenWithSelectedChildRemoved() {
-        def newEntries = new ArrayList<ChildMap.Entry<CHILD>>(children.entries())
+        def newEntries = children.stream().toList()
         newEntries.remove(indexOfSelectedChild)
         return ChildMapFactory.childMapFromSorted(newEntries)
     }
 
     CHILD getNodeWithIndexOfSelectedChild(ChildMap<CHILD> newChildren) {
         int index = indexOfSelectedChild
-        return newChildren.entries().get(index).value
+        return newChildren.stream().toList().get(index).value
     }
 
     String getCommonPrefix() {

@@ -20,7 +20,6 @@ package org.gradle.integtests.tooling.r44
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.ProjectConnection
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -29,7 +28,6 @@ import spock.lang.Issue
 
 @Issue('https://github.com/gradle/gradle/issues/3317')
 @TargetGradleVersion(">=3.0 <4.2.1")
-@ToolingApiVersion("current")
 class JavaVersionCrossVersionTest extends ToolingApiSpecification {
     def configureJava8() {
         projectDir.file("gradle.properties").writeProperties("org.gradle.java.home": AvailableJavaHomes.jdk8.javaHome.absolutePath)

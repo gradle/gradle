@@ -42,15 +42,17 @@ public class CompositePropertyVisitor implements PropertyVisitor {
         InputFilePropertyType filePropertyType
     ) {
         for (PropertyVisitor visitor : visitors) {
-            visitor.visitInputFileProperty(propertyName,
-                                            optional,
-                                            skipWhenEmpty,
-                                            directorySensitivity,
-                                            lineEndingSensitivity,
-                                            incremental,
-                                            fileNormalizer,
-                                            value,
-                                            filePropertyType);
+            visitor.visitInputFileProperty(
+                propertyName,
+                optional,
+                skipWhenEmpty,
+                directorySensitivity,
+                lineEndingSensitivity,
+                incremental,
+                fileNormalizer,
+                value,
+                filePropertyType
+            );
         }
     }
 

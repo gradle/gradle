@@ -2,18 +2,20 @@ import common.JvmVendor
 import common.JvmVersion
 import common.Os
 import common.VersionedSettingsBranch
-import configurations.FunctionalTest
+import configurations.BaseGradleBuildType
 import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
 import jetbrains.buildServer.configs.kotlin.v2019_2.DslContext
 import jetbrains.buildServer.configs.kotlin.v2019_2.Project
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.GradleBuildStep
 import jetbrains.buildServer.configs.kotlin.v2019_2.failureConditions.BuildFailureOnText
+import model.ALL_CROSS_VERSION_BUCKETS
 import model.CIBuildModel
-import model.CROSS_VERSION_BUCKETS
 import model.DefaultFunctionalTestBucketProvider
 import model.FunctionalTestBucketProvider
 import model.GradleSubproject
 import model.JsonBasedGradleSubprojectProvider
+import model.QUICK_CROSS_VERSION_BUCKETS
+import model.SmallSubprojectBucket
 import model.Stage
 import model.StageNames
 import model.TestCoverage
@@ -81,17 +83,17 @@ class CIConfigIntegrationTests {
 
             assertEquals(
                 stage.specificBuilds.size + stage.functionalTests.size + stage.performanceTests.size + (if (prevStage != null) 1 else 0),
-                it.dependencies.items.size, stage.stageName.stageName)
+                it.dependencies.items.size, stage.stageName.stageName
+            )
         }
     }
 
     class SubProjectBucketProvider(private val model: CIBuildModel) : FunctionalTestBucketProvider {
         override fun createFunctionalTestsFor(stage: Stage, testCoverage: TestCoverage) =
-            model.subprojects.subprojects.map { it.createFunctionalTestsFor(model, stage, testCoverage, Int.MAX_VALUE) }
+            model.subprojects.subprojects.map {
+                SmallSubprojectBucket(it, false).createFunctionalTestsFor(model, stage, testCoverage, Int.MAX_VALUE)
+            }
     }
-
-    private
-    fun Project.searchBuildProject(id: String): StageProject = (subProjects.find { it.id!!.value == id } as StageProject)
 
     private
     val largeSubProjectRegex = """\((\w+(_\d+))\)""".toRegex()
@@ -100,29 +102,29 @@ class CIConfigIntegrationTests {
      * Test Coverage - AllVersionsCrossVersion Java8 Oracle Linux (core_2) -> core_2
      */
     private
-    fun FunctionalTest.getSubProjectSplitName() = largeSubProjectRegex.find(this.name)!!.groupValues[1]
+    fun BaseGradleBuildType.getSubProjectSplitName() = largeSubProjectRegex.find(this.name)!!.groupValues[1]
 
     private
-    fun FunctionalTest.getGradleTasks(): String {
+    fun BaseGradleBuildType.getGradleTasks(): String {
         val runnerStep = this.steps.items.find { it.name == "GRADLE_RUNNER" } as GradleBuildStep
         return runnerStep.tasks!!
     }
 
     private
-    fun FunctionalTest.getGradleParams(): String {
+    fun BaseGradleBuildType.getGradleParams(): String {
         val runnerStep = this.steps.items.find { it.name == "GRADLE_RUNNER" } as GradleBuildStep
         return runnerStep.gradleParams!!
     }
 
     @Test
     fun canSplitLargeProjects() {
-        fun assertAllSplitsArePresent(subProjectName: String, functionalTests: List<FunctionalTest>) {
+        fun assertAllSplitsArePresent(subProjectName: String, functionalTests: List<BaseGradleBuildType>) {
             val splitSubProjectNames = functionalTests.map { it.getSubProjectSplitName() }.toSet()
             val expectedProjectNames = (1..functionalTests.size).map { "${subProjectName}_$it" }.toSet()
             assertEquals(expectedProjectNames, splitSubProjectNames)
         }
 
-        fun assertCorrectParameters(subProjectName: String, functionalTests: List<FunctionalTest>) {
+        fun assertCorrectParameters(subProjectName: String, functionalTests: List<BaseGradleBuildType>) {
             functionalTests.forEach { assertTrue(it.getGradleTasks().startsWith("clean $subProjectName")) }
             if (functionalTests.size == 1) {
                 assertFalse(functionalTests[0].getGradleParams().contains("-PincludeTestClasses"))
@@ -138,19 +140,22 @@ class CIConfigIntegrationTests {
             }
         }
 
-        fun assertProjectAreSplitByClassesCorrectly(functionalTests: List<FunctionalTest>) {
-            val functionalTestsWithSplit: Map<String, List<FunctionalTest>> = functionalTests.filter { largeSubProjectRegex.containsMatchIn(it.name) }.groupBy { it.getSubProjectSplitName().substringBefore('_') }
+        fun assertProjectAreSplitByClassesCorrectly(functionalTests: List<BaseGradleBuildType>) {
+            val functionalTestsWithSplit: Map<String, List<BaseGradleBuildType>> =
+                functionalTests.filter { largeSubProjectRegex.containsMatchIn(it.name) }.groupBy { it.getSubProjectSplitName().substringBefore('_') }
             functionalTestsWithSplit.forEach {
                 assertAllSplitsArePresent(it.key, it.value)
                 assertCorrectParameters(it.key, it.value)
             }
         }
 
-        fun assertProjectAreSplitByGradleVersionCorrectly(testType: TestType, functionalTests: List<FunctionalTest>) {
-            CROSS_VERSION_BUCKETS.forEachIndexed { index: Int, startEndVersion: List<String> ->
+        fun assertProjectAreSplitByGradleVersionCorrectly(buckets: List<List<String>>, testType: TestType, functionalTests: List<BaseGradleBuildType>) {
+            buckets.forEachIndexed { index: Int, startEndVersion: List<String> ->
                 assertTrue(functionalTests[index].name.contains("(${startEndVersion[0]} <= gradle <${startEndVersion[1]})"))
                 assertEquals("clean ${testType}Test", functionalTests[index].getGradleTasks())
-                assertTrue(functionalTests[index].getGradleParams().contains("-PonlyTestGradleVersion=${startEndVersion[0]}-${startEndVersion[1]}"))
+                assertTrue(functionalTests[index].getGradleParams().apply {
+                    println(this)
+                }.contains("-PonlyTestGradleVersion=${startEndVersion[0]}-${startEndVersion[1]}"))
             }
         }
 
@@ -158,10 +163,10 @@ class CIConfigIntegrationTests {
             for (functionalTestProject in stageProject.subProjects.filterIsInstance<FunctionalTestProject>()) {
                 when {
                     functionalTestProject.name.contains("AllVersionsCrossVersion") -> {
-                        assertProjectAreSplitByGradleVersionCorrectly(TestType.allVersionsCrossVersion, functionalTestProject.functionalTests)
+                        assertProjectAreSplitByGradleVersionCorrectly(ALL_CROSS_VERSION_BUCKETS, TestType.allVersionsCrossVersion, functionalTestProject.functionalTests)
                     }
                     functionalTestProject.name.contains("QuickFeedbackCrossVersion") -> {
-                        assertProjectAreSplitByGradleVersionCorrectly(TestType.quickFeedbackCrossVersion, functionalTestProject.functionalTests)
+                        assertProjectAreSplitByGradleVersionCorrectly(QUICK_CROSS_VERSION_BUCKETS, TestType.quickFeedbackCrossVersion, functionalTestProject.functionalTests)
                     }
                     else -> {
                         assertProjectAreSplitByClassesCorrectly(functionalTestProject.functionalTests)
@@ -294,11 +299,11 @@ class CIConfigIntegrationTests {
 
     @Test
     fun allVersionsAreIncludedInCrossVersionTests() {
-        assertEquals("0.0", CROSS_VERSION_BUCKETS[0][0])
-        assertEquals("99.0", CROSS_VERSION_BUCKETS[CROSS_VERSION_BUCKETS.size - 1][1])
+        assertEquals("0.0", ALL_CROSS_VERSION_BUCKETS[0][0])
+        assertEquals("99.0", ALL_CROSS_VERSION_BUCKETS[ALL_CROSS_VERSION_BUCKETS.size - 1][1])
 
-        (1 until CROSS_VERSION_BUCKETS.size).forEach {
-            assertEquals(CROSS_VERSION_BUCKETS[it - 1][1], CROSS_VERSION_BUCKETS[it][0])
+        (1 until ALL_CROSS_VERSION_BUCKETS.size).forEach {
+            assertEquals(ALL_CROSS_VERSION_BUCKETS[it - 1][1], ALL_CROSS_VERSION_BUCKETS[it][0])
         }
     }
 

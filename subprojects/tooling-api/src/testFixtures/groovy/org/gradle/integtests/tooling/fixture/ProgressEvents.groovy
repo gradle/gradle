@@ -19,6 +19,7 @@ package org.gradle.integtests.tooling.fixture
 import junit.framework.AssertionFailedError
 import org.gradle.api.specs.Spec
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.test.fixtures.resource.RemoteArtifact
 import org.gradle.tooling.Failure
 import org.gradle.tooling.events.FailureResult
 import org.gradle.tooling.events.FinishEvent
@@ -28,11 +29,25 @@ import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.StartEvent
 import org.gradle.tooling.events.SuccessResult
+import org.gradle.tooling.events.configuration.ProjectConfigurationFinishEvent
 import org.gradle.tooling.events.configuration.ProjectConfigurationOperationDescriptor
+import org.gradle.tooling.events.configuration.ProjectConfigurationStartEvent
+import org.gradle.tooling.events.download.FileDownloadFinishEvent
+import org.gradle.tooling.events.download.FileDownloadOperationDescriptor
+import org.gradle.tooling.events.download.FileDownloadResult
+import org.gradle.tooling.events.download.FileDownloadStartEvent
+import org.gradle.tooling.events.task.TaskFinishEvent
 import org.gradle.tooling.events.task.TaskOperationDescriptor
+import org.gradle.tooling.events.task.TaskStartEvent
+import org.gradle.tooling.events.test.TestFinishEvent
 import org.gradle.tooling.events.test.TestOperationDescriptor
+import org.gradle.tooling.events.test.TestStartEvent
+import org.gradle.tooling.events.transform.TransformFinishEvent
 import org.gradle.tooling.events.transform.TransformOperationDescriptor
+import org.gradle.tooling.events.transform.TransformStartEvent
+import org.gradle.tooling.events.work.WorkItemFinishEvent
 import org.gradle.tooling.events.work.WorkItemOperationDescriptor
+import org.gradle.tooling.events.work.WorkItemStartEvent
 import org.gradle.util.GradleVersion
 
 import java.util.function.Predicate
@@ -42,7 +57,6 @@ class ProgressEvents implements ProgressListener {
     private boolean dirty
     private final List<Operation> operations = new ArrayList<Operation>()
     private static final boolean IS_WINDOWS_OS = OperatingSystem.current().isWindows()
-    boolean skipValidation
 
     /**
      * Creates a {@link ProgressEvents} implementation for the current tooling api client version.
@@ -80,9 +94,8 @@ class ProgressEvents implements ProgressListener {
                     running[descriptor] = event
 
                     // Display name should be mostly unique
-                    if (!skipValidation && uniqueBuildOperation(descriptor)) {
-                        if (descriptor.displayName in ['Configure settings', 'Configure build', 'Calculate task graph', 'Run tasks']
-                            || descriptor.displayName.contains('/maven-metadata.xml')
+                    if (uniqueBuildOperation(descriptor)) {
+                        if (descriptor.displayName.contains('/maven-metadata.xml')
                             || descriptor.displayName.startsWith('Apply plugin ')
                             || descriptor.displayName.startsWith('Configure project ')
                             || descriptor.displayName.startsWith('Cross-configure project ')
@@ -94,8 +107,9 @@ class ProgressEvents implements ProgressListener {
                             // Ignore this for now
                         } else {
                             def duplicateName = operations.find({
-                                it.descriptor.displayName == descriptor.displayName &&
-                                    it.parent.descriptor == descriptor.parent
+                                !it.failed && // ignore previous operations with the same display name that failed, eg for retry of downloads
+                                    it.descriptor.displayName == descriptor.displayName &&
+                                    it.parent?.descriptor == descriptor.parent
                             })
                             if (duplicateName != null) {
                                 // Same display name and same parent
@@ -108,7 +122,7 @@ class ProgressEvents implements ProgressListener {
                     assert descriptor.parent == null || running.containsKey(descriptor.parent)
                     def parent = descriptor.parent == null ? null : operations.find { it.descriptor == descriptor.parent }
 
-                    Operation operation = newOperation(parent, descriptor)
+                    Operation operation = newOperation(event, parent, descriptor)
                     operations.add(operation)
 
                     assert descriptor.displayName == descriptor.toString()
@@ -122,6 +136,7 @@ class ProgressEvents implements ProgressListener {
                     assert descriptor.parent == null || running.containsKey(descriptor.parent)
 
                     def storedOperation = operations.find { it.descriptor == descriptor }
+                    storedOperation.finishEvent = event
                     storedOperation.result = event.result
 
                     assert event.displayName.matches("\\Q${descriptor.displayName}\\E [\\w-]+")
@@ -137,7 +152,7 @@ class ProgressEvents implements ProgressListener {
                 } else {
                     def descriptor = event.descriptor
                     // operation should still be running
-                    assert running.containsKey(descriptor) != null
+                    assert running.containsKey(descriptor)
                     def operation = operations.find { it.descriptor == event.descriptor }
                     otherEvent(event, operation)
                 }
@@ -148,8 +163,8 @@ class ProgressEvents implements ProgressListener {
         }
     }
 
-    protected Operation newOperation(Operation parent, OperationDescriptor descriptor) {
-        new Operation(parent, descriptor)
+    protected Operation newOperation(StartEvent startEvent, Operation parent, OperationDescriptor descriptor) {
+        new Operation(startEvent, parent, descriptor)
     }
 
     protected void otherEvent(ProgressEvent event, Operation operation) {
@@ -206,6 +221,14 @@ class ProgressEvents implements ProgressListener {
     }
 
     /**
+     * Returns all operations with no parent, in the order started.
+     */
+    List<Operation> getTrees() {
+        assertHasZeroOrMoreTrees()
+        return operations.findAll { it.descriptor.parent == null }
+    }
+
+    /**
      * Returns all generic build operations, in the order started.
      */
     List<Operation> getBuildOperations() {
@@ -218,7 +241,9 @@ class ProgressEvents implements ProgressListener {
      */
     List<Operation> getTests() {
         assertHasZeroOrMoreTrees()
-        return operations.findAll { it.test } as List
+        def testOperations = operations.findAll { it.test } as List
+        testOperations.forEach { it.assertIsTest() }
+        return testOperations
     }
 
     /**
@@ -243,7 +268,9 @@ class ProgressEvents implements ProgressListener {
      */
     List<Operation> getTasks() {
         assertHasZeroOrMoreTrees()
-        return operations.findAll { it.task } as List
+        def taskOperations = operations.findAll { it.task } as List
+        taskOperations.forEach { it.assertIsTask() }
+        return taskOperations
     }
 
     /**
@@ -268,12 +295,24 @@ class ProgressEvents implements ProgressListener {
      * @param displayNames candidate display names (may be different depending on the Gradle version under test)
      */
     Operation operation(String... displayNames) {
-        assertHasZeroOrMoreTrees()
-        def operation = operations.find { it.descriptor.displayName in displayNames }
-        if (operation == null) {
+        def candidates = operations(displayNames)
+        if (candidates.empty) {
             throw new AssertionFailedError("No operation with display name '${displayNames[0]}' found in:\n${describeList(operations)}")
         }
-        return operation
+        if (candidates.size() != 1) {
+            throw new AssertionFailedError("Multiple operation with display name '${displayNames[0]}' found in:\n${describeList(operations)}")
+        }
+        return candidates[0]
+    }
+
+    /**
+     * Returns the operations with the given display name.
+     *
+     * @param displayNames candidate display names (may be different depending on the Gradle version under test)
+     */
+    List<Operation> operations(String... displayNames) {
+        assertHasZeroOrMoreTrees()
+        return operations.findAll { it.descriptor.displayName in displayNames }
     }
 
     /**
@@ -312,12 +351,16 @@ class ProgressEvents implements ProgressListener {
     }
 
     static class Operation {
+        final StartEvent startEvent
         final OperationDescriptor descriptor
         final Operation parent
         final List<Operation> children = []
+        final List<OperationStatus> statusEvents = []
+        FinishEvent finishEvent
         OperationResult result
 
-        protected Operation(Operation parent, OperationDescriptor descriptor) {
+        protected Operation(StartEvent startEvent, Operation parent, OperationDescriptor descriptor) {
+            this.startEvent = startEvent
             this.descriptor = descriptor
             this.parent = parent
             if (parent != null) {
@@ -369,8 +412,56 @@ class ProgressEvents implements ProgressListener {
             }
         }
 
+        boolean isDownload() {
+            return descriptor instanceof FileDownloadOperationDescriptor
+        }
+
         boolean isBuildOperation() {
             return !test && !task && !workItem && !projectConfiguration && !transform
+        }
+
+        void assertIsTask() {
+            assert startEvent instanceof TaskStartEvent
+            assert finishEvent instanceof TaskFinishEvent
+            assert descriptor instanceof TaskOperationDescriptor
+        }
+
+        void assertIsTest() {
+            assert startEvent instanceof TestStartEvent
+            assert finishEvent instanceof TestFinishEvent
+            assert descriptor instanceof TestOperationDescriptor
+        }
+
+        void assertIsProjectConfiguration() {
+            assert startEvent instanceof ProjectConfigurationStartEvent
+            assert finishEvent instanceof ProjectConfigurationFinishEvent
+            assert descriptor instanceof ProjectConfigurationOperationDescriptor
+        }
+
+        void assertIsWorkItem() {
+            assert startEvent instanceof WorkItemStartEvent
+            assert finishEvent instanceof WorkItemFinishEvent
+            assert descriptor instanceof WorkItemOperationDescriptor
+        }
+
+        void assertIsTransform() {
+            assert startEvent instanceof TransformStartEvent
+            assert finishEvent instanceof TransformFinishEvent
+            assert descriptor instanceof TransformOperationDescriptor
+        }
+
+        void assertIsDownload(RemoteArtifact artifact) {
+            assertIsDownload(artifact.uri, artifact.file.length())
+        }
+
+        void assertIsDownload(URI uri, long size) {
+            assert startEvent instanceof FileDownloadStartEvent
+            assert finishEvent instanceof FileDownloadFinishEvent
+            assert descriptor instanceof FileDownloadOperationDescriptor
+            assert descriptor.uri == uri
+            assert descriptor.displayName == "Download " + uri
+            assert finishEvent.result instanceof FileDownloadResult
+            assert finishEvent.result.bytesDownloaded == size
         }
 
         boolean isSuccessful() {
@@ -446,6 +537,14 @@ class ProgressEvents implements ProgressListener {
             return parent == null
                 ? false
                 : (predicate.test(parent) || parent.hasAncestor(predicate))
+        }
+    }
+
+    static class OperationStatus {
+        final ProgressEvent event
+
+        OperationStatus(ProgressEvent event) {
+            this.event = event
         }
     }
 

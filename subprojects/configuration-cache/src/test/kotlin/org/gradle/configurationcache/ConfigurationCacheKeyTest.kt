@@ -98,9 +98,10 @@ class ConfigurationCacheKeyTest {
                 BuildLayout(
                     file("root"),
                     file("settings"),
+                    null,
                     null
                 ),
-                BuildModelParameters(false, true, false, false),
+                BuildModelParameters(false, true, false, false, false),
                 startParameter
             ),
             RunTasksRequirements(startParameter)

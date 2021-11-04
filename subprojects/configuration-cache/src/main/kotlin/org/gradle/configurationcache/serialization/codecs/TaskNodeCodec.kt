@@ -93,6 +93,7 @@ class TaskNodeCodec(
                     writeUpToDateSpec(task)
                     writeCollection(task.outputs.cacheIfSpecs)
                     writeCollection(task.outputs.doNotCacheIfSpecs)
+                    writeReasonNotToTrackState(task)
                     beanStateWriterFor(task.javaClass).run {
                         writeStateOf(task)
                         writeRegisteredPropertiesOf(
@@ -120,6 +121,7 @@ class TaskNodeCodec(
             readUpToDateSpec(task)
             readCollectionInto { task.outputs.cacheIfSpecs.uncheckedCast() }
             readCollectionInto { task.outputs.doNotCacheIfSpecs.uncheckedCast() }
+            readReasonNotToTrackState(task)
             beanStateReaderFor(task.javaClass).run {
                 readStateOf(task)
             }
@@ -147,6 +149,19 @@ class TaskNodeCodec(
     suspend fun ReadContext.readUpToDateSpec(task: TaskInternal) {
         if (readBoolean()) {
             task.outputs.upToDateWhen(readNonNull<Spec<Task>>())
+        }
+    }
+
+    private
+    suspend fun WriteContext.writeReasonNotToTrackState(task: TaskInternal) {
+        writeNullableString(task.reasonNotToTrackState.orElse(null))
+    }
+
+    private
+    fun ReadContext.readReasonNotToTrackState(task: TaskInternal) {
+        val reasonNotToTrackState = readNullableString()
+        if (reasonNotToTrackState != null) {
+            task.doNotTrackState(reasonNotToTrackState)
         }
     }
 

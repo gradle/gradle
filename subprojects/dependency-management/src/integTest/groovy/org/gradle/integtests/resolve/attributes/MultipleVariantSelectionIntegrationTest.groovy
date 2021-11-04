@@ -20,10 +20,8 @@ import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
-import spock.lang.Ignore
-import spock.lang.Issue
+import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Unroll
-
 
 @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
 class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyResolveTest {
@@ -743,8 +741,8 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
    Cannot select module with conflict on capability 'org:blah:1.0' also provided by [org:foo:1.0(runtime)]""")
     }
 
-    @Ignore
-    @Issue("https://github.com/gradle/gradle/issues/8386")
+    @ToBeImplemented("https://github.com/gradle/gradle/issues/8386")
+    @ToBeFixedForConfigurationCache
     def "selects a variant with different attribute value but matching transform"() {
         given:
         repository {
@@ -772,8 +770,7 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
             dependencies {
                 conf('org:test:1.0')
 
-                registerTransform {
-                    artifactTransform(FooToBar.class)
+                registerTransform(FooToBar) {
                     from.attribute(Attribute.of("usage", String), "api")
                     from.attribute(Attribute.of("format", String), "foo")
                     to.attribute(Attribute.of("usage", String), "api")
@@ -781,9 +778,13 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
                 }
             }
 
-            class FooToBar extends ArtifactTransform {
-                public List<File> transform(File fooFile) {
-                    return java.util.Collections.singletonList(fooFile)
+            import org.gradle.api.artifacts.transform.*
+
+            abstract class FooToBar implements TransformAction<TransformParameters.None> {
+                @Override
+                void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
+                    outputs.dir(input.name)
                 }
             }
         """
@@ -791,19 +792,30 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
         when:
         repositoryInteractions {
             'org:test:1.0' {
-                expectResolve()
+                expectGetMetadata()
             }
         }
-        succeeds 'checkDeps'
 
         then:
-        resolve.expectGraph {
-            root(":", ":test:") {
-                module('org:test:1.0') {
-                    variant('api', ['org.gradle.status': MultipleVariantSelectionIntegrationTest.defaultStatus(), usage: 'api', format: 'foo'])
-                }
-            }
-        }
+        fails 'checkDeps'
+
+        //TODO: should pass as specified below
+//        when:
+//        repositoryInteractions {
+//            'org:test:1.0' {
+//                expectResolve()
+//            }
+//        }
+//        succeeds 'checkDeps'
+
+//        then:
+//        resolve.expectGraph {
+//            root(":", ":test:") {
+//                module('org:test:1.0') {
+//                    variant('api', ['org.gradle.status': MultipleVariantSelectionIntegrationTest.defaultStatus(), usage: 'api', format: 'foo'])
+//                }
+//            }
+//        }
     }
 
     static Closure<String> defaultStatus() {

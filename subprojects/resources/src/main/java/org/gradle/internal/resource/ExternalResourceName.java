@@ -25,34 +25,40 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static java.lang.String.format;
+
 /**
  * An immutable resource name. Resources are arranged in a hierarchy. Names may be relative, or absolute with some opaque root resource.
  */
 public class ExternalResourceName implements Describable {
     private final String encodedRoot;
     private final String path;
+    private final String encodedQuery;
 
     public ExternalResourceName(URI uri) {
         if (uri.getPath() == null) {
-            throw new IllegalArgumentException(String.format("Cannot create resource name from non-hierarchical URI '%s'.", uri.toString()));
+            throw new IllegalArgumentException(format("Cannot create resource name from non-hierarchical URI '%s'.", uri.toString()));
         }
         this.encodedRoot = encodeRoot(uri);
         this.path = extractPath(uri);
+        this.encodedQuery = extractQuery(uri);
     }
 
     public ExternalResourceName(String path) {
         encodedRoot = null;
         this.path = path;
+        this.encodedQuery = "";
     }
 
     private ExternalResourceName(String encodedRoot, String path) {
         this.encodedRoot = encodedRoot;
         this.path = path;
+        this.encodedQuery = "";
     }
 
     public ExternalResourceName(URI parent, String path) {
         if (parent.getPath() == null) {
-            throw new IllegalArgumentException(String.format("Cannot create resource name from non-hierarchical URI '%s'.", parent.toString()));
+            throw new IllegalArgumentException(format("Cannot create resource name from non-hierarchical URI '%s'.", parent.toString()));
         }
         String newPath;
         String parentPath = extractPath(parent);
@@ -68,6 +74,7 @@ public class ExternalResourceName implements Describable {
         }
         this.encodedRoot = encodeRoot(parent);
         this.path = newPath;
+        this.encodedQuery = "";
     }
 
     private boolean isFileOnHost(URI uri) {
@@ -81,27 +88,54 @@ public class ExternalResourceName implements Describable {
         return parent.getPath();
     }
 
-    private String encodeRoot(URI uri) {
-        StringBuilder builder = new StringBuilder();
-        if (uri.getScheme() != null) {
-            builder.append(uri.getScheme());
-            builder.append(":");
+    private String extractQuery(URI uri) {
+        String rawQuery = uri.getRawQuery();
+        if (rawQuery == null) {
+            return "";
+        }
+        return "?" + rawQuery;
+    }
 
-            if (isFileOnHost(uri)) {
-                String hostName = URI.create(uri.getPath()).getHost();
-                builder.append("////");
-                builder.append(hostName);
+    private String encodeRoot(URI uri) {
+        //based on reversing the operations performed by URI.toString()
+
+        StringBuilder builder = new StringBuilder(uri.toString());
+
+        String fragment = uri.getRawFragment();
+        if (fragment != null) {
+            int index = builder.lastIndexOf("#" + fragment);
+            if (index < 0) {
+                throw new RuntimeException(format("Can't locate fragment in URI: %s", uri));
             }
+            builder.delete(index, builder.length());
         }
-        if (uri.getHost() != null) {
-            builder.append("//");
-            builder.append(uri.getHost());
+
+        if (uri.isOpaque()) {
+            return builder.toString();
         }
-        if (uri.getPort() > 0) {
-            builder.append(":");
-            builder.append(uri.getPort());
+
+        String query = uri.getRawQuery();
+        if (query != null) {
+            int index = builder.lastIndexOf("?" + query);
+            if (index < 0) {
+                throw new RuntimeException(format("Can't locate query in URI: %s", uri));
+            }
+            builder.delete(index, builder.length());
         }
-        return builder.toString();
+
+        String path = uri.getRawPath();
+        if (path != null && isFileOnHost(uri)) {  //if file URI
+            path = URI.create(path).getRawPath(); //remove hostname from path
+        }
+        if (path != null) {
+            int index = builder.lastIndexOf(path);
+            if (index < 0) {
+                throw new RuntimeException(format("Can't locate path in URI: %s", uri));
+            }
+            builder.delete(index, builder.length());
+        }
+
+        return encode(builder.toString(), true);
     }
 
     public String getDisplayName() {
@@ -124,9 +158,9 @@ public class ExternalResourceName implements Describable {
     public URI getUri() {
         try {
             if (encodedRoot == null) {
-                return new URI(encode(path, false));
+                return new URI(encode(path, false) + encodedQuery);
             }
-            return new URI(encodedRoot + encode(path, true));
+            return new URI(encodedRoot + encode(path, true) + encodedQuery);
         } catch (URISyntaxException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }

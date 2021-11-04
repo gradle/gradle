@@ -15,10 +15,16 @@
  */
 package org.gradle.api.tasks.diagnostics.internal;
 
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
+
+import javax.annotation.Nullable;
+
 /**
  * <p>A {@code PropertyReportRenderer} is responsible for rendering the model of a property report.</p>
  */
 public class PropertyReportRenderer extends TextReportRenderer {
+    private static final Logger LOGGER = Logging.getLogger(PropertyReportRenderer.class);
 
     /**
      * Writes a property for the current project.
@@ -26,7 +32,15 @@ public class PropertyReportRenderer extends TextReportRenderer {
      * @param name The name of the property
      * @param value The value of the property
      */
-    public void addProperty(String name, Object value) {
-        getTextOutput().formatln("%s: %s", name, value);
+    public void addProperty(String name, @Nullable Object value) {
+        String strValue;
+        try {
+            strValue = String.valueOf(value);
+        } catch (Exception e) {
+            String valueClass = value != null ? String.valueOf(value.getClass()) : "null";
+            LOGGER.warn("Rendering of the property '{}' with value type '{}' failed with exception", name, valueClass, e);
+            strValue = valueClass + " [Rendering failed]";
+        }
+        getTextOutput().formatln("%s: %s", name, strValue);
     }
 }

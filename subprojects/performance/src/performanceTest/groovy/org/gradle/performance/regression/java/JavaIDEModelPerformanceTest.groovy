@@ -29,16 +29,16 @@ import static org.gradle.performance.generator.JavaTestProjectGenerator.LARGE_MO
 import static org.gradle.performance.results.OperatingSystem.LINUX
 
 @RunFor(
-    @Scenario(type = PER_COMMIT, operatingSystems = [LINUX], testProjects = ["largeJavaMultiProject", "largeMonolithicJavaProject"])
+    @Scenario(type = PER_COMMIT, operatingSystems = [LINUX], testProjects = ["largeJavaMultiProject"])
 )
-@Ignore("https://github.com/gradle/gradle-private/issues/3284")
 class JavaIDEModelPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def setup() {
-        runner.targetVersions = ["7.2-20210720234250+0000"]
+        runner.targetVersions = ["7.3-20211022000247+0000"]
         runner.minimumBaseVersion = "2.11"
     }
 
+    @Ignore
     def "get IDE model for Eclipse"() {
         given:
         setupRunner()
@@ -91,6 +91,7 @@ class JavaIDEModelPerformanceTest extends AbstractCrossVersionPerformanceTest {
         result.assertCurrentVersionHasNotRegressed()
     }
 
+    @Ignore
     def "get IDE model for IDEA"() {
         given:
         setupRunner()

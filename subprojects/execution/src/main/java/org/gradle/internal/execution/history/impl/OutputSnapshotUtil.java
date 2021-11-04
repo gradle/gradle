@@ -133,7 +133,7 @@ public class OutputSnapshotUtil {
         );
     }
 
-    private static boolean isOutputEntry(Set<String> afterPreviousExecutionLocations, Map<String, FileSystemLocationSnapshot> beforeExecutionSnapshots, FileSystemLocationSnapshot afterExecutionSnapshot, Boolean isRoot) {
+    private static boolean isOutputEntry(Set<String> previousLocations, Map<String, FileSystemLocationSnapshot> beforeExecutionSnapshots, FileSystemLocationSnapshot afterExecutionSnapshot, Boolean isRoot) {
         // A root is always an output, even when it's missing or unchanged
         if (isRoot) {
             return true;
@@ -148,7 +148,7 @@ public class OutputSnapshotUtil {
             return true;
         }
         // Did we already consider it as an output after the previous execution?
-        return afterPreviousExecutionLocations.contains(afterExecutionSnapshot.getAbsolutePath());
+        return previousLocations.contains(afterExecutionSnapshot.getAbsolutePath());
     }
 
     private static FileSystemSnapshot filterSnapshot(FileSystemSnapshot root, BiPredicate<FileSystemLocationSnapshot, Boolean> predicate) {

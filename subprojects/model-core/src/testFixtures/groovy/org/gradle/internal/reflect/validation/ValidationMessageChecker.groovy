@@ -50,7 +50,7 @@ trait ValidationMessageChecker {
         config.description("doesn't have a configured value")
             .reason("this property isn't marked as optional and no value has been configured")
             .solution("Assign a value to '${config.property}'")
-            .solution("mark property '${config.property}' as optional")
+            .solution("Mark property '${config.property}' as optional")
             .render()
     }
 
@@ -62,7 +62,7 @@ trait ValidationMessageChecker {
         config.description("$config.kind '$config.method()' should not be annotated with: @$config.annotation")
             .reason("Input/Output annotations are ignored if they are placed on something else than a getter")
             .solution("Remove the annotations")
-            .solution("rename the method")
+            .solution("Rename the method")
             .render()
     }
 
@@ -86,7 +86,7 @@ trait ValidationMessageChecker {
         config.description("annotated with @${config.ignoringAnnotation} should not be also annotated with ${config.alsoAnnotatedWith.collect { "@$it" }.join(", ")}")
             .reason("A property is ignored but also has input annotations")
             .solution("Remove the input annotations")
-            .solution("remove the @${config.ignoringAnnotation} annotation")
+            .solution("Remove the @${config.ignoringAnnotation} annotation")
             .render()
     }
 
@@ -110,7 +110,19 @@ trait ValidationMessageChecker {
         config.description("is annotated with invalid property type @${config.annotation}")
             .reason("The '@${config.annotation}' annotation cannot be used in this context")
             .solution("Remove the property")
-            .solution("use a different annotation, e.g one of ${config.validAnnotations}")
+            .solution("Use a different annotation, e.g one of ${config.validAnnotations}")
+            .render()
+    }
+
+    @ValidationTestFor(
+        ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT
+    )
+    String modifierAnnotationInvalidInContext(@DelegatesTo(value = AnnotationContext, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
+        def config = display(AnnotationContext, 'annotation_invalid_in_context', spec)
+        config.description("is annotated with invalid modifier @${config.annotation}")
+            .reason("The '@${config.annotation}' annotation cannot be used in this context")
+            .solution("Remove the annotation")
+            .solution("Use a different annotation, e.g one of ${config.validAnnotations}")
             .render()
     }
 
@@ -122,7 +134,7 @@ trait ValidationMessageChecker {
         config.description("is missing ${config.kind}")
             .reason("A property without annotation isn't considered during up-to-date checking")
             .solution("Add ${config.kind}")
-            .solution("mark it as @Internal")
+            .solution("Mark it as @Internal")
             .render()
     }
 
@@ -157,8 +169,8 @@ trait ValidationMessageChecker {
         config.description("has @Input annotation used on property of type '${config.propertyType}'")
             .reason("A property of type '${config.propertyType}' annotated with @Input cannot determine how to interpret the file")
             .solution("Annotate with @InputFile for regular files")
-            .solution("annotate with @InputDirectory for directories")
-            .solution("if you want to track the path, return File.absolutePath as a String and keep @Input")
+            .solution("Annotate with @InputDirectory for directories")
+            .solution("If you want to track the path, return File.absolutePath as a String and keep @Input")
             .render()
     }
 
@@ -192,8 +204,8 @@ trait ValidationMessageChecker {
         config.description("Gradle detected a problem with the following location: '${config.location.absolutePath}'")
             .reason("Task '${config.consumer}' uses this output of task '${config.producer}' without declaring an explicit or implicit dependency. This can lead to incorrect results being produced, depending on what order the tasks are executed")
             .solution("Declare task '${config.producer}' as an input of '${config.consumer}'")
-            .solution("declare an explicit dependency on '${config.producer}' from '${config.consumer}' using Task#dependsOn")
-            .solution("declare an explicit dependency on '${config.producer}' from '${config.consumer}' using Task#mustRunAfter")
+            .solution("Declare an explicit dependency on '${config.producer}' from '${config.consumer}' using Task#dependsOn")
+            .solution("Declare an explicit dependency on '${config.producer}' from '${config.consumer}' using Task#mustRunAfter")
             .render(renderSolutions)
     }
 
@@ -205,7 +217,7 @@ trait ValidationMessageChecker {
         config.description("specifies ${config.kind} '${config.file}' which doesn't exist")
             .reason("An input file was expected to be present but it doesn't exist")
             .solution("Make sure the ${config.kind} exists before the task is called")
-            .solution("make sure that the task which produces the ${config.kind} is declared as an input")
+            .solution("Make sure that the task which produces the ${config.kind} is declared as an input")
             .render()
     }
 
@@ -217,7 +229,7 @@ trait ValidationMessageChecker {
         config.description("${config.kind} '${config.file}' is not a ${config.kind}")
             .reason("Expected an input to be a ${config.kind} but it was a ${config.oppositeKind}")
             .solution("Use a ${config.kind} as an input")
-            .solution("declare the input as a ${config.oppositeKind} instead")
+            .solution("Declare the input as a ${config.oppositeKind} instead")
             .render()
     }
 
@@ -277,7 +289,7 @@ trait ValidationMessageChecker {
     }
 
     @ValidationTestFor(
-        ValidationProblemId.INVALID_USE_OF_CACHEABLE_ANNOTATION
+        ValidationProblemId.INVALID_USE_OF_TYPE_ANNOTATION
     )
     String invalidUseOfCacheableAnnotation(@DelegatesTo(value = InvalidUseOfCacheable, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
         def config = display(InvalidUseOfCacheable, 'invalid_use_of_cacheable_annotation', spec)
@@ -295,7 +307,7 @@ trait ValidationMessageChecker {
         config.description("of type ${config.primitiveType.name} shouldn't be annotated with @Optional")
             .reason("Properties of primitive type cannot be optional")
             .solution("Remove the @Optional annotation")
-            .solution("use the ${config.wrapperType.name} type instead")
+            .solution("Use the ${config.wrapperType.name} type instead")
             .render()
     }
 

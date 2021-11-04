@@ -20,8 +20,12 @@ import com.google.common.collect.Maps;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.initialization.ProjectDescriptor;
+import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.initialization.DefaultProjectDescriptor;
+import org.gradle.internal.Describables;
+import org.gradle.internal.DisplayName;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.internal.build.BuildProjectRegistry;
@@ -34,6 +38,7 @@ import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
+import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -59,12 +64,12 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
     }
 
     @Override
-    public void registerProjects(BuildState owner) {
-        Set<DefaultProjectDescriptor> allProjects = owner.getLoadedSettings().getProjectRegistry().getAllProjects();
+    public void registerProjects(BuildState owner, ProjectRegistry<DefaultProjectDescriptor> projectRegistry) {
+        Set<DefaultProjectDescriptor> allProjects = projectRegistry.getAllProjects();
         synchronized (lock) {
             DefaultBuildProjectRegistry buildProjectRegistry = getBuildProjectRegistry(owner);
             if (!buildProjectRegistry.projectsByPath.isEmpty()) {
-                throw new IllegalStateException("Projects for build " + owner.getBuildIdentifier() + " have already been registered.");
+                throw new IllegalStateException("Projects for " + owner.getDisplayName() + " have already been registered.");
             }
             for (DefaultProjectDescriptor descriptor : allProjects) {
                 addProject(owner, buildProjectRegistry, descriptor);
@@ -75,7 +80,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
     private DefaultBuildProjectRegistry getBuildProjectRegistry(BuildState owner) {
         DefaultBuildProjectRegistry buildProjectRegistry = projectsByBuild.get(owner.getBuildIdentifier());
         if (buildProjectRegistry == null) {
-            buildProjectRegistry = new DefaultBuildProjectRegistry(owner.getBuildIdentifier());
+            buildProjectRegistry = new DefaultBuildProjectRegistry(owner);
             projectsByBuild.put(owner.getBuildIdentifier(), buildProjectRegistry);
         }
         return buildProjectRegistry;
@@ -91,8 +96,9 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
 
     private ProjectState addProject(BuildState owner, DefaultBuildProjectRegistry projectRegistry, DefaultProjectDescriptor descriptor) {
         Path projectPath = descriptor.path();
-        Path identityPath = owner.getIdentityPathForProject(projectPath);
-        ProjectComponentIdentifier projectIdentifier = owner.getIdentifierForProject(projectPath);
+        Path identityPath = owner.calculateIdentityPathForProject(projectPath);
+        String name = descriptor.getName();
+        ProjectComponentIdentifier projectIdentifier = new DefaultProjectComponentIdentifier(owner.getBuildIdentifier(), identityPath, projectPath, name);
         IProjectFactory projectFactory = owner.getMutableModel().getServices().get(IProjectFactory.class);
         ProjectStateImpl projectState = new ProjectStateImpl(owner, identityPath, projectPath, descriptor.getName(), projectIdentifier, descriptor, projectFactory);
         projectsByPath.put(identityPath, projectState);
@@ -108,16 +114,10 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
         }
     }
 
-    // TODO - can kill this method, as the caller can use ProjectInternal.getMutationState() instead
+    // TODO - can kill this method, as the caller can use ProjectInternal.getOwner() instead
     @Override
     public ProjectState stateFor(Project project) {
-        synchronized (lock) {
-            ProjectStateImpl projectState = projectsByPath.get(((ProjectInternal) project).getIdentityPath());
-            if (projectState == null) {
-                throw new IllegalArgumentException("Could not find state for " + project);
-            }
-            return projectState;
-        }
+        return ((ProjectInternal) project).getOwner();
     }
 
     @Override
@@ -184,11 +184,11 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
     }
 
     private static class DefaultBuildProjectRegistry implements BuildProjectRegistry {
-        private final BuildIdentifier buildIdentifier;
+        private final BuildState owner;
         private final Map<Path, ProjectStateImpl> projectsByPath = Maps.newLinkedHashMap();
 
-        public DefaultBuildProjectRegistry(BuildIdentifier buildIdentifier) {
-            this.buildIdentifier = buildIdentifier;
+        public DefaultBuildProjectRegistry(BuildState owner) {
+            this.owner = owner;
         }
 
         public void add(Path projectPath, ProjectStateImpl projectState) {
@@ -196,17 +196,28 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
         }
 
         @Override
+        public ProjectState getRootProject() {
+            return getProject(Path.ROOT);
+        }
+
+        @Override
         public ProjectState getProject(Path projectPath) {
             ProjectStateImpl projectState = projectsByPath.get(projectPath);
             if (projectState == null) {
-                throw new IllegalArgumentException("Project " + projectPath + " not found in build " + buildIdentifier);
+                throw new IllegalArgumentException("Project with path '" + projectPath + "' not found in " + owner.getDisplayName() + ".");
             }
             return projectState;
         }
 
+        @Nullable
+        @Override
+        public ProjectState findProject(Path projectPath) {
+            return projectsByPath.get(projectPath);
+        }
+
         @Override
         public Set<? extends ProjectState> getAllProjects() {
-            TreeSet<ProjectState> projects = new TreeSet<>(Comparator.comparing(ProjectState::getMutableModel));
+            TreeSet<ProjectState> projects = new TreeSet<>(Comparator.comparing(ProjectState::getIdentityPath));
             projects.addAll(projectsByPath.values());
             return projects;
         }
@@ -236,8 +247,16 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
         }
 
         @Override
+        public DisplayName getDisplayName() {
+            if (projectPath.equals(Path.ROOT)) {
+                return Describables.quoted("root project", projectName);
+            }
+            return Describables.of(identifier);
+        }
+
+        @Override
         public String toString() {
-            return identifier.getDisplayName();
+            return getDisplayName().getDisplayName();
         }
 
         @Override
@@ -249,6 +268,15 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
         @Override
         public ProjectState getParent() {
             return identityPath.getParent() == null ? null : projectsByPath.get(identityPath.getParent());
+        }
+
+        @Override
+        public Set<ProjectState> getChildProjects() {
+            Set<ProjectState> children = new TreeSet<>(Comparator.comparing(ProjectState::getIdentityPath));
+            for (ProjectDescriptor child : descriptor.getChildren()) {
+                children.add(projectsByPath.get(identityPath.child(child.getName())));
+            }
+            return children;
         }
 
         @Override
@@ -267,16 +295,29 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
         }
 
         @Override
+        public File getProjectDir() {
+            return descriptor.getProjectDir();
+        }
+
+        @Override
         public void createMutableModel(ClassLoaderScope selfClassLoaderScope, ClassLoaderScope baseClassLoaderScope) {
             synchronized (this) {
                 if (this.project != null) {
                     throw new IllegalStateException(String.format("The project object for project %s has already been attached.", getIdentityPath()));
                 }
+
                 ProjectInternal parent;
-                if (projectPath.equals(Path.ROOT)) {
-                    parent = null;
+                if (descriptor.getParent() != null) {
+                    // Identity path of parent can be different to identity path parent, if the names are tweaked in the settings file
+                    // They should be exactly the same, always
+                    Path parentPath = owner.calculateIdentityPathForProject(descriptor.getParent().path());
+                    ProjectStateImpl parentState = projectsByPath.get(parentPath);
+                    if (parentState == null) {
+                        throw new IllegalStateException("Parent project " + parentPath + " is not registered for project " + identityPath);
+                    }
+                    parent = parentState.getMutableModel();
                 } else {
-                    parent = projectsByPath.get(identityPath.getParent()).getMutableModel();
+                    parent = null;
                 }
                 this.project = projectFactory.createProject(owner.getMutableModel(), descriptor, this, parent, selfClassLoaderScope, baseClassLoaderScope);
             }

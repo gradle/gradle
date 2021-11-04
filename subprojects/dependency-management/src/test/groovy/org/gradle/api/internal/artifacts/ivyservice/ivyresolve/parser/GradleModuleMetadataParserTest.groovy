@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
 
-import org.gradle.api.Transformer
 import org.gradle.api.artifacts.VersionConstraint
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint
@@ -26,6 +25,7 @@ import org.gradle.internal.component.external.model.MutableComponentVariant
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.component.model.Exclude
+import org.gradle.internal.resource.ExternalResource
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.AttributeTestUtil
@@ -873,7 +873,7 @@ class GradleModuleMetadataParserTest extends Specification {
     def resource(String content) {
         def resource = Stub(LocallyAvailableExternalResource)
         _ * resource.displayName >> "<resource>"
-        _ * resource.withContent(_) >> { Transformer transformer -> return transformer.transform(new ByteArrayInputStream(content.getBytes("utf-8"))) }
+        _ * resource.withContent(_) >> { ExternalResource.ContentAction action -> return action.execute(new ByteArrayInputStream(content.getBytes("utf-8"))) }
         _ * resource.getFile() >> {
             def file = temporaryFolder.createFile("module${UUID.randomUUID().toString()}.module")
             file.write(content, "UTF-8")

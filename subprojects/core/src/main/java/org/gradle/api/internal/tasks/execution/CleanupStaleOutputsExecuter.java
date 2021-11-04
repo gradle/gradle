@@ -71,6 +71,13 @@ public class CleanupStaleOutputsExecuter implements TaskExecuter {
 
     @Override
     public TaskExecuterResult execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
+        if (!task.getReasonNotToTrackState().isPresent()) {
+            cleanupStaleOutputs(context);
+        }
+        return executer.execute(task, state, context);
+    }
+
+    private void cleanupStaleOutputs(TaskExecutionContext context) {
         Set<File> filesToDelete = new HashSet<>();
         TaskProperties properties = context.getTaskProperties();
         for (FilePropertySpec outputFileSpec : properties.getOutputFileProperties()) {
@@ -106,7 +113,6 @@ public class CleanupStaleOutputsExecuter implements TaskExecuter {
                 }
             });
         }
-        return executer.execute(task, state, context);
     }
 
 }

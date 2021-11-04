@@ -1,6 +1,5 @@
 package com.acme
 
-import groovy.transform.CompileStatic
 import org.gradle.api.JavaVersion
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -16,7 +15,8 @@ import org.gradle.api.component.AdhocComponentWithVariants
 
 import javax.inject.Inject
 
-@CompileStatic
+// https://issues.apache.org/jira/browse/GROOVY-10055
+//@CompileStatic
 class InstrumentedJarsPlugin implements Plugin<Project> {
     // tag::inject_software_component_factory[]
     private final SoftwareComponentFactory softwareComponentFactory

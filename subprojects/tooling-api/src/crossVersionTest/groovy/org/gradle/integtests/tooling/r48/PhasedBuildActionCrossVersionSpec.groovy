@@ -16,8 +16,9 @@
 
 package org.gradle.integtests.tooling.r48
 
-import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionFailure
-import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
+import org.gradle.integtests.tooling.fixture.ActionDiscardsConfigurationFailure
+import org.gradle.integtests.tooling.fixture.ActionQueriesModelThatRequiresConfigurationPhase
+import org.gradle.integtests.tooling.fixture.ActionShouldNotBeCalled
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
@@ -140,7 +141,7 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         withConnection { connection ->
             def action = connection.action()
                 .projectsLoaded(new FailAction(), projectsLoadedHandler)
-                .buildFinished(new BrokenAction(), buildFinishedHandler)
+                .buildFinished(new ActionShouldNotBeCalled(), buildFinishedHandler)
                 .build()
 
             collectOutputs(action)
@@ -156,7 +157,6 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         buildFinishedHandler.getResult() == null
 
         and:
-        def failure = OutputScrapingExecutionFailure.from(stdout.toString(), stderr.toString())
         if (targetDist.toolingApiHasCauseOnPhasedActionFail) {
             failure.assertHasDescription('actionFailure')
         } else {
@@ -165,6 +165,7 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         assertHasConfigureFailedLogging()
     }
 
+    @TargetGradleVersion(">=4.8 <7.3")
     def "actions are not run when configuration fails"() {
         def projectsLoadedHandler = new IntermediateResultHandlerCollector()
         def buildFinishedHandler = new IntermediateResultHandlerCollector()
@@ -177,8 +178,8 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         when:
         withConnection { connection ->
             def action = connection.action()
-                .projectsLoaded(new BrokenAction(), projectsLoadedHandler)
-                .buildFinished(new BrokenAction(), buildFinishedHandler)
+                .projectsLoaded(new ActionShouldNotBeCalled(), projectsLoadedHandler)
+                .buildFinished(new ActionShouldNotBeCalled(), buildFinishedHandler)
                 .build()
             collectOutputs(action)
             action.run()
@@ -192,7 +193,70 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         buildFinishedHandler.getResult() == null
 
         and:
-        def failure = OutputScrapingExecutionFailure.from(stdout.toString(), stderr.toString())
+        failure.assertHasDescription("A problem occurred evaluating root project")
+        assertHasConfigureFailedLogging()
+    }
+
+    @TargetGradleVersion(">=7.3")
+    def "action receives configuration failure"() {
+        def projectsLoadedHandler = new IntermediateResultHandlerCollector()
+        def buildFinishedHandler = new IntermediateResultHandlerCollector()
+
+        given:
+        buildFile << """
+            throw new RuntimeException("broken")
+        """
+
+        when:
+        withConnection { connection ->
+            def action = connection.action()
+                .projectsLoaded(new ActionQueriesModelThatRequiresConfigurationPhase(), projectsLoadedHandler)
+                .buildFinished(new ActionShouldNotBeCalled(), buildFinishedHandler)
+                .build()
+            collectOutputs(action)
+            action.run()
+        }
+
+        then:
+        BuildActionFailureException e = thrown()
+        e.message.startsWith("The supplied phased action failed with an exception.")
+        e.cause.message.contains("A problem occurred configuring root project")
+        projectsLoadedHandler.getResult() == null
+        buildFinishedHandler.getResult() == null
+
+        and:
+        failure.assertHasDescription("A problem occurred evaluating root project")
+        assertHasConfigureFailedLogging()
+    }
+
+    @TargetGradleVersion(">=7.3")
+    def "build fails on configuration failure when projects loaded action discards failure"() {
+        def projectsLoadedHandler = new IntermediateResultHandlerCollector()
+        def buildFinishedHandler = new IntermediateResultHandlerCollector()
+
+        given:
+        buildFile << """
+            throw new RuntimeException("broken")
+        """
+
+        when:
+        withConnection { connection ->
+            def action = connection.action()
+                .projectsLoaded(new ActionDiscardsConfigurationFailure(), projectsLoadedHandler)
+                .buildFinished(new ActionQueriesModelThatRequiresConfigurationPhase(), buildFinishedHandler)
+                .build()
+            collectOutputs(action)
+            action.run()
+        }
+
+        then:
+        BuildActionFailureException e = thrown()
+        e.message.startsWith("The supplied phased action failed with an exception.")
+        e.cause.message.contains("A problem occurred configuring root project")
+        projectsLoadedHandler.getResult() == "result"
+        buildFinishedHandler.getResult() == null
+
+        and:
         failure.assertHasDescription("A problem occurred evaluating root project")
         assertHasConfigureFailedLogging()
     }
@@ -209,8 +273,9 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
 
         when:
         withConnection { connection ->
-            def action = connection.action().projectsLoaded(new CustomProjectsLoadedAction(null), projectsLoadedHandler)
-                .buildFinished(new BrokenAction(), buildFinishedHandler)
+            def action = connection.action()
+                .projectsLoaded(new CustomProjectsLoadedAction(null), projectsLoadedHandler)
+                .buildFinished(new ActionShouldNotBeCalled(), buildFinishedHandler)
                 .build()
             collectOutputs(action)
             action.forTasks("broken")
@@ -225,7 +290,6 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         buildFinishedHandler.getResult() == null
 
         and:
-        def failure = OutputScrapingExecutionFailure.from(stdout.toString(), stderr.toString())
         failure.assertHasDescription("Execution failed for task ':broken'.")
         assertHasBuildFailedLogging()
     }
@@ -339,7 +403,7 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
 
         then:
         assertHasBuildSuccessfulLogging()
-        OutputScrapingExecutionResult.from(stdout.toString(), stderr.toString()).assertTasksExecuted(":help")
+        result.assertTasksExecuted(":help")
 
         where:
         description                 | action
@@ -367,7 +431,7 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
 
         then:
         assertHasBuildSuccessfulLogging()
-        OutputScrapingExecutionResult.from(stdout.toString(), stderr.toString()).assertTasksExecuted(":thing")
+        result.assertTasksExecuted(":thing")
 
         where:
         description                 | action
@@ -396,7 +460,7 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         then:
         noExceptionThrown()
         assertHasBuildSuccessfulLogging()
-        OutputScrapingExecutionResult.from(stdout.toString(), stderr.toString()).assertTasksExecuted(":thing")
+        result.assertTasksExecuted(":thing")
 
         where:
         description                 | action

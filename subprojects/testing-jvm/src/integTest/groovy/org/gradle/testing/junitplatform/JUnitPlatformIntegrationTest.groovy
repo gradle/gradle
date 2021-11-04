@@ -23,6 +23,7 @@ import spock.lang.Timeout
 import spock.lang.Unroll
 
 import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUPITER_VERSION
+import static org.gradle.testing.fixture.JUnitCoverage.LATEST_PLATFORM_VERSION
 import static org.hamcrest.CoreMatchers.containsString
 
 class JUnitPlatformIntegrationTest extends JUnitPlatformIntegrationSpec {
@@ -58,7 +59,7 @@ class JUnitPlatformIntegrationTest extends JUnitPlatformIntegrationSpec {
             apply plugin: 'java'
             ${mavenCentralRepository()}
             dependencies {
-                testCompileOnly 'org.junit.jupiter:junit-jupiter-api:${LATEST_JUPITER_VERSION}','org.junit.jupiter:junit-jupiter-engine:${LATEST_JUPITER_VERSION}'
+                testCompileOnly 'org.junit.jupiter:junit-jupiter:${LATEST_JUPITER_VERSION}'
             }
 
             test { useJUnitPlatform() }
@@ -378,6 +379,11 @@ public class StaticInnerTest {
     def 'properly fails when engine fails during discovery #scenario'() {
         given:
         createSimpleJupiterTest()
+        buildFile << """
+            dependencies {
+                testImplementation 'org.junit.platform:junit-platform-engine:${LATEST_PLATFORM_VERSION}'
+            }
+        """
         file('src/test/java/EngineFailingDiscovery.java') << '''
             import org.junit.platform.engine.*;
             public class EngineFailingDiscovery implements TestEngine {

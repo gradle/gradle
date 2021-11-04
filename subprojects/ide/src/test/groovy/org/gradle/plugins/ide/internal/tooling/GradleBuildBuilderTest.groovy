@@ -16,9 +16,8 @@
 
 package org.gradle.plugins.ide.internal.tooling
 
-
 import org.gradle.api.internal.GradleInternal
-import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.project.ProjectState
 import org.gradle.internal.build.BuildProjectRegistry
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
@@ -27,6 +26,7 @@ import org.gradle.internal.composite.IncludedBuildInternal
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.ProjectBuilder
+import org.gradle.util.Path
 import org.gradle.util.TestUtil
 import org.junit.ClassRule
 import spock.lang.Shared
@@ -71,9 +71,14 @@ class GradleBuildBuilderTest extends Specification {
     def "builds model for included builds"() {
         def buildRegistry = Mock(BuildStateRegistry)
 
-        def rootProject = Mock(ProjectInternal)
-        def project1 = Mock(ProjectInternal)
-        def project2 = Mock(ProjectInternal)
+        def rootProject = Mock(ProjectState)
+        rootProject.projectPath >> Path.ROOT
+
+        def includeProject1 = Mock(ProjectState)
+        includeProject1.projectPath >> Path.ROOT
+
+        def includedProject2 = Mock(ProjectState)
+        includedProject2.projectPath >> Path.ROOT
 
         def rootDir = temporaryFolder.createDir("root")
         def dir1 = temporaryFolder.createDir("dir1")
@@ -94,51 +99,42 @@ class GradleBuildBuilderTest extends Specification {
         def includedBuild1 = Mock(IncludedBuildInternal)
         def includedBuild2 = Mock(IncludedBuildInternal)
 
-        rootProject.gradle >> rootBuild
-        rootProject.rootDir >> rootDir
-        rootProject.childProjects >> [:]
-        rootProject.allprojects >> [rootProject]
+        rootProject.childProjects >> [].toSet()
+        includeProject1.childProjects >> [].toSet()
+        includedProject2.childProjects >> [].toSet()
 
-        project1.rootDir >> dir1
-        project1.childProjects >> [:]
-        project1.allprojects >> [project1]
-
-        project2.rootDir >> dir2
-        project2.childProjects >> [:]
-        project2.allprojects >> [project2]
-
-        rootBuild.owner >> rootBuildState
-        rootBuild.rootProject >> rootProject
         rootBuild.includedBuilds() >> [includedBuild1]
 
         rootBuildState.mutableModel >> rootBuild
+        rootBuildState.buildRootDir >> rootDir
         rootBuildState.projects >> rootProjects
 
         includedBuild1.target >> includedBuildState1
         includedBuild2.target >> includedBuildState2
 
         includedBuildState1.projects >> projects1
-        includedBuildState1.configuredBuild >> build1
+        includedBuildState1.buildRootDir >> dir1
         includedBuildState1.importableBuild >> true
 
-        rootProjects.allProjects >> [].toSet()
-        projects1.allProjects >> [].toSet()
-        projects2.allProjects >> [].toSet()
+        rootProjects.allProjects >> [rootProject].toSet()
+        rootProjects.rootProject >> rootProject
 
-        build1.owner >> includedBuildState1
+        projects1.allProjects >> [includeProject1].toSet()
+        projects1.rootProject >> includeProject1
+
+        projects2.allProjects >> [includeProject1].toSet()
+        projects2.rootProject >> includedProject2
+
         build1.includedBuilds() >> [includedBuild2]
-        build1.rootProject >> project1
         build1.parent >> rootBuild
 
         includedBuildState1.mutableModel >> build1
 
         includedBuildState2.projects >> projects2
-        includedBuildState2.configuredBuild >> build2
+        includedBuildState2.buildRootDir >> dir2
         includedBuildState2.importableBuild >> true
 
-        build2.owner >> includedBuildState2
         build2.includedBuilds() >> []
-        build2.rootProject >> project2
         build2.parent >> rootBuild
 
         includedBuildState2.mutableModel >> build2
@@ -152,7 +148,7 @@ class GradleBuildBuilderTest extends Specification {
         def builder = new GradleBuildBuilder(buildRegistry)
 
         expect:
-        def model = builder.buildAll("org.gradle.tooling.model.gradle.GradleBuild", rootProject)
+        def model = builder.create(rootBuildState)
         model.includedBuilds.size() == 1
 
         def model1 = model.includedBuilds[0]

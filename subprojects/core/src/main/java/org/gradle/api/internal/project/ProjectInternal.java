@@ -45,6 +45,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.registry.ModelRegistryScope;
+import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
@@ -169,6 +170,9 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
      * Returns the {@link ProjectState} that manages the state of this instance.
      */
     ProjectState getOwner();
+
+    @Override
+    InputNormalizationHandlerInternal getNormalization();
 
     @Override
     ScriptHandlerInternal getBuildscript();

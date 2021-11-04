@@ -21,6 +21,10 @@ jobs:
         # https://docs.github.com/en/github/finding-security-vulnerabilities-and-errors-in-your-code/configuring-code-scanning#overriding-automatic-language-detection
 
     steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+      # Checkout must run before the caching key is computed using the `hashFiles` method
+    
     - name: Cache Gradle Modules
       uses: actions/cache@v2
       with:
@@ -35,9 +39,6 @@ jobs:
     - name: Disable checksum offloading
       # See: https://github.com/actions/virtual-environments/issues/1187#issuecomment-686735760
       run: sudo ethtool -K eth0 tx off rx off
-
-    - name: Checkout repository
-      uses: actions/checkout@v2
 
     # Install and setup JDK 11
     - name: Setup JDK 11

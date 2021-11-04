@@ -25,7 +25,7 @@ import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.util.PropertiesUtils
-import org.gradle.util.VersionNumber
+import org.gradle.util.internal.VersionNumber
 import org.gradle.work.DisableCachingByDefault
 import java.util.Properties
 

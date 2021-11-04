@@ -24,7 +24,6 @@ import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 import org.gradle.plugins.ide.internal.resolver.DefaultGradleApiSourcesResolver;
@@ -197,17 +196,17 @@ public class IdeaModule {
      * <p>
      * <b>since</b> 1.0-milestone-2
      * <p>
-     * If your project has problems with unique names it is recommended to always run <tt>gradle idea</tt> from the
+     * If your project has problems with unique names it is recommended to always run <code>gradle idea</code> from the
      * root, i.e. for all subprojects.
      * If you run the generation of the IDEA module only for a single subproject then you may have different results
      * because the unique names are calculated based on IDEA modules that are involved in the specific build run.
      * <p>
-     * If you update the module names then make sure you run <tt>gradle idea</tt> from the root, e.g. for all
+     * If you update the module names then make sure you run <code>gradle idea</code> from the root, e.g. for all
      * subprojects, including generation of IDEA project.
      * The reason is that there may be subprojects that depend on the subproject with amended module name.
      * So you want them to be generated as well because the module dependencies need to refer to the amended project
      * name.
-     * Basically, for non-trivial projects it is recommended to always run <tt>gradle idea</tt> from the root.
+     * Basically, for non-trivial projects it is recommended to always run <code>gradle idea</code> from the root.
      * <p>
      * For example see docs for {@link IdeaModule}
      */
@@ -330,6 +329,7 @@ public class IdeaModule {
 
     /**
      * The directories containing resources. <p> For example see docs for {@link IdeaModule}
+     *
      * @since 4.7
      */
     public Set<File> getResourceDirs() {
@@ -338,6 +338,7 @@ public class IdeaModule {
 
     /**
      * Sets the directories containing resources. <p> For example see docs for {@link IdeaModule}
+     *
      * @since 4.7
      */
     public void setResourceDirs(Set<File> resourceDirs) {
@@ -346,6 +347,7 @@ public class IdeaModule {
 
     /**
      * The directories containing the test resources. <p> For example see docs for {@link IdeaModule}
+     *
      * @since 4.7
      */
     public Set<File> getTestResourceDirs() {
@@ -354,11 +356,13 @@ public class IdeaModule {
 
     /**
      * Sets the directories containing the test resources. <p> For example see docs for {@link IdeaModule}
+     *
      * @since 4.7
      */
     public void setTestResourceDirs(Set<File> testResourceDirs) {
         this.testResourceDirs = testResourceDirs;
     }
+
     /**
      * Directories to be excluded. <p> For example see docs for {@link IdeaModule}
      */
@@ -559,8 +563,7 @@ public class IdeaModule {
     public Set<Dependency> resolveDependencies() {
         ProjectInternal projectInternal = (ProjectInternal) project;
         IdeArtifactRegistry ideArtifactRegistry = projectInternal.getServices().get(IdeArtifactRegistry.class);
-        ProjectStateRegistry projectRegistry = projectInternal.getServices().get(ProjectStateRegistry.class);
-        IdeaDependenciesProvider ideaDependenciesProvider = new IdeaDependenciesProvider(projectInternal, ideArtifactRegistry, projectRegistry, new DefaultGradleApiSourcesResolver(project));
+        IdeaDependenciesProvider ideaDependenciesProvider = new IdeaDependenciesProvider(projectInternal, ideArtifactRegistry, new DefaultGradleApiSourcesResolver(project));
         return ideaDependenciesProvider.provide(this);
     }
 

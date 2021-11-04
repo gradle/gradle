@@ -30,7 +30,16 @@ public class DefaultInputFilePropertySpec extends AbstractFilePropertySpec imple
     private final LineEndingSensitivity lineEndingSensitivity;
     private final PropertyValue value;
 
-    public DefaultInputFilePropertySpec(String propertyName, Class<? extends FileNormalizer> normalizer, FileCollectionInternal files, PropertyValue value, boolean skipWhenEmpty, boolean incremental, DirectorySensitivity directorySensitivity, LineEndingSensitivity lineEndingSensitivity) {
+    public DefaultInputFilePropertySpec(
+        String propertyName,
+        Class<? extends FileNormalizer> normalizer,
+        FileCollectionInternal files,
+        PropertyValue value,
+        boolean skipWhenEmpty,
+        boolean incremental,
+        DirectorySensitivity directorySensitivity,
+        LineEndingSensitivity lineEndingSensitivity
+    ) {
         super(propertyName, normalizer, files);
         this.skipWhenEmpty = skipWhenEmpty;
         this.incremental = incremental;

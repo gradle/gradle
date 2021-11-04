@@ -15,7 +15,7 @@
 [[publishing_maven]]
 = Maven Publish Plugin
 
-The Maven Publish Plugin provides the ability to publish build artifacts to an http://maven.apache.org/[Apache Maven] repository.
+The Maven Publish Plugin provides the ability to publish build artifacts to an https://maven.apache.org/[Apache Maven] repository.
 A module published to a Maven repository can be consumed by Maven, Gradle (see <<declaring_dependencies.adoc#declaring-dependencies,Declaring Dependencies>>) and other tools that understand the Maven repository format.
 You can learn about the fundamentals of publishing in <<publishing_setup.adoc#publishing_overview,Publishing Overview>>.
 
@@ -187,6 +187,54 @@ include::sample[dir="snippets/maven-publish/javaProject/kotlin",files="build.gra
 For integration with a local Maven installation, it is sometimes useful to publish the module into the Maven local repository (typically at _$USER_HOME/.m2/repository_), along with its POM file and other metadata. In Maven parlance, this is referred to as 'installing' the module.
 
 The Maven Publish Plugin makes this easy to do by automatically creating a link:{javadocPath}/org/gradle/api/publish/maven/tasks/PublishToMavenLocal.html[PublishToMavenLocal] task for each link:{groovyDslPath}/org.gradle.api.publish.maven.MavenPublication.html[MavenPublication] in the `publishing.publications` container. The task name follows the pattern of `publish__PubName__PublicationToMavenLocal`. Each of these tasks is wired into the `publishToMavenLocal` aggregate task. You do not need to have `mavenLocal()` in your `publishing.repositories` section.
+
+[[publishing_maven:relocation]]
+== Publishing Maven relocation information
+
+When a project changes the `groupId` or `artifactId` (the _coordinates_) of an artifact it publishes, it is important to let users know where the new artifact can be found. Maven can help with that through the _relocation_ feature. The way this works is that a project publishes an additional artifact under the old coordinates consisting only of a minimal _relocation POM_; that POM file specifies where the new artifact can be found. Maven repository browsers and build tools can then inform the user that the coordinates of an artifact have changed.
+
+For this, a project adds an additional `MavenPublication` specifying a link:{groovyDslPath}/org.gradle.api.publish.maven.MavenPomRelocation[MavenPomRelocation]:
+
+.Specifying a relocation POM
+====
+include::sample[dir="snippets/maven-publish/specify-relocation/groovy/library",files="build.gradle[tags=specify-relocation]"]
+include::sample[dir="snippets/maven-publish/specify-relocation/kotlin/library",files="build.gradle.kts[tags=specify-relocation]"]
+====
+
+Only the property which has changed needs to be specified under `relocation`, that is `artifactId` and / or `groupId`. All other properties are optional.
+
+[TIP]
+====
+Specifying the `version` can be useful when the new artifact has a different version, for example because version numbering has started at 1.0.0 again.
+A custom `message` allows explaining why the artifact coordinates have changed.
+====
+
+The relocation POM should be created for what would be the next version of the old artifact. For example when the artifact coordinates of `com.example:lib:1.0.0` are changed and the artifact with the new coordinates continues version numbering and is published as `com.new-example:lib:2.0.0`, then the relocation POM should specify a relocation from `com.example:lib:2.0.0` to `com.new-example:lib:2.0.0`.
+
+A relocation POM only has to be published once, the build file configuration for it should be removed again once it has been published.
+
+Note that a relocation POM is not suitable for all situations; when an artifact has been split into two or more separate artifacts then a relocation POM might not be helpful.
+
+[[publishing_maven:retroactive_relocation]]
+=== Retroactively publishing relocation information
+
+It is possible to publish relocation information retroactively after the coordinates of an artifact have changed in the past, and no relocation information was published back then.
+
+The same recommendations as described above apply. To ease migration for users, it is important to pay attention to the `version` specified in the relocation POM. The relocation POM should allow the user to move to the new artifact in one step, and then allow them to update to the latest version in a separate step. For example when for the coordinates of `com.new-example:lib:5.0.0` were changed in version 2.0.0, then ideally the relocation POM should be published for the old coordinates `com.example:lib:2.0.0` relocating to `com.new-example:lib:2.0.0`. The user can then switch from `com.example:lib` to `com.new-example` and then separately update from version 2.0.0 to 5.0.0, handling breaking changes (if any) step by step.
+
+When relocation information is published retroactively, it is not necessary to wait for next regular release of the project, it can be published in the meantime. As mentioned above, the relocation information should then be removed again from the build file once the relocation POM has been published.
+
+[[publishing_maven:relocation_duplicate_dependencies]]
+=== Avoiding duplicate dependencies
+
+When only the coordinates of the artifact have changed, but package names of the classes inside the artifact have remained the same, dependency conflicts can occur. A project might (transitively) depend on the old artifact but at the same time also have a dependency on the new artifact which both contain the same classes, potentially with incompatible changes.
+
+To detect such conflicting duplicate dependencies, <<dependency_capability_conflict.adoc#sub:declaring-component-capabilities,capabilities>> can be published as part of the <<publishing_gradle_module_metadata.adoc#sec:understanding-gradle-module-md,Gradle Module Metadata>>.  For an example using a <<java_library_plugin.adoc#java_library_plugin,Java Library>> project, see <<component_capabilities.adoc#sec:declaring-additional-capabilities-for-a-local-component,declaring additional capabilities for a local component>>.
+
+[[publishing_maven:relocation_dry_run]]
+=== Performing a dry run
+
+To verify that relocation information works as expected before publishing it to a remote repository, it can first be <<#publishing_maven:install,published to the local Maven repository>>. Then a local test Gradle or Maven project can be created which has the relocation artifact as dependency.
 
 [[publishing_maven:complete_example]]
 == Complete example

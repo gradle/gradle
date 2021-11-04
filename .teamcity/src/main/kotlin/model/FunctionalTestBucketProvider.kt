@@ -10,7 +10,25 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.script
 import java.io.File
 
-val CROSS_VERSION_BUCKETS = listOf(
+/**
+ * QuickCrossVersionTest only tests the last minor for each major version in the range.
+ */
+val QUICK_CROSS_VERSION_BUCKETS = listOf(
+    listOf("0.0", "3.0"), // 0.0 <= version < 3.0
+    listOf("3.0", "4.0"), // 3.0 <= version < 4.0
+    listOf("4.0", "5.0"), // 4.0 <= version < 5.0
+    listOf("5.0", "6.0"), // 5.0 <=version < 6.0
+    listOf("6.0", "7.0"), // 6.0 <=version < 7.0
+    listOf("7.0", "8.0"), // 7.0 <=version < 8.0
+    listOf("8.0", "9.0"), // 8.0 <=version < 9.0
+    listOf("9.0", "10.0"), // 9.0 <=version < 10.0
+    listOf("10.0", "11.0"), // 10.0 <=version < 11.0
+    listOf("11.0", "12.0"), // 11.0 <=version < 12.0
+    listOf("12.0", "13.0"), // 12.0 <=version < 13.0
+    listOf("13.0", "99.0") // 13.0 <=version < 99.0
+)
+
+val ALL_CROSS_VERSION_BUCKETS = listOf(
     listOf("0.0", "2.8"), // 0.0 <= version < 2.8
     listOf("2.8", "3.3"), // 2.8 <= version < 3.3
     listOf("3.3", "4.1"), // 3.3 <= version < 4.1
@@ -32,19 +50,23 @@ interface FunctionalTestBucketProvider {
 }
 
 class DefaultFunctionalTestBucketProvider(val model: CIBuildModel, testBucketsJson: File) : FunctionalTestBucketProvider {
-    private val crossVersionTestBucketProvider = CrossVersionTestBucketProvider(model)
+    private val allCrossVersionTestBucketProvider = CrossVersionTestBucketProvider(ALL_CROSS_VERSION_BUCKETS, model)
+    private val quickCrossVersionTestBucketProvider = CrossVersionTestBucketProvider(QUICK_CROSS_VERSION_BUCKETS, model)
     private val functionalTestBucketProvider = StatisticBasedFunctionalTestBucketProvider(model, testBucketsJson)
     override fun createFunctionalTestsFor(stage: Stage, testCoverage: TestCoverage): List<FunctionalTest> {
-        return if (testCoverage.testType in listOf(TestType.quickFeedbackCrossVersion, TestType.allVersionsCrossVersion)) {
-            crossVersionTestBucketProvider.createFunctionalTestsFor(stage, testCoverage)
-        } else {
-            functionalTestBucketProvider.createFunctionalTestsFor(stage, testCoverage)
+        return when {
+            testCoverage.testType == TestType.quickFeedbackCrossVersion -> quickCrossVersionTestBucketProvider.createFunctionalTestsFor(stage, testCoverage)
+            testCoverage.testType == TestType.allVersionsCrossVersion -> allCrossVersionTestBucketProvider.createFunctionalTestsFor(stage, testCoverage)
+            else -> functionalTestBucketProvider.createFunctionalTestsFor(stage, testCoverage)
         }
     }
 }
 
-class CrossVersionTestBucketProvider(private val model: CIBuildModel) : FunctionalTestBucketProvider {
-    private val buckets: List<BuildTypeBucket> = CROSS_VERSION_BUCKETS.map { GradleVersionRangeCrossVersionTestBucket(it[0], it[1]) }
+class CrossVersionTestBucketProvider(
+    crossVersionBuckets: List<List<String>>,
+    private val model: CIBuildModel
+) : FunctionalTestBucketProvider {
+    private val buckets: List<BuildTypeBucket> = crossVersionBuckets.map { GradleVersionRangeCrossVersionTestBucket(it[0], it[1]) }
 
     // For quickFeedbackCrossVersion and allVersionsCrossVersion, the buckets are split by Gradle version
     // By default, split them by CROSS_VERSION_BUCKETS
@@ -78,11 +100,12 @@ class GradleVersionRangeCrossVersionTestBucket(private val startInclusive: Strin
     override fun createFunctionalTestsFor(model: CIBuildModel, stage: Stage, testCoverage: TestCoverage, bucketIndex: Int) =
         FunctionalTest(
             model,
-            getUuid(model, testCoverage, bucketIndex),
+            testCoverage.getBucketUuid(model, bucketIndex),
             "${testCoverage.asName()} ($startInclusive <= gradle <$endExclusive)",
             "${testCoverage.asName()} for gradle ($startInclusive <= gradle <$endExclusive)",
             testCoverage,
             stage,
+            enableTestDistribution = testCoverage.os == Os.LINUX,
             emptyList(),
             extraParameters = "-PonlyTestGradleVersion=$startInclusive-$endExclusive"
         )
@@ -105,20 +128,23 @@ class LargeSubprojectSplitBucket(
     val number: Int,
     val include: Boolean,
     val classes: List<TestClassAndSourceSet>
-) : BuildTypeBucket by subproject {
+) : BuildTypeBucket {
     val name = "${subproject.name}_$number"
 
-    override fun getName(testCoverage: TestCoverage) = "${testCoverage.asName()} ($name)"
+    override fun getName(testCoverage: TestCoverage): String = "${testCoverage.asName()} ($name)"
+
+    override fun getDescription(testCoverage: TestCoverage) = "${testCoverage.asName()} for $name"
 
     override fun createFunctionalTestsFor(model: CIBuildModel, stage: Stage, testCoverage: TestCoverage, bucketIndex: Int): FunctionalTest =
         FunctionalTest(
             model,
-            getUuid(model, testCoverage, bucketIndex),
+            testCoverage.getBucketUuid(model, bucketIndex),
             getName(testCoverage),
             getDescription(testCoverage),
             testCoverage,
             stage,
             subprojects = listOf(subproject.name),
+            enableTestDistribution = false,
             extraParameters = if (include) "-PincludeTestClasses=true -x ${subproject.name}:test" else "-PexcludeTestClasses=true", // Only run unit test in last bucket
             preBuildSteps = prepareTestClassesStep(testCoverage.os)
         )
@@ -163,8 +189,10 @@ type test-splits\$action-test-classes.properties
 
 class SmallSubprojectBucket(
     val subprojects: List<GradleSubproject>,
-    val enableTestDistribution: Boolean = false
+    val enableTestDistribution: Boolean
 ) : BuildTypeBucket {
+    constructor(subproject: GradleSubproject, enableTestDistribution: Boolean) : this(listOf(subproject), enableTestDistribution)
+
     val name = truncateName(subprojects.joinToString(","))
 
     private fun truncateName(str: String) =
@@ -178,13 +206,13 @@ class SmallSubprojectBucket(
     override fun createFunctionalTestsFor(model: CIBuildModel, stage: Stage, testCoverage: TestCoverage, bucketIndex: Int): FunctionalTest =
         FunctionalTest(
             model,
-            getUuid(model, testCoverage, bucketIndex),
+            testCoverage.getBucketUuid(model, bucketIndex),
             getName(testCoverage),
             getDescription(testCoverage),
             testCoverage,
             stage,
-            subprojects.map { it.name },
-            enableTestDistribution
+            enableTestDistribution,
+            subprojects.map { it.name }
         )
 
     override fun getName(testCoverage: TestCoverage) = truncateName("${testCoverage.asName()} (${subprojects.joinToString(",") { it.name }})")

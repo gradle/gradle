@@ -216,7 +216,7 @@ class S3ClientIntegrationTest extends Specification {
             def uri = new URI("s3://${bucketName}.${regionForUrl}${key}")
 
             S3RegionalResource s3RegionalResource = new S3RegionalResource(uri)
-            s3Client.amazonS3Client.setRegion(s3RegionalResource.region)
+            s3Client.amazonS3Client.setRegion(s3RegionalResource.getRegion().get())
 
 
             println "Regional uri: ${uri}"

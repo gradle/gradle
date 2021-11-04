@@ -16,14 +16,13 @@
 
 package org.gradle.composite.internal;
 
-import org.gradle.api.Project;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ForeignBuildIdentifier;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.invocation.Gradle;
+import org.gradle.api.internal.project.ProjectState;
 import org.gradle.internal.Pair;
 import org.gradle.internal.build.AbstractBuildState;
 import org.gradle.internal.build.CompositeBuildParticipantBuildState;
@@ -41,10 +40,11 @@ public abstract class AbstractCompositeParticipantBuildState extends AbstractBui
     @Override
     public synchronized Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> getAvailableModules() {
         if (availableModules == null) {
-            Gradle gradle = getBuild();
+            // Ensure configured
+            getBuildController().getConfiguredBuild();
             availableModules = new LinkedHashSet<>();
-            for (Project project : gradle.getRootProject().getAllprojects()) {
-                registerProject(availableModules, (ProjectInternal) project);
+            for (ProjectState project : getProjects().getAllProjects()) {
+                registerProject(availableModules, project.getMutableModel());
             }
         }
         return availableModules;

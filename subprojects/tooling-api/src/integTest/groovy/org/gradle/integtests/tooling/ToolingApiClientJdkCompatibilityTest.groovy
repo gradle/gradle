@@ -18,7 +18,6 @@ package org.gradle.integtests.tooling
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.util.internal.TextUtil
 import org.junit.Assume
 import spock.lang.Unroll
 
@@ -27,13 +26,11 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
         System.out.println("TAPI client is using Java " + clientJdkVersion)
 
         def jvmArgs = """
-            if (${clientJdkVersion.isCompatibleWith(JavaVersion.VERSION_16)} && ['2.6', '2.14.1'].contains(project.findProperty("gradleVersion"))) {
+            if (${clientJdkVersion.isCompatibleWith(JavaVersion.VERSION_16)} && ['2.14.1'].contains(project.findProperty("gradleVersion"))) {
                 jvmArgs = ["--add-opens", "java.base/java.lang=ALL-UNNAMED"]
             }
         """
 
-        def compilerJdk = AvailableJavaHomes.getJdk(JavaVersion.VERSION_1_6)
-        String compilerJavaHomePath = TextUtil.normaliseFileSeparators(compilerJdk.javaHome.absolutePath)
         executer.beforeExecute {
             withToolchainDetectionEnabled()
         }
@@ -74,8 +71,16 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
             java {
                 disableAutoTargetJvm()
                 toolchain {
-                    languageVersion = JavaLanguageVersion.of(6)
+                    languageVersion = JavaLanguageVersion.of(8)
                 }
+            }
+
+            // Even though we're using a JDK8 toolchain, we compile down to Java 6 bytecode.
+            // This makes it easier to run these tests locally since most developers have Java 8
+            // installed. We still try to run the Gradle build with Java 6/7, but we skip those tests
+            // when Java 6/7 are not installed.
+            tasks.withType(JavaCompile).configureEach {
+                options.compilerArgs.addAll('-target', '6', '-source', 6)
             }
 
             dependencies {
@@ -83,7 +88,7 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
             }
         """
         settingsFile << "rootProject.name = 'client-runner'"
-        file('gradle.properties') << "org.gradle.java.installations.paths=${compilerJavaHomePath}"
+
         file("test-project/build.gradle") << "println 'Hello from ' + gradle.gradleVersion"
         file("test-project/settings.gradle") << "rootProject.name = 'target-project'"
         file("src/main/java/ToolingApiCompatibilityClient.java") << """
@@ -201,9 +206,8 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
 
     def "tapi client can launch task with Gradle and Java combination"(JavaVersion gradleDaemonJdkVersion, String gradleVersion) {
         setup:
-        def tapiClientCompilerJdk = AvailableJavaHomes.getJdk(JavaVersion.VERSION_1_6)
         def gradleDaemonJdk = AvailableJavaHomes.getJdk(gradleDaemonJdkVersion)
-        Assume.assumeTrue(tapiClientCompilerJdk && gradleDaemonJdk)
+        Assume.assumeTrue(gradleDaemonJdk!=null)
 
         when:
         succeeds("runTask",
@@ -233,9 +237,8 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
     @Unroll
     def "tapi client can run build action with Gradle and Java combination"(JavaVersion gradleDaemonJdkVersion, String gradleVersion) {
         setup:
-        def tapiClientCompilerJdk = AvailableJavaHomes.getJdk(JavaVersion.VERSION_1_6)
         def gradleDaemonJdk = AvailableJavaHomes.getJdk(gradleDaemonJdkVersion)
-        Assume.assumeTrue(tapiClientCompilerJdk && gradleDaemonJdk)
+        Assume.assumeTrue(gradleDaemonJdk!=null)
 
         if (gradleDaemonJdkVersion == JavaVersion.VERSION_1_6 && gradleVersion == "2.14.1") {
             executer.expectDeprecationWarning("Support for running Gradle using Java 6 has been deprecated and will be removed in Gradle 3.0")

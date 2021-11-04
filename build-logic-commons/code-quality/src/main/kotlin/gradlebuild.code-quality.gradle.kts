@@ -23,8 +23,12 @@ plugins {
 }
 
 val codeQuality = tasks.register("codeQuality") {
-    dependsOn(tasks.matching { it is CodeNarc || it is Checkstyle || it is Classycle || it is ValidatePlugins })
+    dependsOn(tasks.withType<CodeNarc>())
+    dependsOn(tasks.withType<Checkstyle>())
+    dependsOn(tasks.withType<Classycle>())
+    dependsOn(tasks.withType<ValidatePlugins>())
 }
+
 tasks.withType<Test>().configureEach {
     shouldRunAfter(codeQuality)
 }
@@ -104,6 +108,7 @@ val classycleExtension = extensions.create<ClassycleExtension>("classycle").appl
 
 extensions.findByType<SourceSetContainer>()?.all {
     tasks.register<Classycle>(getTaskName("classycle", null)) {
+        classycleClasspath.from(classycle)
         classesDirs.from(output.classesDirs)
         excludePatterns.set(classycleExtension.excludePatterns)
         reportName.set(this@all.name)

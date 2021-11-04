@@ -3,6 +3,12 @@
 While it is true that Android uses the Java toolchain as its foundation, there are nevertheless some significant differences from pure Java projects; these differences impact task cacheability.
 This is even more true for Android projects that include Kotlin source code (and therefore use the `kotlin-android` plugin).
 
+== Disambiguation
+
+This guide is about Gradle’s build cache, but you may have also heard about the https://developer.android.com/studio/build/build-cache[Android build cache].
+These are different things.
+The Android cache is internal to certain tasks in the Android plugin, and will eventually be removed in favor of native Gradle support.
+
 == Why use the build cache?
 
 The build cache can _significantly_ improve build performance for Android projects, in many cases by 30-40%.

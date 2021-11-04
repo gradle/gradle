@@ -30,6 +30,7 @@ import org.gradle.execution.TaskSelection
 import org.gradle.execution.TaskSelector
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
 import org.gradle.internal.build.event.types.DefaultTestDescriptor
+import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.tooling.internal.protocol.test.InternalDebugOptions
 import org.gradle.tooling.internal.protocol.test.InternalJvmTestRequest
@@ -118,9 +119,9 @@ class TestExecutionBuildConfigurationActionTest extends Specification {
         where:
         requestType        | descriptors        | internalJvmRequests                                 | expectedClassFilter | expectedMethodFilter | tasksAndTests
         "test descriptors" | [testDescriptor()] | []                                                  | TEST_CLASS_NAME     | TEST_METHOD_NAME     | [:]
-        "test classes"     | []                 | [jvmTestRequest(TEST_CLASS_NAME, null)]             | TEST_CLASS_NAME     | null     | [:]
+        "test classes"     | []                 | [jvmTestRequest(TEST_CLASS_NAME, null)]             | TEST_CLASS_NAME     | null                 | [:]
         "test methods"     | []                 | [jvmTestRequest(TEST_CLASS_NAME, TEST_METHOD_NAME)] | TEST_CLASS_NAME     | TEST_METHOD_NAME     | [:]
-        "test type"        | []                 | []                                                  | TEST_CLASS_NAME     | TEST_METHOD_NAME     | [':test' : [jvmTestRequest(TEST_CLASS_NAME, TEST_METHOD_NAME)]]
+        "test type"        | []                 | []                                                  | TEST_CLASS_NAME     | TEST_METHOD_NAME     | [':test': [jvmTestRequest(TEST_CLASS_NAME, TEST_METHOD_NAME)]]
     }
 
     InternalJvmTestRequest jvmTestRequest(String className, String methodName) {
@@ -143,7 +144,7 @@ class TestExecutionBuildConfigurationActionTest extends Specification {
     }
 
     private DefaultTestDescriptor testDescriptor() {
-        new DefaultTestDescriptor(1, "test1", "test 1", "ATOMIC", "test suite", TEST_CLASS_NAME, TEST_METHOD_NAME, 0, TEST_TASK_NAME)
+        new DefaultTestDescriptor(Stub(OperationIdentifier), "test1", "test 1", "ATOMIC", "test suite", TEST_CLASS_NAME, TEST_METHOD_NAME, null, TEST_TASK_NAME)
     }
 
 }

@@ -21,10 +21,8 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
-import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.temp.DefaultTemporaryFileProvider;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
@@ -236,6 +234,10 @@ public class ProjectBuilderImpl {
         }
 
         @Override
+        public void ensureProjectsLoaded() {
+        }
+
+        @Override
         public BuildWorkGraph getWorkGraph() {
             throw new UnsupportedOperationException();
         }
@@ -261,17 +263,12 @@ public class ProjectBuilderImpl {
         }
 
         @Override
-        public SettingsInternal getLoadedSettings() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
         public Path getCurrentPrefixForProjectsInChildBuilds() {
             return Path.ROOT;
         }
 
         @Override
-        public Path getIdentityPathForProject(Path projectPath) {
+        public Path calculateIdentityPathForProject(Path projectPath) {
             return projectPath;
         }
 
@@ -283,15 +280,6 @@ public class ProjectBuilderImpl {
         @Override
         public <T> T run(Function<? super BuildTreeLifecycleController, T> action) {
             throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public ProjectComponentIdentifier getIdentifierForProject(Path projectPath) {
-            String name = projectPath.getName();
-            if (name == null) {
-                name = "root";
-            }
-            return new DefaultProjectComponentIdentifier(getBuildIdentifier(), projectPath, projectPath, name);
         }
 
         @Override

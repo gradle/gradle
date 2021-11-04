@@ -16,15 +16,13 @@
 
 package org.gradle.smoketests
 
-import org.gradle.api.JavaVersion
+
 import spock.lang.Issue
 
 class ErrorPronePluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
     @Issue("https://github.com/gradle/gradle/issues/9897")
     def 'errorprone plugin'() {
-
-        // TODO comment on https://github.com/gradle/gradle/commit/c45540059cef1e72254188c636e8ca68aba7a369#commitcomment-39777864
 
         given:
         buildFile << """
@@ -42,12 +40,11 @@ class ErrorPronePluginSmokeTest extends AbstractPluginValidatingSmokeTest {
             }
 
             dependencies {
-                errorprone("com.google.errorprone:error_prone_core:2.5.1")
+                errorprone("com.google.errorprone:error_prone_core:2.8.0")
             }
 
             tasks.withType(JavaCompile).configureEach {
                 options.fork = true
-                ${jpmsJvmArgs()}
                 options.errorprone {
                     check("DoubleBraceInitialization", net.ltgt.gradle.errorprone.CheckSeverity.ERROR)
                 }
@@ -74,23 +71,5 @@ class ErrorPronePluginSmokeTest extends AbstractPluginValidatingSmokeTest {
         [
             'net.ltgt.errorprone': Versions.of(TestedVersions.errorProne)
         ]
-    }
-
-    private static String jpmsJvmArgs() {
-        if (JavaVersion.current().isJava9Compatible()) {
-            return """
-                options.forkOptions.jvmArgs += [
-                    "--add-opens", "jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",
-                    "--add-opens", "jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED",
-                    "--add-opens", "jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED",
-                    "--add-opens", "jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED",
-                    "--add-opens", "jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED",
-                    "--add-opens", "jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED",
-                    "--add-opens", "jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED",
-                    "--add-opens", "jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED"
-                ]
-            """
-        }
-        return ""
     }
 }

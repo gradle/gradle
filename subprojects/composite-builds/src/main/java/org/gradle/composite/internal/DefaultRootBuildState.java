@@ -20,7 +20,6 @@ import org.gradle.BuildResult;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.api.internal.project.ProjectStateRegistry;
@@ -63,11 +62,13 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
     private final BuildWorkGraph workGraph;
     private boolean completed;
 
-    DefaultRootBuildState(BuildDefinition buildDefinition,
-                          BuildTreeState buildTree,
-                          BuildLifecycleControllerFactory buildLifecycleControllerFactory,
-                          ListenerManager listenerManager,
-                          ProjectStateRegistry projectStateRegistry) {
+    DefaultRootBuildState(
+        BuildDefinition buildDefinition,
+        BuildTreeState buildTree,
+        BuildLifecycleControllerFactory buildLifecycleControllerFactory,
+        ListenerManager listenerManager,
+        ProjectStateRegistry projectStateRegistry
+    ) {
         this.listenerManager = listenerManager;
         this.projectStateRegistry = projectStateRegistry;
 
@@ -166,17 +167,12 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
     }
 
     @Override
-    public SettingsInternal getLoadedSettings() {
-        return buildLifecycleController.getGradle().getSettings();
-    }
-
-    @Override
     public Path getCurrentPrefixForProjectsInChildBuilds() {
         return Path.ROOT;
     }
 
     @Override
-    public Path getIdentityPathForProject(Path path) {
+    public Path calculateIdentityPathForProject(Path path) {
         return path;
     }
 

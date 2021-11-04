@@ -16,21 +16,21 @@
 
 package com.gradle.internal.compiler.java
 
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
+import spock.lang.TempDir
 
+import java.nio.file.Files
 import java.nio.file.Paths
 
 class AbstractCompilerPluginTest extends Specification {
 
-    @Rule
-    TemporaryFolder temporaryFolder = new TemporaryFolder()
+    @TempDir
+    File temporaryFolder
 
     protected File sourceFolder
 
     def setup() {
-        sourceFolder = temporaryFolder.newFolder()
+        sourceFolder = Files.createTempDirectory(temporaryFolder.toPath(), null).toFile()
     }
 
     List<File> toSourceFiles(List<String> bodies) {

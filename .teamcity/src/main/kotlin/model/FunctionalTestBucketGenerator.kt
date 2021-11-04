@@ -81,7 +81,7 @@ data class FunctionalTestBucketWithSplitClasses(
 
 data class MultipleSubprojectsFunctionalTestBucket(
     val subprojects: List<String>,
-    val enableTD: Boolean = false
+    val enableTD: Boolean
 ) : FunctionalTestBucket {
     constructor(jsonObject: JSONObject) : this(
         jsonObject.getJSONArray("subprojects").map { it.toString() },
@@ -98,7 +98,6 @@ data class MultipleSubprojectsFunctionalTestBucket(
 
 fun BuildTypeBucket.toJsonBucket(): FunctionalTestBucket {
     return when (this) {
-        is GradleSubproject -> MultipleSubprojectsFunctionalTestBucket(listOf(name))
         is SmallSubprojectBucket -> MultipleSubprojectsFunctionalTestBucket(subprojects.map { it.name }, enableTestDistribution)
         is LargeSubprojectSplitBucket -> FunctionalTestBucketWithSplitClasses(subproject.name, number, classes.map { it.toPropertiesLine() }, include)
         else -> throw IllegalStateException("Unsupported type: ${this.javaClass}")
@@ -177,7 +176,8 @@ class FunctionalTestBucketGenerator(private val model: CIBuildModel, testTimeDat
         val validSubprojects = model.subprojects.getSubprojectsFor(testCoverage, stage)
 
         // Build project not found, don't split into buckets
-        val subProjectToClassTimes: MutableMap<String, List<TestClassTime>> = determineSubProjectClassTimes(testCoverage, buildProjectClassTimes)?.toMutableMap() ?: return validSubprojects
+        val subProjectToClassTimes: MutableMap<String, List<TestClassTime>> =
+            determineSubProjectClassTimes(testCoverage, buildProjectClassTimes)?.toMutableMap() ?: return validSubprojects.map { SmallSubprojectBucket(it, false) }
 
         validSubprojects.forEach {
             if (!subProjectToClassTimes.containsKey(it.name)) {
@@ -192,16 +192,21 @@ class FunctionalTestBucketGenerator(private val model: CIBuildModel, testTimeDat
             .map { SubprojectTestClassTime(model.subprojects.getSubprojectByName(it.key)!!, it.value.filter { it.testClassAndSourceSet.sourceSet != "test" }) }
             .sortedBy { -it.totalTime }
 
-        // native projects are not able to be run on TD for now
-        // quite a few TAPI tests also don't work
+        // We manually split docs subproject
         // `WatchedDirectoriesFileSystemWatchingIntegrationTest fails on local filesystem` doesn't work in remote executor
-        // `workers` has a known haning issue
-        // Some `kotlin-dsl-tooling-builders` tests are really flaky
-        val forceNoTDSubprojects = listOf("language-native", "platform-native", "testing-native", "ide-native", "tooling-api", "file-watching", "workers", "kotlin-dsl-tooling-builders")
-        return if (testCoverage.testType == TestType.platform) {
-            splitDocsSubproject(validSubprojects) + splitIntoBuckets(validSubprojects, subProjectTestClassTimes, testCoverage, listOf("docs"), forceNoTDSubprojects)
-        } else {
-            splitIntoBuckets(validSubprojects, subProjectTestClassTimes, testCoverage, emptyList(), forceNoTDSubprojects)
+        return when {
+            testCoverage.testType == TestType.platform && testCoverage.os == Os.LINUX ->
+                splitDocsSubproject(validSubprojects) +
+                    SmallSubprojectBucket(validSubprojects.first { it.name == "file-watching" }, false) +
+                    splitIntoBuckets(validSubprojects, subProjectTestClassTimes, testCoverage, listOf("docs", "file-watching"), true)
+            testCoverage.testType == TestType.platform ->
+                splitDocsSubproject(validSubprojects) +
+                    splitIntoBuckets(validSubprojects, subProjectTestClassTimes, testCoverage, listOf("docs"), false)
+            testCoverage.os == Os.LINUX ->
+                splitIntoBuckets(validSubprojects, subProjectTestClassTimes, testCoverage, listOf("file-watching"), true) +
+                    SmallSubprojectBucket(validSubprojects.first { it.name == "file-watching" }, false)
+            else ->
+                splitIntoBuckets(validSubprojects, subProjectTestClassTimes, testCoverage, listOf("file-watching"), false)
         }
     }
 
@@ -226,7 +231,7 @@ class FunctionalTestBucketGenerator(private val model: CIBuildModel, testTimeDat
         subProjectTestClassTimes: List<SubprojectTestClassTime>,
         testCoverage: TestCoverage,
         excludedSubprojectNames: List<String> = listOf(),
-        forceSplitSubprojectNames: List<String> = listOf()
+        enableTestDistribution: Boolean = false
     ): List<BuildTypeBucket> {
         val specialSubprojects = validSubprojects.filter { excludedSubprojectNames.contains(it.name) }
         val otherSubProjectTestClassTimes = subProjectTestClassTimes.filter { !excludedSubprojectNames.contains(it.subProject.name) }
@@ -234,12 +239,12 @@ class FunctionalTestBucketGenerator(private val model: CIBuildModel, testTimeDat
             LinkedList(otherSubProjectTestClassTimes),
             SubprojectTestClassTime::totalTime,
             { largeElement: SubprojectTestClassTime, size: Int ->
-                if (testCoverage.os == Os.LINUX && !forceSplitSubprojectNames.contains(largeElement.subProject.name))
-                    largeElement.split(1, true)
+                if (enableTestDistribution)
+                    largeElement.split(1, enableTestDistribution)
                 else
                     largeElement.split(size)
             },
-            { list: List<SubprojectTestClassTime> -> SmallSubprojectBucket(list.map { it.subProject }) },
+            { list: List<SubprojectTestClassTime> -> SmallSubprojectBucket(list.map { it.subProject }, enableTestDistribution) },
             testCoverage.expectedBucketNumber - specialSubprojects.size,
             MAX_PROJECT_NUMBER_IN_BUCKET
         )

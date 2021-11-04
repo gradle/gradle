@@ -16,12 +16,12 @@
 
 package org.gradle.configurationcache
 
+import groovy.transform.Canonical
 import org.gradle.api.tasks.TasksWithInputsAndOutputs
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.junit.Rule
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 import java.util.concurrent.TimeUnit
@@ -37,8 +37,24 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
         executer.requireOwnGradleUserHomeDir()
     }
 
-    def "does not invalidate configuration cache entry when dynamic version information has not expired"() {
+    @Canonical
+    class RepoFixture {
+        MavenHttpRepository repository
+        Closure<Void> cleanup
+
+        URI getUri() {
+            repository.uri
+        }
+    }
+
+    @Unroll
+    def "does not invalidate configuration cache entry when dynamic version information has not expired (#scenario)"() {
         given:
+        RepoFixture defaultRepo = new RepoFixture(remoteRepo)
+        List<RepoFixture> repos = scenario == DynamicVersionScenario.SINGLE_REPO
+            ? [defaultRepo]
+            : [defaultRepo, repoWithout('thing', 'lib')]
+
         server.start()
 
         remoteRepo.module("thing", "lib", "1.2").publish()
@@ -50,7 +66,7 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
                 implementation
             }
 
-            repositories { maven { url = '${remoteRepo.uri}' } }
+            ${repositoriesBlockFor(repos)}
 
             dependencies {
                 implementation 'thing:lib:1.+'
@@ -96,10 +112,22 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
         then:
         configurationCache.assertStateLoaded()
         outputContains("result = [lib-1.3.jar]")
+
+        cleanup:
+        cleanUpAll repos
+
+        where:
+        scenario << DynamicVersionScenario.values()
     }
 
-    def "invalidates configuration cache entry when dynamic version information has expired"() {
+    @Unroll
+    def "invalidates configuration cache entry when dynamic version information has expired (#scenario)"() {
         given:
+        RepoFixture defaultRepo = new RepoFixture(remoteRepo)
+        List<RepoFixture> repos = scenario == DynamicVersionScenario.SINGLE_REPO
+            ? [defaultRepo]
+            : [defaultRepo, repoWithout('thing', 'lib')]
+
         server.start()
 
         remoteRepo.module("thing", "lib", "1.2").publish()
@@ -113,7 +141,7 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
                 }
             }
 
-            repositories { maven { url = '${remoteRepo.uri}' } }
+            ${repositoriesBlockFor(repos)}
 
             dependencies {
                 implementation 'thing:lib:1.+'
@@ -157,12 +185,63 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
         outputContains("result = [lib-1.3.jar]")
 
         when:
+        configurationCacheRun("resolve1", "-Dorg.gradle.internal.test.clockoffset=${clockOffset}")
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains("result = [lib-1.3.jar]")
+
+        when:
         configurationCacheRun("resolve2", "-Dorg.gradle.internal.test.clockoffset=${clockOffset}")
 
         then:
         configurationCache.assertStateStored()
         outputContains("Calculating task graph as configuration cache cannot be reused because cached version information for thing:lib:1.+ has expired.")
         outputContains("result = [lib-1.3.jar]")
+
+        when:
+        configurationCacheRun("resolve2", "-Dorg.gradle.internal.test.clockoffset=${clockOffset}")
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains("result = [lib-1.3.jar]")
+
+        cleanup:
+        cleanUpAll repos
+
+        where:
+        scenario << DynamicVersionScenario.values()
+    }
+
+    private RepoFixture repoWithout(String group, String artifact) {
+        HttpServer server = new HttpServer()
+        MavenHttpRepository repo = new MavenHttpRepository(server, '/empty', maven(file('empty')))
+        server.start()
+        repo.getModuleMetaData(group, artifact).expectGetMissing()
+        new RepoFixture(repo, { server.stop() })
+    }
+
+    enum DynamicVersionScenario {
+        SINGLE_REPO, MATCHING_REPO_PLUS_404
+
+        @Override
+        String toString() {
+            super.toString().split('_').collect { it.toLowerCase() }.join(' ')
+        }
+    }
+
+    private static String repositoriesBlockFor(List<RepoFixture> fixtures) {
+        """
+            repositories {
+                ${fixtures.collect { "maven { url = '${it.uri}' }" }.join('\n')}
+            }
+        """
+    }
+
+    private cleanUpAll(List<RepoFixture> fixtures) {
+        fixtures.forEach {
+            it.cleanup?.call()
+        }
     }
 
     def "does not invalidate configuration cache entry when changing artifact information has not expired"() {
@@ -296,7 +375,6 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
 
     // This documents current behaviour, rather than desired behaviour. The contents of the artifact does not affect the contents of the task graph and so should not be treated as an input
     @Unroll
-    @Ignore("https://github.com/gradle/gradle-private/issues/3416")
     def "reports changes to artifact in #repo.displayName"() {
         repo.setup(this)
         taskTypeLogsInputFileCollectionContent()
@@ -357,7 +435,6 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
     }
 
     @Unroll
-    @Ignore("https://github.com/gradle/gradle-private/issues/3416")
     def "reports changes to metadata in #repo.displayName"() {
         repo.setup(this)
         taskTypeLogsInputFileCollectionContent()

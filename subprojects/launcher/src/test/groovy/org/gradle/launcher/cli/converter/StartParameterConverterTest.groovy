@@ -140,7 +140,7 @@ class StartParameterConverterTest extends Specification {
         def buildLayout = buildLayoutConverter.convert(initialProperties, parsedCommandLine, null) {
             it.gradleUserHomeDir = userHome // don't use the default
         }
-        def properties = propertiesConverter.convert(initialProperties, buildLayout, [])
+        def properties = propertiesConverter.convert(initialProperties, buildLayout)
 
         return converter.convert(parsedCommandLine, buildLayout, properties, new StartParameterInternal())
     }

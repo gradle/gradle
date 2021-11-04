@@ -85,7 +85,7 @@ public class DefaultFileSystemAccess implements FileSystemAccess {
 
     @Override
     public <T> Optional<T> readRegularFileContentHash(String location, Function<HashCode, T> visitor) {
-        return virtualFileSystem.getMetadata(location)
+        return virtualFileSystem.findMetadata(location)
             .<Optional<HashCode>>flatMap(snapshot -> {
                 if (snapshot.getType() != FileType.RegularFile) {
                     return Optional.of(Optional.empty());
@@ -105,7 +105,7 @@ public class DefaultFileSystemAccess implements FileSystemAccess {
                     return Optional.empty();
                 }
                 HashCode hash = producingSnapshots.guardByKey(location,
-                    () -> virtualFileSystem.getSnapshot(location)
+                    () -> virtualFileSystem.findSnapshot(location)
                         .orElseGet(() -> {
                             HashCode hashCode = hasher.hash(file, fileMetadata.getLength(), fileMetadata.getLastModified());
                             RegularFileSnapshot snapshot = new RegularFileSnapshot(location, file.getName(), hashCode, fileMetadata);
@@ -187,11 +187,11 @@ public class DefaultFileSystemAccess implements FileSystemAccess {
         Function<FileSystemLocationSnapshot, T> snapshotProcessor,
         Supplier<T> readFromDisk
     ) {
-        return virtualFileSystem.getSnapshot(location)
+        return virtualFileSystem.findSnapshot(location)
             .map(snapshotProcessor)
             // Avoid snapshotting the same location at the same time
             .orElseGet(() -> producingSnapshots.guardByKey(location,
-                () -> virtualFileSystem.getSnapshot(location)
+                () -> virtualFileSystem.findSnapshot(location)
                     .map(snapshotProcessor)
                     .orElseGet(readFromDisk)
             ));
