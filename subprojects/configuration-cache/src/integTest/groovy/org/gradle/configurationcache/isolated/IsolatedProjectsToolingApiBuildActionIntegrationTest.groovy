@@ -16,6 +16,8 @@
 
 package org.gradle.configurationcache.isolated
 
+import spock.lang.Ignore
+
 class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest {
     def setup() {
         settingsFile << """
@@ -223,6 +225,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         result.assertHasPostBuildOutput("Configuration cache entry reused.")
     }
 
+    @Ignore("https://github.com/gradle/gradle/pull/18858 - Those phased build actions no longer have 'isRunsTasks' set to true")
     def "caches execution of phased BuildAction that queries custom tooling model and that runs tasks"() {
         given:
         withSomeToolingModelBuilderPluginInBuildSrc()
