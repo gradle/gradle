@@ -175,9 +175,9 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
     @Override
     public void artifacts(Provider<? extends Iterable<? extends Object>> provider) {
         SetProperty<PublishArtifact> sources = objectFactory.setProperty(PublishArtifact.class);
-        sources.addAll(provider.map(list -> {
-            List<PublishArtifact> results = new ArrayList<>();
-            list.forEach (notation -> results.add(artifactNotationParser.parseNotation(notation)));
+        sources.addAll(provider.map(iterable -> {
+            List<ConfigurablePublishArtifact> results = new ArrayList<>();
+            iterable.forEach (notation -> results.add(artifactNotationParser.parseNotation(notation)));
             return results;
         }));
 
@@ -187,9 +187,9 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
     @Override
     public void artifacts(Provider<? extends Iterable<? extends Object>> provider, Action<? super ConfigurablePublishArtifact> configureAction) {
         SetProperty<PublishArtifact> sources = objectFactory.setProperty(PublishArtifact.class);
-        sources.addAll(provider.map(list -> {
-            List<PublishArtifact> results = new ArrayList<>();
-            list.forEach (notation -> {
+        sources.addAll(provider.map(iterable -> {
+            List<ConfigurablePublishArtifact> results = new ArrayList<>();
+            iterable.forEach (notation -> {
                 ConfigurablePublishArtifact artifact = artifactNotationParser.parseNotation(notation);
                 configureAction.execute(artifact);
                 results.add(artifact);
