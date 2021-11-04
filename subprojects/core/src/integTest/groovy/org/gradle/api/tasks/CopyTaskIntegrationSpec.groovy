@@ -82,21 +82,35 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
             'c.txt',
             'sub/empty'
         )
+    }
+
+    def "is out-of-date when adding an empty directory"() {
+        given:
+        file("files/sub/a.txt").createFile()
+        file("files/sub/dir/b.txt").createFile()
+        file("files/c.txt").createFile()
+        buildScript '''
+            task (copy, type:Copy) {
+               from 'files'
+               into 'dest'
+            }
+        '''
 
         when:
-        file("files/sub/empty2").createDir()
         run 'copy'
-
         then:
         executedAndNotSkipped(":copy")
-        file('dest').assertHasDescendants(
-            'sub/a.txt',
-            'sub/dir/b.txt',
-            'sub/d.txt',
-            'c.txt',
-            'sub/empty',
-            'sub/empty2'
-        )
+
+        when:
+        file("files/sub/empty").createDir()
+        run 'copy'
+        then:
+        executedAndNotSkipped(":copy")
+
+        when:
+        run 'copy'
+        then:
+        skipped(":copy")
     }
 
     def "single source with include and exclude pattern"() {
