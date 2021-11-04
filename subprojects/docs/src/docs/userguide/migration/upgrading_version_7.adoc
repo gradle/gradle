@@ -64,9 +64,10 @@ When using `@link:{javadocPath}/org/gradle/api/tasks/SkipWhenEmpty.html[SkipWhen
 If the input file collection consists only of file trees, Gradle ignores directories for the emptiness check.
 Though when checking for changes to the input file collection, Gradle only ignores directories when the `@link:{javadocPath}/org/gradle/api/tasks/IgnoreEmptyDirectories.html[IgnoreEmptyDirectories]` annotation is present.
 
-To ignore directories consistently, Gradle will now ignore directories for both the `@SkipWhenEmpty` check and for determining changes only if the `@IgnoreEmptyDirectories` annotation is present.
+Gradle will now ignore directories for both the `@SkipWhenEmpty` check and for determining changes consistently.
 Until Gradle 8.0, Gradle will detect if an input file collection annotated with `@SkipWhenEmpty` consists only of file trees and then ignore directories automatically.
 Moreover, Gradle will issue a deprecation warning to advise the user that the behavior will change in Gradle 8.0, and that the input property should be annotated with `@IgnoreEmptyDirectories`.
+To ignore directories in Gradle 8.0 and later, the input property needs to be annotated with `@IgnoreEmptyDirectories`.
 
 Finally, using `@link:{javadocPath}/org/gradle/api/tasks/InputDirectory.html[InputDirectory]` implies `@IgnoreEmptyDirectories`, so no changes are necessary when using this annotation.
 The same is true for `@link:{javadocPath}/org/gradle/api/tasks/TaskInputs.html#dir-java.lang.Object-[inputs.dir()]` when registering an input directory via the runtime API.
