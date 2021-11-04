@@ -177,7 +177,7 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
         SetProperty<PublishArtifact> sources = objectFactory.setProperty(PublishArtifact.class);
         sources.addAll(provider.map(iterable -> {
             List<ConfigurablePublishArtifact> results = new ArrayList<>();
-            iterable.forEach (notation -> results.add(artifactNotationParser.parseNotation(notation)));
+            iterable.forEach(notation -> results.add(artifactNotationParser.parseNotation(notation)));
             return results;
         }));
 
@@ -189,7 +189,7 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
         SetProperty<PublishArtifact> sources = objectFactory.setProperty(PublishArtifact.class);
         sources.addAll(provider.map(iterable -> {
             List<ConfigurablePublishArtifact> results = new ArrayList<>();
-            iterable.forEach (notation -> {
+            iterable.forEach(notation -> {
                 ConfigurablePublishArtifact artifact = artifactNotationParser.parseNotation(notation);
                 configureAction.execute(artifact);
                 results.add(artifact);
