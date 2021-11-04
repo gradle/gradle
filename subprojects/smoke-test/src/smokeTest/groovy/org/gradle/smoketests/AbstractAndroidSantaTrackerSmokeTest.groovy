@@ -53,11 +53,12 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
     }
 
     protected BuildResult buildLocation(File projectDir, String agpVersion) {
-        return runnerForLocation(projectDir, agpVersion, "assembleDebug").build()
+        return expectFileTreeDeprecations(agpVersion, runnerForLocation(projectDir, agpVersion, "assembleDebug"))
+            .build()
     }
 
     protected BuildResult buildLocationMaybeExpectingWorkerExecutorDeprecation(File location, String agpVersion) {
-        return runnerForLocationMaybeExpectingWorkerExecutorDeprecation(location, agpVersion, "assembleDebug")
+        return expectFileTreeDeprecations(agpVersion, runnerForLocationMaybeExpectingWorkerExecutorDeprecation(location, agpVersion, "assembleDebug"))
             .build()
     }
 
@@ -69,6 +70,21 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
                     "Please use the noIsolation(), classLoaderIsolation() or processIsolation() method instead. " +
                     "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_5.html#method_workerexecutor_submit_is_deprecated for more details."
             )
+    }
+
+    private SmokeTestGradleRunner expectFileTreeDeprecations(String agpVersion, SmokeTestGradleRunner runner) {
+        return expectFileTreeResourcesDeprecation(runner)
+            .expectLegacyDeprecationWarningIf(agpVersion.startsWith("4."),
+                deprecationOfFileTreeForEmptySources("projectNativeLibs")
+            )
+    }
+
+    protected SmokeTestGradleRunner expectFileTreeResourcesDeprecation(SmokeTestGradleRunner runner) {
+        runner.expectDeprecationWarning(
+            deprecationOfFileTreeForEmptySources("resources"),
+            "https://issuetracker.google.com/issues/204425803"
+        )
+
     }
 
     protected BuildResult cleanLocation(File projectDir, String agpVersion) {

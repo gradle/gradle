@@ -20,7 +20,6 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.tasks.properties.ContentTracking
 import org.gradle.api.internal.tasks.properties.DefaultPropertyWalker
 import org.gradle.api.internal.tasks.properties.DefaultTypeMetadataStore
 import org.gradle.api.internal.tasks.properties.GetInputFilesVisitor
@@ -318,7 +317,7 @@ class DefaultTaskInputsTest extends Specification {
         when:
         inputs.visitRegisteredProperties(new PropertyVisitor.Adapter() {
             @Override
-            void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, DirectorySensitivity emptyDirectorySensitivity, LineEndingSensitivity lineEndingNormalization, boolean incremental, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType, ContentTracking contentTracking) {
+            void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, DirectorySensitivity emptyDirectorySensitivity, LineEndingSensitivity lineEndingNormalization, boolean incremental, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
                 names += propertyName
             }
         })
@@ -356,8 +355,7 @@ class DefaultTaskInputsTest extends Specification {
                 boolean incremental,
                 @Nullable Class<? extends FileNormalizer> fileNormalizer,
                 PropertyValue value,
-                InputFilePropertyType filePropertyType,
-                ContentTracking contentTracking
+                InputFilePropertyType filePropertyType
             ) {
                 inputFiles[propertyName] = value.call()
             }

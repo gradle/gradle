@@ -19,6 +19,7 @@ package org.gradle.configurationcache
 import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
+import org.gradle.util.Path
 
 
 @ServiceScope(Scopes.BuildTree::class)
@@ -39,6 +40,16 @@ interface BuildTreeConfigurationCache {
      * Loads the cached model, if available, or else runs the given function to create it and then writes the result to cache.
      */
     fun <T : Any> loadOrCreateModel(creator: () -> T): T
+
+    /**
+     * Loads a cached intermediate model, if available, or else runs the given function to create it and then writes the result to cache.
+     */
+    fun <T> loadOrCreateIntermediateModel(identityPath: Path?, modelName: String, creator: () -> T?): T?
+
+    /**
+     * Flushes any remaining state to the cache and closes any resources
+     */
+    fun finalizeCacheEntry()
 
     // This is a temporary property to allow migration from a root build scoped cache to a build tree scoped cache
     val isLoaded: Boolean

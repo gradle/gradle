@@ -76,7 +76,12 @@ public interface ContentFilterable {
      * Adds a content filter based on the provided transformer.  The Closure will be called with each line (stripped of line
      * endings) and should return a String to replace the line or {@code null} to remove the line.  If every line is
      * removed, the result will be an empty file, not an absent one.
-     *
+     * <p>
+     * Note, that due to the nullability constraints clients written in Kotlin cannot return null values as it results in a
+     * compile-time error. To fix that, the {@code nullableTransformer} utility method should be used:
+     * <pre>
+     *     filter(nullableTransformer { line -&gt; ... })
+     * </pre>
      * @param transformer to implement line based filtering
      * @return this
      */

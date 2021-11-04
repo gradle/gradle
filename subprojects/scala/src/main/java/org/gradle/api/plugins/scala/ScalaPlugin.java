@@ -71,6 +71,7 @@ public class ScalaPlugin implements Plugin<Project> {
                 return files;
             });
             scalaDoc.setSource(main.getExtensions().getByType(ScalaSourceDirectorySet.class));
+            scalaDoc.getCompilationOutputs().from(main.getOutput());
         });
         project.getTasks().register(SCALA_DOC_TASK_NAME, ScalaDoc.class, scalaDoc -> {
             scalaDoc.setDescription("Generates Scaladoc for the main source code.");

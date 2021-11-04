@@ -37,6 +37,7 @@ import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderConvertible;
 import org.gradle.api.provider.ValueSource;
 import org.gradle.internal.Cast;
 import org.gradle.internal.metaobject.MethodAccess;
@@ -189,6 +190,9 @@ public class DefaultDependencyConstraintHandler implements DependencyConstraintH
     }
 
     private DependencyConstraint doAdd(Configuration configuration, Object dependencyNotation, @Nullable Action<? super DependencyConstraint> configureAction) {
+        if(dependencyNotation instanceof ProviderConvertible<?>) {
+            return doAddProvider(configuration, ((ProviderConvertible<?>) dependencyNotation).asProvider(), configureAction);
+        }
         if (dependencyNotation instanceof Provider<?>) {
             return doAddProvider(configuration, (Provider<?>) dependencyNotation, configureAction);
         }
@@ -238,6 +242,9 @@ public class DefaultDependencyConstraintHandler implements DependencyConstraintH
         @Override
         @SuppressWarnings("rawtypes")
         public DependencyConstraint add(Configuration configuration, Object dependencyNotation, Closure configureClosure) {
+            if(dependencyNotation instanceof ProviderConvertible<?>) {
+                return doAddProvider(configuration, ((ProviderConvertible<?>) dependencyNotation).asProvider(), ConfigureUtil.configureUsing(configureClosure));
+            }
             if (dependencyNotation instanceof Provider<?>) {
                 return doAddProvider(configuration, (Provider<?>) dependencyNotation, ConfigureUtil.configureUsing(configureClosure));
             }

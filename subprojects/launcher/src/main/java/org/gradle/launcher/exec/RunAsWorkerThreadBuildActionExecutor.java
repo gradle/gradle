@@ -22,8 +22,6 @@ import org.gradle.internal.session.BuildSessionActionExecutor;
 import org.gradle.internal.session.BuildSessionContext;
 import org.gradle.internal.work.WorkerLeaseService;
 
-import java.util.Collections;
-
 public class RunAsWorkerThreadBuildActionExecutor implements BuildSessionActionExecutor {
     private final BuildSessionActionExecutor delegate;
     private final WorkerLeaseService workerLeaseService;
@@ -35,6 +33,6 @@ public class RunAsWorkerThreadBuildActionExecutor implements BuildSessionActionE
 
     @Override
     public BuildActionRunner.Result execute(BuildAction action, BuildSessionContext context) {
-        return workerLeaseService.withLocks(Collections.singleton(workerLeaseService.getWorkerLease()), () -> delegate.execute(action, context));
+        return workerLeaseService.runAsWorkerThread(() -> delegate.execute(action, context));
     }
 }

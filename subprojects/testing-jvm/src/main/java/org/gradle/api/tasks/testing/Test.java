@@ -74,7 +74,7 @@ import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.internal.time.Clock;
-import org.gradle.internal.work.WorkerLeaseRegistry;
+import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaDebugOptions;
@@ -694,7 +694,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     protected TestExecuter<JvmTestExecutionSpec> createTestExecuter() {
         if (testExecuter == null) {
             return new DefaultTestExecuter(getProcessBuilderFactory(), getActorFactory(), getModuleRegistry(),
-                getServices().get(WorkerLeaseRegistry.class),
+                getServices().get(WorkerLeaseService.class),
                 getServices().get(StartParameter.class).getMaxWorkerCount(),
                 getServices().get(Clock.class),
                 getServices().get(DocumentationRegistry.class),
@@ -1019,9 +1019,9 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
 
     /**
      * Specifies that JUnit Platform should be used to discover and execute the tests.
-     * <p><br>
+     * <p>
      * Use this option if your tests use JUnit Jupiter/JUnit5.
-     * <p><br>
+     * <p>
      * JUnit Platform supports multiple test engines, which allows other testing frameworks to be built on top of it.
      * You may need to use this option even if you are not using JUnit directly.
      *
@@ -1034,9 +1034,9 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
 
     /**
      * Specifies that JUnit Platform should be used to discover and execute the tests with additional configuration.
-     * <p><br>
+     * <p>
      * Use this option if your tests use JUnit Jupiter/JUnit5.
-     * <p><br>
+     * <p>
      * JUnit Platform supports multiple test engines, which allows other testing frameworks to be built on top of it.
      * You may need to use this option even if you are not using JUnit directly.
      * <p>

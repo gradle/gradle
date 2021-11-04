@@ -37,7 +37,8 @@ class DefaultProjectsPreparerTest extends Specification {
     def modelParameters = Mock(BuildModelParameters)
     def modelListener = Mock(ModelConfigurationListener)
     def buildOperationExecutor = Mock(BuildOperationExecutor)
-    def configurer = new DefaultProjectsPreparer(projectConfigurer, modelParameters, modelListener, buildOperationExecutor)
+    def buildStateRegistry = Mock(BuildStateRegistry)
+    def configurer = new DefaultProjectsPreparer(projectConfigurer, modelParameters, modelListener, buildOperationExecutor, buildStateRegistry)
 
     def setup() {
         gradle.startParameter >> startParameter

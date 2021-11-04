@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks.diagnostics;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.ConventionTask;
@@ -47,7 +46,6 @@ import static org.gradle.internal.serialization.Transient.varOf;
  *
  * @since 6.9
  */
-@Incubating
 @DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class ConventionReportTask extends ConventionTask {
     // todo annotate as required
@@ -66,7 +64,6 @@ public abstract class ConventionReportTask extends ConventionTask {
      * @since 7.1
      */
     @Internal
-    @Incubating
     public DirectoryProperty getProjectReportDirectory() {
         return reportDir;
     }

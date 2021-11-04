@@ -62,10 +62,11 @@ abstract class GroovyCompilerIntegrationSpec extends BasicGroovyCompilerIntegrat
     // a class from the Groovy (compiler) Jar that in turn references a class from another Jar
     @Issue("GRADLE-2317")
     def canUseAstTransformThatReferencesGroovyTestCase() {
-        if (versionLowerThan('1.6')) {
+        if (versionLowerThan('3.0')) {
             return
         }
 
+        buildFile << "dependencies { implementation 'org.codehaus.groovy:groovy-test:${version}' }"
         when:
         run("test")
 
@@ -102,7 +103,7 @@ abstract class GroovyCompilerIntegrationSpec extends BasicGroovyCompilerIntegrat
 
     @Issue("gradle/gradle#5908")
     def "canUseAstTransformWithAsm"() {
-        if (versionLowerThan('1.8')) {
+        if (versionLowerThan('3.0')) {
             return
         }
 

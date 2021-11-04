@@ -225,7 +225,7 @@ class DefaultEmptySourceTaskSkipperTest extends Specification {
 
     def snapshot(File... files) {
         ImmutableSortedMap.<String, FileSystemSnapshot> of(
-            "output", fileCollectionSnapshotter.snapshot(TestFiles.fixed(files))
+            "output", fileCollectionSnapshotter.snapshot(TestFiles.fixed(files)).snapshot
         )
     }
 

@@ -142,6 +142,7 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.vfs.FileSystemAccess;
+import org.gradle.internal.work.WorkerThreadRegistry;
 import org.gradle.util.internal.SimpleMapInterner;
 import org.gradle.vcs.internal.VcsMappingsStore;
 
@@ -341,6 +342,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                                     DocumentationRegistry documentationRegistry,
                                                                     CollectionCallbackActionDecorator callbackDecorator,
                                                                     UserCodeApplicationContext userCodeApplicationContext,
+                                                                    WorkerThreadRegistry workerThreadRegistry,
                                                                     DomainObjectCollectionFactory domainObjectCollectionFactory,
                                                                     NotationParser<Object, ComponentSelector> moduleSelectorNotationParser,
                                                                     ObjectFactory objectFactory) {
@@ -366,6 +368,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                     documentationRegistry,
                     callbackDecorator,
                     userCodeApplicationContext,
+                    workerThreadRegistry,
                     domainObjectCollectionFactory,
                     moduleSelectorNotationParser,
                     objectFactory

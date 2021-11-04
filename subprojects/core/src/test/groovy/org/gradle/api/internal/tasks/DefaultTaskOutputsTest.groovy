@@ -19,7 +19,6 @@ import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.tasks.properties.ContentTracking
 import org.gradle.api.internal.tasks.properties.DefaultPropertyWalker
 import org.gradle.api.internal.tasks.properties.DefaultTypeMetadataStore
 import org.gradle.api.internal.tasks.properties.OutputFilePropertyType
@@ -241,7 +240,7 @@ class DefaultTaskOutputsTest extends Specification {
         when:
         outputs.visitRegisteredProperties(new PropertyVisitor.Adapter() {
             @Override
-            void visitOutputFileProperty(String propertyName, boolean optional, ContentTracking contentTracking, PropertyValue value, OutputFilePropertyType filePropertyType) {
+            void visitOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertyType filePropertyType) {
                 names += propertyName
             }
         })

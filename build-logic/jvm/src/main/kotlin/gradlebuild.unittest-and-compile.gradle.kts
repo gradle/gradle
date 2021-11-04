@@ -48,7 +48,10 @@ tasks.registerCITestDistributionLifecycleTasks()
 fun configureCompile() {
     java.toolchain {
         languageVersion.set(JavaLanguageVersion.of(11))
-        vendor.set(JvmVendorSpec.ADOPTOPENJDK)
+        // Do not force AdoptOpenJDK vendor for M1 Macs
+        if (!OperatingSystem.current().toString().contains("aarch64")) {
+            vendor.set(JvmVendorSpec.ADOPTOPENJDK)
+        }
     }
 
     tasks.withType<JavaCompile>().configureEach {
@@ -211,6 +214,12 @@ fun Test.isUnitTest() = listOf("test", "writePerformanceScenarioDefinitions", "w
 
 fun Test.usesEmbeddedExecuter() = name.startsWith("embedded")
 
+fun Test.configureRerun() {
+    if (providers.gradleProperty("rerunAllTests").isPresent) {
+        doNotTrackState("All tests should re-run")
+    }
+}
+
 fun configureTests() {
     normalization {
         runtimeClasspath {
@@ -231,6 +240,7 @@ fun configureTests() {
         val testName = name
 
         if (BuildEnvironment.isCiServer) {
+            configureRerun()
             retry {
                 maxRetries.convention(1)
                 maxFailures.set(10)
@@ -246,8 +256,8 @@ fun configureTests() {
             distribution {
                 enabled.set(true)
                 maxRemoteExecutors.set(0)
-                // Dogfooding TD against ge-experiment until GE 2021.1 is available on e.grdev.net and ge.gradle.org (and the new TD Gradle plugin version 2.0 is accepted)
-                (this as TestDistributionExtensionInternal).server.set(uri("https://ge-experiment.grdev.net"))
+                // Dogfooding TD against ge-td-dogfooding in order to test new features and benefit from bug fixes before they are released
+                (this as TestDistributionExtensionInternal).server.set(uri("https://ge-td-dogfooding.grdev.net"))
             }
         }
 
@@ -262,8 +272,8 @@ fun configureTests() {
                 }
                 // No limit; use all available executors
                 distribution.maxRemoteExecutors.set(null)
-                // Dogfooding TD against ge-experiment until GE 2021.1 is available on e.grdev.net and ge.gradle.org (and the new TD Gradle plugin version 2.0 is accepted)
-                server.set(uri("https://ge-experiment.grdev.net"))
+                // Dogfooding TD against ge-td-dogfooding in order to test new features and benefit from bug fixes before they are released
+                server.set(uri("https://ge-td-dogfooding.grdev.net"))
 
                 if (BuildEnvironment.isCiServer) {
                     when {
@@ -298,7 +308,11 @@ val Project.maxTestDistributionPartitionSecond: Long?
     get() = providers.systemProperty("testDistributionPartitionSizeInSeconds").forUseAtConfigurationTime().orNull?.toLong()
 
 val Project.maxParallelForks: Int
-    get() = (findProperty("maxParallelForks")?.toString()?.toInt() ?: 4) * (if (System.getenv("BUILD_AGENT_VARIANT") == "AX41") 2 else 1)
+    get() = if (BuildEnvironment.isEc2Agent) {
+        4
+    } else {
+        findProperty("maxParallelForks")?.toString()?.toInt() ?: 4
+    }
 
 /**
  * Test lifecycle tasks that correspond to CIBuildModel.TestType (see .teamcity/Gradle_Check/model/CIBuildModel.kt).

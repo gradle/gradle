@@ -195,17 +195,7 @@ public class IvyPublishPlugin implements Plugin<Project> {
             IvyRepositoryDescriptor desc = (IvyRepositoryDescriptor) descriptor;
             List<String> artifactPatterns = desc.getArtifactPatterns();
             if (artifactPatterns.size() == 1) {
-                if (!artifactPatterns.get(0).equals(IvyArtifactRepository.GRADLE_ARTIFACT_PATTERN)) {
-                    return false;
-                }
-            } else {
-                return false;
-            }
-            List<String> ivyPatterns = desc.getIvyPatterns();
-            if (ivyPatterns.size() == 1) {
-                if (!ivyPatterns.get(0).equals(IvyArtifactRepository.GRADLE_IVY_PATTERN)) {
-                    return false;
-                }
+                return artifactPatterns.get(0).equals(IvyArtifactRepository.GRADLE_ARTIFACT_PATTERN);
             } else {
                 return false;
             }

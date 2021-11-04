@@ -39,6 +39,7 @@ import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.typeconversion.NotationParser
+import org.gradle.internal.work.WorkerThreadRegistry
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
 import org.gradle.vcs.internal.VcsMappingsStore
@@ -91,6 +92,7 @@ class DefaultConfigurationContainerTest extends Specification {
         documentationRegistry,
         callbackActionDecorator,
         userCodeApplicationContext,
+        Mock(WorkerThreadRegistry),
         TestUtil.domainObjectCollectionFactory(),
         Mock(NotationParser),
         TestUtil.objectFactory()

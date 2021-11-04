@@ -27,17 +27,17 @@ import org.gradle.execution.plan.TaskNodeFactory;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
 public class DefaultBuildWorkGraphController implements BuildWorkGraphController {
     private final TaskNodeFactory taskNodeFactory;
     private final ProjectStateRegistry projectStateRegistry;
     private final BuildLifecycleController controller;
+    private final Map<String, DefaultExportedTaskNode> nodesByPath = new ConcurrentHashMap<>();
     private final Object lock = new Object();
-    private final Map<String, DefaultExportedTaskNode> nodesByPath = new HashMap<>();
     private DefaultBuildWorkGraph current;
 
     public DefaultBuildWorkGraphController(TaskNodeFactory taskNodeFactory, ProjectStateRegistry projectStateRegistry, BuildLifecycleController controller) {

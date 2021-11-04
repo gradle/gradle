@@ -16,35 +16,32 @@
 
 package org.gradle.internal.model;
 
+import org.gradle.internal.DisplayName;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.build.ExecutionResult;
+import org.gradle.internal.work.Synchronizer;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
  * Manages the transition between states of some object with mutable state.
  *
- * Adds validation to ensure that the object is in an expected state and also that a transition cannot happen while another transition
- * is currently happening (either by another thread or the thread that is currently running a transition).
+ * Adds validation to ensure that the object is in an expected state and applies thread safety.
  */
 @ThreadSafe
 public class StateTransitionController<T extends StateTransitionController.State> {
-    private final Set<T> achievedStates = new HashSet<>();
-    private T state;
-    @Nullable
-    private Thread owner;
-    @Nullable
-    private T currentTarget;
-    @Nullable
-    private ExecutionResult<?> failure;
+    private final DisplayName displayName;
+    private final Synchronizer synchronizer;
+    // This structure is immutable, and this fields is mutated only by the thread that owns the lock
+    private volatile CurrentState<T> state;
 
-    public StateTransitionController(T initialState) {
-        this.state = initialState;
+    public StateTransitionController(DisplayName displayName, T initialState, Synchronizer synchronizer) {
+        this.displayName = displayName;
+        this.synchronizer = synchronizer;
+        this.state = new InState<>(displayName, initialState, null);
     }
 
     /**
@@ -53,10 +50,9 @@ public class StateTransitionController<T extends StateTransitionController.State
      * <p>You should try to not use this method, as it does not provide any thread safety for the code that follows the call.</p>
      */
     public void assertInState(T expected) {
-        synchronized (this) {
-            if (state != expected) {
-                throw new IllegalStateException("Should be in state " + expected + ".");
-            }
+        CurrentState<T> current = state;
+        if (current.state != expected) {
+            throw new IllegalStateException(displayName.getCapitalizedDisplayName() + " should be in state " + expected + " but is in " + current.state + ".");
         }
     }
 
@@ -66,10 +62,8 @@ public class StateTransitionController<T extends StateTransitionController.State
      * <p>You should try to not use this method, as it does not provide any thread safety for the code that follows the call.</p>
      */
     public void assertNotInState(T forbidden) {
-        synchronized (this) {
-            if (state == forbidden) {
-                throw new IllegalStateException("Should not be in state " + forbidden + ".");
-            }
+        if (state.state == forbidden) {
+            throw new IllegalStateException(displayName.getCapitalizedDisplayName() + " should not be in state " + forbidden + ".");
         }
     }
 
@@ -80,30 +74,24 @@ public class StateTransitionController<T extends StateTransitionController.State
      * <p>You should try to not use this method, as it does not provide full thread safety.</p>
      */
     public <S> S notInStateIgnoreOtherThreads(T forbidden, Supplier<S> supplier) {
-        synchronized (this) {
-            rethrowFailure();
-            if (currentTarget == forbidden) {
-                throw new IllegalStateException("Should not be in state " + forbidden + " but is in state " + this.state + " and transitioning to " + currentTarget + ".");
-            }
-            if (this.state == forbidden) {
-                throw new IllegalStateException("Should not be in state " + forbidden + ".");
-            }
-        }
+        CurrentState<T> current = state;
+        current.asResult().rethrow();
+        current.assertNotInState(forbidden);
         try {
             return supplier.get();
         } catch (Throwable t) {
-            synchronized (this) {
-                if (failure == null) {
-                    failure = ExecutionResult.failed(t);
-                }
-            }
+            // TODO - remove the need for locking here
+            synchronizer.withLock(() -> {
+                state = state.failed(ExecutionResult.failed(t));
+            });
             throw UncheckedException.throwAsUncheckedException(t);
         }
     }
 
     /**
-     * Runs the given action when the current state is the given state.
-     * Fails if the current state is not the given state or if some transition is happening or a previous transition has failed.
+     * Runs the given action.
+     * Fails if the current state is not the given state or a previous operation has failed.
+     * Blocks until other operations are complete.
      */
     public void inState(T expected, Runnable action) {
         inState(expected, () -> {
@@ -113,124 +101,125 @@ public class StateTransitionController<T extends StateTransitionController.State
     }
 
     /**
-     * Runs the given action when the current state is the given state.
-     * Fails if the current state is not the given state or if some transition is happening or a previous transition has failed.
+     * Runs the given action.
+     * Fails if the current state is not the given state or a previous operation has failed.
+     * Blocks until other operations are complete.
      */
     public <S> S inState(T expected, Supplier<S> action) {
-        Thread previousOwner = takeOwnership();
-        try {
-            assertNotFailed();
-            if (currentTarget != null) {
-                throw new IllegalStateException("Expected to be in state " + expected + " but is in state " + state + " and transitioning to " + currentTarget + ".");
-            }
-            if (state != expected) {
-                throw new IllegalStateException("Expected to be in state " + expected + " but is in state " + state + ".");
-            }
+        return synchronizer.withLock(() -> {
+            CurrentState<T> current = state;
+            current.assertInState(expected);
             try {
                 return action.get();
             } catch (Throwable t) {
-                failure = ExecutionResult.failed(t);
-                failure.rethrow();
-                throw new IllegalStateException();
+                state = current.failed(ExecutionResult.failed(t));
+                throw state.rethrow();
             }
-        } finally {
-            releaseOwnership(previousOwner);
-        }
+        });
+    }
+
+    /**
+     * Runs the given action.
+     * Fails if the current state is the given state or a previous operation has failed.
+     * Blocks until other operations are complete.
+     */
+    public void notInState(T forbidden, Runnable action) {
+        notInState(forbidden, () -> {
+            action.run();
+            return null;
+        });
+    }
+
+    /**
+     * Runs the given action.
+     * Fails if the current state is the given state or a previous operation has failed.
+     * Blocks until other operations are complete.
+     */
+    public <S> S notInState(T forbidden, Supplier<S> action) {
+        return synchronizer.withLock(() -> {
+            CurrentState<T> current = state;
+            current.assertNotInState(forbidden);
+            try {
+                return action.get();
+            } catch (Throwable t) {
+                state = current.failed(ExecutionResult.failed(t));
+                throw state.rethrow();
+            }
+        });
     }
 
     /**
      * Transitions to the given "to" state.
-     * Fails if the current state is not the given "from" state or if some other transition is happening or a previous transition has failed.
+     * Fails if the current state is not the given "from" state or a previous operation has failed.
+     * Blocks until other operations are complete.
      */
     public void transition(T fromState, T toState, Runnable action) {
-        Thread previousOwner = takeOwnership();
-        try {
-            doTransition(fromState, toState, action);
-        } finally {
-            releaseOwnership(previousOwner);
-        }
+        synchronizer.withLock(() -> doTransition(fromState, toState, action));
     }
 
     /**
      * Transitions to the given "to" state.
-     * Fails if the current state is not the given "from" state or if some other transition is happening or a previous transition has failed.
+     * Fails if the current state is not the given "from" state or a previous operation has failed.
+     * Blocks until other operations are complete.
      */
     public <S> S transition(T fromState, T toState, Supplier<? extends S> action) {
-        Thread previousOwner = takeOwnership();
-        try {
-            return doTransition(fromState, toState, () -> ExecutionResult.succeeded(action.get())).getValueOrRethrow();
-        } finally {
-            releaseOwnership(previousOwner);
-        }
+        return synchronizer.withLock(() -> doTransition(fromState, toState, () -> ExecutionResult.succeeded(action.get())).getValueOrRethrow());
     }
 
     /**
-     * Transitions to the given "to" state.
+     * Transitions to the given "to" state, returning any failure in the result object.
      * Fails if the current state is not the given "from" state or if some other transition is happening or a previous transition has failed.
      */
     public ExecutionResult<Void> tryTransition(T fromState, T toState, Supplier<ExecutionResult<Void>> action) {
-        Thread previousOwner = takeOwnership();
-        try {
-            return doTransition(fromState, toState, action);
-        } finally {
-            releaseOwnership(previousOwner);
-        }
+        return synchronizer.withLock(() -> doTransition(fromState, toState, action));
     }
 
     /**
      * Transitions to the given "to" state. Does nothing if the current state is the "to" state.
-     * Fails if the current state is not either of the given "to" or "from" state or if some other transition is happening or a previous transition has failed.
+     * Fails if the current state is not either of the given "to" or "from" state or a previous operation has failed.
+     * Blocks until other operations are complete.
      */
     public void maybeTransition(T fromState, T toState, Runnable action) {
-        Thread previousOwner = takeOwnership();
-        try {
-            if (state == toState && currentTarget == null) {
+        synchronizer.withLock(() -> {
+            if (state.inState(toState)) {
                 return;
             }
             doTransition(fromState, toState, action);
-        } finally {
-            releaseOwnership(previousOwner);
-        }
+        });
     }
 
     /**
      * Transitions to the given "to" state. Does nothing if the "to" state has already been transitioned to at some point in the past (but is not necessarily the current state).
-     * Fails if the current state is not the given "from" state or if some other transition is happening or a previous transition has failed.
+     * Fails if the current state is not the given "from" state or a previous operation has failed.
+     * Blocks until other operations are complete.
      */
     public void transitionIfNotPreviously(T fromState, T toState, Runnable action) {
-        Thread previousOwner = takeOwnership();
-        try {
-            if (achievedStates.contains(toState)) {
+        synchronizer.withLock(() -> {
+            if (state.hasSeenState(toState)) {
                 return;
             }
             doTransition(fromState, toState, action);
-        } finally {
-            releaseOwnership(previousOwner);
-        }
+        });
     }
 
     /**
      * Transitions to a final state, taking any failures from previous transitions and transforming them.
      */
     public ExecutionResult<Void> finish(T toState, Function<ExecutionResult<Void>, ExecutionResult<Void>> action) {
-        Thread previousOwner = takeOwnership();
-        try {
-            if (state == toState) {
+        return synchronizer.withLock(() -> {
+            CurrentState<T> current = state;
+            if (current.state == toState) {
+                // Don't rethrow the failure
                 return ExecutionResult.succeeded();
             }
+            ExecutionResult<Void> result = current.asResult();
+            state = current.transitioningTo(toState);
             try {
-                if (failure == null) {
-                    return action.apply(ExecutionResult.succeeded());
-                } else {
-                    return action.apply(failure.asFailure());
-                }
+                return action.apply(result);
             } finally {
-                state = toState;
-                achievedStates.add(toState);
+                state = state.nextState(toState);
             }
-        } finally {
-            releaseOwnership(previousOwner);
-        }
+        });
     }
 
     private void doTransition(T fromState, T toState, Runnable action) {
@@ -241,67 +230,225 @@ public class StateTransitionController<T extends StateTransitionController.State
     }
 
     private <S> ExecutionResult<S> doTransition(T fromState, T toState, Supplier<ExecutionResult<S>> action) {
-        assertNotFailed();
-        if (currentTarget != null) {
-            if (currentTarget == toState) {
-                throw new IllegalStateException("Cannot transition to state " + toState + " as already transitioning to this state.");
-            } else {
-                throw new IllegalStateException("Cannot transition to state " + toState + " as already transitioning to state " + currentTarget + ".");
-            }
-        }
-        if (state != fromState) {
-            throw new IllegalStateException("Can only transition to state " + toState + " from state " + fromState + " however currently in state " + state + ".");
-        }
-        currentTarget = toState;
+        CurrentState<T> current = state;
+        current.assertCanTransition(fromState, toState);
+        state = current.transitioningTo(toState);
+        ExecutionResult<S> result;
         try {
-            ExecutionResult<S> result;
-            try {
-                result = action.get();
-            } catch (Throwable t) {
-                result = ExecutionResult.failed(t);
+            result = action.get();
+        } catch (Throwable t) {
+            result = ExecutionResult.failed(t);
+        }
+        if (!result.getFailures().isEmpty()) {
+            state = state.failed(result);
+        } else {
+            state = state.nextState(toState);
+        }
+        return result;
+    }
+
+    private static abstract class CurrentState<T> {
+        final DisplayName displayName;
+        final T state;
+
+        public CurrentState(DisplayName displayName, T state) {
+            this.displayName = displayName;
+            this.state = state;
+        }
+
+        public abstract void assertInState(T expected);
+
+        public void assertNotInState(T forbidden) {
+            if (state == forbidden) {
+                throw new IllegalStateException(displayName.getCapitalizedDisplayName() + " should not be in state " + forbidden + ".");
             }
-            if (!result.getFailures().isEmpty()) {
-                failure = result;
+        }
+
+        public abstract void assertCanTransition(T fromState, T toState);
+
+        public abstract boolean inState(T toState);
+
+        public abstract boolean hasSeenState(T toState);
+
+        public CurrentState<T> failed(ExecutionResult<?> failure) {
+            return new Failed<>(displayName, state, failure);
+        }
+
+        public RuntimeException rethrow() {
+            throw new IllegalStateException();
+        }
+
+        public ExecutionResult<Void> asResult() {
+            return ExecutionResult.succeeded();
+        }
+
+        public CurrentState<T> transitioningTo(T toState) {
+            return new TransitioningToNewState<T>(toState, this);
+        }
+
+        public abstract CurrentState<T> nextState(T toState);
+    }
+
+    /**
+     * Currently in the given state.
+     */
+    private static class InState<T> extends CurrentState<T> {
+        private final DisplayName displayName;
+        @Nullable
+        private final InState<T> previous;
+
+        public InState(DisplayName displayName, T state, @Nullable InState<T> previous) {
+            super(displayName, state);
+            this.displayName = displayName;
+            this.previous = previous;
+        }
+
+        @Override
+        public void assertInState(T expected) {
+            if (state != expected) {
+                throw new IllegalStateException("Expected " + displayName.getDisplayName() + " to be in state " + expected + " but is in state " + state + ".");
+            }
+        }
+
+        @Override
+        public void assertCanTransition(T fromState, T toState) {
+            if (state != fromState) {
+                throw new IllegalStateException("Can only transition " + displayName.getCapitalizedDisplayName() + " to state " + toState + " from state " + fromState + " however it is currently in state " + state + ".");
+            }
+        }
+
+        @Override
+        public boolean inState(T toState) {
+            return state == toState;
+        }
+
+        @Override
+        public boolean hasSeenState(T toState) {
+            if (state == toState) {
+                return true;
+            }
+            if (previous != null) {
+                return previous.hasSeenState(toState);
+            }
+            return false;
+        }
+
+        @Override
+        public CurrentState<T> nextState(T toState) {
+            return new InState<>(displayName, toState, this);
+        }
+    }
+
+    /**
+     * Currently transitioning to a new state.
+     */
+    private static class TransitioningToNewState<T> extends CurrentState<T> {
+        final T targetState;
+        final CurrentState<T> fromState;
+
+        public TransitioningToNewState(T targetState, CurrentState<T> fromState) {
+            super(fromState.displayName, fromState.state);
+            this.targetState = targetState;
+            this.fromState = fromState;
+        }
+
+        @Override
+        public boolean inState(T toState) {
+            return false;
+        }
+
+        @Override
+        public void assertInState(T expected) {
+            throw new IllegalStateException("Expected " + displayName.getDisplayName() + " to be in state " + expected + " but is in state " + state + " and transitioning to " + targetState + ".");
+        }
+
+        @Override
+        public void assertNotInState(T forbidden) {
+            if (targetState == forbidden) {
+                throw new IllegalStateException(displayName.getCapitalizedDisplayName() + " should not be in state " + forbidden + " but is in state " + state + " and transitioning to " + targetState + ".");
+            }
+            fromState.assertNotInState(forbidden);
+        }
+
+        @Override
+        public void assertCanTransition(T fromState, T toState) {
+            if (targetState == toState) {
+                throw new IllegalStateException("Cannot transition " + displayName.getDisplayName() + " to state " + toState + " as already transitioning to this state.");
             } else {
-                state = toState;
-                achievedStates.add(toState);
+                throw new IllegalStateException("Cannot transition " + displayName.getDisplayName() + " to state " + toState + " as already transitioning to state " + targetState + ".");
             }
-            return result;
-        } finally {
-            currentTarget = null;
+        }
+
+        @Override
+        public boolean hasSeenState(T toState) {
+            return fromState.hasSeenState(toState);
+        }
+
+        @Override
+        public CurrentState<T> nextState(T toState) {
+            return fromState.nextState(toState);
         }
     }
 
-    private void assertNotFailed() {
-        if (failure != null) {
-            throw new IllegalStateException("Cannot use this object as a previous transition failed.");
-        }
-    }
+    /**
+     * A previous operation has failed.
+     */
+    private static class Failed<T> extends CurrentState<T> {
+        final ExecutionResult<?> failure;
 
-    private void rethrowFailure() {
-        if (failure != null) {
+        public Failed(DisplayName displayName, T state, ExecutionResult<?> failure) {
+            super(displayName, state);
+            this.failure = failure;
+        }
+
+        public void assertNotFailed() {
             failure.rethrow();
         }
-    }
 
-    @Nullable
-    private Thread takeOwnership() {
-        Thread currentThread = Thread.currentThread();
-        synchronized (this) {
-            if (owner == null) {
-                owner = currentThread;
-                return null;
-            } else if (owner == currentThread) {
-                return currentThread;
-            } else {
-                throw new IllegalStateException("Another thread is currently transitioning state from " + state + " to " + currentTarget + ".");
-            }
+        @Override
+        public void assertInState(T expected) {
+            assertNotFailed();
         }
-    }
 
-    private void releaseOwnership(@Nullable Thread previousOwner) {
-        synchronized (this) {
-            owner = previousOwner;
+        @Override
+        public void assertNotInState(T forbidden) {
+            assertNotFailed();
+        }
+
+        @Override
+        public void assertCanTransition(T fromState, T toState) {
+            assertNotFailed();
+        }
+
+        @Override
+        public boolean hasSeenState(T toState) {
+            return false;
+        }
+
+        @Override
+        public ExecutionResult<Void> asResult() {
+            return failure.asFailure();
+        }
+
+        @Override
+        public boolean inState(T toState) {
+            return false;
+        }
+
+        @Override
+        public RuntimeException rethrow() {
+            failure.rethrow();
+            throw new IllegalStateException();
+        }
+
+        @Override
+        public CurrentState<T> failed(ExecutionResult<?> failure) {
+            return new Failed<>(displayName, state, this.failure.withFailures(failure.asFailure()));
+        }
+
+        @Override
+        public CurrentState<T> nextState(T toState) {
+            return new Failed<>(displayName, toState, failure);
         }
     }
 

@@ -98,6 +98,8 @@ import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.REL
 
 public class TaskExecution implements UnitOfWork {
     private static final Logger LOGGER = LoggerFactory.getLogger(TaskExecution.class);
+    private static final SnapshotTaskInputsBuildOperationType.Details SNAPSHOT_TASK_INPUTS_DETAILS = new SnapshotTaskInputsBuildOperationType.Details() {
+    };
 
     private final TaskInternal task;
     private final TaskExecutionContext context;
@@ -368,14 +370,14 @@ public class TaskExecution implements UnitOfWork {
         DeprecationMessageBuilder<?> builder;
         if (isDestinationDir && task instanceof Copy) {
             builder = DeprecationLogger.deprecateAction("Cannot access a file in the destination directory (see --info log for details). Copying to a directory which contains unreadable content")
-                .withAdvice("Use the method Copy.ignoreExistingContentInDestinationDir().");
+                .withAdvice("Declare the task as untracked by using Task.doNotTrackState().");
         } else if (isDestinationDir && task instanceof Sync) {
             builder = DeprecationLogger.deprecateAction("Cannot access a file in the destination directory (see --info log for details). Syncing to a directory which contains unreadable content")
-                .withAdvice("Use a Copy task with Copy.ignoreExistingContentInDestinationDir() instead.");
+                .withAdvice("Use a Copy task with Task.doNotTrackState() instead.");
         } else {
             builder = DeprecationLogger.deprecateAction(String.format("Cannot access %s property '%s' of %s (see --info log for details). Accessing unreadable inputs or outputs",
                     propertyType, propertyName, getDisplayName()))
-                .withAdvice("Declare the property as untracked.");
+                .withAdvice("Declare the task as untracked by using Task.doNotTrackState().");
 
         }
         builder
@@ -441,7 +443,7 @@ public class TaskExecution implements UnitOfWork {
             BuildOperationContext operationContext = buildOperationExecutor.start(BuildOperationDescriptor
                 .displayName("Snapshot task inputs for " + task.getIdentityPath())
                 .name("Snapshot task inputs")
-                .details(SnapshotTaskInputsBuildOperationType.Details.INSTANCE));
+                .details(SNAPSHOT_TASK_INPUTS_DETAILS));
             context.setSnapshotTaskInputsBuildOperationContext(operationContext);
         }
     }

@@ -2,6 +2,8 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
+description = "Plugins for building Scala code with Gradle."
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":logging"))

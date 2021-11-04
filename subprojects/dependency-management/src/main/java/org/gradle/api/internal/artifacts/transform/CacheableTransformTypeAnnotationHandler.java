@@ -23,7 +23,7 @@ import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 import java.lang.annotation.Annotation;
 
-import static org.gradle.api.internal.tasks.properties.annotations.TypeAnnotationHandlerSupport.reportInvalidUseOfCacheableAnnotation;
+import static org.gradle.api.internal.tasks.properties.annotations.TypeAnnotationHandlerSupport.reportInvalidUseOfTypeAnnotation;
 
 public class CacheableTransformTypeAnnotationHandler implements TypeAnnotationHandler {
     @Override
@@ -34,7 +34,7 @@ public class CacheableTransformTypeAnnotationHandler implements TypeAnnotationHa
     @Override
     public void validateTypeMetadata(Class<?> classWithAnnotationAttached, TypeValidationContext visitor) {
         if (!TransformAction.class.isAssignableFrom(classWithAnnotationAttached)) {
-            reportInvalidUseOfCacheableAnnotation(classWithAnnotationAttached,
+            reportInvalidUseOfTypeAnnotation(classWithAnnotationAttached,
                 visitor,
                 getAnnotationType(),
                 TransformAction.class);

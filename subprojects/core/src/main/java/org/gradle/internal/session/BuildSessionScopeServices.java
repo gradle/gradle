@@ -71,7 +71,6 @@ import org.gradle.internal.model.StateTransitionControllerFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.resources.ProjectLeaseRegistry;
 import org.gradle.internal.scopeids.PersistentScopeIdLoader;
 import org.gradle.internal.scopeids.ScopeIdsServices;
 import org.gradle.internal.scopeids.id.UserScopeId;
@@ -80,7 +79,6 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.time.Clock;
-import org.gradle.internal.work.AsyncWorkTracker;
 import org.gradle.internal.work.DefaultAsyncWorkTracker;
 import org.gradle.plugin.use.internal.InjectedPluginClasspath;
 import org.gradle.process.internal.ExecFactory;
@@ -123,6 +121,7 @@ public class BuildSessionScopeServices {
         registration.add(CalculatedValueContainerFactory.class);
         registration.add(StateTransitionControllerFactory.class);
         registration.add(BuildLayoutValidator.class);
+        registration.add(DefaultAsyncWorkTracker.class);
 
         // Must be no higher than this scope as needs cache repository services.
         registration.addProvider(new ScopeIdsServices());
@@ -178,10 +177,6 @@ public class BuildSessionScopeServices {
 
     DefaultImmutableAttributesFactory createImmutableAttributesFactory(IsolatableFactory isolatableFactory, NamedObjectInstantiator instantiator) {
         return new DefaultImmutableAttributesFactory(isolatableFactory, instantiator);
-    }
-
-    AsyncWorkTracker createAsyncWorkTracker(ProjectLeaseRegistry projectLeaseRegistry) {
-        return new DefaultAsyncWorkTracker(projectLeaseRegistry);
     }
 
     UserScopeId createUserScopeId(PersistentScopeIdLoader persistentScopeIdLoader) {

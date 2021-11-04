@@ -33,6 +33,7 @@ import org.gradle.util.Path;
 
 import java.io.File;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 public interface TaskInternal extends Task, Configurable<Task> {
@@ -50,6 +51,17 @@ public interface TaskInternal extends Task, Configurable<Task> {
 
     @Internal
     Spec<? super TaskInternal> getOnlyIf();
+
+    /**
+     * Return the reason for not to track state.
+     *
+     * Gradle considers the task as untracked if the reason is present.
+     * When not tracking state, a reason must be present. Hence the {@code Optional} represents the state of enablement, too.
+     *
+     * @see org.gradle.api.tasks.UntrackedTask
+     */
+    @Internal
+    Optional<String> getReasonNotToTrackState();
 
     @Internal
     StandardOutputCapture getStandardOutputCapture();

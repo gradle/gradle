@@ -459,7 +459,7 @@ public class CompileOptions extends AbstractOptions {
 
 
     /**
-     * Set the version of the Java module - defaults to {@link org.gradle.api.Project#getVersion()}.
+     * Set the version of the Java module.
      *
      * @since 6.4
      */

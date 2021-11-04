@@ -21,9 +21,11 @@ import org.gradle.api.internal.GeneratedSubclasses.unpackType
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.provider.ValueSource
 import org.gradle.api.provider.ValueSourceParameters
+import org.gradle.configurationcache.CheckedFingerprint
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.util.NumberUtil.ordinal
+import org.gradle.util.Path
 import java.io.File
 
 
@@ -38,58 +40,104 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
         val gradleUserHomeDir: File
         val allInitScripts: List<File>
         val buildStartTime: Long
+        fun gradleProperty(propertyName: String): String?
         fun fingerprintOf(fileCollection: FileCollectionInternal): HashCode
         fun hashCodeOf(file: File): HashCode?
         fun displayNameOf(fileOrDirectory: File): String
         fun instantiateValueSourceOf(obtainedValue: ObtainedValue): ValueSource<Any, ValueSourceParameters>
     }
 
-    suspend fun ReadContext.checkFingerprint(): InvalidationReason? {
+    suspend fun ReadContext.checkFingerprint(): CheckedFingerprint {
         // TODO: log some debug info
+        var firstReason: InvalidationReason? = null
+        val invalidProjects = mutableSetOf<String>()
         while (true) {
             when (val input = read()) {
-                null -> return null
-                is ConfigurationCacheFingerprint.TaskInputs -> input.run {
-                    val currentFingerprint = host.fingerprintOf(fileSystemInputs)
-                    if (currentFingerprint != fileSystemInputsFingerprint) {
-                        // TODO: summarize what has changed (see https://github.com/gradle/configuration-cache/issues/282)
-                        return "an input to task '$taskPath' has changed"
+                null -> break
+                is ConfigurationCacheFingerprint.ProjectSpecificInput -> input.run {
+                    // An input that is specific to a project. If it is out-of-date, then invalidate that project's values and continue checking values
+                    // Don't check a value for a project that is already out-of-date
+                    if (!invalidProjects.contains(input.projectPath)) {
+                        val reason = check(input.value)
+                        if (reason != null) {
+                            if (firstReason == null) {
+                                firstReason = reason
+                            }
+                            invalidProjects.add(input.projectPath)
+                        }
                     }
                 }
-                is ConfigurationCacheFingerprint.InputFile -> input.run {
-                    if (hasFileChanged(file, hash)) {
-                        return "file '${displayNameOf(file)}' has changed"
-                    }
-                }
-                is ConfigurationCacheFingerprint.ValueSource -> input.run {
-                    val reason = checkFingerprintValueIsUpToDate(obtainedValue)
-                    if (reason != null) return reason
-                }
-                is ConfigurationCacheFingerprint.InitScripts -> input.run {
-                    val reason = checkInitScriptsAreUpToDate(fingerprints, host.allInitScripts)
-                    if (reason != null) return reason
-                }
-                is ConfigurationCacheFingerprint.UndeclaredSystemProperty -> input.run {
-                    if (isDefined(key)) {
-                        return "system property '$key' has changed"
-                    }
-                }
-                is ConfigurationCacheFingerprint.ChangingDependencyResolutionValue -> input.run {
-                    if (host.buildStartTime >= expireAt) {
-                        return reason
-                    }
-                }
-                is ConfigurationCacheFingerprint.GradleEnvironment -> input.run {
-                    if (host.gradleUserHomeDir != gradleUserHomeDir) {
-                        return "Gradle user home directory has changed"
-                    }
-                    if (jvmFingerprint() != jvm) {
-                        return "JVM has changed"
+                is ConfigurationCacheFingerprint -> {
+                    // An input that is not specific to a project. If it is out-of-date, then invalidate the whole cache entry and skip any further checks
+                    val reason = check(input)
+                    if (reason != null) {
+                        return CheckedFingerprint.EntryInvalid(reason)
                     }
                 }
                 else -> throw IllegalStateException("Unexpected configuration cache fingerprint: $input")
             }
         }
+        return if (firstReason == null) {
+            CheckedFingerprint.Valid
+        } else {
+            CheckedFingerprint.ProjectsInvalid(firstReason!!, invalidProjects.map { Path.path(it) }.toSet())
+        }
+    }
+
+    private
+    fun check(input: ConfigurationCacheFingerprint): InvalidationReason? {
+        when (input) {
+            is ConfigurationCacheFingerprint.TaskInputs -> input.run {
+                val currentFingerprint = host.fingerprintOf(fileSystemInputs)
+                if (currentFingerprint != fileSystemInputsFingerprint) {
+                    // TODO: summarize what has changed (see https://github.com/gradle/configuration-cache/issues/282)
+                    return "an input to task '$taskPath' has changed"
+                }
+            }
+            is ConfigurationCacheFingerprint.InputFile -> input.run {
+                if (hasFileChanged(file, hash)) {
+                    return "file '${displayNameOf(file)}' has changed"
+                }
+            }
+            is ConfigurationCacheFingerprint.ValueSource -> input.run {
+                val reason = checkFingerprintValueIsUpToDate(obtainedValue)
+                if (reason != null) return reason
+            }
+            is ConfigurationCacheFingerprint.InitScripts -> input.run {
+                val reason = checkInitScriptsAreUpToDate(fingerprints, host.allInitScripts)
+                if (reason != null) return reason
+            }
+            is ConfigurationCacheFingerprint.UndeclaredGradleProperty -> input.run {
+                if (host.gradleProperty(key) != value) {
+                    return "Gradle property '$key' has changed"
+                }
+            }
+            is ConfigurationCacheFingerprint.UndeclaredSystemProperty -> input.run {
+                if (System.getProperty(key) != value) {
+                    return "system property '$key' has changed"
+                }
+            }
+            is ConfigurationCacheFingerprint.UndeclaredEnvironmentVariable -> input.run {
+                if (System.getenv(key) != value) {
+                    return "environment variable '$key' has changed"
+                }
+            }
+            is ConfigurationCacheFingerprint.ChangingDependencyResolutionValue -> input.run {
+                if (host.buildStartTime >= expireAt) {
+                    return reason
+                }
+            }
+            is ConfigurationCacheFingerprint.GradleEnvironment -> input.run {
+                if (host.gradleUserHomeDir != gradleUserHomeDir) {
+                    return "Gradle user home directory has changed"
+                }
+                if (jvmFingerprint() != jvm) {
+                    return "JVM has changed"
+                }
+            }
+            else -> throw IllegalStateException("Unexpected configuration cache fingerprint: $input")
+        }
+        return null
     }
 
     private
@@ -138,10 +186,6 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
         }
         return null
     }
-
-    private
-    fun isDefined(key: String): Boolean =
-        System.getProperty(key) != null
 
     private
     fun hasFileChanged(file: File, originalHash: HashCode?) =

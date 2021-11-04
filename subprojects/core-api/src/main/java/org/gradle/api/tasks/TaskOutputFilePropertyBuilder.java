@@ -39,16 +39,4 @@ public interface TaskOutputFilePropertyBuilder extends TaskFilePropertyBuilder {
      * specified for the property, but any value specified must meet the validation constraints for the property.
      */
     TaskOutputFilePropertyBuilder optional(boolean optional);
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    TaskFilePropertyBuilder untracked();
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    TaskFilePropertyBuilder tracked(boolean tracked);
 }

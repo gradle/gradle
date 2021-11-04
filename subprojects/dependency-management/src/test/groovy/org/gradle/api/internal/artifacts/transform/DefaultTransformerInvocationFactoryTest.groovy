@@ -40,15 +40,16 @@ import org.gradle.internal.Try
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier
 import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
-import org.gradle.internal.execution.impl.DefaultOutputSnapshotter
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.TestExecutionHistoryStore
 import org.gradle.internal.execution.fingerprint.InputFingerprinter
 import org.gradle.internal.execution.fingerprint.impl.DefaultFileCollectionFingerprinterRegistry
 import org.gradle.internal.execution.fingerprint.impl.DefaultInputFingerprinter
+import org.gradle.internal.execution.fingerprint.impl.FingerprinterRegistration
 import org.gradle.internal.execution.history.OutputFilesRepository
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector
 import org.gradle.internal.execution.history.impl.DefaultOverlappingOutputDetector
+import org.gradle.internal.execution.impl.DefaultOutputSnapshotter
 import org.gradle.internal.execution.timeout.TimeoutHandler
 import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer
 import org.gradle.internal.fingerprint.DirectorySensitivity
@@ -56,7 +57,6 @@ import org.gradle.internal.fingerprint.LineEndingSensitivity
 import org.gradle.internal.fingerprint.hashing.FileSystemLocationSnapshotHasher
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionSnapshotter
-import org.gradle.internal.execution.fingerprint.impl.FingerprinterRegistration
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.id.UniqueId
@@ -96,7 +96,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
 
     def dependencyFingerprinter = new AbsolutePathFileCollectionFingerprinter(DirectorySensitivity.DEFAULT, fileCollectionSnapshotter, FileSystemLocationSnapshotHasher.DEFAULT)
     def fileCollectionFingerprinterRegistry = new DefaultFileCollectionFingerprinterRegistry([FingerprinterRegistration.registration(DirectorySensitivity.DEFAULT, LineEndingSensitivity.DEFAULT, dependencyFingerprinter)])
-    def inputFingerprinter = new DefaultInputFingerprinter(fileCollectionFingerprinterRegistry, valueSnapshotter)
+    def inputFingerprinter = new DefaultInputFingerprinter(fileCollectionSnapshotter, fileCollectionFingerprinterRegistry, valueSnapshotter)
 
     def projectServiceRegistry = Stub(ServiceRegistry) {
         get(TransformationWorkspaceServices) >> new TestTransformationWorkspaceServices(mutableTransformsStoreDirectory, executionHistoryStore)

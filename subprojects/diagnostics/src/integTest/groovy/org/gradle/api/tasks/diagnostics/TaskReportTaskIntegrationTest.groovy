@@ -58,6 +58,120 @@ tasks - Displays the tasks runnable from root project '$projectName'.""")
         tasks << [TASKS_REPORT_TASK, TASKS_DETAILED_REPORT_TASK]
     }
 
+    def "shows task types when run with --types"() {
+        given:
+        String projectName = 'test'
+        settingsFile << "rootProject.name = '$projectName'"
+
+        when:
+        succeeds "tasks", "--types"
+
+        then:
+        output.contains("""
+Build Setup tasks
+-----------------
+init (org.gradle.buildinit.tasks.InitBuild) - Initializes a new Gradle build.
+wrapper (org.gradle.api.tasks.wrapper.Wrapper) - Generates Gradle wrapper files.
+
+Help tasks
+----------
+buildEnvironment (org.gradle.api.tasks.diagnostics.BuildEnvironmentReportTask) - Displays all buildscript dependencies declared in root project '$projectName'.
+dependencies (org.gradle.api.tasks.diagnostics.DependencyReportTask) - Displays all dependencies declared in root project '$projectName'.
+dependencyInsight (org.gradle.api.tasks.diagnostics.DependencyInsightReportTask) - Displays the insight into a specific dependency in root project '$projectName'.
+help (org.gradle.configuration.Help) - Displays a help message.
+javaToolchains (org.gradle.jvm.toolchain.internal.task.ShowToolchainsTask) - Displays the detected java toolchains.
+outgoingVariants (org.gradle.api.tasks.diagnostics.OutgoingVariantsReportTask) - Displays the outgoing variants of root project '$projectName'.
+projects (org.gradle.api.tasks.diagnostics.ProjectReportTask) - Displays the sub-projects of root project '$projectName'.
+properties (org.gradle.api.tasks.diagnostics.PropertyReportTask) - Displays the properties of root project '$projectName'.
+tasks (org.gradle.api.tasks.diagnostics.TaskReportTask) - Displays the tasks runnable from root project '$projectName'.""")
+    }
+
+    def "shows Default task defined in build file when run with --types"() {
+        given:
+        String projectName = 'test'
+        settingsFile << "rootProject.name = '$projectName'"
+
+        buildFile << """
+task sayHello {
+    group = 'Build'
+
+    doLast {
+        println "Hello!"
+    }
+}"""
+
+        when:
+        succeeds "tasks", "--types"
+
+        then:
+        output.contains("""
+Build tasks
+-----------
+sayHello (org.gradle.api.DefaultTask)""")
+    }
+
+    def "shows Default tasks with same name defined in multiple projects when run with --types"() {
+        given:
+        buildFile << multiProjectBuild()
+        settingsFile << "include 'sub1', 'sub2'"
+
+        file('sub1/build.gradle') << """
+task sayHello {
+    group = 'Build'
+
+    doLast {
+        println "Hello!"
+    }
+}"""
+        file('sub2/build.gradle') << """
+task sayHello {
+    group = 'Build'
+
+    doLast {
+        println "Hello!"
+    }
+}"""
+
+        when:
+        succeeds "tasks", "--types", "--all"
+
+        then:
+        output.contains("""
+Build tasks
+-----------
+sub1:sayHello (org.gradle.api.DefaultTask)
+sub2:sayHello (org.gradle.api.DefaultTask)""")
+    }
+
+    def "shows Custom task defined in build file when run with --types"() {
+        given:
+        String projectName = 'test'
+        settingsFile << "rootProject.name = '$projectName'"
+
+        buildFile << """
+class HelloTask extends DefaultTask {
+    final Property<String> message = project.objects.property(String).convention("Hello!")
+
+    @TaskAction def sayHello() {
+        println(message.get())
+    }
+}
+
+task sayHi(type: HelloTask) {
+    group = 'Build'
+    message = 'Hi!'
+}"""
+
+        when:
+        succeeds "tasks", "--types"
+
+        then:
+        output.contains("""
+Build tasks
+-----------
+sayHi (HelloTask)""")
+    }
+
     @Unroll
     def "always renders task rule running #tasks"() {
         given:

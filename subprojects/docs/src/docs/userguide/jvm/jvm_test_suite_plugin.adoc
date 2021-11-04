@@ -32,6 +32,9 @@ include::sample[dir="snippets/testing/test-suite-plugin/kotlin",files="build.gra
 The plugins adds the following objects to the project:
 
  * A `testing` extension (type: link:{groovyDslPath}/org.gradle.testing.base.TestingExtension.html[TestingExtension]) to the project used to configure test suites.
+
+When used with the <<java_plugin#java_plugin,Java Plugin>>:
+
  * A test suite named `test` (type: link:{groovyDslPath}/org.gradle.api.plugins.jvm.JvmTestSuite.html[JvmTestSuite]).
  * A `test` link:{groovyDslPath}/org.gradle.api.tasks.SourceSet.html[SourceSet].
  * Several configurations derived from the `test` SourceSet name: `testImplementation`, `testCompileOnly`, `testRuntimeOnly`

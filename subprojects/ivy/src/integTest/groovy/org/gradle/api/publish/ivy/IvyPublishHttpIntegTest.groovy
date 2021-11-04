@@ -23,6 +23,7 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.ProgressLoggingFixture
 import org.gradle.internal.credentials.DefaultPasswordCredentials
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.ivy.IvyFileRepository
 import org.gradle.test.fixtures.server.http.AuthScheme
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.IvyHttpModule
@@ -511,7 +512,7 @@ credentials {
 
     @ToBeFixedForConfigurationCache
     @Unroll
-    def "doesn't publish Gradle metadata if custom pattern is used"() {
+    def "doesn't publish Gradle metadata if custom pattern is used for artifact"() {
         given:
         buildFile << """
             apply plugin: 'java'
@@ -550,6 +551,42 @@ credentials {
             """,
             'artifact "org/foo/[revision]/[artifact](-[classifier]).[ext]"'
         ]
+    }
+
+    @ToBeFixedForConfigurationCache
+    def "does publish Gradle metadata if custom pattern is used only for Ivy file"() {
+        def customIvyRepo = new IvyFileRepository(ivyRepo.rootDir, false, null, '[module]-[revision].ivy')
+        def customModule = customIvyRepo.module("org.gradle", "publish", "2")
+        given:
+        buildFile << """
+            apply plugin: 'java'
+            apply plugin: 'ivy-publish'
+
+            version = '2'
+            group = 'org.gradle'
+            publishing {
+                repositories {
+                    ivy {
+                        url "${ivyRepo.uri}"
+                        patternLayout {
+                            artifact "[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])"
+                            ivy "[organisation]/[module]/[revision]/[module]-[revision].ivy"
+                        }
+                    }
+                }
+                publications {
+                    ivy(IvyPublication) {
+                        from components.java
+                    }
+                }
+            }
+        """
+
+        when:
+        run 'publish'
+
+        then:
+        customModule.assertMetadataAndJarFilePublished()
     }
 
     @ToBeFixedForConfigurationCache

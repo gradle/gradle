@@ -42,29 +42,7 @@ class DefaultValueSourceProviderFactoryTest extends ValueSourceBasedSpec {
         configured
     }
 
-    @Unroll
-    def "obtaining value at configuration time fails with message that includes source #nameKind name"() {
-
-        given:
-        configurationTimeBarrier.atConfigurationTime >> true
-        def provider = createProviderOf(sourceType) {
-            it.parameters.value.set('42')
-        }
-
-        when:
-        provider.get()
-
-        then:
-        def e = thrown(IllegalStateException)
-        e.message.startsWith "Cannot obtain value from provider of $displayName at configuration time."
-
-        where:
-        nameKind  | sourceType                     | displayName
-        'type'    | EchoValueSource                | 'DefaultValueSourceProviderFactoryTest.EchoValueSource'
-        'display' | EchoValueSourceWithDisplayName | 'echo(42)'
-    }
-
-    def "provider forUseAtConfigurationTime succeeds at configuration time"() {
+    def "provider forUseAtConfigurationTime is a no-op"() {
 
         given:
         configurationTimeBarrier.atConfigurationTime >> true
@@ -74,13 +52,7 @@ class DefaultValueSourceProviderFactoryTest extends ValueSourceBasedSpec {
         def configTimeProvider = provider.forUseAtConfigurationTime()
 
         expect:
-        configTimeProvider.get() == '42'
-
-        when: "asking original provider for the value after it has been obtained"
-        provider.get()
-
-        then: "it still fails at configuration time"
-        thrown(IllegalStateException)
+        configTimeProvider === provider
     }
 
     @Unroll
@@ -91,18 +63,15 @@ class DefaultValueSourceProviderFactoryTest extends ValueSourceBasedSpec {
         def provider = createProviderOf(EchoValueSource) {
             it.parameters.value.set('42')
         }
-        def configTimeProvider1 = provider.forUseAtConfigurationTime()
-        def configTimeProvider2 = provider.forUseAtConfigurationTime()
-        def executionTimeProvider = atConfigurationTime ? provider.forUseAtConfigurationTime() : provider
         def obtainedValueCount = 0
         valueSourceProviderFactory.addListener {
             obtainedValueCount += 1
         }
 
         expect:
-        configTimeProvider1.get() == '42'
-        configTimeProvider2.get() == '42'
-        executionTimeProvider.get() == '42'
+        provider.get() == '42'
+        provider.get() == '42'
+        provider.get() == '42'
         obtainedValueCount == 1
 
         where:

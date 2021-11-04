@@ -42,8 +42,7 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
             assert gradle.taskGraph.hasTask(a)
             assert gradle.taskGraph.hasTask(':b')
             assert gradle.taskGraph.hasTask(b)
-            assert gradle.taskGraph.allTasks.contains(task)
-            assert gradle.taskGraph.allTasks.contains(tasks.getByName('b'))
+            assert gradle.taskGraph.allTasks == [b, a]
         }
     }
     task b
@@ -52,9 +51,30 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         assert graph.hasTask(a)
         assert graph.hasTask(':b')
         assert graph.hasTask(b)
-        assert graph.allTasks.contains(a)
-        assert graph.allTasks.contains(b)
+        assert graph.allTasks == [b, a]
         notified = true
+    }
+"""
+        expect:
+        2.times {
+            succeeds "a"
+            result.assertTasksExecuted(":b", ":a")
+        }
+    }
+
+    @UnsupportedWithConfigurationCache
+    def buildFinishedHookCanAccessTaskGraph() {
+        buildFile << """
+    task a(dependsOn: 'b')
+    task b
+    gradle.buildFinished {
+        def graph = gradle.taskGraph
+        // This is existing behaviour, not desired behaviour
+        assert !graph.hasTask(':a')
+        assert !graph.hasTask(a)
+        assert !graph.hasTask(':b')
+        assert !graph.hasTask(b)
+        assert graph.allTasks == [b, a]
     }
 """
         expect:

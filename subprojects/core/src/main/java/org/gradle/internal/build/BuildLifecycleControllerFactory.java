@@ -20,8 +20,6 @@ import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-import javax.annotation.Nullable;
-
 /**
  * <p>Responsible for creating a {@link BuildLifecycleController} instance for a build.
  *
@@ -29,5 +27,5 @@ import javax.annotation.Nullable;
  */
 @ServiceScope(Scopes.BuildTree.class)
 public interface BuildLifecycleControllerFactory {
-    BuildLifecycleController newInstance(BuildDefinition buildDefinition, BuildState owner, @Nullable BuildState parentBuild, BuildScopeServices buildScopeServices);
+    BuildLifecycleController newInstance(BuildDefinition buildDefinition, BuildScopeServices buildScopeServices);
 }

@@ -33,6 +33,7 @@ import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 import java.util.function.Consumer
+import java.util.function.Function
 
 class DefaultBuildLifecycleControllerTest extends Specification {
     def buildBroadcaster = Mock(BuildListener)
@@ -48,6 +49,7 @@ class DefaultBuildLifecycleControllerTest extends Specification {
     def buildFinishedListener = Mock(InternalBuildFinishedListener.class)
     def buildServices = Mock(BuildScopeServices.class)
     def executionPlan = Mock(ExecutionPlan)
+    def toolingControllerFactory = Mock(BuildToolingModelControllerFactory)
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     def failure = new RuntimeException("main")
@@ -60,11 +62,12 @@ class DefaultBuildLifecycleControllerTest extends Specification {
         def services = new DefaultServiceRegistry()
         services.add(Stub(BuildOutputCleanupRegistry))
         _ * gradleMock.services >> services
+        _ * gradleMock.owner >> Stub(BuildState)
     }
 
     DefaultBuildLifecycleController controller() {
         return new DefaultBuildLifecycleController(gradleMock, buildModelController, exceptionAnalyser, buildBroadcaster,
-            buildCompletionListener, buildFinishedListener, workPreparer, workExecutor, buildServices, TestUtil.stateTransitionControllerFactory())
+            buildCompletionListener, buildFinishedListener, workPreparer, workExecutor, buildServices, toolingControllerFactory, TestUtil.stateTransitionControllerFactory())
     }
 
     void testCanFinishBuildWhenNothingHasBeenDone() {
@@ -124,15 +127,32 @@ class DefaultBuildLifecycleControllerTest extends Specification {
         finishResult.failures.empty
     }
 
-    void testGetLoadedSettings() {
+    void testLoadSettings() {
+        expect:
+        expectSettingsBuilt()
+        expectBuildFinished("Configure")
+
+        def controller = controller()
+        controller.loadSettings()
+
+        def finishResult = controller.finishBuild(null)
+        finishResult.failures.empty
+    }
+
+    void testWithSettings() {
+        def action = Mock(Function)
+
         when:
         expectSettingsBuilt()
 
         def controller = controller()
-        def result = controller.getLoadedSettings()
+        def result = controller.withSettings(action)
 
         then:
-        result == settingsMock
+        result == "result"
+
+        and:
+        1 * action.apply(settingsMock) >> "result"
 
         expect:
         expectBuildFinished("Configure")
@@ -147,7 +167,7 @@ class DefaultBuildLifecycleControllerTest extends Specification {
         expectSettingsBuiltWithFailure(failure)
 
         def controller = this.controller()
-        controller.getLoadedSettings()
+        controller.loadSettings()
 
         then:
         def t = thrown RuntimeException
@@ -159,6 +179,66 @@ class DefaultBuildLifecycleControllerTest extends Specification {
         then:
         1 * exceptionAnalyser.transform([failure]) >> transformedException
         1 * buildBroadcaster.buildFinished({ it.failure == transformedException })
+        finishResult.failures.empty
+    }
+
+    void testLoadSettingsRethrowsPreviousFailure() {
+        def failure = new RuntimeException()
+
+        when:
+        expectSettingsBuiltWithFailure(failure)
+
+        def controller = this.controller()
+        controller.loadSettings()
+
+        then:
+        def t = thrown RuntimeException
+        t == failure
+
+        when:
+        controller.loadSettings()
+
+        then:
+        def t2 = thrown RuntimeException
+        t2 == failure
+
+        when:
+        controller.configureProjects()
+
+        then:
+        def t3 = thrown RuntimeException
+        t3 == failure
+    }
+
+    void testConfigureBuild() {
+        def controller = controller()
+
+        when:
+        controller.configureProjects()
+
+        then:
+        1 * buildModelController.configuredModel >> gradleMock
+
+        expect:
+        expectBuildFinished("Configure")
+        def finishResult = controller.finishBuild(null)
+        finishResult.failures.empty
+    }
+
+    void testWithConfiguredBuild() {
+        def action = Mock(Function)
+        def controller = controller()
+
+        when:
+        controller.withProjectsConfigured(action)
+
+        then:
+        1 * buildModelController.configuredModel >> gradleMock
+        1 * action.apply(gradleMock)
+
+        expect:
+        expectBuildFinished("Configure")
+        def finishResult = controller.finishBuild(null)
         finishResult.failures.empty
     }
 
@@ -200,6 +280,34 @@ class DefaultBuildLifecycleControllerTest extends Specification {
         finishResult.failures.empty
     }
 
+    void testConfigureBuildRethrowsPreviousFailure() {
+        def failure = new RuntimeException()
+
+        when:
+        1 * buildModelController.configuredModel >> { throw failure }
+
+        def controller = this.controller()
+        controller.configureProjects()
+
+        then:
+        def t = thrown RuntimeException
+        t == failure
+
+        when:
+        controller.configureProjects()
+
+        then:
+        def t2 = thrown RuntimeException
+        t2 == failure
+
+        when:
+        controller.loadSettings()
+
+        then:
+        def t3 = thrown RuntimeException
+        t3 == failure
+    }
+
     void testCannotExecuteTasksWhenNothingHasBeenScheduled() {
         when:
         def controller = controller()
@@ -217,7 +325,7 @@ class DefaultBuildLifecycleControllerTest extends Specification {
         finishResult.failures.empty
     }
 
-    void testNotifiesListenerOnSettingsInitWithFailure() {
+    void testNotifiesListenerOnTaskSchedulingFailure() {
         given:
         1 * workPreparer.newExecutionPlan() >> executionPlan
         1 * workPreparer.populateWorkGraph(gradleMock, executionPlan, _) >> { GradleInternal gradle, ExecutionPlan executionPlan, Consumer consumer -> consumer.accept(executionPlan) }
@@ -358,6 +466,18 @@ class DefaultBuildLifecycleControllerTest extends Specification {
         1 * buildCompletionListener.completed()
     }
 
+    void testCanStopWithoutFinishingWhenBuildHasDoneNothing() {
+        given:
+        def controller = controller()
+
+        when:
+        controller.stop()
+
+        then:
+        1 * buildServices.close()
+        1 * buildCompletionListener.completed()
+    }
+
     void testCannotGetModelAfterFinished() {
         given:
         def controller = controller()
@@ -365,6 +485,30 @@ class DefaultBuildLifecycleControllerTest extends Specification {
 
         when:
         controller.gradle
+
+        then:
+        thrown IllegalStateException
+    }
+
+    void testCannotLoadSettingsAfterFinished() {
+        given:
+        def controller = controller()
+        controller.finishBuild(null)
+
+        when:
+        controller.loadSettings()
+
+        then:
+        thrown IllegalStateException
+    }
+
+    void testCannotConfigureBuildAfterFinished() {
+        given:
+        def controller = controller()
+        controller.finishBuild(null)
+
+        when:
+        controller.configureProjects()
 
         then:
         thrown IllegalStateException

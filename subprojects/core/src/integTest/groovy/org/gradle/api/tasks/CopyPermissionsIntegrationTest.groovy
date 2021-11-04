@@ -303,7 +303,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
 
     @Requires(TestPrecondition.FILE_PERMISSIONS)
     @Issue('https://github.com/gradle/gradle/issues/9576')
-    def "can copy into destination directory with unreadable file when using ignoreExistingContentInDestinationDir"() {
+    def "can copy into destination directory with unreadable file when using doNotTrackState"() {
         given:
         def input = file("readableFile.txt").createFile()
 
@@ -315,7 +315,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
             task copy(type: Copy) {
                 from '${input.name}'
                 into '${outputDirectory.name}'
-                ignoreExistingContentInDestinationDir()
+                doNotTrackState("Destination contains unreadable files")
             }
         """
 

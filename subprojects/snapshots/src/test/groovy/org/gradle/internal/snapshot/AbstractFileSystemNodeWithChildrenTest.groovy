@@ -60,7 +60,7 @@ abstract class AbstractFileSystemNodeWithChildrenTest<NODE extends FileSystemNod
         this.selectedChildPath = spec.selectedChildPath
         if (selectedChildPath != null) {
             def selectedChildIndex = indexOfSelectedChild
-            this.selectedChild = selectedChildIndex == -1 ? null : children.stream().toList().get(selectedChildIndex).value
+            this.selectedChild = selectedChildIndex == -1 ? null : childEntries().get(selectedChildIndex).value
         }
     }
 
@@ -71,39 +71,39 @@ abstract class AbstractFileSystemNodeWithChildrenTest<NODE extends FileSystemNod
             .collect(Collectors.toList()))
     }
 
-    ChildMap<FileSystemNode> childrenWithSelectedChildReplacedBy(FileSystemNode replacement) {
+    ChildMap<CHILD> childrenWithSelectedChildReplacedBy(CHILD replacement) {
         childrenWithSelectedChildReplacedBy(selectedChildPath, replacement)
     }
 
-    ChildMap<FileSystemNode> childrenWithSelectedChildReplacedBy(String replacementPath, FileSystemNode replacement) {
-        def newChildren = children.stream().toList()
-        newChildren.set(indexOfSelectedChild, new ChildMap.Entry<FileSystemNode>(replacementPath, replacement))
+    ChildMap<CHILD> childrenWithSelectedChildReplacedBy(String replacementPath, CHILD replacement) {
+        def newChildren = childEntries()
+        newChildren.set(indexOfSelectedChild, new ChildMap.Entry<CHILD>(replacementPath, replacement))
         return ChildMapFactory.childMapFromSorted(newChildren)
     }
 
     int getIndexOfSelectedChild() {
-        return children.stream().toList()*.path.indexOf(selectedChildPath)
+        return childEntries()*.path.indexOf(selectedChildPath)
     }
 
-    ChildMap<FileSystemNode> childrenWithAdditionalChild(String path, FileSystemNode newChild) {
+    ChildMap<CHILD> childrenWithAdditionalChild(String path, CHILD newChild) {
         def targetPath = VfsRelativePath.of(path)
-        def newEntries = children.stream().toList()
-        int insertPosition = -1 - SearchUtil.<ChildMap.Entry<FileSystemNode>>binarySearch(newEntries) { candidate ->
+        def newEntries = childEntries()
+        int insertPosition = -1 - SearchUtil.<ChildMap.Entry<CHILD>>binarySearch(newEntries) { candidate ->
             targetPath.compareToFirstSegment(candidate.path, CASE_SENSITIVE)
         }
-        newEntries.add(insertPosition, new ChildMap.Entry<FileSystemNode>(path, newChild))
+        newEntries.add(insertPosition, new ChildMap.Entry<>(path, newChild))
         return ChildMapFactory.childMapFromSorted(newEntries)
     }
 
     ChildMap<CHILD> childrenWithSelectedChildRemoved() {
-        def newEntries = children.stream().toList()
+        def newEntries = childEntries()
         newEntries.remove(indexOfSelectedChild)
         return ChildMapFactory.childMapFromSorted(newEntries)
     }
 
     CHILD getNodeWithIndexOfSelectedChild(ChildMap<CHILD> newChildren) {
         int index = indexOfSelectedChild
-        return newChildren.stream().toList().get(index).value
+        return childEntries(newChildren).get(index).value
     }
 
     String getCommonPrefix() {
@@ -240,5 +240,14 @@ abstract class AbstractFileSystemNodeWithChildrenTest<NODE extends FileSystemNod
 
     private static List<String> parentPaths(String childPath) {
         (childPath.split('/') as List).inits().tail().init().collect { it.join('/') }
+    }
+
+    private List<ChildMap.Entry<CHILD>> childEntries() {
+        return childEntries(children)
+    }
+
+    private static <T> List<ChildMap.Entry<T>> childEntries(ChildMap<T> children) {
+        children.stream()
+            .collect(Collectors.toList())
     }
 }

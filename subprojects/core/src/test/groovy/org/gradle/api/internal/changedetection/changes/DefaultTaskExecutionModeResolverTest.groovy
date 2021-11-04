@@ -54,7 +54,7 @@ class DefaultTaskExecutionModeResolverTest extends Specification {
 
         then:
         state == UNTRACKED
-        1 * taskProperties.hasUntrackedProperties() >> true
+        _ * task.getReasonNotToTrackState() >> Optional.of("For testing")
         0 * _
     }
 
@@ -64,7 +64,6 @@ class DefaultTaskExecutionModeResolverTest extends Specification {
 
         then:
         state == NO_OUTPUTS
-        1 * taskProperties.hasUntrackedProperties() >> false
         1 * taskProperties.hasDeclaredOutputs() >> false
         1 * upToDateSpec.isEmpty() >> true
         _ * task.getTaskActions() >> []
@@ -77,7 +76,6 @@ class DefaultTaskExecutionModeResolverTest extends Specification {
 
         then:
         state == INCREMENTAL
-        1 * taskProperties.hasUntrackedProperties() >> false
         1 * taskProperties.hasDeclaredOutputs() >> true
         1 * upToDateSpec.isSatisfiedBy(task) >> true
         0 * _
@@ -90,7 +88,6 @@ class DefaultTaskExecutionModeResolverTest extends Specification {
 
         then:
         state == RERUN_TASKS_ENABLED
-        1 * taskProperties.hasUntrackedProperties() >> false
         1 * taskProperties.hasDeclaredOutputs() >> false
         1 * upToDateSpec.empty >> false
         0 * _
@@ -102,7 +99,6 @@ class DefaultTaskExecutionModeResolverTest extends Specification {
 
         then:
         state == UP_TO_DATE_WHEN_FALSE
-        1 * taskProperties.hasUntrackedProperties() >> false
         1 * taskProperties.hasDeclaredOutputs() >> true
         1 * upToDateSpec.isSatisfiedBy(task) >> false
         0 * _
@@ -116,7 +112,6 @@ class DefaultTaskExecutionModeResolverTest extends Specification {
         def ex = thrown InvalidUserCodeException
         ex.message == "You must declare outputs or use `TaskOutputs.upToDateWhen()` when using the incremental task API"
 
-        1 * taskProperties.hasUntrackedProperties() >> false
         1 * taskProperties.hasDeclaredOutputs() >> false
         1 * upToDateSpec.isEmpty() >> true
         _ * task.getTaskActions() >> [Mock(IncrementalInputsTaskAction)]

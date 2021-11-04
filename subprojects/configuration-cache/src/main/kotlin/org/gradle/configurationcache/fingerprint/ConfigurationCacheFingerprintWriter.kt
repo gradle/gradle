@@ -31,19 +31,27 @@ import org.gradle.api.internal.file.FileTreeInternal
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
+import org.gradle.api.internal.provider.sources.EnvironmentVariableValueSource
 import org.gradle.api.internal.provider.sources.FileContentValueSource
+import org.gradle.api.internal.provider.sources.GradlePropertyValueSource
+import org.gradle.api.internal.provider.sources.SystemPropertyValueSource
 import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.configurationcache.UndeclaredBuildInputListener
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprint.InputFile
 import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprint.ValueSource
+import org.gradle.configurationcache.problems.DocumentationSection
+import org.gradle.configurationcache.problems.PropertyProblem
+import org.gradle.configurationcache.problems.PropertyTrace
+import org.gradle.configurationcache.problems.StructuredMessage
 import org.gradle.configurationcache.serialization.DefaultWriteContext
 import org.gradle.configurationcache.serialization.runWriteOperation
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.resource.local.FileResourceListener
 import org.gradle.internal.scripts.ScriptExecutionListener
+import org.gradle.util.Path
 import java.io.File
 
 
@@ -66,17 +74,24 @@ class ConfigurationCacheFingerprintWriter(
         val buildStartTime: Long
         fun fingerprintOf(fileCollection: FileCollectionInternal): HashCode
         fun hashCodeOf(file: File): HashCode?
+        fun reportInput(input: PropertyProblem)
+        fun location(consumer: String?): PropertyTrace
     }
 
-    @Volatile
     private
-    var ignoreValueSources = false
+    val projectForThread = ThreadLocal<Path>()
 
     private
     val capturedFiles = newConcurrentHashSet<File>()
 
     private
+    val undeclaredGradleProperties = newConcurrentHashSet<String>()
+
+    private
     val undeclaredSystemProperties = newConcurrentHashSet<String>()
+
+    private
+    val undeclaredEnvironmentVariables = newConcurrentHashSet<String>()
 
     private
     var closestChangingValue: ConfigurationCacheFingerprint.ChangingDependencyResolutionValue? = null
@@ -116,11 +131,6 @@ class ConfigurationCacheFingerprintWriter(
         }
     }
 
-    fun stopCollectingValueSources() {
-        // TODO - this is a temporary step, see the comment in DefaultConfigurationCache
-        ignoreValueSources = true
-    }
-
     override fun onDynamicVersionSelection(requested: ModuleComponentSelector, expiry: Expiry, versions: Set<ModuleVersionIdentifier>) {
         // Only consider repositories serving at least one version of the requested module.
         // This is meant to avoid repetitively expiring cache entries due to a 404 response for the requested module metadata
@@ -148,19 +158,31 @@ class ConfigurationCacheFingerprintWriter(
         captureFile(file)
     }
 
-    override fun systemPropertyRead(key: String) {
-        if (!undeclaredSystemProperties.add(key)) {
-            return
+    private
+    fun gradlePropertyRead(key: String, value: String?, consumer: String?) {
+        if (undeclaredGradleProperties.add(key)) {
+            write(ConfigurationCacheFingerprint.UndeclaredGradleProperty(key, value))
+            reportGradlePropertyInput(key, consumer)
         }
-        write(ConfigurationCacheFingerprint.UndeclaredSystemProperty(key))
+    }
+
+    override fun systemPropertyRead(key: String, value: Any?, consumer: String?) {
+        if (undeclaredSystemProperties.add(key)) {
+            write(ConfigurationCacheFingerprint.UndeclaredSystemProperty(key, value))
+            reportSystemPropertyInput(key, consumer)
+        }
+    }
+
+    override fun envVariableRead(key: String, value: String?, consumer: String?) {
+        if (undeclaredEnvironmentVariables.add(key)) {
+            write(ConfigurationCacheFingerprint.UndeclaredEnvironmentVariable(key, value))
+            reportEnvironmentVariableInput(key, consumer)
+        }
     }
 
     override fun <T : Any, P : ValueSourceParameters> valueObtained(
         obtainedValue: ValueSourceProviderFactory.Listener.ObtainedValue<T, P>
     ) {
-        if (ignoreValueSources) {
-            return
-        }
         when (val parameters = obtainedValue.valueSourceParameters) {
             is FileContentValueSource.Parameters -> {
                 parameters.file.orNull?.asFile?.let { file ->
@@ -168,14 +190,25 @@ class ConfigurationCacheFingerprintWriter(
                     captureFile(file)
                 }
             }
+            is GradlePropertyValueSource.Parameters -> {
+                gradlePropertyRead(parameters.propertyName.get(), obtainedValue.value.get() as? String, null)
+            }
+            is SystemPropertyValueSource.Parameters -> {
+                systemPropertyRead(parameters.propertyName.get(), obtainedValue.value.get(), null)
+            }
+            is EnvironmentVariableValueSource.Parameters -> {
+                envVariableRead(parameters.variableName.get(), obtainedValue.value.get() as? String, null)
+            }
             else -> {
-                write(
-                    ValueSource(
-                        obtainedValue.uncheckedCast()
-                    )
-                )
+                captureValueSource(obtainedValue)
             }
         }
+    }
+
+    private
+    fun <P : ValueSourceParameters, T : Any> captureValueSource(obtainedValue: ValueSourceProviderFactory.Listener.ObtainedValue<T, P>) {
+        write(ValueSource(obtainedValue.uncheckedCast()))
+        reportValueSourceInput(obtainedValue.valueSourceType)
     }
 
     override fun onScriptClassLoaded(source: ScriptSource, scriptClass: Class<*>) {
@@ -214,10 +247,26 @@ class ConfigurationCacheFingerprintWriter(
         )
     }
 
+    fun <T> collectFingerprintForProject(identityPath: Path, action: () -> T): T {
+        val previous = projectForThread.get()
+        projectForThread.set(identityPath)
+        try {
+            return action()
+        } finally {
+            projectForThread.set(previous)
+        }
+    }
+
     private
-    fun write(value: ConfigurationCacheFingerprint?) {
+    fun write(value: ConfigurationCacheFingerprint) {
+        val project = projectForThread.get()
+        val contextualized = if (project != null) {
+            ConfigurationCacheFingerprint.ProjectSpecificInput(project.path, value)
+        } else {
+            value
+        }
         synchronized(writeContext) {
-            unsafeWrite(value)
+            unsafeWrite(contextualized)
         }
     }
 
@@ -251,6 +300,58 @@ class ConfigurationCacheFingerprintWriter(
         })
         return fileCollectionFactory.resolving(elements)
     }
+
+    private
+    fun reportValueSourceInput(valueSourceType: Class<out Any>) {
+        reportInput(consumer = null, documentationSection = null) {
+            text("build logic input of type ")
+            reference(valueSourceType.simpleName)
+        }
+    }
+
+    private
+    fun reportGradlePropertyInput(key: String, consumer: String?) {
+        reportInput(consumer, DocumentationSection.RequirementsUndeclaredGradlePropRead) {
+            text("Gradle property ")
+            reference(key)
+        }
+    }
+
+    private
+    fun reportSystemPropertyInput(key: String, consumer: String?) {
+        reportInput(consumer, DocumentationSection.RequirementsUndeclaredSysPropRead) {
+            text("system property ")
+            reference(key)
+        }
+    }
+
+    private
+    fun reportEnvironmentVariableInput(key: String, consumer: String?) {
+        reportInput(consumer, DocumentationSection.RequirementsUndeclaredEnvVarRead) {
+            text("environment variable ")
+            reference(key)
+        }
+    }
+
+    private
+    fun reportInput(consumer: String?, documentationSection: DocumentationSection?, messageBuilder: StructuredMessage.Builder.() -> Unit) {
+        reportInput(locationFor(consumer), documentationSection, messageBuilder)
+    }
+
+    private
+    fun reportInput(location: PropertyTrace, documentationSection: DocumentationSection?, messageBuilder: StructuredMessage.Builder.() -> Unit) {
+        host.reportInput(
+            PropertyProblem(
+                location,
+                StructuredMessage.build(messageBuilder),
+                null,
+                documentationSection = documentationSection
+            )
+        )
+    }
+
+    private
+    fun locationFor(consumer: String?) = host.location(consumer)
 }
 
 

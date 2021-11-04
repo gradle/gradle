@@ -20,16 +20,15 @@ import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
-import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.deployment.internal.DefaultDeploymentRegistry
 import org.gradle.initialization.RootBuildLifecycleListener
 import org.gradle.initialization.exception.ExceptionAnalyser
 import org.gradle.internal.build.BuildLifecycleController
-import org.gradle.internal.build.BuildLifecycleControllerFactory
+import org.gradle.internal.build.BuildModelControllerServices
 import org.gradle.internal.build.BuildStateRegistry
-import org.gradle.internal.build.BuildToolingModelAction
 import org.gradle.internal.build.ExecutionResult
 import org.gradle.internal.buildtree.BuildTreeLifecycleController
+import org.gradle.internal.buildtree.BuildTreeModelAction
 import org.gradle.internal.buildtree.BuildTreeState
 import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.event.ListenerManager
@@ -40,7 +39,7 @@ import spock.lang.Specification
 import java.util.function.Function
 
 class DefaultRootBuildStateTest extends Specification {
-    def factory = Mock(BuildLifecycleControllerFactory)
+    def factory = Mock(BuildModelControllerServices)
     def controller = Mock(BuildLifecycleController)
     def gradle = Mock(GradleInternal)
     def listenerManager = Mock(ListenerManager)
@@ -48,30 +47,30 @@ class DefaultRootBuildStateTest extends Specification {
     def action = Mock(Function)
     def buildTree = Mock(BuildTreeState)
     def buildDefinition = Mock(BuildDefinition)
-    def projectStateRegistry = Mock(ProjectStateRegistry)
     def exceptionAnalyzer = Mock(ExceptionAnalyser)
     def workGraph = Mock(BuildTreeWorkGraph)
     DefaultRootBuildState build
 
     def setup() {
-        _ * factory.newInstance(buildDefinition, _, null, _) >> controller
+        _ * factory.servicesForBuild(buildDefinition, _, null) >> Mock(BuildModelControllerServices.Supplier)
         _ * listenerManager.getBroadcaster(RootBuildLifecycleListener) >> lifecycleListener
-        def sessionServices = new DefaultServiceRegistry()
-        sessionServices.add(new TestBuildOperationExecutor())
-        sessionServices.add(gradle)
-        sessionServices.add(exceptionAnalyzer)
-        sessionServices.add(Stub(BuildTreeWorkGraphController))
-        sessionServices.add(Stub(DocumentationRegistry))
-        sessionServices.add(Stub(DefaultDeploymentRegistry))
-        sessionServices.add(Stub(BuildStateRegistry))
-        sessionServices.add(new TestBuildTreeLifecycleControllerFactory(workGraph))
+        def services = new DefaultServiceRegistry()
+        services.add(new TestBuildOperationExecutor())
+        services.add(gradle)
+        services.add(exceptionAnalyzer)
+        services.add(controller)
+        services.add(factory)
+        services.add(Stub(BuildTreeWorkGraphController))
+        services.add(Stub(DocumentationRegistry))
+        services.add(Stub(DefaultDeploymentRegistry))
+        services.add(Stub(BuildStateRegistry))
+        services.add(new TestBuildTreeLifecycleControllerFactory(workGraph))
 
         _ * controller.gradle >> gradle
-        _ * gradle.services >> sessionServices
-        _ * buildTree.services >> sessionServices
-        _ * projectStateRegistry.withLenientState(_) >> { args -> return args[0].create() }
+        _ * gradle.services >> services
+        _ * buildTree.services >> services
 
-        build = new DefaultRootBuildState(buildDefinition, buildTree, factory, listenerManager, projectStateRegistry)
+        build = new DefaultRootBuildState(buildDefinition, buildTree, listenerManager)
     }
 
     def "has identifier"() {
@@ -146,7 +145,7 @@ class DefaultRootBuildStateTest extends Specification {
     }
 
     def "configures and finishes build when requested by action"() {
-        def modelAction = Mock(BuildToolingModelAction)
+        def modelAction = Mock(BuildTreeModelAction)
 
         when:
         def result = build.run(action)

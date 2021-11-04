@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins;
 
+import com.google.common.collect.Sets;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.attributes.LibraryElements;
@@ -119,6 +120,7 @@ public class GroovyBasePlugin implements Plugin<Project> {
                 compile.setDescription("Compiles the " + sourceSet.getName() + " Groovy source.");
                 compile.setSource(groovySource);
                 compile.getJavaLauncher().convention(getToolchainTool(project, JavaToolchainService::launcherFor));
+                compile.getGroovyOptions().getDisabledGlobalASTTransformations().convention(Sets.newHashSet("groovy.grape.GrabAnnotationTransformation"));
             });
 
             String compileClasspathConfigurationName = sourceSet.getCompileClasspathConfigurationName();

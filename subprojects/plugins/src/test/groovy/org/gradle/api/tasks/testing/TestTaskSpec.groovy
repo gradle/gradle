@@ -43,7 +43,7 @@ class TestTaskSpec extends AbstractProjectBuilderSpec {
         task.binaryResultsDirectory.set(task.project.file('build/test-results'))
         task.reports.junitXml.outputLocation.set(task.project.file('build/test-results'))
         task.testClassesDirs = task.project.layout.files()
-        completion = task.project.services.get(WorkerLeaseRegistry).getWorkerLease().start()
+        completion = task.project.services.get(WorkerLeaseRegistry).startWorker()
     }
 
     def cleanup() {

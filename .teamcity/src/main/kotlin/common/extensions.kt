@@ -129,6 +129,8 @@ fun BuildType.paramsForBuildToolBuild(buildJvm: Jvm = BuildToolBuildJvm, os: Os)
         if (os == Os.MACOS) {
             // Use fewer parallel forks on macOs, since the agents are not very powerful.
             param("maxParallelForks", "2")
+        } else {
+            param("maxParallelForks", "8")
         }
         if (os == Os.LINUX || os == Os.MACOS) {
             param("env.LC_ALL", "en_US.UTF-8")
@@ -154,6 +156,7 @@ fun buildToolGradleParameters(daemon: Boolean = true, isContinue: Boolean = true
         "-Dorg.gradle.internal.plugins.portal.url.override=%gradle.plugins.portal.url%",
         "-s",
         "--no-configuration-cache",
+        "%additional.gradle.parameters%",
         if (daemon) "--daemon" else "--no-daemon",
         if (isContinue) "--continue" else ""
     )
@@ -182,7 +185,8 @@ fun functionalTestExtraParameters(buildScanTag: String, os: Os, testJvmVersion: 
     )
     return (listOf(
         "-PtestJavaVersion=$testJvmVersion",
-        "-PtestJavaVendor=$testJvmVendor") +
+        "-PtestJavaVendor=$testJvmVendor"
+    ) +
         listOf(buildScanTag(buildScanTag)) +
         buildScanValues.map { buildScanCustomValue(it.key, it.value) }
         ).filter { it.isNotBlank() }.joinToString(separator = " ")

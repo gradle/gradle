@@ -25,6 +25,7 @@ import org.gradle.initialization.BuildRequestMetaData
 import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.initialization.DefaultBuildRequestContext
 import org.gradle.initialization.NoOpBuildEventConsumer
+import org.gradle.integtests.fixtures.RedirectStdIn
 import org.gradle.internal.buildevents.BuildStartedTime
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.filewatch.FileSystemChangeWaiter
@@ -33,21 +34,17 @@ import org.gradle.internal.invocation.BuildAction
 import org.gradle.internal.logging.text.TestStyledTextOutputFactory
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.Scopes
-import org.gradle.internal.session.BuildSessionContext
 import org.gradle.internal.session.BuildSessionActionExecutor
+import org.gradle.internal.session.BuildSessionContext
 import org.gradle.internal.time.Time
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.util.internal.DisconnectableInputStream
-import org.gradle.util.internal.RedirectStdIn
-import org.junit.Rule
 import spock.lang.Timeout
 
 import java.util.concurrent.TimeUnit
 
+@RedirectStdIn
 class ContinuousBuildActionExecutorTest extends ConcurrentSpec {
-
-    @Rule
-    RedirectStdIn redirectStdIn = new RedirectStdIn()
 
     def delegate = Mock(BuildSessionActionExecutor)
     def action = Mock(BuildAction)

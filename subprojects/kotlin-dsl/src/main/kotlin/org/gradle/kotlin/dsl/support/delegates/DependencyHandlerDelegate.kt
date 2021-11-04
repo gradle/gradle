@@ -35,6 +35,7 @@ import org.gradle.api.artifacts.type.ArtifactTypeContainer
 import org.gradle.api.attributes.AttributesSchema
 import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.provider.Provider
+import org.gradle.api.provider.ProviderConvertible
 
 
 /**
@@ -61,6 +62,12 @@ abstract class DependencyHandlerDelegate : DependencyHandler {
 
     override fun <T : Any?> addProvider(configurationName: String, dependencyNotation: Provider<T>) =
         delegate.addProvider(configurationName, dependencyNotation)
+
+    override fun <T : Any, U : ExternalModuleDependency> addProviderConvertible(configurationName: String, dependencyNotation: ProviderConvertible<T>, configuration: Action<in U>) =
+        delegate.addProviderConvertible(configurationName, dependencyNotation, configuration)
+
+    override fun <T : Any?> addProviderConvertible(configurationName: String, dependencyNotation: ProviderConvertible<T>) =
+        delegate.addProviderConvertible(configurationName, dependencyNotation)
 
     override fun create(dependencyNotation: Any): Dependency =
         delegate.create(dependencyNotation)
