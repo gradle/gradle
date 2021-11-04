@@ -70,7 +70,7 @@ abstract class AbstractDirectorySensitivityIntegrationSpec extends AbstractInteg
         [api, pathSensitivity] << [Api.values(), [PathSensitivity.RELATIVE, PathSensitivity.ABSOLUTE, PathSensitivity.NAME_ONLY]].combinations()
     }
 
-    def "input directories ignore empty directories (#api)"() {
+    def "input directories ignore empty directories by default (#api)"() {
         buildFile """
             @CacheableTask
             abstract class TaskWithInputs extends DefaultTask {
