@@ -131,15 +131,7 @@ public class JacocoPlugin implements Plugin<Project> {
             attributes.attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType.class, DocsType.JACOCO_COVERAGE));
             attributes.attribute(Verification.TEST_SUITE_NAME_ATTRIBUTE, objects.named(Verification.class, suite.getName()));
             attributes.attribute(Verification.TARGET_NAME_ATTRIBUTE, objects.named(Verification.class, suite.getName()));
-        });
-
-        // TODO: 18791 Probably need to make attributes lazily configurable, since at this configuration time, the .get() returns
-        // the convention value of "unit-test" and doesn't wait until the Test Suite is configured to contain "integration-test".
-        // As a workaround for now, only add this attribute after project is fully evaluated.
-        project.afterEvaluate(p -> {
-            variant.attributes(attributes -> {
-                attributes.attribute(TestType.TEST_TYPE_ATTRIBUTE, objects.named(TestType.class, suite.getTestType().get()));
-            });
+            attributes.attribute(TestType.TEST_TYPE_ATTRIBUTE, suite.getTestType().flatMap(tt -> project.provider(() -> objects.named(TestType.class, tt))));
         });
 
         variant.getOutgoing().artifact(target.getTestTask().flatMap(task -> project.provider(() -> task.getExtensions().getByType(JacocoTaskExtension.class).getDestinationFile())), artifact -> {

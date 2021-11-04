@@ -16,7 +16,6 @@
 
 package org.gradle.configurationcache.isolated
 
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolatedProjectsIntegrationTest {
@@ -213,9 +212,6 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         "findProject(':').findProject('b').with" | _
     }
 
-    // TODO: 18791 These fail because the TestType.TEST_TYPE_ATTRIBUTE is set in an afterEvaluate block, and the project
-    // is already configured prior to the afterEvaluate method being called in this test.
-    @Ignore
     @Unroll
     def "reports problem when project build script uses chain of methods #chain { } to apply plugins to all projects"() {
         settingsFile << """

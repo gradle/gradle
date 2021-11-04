@@ -35,10 +35,14 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.SetProperty;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -56,6 +60,7 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
     private final FileCollectionFactory fileCollectionFactory;
     private final ImmutableAttributesFactory attributesFactory;
     private final DomainObjectCollectionFactory domainObjectCollectionFactory;
+    private ObjectFactory objectFactory;
     private NamedDomainObjectContainer<ConfigurationVariant> variants;
     private ConfigurationVariantFactory variantFactory;
     private List<Capability> capabilities;
@@ -81,7 +86,12 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
         this.fileCollectionFactory = fileCollectionFactory;
         this.attributesFactory = attributesFactory;
         this.domainObjectCollectionFactory = domainObjectCollectionFactory;
+        this.objectFactory = objectFactory;
         this.attributes = attributesFactory.mutable(parentAttributes);
+    }
+
+    public void setObjectFactory(ObjectFactory objectFactory) {
+        this.objectFactory = objectFactory;
     }
 
     public void collectVariants(ConfigurationInternal.VariantVisitor visitor) {
@@ -160,6 +170,34 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
         ConfigurablePublishArtifact publishArtifact = artifactNotationParser.parseNotation(notation);
         artifacts.add(publishArtifact);
         configureAction.execute(publishArtifact);
+    }
+
+    @Override
+    public void artifacts(Provider<? extends Iterable<? extends Object>> provider) {
+        SetProperty<PublishArtifact> sources = objectFactory.setProperty(PublishArtifact.class);
+        sources.addAll(provider.map(list -> {
+            List<PublishArtifact> results = new ArrayList<>();
+            list.forEach (notation -> results.add(artifactNotationParser.parseNotation(notation)));
+            return results;
+        }));
+
+        artifacts.addAllLater(sources);
+    }
+
+    @Override
+    public void artifacts(Provider<? extends Iterable<? extends Object>> provider, Action<? super ConfigurablePublishArtifact> configureAction) {
+        SetProperty<PublishArtifact> sources = objectFactory.setProperty(PublishArtifact.class);
+        sources.addAll(provider.map(list -> {
+            List<PublishArtifact> results = new ArrayList<>();
+            list.forEach (notation -> {
+                ConfigurablePublishArtifact artifact = artifactNotationParser.parseNotation(notation);
+                configureAction.execute(artifact);
+                results.add(artifact);
+            });
+            return results;
+        }));
+
+        artifacts.addAllLater(sources);
     }
 
     @Override

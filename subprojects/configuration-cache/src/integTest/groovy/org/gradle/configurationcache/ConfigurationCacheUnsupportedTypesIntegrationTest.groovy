@@ -215,13 +215,8 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
         DefaultDependencySet                  | DependencySet                  | "project.configurations.maybeCreate('some').dependencies"
         DefaultExternalModuleDependency       | Dependency                     | "project.dependencies.create('junit:junit:4.13')"
         DefaultDependencyLockingHandler       | DependencyLockingHandler       | "project.dependencyLocking"
-        // TODO: 18791 These fail because the TestType.TEST_TYPE_ATTRIBUTE is set in an afterEvaluate block, which is not executed until
-        // after the configuration is resolved.  Is there a reason why there is not an isMutatable() method on the config?  If there was
-        // we could check that in the afterEvaluate block.  But I guess it never should be resolved until after afterEvaluate(), so maybe
-        // these types need to be moved out into another test which does not check for the failure here, but rather for the other type
-        // of failure the configuration is currently throwing now that the test variant is added.
-        //DefaultResolvedDependency             | ResolvedDependency             | "project.configurations.create(java.util.UUID.randomUUID().toString()).tap { project.dependencies.add(name, 'junit:junit:4.13') }.resolvedConfiguration.firstLevelModuleDependencies.first()"
-        //PreResolvedResolvableArtifact         | ResolvedArtifact               | "project.configurations.create(java.util.UUID.randomUUID().toString()).tap { project.dependencies.add(name, 'junit:junit:4.13') }.resolvedConfiguration.resolvedArtifacts.first()"
+        DefaultResolvedDependency             | ResolvedDependency             | "project.configurations.create(java.util.UUID.randomUUID().toString()).tap { project.dependencies.add(name, 'junit:junit:4.13') }.resolvedConfiguration.firstLevelModuleDependencies.first()"
+        PreResolvedResolvableArtifact         | ResolvedArtifact               | "project.configurations.create(java.util.UUID.randomUUID().toString()).tap { project.dependencies.add(name, 'junit:junit:4.13') }.resolvedConfiguration.resolvedArtifacts.first()"
         ConfigurationArtifactView             | ArtifactView                   | "project.configurations.maybeCreate('some').incoming.artifactView {}"
         DefaultArtifactResolutionResult       | ArtifactResolutionResult       | "project.dependencies.createArtifactResolutionQuery().forModule('junit', 'junit', '4.13').withArtifacts(JvmLibrary).execute()"
         DefaultComponentArtifactsResult       | ComponentResult                | "project.dependencies.createArtifactResolutionQuery().forModule('junit', 'junit', '4.13').withArtifacts(JvmLibrary).execute().components.first()"

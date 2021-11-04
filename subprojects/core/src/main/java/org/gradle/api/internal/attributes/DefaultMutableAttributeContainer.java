@@ -75,8 +75,7 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
     }
 
     private <T> void checkInsertionAllowed(Attribute<T> key) {
-        // TODO: AttributeContainer Should this just use keySet() method instead?  Initially
-        // the parent keys weren't used here
+        // Don't just use keySet() method instead, since we should be allowed to override attributes alread in the parent
         final Set<Attribute<?>> keys = Sets.union(state.keySet(), lazyAttributes.keySet());
         for (Attribute<?> attribute : keys) {
             String name = key.getName();
@@ -92,8 +91,10 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
         if (value == null) {
             throw new IllegalArgumentException("Setting null as an attribute value is not allowed");
         }
-        if (!attribute.getType().isAssignableFrom(value.getClass())) {
-            throw new IllegalArgumentException("Unexpected type for attribute '" + attribute.getName() + "'. Expected " + attribute.getType().getName() + " but was:" + value.getClass().getName());
+        if (!Provider.class.isAssignableFrom(value.getClass())) {
+            if (!attribute.getType().isAssignableFrom(value.getClass())) {
+                throw new IllegalArgumentException("Unexpected type for attribute '" + attribute.getName() + "'. Expected " + attribute.getType().getName() + " but was:" + value.getClass().getName());
+            }
         }
     }
 
