@@ -26,6 +26,7 @@ import org.gradle.api.logging.Logging
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprintController
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
+import org.gradle.configurationcache.metadata.ProjectMetadataController
 import org.gradle.configurationcache.models.IntermediateModelController
 import org.gradle.configurationcache.problems.ConfigurationCacheProblems
 import org.gradle.configurationcache.serialization.DefaultWriteContext
@@ -37,6 +38,7 @@ import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildtree.BuildActionModelRequirements
 import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.classpath.Instrumented
+import org.gradle.internal.component.local.model.LocalComponentMetadata
 import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.operations.BuildOperationExecutor
@@ -98,7 +100,10 @@ class DefaultConfigurationCache internal constructor(
     val store by lazy { cacheRepository.forKey(cacheKey.string) }
 
     private
-    val intermediateModels by lazy { IntermediateModelController(host, cacheIO, store, cacheFingerprintController) }
+    val intermediateModels = lazy { IntermediateModelController(host, cacheIO, store, cacheFingerprintController) }
+
+    private
+    val projectMetadata = lazy { ProjectMetadataController(store) }
 
     private
     val cacheIO: ConfigurationCacheIO
@@ -148,14 +153,18 @@ class DefaultConfigurationCache internal constructor(
     }
 
     override fun <T> loadOrCreateIntermediateModel(identityPath: Path?, modelName: String, creator: () -> T?): T? {
-        return intermediateModels.loadOrCreateIntermediateModel(identityPath, modelName, creator)
+        return intermediateModels.value.loadOrCreateIntermediateModel(identityPath, modelName, creator)
+    }
+
+    override fun loadOrCreateProjectMetadata(identityPath: Path, creator: () -> LocalComponentMetadata): LocalComponentMetadata {
+        return projectMetadata.value.loadOrCreateProjectMetadata(identityPath, creator)
     }
 
     override fun finalizeCacheEntry() {
         if (hasSavedValues) {
             store.useForStore { layout ->
                 writeConfigurationCacheFingerprint(layout)
-                cacheIO.writeCacheEntryDetailsTo(buildStateRegistry, intermediateModels.models, layout.fileFor(StateType.Entry))
+                cacheIO.writeCacheEntryDetailsTo(buildStateRegistry, intermediateModels.value.models, layout.fileFor(StateType.Entry))
             }
             hasSavedValues = false
         }
@@ -230,7 +239,15 @@ class DefaultConfigurationCache internal constructor(
 
     override fun stop() {
         Instrumented.discardListener()
-        CompositeStoppable.stoppable(intermediateModels, store).stop()
+        val stoppable = CompositeStoppable.stoppable()
+        if (intermediateModels.isInitialized()) {
+            stoppable.add(intermediateModels.value)
+        }
+        if (projectMetadata.isInitialized()) {
+            stoppable.add(projectMetadata.value)
+        }
+        stoppable.add(store)
+        stoppable.stop()
     }
 
     private
@@ -247,7 +264,7 @@ class DefaultConfigurationCache internal constructor(
             val result = checkFingerprint(layout.fileFor(StateType.Fingerprint))
 
             if (result is CheckedFingerprint.ProjectsInvalid) {
-                intermediateModels.restoreFromCacheEntry(entryDetails, result)
+                intermediateModels.value.restoreFromCacheEntry(entryDetails, result)
             }
 
             result

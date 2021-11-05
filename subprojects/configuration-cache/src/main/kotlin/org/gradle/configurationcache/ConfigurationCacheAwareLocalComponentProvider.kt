@@ -22,9 +22,12 @@ import org.gradle.internal.component.local.model.LocalComponentMetadata
 
 
 class ConfigurationCacheAwareLocalComponentProvider(
-    private val delegates: List<LocalComponentProvider>
+    private val delegates: List<LocalComponentProvider>,
+    private val cache: BuildTreeConfigurationCache
 ) : LocalComponentProvider {
-    override fun getComponent(project: ProjectState): LocalComponentMetadata? {
-        return delegates.firstNotNullOfOrNull { it.getComponent(project) }
+    override fun getComponent(project: ProjectState): LocalComponentMetadata {
+        return cache.loadOrCreateProjectMetadata(project.identityPath) {
+            delegates.firstNotNullOf { it.getComponent(project) }
+        }
     }
 }

@@ -98,10 +98,11 @@ class DefaultBuildModelControllerServices : BuildModelControllerServices {
             buildModelParameters: BuildModelParameters,
             projectStateRegistry: ProjectStateRegistry,
             calculatedValueContainerFactory: CalculatedValueContainerFactory,
+            cache: BuildTreeConfigurationCache,
             providers: List<LocalComponentProvider>
         ): LocalComponentRegistry {
             val effectiveProviders = if (buildModelParameters.isProjectScopeModelCache) {
-                listOf(ConfigurationCacheAwareLocalComponentProvider(providers))
+                listOf(ConfigurationCacheAwareLocalComponentProvider(providers, cache))
             } else {
                 providers
             }
