@@ -26,7 +26,6 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 import org.hamcrest.CoreMatchers
 import org.junit.Rule
-import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -87,7 +86,6 @@ public class LoggingTest {
         result.testClass("LoggingTest").assertStderr(equalTo("stderr.\n"))
     }
 
-    @Ignore // TODO: 18791 What's broken here?
     @UsesSample("testing/testReport/groovy")
     def "can generate report for subprojects"() {
         given:
