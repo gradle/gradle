@@ -24,6 +24,7 @@ import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.Genera
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingData;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -161,6 +162,9 @@ public class ClassSetAnalysis {
             if (entry.getValue().stream().anyMatch(compiledClasses::contains)) {
                 typesToReprocess.add(entry.getKey());
             }
+        }
+        for (String toReprocess : new ArrayList<>(typesToReprocess)) {
+            typesToReprocess.removeAll(annotationProcessingData.getGeneratedTypesByOrigin().getOrDefault(toReprocess, Collections.emptySet()));
         }
         return typesToReprocess;
     }
