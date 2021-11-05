@@ -20,6 +20,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 
@@ -60,7 +61,7 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
 
     @Override
     public <T> AttributeContainer attribute(Attribute<T> key, T value) {
-        assertAttributeConstraints(value, key);
+        assertAttributeTypeIsValid(value, key);
         checkInsertionAllowed(key);
         state = cache.concat(state, key, value);
         return this;
@@ -68,7 +69,7 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
 
     @Override
     public <T> AttributeContainer attribute(Attribute<T> key, Provider<? extends T> provider) {
-        assertAttributeConstraints(provider, key);
+        assertAttributeTypeIsValid(provider, key);
         checkInsertionAllowed(key);
         lazyAttributes.put(key, provider);
         return this;
@@ -87,14 +88,31 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
         }
     }
 
-    private void assertAttributeConstraints(@Nullable Object value, Attribute<?> attribute) {
+    /**
+     * Checks that the attribute's type matches the given value's type (if a non-{@link Provider}), or the {@link ProviderInternal#getType()} if the
+     * value is a {@link ProviderInternal}.  If the value is a {@link Provider} but <strong>NOT</strong> also a {@link ProviderInternal}, then no
+     * assertions are made (this type of lazily added attribute will fail at the time of retrieval from this container.
+     *
+     * @param value the value (or value provider) to check
+     * @param attribute the attribute containing a type to check against
+     */
+    private void assertAttributeTypeIsValid(@Nullable Object value, Attribute<?> attribute) {
         if (value == null) {
             throw new IllegalArgumentException("Setting null as an attribute value is not allowed");
         }
-        if (!Provider.class.isAssignableFrom(value.getClass())) {
-            if (!attribute.getType().isAssignableFrom(value.getClass())) {
-                throw new IllegalArgumentException("Unexpected type for attribute '" + attribute.getName() + "'. Expected " + attribute.getType().getName() + " but was:" + value.getClass().getName());
-            }
+
+        final Class<?> valueType;
+        if (ProviderInternal.class.isAssignableFrom(value.getClass())) {
+            ProviderInternal<?> provider = Cast.uncheckedCast(value);
+            valueType = provider.getType();
+        } else if (!Provider.class.isAssignableFrom(value.getClass())) {
+            valueType = value.getClass();
+        } else {
+            valueType = null;
+        }
+
+        if (null != valueType && !attribute.getType().isAssignableFrom(value.getClass())) {
+            throw new IllegalArgumentException("Unexpected type for attribute '" + attribute.getName() + "'. Expected " + attribute.getType().getName() + " but was:" + value.getClass().getName());
         }
     }
 
