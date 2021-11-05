@@ -96,7 +96,7 @@ private constructor(
         dependencyNotation: Provider<MinimalExternalModuleDependency>,
         dependencyConfiguration: ExternalModuleDependency.() -> Unit
     ) {
-        add(CLASSPATH_CONFIGURATION, dependencyNotation, closureOf(dependencyConfiguration))
+        addProvider(CLASSPATH_CONFIGURATION, dependencyNotation, dependencyConfiguration)
     }
 
     /**
@@ -112,7 +112,7 @@ private constructor(
         dependencyNotation: ProviderConvertible<MinimalExternalModuleDependency>,
         dependencyConfiguration: ExternalModuleDependency.() -> Unit
     ) {
-        add(CLASSPATH_CONFIGURATION, dependencyNotation, closureOf(dependencyConfiguration))
+        addProviderConvertible(CLASSPATH_CONFIGURATION, dependencyNotation, dependencyConfiguration)
     }
 
     /**
