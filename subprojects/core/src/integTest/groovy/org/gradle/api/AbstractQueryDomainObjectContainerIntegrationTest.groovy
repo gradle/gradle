@@ -16,7 +16,6 @@
 
 package org.gradle.api
 
-
 abstract class AbstractQueryDomainObjectContainerIntegrationTest extends AbstractDomainObjectContainerIntegrationTest {
     def "can execute query method #queryMethod.key from configureEach"() {
         buildFile << """

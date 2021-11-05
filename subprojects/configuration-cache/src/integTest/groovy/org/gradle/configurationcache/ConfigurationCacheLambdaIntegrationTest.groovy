@@ -16,7 +16,6 @@
 
 package org.gradle.configurationcache
 
-
 class ConfigurationCacheLambdaIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
     def "restores task fields whose value is a serializable #kind Java lambda"() {

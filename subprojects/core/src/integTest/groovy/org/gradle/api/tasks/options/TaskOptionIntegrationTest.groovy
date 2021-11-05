@@ -16,8 +16,6 @@
 
 package org.gradle.api.tasks.options
 
-
-
 class TaskOptionIntegrationTest extends AbstractOptionIntegrationSpec {
 
     def "can evaluate option value of type #optionType when #description for Java task on command line"() {
@@ -187,7 +185,7 @@ Options
                     sample.myProp = "fromConfigureTask"
                 }
             }
-            
+
             sample.dependsOn(configureTask)
         """
 

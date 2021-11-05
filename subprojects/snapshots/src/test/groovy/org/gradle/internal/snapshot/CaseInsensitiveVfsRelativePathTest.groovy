@@ -16,7 +16,6 @@
 
 package org.gradle.internal.snapshot
 
-
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_INSENSITIVE
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
 import static org.gradle.internal.snapshot.PathUtil.compareChars

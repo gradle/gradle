@@ -16,8 +16,6 @@
 
 package org.gradle.configurationcache
 
-
-
 class ConfigurationCacheSkipCacheIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
     def "skip reading cached state on #commandLine"() {

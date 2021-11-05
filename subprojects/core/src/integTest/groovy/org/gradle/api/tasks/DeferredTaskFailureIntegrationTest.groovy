@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks
 
-
 class DeferredTaskFailureIntegrationTest extends AbstractDeferredTaskDefinitionIntegrationTest {
     def "reports failure in task constructor when task realized"() {
         settingsFile << """

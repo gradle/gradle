@@ -16,7 +16,6 @@
 
 package org.gradle.configurationcache.isolated
 
-
 class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolatedProjectsIntegrationTest {
     def "reports problem when build script uses #block block to apply plugins to another project"() {
         settingsFile << """

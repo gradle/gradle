@@ -16,7 +16,6 @@
 
 package org.gradle.api
 
-
 abstract class MutationFailureFromConfigureEachDomainObjectContainerIntegrationTest extends AbstractDomainObjectContainerIntegrationTest {
     def "cannot execute mutation method #mutationMethod.key from configureEach"() {
         buildFile << """

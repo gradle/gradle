@@ -16,7 +16,6 @@
 
 package org.gradle.configurationcache
 
-
 import javax.inject.Inject
 
 class ConfigurationCacheTaskSerializationIntegrationTest extends AbstractConfigurationCacheIntegrationTest {

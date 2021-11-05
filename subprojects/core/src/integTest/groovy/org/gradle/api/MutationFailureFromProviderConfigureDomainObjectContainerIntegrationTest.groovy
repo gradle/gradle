@@ -16,7 +16,6 @@
 
 package org.gradle.api
 
-
 abstract class MutationFailureFromProviderConfigureDomainObjectContainerIntegrationTest extends AbstractDomainObjectContainerIntegrationTest {
     def "cannot execute mutation method #mutationMethod.key from Provider.configure"() {
         buildFile << """

@@ -16,7 +16,6 @@
 
 package org.gradle.util.ports
 
-
 class FixedAvailablePortAllocatorTest extends AbstractPortAllocatorTest {
 
     def "assigns a unique fixed port range based on worker id (totalWorkers: #totalWorkers, totalAgents: #totalAgents)" () {

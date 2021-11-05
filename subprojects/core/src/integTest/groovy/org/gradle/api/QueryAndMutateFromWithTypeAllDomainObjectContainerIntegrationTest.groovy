@@ -16,7 +16,6 @@
 
 package org.gradle.api
 
-
 abstract class QueryAndMutateFromWithTypeAllDomainObjectContainerIntegrationTest extends AbstractDomainObjectContainerIntegrationTest {
     def "can execute query and mutating methods #method.key from withType.all"() {
         buildFile << """
