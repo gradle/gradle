@@ -101,7 +101,7 @@ class PathNormalizationStrategyTest extends Specification {
             assert fingerprints[file] == file.name
         }
         fingerprints[emptyRootDir] == rootDirectoryFingerprintFor(strategy.directorySensitivity)
-        fingerprints[missingFile] == rootMissingFileFingerprintFor(missingFile.name, strategy.directorySensitivity)
+        fingerprints[missingFile] == (strategy.directorySensitivity == DirectorySensitivity.DEFAULT ? missingFile.name : null)
         fingerprints[resources] == rootDirectoryFingerprintFor(strategy.directorySensitivity)
 
         where:
@@ -124,7 +124,7 @@ class PathNormalizationStrategyTest extends Specification {
         fingerprints[resources.file(subDirB)]       == directoryFingerprintFor(subDirB, strategy.directorySensitivity)
         fingerprints[resources.file(fileInSubdirB)] == fileInSubdirB
         fingerprints[emptyRootDir]                  == rootDirectoryFingerprintFor(strategy.directorySensitivity)
-        fingerprints[missingFile]                   == rootMissingFileFingerprintFor(missingFile.name, strategy.directorySensitivity)
+        fingerprints[missingFile]                   == null
 
         where:
         strategy << [
@@ -152,10 +152,6 @@ class PathNormalizationStrategyTest extends Specification {
 
     String rootDirectoryFingerprintFor(DirectorySensitivity directorySensitivity) {
         return directorySensitivity == DirectorySensitivity.DEFAULT ? IGNORED : null
-    }
-
-    String rootMissingFileFingerprintFor(String value, DirectorySensitivity directorySensitivity) {
-        return directorySensitivity == DirectorySensitivity.DEFAULT ? value : null
     }
 
     String directoryFingerprintFor(String value, DirectorySensitivity directorySensitivity) {

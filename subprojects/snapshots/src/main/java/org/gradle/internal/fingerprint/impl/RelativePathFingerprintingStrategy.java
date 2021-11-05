@@ -18,6 +18,7 @@ package org.gradle.internal.fingerprint.impl;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Interner;
+import org.gradle.internal.file.FileMetadata;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
@@ -74,8 +75,10 @@ public class RelativePathFingerprintingStrategy extends AbstractDirectorySensiti
                 if (relativePath.isRoot()) {
                     if (snapshot.getType() == FileType.Directory) {
                         fingerprint = IgnoredPathFileSystemLocationFingerprint.DIRECTORY;
-                    } else {
+                    } else if (snapshot.getType() != FileType.Missing || snapshot.getAccessType() == FileMetadata.AccessType.VIA_SYMLINK){
                         fingerprint = fingerprint(snapshot.getName(), snapshot.getType(), snapshot);
+                    } else {
+                        return SnapshotVisitResult.CONTINUE;
                     }
                 } else {
                     fingerprint = fingerprint(stringInterner.intern(relativePath.toRelativePath()), snapshot.getType(), snapshot);
