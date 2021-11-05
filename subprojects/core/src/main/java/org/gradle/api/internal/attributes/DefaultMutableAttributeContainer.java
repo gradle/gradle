@@ -135,7 +135,12 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
     @Override
     public ImmutableAttributes asImmutable() {
         if (parent == null) {
-            return state;
+            if (lazyAttributes.isEmpty()) {
+                // There is a recursive call relationship between this method and evaluateLazyAttributes(), this check is the base case
+                return state;
+            } else {
+                return cache.concat(state, evaluateLazyValues());
+            }
         } else {
             ImmutableAttributes attributes = parent.asImmutable();
             if (!state.isEmpty()) {
@@ -189,12 +194,12 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
     }
 
     private ImmutableAttributes evaluateLazyValues() {
-        ImmutableAttributes results = cache.mutable().asImmutable();
+        final AttributeContainerInternal evaluatedAttributes = cache.mutable();
         for (Map.Entry<Attribute<?>, Provider<?>> entry : lazyAttributes.entrySet()) {
-            @SuppressWarnings("unchecked") Attribute<Object> key = (Attribute<Object>) entry.getKey();
+            @SuppressWarnings("unchecked") Attribute<Object> attribute = (Attribute<Object>) entry.getKey();
             Object value = entry.getValue().get();
-            results = cache.concat(results, key, value);
+            evaluatedAttributes.attribute(attribute, value);
         }
-        return results;
+        return evaluatedAttributes.asImmutable();
     }
 }
