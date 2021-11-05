@@ -30,17 +30,17 @@ import java.util.Objects;
 import java.util.Set;
 
 class DefaultMutableAttributeContainer implements AttributeContainerInternal {
-    private final ImmutableAttributesFactory cache;
+    private final ImmutableAttributesFactory immutableAttributesFactory;
     private final AttributeContainerInternal parent;
     private ImmutableAttributes state = ImmutableAttributes.EMPTY;
     private final Map<Attribute<?>, Provider<?>> lazyAttributes = Maps.newHashMap();
 
-    public DefaultMutableAttributeContainer(ImmutableAttributesFactory cache) {
-        this(cache, null);
+    public DefaultMutableAttributeContainer(ImmutableAttributesFactory immutableAttributesFactory) {
+        this(immutableAttributesFactory, null);
     }
 
-    public DefaultMutableAttributeContainer(ImmutableAttributesFactory cache, @Nullable AttributeContainerInternal parent) {
-        this.cache = cache;
+    public DefaultMutableAttributeContainer(ImmutableAttributesFactory immutableAttributesFactory, @Nullable AttributeContainerInternal parent) {
+        this.immutableAttributesFactory = immutableAttributesFactory;
         this.parent = parent;
     }
 
@@ -63,7 +63,7 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
     public <T> AttributeContainer attribute(Attribute<T> key, T value) {
         assertAttributeTypeIsValid(value, key);
         checkInsertionAllowed(key);
-        state = cache.concat(state, key, value);
+        state = immutableAttributesFactory.concat(state, key, value);
         return this;
     }
 
@@ -157,12 +157,12 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
                 // There is a recursive call relationship between this method and evaluateLazyAttributes(), this check is the base case
                 return state;
             } else {
-                return cache.concat(state, evaluateLazyValues());
+                return immutableAttributesFactory.concat(state, evaluateLazyValues());
             }
         } else {
             ImmutableAttributes attributes = parent.asImmutable();
             if (!state.isEmpty()) {
-                attributes = cache.concat(cache.concat(attributes, state), evaluateLazyValues());
+                attributes = immutableAttributesFactory.concat(immutableAttributesFactory.concat(attributes, state), evaluateLazyValues());
             }
             return attributes;
         }
@@ -212,7 +212,7 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
     }
 
     private ImmutableAttributes evaluateLazyValues() {
-        final AttributeContainerInternal evaluatedAttributes = cache.mutable();
+        final AttributeContainerInternal evaluatedAttributes = immutableAttributesFactory.mutable();
         for (Map.Entry<Attribute<?>, Provider<?>> entry : lazyAttributes.entrySet()) {
             @SuppressWarnings("unchecked") Attribute<Object> attribute = (Attribute<Object>) entry.getKey();
             Object value = entry.getValue().get();
