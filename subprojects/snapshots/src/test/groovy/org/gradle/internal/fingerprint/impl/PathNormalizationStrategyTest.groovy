@@ -101,6 +101,7 @@ class PathNormalizationStrategyTest extends Specification {
             assert fingerprints[file] == file.name
         }
         fingerprints[emptyRootDir] == rootDirectoryFingerprintFor(strategy.directorySensitivity)
+        fingerprints[missingFile] == rootMissingFileFingerprintFor(missingFile.name, strategy.directorySensitivity)
         fingerprints[resources] == rootDirectoryFingerprintFor(strategy.directorySensitivity)
 
         where:
@@ -123,7 +124,7 @@ class PathNormalizationStrategyTest extends Specification {
         fingerprints[resources.file(subDirB)]       == directoryFingerprintFor(subDirB, strategy.directorySensitivity)
         fingerprints[resources.file(fileInSubdirB)] == fileInSubdirB
         fingerprints[emptyRootDir]                  == rootDirectoryFingerprintFor(strategy.directorySensitivity)
-        fingerprints[missingFile]                   == missingFile.name
+        fingerprints[missingFile]                   == rootMissingFileFingerprintFor(missingFile.name, strategy.directorySensitivity)
 
         where:
         strategy << [
@@ -153,6 +154,10 @@ class PathNormalizationStrategyTest extends Specification {
         return directorySensitivity == DirectorySensitivity.DEFAULT ? IGNORED : null
     }
 
+    String rootMissingFileFingerprintFor(String value, DirectorySensitivity directorySensitivity) {
+        return directorySensitivity == DirectorySensitivity.DEFAULT ? value : null
+    }
+
     String directoryFingerprintFor(String value, DirectorySensitivity directorySensitivity) {
         return directorySensitivity == DirectorySensitivity.DEFAULT ? value : null
     }
@@ -162,10 +167,10 @@ class PathNormalizationStrategyTest extends Specification {
     }
 
     List<File> getAllFilesToFingerprint(DirectorySensitivity directorySensitivity) {
-        def dirs = [emptyRootDir, resources.file(subDirA), resources.file(subDirB), resources]
-        def files = [jarFile1, jarFile2, missingFile, resources.file(fileInRoot), resources.file(fileInSubdirA), resources.file(fileInSubdirB)]
+        def dirsAndMissingFiles = [emptyRootDir, resources.file(subDirA), resources.file(subDirB), resources, missingFile]
+        def files = [jarFile1, jarFile2, resources.file(fileInRoot), resources.file(fileInSubdirA), resources.file(fileInSubdirB)]
 
-        return directorySensitivity == DirectorySensitivity.DEFAULT ? (dirs + files) : files
+        return directorySensitivity == DirectorySensitivity.DEFAULT ? (dirsAndMissingFiles + files) : files
     }
 
     protected TestFile file(String... path) {
