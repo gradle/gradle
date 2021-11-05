@@ -18,7 +18,6 @@ package org.gradle.api.tasks.diagnostics
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
-import spock.lang.Unroll
 
 class TaskReportTaskIntegrationTest extends AbstractIntegrationSpec {
 
@@ -26,7 +25,6 @@ class TaskReportTaskIntegrationTest extends AbstractIntegrationSpec {
     private final static String[] TASKS_DETAILED_REPORT_TASK = TASKS_REPORT_TASK + ['--all'] as String[]
     private final static String GROUP = 'Hello world'
 
-    @Unroll
     def "always renders default tasks running #tasks"() {
         given:
         String projectName = 'test'
@@ -172,7 +170,6 @@ Build tasks
 sayHi (HelloTask)""")
     }
 
-    @Unroll
     def "always renders task rule running #tasks"() {
         given:
         buildFile << """
@@ -200,7 +197,6 @@ Pattern: ping<ID>
         tasks << [TASKS_REPORT_TASK, TASKS_DETAILED_REPORT_TASK]
     }
 
-    @Unroll
     def "renders tasks with and without group running #tasks"() {
         given:
         buildFile << """
@@ -230,7 +226,6 @@ b
         TASKS_DETAILED_REPORT_TASK | true               | true
     }
 
-    @Unroll
     def "renders task with dependencies without group in detailed report running #tasks"() {
         given:
         buildFile << """
@@ -257,7 +252,6 @@ b
         TASKS_DETAILED_REPORT_TASK | true
     }
 
-    @Unroll
     def "renders grouped task with dependencies in detailed report running #tasks"() {
         given:
         buildFile << """
@@ -386,7 +380,6 @@ alpha - ALPHA_in_sub1
 """
     }
 
-    @Unroll
     def "task report includes tasks defined via model rules running #tasks"() {
         when:
         buildScript """
@@ -416,7 +409,6 @@ alpha - ALPHA_in_sub1
         TASKS_DETAILED_REPORT_TASK | true               | true
     }
 
-    @Unroll
     def "task report includes tasks with dependencies defined via model rules running #tasks"() {
         when:
         buildScript """
@@ -494,7 +486,6 @@ b
         succeeds TASKS_DETAILED_REPORT_TASK
     }
 
-    @Unroll
     def "renders tasks with dependencies created by model rules running #tasks"() {
         when:
         settingsFile << "rootProject.name = 'test-project'"

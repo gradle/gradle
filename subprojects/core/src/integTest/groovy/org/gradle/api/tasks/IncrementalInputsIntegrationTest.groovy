@@ -20,9 +20,7 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.execution.history.changes.ChangeTypeInternal
 import org.gradle.work.Incremental
 import spock.lang.Issue
-import spock.lang.Unroll
 
-@Unroll
 class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrationTest {
 
     String getTaskAction() {

@@ -51,7 +51,6 @@ import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class DefaultMavenPublicationTest extends Specification {
     @Rule
@@ -357,7 +356,6 @@ class DefaultMavenPublicationTest extends Specification {
         }
     }
 
-    @Unroll
     def 'adopts platform in #scope declaration from added components'() {
         given:
         def publication = createPublication()

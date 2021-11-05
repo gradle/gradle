@@ -21,14 +21,12 @@ import org.gradle.integtests.fixtures.MissingTaskDependenciesFixture
 import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationTestFor
 import spock.lang.Issue
-import spock.lang.Unroll
 
 import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.convertToSingleLine
 
 @ValidationTestFor(
     ValidationProblemId.IMPLICIT_DEPENDENCY
 )
-@Unroll
 class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec implements MissingTaskDependenciesFixture {
 
     def "detects missing dependency between two tasks (#description)"() {

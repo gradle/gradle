@@ -27,13 +27,11 @@ import org.gradle.process.ExecOperations
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.gradle.workers.WorkerExecutor
 import org.slf4j.Logger
-import spock.lang.Unroll
 
 import javax.inject.Inject
 
 class ConfigurationCacheSupportedTypesIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
-    @Unroll
     def "restores task fields whose value is instance of #type"() {
         buildFile << """
             import java.util.concurrent.*
@@ -123,7 +121,6 @@ class ConfigurationCacheSupportedTypesIntegrationTest extends AbstractConfigurat
         "char[]"                             | "['a', 'b', 'c']"                                                      | "abc"
     }
 
-    @Unroll
     def "keeps iteration order of #type instances"() {
         given:
         buildFile << """
@@ -152,7 +149,6 @@ class ConfigurationCacheSupportedTypesIntegrationTest extends AbstractConfigurat
         'HashMap' | "['first': 1, 'second': 2, 'third': 3] as HashMap" | 'underTest.collect { k,v -> "$k=$v" }.join(", ")'
     }
 
-    @Unroll
     def "restores task fields whose value is instance of plugin specific version of Guava #type"() {
         buildFile << """
             import ${type.name}
@@ -202,7 +198,6 @@ class ConfigurationCacheSupportedTypesIntegrationTest extends AbstractConfigurat
         ImmutableMap  | "ImmutableMap.of(1, 'a', 2, 'b')" | "[1:a, 2:b]"
     }
 
-    @Unroll
     def "restores task fields whose value is service of type #type"() {
         buildFile << """
             class SomeBean {
@@ -247,7 +242,6 @@ class ConfigurationCacheSupportedTypesIntegrationTest extends AbstractConfigurat
         ListenerManager.name             | "project.services.get(${ListenerManager.name})"             | "toString()"
     }
 
-    @Unroll
     def "restores task fields whose value is provider of type #type"() {
         buildFile << """
             import ${Inject.name}
@@ -291,7 +285,6 @@ class ConfigurationCacheSupportedTypesIntegrationTest extends AbstractConfigurat
         "Provider<String>" | "objects.property(String)"                | "null"
     }
 
-    @Unroll
     def "restores task fields whose value is broken #type"() {
         def configurationCache = newConfigurationCacheFixture()
 
@@ -336,7 +329,6 @@ class ConfigurationCacheSupportedTypesIntegrationTest extends AbstractConfigurat
         "FileCollection"   | "project.files"              | "files" | "value 'file collection' failed to visit file collection"
     }
 
-    @Unroll
     def "restores task fields whose value is property of type #type"() {
         buildFile << """
             import ${Inject.name}
@@ -403,7 +395,6 @@ class ConfigurationCacheSupportedTypesIntegrationTest extends AbstractConfigurat
         "MapProperty<String, String>" | "objects.mapProperty(String, String)" | "null"           | "null"
     }
 
-    @Unroll
     def "restores task fields whose value is FileCollection"() {
         buildFile << """
             import ${Inject.name}
@@ -455,7 +446,6 @@ class ConfigurationCacheSupportedTypesIntegrationTest extends AbstractConfigurat
         "layout.files('a', 'b')" | ['a', 'b']
     }
 
-    @Unroll
     def "restores task fields whose value is #kind TextResource"() {
 
         given:

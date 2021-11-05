@@ -48,7 +48,6 @@ import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult
 import org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios
 import org.gradle.util.Path
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.FIXED_10
 import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.FIXED_9
@@ -77,7 +76,6 @@ class SelectorStateResolverTest extends Specification {
     private final SelectorStateResolver conflictHandlingResolver = new SelectorStateResolver(conflictResolver, componentFactory, root, resolveOptimizations, versionComparator.asVersionComparator())
     private final SelectorStateResolver failingResolver = new SelectorStateResolver(new FailingConflictResolver(), componentFactory, root, resolveOptimizations, versionComparator.asVersionComparator())
 
-    @Unroll
     def "resolve selector #permutation"() {
         given:
         def candidates = permutation.candidates
@@ -90,7 +88,6 @@ class SelectorStateResolverTest extends Specification {
         permutation << SCENARIOS_SINGLE
     }
 
-    @Unroll
     def "resolve pair #permutation"() {
         given:
         def candidates = permutation.candidates
@@ -103,7 +100,6 @@ class SelectorStateResolverTest extends Specification {
         permutation << SCENARIOS_TWO_DEPENDENCIES
     }
 
-    @Unroll
     def "resolve empty pair #permutation"() {
         given:
         def candidates = permutation.candidates
@@ -116,7 +112,6 @@ class SelectorStateResolverTest extends Specification {
         permutation << SCENARIOS_EMPTY
     }
 
-    @Unroll
     def "resolve prefer pair #permutation"() {
         given:
         def candidates = permutation.candidates
@@ -129,7 +124,6 @@ class SelectorStateResolverTest extends Specification {
         permutation << SCENARIOS_PREFER
     }
 
-    @Unroll
     def "resolve reject pair #permutation"() {
         given:
         def candidates = permutation.candidates
@@ -142,7 +136,6 @@ class SelectorStateResolverTest extends Specification {
         permutation << SCENARIOS_DEPENDENCY_WITH_REJECT
     }
 
-    @Unroll
     def "resolve three #permutation"() {
         given:
         def candidates = permutation.candidates
@@ -155,7 +148,6 @@ class SelectorStateResolverTest extends Specification {
         permutation << SCENARIOS_THREE_DEPENDENCIES
     }
 
-    @Unroll
     def "resolve deps with reject #permutation"() {
         given:
         def candidates = permutation.candidates
@@ -168,7 +160,6 @@ class SelectorStateResolverTest extends Specification {
         permutation << SCENARIOS_WITH_REJECT
     }
 
-    @Unroll
     def "resolve four #permutation"() {
         given:
         def candidates = permutation.candidates

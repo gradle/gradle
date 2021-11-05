@@ -35,7 +35,6 @@ import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.util.TestUtil
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class DefaultSettingsTest extends Specification {
     File settingsDir = new File('/somepath/root').absoluteFile
@@ -215,7 +214,6 @@ class DefaultSettingsTest extends Specification {
         settings.toString() == 'settings \'root\''
     }
 
-    @Unroll
     def "can enable feature preview for #feature"() {
         when:
         settings.enableFeaturePreview(feature.name())

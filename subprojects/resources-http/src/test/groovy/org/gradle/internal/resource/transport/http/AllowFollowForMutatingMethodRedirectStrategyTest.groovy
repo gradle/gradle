@@ -24,7 +24,6 @@ import org.apache.http.message.BasicHeader
 import org.apache.http.message.BasicStatusLine
 import org.apache.http.protocol.HttpContext
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class AllowFollowForMutatingMethodRedirectStrategyTest extends Specification {
 
@@ -46,7 +45,6 @@ class AllowFollowForMutatingMethodRedirectStrategyTest extends Specification {
         method << HTTP_METHODS
     }
 
-    @Unroll
     def "should redirect for http method [#httpMethod,#redirect]"(String httpMethod, int redirect) {
         setup:
         HttpRequest request = Mock()

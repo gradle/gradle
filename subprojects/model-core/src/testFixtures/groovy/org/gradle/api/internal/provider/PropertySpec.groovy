@@ -25,7 +25,6 @@ import org.gradle.internal.DisplayName
 import org.gradle.internal.state.Managed
 import org.gradle.internal.state.ModelObject
 import org.gradle.util.internal.TextUtil
-import spock.lang.Unroll
 
 import java.util.concurrent.Callable
 
@@ -2157,7 +2156,6 @@ The value of this property is derived from:
         1 * host.beforeRead(null) >> null
     }
 
-    @Unroll
     def "finalizes upstream property when value read using #method and unsafe read disallowed"() {
         def b = propertyWithNoValue()
         def c = propertyWithNoValue()
@@ -2194,7 +2192,6 @@ The value of this property is derived from:
         method << ["get", "finalizeValue", "isPresent"]
     }
 
-    @Unroll
     def "finalizes upstream property with no value when value read using #method and unsafe read disallowed"() {
         def b = propertyWithNoValue()
         def c = propertyWithNoValue()
@@ -2230,7 +2227,6 @@ The value of this property is derived from:
         method << ["getOrNull", "finalizeValue", "isPresent"]
     }
 
-    @Unroll
     def "finalizes upstream mapped property when value read using #method and unsafe read disallowed"() {
         def b = propertyWithDefaultValue()
         def c = propertyWithDefaultValue()
@@ -2267,7 +2263,6 @@ The value of this property is derived from:
         method << ["get", "finalizeValue", "isPresent"]
     }
 
-    @Unroll
     def "finalizes upstream flatmapped property when value read using #method and unsafe read disallowed"() {
         def b = propertyWithDefaultValue()
         def c = propertyWithDefaultValue()
@@ -2304,7 +2299,6 @@ The value of this property is derived from:
         method << ["get", "finalizeValue", "isPresent"]
     }
 
-    @Unroll
     def "finalizes upstream orElse fixed value property when value read using #method and unsafe read disallowed"() {
         def b = propertyWithNoValue()
         def c = propertyWithNoValue()
@@ -2340,7 +2334,6 @@ The value of this property is derived from:
         method << ["get", "finalizeValue", "isPresent"]
     }
 
-    @Unroll
     def "finalizes upstream orElse properties when value read using #method and unsafe read disallowed"() {
         def b = propertyWithNoValue()
         def c = propertyWithDefaultValue()

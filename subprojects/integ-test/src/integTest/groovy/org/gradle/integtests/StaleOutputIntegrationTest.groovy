@@ -25,9 +25,7 @@ import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
-import spock.lang.Unroll
 
-@Unroll
 class StaleOutputIntegrationTest extends AbstractIntegrationSpec implements MissingTaskDependenciesFixture {
 
     @Issue(['GRADLE-2440', 'GRADLE-2579'])

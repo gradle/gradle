@@ -23,7 +23,6 @@ import org.apache.http.message.BasicHeader
 import org.apache.http.params.HttpParams
 import org.apache.http.protocol.HttpContext
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class AlwaysFollowAndPreserveMethodRedirectStrategyTest extends Specification {
 
@@ -37,7 +36,6 @@ class AlwaysFollowAndPreserveMethodRedirectStrategyTest extends Specification {
         method << HTTP_METHODS
     }
 
-    @Unroll
     def "should get redirect for http method [#httpMethod]"() {
         setup:
         HttpRequest request = Mock()

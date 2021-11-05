@@ -17,7 +17,6 @@
 package org.gradle.buildinit.plugins
 
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
-import spock.lang.Unroll
 
 class ScalaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
 
@@ -27,7 +26,6 @@ class ScalaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
     @Override
     String subprojectName() { 'lib' }
 
-    @Unroll
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'scala-library', '--dsl', scriptDsl.id)
@@ -49,7 +47,6 @@ class ScalaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    @Unroll
     def "creates sample source with package and #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'scala-library', '--package', 'my.lib', '--dsl', scriptDsl.id)
@@ -71,7 +68,6 @@ class ScalaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    @Unroll
     def "creates build using test suites with #scriptDsl build scripts when using --incubating"() {
         when:
         run('init', '--type', 'scala-library', '--package', 'my.lib', '--dsl', scriptDsl.id, '--incubating')
@@ -94,7 +90,6 @@ class ScalaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    @Unroll
     def "source generation is skipped when scala sources detected with #scriptDsl build scripts"() {
         setup:
         subprojectDir.file("src/main/scala/org/acme/SampleMain.scala") << """

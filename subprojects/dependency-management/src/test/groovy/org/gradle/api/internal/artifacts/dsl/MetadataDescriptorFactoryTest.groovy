@@ -25,7 +25,6 @@ import org.gradle.internal.component.external.model.ivy.DefaultIvyModuleResolveM
 import org.gradle.internal.component.external.model.ivy.IvyModuleResolveMetadata
 import org.gradle.internal.component.external.model.maven.MavenModuleResolveMetadata
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import javax.xml.namespace.QName
 
@@ -62,7 +61,6 @@ class MetadataDescriptorFactoryTest extends Specification {
         descriptor.packaging == "pack"
     }
 
-    @Unroll
     def 'does not expose #name descriptor if no #name metadata present'() {
         given:
         def metadata = Mock(ModuleComponentResolveMetadata)
@@ -80,7 +78,6 @@ class MetadataDescriptorFactoryTest extends Specification {
         "maven" | PomModuleDescriptor
     }
 
-    @Unroll
     def '#descriptorType and metadata #metadataType should match: #match'() {
         given:
         def metadata = Mock(metadataType)

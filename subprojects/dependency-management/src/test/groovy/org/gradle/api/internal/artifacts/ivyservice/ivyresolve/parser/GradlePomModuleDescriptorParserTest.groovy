@@ -21,7 +21,6 @@ import org.gradle.internal.component.external.model.maven.MavenDependencyDescrip
 import org.gradle.internal.component.external.model.maven.MutableMavenModuleResolveMetadata
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import spock.lang.Issue
-import spock.lang.Unroll
 
 import static org.gradle.api.internal.component.ArtifactType.MAVEN_POM
 
@@ -2434,7 +2433,6 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         hasDefaultDependencyArtifact(dep)
     }
 
-    @Unroll
     def "converts #inputVersion version to #outputVersion"() {
         given:
         pomFile << """
@@ -2483,7 +2481,6 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
     }
 
 
-    @Unroll
     def "handles dependency with type #type"() {
         given:
         pomFile << """

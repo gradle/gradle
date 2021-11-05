@@ -24,7 +24,6 @@ import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.util.UsesNativeServices
-import spock.lang.Unroll
 
 import java.util.concurrent.CountDownLatch
 
@@ -258,7 +257,6 @@ class DefaultFileWatcherFactoryTest extends AbstractFileWatcherTest {
         onErrorStatus.get().right.message == "!!"
     }
 
-    @Unroll
     def "watcher should register to watch all added directories - #scenario"() {
         given:
         def listener = Mock(FileWatcherListener)
@@ -330,7 +328,6 @@ class DefaultFileWatcherFactoryTest extends AbstractFileWatcherTest {
         filesSeen[0] == subdirFile.absolutePath
     }
 
-    @Unroll
     def "should watch changes in sub directory when watching first for single file in parent directory where usesDirectoryTree: #usesDirectoryTree"() {
         given:
         def listener = Mock(FileWatcherListener)

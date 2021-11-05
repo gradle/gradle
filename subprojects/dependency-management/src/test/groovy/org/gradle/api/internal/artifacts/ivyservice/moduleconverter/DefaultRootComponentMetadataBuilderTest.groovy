@@ -27,7 +27,6 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvi
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class DefaultRootComponentMetadataBuilderTest extends Specification {
 
@@ -84,7 +83,6 @@ class DefaultRootComponentMetadataBuilderTest extends Specification {
         !otherRoot.is(root)
     }
 
-    @Unroll
     def "caching of component metadata when #mutationType change"() {
         componentIdentifierFactory.createComponentIdentifier(_) >> {
             new DefaultModuleComponentIdentifier(mid, '1.0')

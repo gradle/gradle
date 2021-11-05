@@ -22,7 +22,6 @@ import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class FileHierarchySetTest extends Specification {
     @Rule
@@ -106,7 +105,6 @@ class FileHierarchySetTest extends Specification {
     }
 
     @Requires(TestPrecondition.WINDOWS)
-    @Unroll
     def 'can handle more root dirs'() {
         expect:
         from(pathList.collect { new File(it) }).contains(target) == result
@@ -142,7 +140,6 @@ class FileHierarchySetTest extends Specification {
     }
 
     @Requires(TestPrecondition.UNIX)
-    @Unroll
     def 'can handle more dirs on Unix'() {
         expect:
         from(pathList.collect { new File(it) }).contains(target) == result

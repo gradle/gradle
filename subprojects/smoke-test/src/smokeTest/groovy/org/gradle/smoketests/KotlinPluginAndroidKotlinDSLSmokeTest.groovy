@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.android.AndroidHome
 import org.gradle.testkit.runner.GradleRunner
 
 import spock.lang.Ignore
-import spock.lang.Unroll
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
@@ -33,7 +32,6 @@ class KotlinPluginAndroidKotlinDSLSmokeTest extends AbstractSmokeTest {
         return 200
     }
 
-    @Unroll
     @UnsupportedWithConfigurationCache(iterationMatchers = [KotlinPluginSmokeTest.NO_CONFIGURATION_CACHE_ITERATION_MATCHER, AGP_4_0_ITERATION_MATCHER])
     def "kotlin android on android-kotlin-example-kotlin-dsl (kotlin=#kotlinPluginVersion, agp=#androidPluginVersion, workers=#workers)"(String kotlinPluginVersion, String androidPluginVersion, boolean workers) {
         given:

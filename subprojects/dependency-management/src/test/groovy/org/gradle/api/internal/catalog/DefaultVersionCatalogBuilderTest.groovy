@@ -27,7 +27,6 @@ import org.gradle.internal.logging.services.LoggingServiceRegistry
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Subject
-import spock.lang.Unroll
 
 import java.util.function.Supplier
 
@@ -39,8 +38,7 @@ class DefaultVersionCatalogBuilderTest extends Specification implements VersionC
     @VersionCatalogProblemTestFor(
         VersionCatalogProblemId.INVALID_DEPENDENCY_NOTATION
     )
-    @Unroll("#notation is an invalid notation")
-    def "reasonable error message if notation is invalid"() {
+    def "#notation is an invalid notation"() {
         when:
         builder.alias("foo").to(notation)
 
@@ -59,8 +57,7 @@ class DefaultVersionCatalogBuilderTest extends Specification implements VersionC
     @VersionCatalogProblemTestFor(
         VersionCatalogProblemId.INVALID_ALIAS_NOTATION
     )
-    @Unroll("#notation is an invalid alias")
-    def "reasonable error message if alias is invalid"() {
+    def "#notation is an invalid alias"() {
         when:
         builder.alias(notation).to("org:foo:1.0")
 
@@ -78,7 +75,6 @@ class DefaultVersionCatalogBuilderTest extends Specification implements VersionC
     @VersionCatalogProblemTestFor(
         VersionCatalogProblemId.RESERVED_ALIAS_NAME
     )
-    @Unroll
     def "forbids using #name as a dependency alias"() {
         when:
         builder.alias(name).to("org:foo:1.0")
@@ -104,7 +100,6 @@ class DefaultVersionCatalogBuilderTest extends Specification implements VersionC
     @VersionCatalogProblemTestFor(
         VersionCatalogProblemId.RESERVED_ALIAS_NAME
     )
-    @Unroll
     def "allows using #name as a dependency alias"() {
         when:
         builder.alias(name).to("org:foo:1.0")
@@ -135,7 +130,6 @@ class DefaultVersionCatalogBuilderTest extends Specification implements VersionC
     @VersionCatalogProblemTestFor(
         VersionCatalogProblemId.RESERVED_ALIAS_NAME
     )
-    @Unroll
     def "allows using #name for versions and plugins"() {
         when:
         builder.alias(name).toPluginId("org.foo").version("1.0")
@@ -158,8 +152,7 @@ class DefaultVersionCatalogBuilderTest extends Specification implements VersionC
     @VersionCatalogProblemTestFor(
         VersionCatalogProblemId.INVALID_ALIAS_NOTATION
     )
-    @Unroll("#notation is an invalid bundle name")
-    def "reasonable error message if bundle name is invalid"() {
+    def "#notation is an invalid bundle name"() {
         when:
         builder.bundle(notation, [])
 

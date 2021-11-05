@@ -20,12 +20,10 @@ import org.gradle.api.plugins.scala.ScalaBasePlugin
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.util.Requires
-import spock.lang.Unroll
 
 import static org.gradle.api.JavaVersion.VERSION_11
 import static org.gradle.api.JavaVersion.VERSION_1_8
 
-@Unroll
 class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {

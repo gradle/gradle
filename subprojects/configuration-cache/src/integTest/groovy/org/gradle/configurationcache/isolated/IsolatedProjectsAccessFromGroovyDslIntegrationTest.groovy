@@ -16,11 +16,7 @@
 
 package org.gradle.configurationcache.isolated
 
-
-import spock.lang.Unroll
-
 class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolatedProjectsIntegrationTest {
-    @Unroll
     def "reports problem when build script uses #block block to apply plugins to another project"() {
         settingsFile << """
             include("a")
@@ -48,7 +44,6 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         "subprojects" | _
     }
 
-    @Unroll
     def "reports problem when build script uses #block block to access dynamically added elements"() {
         settingsFile << """
             include("a")
@@ -78,7 +73,6 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         "subprojects" | _
     }
 
-    @Unroll
     def "reports problem when build script uses #property property to apply plugins to another project"() {
         settingsFile << """
             include("a")
@@ -127,7 +121,6 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         }
     }
 
-    @Unroll
     def "reports problem when build script uses #method method to apply plugins to another project"() {
         settingsFile << """
             include("a")
@@ -152,7 +145,6 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         "findProject" | _
     }
 
-    @Unroll
     def "reports problem when root project build script uses chain of methods #chain { } to apply plugins to other projects"() {
         settingsFile << """
             include("a")
@@ -185,7 +177,6 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         "findProject('b').findProject(':').subprojects" | _
     }
 
-    @Unroll
     def "reports problem when project build script uses chain of methods #chain { } to apply plugins to sibling projects"() {
         settingsFile << """
             include("a")
@@ -213,7 +204,6 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         "findProject(':').findProject('b').with" | _
     }
 
-    @Unroll
     def "reports problem when project build script uses chain of methods #chain { } to apply plugins to all projects"() {
         settingsFile << """
             include("a")

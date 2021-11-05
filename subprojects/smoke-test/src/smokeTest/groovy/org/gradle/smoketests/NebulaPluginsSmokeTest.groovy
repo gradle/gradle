@@ -22,7 +22,6 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Ignore
 import spock.lang.Issue
-import spock.lang.Unroll
 
 class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implements ValidationMessageChecker {
 
@@ -136,7 +135,6 @@ testImplementation('junit:junit:4.7')""")
     }
 
     @Issue("gradle/gradle#3798")
-    @Unroll
     @ToBeFixedForConfigurationCache
     def "nebula dependency lock plugin version #version binary compatibility"() {
         when:

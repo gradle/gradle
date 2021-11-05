@@ -23,7 +23,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
-import spock.lang.Unroll
 
 class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec {
     def resolve = new ResolveTestFixture(buildFile, "conf").expectDefaultConfiguration("runtime")
@@ -429,7 +428,6 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         executedAndNotSkipped ":api:build"
     }
 
-    @Unroll
     void "can replace project dependency #projectGroup:api:#projectVersion with external dependency org.utils:api:1.5"() {
         mavenRepo.module("org.utils", "api", '1.5').publish()
 
@@ -1502,7 +1500,6 @@ configurations.all {
 
     }
 
-    @Unroll
     def "can substitute a classified dependency with a non classified version"() {
         def v1 = mavenRepo.module("org", "lib", "1.0")
             .artifact(classifier: 'classy')

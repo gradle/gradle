@@ -17,10 +17,8 @@
 package org.gradle.api.file
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Unroll
 
 class FileCollectionPropertyIntegrationTest extends AbstractIntegrationSpec {
-    @Unroll
     def "task #annotation file property is implicitly finalized when task starts execution"() {
         buildFile << """
             class SomeTask extends DefaultTask {

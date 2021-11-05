@@ -21,11 +21,9 @@ import org.gradle.integtests.fixtures.AbstractPluginIntegrationTest
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.jvm.Jvm
 import spock.lang.IgnoreIf
-import spock.lang.Unroll
 
 class TestTaskToolchainIntegrationTest extends AbstractPluginIntegrationTest {
 
-    @Unroll
     @IgnoreIf({ AvailableJavaHomes.differentJdk == null })
     def "can manually set java launcher via  #type toolchain on java test task #jdk"() {
         buildFile << """

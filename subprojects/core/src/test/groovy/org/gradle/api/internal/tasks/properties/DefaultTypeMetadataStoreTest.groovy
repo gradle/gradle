@@ -60,7 +60,6 @@ import org.gradle.internal.service.scopes.ExecutionGlobalServices
 import spock.lang.Issue
 import spock.lang.Shared
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import javax.inject.Inject
 import java.lang.annotation.Annotation
@@ -207,7 +206,6 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         collectProblems(typeMetadata) == [dummyValidationProblem(TypeWithCustomAnnotation.canonicalName, null, 'type is broken', 'Test').trim()]
     }
 
-    @Unroll
     def "can override @#parentAnnotation.simpleName property type with @#childAnnotation.simpleName"() {
         def parentTask = groovyClassLoader.parseClass """
             class ParentTask extends org.gradle.api.DefaultTask {
@@ -237,7 +235,6 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         [parentAnnotation, childAnnotation] << [PROCESSED_PROPERTY_TYPE_ANNOTATIONS, PROCESSED_PROPERTY_TYPE_ANNOTATIONS].combinations()*.flatten()
     }
 
-    @Unroll
     def "can override @#processedAnnotation.simpleName property type with @#unprocessedAnnotation.simpleName"() {
         def parentTask = groovyClassLoader.parseClass """
             class ParentTask extends org.gradle.api.DefaultTask {
@@ -266,7 +263,6 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         [processedAnnotation, unprocessedAnnotation] << [PROCESSED_PROPERTY_TYPE_ANNOTATIONS, UNPROCESSED_PROPERTY_TYPE_ANNOTATIONS].combinations()*.flatten()
     }
 
-    @Unroll
     def "can override @#unprocessedAnnotation.simpleName property type with @#processedAnnotation.simpleName"() {
         def parentTask = groovyClassLoader.parseClass """
             class ParentTask extends org.gradle.api.DefaultTask {
@@ -310,7 +306,6 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
     // Third-party plugins that need to support Gradle versions both pre- and post-3.2
     // need to declare their @Classpath properties as @InputFiles as well
     @Issue("https://github.com/gradle/gradle/issues/913")
-    @Unroll
     def "@#annotation.simpleName is recognized as normalization no matter how it's defined"() {
         when:
         def typeMetadata = metadataStore.getTypeMetadata(sampleType)
@@ -328,7 +323,6 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         CompileClasspath | CompileClasspathPropertyTask
     }
 
-    @Unroll
     def "all properties on #workClass are ignored"() {
         when:
         def typeMetadata = metadataStore.getTypeMetadata(workClass).propertiesMetadata.findAll { it.propertyType == null }

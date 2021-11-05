@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.testing.filter
 
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class TestSelectionMatcherTest extends Specification {
 
@@ -173,7 +172,6 @@ class TestSelectionMatcherTest extends Specification {
         ["FooTest"]         | ["Bar"]          | "FooTest"  | "whatever" | false
     }
 
-    @Unroll
     def 'can exclude as many classes as possible'() {
         expect:
         new TestSelectionMatcher(input, [], []).mayIncludeClass(fullQualifiedName) == maybeMatch
@@ -236,7 +234,6 @@ class TestSelectionMatcherTest extends Specification {
         ['org.gradle.Foo$1$2.test']       | "org.gradle.Foo"     | true
     }
 
-    @Unroll
     def 'can use multiple patterns'() {
         expect:
         new TestSelectionMatcher(pattern1, [], pattern2).mayIncludeClass(fullQualifiedName) == maybeMatch
