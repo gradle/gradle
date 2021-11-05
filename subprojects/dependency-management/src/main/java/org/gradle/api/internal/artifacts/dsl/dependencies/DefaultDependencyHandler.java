@@ -175,6 +175,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
     }
 
     @SuppressWarnings("rawtypes")
+    @Nullable
     private Dependency doAdd(Configuration configuration, Object dependencyNotation, @Nullable Closure configureClosure) {
         if (dependencyNotation instanceof Configuration) {
             DeprecationLogger.deprecateBehaviour("Adding a Configuration as a dependency is a confusing behavior which isn't recommended.")
@@ -200,6 +201,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
         return dependency;
     }
 
+    @Nullable
     private Dependency doAddProvider(Configuration configuration, Provider<?> dependencyNotation, Closure<?> configureClosure) {
         if (dependencyNotation instanceof DefaultValueSourceProviderFactory.ValueSourceProvider) {
             Class<? extends ValueSource<?, ?>> valueSourceType = ((DefaultValueSourceProviderFactory.ValueSourceProvider<?, ?>) dependencyNotation).getValueSourceType();
@@ -233,6 +235,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
         };
     }
 
+    @Nullable
     private Dependency doAddConfiguration(Configuration configuration, Configuration dependencyNotation) {
         Configuration other = dependencyNotation;
         if (!configurationContainer.contains(other)) {
