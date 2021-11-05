@@ -30,9 +30,6 @@ public class TaskPathProjectEvaluator implements ProjectConfigurer {
 
     @Override
     public void configure(ProjectInternal project) {
-        if (cancellationToken.isCancellationRequested()) {
-            throw new BuildCancelledException();
-        }
         project.getOwner().ensureConfigured();
     }
 

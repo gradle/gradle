@@ -19,7 +19,6 @@ import com.google.common.collect.Maps;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.initialization.DefaultProjectDescriptor;
@@ -269,8 +268,8 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
         @Override
         public Set<ProjectState> getChildProjects() {
             Set<ProjectState> children = new TreeSet<>(Comparator.comparing(ProjectState::getIdentityPath));
-            for (ProjectDescriptor child : descriptor.getChildren()) {
-                children.add(projectsByPath.get(identityPath.child(child.getName())));
+            for (DefaultProjectDescriptor child : descriptor.children()) {
+                children.add(projectsByPath.get(owner.calculateIdentityPathForProject(child.path())));
             }
             return children;
         }

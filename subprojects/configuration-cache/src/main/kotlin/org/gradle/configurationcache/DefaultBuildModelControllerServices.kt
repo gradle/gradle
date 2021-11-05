@@ -30,6 +30,7 @@ import org.gradle.configuration.project.LifecycleProjectEvaluator
 import org.gradle.configuration.project.PluginsProjectConfigureActions
 import org.gradle.configuration.project.ProjectEvaluator
 import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprintController
+import org.gradle.initialization.BuildCancellationToken
 import org.gradle.internal.build.BuildLifecycleController
 import org.gradle.internal.build.BuildLifecycleControllerFactory
 import org.gradle.internal.build.BuildModelControllerServices
@@ -77,14 +78,15 @@ class DefaultBuildModelControllerServices : BuildModelControllerServices {
             buildOperationExecutor: BuildOperationExecutor,
             cachingServiceLocator: CachingServiceLocator,
             scriptPluginFactory: ScriptPluginFactory,
-            fingerprintController: ConfigurationCacheFingerprintController
+            fingerprintController: ConfigurationCacheFingerprintController,
+            cancellationToken: BuildCancellationToken
         ): ProjectEvaluator {
             val withActionsEvaluator = ConfigureActionsProjectEvaluator(
                 PluginsProjectConfigureActions.from(cachingServiceLocator),
                 BuildScriptProcessor(scriptPluginFactory),
                 DelayedConfigurationActions()
             )
-            val evaluator = LifecycleProjectEvaluator(buildOperationExecutor, withActionsEvaluator)
+            val evaluator = LifecycleProjectEvaluator(buildOperationExecutor, withActionsEvaluator, cancellationToken)
             return if (buildModelParameters.isProjectScopeModelCache) {
                 ConfigurationCacheAwareProjectEvaluator(evaluator, fingerprintController)
             } else {
