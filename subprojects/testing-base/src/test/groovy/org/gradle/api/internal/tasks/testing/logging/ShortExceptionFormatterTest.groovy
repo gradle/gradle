@@ -46,7 +46,7 @@ class ShortExceptionFormatterTest extends Specification {
 
         expect:
         formatter.format(testDescriptor, [exception]) == """\
-    java.lang.Exception at ShortExceptionFormatterTest.groovy:45
+    java.lang.Exception at ShortExceptionFormatterTest.groovy:44
 """
     }
 
