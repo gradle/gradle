@@ -141,7 +141,7 @@ class ChangesByGradleFileWatchingIntegrationTest extends AbstractFileSystemWatch
 
             task incremental(type: IncrementalTask) {
                 sources = file("sources")
-                input = providers.systemProperty("outputDir").forUseAtConfigurationTime()
+                input = providers.systemProperty("outputDir")
                 outputDir = file("build/\${input.get()}")
             }
         """

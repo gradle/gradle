@@ -91,7 +91,7 @@ fun Project.collectVersionDetails(moduleIdentity: ModuleIdentityExtension): Stri
     moduleIdentity.releasedVersions.set(
         provider {
             ReleasedVersionsDetails(
-                moduleIdentity.version.forUseAtConfigurationTime().get().baseVersion,
+                moduleIdentity.version.get().baseVersion,
                 repoRoot().file("released-versions.json")
             )
         }
@@ -110,13 +110,13 @@ fun isPromotionBuild(): Boolean = gradle.startParameter.taskNames.contains("prom
  * marking the file as a build logic input.
  */
 fun Project.trimmedContentsOfFile(path: String): String =
-    providers.fileContents(repoRoot().file(path)).asText.forUseAtConfigurationTime().get().trim()
+    providers.fileContents(repoRoot().file(path)).asText.get().trim()
 
 fun Project.environmentVariable(variableName: String): Provider<String> =
-    providers.environmentVariable(variableName).forUseAtConfigurationTime()
+    providers.environmentVariable(variableName)
 
 fun Project.gradleProperty(propertyName: String): Provider<String> =
-    providers.gradleProperty(propertyName).forUseAtConfigurationTime()
+    providers.gradleProperty(propertyName)
 
 // TODO Simplify the buildTimestamp() calculation if possible
 fun Project.buildTimestamp(): Provider<String> =
@@ -135,7 +135,7 @@ fun Project.buildTimestamp(): Provider<String> =
                 provider { isRunningInstallTask() }
             )
         }
-    }.forUseAtConfigurationTime()
+    }
 
 
 fun Project.buildTimestampFromBuildReceipt(): Provider<String> =
@@ -151,10 +151,9 @@ fun Project.buildTimestampFromBuildReceipt(): Provider<String> =
                     .file(BuildReceipt.buildReceiptFileName)
                     .let(providers::fileContents)
                     .asText
-                    .forUseAtConfigurationTime()
             )
         }
-    }.forUseAtConfigurationTime()
+    }
 
 
 fun isRunningInstallTask() =

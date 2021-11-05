@@ -860,7 +860,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
                 }
             }
             dependencies {
-                implementation providers.gradleProperty('externalCoords').forUseAtConfigurationTime().orElse('group1:lib:1.0')
+                implementation providers.gradleProperty('externalCoords').orElse('group1:lib:1.0')
                 implementation 'group2:lib2:1.0'
             }
 
@@ -942,7 +942,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
                 }
             }
             dependencies {
-                implementation providers.gradleProperty('externalCoords').forUseAtConfigurationTime().orElse('group1:lib:1.0')
+                implementation providers.gradleProperty('externalCoords').orElse('group1:lib:1.0')
                 implementation 'group2:lib2:1.0'
             }
 

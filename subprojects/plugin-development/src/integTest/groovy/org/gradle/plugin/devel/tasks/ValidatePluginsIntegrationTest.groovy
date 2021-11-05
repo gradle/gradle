@@ -154,7 +154,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
             dependencies {
                 implementation localGroovy()
             }
-            def strictProp = providers.gradleProperty("strict").forUseAtConfigurationTime()
+            def strictProp = providers.gradleProperty("strict")
             validatePlugins.enableStricterValidation = strictProp.present
         """
 

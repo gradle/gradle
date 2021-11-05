@@ -1,1 +1,1 @@
-val enabled = providers.environmentVariable("SOME_ENV_VAR").forUseAtConfigurationTime().isPresent
+val enabled = providers.environmentVariable("SOME_ENV_VAR").isPresent

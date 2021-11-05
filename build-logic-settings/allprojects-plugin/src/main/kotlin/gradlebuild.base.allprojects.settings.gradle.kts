@@ -24,7 +24,6 @@
  * of the kind of project we're building.
  */
 val enableValidation = providers.systemProperty("org.gradle.internal.validate.external.plugins")
-    .forUseAtConfigurationTime()
 
 gradle.beforeProject {
     if (enableValidation.map(String::toBoolean).orElse(false).get()) {

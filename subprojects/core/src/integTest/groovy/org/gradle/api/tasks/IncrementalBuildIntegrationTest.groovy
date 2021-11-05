@@ -1154,7 +1154,7 @@ task b(dependsOn: a)
                 ${customTaskImplementation("CustomTaskFromUnknownClassloader")}
             '''
 
-            def customTaskClass = providers.gradleProperty("unknownClassloader").forUseAtConfigurationTime().isPresent()
+            def customTaskClass = providers.gradleProperty("unknownClassloader").isPresent()
                     ? CustomTaskFromUnknownClassloader
                     : CustomTaskFromBuildFile
 
