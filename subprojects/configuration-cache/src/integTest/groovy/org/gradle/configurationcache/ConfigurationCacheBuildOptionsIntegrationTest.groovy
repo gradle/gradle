@@ -20,7 +20,6 @@ import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.reflect.validation.ValidationTestFor
 import spock.lang.Issue
-import spock.lang.Unroll
 
 import static org.junit.Assume.assumeFalse
 
@@ -31,7 +30,6 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
     }
 
     @Issue("https://github.com/gradle/gradle/issues/13333")
-    @Unroll
     def "absent #operator orElse #orElseKind used as task input"() {
 
         assumeFalse(
@@ -123,7 +121,6 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
         ValidationProblemId.VALUE_NOT_SET
     )
     @Issue("https://github.com/gradle/gradle/issues/13334")
-    @Unroll
     def "task input property with convention set to absent #operator is reported correctly"() {
 
         given:
@@ -163,7 +160,6 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
     }
 
     @Issue("https://github.com/gradle/gradle/issues/13334")
-    @Unroll
     def "absent #operator used as optional task input"() {
 
         given:
@@ -203,7 +199,6 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
         operator << ['systemProperty', 'gradleProperty', 'environmentVariable']
     }
 
-    @Unroll
     def "system property from #systemPropertySource used as task and build logic input"() {
 
         given:
@@ -276,7 +271,6 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
         }
     }
 
-    @Unroll
     def "#usage property from properties file used as build logic input"() {
 
         given:
@@ -366,7 +360,6 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
         'isCi.getOrElse("false") != "false"'           | 'raw'
     }
 
-    @Unroll
     def "#kind property used as task and build logic input"() {
 
         given:
@@ -505,7 +498,6 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
         configurationCache.assertStateLoaded()
     }
 
-    @Unroll
     def "system property #usage used as build logic input"() {
 
         given:
@@ -595,7 +587,6 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
         configurationCache.assertStateStored()
     }
 
-    @Unroll
     def "file contents #usage used as build logic input"() {
 
         given:
@@ -705,7 +696,6 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
         configurationCache.assertStateLoaded()
     }
 
-    @Unroll
     def "file contents provider used as #usage has no value when underlying file provider has no value"() {
         given:
         def configurationCache = newConfigurationCacheFixture()

@@ -21,13 +21,11 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import spock.lang.Issue
 import spock.lang.Timeout
-import spock.lang.Unroll
 
 import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.any
 import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.exact
 import static org.hamcrest.CoreMatchers.startsWith
 
-@Unroll
 class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
 
     @UnsupportedWithConfigurationCache
@@ -801,7 +799,6 @@ task someTask(dependsOn: [someDep, someOtherDep])
         }
     }
 
-    @Unroll
     def "task disabled by #method is skipped"() {
 
         given:

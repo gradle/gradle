@@ -18,7 +18,6 @@ package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import spock.lang.Issue
-import spock.lang.Unroll
 
 class DisambiguateArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
@@ -417,7 +416,6 @@ task resolve(type: Copy) {
         output.count('Sizing') == 0
     }
 
-    @Unroll
     def "disambiguation leverages schema rules before doing it size based"() {
         given:
         settingsFile << """

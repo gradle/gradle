@@ -17,12 +17,10 @@
 package org.gradle.configurationcache
 
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
-import spock.lang.Unroll
 
 
 class ConfigurationCacheEnablementIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
-    @Unroll
     def "can enable with a command line #origin"() {
 
         given:
@@ -99,7 +97,6 @@ class ConfigurationCacheEnablementIntegrationTest extends AbstractConfigurationC
         configurationCache.assertStateLoaded()
     }
 
-    @Unroll
     def "can disable with a command line #cliOrigin when enabled in gradle.properties"() {
 
         given:

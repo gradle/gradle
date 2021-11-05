@@ -16,10 +16,7 @@
 
 package org.gradle.configurationcache.isolated
 
-import spock.lang.Unroll
-
 class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolatedProjectsIntegrationTest {
-    @Unroll
     def "reports problem when build script uses #block block to apply plugins to another project"() {
         settingsFile << """
             include("a")
@@ -47,7 +44,6 @@ class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolate
         "subprojects" | _
     }
 
-    @Unroll
     def "reports problem when build script uses #block block to access dynamically added elements"() {
         settingsFile << """
             include("a")

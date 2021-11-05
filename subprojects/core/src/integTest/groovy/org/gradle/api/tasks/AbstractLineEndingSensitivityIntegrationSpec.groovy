@@ -19,7 +19,6 @@ package org.gradle.api.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.fingerprint.LineEndingSensitivity
 import org.gradle.work.NormalizeLineEndings
-import spock.lang.Unroll
 
 import java.lang.annotation.Annotation
 
@@ -38,7 +37,6 @@ abstract class AbstractLineEndingSensitivityIntegrationSpec extends AbstractInte
 
     abstract void cleanWorkspace()
 
-    @Unroll
     def "input files properties are sensitive to line endings by default (#api, #pathsensitivity)"() {
         createTaskWithNormalization(InputFiles, LineEndingSensitivity.DEFAULT, pathsensitivity, api)
 
@@ -77,7 +75,6 @@ abstract class AbstractLineEndingSensitivityIntegrationSpec extends AbstractInte
         [api, pathsensitivity] << [Api.values(), PathSensitivity.values()].combinations()
     }
 
-    @Unroll
     def "input files properties can ignore line endings when specified (#api, #pathsensitivity)"() {
         createTaskWithNormalization(InputFiles, LineEndingSensitivity.NORMALIZE_LINE_ENDINGS, pathsensitivity, api)
 
@@ -116,7 +113,6 @@ abstract class AbstractLineEndingSensitivityIntegrationSpec extends AbstractInte
         [api, pathsensitivity] << [Api.values(), PathSensitivity.values()].combinations()
     }
 
-    @Unroll
     def "runtime classpath properties are sensitive to line endings by default (#api)"() {
         createTaskWithNormalization(Classpath, LineEndingSensitivity.DEFAULT, null, api)
 
@@ -155,7 +151,6 @@ abstract class AbstractLineEndingSensitivityIntegrationSpec extends AbstractInte
         api << Api.values()
     }
 
-    @Unroll
     def "runtime classpath properties can ignore line endings when specified (#api)"() {
         createTaskWithNormalization(Classpath, LineEndingSensitivity.NORMALIZE_LINE_ENDINGS, null, api)
 
@@ -194,7 +189,6 @@ abstract class AbstractLineEndingSensitivityIntegrationSpec extends AbstractInte
         api << Api.values()
     }
 
-    @Unroll
     def "compile classpath properties are always sensitive to line endings (#api, #lineEndingNormalization)"() {
         createTaskWithNormalization(CompileClasspath, LineEndingSensitivity.DEFAULT, null, api)
 

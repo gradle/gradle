@@ -18,11 +18,9 @@ package org.gradle.integtests.resolve.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.resolve.support.RepositoryDslSupport
-import spock.lang.Unroll
 
 class CredentialsDslIntegrationTest extends AbstractIntegrationSpec implements RepositoryDslSupport {
 
-    @Unroll
     def "can configure repositories with [#scenario] DSL "() {
         expect:
         buildFile << dsl

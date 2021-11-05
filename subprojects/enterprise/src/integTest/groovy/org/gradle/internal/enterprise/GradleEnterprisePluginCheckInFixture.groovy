@@ -141,6 +141,9 @@ class GradleEnterprisePluginCheckInFixture {
                             $GradleEnterprisePluginEndOfBuildListener.name getEndOfBuildListener() {
                                 return { $GradleEnterprisePluginEndOfBuildListener.BuildResult.name buildResult ->
                                     println "gradleEnterprisePlugin.endOfBuild.buildResult.failure = \$buildResult.failure"
+                                    if (System.getProperty("build-listener-failure") != null) {
+                                        throw new RuntimeException("broken")
+                                    }
                                 } as $GradleEnterprisePluginEndOfBuildListener.name
                             }
                         }
@@ -174,6 +177,7 @@ class GradleEnterprisePluginCheckInFixture {
     }
 
     void assertEndOfBuildWithFailure(String output, @Nullable String failure) {
+        assert output.count("gradleEnterprisePlugin.endOfBuild.buildResult.failure = ") == 1
         assert output.contains("gradleEnterprisePlugin.endOfBuild.buildResult.failure = $failure")
     }
 

@@ -27,7 +27,6 @@ import org.gradle.test.matchers.UserAgentMatcher
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.GUtil
 import spock.lang.Issue
-import spock.lang.Unroll
 
 import static org.junit.Assert.fail
 
@@ -281,7 +280,6 @@ task check {
         succeeds 'check'
     }
 
-    @Unroll
     def "will not download cached #source resource when run with --offline"() {
         given:
         def scriptName = "script-offline.gradle"
@@ -320,7 +318,6 @@ task check {
         "initscript"  | "init.gradle"
     }
 
-    @Unroll
     @ToBeFixedForConfigurationCache(because = "remote scripts skipped")
     def "can recover from failure to download cached #source resource by running with --offline"() {
         given:

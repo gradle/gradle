@@ -20,7 +20,6 @@ package org.gradle.buildinit.plugins
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.Unroll
 
 import static org.gradle.buildinit.plugins.SwiftApplicationInitIntegrationTest.LINUX_MAIN_DOT_SWIFT
 import static org.gradle.buildinit.plugins.SwiftLibraryInitIntegrationTest.SAMPLE_LIBRARY_CLASS
@@ -32,7 +31,6 @@ class WindowsSwiftLibraryInitIntegrationTest extends AbstractInitIntegrationSpec
     @Override
     String subprojectName() { 'lib' }
 
-    @Unroll
     def "creates sample library source if no source present with #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'swift-library', '--dsl', scriptDsl.id)

@@ -20,7 +20,6 @@ package org.gradle.process.internal
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.process.JavaForkOptions
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import java.nio.charset.Charset
 
@@ -145,7 +144,6 @@ class JvmOptionsTest extends Specification {
         1 * target.getDebugOptions() >> new DefaultJavaDebugOptions()
     }
 
-    @Unroll
     def "#propDescr is immutable system property"() {
         when:
         def opts = createOpts()
@@ -166,7 +164,6 @@ class JvmOptionsTest extends Specification {
         "temp directory"          | JAVA_IO_TMPDIR_KEY       | "-D${JAVA_IO_TMPDIR_KEY}=/some/tmp/folder"
     }
 
-    @Unroll
     def "#propDescr can be set as systemproperty"() {
         JvmOptions opts = createOpts()
         when:

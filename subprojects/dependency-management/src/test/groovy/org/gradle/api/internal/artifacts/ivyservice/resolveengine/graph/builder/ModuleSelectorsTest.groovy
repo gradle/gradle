@@ -24,7 +24,6 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors.ResolvableSelectorState
 import spock.lang.Specification
 import spock.lang.Subject
-import spock.lang.Unroll
 
 class ModuleSelectorsTest extends Specification {
 
@@ -132,7 +131,6 @@ class ModuleSelectorsTest extends Specification {
         !iterator.hasNext()
     }
 
-    @Unroll
     def 'can add and remove selectors in any order'() {
         given:
         def selector1 = dynamicSelector()

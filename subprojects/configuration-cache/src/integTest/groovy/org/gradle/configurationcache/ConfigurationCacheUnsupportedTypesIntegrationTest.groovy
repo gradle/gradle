@@ -95,7 +95,6 @@ import org.gradle.groovy.scripts.internal.DefaultScriptCompilationHandler.Script
 import org.gradle.initialization.DefaultSettings
 import org.gradle.internal.locking.DefaultDependencyLockingHandler
 import org.gradle.invocation.DefaultGradle
-import spock.lang.Unroll
 
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors.DefaultThreadFactory
@@ -105,7 +104,6 @@ import java.util.concurrent.ThreadFactory
 
 class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
-    @Unroll
     def "reports when task field references an object of type #baseType"() {
         buildFile << """
             plugins { id "java" }
@@ -229,7 +227,6 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
         concreteTypeName = concreteType instanceof Class ? concreteType.name : concreteType
     }
 
-    @Unroll
     def "reports when task field is declared with type #baseType"() {
         buildFile << """
             plugins { id "java" }

@@ -24,7 +24,6 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.invocation.DefaultGradle
 import spock.lang.Ignore
 import spock.lang.IgnoreIf
-import spock.lang.Unroll
 
 import static org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheProblemsFixture.resolveConfigurationCacheReportDirectory
 
@@ -685,7 +684,6 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         }
     }
 
-    @Unroll
     def "reports #invocation access during execution"() {
 
         def configurationCache = newConfigurationCacheFixture()
@@ -767,7 +765,6 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         'Task.taskDependencies' | 'taskDependencies'
     }
 
-    @Unroll
     def "reports build listener registration on #registrationPoint"() {
 
         given:
@@ -793,7 +790,6 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         "TaskExecutionGraph.afterTask"                | "gradle.taskGraph.afterTask {}"
     }
 
-    @Unroll
     def "does not report problems on configuration listener registration on #registrationPoint"() {
 
         given:

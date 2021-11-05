@@ -20,7 +20,6 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
-import spock.lang.Unroll
 
 /**
  * Tests for resolving dependency graph with substitution within a composite build.
@@ -462,7 +461,6 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
         }
     }
 
-    @Unroll
     def "evaluates subprojects when substituting external dependencies with #name"() {
         given:
         buildA.buildFile << """
@@ -778,7 +776,6 @@ Required by:
         failure.assertHasCause("Could not find test-1.2.jar (org.test:test:1.2).")
     }
 
-    @Unroll
     def "substitutes external dependency for a subproject of the root build - #rootIsIncluded"() {
         given:
         def empty = file('empty').tap {

@@ -26,11 +26,9 @@ import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.hamcrest.CoreMatchers
 import spock.lang.Issue
-import spock.lang.Unroll
 
 import static org.hamcrest.CoreMatchers.equalTo
 
-@Unroll
 @TestReproducibleArchives
 class ArchiveIntegrationTest extends AbstractIntegrationSpec {
     private final static DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry()

@@ -19,12 +19,10 @@ package org.gradle.smoketests
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.util.GradleVersion
 import spock.lang.Issue
-import spock.lang.Unroll
 
 class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
     @Issue('https://github.com/asciidoctor/asciidoctor-gradle-plugin/releases')
-    @Unroll
     @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def 'asciidoctor plugin #version'() {
         given:

@@ -34,7 +34,6 @@ import org.gradle.internal.component.external.model.maven.MavenDependencyDescrip
 import org.gradle.internal.component.external.model.maven.MavenDependencyType
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
-import spock.lang.Unroll
 
 import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
 
@@ -120,7 +119,6 @@ class DefaultMavenModuleResolveMetadataTest extends AbstractLazyModuleComponentR
         "maven-plugin" | false | true
     }
 
-    @Unroll
     def "recognises java library for packaging=#packaging"() {
         given:
         def stringUsageAttribute = Attribute.of(Usage.USAGE_ATTRIBUTE.getName(), String.class)

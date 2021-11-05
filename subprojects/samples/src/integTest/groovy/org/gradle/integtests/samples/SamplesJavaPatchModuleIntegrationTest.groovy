@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.Sample
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
-import spock.lang.Unroll
 
 @Requires(TestPrecondition.JDK9_OR_LATER)
 class SamplesJavaPatchModuleIntegrationTest extends AbstractIntegrationSpec {
@@ -31,7 +30,6 @@ class SamplesJavaPatchModuleIntegrationTest extends AbstractIntegrationSpec {
         executer.withRepositoryMirrors()
     }
 
-    @Unroll
     def "can compile and run patched module whitebox tests with #dsl dsl"() {
         when:
         executer.inDirectory(sample.dir.file(dsl))

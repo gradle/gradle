@@ -21,7 +21,6 @@ import org.gradle.api.publish.ivy.internal.publication.DefaultIvyPublication
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.ivy.IvyJavaModule
 import spock.lang.Issue
-import spock.lang.Unroll
 
 class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
     IvyJavaModule javaLibrary = javaLibrary(ivyRepo.module("org.gradle.test", "publishTest", "1.9"))
@@ -74,9 +73,8 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         }
     }
 
-    @Unroll("'#gradleConfiguration' dependencies end up in '#ivyConfiguration' configuration with '#plugin' plugin")
     @ToBeFixedForConfigurationCache
-    void "maps dependencies in the correct Ivy configuration"() {
+    void "'#gradleConfiguration' dependencies end up in '#ivyConfiguration' configuration with '#plugin' plugin"() {
         given:
         file("settings.gradle") << '''
             rootProject.name = 'publishTest'
@@ -738,9 +736,8 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         }
     }
 
-    @Unroll("'#requestedVersion' end up in '#expectedVersion' resolved version and '#requestedVersion' revConstraint")
     @ToBeFixedForConfigurationCache
-    def "can publish java-library with revConstraint"() {
+    def "'#requestedVersion' end up in '#expectedVersion' resolved version and '#requestedVersion' revConstraint"() {
         requiresExternalDependencies = true
         given:
         createBuildScripts("""
@@ -1170,7 +1167,6 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         outputContains "Ivy publication 'java' isn't attached to a component. Gradle metadata only supports publications with software components (e.g. from component.java)"
     }
 
-    @Unroll
     @ToBeFixedForConfigurationCache
     def "publishes Gradle metadata redirection marker when Gradle metadata task is enabled (enabled=#enabled)"() {
         given:
@@ -1200,7 +1196,6 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         true    | true
     }
 
-    @Unroll
     @ToBeFixedForConfigurationCache
     def "can publish feature variants (optional: #optional)"() {
         given:

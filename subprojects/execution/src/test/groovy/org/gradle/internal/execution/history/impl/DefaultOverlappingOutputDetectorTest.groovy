@@ -25,7 +25,6 @@ import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.MissingFileSnapshot
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class DefaultOverlappingOutputDetectorTest extends Specification {
     def detector = new DefaultOverlappingOutputDetector()
@@ -58,7 +57,6 @@ class DefaultOverlappingOutputDetectorTest extends Specification {
         overlaps.overlappedFilePath == "/absolute/path"
     }
 
-    @Unroll
     def "detects overlap when there is a stale #type in an output directory"() {
         def emptyDirectory = new DirectorySnapshot("/absolute", "absolute", AccessType.DIRECT, HashCode.fromInt(0x1234), [])
         def directoryWithStaleBrokenSymlink = new DirectorySnapshot("/absolute", "absolute", AccessType.DIRECT, HashCode.fromInt(0x5678), [

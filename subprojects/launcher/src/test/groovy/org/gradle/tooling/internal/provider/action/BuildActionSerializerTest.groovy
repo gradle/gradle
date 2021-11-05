@@ -22,11 +22,9 @@ import org.gradle.internal.serialize.SerializerSpec
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.test.internal.DefaultDebugOptions
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload
-import spock.lang.Unroll
 
 import java.beans.Introspector
 
-@Unroll
 class BuildActionSerializerTest extends SerializerSpec {
     def "serializes ExecuteBuildAction with all defaults"() {
         def action = new ExecuteBuildAction(new StartParameterInternal())
