@@ -73,7 +73,7 @@ public class RelativePathFingerprintingStrategy extends AbstractDirectorySensiti
                 FileSystemLocationFingerprint fingerprint;
                 if (relativePath.isRoot()) {
                     if (snapshot.getType() == FileType.Directory) {
-                        fingerprint = IgnoredPathFileSystemLocationFingerprint.DIRECTORY;
+                        return SnapshotVisitResult.CONTINUE;
                     } else {
                         fingerprint = fingerprint(snapshot.getName(), snapshot.getType(), snapshot);
                     }
