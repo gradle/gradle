@@ -60,6 +60,7 @@ public class DefaultProjectLocalComponentProvider implements LocalComponentProvi
         if (!isLocalProject(projectState.getComponentIdentifier())) {
             return null;
         }
+        projectState.ensureConfigured();
         return projectState.fromMutableState(p -> getLocalComponentMetadata(projectState, p));
     }
 

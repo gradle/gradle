@@ -249,6 +249,23 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
             return identityPath.getParent() == null ? null : projectsByPath.get(identityPath.getParent());
         }
 
+        @Nullable
+        @Override
+        public ProjectState getBuildParent() {
+            if (descriptor.getParent() != null) {
+                // Identity path of parent can be different to identity path parent, if the names are tweaked in the settings file
+                // Ideally they would be exactly the same, always
+                Path parentPath = owner.calculateIdentityPathForProject(descriptor.getParent().path());
+                ProjectStateImpl parentState = projectsByPath.get(parentPath);
+                if (parentState == null) {
+                    throw new IllegalStateException("Parent project " + parentPath + " is not registered for project " + identityPath);
+                }
+                return parentState;
+            } else {
+                return null;
+            }
+        }
+
         @Override
         public Set<ProjectState> getChildProjects() {
             Set<ProjectState> children = new TreeSet<>(Comparator.comparing(ProjectState::getIdentityPath));
@@ -285,20 +302,9 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
                     throw new IllegalStateException(String.format("The project object for project %s has already been attached.", getIdentityPath()));
                 }
 
-                ProjectInternal parent;
-                if (descriptor.getParent() != null) {
-                    // Identity path of parent can be different to identity path parent, if the names are tweaked in the settings file
-                    // They should be exactly the same, always
-                    Path parentPath = owner.calculateIdentityPathForProject(descriptor.getParent().path());
-                    ProjectStateImpl parentState = projectsByPath.get(parentPath);
-                    if (parentState == null) {
-                        throw new IllegalStateException("Parent project " + parentPath + " is not registered for project " + identityPath);
-                    }
-                    parent = parentState.getMutableModel();
-                } else {
-                    parent = null;
-                }
-                this.project = projectFactory.createProject(owner.getMutableModel(), descriptor, this, parent, selfClassLoaderScope, baseClassLoaderScope);
+                ProjectState parent = getBuildParent();
+                ProjectInternal parentModel = parent == null ? null : parent.getMutableModel();
+                this.project = projectFactory.createProject(owner.getMutableModel(), descriptor, this, parentModel, selfClassLoaderScope, baseClassLoaderScope);
             }
         }
 
@@ -314,6 +320,11 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
 
         @Override
         public void ensureConfigured() {
+            // Need to configure intermediate parent projects for configure-on-demand
+            ProjectState parent = getBuildParent();
+            if (parent != null) {
+                parent.ensureConfigured();
+            }
             synchronized (this) {
                 getMutableModel().evaluate();
             }
