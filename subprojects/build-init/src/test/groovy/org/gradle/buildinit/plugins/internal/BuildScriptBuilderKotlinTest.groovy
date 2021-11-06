@@ -150,6 +150,8 @@ repositories {
         builder.implementationDependency(null, "a:b:1.2", "a:c:4.5")
         builder.implementationDependency(null, "a:d:4.5")
         builder.implementationDependency("Use Scala to compile", "org.scala-lang:scala-library:2.10")
+        builder.dependencyWithExclusions("implementation", null, "a:e:1.2",
+            new DependencyExclusion("a", "f"), new DependencyExclusion("a", "g"));
         builder.create(target).generate()
 
         then:
@@ -168,6 +170,11 @@ dependencies {
 
     // Use Scala to compile
     implementation("org.scala-lang:scala-library:2.10")
+
+    implementation ("a:e:1.2") {
+        exclude (group = "a", module = "f")
+        exclude (group = "a", module = "g")
+    }
 }
 """)
     }

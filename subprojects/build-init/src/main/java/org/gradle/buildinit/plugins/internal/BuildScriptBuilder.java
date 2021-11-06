@@ -20,6 +20,7 @@ import com.google.common.base.Objects;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.MultimapBuilder;
+import groovy.lang.Tuple2;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
@@ -53,6 +54,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static java.util.stream.Collectors.toList;
 
 /**
  * Assembles the parts of a build script.
@@ -163,6 +167,19 @@ public class BuildScriptBuilder {
      */
     public BuildScriptBuilder dependency(String configuration, @Nullable String comment, String... dependencies) {
         dependencies().dependency(configuration, comment, dependencies);
+        return this;
+    }
+
+    /**
+     * Adds external dependency to the specified configuration (including exclusions).
+     *
+     * @param configuration The configuration where the dependency should be added
+     * @param comment A description of why the dependencies are required
+     * @param dependency the dependency, in string notation
+     * @param exclusions the dependency exclusions
+     */
+    public BuildScriptBuilder dependencyWithExclusions(String configuration, @Nullable String comment, String dependency, DependencyExclusion... exclusions) {
+        dependencies().dependencyWithExclusions(configuration, comment, dependency, exclusions);
         return this;
     }
 
@@ -728,9 +745,9 @@ public class BuildScriptBuilder {
 
     private static class DepSpec extends AbstractStatement {
         final String configuration;
-        final List<String> deps;
+        final List<Tuple2<String, List<DependencyExclusion>>> deps;
 
-        DepSpec(String configuration, @Nullable String comment, List<String> deps) {
+        DepSpec(String configuration, @Nullable String comment, List<Tuple2<String, List<DependencyExclusion>>> deps) {
             super(comment);
             this.configuration = configuration;
             this.deps = deps;
@@ -738,8 +755,17 @@ public class BuildScriptBuilder {
 
         @Override
         public void writeCodeTo(PrettyPrinter printer) {
-            for (String dep : deps) {
-                printer.println(printer.syntax.dependencySpec(configuration, printer.syntax.string(dep)));
+            for (Tuple2<String, List<DependencyExclusion>> dep : deps) {
+                final String printedDep = printer.syntax.dependencySpec(configuration, printer.syntax.string(dep.getV1()));
+                if (dep.getV2() == null || dep.getV2().isEmpty()) {
+                    printer.println(printedDep);
+                } else {
+                    printer.println(printedDep + " {");
+                    for (DependencyExclusion exclusion : dep.getV2()) {
+                        printer.println(printer.syntax.dependencyExclusionSpec(exclusion));
+                    }
+                    printer.println("}");
+                }
             }
         }
     }
@@ -1107,12 +1133,19 @@ public class BuildScriptBuilder {
 
         @Override
         public void dependency(String configuration, @Nullable String comment, String... dependencies) {
-            this.dependencies.put(configuration, new DepSpec(configuration, comment, Arrays.asList(dependencies)));
+            this.dependencies.put(configuration, new DepSpec(configuration, comment,
+                Stream.of(dependencies).map(dependency -> new Tuple2<>(dependency, (List<DependencyExclusion>) null)).collect(toList())));
+        }
+
+        @Override
+        public void dependencyWithExclusions(String configuration, @Nullable String comment, String dependency, DependencyExclusion... exclusions) {
+            this.dependencies.put(configuration, new DepSpec(configuration, comment,
+                Collections.singletonList(new Tuple2<>(dependency, Arrays.asList(exclusions)))));
         }
 
         @Override
         public void dependencyConstraint(String configuration, @Nullable String comment, String... constraints) {
-            this.constraints.put(configuration, new DepSpec(configuration, comment, Arrays.asList(constraints)));
+            dependency(configuration, comment, constraints);
         }
 
         @Override
@@ -1923,6 +1956,8 @@ public class BuildScriptBuilder {
 
         String dependencySpec(String config, String notation);
 
+        String dependencyExclusionSpec(DependencyExclusion exclusion);
+
         String propertyAssignment(PropertyAssignment expression);
 
         @Nullable
@@ -2010,6 +2045,11 @@ public class BuildScriptBuilder {
         @Override
         public String dependencySpec(String config, String notation) {
             return config + "(" + notation + ")";
+        }
+
+        @Override
+        public String dependencyExclusionSpec(DependencyExclusion exclusion) {
+            return "exclude (group = " + string(exclusion.getGroup()) + ", module = " + string(exclusion.getModule()) + ")";
         }
 
 
@@ -2188,7 +2228,12 @@ public class BuildScriptBuilder {
 
         @Override
         public String dependencySpec(String config, String notation) {
-            return config + " " + notation;
+            return config + " (" + notation + ")";
+        }
+
+        @Override
+        public String dependencyExclusionSpec(DependencyExclusion exclusion) {
+            return "    exclude (group: " + string(exclusion.getGroup()) + ", module: " + string(exclusion.getModule()) + ")";
         }
 
         @Override

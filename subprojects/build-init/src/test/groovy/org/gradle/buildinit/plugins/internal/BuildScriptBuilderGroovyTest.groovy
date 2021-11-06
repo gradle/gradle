@@ -151,6 +151,8 @@ repositories {
         builder.implementationDependency(null, "a:b:1.2", "a:c:4.5")
         builder.implementationDependency(null, "a:d:4.5")
         builder.implementationDependency("Use Scala to compile", "org.scala-lang:scala-library:2.10")
+        builder.dependencyWithExclusions("implementation", null, "a:e:1.2",
+            new DependencyExclusion("a", "f"), new DependencyExclusion("a", "g"));
         builder.create(target).generate()
 
         then:
@@ -160,15 +162,20 @@ repositories {
 
 dependencies {
     // Use slf4j
-    implementation 'org.slf4j:slf4j-api:2.7'
-    implementation 'org.slf4j:slf4j-simple:2.7'
+    implementation ('org.slf4j:slf4j-api:2.7')
+    implementation ('org.slf4j:slf4j-simple:2.7')
 
-    implementation 'a:b:1.2'
-    implementation 'a:c:4.5'
-    implementation 'a:d:4.5'
+    implementation ('a:b:1.2')
+    implementation ('a:c:4.5')
+    implementation ('a:d:4.5')
 
     // Use Scala to compile
-    implementation 'org.scala-lang:scala-library:2.10'
+    implementation ('org.scala-lang:scala-library:2.10')
+
+    implementation ('a:e:1.2') {
+        exclude (group: 'a', module: 'f')
+        exclude (group: 'a', module: 'g')
+    }
 }
 """)
     }
@@ -186,11 +193,11 @@ dependencies {
 
 dependencies {
     // use some test kit
-    testImplementation 'org:test:1.2'
-    testImplementation 'org:test-utils:1.2'
+    testImplementation ('org:test:1.2')
+    testImplementation ('org:test-utils:1.2')
 
     // needs some libraries at runtime
-    testRuntimeOnly 'org:test-runtime:1.2'
+    testRuntimeOnly ('org:test-runtime:1.2')
 }
 """)
     }
@@ -211,10 +218,10 @@ dependencies {
 
 dependencies {
     // use platform
-    implementation platform('a:b:2.2')
+    implementation (platform('a:b:2.2'))
 
-    implementation platform('a:d:1.4')
-    testImplementation platform('a:c:2.0')
+    implementation (platform('a:d:1.4'))
+    testImplementation (platform('a:c:2.0'))
 }
 """)
     }
@@ -235,10 +242,10 @@ dependencies {
 
 dependencies {
     // use some lib
-    implementation project(':abc')
+    implementation (project(':abc'))
 
-    implementation project(':p2')
-    testImplementation project(':p1')
+    implementation (project(':p2'))
+    testImplementation (project(':p1'))
 }
 """)
     }

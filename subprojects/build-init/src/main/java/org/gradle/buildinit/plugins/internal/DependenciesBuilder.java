@@ -27,5 +27,7 @@ public interface DependenciesBuilder {
 
     void dependency(String configuration, @Nullable String comment, String... dependencies);
 
+    void dependencyWithExclusions(String configuration, @Nullable String comment, String dependency, DependencyExclusion... exclusions);
+
     void dependencyConstraint(String configuration, @Nullable String comment, String... dependencies);
 }

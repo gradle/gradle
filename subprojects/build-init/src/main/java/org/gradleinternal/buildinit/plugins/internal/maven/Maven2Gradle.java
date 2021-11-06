@@ -34,6 +34,7 @@ import org.gradle.buildinit.InsecureProtocolOption;
 import org.gradle.buildinit.plugins.internal.BuildScriptBuilder;
 import org.gradle.buildinit.plugins.internal.BuildScriptBuilderFactory;
 import org.gradle.buildinit.plugins.internal.DependenciesBuilder;
+import org.gradle.buildinit.plugins.internal.DependencyExclusion;
 import org.gradle.buildinit.plugins.internal.ScriptBlockBuilder;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.util.internal.RelativePathUtil;
@@ -204,7 +205,13 @@ public class Maven2Gradle {
                 dependenciesBuilder.projectDependency(dep.getConfiguration(), null, ((ProjectDependency) dep).getProjectPath());
             } else {
                 ExternalDependency extDep = (ExternalDependency) dep;
-                dependenciesBuilder.dependency(dep.getConfiguration(), null, extDep.getGroupId() + ":" + extDep.getModule() + ":" + extDep.getVersion());
+                String depRef = extDep.getGroupId() + ":" + extDep.getModule() + ":" + extDep.getVersion();
+                if (extDep.getExclusions() == null || extDep.getExclusions().isEmpty()) {
+                    dependenciesBuilder.dependency(dep.getConfiguration(), null, depRef);
+                } else {
+                    DependencyExclusion[] exclusions = extDep.getExclusions().stream().toArray(DependencyExclusion[]::new);
+                    dependenciesBuilder.dependencyWithExclusions(dep.getConfiguration(), null, depRef, exclusions);
+                }
             }
         }
     }
@@ -526,7 +533,7 @@ public class Maven2Gradle {
 
     private void createExternalDependency(org.apache.maven.model.Dependency mavenDependency, List<Dependency> result, String scope) {
         String classifier = mavenDependency.getClassifier();
-        List<String> exclusions = mavenDependency.getExclusions().stream().map(Exclusion::getArtifactId).collect(Collectors.toList());
+        List<DependencyExclusion> exclusions = mavenDependency.getExclusions().stream().map(e -> new DependencyExclusion(e.getGroupId(), e.getArtifactId())).collect(Collectors.toList());
         result.add(new ExternalDependency(scope, mavenDependency.getGroupId(), mavenDependency.getArtifactId(), mavenDependency.getVersion(), classifier, exclusions));
     }
 
