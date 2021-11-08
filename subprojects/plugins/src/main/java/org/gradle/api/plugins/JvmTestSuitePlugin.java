@@ -114,7 +114,7 @@ public class JvmTestSuitePlugin implements Plugin<Project> {
             attributes.attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType.class, DocsType.TEST_RESULTS));
             attributes.attribute(Verification.TEST_SUITE_NAME_ATTRIBUTE, objects.named(Verification.class, suite.getName()));
             attributes.attribute(Verification.TARGET_NAME_ATTRIBUTE, objects.named(Verification.class, suite.getName()));
-            attributes.attribute(TestType.TEST_TYPE_ATTRIBUTE, suite.getTestType().flatMap(tt -> project.provider(() -> objects.named(TestType.class, tt))));
+            attributes.attribute(TestType.TEST_TYPE_ATTRIBUTE, suite.getTestType().flatMap(tt -> project.provider(() -> objects.named(TestType.class, tt))), TestType.class);
         });
 
         variant.getOutgoing().artifact(

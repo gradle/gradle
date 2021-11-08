@@ -35,7 +35,7 @@ class LazyAttributesIntegrationTest extends AbstractIntegrationSpec {
                     canBeConsumed = true
 
                     attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, sampleProperty.flatMap(value -> project.provider(() -> objects.named(Usage, value))))
+                        attribute(Usage.USAGE_ATTRIBUTE, sampleProperty.flatMap(value -> project.provider(() -> objects.named(Usage, value))), Usage.class)
                     }
                 }
             }
@@ -71,7 +71,7 @@ class LazyAttributesIntegrationTest extends AbstractIntegrationSpec {
                     extendsFrom(configurations.implementation)
 
                     attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, testProvider)
+                        attribute(Usage.USAGE_ATTRIBUTE, testProvider, String.class)
                     }
                 }
             }
@@ -79,7 +79,7 @@ class LazyAttributesIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         fails "outgoingVariants"
-        failure.assertHasCause("Unexpected type for attribute 'org.gradle.usage'")
+        failure.assertHasCause("Unexpected type for attribute: 'org.gradle.usage'. Expected type: java.lang.String did not match attribute type: org.gradle.api.attributes.Usage")
     }
 
     def "providers used as attribute values with mismatched types names fail properly"() {
@@ -98,7 +98,7 @@ class LazyAttributesIntegrationTest extends AbstractIntegrationSpec {
                     extendsFrom(configurations.implementation)
 
                     attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, testProvider.flatMap(value -> project.provider(() -> objects.named(Category, value))))
+                        attribute(Usage.USAGE_ATTRIBUTE, testProvider.flatMap(value -> project.provider(() -> objects.named(Category, value))), Usage.class)
                     }
                 }
             }
@@ -106,6 +106,33 @@ class LazyAttributesIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         fails "outgoingVariants"
-        failure.assertHasCause("Unexpected type for attribute 'org.gradle.usage'")
+        failure.assertHasCause("Unexpected type for attribute: 'org.gradle.usage'. Expected type: org.gradle.api.attributes.Category\$Impl did not match attribute type: org.gradle.api.attributes.Usage")
+    }
+
+    def "providers used as attribute values with mismatched expected types names fail properly"() {
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            Property<String> sampleProperty = project.objects.property(String)
+            sampleProperty.set("original value")
+
+            configurations {
+                sample {
+                    visible = false
+                    canBeResolved = false
+                    canBeConsumed = true
+
+                    attributes {
+                        attribute(Usage.USAGE_ATTRIBUTE, sampleProperty.flatMap(value -> project.provider(() -> objects.named(Usage, value))), Integer.class)
+                    }
+                }
+            }
+            """.stripIndent()
+
+        expect:
+        fails "outgoingVariants"
+        failure.assertHasCause("Unexpected type for attribute: 'org.gradle.usage'. Expected type: java.lang.Integer did not match attribute type: org.gradle.api.attributes.Usage")
     }
 }

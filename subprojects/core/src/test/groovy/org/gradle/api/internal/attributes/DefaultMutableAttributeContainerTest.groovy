@@ -65,7 +65,7 @@ class DefaultMutableAttributeContainerTest extends Specification {
         def container = new DefaultMutableAttributeContainer(attributesFactory)
 
         when:
-        container.attribute(testAttribute, testProperty)
+        container.attribute(testAttribute, testProperty, String.class)
 
         then:
         def e = thrown(IllegalArgumentException)
