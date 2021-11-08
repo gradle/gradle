@@ -16,7 +16,7 @@
 
 package org.gradle.api.plugins
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec;
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
 
@@ -54,7 +54,7 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
                 - org.gradle.usage         = verification
 
             Artifacts
-                - build/test-results/test/binary/results.bin (artifactType = binary)
+                - build${File.separator}test-results${File.separator}test${File.separator}binary${File.separator}results.bin (artifactType = binary)
             """.stripIndent())
     }
 
@@ -96,7 +96,7 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
                 - org.gradle.usage         = verification
 
             Artifacts
-                - build/test-results/integrationTest/binary/results.bin (artifactType = binary)
+                - build${File.separator}test-results${File.separator}integrationTest/binary/results.bin (artifactType = binary)
             """.stripIndent())
     }
 

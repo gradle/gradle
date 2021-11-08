@@ -66,8 +66,8 @@ class JavaPluginIntegrationTest extends AbstractIntegrationSpec {
                 - org.gradle.usage    = verification
 
             Artifacts
-                - src/main/java (artifactType = directory)
-                - src/main/resources (artifactType = directory)
+                - src${File.separator}main${File.separator}java (artifactType = directory)
+                - src${File.separator}main${File.separator}resources (artifactType = directory)
             """.stripIndent())
     }
 
@@ -96,9 +96,9 @@ class JavaPluginIntegrationTest extends AbstractIntegrationSpec {
                 - org.gradle.usage    = verification
 
             Artifacts
-                - src/main/java (artifactType = directory)
-                - src/more/java (artifactType = directory)
-                - src/main/resources (artifactType = directory)
+                - src${File.separator}main${File.separator}java (artifactType = directory)
+                - src${File.separator}more${File.separator}java (artifactType = directory)
+                - src${File.separator}main${File.separator}resources (artifactType = directory)
             """.stripIndent())
     }
 

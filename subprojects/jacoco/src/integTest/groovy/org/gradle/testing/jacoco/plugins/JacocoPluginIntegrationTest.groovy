@@ -164,7 +164,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
                 - org.gradle.usage         = verification
 
             Artifacts
-                - build/jacoco/test.exec (artifactType = binary)""".stripIndent())
+                - build${File.separator}jacoco${File.separator}test.exec (artifactType = binary)""".stripIndent())
     }
 
     def "jacoco plugin adds outgoing variants for custom test suite"() {
@@ -200,7 +200,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
                 - org.gradle.usage         = verification
 
             Artifacts
-                - build/jacoco/integrationTest.exec (artifactType = binary)""".stripIndent())
+                - build${File.separator}jacoco${File.separator}integrationTest.exec (artifactType = binary)""".stripIndent())
     }
 
     def "Jacoco coverage data can be consumed by another task via Dependency Management"() {
