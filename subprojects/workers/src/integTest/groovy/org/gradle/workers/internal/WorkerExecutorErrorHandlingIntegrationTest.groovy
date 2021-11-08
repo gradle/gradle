@@ -22,7 +22,6 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.gradle.workers.fixtures.WorkerExecutorFixture
-import spock.lang.Unroll
 
 import static org.gradle.workers.fixtures.WorkerExecutorFixture.ISOLATION_MODES
 
@@ -58,7 +57,6 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
         }
     }
 
-    @Unroll
     def "produces a sensible error when there is a failure in the worker runnable in #isolationMode"() {
         def failureExecution = fixture.workActionThatFails.writeToBuildFile()
         fixture.withWorkActionClassInBuildSrc()
@@ -83,7 +81,6 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
         isolationMode << ISOLATION_MODES
     }
 
-    @Unroll
     def "produces a sensible error when there is a failure in the worker runnable and work completes before the task in #isolationMode"() {
         def failureExecution = fixture.workActionThatFails.writeToBuildFile()
         fixture.withWorkActionClassInBuildSrc()
@@ -136,7 +133,6 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
         failureHasCause("Failed to run Gradle Worker Daemon")
     }
 
-    @Unroll
     @ToBeFixedForConfigurationCache(because = "non-serializable fails configuration cache store earlier")
     def "produces a sensible error when a parameter can't be serialized to the worker in #isolationMode"() {
         def workAction = fixture.workActionThatCreatesFiles.writeToBuildSrc()
@@ -172,7 +168,6 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
         isolationMode << ISOLATION_MODES
     }
 
-    @Unroll
     def "produces a sensible error when a parameter can't be de-serialized in the worker in #isolationMode"() {
         def parameterJar = file("parameter.jar")
         def workAction = fixture.workActionThatCreatesFiles.writeToBuildSrc()
@@ -208,7 +203,6 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
         isolationMode << ["'classLoaderIsolation'", "'processIsolation'"]
     }
 
-    @Unroll
     def "produces a sensible error even if the action failure cannot be fully serialized in #isolationMode"() {
         fixture.withWorkActionClassInBuildSrc()
         def failureExecution = actionThatThrowsUnserializableMemberException.writeToBuildSrc()
@@ -242,7 +236,6 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
         isolationMode << ISOLATION_MODES
     }
 
-    @Unroll
     def "produces a sensible error when the runnable cannot be instantiated in #isolationMode"() {
         fixture.withWorkActionClassInBuildSrc()
         def failureExecution = actionThatFailsInstantiation.writeToBuildSrc()

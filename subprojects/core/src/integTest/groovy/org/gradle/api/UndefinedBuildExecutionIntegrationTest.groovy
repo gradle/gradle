@@ -18,7 +18,6 @@ package org.gradle.api
 
 import org.gradle.cache.internal.BuildScopeCacheDir
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Unroll
 
 class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
@@ -26,7 +25,6 @@ class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
         executer.requireOwnGradleUserHomeDir()
     }
 
-    @Unroll
     def "fails when attempting to execute tasks #tasks in directory with no settings or build file"() {
         when:
         fails(*tasks)
@@ -121,7 +119,6 @@ class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
         textFile.text == "content"
     }
 
-    @Unroll
     def "does not treat build as undefined when root #fileName is present but settings file is not"() {
         when:
         file(fileName) << """
@@ -136,7 +133,6 @@ class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
         fileName << ["build.gradle", "build.gradle.kts"]
     }
 
-    @Unroll
     def "does not treat build as undefined when root build file is not present but #fileName is"() {
         when:
         settingsFile << """
@@ -205,7 +201,6 @@ class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
         executer.gradleUserHomeDir.file(BuildScopeCacheDir.UNDEFINED_BUILD).assertDoesNotExist()
     }
 
-    @Unroll
     def "does not fail when executing #flag in undefined build"() {
         when:
         executer.requireDaemon().requireIsolatedDaemons()

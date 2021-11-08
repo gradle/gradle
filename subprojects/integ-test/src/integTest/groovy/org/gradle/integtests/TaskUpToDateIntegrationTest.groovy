@@ -21,11 +21,8 @@ import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFiles
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
-import spock.lang.Unroll
 
-@Unroll
 class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
-    @Unroll
     @Issue("https://issues.gradle.org/browse/GRADLE-3540")
     def "order of #annotation marks task not up-to-date"() {
         buildFile << """
@@ -38,7 +35,7 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
             }
 
             task myTask(type: MyTask) {
-                if (providers.gradleProperty("reverse").forUseAtConfigurationTime().isPresent()) {
+                if (providers.gradleProperty("reverse").isPresent()) {
                     out = files("out2", "out1")
                 } else {
                     out = files("out1", "out2")
@@ -111,7 +108,7 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
             }
 
             task customTask(type: CustomTask) {
-                outputFile = providers.gradleProperty('outputFile').forUseAtConfigurationTime().map { file(it) }.orNull
+                outputFile = providers.gradleProperty('outputFile').map { file(it) }.orNull
             }
         """
 
@@ -146,7 +143,7 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
 
             def lazyProperty(String name) {
                 def outputFile =
-                    providers.gradleProperty(name).forUseAtConfigurationTime().map { value ->
+                    providers.gradleProperty(name).map { value ->
                         value ? file(value) : null
                     }.orNull
                 return { -> outputFile }
@@ -154,7 +151,7 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
 
             task customTask(type: CustomTask) {
                 int numOutputs = Integer.parseInt(
-                    providers.gradleProperty('numOutputs').forUseAtConfigurationTime().get()
+                    providers.gradleProperty('numOutputs').get()
                 )
                 outputFiles = (0..(numOutputs-1)).collect { lazyProperty("output\$it") }
             }
@@ -213,7 +210,7 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
             }
 
             task customTask(type: CustomTask) {
-                inputFile = providers.gradleProperty('inputFile').forUseAtConfigurationTime().map { file(it) }.orNull
+                inputFile = providers.gradleProperty('inputFile').map { file(it) }.orNull
                 outputFile = file("output.txt")
             }
         """
@@ -360,7 +357,7 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
             }
 
             task myTask(type: MyTask) {
-                input = providers.gradleProperty('inputDir').forUseAtConfigurationTime().map { file(it) }.get()
+                input = providers.gradleProperty('inputDir').map { file(it) }.get()
                 output = project.file("build/output.txt")
             }
 

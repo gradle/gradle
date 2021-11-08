@@ -25,7 +25,7 @@ import java.io.ByteArrayOutputStream
 import java.net.InetAddress
 
 
-fun Project.testDistributionEnabled() = providers.systemProperty("enableTestDistribution").forUseAtConfigurationTime().orNull?.toBoolean() == true
+fun Project.testDistributionEnabled() = providers.systemProperty("enableTestDistribution").orNull?.toBoolean() == true
 
 
 fun Project.repoRoot() = layout.projectDirectory.parentOrRoot()

@@ -20,9 +20,7 @@ import org.gradle.api.tasks.incremental.IncrementalTaskInputs
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.work.InputChanges
 import spock.lang.Issue
-import spock.lang.Unroll
 
-@Unroll
 class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
 
     def "task is up-to-date after unrelated change to build script"() {

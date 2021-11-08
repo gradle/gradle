@@ -36,7 +36,6 @@ import org.gradle.tooling.internal.protocol.test.InternalDebugOptions
 import org.gradle.tooling.internal.protocol.test.InternalJvmTestRequest
 import org.gradle.tooling.internal.provider.action.TestExecutionRequestAction
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class TestExecutionBuildConfigurationActionTest extends Specification {
 
@@ -98,7 +97,6 @@ class TestExecutionBuildConfigurationActionTest extends Specification {
         _ * executionPlan.addEntryTasks({ args -> assert args.size() == 0 })
     }
 
-    @Unroll
     def "sets test filter with information from #requestType"() {
         setup:
         _ * projectInternal.getAllprojects() >> [projectInternal]

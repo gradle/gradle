@@ -16,12 +16,8 @@
 
 package org.gradle.configurationcache
 
-import spock.lang.Unroll
-
-
 class ConfigurationCacheSkipCacheIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
-    @Unroll
     def "skip reading cached state on #commandLine"() {
 
         def configurationCache = newConfigurationCacheFixture()

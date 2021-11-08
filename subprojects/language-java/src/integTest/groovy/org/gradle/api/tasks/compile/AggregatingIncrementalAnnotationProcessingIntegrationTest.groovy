@@ -422,6 +422,20 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
         file("build/classes/java/main/A.txt").exists()
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/18840")
+    def "a class can be aggregated with a type that it generated"() {
+        given:
+        withProcessor(new AnnotatedGeneratedClassProcessorFixture())
+        java "@Bean @Service class A {}"
+        succeeds "compileJava"
+
+        when:
+        java "class Unrelated {}"
+
+        then:
+        succeeds "compileJava"
+    }
+
     private boolean serviceRegistryReferences(String... services) {
         def registry = file("build/classes/java/main/ServiceRegistryResource.txt").text
         services.every() {

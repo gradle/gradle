@@ -18,7 +18,6 @@ package org.gradle.api.internal.changedetection.state
 
 import spock.lang.Specification
 import spock.lang.TempDir
-import spock.lang.Unroll
 
 import org.gradle.api.internal.changedetection.state.LineEndingContentFixture as content
 
@@ -28,7 +27,6 @@ class LineEndingNormalizingInputStreamHasherTest extends Specification {
 
     def hasher = new LineEndingNormalizingInputStreamHasher()
 
-    @Unroll
     def "can normalize line endings in files (eol = '#description')"() {
         def unnormalized = file('unnormalized.txt') << content.textWithLineEndings(eol)
         def normalized = file('normalized.txt') << content.textWithLineEndings('\n')
@@ -43,7 +41,6 @@ class LineEndingNormalizingInputStreamHasherTest extends Specification {
         '\n'    | 'LF'
     }
 
-    @Unroll
     def "can normalize line endings in input streams (eol = '#description')"() {
         def unnormalized = inputStream(content.textWithLineEndings(eol))
         def normalized = inputStream(content.textWithLineEndings('\n'))
@@ -58,7 +55,6 @@ class LineEndingNormalizingInputStreamHasherTest extends Specification {
         '\n'    | 'LF'
     }
 
-    @Unroll
     def "does not normalize content for binary files with #description"() {
         def file = file('foo') << contents
 
@@ -72,7 +68,6 @@ class LineEndingNormalizingInputStreamHasherTest extends Specification {
         "java class file content" | content.CLASS_FILE_CONTENT
     }
 
-    @Unroll
     def "does not normalize content for binary input streams with #description"() {
         def stream = inputStream(contents)
 

@@ -22,7 +22,6 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.util.TestPrecondition
 import org.gradle.workers.fixtures.OptionsVerifier
 import spock.lang.Issue
-import spock.lang.Unroll
 
 import static org.gradle.api.internal.file.TestFiles.systemSpecificAbsolutePath
 import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
@@ -38,7 +37,6 @@ class WorkerExecutorLegacyApiIntegrationTest extends AbstractIntegrationSpec {
        }
     }
 
-    @Unroll
     def "can submit an item of work with the legacy API using isolation mode #isolationMode"() {
         buildFile << """
             ${legacyWorkerTypeAndTask}
@@ -67,7 +65,6 @@ class WorkerExecutorLegacyApiIntegrationTest extends AbstractIntegrationSpec {
         isolationMode << ISOLATION_MODES
     }
 
-    @Unroll
     def "can control forking via forkMode with the legacy API using fork mode #forkMode"() {
         executer.requireIsolatedDaemons()
         executer.withWorkerDaemonsExpirationDisabled()
@@ -115,7 +112,6 @@ class WorkerExecutorLegacyApiIntegrationTest extends AbstractIntegrationSpec {
 
 
 
-    @Unroll
     def "produces a sensible error when parameters are incorrect in #isolationMode"() {
         buildFile << """
             ${legacyWorkerTypeAndTask}

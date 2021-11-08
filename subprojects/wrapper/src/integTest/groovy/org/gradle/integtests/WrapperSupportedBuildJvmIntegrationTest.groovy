@@ -20,12 +20,10 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
 import spock.lang.IgnoreIf
-import spock.lang.Unroll
 
 @Requires(adhoc = { AvailableJavaHomes.getJdks("1.6", "1.7") })
 @IgnoreIf({ GradleContextualExecuter.embedded }) // wrapperExecuter requires a real distribution
 class WrapperSupportedBuildJvmIntegrationTest extends AbstractWrapperIntegrationSpec {
-    @Unroll
     def "provides reasonable failure message when attempting to run under java #jdk.javaVersion"() {
         given:
         prepareWrapper()
@@ -39,7 +37,6 @@ class WrapperSupportedBuildJvmIntegrationTest extends AbstractWrapperIntegration
         jdk << AvailableJavaHomes.getJdks("1.6", "1.7")
     }
 
-    @Unroll
     def "provides reasonable failure message when attempting to run build under java #jdk.javaVersion"() {
         given:
         prepareWrapper()

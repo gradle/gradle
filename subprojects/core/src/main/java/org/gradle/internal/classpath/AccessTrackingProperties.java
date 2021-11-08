@@ -40,9 +40,9 @@ import java.util.function.Function;
 class AccessTrackingProperties extends Properties {
     // TODO(https://github.com/gradle/configuration-cache/issues/337) Only a limited subset of method is tracked currently.
     private final Properties delegate;
-    private final BiConsumer<String, Object> onAccess;
+    private final BiConsumer<? super String, ? super String> onAccess;
 
-    public AccessTrackingProperties(Properties delegate, BiConsumer<String, Object> onAccess) {
+    public AccessTrackingProperties(Properties delegate, BiConsumer<? super String, ? super String> onAccess) {
         this.delegate = delegate;
         this.onAccess = onAccess;
     }
@@ -54,7 +54,7 @@ class AccessTrackingProperties extends Properties {
 
     @Override
     public Set<String> stringPropertyNames() {
-        return delegate.stringPropertyNames();
+        return new AccessTrackingSet<>(delegate.stringPropertyNames(), this::getAndReport);
     }
 
     @Override
@@ -79,7 +79,7 @@ class AccessTrackingProperties extends Properties {
 
     @Override
     public Set<Object> keySet() {
-        return delegate.keySet();
+        return new AccessTrackingSet<>(delegate.keySet(), this::getAndReport);
     }
 
     @Override
@@ -89,13 +89,22 @@ class AccessTrackingProperties extends Properties {
 
     @Override
     public Set<Map.Entry<Object, Object>> entrySet() {
-        return new AccessTrackingSet<>(delegate.entrySet(), e -> onAccess.accept((String) e.getKey(), e.getValue()));
+        return new AccessTrackingSet<>(
+            delegate.entrySet(),
+            this::onAccessEntrySetElement);
+    }
+
+    private void onAccessEntrySetElement(@Nullable Object potentialEntry) {
+        Map.Entry<String, String> entry = AccessTrackingUtils.tryConvertingToTrackableEntry(potentialEntry);
+        if (entry != null) {
+            getAndReport(entry.getKey());
+        }
     }
 
     @Override
     public void forEach(BiConsumer<? super Object, ? super Object> action) {
         delegate.forEach((k, v) -> {
-            onAccess.accept((String) k, v);
+            reportKeyAndValue(k, v);
             action.accept(k, v);
         });
     }
@@ -157,7 +166,7 @@ class AccessTrackingProperties extends Properties {
 
     @Override
     public boolean containsKey(Object key) {
-        return delegate.containsKey(key);
+        return getAndReport(key) != null;
     }
 
     @Override
@@ -172,7 +181,9 @@ class AccessTrackingProperties extends Properties {
 
     @Override
     public Object remove(Object key) {
-        return delegate.remove(key);
+        Object result = delegate.remove(key);
+        reportKeyAndValue(key, result);
+        return result;
     }
 
     @Override
@@ -192,19 +203,20 @@ class AccessTrackingProperties extends Properties {
 
     @Override
     public String getProperty(String key, String defaultValue) {
-        String value = delegate.getProperty(key);
-        onAccess.accept(key, value);
+        Object oValue = getAndReport(key);
+        String value = oValue instanceof String ? (String) oValue : null;
         return value != null ? value : defaultValue;
     }
 
     @Override
     public Object getOrDefault(Object key, Object defaultValue) {
-        return getProperty((String) key, (String) defaultValue);
+        Object value = getAndReport(key);
+        return value != null ? value : defaultValue;
     }
 
     @Override
     public Object get(Object key) {
-        return getProperty((String) key);
+        return getAndReport(key);
     }
 
     @Override
@@ -273,5 +285,17 @@ class AccessTrackingProperties extends Properties {
     @Override
     public int hashCode() {
         return delegate.hashCode();
+    }
+
+    private Object getAndReport(Object key) {
+        Object value = delegate.get(key);
+        reportKeyAndValue(key, value);
+        return value;
+    }
+
+    private void reportKeyAndValue(Object key, Object value) {
+        if (key instanceof String && (value == null || value instanceof String)) {
+            onAccess.accept((String) key, (String) value);
+        }
     }
 }

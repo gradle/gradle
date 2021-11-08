@@ -16,6 +16,8 @@
 
 package org.gradle.configurationcache.isolated
 
+import spock.lang.Ignore
+
 class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest {
     def setup() {
         settingsFile << """
@@ -185,7 +187,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
     def "invalidates cached model when model builder input changes"() {
         given:
         withSomeToolingModelBuilderPluginInBuildSrc("""
-            project.providers.gradleProperty("some-input").forUseAtConfigurationTime().get()
+            project.providers.gradleProperty("some-input").get()
         """)
         settingsFile << """
             include("a")
@@ -331,7 +333,8 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         fixture.assertStateLoaded()
     }
 
-    def "caches execution of BuildAction that queries nullable custom tooling model"() {
+    @Ignore("https://github.com/gradle/gradle/pull/18858 - Those phased build actions no longer have 'isRunsTasks' set to true")
+    def "caches execution of phased BuildAction that queries custom tooling model and that runs tasks"() {
         given:
         withSomeNullabeToolingModelBuilderPluginInBuildSrc()
         settingsFile << """

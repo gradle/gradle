@@ -19,13 +19,11 @@ package org.gradle.configurationcache
 import org.gradle.api.provider.ValueSource
 import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.configurationcache.fixtures.BuildLogicChangeFixture
-import spock.lang.Unroll
 
 import static org.junit.Assume.assumeFalse
 
 class ConfigurationCacheIncludedBuildInputsChangesIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
-    @Unroll
     def "invalidates cache upon change to #inputName used by included build"() {
 
         assumeFalse(
@@ -48,10 +46,10 @@ class ConfigurationCacheIncludedBuildInputsChangesIntegrationTest extends Abstra
             }
 
             val ciProvider = providers.of(IsCi::class.java) {
-                parameters.value.set(providers.systemProperty("test_is_ci").forUseAtConfigurationTime())
+                parameters.value.set(providers.systemProperty("test_is_ci"))
             }
 
-            val isCi = ${inputExpression}.forUseAtConfigurationTime()
+            val isCi = ${inputExpression}
             tasks {
                 named("jar") {
                     if (isCi.isPresent) {

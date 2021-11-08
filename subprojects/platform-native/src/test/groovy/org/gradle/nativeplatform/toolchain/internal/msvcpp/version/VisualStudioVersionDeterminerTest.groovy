@@ -20,7 +20,6 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.internal.VersionNumber
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import static org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioInstallCandidate.Compatibility.LEGACY
 import static org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioInstallCandidate.Compatibility.VS2017_OR_LATER
@@ -254,7 +253,6 @@ class VisualStudioVersionDeterminerTest extends Specification {
         metadata.compatibility == VS2017_OR_LATER
     }
 
-    @Unroll
     def "can determine legacy version from compiler path (#platform) and windows registry when command line has no results"() {
         def dir1 = tmpDir.createDir("dir2")
         def dir2 = tmpDir.createDir("dir3")
@@ -333,7 +331,6 @@ class VisualStudioVersionDeterminerTest extends Specification {
         metadata.version == VersionNumber.UNKNOWN
     }
 
-    @Unroll
     def "can determine legacy metadata from compiler path (#platform) when command line has no results and not found in registry"() {
         def dir1 = tmpDir.createDir("dir2")
         def dir2 = tmpDir.createDir("dir3")

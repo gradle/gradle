@@ -20,11 +20,9 @@ import org.gradle.internal.snapshot.TestSnapshotFixture
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import static org.gradle.internal.watch.registry.impl.SnapshotWatchedDirectoryFinder.getDirectoryToWatch
 
-@Unroll
 class SnapshotWatchedDirectoryFinderTest extends Specification implements TestSnapshotFixture {
 
     @Rule

@@ -29,7 +29,6 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Unroll
 
 @CleanupTestDirectory
 class PathNormalizationStrategyTest extends Specification {
@@ -93,7 +92,6 @@ class PathNormalizationStrategyTest extends Specification {
         }
     }
 
-    @Unroll
     def "sensitivity NAME_ONLY (DirectorySensitivity: #strategy.directorySensitivity)"() {
         def fingerprints = collectFingerprints(strategy)
         expect:
@@ -110,7 +108,6 @@ class PathNormalizationStrategyTest extends Specification {
         ]
     }
 
-    @Unroll
     def "sensitivity RELATIVE (DirectorySensitivity: #strategy.directorySensitivity)"() {
         def fingerprints = collectFingerprints(strategy)
         expect:
@@ -132,7 +129,6 @@ class PathNormalizationStrategyTest extends Specification {
         ]
     }
 
-    @Unroll
     def "sensitivity ABSOLUTE (DirectorySensitivity: #strategy.directorySensitivity)"() {
         def fingerprints = collectFingerprints(strategy)
         expect:

@@ -34,7 +34,6 @@ import org.gradle.internal.reflect.Instantiator
 import org.gradle.util.internal.ClosureBackedAction
 import org.gradle.util.TestUtil
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class AbstractAuthenticationSupportedRepositoryTest extends Specification {
 
@@ -92,7 +91,6 @@ class AbstractAuthenticationSupportedRepositoryTest extends Specification {
     }
 
 
-    @Unroll
     def "getCredentials(Class) instantiates the correct credential types "() {
         Instantiator instantiator = Mock()
         AuthenticationContainer authenticationContainer = Mock()

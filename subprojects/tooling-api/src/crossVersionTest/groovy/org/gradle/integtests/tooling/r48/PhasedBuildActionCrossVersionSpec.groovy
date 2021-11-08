@@ -29,7 +29,6 @@ import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
-import spock.lang.Unroll
 
 import java.util.regex.Pattern
 
@@ -356,7 +355,6 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         stdOut.toString().contains("bye")
     }
 
-    @Unroll
     def "do not run any tasks when none specified and #description"() {
         file('build.gradle') << """
             $configuration
@@ -386,7 +384,6 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         "build logic injects tasks into start param"       | "gradle.startParameter.taskNames = ['broken']"
     }
 
-    @Unroll
     def "#description means run help task"() {
         file('build.gradle') << """
         """
@@ -411,7 +408,6 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         "empty list of task names"  | { BuildActionExecuter b -> b.forTasks([]) }
     }
 
-    @Unroll
     def "#description means run default tasks when they are defined"() {
         file('build.gradle') << """
             defaultTasks = ["thing"]
@@ -439,7 +435,6 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         "empty list of task names"  | { BuildActionExecuter b -> b.forTasks([]) }
     }
 
-    @Unroll
     def "#description means run tasks injected by build logic"() {
         file('build.gradle') << """
             gradle.startParameter.taskNames = ["thing"]

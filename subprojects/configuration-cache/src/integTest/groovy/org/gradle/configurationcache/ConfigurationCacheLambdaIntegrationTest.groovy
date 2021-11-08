@@ -16,11 +16,8 @@
 
 package org.gradle.configurationcache
 
-import spock.lang.Unroll
-
 class ConfigurationCacheLambdaIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
-    @Unroll
     def "restores task fields whose value is a serializable #kind Java lambda"() {
         given:
         file("buildSrc/src/main/java/my/LambdaTask.java").tap {
@@ -79,7 +76,6 @@ class ConfigurationCacheLambdaIntegrationTest extends AbstractConfigurationCache
         "non-instance capturing" | "setNonInstanceCapturingLambda()"
     }
 
-    @Unroll
     def "restores task with action and spec that are Java lambdas"() {
         given:
         file("buildSrc/src/main/java/my/LambdaPlugin.java").tap {

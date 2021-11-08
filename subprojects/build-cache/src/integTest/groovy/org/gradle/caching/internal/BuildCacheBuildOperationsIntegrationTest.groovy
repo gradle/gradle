@@ -29,9 +29,7 @@ import org.gradle.integtests.fixtures.TestBuildCache
 import org.gradle.internal.io.NullOutputStream
 import org.gradle.util.internal.TextUtil
 import spock.lang.Shared
-import spock.lang.Unroll
 
-@Unroll
 class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
 
     @Shared
@@ -168,7 +166,6 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
         unpackOp.result.archiveEntryCount == 5
     }
 
-    @Unroll
     def "records load failure for #exceptionType"() {
         def localCache = new TestBuildCache(file("local-cache"))
         settingsFile << localCache.localCacheConfiguration()
@@ -196,7 +193,6 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
         exceptionType << [RuntimeException, IOException]
     }
 
-    @Unroll
     def "records store failure for #exceptionType"() {
         def localCache = new TestBuildCache(file("local-cache"))
         settingsFile << localCache.localCacheConfiguration()

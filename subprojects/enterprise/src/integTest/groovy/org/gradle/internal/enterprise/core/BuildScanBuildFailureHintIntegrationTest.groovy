@@ -21,7 +21,6 @@ import org.gradle.internal.enterprise.GradleEnterprisePluginCheckInFixture
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Issue
-import spock.lang.Unroll
 
 import static org.gradle.initialization.StartParameterBuildOptions.BuildScanOption
 import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.BUILD_SCAN_ERROR_MESSAGE_HINT
@@ -31,7 +30,6 @@ import static org.gradle.internal.logging.LoggingConfigurationBuildOptions.Stack
 
 @Issue("https://github.com/gradle/gradle/issues/3516")
 @Requires(TestPrecondition.ONLINE)
-@Unroll
 class BuildScanBuildFailureHintIntegrationTest extends AbstractPluginIntegrationTest {
 
     private static final List<String> DUMMY_TASK_ONLY = [DUMMY_TASK_NAME]
@@ -57,7 +55,6 @@ class BuildScanBuildFailureHintIntegrationTest extends AbstractPluginIntegration
         result.assertNotOutput(BUILD_SCAN_ERROR_MESSAGE_HINT)
     }
 
-    @Unroll
     def "renders hint for failing build without applied plugin and #description"() {
         given:
         buildFile << failingBuildFile()

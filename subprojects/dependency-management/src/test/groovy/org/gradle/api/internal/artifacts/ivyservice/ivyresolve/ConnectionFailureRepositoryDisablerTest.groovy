@@ -19,13 +19,11 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 import org.gradle.internal.resource.transport.http.HttpErrorStatusCodeException
 import spock.lang.Specification
 import spock.lang.Subject
-import spock.lang.Unroll
 
 class ConnectionFailureRepositoryDisablerTest extends Specification {
 
     @Subject RepositoryDisabler disabler = new ConnectionFailureRepositoryDisabler()
 
-    @Unroll
     def "disables repository for critical exception [#exception]"() {
         given:
         def repositoryId1 = 'abc'
@@ -60,7 +58,6 @@ class ConnectionFailureRepositoryDisablerTest extends Specification {
         exception << [createTimeoutException(), createInternalServerException()]
     }
 
-    @Unroll
     def "does not disable repository for #type"() {
         when:
         boolean disabled = disabler.disableRepository('abc', exception)

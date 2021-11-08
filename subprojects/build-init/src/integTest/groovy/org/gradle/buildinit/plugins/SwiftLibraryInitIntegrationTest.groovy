@@ -24,7 +24,6 @@ import org.gradle.nativeplatform.fixtures.AvailableToolChains.InstalledToolChain
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.SharedLibraryFixture
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
-import spock.lang.Unroll
 
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
 class SwiftLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
@@ -46,7 +45,6 @@ class SwiftLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
     @Override
     String subprojectName() { 'lib' }
 
-    @Unroll
     @ToBeFixedForConfigurationCache(because = "swift-library plugin")
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
@@ -73,7 +71,6 @@ class SwiftLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    @Unroll
     @ToBeFixedForConfigurationCache(because = "swift-library plugin")
     def "creates sample source if project name is specified with #scriptDsl build scripts"() {
         when:
@@ -101,7 +98,6 @@ class SwiftLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
     }
 
 
-    @Unroll
     @ToBeFixedForConfigurationCache(because = "swift-library plugin")
     def "source generation is skipped when cpp sources detected with #scriptDsl build scripts"() {
         setup:
