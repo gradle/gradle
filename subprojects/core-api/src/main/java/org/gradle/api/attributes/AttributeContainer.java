@@ -74,7 +74,7 @@ public interface AttributeContainer extends HasAttributes {
      * @since 7.4
      */
     @Incubating
-    <T> AttributeContainer attribute(Attribute<T> key, Provider<? extends T> provider, Class<T> valueType); // TODO: 18791 - 3rd param is ugly, but needed to solve kotlin-dsl overload ambiguity demonstrated here: https://ge.gradle.org/s/f26bf5hnqdpvs/tests/:kotlin-dsl-integ-tests:embeddedIntegTest/org.gradle.kotlin.dsl.integration.PrecompiledScriptPluginIntegrationTest/accessors%20are%20available%20after%20registering%20plugin?top-execution=1
+    <T> AttributeContainer attribute(Attribute<T> key, Provider<? extends T> provider);
 
     /**
      * Returns the value of an attribute found in this container, or <code>null</code> if

@@ -122,7 +122,7 @@ final class DefaultImmutableAttributes implements ImmutableAttributes, Attribute
     }
 
     @Override
-    public <T> AttributeContainer attribute(Attribute<T> key, Provider<? extends T> provider, Class<T> valueType) {
+    public <T> AttributeContainer attribute(Attribute<T> key, Provider<? extends T> provider) {
         throw new UnsupportedOperationException("Mutation of attributes is not allowed");
     }
 

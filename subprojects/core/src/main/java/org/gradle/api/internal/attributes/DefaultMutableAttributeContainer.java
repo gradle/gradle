@@ -61,15 +61,15 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
 
     @Override
     public <T> AttributeContainer attribute(Attribute<T> key, T value) {
-        assertAttributeTypeIsValid(value, key, value.getClass());
+        assertAttributeTypeIsValid(value, key);
         checkInsertionAllowed(key);
         state = immutableAttributesFactory.concat(state, key, value);
         return this;
     }
 
     @Override
-    public <T> AttributeContainer attribute(Attribute<T> key, Provider<? extends T> provider, Class<T> valueType) {
-        assertAttributeTypeIsValid(provider, key, valueType);
+    public <T> AttributeContainer attribute(Attribute<T> key, Provider<? extends T> provider) {
+        assertAttributeTypeIsValid(provider, key);
         checkInsertionAllowed(key);
         lazyAttributes.put(key, provider);
         return this;
@@ -92,20 +92,15 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
      * Checks that the attribute's type matches the given value's type (if a non-{@link Provider}), or the {@link ProviderInternal#getType()} if the
      * value is a {@link ProviderInternal}; as well as the expectedValueType.
      *
-     * The expectedValueType check is redundant for non-providers.  If the value is a {@link Provider} but <strong>NOT</strong> also
+     * If the value is a {@link Provider} but <strong>NOT</strong> also
      * a {@link ProviderInternal}, then no assertions are made (this type of lazily added attribute will fail at the time of retrieval from this container).
      *
      * @param value the value (or value provider) to check
      * @param attribute the attribute containing a type to check against
-     * @param expectedValueType the expected type of the value
      */
-    private void assertAttributeTypeIsValid(@Nullable Object value, Attribute<?> attribute, Class<?> expectedValueType) {
+    private void assertAttributeTypeIsValid(@Nullable Object value, Attribute<?> attribute) {
         if (value == null) {
             throw new IllegalArgumentException("Setting null as an attribute value is not allowed");
-        }
-
-        if (!attribute.getType().isAssignableFrom(expectedValueType)) {
-            throw new IllegalArgumentException("Unexpected type for attribute: '" + attribute.getName() + "'. Expected type: " + expectedValueType.getName() + " did not match attribute type: " + attribute.getType().getName());
         }
 
         final Class<?> actualValueType;
@@ -121,9 +116,6 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
         if (null != actualValueType) {
             if (!attribute.getType().isAssignableFrom(actualValueType)) {
                 throw new IllegalArgumentException("Unexpected type for attribute: '" + attribute.getName() + "'. Attribute type: " + attribute.getType().getName() + " did not match actual type: " + actualValueType.getName());
-            }
-            if (actualValueType != expectedValueType) {
-                throw new IllegalArgumentException("Unexpected type for attribute: '" + attribute.getName() + "'. Expected type: " + expectedValueType.getName() + " did not match actual type: " + actualValueType.getName());
             }
         }
     }
