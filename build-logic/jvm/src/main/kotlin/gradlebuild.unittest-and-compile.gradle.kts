@@ -220,6 +220,8 @@ fun Test.configureRerun() {
     }
 }
 
+fun Test.determineMaxRetry() = if (project.name in listOf("smoke-test", "performance", "build-scan-performance")) 1 else 2
+
 fun configureTests() {
     normalization {
         runtimeClasspath {
@@ -242,7 +244,7 @@ fun configureTests() {
         if (BuildEnvironment.isCiServer) {
             configureRerun()
             retry {
-                maxRetries.convention(1)
+                maxRetries.convention(determineMaxRetry())
                 maxFailures.set(10)
             }
             doFirst {
