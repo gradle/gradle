@@ -172,8 +172,8 @@ This allows tasks to implement the above use-cases.
 If a task is untracked, then Gradle does not do any optimizations when running the task.
 For example, such a task will always be out of date and never come from the build cache.
 
-The method [`Task.doNotTrackState()`](dsl/org.gradle.api.Task.html#org.gradle.api.Task:doNotTrackState(java.lang.String)) is a replacement for `Task.outputs.upToDateWhen { false }` if you want your task to never be up-to-date.
-It has the advantage that there is no time spent on capturing state that would be discarded anyway.
+`@UntrackedTask` and `Task.doNotTrackState` are a replacement for `Task.outputs.upToDateWhen { false }` if you want your task to never be up-to-date.
+It has the advantage that it is faster since `Task.outputs.upToDateWhen { false }` still spends time on capturing task state.
 
 See the samples in the user manual about [Integrating an external tool which does its own up-to-date checking](userguide/more_about_tasks.html#sec:untracked_external_tool).
 
