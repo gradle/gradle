@@ -26,6 +26,4 @@ dependencies {
     implementation(kotlin("compiler-embeddable") as String) {
         because("Required by IncubatingApiReportTask")
     }
-
-    testImplementation("org.junit.jupiter:junit-jupiter-engine")
 }

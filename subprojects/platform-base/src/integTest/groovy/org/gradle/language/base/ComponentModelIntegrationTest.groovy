@@ -24,7 +24,6 @@ import org.gradle.platform.base.ComponentSpec
 import org.gradle.platform.base.GeneralComponentSpec
 import org.gradle.platform.base.LibrarySpec
 import spock.lang.Issue
-import spock.lang.Unroll
 
 import static org.gradle.util.Matchers.containsText
 
@@ -463,7 +462,6 @@ afterEach CustomComponent 'newComponent'"""
         output.contains("Main component: main")
     }
 
-    @Unroll
     def "#projectionType is closed when used as input"() {
         given:
         withMainSourceSet()

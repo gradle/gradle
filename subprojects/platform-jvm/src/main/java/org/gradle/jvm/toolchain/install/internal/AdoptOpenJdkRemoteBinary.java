@@ -44,7 +44,7 @@ public class AdoptOpenJdkRemoteBinary {
         this.systemInfo = systemInfo;
         this.operatingSystem = operatingSystem;
         this.downloader = downloader;
-        rootUrl = providerFactory.gradleProperty("org.gradle.jvm.toolchain.install.adoptopenjdk.baseUri").forUseAtConfigurationTime();
+        rootUrl = providerFactory.gradleProperty("org.gradle.jvm.toolchain.install.adoptopenjdk.baseUri");
     }
 
     public Optional<File> download(JavaToolchainSpec spec, File destinationFile) {

@@ -23,13 +23,11 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.jvm.Jvm
 import org.gradle.util.Requires
 import spock.lang.IgnoreIf
-import spock.lang.Unroll
 
 import static org.junit.Assume.assumeNotNull
 
 class JavaCompileToolchainIntegrationTest extends AbstractPluginIntegrationTest {
 
-    @Unroll
     @IgnoreIf({ AvailableJavaHomes.differentJdk == null })
     def "can manually set java compiler via #type toolchain on java compile task"() {
         buildFile << """
@@ -298,7 +296,6 @@ public class Foo {
         outputContains("task.targetCompatibility = ${jdk.javaVersion.majorVersion}")
     }
 
-    @Unroll
     @Requires(adhoc = { AvailableJavaHomes.getJdk(JavaVersion.VERSION_11) != null })
     def 'source and target compatibility reflect toolchain usage (source #source, target #target)'() {
         def jdk11 = AvailableJavaHomes.getJdk(JavaVersion.VERSION_11)

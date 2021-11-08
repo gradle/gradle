@@ -22,7 +22,7 @@ import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.tasks.CacheableTask;
-import org.gradle.api.tasks.Classpath;
+import org.gradle.api.tasks.CompileClasspath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
@@ -77,7 +77,7 @@ public class PackageListGenerator extends DefaultTask {
         excludes = DEFAULT_EXCLUDES;
     }
 
-    @Classpath
+    @CompileClasspath
     public FileCollection getClasspath() {
         return classpath;
     }

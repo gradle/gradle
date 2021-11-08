@@ -32,7 +32,7 @@ import spock.lang.Subject
 
 class DependencyVerifierTest extends Specification {
     @Subject
-    DependencyVerifier verifier = new DependencyVerifier([:], new DependencyVerificationConfiguration(true, true, [], true, [], [] as Set, []))
+    DependencyVerifier verifier = new DependencyVerifier([:], new DependencyVerificationConfiguration(true, true, [], true, [], [] as Set, []), [])
 
     ChecksumService checksumService = Mock(ChecksumService)
     PublicKeyService publicKeyService = Mock(PublicKeyService)

@@ -23,7 +23,6 @@ import org.gradle.api.tasks.testing.TestOutputEvent
 import org.gradle.api.tasks.testing.TestResult
 import spock.lang.Specification
 import spock.lang.Subject
-import spock.lang.Unroll
 
 class FailFastTestListenerInternalTest extends Specification {
     TestExecuter testExecuter = Mock()
@@ -68,7 +67,6 @@ class FailFastTestListenerInternalTest extends Specification {
         1 * testExecuter.stopNow()
     }
 
-    @Unroll
     def "completed invokes delegate with result #result"() {
         testResult.resultType = result
 

@@ -29,7 +29,6 @@ import org.gradle.model.internal.type.ModelType
 import org.gradle.model.internal.type.ModelTypes
 import org.gradle.util.internal.TextUtil
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import static org.gradle.model.ModelTypeTesting.fullyQualifiedNameOf
 import static org.gradle.model.internal.core.NodePredicate.allDescendants
@@ -697,7 +696,6 @@ class DefaultModelRegistryTest extends Specification {
         ex.message == "Tried to remove model 'parent.foo' but it is depended on by: 'bar'"
     }
 
-    @Unroll
     def "cannot bind action targeting type for role #targetRole where type is not available"() {
         when:
         registry.configure(targetRole, ModelReference.of("thing", Bean), Actions.doNothing())
@@ -710,7 +708,6 @@ class DefaultModelRegistryTest extends Specification {
         targetRole << ModelActionRole.values().findAll { !it.subjectViewAvailable }
     }
 
-    @Unroll
     def "cannot execute action with role #targetRole where view is not available"() {
         registry.configure(targetRole, new AbstractModelActionWithView<Bean>(ModelReference.of("thing"), new SimpleModelRuleDescriptor(targetRole.name()), []) {
             @Override
@@ -731,7 +728,6 @@ class DefaultModelRegistryTest extends Specification {
         targetRole << ModelActionRole.values().findAll { !it.subjectViewAvailable }
     }
 
-    @Unroll
     def "cannot add action for #targetRole mutation when in later #fromRole mutation"() {
         def action = Stub(Action)
 
@@ -758,7 +754,6 @@ class DefaultModelRegistryTest extends Specification {
         }
     }
 
-    @Unroll
     def "cannot add action for #targetRole mutation when in later #fromState state"() {
         def action = Stub(Action)
 
@@ -789,7 +784,6 @@ class DefaultModelRegistryTest extends Specification {
         }
     }
 
-    @Unroll
     def "can add action for #targetRole when in #fromRole action"() {
         given:
         registry.configure(fromRole) {
@@ -817,7 +811,6 @@ class DefaultModelRegistryTest extends Specification {
         }
     }
 
-    @Unroll
     def "closes inputs for mutation discovered after running action with role #targetRole"() {
         given:
         registry.registerInstance("thing", new Bean(value: "initial"))
@@ -844,7 +837,6 @@ class DefaultModelRegistryTest extends Specification {
         }
     }
 
-    @Unroll
     def "can add action for #targetRole mutation when in earlier #fromState state"() {
         def action = Stub(Action)
 
@@ -875,7 +867,6 @@ class DefaultModelRegistryTest extends Specification {
         }
     }
 
-    @Unroll
     def "can get node at state #state"() {
         given:
         ModelActionRole.values().each { role ->
@@ -917,7 +908,6 @@ class DefaultModelRegistryTest extends Specification {
         registry.atState(ModelPath.path("thing"), ModelNode.State.Registered).path.toString() == "thing"
     }
 
-    @Unroll
     def "asking for element at state #state does not create node"() {
         given:
         def events = []
@@ -939,7 +929,6 @@ class DefaultModelRegistryTest extends Specification {
         state << [ModelNode.State.Registered, ModelNode.State.Discovered]
     }
 
-    @Unroll
     def "asking for unknown element at state #state fails"() {
         when:
         registry.atState(ModelPath.path("thing"), state)
@@ -980,7 +969,6 @@ class DefaultModelRegistryTest extends Specification {
         events == ["collection mutated", "c1 created"]
     }
 
-    @Unroll
     def "cannot request model node at earlier state #targetState when at #fromState"() {
         given:
         registry.registerInstance("thing", new Bean())
@@ -1001,7 +989,6 @@ class DefaultModelRegistryTest extends Specification {
         }
     }
 
-    @Unroll
     def "is benign to request element at current state #state"() {
         given:
         registry.registerInstance("thing", new Bean())
@@ -1019,7 +1006,6 @@ class DefaultModelRegistryTest extends Specification {
         state << ModelNode.State.values() - ModelNode.State.Registered
     }
 
-    @Unroll
     def "is benign to request element at prior state #state"() {
         given:
         registry.registerInstance("thing", new Bean())
@@ -1037,7 +1023,6 @@ class DefaultModelRegistryTest extends Specification {
         state << ModelNode.State.values() - ModelNode.State.Registered
     }
 
-    @Unroll
     def "requesting at state #state does not reinvoke actions"() {
         given:
         def events = []
@@ -1466,7 +1451,6 @@ foo
         bean.value == '12'
     }
 
-    @Unroll
     def "can apply #description to each element matching type in root scope"() {
         def mmType = ModelTypes.modelMap(Bean)
 
@@ -1490,7 +1474,6 @@ foo
         EachBeanViaRuleSource | "rule source"
     }
 
-    @Unroll
     def "#description is not applied to descendants accessible only via references"() {
         def mmType = ModelTypes.modelMap(Bean)
 
@@ -1533,7 +1516,6 @@ foo
         EachBeanViaRuleSource | "rule source"
     }
 
-    @Unroll
     def "#description is not applied to scope element"() {
         registry.registerInstance("bean1", new Bean(name: "bean1 unmodified"))
         registry.mutate {

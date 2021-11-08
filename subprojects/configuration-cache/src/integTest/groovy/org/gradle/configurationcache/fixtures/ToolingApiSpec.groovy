@@ -116,6 +116,56 @@ trait ToolingApiSpec {
         """.stripIndent()
     }
 
+    void withSomeNullabeToolingModelBuilderPluginInBuildSrc() {
+        file("buildSrc/build.gradle") << """
+            plugins {
+                id("groovy-gradle-plugin")
+            }
+            gradlePlugin {
+                plugins {
+                    test {
+                        id = "my.plugin"
+                        implementationClass = "my.MyPlugin"
+                    }
+                }
+            }
+        """
+        file("buildSrc/src/main/groovy/my/MyModelBuilder.groovy") << """
+            package my
+
+            import ${ToolingModelBuilder.name}
+            import ${Project.name}
+
+            class MyModelBuilder implements ToolingModelBuilder {
+                boolean canBuild(String modelName) {
+                    return modelName == "${SomeToolingModel.class.name}"
+                }
+                Object buildAll(String modelName, Project project) {
+                    println("creating model for \$project")
+                    return null
+                }
+            }
+        """.stripIndent()
+
+        file("buildSrc/src/main/groovy/my/MyPlugin.groovy") << """
+            package my
+
+            import ${Project.name}
+            import ${Plugin.name}
+            import ${Inject.name}
+            import ${ToolingModelBuilderRegistry.name}
+
+            abstract class MyPlugin implements Plugin<Project> {
+                void apply(Project project) {
+                    registry.register(new my.MyModelBuilder())
+                }
+
+                @Inject
+                abstract ToolingModelBuilderRegistry getRegistry()
+            }
+        """.stripIndent()
+    }
+
     def <T> T fetchModel(Class<T> type = SomeToolingModel.class) {
         def model = null
         result = toolingApiExecutor.runBuildWithToolingConnection { connection ->

@@ -156,6 +156,7 @@ fun buildToolGradleParameters(daemon: Boolean = true, isContinue: Boolean = true
         "-Dorg.gradle.internal.plugins.portal.url.override=%gradle.plugins.portal.url%",
         "-s",
         "--no-configuration-cache",
+        "%additional.gradle.parameters%",
         if (daemon) "--daemon" else "--no-daemon",
         if (isContinue) "--continue" else ""
     )

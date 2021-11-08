@@ -17,11 +17,9 @@
 package org.gradle.internal.snapshot
 
 import org.gradle.internal.file.FileType
-import spock.lang.Unroll
 
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
 
-@Unroll
 abstract class AbstractIncompleteFileSystemNodeTest<T extends FileSystemNode> extends AbstractFileSystemNodeWithChildrenTest<T, FileSystemNode> {
 
     abstract protected boolean isSameNodeType(FileSystemNode node)

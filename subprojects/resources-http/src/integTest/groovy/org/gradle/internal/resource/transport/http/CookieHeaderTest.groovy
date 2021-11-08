@@ -23,12 +23,10 @@ import org.gradle.internal.logging.ConfigureLogging
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-@Unroll
 class CookieHeaderTest extends Specification {
 
     @Rule

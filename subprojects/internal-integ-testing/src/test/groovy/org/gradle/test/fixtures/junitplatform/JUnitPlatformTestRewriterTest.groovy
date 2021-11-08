@@ -20,7 +20,6 @@ import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Unroll
 
 @CleanupTestDirectory
 class JUnitPlatformTestRewriterTest extends Specification {
@@ -78,7 +77,6 @@ tasks.named("test") {
 '''
     }
 
-    @Unroll
     def 'java source files should be rewritten'() {
         given:
         temporaryFolder.testDirectory.file('src/test/java/Test.java') << oldText

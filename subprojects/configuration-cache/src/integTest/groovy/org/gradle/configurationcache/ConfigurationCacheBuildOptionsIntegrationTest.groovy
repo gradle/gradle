@@ -20,7 +20,6 @@ import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.reflect.validation.ValidationTestFor
 import spock.lang.Issue
-import spock.lang.Unroll
 
 import static org.junit.Assume.assumeFalse
 
@@ -31,7 +30,6 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
     }
 
     @Issue("https://github.com/gradle/gradle/issues/13333")
-    @Unroll
     def "absent #operator orElse #orElseKind used as task input"() {
 
         assumeFalse(
@@ -89,6 +87,9 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
         then:
         output.count("The string is absent") == 1
         configurationCache.assertStateStored()
+        problems.assertResultHasProblems(result) {
+            withNoInputs()
+        }
 
         when:
         printString "alice"
@@ -120,7 +121,6 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
         ValidationProblemId.VALUE_NOT_SET
     )
     @Issue("https://github.com/gradle/gradle/issues/13334")
-    @Unroll
     def "task input property with convention set to absent #operator is reported correctly"() {
 
         given:
@@ -160,7 +160,6 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
     }
 
     @Issue("https://github.com/gradle/gradle/issues/13334")
-    @Unroll
     def "absent #operator used as optional task input"() {
 
         given:
@@ -200,7 +199,6 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
         operator << ['systemProperty', 'gradleProperty', 'environmentVariable']
     }
 
-    @Unroll
     def "system property from #systemPropertySource used as task and build logic input"() {
 
         given:
@@ -210,7 +208,7 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
 
                 $greetTask
 
-                val greetingProp = providers.systemProperty("greeting").forUseAtConfigurationTime()
+                val greetingProp = providers.systemProperty("greeting")
                 if (greetingProp.get() == "hello") {
                     tasks.register<Greet>("greet") {
                         greeting.set("hello, hello")
@@ -240,6 +238,11 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
         output.count("Hi!") == 1
         configurationCache.assertStateStored()
 
+        and: "the input is reported"
+        problems.assertResultHasProblems(result) {
+            withInput("Build file 'build.gradle.kts': system property 'greeting'")
+        }
+
         when:
         runGreetWith 'hi'
 
@@ -268,7 +271,6 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
         }
     }
 
-    @Unroll
     def "#usage property from properties file used as build logic input"() {
 
         given:
@@ -300,7 +302,7 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
                     propertiesFile.set(layout.projectDirectory.file("local.properties"))
                     propertyName.set("ci")
                 }
-            }.forUseAtConfigurationTime()
+            }
 
             if ($expression) {
                 tasks.register("run") {
@@ -358,7 +360,6 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
         'isCi.getOrElse("false") != "false"'           | 'raw'
     }
 
-    @Unroll
     def "#kind property used as task and build logic input"() {
 
         given:
@@ -367,7 +368,7 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
 
             $greetTask
 
-            val greetingProp = providers.${kind}Property("greeting").forUseAtConfigurationTime()
+            val greetingProp = providers.${kind}Property("greeting")
             if (greetingProp.get() == "hello") {
                 tasks.register<Greet>("greet") {
                     greeting.set("hello, hello")
@@ -384,6 +385,9 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
         then:
         output.count("Hi!") == 1
         configurationCache.assertStateStored()
+        problems.assertResultHasProblems(result) {
+            withInput("Build file 'build.gradle.kts': $reportedInput")
+        }
 
         when:
         configurationCacheRun("greet", "-${option}greeting=hi")
@@ -401,9 +405,9 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
         outputContains "$description property 'greeting' has changed"
 
         where:
-        kind     | option | description
-        'system' | 'D'    | 'system'
-        'gradle' | 'P'    | 'Gradle'
+        kind     | option | description | reportedInput
+        'system' | 'D'    | 'system'    | "system property 'greeting'"
+        'gradle' | 'P'    | 'Gradle'    | "Gradle property 'greeting'"
     }
 
     def "mapped system property used as task input"() {
@@ -494,13 +498,12 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
         configurationCache.assertStateLoaded()
     }
 
-    @Unroll
     def "system property #usage used as build logic input"() {
 
         given:
         def configurationCache = newConfigurationCacheFixture()
         buildKotlinFile """
-            val isCi = providers.systemProperty("ci").forUseAtConfigurationTime()
+            val isCi = providers.systemProperty("ci")
             if ($expression) {
                 tasks.register("run") {
                     doLast { println("ON CI") }
@@ -548,7 +551,7 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
             $greetTask
 
             val greetingVar = providers.environmentVariable("GREETING")
-            if (greetingVar.forUseAtConfigurationTime().get().startsWith("hello")) {
+            if (greetingVar.get().startsWith("hello")) {
                 tasks.register<Greet>("greet") {
                     greeting.set("hello, hello")
                 }
@@ -584,7 +587,6 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
         configurationCache.assertStateStored()
     }
 
-    @Unroll
     def "file contents #usage used as build logic input"() {
 
         given:
@@ -644,10 +646,10 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
 
         where:
         expression                                                                            | usage
-        "asText.forUseAtConfigurationTime().map(String::toBoolean).getOrElse(false)"          | "text"
-        "asText.forUseAtConfigurationTime().isPresent"                                        | "text presence"
-        "asBytes.forUseAtConfigurationTime().map { String(it).toBoolean() }.getOrElse(false)" | "bytes"
-        "asBytes.forUseAtConfigurationTime().isPresent"                                       | "bytes presence"
+        "asText.map(String::toBoolean).getOrElse(false)"          | "text"
+        "asText.isPresent"                                        | "text presence"
+        "asBytes.map { String(it).toBoolean() }.getOrElse(false)" | "bytes"
+        "asBytes.isPresent"                                       | "bytes presence"
     }
 
     def "mapped file contents used as task input"() {
@@ -694,7 +696,6 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
         configurationCache.assertStateLoaded()
     }
 
-    @Unroll
     def "file contents provider used as #usage has no value when underlying file provider has no value"() {
         given:
         def configurationCache = newConfigurationCacheFixture()
@@ -752,7 +753,7 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
                     propertyName = "ci"
                 }
             }
-            if (isCi.forUseAtConfigurationTime().get()) {
+            if (isCi.get()) {
                 tasks.register("build") {
                     doLast { println("ON CI") }
                 }
@@ -879,7 +880,7 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
     def "system property used at configuration time can be captured by task"() {
         given:
         buildFile """
-            def sysProp = providers.systemProperty("some.prop").forUseAtConfigurationTime()
+            def sysProp = providers.systemProperty("some.prop")
             println('sys prop value at configuration time = ' + sysProp.orNull)
 
             task ok {
@@ -921,7 +922,7 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
         given:
         def configurationCache = newConfigurationCacheFixture()
         settingsFile << """
-            providers.systemProperty("org.gradle.booleanProperty").forUseAtConfigurationTime().orElse(false).get()
+            providers.systemProperty("org.gradle.booleanProperty").orElse(false).get()
         """
 
         when:
@@ -943,7 +944,7 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
         given:
         def configurationCache = newConfigurationCacheFixture()
         settingsFile << """
-            providers.systemProperty("org.gradle.booleanProperty").forUseAtConfigurationTime().orElse(false).get()
+            providers.systemProperty("org.gradle.booleanProperty").orElse(false).get()
         """
         configurationCacheRun "help", "-Dorg.gradle.booleanProperty=true"
 

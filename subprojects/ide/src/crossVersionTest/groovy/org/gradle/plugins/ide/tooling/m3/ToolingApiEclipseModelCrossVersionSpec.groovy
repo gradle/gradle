@@ -20,7 +20,6 @@ import org.gradle.integtests.tooling.fixture.WithOldConfigurationsSupport
 import org.gradle.tooling.model.ExternalDependency
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject
-import spock.lang.Unroll
 import spock.lang.Ignore
 
 class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification implements WithOldConfigurationsSupport {
@@ -191,7 +190,6 @@ dependencies {
         minimalProject != null
     }
 
-    @Unroll
     @Ignore('https://github.com/gradle/gradle-private/issues/3439')
     def "can build the eclipse project dependencies for a java project"() {
         projectDir.file("gradle.properties") << """

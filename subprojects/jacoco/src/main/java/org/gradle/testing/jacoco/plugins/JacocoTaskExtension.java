@@ -123,7 +123,7 @@ public class JacocoTaskExtension {
         this.destinationFile.set(destinationFile);
     }
 
-    public void setDestinationFile(File destinationFile) {
+    public void setDestinationFile(@Nullable File destinationFile) { // nullability must match on getter and setter argument to end up with a writable Kotlin property
         this.destinationFile.set(destinationFile);
     }
 

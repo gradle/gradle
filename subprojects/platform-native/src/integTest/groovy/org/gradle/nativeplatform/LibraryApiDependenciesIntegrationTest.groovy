@@ -21,7 +21,6 @@ import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingLibraryHelloWorldApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.Unroll
 
 @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
 class LibraryApiDependenciesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
@@ -43,7 +42,6 @@ model {
 """
     }
 
-    @Unroll
     @ToBeFixedForConfigurationCache
     def "can use api linkage via #notationName notation"() {
         given:

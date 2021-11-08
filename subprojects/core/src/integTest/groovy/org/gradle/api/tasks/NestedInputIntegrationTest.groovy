@@ -28,7 +28,6 @@ import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
-import spock.lang.Unroll
 
 class NestedInputIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture, ValidationMessageChecker {
 
@@ -36,7 +35,6 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         expectReindentedValidationMessage()
     }
 
-    @Unroll
     def "nested #type.simpleName input adds a task dependency"() {
         buildFile << """
             class TaskWithNestedProperty extends DefaultTask  {
@@ -165,7 +163,6 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         executedAndNotSkipped(':consumer')
     }
 
-    @Unroll
     @UnsupportedWithConfigurationCache(because = "task references another task")
     def "re-configuring #change in nested bean during execution time is detected"() {
         def fixture = new NestedBeanTestFixture()
@@ -204,7 +201,6 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         change << ['inputProperty', 'inputFile', 'outputFile']
     }
 
-    @Unroll
     @UnsupportedWithConfigurationCache(because = "task references another task")
     def "re-configuring a nested bean from #from to #to during execution time is detected"() {
         def fixture = new NestedBeanTestFixture()
@@ -245,7 +241,6 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         'null'      | 'firstBean'
     }
 
-    @Unroll
     def "re-configuring #change in nested bean after the task started executing has no effect"() {
         def fixture = new NestedBeanTestFixture()
         fixture.prepareInputFiles()
@@ -277,7 +272,6 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         change << ['inputProperty', 'inputFile', 'outputFile']
     }
 
-    @Unroll
     def "re-configuring a nested bean from #from to #to after the task started executing has no effect"() {
         def fixture = new NestedBeanTestFixture()
         fixture.prepareInputFiles()
@@ -418,10 +412,10 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
                 }
             }
 
-            def firstString = providers.gradleProperty('firstInput').forUseAtConfigurationTime().orNull
+            def firstString = providers.gradleProperty('firstInput').orNull
             def firstBean = new NestedBean(firstInput: firstString, firstOutputFile: file("${firstOutputFile}"), firstInputFile: file("${firstInputFile}"))
 
-            def secondString = providers.gradleProperty('secondInput').forUseAtConfigurationTime().orNull
+            def secondString = providers.gradleProperty('secondInput').orNull
             def secondBean = new OtherNestedBean(secondInput: secondString, secondOutputFile: file("${secondOutputFile}"), secondInputFile: file("${secondInputFile}"))
 
             task taskWithNestedProperty(type: TaskWithNestedProperty) {
@@ -548,7 +542,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
                 input
             }
 
-            boolean useOther = providers.gradleProperty('useOther').forUseAtConfigurationTime().present
+            boolean useOther = providers.gradleProperty('useOther').present
 
             task myTask(type: TaskWithNestedInput) {
                 outputFile = file('build/output.txt')
@@ -613,7 +607,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
                 }
             }
 
-            def inputString = providers.gradleProperty('input').forUseAtConfigurationTime().getOrElse('input')
+            def inputString = providers.gradleProperty('input').getOrElse('input')
 
             task myTask(type: TaskWithNestedIterable) {
                 outputFile = file('build/output.txt')
@@ -689,7 +683,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         buildFile << taskWithNestedInput()
         buildFile << nestedBeanWithStringInput()
         buildFile << """
-            myTask.nested = provider { new NestedBean(providers.gradleProperty('input').forUseAtConfigurationTime().get()) }
+            myTask.nested = provider { new NestedBean(providers.gradleProperty('input').get()) }
         """
 
         def myTask = ':myTask'
@@ -714,7 +708,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         buildFile << taskWithNestedInput()
         buildFile << namedBeanClass()
         buildFile << """
-            myTask.nested = [new NamedBean(providers.gradleProperty('namedName').forUseAtConfigurationTime().get(), 'value1'), new NamedBean('name', 'value2')]
+            myTask.nested = [new NamedBean(providers.gradleProperty('namedName').get(), 'value1'), new NamedBean('name', 'value2')]
         """
         def taskPath = ':myTask'
 
@@ -740,7 +734,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         buildFile << taskWithNestedInput()
         buildFile << nestedBeanWithStringInput()
         buildFile << """
-            myTask.nested = [(providers.gradleProperty('key').forUseAtConfigurationTime().get()): new NestedBean('value1'), key2: new NestedBean('value2')]
+            myTask.nested = [(providers.gradleProperty('key').get()): new NestedBean('value1'), key2: new NestedBean('value2')]
         """
         def taskPath = ':myTask'
 
@@ -824,7 +818,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
             def domainObjectCollection = objects.domainObjectContainer(Bean)
             myTask.nested = domainObjectCollection
 
-            domainObjectCollection.create('first') { prop = providers.gradleProperty('value').forUseAtConfigurationTime().get() }
+            domainObjectCollection.create('first') { prop = providers.gradleProperty('value').get() }
             domainObjectCollection.create('second') { prop = '2' }
         """
 

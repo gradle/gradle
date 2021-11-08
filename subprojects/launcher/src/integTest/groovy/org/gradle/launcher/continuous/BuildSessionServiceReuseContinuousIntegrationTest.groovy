@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.process.internal.worker.WorkerProcessFactory
 import org.gradle.process.internal.worker.child.WorkerProcessClassPathProvider
-import spock.lang.Unroll
 
 
 class BuildSessionServiceReuseContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
@@ -29,7 +28,6 @@ class BuildSessionServiceReuseContinuousIntegrationTest extends AbstractContinuo
         gradle.cancel()
     }
 
-    @Unroll
     @ToBeFixedForConfigurationCache
     def "reuses #service across continuous builds" () {
         def triggerFileName = "trigger"

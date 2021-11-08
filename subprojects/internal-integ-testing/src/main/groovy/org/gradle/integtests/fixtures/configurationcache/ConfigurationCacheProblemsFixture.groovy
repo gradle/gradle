@@ -176,10 +176,8 @@ final class ConfigurationCacheProblemsFixture {
         } else {
             assertNoProblemsSummary(result.output)
         }
-        if (spec.hasInputs()) {
-            // TODO:bamboo avoid reading jsModel twice when asserting on problems AND inputs
-            assertInputs(result.output, rootDir, spec)
-        }
+        // TODO:bamboo avoid reading jsModel twice when asserting on problems AND inputs
+        assertInputs(result.output, rootDir, spec.inputs)
     }
 
     HasConfigurationCacheProblemsSpec newProblemsSpec(
@@ -279,29 +277,43 @@ final class ConfigurationCacheProblemsFixture {
     private static void assertInputs(
         String output,
         File rootDir,
-        HasConfigurationCacheProblemsSpec spec
+        InputsSpec spec
     ) {
-        assert spec.hasInputs()
-        def reportDir = resolveConfigurationCacheReportDirectory(rootDir, output)
-        Map<String, Object> jsModel = readJsModelFromReportDir(reportDir)
-        assertInputsIn(jsModel, spec)
-    }
+        if (spec == InputsSpec.IGNORING) {
+            return
+        }
 
-    private static void assertInputsIn(Map<String, Object> jsModel, HasConfigurationCacheProblemsSpec spec) {
+        List<Matcher<String>> expectedInputs = spec instanceof InputsSpec.ExpectingSome
+            ? spec.inputs.collect()
+            : []
+
+        def reportDir = resolveConfigurationCacheReportDirectory(rootDir, output)
+        if (reportDir == null) {
+            assertThat(
+                "Expecting inputs but no report was found",
+                expectedInputs,
+                equalTo([])
+            )
+            return
+        }
+
+        Map<String, Object> jsModel = readJsModelFromReportDir(reportDir)
         List<Map<String, Object>> inputs = (jsModel.diagnostics as List<Map<String, Object>>).findAll { it['input'] != null }
-        List<String> formattedInputs = inputs.collect { formatInputForAssert(it) }.reverse()
-        def expectedInputs = spec.inputs.collect()
+        List<String> unexpectedInputs = inputs.collect { formatInputForAssert(it) }.reverse()
         for (int i in expectedInputs.indices.reverse()) {
             def expectedInput = expectedInputs[i]
-            for (int j in formattedInputs.indices) {
-                if (expectedInput.matches(formattedInputs[j])) {
+            for (int j in unexpectedInputs.indices) {
+                if (expectedInput.matches(unexpectedInputs[j])) {
                     expectedInputs.removeAt(i)
-                    formattedInputs.removeAt(j)
+                    unexpectedInputs.removeAt(j)
                     break
                 }
             }
         }
-        assert expectedInputs == []
+        if (!(spec instanceof InputsSpec.IgnoreUnexpected)) {
+            assert unexpectedInputs.isEmpty() : "Unexpected inputs $unexpectedInputs found in the report, expecting $expectedInputs"
+        }
+        assert expectedInputs.isEmpty() : "Expecting $expectedInputs in the report, found $unexpectedInputs"
     }
 
     static String formatInputForAssert(Map<String, Object> input) {
@@ -383,13 +395,11 @@ final class ConfigurationCacheProblemsFixture {
     }
 
     @Nullable
-    static TestFile resolveConfigurationCacheReportDirectory(File rootDir, String output, String buildDir = "build") {
-        def baseDirUri = clickableUrlFor(new File(rootDir, "$buildDir/reports/configuration-cache"))
-        def pattern = Pattern.compile("See the complete report at (${baseDirUri}.*)$PROBLEMS_REPORT_HTML_FILE_NAME")
-        def reportDirUri = output.readLines().findResult { line ->
-            def matcher = pattern.matcher(line)
-            matcher.matches() ? matcher.group(1) : null
-        }
+    static TestFile resolveConfigurationCacheReportDirectory(File rootDir, String output) {
+        def baseDirUri = clickableUrlFor(rootDir)
+        def pattern = Pattern.compile("^See the complete report at (${Pattern.quote(baseDirUri)}.*/)${Pattern.quote(PROBLEMS_REPORT_HTML_FILE_NAME)}\$", Pattern.MULTILINE)
+        def matcher = pattern.matcher(output)
+        def reportDirUri = matcher.find() ? matcher.group(1) : null
         return reportDirUri ? new TestFile(Paths.get(URI.create(reportDirUri)).toFile().absoluteFile) : null
     }
 
@@ -477,13 +487,95 @@ final class HasConfigurationCacheErrorSpec extends HasConfigurationCacheProblems
     }
 }
 
+abstract class InputsSpec {
+
+    abstract InputsSpec expect(Matcher<String> input)
+
+    abstract InputsSpec expectNone()
+
+    abstract InputsSpec ignoreUnexpected()
+
+    static final InputsSpec IGNORING = new InputsSpec() {
+
+        @Override
+        InputsSpec expect(Matcher<String> input) {
+            new ExpectingSome().expect(input)
+        }
+
+        @Override
+        InputsSpec expectNone() {
+            EXPECTING_NONE
+        }
+
+        @Override
+        InputsSpec ignoreUnexpected() {
+            new IgnoreUnexpected([])
+        }
+    }
+
+    static final InputsSpec EXPECTING_NONE = new InputsSpec() {
+
+        @Override
+        InputsSpec expect(Matcher<String> input) {
+            throw new IllegalStateException("Already expecting no inputs, cannot expect $input")
+        }
+
+        @Override
+        InputsSpec expectNone() {
+            this
+        }
+
+        @Override
+        InputsSpec ignoreUnexpected() {
+            throw new IllegalStateException("Already expecting no inputs, cannot ignore unexpected.")
+        }
+    }
+
+    static class ExpectingSome extends InputsSpec {
+
+        final List<Matcher<String>> inputs
+
+        ExpectingSome(List<Matcher<String>> inputs = []) {
+            this.inputs = inputs
+        }
+
+        @Override
+        InputsSpec expect(Matcher<String> input) {
+            inputs.add(input)
+            this
+        }
+
+        @Override
+        InputsSpec expectNone() {
+            throw new IllegalStateException("Already expecting $inputs, cannot expect none")
+        }
+
+        @Override
+        InputsSpec ignoreUnexpected() {
+            return new IgnoreUnexpected(inputs)
+        }
+    }
+
+    static class IgnoreUnexpected extends ExpectingSome {
+
+        IgnoreUnexpected(List<Matcher<String>> inputs) {
+            super(inputs)
+        }
+
+        @Override
+        InputsSpec ignoreUnexpected() {
+            this
+        }
+    }
+}
 
 class HasConfigurationCacheProblemsSpec {
+
     @PackageScope
     final List<Matcher<String>> uniqueProblems = []
 
     @PackageScope
-    final List<Matcher<String>> inputs = []
+    InputsSpec inputs = InputsSpec.IGNORING
 
     @Nullable
     @PackageScope
@@ -512,11 +604,6 @@ class HasConfigurationCacheProblemsSpec {
     @PackageScope
     boolean hasProblems() {
         return !uniqueProblems.isEmpty()
-    }
-
-    @PackageScope
-    boolean hasInputs() {
-        return !inputs.isEmpty()
     }
 
     HasConfigurationCacheProblemsSpec withUniqueProblems(String... uniqueProblems) {
@@ -551,9 +638,18 @@ class HasConfigurationCacheProblemsSpec {
         return this
     }
 
-    HasConfigurationCacheProblemsSpec withInput(String input) {
-        inputs.add(startsWith(input))
+    HasConfigurationCacheProblemsSpec withInput(String prefix) {
+        inputs = inputs.expect(startsWith(prefix))
+        return this
+    }
+
+    HasConfigurationCacheProblemsSpec withNoInputs() {
+        inputs = inputs.expectNone()
+        return this
+    }
+
+    HasConfigurationCacheProblemsSpec ignoringUnexpectedInputs() {
+        inputs = inputs.ignoreUnexpected()
         return this
     }
 }
-

@@ -38,6 +38,10 @@ Some plugins will break with this new version of Gradle, for example because the
 
 === Potential breaking changes
 
+=== Kotlin build scripts compilation enforces non-null APIs
+
+If a Kotlin build script uses a Java API that has nullability annotations (JSR-305) then the compilation will enforce those constraints. Previous Gradle versions, however, forgot to add the same enforcement to the Kotlin build script compilation. Starting from Gradle 7.4 the nullability checks are enforced in the script compilation.
+
 ==== Updates to default tool integration versions
 
 - PMD has been updated to https://github.com/pmd/pmd/releases/tag/pmd_releases%2F6.39.0[PMD 6.39.0].
@@ -53,8 +57,25 @@ Instead, an Eclipse Temurin or IBM Semeru build is returned.
 Gradle 7.4+ will now emit a deprecation warning when the AdoptOpenJDK vendor is specified in the <<toolchains.adoc#sec:vendors,toolchain specification>> and it is used by auto provisioning.
 If you must use AdoptOpenJDK, you should turn off auto-download. If an Eclipse Temurin or IBM Semeru build works for you, specify `JvmVendorSpec.ADOPTIUM` or `JvmVendorSpec.IBM_SEMERU` as the vendor or leave the vendor unspecified.
 
+[[empty_directories_file_tree]]
+==== File trees and empty directory handling
+
+When using `@link:{javadocPath}/org/gradle/api/tasks/SkipWhenEmpty.html[SkipWhenEmpty]` on an input file collection, Gradle skips the task when it determines that the input is empty.
+If the input file collection consists only of file trees, Gradle ignores directories for the emptiness check.
+Though when checking for changes to the input file collection, Gradle only ignores directories when the `@link:{javadocPath}/org/gradle/api/tasks/IgnoreEmptyDirectories.html[IgnoreEmptyDirectories]` annotation is present.
+
+Gradle will now ignore directories for both the `@SkipWhenEmpty` check and for determining changes consistently.
+Until Gradle 8.0, Gradle will detect if an input file collection annotated with `@SkipWhenEmpty` consists only of file trees and then ignore directories automatically.
+Moreover, Gradle will issue a deprecation warning to advise the user that the behavior will change in Gradle 8.0, and that the input property should be annotated with `@IgnoreEmptyDirectories`.
+To ignore directories in Gradle 8.0 and later, the input property needs to be annotated with `@IgnoreEmptyDirectories`.
+
+Finally, using `@link:{javadocPath}/org/gradle/api/tasks/InputDirectory.html[InputDirectory]` implies `@IgnoreEmptyDirectories`, so no changes are necessary when using this annotation.
+The same is true for `@link:{javadocPath}/org/gradle/api/tasks/TaskInputs.html#dir-java.lang.Object-[inputs.dir()]` when registering an input directory via the runtime API.
+
 [[changes_7.3]]
 == Upgrading from 7.2 and earlier
+
+=== Potential breaking changes
 
 ==== Updates to bundled Gradle dependencies
 

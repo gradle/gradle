@@ -19,7 +19,6 @@ package org.gradle.integtests.fixtures.timeout
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class JavaProcessStackTracesMonitorSpec extends Specification {
 
@@ -82,7 +81,6 @@ cmd /c C:\\tcagent1\\work\\668602365d1521fc\\gradlew.bat --init-script C:\\tcage
         ]
     }
 
-    @Unroll
     @Requires(TestPrecondition.NOT_WINDOWS)
     def 'can locate jstack on Unix'() {
         expect:
@@ -95,7 +93,6 @@ cmd /c C:\\tcagent1\\work\\668602365d1521fc\\gradlew.bat --init-script C:\\tcage
         '/opt/jdk/oracle-jdk-8/jre/bin/java'                       | '/opt/jdk/oracle-jdk-8/bin/jstack'
     }
 
-    @Unroll
     @Requires(TestPrecondition.WINDOWS)
     def 'can locate jstack on Windows'() {
         expect:

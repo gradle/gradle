@@ -19,10 +19,8 @@ package org.gradle.internal.environment
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.IgnoreIf
-import spock.lang.Unroll
 
 class GradleBuildEnvironmentIntegrationTest extends AbstractIntegrationSpec {
-    @Unroll
     @IgnoreIf({ !GradleContextualExecuter.embedded })
     def 'can know the current environment if daemon = #daemon'() {
         given:

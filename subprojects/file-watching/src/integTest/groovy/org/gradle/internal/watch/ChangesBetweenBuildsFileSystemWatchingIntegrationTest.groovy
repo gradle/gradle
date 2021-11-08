@@ -20,9 +20,7 @@ import org.gradle.integtests.fixtures.TestBuildCache
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.internal.watch.registry.impl.WatchableHierarchies
 import spock.lang.Issue
-import spock.lang.Unroll
 
-@Unroll
 class ChangesBetweenBuildsFileSystemWatchingIntegrationTest extends AbstractFileSystemWatchingIntegrationTest {
 
     def "source file changes are recognized"() {

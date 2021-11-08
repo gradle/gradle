@@ -20,7 +20,6 @@ import org.gradle.api.Task
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.tasks.TaskDependency
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class DecoratingPublishArtifactTest extends Specification {
     def "can override properties"() {
@@ -59,7 +58,6 @@ class DecoratingPublishArtifactTest extends Specification {
         decorator.classifier == null
     }
 
-    @Unroll
     def "if an explicit #field is set don't query the publish artifact"() {
         def delegate = Mock(PublishArtifact) {
             getBuildDependencies() >> Stub(TaskDependency)

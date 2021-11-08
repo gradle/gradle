@@ -173,9 +173,9 @@ fun configureJarTasks() {
 }
 
 fun getPropertyFromAnySource(propertyName: String): Provider<String> {
-    return providers.gradleProperty(propertyName).forUseAtConfigurationTime()
-        .orElse(providers.systemProperty(propertyName).forUseAtConfigurationTime())
-        .orElse(providers.environmentVariable(propertyName).forUseAtConfigurationTime())
+    return providers.gradleProperty(propertyName)
+        .orElse(providers.systemProperty(propertyName))
+        .orElse(providers.environmentVariable(propertyName))
 }
 
 fun Test.jvmVersionForTest(): JavaLanguageVersion {
@@ -214,6 +214,12 @@ fun Test.isUnitTest() = listOf("test", "writePerformanceScenarioDefinitions", "w
 
 fun Test.usesEmbeddedExecuter() = name.startsWith("embedded")
 
+fun Test.configureRerun() {
+    if (providers.gradleProperty("rerunAllTests").isPresent) {
+        doNotTrackState("All tests should re-run")
+    }
+}
+
 fun configureTests() {
     normalization {
         runtimeClasspath {
@@ -234,6 +240,7 @@ fun configureTests() {
         val testName = name
 
         if (BuildEnvironment.isCiServer) {
+            configureRerun()
             retry {
                 maxRetries.convention(1)
                 maxFailures.set(10)
@@ -294,11 +301,11 @@ fun removeTeamcityTempProperty() {
 fun Project.enableExperimentalTestFiltering() = !setOf("build-scan-performance", "configuration-cache", "kotlin-dsl", "performance", "smoke-test", "soak").contains(name) && isExperimentalTestFilteringEnabled
 
 val Project.isExperimentalTestFilteringEnabled
-    get() = providers.systemProperty("gradle.internal.testselection.enabled").forUseAtConfigurationTime().getOrElse("false").toBoolean()
+    get() = providers.systemProperty("gradle.internal.testselection.enabled").getOrElse("false").toBoolean()
 
 // Controls the test distribution partition size. The test classes smaller than this value will be merged into a "partition"
 val Project.maxTestDistributionPartitionSecond: Long?
-    get() = providers.systemProperty("testDistributionPartitionSizeInSeconds").forUseAtConfigurationTime().orNull?.toLong()
+    get() = providers.systemProperty("testDistributionPartitionSizeInSeconds").orNull?.toLong()
 
 val Project.maxParallelForks: Int
     get() = if (BuildEnvironment.isEc2Agent) {

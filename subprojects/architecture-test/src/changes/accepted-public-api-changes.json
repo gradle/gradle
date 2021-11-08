@@ -23,6 +23,38 @@
             "changes": [
                 "org.gradle.kotlin.dsl.support.delegates.SettingsDelegate.include(java.lang.String[])"
             ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.DependencyHandlerScope",
+            "member": "Method org.gradle.kotlin.dsl.DependencyHandlerScope.invoke(org.gradle.api.artifacts.Configuration,org.gradle.api.provider.ProviderConvertible,kotlin.jvm.functions.Function1)",
+            "acceptation": "Support ProviderConvertible in some places where Provider is accepted",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.DependencyHandlerScope",
+            "member": "Method org.gradle.kotlin.dsl.DependencyHandlerScope.invoke(org.gradle.api.artifacts.Configuration,org.gradle.api.provider.ProviderConvertible)",
+            "acceptation": "Support ProviderConvertible in some places where Provider is accepted",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.DependencyHandlerScope",
+            "member": "Method org.gradle.kotlin.dsl.DependencyHandlerScope.invoke(java.lang.String,org.gradle.api.provider.ProviderConvertible,kotlin.jvm.functions.Function1)",
+            "acceptation": "Support ProviderConvertible in some places where Provider is accepted",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.DependencyHandlerScope",
+            "member": "Method org.gradle.kotlin.dsl.DependencyHandlerScope.invoke(java.lang.String,org.gradle.api.provider.ProviderConvertible)",
+            "acceptation": "Support ProviderConvertible in some places where Provider is accepted",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
         }
     ]
 }

@@ -29,7 +29,6 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.hamcrest.CoreMatchers
 import spock.lang.IgnoreIf
 import spock.lang.Issue
-import spock.lang.Unroll
 
 import javax.annotation.Nonnull
 import java.util.regex.Pattern
@@ -86,7 +85,7 @@ project(':common') {
 
 project(':lib') {
     dependencies {
-        implementation providers.gradleProperty('useOldDependencyVersion').forUseAtConfigurationTime().map { 'org.slf4j:slf4j-api:1.7.24' }.orElse('org.slf4j:slf4j-api:1.7.25')
+        implementation providers.gradleProperty('useOldDependencyVersion').map { 'org.slf4j:slf4j-api:1.7.24' }.orElse('org.slf4j:slf4j-api:1.7.25')
         implementation project(':common')
     }
 }
@@ -961,7 +960,6 @@ abstract class NoneTransform implements TransformAction<TransformParameters.None
         assertTransformationsExecuted()
     }
 
-    @Unroll
     def "can attach @#classpathAnnotation.simpleName to dependencies property"() {
         given:
         setupBuildWithNoSteps {

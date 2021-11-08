@@ -18,11 +18,9 @@ package org.gradle.internal.snapshot.impl
 
 import org.gradle.internal.hash.HashCode
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class ImplementationSnapshotTest extends Specification {
 
-    @Unroll
     def "class name #className is lambda: #lambda"() {
         HashCode classloaderHash = HashCode.fromInt(1234)
 

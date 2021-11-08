@@ -22,7 +22,7 @@ import org.gradle.api.Project
 import org.gradle.test.fixtures.file.TestFile
 
 trait GroovyPluginImplementation {
-    void groovyDsl(TestFile sourceFile, SystemPropertyRead read) {
+    void groovyDsl(TestFile sourceFile, BuildInputRead read) {
         sourceFile << """
             println("apply = " + ${read.groovyExpression})
             tasks.register("thing") {
@@ -33,7 +33,7 @@ trait GroovyPluginImplementation {
         """
     }
 
-    void dynamicGroovyPlugin(TestFile sourceFile, SystemPropertyRead read) {
+    void dynamicGroovyPlugin(TestFile sourceFile, BuildInputRead read) {
         sourceFile << """
             import ${Project.name}
             import ${Plugin.name}
@@ -68,7 +68,7 @@ trait GroovyPluginImplementation {
         """
     }
 
-    void staticGroovyPlugin(TestFile sourceFile, SystemPropertyRead read) {
+    void staticGroovyPlugin(TestFile sourceFile, BuildInputRead read) {
         sourceFile << """
             import ${Project.name}
             import ${Plugin.name}

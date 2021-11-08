@@ -42,7 +42,6 @@ import org.gradle.internal.reflect.validation.Severity
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.test.fixtures.file.TestFile
-import spock.lang.Unroll
 
 import javax.inject.Inject
 
@@ -141,7 +140,6 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         ])
     }
 
-    @Unroll
     def "task can have property with annotation @#annotation.simpleName"() {
         file("input.txt").text = "input"
         file("input").createDir()
@@ -192,7 +190,6 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
     @ValidationTestFor(
         ValidationProblemId.CANNOT_USE_OPTIONAL_ON_PRIMITIVE_TYPE
     )
-    @Unroll
     def "detects optional primitive type #primitiveType"() {
         javaTaskSource << """
             import org.gradle.api.*;
@@ -400,7 +397,6 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         assertValidationSucceeds()
     }
 
-    @Unroll
     @ValidationTestFor(
         ValidationProblemId.MUTABLE_TYPE_WITH_SETTER
     )

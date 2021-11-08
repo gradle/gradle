@@ -24,7 +24,6 @@ import org.gradle.api.internal.catalog.parser.TomlCatalogFileParser
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Subject
-import spock.lang.Unroll
 
 import java.util.function.Supplier
 
@@ -37,7 +36,6 @@ class TomlWriterTest extends Specification {
     @Subject
     private TomlWriter writer = new TomlWriter(output)
 
-    @Unroll
     def "generates an equivalent file from an input (#file)"() {
         parse(file)
 

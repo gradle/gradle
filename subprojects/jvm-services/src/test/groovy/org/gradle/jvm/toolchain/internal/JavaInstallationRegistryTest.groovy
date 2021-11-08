@@ -20,7 +20,6 @@ import org.gradle.api.logging.Logger
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.os.OperatingSystem
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class JavaInstallationRegistryTest extends Specification {
 
@@ -134,7 +133,6 @@ class JavaInstallationRegistryTest extends Specification {
         executor.log.getDescriptors().find { it.displayName == "Toolchain detection"}
     }
 
-    @Unroll
     def "warns and filters invalid installations, exists: #exists, directory: #directory"() {
         given:
         def file = Mock(File)

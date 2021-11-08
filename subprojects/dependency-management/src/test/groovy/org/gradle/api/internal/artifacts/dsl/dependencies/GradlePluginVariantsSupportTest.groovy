@@ -29,7 +29,6 @@ import org.gradle.util.AttributeTestUtil
 import org.gradle.util.SnapshotTestUtil
 import org.gradle.util.TestUtil
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class GradlePluginVariantsSupportTest extends Specification {
 
@@ -43,7 +42,6 @@ class GradlePluginVariantsSupportTest extends Specification {
         GradlePluginVariantsSupport.configureSchema(schema)
     }
 
-    @Unroll
     def "Gradle #currentGradleVersion #acceptsOrRejects 7.0 api"() {
         given:
         def accepts = acceptsOrRejects == 'accepts'

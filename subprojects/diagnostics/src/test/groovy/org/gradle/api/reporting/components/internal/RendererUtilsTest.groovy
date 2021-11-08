@@ -17,10 +17,8 @@
 package org.gradle.api.reporting.components.internal
 import org.gradle.api.Named
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class RendererUtilsTest extends Specification {
-    @Unroll
     def "returns '#expected' for simple value #value"() {
         expect:
         RendererUtils.displayValueOf(value) == expected
@@ -32,7 +30,6 @@ class RendererUtilsTest extends Specification {
         true  | "true"
     }
 
-    @Unroll
     def "returns '#expected' for #value.getClass().simpleName"() {
 
         when:
@@ -49,7 +46,6 @@ class RendererUtilsTest extends Specification {
         new NamedWithToString(name: "Lajos") | "toString():Lajos"
     }
 
-    @Unroll
     def "returns '#expected' when toString() returns #toStringReturns"() {
         def value = Mock(Object)
 

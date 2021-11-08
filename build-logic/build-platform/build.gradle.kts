@@ -8,14 +8,13 @@ val groovyVersion = "3.0.9"
 val asmVersion = "9.2"
 
 val kotlinVersion = providers.gradleProperty("buildKotlinVersion")
-    .forUseAtConfigurationTime()
     .getOrElse(embeddedKotlinVersion)
 
 dependencies {
     constraints {
         // Gradle Plugins
         api("com.gradle:gradle-enterprise-gradle-plugin:3.7.1")
-        api("com.gradle.enterprise:test-distribution-gradle-plugin:2.2.1-rc-2") // Sync with `settings.gradle.kts`
+        api("com.gradle.enterprise:test-distribution-gradle-plugin:2.2.2-rc-2") // Sync with `settings.gradle.kts`
         api("org.gradle.guides:gradle-guides-plugin:0.19.1")
         api("com.gradle.publish:plugin-publish-plugin:0.16.0")
         api("gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:1.0.1")

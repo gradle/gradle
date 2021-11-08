@@ -123,7 +123,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
                     withFile(
                         "src/main/kotlin/gradlePropertyPlugin.gradle.kts",
                         """
-                        val property = providers.gradleProperty("theGradleProperty").forUseAtConfigurationTime()
+                        val property = providers.gradleProperty("theGradleProperty")
                         if (property.isPresent) {
                             println("property is present in plugin!")
                         }

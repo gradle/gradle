@@ -32,7 +32,6 @@ import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemTestFor
 import org.gradle.util.TestUtil
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import java.util.function.Supplier
 
@@ -286,7 +285,6 @@ class TomlCatalogFileParserTest extends Specification implements VersionCatalogE
         VersionCatalogProblemId.TOML_SYNTAX_ERROR,
         VersionCatalogProblemId.INVALID_DEPENDENCY_NOTATION
     ])
-    @Unroll
     def "fails parsing TOML file #name with reasonable error message"() {
         when:
         parse name

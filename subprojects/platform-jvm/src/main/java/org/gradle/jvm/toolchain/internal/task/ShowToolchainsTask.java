@@ -78,7 +78,7 @@ public class ShowToolchainsTask extends DefaultTask {
     }
 
     private Boolean getBooleanProperty(String propertyKey) {
-        return getProviderFactory().gradleProperty(propertyKey).forUseAtConfigurationTime().map(Boolean::parseBoolean).getOrElse(true);
+        return getProviderFactory().gradleProperty(propertyKey).map(Boolean::parseBoolean).getOrElse(true);
     }
 
     private List<ReportableToolchain> invalidToolchains(List<ReportableToolchain> toolchains) {
