@@ -251,8 +251,8 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
 
             def testResolve = tasks.register('testResolve') {
                 doLast {
-                    assert testDataConfig.getResolvedConfiguration().getFiles()*.getName() == [project(':subA').tasks["test"].binaryResultsDirectory.file("results.bin").get().getAsFile().getName(),
-                                                                                               project(':subB').tasks["test"].binaryResultsDirectory.file("results.bin").get().getAsFile().getName()]
+                    assert testDataConfig.getResolvedConfiguration().getFiles().containsAll([project(':subA').tasks["test"].binaryResultsDirectory.file("results.bin").get().getAsFile(),
+                                                                                             project(':subB').tasks["test"].binaryResultsDirectory.file("results.bin").get().getAsFile()])
                 }
             }
 
