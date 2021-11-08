@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins
 
+import org.apache.commons.io.FilenameUtils
 import org.gradle.api.internal.component.BuildableJavaComponent
 import org.gradle.api.internal.component.ComponentRegistry
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
@@ -126,8 +127,8 @@ class JavaPluginIntegrationTest extends AbstractIntegrationSpec {
 
             def testResolve = tasks.register('testResolve') {
                 doLast {
-                    assert sourceElementsConfig.getResolvedConfiguration().getFiles()*.getPath() == ['${getTestDirectory().getPath()}/src/main/resources',
-                                                                                                     '${getTestDirectory().getPath()}/src/main/java']
+                    assert sourceElementsConfig.getResolvedConfiguration().getFiles()*.getPath() == ['${FilenameUtils.separatorsToSystem(getTestDirectory().getPath())}${File.separator}src${File.separator}main${File.separator}resources',
+                                                                                                     '${FilenameUtils.separatorsToSystem(getTestDirectory().getPath())}${File.separator}src${File.separator}main${File.separator}java']
                 }
             }
             """.stripIndent()
@@ -211,10 +212,10 @@ class JavaPluginIntegrationTest extends AbstractIntegrationSpec {
 
             def testResolve = tasks.register('testResolve') {
                 doLast {
-                    assert sourceElementsConfig.getResolvedConfiguration().getFiles()*.getPath() == ['${subADir.getPath()}/src/main/resources',
-                                                                                                     '${subADir.getPath()}/src/main/java',
-                                                                                                     '${subBDir.getPath()}/src/main/resources',
-                                                                                                     '${subBDir.getPath()}/src/main/java']
+                    assert sourceElementsConfig.getResolvedConfiguration().getFiles()*.getPath() == ['${FilenameUtils.separatorsToSystem(subADir.getPath())}${File.separator}src${File.separator}main${File.separator}resources',
+                                                                                                     '${FilenameUtils.separatorsToSystem(subADir.getPath())}${File.separator}src${File.separator}main${File.separator}java',
+                                                                                                     '${FilenameUtils.separatorsToSystem(subBDir.getPath())}${File.separator}src${File.separator}main${File.separator}resources',
+                                                                                                     '${FilenameUtils.separatorsToSystem(subBDir.getPath())}${File.separator}src${File.separator}main${File.separator}java']
                 }
             }
             """.stripIndent()
