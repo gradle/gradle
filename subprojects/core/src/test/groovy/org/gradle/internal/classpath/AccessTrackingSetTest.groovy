@@ -16,25 +16,153 @@
 
 package org.gradle.internal.classpath
 
-import com.google.common.collect.ImmutableSet
 import spock.lang.Specification
 
 import java.util.function.Consumer
 
 class AccessTrackingSetTest extends Specification {
-    def "reading set contents is tracked"() {
-        given:
-        Set<String> someStrings = ImmutableSet.of('hello', 'world')
-        Consumer<String> consumer = Mock()
-        AccessTrackingSet<String> set = new AccessTrackingSet<>(someStrings, consumer)
+    private final Consumer<Object> consumer = Mock()
+    private final Set<String> inner = new HashSet<>(Arrays.asList('existing', 'other'))
+    private final AccessTrackingSet<String> set = new AccessTrackingSet<>(inner, consumer)
 
+    @SuppressWarnings('GrEqualsBetweenInconvertibleTypes')
+    def "reading set contents is tracked"() {
         when:
+        Set<String> iterated = new HashSet<>()
         for (String v : set) {
-            // do nothing, just iterate
+            iterated.add(v)
         }
 
         then:
-        1 * consumer.accept('hello')
-        1 * consumer.accept('world')
+        iterated == inner
+        1 * consumer.accept('existing')
+        1 * consumer.accept('other')
+        0 * consumer._
+    }
+
+    def "contains of existing element is tracked"() {
+        when:
+        def result = set.contains('existing')
+
+        then:
+        result
+        1 * consumer.accept('existing')
+        0 * consumer._
+    }
+
+    def "contains of null is tracked"() {
+        when:
+        def result = set.contains(null)
+
+        then:
+        !result
+        1 * consumer.accept(null)
+        0 * consumer._
+    }
+
+    def "contains of missing element is tracked"() {
+        when:
+        def result = set.contains('missing')
+
+        then:
+        !result
+        1 * consumer.accept('missing')
+        0 * consumer._
+    }
+
+    def "contains of inconvertible element is tracked"() {
+        when:
+        def result = set.contains(123)
+
+        then:
+        !result
+        1 * consumer.accept(123)
+        0 * consumer._
+    }
+
+    def "containsAll of existing elements is tracked"() {
+        when:
+        def result = set.containsAll(Arrays.asList('existing', 'other'))
+
+        then:
+        result
+        1 * consumer.accept('existing')
+        1 * consumer.accept('other')
+        0 * consumer._
+    }
+
+    def "containsAll of missing elements is tracked"() {
+        when:
+        def result = set.containsAll(Arrays.asList('missing', 'alsoMissing'))
+
+        then:
+        !result
+        1 * consumer.accept('missing')
+        1 * consumer.accept('alsoMissing')
+        0 * consumer._
+    }
+
+    def "containsAll of missing and existing elements is tracked"() {
+        when:
+        def result = set.containsAll(Arrays.asList('missing', 'existing'))
+
+        then:
+        !result
+        1 * consumer.accept('missing')
+        1 * consumer.accept('existing')
+        0 * consumer._
+    }
+
+    def "remove of existing element is tracked"() {
+        when:
+        def result = set.remove('existing')
+
+        then:
+        result
+        1 * consumer.accept('existing')
+        0 * consumer._
+    }
+
+    def "remove of missing element is tracked"() {
+        when:
+        def result = set.remove('missing')
+
+        then:
+        !result
+        1 * consumer.accept('missing')
+        0 * consumer._
+    }
+
+    def "removeAll of existing elements is tracked"() {
+        when:
+        def result = set.removeAll('existing', 'other')
+
+        then:
+        result
+        1 * consumer.accept('existing')
+        1 * consumer.accept('other')
+        0 * consumer._
+    }
+
+    def "removeAll of missing elements is tracked"() {
+        when:
+        def result = set.removeAll('missing', 'alsoMissing')
+
+        then:
+        !result
+        1 * consumer.accept('missing')
+        1 * consumer.accept('alsoMissing')
+        0 * consumer._
+    }
+
+    def "removeAll of existing and missing elements is tracked"() {
+        when:
+        def result = set.removeAll('existing', 'missing')
+
+        then:
+        result
+        1 * consumer.accept('existing')
+        1 * consumer.accept('missing')
+        0 * consumer._
     }
 }

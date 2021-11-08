@@ -16,86 +16,18 @@
 
 package org.gradle.internal.classpath
 
-import spock.lang.Specification
-
-import java.util.function.BiConsumer
-
-class AccessTrackingEnvMapTest extends Specification {
-    private final Map<String, String> inner = ['existing': 'existingValue', 'other': 'otherValue']
-
-    def "access to existing element with get() is tracked"() {
-        given:
-        BiConsumer<String, String> consumer = Mock()
-        AccessTrackingEnvMap trackingMap = new AccessTrackingEnvMap(inner, consumer)
-
-        when:
-        def result = trackingMap.get('existing')
-
-        then:
-        result == 'existingValue'
-        1 * consumer.accept('existing', 'existingValue')
+class AccessTrackingEnvMapTest extends AbstractAccessTrackingMapTest {
+    @Override
+    protected Map<String, String> getMapUnderTestToRead() {
+        return new AccessTrackingEnvMap(innerMap, consumer)
     }
 
-    def "access to missing element with get() is tracked"() {
-        given:
-        BiConsumer<String, String> consumer = Mock()
-        AccessTrackingEnvMap trackingMap = new AccessTrackingEnvMap(inner, consumer)
-
+    def "access to non-string element with containsKey throws"() {
         when:
-        def result = trackingMap.get('missing')
+        getMapUnderTestToRead().containsKey(Integer.valueOf(5))
 
         then:
-        result == null
-        1 * consumer.accept('missing', null)
-    }
-
-    def "access to existing element with getOrDefault() is tracked"() {
-        given:
-        BiConsumer<String, String> consumer = Mock()
-        AccessTrackingEnvMap trackingMap = new AccessTrackingEnvMap(inner, consumer)
-
-        when:
-        def result = trackingMap.getOrDefault('existing', 'defaultValue')
-
-        then:
-        result == 'existingValue'
-        1 * consumer.accept('existing', 'existingValue')
-    }
-
-    def "access to missing element with getOrDefault() is tracked"() {
-        given:
-        BiConsumer<String, String> consumer = Mock()
-        AccessTrackingEnvMap trackingMap = new AccessTrackingEnvMap(inner, consumer)
-
-        when:
-        def result = trackingMap.getOrDefault('missing', 'defaultValue')
-
-        then:
-        result == 'defaultValue'
-        1 * consumer.accept('missing', null)
-    }
-
-    def "access to existing element with forEach() is tracked"() {
-        given:
-        BiConsumer<String, String> consumer = Mock()
-        AccessTrackingEnvMap trackingMap = new AccessTrackingEnvMap(inner, consumer)
-
-        when:
-        trackingMap.forEach { k, v -> }
-
-        then:
-        1 * consumer.accept('existing', 'existingValue')
-    }
-
-    def "access to existing element with entrySet() is tracked"() {
-        given:
-        BiConsumer<String, String> consumer = Mock()
-        AccessTrackingEnvMap trackingMap = new AccessTrackingEnvMap(inner, consumer)
-
-        when:
-        trackingMap.entrySet().toList()
-
-        then:
-        1 * consumer.accept('existing', 'existingValue')
+        thrown(RuntimeException)
+        0 * consumer._
     }
 }
