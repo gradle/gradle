@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,15 @@
 
 package gradlebuild.testcleanup.extension
 
+import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.Property
 
 
 /**
- *  An extension for project build script to configure whether the leftover files should be treated:
- *  report only, or a failure.
+ * Works with {@see TestFilesCleanupService} and {@see TestFilesCleanupServiceRootExtension}.
+ * It collects states to be used in the build service for each project.
  */
-interface TestFileCleanUpExtension {
-    val reportOnly: Property<Boolean>
+interface TestFilesCleanupProjectState : TestFileCleanUpExtension {
+    val projectName: Property<String>
+    val projectBuildDir: DirectoryProperty
 }
