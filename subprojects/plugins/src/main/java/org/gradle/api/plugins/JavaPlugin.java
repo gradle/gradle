@@ -36,7 +36,6 @@ import org.gradle.api.attributes.Usage;
 import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.SoftwareComponentFactory;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationPublications;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
@@ -432,10 +431,7 @@ public class JavaPlugin implements Plugin<Project> {
         apiElementsConfiguration.deprecateForDeclaration(IMPLEMENTATION_CONFIGURATION_NAME, COMPILE_ONLY_CONFIGURATION_NAME);
         runtimeElementsConfiguration.deprecateForDeclaration(IMPLEMENTATION_CONFIGURATION_NAME, COMPILE_ONLY_CONFIGURATION_NAME, RUNTIME_ONLY_CONFIGURATION_NAME);
 
-        // TODO: 18791 - If we add this variant for buildSrc, it breaks TestReportIntegrationTest#can generate report for subprojects()
-        if (!SettingsInternal.BUILD_SRC.equals(project.getName())) {
-            createSourcesVariant(project, extension);
-        }
+        createSourcesVariant(project, extension);
     }
 
     private Configuration createSourcesVariant(Project project, JavaPluginExtension java) {
