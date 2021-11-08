@@ -645,7 +645,7 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
         configurationCache.assertStateStored()
 
         where:
-        expression                                                                            | usage
+        expression                                                | usage
         "asText.map(String::toBoolean).getOrElse(false)"          | "text"
         "asText.isPresent"                                        | "text presence"
         "asBytes.map { String(it).toBoolean() }.getOrElse(false)" | "bytes"
@@ -726,9 +726,9 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
         configurationCache.assertStateLoaded()
 
         where:
-        operator                                | operatorType       | usage
-        "forUseAtConfigurationTime().getOrElse" | "String"           | "build logic input"
-        "orElse"                                | "Provider<String>" | "task input"
+        operator    | operatorType       | usage
+        "getOrElse" | "String"           | "build logic input"
+        "orElse"    | "Provider<String>" | "task input"
     }
 
     def "can define and use custom value source in a Groovy script"() {
