@@ -456,7 +456,7 @@ public class JavaPlugin implements Plugin<Project> {
         // TODO: 18791 - This is a hack until we have a proper way of injecting ObjectFactory
         ((DefaultConfigurationPublications) variant.getOutgoing()).setObjectFactory(objects);
 
-        variant.getOutgoing().artifacts(main.getAllSource().getSourceDirectories().getElements(), artifact -> {
+        variant.getOutgoing().artifacts(main.getAllSource().getSourceDirectories().getElements().flatMap(e -> project.provider(() -> e)), artifact -> {
             artifact.setType(ArtifactTypeDefinition.DIRECTORY_TYPE);
         });
 
