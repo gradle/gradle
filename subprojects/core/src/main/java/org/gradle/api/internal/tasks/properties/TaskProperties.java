@@ -53,33 +53,11 @@ public interface TaskProperties {
     ImmutableSortedSet<InputFilePropertySpec> getInputFileProperties();
 
     /**
-     * The input files.
-     */
-    FileCollection getInputFiles();
-
-    /**
-     * Whether there are source files.
-     *
-     * Source files are {@link InputFilePropertySpec}s where {@link InputFilePropertySpec#isSkipWhenEmpty()} returns true.
-     */
-    boolean hasSourceFiles();
-
-    /**
-     * The source files.
-     */
-    FileCollection getSourceFiles();
-
-    /**
      * Output file properties.
      *
      * It is guaranteed that all the {@link OutputFilePropertySpec}s have a name and that the names are unique.
      */
     ImmutableSortedSet<OutputFilePropertySpec> getOutputFileProperties();
-
-    /**
-     * The output files.
-     */
-    FileCollection getOutputFiles();
 
     /**
      * Whether output properties have been declared.

@@ -512,6 +512,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
             class CustomCopy extends DefaultTask {
                 @InputFiles
                 @SkipWhenEmpty
+                @IgnoreEmptyDirectories
                 FileTree sourceDir
 
                 @OutputDirectory

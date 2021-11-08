@@ -150,10 +150,8 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
     }
 
     private static BuildResult buildMaybeExpectingFileTreeDeprecations(SmokeTestGradleRunner runner, String agpVersion) {
-        return runner
-            .expectLegacyDeprecationWarningIf(agpVersion.startsWith("4."),
-                deprecationOfFileTreeForEmptySources("projectNativeLibs"))
-            .build()
+        expectAgpFileTreeDeprecations(agpVersion, runner)
+        return runner.build()
     }
 
     /**

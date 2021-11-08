@@ -40,6 +40,7 @@ import org.gradle.internal.Try
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier
 import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
+import org.gradle.internal.execution.BuildOutputCleanupRegistry
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.TestExecutionHistoryStore
 import org.gradle.internal.execution.fingerprint.InputFingerprinter
@@ -125,6 +126,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
     def outputFilesRepository = Stub(OutputFilesRepository) {
         isGeneratedByGradle(_ as File) >> true
     }
+    def buildOutputCleanupRegistry = Mock(BuildOutputCleanupRegistry)
     def outputSnapshotter = new DefaultOutputSnapshotter(fileCollectionSnapshotter)
     def deleter = TestFiles.deleter()
     def executionEngine = new ExecutionGradleServices().createExecutionEngine(
@@ -133,6 +135,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         cancellationToken,
         buildInvocationScopeId,
         buildOperationExecutor,
+        buildOutputCleanupRegistry,
         new GradleEnterprisePluginManager(),
         classloaderHasher,
         new CurrentBuildOperationRef(),
