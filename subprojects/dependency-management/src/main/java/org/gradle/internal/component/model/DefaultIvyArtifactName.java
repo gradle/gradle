@@ -37,6 +37,9 @@ public class DefaultIvyArtifactName implements IvyArtifactName {
         // after adding the destination file as an artifact in JacocoPlugin - that test uses a provider { null } for the destination file.
         try {
             String name = publishArtifact.getName();
+            if (name == null) {
+                name = publishArtifact.getFile().getName();
+            }
             String classifier = GUtil.elvis(publishArtifact.getClassifier(), null);
             return new DefaultIvyArtifactName(name, publishArtifact.getType(), publishArtifact.getExtension(), classifier);
         } catch (Exception e) {
