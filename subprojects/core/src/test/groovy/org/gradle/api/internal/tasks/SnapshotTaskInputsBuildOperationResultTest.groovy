@@ -174,6 +174,58 @@ class SnapshotTaskInputsBuildOperationResultTest extends Specification implement
     }
 
     @Requires(TestPrecondition.NOT_WINDOWS)
+    def "properly visits structure when ignoring only the root directory"() {
+        given:
+        def visitor = Mock(SnapshotTaskInputsBuildOperationType.Result.InputFilePropertyVisitor)
+        def inputFileProperty = Mock(InputFilePropertySpec) {
+            getDirectorySensitivity() >> DEFAULT
+            getLineEndingNormalization() >> NORMALIZE_LINE_ENDINGS
+            getNormalizer() >> RelativePathInputNormalizer
+            getPropertyName() >> 'inputFiles'
+        }
+        def snapshots = directory('/input', [
+            directory('/input/foo', []),
+        ])
+        def beforeExecutionState = Mock(BeforeExecutionState) {
+            getInputFileProperties() >> ImmutableSortedMap.of('inputFiles',
+                Mock(CurrentFileCollectionFingerprint) {
+                    getHash() >> HashCode.fromInt(345)
+                    getFingerprints() >> [
+                        '/input/foo': new DefaultFileSystemLocationFingerprint('/input/foo', FileType.Directory, HashCode.fromInt(123))
+                    ]
+                    getSnapshot() >> snapshots
+                }
+            )
+        }
+        def cachingState = CachingState.enabled(Mock(BuildCacheKey), beforeExecutionState)
+        def buildOpResult = new SnapshotTaskInputsBuildOperationResult(
+            cachingState,
+            [inputFileProperty] as Set
+        )
+
+        when:
+        buildOpResult.visitInputFileProperties(visitor)
+
+        then:
+        1 * visitor.preProperty(_)
+        1 * visitor.preRoot({ it.path == '/input' })
+
+        and:
+        1 * visitor.preDirectory { it.path == '/input' }
+
+        and:
+        1 * visitor.preDirectory() { it.path == '/input/foo' }
+
+        and:
+        2 * visitor.postDirectory()
+        1 * visitor.postRoot()
+        1 * visitor.postProperty()
+
+        and:
+        0 * visitor._
+    }
+
+    @Requires(TestPrecondition.NOT_WINDOWS)
     def "properly visits structure when not ignoring directories"() {
         given:
         def visitor = Mock(SnapshotTaskInputsBuildOperationType.Result.InputFilePropertyVisitor)
