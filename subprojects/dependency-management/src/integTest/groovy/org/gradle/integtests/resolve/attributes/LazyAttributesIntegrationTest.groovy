@@ -35,7 +35,7 @@ class LazyAttributesIntegrationTest extends AbstractIntegrationSpec {
                     canBeConsumed = true
 
                     attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, sampleProperty.flatMap(value -> project.provider(() -> objects.named(Usage, value))), Usage.class)
+                        attribute(Usage.USAGE_ATTRIBUTE, sampleProperty.flatMap(value -> project.provider(() -> objects.named(Usage, value))))
                     }
                 }
             }
@@ -71,7 +71,7 @@ class LazyAttributesIntegrationTest extends AbstractIntegrationSpec {
                     extendsFrom(configurations.implementation)
 
                     attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, testProvider, String.class)
+                        attribute(Usage.USAGE_ATTRIBUTE, testProvider)
                     }
                 }
             }
@@ -98,7 +98,7 @@ class LazyAttributesIntegrationTest extends AbstractIntegrationSpec {
                     extendsFrom(configurations.implementation)
 
                     attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, testProvider.flatMap(value -> project.provider(() -> objects.named(Category, value))), Usage.class)
+                        attribute(Usage.USAGE_ATTRIBUTE, testProvider.flatMap(value -> project.provider(() -> objects.named(Category, value))))
                     }
                 }
             }
@@ -125,7 +125,7 @@ class LazyAttributesIntegrationTest extends AbstractIntegrationSpec {
                     canBeConsumed = true
 
                     attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, sampleProperty.flatMap(value -> project.provider(() -> objects.named(Usage, value))), Integer.class)
+                        attribute(Usage.USAGE_ATTRIBUTE, sampleProperty.flatMap(value -> project.provider(() -> objects.named(Usage, value))))
                     }
                 }
             }
