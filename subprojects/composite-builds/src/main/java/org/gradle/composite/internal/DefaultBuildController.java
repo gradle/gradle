@@ -191,7 +191,6 @@ class DefaultBuildController implements BuildController, Stoppable {
 
     private void visitDependenciesOf(TaskInternal task, Consumer<TaskInternal> consumer) {
         TaskNodeFactory taskNodeFactory = ((GradleInternal) task.getProject().getGradle()).getServices().get(TaskNodeFactory.class);
-        // TODO - should this just be getNode()?
         TaskNode node = taskNodeFactory.getOrCreateNode(task, TaskNode.UNKNOWN_ORDINAL);
         for (Node dependency : node.getAllSuccessors()) {
             if (dependency instanceof TaskNode) {

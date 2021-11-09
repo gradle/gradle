@@ -119,6 +119,7 @@ abstract class AbstractCommandLineOrderTaskIntegrationTest extends AbstractInteg
         final ProjectFixture project
         final String path
         final Set<TaskFixture> dependencies = []
+        final Set<TaskFixture> finalizers = []
         final Set<String> destroys = []
         final Set<String> produces = []
         final Set<String> localState = []
@@ -131,6 +132,11 @@ abstract class AbstractCommandLineOrderTaskIntegrationTest extends AbstractInteg
 
         TaskFixture dependsOn(TaskFixture dependency) {
             dependencies.add(dependency)
+            return this
+        }
+
+        TaskFixture finalizedBy(TaskFixture finalizer) {
+            finalizers.add(finalizer)
             return this
         }
 
@@ -176,6 +182,7 @@ abstract class AbstractCommandLineOrderTaskIntegrationTest extends AbstractInteg
             return """
                 tasks.register('${name}') {
                     ${dependencies.collect {'dependsOn ' + dependencyFor(it) }.join('\n\t\t\t\t')}
+                    ${finalizers.collect { 'finalizedBy ' + dependencyFor(it) }.join('\\n\\t\\t\\t\\t')}
                     ${produces.collect { 'outputs.file file(' + quote(it) + ')' }.join('\n\t\t\t\t')}
                     ${destroys.collect { 'destroyables.register file(' + quote(it) + ')' }.join('\n\t\t\t\t')}
                     ${localState.collect { 'localState.register file(' + quote(it) + ')' }.join('\\n\\t\\t\\t\\t')}

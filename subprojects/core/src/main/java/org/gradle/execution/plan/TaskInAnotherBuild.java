@@ -39,8 +39,8 @@ public class TaskInAnotherBuild extends TaskNode {
         int ordinal
     ) {
         BuildIdentifier targetBuild = buildIdentifierOf(task);
-        TaskIdentifier taskIdentifier = TaskIdentifier.of(task, ordinal);
-        IncludedBuildTaskResource taskResource = taskGraph.locateTask(targetBuild, taskIdentifier);
+        TaskIdentifier taskIdentifier = TaskIdentifier.of(targetBuild, task, ordinal);
+        IncludedBuildTaskResource taskResource = taskGraph.locateTask(taskIdentifier);
         return new TaskInAnotherBuild(task.getIdentityPath(), task.getPath(), targetBuild, taskResource, ordinal);
     }
 
@@ -50,8 +50,8 @@ public class TaskInAnotherBuild extends TaskNode {
         BuildTreeWorkGraphController taskGraph,
         int ordinal
     ) {
-        TaskIdentifier taskIdentifier = TaskIdentifier.of(taskPath, ordinal);
-        IncludedBuildTaskResource taskResource = taskGraph.locateTask(targetBuild, taskIdentifier);
+        TaskIdentifier taskIdentifier = TaskIdentifier.of(targetBuild, taskPath, ordinal);
+        IncludedBuildTaskResource taskResource = taskGraph.locateTask(taskIdentifier);
         Path taskIdentityPath = Path.path(targetBuild.getName()).append(Path.path(taskPath));
         return new TaskInAnotherBuild(taskIdentityPath, taskPath, targetBuild, taskResource, ordinal);
     }

@@ -165,4 +165,67 @@ class ProducerTaskCommandLineOrderIntegrationTest extends AbstractCommandLineOrd
         result.assertTaskOrder(generateFoo.fullPath, cleanFoo.fullPath, clean.fullPath)
         result.assertTaskOrder(packageBarSources.fullPath, generateBar.fullPath, cleanBar.fullPath, clean.fullPath)
     }
+
+    def "producer task finalized by a task in another project will run before destroyer tasks when ordered first"() {
+        def foo = subproject(':foo')
+        def bar = subproject(':bar')
+
+        def cleanFoo = foo.task('cleanFoo').destroys('build/foo')
+        def cleanBar = bar.task('cleanBar').destroys('build/bar')
+        def clean = rootBuild.task('clean').dependsOn(cleanFoo).dependsOn(cleanBar)
+        def generateBar = bar.task('generateBar').outputs('build/bar')
+        def generateFoo = foo.task('generateFoo').outputs('build/foo').finalizedBy(generateBar)
+        def generate = rootBuild.task('generate').dependsOn(generateBar).dependsOn(generateFoo)
+
+        writeAllFiles()
+
+        when:
+        args '--parallel', '--max-workers=2'
+        succeeds(generate.path, clean.path)
+
+        then:
+        result.assertTaskOrder(generateFoo.fullPath, generateBar.fullPath, generate.fullPath)
+        result.assertTaskOrder(generateFoo.fullPath, cleanFoo.fullPath, clean.fullPath)
+        result.assertTaskOrder(generateBar.fullPath, cleanBar.fullPath, clean.fullPath)
+    }
+
+    def "producer task finalizing both a producer and a destroyer will run after destroyer tasks"() {
+        def foo = subproject(':foo')
+        def bar = subproject(':bar')
+
+        def generateBar = bar.task('generateBar').outputs('build/bar')
+        def generateFoo = foo.task('generateFoo').outputs('build/foo').finalizedBy(generateBar)
+        def generate = rootBuild.task('generate').dependsOn(generateBar).dependsOn(generateFoo)
+        def cleanFoo = foo.task('cleanFoo').destroys('build/foo')
+        def cleanBar = bar.task('cleanBar').destroys('build/bar').finalizedBy(generateBar)
+        def clean = rootBuild.task('clean').dependsOn(cleanFoo).dependsOn(cleanBar)
+
+        writeAllFiles()
+
+        when:
+        args '--parallel', '--max-workers=2'
+        succeeds(generate.path, clean.path)
+
+        then:
+        result.assertTaskOrder(generateFoo.fullPath, generateBar.fullPath, generate.fullPath)
+        result.assertTaskOrder(generateFoo.fullPath, cleanFoo.fullPath, clean.fullPath)
+        result.assertTaskOrder(cleanBar.fullPath, TaskOrderSpecs.any(generateBar.fullPath, clean.fullPath))
+    }
+
+    def "a task that is neither a producer nor a destroyer can run concurrently with producer tasks"() {
+        def foo = subproject(':foo')
+        def bar = subproject(':bar')
+
+        def generateFoo = foo.task('generateFoo').outputs('build/foo').shouldBlock()
+        def exec = bar.task('exec').shouldBlock()
+
+        server.start()
+        server.expectConcurrent(generateFoo.path, exec.path)
+
+        writeAllFiles()
+
+        expect:
+        args '--parallel', '--max-workers=2'
+        succeeds(generateFoo.path, exec.path)
+    }
 }

@@ -71,7 +71,7 @@ class DefaultIncludedBuildTaskGraphTest extends ConcurrentSpec {
 
     def "cannot schedule tasks when graph has not been created"() {
         when:
-        graph.locateTask(DefaultBuildIdentifier.ROOT, taskIdentifier(":task")).queueForExecution()
+        graph.locateTask(taskIdentifier(DefaultBuildIdentifier.ROOT, ":task")).queueForExecution()
 
         then:
         def e = thrown(IllegalStateException)
@@ -81,7 +81,7 @@ class DefaultIncludedBuildTaskGraphTest extends ConcurrentSpec {
     def "cannot schedule tasks when after graph has finished execution"() {
         when:
         graph.withNewWorkGraph { 12 }
-        graph.locateTask(DefaultBuildIdentifier.ROOT, taskIdentifier(":task")).queueForExecution()
+        graph.locateTask(taskIdentifier(DefaultBuildIdentifier.ROOT, ":task")).queueForExecution()
 
         then:
         def e = thrown(IllegalStateException)
@@ -95,7 +95,7 @@ class DefaultIncludedBuildTaskGraphTest extends ConcurrentSpec {
 
         when:
         graph.withNewWorkGraph { g ->
-            graph.locateTask(id, taskIdentifier(":task")).queueForExecution()
+            graph.locateTask(taskIdentifier(id, ":task")).queueForExecution()
         }
 
         then:
@@ -112,7 +112,7 @@ class DefaultIncludedBuildTaskGraphTest extends ConcurrentSpec {
         graph.withNewWorkGraph { g ->
             g.scheduleWork {
             }
-            graph.locateTask(id, taskIdentifier(":task")).queueForExecution()
+            graph.locateTask(taskIdentifier(id, ":task")).queueForExecution()
         }
 
         then:
@@ -129,7 +129,7 @@ class DefaultIncludedBuildTaskGraphTest extends ConcurrentSpec {
 
         workGraphController.newWorkGraph() >> workGraph
         workGraph.runWork() >> {
-            graph.locateTask(DefaultBuildIdentifier.ROOT, taskIdentifier(":task")).queueForExecution()
+            graph.locateTask(taskIdentifier(DefaultBuildIdentifier.ROOT, ":task")).queueForExecution()
         }
 
         when:
@@ -155,7 +155,7 @@ class DefaultIncludedBuildTaskGraphTest extends ConcurrentSpec {
             g.scheduleWork {
             }
             g.runWork()
-            graph.locateTask(id, taskIdentifier(":task")).queueForExecution()
+            graph.locateTask(taskIdentifier(id, ":task")).queueForExecution()
         }
 
         then:
@@ -171,7 +171,7 @@ class DefaultIncludedBuildTaskGraphTest extends ConcurrentSpec {
         return build
     }
 
-    static TaskIdentifier taskIdentifier(String taskPath) {
-        return TaskIdentifier.of(taskPath, TaskNode.UNKNOWN_ORDINAL)
+    static TaskIdentifier taskIdentifier(BuildIdentifier id, String taskPath) {
+        return TaskIdentifier.of(id, taskPath, TaskNode.UNKNOWN_ORDINAL)
     }
 }

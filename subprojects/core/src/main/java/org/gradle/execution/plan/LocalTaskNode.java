@@ -132,10 +132,6 @@ public class LocalTaskNode extends TaskNode {
     public void resolveDependencies(TaskDependencyResolver dependencyResolver, Action<Node> processHardSuccessor) {
         for (Node targetNode : getDependencies(dependencyResolver)) {
             addDependencySuccessor(targetNode);
-            if (targetNode instanceof TaskNode) {
-                // if the dependency doesn't already have an ordinal assigned, then inherit the ordinal from this node
-                ((TaskNode) targetNode).maybeSetOrdinal(getOrdinal());
-            }
             processHardSuccessor.execute(targetNode);
         }
 

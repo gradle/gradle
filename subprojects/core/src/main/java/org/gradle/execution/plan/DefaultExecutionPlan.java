@@ -203,6 +203,10 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                     if (!visiting.contains(targetNode)) {
                         queue.addFirst(targetNode);
                     }
+                    if (node instanceof TaskNode && targetNode instanceof TaskNode) {
+                        // if the dependency doesn't already have an ordinal assigned, then inherit the ordinal from this node
+                        ((TaskNode) targetNode).maybeSetOrdinal(((TaskNode) node).getOrdinal());
+                    }
                 });
                 if (node.isRequired()) {
                     for (Node successor : node.getDependencySuccessors()) {
@@ -389,6 +393,8 @@ public class DefaultExecutionPlan implements ExecutionPlan {
             ProjectInternal project = (ProjectInternal) taskNode.getTask().getProject();
             ServiceRegistry serviceRegistry = project.getServices();
             PropertyWalker propertyWalker = serviceRegistry.get(PropertyWalker.class);
+
+            // Walk the properties of the task to determine if it is a destroyer or a producer (or neither)
             propertyWalker.visitProperties(taskNode.getTask(), TypeValidationContext.NOOP, taskClassifier);
             taskNode.getTask().getOutputs().visitRegisteredProperties(taskClassifier);
             ((TaskDestroyablesInternal)taskNode.getTask().getDestroyables()).visitRegisteredProperties(taskClassifier);
@@ -397,6 +403,8 @@ public class DefaultExecutionPlan implements ExecutionPlan {
             if (taskClassifier.isDestroyer()) {
                 Node ordinalNode = ordinalNodeAccess.getOrCreateDestroyableLocationNode(taskNode.getOrdinal());
                 taskNode.getDependencySuccessors().forEach(ordinalNode::addDependencySuccessor);
+                taskNode.getFinalizingSuccessors().forEach(ordinalNode::addDependencySuccessor);
+
 
                 if (taskNode.getOrdinal() > 0) {
                     ordinalNodeAccess.getPrecedingProducerLocationNodes(taskNode.getOrdinal())
@@ -405,6 +413,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
             } else if (taskClassifier.isProducer()) {
                 Node ordinalNode = ordinalNodeAccess.getOrCreateOutputLocationNode(taskNode.getOrdinal());
                 taskNode.getDependencySuccessors().forEach(ordinalNode::addDependencySuccessor);
+                taskNode.getFinalizingSuccessors().forEach(ordinalNode::addDependencySuccessor);
 
                 if (taskNode.getOrdinal() > 0) {
                     ordinalNodeAccess.getPrecedingDestroyerLocationNodes(taskNode.getOrdinal())
