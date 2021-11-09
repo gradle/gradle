@@ -20,16 +20,16 @@ abstract class IvyVariantDerivationRule : ComponentMetadataRule {
 
         context.details.addVariant("runtimeElements", "default") {
             attributes {
-                attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, getObjects().named(LibraryElements.JAR))
-                attribute(Category.CATEGORY_ATTRIBUTE, getObjects().named(Category.LIBRARY))
-                attribute(Usage.USAGE_ATTRIBUTE, getObjects().named(Usage.JAVA_RUNTIME))
+                attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, getObjects().named(LibraryElements::class.java, LibraryElements.JAR))
+                attribute(Category.CATEGORY_ATTRIBUTE, getObjects().named(Category::class.java, Category.LIBRARY))
+                attribute(Usage.USAGE_ATTRIBUTE, getObjects().named(Usage::class.java, Usage.JAVA_RUNTIME))
             }
         }
         context.details.addVariant("apiElements", "compile") {
             attributes {
-                attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, getObjects().named(LibraryElements.JAR))
-                attribute(Category.CATEGORY_ATTRIBUTE, getObjects().named(Category.LIBRARY))
-                attribute(Usage.USAGE_ATTRIBUTE, getObjects().named(Usage.JAVA_API))
+                attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, getObjects().named(LibraryElements::class.java, LibraryElements.JAR))
+                attribute(Category.CATEGORY_ATTRIBUTE, getObjects().named(Category::class.java, Category.LIBRARY))
+                attribute(Usage.USAGE_ATTRIBUTE, getObjects().named(Usage::class.java, Usage.JAVA_API))
             }
         }
     }

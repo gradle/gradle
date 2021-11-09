@@ -22,7 +22,7 @@ configurations.all {
     resolutionStrategy.dependencySubstitution {
         substitute(variant(module("com.google.guava:guava:28.2-jre")) {
             attributes {
-                attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.REGULAR_PLATFORM))
+                attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category::class.java, Category.REGULAR_PLATFORM))
             }
         }).using(module("com.google.guava:guava:28.2-jre"))
     }

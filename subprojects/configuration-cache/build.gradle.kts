@@ -8,7 +8,7 @@ description = "Configuration cache implementation"
 val configurationCacheReportPath by configurations.creating {
     isVisible = false
     isCanBeConsumed = false
-    attributes { attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named("configuration-cache-report")) }
+    attributes { attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType::class.java, "configuration-cache-report")) }
 }
 
 dependencies {

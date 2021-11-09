@@ -15,9 +15,9 @@ configurations.create("transitiveSourcesElements") {
     isCanBeConsumed = true
     extendsFrom(configurations.implementation.get())
     attributes {
-        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
-        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.DOCUMENTATION))
-        attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named("source-folders"))
+        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, Usage.JAVA_RUNTIME))
+        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category::class.java, Category.DOCUMENTATION))
+        attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType::class.java, "source-folders"))
     }
     sourceSets.main.get().java.srcDirs.forEach { outgoing.artifact(it) }
 }
@@ -29,9 +29,9 @@ configurations.create("coverageDataElements") {
     isCanBeConsumed = true
     extendsFrom(configurations.implementation.get())
     attributes {
-        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
-        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.DOCUMENTATION))
-        attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named("jacoco-coverage-data"))
+        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, Usage.JAVA_RUNTIME))
+        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category::class.java, Category.DOCUMENTATION))
+        attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType::class.java, "jacoco-coverage-data"))
     }
     outgoing.artifact(tasks.test.map { task ->
         task.extensions.getByType<JacocoTaskExtension>().destinationFile!!
