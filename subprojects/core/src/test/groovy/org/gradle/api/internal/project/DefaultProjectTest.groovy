@@ -88,6 +88,7 @@ import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.resource.StringTextResource
 import org.gradle.internal.resource.TextFileResourceLoader
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.internal.service.scopes.ExceptionCollector
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory
 import org.gradle.model.internal.manage.schema.ModelSchemaStore
@@ -130,6 +131,7 @@ class DefaultProjectTest extends Specification {
     ServiceRegistry serviceRegistryMock
     ServiceRegistryFactory projectServiceRegistryFactoryMock
     TaskContainerInternal taskContainerMock = Stub(TaskContainerInternal)
+    ExceptionCollector exceptionCollectorMock = Stub(ExceptionCollector)
     Factory<AntBuilder> antBuilderFactoryMock = Stub(Factory)
     AntBuilder testAntBuilder
 
@@ -180,6 +182,8 @@ class DefaultProjectTest extends Specification {
 
         testTask = TestUtil.create(temporaryFolder).task(DefaultTask)
 
+        exceptionCollectorMock.decorate(_) >> { args -> args[0] }
+
         projectRegistry = new DefaultProjectRegistry()
 
         projectServiceRegistryFactoryMock = Stub(ServiceRegistryFactory)
@@ -187,6 +191,7 @@ class DefaultProjectTest extends Specification {
 
         projectServiceRegistryFactoryMock.createFor({ it != null }) >> serviceRegistryMock
         serviceRegistryMock.get(TaskContainerInternal) >> taskContainerMock
+        serviceRegistryMock.get(ExceptionCollector) >> exceptionCollectorMock
         taskContainerMock.getTasksAsDynamicObject() >> new BeanDynamicObject(new TaskContainerDynamicObject(someTask: testTask))
         serviceRegistryMock.get((Type) RepositoryHandler) >> repositoryHandlerMock
         serviceRegistryMock.get(ConfigurationContainer) >> configurationContainerMock
