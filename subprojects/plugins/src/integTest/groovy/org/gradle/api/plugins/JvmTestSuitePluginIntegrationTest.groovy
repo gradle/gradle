@@ -17,9 +17,11 @@
 package org.gradle.api.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
 
+    @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
     def "JVM Test Suites plugin adds outgoing variants for default test suite"() {
         buildFile << """
             plugins {
@@ -58,6 +60,7 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
             """.stripIndent())
     }
 
+    @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
     def "JVM Test Suites plugin adds outgoing variants for custom test suite"() {
         buildFile << """
             plugins {
@@ -158,6 +161,7 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
         succeeds('testResolve')
     }
 
+    @ToBeFixedForConfigurationCache(because = "task references another task")
     def "Test results data can be consumed by another task in a different project via Dependency Management"() {
         def subADir = createDir("subA")
         def buildFileA = subADir.file("build.gradle") << """

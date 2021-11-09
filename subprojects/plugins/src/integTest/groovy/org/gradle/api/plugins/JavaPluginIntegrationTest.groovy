@@ -19,6 +19,7 @@ package org.gradle.api.plugins
 import org.gradle.api.internal.component.BuildableJavaComponent
 import org.gradle.api.internal.component.ComponentRegistry
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class JavaPluginIntegrationTest extends AbstractIntegrationSpec {
 
@@ -44,6 +45,7 @@ class JavaPluginIntegrationTest extends AbstractIntegrationSpec {
         succeeds "expect"
     }
 
+    @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
     def "Java plugin adds outgoing variant for main source set"() {
         buildFile << """
             plugins {
@@ -71,6 +73,7 @@ class JavaPluginIntegrationTest extends AbstractIntegrationSpec {
             """.stripIndent())
     }
 
+    @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
     def "Java plugin adds outgoing variant for main source set containing additional directories"() {
         buildFile << """
             plugins {
@@ -124,10 +127,11 @@ class JavaPluginIntegrationTest extends AbstractIntegrationSpec {
                 sourceElements project
             }
 
+            def expectedResolvedFiles = [project.file("src/main/resources"), project.file("src/main/java")]
+
             def testResolve = tasks.register('testResolve') {
                 doLast {
-                    assert sourceElementsConfig.getResolvedConfiguration().getFiles().containsAll([project.file("src/main/resources"),
-                                                                                                   project.file("src/main/java")])
+                    assert sourceElementsConfig.getResolvedConfiguration().getFiles().containsAll(expectedResolvedFiles)
                 }
             }
             """.stripIndent()
@@ -209,12 +213,14 @@ class JavaPluginIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
+            def expectedResolvedFiles = [project(':subA').file("src/main/resources"),
+                                         project(':subA').file("src/main/java"),
+                                         project(':subB').file("src/main/resources"),
+                                         project(':subB').file("src/main/java")]
+
             def testResolve = tasks.register('testResolve') {
                 doLast {
-                    assert sourceElementsConfig.getResolvedConfiguration().getFiles().containsAll([project(':subA').file("src/main/resources"),
-                                                                                                   project(':subA').file("src/main/java"),
-                                                                                                   project(':subB').file("src/main/resources"),
-                                                                                                   project(':subB').file("src/main/java")])
+                    assert sourceElementsConfig.getResolvedConfiguration().getFiles().containsAll(expectedResolvedFiles)
                 }
             }
             """.stripIndent()
