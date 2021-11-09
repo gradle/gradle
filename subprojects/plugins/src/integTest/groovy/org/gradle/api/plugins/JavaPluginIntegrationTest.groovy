@@ -126,8 +126,8 @@ class JavaPluginIntegrationTest extends AbstractIntegrationSpec {
 
             def testResolve = tasks.register('testResolve') {
                 doLast {
-                    assert sourceElementsConfig.getResolvedConfiguration().getFiles().containsAll([project.file("${getTestDirectory().getPath()}/src/main/resources"),
-                                                                                                   project.file("${getTestDirectory().getPath()}/src/main/java")])
+                    assert sourceElementsConfig.getResolvedConfiguration().getFiles().containsAll([project.file("src/main/resources"),
+                                                                                                   project.file("src/main/java")])
                 }
             }
             """.stripIndent()
@@ -211,10 +211,10 @@ class JavaPluginIntegrationTest extends AbstractIntegrationSpec {
 
             def testResolve = tasks.register('testResolve') {
                 doLast {
-                    assert sourceElementsConfig.getResolvedConfiguration().getFiles().containsAll([project.file("${subADir.getPath()}/src/main/resources"),
-                                                                                                   project.file("${subADir.getPath()}/src/main/java"),
-                                                                                                   project.file("${subBDir.getPath()}/src/main/resources"),
-                                                                                                   project.file("${subBDir.getPath()}/src/main/java")])
+                    assert sourceElementsConfig.getResolvedConfiguration().getFiles().containsAll([project(':subA').file("src/main/resources"),
+                                                                                                   project(':subA').file("src/main/java"),
+                                                                                                   project(':subB').file("src/main/resources"),
+                                                                                                   project(':subB').file("src/main/java")])
                 }
             }
             """.stripIndent()
