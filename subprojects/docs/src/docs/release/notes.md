@@ -131,9 +131,8 @@ Declarations of dependencies with `platform`, `enforcedPlatform`, `testFixtures`
 
 When running an incremental build, Gradle needs to understand what has changed since the previous build on the file system. To do this it relies on the operating system's [file system events](userguide/gradle_daemon.html#sec:daemon_watch_fs) whenever possible.
 
-However, these file system events can be unreliable in some environments, which could cause Gradle to ignore some changes.
-
-To prevent this, Gradle now detects the reliability of file system events and automatically disables the file system watching optimization in case of issues.
+In some rare environments these events can be unreliable, and would cause Gradle to ignore some changes.
+To prevent this, Gradle now verifies that file system events are delivered in a timely fashion before enabling optimization based on them.
 
 ### Allow copying single files into directories which contain unreadable files.
 
