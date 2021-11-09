@@ -401,21 +401,26 @@ public class DefaultExecutionPlan implements ExecutionPlan {
             ((TaskLocalStateInternal)taskNode.getTask().getLocalState()).visitRegisteredProperties(taskClassifier);
 
             if (taskClassifier.isDestroyer()) {
+                // Create (or get) a destroyer ordinal node that depends on the dependencies of this task node
                 Node ordinalNode = ordinalNodeAccess.getOrCreateDestroyableLocationNode(taskNode.getOrdinal());
                 taskNode.getDependencySuccessors().forEach(ordinalNode::addDependencySuccessor);
                 taskNode.getFinalizingSuccessors().forEach(ordinalNode::addDependencySuccessor);
 
-
                 if (taskNode.getOrdinal() > 0) {
+                    // Depend on any previous producer ordinal nodes (i.e. any producer ordinal nodes with a lower
+                    // ordinal)
                     ordinalNodeAccess.getPrecedingProducerLocationNodes(taskNode.getOrdinal())
                         .forEach(taskNode::addDependencySuccessor);
                 }
             } else if (taskClassifier.isProducer()) {
+                // Create (or get) a producer ordinal node that depends on the dependencies of this task node
                 Node ordinalNode = ordinalNodeAccess.getOrCreateOutputLocationNode(taskNode.getOrdinal());
                 taskNode.getDependencySuccessors().forEach(ordinalNode::addDependencySuccessor);
                 taskNode.getFinalizingSuccessors().forEach(ordinalNode::addDependencySuccessor);
 
                 if (taskNode.getOrdinal() > 0) {
+                    // Depend on any previous destroyer ordinal nodes (i.e. any destroyer ordinal nodes with a lower
+                    // ordinal)
                     ordinalNodeAccess.getPrecedingDestroyerLocationNodes(taskNode.getOrdinal())
                         .forEach(taskNode::addDependencySuccessor);
                 }

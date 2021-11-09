@@ -26,6 +26,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Represents a node in the graph that controls ordinality of destroyers and producers as they are
+ * added to the task graph.  For example "clean build" on the command line implies that the user wants
+ * to run the clean tasks of each project before the build tasks of each project.  Ordinal nodes ensure
+ * this order by tracking the dependencies of destroyers and producers in each group of tasks added to
+ * the task graph and prevents producers of a higher ordinality to run before the destroyers of a lower
+ * ordinality even if the destroyers are delayed waiting on dependencies (and vice versa).
+ */
 public class OrdinalNode extends Node implements SelfExecutingNode {
     public enum Type { DESTROYER, PRODUCER }
 
@@ -88,6 +96,7 @@ public class OrdinalNode extends Node implements SelfExecutingNode {
     }
 
     @Override
+    // TODO is there a better term to use here than "task group"
     public String toString() {
         return type.name().toLowerCase() + " locations for task group " + ordinal;
     }

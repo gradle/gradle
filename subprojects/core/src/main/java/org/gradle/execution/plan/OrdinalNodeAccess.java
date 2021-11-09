@@ -24,6 +24,9 @@ import java.util.List;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
+/**
+ * A factory for creating and accessing ordinal nodes
+ */
 public class OrdinalNodeAccess {
     TreeMap<Integer, Node> destroyerLocationNodes = Maps.newTreeMap();
     TreeMap<Integer, Node> producerLocationNodes = Maps.newTreeMap();
@@ -48,6 +51,11 @@ public class OrdinalNodeAccess {
         return Streams.concat(destroyerLocationNodes.values().stream(), producerLocationNodes.values().stream()).collect(Collectors.toList());
     }
 
+    /**
+     * Create relationships between the ordinal nodes such that destroyer ordinals cannot complete until all preceding producer
+     * ordinals have completed (and vice versa).  This ensures that an ordinal does not complete early simply because the nodes in
+     * the ordinal group it represents have no explicit dependencies.
+     */
     void createInterNodeRelationships() {
         destroyerLocationNodes.forEach((ordinal, destroyer) -> getPrecedingProducerLocationNodes(ordinal).forEach(destroyer::addDependencySuccessor));
         producerLocationNodes.forEach((ordinal, producer) -> getPrecedingDestroyerLocationNodes(ordinal).forEach(producer::addDependencySuccessor));
