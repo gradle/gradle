@@ -158,7 +158,7 @@ abstract class AbstractSmokeTest extends Specification {
         static detekt = Versions.of("1.18.1")
 
         // https://plugins.gradle.org/plugin/com.diffplug.spotless
-        static spotless = Versions.of("5.16.0")
+        static spotless = Versions.of("6.0.0")
 
         // https://plugins.gradle.org/plugin/com.google.cloud.tools.jib
         static jib = Versions.of("3.1.4")
