@@ -53,10 +53,8 @@ class ScriptHandlerScopeTest {
             }
         }
 
-        verify(dependencies).add(eq("classpath"), eq(notation), any())
-        verify(dependencies).add(
-            eq("classpath"), eq(notation), any()
-        )
+        verify(dependencies).add(eq("classpath"), eq(notation))
+        verify(dependencies).addProvider(eq("classpath"), eq(notation), any<Action<ExternalModuleDependency>>())
         // Because it's a Provider, this isn't called until evaluation
         verify(dependency, never()).exclude(mapOf("module" to "com.google.guava"))
     }
@@ -77,10 +75,8 @@ class ScriptHandlerScopeTest {
             }
         }
 
-        verify(dependencies).add(eq("classpath"), eq(notation), any())
-        verify(dependencies).add(
-            eq("classpath"), eq(notation), any()
-        )
+        verify(dependencies).add(eq("classpath"), eq(notation))
+        verify(dependencies).addProviderConvertible(eq("classpath"), eq(notation), any<Action<ExternalModuleDependency>>())
         // Because it's a Provider, this isn't called until evaluation
         verify(dependency, never()).exclude(mapOf("module" to "com.google.guava"))
     }
