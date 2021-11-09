@@ -172,14 +172,14 @@ abstract class LwjglRule: ComponentMetadataRule {
         context.details.withVariant("runtime") {
             attributes {
                 attributes.attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, objects.named(OperatingSystemFamily::class.java, "none"))
-                attributes.attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, objects.named(OperatingSystemFamily::class.java, "none"))
+                attributes.attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, objects.named(MachineArchitecture::class.java, "none"))
             }
         }
         nativeVariants.forEach { variantDefinition ->
             context.details.addVariant("${variantDefinition.classifier}-runtime", "runtime") {
                 attributes {
                     attributes.attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, objects.named(OperatingSystemFamily::class.java, variantDefinition.os))
-                    attributes.attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, objects.named(OperatingSystemFamily::class.java, variantDefinition.arch))
+                    attributes.attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, objects.named(MachineArchitecture::class.java, variantDefinition.arch))
                 }
                 withFiles {
                     addFile("${context.details.id.name}-${context.details.id.version}-${variantDefinition.classifier}.jar")
