@@ -206,7 +206,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     private ListenerBroadcast<ProjectEvaluationListener> evaluationListener = newProjectEvaluationListenerBroadcast();
 
-    private final ListenerBroadcast<RuleBasedPluginListener> ruleBasedPluginListenerBroadcast = new ListenerBroadcast<RuleBasedPluginListener>(RuleBasedPluginListener.class);
+    private final ListenerBroadcast<RuleBasedPluginListener> ruleBasedPluginListenerBroadcast = new ListenerBroadcast<>(RuleBasedPluginListener.class);
 
     private final ExtensibleDynamicObject extensibleDynamicObject;
 
@@ -214,16 +214,18 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     private boolean preparedForRuleBasedPlugins;
 
-    public DefaultProject(String name,
-                          @Nullable ProjectInternal parent,
-                          File projectDir,
-                          File buildFile,
-                          ScriptSource buildScriptSource,
-                          GradleInternal gradle,
-                          ProjectState owner,
-                          ServiceRegistryFactory serviceRegistryFactory,
-                          ClassLoaderScope selfClassLoaderScope,
-                          ClassLoaderScope baseClassLoaderScope) {
+    public DefaultProject(
+        String name,
+        @Nullable ProjectInternal parent,
+        File projectDir,
+        File buildFile,
+        ScriptSource buildScriptSource,
+        GradleInternal gradle,
+        ProjectState owner,
+        ServiceRegistryFactory serviceRegistryFactory,
+        ClassLoaderScope selfClassLoaderScope,
+        ClassLoaderScope baseClassLoaderScope
+    ) {
         this.owner = owner;
         this.classLoaderScope = selfClassLoaderScope;
         this.baseClassLoaderScope = baseClassLoaderScope;
@@ -253,12 +255,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
         evaluationListener.add(gradle.getProjectEvaluationBroadcaster());
 
-        ruleBasedPluginListenerBroadcast.add(new RuleBasedPluginListener() {
-            @Override
-            public void prepareForRuleBasedPlugins(Project project) {
-                populateModelRegistry(services.get(ModelRegistry.class));
-            }
-        });
+        ruleBasedPluginListenerBroadcast.add((RuleBasedPluginListener) project -> populateModelRegistry(services.get(ModelRegistry.class)));
     }
 
     @SuppressWarnings("unused")
@@ -331,18 +328,13 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     private ListenerBroadcast<ProjectEvaluationListener> newProjectEvaluationListenerBroadcast() {
-        return new ListenerBroadcast<ProjectEvaluationListener>(ProjectEvaluationListener.class);
+        return new ListenerBroadcast<>(ProjectEvaluationListener.class);
     }
 
     private void populateModelRegistry(ModelRegistry modelRegistry) {
         registerServiceOn(modelRegistry, "serviceRegistry", SERVICE_REGISTRY_MODEL_TYPE, services, instanceDescriptorFor("serviceRegistry"));
         // TODO:LPTR This ignores changes to Project.buildDir after model node has been created
-        registerFactoryOn(modelRegistry, "buildDir", FILE_MODEL_TYPE, new Factory<File>() {
-            @Override
-            public File create() {
-                return getBuildDir();
-            }
-        });
+        registerFactoryOn(modelRegistry, "buildDir", FILE_MODEL_TYPE, this::getBuildDir);
         registerInstanceOn(modelRegistry, "projectIdentifier", PROJECT_IDENTIFIER_MODEL_TYPE, this);
         registerInstanceOn(modelRegistry, "extensionContainer", EXTENSION_CONTAINER_MODEL_TYPE, getExtensions());
         modelRegistry.getRoot().applyToSelf(BasicServicesRules.class);
@@ -414,6 +406,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         return parent;
     }
 
+    @Nullable
     @Override
     public ProjectIdentifier getParentIdentifier() {
         return parent;
