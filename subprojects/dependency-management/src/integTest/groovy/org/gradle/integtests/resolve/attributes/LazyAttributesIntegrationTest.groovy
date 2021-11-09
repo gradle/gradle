@@ -79,7 +79,7 @@ class LazyAttributesIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         fails "outgoingVariants"
-        failure.assertHasCause("Unexpected type for attribute: 'org.gradle.usage'. Expected type: java.lang.String did not match attribute type: org.gradle.api.attributes.Usage")
+        failure.assertHasCause("Unexpected type for attribute: 'org.gradle.usage'. Attribute type: org.gradle.api.attributes.Usage did not match actual type: java.lang.Integer")
     }
 
     def "providers used as attribute values with mismatched types names fail properly"() {
@@ -106,33 +106,6 @@ class LazyAttributesIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         fails "outgoingVariants"
-        failure.assertHasCause("Unexpected type for attribute: 'org.gradle.usage'. Expected type: org.gradle.api.attributes.Category\$Impl did not match attribute type: org.gradle.api.attributes.Usage")
-    }
-
-    def "providers used as attribute values with mismatched expected types names fail properly"() {
-        buildFile << """
-            plugins {
-                id 'java'
-            }
-
-            Property<String> sampleProperty = project.objects.property(String)
-            sampleProperty.set("original value")
-
-            configurations {
-                sample {
-                    visible = false
-                    canBeResolved = false
-                    canBeConsumed = true
-
-                    attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, sampleProperty.flatMap(value -> project.provider(() -> objects.named(Usage, value))))
-                    }
-                }
-            }
-            """.stripIndent()
-
-        expect:
-        fails "outgoingVariants"
-        failure.assertHasCause("Unexpected type for attribute: 'org.gradle.usage'. Expected type: java.lang.Integer did not match attribute type: org.gradle.api.attributes.Usage")
+        failure.assertHasCause("Unexpected type for attribute: 'org.gradle.usage'. Attribute type: org.gradle.api.attributes.Usage did not match actual type: org.gradle.api.attributes.Category\$Impl")
     }
 }
