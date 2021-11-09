@@ -17,8 +17,10 @@
 package org.gradle.integtests.resolve.attributes
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class LazyAttributesIntegrationTest extends AbstractIntegrationSpec {
+    @ToBeFixedForConfigurationCache
     def "properties used as attribute values are read lazily"() {
         buildFile << """
             plugins {
@@ -55,6 +57,7 @@ class LazyAttributesIntegrationTest extends AbstractIntegrationSpec {
                 - org.gradle.usage = new value""".stripIndent())
     }
 
+    @ToBeFixedForConfigurationCache
     def "providers used as attribute values with mismatched value types fail properly"() {
         buildFile << """
             plugins {
@@ -82,6 +85,7 @@ class LazyAttributesIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Unexpected type for attribute: 'org.gradle.usage'. Attribute type: org.gradle.api.attributes.Usage did not match actual type: java.lang.Integer")
     }
 
+    @ToBeFixedForConfigurationCache
     def "providers used as attribute values with mismatched types names fail properly"() {
         buildFile << """
             plugins {
