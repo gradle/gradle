@@ -69,6 +69,6 @@ class DefaultMutableAttributeContainerTest extends Specification {
 
         then:
         def e = thrown(IllegalArgumentException)
-        e.message.contains("Unexpected type for attribute: 'test'. Attribute type: java.lang.String did not match actual type: java.lang.Integer")
+        e.message.contains("Unexpected type for attribute: 'test'. Attribute value's actual type: java.lang.Integer did not match the expected type: java.lang.String")
     }
 }
