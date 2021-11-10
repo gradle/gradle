@@ -297,7 +297,8 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         } else {
             // We don't know the type of element in the provider, so we assume it's the type of the collection
             DefaultListProperty<T> defaultListProperty = new DefaultListProperty<T>(PropertyHost.NO_OP, Cast.uncheckedCast(getType()));
-            providerInternal = Cast.uncheckedCast(defaultListProperty.convention(provider));
+            defaultListProperty.convention(provider);
+            providerInternal = defaultListProperty;
         }
         store.addPendingCollection(providerInternal);
         if (eventRegister.isSubscribed(providerInternal.getElementType())) {
