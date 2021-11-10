@@ -50,10 +50,10 @@ class IntermediateModelController(
     private val cacheFingerprintController: ConfigurationCacheFingerprintController
 ) : Closeable {
     private
-    val projectValueStore by lazy {
+    val modelsStore by lazy {
         val writerFactory = { outputStream: OutputStream ->
             ValueStore.Writer<Any?> { value ->
-                val (context, codecs) = cacheIO.writerContextFor(outputStream, "values")
+                val (context, codecs) = cacheIO.writerContextFor(outputStream, "intermediate models")
                 context.push(IsolateOwner.OwnerHost(host), codecs.userTypesCodec)
                 context.runWriteOperation {
                     write(value)
@@ -70,7 +70,7 @@ class IntermediateModelController(
                 }
             }
         }
-        store.createValueStore(StateType.ProjectModels, writerFactory, readerFactory)
+        store.createValueStore(StateType.IntermediateModels, writerFactory, readerFactory)
     }
 
     private
@@ -98,14 +98,14 @@ class IntermediateModelController(
         val key = ModelKey(identityPath, modelName)
         val addressOfCached = locateCachedModel(key)
         if (addressOfCached != null) {
-            return projectValueStore.read(addressOfCached)?.uncheckedCast()
+            return modelsStore.read(addressOfCached)?.uncheckedCast()
         }
         val model = if (identityPath != null) {
             cacheFingerprintController.collectFingerprintForProject(identityPath, creator)
         } else {
             creator()
         }
-        val address = projectValueStore.write(model)
+        val address = modelsStore.write(model)
         intermediateModels[key] = address
         return model
     }
@@ -124,6 +124,6 @@ class IntermediateModelController(
     }
 
     override fun close() {
-        CompositeStoppable.stoppable(projectValueStore).stop()
+        CompositeStoppable.stoppable(modelsStore).stop()
     }
 }

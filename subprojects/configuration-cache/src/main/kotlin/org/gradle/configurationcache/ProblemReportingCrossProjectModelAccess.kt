@@ -835,10 +835,6 @@ class ProblemReportingCrossProjectModelAccess(
             shouldNotBeUsed()
         }
 
-        override fun addChildProject(childProject: ProjectInternal) {
-            shouldNotBeUsed()
-        }
-
         override fun project(path: String): ProjectInternal {
             return delegate.project(referrer, path)
         }

@@ -23,7 +23,6 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponent
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.api.internal.initialization.ScriptClassPathInitializer;
-import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.composite.internal.plugins.CompositeBuildPluginResolverContributor;
 import org.gradle.internal.build.BuildIncluder;
@@ -31,7 +30,6 @@ import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildFactory;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
@@ -73,8 +71,8 @@ public class CompositeBuildServices extends AbstractPluginServiceRegistry {
             return new DefaultBuildableCompositeBuildContext();
         }
 
-        public LocalComponentProvider createLocalComponentProvider(ProjectStateRegistry projectRegistry, CalculatedValueContainerFactory calculatedValueContainerFactory) {
-            return new LocalComponentInAnotherBuildProvider(projectRegistry, new IncludedBuildDependencyMetadataBuilder(), calculatedValueContainerFactory);
+        public LocalComponentProvider createLocalComponentProvider() {
+            return new LocalComponentInAnotherBuildProvider(new IncludedBuildDependencyMetadataBuilder());
         }
     }
 

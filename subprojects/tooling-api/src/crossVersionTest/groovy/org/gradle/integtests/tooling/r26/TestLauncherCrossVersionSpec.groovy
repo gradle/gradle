@@ -423,6 +423,10 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         assertTaskExecuted(":sub7:test")
         assertTaskExecuted(":sub8:test")
         assertTaskExecuted(":sub9:test")
+
+        and:
+        assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":test")
+        assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":sub0:test")
     }
 
     ProgressListener failingProgressListener() {
