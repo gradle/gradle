@@ -12,6 +12,7 @@ Include only their name, impactful features should be called out separately belo
 [Jendrik Johannes](https://github.com/jjohannes),
 [Roberto Perez Alcolea](https://github.com/rpalcolea),
 [Konstantin Gribov](https://github.com/grossws),
+[Róbert Papp](https://github.com/TWiStErRob),
 [Piyush Mor](https://github.com/piyushmor).
 
 ## Upgrade instructions
