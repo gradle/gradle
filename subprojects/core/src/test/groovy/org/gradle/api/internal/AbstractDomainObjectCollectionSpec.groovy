@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal
 
-
 import org.gradle.api.Action
 import org.gradle.api.DomainObjectCollection
 import org.gradle.api.internal.plugins.DslObject
@@ -30,8 +29,8 @@ import org.gradle.internal.Actions
 import org.gradle.internal.DisplayName
 import org.gradle.internal.metaobject.ConfigureDelegate
 import org.gradle.internal.operations.TestBuildOperationExecutor
-import org.gradle.util.internal.ConfigureUtil
 import org.gradle.util.TestUtil
+import org.gradle.util.internal.ConfigureUtil
 import org.hamcrest.CoreMatchers
 import spock.lang.Specification
 
@@ -243,6 +242,27 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         _ * provider.size() >> 2
         1 * provider.calculateValue(_) >> ValueSupplier.Value.of([a, d])
         0 * _
+    }
+
+    def "provider for iterable of elements is queried when .all configuration is added first"() {
+        containerAllowsExternalProviders()
+        def provider = Mock(CollectionProviderInternal)
+        def seen = []
+
+        given:
+        addToContainer(b)
+        container.all {
+            seen << it
+        }
+
+        when:
+        container.addAllLater(provider)
+
+        then:
+        _ * provider.getElementType() >> getType()
+        _ * provider.get() >> [a, d]
+        0 * _
+        seen == [b, a, d]
     }
 
     def "can get all domain objects ordered by order added"() {
