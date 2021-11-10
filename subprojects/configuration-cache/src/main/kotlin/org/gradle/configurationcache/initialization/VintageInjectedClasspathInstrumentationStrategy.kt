@@ -16,21 +16,12 @@
 
 package org.gradle.configurationcache.initialization
 
-import org.gradle.api.internal.SettingsInternal.BUILD_SRC
-import org.gradle.internal.build.PublicBuildPath
-import org.gradle.util.Path
+import org.gradle.internal.classpath.CachedClasspathTransformer
 
 
-class ConfigurationCacheBuildEnablement(
-    private val buildPath: PublicBuildPath
-) {
-    val isProblemListenerEnabledForCurrentBuild by lazy {
-        BUILD_SRC != buildPath.buildPath.lastSegment()
+class VintageInjectedClasspathInstrumentationStrategy : AbstractInjectedClasspathInstrumentationStrategy() {
+    override fun whenAgentPresent(): CachedClasspathTransformer.StandardTransform {
+        // For now, disable the instrumentation
+        return CachedClasspathTransformer.StandardTransform.None
     }
-
-    private
-    fun Path.lastSegment(): String? =
-        segmentCount()
-            .takeIf { it > 1 }
-            ?.let { segment(it - 1) }
 }

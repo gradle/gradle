@@ -172,9 +172,6 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun canLoad(): Boolean = when {
-        !startParameter.isEnabled -> {
-            false
-        }
         startParameter.recreateCache -> {
             logBootstrapSummary("Recreating configuration cache")
             false
