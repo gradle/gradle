@@ -106,9 +106,19 @@ abstract class AbstractCommandLineOrderTaskIntegrationTest extends AbstractInteg
             return path == ':' ? ":${name}" : "${path}:${name}"
         }
 
+        TestFile getProjectDir() {
+            return build.buildDir.createDir(projectDirRelativePath)
+        }
+
+        String getProjectDirRelativePath() {
+            return path.replaceAll(':', '/')
+        }
+
+        TestFile getBuildFile() {
+            return projectDir.file('build.gradle')
+        }
+
         void writeFiles() {
-            def projectDirPath = path.replaceAll(':', '/')
-            def projectDir = build.buildDir.createDir(projectDirPath)
             projectDir.file('build.gradle') << """
                 ${tasks.collect { name, task -> task.getConfig() }.join('\n') }
             """.stripIndent()
@@ -120,9 +130,11 @@ abstract class AbstractCommandLineOrderTaskIntegrationTest extends AbstractInteg
         final String path
         final Set<TaskFixture> dependencies = []
         final Set<TaskFixture> finalizers = []
+        final Set<TaskFixture> mustRunAfter = []
         final Set<String> destroys = []
         final Set<String> produces = []
         final Set<String> localState = []
+        final Set<String> inputFiles = []
         boolean shouldBlock
 
         TaskFixture(ProjectFixture project, String path) {
@@ -137,6 +149,11 @@ abstract class AbstractCommandLineOrderTaskIntegrationTest extends AbstractInteg
 
         TaskFixture finalizedBy(TaskFixture finalizer) {
             finalizers.add(finalizer)
+            return this
+        }
+
+        TaskFixture mustRunAfter(TaskFixture task) {
+            mustRunAfter.add(task)
             return this
         }
 
@@ -165,6 +182,11 @@ abstract class AbstractCommandLineOrderTaskIntegrationTest extends AbstractInteg
             return this
         }
 
+        TaskFixture inputFiles(String path) {
+            inputFiles.add(path)
+            return this
+        }
+
         String getName() {
             return path.split(':').last()
         }
@@ -182,10 +204,12 @@ abstract class AbstractCommandLineOrderTaskIntegrationTest extends AbstractInteg
             return """
                 tasks.register('${name}') {
                     ${dependencies.collect {'dependsOn ' + dependencyFor(it) }.join('\n\t\t\t\t')}
-                    ${finalizers.collect { 'finalizedBy ' + dependencyFor(it) }.join('\\n\\t\\t\\t\\t')}
+                    ${finalizers.collect { 'finalizedBy ' + dependencyFor(it) }.join('\n\t\t\t\t')}
+                    ${mustRunAfter.collect { 'mustRunAfter ' + dependencyFor(it) }.join('\n\t\t\t\t')}
                     ${produces.collect { 'outputs.file file(' + quote(it) + ')' }.join('\n\t\t\t\t')}
                     ${destroys.collect { 'destroyables.register file(' + quote(it) + ')' }.join('\n\t\t\t\t')}
-                    ${localState.collect { 'localState.register file(' + quote(it) + ')' }.join('\\n\\t\\t\\t\\t')}
+                    ${localState.collect { 'localState.register file(' + quote(it) + ')' }.join('\n\t\t\t\t')}
+                    ${inputFiles.collect { 'inputs.files ' + it }.join('\n\t\t\t\t')}
                     doLast {
                         ${shouldBlock ? server.callFromTaskAction(path) : ''}
                     }

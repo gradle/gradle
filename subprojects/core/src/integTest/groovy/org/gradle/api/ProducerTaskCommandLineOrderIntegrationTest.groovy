@@ -16,6 +16,7 @@
 
 package org.gradle.api
 
+import org.gradle.api.internal.artifacts.transform.UnzipTransform
 import org.gradle.integtests.fixtures.executer.TaskOrderSpecs
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Unroll
@@ -227,5 +228,123 @@ class ProducerTaskCommandLineOrderIntegrationTest extends AbstractCommandLineOrd
         expect:
         args '--parallel', '--max-workers=2'
         succeeds(generateFoo.path, exec.path)
+    }
+
+    def "producer task that mustRunAfter a task in another project will run before destroyer tasks when ordered first"() {
+        def foo = subproject(':foo')
+        def bar = subproject(':bar')
+
+        def cleanFoo = foo.task('cleanFoo').destroys('build/foo')
+        def cleanBar = bar.task('cleanBar').destroys('build/bar')
+        def clean = rootBuild.task('clean').dependsOn(cleanFoo).dependsOn(cleanBar)
+        def generateFoo = foo.task('generateFoo').outputs('build/foo')
+        def generateBar = bar.task('generateBar').outputs('build/bar').mustRunAfter(generateFoo)
+        def generate = rootBuild.task('generate').dependsOn(generateBar).dependsOn(generateFoo)
+
+        writeAllFiles()
+
+        when:
+        args '--parallel', '--max-workers=2'
+        succeeds(generate.path, clean.path)
+
+        then:
+        result.assertTaskOrder(generateFoo.fullPath, generateBar.fullPath, generate.fullPath)
+        result.assertTaskOrder(generateFoo.fullPath, cleanFoo.fullPath, clean.fullPath)
+        result.assertTaskOrder(generateBar.fullPath, cleanBar.fullPath, clean.fullPath)
+    }
+
+    def "producer task with a dependency on an artifact transform will run before destroyer tasks when ordered first"() {
+        def foo = subproject(':foo')
+        def bar = subproject(':bar')
+
+        def cleanFoo = foo.task('cleanFoo').destroys('build/foo')
+        def cleanBar = bar.task('cleanBar').destroys('build/bar')
+        def clean = rootBuild.task('clean').dependsOn(cleanFoo).dependsOn(cleanBar)
+        def generateFoo = foo.task('generateFoo').outputs('build/foo').inputFiles("configurations.unzipped")
+        def generateBar = bar.task('generateBar').outputs('build/bar')
+        def generate = rootBuild.task('generate').dependsOn(generateBar).dependsOn(generateFoo)
+
+        writeAllFiles()
+        foo.buildFile << """
+            ${artifactTransformConfiguration}
+            dependencies {
+                unzipped project(path: '${bar.path}', configuration: 'zipped')
+            }
+        """
+        bar.buildFile << """
+            ${zipTaskConfiguration}
+        """
+        bar.projectDir.createDir('inputFiles').createFile('bar.txt')
+
+        when:
+        args '--parallel', '--max-workers=2'
+        succeeds(generate.path, clean.path)
+
+        then:
+        result.assertTaskOrder(TaskOrderSpecs.any(generateBar.fullPath, ':bar:zip'), generateFoo.fullPath, generate.fullPath)
+        result.assertTaskOrder(generateFoo.fullPath, cleanFoo.fullPath, clean.fullPath)
+        result.assertTaskOrder(generateBar.fullPath, cleanBar.fullPath, clean.fullPath)
+
+        and:
+        outputContains("Executing unzip transform...")
+    }
+
+    static String getArtifactTransformConfiguration() {
+        return """
+            def artifactType = Attribute.of('artifactType', String)
+            def compressed = Attribute.of('compressed', Boolean)
+
+            dependencies {
+                attributesSchema {
+                    attribute(compressed)
+                }
+                artifactTypes {
+                    zip {
+                        attributes.attribute(compressed, true)
+                    }
+                }
+            }
+
+            abstract class TestUnzipTransform extends ${UnzipTransform.class.name} {
+                @Override
+                public void transform(TransformOutputs outputs) {
+                    println "Executing unzip transform..."
+                    super.transform(outputs)
+                }
+            }
+
+            dependencies {
+                registerTransform(TestUnzipTransform) {
+                    from.attribute(artifactType, "zip").attribute(compressed, true)
+                    to.attribute(artifactType, "directory").attribute(compressed, false)
+                }
+            }
+
+            configurations {
+                unzipped {
+                    attributes {
+                        attribute(compressed, false)
+                    }
+                }
+            }
+        """
+    }
+
+    static String getZipTaskConfiguration() {
+        return """
+            apply plugin: 'base'
+
+            configurations {
+                zipped
+            }
+
+            task zip(type: Zip) {
+                from('inputFiles')
+            }
+
+            artifacts {
+                zipped zip
+            }
+        """
     }
 }

@@ -184,8 +184,8 @@ class DestroyerTaskCommandLineOrderIntegrationTest extends AbstractCommandLineOr
         def cleanBar = bar.task('cleanBar').destroys('build/bar').dependsOn(cleanFoo)
         def cleanBarLocal = bar.task('cleanBarLocalState').destroys('build/bar-local').shouldBlock()
         def clean = rootBuild.task('clean').dependsOn(cleanFoo).dependsOn(cleanBar)
-        def generateFoo = foo.task('generateFoo').outputs('build/foo').localState('build/foo-local')
-        def generateBar = bar.task('generateBar').outputs('build/bar')
+        def generateFoo = foo.task('generateFoo').outputs('build/foo')
+        def generateBar = bar.task('generateBar').outputs('build/bar').localState('build/bar-local')
         def generate = rootBuild.task('generate').dependsOn(generateBar).dependsOn(generateFoo)
 
         server.start()
@@ -288,6 +288,29 @@ class DestroyerTaskCommandLineOrderIntegrationTest extends AbstractCommandLineOr
         succeeds(clean.path, generate.path)
 
         then:
+        result.assertTaskOrder(cleanFoo.fullPath, generateFoo.fullPath, generate.fullPath)
+        result.assertTaskOrder(cleanBar.fullPath, generateBar.fullPath, generate.fullPath)
+    }
+
+    def "destroyer task that mustRunAfter a task in another project will run before producer tasks when ordered first"() {
+        def foo = subproject(':foo')
+        def bar = subproject(':bar')
+
+        def cleanFoo = foo.task('cleanFoo').destroys('build/foo')
+        def cleanBar = bar.task('cleanBar').destroys('build/bar').mustRunAfter(cleanFoo)
+        def clean = rootBuild.task('clean').dependsOn(cleanFoo).dependsOn(cleanBar)
+        def generateFoo = foo.task('generateFoo').outputs('build/foo')
+        def generateBar = bar.task('generateBar').outputs('build/bar')
+        def generate = rootBuild.task('generate').dependsOn(generateBar).dependsOn(generateFoo)
+
+        writeAllFiles()
+
+        when:
+        args '--parallel', '--max-workers=2'
+        succeeds(clean.path, generate.path)
+
+        then:
+        result.assertTaskOrder(cleanFoo.fullPath, cleanBar.fullPath, clean.fullPath)
         result.assertTaskOrder(cleanFoo.fullPath, generateFoo.fullPath, generate.fullPath)
         result.assertTaskOrder(cleanBar.fullPath, generateBar.fullPath, generate.fullPath)
     }
