@@ -22,6 +22,8 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 class LazyAttributesIntegrationTest extends AbstractIntegrationSpec {
     @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
     def "properties used as attribute values are read lazily"() {
+        settingsFile << "rootProject.name = 'TestProject'"
+
         buildFile << """
             plugins {
                 id 'java'
@@ -52,7 +54,7 @@ class LazyAttributesIntegrationTest extends AbstractIntegrationSpec {
             Variant sample
             --------------------------------------------------
             Capabilities
-                - :${getTestDirectory().getName()}:unspecified (default capability)
+                - :TestProject:unspecified (default capability)
             Attributes
                 - org.gradle.usage = new value""".stripIndent())
     }
