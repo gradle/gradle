@@ -97,6 +97,11 @@ object BuildEnvironment {
     val isTravis = "TRAVIS" in System.getenv()
     val isJenkins = "JENKINS_HOME" in System.getenv()
     val isGhActions = "GITHUB_ACTIONS" in System.getenv()
+    val isCodeQl: Boolean by lazy {
+        // This logic is kept here instead of `codeql-analysis.init.gradle` because that file will hopefully be removed in the future.
+        // Removing that file is waiting on the GitHub team fixing an issue in Autobuilder logic.
+        System.getenv().keys.any { it.startsWith("CODEQL_") }
+    }
     val jvm = org.gradle.internal.jvm.Jvm.current()
     val javaVersion = JavaVersion.current()
     val isWindows = OperatingSystem.current().isWindows
