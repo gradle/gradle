@@ -70,7 +70,7 @@ public interface BasePluginExtension {
     @Deprecated
     String getLibsDirName();
 
-    /*
+    /**
      * This method is only here to maintain compatibility with existing builds.
      *
      * @deprecated Use {@link #getLibsDirectory()}. This method is scheduled for removal in Gradle 8.0.
@@ -78,7 +78,7 @@ public interface BasePluginExtension {
     @Deprecated
     void setLibsDirName(String libsDirName);
 
-    /*
+    /**
      * This method is only here to maintain compatibility with existing builds.
      *
      * @deprecated Use {@link #getArchivesName()}. This method is scheduled for removal in Gradle 8.0.
@@ -86,7 +86,7 @@ public interface BasePluginExtension {
     @Deprecated
     String getArchivesBaseName();
 
-    /*
+    /**
      * This method is only here to maintain compatibility with existing builds.
      *
      * @deprecated Use {@link #getArchivesName()}. This method is scheduled for removal in Gradle 8.0.
