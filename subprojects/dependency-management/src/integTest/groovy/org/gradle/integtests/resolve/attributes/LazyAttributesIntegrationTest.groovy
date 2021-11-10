@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class LazyAttributesIntegrationTest extends AbstractIntegrationSpec {
-    @ToBeFixedForConfigurationCache
+    @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
     def "properties used as attribute values are read lazily"() {
         buildFile << """
             plugins {
@@ -37,7 +37,7 @@ class LazyAttributesIntegrationTest extends AbstractIntegrationSpec {
                     canBeConsumed = true
 
                     attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, sampleProperty.flatMap(value -> project.provider(() -> objects.named(Usage, value))))
+                        attribute(Usage.USAGE_ATTRIBUTE, sampleProperty.map(value -> objects.named(Usage, value)))
                     }
                 }
             }
@@ -57,7 +57,7 @@ class LazyAttributesIntegrationTest extends AbstractIntegrationSpec {
                 - org.gradle.usage = new value""".stripIndent())
     }
 
-    @ToBeFixedForConfigurationCache
+    @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
     def "providers used as attribute values with mismatched value types fail properly"() {
         buildFile << """
             plugins {
@@ -85,7 +85,7 @@ class LazyAttributesIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Unexpected type for attribute: 'org.gradle.usage'. Attribute type: org.gradle.api.attributes.Usage did not match actual type: java.lang.Integer")
     }
 
-    @ToBeFixedForConfigurationCache
+    @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
     def "providers used as attribute values with mismatched types names fail properly"() {
         buildFile << """
             plugins {
@@ -102,7 +102,7 @@ class LazyAttributesIntegrationTest extends AbstractIntegrationSpec {
                     extendsFrom(configurations.implementation)
 
                     attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, testProvider.flatMap(value -> project.provider(() -> objects.named(Category, value))))
+                        attribute(Usage.USAGE_ATTRIBUTE, testProvider.map(value -> objects.named(Category, value)))
                     }
                 }
             }
