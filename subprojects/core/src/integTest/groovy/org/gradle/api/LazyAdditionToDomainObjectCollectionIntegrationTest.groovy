@@ -35,7 +35,7 @@ class LazyAdditionToDomainObjectCollectionIntegrationTest extends AbstractIntegr
         """
     }
 
-    def "addLater(Base) with eager all"() {
+    def "addLater(Base) triggers configuration with eager all"() {
         buildFile << """
             container.all {
                 println "all called on " + it
@@ -46,7 +46,7 @@ class LazyAdditionToDomainObjectCollectionIntegrationTest extends AbstractIntegr
         succeeds("help")
         outputContains("all called on ")
     }
-    def "addLater(Base) with eager withType(Base)"() {
+    def "addLater(Base) triggers configuration with eager withType(Base)"() {
         buildFile << """
             container.withType(Base) {
                 println "withType(Base) called on " + it
@@ -57,7 +57,7 @@ class LazyAdditionToDomainObjectCollectionIntegrationTest extends AbstractIntegr
         succeeds("help")
         outputContains("withType(Base) called on ")
     }
-    def "addLater(Base) with eager withType(Sub)"() {
+    def "addLater(Base) triggers configuration with eager withType(Sub)"() {
         buildFile << """
             container.withType(Sub) {
                 println "withType(Sub) called on " + it
@@ -69,7 +69,7 @@ class LazyAdditionToDomainObjectCollectionIntegrationTest extends AbstractIntegr
         outputDoesNotContain("withType(Sub) called on")
     }
 
-    def "addLater(Sub) with eager all"() {
+    def "addLater(Sub) triggers configuration with eager all"() {
         buildFile << """
             container.all {
                 println "all called on " + it
@@ -80,7 +80,7 @@ class LazyAdditionToDomainObjectCollectionIntegrationTest extends AbstractIntegr
         succeeds("help")
         outputContains("all called on ")
     }
-    def "addLater(Sub) with eager withType(Base)"() {
+    def "addLater(Sub) triggers configuration with eager withType(Base)"() {
         buildFile << """
             container.withType(Base) {
                 println "withType(Base) called on " + it
@@ -91,7 +91,7 @@ class LazyAdditionToDomainObjectCollectionIntegrationTest extends AbstractIntegr
         succeeds("help")
         outputContains("withType(Base) called on ")
     }
-    def "addLater(Sub) with eager withType(Sub)"() {
+    def "addLater(Sub) triggers configuration with eager withType(Sub)"() {
         buildFile << """
             container.withType(Sub) {
                 println "withType(Sub) called on " + it
@@ -103,7 +103,7 @@ class LazyAdditionToDomainObjectCollectionIntegrationTest extends AbstractIntegr
         outputContains("withType(Sub) called on")
     }
 
-    def "addAllLater(Base) with eager all"() {
+    def "addAllLater(Base) triggers configuration with eager all"() {
         buildFile << """
             container.all {
                 println "all called on " + it
@@ -116,7 +116,7 @@ class LazyAdditionToDomainObjectCollectionIntegrationTest extends AbstractIntegr
         succeeds("help")
         outputContains("all called on ")
     }
-    def "addAllLater(Base) with eager withType(Base)"() {
+    def "addAllLater(Base) triggers configuration with eager withType(Base)"() {
         buildFile << """
             container.withType(Base) {
                 println "withType(Base) called on " + it
@@ -129,7 +129,7 @@ class LazyAdditionToDomainObjectCollectionIntegrationTest extends AbstractIntegr
         succeeds("help")
         outputContains("withType(Base) called on ")
     }
-    def "addAllLater(Base) with eager withType(Sub)"() {
+    def "addAllLater(Base) triggers configuration with eager withType(Sub)"() {
         buildFile << """
             container.withType(Sub) {
                 println "withType(Sub) called on " + it
@@ -143,7 +143,7 @@ class LazyAdditionToDomainObjectCollectionIntegrationTest extends AbstractIntegr
         outputDoesNotContain("withType(Sub) called on")
     }
 
-    def "addAllLater(Sub) with eager all"() {
+    def "addAllLater(Sub) triggers configuration with eager all"() {
         buildFile << """
             container.all {
                 println "all called on " + it
@@ -156,7 +156,7 @@ class LazyAdditionToDomainObjectCollectionIntegrationTest extends AbstractIntegr
         succeeds("help")
         outputContains("all called on ")
     }
-    def "addAllLater(Sub) with eager withType(Base)"() {
+    def "addAllLater(Sub) triggers configuration with eager withType(Base)"() {
         buildFile << """
             container.withType(Base) {
                 println "withType(Base) called on " + it
@@ -169,7 +169,7 @@ class LazyAdditionToDomainObjectCollectionIntegrationTest extends AbstractIntegr
         succeeds("help")
         outputContains("withType(Base) called on ")
     }
-    def "addAllLater(Sub) with eager withType(Sub)"() {
+    def "addAllLater(Sub) triggers configuration with eager withType(Sub)"() {
         buildFile << """
             container.withType(Sub) {
                 println "withType(Sub) called on " + it
@@ -183,7 +183,7 @@ class LazyAdditionToDomainObjectCollectionIntegrationTest extends AbstractIntegr
         outputContains("withType(Sub) called on")
     }
 
-    def "addAllLater(Base, Sub) with eager all"() {
+    def "addAllLater(Base, Sub) triggers configuration with eager all"() {
         buildFile << """
             container.all {
                 println "all called on " + it
@@ -196,7 +196,7 @@ class LazyAdditionToDomainObjectCollectionIntegrationTest extends AbstractIntegr
         succeeds("help")
         outputContains("all called on ")
     }
-    def "addAllLater(Base, Sub) with eager withType(Base)"() {
+    def "addAllLater(Base, Sub) triggers configuration with eager withType(Base)"() {
         buildFile << """
             container.withType(Base) {
                 println "withType(Base) called on " + it
@@ -211,7 +211,7 @@ class LazyAdditionToDomainObjectCollectionIntegrationTest extends AbstractIntegr
     }
 
     @NotYetImplemented
-    def "addAllLater(Base, Sub) with eager withType(Sub)"() {
+    def "addAllLater(Base, Sub) triggers configuration with eager withType(Sub)"() {
         buildFile << """
             container.withType(Sub) {
                 println "withType(Sub) called on " + it
@@ -247,18 +247,5 @@ class LazyAdditionToDomainObjectCollectionIntegrationTest extends AbstractIntegr
         expect:
         succeeds("help")
         outputContains("withType(Base) called on")
-    }
-
-    @NotYetImplemented
-    def "addAllLater(Base, Sub) accepts non-collection provider types with eager withType(Sub)"() {
-        buildFile << """
-            container.withType(Sub) {
-                println "withType(Sub) called on " + it
-            }
-            container.addAllLater(provider { [create(Base), create(Sub)] })
-        """
-        expect:
-        succeeds("help")
-        outputContains("withType(Sub) called on")
     }
 }
