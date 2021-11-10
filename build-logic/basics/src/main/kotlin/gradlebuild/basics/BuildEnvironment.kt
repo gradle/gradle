@@ -22,7 +22,6 @@ import org.gradle.api.file.Directory
 import org.gradle.api.provider.Provider
 import org.gradle.internal.os.OperatingSystem
 import java.io.ByteArrayOutputStream
-import java.net.InetAddress
 
 
 fun Project.testDistributionEnabled() = providers.systemProperty("enableTestDistribution").orNull?.toBoolean() == true
@@ -94,7 +93,6 @@ object BuildEnvironment {
     const val BUILD_VCS_NUMBER = "BUILD_VCS_NUMBER"
 
     val isCiServer = CI_ENVIRONMENT_VARIABLE in System.getenv()
-    val isEc2Agent = InetAddress.getLocalHost().hostName.startsWith("ip-")
     val isIntelliJIDEA by lazy { System.getProperty("idea.version") != null }
     val isTravis = "TRAVIS" in System.getenv()
     val isJenkins = "JENKINS_HOME" in System.getenv()
