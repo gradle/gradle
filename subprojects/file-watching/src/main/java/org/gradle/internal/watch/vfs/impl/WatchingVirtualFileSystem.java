@@ -69,6 +69,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
     private FileWatcherRegistry watchRegistry;
     private Exception reasonForNotWatchingFiles;
     private boolean stateInvalidatedAtStartOfBuild;
+    private FileWatcherRegistry.ChangeHandler changeBroadcaster;
 
     public WatchingVirtualFileSystem(
         FileWatcherRegistryFactory watcherRegistryFactory,
@@ -93,6 +94,11 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
                 watchRegistry.virtualFileSystemContentsChanged(removedSnapshots, addedSnapshots, newRoot)
             ));
         }
+    }
+
+    @Override
+    public void registerChangeBroadcaster(FileWatcherRegistry.ChangeHandler changeBroadcaster) {
+        this.changeBroadcaster = changeBroadcaster;
     }
 
     @Override
@@ -278,6 +284,9 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
                             rootReference.update(root -> updateNotifyingListeners(
                                 diffListener -> root.invalidate(absolutePath, new VfsChangeLoggingNodeDiffListener(type, path, diffListener))
                             ));
+                            if (changeBroadcaster != null) {
+                                changeBroadcaster.handleChange(type, path);
+                            }
                         }
                     } catch (Exception e) {
                         LOGGER.error("Error while processing file events", e);
@@ -288,6 +297,9 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
                 @Override
                 public void stopWatchingAfterError() {
                     stopWatchingAndInvalidateHierarchyAfterError();
+                    if (changeBroadcaster != null) {
+                        changeBroadcaster.stopWatchingAfterError();
+                    }
                 }
             });
             SnapshotHierarchy newRoot = watchRegistry.updateVfsOnBuildStarted(currentRoot.empty(), watchMode);

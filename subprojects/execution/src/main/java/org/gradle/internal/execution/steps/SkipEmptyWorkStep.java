@@ -78,7 +78,7 @@ public class SkipEmptyWorkStep implements Step<PreviousExecutionContext, Caching
         if (!sourceFileProperties.isEmpty()) {
             if (hasEmptySources(sourceFileProperties, newInputs.getPropertiesRequiringIsEmptyCheck(), work)
             ) {
-                return skipExecutionWithEmptySources(work, context);
+                return skipExecutionWithEmptySources(work, context, sourceFileProperties);
             } else {
                 return executeWithNoEmptySources(work, context, newInputs.getAllFileFingerprints());
             }
@@ -134,7 +134,7 @@ public class SkipEmptyWorkStep implements Step<PreviousExecutionContext, Caching
     }
 
     @Nonnull
-    private CachingResult skipExecutionWithEmptySources(UnitOfWork work, PreviousExecutionContext context) {
+    private CachingResult skipExecutionWithEmptySources(UnitOfWork work, PreviousExecutionContext context, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> sourceFileProperties) {
         ImmutableSortedMap<String, FileSystemSnapshot> outputFilesAfterPreviousExecution = context.getPreviousExecutionState()
             .map(PreviousExecutionState::getOutputFilesProducedByWork)
             .orElse(ImmutableSortedMap.of());
@@ -155,7 +155,7 @@ public class SkipEmptyWorkStep implements Step<PreviousExecutionContext, Caching
         }
         Duration duration = skipOutcome == ExecutionOutcome.SHORT_CIRCUITED ? Duration.ZERO : Duration.ofMillis(timer.getElapsedMillis());
 
-        work.broadcastRelevantFileSystemInputs(true);
+        work.broadcastRelevantFileSystemInputs(true, sourceFileProperties);
 
         return new CachingResult() {
             @Override
@@ -245,7 +245,7 @@ public class SkipEmptyWorkStep implements Step<PreviousExecutionContext, Caching
     }
 
     private CachingResult executeWithNoEmptySources(UnitOfWork work, PreviousExecutionContext context) {
-        work.broadcastRelevantFileSystemInputs(false);
+        work.broadcastRelevantFileSystemInputs(false, context.getInputFileProperties());
         return delegate.execute(work, context);
     }
 

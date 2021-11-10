@@ -146,32 +146,32 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
     }
 
     static class ToolingBuildSessionScopeServices {
-        BuildSessionActionExecutor createActionExecutor(BuildEventListenerFactory listenerFactory,
-                                                        ExecutorFactory executorFactory,
-                                                        ListenerManager listenerManager,
-                                                        BuildOperationListenerManager buildOperationListenerManager,
-                                                        BuildOperationExecutor buildOperationExecutor,
-                                                        TaskInputsListeners inputsListeners,
-                                                        StyledTextOutputFactory styledTextOutputFactory,
-                                                        FileSystemChangeWaiterFactory fileSystemChangeWaiterFactory,
-                                                        BuildRequestMetaData requestMetaData,
-                                                        BuildCancellationToken cancellationToken,
-                                                        DeploymentRegistryInternal deploymentRegistry,
-                                                        BuildEventConsumer eventConsumer,
-                                                        BuildStartedTime buildStartedTime,
-                                                        Clock clock,
-                                                        LoggingBuildOperationProgressBroadcaster loggingBuildOperationProgressBroadcaster,
-                                                        BuildOperationNotificationValve buildOperationNotificationValve,
-                                                        BuildTreeModelControllerServices buildModelServices,
-                                                        WorkerLeaseService workerLeaseService,
-                                                        BuildLayoutValidator buildLayoutValidator
+        BuildSessionActionExecutor createActionExecutor(
+            BuildEventListenerFactory listenerFactory,
+            ExecutorFactory executorFactory,
+            ListenerManager listenerManager,
+            BuildOperationListenerManager buildOperationListenerManager,
+            BuildOperationExecutor buildOperationExecutor,
+            TaskInputsListeners inputsListeners,
+            StyledTextOutputFactory styledTextOutputFactory,
+            BuildRequestMetaData requestMetaData,
+            BuildCancellationToken cancellationToken,
+            DeploymentRegistryInternal deploymentRegistry,
+            BuildEventConsumer eventConsumer,
+            BuildStartedTime buildStartedTime,
+            Clock clock,
+            LoggingBuildOperationProgressBroadcaster loggingBuildOperationProgressBroadcaster,
+            BuildOperationNotificationValve buildOperationNotificationValve,
+            BuildTreeModelControllerServices buildModelServices,
+            WorkerLeaseService workerLeaseService,
+            BuildLayoutValidator buildLayoutValidator,
+            BuildLifecycleAwareVirtualFileSystem virtualFileSystem
         ) {
             return new SubscribableBuildActionExecutor(
                 listenerManager,
                 buildOperationListenerManager,
                 listenerFactory, eventConsumer,
                 new ContinuousBuildActionExecutor(
-                    fileSystemChangeWaiterFactory,
                     inputsListeners,
                     styledTextOutputFactory,
                     executorFactory,
@@ -181,6 +181,7 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                     listenerManager,
                     buildStartedTime,
                     clock,
+                    virtualFileSystem,
                     new RunAsWorkerThreadBuildActionExecutor(
                         workerLeaseService,
                         new RunAsBuildOperationBuildActionExecutor(

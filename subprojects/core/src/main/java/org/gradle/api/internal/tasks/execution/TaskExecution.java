@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.execution;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
@@ -479,7 +480,7 @@ public class TaskExecution implements UnitOfWork {
     }
 
     @Override
-    public void broadcastRelevantFileSystemInputs(boolean hasEmptySources) {
+    public void broadcastRelevantFileSystemInputs(boolean hasEmptySources, ImmutableMap<String, CurrentFileCollectionFingerprint> inputFingerprints) {
         taskInputsListeners.broadcastFileSystemInputsOf(task, new CompositeFileCollection() {
             @Override
             public String getDisplayName() {
@@ -495,6 +496,7 @@ public class TaskExecution implements UnitOfWork {
                 }
             }
         });
+        taskInputsListeners.broadcastFileSystemInputsOf(task, inputFingerprints);
     }
 
     @Override

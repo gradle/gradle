@@ -20,6 +20,7 @@ import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.vfs.VirtualFileSystem;
+import org.gradle.internal.watch.registry.FileWatcherRegistry;
 
 import java.io.File;
 
@@ -28,6 +29,8 @@ import java.io.File;
  */
 @ServiceScope(Scopes.UserHome.class)
 public interface BuildLifecycleAwareVirtualFileSystem extends VirtualFileSystem {
+
+    void registerChangeBroadcaster(FileWatcherRegistry.ChangeHandler changeBroadcaster);
 
     /**
      * Called when the build is started.

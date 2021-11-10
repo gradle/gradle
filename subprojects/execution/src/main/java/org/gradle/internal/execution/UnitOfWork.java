@@ -16,6 +16,7 @@
 
 package org.gradle.internal.execution;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.Describable;
 import org.gradle.api.file.FileCollection;
@@ -183,7 +184,7 @@ public interface UnitOfWork extends Describable {
      *
      * @see org.gradle.internal.execution.steps.SkipEmptyWorkStep
      */
-    default void broadcastRelevantFileSystemInputs(boolean hasEmptySources) {}
+    default void broadcastRelevantFileSystemInputs(boolean hasEmptySources, ImmutableMap<String, CurrentFileCollectionFingerprint> inputFingerprints) {}
 
     /**
      * Is this work item allowed to load from the cache, or if we only allow it to be stored.
