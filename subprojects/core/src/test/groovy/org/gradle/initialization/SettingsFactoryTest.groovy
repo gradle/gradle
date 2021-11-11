@@ -30,7 +30,6 @@ import org.gradle.internal.management.DependencyResolutionManagementInternal
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.util.TestUtil
-import org.gradle.util.internal.WrapUtil
 import spock.lang.Specification
 
 class SettingsFactoryTest extends Specification {
