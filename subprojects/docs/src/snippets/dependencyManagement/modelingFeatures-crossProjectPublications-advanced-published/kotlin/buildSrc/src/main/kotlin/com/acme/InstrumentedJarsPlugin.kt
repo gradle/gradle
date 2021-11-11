@@ -16,6 +16,7 @@ import org.gradle.api.tasks.bundling.Jar
 import org.gradle.kotlin.dsl.creating
 import org.gradle.kotlin.dsl.getValue
 import org.gradle.kotlin.dsl.register
+import org.gradle.kotlin.dsl.named
 import javax.inject.Inject
 
 // tag::inject_software_component_factory[]
@@ -80,5 +81,4 @@ class InstrumentedJarsPlugin @Inject constructor(
         }
         // end::add_variant_to_existing_component[]
     }
-
 }
