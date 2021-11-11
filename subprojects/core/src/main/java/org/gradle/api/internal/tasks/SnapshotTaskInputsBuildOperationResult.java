@@ -246,20 +246,64 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
         }
 
         private void visitUnvisitedDirectories() {
+            if (unvisitedDirectories.isEmpty()) {
+                return;
+            }
+            DirectoryVisitState directoryState = new DirectoryVisitState(this);
             DirectorySnapshot unvisited = unvisitedDirectories.poll();
-            String previousPath = this.path;
-            String previousName = this.name;
-            HashCode previousHash = this.hash;
             while (unvisited != null) {
-                this.path = unvisited.getAbsolutePath();
-                this.name = unvisited.getName();
-                this.hash = null;
-                visitor.preDirectory(this);
+                directoryState.path = unvisited.getAbsolutePath();
+                directoryState.name = unvisited.getName();
+                visitor.preDirectory(directoryState);
                 unvisited = unvisitedDirectories.poll();
             }
-            this.path = previousPath;
-            this.name = previousName;
-            this.hash = previousHash;
+        }
+    }
+
+    private static class DirectoryVisitState implements VisitState {
+        private final VisitState delegate;
+
+        public String path;
+        public String name;
+
+        public DirectoryVisitState(VisitState delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public String getPath() {
+            return path;
+        }
+
+        @Override
+        public String getName() {
+            return name;
+        }
+
+        @Override
+        public byte[] getHashBytes() {
+            throw new UnsupportedOperationException("Cannot query hash for directories");
+        }
+
+        @Override
+        public String getPropertyName() {
+            return delegate.getPropertyName();
+        }
+
+        @Override
+        public byte[] getPropertyHashBytes() {
+            return delegate.getPropertyHashBytes();
+        }
+
+        @SuppressWarnings("deprecation")
+        @Override
+        public String getPropertyNormalizationStrategyName() {
+            return delegate.getPropertyNormalizationStrategyName();
+        }
+
+        @Override
+        public Set<String> getPropertyAttributes() {
+            return delegate.getPropertyAttributes();
         }
     }
 
