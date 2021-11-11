@@ -28,12 +28,13 @@ import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.extensibility.ExtensibleDynamicObject;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
-import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 
 import java.io.File;
+import java.util.Map;
 
+import static java.util.Collections.emptyMap;
 import static org.gradle.internal.metaobject.DynamicInvokeResult.found;
 import static org.gradle.internal.metaobject.DynamicInvokeResult.notFound;
 
@@ -57,20 +58,25 @@ public class SettingsFactory {
         ClassLoaderScope baseClassLoaderScope
     ) {
         ClassLoaderScope classLoaderScope = baseClassLoaderScope.createChild("settings[" + gradle.getIdentityPath() + "]");
-        ScriptHandlerInternal settingsScriptHandler = scriptHandlerFactory.create(settingsScript, classLoaderScope);
         DefaultSettings settings = instantiator.newInstance(
             DefaultSettings.class,
             serviceRegistryFactory,
             gradle,
             classLoaderScope,
             baseClassLoaderScope,
-            settingsScriptHandler,
+            scriptHandlerFactory.create(settingsScript, classLoaderScope),
             settingsDir,
             settingsScript,
             startParameter
         );
-        DynamicObject dynamicObject = ((DynamicObjectAware) settings).getAsDynamicObject();
-        ((ExtensibleDynamicObject) dynamicObject).setParent(new AbstractDynamicObject() {
+        extensibleDynamicObjectOf(settings).setParent(
+            dynamicObjectFor(gradleProperties)
+        );
+        return settings;
+    }
+
+    private AbstractDynamicObject dynamicObjectFor(GradleProperties gradleProperties) {
+        return new AbstractDynamicObject() {
             @Override
             public String getDisplayName() {
                 return "Gradle properties";
@@ -81,7 +87,10 @@ public class SettingsFactory {
                 String value = gradleProperties.find(name);
                 return value != null ? found(value) : notFound();
             }
-        });
-        return settings;
+        };
+    }
+
+    private ExtensibleDynamicObject extensibleDynamicObjectOf(Object o) {
+        return (ExtensibleDynamicObject) ((DynamicObjectAware) o).getAsDynamicObject();
     }
 }
