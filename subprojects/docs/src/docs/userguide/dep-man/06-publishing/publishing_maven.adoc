@@ -193,7 +193,7 @@ The Maven Publish Plugin makes this easy to do by automatically creating a link:
 
 When a project changes the `groupId` or `artifactId` (the _coordinates_) of an artifact it publishes, it is important to let users know where the new artifact can be found. Maven can help with that through the _relocation_ feature. The way this works is that a project publishes an additional artifact under the old coordinates consisting only of a minimal _relocation POM_; that POM file specifies where the new artifact can be found. Maven repository browsers and build tools can then inform the user that the coordinates of an artifact have changed.
 
-For this, a project adds an additional `MavenPublication` specifying a link:{groovyDslPath}/org.gradle.api.publish.maven.MavenPomRelocation[MavenPomRelocation]:
+For this, a project adds an additional `MavenPublication` specifying a link:{groovyDslPath}/org.gradle.api.publish.maven.MavenPomRelocation.html[MavenPomRelocation]:
 
 .Specifying a relocation POM
 ====
