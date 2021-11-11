@@ -135,7 +135,6 @@ tasks {
                 exclude(".idea/**")
                 exclude(".github/**")
                 exclude(".teamcity/**")
-                exclude(".teamcityTest/**")
             }
         })
         useJUnitPlatform {
