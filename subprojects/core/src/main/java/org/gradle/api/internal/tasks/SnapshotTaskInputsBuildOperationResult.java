@@ -246,38 +246,30 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
         }
 
         private void visitUnvisitedDirectories() {
-            if (unvisitedDirectories.isEmpty()) {
-                return;
-            }
-
-            DirectoryVisitState directoryState = new DirectoryVisitState(this);
             DirectorySnapshot unvisited;
             while ((unvisited = unvisitedDirectories.poll()) != null) {
-                directoryState.path = unvisited.getAbsolutePath();
-                directoryState.name = unvisited.getName();
-                visitor.preDirectory(directoryState);
+                visitor.preDirectory(new DirectoryVisitState(unvisited, this));
             }
         }
     }
 
     private static class DirectoryVisitState implements VisitState {
         private final VisitState delegate;
+        private final DirectorySnapshot directorySnapshot;
 
-        public String path;
-        public String name;
-
-        public DirectoryVisitState(VisitState delegate) {
+        public DirectoryVisitState(DirectorySnapshot unvisited, VisitState delegate) {
+            this.directorySnapshot = unvisited;
             this.delegate = delegate;
         }
 
         @Override
         public String getPath() {
-            return path;
+            return directorySnapshot.getAbsolutePath();
         }
 
         @Override
         public String getName() {
-            return name;
+            return directorySnapshot.getName();
         }
 
         @Override
