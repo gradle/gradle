@@ -28,6 +28,7 @@ import org.gradle.configurationcache.serialization.LoggingTracer
 import org.gradle.configurationcache.serialization.Tracer
 import org.gradle.configurationcache.serialization.beans.BeanConstructors
 import org.gradle.configurationcache.serialization.codecs.Codecs
+import org.gradle.configurationcache.serialization.readCollection
 import org.gradle.configurationcache.serialization.readFile
 import org.gradle.configurationcache.serialization.readList
 import org.gradle.configurationcache.serialization.readNonNull
@@ -70,14 +71,12 @@ class ConfigurationCacheIO internal constructor(
         writeConfigurationCacheState(stateFile) {
             writeCollection(rootDirs) { writeFile(it) }
             val addressSerializer = BlockAddressSerializer()
-            writeSmallInt(intermediateModels.size)
-            for (entry in intermediateModels) {
+            writeCollection(intermediateModels.entries) { entry ->
                 writeNullableString(entry.key.identityPath?.path)
                 writeString(entry.key.modelName)
                 addressSerializer.write(this, entry.value)
             }
-            writeSmallInt(projectMetadata.size)
-            for (entry in projectMetadata) {
+            writeCollection(projectMetadata.entries) { entry ->
                 writeString(entry.key.path)
                 addressSerializer.write(this, entry.value)
             }
@@ -94,22 +93,20 @@ class ConfigurationCacheIO internal constructor(
         return readConfigurationCacheState(stateFile) {
             val rootDirs = readList { readFile() }
             val addressSerializer = BlockAddressSerializer()
-            val intermediateModelsCount = readSmallInt()
             val intermediateModels = mutableMapOf<ModelKey, BlockAddress>()
-            for (i in 0 until intermediateModelsCount) {
+            readCollection {
                 val path = readNullableString()?.let { Path.path(it) }
                 val modelName = readString()
                 val address = addressSerializer.read(this)
                 intermediateModels[ModelKey(path, modelName)] = address
             }
-            val metadataCount = readSmallInt()
             val metadata = mutableMapOf<Path, BlockAddress>()
-            for (i in 0 until metadataCount) {
+            readCollection {
                 val path = Path.path(readString())
                 val address = addressSerializer.read(this)
                 metadata[path] = address
             }
-            EntryDetails(rootDirs, intermediateModels, emptyMap())
+            EntryDetails(rootDirs, intermediateModels, metadata)
         }
     }
 
