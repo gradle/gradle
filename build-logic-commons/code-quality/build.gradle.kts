@@ -2,6 +2,8 @@ plugins {
     `kotlin-dsl`
 }
 
+description = "Provides a plugin that configures code quality plugins in the Gradle build"
+
 java {
     sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8
