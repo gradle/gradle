@@ -25,10 +25,10 @@ import org.gradle.api.publish.maven.internal.dependencies.MavenDependencyInterna
 import org.gradle.api.publish.maven.internal.dependencies.VersionRangeMapper;
 import org.gradle.api.publish.maven.internal.publication.MavenPomInternal;
 import org.gradle.api.publish.maven.internal.tasks.MavenPomFileGenerator;
-import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.UntrackedTask;
 import org.gradle.internal.serialization.Cached;
 import org.gradle.internal.serialization.Transient;
 import org.gradle.work.DisableCachingByDefault;
@@ -44,6 +44,7 @@ import static org.gradle.internal.serialization.Transient.varOf;
  * @since 1.4
  */
 @DisableCachingByDefault(because = "Gradle doesn't understand the data structures used to configure this task")
+@UntrackedTask(because = "Gradle doesn't understand the data structures used to configure this task")
 public class GenerateMavenPom extends DefaultTask {
 
     private final Transient.Var<MavenPom> pom = varOf();
@@ -51,11 +52,6 @@ public class GenerateMavenPom extends DefaultTask {
     private final Transient.Var<ImmutableAttributes> runtimeScopeAttributes = varOf(ImmutableAttributes.EMPTY);
     private Object destination;
     private final Cached<MavenPomFileGenerator.MavenPomSpec> mavenPomSpec = Cached.of(this::computeMavenPomSpec);
-
-    public GenerateMavenPom() {
-        // Never up to date; we don't understand the data structures.
-        getOutputs().upToDateWhen(Specs.satisfyNone());
-    }
 
     @Inject
     protected FileResolver getFileResolver() {
