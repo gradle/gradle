@@ -50,7 +50,7 @@ val classycle by configurations.creating {
     isCanBeConsumed = false
 
     attributes {
-        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
+        attribute(Usage.USAGE_ATTRIBUTE, objects.named<Usage>(Usage.JAVA_RUNTIME))
     }
 }
 
