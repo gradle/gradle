@@ -90,7 +90,8 @@ object BuildEnvironment {
     /**
      * A selection of environment variables injected into the enviroment by the `codeql-env.sh` script.
      */
-    private val CODEQL_ENVIRONMENT_VARIABLES = arrayOf(
+    private
+    val CODEQL_ENVIRONMENT_VARIABLES = arrayOf(
         "CODEQL_JAVA_HOME",
         "CODEQL_EXTRACTOR_JAVA_SCRATCH_DIR",
         "CODEQL_ACTION_RUN_MODE",
