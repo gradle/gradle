@@ -17,6 +17,9 @@
 package org.gradle.api.internal.attributes
 
 import org.gradle.api.attributes.Attribute
+import org.gradle.api.internal.provider.DefaultProperty
+import org.gradle.api.internal.provider.PropertyHost
+import org.gradle.api.provider.Property
 import org.gradle.util.AttributeTestUtil
 import spock.lang.Specification
 
@@ -54,5 +57,18 @@ class DefaultMutableAttributeContainerTest extends Specification {
         def immutable2 = child.asImmutable()
         immutable2.getAttribute(attr1) == "child"
         immutable2.getAttribute(attr2) == "new parent"
+    }
+
+    def "adding mismatched attribute types fails fast"() {
+        Property<Integer> testProperty = new DefaultProperty<>(Mock(PropertyHost), Integer)
+        def testAttribute = Attribute.of("test", String)
+        def container = new DefaultMutableAttributeContainer(attributesFactory)
+
+        when:
+        container.attribute(testAttribute, testProperty)
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message.contains("Unexpected type for attribute: 'test'. Attribute value's actual type: java.lang.Integer did not match the expected type: java.lang.String")
     }
 }

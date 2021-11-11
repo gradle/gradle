@@ -22,6 +22,7 @@ import com.google.common.collect.Maps;
 import org.gradle.api.Named;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 import org.gradle.internal.isolation.Isolatable;
 
@@ -108,6 +109,11 @@ final class DefaultImmutableAttributes implements ImmutableAttributes, Attribute
     @Override
     public int hashCode() {
         return hashCode;
+    }
+
+    @Override
+    public <T> AttributeContainer attribute(Attribute<T> key, Provider<? extends T> provider) {
+        throw new UnsupportedOperationException("Mutation of attributes is not allowed");
     }
 
     @Override
