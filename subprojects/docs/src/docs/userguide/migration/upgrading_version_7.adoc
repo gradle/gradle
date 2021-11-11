@@ -42,6 +42,33 @@ Some plugins will break with this new version of Gradle, for example because the
 
 If a Kotlin build script uses a Java API that has nullability annotations (JSR-305) then the compilation will enforce those constraints. Previous Gradle versions, however, forgot to add the same enforcement to the Kotlin build script compilation. Starting from Gradle 7.4 the nullability checks are enforced in the script compilation.
 
+=== Overloaded Attribute methods to support Providers as values
+
+There is now an overloaded version of the `link:{javadocPath}/org/gradle/api/attributes/AttributeContainer.html#attribute-org.gradle.api.attributes.Attribute-org.gradle.api.provider.Provider-[attribute(Attribute<T>, Provider<? extends T>)]` method available that allows you to specify a `link:{javadocPath}/org/gradle/api/provider/Provider.html[Provider]` which will supply the value of an attribute.
+
+This existence of this method will break builds that use the kotlin extension function `inline fun <reified T : Named> ObjectFactory.named(name: String): T =
+named(T::class.java, name)` as a shortcut when defining attributes.  Code in .kts files that defined attributes like this:
+
+```
+     attributes {
+        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
+        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.DOCUMENTATION))
+        attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named("configuration-cache-report"))
+     }
+```
+
+will now have to provide an explicit type argument so that the compiler can disambiguate the method call, like this:
+
+```
+     attributes {
+        attribute(Usage.USAGE_ATTRIBUTE, objects.named<Usage>(Usage.JAVA_RUNTIME))
+        attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>(Category.DOCUMENTATION))
+        attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named<DocsType>("configuration-cache-report"))
+     }
+```
+
+Code samples throughout the Gradle documentation have been updated to reflect this change.
+
 ==== Updates to default tool integration versions
 
 - PMD has been updated to https://github.com/pmd/pmd/releases/tag/pmd_releases%2F6.39.0[PMD 6.39.0].
