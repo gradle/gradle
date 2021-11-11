@@ -106,6 +106,7 @@ public class JvmTestSuitePlugin implements Plugin<Project> {
         variant.setVisible(false);
         variant.setCanBeResolved(false);
         variant.setCanBeConsumed(true);
+        variant.extendsFrom(project.getConfigurations().getByName(JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME));
 
         final ObjectFactory objects = project.getObjects();
         variant.attributes(attributes -> {

@@ -246,7 +246,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         def subADir = createDir("subA")
         final JavaProjectUnderTest subA = new JavaProjectUnderTest(subADir)
         subA.writeBuildScript()
-        def buildFileA = subADir.file("build.gradle") << """
+        subADir.file("build.gradle") << """
             test {
                 jacoco {
                     destinationFile = layout.buildDirectory.file("jacoco/subA.exec").get().asFile
@@ -257,7 +257,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         def subBDir = createDir("subB")
         final JavaProjectUnderTest subB = new JavaProjectUnderTest(subBDir)
         subB.writeBuildScript()
-        def buildFileB = subBDir.file("build.gradle") << """
+        subBDir.file("build.gradle") << """
             test {
                 jacoco {
                     destinationFile = layout.buildDirectory.file("jacoco/subB.exec").get().asFile
@@ -292,6 +292,67 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
             def testResolve = tasks.register('testResolve') {
                 doLast {
                     assert coverageDataConfig.getResolvedConfiguration().getFiles()*.getName() == ["subA.exec", "subB.exec"]
+                }
+            }
+            """.stripIndent()
+
+        expect:
+        succeeds('testResolve')
+    }
+
+    def "Jacoco coverage data can be consumed across transitive project dependencies via Dependency Management"() {
+        def directDir = createDir("direct")
+        final JavaProjectUnderTest subDirect = new JavaProjectUnderTest(directDir)
+        subDirect.writeBuildScript()
+        directDir.file("build.gradle") << """
+            dependencies {
+                implementation project(':transitive')
+            }
+
+            test {
+                jacoco {
+                    destinationFile = layout.buildDirectory.file("jacoco/direct.exec").get().asFile
+                }
+            }
+            """.stripIndent()
+
+        def transitiveDir = createDir("transitive")
+        final JavaProjectUnderTest subTransitive = new JavaProjectUnderTest(transitiveDir)
+        subTransitive.writeBuildScript()
+        transitiveDir.file("build.gradle") << """
+            test {
+                jacoco {
+                    destinationFile = layout.buildDirectory.file("jacoco/transitive.exec").get().asFile
+                }
+            }
+            """.stripIndent()
+
+        settingsFile << """
+            include ':direct'
+            include ':transitive'
+            """.stripIndent()
+
+        buildFile << """
+            dependencies {
+                implementation project(':direct')
+            }
+
+            // A resolvable configuration to collect JaCoCo coverage data
+            def coverageDataConfig = configurations.create("coverageData") {
+                visible = false
+                canBeResolved = true
+                canBeConsumed = false
+                extendsFrom(configurations.implementation)
+                attributes {
+                    attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.VERIFICATION))
+                    attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION))
+                    attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType, DocsType.JACOCO_COVERAGE))
+                }
+            }
+
+            def testResolve = tasks.register('testResolve') {
+                doLast {
+                    assert coverageDataConfig.getResolvedConfiguration().getFiles()*.getName() == ["direct.exec", "transitive.exec"]
                 }
             }
             """.stripIndent()

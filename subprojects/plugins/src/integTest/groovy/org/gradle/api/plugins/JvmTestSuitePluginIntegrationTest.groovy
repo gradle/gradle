@@ -164,7 +164,7 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
     @ToBeFixedForConfigurationCache(because = "task references another task")
     def "Test results data can be consumed by another task in a different project via Dependency Management"() {
         def subADir = createDir("subA")
-        def buildFileA = subADir.file("build.gradle") << """
+        subADir.file("build.gradle") << """
             plugins {
                 id 'jvm-test-suite'
                 id 'java'
@@ -186,7 +186,7 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
             }
             """.stripIndent()
 
-        file("src/test/java/SomeTestA.java") << """
+        subADir.file("src/test/java/SomeTestA.java") << """
             import org.junit.Test;
 
             public class SomeTestA {
@@ -195,7 +195,7 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
             """.stripIndent()
 
         def subBDir = createDir("subB")
-        def buildFileB = subBDir.file("build.gradle") << """
+        subBDir.file("build.gradle") << """
             plugins {
                 id 'jvm-test-suite'
                 id 'java'
@@ -217,7 +217,7 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
             }
             """.stripIndent()
 
-        file("src/test/java/SomeTestB.java") << """
+        subBDir.file("src/test/java/SomeTestB.java") << """
             import org.junit.Test;
 
             public class SomeTestB {
@@ -257,6 +257,113 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
                 doLast {
                     assert testDataConfig.getResolvedConfiguration().getFiles().containsAll([project(':subA').tasks["test"].binaryResultsDirectory.file("results.bin").get().getAsFile(),
                                                                                              project(':subB').tasks["test"].binaryResultsDirectory.file("results.bin").get().getAsFile()])
+                }
+            }
+
+            """
+        expect:
+        succeeds('testResolve')
+    }
+
+    @ToBeFixedForConfigurationCache(because = "task references another task")
+    def "Test results data can be consumed across transitive project dependencies via Dependency Management"() {
+        def subDirectDir = createDir("direct")
+        subDirectDir.file("build.gradle") << """
+            plugins {
+                id 'jvm-test-suite'
+                id 'java'
+            }
+
+            repositories {
+                ${mavenCentralRepository()}
+            }
+
+            dependencies {
+                implementation project(':transitive')
+            }
+
+            testing {
+                suites {
+                    test {
+                        useJUnit()
+                        dependencies {
+                            implementation project
+                        }
+                    }
+                }
+            }
+            """.stripIndent()
+
+        subDirectDir.file("src/test/java/SomeTestD.java") << """
+            import org.junit.Test;
+
+            public class SomeTestD {
+                @Test public void foo() {}
+            }
+            """.stripIndent()
+
+        def subTransitiveDir = createDir("transitive")
+        subTransitiveDir.file("build.gradle") << """
+            plugins {
+                id 'jvm-test-suite'
+                id 'java'
+            }
+
+            repositories {
+                ${mavenCentralRepository()}
+            }
+
+            testing {
+                suites {
+                    test {
+                        useJUnit()
+                        dependencies {
+                            implementation project
+                        }
+                    }
+                }
+            }
+            """.stripIndent()
+
+        subTransitiveDir.file("src/test/java/SomeTestT.java") << """
+            import org.junit.Test;
+
+            public class SomeTestT {
+                @Test public void foo() {}
+            }
+            """.stripIndent()
+
+        settingsFile << """
+            include ':direct'
+            include ':transitive'
+            """.stripIndent()
+
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            dependencies {
+                implementation project(':direct')
+            }
+
+            // A resolvable configuration to collect test results data
+            def testDataConfig = configurations.create("testData") {
+                visible = false
+                canBeResolved = true
+                canBeConsumed = false
+                extendsFrom(configurations.implementation)
+                attributes {
+                    attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.VERIFICATION))
+                    attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION))
+                    attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType, DocsType.TEST_RESULTS))
+                }
+            }
+
+            def testResolve = tasks.register('testResolve') {
+                doLast {
+                    assert testDataConfig.getResolvedConfiguration().getFiles().containsAll([project(':direct').tasks["test"].binaryResultsDirectory.file("results.bin").get().getAsFile(),
+                                                                                             project(':transitive').tasks["test"].binaryResultsDirectory.file("results.bin").get().getAsFile()])
                 }
             }
 

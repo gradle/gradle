@@ -8,12 +8,11 @@ repositories {
 }
 
 // Resolvable configuration to resolve the classes of all dependencies
-val classPath by configurations.creating {
+val classesPath by configurations.creating {
     isVisible = false
     isCanBeResolved = true
     isCanBeConsumed = false
     extendsFrom(configurations.implementation.get())
-    isTransitive = true
     attributes {
         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, Usage.JAVA_RUNTIME))
         attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category::class.java, Category.LIBRARY))
@@ -27,7 +26,6 @@ val sourcesPath by configurations.creating {
     isCanBeResolved = true
     isCanBeConsumed = false
     extendsFrom(configurations.implementation.get())
-    isTransitive = true
     attributes {
         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, Usage.VERIFICATION))
         attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category::class.java, Category.SOURCES))
@@ -41,7 +39,6 @@ val coverageDataPath by configurations.creating {
     isCanBeResolved = true
     isCanBeConsumed = false
     extendsFrom(configurations.implementation.get())
-    isTransitive = true
     attributes {
         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, Usage.VERIFICATION))
         attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category::class.java, Category.DOCUMENTATION))
@@ -51,7 +48,7 @@ val coverageDataPath by configurations.creating {
 
 // Task to gather code coverage from multiple subprojects
 val codeCoverageReport by tasks.registering(JacocoReport::class) {
-    classDirectories.from(classPath.getIncoming().getFiles())
+    classDirectories.from(classesPath.getIncoming().getFiles())
     sourceDirectories.from(sourcesPath.getIncoming().getFiles())
     executionData(coverageDataPath.getIncoming().getFiles().filter { it.exists() })
 
