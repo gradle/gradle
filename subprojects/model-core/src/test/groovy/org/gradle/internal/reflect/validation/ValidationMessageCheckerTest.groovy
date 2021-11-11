@@ -879,7 +879,10 @@ Type 'MyTask' must be annotated either with @CacheableTask or with @DisableCachi
 
 Reason: The task author should make clear why a task is not cacheable.
 
-Possible solution: Add @DisableCachingByDefault(because = ...) or @CacheableTask.
+Possible solutions:
+  1. Add @DisableCachingByDefault(because = ...).
+  2. Add @CacheableTask.
+  3. Add @UntrackedTask(because = ...).
 
 Please refer to https://docs.gradle.org/current/userguide/validation_problems.html#disable_caching_by_default for more details about this problem."""
     }
@@ -901,7 +904,9 @@ Type 'MyTransform' must be annotated either with @CacheableTransform or with @Di
 
 Reason: The transform action author should make clear why a transform action is not cacheable.
 
-Possible solution: Add @DisableCachingByDefault(because = ...) or @CacheableTransform.
+Possible solutions:
+  1. Add @DisableCachingByDefault(because = ...).
+  2. Add @CacheableTransform.
 
 Please refer to https://docs.gradle.org/current/userguide/validation_problems.html#disable_caching_by_default for more details about this problem."""
     }
