@@ -31,7 +31,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
 
     def "repositories used when resolving project configurations are exposed via build operation (repo: #repo)"() {
         setup:
-        disablePluginRepoMirror()
+        executer.beforeExecute { executer.withPluginRepositoryMirrorDisabled() }
         m2.generateUserSettingsFile(m2.mavenRepo())
         using m2
         buildFile << """
