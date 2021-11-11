@@ -90,7 +90,7 @@ object BuildEnvironment {
     /**
      * A selection of environment variables injected into the enviroment by the `codeql-env.sh` script.
      */
-    private const val CODEQL_ENVIRONMENT_VARIABLES = [
+    private val CODEQL_ENVIRONMENT_VARIABLES = arrayOf(
         "CODEQL_JAVA_HOME",
         "CODEQL_EXTRACTOR_JAVA_SCRATCH_DIR",
         "CODEQL_ACTION_RUN_MODE",
@@ -98,7 +98,7 @@ object BuildEnvironment {
         "CODEQL_DIST",
         "CODEQL_PLATFORM",
         "CODEQL_RUNNER"
-    ]
+    )
     const val CI_ENVIRONMENT_VARIABLE = "CI"
     const val BUILD_BRANCH = "BUILD_BRANCH"
     const val BUILD_COMMIT_ID = "BUILD_COMMIT_ID"
