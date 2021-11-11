@@ -2,6 +2,8 @@ plugins {
     id("gradlebuild.internal.java")
 }
 
+description = "The collector project for the 'integ-tests' portion of the Gradle distribution"
+
 dependencies {
     integTestImplementation(project(":internal-testing"))
     integTestImplementation(project(":base-services"))
