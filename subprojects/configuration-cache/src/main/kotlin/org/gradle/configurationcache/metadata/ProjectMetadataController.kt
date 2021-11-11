@@ -23,8 +23,6 @@ import org.gradle.internal.component.local.model.LocalComponentMetadata
 import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.util.Path
 import java.io.Closeable
-import java.io.InputStream
-import java.io.OutputStream
 
 
 internal
@@ -33,17 +31,13 @@ class ProjectMetadataController(
 ) : Closeable {
     private
     val metadataStore by lazy {
-        val writerFactory = { _: OutputStream ->
-            ValueStore.Writer<LocalComponentMetadata> { value ->
-                println("-> write metadata $value")
-            }
+        val writer = ValueStore.Writer<LocalComponentMetadata> { encoder, value ->
+            encoder.writeString(value.toString())
         }
-        val readerFactory = { _: InputStream ->
-            ValueStore.Reader<LocalComponentMetadata> {
-                TODO()
-            }
+        val reader = ValueStore.Reader<LocalComponentMetadata> {
+            TODO()
         }
-        store.createValueStore(StateType.ProjectMetadata, writerFactory, readerFactory)
+        store.createValueStore(StateType.ProjectMetadata, writer, reader)
     }
 
     fun loadOrCreateProjectMetadata(identityPath: Path, creator: () -> LocalComponentMetadata): LocalComponentMetadata {

@@ -33,8 +33,6 @@ import org.gradle.configurationcache.serialization.runWriteOperation
 import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.util.Path
 import java.io.Closeable
-import java.io.InputStream
-import java.io.OutputStream
 import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
 
@@ -51,26 +49,21 @@ class IntermediateModelController(
 ) : Closeable {
     private
     val modelsStore by lazy {
-        val writerFactory = { outputStream: OutputStream ->
-            ValueStore.Writer<Any?> { value ->
-                val (context, codecs) = cacheIO.writerContextFor(outputStream, "intermediate models")
-                context.push(IsolateOwner.OwnerHost(host), codecs.userTypesCodec)
-                context.runWriteOperation {
-                    write(value)
-                }
-                context.flush()
+        val writer = ValueStore.Writer<Any?> { encoder, value ->
+            val (context, codecs) = cacheIO.writerContextFor(encoder)
+            context.push(IsolateOwner.OwnerHost(host), codecs.userTypesCodec)
+            context.runWriteOperation {
+                write(value)
             }
         }
-        val readerFactory = { inputStream: InputStream ->
-            ValueStore.Reader<Any?> {
-                val (context, codecs) = cacheIO.readerContextFor(inputStream)
-                context.push(IsolateOwner.OwnerHost(host), codecs.userTypesCodec)
-                context.runReadOperation {
-                    read()
-                }
+        val reader = ValueStore.Reader<Any?> { decoder ->
+            val (context, codecs) = cacheIO.readerContextFor(decoder)
+            context.push(IsolateOwner.OwnerHost(host), codecs.userTypesCodec)
+            context.runReadOperation {
+                read()
             }
         }
-        store.createValueStore(StateType.IntermediateModels, writerFactory, readerFactory)
+        store.createValueStore(StateType.IntermediateModels, writer, reader)
     }
 
     private

@@ -39,7 +39,8 @@ import org.gradle.configurationcache.serialization.writeFile
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.build.RootBuildState
 import org.gradle.internal.buildtree.BuildTreeWorkGraph
-import org.gradle.internal.serialize.FlushableEncoder
+import org.gradle.internal.serialize.Decoder
+import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
 import org.gradle.internal.service.scopes.Scopes
@@ -201,6 +202,16 @@ class ConfigurationCacheIO internal constructor(
         }
 
     internal
+    fun writerContextFor(encoder: Encoder): Pair<DefaultWriteContext, Codecs> =
+        codecs().let { codecs ->
+            writeContextFor(
+                encoder,
+                null,
+                codecs
+            ) to codecs
+        }
+
+    internal
     fun <R> withReadContextFor(
         inputStream: InputStream,
         readOperation: suspend DefaultReadContext.(Codecs) -> R
@@ -219,18 +230,21 @@ class ConfigurationCacheIO internal constructor(
     internal
     fun readerContextFor(
         inputStream: InputStream,
+    ) = readerContextFor(KryoBackedDecoder(inputStream))
+
+    internal
+    fun readerContextFor(
+        decoder: Decoder,
     ) =
         codecs().let { codecs ->
-            KryoBackedDecoder(inputStream).let { decoder ->
-                readContextFor(decoder, codecs).apply {
-                    initClassLoader(javaClass.classLoader)
-                }
+            readContextFor(decoder, codecs).apply {
+                initClassLoader(javaClass.classLoader)
             } to codecs
         }
 
     private
     fun writeContextFor(
-        encoder: FlushableEncoder,
+        encoder: Encoder,
         tracer: Tracer?,
         codecs: Codecs
     ) = DefaultWriteContext(
@@ -244,7 +258,7 @@ class ConfigurationCacheIO internal constructor(
 
     private
     fun readContextFor(
-        decoder: KryoBackedDecoder,
+        decoder: Decoder,
         codecs: Codecs
     ) = DefaultReadContext(
         codecs.userTypesCodec,
