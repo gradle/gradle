@@ -87,6 +87,18 @@ fun toPreTestedCommitBaseBranch(actualBranch: String): String = when {
 
 object BuildEnvironment {
 
+    /**
+     * A selection of environment variables injected into the enviroment by the `codeql-env.sh` script.
+     */
+    private const val CODEQL_ENVIRONMENT_VARIABLES = [
+        "CODEQL_JAVA_HOME",
+        "CODEQL_EXTRACTOR_JAVA_SCRATCH_DIR",
+        "CODEQL_ACTION_RUN_MODE",
+        "CODEQL_ACTION_VERSION",
+        "CODEQL_DIST",
+        "CODEQL_PLATFORM",
+        "CODEQL_RUNNER"
+    ]
     const val CI_ENVIRONMENT_VARIABLE = "CI"
     const val BUILD_BRANCH = "BUILD_BRANCH"
     const val BUILD_COMMIT_ID = "BUILD_COMMIT_ID"
@@ -100,7 +112,7 @@ object BuildEnvironment {
     val isCodeQl: Boolean by lazy {
         // This logic is kept here instead of `codeql-analysis.init.gradle` because that file will hopefully be removed in the future.
         // Removing that file is waiting on the GitHub team fixing an issue in Autobuilder logic.
-        System.getenv().keys.any { it.startsWith("CODEQL_") }
+        CODEQL_ENVIRONMENT_VARIABLES.any { it in System.getenv() }
     }
     val jvm = org.gradle.internal.jvm.Jvm.current()
     val javaVersion = JavaVersion.current()
