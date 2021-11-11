@@ -103,7 +103,7 @@ class DefaultConfigurationCache internal constructor(
     val intermediateModels = lazy { IntermediateModelController(host, cacheIO, store, cacheFingerprintController) }
 
     private
-    val projectMetadata = lazy { ProjectMetadataController(store) }
+    val projectMetadata = lazy { ProjectMetadataController(host, cacheIO, store) }
 
     private
     val cacheIO: ConfigurationCacheIO
@@ -157,14 +157,14 @@ class DefaultConfigurationCache internal constructor(
     }
 
     override fun loadOrCreateProjectMetadata(identityPath: Path, creator: () -> LocalComponentMetadata): LocalComponentMetadata {
-        return projectMetadata.value.loadOrCreateProjectMetadata(identityPath, creator)
+        return projectMetadata.value.loadOrCreateValue(identityPath, creator)
     }
 
     override fun finalizeCacheEntry() {
         if (hasSavedValues) {
             store.useForStore { layout ->
                 writeConfigurationCacheFingerprint(layout)
-                cacheIO.writeCacheEntryDetailsTo(buildStateRegistry, intermediateModels.value.models, layout.fileFor(StateType.Entry))
+                cacheIO.writeCacheEntryDetailsTo(buildStateRegistry, intermediateModels.value.values, projectMetadata.value.values, layout.fileFor(StateType.Entry))
             }
             hasSavedValues = false
         }
@@ -261,7 +261,8 @@ class DefaultConfigurationCache internal constructor(
             val result = checkFingerprint(layout.fileFor(StateType.Fingerprint))
 
             if (result is CheckedFingerprint.ProjectsInvalid) {
-                intermediateModels.value.restoreFromCacheEntry(entryDetails, result)
+                intermediateModels.value.restoreFromCacheEntry(entryDetails.intermediateModels, result)
+                projectMetadata.value.restoreFromCacheEntry(entryDetails.projectMetadata, result)
             }
 
             result

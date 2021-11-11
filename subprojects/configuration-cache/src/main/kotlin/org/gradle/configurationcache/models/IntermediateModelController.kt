@@ -16,25 +16,19 @@
 
 package org.gradle.configurationcache.models
 
-import org.gradle.cache.internal.streams.BlockAddress
-import org.gradle.cache.internal.streams.ValueStore
-import org.gradle.configurationcache.CheckedFingerprint
 import org.gradle.configurationcache.ConfigurationCacheIO
 import org.gradle.configurationcache.ConfigurationCacheStateStore
 import org.gradle.configurationcache.DefaultConfigurationCache
 import org.gradle.configurationcache.StateType
-import org.gradle.configurationcache.cacheentry.EntryDetails
 import org.gradle.configurationcache.cacheentry.ModelKey
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprintController
 import org.gradle.configurationcache.serialization.IsolateOwner
 import org.gradle.configurationcache.serialization.runReadOperation
 import org.gradle.configurationcache.serialization.runWriteOperation
-import org.gradle.internal.concurrent.CompositeStoppable
+import org.gradle.internal.serialize.Decoder
+import org.gradle.internal.serialize.Encoder
 import org.gradle.util.Path
-import java.io.Closeable
-import java.util.Collections
-import java.util.concurrent.ConcurrentHashMap
 
 
 /**
@@ -44,79 +38,35 @@ internal
 class IntermediateModelController(
     private val host: DefaultConfigurationCache.Host,
     private val cacheIO: ConfigurationCacheIO,
-    private val store: ConfigurationCacheStateStore,
+    val store: ConfigurationCacheStateStore,
     private val cacheFingerprintController: ConfigurationCacheFingerprintController
-) : Closeable {
-    private
-    val modelsStore by lazy {
-        val writer = ValueStore.Writer<Any?> { encoder, value ->
-            val (context, codecs) = cacheIO.writerContextFor(encoder)
-            context.push(IsolateOwner.OwnerHost(host), codecs.userTypesCodec)
-            context.runWriteOperation {
-                write(value)
-            }
+) : ProjectStateStore<ModelKey, Any?>(store, StateType.IntermediateModels) {
+    override fun projectPathForKey(key: ModelKey) = key.identityPath
+
+    override fun write(encoder: Encoder, value: Any?) {
+        val (context, codecs) = cacheIO.writerContextFor(encoder)
+        context.push(IsolateOwner.OwnerHost(host), codecs.userTypesCodec)
+        context.runWriteOperation {
+            write(value)
         }
-        val reader = ValueStore.Reader<Any?> { decoder ->
-            val (context, codecs) = cacheIO.readerContextFor(decoder)
-            context.push(IsolateOwner.OwnerHost(host), codecs.userTypesCodec)
-            context.runReadOperation {
-                read()
-            }
-        }
-        store.createValueStore(StateType.IntermediateModels, writer, reader)
     }
 
-    private
-    val previousIntermediateModels = ConcurrentHashMap<ModelKey, BlockAddress>()
-
-    private
-    val intermediateModels = ConcurrentHashMap<ModelKey, BlockAddress>()
-
-    /**
-     * All models used during execution.
-     */
-    val models: Map<ModelKey, BlockAddress>
-        get() = Collections.unmodifiableMap(intermediateModels)
-
-    fun restoreFromCacheEntry(entryDetails: EntryDetails, checkedFingerprint: CheckedFingerprint.ProjectsInvalid) {
-        for (entry in entryDetails.intermediateModels) {
-            if (entry.key.identityPath == null || !checkedFingerprint.invalidProjects.contains(entry.key.identityPath)) {
-                // Can reuse the model
-                previousIntermediateModels[entry.key] = entry.value
-            }
+    override fun read(decoder: Decoder): Any? {
+        val (context, codecs) = cacheIO.readerContextFor(decoder)
+        context.push(IsolateOwner.OwnerHost(host), codecs.userTypesCodec)
+        return context.runReadOperation {
+            read()
         }
     }
 
     fun <T> loadOrCreateIntermediateModel(identityPath: Path?, modelName: String, creator: () -> T): T? {
         val key = ModelKey(identityPath, modelName)
-        val addressOfCached = locateCachedModel(key)
-        if (addressOfCached != null) {
-            return modelsStore.read(addressOfCached)?.uncheckedCast()
-        }
-        val model = if (identityPath != null) {
-            cacheFingerprintController.collectFingerprintForProject(identityPath, creator)
-        } else {
-            creator()
-        }
-        val address = modelsStore.write(model)
-        intermediateModels[key] = address
-        return model
-    }
-
-    private
-    fun locateCachedModel(key: ModelKey): BlockAddress? {
-        val cachedInCurrent = intermediateModels[key]
-        if (cachedInCurrent != null) {
-            return cachedInCurrent
-        }
-        val cachedInPrevious = previousIntermediateModels[key]
-        if (cachedInPrevious != null) {
-            intermediateModels[key] = cachedInPrevious
-        }
-        return cachedInPrevious
-    }
-
-    override fun close() {
-        CompositeStoppable.stoppable(modelsStore).stop()
+        return loadOrCreateValue(key) {
+            if (identityPath != null) {
+                cacheFingerprintController.collectFingerprintForProject(identityPath, creator)
+            } else {
+                creator()
+            }
+        }?.uncheckedCast()
     }
 }

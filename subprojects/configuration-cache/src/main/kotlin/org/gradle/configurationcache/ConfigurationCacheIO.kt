@@ -60,7 +60,12 @@ class ConfigurationCacheIO internal constructor(
 ) {
 
     internal
-    fun writeCacheEntryDetailsTo(buildStateRegistry: BuildStateRegistry, intermediateModels: Map<ModelKey, BlockAddress>, stateFile: ConfigurationCacheStateFile) {
+    fun writeCacheEntryDetailsTo(
+        buildStateRegistry: BuildStateRegistry,
+        intermediateModels: Map<ModelKey, BlockAddress>,
+        projectMetadata: Map<Path, BlockAddress>,
+        stateFile: ConfigurationCacheStateFile
+    ) {
         val rootDirs = collectRootDirs(buildStateRegistry)
         writeConfigurationCacheState(stateFile) {
             writeCollection(rootDirs) { writeFile(it) }
@@ -71,6 +76,11 @@ class ConfigurationCacheIO internal constructor(
                 writeString(entry.key.modelName)
                 addressSerializer.write(this, entry.value)
             }
+            writeSmallInt(projectMetadata.size)
+            for (entry in projectMetadata) {
+                writeString(entry.key.path)
+                addressSerializer.write(this, entry.value)
+            }
         }
     }
 
@@ -79,20 +89,27 @@ class ConfigurationCacheIO internal constructor(
         // Currently, the fingerprint file is used to mark whether the entry is usable or not
         // Should use the entry details file instead
         if (!stateFile.exists) {
-            return EntryDetails(emptyList(), emptyMap())
+            return EntryDetails(emptyList(), emptyMap(), emptyMap())
         }
         return readConfigurationCacheState(stateFile) {
             val rootDirs = readList { readFile() }
             val addressSerializer = BlockAddressSerializer()
-            val count = readSmallInt()
-            val entries = mutableMapOf<ModelKey, BlockAddress>()
-            for (i in 0 until count) {
+            val intermediateModelsCount = readSmallInt()
+            val intermediateModels = mutableMapOf<ModelKey, BlockAddress>()
+            for (i in 0 until intermediateModelsCount) {
                 val path = readNullableString()?.let { Path.path(it) }
                 val modelName = readString()
                 val address = addressSerializer.read(this)
-                entries[ModelKey(path, modelName)] = address
+                intermediateModels[ModelKey(path, modelName)] = address
             }
-            EntryDetails(rootDirs, entries)
+            val metadataCount = readSmallInt()
+            val metadata = mutableMapOf<Path, BlockAddress>()
+            for (i in 0 until metadataCount) {
+                val path = Path.path(readString())
+                val address = addressSerializer.read(this)
+                metadata[path] = address
+            }
+            EntryDetails(rootDirs, intermediateModels, emptyMap())
         }
     }
 

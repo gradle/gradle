@@ -176,6 +176,42 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
             fileChanged("a/build.gradle")
             projectConfigured(":buildSrc")
             projectConfigured(":")
+            projectConfigured(":b") // was not involved in dependency resolution, but is now
+            modelsCreated(":a")
+        }
+
+        when:
+        executer.withArguments(ENABLE_CLI)
+        def model4 = runBuildAction(new FetchCustomModelForEachProject())
+
+        then:
+        model4.size() == 3
+        model4[0].message == "project :a classpath = 1"
+        model4[1].message == "project :b classpath = 0"
+        model4[2].message == "project :c classpath = 0"
+
+        and:
+        fixture.assertStateLoaded {
+        }
+
+        when:
+        file("a/build.gradle") << """
+            // some change
+        """
+        executer.withArguments(ENABLE_CLI)
+        def model5 = runBuildAction(new FetchCustomModelForEachProject())
+
+        then:
+        model5.size() == 3
+        model5[0].message == "project :a classpath = 1"
+        model5[1].message == "project :b classpath = 0"
+        model5[2].message == "project :c classpath = 0"
+
+        and:
+        fixture.assertStateRecreated {
+            fileChanged("a/build.gradle")
+            projectConfigured(":buildSrc")
+            projectConfigured(":")
             projectConfigured(":b") // should not be configured
             modelsCreated(":a")
         }
