@@ -75,14 +75,16 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
     private final List<IncludedBuildSpec> includedBuildSpecs = new ArrayList<>();
     private final DependencyResolutionManagementInternal dependencyResolutionManagement;
 
-    public DefaultSettings(ServiceRegistryFactory serviceRegistryFactory,
-                           GradleInternal gradle,
-                           ClassLoaderScope classLoaderScope,
-                           ClassLoaderScope baseClassLoaderScope,
-                           ScriptHandler settingsScriptHandler,
-                           File settingsDir,
-                           ScriptSource settingsScript,
-                           StartParameter startParameter) {
+    public DefaultSettings(
+        ServiceRegistryFactory serviceRegistryFactory,
+        GradleInternal gradle,
+        ClassLoaderScope classLoaderScope,
+        ClassLoaderScope baseClassLoaderScope,
+        ScriptHandler settingsScriptHandler,
+        File settingsDir,
+        ScriptSource settingsScript,
+        StartParameter startParameter
+    ) {
         this.gradle = gradle;
         this.classLoaderScope = classLoaderScope;
         this.baseClassLoaderScope = baseClassLoaderScope;
