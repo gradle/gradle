@@ -32,7 +32,6 @@ import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.UntrackedTask;
 import org.gradle.internal.file.PathToFileResolver;
-import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -42,7 +41,6 @@ import java.io.File;
  *
  * @since 1.4
  */
-@DisableCachingByDefault(because = "Gradle doesn't understand the data structures")
 @UntrackedTask(because = "Gradle doesn't understand the data structures")
 public class GenerateIvyDescriptor extends DefaultTask {
 

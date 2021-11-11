@@ -29,7 +29,6 @@ import org.gradle.jvm.toolchain.install.internal.DefaultJavaToolchainProvisionin
 import org.gradle.jvm.toolchain.internal.AutoDetectingInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.InstallationLocation;
 import org.gradle.jvm.toolchain.internal.JavaInstallationRegistry;
-import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
 import java.util.Comparator;
@@ -41,7 +40,6 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.Descriptio
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Identifier;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Normal;
 
-@DisableCachingByDefault(because = "Produces only non-cacheable console output")
 @UntrackedTask(because = "Produces only non-cacheable console output")
 public class ShowToolchainsTask extends DefaultTask {
 

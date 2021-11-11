@@ -31,7 +31,6 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.UntrackedTask;
 import org.gradle.internal.serialization.Cached;
 import org.gradle.internal.serialization.Transient;
-import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -43,7 +42,6 @@ import static org.gradle.internal.serialization.Transient.varOf;
  *
  * @since 1.4
  */
-@DisableCachingByDefault(because = "Gradle doesn't understand the data structures used to configure this task")
 @UntrackedTask(because = "Gradle doesn't understand the data structures used to configure this task")
 public class GenerateMavenPom extends DefaultTask {
 

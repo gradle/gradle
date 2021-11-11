@@ -26,7 +26,6 @@ import org.gradle.api.tasks.diagnostics.internal.ReportGenerator;
 import org.gradle.api.tasks.diagnostics.internal.dependencies.AsciiDependencyReportRenderer;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
-import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
 
@@ -43,8 +42,7 @@ import static java.util.Collections.singleton;
  *
  * @since 2.10
  */
-@DisableCachingByDefault(because = "Produces only non-cacheable console output")
-@UntrackedTask(because = "Uses the project as an input")
+@UntrackedTask(because = "Produces only non-cacheable console output")
 public class BuildEnvironmentReportTask extends DefaultTask {
 
     public static final String TASK_NAME = "buildEnvironment";
