@@ -31,9 +31,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 
 import java.io.File;
-import java.util.Map;
 
-import static java.util.Collections.emptyMap;
 import static org.gradle.internal.metaobject.DynamicInvokeResult.found;
 import static org.gradle.internal.metaobject.DynamicInvokeResult.notFound;
 
