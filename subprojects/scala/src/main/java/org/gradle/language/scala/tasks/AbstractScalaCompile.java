@@ -253,7 +253,8 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
      * {@inheritDoc}
      */
     @Override
-    @PathSensitive(PathSensitivity.NAME_ONLY)
+    // Java source files are supported, too. Therefore, we should care about the relative path.
+    @PathSensitive(PathSensitivity.RELATIVE)
     public FileTree getSource() {
         return super.getSource();
     }
