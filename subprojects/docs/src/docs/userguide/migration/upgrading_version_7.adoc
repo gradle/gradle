@@ -72,6 +72,15 @@ To ignore directories in Gradle 8.0 and later, the input property needs to be an
 Finally, using `@link:{javadocPath}/org/gradle/api/tasks/InputDirectory.html[InputDirectory]` implies `@IgnoreEmptyDirectories`, so no changes are necessary when using this annotation.
 The same is true for `@link:{javadocPath}/org/gradle/api/tasks/TaskInputs.html#dir-java.lang.Object-[inputs.dir()]` when registering an input directory via the runtime API.
 
+[[lazypublishartifact_fileresolver]]
+==== Using LazyPublishArtifact without a FileResolver is deprecated
+
+When using a LazyPublishArtifact without a FileResolver, a different file resolution strategy is used, which duplicates
+some logic in the FileResolver. To improve consistency, LazyPublishArtifact should be used with a FileResolver, and will
+require it in the future.
+
+This also affects other internal APIs that use LazyPublishArtifact, which now also have deprecation warnings where needed.
+
 [[changes_7.3]]
 == Upgrading from 7.2 and earlier
 

@@ -191,7 +191,7 @@ public class JvmPluginsHelper {
         DeprecationLogger.deprecateInternalApi("configureDocumentationVariantWithArtifact (no FileResolver)")
             .replaceWith("configureDocumentationVariantWithArtifact (with FileResolver)")
             .willBeRemovedInGradle8()
-            .undocumented()
+            .withUpgradeGuideSection(7, "lazypublishartifact_fileresolver")
             .nagUser();
         configureDocumentationVariantWithArtifact(
             variantName,

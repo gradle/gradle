@@ -49,7 +49,7 @@ public class LazyPublishArtifact implements PublishArtifactInternal {
         DeprecationLogger.deprecateInternalApi("constructor LazyPublishArtifact(Provider<?>)")
             .replaceWith("constructor LazyPublishArtifact(Provider<?>, FileResolver)")
             .willBeRemovedInGradle8()
-            .undocumented()
+            .withUpgradeGuideSection(7, "lazypublishartifact_fileresolver")
             .nagUser();
         this.provider = Providers.internal(provider);
         this.version = null;
