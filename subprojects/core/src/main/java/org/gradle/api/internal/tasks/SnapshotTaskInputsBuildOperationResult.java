@@ -249,13 +249,13 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
             if (unvisitedDirectories.isEmpty()) {
                 return;
             }
+
             DirectoryVisitState directoryState = new DirectoryVisitState(this);
-            DirectorySnapshot unvisited = unvisitedDirectories.poll();
-            while (unvisited != null) {
+            DirectorySnapshot unvisited;
+            while ((unvisited = unvisitedDirectories.poll()) != null) {
                 directoryState.path = unvisited.getAbsolutePath();
                 directoryState.name = unvisited.getName();
                 visitor.preDirectory(directoryState);
-                unvisited = unvisitedDirectories.poll();
             }
         }
     }
