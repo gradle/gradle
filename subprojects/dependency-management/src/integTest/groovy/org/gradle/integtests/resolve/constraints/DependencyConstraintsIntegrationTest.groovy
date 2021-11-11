@@ -737,7 +737,7 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
                         section("""attributes {
                             attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, 'wrong'))
                         }""", """attributes {
-                            attribute(Usage.USAGE_ATTRIBUTE, project.objects.named("wrong"))
+                            attribute(Usage.USAGE_ATTRIBUTE, project.objects.named<Usage>("wrong"))
                         }""")
                     }
                 }

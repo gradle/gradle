@@ -234,9 +234,9 @@ fun bucket() =
 fun libraryResolver(extends: List<Configuration>) =
     configurations.creating {
         attributes {
-            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
-            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
-            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.JAR))
+            attribute(Usage.USAGE_ATTRIBUTE, objects.named<Usage>(Usage.JAVA_RUNTIME))
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>(Category.LIBRARY))
+            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named<LibraryElements>(LibraryElements.JAR))
         }
         isCanBeResolved = true
         isCanBeConsumed = false
@@ -247,7 +247,7 @@ fun libraryResolver(extends: List<Configuration>) =
 fun startScriptResolver(defaultDependency: String) =
     configurations.creating {
         attributes {
-            attribute(Usage.USAGE_ATTRIBUTE, objects.named("start-scripts"))
+            attribute(Usage.USAGE_ATTRIBUTE, objects.named<Usage>("start-scripts"))
         }
         isCanBeResolved = true
         isCanBeConsumed = false
@@ -260,9 +260,9 @@ fun startScriptResolver(defaultDependency: String) =
 fun sourcesResolver(extends: List<Configuration>) =
     configurations.creating {
         attributes {
-            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
-            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.DOCUMENTATION))
-            attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named("gradle-source-folders"))
+            attribute(Usage.USAGE_ATTRIBUTE, objects.named<Usage>(Usage.JAVA_RUNTIME))
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>(Category.DOCUMENTATION))
+            attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named<DocsType>("gradle-source-folders"))
         }
         isCanBeResolved = true
         isCanBeConsumed = false
@@ -273,9 +273,9 @@ fun sourcesResolver(extends: List<Configuration>) =
 fun docsResolver(defaultDependency: String) =
     configurations.creating {
         attributes {
-            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
-            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.DOCUMENTATION))
-            attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named("gradle-documentation"))
+            attribute(Usage.USAGE_ATTRIBUTE, objects.named<Usage>(Usage.JAVA_RUNTIME))
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>(Category.DOCUMENTATION))
+            attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named<DocsType>("gradle-documentation"))
         }
         isCanBeResolved = true
         isCanBeConsumed = false
@@ -288,10 +288,10 @@ fun docsResolver(defaultDependency: String) =
 fun consumableVariant(name: String, elements: String, bundling: String, extends: List<Configuration>, artifact: Any) =
     configurations.create("${name}Elements") {
         attributes {
-            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
-            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
-            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(elements))
-            attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(bundling))
+            attribute(Usage.USAGE_ATTRIBUTE, objects.named<Usage>(Usage.JAVA_RUNTIME))
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>(Category.LIBRARY))
+            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named<LibraryElements>(elements))
+            attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named<Bundling>(bundling))
         }
         isCanBeResolved = false
         isCanBeConsumed = true
@@ -303,9 +303,9 @@ fun consumableVariant(name: String, elements: String, bundling: String, extends:
 fun consumableSourcesVariant(name: String, extends: List<Configuration>) =
     configurations.create("${name}Elements") {
         attributes {
-            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
-            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.DOCUMENTATION))
-            attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named("gradle-source-folders"))
+            attribute(Usage.USAGE_ATTRIBUTE, objects.named<Usage>(Usage.JAVA_RUNTIME))
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>(Category.DOCUMENTATION))
+            attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named<DocsType>("gradle-source-folders"))
         }
         isCanBeResolved = false
         isCanBeConsumed = true
@@ -316,8 +316,8 @@ fun consumableSourcesVariant(name: String, extends: List<Configuration>) =
 fun consumablePlatformVariant(name: String, extends: List<Configuration>) =
     configurations.create("${name}Elements") {
         attributes {
-            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
-            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.REGULAR_PLATFORM))
+            attribute(Usage.USAGE_ATTRIBUTE, objects.named<Usage>(Usage.JAVA_RUNTIME))
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>(Category.REGULAR_PLATFORM))
         }
         isCanBeResolved = false
         isCanBeConsumed = true

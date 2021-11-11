@@ -59,11 +59,11 @@ class InstrumentedJarsPlugin @Inject constructor(
             isCanBeConsumed = true
             isCanBeResolved = false
             attributes {
-                attribute(Category.CATEGORY_ATTRIBUTE, namedAttribute(Category.LIBRARY))
-                attribute(Usage.USAGE_ATTRIBUTE, namedAttribute(Usage.JAVA_RUNTIME))
-                attribute(Bundling.BUNDLING_ATTRIBUTE, namedAttribute(Bundling.EXTERNAL))
+                attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>(Category.LIBRARY))
+                attribute(Usage.USAGE_ATTRIBUTE, objects.named<Usage>(Usage.JAVA_RUNTIME))
+                attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named<Bundling>(Bundling.EXTERNAL))
                 attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, JavaVersion.current().majorVersion.toInt())
-                attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, namedAttribute("instrumented-jar"))
+                attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named<LibraryElements>("instrumented-jar"))
             }
         }
         return instrumentedJars
@@ -82,5 +82,3 @@ class InstrumentedJarsPlugin @Inject constructor(
     }
 
 }
-
-inline fun <reified T : Named> Project.namedAttribute(value: String) = objects.named(T::class.java, value)

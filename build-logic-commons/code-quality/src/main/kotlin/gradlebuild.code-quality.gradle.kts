@@ -41,7 +41,7 @@ val rules by configurations.creating {
     isCanBeConsumed = false
 
     attributes {
-        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.RESOURCES))
+        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named<LibraryElements>(LibraryElements.RESOURCES))
     }
 }
 
