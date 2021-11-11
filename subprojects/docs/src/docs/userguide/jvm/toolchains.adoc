@@ -182,7 +182,7 @@ There is no support for downloading early access versions.
 ====
 
 Once a provisioned JDK has been installed in the <<directory_layout.adoc#dir:gradle_user_home,Gradle User Home directory>> it becomes one of the JDKs visible to <<#sec:auto_detection,auto detection>>
-and can be used by any subsequent builds, just like any other JDK install of the system.
+and can be used by any subsequent builds, just like any other JDK installed on the system.
 Since auto-provisioning only kicks in when auto-detection fails to find a matching JDK, auto-provisioning can only download new JDKs and is in no way involved in updating any of the already installed ones.
 None of the auto-provisioned JDKs will ever be revisited and automatically updated by auto-provisioning, even if there is a newer minor version available for them.
 
