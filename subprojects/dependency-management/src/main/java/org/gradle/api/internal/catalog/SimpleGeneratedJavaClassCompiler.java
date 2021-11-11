@@ -44,6 +44,9 @@ class SimpleGeneratedJavaClassCompiler {
      */
     public static void compile(File srcDir, File dstDir, List<ClassSource> classes, ClassPath classPath) throws GeneratedClassCompilationException {
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+        if (compiler == null) {
+            throw new GeneratedClassCompilationException("No Java compiler found, please ensure you are running Gradle with a JDK");
+        }
         DiagnosticCollector<JavaFileObject> ds = new DiagnosticCollector<>();
         try (StandardJavaFileManager mgr = compiler.getStandardFileManager(ds, null, null)) {
             List<String> options = buildOptions(dstDir, classPath);
