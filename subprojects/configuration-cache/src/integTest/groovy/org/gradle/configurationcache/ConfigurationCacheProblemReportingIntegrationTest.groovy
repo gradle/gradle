@@ -25,7 +25,6 @@ import org.gradle.invocation.DefaultGradle
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.IgnoreIf
 
-import static org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheProblemsFixture.readJsModelFromReportDir
 import static org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheProblemsFixture.resolveConfigurationCacheReportDirectory
 
 @IgnoreIf({ GradleContextualExecuter.isNoDaemon() })
@@ -56,7 +55,6 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         then:
         def reportDir1 = reportDir()
         reportDir1?.isDirectory()
-        def reportDir1Model = readJsModelFromReportDir(reportDir1)
 
         when:
         configurationCacheFails 'alsoBroken'
@@ -64,7 +62,6 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         then:
         def reportDir2 = reportDir()
         reportDir2?.isDirectory()
-        def reportDir2Model = readJsModelFromReportDir(reportDir2)
         reportDir2 != reportDir1
 
         when:
@@ -72,8 +69,6 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
 
         then:
         def reportDir3 = reportDir()
-        def reportDir3Model = readJsModelFromReportDir(reportDir3)
-        reportDir3Model == reportDir1Model
         reportDir3 == reportDir1
 
         when:
@@ -81,8 +76,6 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
 
         then:
         def reportDir4 = reportDir()
-        def reportDir4Model = readJsModelFromReportDir(reportDir4)
-        reportDir4Model == reportDir2Model
         reportDir4 == reportDir2
     }
 
