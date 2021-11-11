@@ -2,6 +2,8 @@ plugins {
     `java-platform`
 }
 
+description = "Provides a platform that constrains versions of external dependencies used by Gradle"
+
 // Here you should declare versions which should be shared by the different modules of buildSrc itself
 val javaParserVersion = "3.18.0"
 val groovyVersion = "3.0.9"

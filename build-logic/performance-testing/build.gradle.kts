@@ -3,6 +3,8 @@ plugins {
     id("gradlebuild.build-logic.groovy-dsl-gradle-plugin")
 }
 
+description = "Provides a plugin for generating and defining performance test projects"
+
 dependencies {
     implementation(project(":basics"))
     implementation(project(":module-identity"))

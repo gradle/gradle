@@ -78,8 +78,6 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
 
     ScriptSource getBuildScriptSource();
 
-    void addChildProject(ProjectInternal childProject);
-
     @Override
     ProjectInternal project(String path) throws UnknownProjectException;
 

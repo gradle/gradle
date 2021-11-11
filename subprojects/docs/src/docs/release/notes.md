@@ -13,6 +13,8 @@ Include only their name, impactful features should be called out separately belo
 [Roberto Perez Alcolea](https://github.com/rpalcolea),
 [Konstantin Gribov](https://github.com/grossws),
 [Piyush Mor](https://github.com/piyushmor),
+[Róbert Papp](https://github.com/TWiStErRob),
+[Piyush Mor](https://github.com/piyushmor),
 [Ned Twigg](https://github.com/nedtwigg).
 
 ## Upgrade instructions

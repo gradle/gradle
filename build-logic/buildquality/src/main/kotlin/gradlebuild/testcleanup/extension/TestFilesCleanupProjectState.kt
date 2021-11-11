@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.project;
+package gradlebuild.testcleanup.extension
 
-import org.gradle.initialization.ProjectAccessHandler;
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.provider.Property
 
-public class ConfigurationOnDemandProjectAccessListener implements ProjectAccessHandler {
-    @Override
-    public void beforeResolvingProjectDependency(ProjectInternal targetProject) {
-        targetProject.getOwner().ensureConfigured();
-    }
+
+/**
+ * Works with {@see TestFilesCleanupService} and {@see TestFilesCleanupServiceRootExtension}.
+ * It collects states to be used in the build service for each project.
+ */
+interface TestFilesCleanupProjectState : TestFileCleanUpExtension {
+    val projectName: Property<String>
+    val projectBuildDir: DirectoryProperty
 }
