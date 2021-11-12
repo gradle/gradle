@@ -41,6 +41,7 @@ class AssemblerTest extends AbstractProjectBuilderSpec {
 
     def "executes using the Assembler"() {
         def inputDir = temporaryFolder.file("sourceFile")
+        inputDir.file("x.asm").createFile()
         def result = Mock(WorkResult)
         when:
         assembleTask.toolChain = toolChain
