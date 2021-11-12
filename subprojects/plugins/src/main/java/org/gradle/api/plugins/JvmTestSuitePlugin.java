@@ -90,14 +90,12 @@ public class JvmTestSuitePlugin implements Plugin<Project> {
     }
 
     private void configureTestDataElementsVariants(Project project) {
-        project.getPlugins().withType(JvmTestSuitePlugin.class, p -> {
-            final TestingExtension testing = project.getExtensions().getByType(TestingExtension.class);
-            final ExtensiblePolymorphicDomainObjectContainer<TestSuite> testSuites = testing.getSuites();
+        final TestingExtension testing = project.getExtensions().getByType(TestingExtension.class);
+        final ExtensiblePolymorphicDomainObjectContainer<TestSuite> testSuites = testing.getSuites();
 
-            testSuites.withType(JvmTestSuite.class).configureEach(suite -> {
-                suite.getTargets().configureEach(target -> {
-                    createTestDataVariant(project, suite, target);
-                });
+        testSuites.withType(JvmTestSuite.class).configureEach(suite -> {
+            suite.getTargets().configureEach(target -> {
+                createTestDataVariant(project, suite, target);
             });
         });
     }
