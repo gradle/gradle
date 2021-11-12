@@ -129,7 +129,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         return new JacocoReportFixture(file(basedir))
     }
 
-    def "reports miss configuration of destination file"() {
+    def "reports misconfiguration of destination file"() {
         given:
         buildFile << """
             test {
@@ -143,7 +143,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         runAndFail("test")
 
         then:
-        errorOutput.contains("JaCoCo destination file must not be null if output type is FILE")
+        failure.assertHasCause("Cannot query the value of this provider because it has no value available.")
     }
 
     @ToBeFixedForConfigurationCache(because = ":outgoingVariants")

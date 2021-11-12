@@ -449,7 +449,7 @@ public class JavaPlugin implements Plugin<Project> {
             attributes.attribute(Sources.SOURCES_ATTRIBUTE, objects.named(Sources.class, Sources.ALL_SOURCE_DIRS));
         });
 
-        variant.getOutgoing().artifacts(main.getAllSource().getSourceDirectories().getElements().flatMap(e -> project.provider(() -> e)), artifact -> {
+        variant.getOutgoing().artifacts(main.getAllSource().getSourceDirectories().getElements(), artifact -> {
             artifact.setType(ArtifactTypeDefinition.DIRECTORY_TYPE);
         });
 

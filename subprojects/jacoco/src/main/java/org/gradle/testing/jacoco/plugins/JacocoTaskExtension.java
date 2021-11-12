@@ -19,8 +19,8 @@ package org.gradle.testing.jacoco.plugins;
 import com.google.common.base.Joiner;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
@@ -33,6 +33,7 @@ import org.gradle.process.JavaForkOptions;
 import org.gradle.util.internal.RelativePathUtil;
 
 import javax.annotation.Nullable;
+import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -42,7 +43,7 @@ import java.util.Locale;
 /**
  * Extension for tasks that should run with a Jacoco agent to generate coverage execution data.
  */
-public class JacocoTaskExtension {
+public abstract class JacocoTaskExtension {
 
     /**
      * The types of output that the agent can use for execution data.
@@ -65,7 +66,6 @@ public class JacocoTaskExtension {
     private final JavaForkOptions task;
 
     private boolean enabled = true;
-    private final Property<File> destinationFile;
     private List<String> includes = new ArrayList<>();
     private List<String> excludes = new ArrayList<>();
     private List<String> excludeClassLoaders = new ArrayList<>();
@@ -85,10 +85,10 @@ public class JacocoTaskExtension {
      * @param agent the agent JAR to use for analysis
      * @param task the task we extend
      */
+    @Inject
     public JacocoTaskExtension(ObjectFactory objects, JacocoAgentJar agent, JavaForkOptions task) {
         this.agent = agent;
         this.task = task;
-        destinationFile = objects.property(File.class);
     }
 
     /**
@@ -110,7 +110,7 @@ public class JacocoTaskExtension {
     @Optional
     @OutputFile
     public File getDestinationFile() {
-        return destinationFile.getOrNull();
+        return getCoverageFile().getAsFile().getOrNull();
     }
 
     /**
@@ -120,13 +120,15 @@ public class JacocoTaskExtension {
      * @since 4.0
      */
     public void setDestinationFile(Provider<File> destinationFile) {
-        this.destinationFile.set(destinationFile);
+        this.getCoverageFile().fileProvider(destinationFile);
     }
 
     public void setDestinationFile(@Nullable File destinationFile) { // nullability must match on getter and setter argument to end up with a writable Kotlin property
-        this.destinationFile.set(destinationFile);
+        this.getCoverageFile().set(destinationFile);
     }
 
+    @Internal
+    public abstract RegularFileProperty getCoverageFile();
     /**
      * List of class names that should be included in analysis. Names can use wildcards (* and ?). If left empty, all classes will be included. Defaults to an empty list.
      */
