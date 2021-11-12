@@ -61,20 +61,30 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
 
     @Override
     public <T> AttributeContainer attribute(Attribute<T> key, T value) {
-        assertAttributeTypeIsValid(value, key);
         checkInsertionAllowed(key);
         doInsertion(key, value);
         return this;
     }
 
     private <T> void doInsertion(Attribute<T> key, T value) {
+        assertAttributeValueIsNotNull(value);
+        assertAttributeTypeIsValid(value.getClass(), key);
         state = immutableAttributesFactory.concat(state, key, value);
     }
 
     @Override
     public <T> AttributeContainer attribute(Attribute<T> key, Provider<? extends T> provider) {
-        assertAttributeTypeIsValid(provider, key);
         checkInsertionAllowed(key);
+        assertAttributeValueIsNotNull(provider);
+        // We can only sometimes check the type of the provider ahead of time.
+        // When realizing this provider and inserting its value into the container, we still
+        // check the value type is appropriate. see doInsertion
+        if (provider instanceof ProviderInternal) {
+            Class<T> valueType = Cast.<ProviderInternal<T>>uncheckedCast(provider).getType();
+            if (valueType != null) {
+                assertAttributeTypeIsValid(valueType, key);
+            }
+        }
         lazyAttributes.put(key, provider);
         return this;
     }
@@ -93,34 +103,20 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
     }
 
     /**
-     * Checks that the attribute's type matches the given value's type (if a non-{@link Provider}), or the {@link ProviderInternal#getType()} if the
-     * value is a {@link ProviderInternal}; as well as the expectedValueType.
+     * Checks that the attribute's type matches the given value's type is the expected value type.
      *
-     * If the value is a {@link Provider} but <strong>NOT</strong> also
-     * a {@link ProviderInternal}, then no assertions are made (this type of lazily added attribute will fail at the time of retrieval from this container).
-     *
-     * @param value the value (or value provider) to check
+     * @param valueType the value type to check
      * @param attribute the attribute containing a type to check against
      */
-    private void assertAttributeTypeIsValid(@Nullable Object value, Attribute<?> attribute) {
+    private <T> void assertAttributeTypeIsValid(Class<?> valueType, Attribute<T> attribute) {
+        if (!attribute.getType().isAssignableFrom(valueType)) {
+            throw new IllegalArgumentException(String.format("Unexpected type for attribute '%s' provided. Expected a value of type %s but found a value of type %s.", attribute.getName(), attribute.getType().getName(), valueType.getName()));
+        }
+    }
+
+    private void assertAttributeValueIsNotNull(@Nullable Object value) {
         if (value == null) {
             throw new IllegalArgumentException("Setting null as an attribute value is not allowed");
-        }
-
-        final Class<?> actualValueType;
-        if (ProviderInternal.class.isAssignableFrom(value.getClass())) {
-            ProviderInternal<?> provider = Cast.uncheckedCast(value);
-            actualValueType = provider.getType();
-        } else if (!Provider.class.isAssignableFrom(value.getClass())) {
-            actualValueType = value.getClass();
-        } else {
-            actualValueType = null;
-        }
-
-        if (null != actualValueType) {
-            if (!attribute.getType().isAssignableFrom(actualValueType)) {
-                throw new IllegalArgumentException(String.format("Unexpected type for attribute '%s' provided. Expected a value of type %s but found a value of type %s.", attribute.getName(), attribute.getType().getName(), actualValueType.getName()));
-            }
         }
     }
 

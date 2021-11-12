@@ -18,8 +18,10 @@ package org.gradle.api.internal.attributes
 
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.provider.DefaultProperty
+import org.gradle.api.internal.provider.DefaultProvider
 import org.gradle.api.internal.provider.PropertyHost
 import org.gradle.api.provider.Property
+import org.gradle.api.provider.Provider
 import org.gradle.util.AttributeTestUtil
 import spock.lang.Specification
 
@@ -60,13 +62,25 @@ class DefaultMutableAttributeContainerTest extends Specification {
     }
 
     def "adding mismatched attribute types fails fast"() {
-        Property<Integer> testProperty = new DefaultProperty<>(Mock(PropertyHost), Integer)
+        Property<Integer> testProperty = new DefaultProperty<>(Mock(PropertyHost), Integer).convention(1)
         def testAttribute = Attribute.of("test", String)
         def container = new DefaultMutableAttributeContainer(attributesFactory)
 
         when:
         container.attribute(testAttribute, testProperty)
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message.contains("Unexpected type for attribute 'test' provided. Expected a value of type java.lang.String but found a value of type java.lang.Integer.")
+    }
 
+    def "adding mismatched attribute types fails when retrieving the key when the provider does not know the type"() {
+        Provider<?> testProperty = new DefaultProvider<?>( { 1 })
+        def testAttribute = Attribute.of("test", String)
+        def container = new DefaultMutableAttributeContainer(attributesFactory)
+
+        when:
+        container.attribute(testAttribute, testProperty)
+        container.getAttribute(testAttribute)
         then:
         def e = thrown(IllegalArgumentException)
         e.message.contains("Unexpected type for attribute 'test' provided. Expected a value of type java.lang.String but found a value of type java.lang.Integer.")
