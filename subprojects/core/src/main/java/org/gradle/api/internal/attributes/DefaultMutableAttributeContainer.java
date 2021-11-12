@@ -26,6 +26,7 @@ import org.gradle.internal.Cast;
 import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 class DefaultMutableAttributeContainer implements AttributeContainerInternal {
@@ -193,11 +194,23 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
             return false;
         }
 
-        return asImmutable().equals(((DefaultMutableAttributeContainer) o).asImmutable());
+        DefaultMutableAttributeContainer that = (DefaultMutableAttributeContainer) o;
+
+        if (!Objects.equals(parent, that.parent)) {
+            return false;
+        }
+        if (!Objects.equals(asImmutable(), that.asImmutable())) {
+            return false;
+        }
+
+        return state.equals(that.state);
     }
 
     @Override
     public int hashCode() {
-        return asImmutable().hashCode();
+        int result = parent != null ? parent.hashCode() : 0;
+        result = 31 * result + state.hashCode();
+        result = 31 * result + asImmutable().hashCode();
+        return result;
     }
 }
