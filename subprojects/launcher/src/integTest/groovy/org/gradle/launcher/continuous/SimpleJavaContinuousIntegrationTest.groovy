@@ -19,7 +19,6 @@ package org.gradle.launcher.continuous
 import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-
 // NB: there's nothing specific about Java support and continuous.
 //     this spec just lays out some more practical use cases than the other targeted tests.
 class SimpleJavaContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
@@ -65,7 +64,7 @@ class SimpleJavaContinuousIntegrationTest extends AbstractContinuousIntegrationT
         executed(":build")
     }
 
-    def "build is not triggered when a new directory is created in the source inputs"() {
+    def "build is triggered when a new directory is created in the source inputs"() {
         when:
         file("src/main/java/Thing.java") << "class Thing {}"
 
@@ -76,7 +75,7 @@ class SimpleJavaContinuousIntegrationTest extends AbstractContinuousIntegrationT
         file("src/main/java/foo").createDir()
 
         then:
-        noBuildTriggered()
+        succeeds("build")
     }
 
     def "after compilation failure, fixing file retriggers build"() {
@@ -253,6 +252,8 @@ class SimpleJavaContinuousIntegrationTest extends AbstractContinuousIntegrationT
     }
 
     def "creation of initial source file triggers build"() {
+        file("src/main/java").createDir()
+
         expect:
         succeeds("build")
         skipped(":compileJava")
