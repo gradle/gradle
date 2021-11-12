@@ -145,6 +145,7 @@ ${result.error}
             .withTasks(tasks)
             .withForceInteractive(true)
             .withArgument("--full-stacktrace")
+            .withArgument("--watch-fs")
         if (!withoutContinuousArg) {
             executer.withArgument("--continuous")
         }
