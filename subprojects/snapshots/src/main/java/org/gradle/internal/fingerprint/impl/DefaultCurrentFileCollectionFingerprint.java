@@ -91,8 +91,7 @@ public class DefaultCurrentFileCollectionFingerprint implements CurrentFileColle
 
     @Override
     public boolean isEmpty() {
-        // We'd have created an EmptyCurrentFileCollectionFingerprint if there were no file fingerprints
-        return false;
+        return fingerprints.isEmpty();
     }
 
     @Override
