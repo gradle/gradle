@@ -13,8 +13,8 @@ configurations.create("binaryTestResultsElements") {
     isCanBeResolved = false
     isCanBeConsumed = true
     attributes {
-        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.DOCUMENTATION))
-        attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named("test-report-data"))
+        attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>(Category.DOCUMENTATION))
+        attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named<DocsType>("test-report-data"))
     }
     outgoing.artifact(tasks.test.map { task -> task.getBinaryResultsDirectory().get() })
 }
