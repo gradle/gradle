@@ -215,7 +215,6 @@ class DefaultConfigurationPublicationsTest extends Specification {
             mockArtifact.getName() >> ((DefaultFileSystemLocation) args[0]).getAsFile().getName()
             return mockArtifact
         }
-        publications.setObjectFactory(TestUtil.objectFactory())
         SetProperty<FileSystemLocation> prop = new DefaultSetProperty<>(Mock(PropertyHost), FileSystemLocation)
 
         when:

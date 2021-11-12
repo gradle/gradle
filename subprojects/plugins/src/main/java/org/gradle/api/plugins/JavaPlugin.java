@@ -36,7 +36,6 @@ import org.gradle.api.attributes.Usage;
 import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.SoftwareComponentFactory;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationPublications;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.component.BuildableJavaComponent;
@@ -449,9 +448,6 @@ public class JavaPlugin implements Plugin<Project> {
             attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.SOURCES));
             attributes.attribute(Sources.SOURCES_ATTRIBUTE, objects.named(Sources.class, Sources.ALL_SOURCE_DIRS));
         });
-
-        // TODO: 18791 - This is a hack until we have a proper way of injecting ObjectFactory
-        ((DefaultConfigurationPublications) variant.getOutgoing()).setObjectFactory(objects);
 
         variant.getOutgoing().artifacts(main.getAllSource().getSourceDirectories().getElements().flatMap(e -> project.provider(() -> e)), artifact -> {
             artifact.setType(ArtifactTypeDefinition.DIRECTORY_TYPE);

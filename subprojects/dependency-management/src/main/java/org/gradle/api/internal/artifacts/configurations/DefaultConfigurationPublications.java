@@ -35,9 +35,7 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.provider.SetProperty;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
@@ -60,7 +58,6 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
     private final FileCollectionFactory fileCollectionFactory;
     private final ImmutableAttributesFactory attributesFactory;
     private final DomainObjectCollectionFactory domainObjectCollectionFactory;
-    private ObjectFactory objectFactory;
     private NamedDomainObjectContainer<ConfigurationVariant> variants;
     private ConfigurationVariantFactory variantFactory;
     private List<Capability> capabilities;
@@ -86,12 +83,7 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
         this.fileCollectionFactory = fileCollectionFactory;
         this.attributesFactory = attributesFactory;
         this.domainObjectCollectionFactory = domainObjectCollectionFactory;
-        this.objectFactory = objectFactory;
         this.attributes = attributesFactory.mutable(parentAttributes);
-    }
-
-    public void setObjectFactory(ObjectFactory objectFactory) {
-        this.objectFactory = objectFactory;
     }
 
     public void collectVariants(ConfigurationInternal.VariantVisitor visitor) {
@@ -174,21 +166,17 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
 
     @Override
     public void artifacts(Provider<? extends Iterable<? extends Object>> provider) {
-        SetProperty<PublishArtifact> sources = objectFactory.setProperty(PublishArtifact.class);
-        sources.addAll(provider.map(iterable -> {
-            List<ConfigurablePublishArtifact> results = new ArrayList<>();
+        artifacts.addAllLater(provider.map(iterable -> {
+            List<PublishArtifact> results = new ArrayList<>();
             iterable.forEach(notation -> results.add(artifactNotationParser.parseNotation(notation)));
             return results;
         }));
-
-        artifacts.addAllLater(sources);
     }
 
     @Override
     public void artifacts(Provider<? extends Iterable<? extends Object>> provider, Action<? super ConfigurablePublishArtifact> configureAction) {
-        SetProperty<PublishArtifact> sources = objectFactory.setProperty(PublishArtifact.class);
-        sources.addAll(provider.map(iterable -> {
-            List<ConfigurablePublishArtifact> results = new ArrayList<>();
+        artifacts.addAllLater(provider.map(iterable -> {
+            List<PublishArtifact> results = new ArrayList<>();
             iterable.forEach(notation -> {
                 ConfigurablePublishArtifact artifact = artifactNotationParser.parseNotation(notation);
                 configureAction.execute(artifact);
@@ -196,8 +184,6 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
             });
             return results;
         }));
-
-        artifacts.addAllLater(sources);
     }
 
     @Override
