@@ -43,6 +43,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         buildFile << """
             task echo {
               inputs.files "marker"
+              outputs.files "build/marker"
               doLast {
                 println "value: " + file("marker").text
               }
@@ -73,6 +74,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         buildFile << """
             task echo {
               inputs.files "marker"
+              outputs.files "build/marker"
               doLast {
                 println "value: " + file("marker").text
               }
@@ -96,12 +98,15 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
     def "can recover from build failure"() {
         given:
         def markerFile = file("marker")
+        file("inputFile").createFile()
 
         when:
         buildFile << """
             task build {
               def f = file("marker")
               inputs.files f
+              inputs.files "inputFile"
+              outputs.files "build/marker"
               doLast {
                 if (f.file) {
                   println "value: " + f.text
@@ -143,10 +148,12 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         buildFile << """
             task a {
               inputs.file "a"
+              outputs.files "build/marker"
               doLast {}
             }
             task b {
               inputs.file "b"
+              outputs.files "build/marker"
               doLast {}
             }
         """
@@ -221,6 +228,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         buildFile << """
             task echo {
               inputs.files file("marker")
+              outputs.files "build/marker"
               doLast {
                 println "value: " + file("marker").text
                 println "reuse: " + Reuse.initialized
@@ -268,6 +276,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         buildScript """
             task a {
                 inputs.files files({ throw new Exception("boom") })
+                outputs.files "build/marker"
                 doLast {}
             }
         """
@@ -282,10 +291,12 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         buildScript """
             task a {
                 inputs.files file("inputA")
+                outputs.files "build/outputA"
                 doLast {}
             }
             task b {
                 inputs.files files({ throw new Exception("boom") })
+                outputs.files "build/outputB"
                 dependsOn a
                 doLast {}
             }
@@ -300,9 +311,11 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
     def "failure to determine inputs cancels build and has a reasonable message after initial success"() {
         when:
         def bFlag = file("bFlag")
+        file("inputA").createFile()
         buildScript """
             task a {
                 inputs.files file("inputA")
+                outputs.files "build/outputA"
                 doLast {}
             }
             task b {
@@ -314,6 +327,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
 
                     throw new Exception("boom")
                 })
+                outputs.files "build/outputB"
                 dependsOn a
 
                 doLast { }
@@ -332,10 +346,14 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
 
     def "ignores non source when source is empty"() {
         when:
+        file("source").createDir()
         buildScript """
             task build {
-              inputs.files(fileTree("source")).skipWhenEmpty()
+              inputs.files(fileTree("source"))
+                .skipWhenEmpty()
+                .ignoreEmptyDirectories()
               inputs.files fileTree("ancillary")
+              outputs.files "build/output"
               doLast {}
             }
         """
@@ -381,6 +399,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         task a {
             dependsOn before
             inputs.dir projectDir
+            outputs.files "build/output"
             doLast {}
         }
         """
@@ -417,7 +436,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
     def "exit hint does not mention enter when not on windows"() {
         when:
         file("a").touch()
-        buildScript "task a { inputs.file 'a'; doLast {} }"
+        buildScript "task a { inputs.file 'a'; outputs.file 'b'; doLast {} }"
 
         then:
         succeeds "a"
@@ -443,12 +462,14 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         buildFile << """
         task inner {
             inputs.file "src/topLevel.txt"
+            outputs.file "build/inner.txt"
             doLast {}
         }
 
         task outer {
             dependsOn inner
             inputs.dir "src"
+            outputs.file "build/outer.txt"
             doLast {}
         }
         """
