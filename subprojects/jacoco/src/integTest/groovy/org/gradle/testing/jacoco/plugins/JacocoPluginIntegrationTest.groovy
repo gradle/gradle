@@ -147,6 +147,8 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
 
     @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
     def "jacoco plugin adds outgoing variants for default test suite"() {
+        settingsFile << "rootProject.name = 'Test'"
+
         expect:
         succeeds "outgoingVariants"
 
@@ -155,7 +157,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
             Variant coverageDataElementsForTest
             --------------------------------------------------
             Capabilities
-                - :${getTestDirectory().getName()}:unspecified (default capability)
+                - :Test:unspecified (default capability)
             Attributes
                 - org.gradle.category      = documentation
                 - org.gradle.docstype      = jacoco-coverage-bin
@@ -170,6 +172,8 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
 
     @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
     def "jacoco plugin adds outgoing variants for custom test suite"() {
+        settingsFile << "rootProject.name = 'Test'"
+
         buildFile << """
             testing {
                 suites {
@@ -192,7 +196,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
             Variant coverageDataElementsForIntegrationTest
             --------------------------------------------------
             Capabilities
-                - :${getTestDirectory().getName()}:unspecified (default capability)
+                - :Test:unspecified (default capability)
             Attributes
                 - org.gradle.category      = documentation
                 - org.gradle.docstype      = jacoco-coverage-bin
