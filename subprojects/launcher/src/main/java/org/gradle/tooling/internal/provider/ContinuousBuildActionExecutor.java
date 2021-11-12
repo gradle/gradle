@@ -217,10 +217,10 @@ public class ContinuousBuildActionExecutor implements BuildSessionActionExecutor
             }
             try {
                 cancellationToken.addCallback(cancellationHandler);
+                notifier.run();
                 String pendingChange = pendingChanges.take();
                 LOGGER.info("Received pending change: {}", pendingChange);
                 eventListener.onChange(FileWatcherEvent.modify(new File(pendingChange)));
-                notifier.run();
                 if (!cancellationToken.isCancellationRequested()) {
                     continuousExecutionGate.waitForOpen();
                 }
