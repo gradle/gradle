@@ -79,7 +79,6 @@ import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.TwoStageModuleVersionsCache;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.LocalComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultLocalComponentRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectLocalComponentProvider;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectPublicationRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentProvider;
@@ -124,7 +123,6 @@ import org.gradle.api.internal.notations.ClientModuleNotationParserFactory;
 import org.gradle.api.internal.notations.DependencyConstraintNotationParser;
 import org.gradle.api.internal.notations.DependencyNotationParser;
 import org.gradle.api.internal.notations.ProjectDependencyFactory;
-import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.api.internal.resources.ApiTextResourceAdapter;
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
@@ -625,16 +623,10 @@ class DependencyManagementBuildScopeServices {
         return new DefaultProjectPublicationRegistry();
     }
 
-    LocalComponentProvider createProjectComponentProvider(ProjectStateRegistry projectStateRegistry,
-                                                          LocalComponentMetadataBuilder metaDataBuilder,
+    LocalComponentProvider createProjectComponentProvider(LocalComponentMetadataBuilder metaDataBuilder,
                                                           ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-                                                          BuildState currentBuild,
-                                                          CalculatedValueContainerFactory calculatedValueContainerFactory) {
-        return new DefaultProjectLocalComponentProvider(projectStateRegistry, metaDataBuilder, moduleIdentifierFactory, currentBuild.getBuildIdentifier(), calculatedValueContainerFactory);
-    }
-
-    LocalComponentRegistry createLocalComponentRegistry(List<LocalComponentProvider> providers) {
-        return new DefaultLocalComponentRegistry(providers);
+                                                          BuildState currentBuild) {
+        return new DefaultProjectLocalComponentProvider(metaDataBuilder, moduleIdentifierFactory, currentBuild.getBuildIdentifier());
     }
 
     ComponentSelectorConverter createModuleVersionSelectorFactory(ComponentIdentifierFactory componentIdentifierFactory, LocalComponentRegistry localComponentRegistry) {

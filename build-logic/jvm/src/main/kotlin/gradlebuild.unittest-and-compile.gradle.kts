@@ -220,6 +220,8 @@ fun Test.configureRerun() {
     }
 }
 
+fun Test.determineMaxRetry() = if (project.name in listOf("smoke-test", "performance", "build-scan-performance")) 1 else 2
+
 fun configureTests() {
     normalization {
         runtimeClasspath {
@@ -242,7 +244,7 @@ fun configureTests() {
         if (BuildEnvironment.isCiServer) {
             configureRerun()
             retry {
-                maxRetries.convention(1)
+                maxRetries.convention(determineMaxRetry())
                 maxFailures.set(10)
             }
             doFirst {
@@ -308,11 +310,7 @@ val Project.maxTestDistributionPartitionSecond: Long?
     get() = providers.systemProperty("testDistributionPartitionSizeInSeconds").orNull?.toLong()
 
 val Project.maxParallelForks: Int
-    get() = if (BuildEnvironment.isEc2Agent) {
-        4
-    } else {
-        findProperty("maxParallelForks")?.toString()?.toInt() ?: 4
-    }
+    get() = (findProperty("maxParallelForks")?.toString()?.toInt() ?: 4) * (if (System.getenv("BUILD_AGENT_VARIANT") == "AX41") 2 else 1)
 
 /**
  * Test lifecycle tasks that correspond to CIBuildModel.TestType (see .teamcity/Gradle_Check/model/CIBuildModel.kt).

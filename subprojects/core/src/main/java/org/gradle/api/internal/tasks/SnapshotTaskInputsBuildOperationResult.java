@@ -247,6 +247,9 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
 
         private void visitUnvisitedDirectories() {
             DirectorySnapshot unvisited = unvisitedDirectories.poll();
+            String previousPath = this.path;
+            String previousName = this.name;
+            HashCode previousHash = this.hash;
             while (unvisited != null) {
                 this.path = unvisited.getAbsolutePath();
                 this.name = unvisited.getName();
@@ -254,6 +257,9 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
                 visitor.preDirectory(this);
                 unvisited = unvisitedDirectories.poll();
             }
+            this.path = previousPath;
+            this.name = previousName;
+            this.hash = previousHash;
         }
     }
 

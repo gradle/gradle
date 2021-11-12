@@ -413,6 +413,7 @@ class PerformanceTestExtension(
             testClassesDirs = performanceSourceSet.output.classesDirs
             classpath = performanceSourceSet.runtimeClasspath
 
+            usesService(buildService)
             performanceTestService.set(buildService)
 
             testProjectName.set(generatorTask.name)

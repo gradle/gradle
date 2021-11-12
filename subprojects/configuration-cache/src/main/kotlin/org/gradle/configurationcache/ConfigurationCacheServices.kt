@@ -16,16 +16,11 @@
 
 package org.gradle.configurationcache
 
-import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.CrossProjectModelAccess
 import org.gradle.api.internal.project.DefaultCrossProjectModelAccess
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectRegistry
-import org.gradle.configuration.ProjectsPreparer
 import org.gradle.configuration.internal.UserCodeApplicationContext
-import org.gradle.configurationcache.build.ConfigurationCacheIncludedBuildState
-import org.gradle.configurationcache.build.NoOpBuildModelController
-import org.gradle.configurationcache.extensions.get
 import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprintController
 import org.gradle.configurationcache.initialization.ConfigurationCacheBuildEnablement
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
@@ -35,16 +30,8 @@ import org.gradle.configurationcache.problems.ConfigurationCacheProblems
 import org.gradle.configurationcache.problems.ConfigurationCacheReport
 import org.gradle.configurationcache.problems.ProblemsListener
 import org.gradle.configurationcache.serialization.beans.BeanConstructors
-import org.gradle.execution.DefaultTaskSchedulingPreparer
-import org.gradle.execution.ExcludedTaskFilteringProjectsPreparer
-import org.gradle.initialization.SettingsPreparer
-import org.gradle.initialization.TaskExecutionPreparer
-import org.gradle.initialization.VintageBuildModelController
-import org.gradle.internal.build.BuildModelController
-import org.gradle.internal.build.BuildState
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.event.ListenerManager
-import org.gradle.internal.model.StateTransitionControllerFactory
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry
 import org.gradle.internal.service.scopes.Scopes
@@ -74,13 +61,11 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
             add(ConfigurationCacheProblems::class.java)
             add(ConfigurationCacheClassLoaderScopeRegistryListener::class.java)
             add(DefaultConfigurationCacheProblemsListener::class.java)
-            add(DefaultBuildTreeLifecycleControllerFactory::class.java)
             add(DefaultBuildModelControllerServices::class.java)
             add(DefaultBuildToolingModelControllerFactory::class.java)
             add(ConfigurationCacheRepository::class.java)
             add(InstrumentedInputAccessListener::class.java)
             add(ConfigurationCacheFingerprintController::class.java)
-            add(DefaultConfigurationCache::class.java)
         }
     }
 
@@ -101,29 +86,6 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
     }
 
     class BuildScopeServicesProvider {
-        fun createBuildModelController(
-            build: BuildState,
-            gradle: GradleInternal,
-            startParameter: ConfigurationCacheStartParameter,
-            stateTransitionControllerFactory: StateTransitionControllerFactory
-        ): BuildModelController {
-            if (build is ConfigurationCacheIncludedBuildState) {
-                return NoOpBuildModelController(gradle)
-            }
-            val projectsPreparer: ProjectsPreparer = gradle.services.get()
-            val taskSchedulingPreparer = DefaultTaskSchedulingPreparer(ExcludedTaskFilteringProjectsPreparer(gradle.services.get()))
-            val settingsPreparer: SettingsPreparer = gradle.services.get()
-            val taskExecutionPreparer: TaskExecutionPreparer = gradle.services.get()
-            val vintageController = VintageBuildModelController(gradle, projectsPreparer, taskSchedulingPreparer, settingsPreparer, taskExecutionPreparer, stateTransitionControllerFactory)
-            return if (startParameter.isEnabled) {
-                // Only look this up if configuration caching is enabled, to avoid creating services
-                val configurationCache: BuildTreeConfigurationCache = gradle.services.get()
-                ConfigurationCacheAwareBuildModelController(gradle, vintageController, configurationCache)
-            } else {
-                vintageController
-            }
-        }
-
         fun createCrossProjectModelAccess(
             projectRegistry: ProjectRegistry<ProjectInternal>,
             modelParameters: BuildModelParameters,

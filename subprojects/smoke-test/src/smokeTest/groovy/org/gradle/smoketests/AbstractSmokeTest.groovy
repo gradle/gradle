@@ -331,6 +331,48 @@ abstract class AbstractSmokeTest extends Specification {
             "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#empty_directories_file_tree"
     }
 
+    protected static SmokeTestGradleRunner expectAgpFileTreeDeprecations(String agpVersion, SmokeTestGradleRunner runner) {
+        expectAgpFileTreeDeprecationWarnings(runner, "compileDebugAidl", "compileDebugRenderscript", "stripDebugDebugSymbols", "bundleLibResDebug")
+        if (agpVersion.startsWith("4.")) {
+            expectAgpFileTreeDeprecationWarnings(runner, "mergeDebugNativeLibs")
+        }
+        return runner
+    }
+
+    protected static void expectAgpFileTreeDeprecationWarnings(SmokeTestGradleRunner runner, String... tasks) {
+        tasks.each {
+            TASK_TO_FILE_TREE_PROPERTY_WARNING[it].addToRunner(runner)
+        }
+    }
+
+    private static final Map<String, FileTreeDeprecation> TASK_TO_FILE_TREE_PROPERTY_WARNING = [
+        "compileDebugAidl": fileTreeDeprecation("sourceFiles", "https://issuetracker.google.com/issues/205285261"),
+        "compileDebugRenderscript": fileTreeDeprecation("sourceDirs", "https://issuetracker.google.com/issues/205285261"),
+        "stripDebugDebugSymbols": fileTreeDeprecation("inputFiles", "https://issuetracker.google.com/issues/205285261"),
+        "bundleLibResDebug": fileTreeDeprecation("resources", "https://issuetracker.google.com/issues/204425803"),
+        "mergeDebugNativeLibs": legacyFileTreeDeprecation("projectNativeLibs"),
+    ]
+
+    static interface FileTreeDeprecation {
+        void addToRunner(SmokeTestGradleRunner runner)
+    }
+
+    private static FileTreeDeprecation legacyFileTreeDeprecation(String propertyName) {
+        return new FileTreeDeprecation() {
+            void addToRunner(SmokeTestGradleRunner runner) {
+                runner.expectLegacyDeprecationWarning(deprecationOfFileTreeForEmptySources(propertyName))
+            }
+        }
+    }
+
+    private static FileTreeDeprecation fileTreeDeprecation(String propertyName, String followup) {
+        return new FileTreeDeprecation() {
+            void addToRunner(SmokeTestGradleRunner runner) {
+                runner.expectDeprecationWarning(deprecationOfFileTreeForEmptySources(propertyName), followup)
+            }
+        }
+    }
+
     protected void replaceVariablesInBuildFile(Map binding) {
         replaceVariablesInFile(binding, buildFile)
     }
