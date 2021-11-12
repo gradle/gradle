@@ -196,7 +196,7 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
         if (!Objects.equals(parent, that.parent)) {
             return false;
         }
-        if (!Objects.equals(lazyAttributes, that.lazyAttributes)) {
+        if (!Objects.equals(evaluateLazyValues(), that.evaluateLazyValues())) {
             return false;
         }
 

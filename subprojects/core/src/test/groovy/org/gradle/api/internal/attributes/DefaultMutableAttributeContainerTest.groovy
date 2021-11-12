@@ -87,4 +87,20 @@ class DefaultMutableAttributeContainerTest extends Specification {
         then:
         "child" == child.getAttribute(testAttr)
     }
+
+    def "equals should return true for 2 containers with different provider instances that return the same value"() {
+        Property<Integer> testProperty1 = new DefaultProperty<>(Mock(PropertyHost), String).convention("value")
+        Property<Integer> testProperty2 = new DefaultProperty<>(Mock(PropertyHost), String).convention("value")
+        def testAttribute = Attribute.of("test", String)
+        def container1 = new DefaultMutableAttributeContainer(attributesFactory)
+        def container2 = new DefaultMutableAttributeContainer(attributesFactory)
+
+        when:
+        container1.attribute(testAttribute, testProperty1)
+        container2.attribute(testAttribute, testProperty2)
+
+        then:
+        container1 == container2
+        container2 == container1
+    }
 }
