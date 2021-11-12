@@ -25,6 +25,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -156,17 +157,17 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
 
     @Override
     public ImmutableAttributes asImmutable() {
+        if (!lazyAttributes.isEmpty()) {
+            lazyAttributes.forEach((key, value) -> attribute(Cast.uncheckedNonnullCast(key), (Object) value.get()));
+            lazyAttributes.clear();
+        }
+
         if (parent == null) {
-            if (lazyAttributes.isEmpty()) {
-                // There is a recursive call relationship between this method and evaluateLazyAttributes(), this check is the base case
-                return state;
-            } else {
-                return immutableAttributesFactory.concat(state, evaluateLazyValues());
-            }
+            return state;
         } else {
             ImmutableAttributes attributes = parent.asImmutable();
             if (!state.isEmpty()) {
-                attributes = immutableAttributesFactory.concat(immutableAttributesFactory.concat(attributes, state), evaluateLazyValues());
+                attributes = immutableAttributesFactory.concat(attributes, state);
             }
             return attributes;
         }
@@ -196,7 +197,7 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
         if (!Objects.equals(parent, that.parent)) {
             return false;
         }
-        if (!Objects.equals(evaluateLazyValues(), that.evaluateLazyValues())) {
+        if (!Objects.equals(asImmutable(), that.asImmutable())) {
             return false;
         }
 
@@ -207,16 +208,7 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
     public int hashCode() {
         int result = parent != null ? parent.hashCode() : 0;
         result = 31 * result + state.hashCode();
-        result = 31 * result + lazyAttributes.hashCode();
+        result = 31 * result + asImmutable().hashCode();
         return result;
-    }
-
-    private ImmutableAttributes evaluateLazyValues() {
-        final AttributeContainerInternal evaluatedAttributes = immutableAttributesFactory.mutable();
-        lazyAttributes.forEach((key, value) -> {
-            @SuppressWarnings("unchecked") Attribute<Object> attribute = (Attribute<Object>) key;
-            evaluatedAttributes.attribute(attribute, value.get());
-        });
-        return evaluatedAttributes.asImmutable();
     }
 }

@@ -103,4 +103,50 @@ class DefaultMutableAttributeContainerTest extends Specification {
         container1 == container2
         container2 == container1
     }
+
+    def "equals should return false for 2 containers with different provider instances that return different values"() {
+        Property<Integer> testProperty1 = new DefaultProperty<>(Mock(PropertyHost), String).convention("value1")
+        Property<Integer> testProperty2 = new DefaultProperty<>(Mock(PropertyHost), String).convention("value2")
+        def testAttribute = Attribute.of("test", String)
+        def container1 = new DefaultMutableAttributeContainer(attributesFactory)
+        def container2 = new DefaultMutableAttributeContainer(attributesFactory)
+
+        when:
+        container1.attribute(testAttribute, testProperty1)
+        container2.attribute(testAttribute, testProperty2)
+
+        then:
+        container1 != container2
+        container2 != container1
+    }
+
+    def "hashCode should return the same result for 2 containers with different provider instances that return the same value"() {
+        Property<Integer> testProperty1 = new DefaultProperty<>(Mock(PropertyHost), String).convention("value")
+        Property<Integer> testProperty2 = new DefaultProperty<>(Mock(PropertyHost), String).convention("value")
+        def testAttribute = Attribute.of("test", String)
+        def container1 = new DefaultMutableAttributeContainer(attributesFactory)
+        def container2 = new DefaultMutableAttributeContainer(attributesFactory)
+
+        when:
+        container1.attribute(testAttribute, testProperty1)
+        container2.attribute(testAttribute, testProperty2)
+
+        then:
+        container1.hashCode() == container2.hashCode()
+    }
+
+    def "hashCode should return different result for 2 containers with different provider instances that return different values"() {
+        Property<Integer> testProperty1 = new DefaultProperty<>(Mock(PropertyHost), String).convention("value1")
+        Property<Integer> testProperty2 = new DefaultProperty<>(Mock(PropertyHost), String).convention("value2")
+        def testAttribute = Attribute.of("test", String)
+        def container1 = new DefaultMutableAttributeContainer(attributesFactory)
+        def container2 = new DefaultMutableAttributeContainer(attributesFactory)
+
+        when:
+        container1.attribute(testAttribute, testProperty1)
+        container2.attribute(testAttribute, testProperty2)
+
+        then:
+        container1.hashCode() != container2.hashCode()
+    }
 }
