@@ -34,8 +34,6 @@ import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.filewatch.DefaultFileWatcherEventListener;
-import org.gradle.internal.filewatch.FileWatcherEventListener;
 import org.gradle.internal.filewatch.PendingChangesListener;
 import org.gradle.internal.filewatch.SingleFirePendingChangesListener;
 import org.gradle.internal.invocation.BuildAction;
@@ -152,13 +150,11 @@ public class ContinuousBuildActionExecutor implements BuildSessionActionExecutor
                         return lastResult;
                     } else {
                         cancellableOperationManager.monitorInput(operationToken -> {
-                            FileWatcherEventListener reporter = new DefaultFileWatcherEventListener();
                             fileSystemChangeListener.wait(
-                                () -> logger.println().println("Waiting for changes to input files of tasks..." + determineExitHint(requestContext)),
-                                reporter
+                                () -> logger.println().println("Waiting for changes to input files of tasks..." + determineExitHint(requestContext))
                             );
                             if (!operationToken.isCancellationRequested()) {
-                                reporter.reportChanges(logger);
+                                fileSystemChangeListener.reportChanges(logger);
                             }
                         });
                     }
