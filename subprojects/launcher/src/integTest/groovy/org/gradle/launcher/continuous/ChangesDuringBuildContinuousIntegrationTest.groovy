@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.test.fixtures.Flaky
 import org.gradle.util.TestPrecondition
 import spock.lang.Retry
 
@@ -83,7 +82,6 @@ jar.dependsOn postCompile
         assert classloader.loadClass('Thing').getDeclaredFields()*.name == ["CHANGED"]
     }
 
-    @Flaky(because = "https://github.com/gradle/gradle-private/issues/3460")
     @UnsupportedWithConfigurationCache(because = "taskGraph.afterTask")
     def "new build should be triggered when input files to tasks are changed after each task has been executed, but before the build has completed"(changingInput) {
         given:
@@ -132,7 +130,6 @@ jar.dependsOn postCompile
         changingInput << ['a', 'b', 'c', 'd']
     }
 
-    @Flaky(because = "https://github.com/gradle/gradle-private/issues/3460")
     def "new build should be triggered when input files to tasks are changed during the task is executing"(changingInput) {
         given:
         ['a', 'b', 'c', 'd'].each { file(it).createDir() }
@@ -151,21 +148,25 @@ jar.dependsOn postCompile
 
             task a {
               inputs.dir "a"
+              outputs.file "build/a"
               doLast taskAction
             }
             task b {
               dependsOn "a"
               inputs.dir "b"
+              outputs.file "build/b"
               doLast taskAction
             }
             task c {
               dependsOn "b"
               inputs.dir "c"
+              outputs.file "build/c"
               doLast taskAction
             }
             task d {
               dependsOn "c"
               inputs.dir "d"
+              outputs.file "build/d"
               doLast taskAction
             }
         """
@@ -190,16 +191,19 @@ jar.dependsOn postCompile
         buildFile << """
             task a {
               inputs.dir "a"
+              outputs.file "build/a"
               doLast {}
             }
             task b {
               dependsOn "a"
               inputs.dir "b"
+              outputs.file "build/b"
               doLast {}
             }
             task c {
               dependsOn "b"
               inputs.dir "c"
+              outputs.file "build/c"
               doLast {
                 throw new Exception("Failure in :c")
               }
@@ -207,6 +211,7 @@ jar.dependsOn postCompile
             task d {
               dependsOn "c"
               inputs.dir "d"
+              outputs.file "build/d"
               doLast {}
             }
         """
