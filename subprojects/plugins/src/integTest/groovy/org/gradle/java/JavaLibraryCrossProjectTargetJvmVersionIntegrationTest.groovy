@@ -71,7 +71,7 @@ class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractInt
       - Incompatible because this component declares a component compatible with Java 7 and the consumer needed a component compatible with Java 6
       - Other compatible attribute:
           - Doesn't say anything about its target Java environment (preferred optimized for standard JVMs)
-  - Variant 'testDataElementsForTest' capability test:producer:unspecified:
+  - Variant 'testResultsElementsForTest' capability test:producer:unspecified:
       - Incompatible because this component declares a usage of 'verification' of documentation and the consumer needed an API of a library
       - Other compatible attributes:
           - Doesn't say anything about how its dependencies are found (required its dependencies declared externally)
@@ -169,7 +169,7 @@ class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractInt
       - Incompatible because this component declares a component compatible with Java 7 and the consumer needed a component compatible with Java 6
       - Other compatible attribute:
           - Doesn't say anything about its target Java environment (preferred optimized for standard JVMs)
-  - Variant 'testDataElementsForTest' capability test:producer:unspecified:
+  - Variant 'testResultsElementsForTest' capability test:producer:unspecified:
       - Incompatible because this component declares a usage of 'verification' of documentation and the consumer needed an API of a library
       - Other compatible attributes:
           - Doesn't say anything about how its dependencies are found (required its dependencies declared externally)

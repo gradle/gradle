@@ -47,7 +47,7 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
         def resultsBinPath = new TestFile(getTestDirectory(), 'build/test-results/test/binary/results.bin').getRelativePathFromBase()
         outputContains("""
             --------------------------------------------------
-            Variant testDataElementsForTest
+            Variant testResultsElementsForTest
             --------------------------------------------------
             Capabilities
                 - :Test:unspecified (default capability)
@@ -93,7 +93,7 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
         def resultsBinPath = new TestFile(getTestDirectory(), 'build/test-results/integrationTest/binary/results.bin').getRelativePathFromBase()
         outputContains("""
             --------------------------------------------------
-            Variant testDataElementsForIntegrationTest
+            Variant testResultsElementsForIntegrationTest
             --------------------------------------------------
             Capabilities
                 - :Test:unspecified (default capability)

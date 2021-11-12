@@ -54,7 +54,7 @@ import org.gradle.testing.base.TestingExtension;
 @Incubating
 public class JvmTestSuitePlugin implements Plugin<Project> {
     public static final String DEFAULT_TEST_SUITE_NAME = SourceSet.TEST_SOURCE_SET_NAME;
-    private static final String TEST_DATA_ELEMENTS_VARIANT_PREFIX = "testDataElementsFor";
+    private static final String TEST_RESULTS_ELEMENTS_VARIANT_PREFIX = "testResultsElementsFor";
 
     @Override
     public void apply(Project project) {
@@ -103,7 +103,7 @@ public class JvmTestSuitePlugin implements Plugin<Project> {
     }
 
     private Configuration createTestDataVariant(Project project, JvmTestSuite suite, JvmTestSuiteTarget target) {
-        final Configuration variant = project.getConfigurations().create(TEST_DATA_ELEMENTS_VARIANT_PREFIX + StringUtils.capitalize(target.getName()));
+        final Configuration variant = project.getConfigurations().create(TEST_RESULTS_ELEMENTS_VARIANT_PREFIX + StringUtils.capitalize(target.getName()));
         variant.setVisible(false);
         variant.setCanBeResolved(false);
         variant.setCanBeConsumed(true);
