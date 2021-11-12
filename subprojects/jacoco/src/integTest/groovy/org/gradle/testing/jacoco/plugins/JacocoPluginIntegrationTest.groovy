@@ -240,7 +240,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
 
             def testResolve = tasks.register('testResolve') {
                 doLast {
-                    assert coverageDataConfig.getResolvedConfiguration().getFiles()*.getName() == [test.jacoco.destinationFile.name]
+                    assert coverageDataConfig.resolvedConfiguration.files*.name == [test.jacoco.destinationFile.name]
                 }
             }
             """.stripIndent()
