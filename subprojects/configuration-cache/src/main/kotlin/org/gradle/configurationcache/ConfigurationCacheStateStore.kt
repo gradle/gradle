@@ -18,8 +18,6 @@ package org.gradle.configurationcache
 
 import org.gradle.cache.internal.streams.ValueStore
 import java.io.File
-import java.io.InputStream
-import java.io.OutputStream
 
 
 internal
@@ -46,7 +44,7 @@ interface ConfigurationCacheStateStore {
      */
     fun <T> createValueStore(
         stateType: StateType,
-        writerFactory: (OutputStream) -> ValueStore.Writer<T>,
-        readerFactory: (InputStream) -> ValueStore.Reader<T>
+        writer: ValueStore.Writer<T>,
+        reader: ValueStore.Reader<T>
     ): ValueStore<T>
 }

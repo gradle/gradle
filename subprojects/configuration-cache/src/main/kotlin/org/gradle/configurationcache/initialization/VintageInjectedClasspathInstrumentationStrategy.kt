@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache.cacheentry
+package org.gradle.configurationcache.initialization
 
-import org.gradle.cache.internal.streams.BlockAddress
-import org.gradle.util.Path
-import java.io.File
+import org.gradle.internal.classpath.CachedClasspathTransformer
 
 
-/**
- * Data stored in the "entry details" file. Provides some metadata about the cache entry.
- */
-internal
-class EntryDetails(
-    val rootDirs: List<File>,
-    val intermediateModels: Map<ModelKey, BlockAddress>,
-    val projectMetadata: Map<Path, BlockAddress>
-)
+class VintageInjectedClasspathInstrumentationStrategy : AbstractInjectedClasspathInstrumentationStrategy() {
+    override fun whenAgentPresent(): CachedClasspathTransformer.StandardTransform {
+        // For now, disable the instrumentation
+        return CachedClasspathTransformer.StandardTransform.None
+    }
+}

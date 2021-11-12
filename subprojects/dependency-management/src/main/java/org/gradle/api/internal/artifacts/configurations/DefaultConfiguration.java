@@ -803,8 +803,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private void markReferencedProjectConfigurationsObserved(InternalState requestedState, ResolverResults results) {
         for (ResolvedProjectConfiguration projectResult : results.getResolvedLocalComponents().getResolvedProjectConfigurations()) {
             ProjectInternal project = projectStateRegistry.stateFor(projectResult.getId()).getMutableModel();
-            ConfigurationInternal targetConfig = (ConfigurationInternal) project.getConfigurations().getByName(projectResult.getTargetConfiguration());
-            targetConfig.markAsObserved(requestedState);
+            ConfigurationInternal targetConfig = (ConfigurationInternal) project.getConfigurations().findByName(projectResult.getTargetConfiguration());
+            if (targetConfig != null) {
+                // Can be null when dependency metadata for target project has been loaded from cache
+                targetConfig.markAsObserved(requestedState);
+            }
         }
     }
 
