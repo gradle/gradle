@@ -20,6 +20,7 @@ import org.gradle.api.Project
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testing.jacoco.plugins.fixtures.JacocoReportFixture
 import org.gradle.testing.jacoco.plugins.fixtures.JavaProjectUnderTest
 
@@ -152,6 +153,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         expect:
         succeeds "outgoingVariants"
 
+        def resultsExecPath = new TestFile(getTestDirectory(), 'build/jacoco/test.exec').getRelativePathFromBase()
         outputContains("""
             --------------------------------------------------
             Variant coverageDataElementsForTest
@@ -167,7 +169,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
                 - org.gradle.usage         = verification
 
             Artifacts
-                - build${File.separator}jacoco${File.separator}test.exec (artifactType = binary)""".stripIndent())
+                - $resultsExecPath (artifactType = binary)""".stripIndent())
     }
 
     @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
@@ -191,6 +193,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         expect:
         succeeds "outgoingVariants"
 
+        def resultsExecPath = new TestFile(getTestDirectory(), 'build/jacoco/integrationTest.exec').getRelativePathFromBase()
         outputContains("""
             --------------------------------------------------
             Variant coverageDataElementsForIntegrationTest
@@ -206,7 +209,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
                 - org.gradle.usage         = verification
 
             Artifacts
-                - build${File.separator}jacoco${File.separator}integrationTest.exec (artifactType = binary)""".stripIndent())
+                - $resultsExecPath (artifactType = binary)""".stripIndent())
     }
 
     def "Jacoco coverage data can be consumed by another task via Dependency Management"() {

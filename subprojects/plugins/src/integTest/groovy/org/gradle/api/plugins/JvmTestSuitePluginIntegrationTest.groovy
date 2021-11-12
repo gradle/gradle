@@ -18,6 +18,7 @@ package org.gradle.api.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.test.fixtures.file.TestFile
 
 class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
 
@@ -43,6 +44,7 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
         expect:
         succeeds "outgoingVariants"
 
+        def resultsBinPath = new TestFile(getTestDirectory(), 'build/test-results/test/binary/results.bin').getRelativePathFromBase()
         outputContains("""
             --------------------------------------------------
             Variant testDataElementsForTest
@@ -58,7 +60,7 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
                 - org.gradle.usage         = verification
 
             Artifacts
-                - build${File.separator}test-results${File.separator}test${File.separator}binary${File.separator}results.bin (artifactType = binary)
+                - $resultsBinPath (artifactType = binary)
             """.stripIndent())
     }
 
@@ -88,6 +90,7 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
         expect:
         succeeds "outgoingVariants"
 
+        def resultsBinPath = new TestFile(getTestDirectory(), 'build/test-results/integrationTest/binary/results.bin').getRelativePathFromBase()
         outputContains("""
             --------------------------------------------------
             Variant testDataElementsForIntegrationTest
@@ -103,7 +106,7 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
                 - org.gradle.usage         = verification
 
             Artifacts
-                - build${File.separator}test-results${File.separator}integrationTest${File.separator}binary${File.separator}results.bin (artifactType = binary)
+                - $resultsBinPath (artifactType = binary)
             """.stripIndent())
     }
 
@@ -374,5 +377,9 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
             """
         expect:
         succeeds('testResolve')
+    }
+
+    private String systemFilePath(String path) {
+        return path.replace('/', File.separator)
     }
 }
