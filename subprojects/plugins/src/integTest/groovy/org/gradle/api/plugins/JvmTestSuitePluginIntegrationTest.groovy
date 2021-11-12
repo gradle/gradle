@@ -168,7 +168,6 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
         succeeds('testResolve')
     }
 
-    @ToBeFixedForConfigurationCache(because = "task references another task")
     def "Test results data can be consumed by another task in a different project via Dependency Management"() {
         def subADir = createDir("subA")
         subADir.file("build.gradle") << """
@@ -261,9 +260,10 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
             }
 
             def testResolve = tasks.register('testResolve') {
+                def expectedResultsFiles = [file("subA/build/test-results/test/binary/results.bin"),
+                                            file("subB/build/test-results/test/binary/results.bin")]
                 doLast {
-                    assert testDataConfig.getResolvedConfiguration().getFiles().containsAll([project(':subA').tasks["test"].binaryResultsDirectory.file("results.bin").get().getAsFile(),
-                                                                                             project(':subB').tasks["test"].binaryResultsDirectory.file("results.bin").get().getAsFile()])
+                    assert testDataConfig.getResolvedConfiguration().getFiles().containsAll(expectedResultsFiles)
                 }
             }
 
