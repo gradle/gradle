@@ -64,7 +64,7 @@ public interface ConfigurationPublications extends HasConfigurableAttributes<Con
     void artifacts(Provider<? extends Iterable<? extends Object>> provider);
 
     /**
-     * Lazily adds a collection of outgoing artifacts to this configuration, configuring it using the given action. These artifacts are included in all variants.
+     * Lazily adds a collection of outgoing artifacts to this configuration, configuring each artifact using the given action. These artifacts are included in all variants.
      *
      * @param provider The provider of the artifacts to add.
      * @since 7.4
