@@ -51,6 +51,7 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
         ((FileCollectionInternal) fileCollection).visitStructure(visitor);
         FileSystemSnapshot snapshot = CompositeFileSystemSnapshot.of(visitor.getRoots());
         boolean fileTreeOnly = visitor.isFileTreeOnly();
+        boolean containsArchiveTrees = visitor.containsArchiveTrees();
         return new Result() {
             @Override
             public FileSystemSnapshot getSnapshot() {
@@ -61,12 +62,18 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
             public boolean isFileTreeOnly() {
                 return fileTreeOnly;
             }
+
+            @Override
+            public boolean containsArchiveTrees() {
+                return containsArchiveTrees;
+            }
         };
     }
 
     private class SnapshottingVisitor implements FileCollectionStructureVisitor {
         private final List<FileSystemSnapshot> roots = new ArrayList<>();
         private Boolean fileTreeOnly;
+        private boolean containsArchiveTrees;
 
         @Override
         public void visitCollection(FileCollectionInternal.Source source, Iterable<File> contents) {
@@ -102,6 +109,7 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
         public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
             fileSystemAccess.read(file.getAbsolutePath(), roots::add);
             fileTreeOnly = false;
+            containsArchiveTrees = true;
         }
 
         public List<FileSystemSnapshot> getRoots() {
@@ -110,6 +118,10 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
 
         public boolean isFileTreeOnly() {
             return fileTreeOnly != null && fileTreeOnly;
+        }
+
+        public boolean containsArchiveTrees() {
+            return containsArchiveTrees;
         }
     }
 }

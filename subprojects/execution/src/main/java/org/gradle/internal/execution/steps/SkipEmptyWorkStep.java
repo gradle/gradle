@@ -17,6 +17,7 @@
 package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Try;
@@ -47,6 +48,7 @@ import java.io.UncheckedIOException;
 import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 public class SkipEmptyWorkStep implements Step<PreviousExecutionContext, CachingResult> {
@@ -74,8 +76,7 @@ public class SkipEmptyWorkStep implements Step<PreviousExecutionContext, Caching
 
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> sourceFileProperties = newInputs.getFileFingerprints();
         if (!sourceFileProperties.isEmpty()) {
-            if (sourceFileProperties.values().stream()
-                .allMatch(CurrentFileCollectionFingerprint::isEmpty)
+            if (hasEmptySources(sourceFileProperties, newInputs.getPropertiesRequiringIsEmptyCheck(), work)
             ) {
                 return skipExecutionWithEmptySources(work, context);
             } else {
@@ -84,6 +85,32 @@ public class SkipEmptyWorkStep implements Step<PreviousExecutionContext, Caching
         } else {
             return executeWithNoEmptySources(work, context);
         }
+    }
+
+    private boolean hasEmptySources(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> sourceFileProperties, ImmutableSet<String> propertiesRequiringIsEmptyCheck, UnitOfWork work) {
+        if (propertiesRequiringIsEmptyCheck.isEmpty()) {
+            return sourceFileProperties.values().stream()
+                .allMatch(CurrentFileCollectionFingerprint::isEmpty);
+        } else {
+            // We need to check the underlying file collections for properties in propertiesRequiringIsEmptyCheck,
+            // since those are backed by files which may be empty archives.
+            // And being empty archives is not reflected in the fingerprint.
+            return hasEmptyFingerprints(sourceFileProperties, propertyName -> !propertiesRequiringIsEmptyCheck.contains(propertyName))
+                && hasEmptyInputFileCollections(work, propertiesRequiringIsEmptyCheck::contains);
+        }
+    }
+
+    private boolean hasEmptyFingerprints(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> sourceFileProperties, Predicate<String> propertyNameFilter) {
+        return sourceFileProperties.entrySet().stream()
+            .filter(entry -> propertyNameFilter.test(entry.getKey()))
+            .map(Map.Entry::getValue)
+            .allMatch(CurrentFileCollectionFingerprint::isEmpty);
+    }
+
+    private boolean hasEmptyInputFileCollections(UnitOfWork work, Predicate<String> propertyNameFilter) {
+        EmptyCheckingVisitor visitor = new EmptyCheckingVisitor(propertyNameFilter);
+        work.visitRegularInputs(visitor);
+        return visitor.isAllEmpty();
     }
 
     private InputFingerprinter.Result fingerprintPrimaryInputs(UnitOfWork work, PreviousExecutionContext context, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> knownFileFingerprints, ImmutableSortedMap<String, ValueSnapshot> knownValueSnapshots) {
@@ -233,5 +260,25 @@ public class SkipEmptyWorkStep implements Step<PreviousExecutionContext, Caching
             }
         }
         return outputsCleaner.getDidWork();
+    }
+
+    private static class EmptyCheckingVisitor implements InputFingerprinter.InputVisitor {
+        private final Predicate<String> propertyNameFilter;
+        private boolean allEmpty = true;
+
+        public EmptyCheckingVisitor(Predicate<String> propertyNameFilter) {
+            this.propertyNameFilter = propertyNameFilter;
+        }
+
+        @Override
+        public void visitInputFileProperty(String propertyName, InputFingerprinter.InputPropertyType type, InputFingerprinter.FileValueSupplier value) {
+            if (propertyNameFilter.test(propertyName)) {
+                allEmpty = allEmpty && value.getFiles().isEmpty();
+            }
+        }
+
+        public boolean isAllEmpty() {
+            return allEmpty;
+        }
     }
 }

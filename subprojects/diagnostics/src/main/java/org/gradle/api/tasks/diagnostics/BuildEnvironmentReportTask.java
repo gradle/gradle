@@ -20,12 +20,12 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.UntrackedTask;
 import org.gradle.api.tasks.diagnostics.internal.DependencyReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.ReportGenerator;
 import org.gradle.api.tasks.diagnostics.internal.dependencies.AsciiDependencyReportRenderer;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
-import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
 
@@ -42,16 +42,12 @@ import static java.util.Collections.singleton;
  *
  * @since 2.10
  */
-@DisableCachingByDefault(because = "Produces only non-cacheable console output")
+@UntrackedTask(because = "Produces only non-cacheable console output")
 public class BuildEnvironmentReportTask extends DefaultTask {
 
     public static final String TASK_NAME = "buildEnvironment";
 
     private DependencyReportRenderer renderer = new AsciiDependencyReportRenderer();
-
-    public BuildEnvironmentReportTask() {
-        getOutputs().upToDateWhen(element -> false);
-    }
 
     @Inject
     protected BuildClientMetaData getClientMetaData() {

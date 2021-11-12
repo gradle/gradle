@@ -145,8 +145,8 @@ class ConfigurationCacheRepository(
             return Files.createTempFile(baseDir.toPath(), stateType.fileBaseName, ".tmp").toFile()
         }
 
-        override fun <T> createValueStore(stateType: StateType, writerFactory: (OutputStream) -> ValueStore.Writer<T>, readerFactory: (InputStream) -> ValueStore.Reader<T>): ValueStore<T> {
-            return DefaultValueStore(baseDir, stateType.fileBaseName, writerFactory, readerFactory)
+        override fun <T> createValueStore(stateType: StateType, writer: ValueStore.Writer<T>, reader: ValueStore.Reader<T>): ValueStore<T> {
+            return DefaultValueStore(baseDir, stateType.fileBaseName, writer, reader)
         }
 
         override fun <T : Any> useForStateLoad(stateType: StateType, action: (ConfigurationCacheStateFile) -> T): T {
