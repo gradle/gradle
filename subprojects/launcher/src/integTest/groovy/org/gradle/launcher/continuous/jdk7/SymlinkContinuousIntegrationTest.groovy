@@ -36,6 +36,7 @@ class SymlinkContinuousIntegrationTest extends AbstractContinuousIntegrationTest
     task echo {
         def symlink = file("${symlink.toURI()}")
         inputs.files symlink
+        outputs.file "build/outputs"
         doLast {
             println "text: " + (symlink.exists() ? symlink.text:"missing")
         }
@@ -79,6 +80,7 @@ class SymlinkContinuousIntegrationTest extends AbstractContinuousIntegrationTest
     task echo {
         def symlink = files("${symlink.toURI()}")
         inputs.files symlink
+        outputs.files "build/output"
         doLast {
             println "isEmpty: " + symlink.isEmpty()
         }
