@@ -59,7 +59,7 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
     }
 
     def setup() {
-        _ * work.broadcastRelevantFileSystemInputs(_) >> { boolean hasEmptySources -> this.hasEmptySources = hasEmptySources }
+        _ * work.broadcastRelevantFileSystemInputs(_, _) >> { boolean hasEmptySources, fingerprints -> this.hasEmptySources = hasEmptySources }
         _ * work.inputFingerprinter >> inputFingerprinter
     }
 
