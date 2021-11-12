@@ -16,11 +16,9 @@
 
 package org.gradle.tooling.internal.provider;
 
-import com.google.common.collect.ImmutableMap;
 import org.gradle.api.execution.internal.FileChangeListener;
 import org.gradle.api.execution.internal.TaskInputsListener;
 import org.gradle.api.execution.internal.TaskInputsListeners;
-import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.deployment.internal.Deployment;
 import org.gradle.deployment.internal.DeploymentInternal;
@@ -32,18 +30,14 @@ import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.initialization.ContinuousExecutionGate;
 import org.gradle.initialization.DefaultContinuousExecutionGate;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.file.FileHierarchySet;
 import org.gradle.internal.filewatch.DefaultFileWatcherEventListener;
-import org.gradle.internal.filewatch.FileWatcherEvent;
 import org.gradle.internal.filewatch.FileWatcherEventListener;
 import org.gradle.internal.filewatch.PendingChangesListener;
 import org.gradle.internal.filewatch.SingleFirePendingChangesListener;
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
@@ -51,17 +45,9 @@ import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.session.BuildSessionActionExecutor;
 import org.gradle.internal.session.BuildSessionContext;
 import org.gradle.internal.time.Clock;
-import org.gradle.internal.watch.registry.FileWatcherRegistry;
-import org.gradle.internal.watch.registry.impl.Combiners;
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem;
 import org.gradle.util.internal.DisconnectableInputStream;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.nio.file.Path;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Supplier;
 
 public class ContinuousBuildActionExecutor implements BuildSessionActionExecutor {
@@ -193,72 +179,6 @@ public class ContinuousBuildActionExecutor implements BuildSessionActionExecutor
 
         logger.println("Build cancelled.");
         return lastResult;
-    }
-
-    public static class FileSystemChangeListener implements FileChangeListener, TaskInputsListener {
-        private static final Logger LOGGER = LoggerFactory.getLogger(FileSystemChangeListener.class);
-
-        private final PendingChangesListener pendingChangesListener;
-        private final BuildCancellationToken cancellationToken;
-        private final ContinuousExecutionGate continuousExecutionGate;
-        private final BlockingQueue<String> pendingChanges = new LinkedBlockingQueue<>(1);
-        private volatile FileHierarchySet inputs = FileHierarchySet.empty();
-
-        public FileSystemChangeListener(PendingChangesListener pendingChangesListener, BuildCancellationToken cancellationToken, ContinuousExecutionGate continuousExecutionGate) {
-            this.pendingChangesListener = pendingChangesListener;
-            this.cancellationToken = cancellationToken;
-            this.continuousExecutionGate = continuousExecutionGate;
-        }
-
-        public boolean hasAnyInputs() {
-            return inputs != FileHierarchySet.empty();
-        }
-
-        void wait(Runnable notifier, FileWatcherEventListener eventListener) {
-            Runnable cancellationHandler = () -> pendingChanges.offer("Build cancelled");
-            if (cancellationToken.isCancellationRequested()) {
-                return;
-            }
-            try {
-                cancellationToken.addCallback(cancellationHandler);
-                notifier.run();
-                String pendingChange = pendingChanges.take();
-                LOGGER.info("Received pending change: {}", pendingChange);
-                eventListener.onChange(FileWatcherEvent.modify(new File(pendingChange)));
-                if (!cancellationToken.isCancellationRequested()) {
-                    continuousExecutionGate.waitForOpen();
-                }
-            } catch (InterruptedException e) {
-                throw UncheckedException.throwAsUncheckedException(e);
-            } finally {
-                cancellationToken.removeCallback(cancellationHandler);
-            }
-        }
-
-        @Override
-        public void handleChange(FileWatcherRegistry.Type type, Path path) {
-            String absolutePath = path.toString();
-            if (inputs.contains(absolutePath)) {
-                // got a change, store it
-                if (pendingChanges.offer(absolutePath)) {
-                    pendingChangesListener.onPendingChanges();
-                }
-            }
-        }
-
-        @Override
-        public void stopWatchingAfterError() {
-            if (pendingChanges.offer("Error watching files")) {
-                pendingChangesListener.onPendingChanges();
-            }
-        }
-
-        @Override
-        public synchronized void onExecute(TaskInternal task, ImmutableMap<String, CurrentFileCollectionFingerprint> fingerprints) {
-            this.inputs = fingerprints.values().stream()
-                .flatMap(fingerprint -> fingerprint.getRootHashes().keySet().stream())
-                .reduce(inputs, FileHierarchySet::plus, Combiners.nonCombining());
-        }
     }
 
     private void resetBuildStartedTime() {
