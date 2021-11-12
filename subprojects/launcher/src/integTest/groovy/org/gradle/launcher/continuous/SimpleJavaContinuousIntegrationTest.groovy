@@ -64,7 +64,7 @@ class SimpleJavaContinuousIntegrationTest extends AbstractContinuousIntegrationT
         executed(":build")
     }
 
-    def "build is not triggered when a new directory is created in the source inputs"() {
+    def "build is triggered when a new directory is created in the source inputs"() {
         when:
         file("src/main/java/Thing.java") << "class Thing {}"
 
@@ -75,7 +75,7 @@ class SimpleJavaContinuousIntegrationTest extends AbstractContinuousIntegrationT
         file("src/main/java/foo").createDir()
 
         then:
-        noBuildTriggered()
+        succeeds("build")
     }
 
     def "after compilation failure, fixing file retriggers build"() {
@@ -252,6 +252,8 @@ class SimpleJavaContinuousIntegrationTest extends AbstractContinuousIntegrationT
     }
 
     def "creation of initial source file triggers build"() {
+        file("src/main/java").createDir()
+
         expect:
         succeeds("build")
         skipped(":compileJava")
