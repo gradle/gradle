@@ -23,6 +23,8 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
 
     @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
     def "JVM Test Suites plugin adds outgoing variants for default test suite"() {
+        settingsFile << "rootProject.name = 'Test'"
+
         buildFile << """
             plugins {
                 id 'jvm-test-suite'
@@ -46,7 +48,7 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
             Variant testDataElementsForTest
             --------------------------------------------------
             Capabilities
-                - :${getTestDirectory().getName()}:unspecified (default capability)
+                - :Test:unspecified (default capability)
             Attributes
                 - org.gradle.category      = documentation
                 - org.gradle.docstype      = test-results-bin
@@ -62,6 +64,8 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
 
     @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
     def "JVM Test Suites plugin adds outgoing variants for custom test suite"() {
+        settingsFile << "rootProject.name = 'Test'"
+
         buildFile << """
             plugins {
                 id 'jvm-test-suite'
@@ -89,7 +93,7 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
             Variant testDataElementsForIntegrationTest
             --------------------------------------------------
             Capabilities
-                - :${getTestDirectory().getName()}:unspecified (default capability)
+                - :Test:unspecified (default capability)
             Attributes
                 - org.gradle.category      = documentation
                 - org.gradle.docstype      = test-results-bin
