@@ -430,6 +430,9 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
         outputDirectory.list().contains input.name
         outputContains("Cannot access output property 'destinationDir' of task ':sync'")
         executedAndNotSkipped(":sync")
+
+        cleanup:
+        unreadableOutput.makeReadable()
     }
 
     @Issue("https://github.com/gradle/gradle/issues/9586")
