@@ -118,13 +118,9 @@ public class JvmTestSuitePlugin implements Plugin<Project> {
         });
 
         variant.getOutgoing().artifact(
-            target.getTestTask()
-                .flatMap(AbstractTestTask::getBinaryResultsDirectory)
-                .flatMap(dir -> project.provider(() -> dir.file("results.bin"))),
-            artifact -> {
-                artifact.setType(ArtifactTypeDefinition.BINARY_DATA_TYPE);
-                artifact.builtBy(target.getTestTask());
-            });
+            target.getTestTask().flatMap(task -> task.getBinaryResultsDirectory().file("results.bin")),
+            artifact -> artifact.setType(ArtifactTypeDefinition.BINARY_DATA_TYPE)
+        );
 
         return variant;
     }
