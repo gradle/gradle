@@ -62,8 +62,12 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
     public <T> AttributeContainer attribute(Attribute<T> key, T value) {
         assertAttributeTypeIsValid(value, key);
         checkInsertionAllowed(key);
-        state = immutableAttributesFactory.concat(state, key, value);
+        doInsertion(key, value);
         return this;
+    }
+
+    private <T> void doInsertion(Attribute<T> key, T value) {
+        state = immutableAttributesFactory.concat(state, key, value);
     }
 
     @Override
@@ -123,7 +127,7 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
     public <T> T getAttribute(Attribute<T> key) {
         T attribute = state.getAttribute(key);
         if (attribute == null && lazyAttributes.containsKey(key)) {
-            attribute = getLazyAttribute(key);
+            attribute = realizeLazyAttribute(key);
         }
         if (attribute == null && parent != null) {
             attribute = parent.getAttribute(key);
@@ -131,16 +135,11 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
         return attribute;
     }
 
-    @Nullable
-    private <T> T getLazyAttribute(Attribute<T> key) {
-        if (lazyAttributes.containsKey(key)) {
-            @SuppressWarnings("unchecked") final T value = (T) lazyAttributes.get(key).get();
-            lazyAttributes.remove(key);
-            attribute(key, value);
-            return getAttribute(key);
-        } else {
-            return null;
-        }
+    private <T> T realizeLazyAttribute(Attribute<T> key) {
+        Provider<?> provider = lazyAttributes.remove(key);
+        final T value = Cast.uncheckedCast(provider.get());
+        attribute(key, value);
+        return value;
     }
 
     @Override
@@ -155,10 +154,7 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
 
     @Override
     public ImmutableAttributes asImmutable() {
-        if (!lazyAttributes.isEmpty()) {
-            lazyAttributes.forEach((key, value) -> attribute(Cast.uncheckedNonnullCast(key), (Object) value.get()));
-            lazyAttributes.clear();
-        }
+        realizeAllLazyAttributes();
 
         if (parent == null) {
             return state;
@@ -168,6 +164,13 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
                 attributes = immutableAttributesFactory.concat(attributes, state);
             }
             return attributes;
+        }
+    }
+
+    private void realizeAllLazyAttributes() {
+        if (!lazyAttributes.isEmpty()) {
+            lazyAttributes.forEach((key, value) -> doInsertion(Cast.uncheckedNonnullCast(key), (Object) value.get()));
+            lazyAttributes.clear();
         }
     }
 
