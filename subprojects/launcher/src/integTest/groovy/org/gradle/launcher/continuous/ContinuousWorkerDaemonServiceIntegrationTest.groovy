@@ -83,6 +83,9 @@ class ContinuousWorkerDaemonServiceIntegrationTest extends AbstractContinuousInt
                 @InputFile
                 File inputFile = new File("${TextUtil.normaliseFileAndLineSeparators(inputFile.absolutePath)}")
 
+                @OutputFile
+                File outputFile = new File("${TextUtil.normaliseFileAndLineSeparators(workerDaemonIdentityFile.absolutePath)}")
+
                 @Inject
                 abstract WorkerExecutor getWorkerExecutor()
 
