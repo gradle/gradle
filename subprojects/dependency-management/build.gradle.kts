@@ -44,6 +44,7 @@ dependencies {
     implementation(libs.ant)
     implementation(libs.ivy)
     implementation(libs.maven3SettingsBuilder)
+    implementation("org.gradle.dependency.constrain:constrain-lib:0.1")
 
     testImplementation(project(":process-services"))
     testImplementation(project(":diagnostics"))

@@ -32,7 +32,7 @@ public interface ExecutorFactory {
      *
      * The executor will collect failures thrown by actions and rethrow when the executor is stopped.
      *
-     * @param displayName The display name for the this executor. Used for thread names, logging and error message.
+     * @param displayName The display name for this executor. Used for thread names, logging and error message.
      * @param fixedSize The maximum number of threads allowed
      * @return The executor.
      */
@@ -45,9 +45,9 @@ public interface ExecutorFactory {
      *
      * The executor will collect failures thrown by actions and rethrow when the executor is stopped.
      *
-     * @param displayName The display name for the this executor. Used for thread names, logging and error message.
+     * @param displayName The display name for this executor. Used for thread names, logging and error message.
      * @param fixedSize The maximum number of threads allowed
-     * @return The executor
+     * @return The executor.
      * @see java.util.concurrent.ScheduledExecutorService
      */
     ManagedScheduledExecutor createScheduled(String displayName, int fixedSize);

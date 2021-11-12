@@ -50,6 +50,7 @@ import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.specs.Specs
+import org.gradle.dependency.constrain.lib.ConstrainService
 import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.ImmutableCapabilities
@@ -1032,7 +1033,8 @@ class DependencyGraphBuilderTest extends Specification {
     }
 
     def rootProject(String name, String revision = '1.0', List<String> extraConfigs = []) {
-        def metaData = new RootLocalComponentMetadata(newId("group", name, revision), newProjectId(":${name}"), "release", attributesSchema, NoOpDependencyLockingProvider.instance)
+        def metaDataFactory = new RootLocalComponentMetadata.Factory(NoOpDependencyLockingProvider.instance, Mock(ConstrainService))
+        def metaData = metaDataFactory.create(newId("group", name, revision), newProjectId(":${name}"), "release", attributesSchema)
         metaData.addConfiguration("default", "defaultConfig", [] as Set<String>, ImmutableSet.of("default"), true, true, attributes, true, null, true, ImmutableCapabilities.EMPTY, Collections.&emptyList)
         extraConfigs.each { String config ->
             metaData.addConfiguration(config, "${config}Config", ["default"] as Set<String>, ImmutableSet.of("default", config), true, true, attributes, true, null, true, ImmutableCapabilities.EMPTY, Collections.&emptyList)

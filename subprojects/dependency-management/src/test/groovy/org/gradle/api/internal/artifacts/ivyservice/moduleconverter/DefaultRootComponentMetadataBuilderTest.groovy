@@ -49,8 +49,8 @@ class DefaultRootComponentMetadataBuilderTest extends Specification {
         componentIdentifierFactory,
         moduleIdentifierFactory,
         configurationComponentMetaDataBuilder,
-        projectStateRegistry,
-        dependencyLockingProvider
+        projectStateRegistry, rootLocalComponentMetadataFactory
+
     )
 
     def builder = builderFactory.create(configurationsProvider)

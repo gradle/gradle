@@ -25,7 +25,6 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationsProvider;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.MutationValidator;
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
@@ -44,7 +43,7 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
     private final ConfigurationsProvider configurationsProvider;
     private final MetadataHolder holder;
     private final ProjectStateRegistry projectStateRegistry;
-    private final DependencyLockingProvider dependencyLockingProvider;
+    private final RootLocalComponentMetadata.Factory rootLocalComponentMetadataFactory;
     private final DefaultRootComponentMetadataBuilder.Factory factory;
 
     /**
@@ -57,7 +56,7 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
         LocalComponentMetadataBuilder localComponentMetadataBuilder,
         ConfigurationsProvider configurationsProvider,
         ProjectStateRegistry projectStateRegistry,
-        DependencyLockingProvider dependencyLockingProvider,
+        RootLocalComponentMetadata.Factory rootLocalComponentMetadataFactory,
         Factory factory
     ) {
         this.metadataProvider = metadataProvider;
@@ -66,7 +65,7 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
         this.localComponentMetadataBuilder = localComponentMetadataBuilder;
         this.configurationsProvider = configurationsProvider;
         this.projectStateRegistry = projectStateRegistry;
-        this.dependencyLockingProvider = dependencyLockingProvider;
+        this.rootLocalComponentMetadataFactory = rootLocalComponentMetadataFactory;
         this.factory = factory;
         this.holder = new MetadataHolder();
     }
@@ -93,15 +92,15 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
             }
             return projectState.fromMutableState(project -> {
                 AttributesSchemaInternal schema = (AttributesSchemaInternal) project.getDependencies().getAttributesSchema();
-                return getRootComponentMetadata(module, componentIdentifier, moduleVersionIdentifier, schema, dependencyLockingProvider);
+                return getRootComponentMetadata(module, componentIdentifier, moduleVersionIdentifier, schema);
             });
         } else {
-            return getRootComponentMetadata(module, componentIdentifier, moduleVersionIdentifier, null, dependencyLockingProvider);
+            return getRootComponentMetadata(module, componentIdentifier, moduleVersionIdentifier, null);
         }
     }
 
-    private DefaultLocalComponentMetadata getRootComponentMetadata(Module module, ComponentIdentifier componentIdentifier, ModuleVersionIdentifier moduleVersionIdentifier, AttributesSchemaInternal schema, DependencyLockingProvider dependencyLockingHandler) {
-        DefaultLocalComponentMetadata metadata = new RootLocalComponentMetadata(moduleVersionIdentifier, componentIdentifier, module.getStatus(), schema, dependencyLockingHandler);
+    private DefaultLocalComponentMetadata getRootComponentMetadata(Module module, ComponentIdentifier componentIdentifier, ModuleVersionIdentifier moduleVersionIdentifier, AttributesSchemaInternal schema) {
+        DefaultLocalComponentMetadata metadata = rootLocalComponentMetadataFactory.create(moduleVersionIdentifier, componentIdentifier, module.getStatus(), schema);
         for (ConfigurationInternal configuration : configurationsProvider.getAll()) {
             addConfiguration(metadata, configuration);
         }
@@ -152,7 +151,7 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
         private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
         private final LocalComponentMetadataBuilder localComponentMetadataBuilder;
         private final ProjectStateRegistry projectStateRegistry;
-        private final DependencyLockingProvider dependencyLockingProvider;
+        private final RootLocalComponentMetadata.Factory rootLocalComponentMetadataFactory;
 
         @Inject
         public Factory(
@@ -161,14 +160,14 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
             ImmutableModuleIdentifierFactory moduleIdentifierFactory,
             LocalComponentMetadataBuilder localComponentMetadataBuilder,
             ProjectStateRegistry projectStateRegistry,
-            DependencyLockingProvider dependencyLockingProvider
+            RootLocalComponentMetadata.Factory rootLocalComponentMetadataFactory
         ) {
             this.metaDataProvider = metaDataProvider;
             this.componentIdentifierFactory = componentIdentifierFactory;
             this.moduleIdentifierFactory = moduleIdentifierFactory;
             this.localComponentMetadataBuilder = localComponentMetadataBuilder;
             this.projectStateRegistry = projectStateRegistry;
-            this.dependencyLockingProvider = dependencyLockingProvider;
+            this.rootLocalComponentMetadataFactory = rootLocalComponentMetadataFactory;
         }
 
         public DefaultRootComponentMetadataBuilder create(ConfigurationsProvider configurationsProvider) {
@@ -179,7 +178,7 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
                 localComponentMetadataBuilder,
                 configurationsProvider,
                 projectStateRegistry,
-                dependencyLockingProvider,
+                rootLocalComponentMetadataFactory,
                 this
             );
         }

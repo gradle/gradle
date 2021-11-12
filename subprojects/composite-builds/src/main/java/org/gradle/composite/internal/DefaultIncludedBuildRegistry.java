@@ -29,6 +29,7 @@ import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildFactory;
 import org.gradle.internal.build.IncludedBuildState;
+import org.gradle.internal.build.PublicBuildPath;
 import org.gradle.internal.build.RootBuildState;
 import org.gradle.internal.build.StandAloneNestedBuild;
 import org.gradle.internal.buildtree.NestedBuildTree;
@@ -279,8 +280,8 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
             validateNameIsNotBuildSrc(buildName, buildDir);
             Path idPath = assignPath(rootBuild, buildDefinition.getName(), buildDir);
             BuildIdentifier buildIdentifier = idFor(buildName);
-
-            includedBuild = includedBuildFactory.createBuild(buildIdentifier, idPath, buildDefinition, isImplicit, rootBuild);
+            final BuildState parentBuildState = getParentBuildState(buildDefinition);
+            includedBuild = includedBuildFactory.createBuild(buildIdentifier, idPath, buildDefinition, isImplicit, parentBuildState);
             includedBuildsByRootDir.put(buildDir, includedBuild);
             pendingIncludedBuilds.add(includedBuild);
             addBuild(includedBuild);
@@ -295,6 +296,25 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
         }
         // TODO: else, verify that the build definition is the same
         return includedBuild;
+    }
+
+    /**
+     * Returns the parent build state for the given build definition.
+     */
+    private BuildState getParentBuildState(BuildDefinition buildDefinition) {
+        final PublicBuildPath fromBuild = buildDefinition.getFromBuild();
+        final BuildState parentBuildState;
+        if (fromBuild != null) {
+            final File parentFile = includedBuildDirectoriesByPath.get(fromBuild.getBuildPath());
+            if (parentFile != null) {
+                parentBuildState = includedBuildsByRootDir.get(parentFile);
+            } else {
+                parentBuildState = rootBuild;
+            }
+        } else {
+            parentBuildState = rootBuild;
+        }
+        return parentBuildState;
     }
 
     private BuildIdentifier idFor(String buildName) {

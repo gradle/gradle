@@ -19,6 +19,7 @@ package org.gradle.integtests.fixtures.polyglot
 import groovy.transform.CompileStatic
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.TestFile
+
 import static org.gradle.integtests.fixtures.polyglot.BuilderSupport.applyConfiguration
 
 @CompileStatic
@@ -28,6 +29,7 @@ class MultiProjectBuilder {
     private final Map<String, PolyglotProjectBuilder> projects = [:]
     private final Map<String, MultiProjectBuilder> includedBuilds = [:]
     private final SettingsBuilder settingsBuilder = new SettingsBuilder()
+    private JsonConstraintsBuilder jsonConstraintsBuilder
 
     MultiProjectBuilder(GradleDsl dsl, TestFile directory) {
         this.dsl = dsl
@@ -60,17 +62,17 @@ class MultiProjectBuilder {
         this
     }
 
-    MultiProjectBuilder buildSrc(GradleDsl projectDsl = dsl, @DelegatesTo(value = PolyglotProjectBuilder, strategy = Closure.DELEGATE_FIRST) Closure<?> config) {
-        def p = projects['buildSrc']
-        if (p == null) {
-            p = new PolyglotProjectBuilder(projectDsl, rootProjectDirectory.createDir('buildSrc'))
-            projects['buildSrc'] = p
+    MultiProjectBuilder buildSrc(GradleDsl projectDsl = dsl, @DelegatesTo(value = MultiProjectBuilder, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+        def b = includedBuilds['buildSrc']
+        if (b == null) {
+            b = new MultiProjectBuilder(dsl, rootProjectDirectory.createDir('buildSrc'))
+            includedBuilds['buildSrc'] = b
         }
-        applyConfiguration(config, p)
+        applyConfiguration(spec, b)
         this
     }
 
-    MultiProjectBuilder includedBuild(String includedBuildName, @DelegatesTo(value=MultiProjectBuilder, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+    MultiProjectBuilder includedBuild(String includedBuildName, @DelegatesTo(value = MultiProjectBuilder, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
         def b = includedBuilds[includedBuildName]
         if (b == null) {
             b = new MultiProjectBuilder(dsl, rootProjectDirectory.createDir(includedBuildName))
@@ -81,8 +83,19 @@ class MultiProjectBuilder {
         this
     }
 
+    MultiProjectBuilder jsonConstraints(@DelegatesTo(value = JsonConstraintsBuilder, strategy = Closure.DELEGATE_FIRST) Closure<?> config) {
+        if (jsonConstraintsBuilder == null) {
+            jsonConstraintsBuilder = new JsonConstraintsBuilder()
+        }
+        applyConfiguration(config, jsonConstraintsBuilder)
+        this
+    }
+
     void generate() {
         settingsBuilder.generate(dsl, rootProjectDirectory)
+        if (jsonConstraintsBuilder != null) {
+            jsonConstraintsBuilder.generate(dsl, rootProjectDirectory.createDir('gradle'))
+        }
         projects.each { name, builder ->
             builder.generate()
         }

@@ -48,4 +48,12 @@ public class BuildLayout extends SettingsLocation {
     public File getRootDirectory() {
         return rootDirectory;
     }
+
+    /**
+     * Returns the gradle directory under the root directory of the build.
+     * This is never null, but the directory may not exist.
+     */
+    public File getGradleDirectory() {
+        return new File(getRootDirectory(), "gradle");
+    }
 }

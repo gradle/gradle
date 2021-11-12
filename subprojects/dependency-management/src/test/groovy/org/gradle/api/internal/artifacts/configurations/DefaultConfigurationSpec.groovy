@@ -1780,8 +1780,7 @@ All Artifacts:
             publishArtifactNotationParser,
             immutableAttributesFactory,
             Stub(DocumentationRegistry),
-            userCodeApplicationContext
-            ,
+            userCodeApplicationContext,
             projectStateRegistry,
             Stub(WorkerThreadRegistry),
             TestUtil.domainObjectCollectionFactory(),

@@ -30,6 +30,7 @@ plugins {
 
 includeBuild("build-logic-commons")
 includeBuild("build-logic")
+includeBuild("../gradle-dependency-constrain")
 
 apply(from = "gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
 

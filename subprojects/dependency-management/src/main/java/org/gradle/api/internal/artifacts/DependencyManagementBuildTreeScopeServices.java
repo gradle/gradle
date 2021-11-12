@@ -23,8 +23,6 @@ import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
 
-import java.io.File;
-
 /**
  * The set of dependency management services that are created per build tree.
  */
@@ -38,8 +36,6 @@ class DependencyManagementBuildTreeScopeServices {
     }
 
     StartParameterResolutionOverride createStartParameterResolutionOverride(StartParameter startParameter, BuildLayout buildLayout) {
-        File rootDirectory = buildLayout.getRootDirectory();
-        File gradleDir = new File(rootDirectory, "gradle");
-        return new StartParameterResolutionOverride(startParameter, gradleDir);
+        return new StartParameterResolutionOverride(startParameter, buildLayout.getGradleDirectory());
     }
 }

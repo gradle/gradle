@@ -16,8 +16,10 @@
 
 package org.gradle.internal.component.local.model;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -31,6 +33,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvi
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.dependency.constrain.lib.ConstrainService;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.model.DependencyMetadata;
@@ -39,6 +42,7 @@ import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 import org.gradle.internal.deprecation.DeprecationMessageBuilder;
 import org.gradle.internal.lazy.Lazy;
 
+import javax.inject.Inject;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -47,11 +51,23 @@ import java.util.function.Supplier;
 
 public class RootLocalComponentMetadata extends DefaultLocalComponentMetadata {
     private final DependencyLockingProvider dependencyLockingProvider;
+    private final ConstrainService constrainService;
     private final Map<String, RootLocalConfigurationMetadata> rootConfigs = Maps.newHashMap();
 
-    public RootLocalComponentMetadata(ModuleVersionIdentifier moduleVersionIdentifier, ComponentIdentifier componentIdentifier, String status, AttributesSchemaInternal schema, DependencyLockingProvider dependencyLockingProvider) {
+    /**
+     * Use {@link Factory#create} to create instances.
+     */
+    private RootLocalComponentMetadata(
+        ModuleVersionIdentifier moduleVersionIdentifier,
+        ComponentIdentifier componentIdentifier,
+        String status,
+        AttributesSchemaInternal schema,
+        DependencyLockingProvider dependencyLockingProvider,
+        ConstrainService constrainService
+    ) {
         super(moduleVersionIdentifier, componentIdentifier, status, schema);
         this.dependencyLockingProvider = dependencyLockingProvider;
+        this.constrainService = constrainService;
     }
 
     @Override
@@ -123,7 +139,7 @@ public class RootLocalComponentMetadata extends DefaultLocalComponentMetadata {
                             Collections.emptyList(),  Collections.emptyList(), false, false, false, true, false, true, getLockReason(strict, lockedVersion)));
                 }
             }
-            List<DependencyConstraint> dependencyConstraints = consistentResolutionConstraints.get();
+            Iterable<DependencyConstraint> dependencyConstraints = Iterables.concat(consistentResolutionConstraints.get(), constrainService.getConstraints());
             for (DependencyConstraint dc : dependencyConstraints) {
                 ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(dc.getGroup(), dc.getName()), dc.getVersionConstraint());
                 syntheticDependencies.add(new LocalComponentDependencyMetadata(getComponentId(), selector, getName(), getAttributes(),  ImmutableAttributes.EMPTY, null,
@@ -142,6 +158,22 @@ public class RootLocalComponentMetadata extends DefaultLocalComponentMetadata {
         @Override
         public DependencyLockingState getDependencyLockingState() {
             return dependencyLockingState;
+        }
+    }
+
+    public static class Factory {
+        private final DependencyLockingProvider dependencyLockingProvider;
+        private final ConstrainService constrainService;
+
+        @Inject
+        @VisibleForTesting
+        public Factory(DependencyLockingProvider dependencyLockingProvider, ConstrainService constrainService) {
+            this.dependencyLockingProvider = dependencyLockingProvider;
+            this.constrainService = constrainService;
+        }
+
+        public RootLocalComponentMetadata create(ModuleVersionIdentifier moduleVersionIdentifier, ComponentIdentifier componentIdentifier, String status, AttributesSchemaInternal schema) {
+            return new RootLocalComponentMetadata(moduleVersionIdentifier, componentIdentifier, status, schema, dependencyLockingProvider, constrainService);
         }
     }
 }

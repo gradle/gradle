@@ -40,6 +40,7 @@ import org.junit.ComparisonFailure
  * ensure that the old and new dependency graphs plus the artifacts and files are as expected and well-formed.
  */
 class ResolveTestFixture {
+    static final String taskName = 'checkDeps'
     final TestFile buildFile
     final String config
     private String defaultConfig = "default"
@@ -83,7 +84,7 @@ buildscript {
 }
 $additionalContent
 allprojects {
-    tasks.register("checkDeps", ${GenerateGraphTask.name}) {
+    tasks.register("$taskName", ${GenerateGraphTask.name}) {
         it.outputFile = rootProject.file("\${rootProject.buildDir}/${config}.txt")
         it.configuration = configurations.$config
         it.buildArtifacts = ${buildArtifacts}
@@ -464,11 +465,11 @@ allprojects {
 
         def node(String id, String moduleVersionId) {
             def attrs
-            if (moduleVersionId.matches(':\\w+:')) {
+            if (moduleVersionId.matches(':[\\w-]+:')) {
                 def parts = moduleVersionId.split(':')
                 attrs = [group: null, module: parts[1], version: null]
                 moduleVersionId = ":${attrs.module}:unspecified"
-            } else if (moduleVersionId.matches('\\w+:\\w+:')) {
+            } else if (moduleVersionId.matches('[\\w-]+:[\\w-]+:')) {
                 def parts = moduleVersionId.split(':')
                 attrs = [group: parts[0], module: parts[1], version: null]
                 moduleVersionId = "${attrs.group}:${attrs.module}:unspecified"
