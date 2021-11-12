@@ -33,7 +33,6 @@ import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.jvm.JvmTestSuiteTarget;
 import org.gradle.api.plugins.jvm.internal.DefaultJvmTestSuite;
 import org.gradle.api.tasks.SourceSet;
-import org.gradle.api.tasks.testing.AbstractTestTask;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.testing.base.TestSuite;
 import org.gradle.testing.base.TestingExtension;
