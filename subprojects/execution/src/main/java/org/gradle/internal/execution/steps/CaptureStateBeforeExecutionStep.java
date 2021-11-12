@@ -198,6 +198,8 @@ public class CaptureStateBeforeExecutionStep<C extends PreviousExecutionContext,
             work::visitRegularInputs
         );
 
+        work.broadcastRelevantFileSystemInputs(false, newInputs.getFileFingerprints());
+
         return new DefaultBeforeExecutionState(
             implementation,
             additionalImplementations,
