@@ -123,11 +123,11 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
     @Override
     public <T> T getAttribute(Attribute<T> key) {
         T attribute = state.getAttribute(key);
-        if (attribute == null && parent != null) {
-            attribute = parent.getAttribute(key);
-        }
         if (attribute == null && lazyAttributes.containsKey(key)) {
             attribute = getLazyAttribute(key);
+        }
+        if (attribute == null && parent != null) {
+            attribute = parent.getAttribute(key);
         }
         return attribute;
     }

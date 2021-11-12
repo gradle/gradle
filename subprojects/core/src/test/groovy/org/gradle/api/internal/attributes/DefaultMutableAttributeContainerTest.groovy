@@ -71,4 +71,20 @@ class DefaultMutableAttributeContainerTest extends Specification {
         def e = thrown(IllegalArgumentException)
         e.message.contains("Unexpected type for attribute: 'test'. Attribute value's actual type: java.lang.Integer did not match the expected type: java.lang.String")
     }
+
+    def "adding and retrieving lazy attribute works if attribute key already present in parent"() {
+        given:
+        def parent = new DefaultMutableAttributeContainer(attributesFactory)
+        def testAttr = Attribute.of("test", String)
+        parent.attribute(testAttr, "parent")
+
+        Property<String> testProperty = new DefaultProperty<>(Mock(PropertyHost), String).convention("child")
+        def child = new DefaultMutableAttributeContainer(attributesFactory, parent)
+
+        when:
+        child.attribute(testAttr, testProperty)
+
+        then:
+        "child" == child.getAttribute(testAttr)
+    }
 }
