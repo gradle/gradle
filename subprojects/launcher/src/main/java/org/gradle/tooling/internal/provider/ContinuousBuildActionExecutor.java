@@ -152,39 +152,43 @@ public class ContinuousBuildActionExecutor implements BuildSessionActionExecutor
     private BuildActionRunner.Result executeMultipleBuilds(BuildAction action, BuildRequestMetaData requestContext, BuildSessionContext buildSession,
                                                            BuildCancellationToken cancellationToken, CancellableOperationManager cancellableOperationManager, ContinuousExecutionGate continuousExecutionGate) {
         BuildActionRunner.Result lastResult;
-        while (true) {
-            PendingChangesListener pendingChangesListener = listenerManager.getBroadcaster(PendingChangesListener.class);
-            virtualFileSystem.registerChangeBroadcaster(listenerManager.getBroadcaster(FileChangeListener.class));
-            FileSystemChangeListener fileSystemChangeListener = new FileSystemChangeListener(new SingleFirePendingChangesListener(pendingChangesListener), cancellationToken, continuousExecutionGate);
-            try {
-                listenerManager.addListener(fileSystemChangeListener);
-                lastResult = executeBuildAndAccumulateInputs(action, fileSystemChangeListener, buildSession);
+        PendingChangesListener pendingChangesListener = listenerManager.getBroadcaster(PendingChangesListener.class);
+        virtualFileSystem.registerChangeBroadcaster(listenerManager.getBroadcaster(FileChangeListener.class));
+        try {
+            while (true) {
+                FileSystemChangeListener fileSystemChangeListener = new FileSystemChangeListener(new SingleFirePendingChangesListener(pendingChangesListener), cancellationToken, continuousExecutionGate);
+                try {
+                    listenerManager.addListener(fileSystemChangeListener);
+                    lastResult = executeBuildAndAccumulateInputs(action, fileSystemChangeListener, buildSession);
 
-                if (!fileSystemChangeListener.hasAnyInputs()) {
-                    logger.println().withStyle(StyledTextOutput.Style.Failure).println("Exiting continuous build as no executed tasks declared file system inputs.");
-                    return lastResult;
-                } else {
-                    cancellableOperationManager.monitorInput(operationToken -> {
-                        FileWatcherEventListener reporter = new DefaultFileWatcherEventListener();
-                        fileSystemChangeListener.wait(
-                            () -> logger.println().println("Waiting for changes to input files of tasks..." + determineExitHint(requestContext)),
-                            reporter
-                        );
-                        if (!operationToken.isCancellationRequested()) {
-                            reporter.reportChanges(logger);
-                        }
-                    });
+                    if (!fileSystemChangeListener.hasAnyInputs()) {
+                        logger.println().withStyle(StyledTextOutput.Style.Failure).println("Exiting continuous build as no executed tasks declared file system inputs.");
+                        return lastResult;
+                    } else {
+                        cancellableOperationManager.monitorInput(operationToken -> {
+                            FileWatcherEventListener reporter = new DefaultFileWatcherEventListener();
+                            fileSystemChangeListener.wait(
+                                () -> logger.println().println("Waiting for changes to input files of tasks..." + determineExitHint(requestContext)),
+                                reporter
+                            );
+                            if (!operationToken.isCancellationRequested()) {
+                                reporter.reportChanges(logger);
+                            }
+                        });
+                    }
+                } finally {
+                    listenerManager.removeListener(fileSystemChangeListener);
                 }
-            } finally {
-                listenerManager.removeListener(fileSystemChangeListener);
-            }
 
-            if (cancellationToken.isCancellationRequested()) {
-                break;
-            } else {
-                logger.println("Change detected, executing build...").println();
-                resetBuildStartedTime();
+                if (cancellationToken.isCancellationRequested()) {
+                    break;
+                } else {
+                    logger.println("Change detected, executing build...").println();
+                    resetBuildStartedTime();
+                }
             }
+        } finally {
+            virtualFileSystem.registerChangeBroadcaster(null);
         }
 
         logger.println("Build cancelled.");
