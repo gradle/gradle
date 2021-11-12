@@ -76,7 +76,7 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
     }
 
     private <T> void checkInsertionAllowed(Attribute<T> key) {
-        // Don't just use keySet() method instead, since we should be allowed to override attributes alread in the parent
+        // Don't just use keySet() method instead, since we should be allowed to override attributes already in the parent
         final Set<Attribute<?>> keys = Sets.union(state.keySet(), lazyAttributes.keySet());
         for (Attribute<?> attribute : keys) {
             String name = key.getName();
