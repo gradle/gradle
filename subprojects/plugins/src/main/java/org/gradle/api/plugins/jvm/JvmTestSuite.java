@@ -78,14 +78,6 @@ public interface JvmTestSuite extends TestSuite, Buildable {
     Property<String> getTestType();
 
     /**
-     * Set the test type for this test suite.
-     *
-     * @param testType the test type for this test suite
-     * @since 7.4
-     */
-    void setTestType(String testType);
-
-    /**
      * Use the <a href="https://junit.org/junit5/docs/current/user-guide/">JUnit Jupiter</a> testing framework.
      *
      * <p>

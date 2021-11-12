@@ -163,11 +163,6 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         return testType;
     }
 
-    @Override
-    public void setTestType(String testType) {
-        this.testType.set(testType);
-    }
-
     private void attachDependenciesForTestFramework(DependencyHandler dependencies, Configuration implementation) {
         if (!attachedDependencies) {
             dependencies.addProvider(implementation.getName(), getTestingFramework().map(framework -> {
