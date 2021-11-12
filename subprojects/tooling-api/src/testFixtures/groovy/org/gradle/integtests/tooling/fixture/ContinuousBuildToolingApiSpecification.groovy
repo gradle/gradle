@@ -20,6 +20,7 @@ import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.integtests.fixtures.executer.UnexpectedBuildFailure
 import org.gradle.internal.os.OperatingSystem
@@ -29,6 +30,7 @@ import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.CancellationToken
 import org.gradle.tooling.ProjectConnection
 import org.hamcrest.Matcher
+import org.junit.Assume
 import org.junit.Rule
 import spock.lang.Retry
 import spock.lang.Timeout
@@ -62,6 +64,7 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
 
 
     def setup() {
+        Assume.assumeTrue("Unsupported for the embedded runner", !GradleContextualExecuter.embedded)
         buildFile.text = "apply plugin: 'java'\n"
         sourceDir = file("src/main/java")
     }
