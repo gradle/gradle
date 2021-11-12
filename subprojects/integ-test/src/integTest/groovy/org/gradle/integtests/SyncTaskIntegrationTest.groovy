@@ -408,8 +408,8 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
         def input = file("readableFile.txt").createFile()
 
         def outputDirectory = file("output")
-        def unreadableOutput = file("${outputDirectory.name}/unreadableFile")
-        unreadableOutput.createFile().makeUnreadable()
+        def unreadableOutput = outputDirectory.file("unreadableFile").createFile()
+        unreadableOutput.makeUnreadable()
 
         buildFile << """
             task sync(type: Sync) {
@@ -417,6 +417,9 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
                 into '${outputDirectory.name}'
             }
         """
+
+        expect:
+        unreadableOutput.exists()
 
         when:
         executer.withStackTraceChecksDisabled()
@@ -432,7 +435,10 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped(":sync")
 
         cleanup:
-        unreadableOutput.makeReadable()
+        // The Sync task should delete the unreadable output, though that doesn't work every time.
+        if (unreadableOutput.exists()) {
+            unreadableOutput.makeReadable()
+        }
     }
 
     @Issue("https://github.com/gradle/gradle/issues/9586")
