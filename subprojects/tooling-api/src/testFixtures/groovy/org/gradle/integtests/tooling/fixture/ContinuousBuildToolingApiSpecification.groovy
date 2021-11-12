@@ -107,7 +107,7 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
                 """.stripMargin()
 
                 BuildLauncher launcher = projectConnection.newBuild()
-                    .withArguments("--continuous", "-I", initScript.absolutePath)
+                    .withArguments("--continuous", "--watch-fs", "-I", initScript.absolutePath)
                     .forTasks(tasks as String[])
                     .withCancellationToken(token)
 
