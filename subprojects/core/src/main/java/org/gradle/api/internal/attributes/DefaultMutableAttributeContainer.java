@@ -217,11 +217,10 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
 
     private ImmutableAttributes evaluateLazyValues() {
         final AttributeContainerInternal evaluatedAttributes = immutableAttributesFactory.mutable();
-        for (Map.Entry<Attribute<?>, Provider<?>> entry : lazyAttributes.entrySet()) {
-            @SuppressWarnings("unchecked") Attribute<Object> attribute = (Attribute<Object>) entry.getKey();
-            Object value = entry.getValue().get();
-            evaluatedAttributes.attribute(attribute, value);
-        }
+        lazyAttributes.forEach((key, value) -> {
+            @SuppressWarnings("unchecked") Attribute<Object> attribute = (Attribute<Object>) key;
+            evaluatedAttributes.attribute(attribute, value.get());
+        });
         return evaluatedAttributes.asImmutable();
     }
 }
