@@ -69,7 +69,7 @@ class DefaultMutableAttributeContainerTest extends Specification {
 
         then:
         def e = thrown(IllegalArgumentException)
-        e.message.contains("Unexpected type for attribute: 'test'. Attribute value's actual type: java.lang.Integer did not match the expected type: java.lang.String")
+        e.message.contains("Unexpected type for attribute 'test' provided. Expected a value of type java.lang.String but found a value of type java.lang.Integer.")
     }
 
     def "adding and retrieving lazy attribute works if attribute key already present in parent"() {

@@ -115,7 +115,7 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
 
         if (null != actualValueType) {
             if (!attribute.getType().isAssignableFrom(actualValueType)) {
-                throw new IllegalArgumentException("Unexpected type for attribute: '" + attribute.getName() + "'. Attribute value's actual type: " + actualValueType.getName() + " did not match the expected type: " + attribute.getType().getName());
+                throw new IllegalArgumentException(String.format("Unexpected type for attribute '%s' provided. Expected a value of type %s but found a value of type %s.", attribute.getName(), attribute.getType().getName(), actualValueType.getName()));
             }
         }
     }
