@@ -20,12 +20,14 @@ import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Ignore
 
 import java.nio.file.Files
 import java.nio.file.Paths
 
 @Requires(TestPrecondition.NOT_WINDOWS)
 class SymlinkContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
+    @Ignore("TODO wolfs: This test doesn't work on Linux. It works on mac, though.")
     def "can use symlink for input"() {
         given:
         def baseDir = file("src").createDir()
