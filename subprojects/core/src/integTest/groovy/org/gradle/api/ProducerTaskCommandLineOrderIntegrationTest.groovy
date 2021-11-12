@@ -19,11 +19,8 @@ package org.gradle.api
 import org.gradle.api.internal.artifacts.transform.UnzipTransform
 import org.gradle.integtests.fixtures.executer.TaskOrderSpecs
 import org.gradle.util.internal.ToBeImplemented
-import spock.lang.Unroll
-
 
 class ProducerTaskCommandLineOrderIntegrationTest extends AbstractCommandLineOrderTaskIntegrationTest {
-    @Unroll
     def "producer task with a dependency in another project will run before destroyer tasks when ordered first (type: #type)"() {
         def foo = subproject(':foo')
         def bar = subproject(':bar')
@@ -50,7 +47,6 @@ class ProducerTaskCommandLineOrderIntegrationTest extends AbstractCommandLineOrd
         type << ProductionType.values()
     }
 
-    @Unroll
     def "producer task with a dependency in another build will run before destroyer tasks when ordered first (type: #type)"() {
         def foo = includedBuild('child').subproject(':foo')
         def bar = subproject(':bar')
