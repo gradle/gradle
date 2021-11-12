@@ -42,29 +42,30 @@ Some plugins will break with this new version of Gradle, for example because the
 
 If a Kotlin build script uses a Java API that has nullability annotations (JSR-305) then the compilation will enforce those constraints. Previous Gradle versions, however, forgot to add the same enforcement to the Kotlin build script compilation. Starting from Gradle 7.4 the nullability checks are enforced in the script compilation.
 
-=== Overloaded Attribute methods to support Providers as values
+=== Ambiguous method call in Kotlin DSL when adding dependency management attributes
 
-There is now an overloaded version of the `link:{javadocPath}/org/gradle/api/attributes/AttributeContainer.html#attribute-org.gradle.api.attributes.Attribute-org.gradle.api.provider.Provider-[attribute(Attribute<T>, Provider<? extends T>)]` method available that allows you to specify a `link:{javadocPath}/org/gradle/api/provider/Provider.html[Provider]` which will supply the value of an attribute.
+Gradle 7.4 introduces an overloaded version of the link:{javadocPath}/org/gradle/api/attributes/AttributeContainer.html#attribute-org.gradle.api.attributes.Attribute-org.gradle.api.provider.Provider-[`attribute(Attribute<T>, Provider<? extends T>)`] method to allow users to add an attribute with a value based on a link:{javadocPath}/org/gradle/api/provider/Provider.html[`Provider`].
 
-This existence of this method will break builds that use the kotlin extension function `inline fun <reified T : Named> ObjectFactory.named(name: String): T =
-named(T::class.java, name)` as a shortcut when defining attributes.  Code in .kts files that defined attributes like this:
-
+This new method may break builds that use Kotlin DSL. Kotlin is unable to select between the two overload methods in some cases and produces an error like this:
 ```
-     attributes {
-        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
-        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.DOCUMENTATION))
-        attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named("configuration-cache-report"))
-     }
+Overload resolution ambiguity:
+  public abstract fun <T : Any!> attribute(p0: Attribute<TypeVariable(T)!>, p1: TypeVariable(T)): AttributeContainer defined in org.gradle.api.attributes.AttributeContainer
+  public abstract fun <T : Any!> attribute(p0: Attribute<TypeVariable(T)!>, p1: Provider<out TypeVariable(T)!>): AttributeContainer defined in org.gradle.api.attributes.AttributeContainer
 ```
 
-will now have to provide an explicit type argument so that the compiler can disambiguate the method call, like this:
-
+This only occurs in Kotlin DSL due to an extension function. The function `ObjectFactory.named(name: String)` acts as a shortcut for defining attribute values. Build scripts or plugins may have used it like this:
 ```
-     attributes {
-        attribute(Usage.USAGE_ATTRIBUTE, objects.named<Usage>(Usage.JAVA_RUNTIME))
-        attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>(Category.DOCUMENTATION))
-        attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named<DocsType>("configuration-cache-report"))
-     }
+attributes {
+    attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
+}
+```
+This adds an attribute of type `Usage` with the named value `Usage.JAVA_RUNTIME`. The type of the attribute is not specified.
+
+In Gradle 7.4, the type of the attribute needs to be explicitly provided:
+```
+attributes {
+    attribute(Usage.USAGE_ATTRIBUTE, objects.named<Usage>(Usage.JAVA_RUNTIME))
+}
 ```
 
 Code samples throughout the Gradle documentation have been updated to reflect this change.
