@@ -155,7 +155,7 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
 
     private static boolean hasWatchableContent(Stream<FileSystemLocationSnapshot> snapshots, WatchableHierarchies watchableHierarchies) {
         return snapshots
-            .anyMatch(snapshot -> !isMissing(snapshot) && !watchableHierarchies.ignoredForWatching(snapshot));
+            .anyMatch(snapshot -> !watchableHierarchies.ignoredForWatching(snapshot));
     }
 
     private static boolean isMissing(FileSystemLocationSnapshot snapshot) {
