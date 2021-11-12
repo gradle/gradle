@@ -174,11 +174,7 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
 
     @Override
     public Map<Attribute<?>, ?> asMap() {
-        Map<Attribute<?>, ?> map = Maps.newLinkedHashMap();
-        for (Attribute<?> attribute : keySet()) {
-            map.put(attribute, Cast.uncheckedCast(getAttribute(attribute)));
-        }
-        return map;
+        return asImmutable().asMap();
     }
 
     @Override
