@@ -74,7 +74,7 @@ public interface ArtifactTypeDefinition extends HasAttributes, Named {
     String DIRECTORY_TYPE = "directory";
 
     /**
-     * Represents a raw directory
+     * Represents a binary file
      *
      * @since 7.4
      */
