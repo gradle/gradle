@@ -123,10 +123,10 @@ class DaemonParametersTest extends Specification {
         parameters.setDebugPort(port)
 
         then:
-        parameters.effectiveJvmArgs.contains(address)
+        parameters.effectiveJvmArgs.contains(debugArgument)
 
         where:
-        port || address
+        port || debugArgument
         5005 || "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005"
         5006 || "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5006"
     }
@@ -139,10 +139,10 @@ class DaemonParametersTest extends Specification {
         parameters.setDebugSuspend(suspend)
 
         then:
-        parameters.effectiveJvmArgs.contains(address)
+        parameters.effectiveJvmArgs.contains(debugArgument)
 
         where:
-        suspend || address
+        suspend || debugArgument
         true    || "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005"
         false   || "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005"
     }
@@ -155,10 +155,10 @@ class DaemonParametersTest extends Specification {
         parameters.setDebugServer(server)
 
         then:
-        parameters.effectiveJvmArgs.contains(address)
+        parameters.effectiveJvmArgs.contains(debugArgument)
 
         where:
-        server || address
+        server || debugArgument
         true   || "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005"
         false  || "-agentlib:jdwp=transport=dt_socket,server=n,suspend=y,address=5005"
     }
