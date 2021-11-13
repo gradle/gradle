@@ -98,12 +98,14 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
     def "can recover from build failure"() {
         given:
         def markerFile = file("marker")
+        file("inputFile").createFile()
 
         when:
         buildFile << """
             task build {
               def f = file("marker")
               inputs.files f
+              inputs.files "inputFile"
               outputs.files "build/marker"
               doLast {
                 if (f.file) {
@@ -117,7 +119,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         markerFile << "original"
 
         then:
-        succeeds "build", "--info"
+        succeeds "build"
         output.contains "value: original"
 
         when:
