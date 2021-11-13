@@ -36,9 +36,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.gradle.internal.filewatch.DefaultFileSystemChangeWaiterFactory.QUIET_PERIOD_SYSPROP;
 
@@ -48,7 +48,9 @@ public class FileSystemChangeListener implements FileChangeListener, TaskInputsL
     private final PendingChangesListener pendingChangesListener;
     private final BuildCancellationToken cancellationToken;
     private final ContinuousExecutionGate continuousExecutionGate;
-    private final BlockingQueue<String> pendingChanges = new LinkedBlockingQueue<>(1);
+    private final AtomicBoolean changeArrived = new AtomicBoolean(false);
+    private final CountDownLatch changeOrCancellationArrived = new CountDownLatch(1);
+    private final CountDownLatch cancellationArrived = new CountDownLatch(1);
     private final FileEventCollector fileEventCollector = new FileEventCollector();
     private final long quietPeriod;
     private volatile FileHierarchySet inputs = FileHierarchySet.empty();
@@ -66,22 +68,24 @@ public class FileSystemChangeListener implements FileChangeListener, TaskInputsL
     }
 
     void wait(Runnable notifier) {
-        Runnable cancellationHandler = () -> pendingChanges.offer("Build cancelled");
+        Runnable cancellationHandler = () -> {
+            changeOrCancellationArrived.countDown();
+            cancellationArrived.countDown();
+        };
         if (cancellationToken.isCancellationRequested()) {
             return;
         }
         try {
             cancellationToken.addCallback(cancellationHandler);
             notifier.run();
-            String pendingChange = pendingChanges.take();
-            LOGGER.info("Received pending change: {}", pendingChange);
+            changeOrCancellationArrived.await();
             while (!cancellationToken.isCancellationRequested()) {
                 long now = monotonicClockMillis();
                 long remainingQuietPeriod = quietPeriod - (now - lastChangeAt);
                 if (remainingQuietPeriod <= 0) {
                     break;
                 }
-                pendingChanges.poll(remainingQuietPeriod, TimeUnit.MILLISECONDS);
+                cancellationArrived.await(remainingQuietPeriod, TimeUnit.MILLISECONDS);
             }
             if (!cancellationToken.isCancellationRequested()) {
                 continuousExecutionGate.waitForOpen();
@@ -104,16 +108,19 @@ public class FileSystemChangeListener implements FileChangeListener, TaskInputsL
         if (inputs.contains(absolutePath)) {
             // got a change, store it
             fileEventCollector.onChange(type, path);
-            if (pendingChanges.offer(absolutePath)) {
-                pendingChangesListener.onPendingChanges();
-            }
+            notifyChangeArrived();
         }
     }
 
     @Override
     public void stopWatchingAfterError() {
         fileEventCollector.errorWhenWatching();
-        if (pendingChanges.offer("Error watching files")) {
+        notifyChangeArrived();
+    }
+
+    private void notifyChangeArrived() {
+        changeOrCancellationArrived.countDown();
+        if (changeArrived.compareAndSet(false, true)) {
             pendingChangesListener.onPendingChanges();
         }
     }
