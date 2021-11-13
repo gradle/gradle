@@ -16,6 +16,7 @@ import org.gradle.api.tasks.bundling.Jar
 import org.gradle.kotlin.dsl.creating
 import org.gradle.kotlin.dsl.getValue
 import org.gradle.kotlin.dsl.register
+import org.gradle.kotlin.dsl.named
 import javax.inject.Inject
 
 // tag::inject_software_component_factory[]
@@ -59,11 +60,11 @@ class InstrumentedJarsPlugin @Inject constructor(
             isCanBeConsumed = true
             isCanBeResolved = false
             attributes {
-                attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category::class.java, Category.LIBRARY))
-                attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, Usage.JAVA_RUNTIME))
-                attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling::class.java, Bundling.EXTERNAL))
+                attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>(Category.LIBRARY))
+                attribute(Usage.USAGE_ATTRIBUTE, objects.named<Usage>(Usage.JAVA_RUNTIME))
+                attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named<Bundling>(Bundling.EXTERNAL))
                 attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, JavaVersion.current().majorVersion.toInt())
-                attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements::class.java, "instrumented-jar"))
+                attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named<LibraryElements>("instrumented-jar"))
             }
         }
         return instrumentedJars
@@ -80,5 +81,4 @@ class InstrumentedJarsPlugin @Inject constructor(
         }
         // end::add_variant_to_existing_component[]
     }
-
 }

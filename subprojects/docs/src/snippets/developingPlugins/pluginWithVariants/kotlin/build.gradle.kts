@@ -18,7 +18,7 @@ configurations.configureEach {
     if (isCanBeConsumed && name.startsWith(gradle7.name))  {
         attributes {
             attribute(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE, // <2>
-                objects.named(GradlePluginApiVersion::class.java, "7.0"))
+                objects.named<GradlePluginApiVersion>("7.0"))
         }
     }
 }

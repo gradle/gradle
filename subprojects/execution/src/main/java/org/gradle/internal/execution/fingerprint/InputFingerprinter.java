@@ -16,6 +16,7 @@
 
 package org.gradle.internal.execution.fingerprint;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.FileNormalizer;
@@ -160,6 +161,13 @@ public interface InputFingerprinter {
          * Returns all the file fingerprints, including the previously known ones.
          */
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getAllFileFingerprints();
+
+        /**
+         * Returns the file property names which need an isEmpty() check when used with {@link org.gradle.api.tasks.SkipWhenEmpty}.
+         *
+         * Archive file trees backed by a file need the isEmpty() check, since the fingerprint will be the backing file.
+         */
+        ImmutableSet<String> getPropertiesRequiringIsEmptyCheck();
     }
 
     class InputFingerprintingException extends RuntimeException {

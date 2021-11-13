@@ -15,7 +15,7 @@ abstract class TargetJvmVersionRule @Inject constructor(val jvmVersion: Int) : C
         context.details.withVariant("compile") {
             attributes {
                 attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, jvmVersion)
-                attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, Usage.JAVA_API))
+                attribute(Usage.USAGE_ATTRIBUTE, objects.named<Usage>(Usage.JAVA_API))
             }
         }
     }
@@ -171,15 +171,15 @@ abstract class LwjglRule: ComponentMetadataRule {
     override fun execute(context: ComponentMetadataContext) {
         context.details.withVariant("runtime") {
             attributes {
-                attributes.attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, objects.named(OperatingSystemFamily::class.java, "none"))
-                attributes.attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, objects.named(MachineArchitecture::class.java, "none"))
+                attributes.attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, objects.named<OperatingSystemFamily>("none"))
+                attributes.attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, objects.named<MachineArchitecture>("none"))
             }
         }
         nativeVariants.forEach { variantDefinition ->
             context.details.addVariant("${variantDefinition.classifier}-runtime", "runtime") {
                 attributes {
-                    attributes.attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, objects.named(OperatingSystemFamily::class.java, variantDefinition.os))
-                    attributes.attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, objects.named(MachineArchitecture::class.java, variantDefinition.arch))
+                    attributes.attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, objects.named<OperatingSystemFamily>(variantDefinition.os))
+                    attributes.attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, objects.named<MachineArchitecture>(variantDefinition.arch))
                 }
                 withFiles {
                     addFile("${context.details.id.name}-${context.details.id.version}-${variantDefinition.classifier}.jar")
@@ -192,7 +192,7 @@ abstract class LwjglRule: ComponentMetadataRule {
 
 // tag::lwgj-dependencies[]
 configurations["runtimeClasspath"].attributes {
-    attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, objects.named(OperatingSystemFamily::class.java, "windows"))
+    attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, objects.named<OperatingSystemFamily>("windows"))
 }
 dependencies {
     components {
@@ -300,7 +300,7 @@ tasks.register("failRuntimeClasspathResolve") {
 tasks.register("runtimeClasspathArtifacts") {
     doLast {
         configurations["runtimeClasspath"].attributes {
-            attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, objects.named(MachineArchitecture::class.java, "x86"))
+            attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, objects.named<MachineArchitecture>("x86"))
         }
         configurations["runtimeClasspath"].filter { !it.name.startsWith("commons-lang3") }.forEach { println(it.name) }
     }

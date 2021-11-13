@@ -83,8 +83,8 @@ fun registerTransforms() {
 }
 
 fun createConfigurationToShade() = configurations.create("jarsToShade") {
-    attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, Usage.JAVA_RUNTIME))
-    attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling::class.java, Bundling.EXTERNAL))
+    attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named<Usage>(Usage.JAVA_RUNTIME))
+    attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named<Bundling>(Bundling.EXTERNAL))
     isCanBeResolved = true
     isCanBeConsumed = false
     withDependencies {
@@ -136,10 +136,10 @@ fun addShadedJarVariant(shadedJarTask: TaskProvider<ShadedJar>) {
         isCanBeResolved = false
         isCanBeConsumed = true
         attributes {
-            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, Usage.JAVA_RUNTIME))
-            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category::class.java, Category.LIBRARY))
-            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements::class.java, LibraryElements.JAR))
-            attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling::class.java, Bundling.SHADOWED))
+            attribute(Usage.USAGE_ATTRIBUTE, objects.named<Usage>(Usage.JAVA_RUNTIME))
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>(Category.LIBRARY))
+            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named<LibraryElements>(LibraryElements.JAR))
+            attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named<Bundling>(Bundling.SHADOWED))
             attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 6)
         }
         extendsFrom(shadedImplementation)
@@ -167,9 +167,9 @@ fun configureShadedSourcesJarVariant() {
         isCanBeConsumed = false
         extendsFrom(implementation)
         attributes {
-            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, Usage.JAVA_RUNTIME))
-            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category::class.java, Category.DOCUMENTATION))
-            attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType::class.java, "gradle-source-folders"))
+            attribute(Usage.USAGE_ATTRIBUTE, objects.named<Usage>(Usage.JAVA_RUNTIME))
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>(Category.DOCUMENTATION))
+            attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named<DocsType>("gradle-source-folders"))
         }
     }
     tasks.named<Jar>("sourcesJar") {
@@ -177,7 +177,7 @@ fun configureShadedSourcesJarVariant() {
     }
     val sourcesElements by configurations
     sourcesElements.attributes {
-        attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling::class.java, Bundling.SHADOWED))
+        attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named<Bundling>(Bundling.SHADOWED))
     }
 }
 

@@ -2,6 +2,8 @@ plugins {
     id("gradlebuild.build-logic.kotlin-dsl-gradle-plugin")
 }
 
+description = "Provides plugins to configure quality checks (incubating report, spotless, CodeNarc, et al)"
+
 dependencies {
     implementation(project(":basics"))
     implementation(project(":binary-compatibility"))

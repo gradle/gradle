@@ -115,10 +115,10 @@ gradlePlugin {
 // For local consumption by tests - this should be unified with publish-public-libraries if possible
 configurations.create("localLibsRepositoryElements") {
     attributes {
-        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, Usage.JAVA_RUNTIME))
-        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category::class.java, Category.LIBRARY))
-        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements::class.java, "gradle-local-repository"))
-        attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling::class.java, Bundling.EMBEDDED))
+        attribute(Usage.USAGE_ATTRIBUTE, objects.named<Usage>(Usage.JAVA_RUNTIME))
+        attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>(Category.LIBRARY))
+        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named<LibraryElements>("gradle-local-repository"))
+        attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named<Bundling>(Bundling.EMBEDDED))
     }
     isCanBeResolved = false
     isCanBeConsumed = true

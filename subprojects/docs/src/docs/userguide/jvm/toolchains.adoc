@@ -173,13 +173,18 @@ In order to disable auto-detection, you can use the `org.gradle.java.installatio
 
 If Gradle can't find a locally available toolchain which matches the requirements of the build, it will automatically try to download it from AdoptOpenJDK.
 By default, it will request a HotSpot JDK matching the current operating system and architecture.
-Provisioning JDKs are installed in the <<directory_layout.adoc#dir:gradle_user_home,Gradle User Home directory>>.
+Provisioned JDKs are installed in the <<directory_layout.adoc#dir:gradle_user_home,Gradle User Home directory>>.
 
 [NOTE]
 ====
 Gradle will only download JDK versions for GA releases.
 There is no support for downloading early access versions.
 ====
+
+Once a provisioned JDK has been installed in the <<directory_layout.adoc#dir:gradle_user_home,Gradle User Home directory>> it becomes one of the JDKs visible to <<#sec:auto_detection,auto detection>>
+and can be used by any subsequent builds, just like any other JDK installed on the system.
+Since auto-provisioning only kicks in when auto-detection fails to find a matching JDK, auto-provisioning can only download new JDKs and is in no way involved in updating any of the already installed ones.
+None of the auto-provisioned JDKs will ever be revisited and automatically updated by auto-provisioning, even if there is a newer minor version available for them.
 
 By default, the public https://api.adoptopenjdk.net/[AdoptOpenJDK APIs] are used to determine and download a matching JDK.
 

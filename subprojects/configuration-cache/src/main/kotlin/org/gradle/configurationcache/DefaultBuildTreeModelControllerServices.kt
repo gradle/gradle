@@ -19,6 +19,10 @@ package org.gradle.configurationcache
 import org.gradle.api.GradleException
 import org.gradle.api.internal.BuildType
 import org.gradle.api.internal.StartParameterInternal
+import org.gradle.configurationcache.initialization.ConfigurationCacheInjectedClasspathInstrumentationStrategy
+import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
+import org.gradle.configurationcache.initialization.VintageInjectedClasspathInstrumentationStrategy
+import org.gradle.configurationcache.problems.ConfigurationCacheProblems
 import org.gradle.internal.buildtree.BuildActionModelRequirements
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.buildtree.BuildTreeModelControllerServices
@@ -83,8 +87,13 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         registration.add(BuildActionModelRequirements::class.java, requirements)
         if (modelParameters.isConfigurationCache) {
             registration.add(ConfigurationCacheBuildTreeLifecycleControllerFactory::class.java)
+            registration.add(ConfigurationCacheStartParameter::class.java)
+            registration.add(ConfigurationCacheClassLoaderScopeRegistryListener::class.java)
+            registration.add(ConfigurationCacheInjectedClasspathInstrumentationStrategy::class.java)
+            registration.add(ConfigurationCacheProblems::class.java)
             registration.add(DefaultConfigurationCache::class.java)
         } else {
+            registration.add(VintageInjectedClasspathInstrumentationStrategy::class.java)
             registration.add(VintageBuildTreeLifecycleControllerFactory::class.java)
         }
     }

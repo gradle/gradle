@@ -188,8 +188,7 @@ class PerformanceTestPlugin : Plugin<Project> {
             mainClass.set("org.gradle.performance.results.PerformanceTestRuntimesGenerator")
             systemProperties(project.propertiesForPerformanceDb())
             args(repoRoot().file(".teamcity/performance-test-durations.json").asFile.absolutePath)
-            // Never up-to-date since it reads data from the database.
-            outputs.upToDateWhen { false }
+            doNotTrackState("Reads data from the database")
         }
 
         val performanceScenarioJson = repoRoot().file(".teamcity/performance-tests-ci.json").asFile

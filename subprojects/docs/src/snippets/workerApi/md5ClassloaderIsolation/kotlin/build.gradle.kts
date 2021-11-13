@@ -6,7 +6,7 @@ repositories {
 
 val codec = configurations.create("codec") { // <2>
     attributes {
-        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, Usage.JAVA_RUNTIME))
+        attribute(Usage.USAGE_ATTRIBUTE, objects.named<Usage>(Usage.JAVA_RUNTIME))
     }
     isVisible = false
     isCanBeConsumed = false

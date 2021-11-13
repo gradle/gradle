@@ -14,23 +14,14 @@
  * limitations under the License.
  */
 
-package configurations
+package org.gradle.configurationcache.initialization
 
-import common.VersionedSettingsBranch
+import org.gradle.internal.classpath.CachedClasspathTransformer
 
-val triggerExcludes = """
-        -:.idea
-        -:.github
-        -:.teamcity
-        -:subprojects/docs/src/docs/release
-    """.trimIndent()
 
-fun VersionedSettingsBranch.branchFilter() = """
-    +:$branchName
-""".trimIndent()
-
-fun branchesFilterExcluding(vararg excludedBranch: String) = """
-+:*
--:<default>
-${excludedBranch.joinToString("\n") { "-:$it" }}
-"""
+class VintageInjectedClasspathInstrumentationStrategy : AbstractInjectedClasspathInstrumentationStrategy() {
+    override fun whenAgentPresent(): CachedClasspathTransformer.StandardTransform {
+        // For now, disable the instrumentation
+        return CachedClasspathTransformer.StandardTransform.None
+    }
+}

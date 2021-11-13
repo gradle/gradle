@@ -2,6 +2,8 @@ plugins {
     `java-platform`
 }
 
+description = "Provides a platform that constrains versions of external dependencies used by Gradle"
+
 // Here you should declare versions which should be shared by the different modules of buildSrc itself
 val javaParserVersion = "3.18.0"
 val groovyVersion = "3.0.9"
@@ -26,7 +28,7 @@ dependencies {
         api(kotlin("compiler-embeddable")) { version { strictly(kotlinVersion) } }
         api("org.jlleitschuh.gradle:ktlint-gradle:10.1.0")
         api("org.gradle.kotlin:gradle-kotlin-dsl-conventions:0.7.0")
-        api("com.diffplug.spotless:spotless-plugin-gradle:5.15.1")
+        api("com.diffplug.spotless:spotless-plugin-gradle:6.0.0")
         api("com.autonomousapps:dependency-analysis-gradle-plugin:0.71.0")
 
         // Java Libraries

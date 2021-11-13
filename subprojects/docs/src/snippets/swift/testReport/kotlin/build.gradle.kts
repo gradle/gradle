@@ -3,8 +3,8 @@ val testReportData by configurations.creating {
     isCanBeResolved = true
     isCanBeConsumed = false
     attributes {
-        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category::class.java, Category.DOCUMENTATION))
-        attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType::class.java, "test-report-data"))
+        attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>(Category.DOCUMENTATION))
+        attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named<DocsType>("test-report-data"))
     }
 }
 

@@ -69,7 +69,7 @@ tasks {
     if (BuildEnvironment.isCiServer) {
         remoteProjects.forEach { remoteProject ->
             remoteProject {
-                outputs.upToDateWhen { false }
+                doNotTrackState("Do a full checkout on CI")
             }
         }
     }
@@ -135,7 +135,6 @@ tasks {
                 exclude(".idea/**")
                 exclude(".github/**")
                 exclude(".teamcity/**")
-                exclude(".teamcityTest/**")
             }
         })
         useJUnitPlatform {

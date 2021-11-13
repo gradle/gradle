@@ -26,9 +26,9 @@ val manifestClasspath by configurations.creating {
     isTransitive = false
 
     attributes {
-        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, Usage.JAVA_RUNTIME))
-        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category::class.java, Category.LIBRARY))
-        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements::class.java, LibraryElements.JAR))
+        attribute(Usage.USAGE_ATTRIBUTE, objects.named<Usage>(Usage.JAVA_RUNTIME))
+        attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>(Category.LIBRARY))
+        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named<LibraryElements>(LibraryElements.JAR))
     }
 }
 
@@ -53,7 +53,7 @@ configurations {
         isVisible = false
         isCanBeResolved = false
         isCanBeConsumed = true
-        attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, "start-scripts"))
+        attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named<Usage>("start-scripts"))
         outgoing.artifact(startScripts)
     }
 }

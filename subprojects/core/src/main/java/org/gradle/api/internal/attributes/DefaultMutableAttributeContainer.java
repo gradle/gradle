@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.attributes;
 
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
@@ -25,6 +24,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -33,7 +33,7 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
     private final ImmutableAttributesFactory immutableAttributesFactory;
     private final AttributeContainerInternal parent;
     private ImmutableAttributes state = ImmutableAttributes.EMPTY;
-    private final Map<Attribute<?>, Provider<?>> lazyAttributes = Maps.newHashMap();
+    private final Map<Attribute<?>, Provider<?>> lazyAttributes = new HashMap<>();
 
     public DefaultMutableAttributeContainer(ImmutableAttributesFactory immutableAttributesFactory) {
         this(immutableAttributesFactory, null);
@@ -61,16 +61,30 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
 
     @Override
     public <T> AttributeContainer attribute(Attribute<T> key, T value) {
-        assertAttributeTypeIsValid(value, key);
         checkInsertionAllowed(key);
-        state = immutableAttributesFactory.concat(state, key, value);
+        doInsertion(key, value);
         return this;
+    }
+
+    private <T> void doInsertion(Attribute<T> key, T value) {
+        assertAttributeValueIsNotNull(value);
+        assertAttributeTypeIsValid(value.getClass(), key);
+        state = immutableAttributesFactory.concat(state, key, value);
     }
 
     @Override
     public <T> AttributeContainer attribute(Attribute<T> key, Provider<? extends T> provider) {
-        assertAttributeTypeIsValid(provider, key);
         checkInsertionAllowed(key);
+        assertAttributeValueIsNotNull(provider);
+        // We can only sometimes check the type of the provider ahead of time.
+        // When realizing this provider and inserting its value into the container, we still
+        // check the value type is appropriate. see doInsertion
+        if (provider instanceof ProviderInternal) {
+            Class<T> valueType = Cast.<ProviderInternal<T>>uncheckedCast(provider).getType();
+            if (valueType != null) {
+                assertAttributeTypeIsValid(valueType, key);
+            }
+        }
         lazyAttributes.put(key, provider);
         return this;
     }
@@ -89,59 +103,40 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
     }
 
     /**
-     * Checks that the attribute's type matches the given value's type (if a non-{@link Provider}), or the {@link ProviderInternal#getType()} if the
-     * value is a {@link ProviderInternal}; as well as the expectedValueType.
+     * Checks that the attribute's type matches the given value's type is the expected value type.
      *
-     * If the value is a {@link Provider} but <strong>NOT</strong> also
-     * a {@link ProviderInternal}, then no assertions are made (this type of lazily added attribute will fail at the time of retrieval from this container).
-     *
-     * @param value the value (or value provider) to check
+     * @param valueType the value type to check
      * @param attribute the attribute containing a type to check against
      */
-    private void assertAttributeTypeIsValid(@Nullable Object value, Attribute<?> attribute) {
+    private <T> void assertAttributeTypeIsValid(Class<?> valueType, Attribute<T> attribute) {
+        if (!attribute.getType().isAssignableFrom(valueType)) {
+            throw new IllegalArgumentException(String.format("Unexpected type for attribute '%s' provided. Expected a value of type %s but found a value of type %s.", attribute.getName(), attribute.getType().getName(), valueType.getName()));
+        }
+    }
+
+    private void assertAttributeValueIsNotNull(@Nullable Object value) {
         if (value == null) {
             throw new IllegalArgumentException("Setting null as an attribute value is not allowed");
-        }
-
-        final Class<?> actualValueType;
-        if (ProviderInternal.class.isAssignableFrom(value.getClass())) {
-            ProviderInternal<?> provider = Cast.uncheckedCast(value);
-            actualValueType = provider.getType();
-        } else if (!Provider.class.isAssignableFrom(value.getClass())) {
-            actualValueType = value.getClass();
-        } else {
-            actualValueType = null;
-        }
-
-        if (null != actualValueType) {
-            if (!attribute.getType().isAssignableFrom(actualValueType)) {
-                throw new IllegalArgumentException("Unexpected type for attribute: '" + attribute.getName() + "'. Attribute value's actual type: " + actualValueType.getName() + " did not match the expected type: " + attribute.getType().getName());
-            }
         }
     }
 
     @Override
     public <T> T getAttribute(Attribute<T> key) {
         T attribute = state.getAttribute(key);
+        if (attribute == null && lazyAttributes.containsKey(key)) {
+            attribute = realizeLazyAttribute(key);
+        }
         if (attribute == null && parent != null) {
             attribute = parent.getAttribute(key);
-        }
-        if (attribute == null && lazyAttributes.containsKey(key)) {
-            attribute = getLazyAttribute(key);
         }
         return attribute;
     }
 
-    @Nullable
-    private <T> T getLazyAttribute(Attribute<T> key) {
-        if (lazyAttributes.containsKey(key)) {
-            @SuppressWarnings("unchecked") final T value = (T) lazyAttributes.get(key).get();
-            lazyAttributes.remove(key);
-            attribute(key, value);
-            return getAttribute(key);
-        } else {
-            return null;
-        }
+    private <T> T realizeLazyAttribute(Attribute<T> key) {
+        Provider<?> provider = lazyAttributes.remove(key);
+        final T value = Cast.uncheckedCast(provider.get());
+        attribute(key, value);
+        return value;
     }
 
     @Override
@@ -156,29 +151,29 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
 
     @Override
     public ImmutableAttributes asImmutable() {
+        realizeAllLazyAttributes();
+
         if (parent == null) {
-            if (lazyAttributes.isEmpty()) {
-                // There is a recursive call relationship between this method and evaluateLazyAttributes(), this check is the base case
-                return state;
-            } else {
-                return immutableAttributesFactory.concat(state, evaluateLazyValues());
-            }
+            return state;
         } else {
             ImmutableAttributes attributes = parent.asImmutable();
             if (!state.isEmpty()) {
-                attributes = immutableAttributesFactory.concat(immutableAttributesFactory.concat(attributes, state), evaluateLazyValues());
+                attributes = immutableAttributesFactory.concat(attributes, state);
             }
             return attributes;
         }
     }
 
+    private void realizeAllLazyAttributes() {
+        if (!lazyAttributes.isEmpty()) {
+            lazyAttributes.forEach((key, value) -> doInsertion(Cast.uncheckedNonnullCast(key), (Object) value.get()));
+            lazyAttributes.clear();
+        }
+    }
+
     @Override
     public Map<Attribute<?>, ?> asMap() {
-        Map<Attribute<?>, ?> map = Maps.newLinkedHashMap();
-        for (Attribute<?> attribute : keySet()) {
-            map.put(attribute, Cast.uncheckedCast(getAttribute(attribute)));
-        }
-        return map;
+        return asImmutable().asMap();
     }
 
     @Override
@@ -200,7 +195,7 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
         if (!Objects.equals(parent, that.parent)) {
             return false;
         }
-        if (!Objects.equals(lazyAttributes, that.lazyAttributes)) {
+        if (!Objects.equals(asImmutable(), that.asImmutable())) {
             return false;
         }
 
@@ -211,17 +206,7 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
     public int hashCode() {
         int result = parent != null ? parent.hashCode() : 0;
         result = 31 * result + state.hashCode();
-        result = 31 * result + lazyAttributes.hashCode();
+        result = 31 * result + asImmutable().hashCode();
         return result;
-    }
-
-    private ImmutableAttributes evaluateLazyValues() {
-        final AttributeContainerInternal evaluatedAttributes = immutableAttributesFactory.mutable();
-        for (Map.Entry<Attribute<?>, Provider<?>> entry : lazyAttributes.entrySet()) {
-            @SuppressWarnings("unchecked") Attribute<Object> attribute = (Attribute<Object>) entry.getKey();
-            Object value = entry.getValue().get();
-            evaluatedAttributes.attribute(attribute, value);
-        }
-        return evaluatedAttributes.asImmutable();
     }
 }
