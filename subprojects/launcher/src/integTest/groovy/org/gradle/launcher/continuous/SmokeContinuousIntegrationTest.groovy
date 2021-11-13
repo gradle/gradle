@@ -346,6 +346,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
 
     def "ignores non source when source is empty"() {
         when:
+        file("source").createDir()
         buildScript """
             task build {
               inputs.files(fileTree("source"))
