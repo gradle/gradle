@@ -84,11 +84,11 @@ class LazyAttributesIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         fails "outgoingVariants"
-        failure.assertHasCause("Unexpected type for attribute: 'org.gradle.usage'. Attribute value's actual type: java.lang.Integer did not match the expected type: org.gradle.api.attributes.Usage")
+        failure.assertHasCause("Unexpected type for attribute 'org.gradle.usage' provided. Expected a value of type org.gradle.api.attributes.Usage but found a value of type java.lang.Integer.")
     }
 
     @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
-    def "providers used as attribute values with mismatched types names fail properly"() {
+    def "providers used as attribute values with mismatched Attribute types fail properly"() {
         buildFile << """
             plugins {
                 id 'java'
@@ -112,6 +112,6 @@ class LazyAttributesIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         fails "outgoingVariants"
-        failure.assertHasCause("Unexpected type for attribute: 'org.gradle.usage'. Attribute value's actual type: org.gradle.api.attributes.Category\$Impl did not match the expected type: org.gradle.api.attributes.Usage")
+        failure.assertHasCause("Unexpected type for attribute 'org.gradle.usage' provided. Expected a value of type org.gradle.api.attributes.Usage but found a value of type org.gradle.api.attributes.Category\$Impl.")
     }
 }
