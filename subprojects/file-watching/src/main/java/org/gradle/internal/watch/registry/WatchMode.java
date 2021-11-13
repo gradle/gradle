@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.watch.vfs;
+package org.gradle.internal.watch.registry;
 
 import org.slf4j.Logger;
 import org.slf4j.helpers.NOPLogger;

@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.internal.provider
 
-
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.changedetection.state.FileHasherStatistics
 import org.gradle.internal.buildtree.BuildActionRunner
@@ -27,10 +26,10 @@ import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.snapshot.impl.DirectorySnapshotterStatistics
 import org.gradle.internal.watch.options.FileSystemWatchingSettingsFinalizedProgressDetails
+import org.gradle.internal.watch.registry.WatchMode
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem
 import org.gradle.internal.watch.vfs.VfsLogging
 import org.gradle.internal.watch.vfs.WatchLogging
-import org.gradle.internal.watch.vfs.WatchMode
 import spock.lang.Specification
 
 class FileSystemWatchingBuildActionRunnerTest extends Specification {
