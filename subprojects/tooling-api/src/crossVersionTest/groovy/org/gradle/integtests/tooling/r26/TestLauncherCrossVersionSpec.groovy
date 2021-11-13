@@ -19,6 +19,7 @@ package org.gradle.integtests.tooling.r26
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
 import org.gradle.api.GradleException
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.tooling.TestLauncherSpec
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
@@ -35,6 +36,7 @@ import org.gradle.tooling.events.task.TaskSkippedResult
 import org.gradle.tooling.events.test.TestOperationDescriptor
 import org.gradle.tooling.exceptions.UnsupportedBuildArgumentException
 import org.gradle.util.GradleVersion
+import spock.lang.IgnoreIf
 import spock.lang.Timeout
 
 @Timeout(120)
@@ -148,6 +150,7 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         assertTaskNotExecuted(":test")
     }
 
+    @IgnoreIf({ GradleContextualExecuter.embedded})
     @TargetGradleVersion(">=3.0")
     def "can run and cancel test execution in continuous mode"() {
         given:
