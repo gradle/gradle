@@ -14,8 +14,8 @@ dependencies {
 }
 
 tasks.register<TestReport>("testReport") {
-    destinationDir = layout.buildDirectory.dir("reports/allTests").get().asFile
+    destinationDirectory.set(layout.buildDirectory.dir("reports/allTests").get().asFile)
     // Use test results from testReportData configuration
-    (getTestResultDirs() as ConfigurableFileCollection).from(testReportData)
+    testResults.from(testReportData)
 }
 // end::test-report[]

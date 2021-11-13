@@ -104,7 +104,7 @@ public class LoggingTest {
         ignoreWhenJupiter()
         buildFile << """
 $junitSetup
-test {
+tasks.named('test', Test).configure {
     ignoreFailures true
     useJUnit {
         excludeCategories 'org.gradle.testing.SuperClassTests'
@@ -112,7 +112,7 @@ test {
     }
 }
 
-task superTest(type: Test) {
+tasks.register('superTest', Test) {
     ignoreFailures true
     systemProperty 'category', 'super'
     useJUnit {
@@ -120,7 +120,7 @@ task superTest(type: Test) {
     }
 }
 
-task subTest(type: Test) {
+tasks.register('subTest', Test) {
     ignoreFailures true
     systemProperty 'category', 'sub'
     useJUnit {
@@ -128,11 +128,12 @@ task subTest(type: Test) {
     }
 }
 
-task testReport(type: TestReport) {
+def testReport = tasks.register('testReport', TestReport) {
     destinationDir = file("\$buildDir/reports/allTests")
     reportOn test, superTest, subTest
-    tasks.build.dependsOn testReport
 }
+
+tasks.named('build').configure { it.dependsOn testReport }
 """
 
         and:
@@ -180,6 +181,8 @@ public class SubClassTests extends SuperClassTests {
 """
 
         when:
+        executer.expectDocumentedDeprecationWarning('The TestReport.destinationDir property has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use the destinationDirectory property instead. See https://docs.gradle.org/current/dsl/org.gradle.api.tasks.testing.TestReport.html#org.gradle.api.tasks.testing.TestReport:destinationDir for more details.')
+        executer.expectDocumentedDeprecationWarning('The TestReport.reportOn(Object...) method has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use the testResults method instead. See https://docs.gradle.org/current/dsl/org.gradle.api.tasks.testing.TestReport.html#org.gradle.api.tasks.testing.TestReport:testResults for more details.')
         run "testReport"
 
         then:
@@ -203,12 +206,12 @@ public class SubClassTests extends SuperClassTests {
 
              $junitSetup
 
-            task otherTests(type: Test) {
+            tasks.register('otherTests', Test) {
                 binaryResultsDirectory = file("bin")
                 testClassesDirs = files("blah")
             }
 
-            task testReport(type: TestReport) {
+            tasks.register('testReport', TestReport) {
                 reportOn test, otherTests
                 destinationDir reporting.file("tr")
             }
@@ -218,6 +221,8 @@ public class SubClassTests extends SuperClassTests {
         testClass("Thing")
 
         when:
+        executer.expectDocumentedDeprecationWarning('The TestReport.reportOn(Object...) method has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use the testResults method instead. See https://docs.gradle.org/current/dsl/org.gradle.api.tasks.testing.TestReport.html#org.gradle.api.tasks.testing.TestReport:testResults for more details.')
+        executer.expectDocumentedDeprecationWarning('The TestReport.destinationDir property has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use the destinationDirectory property instead. See https://docs.gradle.org/current/dsl/org.gradle.api.tasks.testing.TestReport.html#org.gradle.api.tasks.testing.TestReport:destinationDir for more details.')
         succeeds "testReport"
 
         then:
@@ -234,7 +239,7 @@ public class SubClassTests extends SuperClassTests {
 
              $junitSetup
 
-            task testReport(type: TestReport) {
+            tasks.register('testReport', TestReport) {
                 testResultDirs = [test.binaryResultsDirectory.asFile.get()]
                 destinationDir reporting.file("tr")
             }
@@ -244,8 +249,15 @@ public class SubClassTests extends SuperClassTests {
         testClass("Thing")
 
         then:
+        executer.expectDocumentedDeprecationWarning('The TestReport.testResultDirs property has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use the testResults property instead. See https://docs.gradle.org/current/dsl/org.gradle.api.tasks.testing.TestReport.html#org.gradle.api.tasks.testing.TestReport:testResultDirs for more details.')
+        executer.expectDocumentedDeprecationWarning('The TestReport.reportOn(Object...) method has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use the testResults method instead. See https://docs.gradle.org/current/dsl/org.gradle.api.tasks.testing.TestReport.html#org.gradle.api.tasks.testing.TestReport:testResults for more details.')
+        executer.expectDocumentedDeprecationWarning('The TestReport.destinationDir property has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use the destinationDirectory property instead. See https://docs.gradle.org/current/dsl/org.gradle.api.tasks.testing.TestReport.html#org.gradle.api.tasks.testing.TestReport:destinationDir for more details.')
         succeeds "testReport"
+        skipped ":testReport"
+
+        executer.noDeprecationChecks() // there will be no nagging is cc is used
         succeeds "testReport"
+        skipped ":testReport"
     }
 
     def "test report task is skipped when there are no results"() {
@@ -253,13 +265,15 @@ public class SubClassTests extends SuperClassTests {
         buildScript """
             apply plugin: 'java'
 
-            task testReport(type: TestReport) {
+            tasks.register('testReport', TestReport) {
                 reportOn test
                 destinationDir reporting.file("tr")
             }
         """
 
         when:
+        executer.expectDocumentedDeprecationWarning('The TestReport.reportOn(Object...) method has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use the testResults method instead. See https://docs.gradle.org/current/dsl/org.gradle.api.tasks.testing.TestReport.html#org.gradle.api.tasks.testing.TestReport:testResults for more details.')
+        executer.expectDocumentedDeprecationWarning('The TestReport.destinationDir property has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use the destinationDirectory property instead. See https://docs.gradle.org/current/dsl/org.gradle.api.tasks.testing.TestReport.html#org.gradle.api.tasks.testing.TestReport:destinationDir for more details.')
         succeeds "testReport"
 
         then:
