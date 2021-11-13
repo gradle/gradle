@@ -25,12 +25,12 @@ import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.internal.vfs.impl.AbstractVirtualFileSystem;
 import org.gradle.internal.vfs.impl.VfsRootReference;
 import org.gradle.internal.watch.registry.FileWatcherRegistry;
+import org.gradle.internal.watch.registry.WatchMode;
 import org.gradle.internal.watch.vfs.BuildFinishedFileSystemWatchingBuildOperationType;
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem;
 import org.gradle.internal.watch.vfs.BuildStartedFileSystemWatchingBuildOperationType;
 import org.gradle.internal.watch.vfs.VfsLogging;
 import org.gradle.internal.watch.vfs.WatchLogging;
-import org.gradle.internal.watch.vfs.WatchMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

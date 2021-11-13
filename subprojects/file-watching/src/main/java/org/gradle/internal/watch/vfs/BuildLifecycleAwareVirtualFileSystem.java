@@ -21,6 +21,7 @@ import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.internal.watch.registry.FileWatcherRegistry;
+import org.gradle.internal.watch.registry.WatchMode;
 
 import java.io.File;
 
