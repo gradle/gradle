@@ -73,7 +73,6 @@ public enum JavaVersion {
 
     /**
      * Java 17 major version.
-     * Not officially supported by Gradle. Use at your own risk.
      *
      * @since 6.3
      */

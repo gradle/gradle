@@ -10,7 +10,12 @@ Include only their name, impactful features should be called out separately belo
 [Michael Bailey](https://github.com/yogurtearl),
 [Jochen Schalanda](https://github.com/joschi),
 [Jendrik Johannes](https://github.com/jjohannes),
-[Konstantin Gribov](https://github.com/grossws).
+[Roberto Perez Alcolea](https://github.com/rpalcolea),
+[Konstantin Gribov](https://github.com/grossws),
+[Piyush Mor](https://github.com/piyushmor),
+[Róbert Papp](https://github.com/TWiStErRob),
+[Piyush Mor](https://github.com/piyushmor),
+[Ned Twigg](https://github.com/nedtwigg).
 
 ## Upgrade instructions
 
@@ -65,6 +70,48 @@ Following the migration of [AdoptOpenJDK](https://adoptopenjdk.net/) to [Eclipse
 * Using `ADOPTOPENJDK` as a vendor and having it trigger auto-provisioning will emit a [deprecation warning](userguide/upgrading_version_7.html#adoptopenjdk_download).
 
 See [the documentation](userguide/toolchains.html#sec:provisioning) for details.
+
+### Kotlin DSL improvements
+
+#### Type-safe accessors for extensions of `repositories {}`
+
+The Kotlin DSL now generates type-safe model accessors for extensions registered on the `repositories {}` block.
+
+
+For example, starting with this version of Gradle, the [`asciidoctorj-gems-plugin`](https://asciidoctor.github.io/asciidoctor-gradle-plugin/master/user-guide/#asciidoctorj-gems-plugin) can be configured directly via the generated type-safe accessors:
+
+
+```kotlin
+repositories {
+    ruby {
+        gems()
+    }
+}
+```
+
+Whereas before it required to use [`withGroovyBuilder`]():
+
+```kotlin
+repositories {
+    withGroovyBuilder {
+        "ruby" {
+            "gems"()
+        }
+    }
+}
+```
+
+or, required more tinkering in order to discover what names and types to use, relying on the API:
+```kotlin
+repositories {
+    this as ExtensionAware
+    configure<com.github.jrubygradle.api.core.RepositoryHandlerExtension> {
+        gems()
+    }
+}
+```
+See [the documentation](userguide/kotlin_dsl.html#type-safe-accessors) for details.
+
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE

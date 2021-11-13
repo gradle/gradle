@@ -38,7 +38,7 @@ import java.util.Map;
  *
  * File names for root directories are ignored. For root files, the file name is used as normalized path.
  */
-public class RelativePathFingerprintingStrategy extends AbstractFingerprintingStrategy {
+public class RelativePathFingerprintingStrategy extends AbstractDirectorySensitiveFingerprintingStrategy {
     public static final String IDENTIFIER = "RELATIVE_PATH";
 
     private final Interner<String> stringInterner;
@@ -73,7 +73,7 @@ public class RelativePathFingerprintingStrategy extends AbstractFingerprintingSt
                 FileSystemLocationFingerprint fingerprint;
                 if (relativePath.isRoot()) {
                     if (snapshot.getType() == FileType.Directory) {
-                        fingerprint = IgnoredPathFileSystemLocationFingerprint.DIRECTORY;
+                        return SnapshotVisitResult.CONTINUE;
                     } else {
                         fingerprint = fingerprint(snapshot.getName(), snapshot.getType(), snapshot);
                     }

@@ -21,14 +21,12 @@ import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
-import spock.lang.Unroll
 
 class SamplesGroovyQuickstartIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Rule
     public final Sample sample = new Sample(testDirectoryProvider, 'groovy/quickstart')
 
-    @Unroll
     def "groovy project quickstart sample with #dsl dsl"() {
         given:
         TestFile groovyProjectDir = sample.dir.file(dsl)

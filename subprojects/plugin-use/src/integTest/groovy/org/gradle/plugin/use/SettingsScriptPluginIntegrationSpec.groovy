@@ -17,7 +17,6 @@
 package org.gradle.plugin.use
 
 import org.gradle.test.fixtures.file.LeaksFileHandles
-import spock.lang.Unroll
 
 @LeaksFileHandles
 class SettingsScriptPluginIntegrationSpec extends AbstractPluginSpec {
@@ -35,7 +34,6 @@ settings.gradle.beforeProject { org.gradle.api.Project project ->
         )
     }
 
-    @Unroll
     def "settings script with a plugins block - #settingScriptExtension"() {
         given:
         doConfigureSettingsPlugin()
@@ -53,7 +51,6 @@ settings.gradle.beforeProject { org.gradle.api.Project project ->
         '.gradle'              | USE
     }
 
-    @Unroll
     def "multiple plugins blocks in settings fail the build - #settingScriptExtension"() {
         given:
         file("settings$settingScriptExtension") << use
@@ -69,7 +66,6 @@ settings.gradle.beforeProject { org.gradle.api.Project project ->
         '.gradle.kts'          | "plugins { } \n plugins { }"
     }
 
-    @Unroll
     def "plugins block before a plugins management block - #settingScriptExtension"() {
         given:
         file("settings$settingScriptExtension") << use
@@ -86,7 +82,6 @@ settings.gradle.beforeProject { org.gradle.api.Project project ->
         '.gradle'              | "plugins { } \n pluginManagement { }"
     }
 
-    @Unroll
     def "plugin with an unknown identifier in a plugins management block - #settingScriptExtension"() {
         given:
         file("settings$settingScriptExtension") << use
@@ -103,7 +98,6 @@ settings.gradle.beforeProject { org.gradle.api.Project project ->
         '.gradle'              | "plugins { id 'unknown' version '1.0' }"
     }
 
-    @Unroll
     def "can use apply false on settings - #settingScriptExtension"() {
         given:
         doConfigureSettingsPlugin()
@@ -127,7 +121,6 @@ settings.gradle.beforeProject { org.gradle.api.Project project ->
         '.gradle'              | "plugins { id \"$PLUGIN_ID\" version \"$VERSION\" apply false }"
     }
 
-    @Unroll
     def "plugin management block can be used to configure the version of plugins used in settings - #settingScriptExtension"() {
         given:
         doConfigureSettingsPlugin()
@@ -145,7 +138,6 @@ settings.gradle.beforeProject { org.gradle.api.Project project ->
         '.gradle'              | "pluginManagement { $USE  }\nplugins { id '$PLUGIN_ID' }"
     }
 
-    @Unroll
     def "plugin management execution ordering - #settingScriptExtension"() {
         file("settings$settingScriptExtension") << """
 pluginManagement {

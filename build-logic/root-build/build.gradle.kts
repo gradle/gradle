@@ -2,6 +2,8 @@ plugins {
     id("gradlebuild.build-logic.kotlin-dsl-gradle-plugin")
 }
 
+description = "Provides plugins that configures the root Gradle project"
+
 dependencies {
     implementation(project(":idea"))
     implementation(project(":profiling"))

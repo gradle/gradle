@@ -16,8 +16,6 @@
 
 package org.gradle.configurationcache
 
-import spock.lang.Unroll
-
 import javax.inject.Inject
 
 class ConfigurationCacheTaskSerializationIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
@@ -110,7 +108,6 @@ class ConfigurationCacheTaskSerializationIntegrationTest extends AbstractConfigu
         outputContains("this.value = value")
     }
 
-    @Unroll
     def "Directory value can resolve paths after being restored"() {
         buildFile << """
             import ${Inject.name}

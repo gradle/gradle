@@ -17,3 +17,4 @@
 plugins {
    `kotlin-dsl`
 }
+description = "Provides a plugin that enables or disables test selection based on system properties"

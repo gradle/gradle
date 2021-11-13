@@ -24,14 +24,12 @@ import org.gradle.jvm.toolchain.JavaInstallationMetadata
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import spock.lang.Specification
 import spock.lang.Subject
-import spock.lang.Unroll
 
 @Subject(ScalaCompileOptionsConfigurer)
 class ScalaCompileOptionsConfigurerTest extends Specification {
 
     private final ScalaRuntime scalaRuntime = Mock(ScalaRuntime)
 
-    @Unroll
     def 'configuring target jvm for JVM #javaVersion and Scala #scalaLibraryVersion results in #expectedTarget'() {
         given:
         ScalaCompileOptions scalaCompileOptions = new ScalaCompileOptions()

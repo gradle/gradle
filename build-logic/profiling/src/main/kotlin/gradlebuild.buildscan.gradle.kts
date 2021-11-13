@@ -16,8 +16,8 @@
 
 import com.gradle.scan.plugin.BuildScanExtension
 import gradlebuild.basics.BuildEnvironment.isCiServer
+import gradlebuild.basics.BuildEnvironment.isCodeQl
 import gradlebuild.basics.BuildEnvironment.isGhActions
-import gradlebuild.basics.BuildEnvironment.isEc2Agent
 import gradlebuild.basics.BuildEnvironment.isJenkins
 import gradlebuild.basics.BuildEnvironment.isTravis
 import gradlebuild.basics.kotlindsl.execAndGetStdout
@@ -39,6 +39,7 @@ import org.gradle.internal.watch.vfs.BuildFinishedFileSystemWatchingBuildOperati
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.launcher.exec.RunBuildBuildOperationType
+import java.net.InetAddress
 import java.net.URLEncoder
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -155,17 +156,19 @@ fun extractCheckstyleAndCodenarcData() {
         tasks.withType<Checkstyle>().configureEach {
             finalizedBy(extractCheckstyleBuildScanData)
             extractCheckstyleBuildScanData {
-                reports.xml.outputLocation.orNull?.let { xmlOutputs.from(it.asFile) }
+                xmlOutputs.from(reports.xml.outputLocation)
             }
         }
         tasks.withType<CodeNarc>().configureEach {
             finalizedBy(extractCodeNarcBuildScanData)
             extractCodeNarcBuildScanData {
-                reports.xml.outputLocation.orNull?.let { xmlOutputs.from(it.asFile) }
+                xmlOutputs.from(reports.xml.outputLocation)
             }
         }
     }
 }
+
+fun isEc2Agent() = InetAddress.getLocalHost().hostName.startsWith("ip-")
 
 fun Project.extractCiData() {
     if (isCiServer) {
@@ -173,7 +176,7 @@ fun Project.extractCiData() {
             background {
                 setCompileAllScanSearch(execAndGetStdout("git", "rev-parse", "--verify", "HEAD"))
             }
-            if (isEc2Agent) {
+            if (isEc2Agent()) {
                 tag("EC2")
             }
             if (isGhActions) {
@@ -183,6 +186,11 @@ fun Project.extractCiData() {
                 value(tcBuildTypeName, buildType)
                 link("Build Type Scans", customValueSearchUrl(mapOf(tcBuildTypeName to buildType)))
             }
+        }
+    }
+    if (isCodeQl) {
+        buildScan {
+            tag("CODEQL")
         }
     }
 }

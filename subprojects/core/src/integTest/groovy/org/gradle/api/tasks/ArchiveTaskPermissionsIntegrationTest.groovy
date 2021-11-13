@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.Unroll
 
 import static org.junit.Assert.assertTrue
 
@@ -29,7 +28,6 @@ import static org.junit.Assert.assertTrue
 class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
 
     @Requires(TestPrecondition.FILE_PERMISSIONS)
-    @Unroll
     def "file and directory permissions are preserved when using #taskName task"() {
         given:
         createDir('parent') {
@@ -60,7 +58,6 @@ class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Requires(TestPrecondition.FILE_PERMISSIONS)
-    @Unroll
     def "file and directory permissions can be overridden in #taskName task"() {
         given:
         createDir('parent') {
@@ -96,7 +93,6 @@ class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Requires(TestPrecondition.FILE_PERMISSIONS)
-    @Unroll
     def "file and directory permissions are preserved for unpacked #taskName archives"() {
         given:
         TestFile testDir = createDir('testdir') {
@@ -126,7 +122,6 @@ class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Requires(TestPrecondition.WINDOWS)
-    @Unroll
     def "file and directory permissions are not preserved when dealing with #taskName archives on OS with no permission support"() {
         given:
         TestFile testDir = createDir('root') {

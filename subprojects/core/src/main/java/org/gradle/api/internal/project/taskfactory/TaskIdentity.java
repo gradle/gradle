@@ -52,7 +52,7 @@ public final class TaskIdentity<T extends Task> {
     }
 
     public static <T extends Task> TaskIdentity<T> create(String name, Class<T> type, ProjectInternal project) {
-        return new TaskIdentity<T>(
+        return new TaskIdentity<>(
             type,
             name,
             project.projectPath(name),
@@ -80,7 +80,7 @@ public final class TaskIdentity<T extends Task> {
 
     @Override
     public int hashCode() {
-        return (int) (uniqueId ^ (uniqueId >>> 32));
+        return (int) (uniqueId ^ uniqueId >>> 32);
     }
 
     @Override
@@ -102,5 +102,9 @@ public final class TaskIdentity<T extends Task> {
 
     public String getBuildPath() {
         return buildPath.getPath();
+    }
+
+    public Class<T> getTaskType() {
+        return type;
     }
 }

@@ -18,14 +18,12 @@ package org.gradle.api.internal.tasks.userinput
 
 import spock.lang.Specification
 import spock.lang.Subject
-import spock.lang.Unroll
 
 class DefaultBuildScanUserInputHandlerTest extends Specification {
 
     def userInputHandler = Mock(UserInputHandler)
     @Subject def buildScanUserInputHandler = new DefaultBuildScanUserInputHandler(userInputHandler)
 
-    @Unroll
     def "can ask yes/no question and capture user input '#input'"() {
         given:
         def question = 'Accept license?'

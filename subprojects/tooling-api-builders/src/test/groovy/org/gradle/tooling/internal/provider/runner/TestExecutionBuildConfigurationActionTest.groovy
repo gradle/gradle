@@ -19,6 +19,7 @@ package org.gradle.tooling.internal.provider.runner
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.api.specs.Specs
 import org.gradle.api.tasks.TaskCollection
@@ -29,6 +30,8 @@ import org.gradle.execution.TaskNameResolver
 import org.gradle.execution.TaskSelection
 import org.gradle.execution.TaskSelector
 import org.gradle.execution.plan.ExecutionPlan
+import org.gradle.internal.build.BuildProjectRegistry
+import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.event.types.DefaultTestDescriptor
 import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.service.ServiceRegistry
@@ -36,7 +39,8 @@ import org.gradle.tooling.internal.protocol.test.InternalDebugOptions
 import org.gradle.tooling.internal.protocol.test.InternalJvmTestRequest
 import org.gradle.tooling.internal.provider.action.TestExecutionRequestAction
 import spock.lang.Specification
-import spock.lang.Unroll
+
+import java.util.function.Consumer
 
 class TestExecutionBuildConfigurationActionTest extends Specification {
 
@@ -44,14 +48,17 @@ class TestExecutionBuildConfigurationActionTest extends Specification {
     public static final String TEST_METHOD_NAME = "testMethod"
     public static final String TEST_TASK_NAME = ":test"
 
-    ProjectInternal projectInternal
+    ProjectInternal projectInternal = Mock()
+    ProjectState projectState = Mock()
     ServiceRegistry serviceRegistry = Mock()
     TaskSelector taskSelector = Mock()
     Test testTask
     TaskContainerInternal tasksContainerInternal
     TestFilter testFilter
     TaskOutputsInternal outputsInternal
-    GradleInternal gradleInternal
+    GradleInternal gradleInternal = Mock()
+    BuildState buildState = Mock()
+    BuildProjectRegistry buildProjectRegistry = Mock()
     BuildExecutionContext buildContext
     ExecutionPlan executionPlan
     TestExecutionRequestAction testExecutionRequest
@@ -59,8 +66,6 @@ class TestExecutionBuildConfigurationActionTest extends Specification {
 
     def setup() {
         outputsInternal = Mock()
-        projectInternal = Mock()
-        gradleInternal = Mock()
         buildContext = Mock()
         tasksContainerInternal = Mock()
         executionPlan = Mock()
@@ -79,7 +84,10 @@ class TestExecutionBuildConfigurationActionTest extends Specification {
     private void setupProject() {
         1 * buildContext.getExecutionPlan() >> executionPlan
         1 * buildContext.getGradle() >> gradleInternal
-        _ * gradleInternal.getRootProject() >> projectInternal
+        _ * gradleInternal.owner >> buildState
+        _ * buildState.projects >> buildProjectRegistry
+        _ * buildProjectRegistry.allProjects >> [projectState]
+        _ * projectState.applyToMutableState(_) >> { Consumer consumer -> consumer.accept(projectInternal) }
         _ * gradleInternal.getServices() >> serviceRegistry
         _ * serviceRegistry.get(TaskSelector) >> taskSelector
     }
@@ -94,15 +102,13 @@ class TestExecutionBuildConfigurationActionTest extends Specification {
         when:
         buildConfigurationAction.configure(buildContext)
         then:
-        0 * projectInternal.getAllprojects() >> [projectInternal]
+        0 * buildProjectRegistry.allProjects
         _ * executionPlan.addEntryTasks({ args -> assert args.size() == 0 })
     }
 
-    @Unroll
     def "sets test filter with information from #requestType"() {
         setup:
-        _ * projectInternal.getAllprojects() >> [projectInternal]
-
+        _ * buildProjectRegistry.allProjects >> [projectState]
         1 * testExecutionRequest.getTestExecutionDescriptors() >> descriptors
         1 * testExecutionRequest.getInternalJvmTestRequests() >> internalJvmRequests
         1 * testExecutionRequest.getTaskAndTests() >> tasksAndTests

@@ -41,7 +41,7 @@ public class PublishToMavenLocal extends AbstractPublishToMaven {
             throw new InvalidUserDataException("The 'publication' property is required");
         }
 
-        getDuplicatePublicationTracker().checkCanPublishToMavenLocal(publicationInternal);
+        getDuplicatePublicationTracker().checkCanPublishToMavenLocal(getProject(), publicationInternal);
         return publicationInternal.asNormalisedPublication();
     }
 

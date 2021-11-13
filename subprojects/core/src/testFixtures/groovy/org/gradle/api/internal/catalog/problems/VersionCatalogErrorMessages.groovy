@@ -69,6 +69,10 @@ trait VersionCatalogErrorMessages {
         buildMessage(UnexpectedFormatVersion, VersionCatalogProblemId.UNSUPPORTED_FORMAT_VERSION, spec)
     }
 
+    String aliasNotFinished(@DelegatesTo(value = AliasNotFinished, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+        buildMessage(AliasNotFinished, VersionCatalogProblemId.ALIAS_NOT_FINISHED, spec)
+    }
+
     String missingCatalogFile(@DelegatesTo(value = MissingCatalogFile, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
         buildMessage(MissingCatalogFile, VersionCatalogProblemId.CATALOG_FILE_DOES_NOT_EXIST, spec)
     }
@@ -423,6 +427,35 @@ ${solution}
     Reason: This version of Gradle only supports format version ${expected}.
 
     Possible solution: Try to upgrade to a newer version of Gradle which supports the catalog format version ${unsupported}.
+
+    ${documentation}"""
+        }
+    }
+
+    static class AliasNotFinished extends InCatalog<AliasNotFinished> {
+
+        String alias
+
+        AliasNotFinished() {
+            intro = """Invalid catalog definition:
+"""
+        }
+
+        AliasNotFinished alias(String v) {
+            this.alias = v
+            this
+        }
+
+
+        @Override
+        String build() {
+            """${intro}  - Problem: In version catalog ${catalog}, dependency alias builder '${alias}' was not finished.
+
+    Reason: A version was not set or explicitly declared as not wanted.
+
+    Possible solutions:
+      1. Call `.version()` to give the alias a version.
+      2. Call `.withoutVersion()` to explicitly declare that the alias should not have a version.
 
     ${documentation}"""
         }

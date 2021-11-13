@@ -103,12 +103,9 @@ class IsolatedProjectsToolingApiPhasedBuildActionIntegrationTest extends Abstrac
             fileChanged("build.gradle")
             projectConfigured(":buildSrc")
             projectConfigured(":b")
-            buildModelCreated()
             modelsCreated(":")
-            modelsCreated(":a")
         }
         outputContains("creating model for root project 'root'")
-        outputContains("creating model for project ':a'")
     }
 
     def "caches execution of phased BuildAction that queries custom tooling model and that may, but does not actually, run tasks"() {

@@ -31,7 +31,6 @@ import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.reflect.validation.ValidationTestFor
 import spock.lang.Issue
 import spock.lang.Requires
-import spock.lang.Unroll
 
 class TaskParametersIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
 
@@ -328,7 +327,6 @@ task someTask {
         skipped(":someTask")
     }
 
-    @Unroll
     def "task is out of date when property type changes #oldValue -> #newValue"() {
         buildFile << """
 task someTask {
@@ -458,7 +456,6 @@ task someTask {
         ValidationProblemId.MUTABLE_TYPE_WITH_SETTER,
         ValidationProblemId.INCORRECT_USE_OF_INPUT_ANNOTATION
     ])
-    @Unroll
     def "task can use input property of type #type"() {
         file("buildSrc/src/main/java/SomeTask.java") << """
 import org.gradle.api.DefaultTask;
@@ -587,7 +584,6 @@ task someTask(type: SomeTask) {
     @ValidationTestFor(
         ValidationProblemId.VALUE_NOT_SET
     )
-    @Unroll
     def "null input files registered via TaskInputs.#method are not allowed"() {
         expectReindentedValidationMessage()
         buildFile << """
@@ -605,7 +601,6 @@ task someTask(type: SomeTask) {
         method << ["file", "files", "dir"]
     }
 
-    @Unroll
     def "optional null input files registered via TaskInputs.#method are allowed"() {
         buildFile << """
             task test {
@@ -623,7 +618,6 @@ task someTask(type: SomeTask) {
     @ValidationTestFor(
         ValidationProblemId.VALUE_NOT_SET
     )
-    @Unroll
     def "null output files registered via TaskOutputs.#method are not allowed"() {
         expectReindentedValidationMessage()
         buildFile << """
@@ -641,7 +635,6 @@ task someTask(type: SomeTask) {
         method << ["file", "files", "dir", "dirs"]
     }
 
-    @Unroll
     def "optional null output files registered via TaskOutputs.#method are allowed"() {
         buildFile << """
             task test {
@@ -659,7 +652,6 @@ task someTask(type: SomeTask) {
     @ValidationTestFor(
         ValidationProblemId.INPUT_FILE_DOES_NOT_EXIST
     )
-    @Unroll
     def "missing input files registered via TaskInputs.#method are not allowed"() {
         expectReindentedValidationMessage()
         buildFile << """
@@ -689,7 +681,6 @@ task someTask(type: SomeTask) {
     @ValidationTestFor(
         ValidationProblemId.UNEXPECTED_INPUT_FILE_TYPE
     )
-    @Unroll
     def "wrong input file type registered via TaskInputs.#method is not allowed"() {
         expectReindentedValidationMessage()
         file("input-file.txt").touch()
@@ -721,7 +712,6 @@ task someTask(type: SomeTask) {
     @ValidationTestFor(
         ValidationProblemId.CANNOT_WRITE_OUTPUT
     )
-    @Unroll
     def "wrong output file type registered via TaskOutputs.#method is not allowed (files)"() {
         expectReindentedValidationMessage()
         def outputDir = file("output-dir")
@@ -751,7 +741,6 @@ task someTask(type: SomeTask) {
     @ValidationTestFor(
         ValidationProblemId.CANNOT_WRITE_OUTPUT
     )
-    @Unroll
     def "wrong output file type registered via TaskOutputs.#method is not allowed (directories)"() {
         expectReindentedValidationMessage()
         def outputFile = file("output-file.txt")

@@ -28,6 +28,7 @@ import org.gradle.internal.xml.SimpleXmlWriter;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.UncheckedIOException;
 import java.net.URI;
 import java.util.Collection;
 import java.util.List;
@@ -84,6 +85,13 @@ public class DependencyVerificationsXmlWriter {
     }
 
     private void write(DependencyVerifier verifier) throws IOException {
+        verifier.getTopLevelComments().forEach(comment -> {
+            try {
+                writer.comment(comment);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        });
         writer.startElement(VERIFICATION_METADATA);
         writeAttribute("xmlns", "https://schema.gradle.org/dependency-verification");
         writeAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
@@ -129,11 +137,15 @@ public class DependencyVerificationsXmlWriter {
     private void writeGroupedTrustedKey(String keyId, List<DependencyVerificationConfiguration.TrustedKey> trustedKeys) throws IOException {
         writer.startElement(TRUSTED_KEY);
         writeAttribute(ID, keyId);
-        for (DependencyVerificationConfiguration.TrustedKey trustedKey : trustedKeys) {
-            writer.startElement(TRUSTING);
-            writeTrustCoordinates(trustedKey);
-            writer.endElement();
-        }
+        trustedKeys.stream().sorted().forEach(trustedKey -> {
+            try {
+                writer.startElement(TRUSTING);
+                writeTrustCoordinates(trustedKey);
+                writer.endElement();
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        });
         writer.endElement();
     }
 
@@ -168,16 +180,18 @@ public class DependencyVerificationsXmlWriter {
             return;
         }
         writer.startElement(TRUSTED_ARTIFACTS);
-        for (DependencyVerificationConfiguration.TrustedArtifact trustedArtifact : trustedArtifacts) {
-            writeTrustedArtifact(trustedArtifact);
-        }
+        trustedArtifacts.stream().sorted().forEach(this::writeTrustedArtifact);
         writer.endElement();
     }
 
-    private void writeTrustedArtifact(DependencyVerificationConfiguration.TrustedArtifact trustedArtifact) throws IOException {
-        writer.startElement(TRUST);
-        writeTrustCoordinates(trustedArtifact);
-        writer.endElement();
+    private void writeTrustedArtifact(DependencyVerificationConfiguration.TrustedArtifact trustedArtifact) {
+        try {
+            writer.startElement(TRUST);
+            writeTrustCoordinates(trustedArtifact);
+            writer.endElement();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     private void writeTrustCoordinates(DependencyVerificationConfiguration.TrustCoordinates trustedArtifact) throws IOException {

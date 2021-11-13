@@ -119,7 +119,6 @@ class ReservedProjectNamesCrossVersionSpec extends ToolingApiSpecification {
         def projects = collectProjects(model)
         projects.collect({ it.name }).contains("root-explicitName")
         !projects.collect({ it.name }).contains("explicitName")
-
     }
 
     def "Reserved names work in composite builds"() {
@@ -140,7 +139,11 @@ class ReservedProjectNamesCrossVersionSpec extends ToolingApiSpecification {
         ])
 
         when:
-        def eclipseModels = withConnection { con -> con.action(new SupplyRuntimeAndLoadCompositeEclipseModels(workspace)).run() }
+        def eclipseModels = withConnection { con ->
+            def builder = con.action(new SupplyRuntimeAndLoadCompositeEclipseModels(workspace))
+            collectOutputs(builder)
+            builder.run()
+        }
 
         then:
         eclipseModels.collect {

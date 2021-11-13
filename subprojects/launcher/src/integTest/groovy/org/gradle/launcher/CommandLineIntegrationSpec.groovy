@@ -31,7 +31,6 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
     JDWPUtil jdwpClient = new JDWPUtil(5005)
 
     @IgnoreIf({ GradleContextualExecuter.parallel })
-    @Unroll
     def "reasonable failure message when --max-workers=#value"() {
         given:
         executer.requireDaemon().requireIsolatedDaemons()  // otherwise exception gets thrown in testing infrastructure
@@ -49,7 +48,6 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
         value << ["-1", "0", "foo", " 1"]
     }
 
-    @Unroll
     def "reasonable failure message when org.gradle.workers.max=#value"() {
         given:
         executer.requireDaemon().requireIsolatedDaemons() // otherwise exception gets thrown in testing infrastructure

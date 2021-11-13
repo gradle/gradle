@@ -3,7 +3,7 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.version
 import common.VersionedSettingsBranch
 import projects.GradleBuildToolRootProject
 
-version = "2021.1"
+version = "2021.2"
 
 /*
 

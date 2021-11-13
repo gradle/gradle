@@ -16,10 +16,7 @@
 
 package org.gradle.api
 
-import spock.lang.Unroll
-
 abstract class MutationFailureFromMatchingConfigureEachDomainObjectContainerIntegrationTest extends AbstractDomainObjectContainerIntegrationTest {
-    @Unroll
     def "cannot execute mutation method #mutationMethod.key from matching.configureEach"() {
         buildFile << """
             testContainer.matching({ it in testContainer.type }).configureEach {

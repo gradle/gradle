@@ -40,7 +40,6 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
-import spock.lang.Unroll
 
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
 
@@ -61,6 +60,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
     TaskInternal task(Map<String, ?> options = [:], String name) {
         def task = createTask(name, options.project ?: this.project, options.type ?: TaskInternal)
         _ * task.taskDependencies >> taskDependencyResolvingTo(task, options.dependsOn ?: [])
+        _ * task.lifecycleDependencies >> taskDependencyResolvingTo(task, options.dependsOn ?: [])
         _ * task.finalizedBy >> taskDependencyResolvingTo(task, options.finalizedBy ?: [])
         _ * task.shouldRunAfter >> taskDependencyResolvingTo(task, [])
         _ * task.mustRunAfter >> taskDependencyResolvingTo(task, options.mustRunAfter ?: [])
@@ -154,7 +154,6 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         lockedProjects.empty
     }
 
-    @Unroll
     def "two tasks with #relation relationship are not executed in parallel"() {
         given:
         Task a = task("a", type: Async)

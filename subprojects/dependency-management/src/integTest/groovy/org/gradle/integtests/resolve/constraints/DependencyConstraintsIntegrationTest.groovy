@@ -19,7 +19,6 @@ import org.gradle.integtests.fixtures.AbstractPolyglotIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
-import spock.lang.Unroll
 
 /**
  * This is a variation of {@link PublishedDependencyConstraintsIntegrationTest} that tests dependency constraints
@@ -738,7 +737,7 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
                         section("""attributes {
                             attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, 'wrong'))
                         }""", """attributes {
-                            attribute(Usage.USAGE_ATTRIBUTE, project.objects.named("wrong"))
+                            attribute(Usage.USAGE_ATTRIBUTE, project.objects.named<Usage>("wrong"))
                         }""")
                     }
                 }
@@ -753,7 +752,6 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
     }
 
     @ToBeFixedForConfigurationCache(because = "broken file collection")
-    @Unroll
     void 'multiple dependency constraints on single module are all taken into account (#one then #two)'() {
         def bar10 = mavenRepo.module('org', 'bar', '1.0').publish()
         def bar20 = mavenRepo.module('org', 'bar', '2.0').publish()

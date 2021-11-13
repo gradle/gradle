@@ -20,14 +20,12 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.util.GradleVersion
 import org.junit.Rule
-import spock.lang.Unroll
 
 class HelpTaskIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     public final TestResources resources = new TestResources(temporaryFolder)
     def version = GradleVersion.current().version
 
-    @Unroll
     def "shows help message when tasks #tasks run in a directory with no build definition present"() {
         useTestDirectoryThatIsNotEmbeddedInAnotherBuild()
         executer.requireOwnGradleUserHomeDir()

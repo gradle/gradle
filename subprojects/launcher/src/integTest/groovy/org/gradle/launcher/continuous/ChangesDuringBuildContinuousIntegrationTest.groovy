@@ -23,7 +23,6 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.TestPrecondition
 import spock.lang.Ignore
 import spock.lang.Retry
-import spock.lang.Unroll
 
 import static org.gradle.integtests.fixtures.RetryConditions.cleanProjectDir
 import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
@@ -133,6 +132,7 @@ jar.dependsOn postCompile
         changingInput << ['a', 'b', 'c', 'd']
     }
 
+    @Ignore("https://github.com/gradle/gradle-private/issues/3460")
     def "new build should be triggered when input files to tasks are changed during the task is executing"(changingInput) {
         given:
         ['a', 'b', 'c', 'd'].each { file(it).createDir() }
@@ -182,7 +182,6 @@ jar.dependsOn postCompile
         changingInput << ['a', 'b', 'c', 'd']
     }
 
-    @Unroll
     def "check build executing and failing in task :c - change in :#changingInput"(changingInput, shouldTrigger) {
         given:
         ['a', 'b', 'c', 'd'].each { file(it).createDir() }

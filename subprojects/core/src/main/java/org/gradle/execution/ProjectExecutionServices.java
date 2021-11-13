@@ -30,9 +30,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.execution.CatchExceptionTaskExecuter;
 import org.gradle.api.internal.tasks.execution.CleanupStaleOutputsExecuter;
-import org.gradle.api.internal.tasks.execution.DefaultEmptySourceTaskSkipper;
 import org.gradle.api.internal.tasks.execution.DefaultTaskCacheabilityResolver;
-import org.gradle.api.internal.tasks.execution.EmptySourceTaskSkipper;
 import org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter;
 import org.gradle.api.internal.tasks.execution.FinalizePropertiesTaskExecuter;
@@ -89,20 +87,6 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         return new DefaultReservedFileSystemLocationRegistry(reservedFileSystemLocations);
     }
 
-    EmptySourceTaskSkipper createEmptySourceTaskSkipper(
-        BuildOutputCleanupRegistry buildOutputCleanupRegistry,
-        Deleter deleter,
-        OutputChangeListener outputChangeListener,
-        TaskInputsListeners taskInputsListeners
-    ) {
-        return new DefaultEmptySourceTaskSkipper(
-            buildOutputCleanupRegistry,
-            deleter,
-            outputChangeListener,
-            taskInputsListeners
-        );
-    }
-
     ExecutionNodeAccessHierarchies.InputNodeAccessHierarchy createInputNodeAccessHierarchy(ExecutionNodeAccessHierarchies hierarchies) {
         return hierarchies.createInputHierarchy();
     }
@@ -115,7 +99,6 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         GradleEnterprisePluginManager gradleEnterprisePluginManager,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         Deleter deleter,
-        EmptySourceTaskSkipper emptySourceTaskSkipper,
         ExecutionHistoryStore executionHistoryStore,
         FileCollectionFactory fileCollectionFactory,
         FileOperations fileOperations,
@@ -128,6 +111,7 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         TaskExecutionGraphInternal taskExecutionGraph,
         TaskExecutionListener taskExecutionListener,
         TaskExecutionModeResolver repository,
+        TaskInputsListeners taskInputsListeners,
         TaskListenerInternal taskListenerInternal,
         ExecutionEngine executionEngine,
         InputFingerprinter inputFingerprinter
@@ -149,9 +133,9 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
             inputFingerprinter,
             listenerManager,
             reservedFileSystemLocationRegistry,
-            emptySourceTaskSkipper,
             fileCollectionFactory,
-            fileOperations
+            fileOperations,
+            taskInputsListeners
         );
         executer = new CleanupStaleOutputsExecuter(
             buildOperationExecutor,
@@ -191,10 +175,11 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
     }
 
     InputFingerprinter createInputFingerprinter(
+        FileCollectionSnapshotter snapshotter,
         FileCollectionFingerprinterRegistry fingerprinterRegistry,
         ValueSnapshotter valueSnapshotter
     ) {
-        return new DefaultInputFingerprinter(fingerprinterRegistry, valueSnapshotter);
+        return new DefaultInputFingerprinter(snapshotter, fingerprinterRegistry, valueSnapshotter);
     }
 
     TaskExecutionModeResolver createExecutionModeResolver(

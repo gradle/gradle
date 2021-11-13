@@ -243,7 +243,7 @@ abstract class AbstractIncrementalTasksIntegrationTest extends AbstractIntegrati
 
     def "incremental task is informed that all input files are 'out-of-date' when input file property has been removed"() {
         given:
-        buildFile << """                            
+        buildFile << """
             if (file('new-input.txt').exists()) {
                 incremental.inputs.file('new-input.txt')
             }
@@ -385,7 +385,7 @@ abstract class AbstractIncrementalTasksIntegrationTest extends AbstractIntegrati
         )
     }
 
-    List<String> preexistingInputs = ['file0.txt', 'file1.txt', 'file2.txt', 'inputs']
+    List<String> preexistingInputs = ['file0.txt', 'file1.txt', 'file2.txt']
 
     def executesIncrementalTask(Map options) {
         boolean incremental = options.incremental != false

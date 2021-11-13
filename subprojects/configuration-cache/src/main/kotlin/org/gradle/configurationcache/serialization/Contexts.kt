@@ -32,7 +32,7 @@ import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.serialize.Decoder
-import org.gradle.internal.serialize.FlushableEncoder
+import org.gradle.internal.serialize.Encoder
 
 
 internal
@@ -40,7 +40,7 @@ class DefaultWriteContext(
     codec: Codec<Any?>,
 
     private
-    val encoder: FlushableEncoder,
+    val encoder: Encoder,
 
     private
     val scopeLookup: ScopeLookup,
@@ -52,7 +52,7 @@ class DefaultWriteContext(
     private
     val problemsListener: ProblemsListener
 
-) : AbstractIsolateContext<WriteIsolate>(codec), WriteContext, FlushableEncoder by encoder, AutoCloseable {
+) : AbstractIsolateContext<WriteIsolate>(codec), WriteContext, Encoder by encoder, AutoCloseable {
 
     override val sharedIdentities = WriteIdentities()
 

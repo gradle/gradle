@@ -45,6 +45,10 @@
                 <td><literal>project.sourceSets.main.scala</literal></td>
             </tr>
             <tr>
+                <td>compilationOutputs</td>
+                <td><literal>project.sourceSets.main.output</literal></td>
+            </tr>
+            <tr>
                 <td>javaLauncher</td>
                 <td><literal>java.toolchain</literal></td>
             </tr>

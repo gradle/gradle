@@ -60,6 +60,10 @@
                 <td>javaAnnotationProcessing</td>
                 <td><literal>false</literal></td>
             </tr>
+            <tr>
+                <td>disabledGlobalASTTransformations</td>
+                <td><literal>["groovy.grape.GrabAnnotationTransformation"]</literal></td>
+            </tr>
         </table>
     </section>
     <section>

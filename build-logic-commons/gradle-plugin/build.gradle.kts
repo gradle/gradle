@@ -2,6 +2,8 @@ plugins {
     `kotlin-dsl`
 }
 
+description = "Provides plugins used to create a Gradle plugin with Groovy or Kotlin DSL within build-logic builds"
+
 java {
     sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8

@@ -23,7 +23,6 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.TaskAction
 import org.gradle.test.fixtures.archive.JarTestFixture
-import spock.lang.Unroll
 
 class ConfigurationCacheConventionMappingIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
@@ -73,7 +72,6 @@ class ConfigurationCacheConventionMappingIntegrationTest extends AbstractConfigu
         outputContains 'this.value = null'
     }
 
-    @Unroll
     def "restores convention mapped task input property named after field with value of type #typeName"() {
         given:
         withConventionMappingForPropertyOfType type, value

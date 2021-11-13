@@ -2,6 +2,8 @@ plugins {
     id("gradlebuild.build-logic.kotlin-dsl-gradle-plugin")
 }
 
+description = "Provides plugins for configuring miscellaneous things (repositories, reproducibility, minify)"
+
 dependencies {
     implementation("com.google.guava:guava") {
         because("Used by class analysis")

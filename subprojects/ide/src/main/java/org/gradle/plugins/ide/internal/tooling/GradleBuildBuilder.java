@@ -120,8 +120,8 @@ public class GradleBuildBuilder implements ToolingModelBuilder, BuildScopeModelB
         DefaultProjectIdentifier id = new DefaultProjectIdentifier(owner.getBuildRootDir(), project.getProjectPath().getPath());
         BasicGradleProject converted = new BasicGradleProject().setName(project.getName()).setProjectIdentifier(id);
         converted.setProjectDirectory(project.getProjectDir());
-        if (project.getParent() != null) {
-            converted.setParent(convertedProjects.get(project.getParent()));
+        if (project.getBuildParent() != null) {
+            converted.setParent(convertedProjects.get(project.getBuildParent()));
         }
         convertedProjects.put(project, converted);
         for (ProjectState child : project.getChildProjects()) {

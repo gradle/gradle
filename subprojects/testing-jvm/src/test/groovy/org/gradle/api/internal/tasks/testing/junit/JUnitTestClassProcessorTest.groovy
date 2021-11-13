@@ -26,7 +26,6 @@ import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification
 import spock.lang.Subject
-import spock.lang.Unroll
 
 import static org.gradle.api.tasks.testing.TestResult.ResultType.SKIPPED
 
@@ -159,7 +158,6 @@ class JUnitTestClassProcessorTest extends Specification {
         0 * processor._
     }
 
-    @Unroll
     def "#testClass reports failure"() {
         when: process(testClass)
 

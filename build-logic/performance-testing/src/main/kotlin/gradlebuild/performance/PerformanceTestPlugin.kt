@@ -188,8 +188,7 @@ class PerformanceTestPlugin : Plugin<Project> {
             mainClass.set("org.gradle.performance.results.PerformanceTestRuntimesGenerator")
             systemProperties(project.propertiesForPerformanceDb())
             args(repoRoot().file(".teamcity/performance-test-durations.json").asFile.absolutePath)
-            // Never up-to-date since it reads data from the database.
-            outputs.upToDateWhen { false }
+            doNotTrackState("Reads data from the database")
         }
 
         val performanceScenarioJson = repoRoot().file(".teamcity/performance-tests-ci.json").asFile
@@ -300,7 +299,7 @@ class PerformanceTestPlugin : Plugin<Project> {
 
 private
 fun Project.propertiesForPerformanceDb(): Map<String, String> {
-    val password = providers.environmentVariable(PropertyNames.dbPasswordEnv).forUseAtConfigurationTime()
+    val password = providers.environmentVariable(PropertyNames.dbPasswordEnv)
     return if (password.isPresent) {
         selectStringProperties(
             PropertyNames.dbUrl,
@@ -345,7 +344,6 @@ class PerformanceTestExtension(
 
     private
     val shouldLoadScenariosFromFile = project.providers.gradleProperty("includePerformanceTestScenarios")
-        .forUseAtConfigurationTime()
         .getOrElse("false") == "true"
 
     abstract
@@ -414,6 +412,7 @@ class PerformanceTestExtension(
             testClassesDirs = performanceSourceSet.output.classesDirs
             classpath = performanceSourceSet.runtimeClasspath
 
+            usesService(buildService)
             performanceTestService.set(buildService)
 
             testProjectName.set(generatorTask.name)

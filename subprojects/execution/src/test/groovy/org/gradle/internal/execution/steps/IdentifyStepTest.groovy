@@ -16,6 +16,7 @@
 
 package org.gradle.internal.execution.steps
 
+import com.google.common.collect.ImmutableSet
 import com.google.common.collect.ImmutableSortedMap
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.fingerprint.InputFingerprinter
@@ -51,8 +52,11 @@ class IdentifyStepTest extends StepSpec<ExecutionRequestContext> {
             ImmutableSortedMap.of(),
             _
         ) >> new DefaultInputFingerprinter.InputFingerprints(
+            ImmutableSortedMap.of(),
             ImmutableSortedMap.of("input", inputSnapshot),
-            ImmutableSortedMap.of("input-files", inputFilesFingerprint)
+            ImmutableSortedMap.of(),
+            ImmutableSortedMap.of("input-files", inputFilesFingerprint),
+            ImmutableSet.of()
         )
 
         1 * delegate.execute(work, _ as IdentityContext) >> { UnitOfWork work, IdentityContext delegateContext ->

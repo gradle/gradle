@@ -122,6 +122,13 @@ _Default is `summary`._
 When configured, Gradle will use a maximum of the given number of workers. See also <<command_line_interface.adoc#sec:command_line_performance, performance command-line options>>.
 _Default is number of CPU processors._
 
+`org.gradle.logging.stacktrace=(internal,all,full)`::
+Specifies whether stacktraces should be displayed as part of the build result upon an exception. See also the <<command_line_interface.adoc#sec:command_line_debugging, --stacktrace command-line option>>.
+When set to `internal`, a stacktrace is present in the output only in case of internal exceptions.
+When set to `all` or `full`, a stacktrace is present in the output for all exceptions and build failures.
+Using `full` doesn't truncate the stacktrace, which leads to a much more verbose output.
+_Default is `internal`._
+
 The following example demonstrates usage of various properties.
 
 .Setting properties with a gradle.properties file

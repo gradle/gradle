@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.internal.project.ProjectState;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
 
 import javax.annotation.Nullable;
@@ -34,5 +34,5 @@ public interface LocalComponentProvider {
      * @return The component metadata for the supplied identifier.
      */
     @Nullable
-    LocalComponentMetadata getComponent(ProjectComponentIdentifier projectIdentifier);
+    LocalComponentMetadata getComponent(ProjectState project);
 }

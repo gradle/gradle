@@ -48,7 +48,9 @@ class DefaultOutputSnapshotterTest extends Specification {
         1 * work.visitOutputs(workspace, _ as UnitOfWork.OutputVisitor) >> { File workspace, UnitOfWork.OutputVisitor outputVisitor ->
             outputVisitor.visitOutputProperty("output", TreeType.FILE, root, contents)
         }
-        1 * fileCollectionSnapshotter.snapshot(contents) >> outputSnapshot
+        1 * fileCollectionSnapshotter.snapshot(contents) >> Stub(FileCollectionSnapshotter.Result) {
+            snapshot >> outputSnapshot
+        }
         0 * _
 
         then:
@@ -66,7 +68,7 @@ class DefaultOutputSnapshotterTest extends Specification {
             outputVisitor.visitOutputProperty("output", TreeType.FILE, root, contents)
         }
         1 * fileCollectionSnapshotter.snapshot(contents) >> { throw failure }
-        // 0 * _
+        0 * _
 
         then:
         def ex = thrown OutputSnapshotter.OutputFileSnapshottingException
