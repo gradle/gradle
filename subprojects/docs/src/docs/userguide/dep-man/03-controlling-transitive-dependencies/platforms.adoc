@@ -6,8 +6,11 @@
 
 [WARNING]
 ====
-Central declaration of dependencies is an incubating feature.
-It requires the activation of the `VERSION_CATALOGS` <<feature_lifecycle#feature_preview,feature preview>>.
+Central declaration of dependencies is an incubating feature which must be enabled explicitly as a <<feature_lifecycle#feature_preview,feature preview>>.
+To add support for version catalogs, add this to your `settings.gradle(.kts)` file:
+```
+enableFeaturePreview("VERSION_CATALOGS")
+```
 ====
 
 [[sub:version-catalog]]
@@ -307,6 +310,7 @@ For example, an organization may want to create a catalog of dependencies that d
 
 The link:{javadocPath}/org/gradle/api/initialization/dsl/VersionCatalogBuilder.html[version catalog builder API] supports including a model from an external file.
 This makes it possible to reuse the catalog of the main build for `buildSrc`, if needed.
+Note that you'll need to separately <<platforms.adoc#sec:central-declaration-of-dependencies, enable VERSION_CATALOGS preview feature>> in `buildSrc/settings.gradle(.kts)`.
 For example, the `buildSrc/settings.gradle(.kts)` file can include this file using:
 
 .Sharing the dependency catalog with buildSrc
