@@ -157,14 +157,16 @@ public class GitVersionControlSystem implements VersionControlSystem {
         try {
             while (walker.next()) {
                 Repository submodule = walker.getRepository();
-                try {
-                    Git submoduleGit = Git.wrap(submodule);
-                    configureTransport(submoduleGit.fetch()).call();
-                    git.submoduleUpdate().addPath(walker.getPath()).call();
-                    submoduleGit.reset().setMode(ResetCommand.ResetType.HARD).call();
-                    updateSubModules(submoduleGit);
-                } finally {
-                    submodule.close();
+                if (submodule != null) {
+                    try {
+                        Git submoduleGit = Git.wrap(submodule);
+                        configureTransport(submoduleGit.fetch()).call();
+                        git.submoduleUpdate().addPath(walker.getPath()).call();
+                        submoduleGit.reset().setMode(ResetCommand.ResetType.HARD).call();
+                        updateSubModules(submoduleGit);
+                    } finally {
+                        submodule.close();
+                    }
                 }
             }
         } finally {
