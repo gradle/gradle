@@ -237,6 +237,6 @@ class DefaultConfigurationPublicationsTest extends Specification {
 
         then:
         prop.get().size() == 2
-        publications.getArtifacts().toSet()*.getName() == ["file1"] // Added new file to prop, but artifacts already resolved
+        publications.getArtifacts()*.name == ["file1"] // Added new file to prop, but artifacts already resolved
     }
 }
