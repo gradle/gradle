@@ -42,6 +42,7 @@ import java.util.Set;
 @HasInternalProtocol
 @UsedByScanPlugin
 public interface AttributeContainer extends HasAttributes {
+
     /**
      * Returns the set of attribute keys of this container.
      * @return the set of attribute keys.
@@ -98,4 +99,5 @@ public interface AttributeContainer extends HasAttributes {
      * @return true if this attribute is found in this container.
      */
     boolean contains(Attribute<?> key);
+
 }
