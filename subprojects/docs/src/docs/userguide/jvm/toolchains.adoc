@@ -46,7 +46,6 @@ Executing the build (e.g. using `gradle check`) will now handle several things f
 Toolchain support is available in the Java plugins and for the tasks they define.
 For the Groovy plugin, compilation is supported but not yet Groovydoc generation.
 For the Scala plugin, compilation and Scaladoc generation are supported.
-
 ====
 
 [[sec:vendors]]
@@ -146,7 +145,7 @@ Please note however that this may realize (and provision) a toolchain eagerly.
 == Auto detection of installed toolchains
 
 By default, Gradle automatically detects local JRE/JDK installations so no further configuration is required by the user.
-The following is a list of common package managers and locations that are supported by the JVM auto detection.
+The following is a list of common package managers and locations that are supported by the JVM auto-detection.
 
 Operation-system specific locations:
 
@@ -159,6 +158,13 @@ Supported Package Managers:
 * https://asdf-vm.com/#/[Asdf-vm]
 * https://github.com/shyiko/jabba[Jabba]
 * https://sdkman.io/[SDKMAN!]
+
+[NOTE]
+====
+None of the toolchain types takes precedence over another. No location is prioritized over another, nor over any of the
+package managers. From the set of all detected JRE/JDK installations one will be picked according to the
+<<sec:precedence,Toolchain Precedence Rules>>.
+====
 
 [[sub:disable_auto_detect]]
 === How to disable auto-detection
@@ -288,6 +294,46 @@ Gradle will treat these directories as possible installations but will not desce
 ----
 org.gradle.java.installations.paths=/custom/path/jdk1.8,/shared/jre11
 ----
+
+[NOTE]
+====
+Custom toolchains are not prioritized over <<sec:auto_detection,auto-detected>> ones. If auto-detection is turned on, custom toolchains
+can still be specified but all they will do is to extend the set of detected JRE/JDK locations. Among these locations one will be picked
+according to the <<sec:precedence,Toolchain Precedence Rules>>.
+====
+
+[[sec:precedence]]
+== Precedence
+
+When there are multiple local JRE/JDK installations matching the toolchain specification of a build, one will be picked according to
+following rules:
+
+. JDK locations are preferred over JRE ones
+. certain vendors take precedence over others; their ordering (from the highest priority to lowest):
+.. ADOPTIUM
+.. ADOPTOPENJDK
+.. AMAZON
+.. APPLE
+.. AZUL
+.. BELLSOFT
+.. GRAAL_VM
+.. HEWLETT_PACKARD
+.. IBM
+.. IBM_SEMERU
+.. MICROSOFT
+.. ORACLE
+.. SAP
+.. everything else
+. higher major version takes precedence over lover major version
+. higher minor version takes precedence over lover minor version
+. installation paths take precedence according to lexicographic ordering (last resort criteria for deterministically deciding
+between installations of the same type, from the same vendor and with the same version)
+
+[NOTE]
+====
+The rules are applied in order, just like sorting over multiple fields. For example if there is one JDK location
+detected and two JRE ones, then the JDK location will be picked, regardless of version numbers.
+====
 
 [[sec:plugins]]
 == Toolchains for plugin authors
