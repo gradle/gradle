@@ -100,7 +100,6 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     private final JvmComponentDependencies dependencies;
     private boolean attachedDependencies;
     private final Action<Void> attachDependencyAction;
-    private final Property<String> testType = getObjectFactory().property(String.class);
 
     protected abstract Property<TestingFramework> getTestingFramework();
 
@@ -155,11 +154,6 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
                 }));
             });
         });
-    }
-
-    @Override
-    public Property<String> getTestType() {
-        return testType;
     }
 
     private void attachDependenciesForTestFramework(DependencyHandler dependencies, Configuration implementation) {
