@@ -112,13 +112,13 @@ final class DefaultImmutableAttributes implements ImmutableAttributes, Attribute
     }
 
     @Override
-    public ImmutableSet<Attribute<?>> keySet() {
-        return hierarchy.keySet();
+    public <T> AttributeContainer attribute(Attribute<T> key, T value) {
+        throw new UnsupportedOperationException("Mutation of attributes is not allowed");
     }
 
     @Override
-    public <T> AttributeContainer attribute(Attribute<T> key, T value) {
-        throw new UnsupportedOperationException("Mutation of attributes is not allowed");
+    public ImmutableSet<Attribute<?>> keySet() {
+        return hierarchy.keySet();
     }
 
     @Override
