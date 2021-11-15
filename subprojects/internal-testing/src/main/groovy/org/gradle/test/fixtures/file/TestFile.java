@@ -880,7 +880,7 @@ public class TestFile extends File {
      * @see java.nio.file.Path#relativize(Path)
      */
     public String getRelativePathFromBase() {
-        Preconditions.checkArgument(!relativeBase.toPath().equals(this.toPath()), "relativeBase must have been set during construction");
+        Assert.assertTrue("relativeBase must have been set during construction", !relativeBase.toPath().equals(this.toPath()));
         return relativeBase.toPath().relativize(this.toPath()).toString();
     }
 
