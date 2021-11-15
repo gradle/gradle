@@ -40,11 +40,11 @@ class OutgoingVariantsReportTaskIntegrationTest extends AbstractIntegrationSpec 
         run ':outgoingVariants'
 
         then:
-        def jarPath = new TestFile(getTestDirectory(), 'build/libs/myLib-1.0.jar').getRelativePathFromBase()
-        def builtMainClassesPath = new TestFile(getTestDirectory(), 'build/classes/java/main').getRelativePathFromBase()
-        def builtMainResourcesPath = new TestFile(getTestDirectory(), 'build/resources/main').getRelativePathFromBase()
-        def sourceMainJavaPath = new TestFile(getTestDirectory(), 'src/main/java').getRelativePathFromBase()
-        def sourceMainResourcePath = new TestFile(getTestDirectory(), 'src/main/resources').getRelativePathFromBase()
+        def jarPath = file('build/libs/myLib-1.0.jar').getRelativePathFromBase()
+        def builtMainClassesPath = file('build/classes/java/main').getRelativePathFromBase()
+        def builtMainResourcesPath = file('build/resources/main').getRelativePathFromBase()
+        def sourceMainJavaPath = file('src/main/java').getRelativePathFromBase()
+        def sourceMainResourcePath = file( 'src/main/resources').getRelativePathFromBase()
         outputContains """> Task :outgoingVariants
 --------------------------------------------------
 Variant apiElements
@@ -161,13 +161,13 @@ Artifacts
         run ':outgoingVariants'
 
         then:
-        def jarPath = new TestFile(getTestDirectory(), 'build/libs/myLib-1.0.jar').getRelativePathFromBase()
-        def javadocJarPath = new TestFile(getTestDirectory(), 'build/libs/myLib-1.0-javadoc.jar').getRelativePathFromBase()
-        def sourcesJarPath = new TestFile(getTestDirectory(), 'build/libs/myLib-1.0-sources.jar').getRelativePathFromBase()
-        def builtMainClassesPath = new TestFile(getTestDirectory(), 'build/classes/java/main').getRelativePathFromBase()
-        def builtMainResourcesPath = new TestFile(getTestDirectory(), 'build/resources/main').getRelativePathFromBase()
-        def sourceMainJavaPath = new TestFile(getTestDirectory(), 'src/main/java').getRelativePathFromBase()
-        def sourceMainResourcePath = new TestFile(getTestDirectory(), 'src/main/resources').getRelativePathFromBase()
+        def jarPath = file('build/libs/myLib-1.0.jar').getRelativePathFromBase()
+        def javadocJarPath = file('build/libs/myLib-1.0-javadoc.jar').getRelativePathFromBase()
+        def sourcesJarPath = file('build/libs/myLib-1.0-sources.jar').getRelativePathFromBase()
+        def builtMainClassesPath = file('build/classes/java/main').getRelativePathFromBase()
+        def builtMainResourcesPath = file('build/resources/main').getRelativePathFromBase()
+        def sourceMainJavaPath = file('src/main/java').getRelativePathFromBase()
+        def sourceMainResourcePath = file('src/main/resources').getRelativePathFromBase()
         outputContains """> Task :outgoingVariants
 --------------------------------------------------
 Variant apiElements
@@ -312,9 +312,9 @@ Artifacts
         run ':outgoingVariants', '--variant', 'runtimeElements'
 
         then:
-        def jarPath = new TestFile(getTestDirectory(), 'build/libs/myLib-1.0.jar').getRelativePathFromBase()
-        def builtMainClassesPath = new TestFile(getTestDirectory(), 'build/classes/java/main').getRelativePathFromBase()
-        def builtMainResourcesPath = new TestFile(getTestDirectory(), 'build/resources/main').getRelativePathFromBase()
+        def jarPath = file('build/libs/myLib-1.0.jar').getRelativePathFromBase()
+        def builtMainClassesPath = file('build/classes/java/main').getRelativePathFromBase()
+        def builtMainResourcesPath = file('build/resources/main').getRelativePathFromBase()
         outputContains """> Task :outgoingVariants
 --------------------------------------------------
 Variant runtimeElements
