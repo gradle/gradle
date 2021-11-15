@@ -93,7 +93,7 @@ class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private void assertNoProjectCaches(TestFile dir) {
-        assert !(dir.list()?.findAll { it != "caches" })
+        assert !(dir.list()?.findAll { !(it in ["caches", "native"]) })
     }
 
     def "fails when user home directory is used and Gradle has not been run before"() {
