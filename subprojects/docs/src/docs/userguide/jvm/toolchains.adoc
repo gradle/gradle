@@ -161,8 +161,8 @@ Supported Package Managers:
 
 [NOTE]
 ====
-None of the toolchain types takes precedence over another. No location is prioritized over another, nor over any of the
-package managers. From the set of all detected JRE/JDK installations one will be picked according to the
+None of the toolchain types takes precedence over another. No location is prioritized over another, nor is any of the
+package managers. From the set of all detected JRE/JDK installations, one will be picked according to the
 <<sec:precedence,Toolchain Precedence Rules>>.
 ====
 
@@ -298,14 +298,14 @@ org.gradle.java.installations.paths=/custom/path/jdk1.8,/shared/jre11
 [NOTE]
 ====
 Custom toolchains are not prioritized over <<sec:auto_detection,auto-detected>> ones. If auto-detection is turned on, custom toolchains
-can still be specified but all they will do is to extend the set of detected JRE/JDK locations. Among these locations one will be picked
+can still be specified but all they will do is to extend the set of detected JRE/JDK locations. Among these locations, one will be picked
 according to the <<sec:precedence,Toolchain Precedence Rules>>.
 ====
 
 [[sec:precedence]]
 == Precedence
 
-When there are multiple local JRE/JDK installations matching the toolchain specification of a build, one will be picked according to
+When there are multiple local JRE/JDK installations matching the toolchain specification of a build, one will be picked according to the
 following rules:
 
 . JDK locations are preferred over JRE ones
@@ -324,15 +324,21 @@ following rules:
 .. ORACLE
 .. SAP
 .. everything else
-. higher major version takes precedence over lover major version
-. higher minor version takes precedence over lover minor version
-. installation paths take precedence according to lexicographic ordering (last resort criteria for deterministically deciding
+. higher major versions take precedence over lower ones
+. higher minor versions take precedence over lower ones
+. installation paths take precedence according to their lexicographic ordering (last resort criteria for deterministically deciding
 between installations of the same type, from the same vendor and with the same version)
 
 [NOTE]
 ====
-The rules are applied in order, just like sorting over multiple fields. For example if there is one JDK location
+The rules are applied in order, just like sorting over multiple fields. For example, if there is one JDK location
 detected and two JRE ones, then the JDK location will be picked, regardless of version numbers.
+====
+
+[NOTE]
+====
+The installation being used for running Gradle is always preferred over any other installation, *IF* it matches the toolchain
+specification.
 ====
 
 [[sec:plugins]]
