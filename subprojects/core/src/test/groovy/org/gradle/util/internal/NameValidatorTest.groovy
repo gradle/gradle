@@ -38,7 +38,6 @@ import org.gradle.util.TestUtil
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
-import spock.lang.Unroll
 
 @Subject(NameValidator)
 class NameValidatorTest extends Specification {
@@ -49,7 +48,7 @@ class NameValidatorTest extends Specification {
     @Shared
     def domainObjectContainersWithValidation = [
         ["artifact types", new DefaultArtifactTypeContainer(TestUtil.instantiatorFactory().decorateLenient(), AttributeTestUtil.attributesFactory(), CollectionCallbackActionDecorator.NOOP)],
-        ["configurations", new DefaultConfigurationContainer(null, TestUtil.instantiatorFactory().decorateLenient(), domainObjectContext(), Mock(ListenerManager), null, null, Mock(FileCollectionFactory), null, null, null, null, null, AttributeTestUtil.attributesFactory(), null, null, null, null, null, Stub(DocumentationRegistry), CollectionCallbackActionDecorator.NOOP, null, TestUtil.domainObjectCollectionFactory(), null, TestUtil.objectFactory())],
+        ["configurations", new DefaultConfigurationContainer(null, TestUtil.instantiatorFactory().decorateLenient(), domainObjectContext(), Mock(ListenerManager), null, null, Mock(FileCollectionFactory), null, null, null, null, null, AttributeTestUtil.attributesFactory(), null, null, null, null, null, Stub(DocumentationRegistry), CollectionCallbackActionDecorator.NOOP, null, null, TestUtil.domainObjectCollectionFactory(), null, TestUtil.objectFactory())],
         ["flavors", new DefaultFlavorContainer(TestUtil.instantiatorFactory().decorateLenient(), CollectionCallbackActionDecorator.NOOP)],
         ["source sets", new DefaultSourceSetContainer(TestFiles.resolver(), null, TestUtil.instantiatorFactory().decorateLenient(), TestUtil.objectFactory(), CollectionCallbackActionDecorator.NOOP)]
     ]
@@ -58,7 +57,6 @@ class NameValidatorTest extends Specification {
         IncubationLogger.reset()
     }
 
-    @Unroll
     def "tasks are not allowed to be named '#name'"() {
         when:
         def project = Mock(ProjectInternal) {
@@ -78,7 +76,6 @@ class NameValidatorTest extends Specification {
         name << invalidNames
     }
 
-    @Unroll
     def "#objectType are not allowed to be named '#name'"() {
         when:
         domainObjectContainer.create(name)

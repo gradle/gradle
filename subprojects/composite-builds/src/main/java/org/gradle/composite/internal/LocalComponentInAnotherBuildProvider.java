@@ -89,7 +89,7 @@ public class LocalComponentInAnotherBuildProvider implements LocalComponentProvi
             CompositeBuildParticipantBuildState buildState = (CompositeBuildParticipantBuildState) projectState.getOwner();
             if (buildState instanceof IncludedBuildState) {
                 // make sure the build is configured now (not do this for the root build, as we are already configuring it right now)
-                ((IncludedBuildState) buildState).getConfiguredBuild();
+                buildState.ensureProjectsConfigured();
             }
             // Metadata builder uses mutable project state, so synchronize access to the project state
             return projectState.fromMutableState(p -> dependencyMetadataBuilder.build(buildState, projectState.getComponentIdentifier()));

@@ -63,7 +63,6 @@ import static java.nio.file.StandardCopyOption.COPY_ATTRIBUTES;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
@@ -438,7 +437,11 @@ public class TestFile extends File {
     }
 
     public TestFile assertDoesNotExist() {
-        assertFalse(String.format("%s should not exist", this), exists());
+        if (exists()) {
+            Set<String> descendants = new TreeSet<String>();
+            visit(descendants, "", this, false);
+            throw new AssertionError(String.format("%s should not exist:\n%s", this, String.join("\n", descendants)));
+        }
         return this;
     }
 

@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins.quality.internal
 
+import groovy.xml.XmlParser
 import org.gradle.api.GradleException
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.file.FileCollection

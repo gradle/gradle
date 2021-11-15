@@ -28,7 +28,7 @@ import org.gradle.execution.BuildExecutionContext
 import org.gradle.execution.TaskNameResolver
 import org.gradle.execution.TaskSelection
 import org.gradle.execution.TaskSelector
-import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
+import org.gradle.execution.plan.ExecutionPlan
 import org.gradle.internal.build.event.types.DefaultTestDescriptor
 import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.service.ServiceRegistry
@@ -36,7 +36,6 @@ import org.gradle.tooling.internal.protocol.test.InternalDebugOptions
 import org.gradle.tooling.internal.protocol.test.InternalJvmTestRequest
 import org.gradle.tooling.internal.provider.action.TestExecutionRequestAction
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class TestExecutionBuildConfigurationActionTest extends Specification {
 
@@ -53,7 +52,7 @@ class TestExecutionBuildConfigurationActionTest extends Specification {
     TaskOutputsInternal outputsInternal
     GradleInternal gradleInternal
     BuildExecutionContext buildContext
-    TaskExecutionGraphInternal taskGraph
+    ExecutionPlan executionPlan
     TestExecutionRequestAction testExecutionRequest
     InternalDebugOptions debugOptions
 
@@ -63,7 +62,7 @@ class TestExecutionBuildConfigurationActionTest extends Specification {
         gradleInternal = Mock()
         buildContext = Mock()
         tasksContainerInternal = Mock()
-        taskGraph = Mock()
+        executionPlan = Mock()
         testExecutionRequest = Mock()
         testTask = Mock()
         testFilter = Mock()
@@ -77,7 +76,7 @@ class TestExecutionBuildConfigurationActionTest extends Specification {
     }
 
     private void setupProject() {
-        1 * gradleInternal.getTaskGraph() >> taskGraph
+        1 * buildContext.getExecutionPlan() >> executionPlan
         1 * buildContext.getGradle() >> gradleInternal
         _ * gradleInternal.getRootProject() >> projectInternal
         _ * gradleInternal.getServices() >> serviceRegistry
@@ -95,10 +94,9 @@ class TestExecutionBuildConfigurationActionTest extends Specification {
         buildConfigurationAction.configure(buildContext)
         then:
         0 * projectInternal.getAllprojects() >> [projectInternal]
-        _ * taskGraph.addEntryTasks({ args -> assert args.size() == 0 })
+        _ * executionPlan.addEntryTasks({ args -> assert args.size() == 0 })
     }
 
-    @Unroll
     def "sets test filter with information from #requestType"() {
         setup:
         _ * projectInternal.getAllprojects() >> [projectInternal]

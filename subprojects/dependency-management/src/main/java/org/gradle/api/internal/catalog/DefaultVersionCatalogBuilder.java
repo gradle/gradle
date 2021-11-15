@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Interner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
@@ -84,6 +85,10 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
     private final String name;
     private final Map<String, VersionModel> versionConstraints = Maps.newLinkedHashMap();
     private final Map<String, Supplier<DependencyModel>> dependencies = Maps.newLinkedHashMap();
+    /**
+     * Aliases that are being constructed, used to detect unfinished builders.
+     */
+    private final Set<String> aliasesInProgress = Sets.newLinkedHashSet();
     private final Map<String, Supplier<PluginModel>> plugins = Maps.newLinkedHashMap();
     private final Map<String, BundleModel> bundles = Maps.newLinkedHashMap();
     private final Lazy<DefaultVersionCatalog> model = Lazy.unsafe().of(this::doBuild);
@@ -138,6 +143,15 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
 
     private DefaultVersionCatalog doBuild() {
         maybeImportCatalogs();
+        if (!aliasesInProgress.isEmpty()) {
+            String alias = aliasesInProgress.iterator().next();
+            return throwVersionCatalogProblem(VersionCatalogProblemId.ALIAS_NOT_FINISHED, spec ->
+                spec.withShortDescription(() -> "Dependency alias builder '" + alias + "' was not finished.")
+                    .happensBecause("A version was not set or explicitly declared as not wanted")
+                    .addSolution("Call `.version()` to give the alias a version")
+                    .addSolution("Call `.withoutVersion()` to explicitly declare that the alias should not have a version")
+                    .documented());
+        }
         for (Map.Entry<String, BundleModel> entry : bundles.entrySet()) {
             String bundleName = entry.getKey();
             List<String> aliases = entry.getValue().getComponents();
@@ -232,7 +246,7 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
         }
         RegularFileProperty srcProp = objects.fileProperty();
         srcProp.set(modelFile);
-        Provider<byte[]> dataSource = providers.fileContents(srcProp).getAsBytes().forUseAtConfigurationTime();
+        Provider<byte[]> dataSource = providers.fileContents(srcProp).getAsBytes();
         try {
             TomlCatalogFileParser.parse(new ByteArrayInputStream(dataSource.get()), this);
         } catch (IOException e) {
@@ -398,6 +412,9 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
         public DefaultAliasBuilder(String alias) {
             this.alias = alias;
             this.normalizedAlias = normalize(alias);
+            if (!aliasesInProgress.add(normalizedAlias)) {
+                LOGGER.warn("Duplicate alias builder registered for {}", normalizedAlias);
+            }
         }
 
         @Override
@@ -471,6 +488,7 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
         public void version(Action<? super MutableVersionConstraint> versionSpec) {
             MutableVersionConstraint versionBuilder = new DefaultMutableVersionConstraint("");
             versionSpec.execute(versionBuilder);
+            owner.aliasesInProgress.remove(alias);
             ImmutableVersionConstraint version = owner.versionConstraintInterner.intern(DefaultImmutableVersionConstraint.of(versionBuilder));
             DependencyModel model = new DependencyModel(owner.intern(group), owner.intern(name), null, version, owner.currentContext);
             Supplier<DependencyModel> previous = owner.dependencies.put(owner.intern(alias), () -> model);
@@ -497,6 +515,7 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
 
         @Override
         public void versionRef(String versionRef) {
+            owner.aliasesInProgress.remove(alias);
             owner.createAliasWithVersionRef(alias, group, name, versionRef);
         }
 
@@ -523,6 +542,7 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
         public void version(Action<? super MutableVersionConstraint> versionSpec) {
             MutableVersionConstraint versionBuilder = new DefaultMutableVersionConstraint("");
             versionSpec.execute(versionBuilder);
+            owner.aliasesInProgress.remove(alias);
             ImmutableVersionConstraint version = owner.versionConstraintInterner.intern(DefaultImmutableVersionConstraint.of(versionBuilder));
             PluginModel model = new PluginModel(owner.intern(id), null, version, owner.currentContext);
             Supplier<PluginModel> previous = owner.plugins.put(owner.intern(alias), () -> model);
@@ -549,6 +569,7 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
 
         @Override
         public void versionRef(String versionRef) {
+            owner.aliasesInProgress.remove(alias);
             owner.createPluginAliasWithVersionRef(alias, id, versionRef);
         }
     }

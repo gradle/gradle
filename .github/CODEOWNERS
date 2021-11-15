@@ -1,20 +1,22 @@
 # Execution team
-subprojects/base-annotations/       @gradle/execution @marcphilipp @britter
+subprojects/base-annotations/       @gradle/execution @gradle/ge-test-distribution
 subprojects/functional/             @gradle/execution @bamboo
 subprojects/build-cache/            @gradle/execution
-subprojects/build-cache-base/       @gradle/execution @marcphilipp @britter
+subprojects/build-cache-base/       @gradle/execution @gradle/ge-test-distribution
 subprojects/build-cache-http/       @gradle/execution
-subprojects/build-cache-packaging/  @gradle/execution @marcphilipp @britter
-subprojects/build-operations/       @gradle/execution @marcphilipp @britter
+subprojects/build-cache-packaging/  @gradle/execution @gradle/ge-test-distribution
+subprojects/build-operations/       @gradle/execution @gradle/ge-test-distribution
 subprojects/execution/              @gradle/execution
 subprojects/file-watching/          @gradle/execution
-subprojects/files/                  @gradle/execution @marcphilipp @britter
-subprojects/hashing/                @gradle/execution @marcphilipp @britter
-subprojects/normalization-java/     @gradle/execution @marcphilipp @britter
-subprojects/snapshots/              @gradle/execution @marcphilipp @britter
+subprojects/files/                  @gradle/execution @gradle/ge-test-distribution
+subprojects/hashing/                @gradle/execution @gradle/ge-test-distribution
+subprojects/normalization-java/     @gradle/execution @gradle/ge-test-distribution
+subprojects/snapshots/              @gradle/execution @gradle/ge-test-distribution
 
 # Gradle Enterprise
-subprojects/enterprise/             @ldaley @marcphilipp
+subprojects/enterprise/             @ldaley @gradle/ge-test-distribution
+subprojects/enterprise-operations/  @facewindu
+subprojects/enterprise-workers/     @facewindu
 
 # Testing
 subprojects/testing-junit-platform/ @gradle/ge-test-distribution

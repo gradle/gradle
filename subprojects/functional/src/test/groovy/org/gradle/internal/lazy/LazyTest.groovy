@@ -17,7 +17,6 @@
 package org.gradle.internal.lazy
 
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -25,7 +24,6 @@ import java.util.function.Supplier
 
 class LazyTest extends Specification {
 
-    @Unroll
     def "supplier code is executed once"() {
         def supplier = Mock(Supplier)
 
@@ -72,7 +70,6 @@ class LazyTest extends Specification {
         asClosure { s -> Lazy.locking().of(s as Supplier).map { 2 * it } } | 246
     }
 
-    @Unroll
     def "lazy can handle concurrent threads (#factoryName)"() {
         def supplier = Mock(Supplier)
         def lazy = factory.of(supplier)
@@ -96,7 +93,6 @@ class LazyTest extends Specification {
         'synchronized'  | Lazy.synchronizing()
     }
 
-    @Unroll
     def "locking lazy can handle concurrent threads (#factoryName)"() {
         def supplier = Mock(Supplier)
         def lazy = factory.of(supplier).map { 2 * it }

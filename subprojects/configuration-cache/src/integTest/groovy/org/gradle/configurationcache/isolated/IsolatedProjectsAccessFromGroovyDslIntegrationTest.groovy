@@ -16,11 +16,7 @@
 
 package org.gradle.configurationcache.isolated
 
-
-import spock.lang.Unroll
-
 class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolatedProjectsIntegrationTest {
-    @Unroll
     def "reports problem when build script uses #block block to apply plugins to another project"() {
         settingsFile << """
             include("a")
@@ -36,11 +32,10 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         configurationCacheFails("assemble")
 
         then:
-        problems.assertFailureHasProblems(failure) {
-            withUniqueProblems(
-                "Build file 'build.gradle': Cannot access project ':a' from project ':'",
-                "Build file 'build.gradle': Cannot access project ':b' from project ':'"
-            )
+        fixture.assertStateStoreFailed {
+            projectsConfigured(":", ":a", ":b")
+            problem("Build file 'build.gradle': Cannot access project ':a' from project ':'")
+            problem("Build file 'build.gradle': Cannot access project ':b' from project ':'")
         }
 
         where:
@@ -49,7 +44,6 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         "subprojects" | _
     }
 
-    @Unroll
     def "reports problem when build script uses #block block to access dynamically added elements"() {
         settingsFile << """
             include("a")
@@ -67,12 +61,10 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         configurationCacheFails("assemble")
 
         then:
-        problems.assertFailureHasProblems(failure) {
-            totalProblemsCount = 6
-            withUniqueProblems(
-                "Build file 'build.gradle': Cannot access project ':a' from project ':'",
-                "Build file 'build.gradle': Cannot access project ':b' from project ':'"
-            )
+        fixture.assertStateStoreFailed {
+            projectsConfigured(":", ":a", ":b")
+            problem("Build file 'build.gradle': Cannot access project ':a' from project ':'", 3)
+            problem("Build file 'build.gradle': Cannot access project ':b' from project ':'", 3)
         }
 
         where:
@@ -81,7 +73,6 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         "subprojects" | _
     }
 
-    @Unroll
     def "reports problem when build script uses #property property to apply plugins to another project"() {
         settingsFile << """
             include("a")
@@ -97,11 +88,10 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         configurationCacheFails("assemble")
 
         then:
-        problems.assertFailureHasProblems(failure) {
-            withUniqueProblems(
-                "Build file 'build.gradle': Cannot access project ':a' from project ':'",
-                "Build file 'build.gradle': Cannot access project ':b' from project ':'"
-            )
+        fixture.assertStateStoreFailed {
+            projectsConfigured(":", ":a", ":b")
+            problem("Build file 'build.gradle': Cannot access project ':a' from project ':'")
+            problem("Build file 'build.gradle': Cannot access project ':b' from project ':'")
         }
 
         where:
@@ -125,14 +115,12 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         configurationCacheFails("assemble")
 
         then:
-        problems.assertFailureHasProblems(failure) {
-            withUniqueProblems(
-                "Build file 'build.gradle': Cannot access project ':a' from project ':'",
-            )
+        fixture.assertStateStoreFailed {
+            projectsConfigured(":", ":a", ":b")
+            problem("Build file 'build.gradle': Cannot access project ':a' from project ':'")
         }
     }
 
-    @Unroll
     def "reports problem when build script uses #method method to apply plugins to another project"() {
         settingsFile << """
             include("a")
@@ -146,10 +134,9 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         configurationCacheFails("assemble")
 
         then:
-        problems.assertFailureHasProblems(failure) {
-            withUniqueProblems(
-                "Build file 'build.gradle': Cannot access project ':a' from project ':'",
-            )
+        fixture.assertStateStoreFailed {
+            projectsConfigured(":", ":a", ":b")
+            problem("Build file 'build.gradle': Cannot access project ':a' from project ':'")
         }
 
         where:
@@ -158,7 +145,6 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         "findProject" | _
     }
 
-    @Unroll
     def "reports problem when root project build script uses chain of methods #chain { } to apply plugins to other projects"() {
         settingsFile << """
             include("a")
@@ -172,11 +158,10 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         configurationCacheFails("assemble")
 
         then:
-        problems.assertFailureHasProblems(failure) {
-            withUniqueProblems(
-                "Build file 'build.gradle': Cannot access project ':a' from project ':'",
-                "Build file 'build.gradle': Cannot access project ':b' from project ':'"
-            )
+        fixture.assertStateStoreFailed {
+            projectsConfigured(":", ":a", ":b")
+            problem("Build file 'build.gradle': Cannot access project ':a' from project ':'")
+            problem("Build file 'build.gradle': Cannot access project ':b' from project ':'")
         }
 
         where:
@@ -192,7 +177,6 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         "findProject('b').findProject(':').subprojects" | _
     }
 
-    @Unroll
     def "reports problem when project build script uses chain of methods #chain { } to apply plugins to sibling projects"() {
         settingsFile << """
             include("a")
@@ -206,10 +190,9 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         configurationCacheFails("assemble")
 
         then:
-        problems.assertFailureHasProblems(failure) {
-            withUniqueProblems(
-                "Build file 'a${File.separator}build.gradle': Cannot access project ':b' from project ':a'"
-            )
+        fixture.assertStateStoreFailed {
+            projectsConfigured(":", ":a", ":b")
+            problem("Build file 'a${File.separator}build.gradle': Cannot access project ':b' from project ':a'")
         }
 
         where:
@@ -221,7 +204,6 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         "findProject(':').findProject('b').with" | _
     }
 
-    @Unroll
     def "reports problem when project build script uses chain of methods #chain { } to apply plugins to all projects"() {
         settingsFile << """
             include("a")
@@ -235,11 +217,10 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         configurationCacheFails("assemble")
 
         then:
-        problems.assertFailureHasProblems(failure) {
-            withUniqueProblems(
-                "Build file 'a${File.separator}build.gradle': Cannot access project ':' from project ':a'",
-                "Build file 'a${File.separator}build.gradle': Cannot access project ':b' from project ':a'"
-            )
+        fixture.assertStateStoreFailed {
+            projectsConfigured(":", ":a", ":b")
+            problem("Build file 'a${File.separator}build.gradle': Cannot access project ':' from project ':a'")
+            problem("Build file 'a${File.separator}build.gradle': Cannot access project ':b' from project ':a'")
         }
 
         where:
@@ -274,6 +255,9 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         configurationCacheRun("assemble")
 
         then:
+        fixture.assertStateStored {
+            projectsConfigured(":", ":a", ":b")
+        }
         outputContains("project name = root")
         outputContains("project name = a")
         outputContains("project name = b")

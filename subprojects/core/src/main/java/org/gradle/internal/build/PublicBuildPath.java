@@ -28,9 +28,6 @@ public interface PublicBuildPath {
 
     /**
      * The build's, unique, build path.
-     *
-     * Throws IllegalStateException if the path is not yet known for the build.
-     * This can happen for nested builds as the path is influenced by the root project name.
      */
     Path getBuildPath();
 

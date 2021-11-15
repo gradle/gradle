@@ -19,7 +19,6 @@ package org.gradle.java
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.maven.MavenFileModule
-import spock.lang.Unroll
 
 abstract class JavaProjectOutgoingVariantsIntegrationTest extends AbstractIntegrationSpec {
 
@@ -121,7 +120,6 @@ project(':consumer') {
         outputContains("java.jar (project :java) {artifactType=jar, org.gradle.category=library, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.libraryelements=jar, org.gradle.usage=java-runtime}")
     }
 
-    @Unroll
     def "provides API variant - #format"() {
         buildFile << """
             project(':consumer') {

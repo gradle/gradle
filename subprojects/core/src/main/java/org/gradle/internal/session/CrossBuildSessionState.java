@@ -40,7 +40,7 @@ import org.gradle.internal.operations.logging.LoggingBuildOperationProgressBroad
 import org.gradle.internal.operations.notify.BuildOperationNotificationBridge;
 import org.gradle.internal.operations.notify.BuildOperationNotificationValve;
 import org.gradle.internal.operations.trace.BuildOperationTrace;
-import org.gradle.internal.resources.ResourceLockCoordinationService;
+import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.Scopes;
@@ -92,16 +92,16 @@ public class CrossBuildSessionState implements Closeable {
             this.startParameter = startParameter;
         }
 
+        void configure(ServiceRegistration registration) {
+            registration.add(DefaultWorkerLeaseService.class);
+        }
+
         CrossBuildSessionState createCrossBuildSessionState() {
             return CrossBuildSessionState.this;
         }
 
         ParallelismConfiguration createParallelismConfiguration() {
             return new DefaultParallelismConfiguration(startParameter.isParallelProjectExecutionEnabled(), startParameter.getMaxWorkerCount());
-        }
-
-        WorkerLeaseService createWorkerLeaseService(ResourceLockCoordinationService resourceLockCoordinationService, ParallelismConfiguration parallelismConfiguration) {
-            return new DefaultWorkerLeaseService(resourceLockCoordinationService, parallelismConfiguration);
         }
 
         BuildOperationExecutor createBuildOperationExecutor(

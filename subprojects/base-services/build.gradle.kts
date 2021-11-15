@@ -11,6 +11,7 @@ moduleIdentity.createBuildReceipt()
 
 dependencies {
     api(project(":base-annotations"))
+    api(project(":worker-services"))
     api(project(":hashing"))
     api(project(":build-operations"))
 

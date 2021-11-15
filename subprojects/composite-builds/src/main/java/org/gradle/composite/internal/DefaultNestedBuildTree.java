@@ -26,6 +26,8 @@ import org.gradle.initialization.NoOpBuildEventConsumer;
 import org.gradle.internal.build.BuildLayoutValidator;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
+import org.gradle.internal.buildtree.BuildTreeModelControllerServices;
+import org.gradle.internal.buildtree.BuildTreeState;
 import org.gradle.internal.buildtree.NestedBuildTree;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
@@ -70,9 +72,15 @@ public class DefaultNestedBuildTree implements NestedBuildTree {
         BuildSessionState session = new BuildSessionState(userHomeDirServiceRegistry, crossBuildSessionState, startParameter, buildRequestMetaData, ClassPath.EMPTY, buildCancellationToken, buildRequestMetaData.getClient(), new NoOpBuildEventConsumer());
         try {
             session.getServices().get(BuildLayoutValidator.class).validate(startParameter);
-            RootOfNestedBuildTree buildTree = new RootOfNestedBuildTree(buildDefinition, buildIdentifier, identityPath, owner, session);
-            buildTree.attach();
-            return buildTree.run(buildAction);
+            BuildTreeModelControllerServices.Supplier modelServices = session.getServices().get(BuildTreeModelControllerServices.class).servicesForNestedBuildTree(startParameter);
+            BuildTreeState buildTree = new BuildTreeState(session.getServices(), modelServices);
+            try {
+                RootOfNestedBuildTree rootBuild = new RootOfNestedBuildTree(buildDefinition, buildIdentifier, identityPath, owner, buildTree);
+                rootBuild.attach();
+                return rootBuild.run(buildAction);
+            } finally {
+                buildTree.close();
+            }
         } finally {
             session.close();
         }

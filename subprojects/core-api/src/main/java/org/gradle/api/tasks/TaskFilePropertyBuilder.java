@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks;
 
-import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
@@ -33,23 +32,4 @@ public interface TaskFilePropertyBuilder extends TaskPropertyBuilder {
      * will be assigned to the property automatically.</p>
      */
     TaskFilePropertyBuilder withPropertyName(String propertyName);
-
-    /**
-     * Declares this property as being untracked.
-     *
-     * @since 7.3
-     * @see org.gradle.api.tasks.Untracked
-     */
-    @Incubating
-    TaskFilePropertyBuilder untracked();
-
-    /**
-     * Declares whether Gradle should track this property.
-     *
-     * @param tracked Whether the property should be tracked
-     * @since 7.3
-     * @see org.gradle.api.tasks.Untracked
-     */
-    @Incubating
-    TaskFilePropertyBuilder tracked(boolean tracked);
 }

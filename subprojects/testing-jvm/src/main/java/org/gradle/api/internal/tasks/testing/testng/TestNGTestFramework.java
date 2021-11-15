@@ -40,6 +40,7 @@ import org.gradle.internal.time.Clock;
 import org.gradle.process.internal.worker.WorkerProcessBuilder;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
@@ -48,7 +49,7 @@ import java.util.concurrent.Callable;
 @UsedByScanPlugin("test-retry")
 public class TestNGTestFramework implements TestFramework {
     private final TestNGOptions options;
-    private final TestNGDetector detector;
+    private TestNGDetector detector;
     private final DefaultTestFilter filter;
     private final ObjectFactory objects;
     private final String testTaskPath;
@@ -153,6 +154,14 @@ public class TestNGTestFramework implements TestFramework {
     @Override
     public TestNGDetector getDetector() {
         return detector;
+    }
+
+    @Override
+    public void close() throws IOException {
+        // Clear expensive state from the test framework to avoid holding on to memory
+        // This should probably be a part of the test task and managed there.
+        testClassLoader = null;
+        detector = null;
     }
 
     private static class TestClassProcessorFactoryImpl implements WorkerTestClassProcessorFactory, Serializable {

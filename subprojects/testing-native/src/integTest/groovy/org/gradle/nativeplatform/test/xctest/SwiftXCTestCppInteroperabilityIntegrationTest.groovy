@@ -24,7 +24,6 @@ import org.gradle.nativeplatform.fixtures.app.CppGreeterFunction
 import org.gradle.nativeplatform.fixtures.app.SwiftLibTest
 import org.gradle.nativeplatform.fixtures.app.SwiftLibWithCppDep
 import org.gradle.nativeplatform.fixtures.app.SwiftLibWithCppDepXCTest
-import spock.lang.Unroll
 
 class SwiftXCTestCppInteroperabilityIntegrationTest extends AbstractSwiftMixedLanguageIntegrationTest implements XCTestExecutionResult, SwiftTaskNames {
     def setup() {
@@ -33,7 +32,6 @@ class SwiftXCTestCppInteroperabilityIntegrationTest extends AbstractSwiftMixedLa
         """
     }
 
-    @Unroll
     @ToBeFixedForConfigurationCache
     def "can depend on a #linkage.toLowerCase() c++ library"() {
         given:

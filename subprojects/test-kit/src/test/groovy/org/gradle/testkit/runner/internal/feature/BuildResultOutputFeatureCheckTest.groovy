@@ -19,13 +19,11 @@ package org.gradle.testkit.runner.internal.feature
 import org.gradle.testkit.runner.UnsupportedFeatureException
 import org.gradle.util.GradleVersion
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class BuildResultOutputFeatureCheckTest extends Specification {
 
     public static final GradleVersion UNSUPPORTED_GRADLE_VERSION = GradleVersion.version('2.8')
 
-    @Unroll
     def "supported Gradle version passes check [version = #gradleVersion, embedded = #embedded]"() {
         given:
         BuildResultOutputFeatureCheck featureCheck = new BuildResultOutputFeatureCheck(TestKitFeature.CAPTURE_BUILD_RESULT_OUTPUT_IN_DEBUG.since, embedded)

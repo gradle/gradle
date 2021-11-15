@@ -80,7 +80,7 @@ Acts as a placeholder and matches any implementation from any vendor (e.g. hotsp
 `J9`::
 Matches only virtual machine implementations using the OpenJ9/IBM J9 runtime engine.
 
-For example, to use an https://www.eclipse.org/openj9/[Open J9] JVM, distributed via https://adoptopenjdk.net/[AdoptOpenJDK],
+For example, to use an https://www.eclipse.org/openj9/[IBM Semeru] JVM, distributed via https://adoptopenjdk.net/[AdoptOpenJDK],
 you can specify the filter as shown in the example below.
 
 ====
@@ -182,6 +182,13 @@ There is no support for downloading early access versions.
 ====
 
 By default, the public https://api.adoptopenjdk.net/[AdoptOpenJDK APIs] are used to determine and download a matching JDK.
+
+[WARNING]
+====
+Due to changes in AdoptOpenJDK and the migration to https://adoptium.net/[Eclipse Adoptium], the endpoint now serves JDKs from https://adoptium.net/[Eclipse Adoptium] or https://developer.ibm.com/languages/java/semeru-runtimes/[IBM Semeru] and no longer builds from AdoptOpenJDK.
+Using `JvmVendorSpec.ADOPTOPENJDK` and having it resolved through auto provisioning will result in a deprecation warning.
+====
+
 In case you want to use another server that is compatible with v3 of the AdoptOpenJDK API, you can point Gradle to use a different host.
 For that you use the Gradle property as in the example below:
 
@@ -218,20 +225,23 @@ gradle -q javaToolchains
      | Location:           /Users/username/myJavaInstalls/8.0.242.hs-adpt/jre
      | Language Version:   8
      | Vendor:             AdoptOpenJDK
-     | Is JDK:             true
+     | Architecture:       x86_64
+     | Is JDK:             false
      | Detected by:        system property 'org.gradle.java.installations.paths'
 
- + OpenJDK 15-ea
-     | Location:           /Users/username/.sdkman/candidates/java/15.ea.21-open
-     | Language Version:   15
-     | Vendor:             AdoptOpenJDK
+ + Microsoft JDK 16.0.2+7
+     | Location:           /Users/username/.sdkman/candidates/java/16.0.2.7.1-ms
+     | Language Version:   16
+     | Vendor:             Microsoft
+     | Architecture:       aarch64
      | Is JDK:             true
      | Detected by:        SDKMAN!
 
- + OpenJDK 16
-     | Location:           /Users/user/customJdks/16.ea.20-open
-     | Language Version:   16
+ + OpenJDK 15-ea
+     | Location:           /Users/user/customJdks/15.ea.21-open
+     | Language Version:   15
      | Vendor:             AdoptOpenJDK
+     | Architecture:       x86_64
      | Is JDK:             true
      | Detected by:        environment variable 'JDK16'
 
@@ -239,7 +249,8 @@ gradle -q javaToolchains
      | Location:           /Library/Java/JavaVirtualMachines/jdk1.7.0_80.jdk/Contents/Home/jre
      | Language Version:   7
      | Vendor:             Oracle
-     | Is JDK:             true
+     | Architecture:       x86_64
+     | Is JDK:             false
      | Detected by:        macOS java_home
 ----
 

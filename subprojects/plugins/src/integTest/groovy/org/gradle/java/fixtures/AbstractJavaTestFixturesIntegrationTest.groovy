@@ -22,7 +22,6 @@ import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.GradleModuleMetadata
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.MavenPom
-import spock.lang.Unroll
 
 abstract class AbstractJavaTestFixturesIntegrationTest extends AbstractIntegrationSpec {
     abstract String getPluginName()
@@ -53,7 +52,6 @@ abstract class AbstractJavaTestFixturesIntegrationTest extends AbstractIntegrati
         }
     }
 
-    @Unroll
     def "can compile test fixtures [compileClasspathPackaging=#compileClasspathPackaging]"() {
         toggleCompileClasspathPackaging(compileClasspathPackaging)
         buildFile << """
@@ -110,7 +108,6 @@ hamcrest-core-1.3.jar
         true                      | _
     }
 
-    @Unroll
     def "test fixtures can use their own dependencies [compileClasspathPackaging=#compileClasspathPackaging]"() {
         toggleCompileClasspathPackaging(compileClasspathPackaging)
         buildFile << """

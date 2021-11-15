@@ -43,6 +43,12 @@ class TestableDaemon extends AbstractDaemonFixture {
         if (lastRegistryState == state && lastLogState == state) {
             return
         }
+        // TODO remove debug log
+        if (lastRegistryState == State.Stopped && lastLogState == State.Idle) {
+            println("The daemon probably disappeared before it could've printed the stop message. Daemon log content:")
+            println(logFile.text)
+        }
+
         throw new AssertionError("""Timeout waiting for daemon with pid ${context.pid} to reach state ${state}.
 Current registry state is ${lastRegistryState} and current log state is ${lastLogState}.""")
     }

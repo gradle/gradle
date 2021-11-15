@@ -18,7 +18,6 @@ package org.gradle.java
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Unroll
 
 class JavaApplicationOutgoingVariantsIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
@@ -139,7 +138,6 @@ project(':consumer') {
         outputContains("java.jar (project :java) {artifactType=jar, org.gradle.category=library, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.libraryelements=jar, org.gradle.usage=java-api}")
     }
 
-    @Unroll
     def "provides runtime variant - format: #format"() {
         buildFile << """
             project(':consumer') {

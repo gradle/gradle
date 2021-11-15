@@ -21,8 +21,10 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.ProjectLifecycleFixture
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
+import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.junit.Rule
 import spock.lang.IgnoreIf
+import spock.lang.Issue
 
 @FluidDependenciesResolveTest
 class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
@@ -530,5 +532,33 @@ task printExt {
 
         then:
         outputContains("The Foo says Moo!!!")
+    }
+
+    @ToBeFixedForConfigurationCache(because = "runs the dependencies task")
+    @Issue("https://github.com/gradle/gradle/issues/18460")
+    @IntegrationTestTimeout(value = 60, onlyIf = { GradleContextualExecuter.embedded })
+    def "can query dependencies with configure on demand enabled"() {
+        def subprojects = ["a", "b"]
+        multiProjectBuild("outputRegistry", subprojects)
+        subprojects.each { projectName ->
+            file("${projectName}/build.gradle") << """
+                plugins {
+                    id("java-library")
+                }
+            """
+        }
+        file("a/build.gradle") << """
+            dependencies {
+                implementation(project(":b"))
+            }
+        """
+
+        when:
+        succeeds("a:dependencies", "--configure-on-demand", "--debug")
+        then:
+        outputContains("More outputs are being registered even though the build output cleanup registry has already been finalized.")
+
+        expect:
+        succeeds("a:dependencies", "--configure-on-demand")
     }
 }

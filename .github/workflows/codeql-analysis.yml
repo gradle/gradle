@@ -24,7 +24,7 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v2
       # Checkout must run before the caching key is computed using the `hashFiles` method
-    
+
     - name: Cache Gradle Modules
       uses: actions/cache@v2
       with:
@@ -58,7 +58,7 @@ jobs:
 
     - name: Compile with Gradle with Build Scan
       if: ${{ matrix.language == 'java' && github.repository_owner == 'gradle' }}
-      run: ./gradlew --init-script .github/workflows/codeql-analysis.init.gradle -DcacheNode=us -S testClasses
+      run: ./gradlew --no-configuration-cache --init-script .github/workflows/codeql-analysis.init.gradle -DcacheNode=us -S testClasses
       env:
         # Set the GRADLE_ENTERPRISE_ACCESS_KEY so that Gradle Build Scans are generated
         GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}

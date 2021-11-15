@@ -22,7 +22,6 @@ import org.gradle.test.fixtures.server.http.AuthScheme
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.hamcrest.CoreMatchers
 import spock.lang.Issue
-import spock.lang.Unroll
 
 import static org.gradle.test.fixtures.server.http.AuthScheme.BASIC
 import static org.gradle.test.fixtures.server.http.AuthScheme.DIGEST
@@ -38,7 +37,6 @@ class HttpAuthenticationDependencyResolutionIntegrationTest extends AbstractHttp
         maxHttpRetries = 3
     }
 
-    @Unroll
     def "can resolve dependencies using #authSchemeName scheme from #authScheme authenticated HTTP ivy repository"() {
         given:
         def moduleA = ivyHttpRepo.module('group', 'projectA', '1.2').publish()
@@ -98,7 +96,6 @@ task listJars {
         'basic and digest' | 'authentication { basic(BasicAuthentication)\ndigest(DigestAuthentication) }' | DIGEST            | ['Basic', 'Digest']
     }
 
-    @Unroll
     public void "can resolve dependencies using #authSchemeName scheme from #authScheme authenticated HTTP maven repository"() {
         given:
         def moduleA = mavenHttpRepo.module('group', 'projectA', '1.2').publish()
@@ -170,7 +167,6 @@ task listJars {
         'basic and digest' | 'authentication { basic(BasicAuthentication)\ndigest(DigestAuthentication) }' | DIGEST            | ['Basic', 'Digest']
     }
 
-    @Unroll
     @Issue("gradle/gradle#5571")
     public void "can resolve dependencies from HTTP Maven repository authenticating with HTTP header"() {
         given:
@@ -212,7 +208,6 @@ task listJars {
     }
 
 
-    @Unroll
     @Issue("gradle/gradle#5571")
     void "can resolve dependencies from HTTP Maven repository authenticating with HTTP header with redirect"() {
         given:
@@ -263,7 +258,6 @@ task listJars {
         redirectServer.stop()
     }
 
-    @Unroll
     def "reports failure resolving with #credsName credentials from #authScheme authenticated HTTP ivy repository"() {
         given:
         def module = ivyHttpRepo.module('group', 'projectA', '1.2').publish()
@@ -310,7 +304,6 @@ task listJars {
         NTLM       | 'bad'     | badCredentials
     }
 
-    @Unroll
     def "reports failure resolving with #credsName credentials from #authScheme authenticated HTTP maven repository"() {
         given:
         def module = mavenHttpRepo.module('group', 'projectA', '1.2').publish()
@@ -358,7 +351,6 @@ task listJars {
         NTLM       | 'bad'     | badCredentials
     }
 
-    @Unroll
     def "reports failure resolving with #configuredAuthScheme from #authScheme authenticated HTTP ivy repository"() {
         given:
         def module = ivyHttpRepo.module('group', 'projectA', '1.2').publish()
@@ -408,7 +400,6 @@ task listJars {
         DIGEST     | BasicAuthentication.class.getSimpleName()
     }
 
-    @Unroll
     def "reports failure resolving with #configuredAuthScheme from #authScheme authenticated HTTP maven repository"() {
         given:
         def module = mavenHttpRepo.module('group', 'projectA', '1.2').publish()

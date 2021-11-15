@@ -20,6 +20,7 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
@@ -42,10 +43,9 @@ import org.gradle.internal.FileUtils;
 import org.gradle.internal.Pair;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.build.AbstractBuildState;
-import org.gradle.internal.build.BuildLifecycleController;
+import org.gradle.internal.build.BuildModelControllerServices;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
-import org.gradle.internal.build.BuildWorkGraph;
 import org.gradle.internal.build.RootBuildState;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
 import org.gradle.internal.buildtree.BuildTreeModelControllerServices;
@@ -60,6 +60,7 @@ import org.gradle.internal.resources.DefaultResourceLockCoordinationService;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
+import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.session.BuildSessionState;
 import org.gradle.internal.session.CrossBuildSessionState;
@@ -103,7 +104,6 @@ public class ProjectBuilderImpl {
     public ProjectInternal createProject(String name, File inputProjectDir, File gradleUserHomeDir) {
 
         final File projectDir = prepareProjectDir(inputProjectDir);
-        final File homeDir = new File(projectDir, "gradleHome");
         File userHomeDir = gradleUserHomeDir == null ? new File(projectDir, "userHome") : FileUtils.canonicalize(gradleUserHomeDir);
         StartParameterInternal startParameter = new StartParameterInternal();
         startParameter.setGradleUserHomeDir(userHomeDir);
@@ -117,9 +117,9 @@ public class ProjectBuilderImpl {
         BuildSessionState buildSessionState = new BuildSessionState(userHomeServices, crossBuildSessionState, startParameter, buildRequestMetaData, ClassPath.EMPTY, new DefaultBuildCancellationToken(), buildRequestMetaData.getClient(), new NoOpBuildEventConsumer());
         BuildTreeModelControllerServices.Supplier modelServices = buildSessionState.getServices().get(BuildTreeModelControllerServices.class).servicesForBuildTree(new RunTasksRequirements(startParameter));
         BuildTreeState buildTreeState = new BuildTreeState(buildSessionState.getServices(), modelServices);
-        TestBuildScopeServices buildServices = new TestBuildScopeServices(buildTreeState.getServices(), homeDir, startParameter);
-        TestRootBuild build = new TestRootBuild(projectDir, buildServices);
+        TestRootBuild build = new TestRootBuild(projectDir, startParameter, buildTreeState);
 
+        BuildScopeServices buildServices = build.getBuildServices();
         buildServices.get(BuildStateRegistry.class).attachRootBuild(build);
 
         GradleInternal gradle = build.getMutableModel();
@@ -149,7 +149,7 @@ public class ProjectBuilderImpl {
         project.getExtensions().getExtraProperties().set(
             "ProjectBuilder.stoppable",
             stoppable(
-                (Stoppable) workerLeaseService::releaseCurrentProjectLocks,
+                (Stoppable) workerLeaseService::runAsIsolatedTask,
                 (Stoppable) ((DefaultWorkerLeaseService) workerLeaseService)::releaseCurrentResourceLocks,
                 buildServices,
                 buildTreeState,
@@ -217,20 +217,24 @@ public class ProjectBuilderImpl {
     }
 
     private static class TestRootBuild extends AbstractBuildState implements RootBuildState {
-        private final File rootProjectDir;
-        private final ProjectStateRegistry projectStateRegistry;
         private final GradleInternal gradle;
+        final BuildScopeServices buildServices;
 
-        public TestRootBuild(File rootProjectDir, TestBuildScopeServices buildServices) {
-            this.rootProjectDir = rootProjectDir;
-            buildServices.add(BuildState.class, this);
-            this.projectStateRegistry = buildServices.get(ProjectStateRegistry.class);
+        public TestRootBuild(File rootProjectDir, StartParameterInternal startParameter, BuildTreeState buildTreeState) {
+            super(buildTreeState, BuildDefinition.fromStartParameter(startParameter, rootProjectDir, null), null);
+            this.buildServices = getBuildServices();
             this.gradle = buildServices.get(GradleInternal.class);
         }
 
         @Override
-        protected BuildLifecycleController getBuildController() {
-            throw new UnsupportedOperationException();
+        protected BuildScopeServices prepareServices(BuildTreeState buildTree, BuildDefinition buildDefinition, BuildModelControllerServices.Supplier supplier) {
+            final File homeDir = new File(buildDefinition.getBuildRootDir(), "gradleHome");
+            return new TestBuildScopeServices(buildTree.getServices(), homeDir, supplier);
+        }
+
+        @Override
+        public BuildScopeServices getBuildServices() {
+            return super.getBuildServices();
         }
 
         @Override
@@ -238,13 +242,7 @@ public class ProjectBuilderImpl {
         }
 
         @Override
-        public BuildWorkGraph getWorkGraph() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        protected ProjectStateRegistry getProjectStateRegistry() {
-            return projectStateRegistry;
+        public void ensureProjectsConfigured() {
         }
 
         @Override
@@ -299,16 +297,11 @@ public class ProjectBuilderImpl {
 
         @Override
         public File getBuildRootDir() {
-            return rootProjectDir;
+            return getBuildServices().get(BuildDefinition.class).getBuildRootDir();
         }
 
         @Override
         public GradleInternal getMutableModel() {
-            return gradle;
-        }
-
-        @Override
-        public GradleInternal getBuild() {
             return gradle;
         }
     }

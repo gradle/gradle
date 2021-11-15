@@ -141,8 +141,25 @@ public interface InputFingerprinter {
     }
 
     interface Result {
+        /**
+         * Returns the values snapshotted just now.
+         */
         ImmutableSortedMap<String, ValueSnapshot> getValueSnapshots();
+
+        /**
+         * Returns all the value snapshots, including previously known ones.
+         */
+        ImmutableSortedMap<String, ValueSnapshot> getAllValueSnapshots();
+
+        /**
+         * Returns the files fingerprinted just now.
+         */
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getFileFingerprints();
+
+        /**
+         * Returns all the file fingerprints, including the previously known ones.
+         */
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getAllFileFingerprints();
     }
 
     class InputFingerprintingException extends RuntimeException {
@@ -162,7 +179,7 @@ public interface InputFingerprinter {
         private final String propertyName;
 
         public InputFileFingerprintingException(String propertyName, Throwable cause) {
-            super(String.format("Cannot fingerprint input file property '%s'.", propertyName), cause);
+            super(String.format("Cannot fingerprint input file property '%s': %s", propertyName, cause.getMessage()), cause);
             this.propertyName = propertyName;
         }
 

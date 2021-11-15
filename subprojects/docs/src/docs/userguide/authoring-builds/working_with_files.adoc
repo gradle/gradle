@@ -761,7 +761,7 @@ You can also perform the same function in your own tasks with the link:{groovyDs
 When working with application servers, you can use a `Copy` task to deploy the application archive (e.g. a WAR file).
 Since you are deploying a single file, the destination directory of the `Copy` is the whole deployment directory.
 The deployment directory sometimes does contain unreadable files like named pipes, so Gradle may have problems doing up-to-date checks.
-In order to support this use-case, you can use link:{groovyDslPath}/org.gradle.api.tasks.Copy.html#org.gradle.api.tasks.Copy:ignoreExistingContentInDestinationDir()[Copy.ignoreExistingContentInDestinationDir()].
+In order to support this use-case, you can use link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:doNotTrackState(java.lang.String)[Task.doNotTrackState()].
 
 .Using Copy to deploy a WAR file
 ====
@@ -775,7 +775,7 @@ include::sample[dir="snippets/files/deployWarWithCopy/kotlin",files="build.gradl
 When you are building a standalone executable, you may want to install this file on your system, so it ends up in your path.
 You can use a `Copy` task to install the executable into shared directories like `/usr/local/bin`.
 The installation directory probably contains many other executables, some of which may even be unreadable by Gradle.
-To support the unreadable files in the `Copy` task's destination directory and to avoid time consuming up-to-date checks, you can use link:{groovyDslPath}/org.gradle.api.tasks.Copy.html#org.gradle.api.tasks.Copy:ignoreExistingContentInDestinationDir()[Copy.ignoreExistingContentInDestinationDir()].
+To support the unreadable files in the `Copy` task's destination directory and to avoid time consuming up-to-date checks, you can use link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:doNotTrackState(java.lang.String)[Task.doNotTrackState()].
 
 .Using Copy to install an executable
 ====

@@ -29,7 +29,7 @@ import spock.lang.Retry
 import spock.lang.Timeout
 import spock.util.concurrent.PollingConditions
 
-@Timeout(60)
+@Timeout(120)
 @Retry(count = 3)
 @ToolingApiVersion(">=6.5")
 class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {

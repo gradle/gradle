@@ -17,11 +17,9 @@
 package org.gradle.api.reporting.model
 
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class ModelReportParserTest extends Specification {
 
-    @Unroll
     def "fails with invalid text"() {
         when:
         ModelReportParser.parse(text)
@@ -151,7 +149,6 @@ BUILD SUCCESSFUL
         modelReport.reportNode.lss.@creator[0] == 'Rules#lss'
     }
 
-    @Unroll
     def "should identify node lines"() {
         expect:
         boolean result = ModelReportParser.lineIsANode(line)

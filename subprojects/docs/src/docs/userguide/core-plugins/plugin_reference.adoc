@@ -37,6 +37,9 @@ Provides support for building any type of https://www.scala-lang.org/[Scala] pro
 <<antlr_plugin.adoc#antlr_plugin,ANTLR>>::
 Provides support for generating parsers using http://www.antlr.org/[ANTLR].
 
+<<jvm_test_suite_plugin.adoc#jvm_test_suite_plugin,JVM Test Suite>>::
+Provides support for modeling and configuring multiple test suite invocations.
+
 [[native_languages]]
 == Native languages
 

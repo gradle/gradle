@@ -10,8 +10,7 @@ dependencies {
 
 // tag::declare-junit-dependency[]
 dependencies {
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.1")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
 }
 
 tasks.withType<Test>().configureEach {

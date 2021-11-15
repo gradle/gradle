@@ -61,14 +61,19 @@ class ProtobufPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
         """
 
         when:
-        def result = runner('compileJava').forwardOutput().build()
+        def result = runner('compileJava').forwardOutput()
+            .expectDeprecationWarning(deprecationOfFileTreeForEmptySources("sourceFiles"), "https://github.com/google/protobuf-gradle-plugin/pull/530")
+            .build()
 
         then:
         result.task(":generateProto").outcome == SUCCESS
         result.task(":compileJava").outcome == SUCCESS
 
         when:
-        result = runner('compileJava').forwardOutput().build()
+        result = runner('compileJava')
+            .forwardOutput()
+            .expectDeprecationWarning(deprecationOfFileTreeForEmptySources("sourceFiles"), "https://github.com/google/protobuf-gradle-plugin/pull/530")
+            .build()
 
         then:
         result.task(":generateProto").outcome == UP_TO_DATE

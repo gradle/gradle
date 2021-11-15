@@ -15,7 +15,9 @@
  */
 
 package org.gradle.test.fixtures.ivy
-import groovy.xml.QName
+
+import groovy.namespace.QName
+import groovy.xml.XmlParser
 import org.apache.commons.lang.StringUtils
 
 class IvyDescriptor {

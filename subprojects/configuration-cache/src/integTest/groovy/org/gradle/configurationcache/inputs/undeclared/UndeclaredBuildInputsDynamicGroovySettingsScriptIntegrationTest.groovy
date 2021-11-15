@@ -23,7 +23,7 @@ class UndeclaredBuildInputsDynamicGroovySettingsScriptIntegrationTest extends Ab
     }
 
     @Override
-    void buildLogicApplication(SystemPropertyRead read) {
+    void buildLogicApplication(BuildInputRead read) {
         settingsFile << """
             println("apply = " + ${read.groovyExpression})
             gradle.rootProject {

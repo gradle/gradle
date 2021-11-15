@@ -17,6 +17,7 @@
 package org.gradle.api.plugins;
 
 import org.gradle.api.NamedDomainObjectContainer;
+import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -42,16 +43,19 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.JavaConfigurationVariantMapping;
 import org.gradle.api.plugins.internal.JvmPluginsHelper;
+import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.Jar;
+import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.internal.execution.BuildOutputCleanupRegistry;
 import org.gradle.language.jvm.tasks.ProcessResources;
+import org.gradle.testing.base.TestingExtension;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -60,12 +64,16 @@ import java.util.Collections;
 
 import static org.gradle.api.attributes.LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE;
 import static org.gradle.api.attributes.Usage.USAGE_ATTRIBUTE;
+import static org.gradle.api.plugins.JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME;
 import static org.gradle.api.plugins.internal.JvmPluginsHelper.configureJavaDocTask;
 
 /**
  * <p>A {@link Plugin} which compiles and tests Java source, and assembles it into a JAR file.</p>
  *
+ * This plugin creates a built-in {@link JvmTestSuite test suite} named {@code test} that represents the {@link Test} task for Java projects.
+ *
  * @see <a href="https://docs.gradle.org/current/userguide/java_plugin.html">Java plugin reference</a>
+ * @see <a href="https://docs.gradle.org/current/userguide/jvm_test_suite_plugin.html">JVM test suite plugin reference</a>
  */
 public class JavaPlugin implements Plugin<Project> {
     /**
@@ -282,12 +290,31 @@ public class JavaPlugin implements Plugin<Project> {
     private void configureSourceSets(Project project, JavaPluginExtension pluginExtension, final BuildOutputCleanupRegistry buildOutputCleanupRegistry) {
         SourceSetContainer sourceSets = pluginExtension.getSourceSets();
 
-        SourceSet main = sourceSets.create(SourceSet.MAIN_SOURCE_SET_NAME);
+        sourceSets.create(SourceSet.MAIN_SOURCE_SET_NAME);
+
+        // The built-in test suite must be configured after the main source set is available due to some
+        // special handling in the IntelliJ model builder
+        configureBuiltInTest(project, project.getExtensions().getByType(TestingExtension.class), pluginExtension);
 
         // Register the project's source set output directories
         sourceSets.all(sourceSet ->
             buildOutputCleanupRegistry.registerOutputs(sourceSet.getOutput())
         );
+    }
+
+    private void configureBuiltInTest(Project project, TestingExtension testing, JavaPluginExtension java) {
+        final NamedDomainObjectProvider<JvmTestSuite> testSuite = testing.getSuites().register(DEFAULT_TEST_SUITE_NAME, JvmTestSuite.class, suite -> {
+            final FileCollection mainSourceSetOutput = java.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getOutput();
+            final FileCollection testSourceSetOutput = suite.getSources().getOutput();
+
+            suite.getSources().setCompileClasspath(project.getObjects().fileCollection().from(mainSourceSetOutput, project.getConfigurations().getByName(TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME)));
+            suite.getSources().setRuntimeClasspath(project.getObjects().fileCollection().from(testSourceSetOutput, mainSourceSetOutput, project.getConfigurations().getByName(TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME)));
+        });
+
+        // Force the realization of this test suite, targets and task
+        testSuite.get();
+
+        project.getTasks().named(JavaBasePlugin.CHECK_TASK_NAME, task -> task.dependsOn(testSuite));
     }
 
     private void configureArchivesAndComponent(Project project, final JavaPluginExtension pluginExtension) {

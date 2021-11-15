@@ -17,13 +17,14 @@
 package org.gradle.internal.logging.events;
 
 import org.gradle.api.logging.LogLevel;
-import org.gradle.internal.logging.events.operations.ProgressStartBuildOperationProgressDetails;
 import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.OperationIdentifier;
+import org.gradle.internal.operations.logging.LogEventLevel;
 
 import javax.annotation.Nullable;
 
-public class ProgressStartEvent extends CategorisedOutputEvent implements ProgressStartBuildOperationProgressDetails {
+@SuppressWarnings("deprecation")
+public class ProgressStartEvent extends CategorisedOutputEvent implements org.gradle.internal.logging.events.operations.ProgressStartBuildOperationProgressDetails {
     public static final String TASK_CATEGORY = "class org.gradle.internal.buildevents.TaskExecutionLogger";
     public static final String BUILD_OP_CATEGORY = "org.gradle.internal.logging.progress.ProgressLoggerFactory";
 
@@ -117,5 +118,10 @@ public class ProgressStartEvent extends CategorisedOutputEvent implements Progre
 
     public ProgressStartEvent withParentProgressOperation(OperationIdentifier parentProgressOperationId) {
         return new ProgressStartEvent(progressOperationId, parentProgressOperationId, getTimestamp(), getCategory(), description, loggingHeader, status, totalProgress, buildOperationStart, buildOperationId, buildOperationCategory);
+    }
+
+    @Override
+    public LogEventLevel getLevel() {
+        return LogLevelConverter.convert(getLogLevel());
     }
 }

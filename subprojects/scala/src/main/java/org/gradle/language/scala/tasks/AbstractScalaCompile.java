@@ -144,7 +144,8 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
     }
 
     @Nullable
-    private JavaInstallationMetadata getToolchain() {
+    @Internal
+    protected JavaInstallationMetadata getToolchain() {
         return javaLauncher.map(JavaLauncher::getMetadata).getOrNull();
     }
 

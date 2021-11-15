@@ -21,11 +21,9 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.jvm.Jvm
 import spock.lang.IgnoreIf
-import spock.lang.Unroll
 
 class JavadocToolchainIntegrationTest extends AbstractIntegrationSpec {
 
-    @Unroll
     @IgnoreIf({ AvailableJavaHomes.getJdk(JavaVersion.VERSION_11) == null })
     def "can manually set javadoc tool via  #type toolchain on javadoc task #type : #jdk"() {
         buildFile << """
@@ -117,7 +115,7 @@ class JavadocToolchainIntegrationTest extends AbstractIntegrationSpec {
             javadoc {
                 javadocTool = javaToolchains.javadocToolFor {
                     def version = ${currentJdk.javaVersion.majorVersion}
-                    version = providers.gradleProperty('test.javadoc.version').forUseAtConfigurationTime().getOrElse(version)
+                    version = providers.gradleProperty('test.javadoc.version').getOrElse(version)
                     languageVersion = JavaLanguageVersion.of(version)
                 }
             }

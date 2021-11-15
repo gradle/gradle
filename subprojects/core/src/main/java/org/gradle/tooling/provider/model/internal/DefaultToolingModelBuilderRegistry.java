@@ -94,7 +94,8 @@ public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRe
     public Builder locateForClientOperation(String modelName, boolean parameter, ProjectState target) throws UnknownModelException {
         return new BuildOperationWrappingBuilder(
             new LockSingleProjectBuilder(
-                locateForClientOperation(modelName, target.getMutableModel(), parameter), target), modelName, target.getDisplayName(), buildOperationExecutor);
+                locateForClientOperation(modelName, target.getMutableModel(), parameter), target),
+            modelName, target.getOwner(), target, target.getDisplayName(), buildOperationExecutor);
     }
 
     @Nullable
@@ -112,8 +113,8 @@ public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRe
         BuildScopeModelBuilder buildScopeModelBuilder = (BuildScopeModelBuilder) registration.getBuilder();
         return new BuildOperationWrappingBuilder(
             restoreUserCodeApplication(
-                new LockAllProjectsBuilder(
-                    new BuildScopedBuilder(buildScopeModelBuilder, target), projectStateRegistry), registration), modelName, target.getDisplayName(), buildOperationExecutor);
+                new BuildScopedBuilder(buildScopeModelBuilder, target), registration),
+            modelName, target, null, target.getDisplayName(), buildOperationExecutor);
     }
 
     private Builder locateForClientOperation(String modelName, ProjectInternal project, boolean parameter) throws UnknownModelException {
@@ -304,29 +305,27 @@ public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRe
         }
     }
 
-    private static class LockAllProjectsBuilder extends DelegatingBuilder {
-        private final ProjectStateRegistry projectStateRegistry;
-
-        public LockAllProjectsBuilder(Builder delegate, ProjectStateRegistry projectStateRegistry) {
-            super(delegate);
-            this.projectStateRegistry = projectStateRegistry;
-        }
-
-        @Override
-        public Object build(Object parameter) {
-            return projectStateRegistry.withMutableStateOfAllProjects(() -> delegate.build(parameter));
-        }
-    }
-
     private static class BuildOperationWrappingBuilder extends DelegatingBuilder {
         private final String modelName;
-        private final DisplayName target;
+        private final BuildState targetBuild;
+        private final ProjectState targetProject;
+        private final DisplayName targetDisplayName;
         private final BuildOperationExecutor buildOperationExecutor;
 
-        private BuildOperationWrappingBuilder(Builder delegate, String modelName, DisplayName target, BuildOperationExecutor buildOperationExecutor) {
+        private BuildOperationWrappingBuilder(
+            Builder delegate,
+            String modelName,
+            BuildState targetBuild,
+            @Nullable
+            ProjectState targetProject,
+            DisplayName targetDisplayName,
+            BuildOperationExecutor buildOperationExecutor
+        ) {
             super(delegate);
             this.modelName = modelName;
-            this.target = target;
+            this.targetBuild = targetBuild;
+            this.targetProject = targetProject;
+            this.targetDisplayName = targetDisplayName;
             this.buildOperationExecutor = buildOperationExecutor;
         }
 
@@ -340,8 +339,23 @@ public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRe
 
                 @Override
                 public BuildOperationDescriptor.Builder description() {
-                    return BuildOperationDescriptor.displayName("Build model '" + modelName + "' for " + target.getDisplayName()).
-                        progressDisplayName("Building model '" + modelName + "'");
+                    return BuildOperationDescriptor.displayName("Build model '" + modelName + "' for " + targetDisplayName.getDisplayName()).
+                        progressDisplayName("Building model '" + modelName + "'").details(new QueryToolingModelBuildOperationType.Details() {
+                            @Override
+                            public String getBuildPath() {
+                                return targetBuild.getIdentityPath().getPath();
+                            }
+
+                            @Nullable
+                            @Override
+                            public String getProjectPath() {
+                                if (targetProject != null) {
+                                    return targetProject.getProjectPath().getPath();
+                                } else {
+                                    return null;
+                                }
+                            }
+                        });
                 }
             });
         }

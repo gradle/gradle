@@ -1,10 +1,10 @@
 import gradlebuild.integrationtests.model.GradleDistribution
 import org.asciidoctor.gradle.jvm.AsciidoctorTask
+import org.gradle.docs.internal.tasks.CheckLinks
 import org.gradle.docs.samples.internal.tasks.InstallSample
 
 import static gradlebuild.basics.BuildEnvironmentKt.repoRoot
 import static gradlebuild.basics.Repositories_extensionsKt.googleApisJs
-import org.gradle.docs.internal.tasks.CheckLinks
 
 plugins {
     id 'gradlebuild.internal.java'
@@ -232,8 +232,8 @@ samples {
         incubatingJvmMultiProjectWithAdditionalTestTypes {
             sampleDirectory = samplesRoot.dir("incubating/java/jvm-multi-project-with-additional-test-types")
             displayName = "Using additional test types with Test Suites (Incubating)"
-            description = "Add an additional test type (e.g. integration tests) to a project using the `@Incubating` Test Suites API."
-            category = "Incubating"
+            description = "Add an additional test type (e.g. integration tests) to a project using the new Test Suites API."
+            category = "Java"
 
             common {
                 from(templates.javaApplicationAsSubproject)
@@ -250,8 +250,8 @@ samples {
         incubatingJavaModulesMultiProjectWithIntegrationTests {
             sampleDirectory = samplesRoot.dir("incubating/java/modules-multi-project-with-integration-tests")
             displayName = "Building Java Modules with Blackbox Tests with Test Suites (Incubating)"
-            description = "Build Java Modules with blackbox integration tests using the `@Incubating` Test Suites API."
-            category = "Incubating"
+            description = "Build Java Modules with blackbox integration tests using the new Test Suites API."
+            category = "Java Modules"
             common {
                 from(templates.javaApplicationAsSubproject)
                 from(templates.javaListLibraryAsSubproject)
@@ -271,8 +271,8 @@ samples {
         incubatingPublishingConventionPlugins {
             sampleDirectory = samplesRoot.dir("incubating/build-organization/publishing-convention-plugins")
             displayName = "Sharing build logic in a multi-repo setup with Test Suites (Incubating)"
-            description = "Organize and publish build logic for reuse in other projects using the `@Incubating` Test Suites API."
-            category = "Incubating"
+            description = "Organize and publish build logic for reuse in other projects using the new Test Suites API."
+            category = "Java"
             common {
                 from(templates.precompiledScriptPluginUtils)
             }

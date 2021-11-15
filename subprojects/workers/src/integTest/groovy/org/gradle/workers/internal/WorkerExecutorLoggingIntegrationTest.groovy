@@ -18,7 +18,6 @@ package org.gradle.workers.internal
 
 import org.gradle.workers.fixtures.WorkerExecutorFixture.WorkActionClass
 import spock.lang.Timeout
-import spock.lang.Unroll
 
 import static org.gradle.workers.fixtures.WorkerExecutorFixture.ISOLATION_MODES
 
@@ -52,7 +51,6 @@ class WorkerExecutorLoggingIntegrationTest extends AbstractWorkerExecutorIntegra
         }
     }
 
-    @Unroll
     def "worker lifecycle is logged in #isolationMode"() {
         def workAction = fixture.workActionThatCreatesFiles.writeToBuildSrc()
 
@@ -77,7 +75,6 @@ class WorkerExecutorLoggingIntegrationTest extends AbstractWorkerExecutorIntegra
         isolationMode << ISOLATION_MODES
     }
 
-    @Unroll
     def "stdout, stderr and logging output of worker is redirected in #isolationMode"() {
         executionWithLogging.writeToBuildFile()
 
@@ -109,7 +106,6 @@ class WorkerExecutorLoggingIntegrationTest extends AbstractWorkerExecutorIntegra
         isolationMode << ISOLATION_MODES
     }
 
-    @Unroll
     def "stdout, stderr and logging output of worker is redirected in #isolationMode when Gradle logging is --info"() {
         executionWithLogging.writeToBuildFile()
 
@@ -145,7 +141,6 @@ class WorkerExecutorLoggingIntegrationTest extends AbstractWorkerExecutorIntegra
         isolationMode << ISOLATION_MODES
     }
 
-    @Unroll
     def "stdout, stderr and logging output of worker is redirected in #isolationMode when Gradle logging is --debug"() {
         executionWithLogging.writeToBuildFile()
 

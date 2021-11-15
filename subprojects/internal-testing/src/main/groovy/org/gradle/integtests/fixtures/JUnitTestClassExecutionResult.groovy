@@ -16,14 +16,15 @@
 
 package org.gradle.integtests.fixtures
 
-import groovy.util.slurpersupport.GPathResult
-import groovy.util.slurpersupport.NodeChild
+import groovy.xml.XmlSlurper
+import groovy.xml.slurpersupport.GPathResult
+import groovy.xml.slurpersupport.NodeChild
 import org.hamcrest.CoreMatchers
 import org.hamcrest.Matcher
-import org.junit.Assert
 
 import static org.gradle.integtests.fixtures.DefaultTestExecutionResult.removeParentheses
 import static org.gradle.integtests.fixtures.TestExecutionResult.EXECUTION_FAILURE
+import static org.hamcrest.MatcherAssert.assertThat
 
 class JUnitTestClassExecutionResult implements TestClassExecutionResult {
     GPathResult testClassNode
@@ -47,7 +48,7 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
         Map<String, Node> testMethods = findTests().findAll { name, element ->
             element."skipped".size() == 0 // Exclude skipped test.
         }
-        Assert.assertThat(testMethods.keySet(), CoreMatchers.equalTo(testNames as Set))
+        assertThat(testMethods.keySet(), CoreMatchers.equalTo(testNames as Set))
         this
     }
 
@@ -81,8 +82,8 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
 
     TestClassExecutionResult assertTestPassed(String name) {
         Map<String, Node> testMethods = findTests()
-        Assert.assertThat(testMethods.keySet(), CoreMatchers.hasItem(name))
-        Assert.assertThat(testMethods[name].failure.size(), CoreMatchers.equalTo(0))
+        assertThat(testMethods.keySet(), CoreMatchers.hasItem(name))
+        assertThat(testMethods[name].failure.size(), CoreMatchers.equalTo(0))
         this
     }
 
@@ -93,13 +94,13 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
 
     TestClassExecutionResult assertTestFailed(String name, Matcher<? super String>... messageMatchers) {
         Map<String, Node> testMethods = findTests()
-        Assert.assertThat(testMethods.keySet(), CoreMatchers.hasItem(name))
+        assertThat(testMethods.keySet(), CoreMatchers.hasItem(name))
 
         def failures = testMethods[name].failure
-        Assert.assertThat("Expected ${messageMatchers.length} failures. Found: $failures", failures.size(), CoreMatchers.equalTo(messageMatchers.length))
+        assertThat("Expected ${messageMatchers.length} failures. Found: $failures", failures.size(), CoreMatchers.equalTo(messageMatchers.length))
 
         for (int i = 0; i < messageMatchers.length; i++) {
-            Assert.assertThat(failures[i].@message.text(), messageMatchers[i])
+            assertThat(failures[i].@message.text(), messageMatchers[i])
         }
         this
     }
@@ -132,13 +133,13 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
     TestClassExecutionResult assertExecutionFailedWithCause(Matcher<? super String> causeMatcher) {
         Map<String, Node> testMethods = findTests()
         String failureMethodName = EXECUTION_FAILURE
-        Assert.assertThat(testMethods.keySet(), CoreMatchers.hasItem(failureMethodName))
+        assertThat(testMethods.keySet(), CoreMatchers.hasItem(failureMethodName))
 
         String causeLinePrefix = "Caused by: "
         def failures = testMethods[failureMethodName].failure
         def cause = failures[0].text().readLines().find { it.startsWith causeLinePrefix }?.substring(causeLinePrefix.length())
 
-        Assert.assertThat(cause, causeMatcher)
+        assertThat(cause, causeMatcher)
         this
     }
 
@@ -155,7 +156,7 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
             element."skipped".size() > 0 // Include only skipped test.
         }
 
-        Assert.assertThat(testMethods.keySet(), CoreMatchers.equalTo(testNames as Set))
+        assertThat(testMethods.keySet(), CoreMatchers.equalTo(testNames as Set))
         this
     }
 
@@ -180,25 +181,25 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
 
     TestClassExecutionResult assertStdout(Matcher<? super String> matcher) {
         def stdout = testClassNode.'system-out'[0].text();
-        Assert.assertThat(stdout, matcher)
+        assertThat(stdout, matcher)
         this
     }
 
     TestClassExecutionResult assertStderr(Matcher<? super String> matcher) {
         def stderr = testClassNode.'system-err'[0].text();
-        Assert.assertThat(stderr, matcher)
+        assertThat(stderr, matcher)
         this
     }
 
     TestClassExecutionResult assertTestCaseStderr(String testCaseName, Matcher<? super String> matcher) {
         def stderr = testCase(testCaseName).'system-err'[0].text();
-        Assert.assertThat(stderr, matcher)
+        assertThat(stderr, matcher)
         this
     }
 
     TestClassExecutionResult assertTestCaseStdout(String testCaseName, Matcher<? super String> matcher) {
         def stderr = testCase(testCaseName).'system-out'[0].text();
-        Assert.assertThat(stderr, matcher)
+        assertThat(stderr, matcher)
         this
     }
 
@@ -208,28 +209,28 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
 
     private def findTests() {
         if (!checked) {
-            Assert.assertThat(testClassNode.name(), CoreMatchers.equalTo('testsuite'))
-            Assert.assertThat(testClassNode.@name.text(), CoreMatchers.equalTo(testClassDisplayName))
-            Assert.assertThat(testClassNode.@tests.text(), CoreMatchers.not(CoreMatchers.equalTo('')))
-            Assert.assertThat(testClassNode.@skipped.text(), CoreMatchers.not(CoreMatchers.equalTo('')))
-            Assert.assertThat(testClassNode.@failures.text(), CoreMatchers.not(CoreMatchers.equalTo('')))
-            Assert.assertThat(testClassNode.@errors.text(), CoreMatchers.not(CoreMatchers.equalTo('')))
-            Assert.assertThat(testClassNode.@time.text(), CoreMatchers.not(CoreMatchers.equalTo('')))
-            Assert.assertThat(testClassNode.@timestamp.text(), CoreMatchers.not(CoreMatchers.equalTo('')))
-            Assert.assertThat(testClassNode.@hostname.text(), CoreMatchers.not(CoreMatchers.equalTo('')))
-            Assert.assertThat(testClassNode.properties.size(), CoreMatchers.equalTo(1))
+            assertThat(testClassNode.name(), CoreMatchers.equalTo('testsuite'))
+            assertThat(testClassNode.@name.text(), CoreMatchers.equalTo(testClassDisplayName))
+            assertThat(testClassNode.@tests.text(), CoreMatchers.not(CoreMatchers.equalTo('')))
+            assertThat(testClassNode.@skipped.text(), CoreMatchers.not(CoreMatchers.equalTo('')))
+            assertThat(testClassNode.@failures.text(), CoreMatchers.not(CoreMatchers.equalTo('')))
+            assertThat(testClassNode.@errors.text(), CoreMatchers.not(CoreMatchers.equalTo('')))
+            assertThat(testClassNode.@time.text(), CoreMatchers.not(CoreMatchers.equalTo('')))
+            assertThat(testClassNode.@timestamp.text(), CoreMatchers.not(CoreMatchers.equalTo('')))
+            assertThat(testClassNode.@hostname.text(), CoreMatchers.not(CoreMatchers.equalTo('')))
+            assertThat(testClassNode.properties.size(), CoreMatchers.equalTo(1))
             testClassNode.testcase.each { node ->
-                Assert.assertThat(node.@classname.text(), CoreMatchers.equalTo(testClassName))
-                Assert.assertThat(node.@name.text(), CoreMatchers.not(CoreMatchers.equalTo('')))
-                Assert.assertThat(node.@time.text(), CoreMatchers.not(CoreMatchers.equalTo('')))
+                assertThat(node.@classname.text(), CoreMatchers.equalTo(testClassName))
+                assertThat(node.@name.text(), CoreMatchers.not(CoreMatchers.equalTo('')))
+                assertThat(node.@time.text(), CoreMatchers.not(CoreMatchers.equalTo('')))
                 node.failure.each { failure ->
-                    Assert.assertThat(failure.@message.size(), CoreMatchers.equalTo(1))
-                    Assert.assertThat(failure.@type.text(), CoreMatchers.not(CoreMatchers.equalTo('')))
-                    Assert.assertThat(failure.text(), CoreMatchers.not(CoreMatchers.equalTo('')))
+                    assertThat(failure.@message.size(), CoreMatchers.equalTo(1))
+                    assertThat(failure.@type.text(), CoreMatchers.not(CoreMatchers.equalTo('')))
+                    assertThat(failure.text(), CoreMatchers.not(CoreMatchers.equalTo('')))
                 }
                 if (outputAssociation == TestResultOutputAssociation.WITH_SUITE) {
-                    Assert.assertThat(node.'system-out'.size(), CoreMatchers.equalTo(0))
-                    Assert.assertThat(node.'system-err'.size(), CoreMatchers.equalTo(0))
+                    assertThat(node.'system-out'.size(), CoreMatchers.equalTo(0))
+                    assertThat(node.'system-err'.size(), CoreMatchers.equalTo(0))
                 }
             }
             checked = true

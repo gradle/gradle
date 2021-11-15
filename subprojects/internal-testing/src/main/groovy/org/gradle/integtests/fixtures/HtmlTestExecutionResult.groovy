@@ -22,11 +22,10 @@ import org.gradle.util.internal.TextUtil
 import org.hamcrest.Matcher
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
-import org.junit.Assert
 
 import static org.gradle.integtests.fixtures.DefaultTestExecutionResult.removeParentheses
-
-import static org.hamcrest.CoreMatchers.*
+import static org.hamcrest.CoreMatchers.hasItems
+import static org.hamcrest.CoreMatchers.not
 import static org.hamcrest.MatcherAssert.assertThat
 
 class HtmlTestExecutionResult implements TestExecutionResult {
@@ -240,7 +239,7 @@ class HtmlTestExecutionResult implements TestExecutionResult {
             String causeLinePrefix = "Caused by: "
             def cause = testCase.messages.first().readLines().find { it.startsWith causeLinePrefix }?.substring(causeLinePrefix.length())
 
-            Assert.assertThat(cause, causeMatcher)
+            assertThat(cause, causeMatcher)
             this
         }
 

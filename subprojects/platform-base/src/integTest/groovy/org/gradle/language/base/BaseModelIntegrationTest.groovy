@@ -23,7 +23,6 @@ import org.gradle.platform.base.ApplicationSpec
 import org.gradle.platform.base.ComponentSpec
 import org.gradle.platform.base.GeneralComponentSpec
 import org.gradle.platform.base.LibrarySpec
-import spock.lang.Unroll
 
 @UnsupportedWithConfigurationCache(because = "software model")
 class BaseModelIntegrationTest extends AbstractIntegrationSpec {
@@ -51,7 +50,6 @@ apply plugin: 'component-model-base'
         }
     }
 
-    @Unroll
     def "can declare instance of general type - #componentSpecType"() {
         buildFile << """
             apply plugin: 'component-model-base'

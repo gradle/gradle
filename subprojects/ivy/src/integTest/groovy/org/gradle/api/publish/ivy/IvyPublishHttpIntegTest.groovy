@@ -23,6 +23,7 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.ProgressLoggingFixture
 import org.gradle.internal.credentials.DefaultPasswordCredentials
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.ivy.IvyFileRepository
 import org.gradle.test.fixtures.server.http.AuthScheme
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.IvyHttpModule
@@ -31,7 +32,6 @@ import org.gradle.util.GradleVersion
 import org.hamcrest.CoreMatchers
 import org.junit.Rule
 import spock.lang.Issue
-import spock.lang.Unroll
 
 import static org.gradle.test.matchers.UserAgentMatcher.matchesNameAndVersion
 import static org.gradle.util.Matchers.matchesRegexp
@@ -59,7 +59,6 @@ credentials {
         settingsFile << 'rootProject.name = "publish"'
     }
 
-    @Unroll
     @ToBeFixedForConfigurationCache
     def "can publish to unauthenticated HTTP repository (extra checksums = #extraChecksums)"() {
         given:
@@ -168,7 +167,6 @@ credentials {
         outputContains("remote repository doesn't support sha-512. This will not fail the build.")
     }
 
-    @Unroll
     @ToBeFixedForConfigurationCache
     def "can publish to authenticated repository using #authScheme auth"() {
         given:
@@ -228,7 +226,6 @@ credentials {
         authScheme << [AuthScheme.BASIC, AuthScheme.DIGEST, AuthScheme.NTLM]
     }
 
-    @Unroll
     @ToBeFixedForConfigurationCache
     def "reports failure publishing with #credsName credentials to authenticated repository using #authScheme auth"() {
         given:
@@ -510,8 +507,7 @@ credentials {
     }
 
     @ToBeFixedForConfigurationCache
-    @Unroll
-    def "doesn't publish Gradle metadata if custom pattern is used"() {
+    def "doesn't publish Gradle metadata if custom pattern is used for artifact"() {
         given:
         buildFile << """
             apply plugin: 'java'
@@ -550,6 +546,42 @@ credentials {
             """,
             'artifact "org/foo/[revision]/[artifact](-[classifier]).[ext]"'
         ]
+    }
+
+    @ToBeFixedForConfigurationCache
+    def "does publish Gradle metadata if custom pattern is used only for Ivy file"() {
+        def customIvyRepo = new IvyFileRepository(ivyRepo.rootDir, false, null, '[module]-[revision].ivy')
+        def customModule = customIvyRepo.module("org.gradle", "publish", "2")
+        given:
+        buildFile << """
+            apply plugin: 'java'
+            apply plugin: 'ivy-publish'
+
+            version = '2'
+            group = 'org.gradle'
+            publishing {
+                repositories {
+                    ivy {
+                        url "${ivyRepo.uri}"
+                        patternLayout {
+                            artifact "[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])"
+                            ivy "[organisation]/[module]/[revision]/[module]-[revision].ivy"
+                        }
+                    }
+                }
+                publications {
+                    ivy(IvyPublication) {
+                        from components.java
+                    }
+                }
+            }
+        """
+
+        when:
+        run 'publish'
+
+        then:
+        customModule.assertMetadataAndJarFilePublished()
     }
 
     @ToBeFixedForConfigurationCache

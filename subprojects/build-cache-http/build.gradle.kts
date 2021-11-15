@@ -19,6 +19,7 @@ dependencies {
     testImplementation(testFixtures(project(":core")))
     testImplementation(libs.servletApi)
 
+    integTestImplementation(project(":enterprise-operations"))
     integTestImplementation(libs.jetty)
 
     integTestDistributionRuntimeOnly(project(":distributions-basics"))

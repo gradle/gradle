@@ -68,6 +68,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
 
     private FileWatcherRegistry watchRegistry;
     private Exception reasonForNotWatchingFiles;
+    private boolean stateInvalidatedAtStartOfBuild;
 
     public WatchingVirtualFileSystem(
         FileWatcherRegistryFactory watcherRegistryFactory,
@@ -97,6 +98,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
     @Override
     public boolean afterBuildStarted(WatchMode watchMode, VfsLogging vfsLogging, WatchLogging watchLogging, BuildOperationRunner buildOperationRunner) {
         warningLogger = watchMode.loggerForWarnings(LOGGER);
+        stateInvalidatedAtStartOfBuild = false;
         reasonForNotWatchingFiles = null;
         rootReference.update(currentRoot -> buildOperationRunner.call(new CallableBuildOperation<SnapshotHierarchy>() {
             @Override
@@ -115,6 +117,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
                         } else {
                             newRoot = watchRegistry.updateVfsOnBuildStarted(currentRoot, watchMode);
                         }
+                        stateInvalidatedAtStartOfBuild = newRoot != currentRoot;
                         statisticsSinceLastBuild = new DefaultFileSystemWatchingStatistics(statistics, newRoot);
                         if (vfsLogging == VfsLogging.VERBOSE) {
                             LOGGER.warn("Received {} file system events since last build while watching {} locations",
@@ -125,6 +128,9 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
                                 statisticsSinceLastBuild.getRetainedDirectories(),
                                 statisticsSinceLastBuild.getRetainedMissingFiles()
                             );
+                            if (stateInvalidatedAtStartOfBuild) {
+                                LOGGER.warn("Parts of the virtual file system have been invalidated since they didn't support watching");
+                            }
                         }
                     }
                     if (watchRegistry != null) {
@@ -211,10 +217,15 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
                                 statisticsDuringBuild.getRetainedDirectories(),
                                 statisticsDuringBuild.getRetainedMissingFiles()
                             );
+                            if (stateInvalidatedAtStartOfBuild) {
+                                LOGGER.warn("Parts of the virtual file system have been removed at the start of the build since they didn't support watching");
+                            }
                         }
                     }
                     boolean stoppedWatchingDuringTheBuild = watchRegistry == null;
                     context.setResult(new BuildFinishedFileSystemWatchingBuildOperationType.Result() {
+                        private final boolean stateInvalidatedAtStartOfBuild = WatchingVirtualFileSystem.this.stateInvalidatedAtStartOfBuild;
+
                         @Override
                         public boolean isWatchingEnabled() {
                             return true;
@@ -223,6 +234,11 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
                         @Override
                         public boolean isStoppedWatchingDuringTheBuild() {
                             return stoppedWatchingDuringTheBuild;
+                        }
+
+                        @Override
+                        public boolean isStateInvalidatedAtStartOfBuild() {
+                            return stateInvalidatedAtStartOfBuild;
                         }
 
                         @Override

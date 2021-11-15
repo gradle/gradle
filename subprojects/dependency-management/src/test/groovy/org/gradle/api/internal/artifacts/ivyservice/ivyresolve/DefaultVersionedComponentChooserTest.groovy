@@ -42,7 +42,6 @@ import org.gradle.util.AttributeTestUtil
 import org.gradle.util.SnapshotTestUtil
 import org.gradle.util.TestUtil
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class DefaultVersionedComponentChooserTest extends Specification {
     def versionParser = new VersionParser()
@@ -232,7 +231,6 @@ class DefaultVersionedComponentChooserTest extends Specification {
 
     }
 
-    @Unroll
     def "rejects dynamic version by attributes with metadata using notation #notation"() {
         given:
         def a = component('1.2')

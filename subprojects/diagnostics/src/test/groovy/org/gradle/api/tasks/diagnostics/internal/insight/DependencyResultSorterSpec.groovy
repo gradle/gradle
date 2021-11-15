@@ -29,7 +29,6 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentIdenti
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.component.local.model.TestComponentIdentifiers
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import static org.gradle.internal.component.local.model.TestComponentIdentifiers.newProjectId
 
@@ -42,7 +41,6 @@ class DependencyResultSorterSpec extends Specification {
         new DefaultMutableVersionConstraint(version)
     }
 
-    @Unroll
     def "throws exception if dependency or requested component selector is null (#d1, #d2)"() {
         when:
         DependencyResultSorter.sort([d1, d2], versionSelectorScheme, versionComparator, versionParser)

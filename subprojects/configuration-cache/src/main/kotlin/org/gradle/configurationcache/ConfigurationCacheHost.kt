@@ -155,8 +155,6 @@ class ConfigurationCacheHost internal constructor(
             isImplicit,
             owner,
             service(),
-            service(),
-            service(),
             service()
         )
 

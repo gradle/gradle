@@ -32,6 +32,20 @@ object Workarounds {
         ignoredBeanFields.contains(field.name to field.declaringClass.name)
 
     fun canReadSystemProperty(from: String): Boolean {
+        return isBuildScanPlugin(from) && !shouldDisableInputWorkaroundsFor("systemProps")
+    }
+
+    fun canReadEnvironmentVariable(from: String): Boolean {
+        return isBuildScanPlugin(from) && !shouldDisableInputWorkaroundsFor("envVars")
+    }
+
+    private
+    fun isBuildScanPlugin(from: String): Boolean {
         return from.startsWith("com.gradle.scan.plugin.internal.")
+    }
+
+    private
+    fun shouldDisableInputWorkaroundsFor(area: String): Boolean {
+        return System.getProperty("org.gradle.internal.disable.input.workarounds")?.contains(area, ignoreCase = true) ?: false
     }
 }

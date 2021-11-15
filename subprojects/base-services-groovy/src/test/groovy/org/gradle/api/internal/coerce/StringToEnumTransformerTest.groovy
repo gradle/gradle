@@ -18,7 +18,6 @@ package org.gradle.api.internal.coerce
 
 import org.codehaus.groovy.reflection.CachedClass
 import spock.lang.Specification
-import spock.lang.Unroll
 
 @SuppressWarnings("GroovyUnusedDeclaration")
 class StringToEnumTransformerTest extends Specification {
@@ -29,7 +28,6 @@ class StringToEnumTransformerTest extends Specification {
         ABC, DEF
     }
 
-    @Unroll
     def "can transform enums correctly - #desc"() {
         def typesArray = types.collect { new CachedClass(it, null) } as CachedClass[]
         def argsArray = args as Object[]
@@ -43,7 +41,6 @@ class StringToEnumTransformerTest extends Specification {
         [TestEnum, String] | ["abc", "abc"] | [TestEnum.ABC, "abc"] | "two args"
     }
 
-    @Unroll
     def "returns original args when no transformation is required - #desc"() {
         def typesArray = types.collect { new CachedClass(it, null) } as CachedClass[]
         def argsArray = args as Object[]
@@ -59,7 +56,6 @@ class StringToEnumTransformerTest extends Specification {
         [String]           | ["abc"]               | "non enum args"
     }
 
-    @Unroll
     def "returns original args when no transformation is available for all args - #desc"() {
         def typesArray = types.collect { new CachedClass(it, null) } as CachedClass[]
         def argsArray = args as Object[]

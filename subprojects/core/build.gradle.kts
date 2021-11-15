@@ -2,6 +2,8 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
+description = "Public and internal 'core' Gradle APIs with implementation"
+
 configurations {
     register("reports")
 }
@@ -17,6 +19,7 @@ tasks.classpathManifest {
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":base-services-groovy"))
+    implementation(project(":enterprise-operations"))
     implementation(project(":functional"))
     implementation(project(":messaging"))
     implementation(project(":logging"))

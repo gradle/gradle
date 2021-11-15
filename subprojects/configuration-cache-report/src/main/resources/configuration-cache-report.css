@@ -56,6 +56,16 @@
     margin: 0;
 }
 
+.inputs {
+    font-size: 0.875rem;
+    overflow-x: auto;
+    white-space: nowrap;
+}
+
+.inputs ol:first-of-type {
+    margin: 0;
+}
+
 .tree-btn.collapsed {
     color: transparent;
     font-size: 18px;

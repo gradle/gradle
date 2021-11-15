@@ -292,7 +292,7 @@ link:{gradle-issues}13455[[.green]#✓#]:: <<distribution_plugin.adoc#distributi
 link:{gradle-issues}13455[[.green]#✓#]:: <<java_library_distribution_plugin.adoc#java_library_distribution_plugin,Java Library Distribution>>
 
 h| Code analysis
-h| IDE integration
+h| IDE project files generation
 h| Utility
 
 a|

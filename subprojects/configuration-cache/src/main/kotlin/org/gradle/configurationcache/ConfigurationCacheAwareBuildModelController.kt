@@ -17,6 +17,7 @@ package org.gradle.configurationcache
 
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
+import org.gradle.execution.plan.ExecutionPlan
 import org.gradle.internal.build.BuildModelController
 
 
@@ -48,9 +49,15 @@ class ConfigurationCacheAwareBuildModelController(
         } // Else, already done
     }
 
-    override fun scheduleRequestedTasks() {
+    override fun initializeWorkGraph(plan: ExecutionPlan) {
         if (!maybeLoadFromCache()) {
-            delegate.scheduleRequestedTasks()
+            delegate.initializeWorkGraph(plan)
+        } // Else, not necessary
+    }
+
+    override fun scheduleRequestedTasks(plan: ExecutionPlan) {
+        if (!maybeLoadFromCache()) {
+            delegate.scheduleRequestedTasks(plan)
         } // Else, already scheduled
     }
 

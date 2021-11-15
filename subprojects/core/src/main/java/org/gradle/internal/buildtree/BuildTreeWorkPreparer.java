@@ -21,7 +21,7 @@ package org.gradle.internal.buildtree;
  */
 public interface BuildTreeWorkPreparer {
     /**
-     * Prepares the work graph for execution. May configure the build model and calculate the task graph from this, or may load a cached task graph if available.
+     * Prepares the given work graph for execution. May configure the build model and calculate the task graph from this, or may load a cached task graph if available.
      */
-    void scheduleRequestedTasks();
+    void scheduleRequestedTasks(BuildTreeWorkGraph graph);
 }

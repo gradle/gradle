@@ -22,13 +22,11 @@ import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.junit.Rule
 import spock.lang.Issue
-import spock.lang.Unroll
 
 class ExecIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     public final TestResources testResources = new TestResources(testDirectoryProvider)
 
-    @Unroll
     @UnsupportedWithConfigurationCache(iterationMatchers = ".*javaexecProjectMethod")
     def 'can execute java with #task'() {
         given:
@@ -84,7 +82,6 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
         task << ['javaexecTask', 'javaexecProjectMethod', 'javaexecInjectedTaskAction']
     }
 
-    @Unroll
     @UnsupportedWithConfigurationCache(iterationMatchers = ".*execProjectMethod")
     def 'can execute commands with #task'() {
         given:
@@ -263,7 +260,6 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped ":run"
     }
 
-    @Unroll
     @UnsupportedWithConfigurationCache(iterationMatchers = [".*Task", ".*ProjectMethod"])
     def "can capture output of #task"() {
 

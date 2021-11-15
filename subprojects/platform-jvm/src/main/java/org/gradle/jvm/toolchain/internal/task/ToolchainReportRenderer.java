@@ -38,6 +38,7 @@ public class ToolchainReportRenderer extends TextReportRenderer {
         printAttribute("Location", metadata.getJavaHome().toString());
         printAttribute("Language Version", metadata.getLanguageVersion().getMajorVersion());
         printAttribute("Vendor", metadata.getVendor().getDisplayName());
+        printAttribute("Architecture", metadata.getArchitecture());
         printAttribute("Is JDK", String.valueOf(metadata.hasCapability(JAVA_COMPILER)));
         printAttribute("Detected by", toolchain.location.getSource());
         output.println();

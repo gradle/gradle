@@ -16,23 +16,24 @@
 
 package org.gradle.execution
 
-
 import org.gradle.TaskExecutionRequest
 import org.gradle.api.Task
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.execution.commandline.CommandLineTaskParser
-import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
+import org.gradle.execution.plan.ExecutionPlan
 import spock.lang.Specification
 
 class TaskNameResolvingBuildConfigurationActionSpec extends Specification {
     GradleInternal gradle
+    ExecutionPlan executionPlan
     BuildExecutionContext context
     CommandLineTaskParser parser
     TaskNameResolvingBuildConfigurationAction action
 
     def setup() {
         gradle = Mock(GradleInternal)
+        executionPlan = Mock(ExecutionPlan)
         context = Mock(BuildExecutionContext)
         parser = Mock(CommandLineTaskParser)
         action = new TaskNameResolvingBuildConfigurationAction(parser)
@@ -57,7 +58,6 @@ class TaskNameResolvingBuildConfigurationActionSpec extends Specification {
 
     def "expand task parameters to tasks"() {
         def startParameters = Mock(StartParameterInternal)
-        def taskGraph = Mock(TaskExecutionGraphInternal)
         TaskExecutionRequest request1 = Stub(TaskExecutionRequest)
         TaskExecutionRequest request2 = Stub(TaskExecutionRequest)
         def task1 = Stub(Task)
@@ -69,7 +69,6 @@ class TaskNameResolvingBuildConfigurationActionSpec extends Specification {
         given:
         _ * gradle.startParameter >> startParameters
         _ * startParameters.taskRequests >> [request1, request2]
-        _ * gradle.taskGraph >> taskGraph
 
         def tasks1 = [task1, task2] as Set
         _ * selection1.tasks >> tasks1
@@ -83,10 +82,11 @@ class TaskNameResolvingBuildConfigurationActionSpec extends Specification {
         then:
         1 * parser.parseTasks(request1) >> [selection1]
         1 * parser.parseTasks(request2) >> [selection2]
-        1 * taskGraph.addEntryTasks(tasks1)
-        1 * taskGraph.addEntryTasks(tasks2)
+        1 * executionPlan.addEntryTasks(tasks1)
+        1 * executionPlan.addEntryTasks(tasks2)
         1 * context.proceed()
         _ * context.gradle >> gradle
+        _ * context.executionPlan >> executionPlan
         0 * context._()
     }
 }

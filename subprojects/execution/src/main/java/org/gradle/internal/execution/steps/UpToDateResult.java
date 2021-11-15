@@ -21,7 +21,7 @@ import org.gradle.caching.internal.origin.OriginMetadata;
 
 import java.util.Optional;
 
-public interface UpToDateResult extends SnapshotResult {
+public interface UpToDateResult extends AfterExecutionResult {
     /**
      * A list of messages describing the first few reasons encountered that caused the work to be executed.
      * An empty list means the work was up-to-date and hasn't been executed.

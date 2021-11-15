@@ -68,7 +68,7 @@ class JUnitPlatformTestRewriter {
     }
 
     static rewriteBuildFileWithJupiter(File buildFile, String dependencyVersion) {
-        rewriteBuildFileInDir(buildFile, "org.junit.jupiter:junit-jupiter-api:${dependencyVersion}','org.junit.jupiter:junit-jupiter-engine:${dependencyVersion}", "org.junit.jupiter.api")
+        rewriteBuildFileInDir(buildFile, "org.junit.jupiter:junit-jupiter:${dependencyVersion}", "org.junit.jupiter.api")
     }
 
     static rewriteBuildFileWithVintage(File buildFile, String dependencyVersion) {

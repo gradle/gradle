@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
 import org.junit.Rule
-import spock.lang.Unroll
 
 class UsingLockingOnNonProjectConfigurationsIntegrationTest extends AbstractDependencyResolutionTest {
 
@@ -32,7 +31,6 @@ class UsingLockingOnNonProjectConfigurationsIntegrationTest extends AbstractDepe
     MavenHttpPluginRepository pluginRepo = MavenHttpPluginRepository.asGradlePluginPortal(executer, mavenRepo)
 
     @ToBeFixedForConfigurationCache(because = ":buildEnvironment")
-    @Unroll
     def 'locks build script classpath configuration (initial unique: #unique)'() {
         given:
         mavenRepo.module('org.foo', 'foo-plugin', '1.0').publish()
@@ -112,7 +110,6 @@ buildscript {
         LockfileFixture.verifyCustomLockfile(lockFile, 'classpath', ['org.foo:foo-plugin:1.1'])
     }
 
-    @Unroll
     def 'strict locks on buildscript classpath does not mean strict locks on project (initial unique: #unique)'() {
         given:
         mavenRepo.module('org.foo', 'foo-plugin', '1.0').publish()
@@ -202,7 +199,6 @@ buildscript {
     }
 
     @ToBeFixedForConfigurationCache
-    @Unroll
     def 'locks build script classpath combined with plugins (initial unique: #unique)'() {
         given:
         addPlugin()
@@ -295,7 +291,6 @@ plugins {
         lockfileFixture.verifyBuildscriptLockfile('classpath', ['org.foo:foo-plugin:1.1', 'org.bar:bar-plugin:1.0', 'bar.plugin:bar.plugin.gradle.plugin:1.0'])
     }
 
-    @Unroll
     def 'fails to resolve if lock state present but no dependencies remain (initial unique: #unique)'() {
         given:
 

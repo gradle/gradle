@@ -18,10 +18,8 @@ package org.gradle.api.plugins;
 
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Incubating;
-import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.jvm.internal.DefaultJvmTestSuite;
 import org.gradle.api.tasks.SourceSet;
@@ -29,17 +27,11 @@ import org.gradle.api.tasks.testing.Test;
 import org.gradle.testing.base.TestSuite;
 import org.gradle.testing.base.TestingExtension;
 
-import java.util.concurrent.Callable;
-
-import static org.gradle.api.plugins.JavaPlugin.TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME;
-import static org.gradle.api.plugins.JavaPlugin.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME;
-
 /**
  * A {@link org.gradle.api.Plugin} that adds extensions for declaring, compiling and running {@link JvmTestSuite}s.
  * <p>
  * This plugin provides conventions for several things:
  * <ul>
- *     <li>A built-in {@code test} test suite which represents the {@link Test} task in the Java plugin.</li>
  *     <li>All other {@code JvmTestSuite} will use the JUnit Jupiter testing framework unless specified otherwise.</li>
  *     <li>A single test suite target is added to each {@code JvmTestSuite}.</li>
  *
@@ -64,9 +56,11 @@ public class JvmTestSuitePlugin implements Plugin<Project> {
         // TODO: Deprecate this behavior?
         // Why would any Test task created need to use the test source set's classes?
         project.getTasks().withType(Test.class).configureEach(test -> {
-            SourceSet testSourceSet = java.getSourceSets().getByName(SourceSet.TEST_SOURCE_SET_NAME);
-            test.getConventionMapping().map("testClassesDirs", () -> testSourceSet.getOutput().getClassesDirs());
-            test.getConventionMapping().map("classpath", () -> testSourceSet.getRuntimeClasspath());
+            // The test task may have already been created but the test sourceSet may not exist yet.
+            // So defer looking up the java extension and sourceSet until the convention mapping is resolved.
+            // See https://github.com/gradle/gradle/issues/18622
+            test.getConventionMapping().map("testClassesDirs", () ->  project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets().findByName(SourceSet.TEST_SOURCE_SET_NAME).getOutput().getClassesDirs());
+            test.getConventionMapping().map("classpath", () -> project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets().findByName(SourceSet.TEST_SOURCE_SET_NAME).getRuntimeClasspath());
             test.getModularity().getInferModulePath().convention(java.getModularity().getInferModulePath());
         });
 
@@ -78,22 +72,5 @@ public class JvmTestSuitePlugin implements Plugin<Project> {
                 });
             });
         });
-
-        configureBuiltInTest(project, testing, java);
-    }
-
-    private void configureBuiltInTest(Project project, TestingExtension testing, JavaPluginExtension java) {
-        final NamedDomainObjectProvider<JvmTestSuite> testSuite = testing.getSuites().register(DEFAULT_TEST_SUITE_NAME, JvmTestSuite.class, suite -> {
-            final Callable<FileCollection> mainSourceSetOutput = () -> java.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getOutput();
-            final Callable<FileCollection> testSourceSetOutput = () -> java.getSourceSets().getByName(SourceSet.TEST_SOURCE_SET_NAME).getOutput();
-
-            suite.getSources().setCompileClasspath(project.getObjects().fileCollection().from(mainSourceSetOutput, project.getConfigurations().getByName(TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME)));
-            suite.getSources().setRuntimeClasspath(project.getObjects().fileCollection().from(testSourceSetOutput, mainSourceSetOutput, project.getConfigurations().getByName(TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME)));
-        });
-
-        // Force the realization of this test suite, targets and task
-        testSuite.get();
-
-        project.getTasks().named(JavaBasePlugin.CHECK_TASK_NAME, task -> task.dependsOn(testSuite));
     }
 }

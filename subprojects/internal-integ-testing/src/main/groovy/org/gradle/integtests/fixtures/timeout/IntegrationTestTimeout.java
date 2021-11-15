@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.fixtures.timeout;
 
+import groovy.lang.Closure;
 import org.spockframework.runtime.extension.ExtensionAnnotation;
 
 import java.lang.annotation.ElementType;
@@ -40,6 +41,7 @@ import java.util.concurrent.TimeUnit;
 @ExtensionAnnotation(IntegrationTestTimeoutExtension.class)
 public @interface IntegrationTestTimeout {
     int DEFAULT_TIMEOUT_SECONDS = 600;
+
     /**
      * Returns the duration after which the execution of the annotated feature or fixture
      * method times out.
@@ -55,5 +57,22 @@ public @interface IntegrationTestTimeout {
      * @return the duration's time unit
      */
     TimeUnit unit() default TimeUnit.SECONDS;
-}
 
+    /**
+     * Only enables the timeout when the closure is evaluated to `true`.
+     *
+     * @return the closure
+     */
+    Class<? extends Closure> onlyIf() default AlwaysTrue.class;
+
+    class AlwaysTrue extends Closure<Boolean> {
+        public AlwaysTrue() {
+            super(null);
+        }
+
+        @Override
+        public Boolean call() {
+            return true;
+        }
+    }
+}

@@ -17,7 +17,6 @@
 package org.gradle.java.compile.incremental
 
 import org.gradle.integtests.fixtures.CompiledLanguage
-import spock.lang.Unroll
 
 class GroovyJavaJointIncrementalCompilationIntegrationTest extends AbstractJavaGroovyIncrementalCompilationSupport {
     CompiledLanguage language = CompiledLanguage.GROOVY
@@ -40,7 +39,6 @@ class GroovyJavaJointIncrementalCompilationIntegrationTest extends AbstractJavaG
         'J_G_G': 'class J_G_G extends G_G { }',
     ]
 
-    @Unroll
     def 'Groovy-Java joint compilation on #scenario'() {
         given:
         applyFileSet(initialSet)

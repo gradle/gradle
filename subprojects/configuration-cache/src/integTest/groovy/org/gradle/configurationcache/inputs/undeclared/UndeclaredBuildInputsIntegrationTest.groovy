@@ -20,12 +20,10 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.configurationcache.AbstractConfigurationCacheIntegrationTest
 import spock.lang.Issue
-import spock.lang.Unroll
 
 import java.util.function.Supplier
 
 class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
-    @Unroll
     def "reports build logic reading a system property set #mechanism.description via the Java API"() {
         buildFile << """
             // not declared
@@ -34,22 +32,18 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
 
         when:
         mechanism.setup(this)
-        configurationCacheFails(*mechanism.gradleArgs)
+        configurationCacheRun(*mechanism.gradleArgs)
 
         then:
-        problems.assertFailureHasProblems(failure) {
-            withProblem("Build file 'build.gradle': read system property 'CI'")
+        problems.assertResultHasProblems(result) {
+            withInput("Build file 'build.gradle': system property 'CI'")
         }
-        failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
-        failure.assertHasLineNumber(3)
-        failure.assertThatCause(containsNormalizedString("Read system property 'CI'"))
 
         where:
         mechanism << SystemPropertyInjection.all("CI", "false")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/13569")
-    @Unroll
     def "reports build logic reading system properties using GString parameters - #expression"() {
         buildFile << """
             def ci = "ci"
@@ -64,16 +58,12 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
         outputContains("CI1 = ${notDefined}")
 
         when:
-        configurationCacheFails("-DCI1=${value}")
+        configurationCacheRun("-DCI1=${value}")
 
         then:
-        problems.assertFailureHasProblems(failure) {
-            withProblem("Build file 'build.gradle': read system property 'CI1'")
+        problems.assertResultHasProblems(result) {
+            withInput("Build file 'build.gradle': system property 'CI1'")
         }
-        failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
-        failure.assertHasLineNumber(4)
-        failure.assertThatCause(containsNormalizedString("Read system property 'CI1'"))
-
         outputContains("CI1 = ${expectedValue}")
 
         where:
@@ -86,7 +76,6 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
     }
 
     @Issue("https://github.com/gradle/gradle/issues/13652")
-    @Unroll
     def "reports build logic reading system properties with null defaults - #expression"() {
         buildFile << """
             println "CI1 = " + $expression
@@ -99,16 +88,12 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
         outputContains("CI1 = null")
 
         when:
-        configurationCacheFails("-DCI1=${value}")
+        configurationCacheRun("-DCI1=${value}")
 
         then:
-        problems.assertFailureHasProblems(failure) {
-            withProblem("Build file 'build.gradle': read system property 'CI1'")
+        problems.assertResultHasProblems(result) {
+            withInput("Build file 'build.gradle': system property 'CI1'")
         }
-        failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
-        failure.assertHasLineNumber(2)
-        failure.assertThatCause(containsNormalizedString("Read system property 'CI1'"))
-
         outputContains("CI1 = ${expectedValue}")
 
         where:
@@ -118,7 +103,6 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
         'Long.getLong("CI1", null)'       | "123"     | "123"
     }
 
-    @Unroll
     def "reports buildSrc build logic and tasks reading a system property set #mechanism.description via the Java API"() {
         def buildSrcBuildFile = file("buildSrc/build.gradle")
         buildSrcBuildFile << """
@@ -130,23 +114,18 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
 
         when:
         mechanism.setup(this)
-        configurationCacheFails(*mechanism.gradleArgs, "-DCI2=true")
+        configurationCacheRun(*mechanism.gradleArgs, "-DCI2=true")
 
         then:
-        problems.assertFailureHasProblems(failure) {
-            withProblem("Build file '${relativePath('buildSrc/build.gradle')}': read system property 'CI'")
-            withProblem("Build file '${relativePath('buildSrc/build.gradle')}': read system property 'CI2'")
+        problems.assertResultHasProblems(result) {
+            withInput("Build file '${relativePath('buildSrc/build.gradle')}': system property 'CI'")
+            withInput("Build file '${relativePath('buildSrc/build.gradle')}': system property 'CI2'")
         }
-        failure.assertHasFileName("Build file '${buildSrcBuildFile}'")
-        failure.assertHasLineNumber(2)
-        failure.assertThatCause(containsNormalizedString("Read system property 'CI'"))
-        failure.assertThatCause(containsNormalizedString("Read system property 'CI2'"))
 
         where:
         mechanism << SystemPropertyInjection.all("CI", "false")
     }
 
-    @Unroll
     def "build logic can read system property with no value without declaring access and loading fails when value set using #mechanism.description"() {
         file("buildSrc/src/main/java/SneakyPlugin.java") << """
             import ${Project.name};
@@ -178,18 +157,17 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
 
         when:
         mechanism.setup(this)
-        configurationCacheFails(*mechanism.gradleArgs)
+        configurationCacheRun(*mechanism.gradleArgs)
 
         then:
-        problems.assertFailureHasProblems(failure) {
-            withProblem("Plugin class 'SneakyPlugin': read system property 'CI'")
+        problems.assertResultHasProblems(result) {
+            withInput("Plugin class 'SneakyPlugin': system property 'CI'")
         }
 
         where:
         mechanism << SystemPropertyInjection.all("CI", "false")
     }
 
-    @Unroll
     def "build logic can read system property with a default using #read.javaExpression without declaring access"() {
         file("buildSrc/src/main/java/SneakyPlugin.java") << """
             import ${Project.name};
@@ -225,14 +203,14 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
         then:
         configurationCache.assertStateStored()
         problems.assertResultHasProblems(result) {
-            withProblem("Plugin class 'SneakyPlugin': read system property 'CI'")
+            withInput("Plugin class 'SneakyPlugin': system property 'CI'")
         }
 
         when:
-        configurationCacheRun("-DCI=$newValue") // undeclared inputs are not treated as inputs, but probably should be
+        configurationCacheRun("-DCI=$newValue")
 
-        then:
-        configurationCache.assertStateLoaded()
+        then: 'undeclared inputs are treated as inputs'
+        configurationCache.assertStateStored()
         noExceptionThrown()
 
         where:
@@ -245,7 +223,6 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
         SystemPropertyRead.longGetLongWithLongDefault("CI", 123)                    | "123"        | "456"
     }
 
-    @Unroll
     def "build logic can read standard system property #prop without declaring access"() {
         file("buildSrc/src/main/java/SneakyPlugin.java") << """
             import ${Project.name};
@@ -388,5 +365,70 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
 
         then:
         outputContains("value = value")
+    }
+
+    def "reports build logic reading an environment value using #envVarRead.groovyExpression"() {
+        buildFile << """
+            println("CI = " + ${envVarRead.groovyExpression})
+        """
+        def configurationCache = newConfigurationCacheFixture()
+
+        when:
+        EnvVariableInjection.unsetEnvironmentVariable("CI").setup(this)
+        configurationCacheRun()
+
+        then:
+        configurationCache.assertStateStored()
+        problems.assertResultHasProblems(result) {
+            withInput("Build file 'build.gradle': environment variable 'CI'")
+        }
+        outputContains("CI = $notDefined")
+
+        when:
+        EnvVariableInjection.environmentVariable("CI", value).setup(this)
+        configurationCacheRun()
+
+        then:
+        configurationCache.assertStateStored()
+        problems.assertResultHasProblems(result) {
+            withInput("Build file 'build.gradle': environment variable 'CI'")
+        }
+        outputContains("CI = $expectedValue")
+
+        where:
+        envVarRead                                          | notDefined | value     | expectedValue
+        EnvVariableRead.getEnv("CI")                        | "null"     | "defined" | "defined"
+        EnvVariableRead.getEnvGet("CI")                     | "null"     | "defined" | "defined"
+        EnvVariableRead.getEnvGetOrDefault("CI", "default") | "default"  | "defined" | "defined"
+        EnvVariableRead.getEnvContainsKey("CI")             | "false"    | "defined" | "true"
+    }
+
+    def "reports build logic reading environment variables with getenv(String) using GString parameters"() {
+        // Note that the map returned from System.getenv() doesn't support GStrings as keys, so there is no point in testing it.
+        buildFile << '''
+            def ci = "ci"
+            def value = "value"
+            println "CI1 = " + System.getenv("${ci.toUpperCase()}1")
+        '''
+
+        when:
+        EnvVariableInjection.unsetEnvironmentVariable("CI1").setup(this)
+        configurationCacheRun()
+
+        then:
+        problems.assertResultHasProblems(result) {
+            withInput("Build file 'build.gradle': environment variable 'CI1'")
+        }
+        outputContains("CI1 = null")
+
+        when:
+        EnvVariableInjection.environmentVariable("CI1", "defined").setup(this)
+        configurationCacheRun()
+
+        then:
+        problems.assertResultHasProblems(result) {
+            withInput("Build file 'build.gradle': environment variable 'CI1'")
+        }
+        outputContains("CI1 = defined")
     }
 }

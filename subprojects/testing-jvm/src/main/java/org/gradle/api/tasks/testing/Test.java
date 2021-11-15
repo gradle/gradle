@@ -66,6 +66,7 @@ import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.actor.ActorFactory;
+import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.jvm.Jvm;
@@ -73,7 +74,7 @@ import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.internal.time.Clock;
-import org.gradle.internal.work.WorkerLeaseRegistry;
+import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaDebugOptions;
@@ -167,6 +168,8 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     private FileCollection classpath;
     private final ConfigurableFileCollection stableClasspath;
     private final Property<TestFramework> testFramework;
+    private boolean userHasConfiguredTestFramework;
+
     private boolean scanForTestClasses = true;
     private long forkEvery;
     private int maxParallelForks = 1;
@@ -683,7 +686,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         try {
             super.executeTests();
         } finally {
-            testFramework.set((TestFramework) null);
+            CompositeStoppable.stoppable(getTestFramework());
         }
     }
 
@@ -691,7 +694,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     protected TestExecuter<JvmTestExecutionSpec> createTestExecuter() {
         if (testExecuter == null) {
             return new DefaultTestExecuter(getProcessBuilderFactory(), getActorFactory(), getModuleRegistry(),
-                getServices().get(WorkerLeaseRegistry.class),
+                getServices().get(WorkerLeaseService.class),
                 getServices().get(StartParameter.class).getMaxWorkerCount(),
                 getServices().get(Clock.class),
                 getServices().get(DocumentationRegistry.class),
@@ -911,6 +914,28 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
             useJUnit(testFrameworkConfigure);
         }
 
+        // To maintain backwards compatibility with builds that may configure the test framework
+        // multiple times for a single task--either switching between frameworks or overwriting
+        // the existing configuration for a test framework--we need to keep track if the user has
+        // explicitly set a test framework
+        // With test suites, users should never need to call the useXXX methods, so we can forbid
+        // them from doing something like this from the beginning.
+        //
+        // testTask.configure {
+        //      options {
+        //          /* configure JUnit Platform */
+        //      }
+        // }
+        // testTask.configure {
+        //      useJUnit()
+        //      options {
+        //          /* configure JUnit */
+        //      }
+        // }
+
+        if (!userHasConfiguredTestFramework) {
+            testFramework.finalizeValue();
+        }
         return testFramework.get();
     }
 
@@ -950,6 +975,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     private <T extends TestFrameworkOptions> TestFramework useTestFramework(TestFramework testFramework, @Nullable Action<? super T> testFrameworkConfigure) {
+        userHasConfiguredTestFramework = true;
         this.testFramework.set(testFramework);
 
         if (testFrameworkConfigure != null) {
@@ -993,9 +1019,9 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
 
     /**
      * Specifies that JUnit Platform should be used to discover and execute the tests.
-     * <p><br>
+     * <p>
      * Use this option if your tests use JUnit Jupiter/JUnit5.
-     * <p><br>
+     * <p>
      * JUnit Platform supports multiple test engines, which allows other testing frameworks to be built on top of it.
      * You may need to use this option even if you are not using JUnit directly.
      *
@@ -1008,9 +1034,9 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
 
     /**
      * Specifies that JUnit Platform should be used to discover and execute the tests with additional configuration.
-     * <p><br>
+     * <p>
      * Use this option if your tests use JUnit Jupiter/JUnit5.
-     * <p><br>
+     * <p>
      * JUnit Platform supports multiple test engines, which allows other testing frameworks to be built on top of it.
      * You may need to use this option even if you are not using JUnit directly.
      * <p>

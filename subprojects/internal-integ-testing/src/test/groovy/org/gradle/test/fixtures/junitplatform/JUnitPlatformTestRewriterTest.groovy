@@ -20,7 +20,6 @@ import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Unroll
 
 @CleanupTestDirectory
 class JUnitPlatformTestRewriterTest extends Specification {
@@ -38,7 +37,7 @@ dependencies { testCompile 'junit:junit:4.13' }
 
         then:
         temporaryFolder.testDirectory.file('build.gradle').text.contains(
-            "testCompile 'org.junit.jupiter:junit-jupiter-api:5.7.1','org.junit.jupiter:junit-jupiter-engine:5.7.1'")
+            "testCompile 'org.junit.jupiter:junit-jupiter:5.7.1'")
     }
 
     def 'modular build.gradle should be rewritten'() {
@@ -62,7 +61,7 @@ test {
         then:
         temporaryFolder.testDirectory.file('build.gradle').text == '''
 dependencies {
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.1','org.junit.jupiter:junit-jupiter-engine:5.7.1'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.7.1'
 }
 compileTestJava {
     def args = ["--add-modules", "org.junit.jupiter.api",
@@ -78,7 +77,6 @@ tasks.named("test") {
 '''
     }
 
-    @Unroll
     def 'java source files should be rewritten'() {
         given:
         temporaryFolder.testDirectory.file('src/test/java/Test.java') << oldText

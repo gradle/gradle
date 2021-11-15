@@ -22,6 +22,7 @@
 > Task :utilities:classes
 > Task :utilities:jar
 > Task :application:test
+> Task :application:jar
 > Task :application:compileIntegrationTestJava
 > Task :application:processIntegrationTestResources NO-SOURCE
 > Task :application:integrationTestClasses

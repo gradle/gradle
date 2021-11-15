@@ -26,13 +26,11 @@ import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Issue
-import spock.lang.Unroll
 
 import static org.gradle.util.internal.TextUtil.escapeString
 import static org.gradle.work.ChangeType.ADDED
 import static org.gradle.work.ChangeType.MODIFIED
 
-@Unroll
 @Requires(TestPrecondition.SYMLINKS)
 class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
     def setup() {
@@ -458,7 +456,7 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec imple
     }
 
     @Issue('https://github.com/gradle/gradle/issues/9904')
-    def "directory with broken symlink and @SkipWhenEmpty fails"() {
+    def "directory with broken symlink and @SkipWhenEmpty executes the task action"() {
         def root = file('root').createDir()
         def brokenInputFile = root.file('BrokenInputFile').createLink("BrokenInputFileTarget")
 
@@ -475,8 +473,8 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec imple
         assert !brokenInputFile.exists()
 
         when:
-        fails 'brokenDirectoryWithSkipWhenEmpty'
+        run 'brokenDirectoryWithSkipWhenEmpty'
         then:
-        failure.assertHasCause("Couldn't follow symbolic link '${brokenInputFile}'.")
+        executedAndNotSkipped(':brokenDirectoryWithSkipWhenEmpty')
     }
 }

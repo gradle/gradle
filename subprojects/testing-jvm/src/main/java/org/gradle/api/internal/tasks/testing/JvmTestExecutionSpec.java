@@ -66,17 +66,14 @@ public class JvmTestExecutionSpec implements TestExecutionSpec {
         return testFramework;
     }
 
-    @UsedByScanPlugin("test-distribution")
     public Iterable<? extends File> getClasspath() {
         return classpath;
     }
 
-    @UsedByScanPlugin("test-distribution")
     public Iterable<? extends File> getModulePath() {
         return modulePath;
     }
 
-    @UsedByScanPlugin("test-distribution")
     public FileTree getCandidateClassFiles() {
         return candidateClassFiles;
     }
@@ -90,17 +87,14 @@ public class JvmTestExecutionSpec implements TestExecutionSpec {
         return testClassesDirs;
     }
 
-    @UsedByScanPlugin("test-distribution")
     public String getPath() {
         return path;
     }
 
-    @UsedByScanPlugin("test-distribution")
     public Path getIdentityPath() {
         return identityPath;
     }
 
-    @UsedByScanPlugin("test-distribution")
     public long getForkEvery() {
         return forkEvery;
     }

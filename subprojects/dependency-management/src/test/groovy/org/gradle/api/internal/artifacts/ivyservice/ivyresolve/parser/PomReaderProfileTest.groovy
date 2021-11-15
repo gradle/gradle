@@ -21,7 +21,6 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.Maven
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.PomProfile
 import org.gradle.internal.id.UUIDGenerator
 import spock.lang.Issue
-import spock.lang.Unroll
 
 class PomReaderProfileTest extends AbstractPomReaderTest {
     final ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock()
@@ -2324,7 +2323,6 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
     }
 
     @Issue("GRADLE-3074")
-    @Unroll
     def "can define #packaging packaging in active profile"() {
         when:
         pomFile << """

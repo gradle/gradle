@@ -25,11 +25,11 @@ import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.work.AsyncWorkTracker
 import org.gradle.internal.work.ConditionalExecution
 import org.gradle.internal.work.ConditionalExecutionQueue
-import org.gradle.internal.work.WorkerLeaseRegistry
+import org.gradle.internal.work.WorkerThreadRegistry
 import org.gradle.process.internal.worker.child.WorkerDirectoryProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.internal.RedirectStdOutAndErr
 import org.gradle.util.UsesNativeServices
+import org.gradle.util.internal.RedirectStdOutAndErr
 import org.gradle.workers.IsolationMode
 import org.gradle.workers.WorkAction
 import org.gradle.workers.WorkParameters
@@ -48,7 +48,7 @@ class DefaultWorkerExecutorTest extends Specification {
     def workerDaemonFactory = Mock(WorkerFactory)
     def inProcessWorkerFactory = Mock(WorkerFactory)
     def noIsolationWorkerFactory = Mock(WorkerFactory)
-    def buildOperationWorkerRegistry = Mock(WorkerLeaseRegistry)
+    def workerThreadRegistry = Mock(WorkerThreadRegistry)
     def buildOperationExecutor = Mock(BuildOperationExecutor)
     def asyncWorkTracker = Mock(AsyncWorkTracker)
     def forkOptionsFactory = TestFiles.execFactory(temporaryFolder.testDirectory)
@@ -76,7 +76,7 @@ class DefaultWorkerExecutorTest extends Specification {
         _ * instantiator.newInstance(DefaultClassLoaderWorkerSpec) >> { args -> new DefaultClassLoaderWorkerSpec(objectFactory) }
         _ * instantiator.newInstance(DefaultProcessWorkerSpec, _) >> { args -> new DefaultProcessWorkerSpec(args[1][0], objectFactory) }
         _ * instantiator.newInstance(DefaultWorkerExecutor.DefaultWorkQueue, _, _, _) >> { args -> new DefaultWorkerExecutor.DefaultWorkQueue(args[1][0], args[1][1], args[1][2]) }
-        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, inProcessWorkerFactory, noIsolationWorkerFactory, forkOptionsFactory, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkTracker, workerDirectoryProvider, executionQueueFactory, classLoaderStructureProvider, actionExecutionSpecFactory, instantiator, temporaryFolder.testDirectory)
+        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, inProcessWorkerFactory, noIsolationWorkerFactory, forkOptionsFactory, workerThreadRegistry, buildOperationExecutor, asyncWorkTracker, workerDirectoryProvider, executionQueueFactory, classLoaderStructureProvider, actionExecutionSpecFactory, instantiator, temporaryFolder.testDirectory)
         _ * actionExecutionSpecFactory.newIsolatedSpec(_, _, _, _, _) >> Mock(IsolatedParametersActionExecutionSpec)
     }
 
@@ -160,7 +160,7 @@ class DefaultWorkerExecutorTest extends Specification {
         then:
         _ * parameters.implementationClassName >> TestExecutable.class.getName()
         _ * parameters.params >> []
-        1 * buildOperationWorkerRegistry.getCurrentWorkerLease()
+        1 * workerThreadRegistry.workerThread >> true
         1 * executionQueue.submit(_) >> { args -> task = args[0] }
 
         when:
@@ -181,7 +181,7 @@ class DefaultWorkerExecutorTest extends Specification {
         then:
         _ * parameters.implementationClassName >> TestExecutable.class.getName()
         _ * parameters.params >> []
-        1 * buildOperationWorkerRegistry.getCurrentWorkerLease()
+        1 * workerThreadRegistry.workerThread >> true
         1 * executionQueue.submit(_) >> { args -> task = args[0] }
 
         when:
@@ -202,7 +202,7 @@ class DefaultWorkerExecutorTest extends Specification {
         then:
         _ * parameters.implementationClassName >> TestExecutable.class.getName()
         _ * parameters.params >> []
-        1 * buildOperationWorkerRegistry.getCurrentWorkerLease()
+        1 * workerThreadRegistry.workerThread >> true
         1 * executionQueue.submit(_) >> { args -> task = args[0] }
 
         when:

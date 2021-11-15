@@ -8,6 +8,12 @@ We would like to thank the following community members for their contributions t
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
 -->
+[Michael Bailey](https://github.com/yogurtearl),
+[Jochen Schalanda](https://github.com/joschi),
+[Jendrik Johannes](https://github.com/jjohannes),
+[Roberto Perez Alcolea](https://github.com/rpalcolea),
+[Konstantin Gribov](https://github.com/grossws),
+[Piyush Mor](https://github.com/piyushmor).
 
 ## Upgrade instructions
 
@@ -18,6 +24,8 @@ Switch your build to use Gradle @version@ by updating your wrapper:
 See the [Gradle 7.x upgrade guide](userguide/upgrading_version_7.html#changes_@baseVersion@) to learn about deprecations, breaking changes and other considerations when upgrading to Gradle @version@. 
 
 For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).
+
+## New features and usability improvements
 
 <!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. --> 
 
@@ -47,6 +55,60 @@ Example:
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
+### JVM toolchains improvements
+
+[Java toolchains](userguide/toolchains.html) provide an easy way to declare which Java version your project should be built with.
+By default, Gradle will [detect installed JDKs](userguide/toolchains.html#sec:auto_detection) or automatically download new toolchain versions.
+
+#### Changes following migration from AdoptOpenJDK to Adoptium
+
+Following the migration of [AdoptOpenJDK](https://adoptopenjdk.net/) to [Eclipse Adoptium](https://adoptium.net/), a number of changes have been made for toolchains:
+* `ADOPTIUM` and `IBM_SEMERU` are now recognized as vendors,
+* Both of the above can be used as vendors and trigger auto-provisioning,
+* Using `ADOPTOPENJDK` as a vendor and having it trigger auto-provisioning will emit a [deprecation warning](userguide/upgrading_version_7.html#adoptopenjdk_download).
+
+See [the documentation](userguide/toolchains.html#sec:provisioning) for details.
+
+### Kotlin DSL improvements
+
+#### Type-safe accessors for extensions of `repositories {}`
+
+The Kotlin DSL now generates type-safe model accessors for extensions registered on the `repositories {}` block.
+
+
+For example, starting with this version of Gradle, the [`asciidoctorj-gems-plugin`](https://asciidoctor.github.io/asciidoctor-gradle-plugin/master/user-guide/#asciidoctorj-gems-plugin) can be configured directly via the generated type-safe accessors:
+
+
+```kotlin
+repositories {
+    ruby {
+        gems()
+    }
+}
+```
+
+Whereas before it required to use [`withGroovyBuilder`]():
+
+```kotlin
+repositories {
+    withGroovyBuilder {
+        "ruby" {
+            "gems"()
+        }
+    }
+}
+```
+
+or, required more tinkering in order to discover what names and types to use, relying on the API:
+```kotlin
+repositories {
+    this as ExtensionAware
+    configure<com.github.jrubygradle.api.core.RepositoryHandlerExtension> {
+        gems()
+    }
+}
+```
+See [the documentation](userguide/kotlin_dsl.html#type-safe-accessors) for details.
 
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

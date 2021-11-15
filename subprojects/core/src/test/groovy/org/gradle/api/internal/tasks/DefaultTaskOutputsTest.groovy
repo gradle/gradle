@@ -19,7 +19,6 @@ import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.tasks.properties.ContentTracking
 import org.gradle.api.internal.tasks.properties.DefaultPropertyWalker
 import org.gradle.api.internal.tasks.properties.DefaultTypeMetadataStore
 import org.gradle.api.internal.tasks.properties.OutputFilePropertyType
@@ -36,7 +35,6 @@ import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import java.util.concurrent.Callable
 
@@ -170,7 +168,6 @@ class DefaultTaskOutputsTest extends Specification {
         outputs.fileProperties*.outputType == [FILE, FILE]
     }
 
-    @Unroll
     def "can register named #name with property name"() {
         when: outputs."$name"("fileA": "a", "fileB": "b").withPropertyName("prop")
         then:
@@ -185,7 +182,6 @@ class DefaultTaskOutputsTest extends Specification {
         "dirs"  | DIRECTORY
     }
 
-    @Unroll
     def "can register future named output #name"() {
         when: outputs."$name"({ [one: "a", two: "b"] })
         then:
@@ -200,7 +196,6 @@ class DefaultTaskOutputsTest extends Specification {
         "dirs"  | DIRECTORY
     }
 
-    @Unroll
     def "can register future named output #name with property name"() {
         when: outputs."$name"({ [one: "a", two: "b"] }).withPropertyName("prop")
         then:
@@ -215,7 +210,6 @@ class DefaultTaskOutputsTest extends Specification {
         "dirs"  | DIRECTORY
     }
 
-    @Unroll
     def "fails when #name registers mapped file with null key"() {
         when:
         outputs."$name"({ [(null): "a"] }).withPropertyName("prop")
@@ -230,7 +224,6 @@ class DefaultTaskOutputsTest extends Specification {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/4085")
-    @Unroll
     def "can register more unnamed properties with method #method after properties have been queried"() {
         outputs."$method"("output-1")
         // Trigger naming properties
@@ -241,7 +234,7 @@ class DefaultTaskOutputsTest extends Specification {
         when:
         outputs.visitRegisteredProperties(new PropertyVisitor.Adapter() {
             @Override
-            void visitOutputFileProperty(String propertyName, boolean optional, ContentTracking contentTracking, PropertyValue value, OutputFilePropertyType filePropertyType) {
+            void visitOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertyType filePropertyType) {
                 names += propertyName
             }
         })

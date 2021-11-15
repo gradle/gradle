@@ -24,7 +24,6 @@ import spock.lang.Specification
 class TaskNameResolverTest extends Specification {
     def tasks = Mock(TaskContainerInternal)
     def project = Mock(ProjectInternal)
-    def resolver = new TaskNameResolver()
 
     def setup() {
         _ * project.getTasks() >> tasks
@@ -276,7 +275,7 @@ class TaskNameResolverTest extends Specification {
         }
     }
 
-    List<Task> asTasks(TaskSelectionResult taskSelectionResult) {
+    private static List<Task> asTasks(TaskSelectionResult taskSelectionResult) {
         def result = []
         taskSelectionResult.collectTasks(result)
         return result

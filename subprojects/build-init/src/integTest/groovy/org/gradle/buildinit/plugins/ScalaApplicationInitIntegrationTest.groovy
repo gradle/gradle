@@ -17,7 +17,6 @@
 package org.gradle.buildinit.plugins
 
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
-import spock.lang.Unroll
 
 class ScalaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
 
@@ -27,7 +26,6 @@ class ScalaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
     @Override
     String subprojectName() { 'app' }
 
-    @Unroll
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'scala-application', '--dsl', scriptDsl.id)
@@ -55,7 +53,34 @@ class ScalaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    @Unroll
+    def "creates build using test suites with #scriptDsl build scripts when using --incubating"() {
+        when:
+        run('init', '--type', 'scala-application', '--dsl', scriptDsl.id, '--incubating')
+
+        then:
+        subprojectDir.file("src/main/scala").assertHasDescendants(SAMPLE_APP_CLASS)
+        subprojectDir.file("src/test/scala").assertHasDescendants(SAMPLE_APP_TEST_CLASS)
+
+        and:
+        commonJvmFilesGenerated(scriptDsl)
+        dslFixtureFor(scriptDsl).assertHasTestSuite("test")
+
+        when:
+        run("build")
+
+        then:
+        assertTestPassed("some.thing.AppSuite", "App has a greeting")
+
+        when:
+        run("run")
+
+        then:
+        outputContains("Hello, world!")
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
+    }
+
     def "specifying JUnit4 is not supported with #scriptDsl build scripts"() {
         when:
         fails('init', '--type', 'scala-application', '--test-framework', 'junit-4', '--dsl', scriptDsl.id)
@@ -68,7 +93,6 @@ class ScalaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    @Unroll
     def "creates sample source with package and #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'scala-application', '--package', 'my.app', '--dsl', scriptDsl.id)
@@ -96,7 +120,6 @@ class ScalaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    @Unroll
     def "source generation is skipped when scala sources detected with #scriptDsl build scripts"() {
         setup:
         subprojectDir.file("src/main/scala/org/acme/SampleMain.scala") << """

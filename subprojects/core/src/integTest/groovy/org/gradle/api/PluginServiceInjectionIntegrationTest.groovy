@@ -23,7 +23,6 @@ import org.gradle.api.provider.ProviderFactory
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.execution.ExecutionEngine
 import org.gradle.process.ExecOperations
-import spock.lang.Unroll
 
 import javax.inject.Inject
 
@@ -146,7 +145,6 @@ class PluginServiceInjectionIntegrationTest extends AbstractIntegrationSpec {
         outputContains("got it")
     }
 
-    @Unroll
     def "service of type #serviceType is available for injection into project plugin"() {
         buildFile << """
             class CustomPlugin implements Plugin<Project> {
@@ -180,7 +178,6 @@ class PluginServiceInjectionIntegrationTest extends AbstractIntegrationSpec {
         ].collect { it.name }
     }
 
-    @Unroll
     def "service of type #serviceType is available for injection into settings plugin"() {
         settingsFile << """
             import ${Inject.name}
@@ -214,7 +211,6 @@ class PluginServiceInjectionIntegrationTest extends AbstractIntegrationSpec {
         ].collect { it.name }
     }
 
-    @Unroll
     def "service of type #serviceType is available for injection into gradle object plugin"() {
         settingsFile << """
             import ${Inject.name}

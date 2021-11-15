@@ -28,7 +28,6 @@ import org.gradle.api.internal.catalog.problems.VersionCatalogProblemTestFor
 import org.gradle.api.internal.classpath.DefaultModuleRegistry
 import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.properties.GradleProperties
-import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.provider.DefaultProviderFactory
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory
 import org.gradle.api.provider.ProviderFactory
@@ -42,7 +41,6 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import java.util.function.Supplier
 
@@ -60,7 +58,6 @@ class LibrariesSourceGeneratorTest extends Specification implements VersionCatal
     private GeneratedSource sources
     final ProviderFactory providerFactory = new DefaultProviderFactory(
         new DefaultValueSourceProviderFactory(
-            Stub(ConfigurationTimeBarrier),
             new DefaultListenerManager(Scopes.Build),
             TestUtil.instantiatorFactory(),
             new TestIsolatableFactory(),
@@ -80,7 +77,6 @@ class LibrariesSourceGeneratorTest extends Specification implements VersionCatal
         sources.assertClass('Libs')
     }
 
-    @Unroll
     def "generates an accessor for #name as method #method"() {
         when:
         generate {
@@ -100,7 +96,6 @@ class LibrariesSourceGeneratorTest extends Specification implements VersionCatal
         'kotlinx.awesome.lib' | 'getLib'
     }
 
-    @Unroll
     def "generates an accessor for bundle #name as method #method"() {
         when:
         generate {
@@ -121,7 +116,6 @@ class LibrariesSourceGeneratorTest extends Specification implements VersionCatal
         'a.b'         | 'getB'
     }
 
-    @Unroll
     def "generates an accessor for #name as version #method"() {
         when:
         generate {

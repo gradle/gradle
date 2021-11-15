@@ -26,6 +26,7 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.services.BuildServiceParameters
+import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Console
 import org.gradle.api.tasks.Destroys
 import org.gradle.api.tasks.Input
@@ -37,7 +38,7 @@ import org.gradle.api.tasks.OutputDirectories
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.OutputFiles
-import org.gradle.api.tasks.Untracked
+import org.gradle.api.tasks.UntrackedTask
 import org.gradle.api.tasks.options.OptionValues
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.internal.reflect.Instantiator
@@ -45,7 +46,6 @@ import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.process.ExecOperations
-import spock.lang.Unroll
 
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -54,7 +54,6 @@ import static org.hamcrest.Matchers.containsString
 
 class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependencyResolutionTest implements ArtifactTransformTestFixture, ValidationMessageChecker {
 
-    @Unroll
     def "transform can receive parameters, workspace and input artifact (#inputArtifactType) via abstract getter"() {
         settingsFile << """
             include 'a', 'b', 'c'
@@ -116,7 +115,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         'Provider<FileSystemLocation>' | '.get().asFile' | null
     }
 
-    @Unroll
     def "transform can receive parameter of type #type"() {
         settingsFile << """
             include 'a', 'b', 'c'
@@ -225,7 +223,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         outputContains("result = [out-1.txt]")
     }
 
-    @Unroll
     def "transform can receive Gradle provided service #serviceType via injection"() {
         settingsFile << """
             include 'a', 'b'
@@ -268,7 +265,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         ].collect { it.name }
     }
 
-    @Unroll
     def "transform cannot receive Gradle provided service #serviceType via injection"() {
         settingsFile << """
             include 'a', 'b'
@@ -449,7 +445,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
     }
 
     @ValidationTestFor(
-        ValidationProblemId.INVALID_USE_OF_CACHEABLE_ANNOTATION
+        ValidationProblemId.INVALID_USE_OF_TYPE_ANNOTATION
     )
     def "transform parameters type cannot use caching annotations"() {
         settingsFile << """
@@ -501,7 +497,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
     @ValidationTestFor(
         ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT
     )
-    @Unroll
     def "transform parameters type cannot use annotation @#ann.simpleName"() {
         settingsFile << """
             include 'a', 'b'
@@ -549,52 +544,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         ann << [OutputFile, OutputFiles, OutputDirectory, OutputDirectories, Destroys, LocalState, OptionValues]
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT
-    )
-    @Unroll
-    def "transform parameters type cannot use annotation @Untracked"() {
-        settingsFile << """
-            include 'a', 'b'
-        """
-        setupBuildWithColorTransform()
-        buildFile << """
-            project(':a') {
-                dependencies {
-                    implementation project(':b')
-                }
-            }
-
-            abstract class MakeGreen implements TransformAction<Parameters> {
-                interface Parameters extends TransformParameters {
-                    @Untracked
-                    @InputFiles
-                    File getBad()
-                    void setBad(File value)
-                }
-
-                void transform(TransformOutputs outputs) {
-                    throw new RuntimeException()
-                }
-            }
-        """
-
-        when:
-        fails(":a:resolve")
-
-        then:
-        failure.assertHasDescription("Execution failed for task ':a:resolve'.")
-        failure.assertHasCause("Could not resolve all files for configuration ':a:implementation'.")
-        failure.assertHasCause("Failed to transform b.jar (project :b) to match attributes {artifactType=jar, color=green}.")
-        failure.assertThatCause(matchesRegexp('Could not isolate parameters MakeGreen\\$Parameters_Decorated@.* of artifact transform MakeGreen'))
-        failure.assertHasCause('A problem was found with the configuration of the artifact transform parameter MakeGreen.Parameters.')
-        assertPropertyValidationErrors(bad: modifierAnnotationInvalidInContext {
-            annotation(Untracked.simpleName)
-            validAnnotations = "@Classpath, @CompileClasspath, @IgnoreEmptyDirectories, @Incremental, @NormalizeLineEndings, @Optional or @PathSensitive"
-        })
-    }
-
-    @Unroll
     def "transform parameters type cannot use injection annotation @#annotation.simpleName"() {
         settingsFile << """
             include 'a', 'b', 'c'
@@ -716,9 +665,9 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
     }
 
     @ValidationTestFor(
-        ValidationProblemId.INVALID_USE_OF_CACHEABLE_ANNOTATION
+        ValidationProblemId.INVALID_USE_OF_TYPE_ANNOTATION
     )
-    def "transform action type cannot use cacheable task annotation"() {
+    def "transform action type cannot use @#ann.simpleName"() {
         settingsFile << """
             include 'a', 'b', 'c'
         """
@@ -731,7 +680,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 }
             }
 
-            @CacheableTask
+            @${ann.simpleName}
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 void transform(TransformOutputs outputs) {
                     throw new RuntimeException()
@@ -746,14 +695,16 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         failure.assertHasDescription('A problem occurred evaluating root project')
         failure.assertHasCause('A problem was found with the configuration of MakeGreen.')
         failure.assertHasCause(invalidUseOfCacheableAnnotation {
-            type('MakeGreen').invalidAnnotation('CacheableTask').onlyMakesSenseOn('Task').includeLink()
+            type('MakeGreen').invalidAnnotation(ann.simpleName).onlyMakesSenseOn('Task').includeLink()
         })
+
+        where:
+        ann << [CacheableTask, UntrackedTask]
     }
 
     @ValidationTestFor(
         ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT
     )
-    @Unroll
     def "transform action type cannot use annotation @#ann.simpleName"() {
         settingsFile << """
             include 'a', 'b', 'c'
@@ -799,49 +750,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         ann << [Input, InputFile, InputDirectory, OutputFile, OutputFiles, OutputDirectory, OutputDirectories, Destroys, LocalState, OptionValues, Console, Internal]
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.INCOMPATIBLE_ANNOTATIONS
-    )
-    @Unroll
-    def "transform action type cannot use annotation @Untracked for @#propertyType.simpleName"() {
-        settingsFile << """
-            include 'a', 'b'
-        """
-        setupBuildWithColorTransform()
-        buildFile << """
-            project(':a') {
-                dependencies {
-                    implementation project(':b')
-                }
-            }
-
-            abstract class MakeGreen implements TransformAction<TransformParameters.None> {
-                @Untracked
-                @${propertyType.simpleName}
-                abstract Provider<FileSystemLocation> getInputArtifact()
-
-                void transform(TransformOutputs outputs) {
-                    throw new RuntimeException()
-                }
-            }
-        """
-
-        when:
-        fails(":a:resolve")
-
-        then:
-        failure.assertHasDescription('A problem occurred evaluating root project')
-        failure.assertHasCause('A problem was found with the configuration of MakeGreen.')
-        assertPropertyValidationErrors(inputArtifact: incompatibleAnnotations {
-            annotatedWith(Untracked.simpleName)
-            incompatibleWith(propertyType.simpleName)
-        })
-
-        where:
-        propertyType << [InputArtifact, InputArtifactDependencies]
-    }
-
-    @Unroll
     def "transform can receive dependencies via abstract getter of type #targetType"() {
         settingsFile << """
             include 'a', 'b', 'c'
@@ -886,7 +794,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         targetType << ["FileCollection", "Iterable<File>"]
     }
 
-    @Unroll
     def "old style transform cannot use @#annotation.name"() {
         settingsFile << """
             include 'a', 'b', 'c'
@@ -974,7 +881,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         succeeds(":a:resolve")
     }
 
-    @Unroll
     def "transform cannot use @InputArtifact to receive #propertyType"() {
         settingsFile << """
             include 'a', 'b'
@@ -1011,7 +917,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         propertyType << [FileCollection, new TypeToken<Provider<File>>() {}.getType(), new TypeToken<Provider<String>>() {}.getType()]
     }
 
-    @Unroll
     def "transform cannot use @InputArtifactDependencies to receive #propertyType"() {
         settingsFile << """
             include 'a', 'b'
@@ -1083,7 +988,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
     }
 
     @ValidationTestFor(
-        ValidationProblemId.INVALID_USE_OF_CACHEABLE_ANNOTATION
+        ValidationProblemId.INVALID_USE_OF_TYPE_ANNOTATION
     )
     def "task implementation cannot use cacheable transform annotation"() {
         expectReindentedValidationMessage()
@@ -1105,7 +1010,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
     }
 
     @ValidationTestFor(
-        ValidationProblemId.INVALID_USE_OF_CACHEABLE_ANNOTATION
+        ValidationProblemId.INVALID_USE_OF_TYPE_ANNOTATION
     )
     def "task @Nested bean cannot use cacheable annotations"() {
         expectReindentedValidationMessage()
@@ -1137,7 +1042,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         }))
     }
 
-    @Unroll
     def "task implementation cannot use injection annotation @#annotation.simpleName"() {
         buildFile << """
             class MyTask extends DefaultTask {

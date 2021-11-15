@@ -115,8 +115,8 @@ abstract class SettingsDelegate : Settings {
     override fun getPluginManager(): PluginManager =
         delegate.pluginManager
 
-    override fun include(vararg projectPaths: String?) =
-        delegate.include(*projectPaths)
+    override fun include(projectPaths: Iterable<String>) =
+        delegate.include(projectPaths)
 
     override fun includeFlat(vararg projectNames: String?) =
         @Suppress("deprecation")

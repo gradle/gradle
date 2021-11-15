@@ -23,6 +23,7 @@ import org.gradle.api.internal.classpath.PluginModuleRegistry;
 import org.gradle.internal.classpath.ClassPath;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 
 import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory.ClassPathNotation.GRADLE_API;
@@ -31,6 +32,16 @@ import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFacto
 import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory.ClassPathNotation.LOCAL_GROOVY;
 
 public class DependencyClassPathProvider implements ClassPathProvider {
+    private static final List<String> MODULES = Arrays.asList(
+        "gradle-worker-processes",
+        "gradle-launcher",
+        "gradle-workers",
+        "gradle-dependency-management",
+        "gradle-plugin-use",
+        "gradle-tooling-api",
+        "gradle-configuration-cache"
+    );
+
     private final ModuleRegistry moduleRegistry;
     private final PluginModuleRegistry pluginModuleRegistry;
 
@@ -70,7 +81,7 @@ public class DependencyClassPathProvider implements ClassPathProvider {
         // Currently this leaks additional dependencies that may cause unexpected issues.
         // This method is NOT involved in generating the gradleApi() Jar which is used in a real Gradle run.
         ClassPath classpath = ClassPath.EMPTY;
-        for (String moduleName : Arrays.asList("gradle-worker-processes", "gradle-launcher", "gradle-workers", "gradle-dependency-management", "gradle-plugin-use", "gradle-tooling-api", "gradle-configuration-cache")) {
+        for (String moduleName : MODULES) {
             classpath = classpath.plus(moduleRegistry.getModule(moduleName).getAllRequiredModulesClasspath());
         }
         for (Module pluginModule : pluginModuleRegistry.getApiModules()) {

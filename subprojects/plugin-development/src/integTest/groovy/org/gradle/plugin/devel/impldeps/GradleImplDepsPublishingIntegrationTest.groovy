@@ -16,6 +16,7 @@
 
 package org.gradle.plugin.devel.impldeps
 
+import groovy.xml.XmlSlurper
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class GradleImplDepsPublishingIntegrationTest extends BaseGradleImplDepsIntegrationTest {

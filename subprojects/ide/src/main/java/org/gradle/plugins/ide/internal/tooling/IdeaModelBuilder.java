@@ -25,7 +25,6 @@ import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.composite.IncludedBuildInternal;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.plugins.ide.idea.IdeaPlugin;
 import org.gradle.plugins.ide.idea.model.Dependency;
 import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel;
@@ -63,7 +62,7 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
 
     private boolean offlineDependencyResolution;
 
-    public IdeaModelBuilder(GradleProjectBuilder gradleProjectBuilder, ServiceRegistry services) {
+    public IdeaModelBuilder(GradleProjectBuilder gradleProjectBuilder) {
         this.gradleProjectBuilder = gradleProjectBuilder;
     }
 
@@ -88,7 +87,8 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
         for (IncludedBuildInternal reference : root.getGradle().includedBuilds()) {
             BuildState target = reference.getTarget();
             if (target instanceof IncludedBuildState) {
-                GradleInternal build = ((IncludedBuildState) target).getConfiguredBuild();
+                target.ensureProjectsConfigured();
+                GradleInternal build = target.getMutableModel();
                 if (!alreadyProcessed.contains(build)) {
                     alreadyProcessed.add(build);
                     applyIdeaPlugin(build.getRootProject(), alreadyProcessed);
@@ -116,7 +116,7 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
         for (IdeaModule module : projectModel.getModules()) {
             ideaModules.add(createModule(module, out, rootGradleProject));
         }
-        out.setChildren(new LinkedList<DefaultIdeaModule>(ideaModules));
+        out.setChildren(new LinkedList<>(ideaModules));
         return out;
     }
 

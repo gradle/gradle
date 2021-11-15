@@ -16,10 +16,9 @@
 
 package org.gradle.integtests.composite
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
-import spock.lang.Unroll
 
 /**
  * Tests for resolving dependency graph with substitution within a composite build.
@@ -48,7 +47,6 @@ class CompositeBuildMinimalConfigurationIntegrationTest extends AbstractComposit
         }
     }
 
-    @ToBeFixedForConfigurationCache(because = "Resolve test fixture doesn't support configuration cache")
     def "does not configure build with declared substitutions that is not required for dependency substitution"() {
         given:
         dependency "org.test:buildB:1.0"
@@ -96,7 +94,6 @@ class CompositeBuildMinimalConfigurationIntegrationTest extends AbstractComposit
         output.count('Configured buildC') == 1
     }
 
-    @Unroll
     def "configures included build only once when #action"() {
         given:
         dependency "org.test:buildB:1.0"
@@ -143,7 +140,6 @@ class CompositeBuildMinimalConfigurationIntegrationTest extends AbstractComposit
         "building"  | true
     }
 
-    @Unroll
     def "when configuration fails included build with #name substitutions is configured only once "() {
         given:
         dependency "org.test:buildB:1.0"
