@@ -47,14 +47,32 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
         fun instantiateValueSourceOf(obtainedValue: ObtainedValue): ValueSource<Any, ValueSourceParameters>
     }
 
-    suspend fun ReadContext.checkFingerprint(): CheckedFingerprint {
+    suspend fun ReadContext.checkBuildScopedFingerprint(): CheckedFingerprint {
+        // TODO: log some debug info
+        while (true) {
+            when (val input = read()) {
+                null -> break
+                is ConfigurationCacheFingerprint -> {
+                    // An input that is not specific to a project. If it is out-of-date, then invalidate the whole cache entry and skip any further checks
+                    val reason = check(input)
+                    if (reason != null) {
+                        return CheckedFingerprint.EntryInvalid(reason)
+                    }
+                }
+                else -> throw IllegalStateException("Unexpected configuration cache fingerprint: $input")
+            }
+        }
+        return CheckedFingerprint.Valid
+    }
+
+    suspend fun ReadContext.checkProjectScopedFingerprint(): CheckedFingerprint {
         // TODO: log some debug info
         var firstReason: InvalidationReason? = null
         val invalidProjects = mutableSetOf<String>()
         while (true) {
             when (val input = read()) {
                 null -> break
-                is ConfigurationCacheFingerprint.ProjectSpecificInput -> input.run {
+                is ProjectSpecificFingerprint.ProjectFingerprint -> input.run {
                     // An input that is specific to a project. If it is out-of-date, then invalidate that project's values and continue checking values
                     // Don't check a value for a project that is already out-of-date
                     if (!invalidProjects.contains(input.projectPath)) {
@@ -67,12 +85,8 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                         }
                     }
                 }
-                is ConfigurationCacheFingerprint -> {
-                    // An input that is not specific to a project. If it is out-of-date, then invalidate the whole cache entry and skip any further checks
-                    val reason = check(input)
-                    if (reason != null) {
-                        return CheckedFingerprint.EntryInvalid(reason)
-                    }
+                is ProjectSpecificFingerprint.ProjectDependency -> {
+                    // Ignore for now
                 }
                 else -> throw IllegalStateException("Unexpected configuration cache fingerprint: $input")
             }
@@ -135,7 +149,6 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                     return "JVM has changed"
                 }
             }
-            else -> throw IllegalStateException("Unexpected configuration cache fingerprint: $input")
         }
         return null
     }

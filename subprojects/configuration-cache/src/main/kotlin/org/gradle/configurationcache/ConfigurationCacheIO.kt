@@ -84,11 +84,9 @@ class ConfigurationCacheIO internal constructor(
     }
 
     internal
-    fun readCacheEntryDetailsFrom(stateFile: ConfigurationCacheStateFile): EntryDetails {
-        // Currently, the fingerprint file is used to mark whether the entry is usable or not
-        // Should use the entry details file instead
+    fun readCacheEntryDetailsFrom(stateFile: ConfigurationCacheStateFile): EntryDetails? {
         if (!stateFile.exists) {
-            return EntryDetails(emptyList(), emptyMap(), emptyMap())
+            return null
         }
         return readConfigurationCacheState(stateFile) {
             val rootDirs = readList { readFile() }
