@@ -16,7 +16,6 @@
 
 package org.gradle.test.fixtures.file;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
