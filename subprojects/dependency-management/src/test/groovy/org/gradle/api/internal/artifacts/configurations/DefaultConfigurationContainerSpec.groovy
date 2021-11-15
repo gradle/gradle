@@ -28,6 +28,7 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDepen
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultRootComponentMetadataBuilder
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.LocalComponentMetadataBuilder
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.initialization.RootScriptDomainObjectContext
@@ -75,7 +76,9 @@ class DefaultConfigurationContainerSpec extends Specification {
         decorateSpec(_) >> { Spec spec -> spec }
     }
     def immutableAttributesFactory = AttributeTestUtil.attributesFactory()
-
+    private DefaultRootComponentMetadataBuilder.Factory rootComponentMetadataBuilderFactory = Mock(DefaultRootComponentMetadataBuilder.Factory) {
+        create(_) >> Mock(DefaultRootComponentMetadataBuilder)
+    }
     private DefaultConfigurationFactory configurationFactory = new DefaultConfigurationFactory(
         instantiator,
         resolver,
@@ -95,8 +98,6 @@ class DefaultConfigurationContainerSpec extends Specification {
     )
     private DefaultConfigurationContainer configurationContainer = new DefaultConfigurationContainer(
         instantiator,
-        metaDataProvider,
-        metaDataBuilder,
         globalSubstitutionRules,
         vcsMappingsInternal,
         componentIdentifierFactory,
@@ -104,10 +105,10 @@ class DefaultConfigurationContainerSpec extends Specification {
         moduleIdentifierFactory,
         componentSelectorConverter,
         dependencyLockingProvider,
-        projectStateRegistry,
         domainObjectCollectionCallbackActionDecorator,
         Mock(NotationParser),
         TestUtil.objectFactory(),
+        rootComponentMetadataBuilderFactory,
         configurationFactory
     )
 
