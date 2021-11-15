@@ -18,6 +18,7 @@ package org.gradle.api
 
 import org.gradle.cache.internal.BuildScopeCacheDir
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.file.TestFile
 
 class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
@@ -36,7 +37,7 @@ class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
             "Run with --info or --debug option to get more log output.") // Don't suggest running with --scan for a missing build
 
         testDirectory.assertIsEmptyDir()
-        executer.gradleUserHomeDir.assertDoesNotExist()
+        assertNoProjectCaches(executer.gradleUserHomeDir)
 
         where:
         tasks << [["tasks"], ["unknown"]]
@@ -86,9 +87,13 @@ class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
         fails("build")
 
         then:
-        dir.assertIsEmptyDir()
+        assertNoProjectCaches(dir)
         failure.assertHasDescription("Execution failed for task ':build'.")
         failure.assertHasCause("Directory '$dir' does not contain a Gradle build.")
+    }
+
+    private void assertNoProjectCaches(TestFile dir) {
+        assert !(dir.list()?.findAll { it != "caches" })
     }
 
     def "fails when user home directory is used and Gradle has not been run before"() {
@@ -101,8 +106,9 @@ class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasDescription("Directory '$testDirectory' does not contain a Gradle build.")
 
-        testDirectory.assertIsEmptyDir()
-        gradleUserHomeDir.assertDoesNotExist()
+        def createdDirectories = testDirectory.list() as List
+        createdDirectories.empty || createdDirectories == [".gradle"]
+        assertNoProjectCaches(gradleUserHomeDir)
     }
 
     def "does not delete an existing .gradle directory"() {
@@ -183,7 +189,7 @@ class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
         fails("tasks")
 
         file("buildSrc").assertIsEmptyDir()
-        executer.gradleUserHomeDir.assertDoesNotExist()
+        assertNoProjectCaches(executer.gradleUserHomeDir)
     }
 
     def "treats empty buildSrc inside a build as undefined build"() {
