@@ -473,14 +473,19 @@ class DependencyManagementBuildScopeServices {
             externalResourceFileStore, artifactIdentifierFileStore);
     }
 
-    private ByUrlCachedExternalResourceIndex prepareArtifactUrlCachedResolutionIndex(BuildCommencedTimeProvider timeProvider, ArtifactCacheLockingManager artifactCacheLockingManager, ExternalResourceFileStore externalResourceFileStore, ArtifactCacheMetadata artifactCacheMetadata) {
-        return new ByUrlCachedExternalResourceIndex(
+    private CachedExternalResourceIndex<String> prepareArtifactUrlCachedResolutionIndex(BuildCommencedTimeProvider timeProvider, ArtifactCacheLockingManager artifactCacheLockingManager, ExternalResourceFileStore externalResourceFileStore, ArtifactCacheMetadata artifactCacheMetadata) {
+        ByUrlCachedExternalResourceIndex byUrlCachedExternalResourceIndex = new ByUrlCachedExternalResourceIndex(
             "resource-at-url",
             timeProvider,
             artifactCacheLockingManager,
             externalResourceFileStore.getFileAccessTracker(),
             artifactCacheMetadata.getCacheDir().toPath()
         );
+        String mirrorDirectory = System.getProperty("org.gradle.download.mirror.directory", null);
+        if (mirrorDirectory != null) {
+            return byUrlCachedExternalResourceIndex.withMirrorDirectory(new File(mirrorDirectory));
+        }
+        return byUrlCachedExternalResourceIndex;
     }
 
     TextUriResourceLoader.Factory createTextUrlResourceLoaderFactory(FileStoreAndIndexProvider fileStoreAndIndexProvider, RepositoryTransportFactory repositoryTransportFactory, RelativeFilePathResolver resolver) {
