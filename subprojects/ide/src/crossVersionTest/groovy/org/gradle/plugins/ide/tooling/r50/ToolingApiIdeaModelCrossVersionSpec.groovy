@@ -62,11 +62,13 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         root.resourceDirectories.first().directory == file('src/main/resources')
 
         if (targetVersion > GradleVersion.version("7.3")) {
-            root.testDirectories.size() == 1
+            assert root.testDirectories.size() == 2
+            assert root.testDirectories[0].directory == file('src/test/java')
+            assert root.testDirectories[1].directory == file('src/test/resources')
         } else {
-            root.testDirectories.size() == 2
+            assert root.testDirectories.size() == 1
+            assert root.testDirectories[0].directory == file('src/test/java')
         }
-        root.testDirectories.first().directory == file('src/test/java')
 
         root.testResourceDirectories.size() == 1
         root.testResourceDirectories.first().directory == file('src/test/resources')
@@ -117,11 +119,13 @@ sourceSets {
         root.resourceDirectories[0].directory == file('mainResources')
 
         if (targetVersion > GradleVersion.version("7.3")) {
-            root.testDirectories.size() == 1
+            assert root.testDirectories.size() == 2
+            assert root.testDirectories[0].directory == file('testSources')
+            assert root.testDirectories[1].directory == file('testResources')
         } else {
-            root.testDirectories.size() == 2
+            assert root.testDirectories.size() == 1
+            assert root.testDirectories[0].directory == file('testSources')
         }
-        root.testDirectories[0].directory == file('testSources')
 
         root.testResourceDirectories.size() == 1
         root.testResourceDirectories[0].directory == file('testResources')
