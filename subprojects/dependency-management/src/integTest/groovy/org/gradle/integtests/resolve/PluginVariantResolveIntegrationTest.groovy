@@ -17,10 +17,10 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.api.JavaVersion
-import org.gradle.integtests.fixtures.AbstractPluginIntegrationTest
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 
-class PluginVariantResolveIntegrationTest extends AbstractPluginIntegrationTest {
+class PluginVariantResolveIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("https://github.com/gradle/gradle/issues/13659")
     def "should report an incompatible Java version of a plugin properly (#id)"() {
