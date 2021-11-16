@@ -393,8 +393,6 @@ class DefaultConfigurationCache internal constructor(
         // without violating file system invariants.
         registerWatchableBuildDirectories(entryDetails.rootDirs)
 
-        loadGradleProperties()
-
         val result = checkBuildScopedFingerprint(layout.fileFor(StateType.BuildFingerprint))
         if (result !is CheckedFingerprint.Valid) {
             return result
@@ -413,6 +411,7 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun checkBuildScopedFingerprint(fingerprintFile: ConfigurationCacheStateFile): CheckedFingerprint {
+        loadGradleProperties()
         return checkFingerprint(fingerprintFile) { host ->
             cacheFingerprintController.run {
                 checkBuildScopedFingerprint(host)
