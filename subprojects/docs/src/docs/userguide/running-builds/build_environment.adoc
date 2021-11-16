@@ -82,7 +82,7 @@ If set to `true` and debugging is enabled, Gradle will run the build with the so
 _Default is `true`._
 
 `org.gradle.debug.suspend=(true,false)`::
-When set to `true` and debugging enabled, Gradle will suspend the virtual machine until a debugger is attached.
+When set to `true` and debugging is enabled, the JVM running Gradle will suspend until a debugger is attached.
 _Default is `true`._
 
 `org.gradle.java.home=(path to JDK home)`::
