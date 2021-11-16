@@ -497,7 +497,7 @@ allprojects { p ->
                 output.convention(layout.buildDirectory.dir(providers.gradleProperty("\${project.name}DirName").orElse("\${project.name}-dir")))
                 def defaultContent = project.name
                 content.convention(providers.gradleProperty("\${project.name}Content").orElse(defaultContent))
-                def defaultNames = [project.name]
+                def defaultNames = providers.gradleProperty("\${project.name}EmptyDir").present ? [] : [project.name]
                 names.convention(providers.gradleProperty("\${project.name}Name").map { [it] }.orElse(defaultNames))
             """.stripIndent()
             producerConfigOverrides = """
