@@ -144,12 +144,9 @@
             <artifactId>fastjson</artifactId>
             <version>1.2.76</version>
         </dependency>
-        <!-- this should not be necessary, but without this, -->
-        <!-- java.lang.NoClassDefFoundError: jetbrains/buildServer/configs/ValidationException -->
-        <!-- See https://youtrack.jetbrains.com/issue/TW-73943 -->
         <dependency>
             <groupId>org.jetbrains.teamcity</groupId>
-            <artifactId>teamcity-configs-maven-plugin</artifactId>
+            <artifactId>server-api</artifactId>
             <version>${teamcity.dsl.version}</version>
         </dependency>
         <dependency>
