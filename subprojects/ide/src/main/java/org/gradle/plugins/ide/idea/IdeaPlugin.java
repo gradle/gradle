@@ -290,7 +290,13 @@ public class IdeaPlugin extends IdePlugin {
                 return project.getProjectDir();
             }
         });
-        conventionMapping.map("testSourceDirs", () -> testSourceDirs.getFiles());
+        Set<File> testSourceDirs = Sets.newLinkedHashSet();
+        conventionMapping.map("testSourceDirs", new Callable<Set<File>>() {
+            @Override
+            public Set<File> call() {
+                return testSourceDirs;
+            }
+        });
         Set<File> resourceDirs = Sets.newLinkedHashSet();
         conventionMapping.map("resourceDirs", new Callable<Set<File>>() {
             @Override
@@ -298,7 +304,13 @@ public class IdeaPlugin extends IdePlugin {
                 return resourceDirs;
             }
         });
-        conventionMapping.map("testResourceDirs", () -> testResourceDirs.getFiles());
+        Set<File> testResourceDirs = Sets.newLinkedHashSet();
+        conventionMapping.map("testResourceDirs", new Callable<Set<File>>() {
+            @Override
+            public Set<File> call() throws Exception {
+                return testResourceDirs;
+            }
+        });
 
         Set<File> excludeDirs = Sets.newLinkedHashSet();
         conventionMapping.map("excludeDirs", new Callable<Set<File>>() {
