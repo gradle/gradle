@@ -137,7 +137,6 @@ import org.gradle.cache.scopes.GlobalScopedCache;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.initialization.DependenciesAccessors;
-import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.initialization.internal.InternalBuildFinishedListener;
 import org.gradle.internal.Try;
 import org.gradle.internal.build.BuildState;
@@ -289,11 +288,9 @@ class DependencyManagementBuildScopeServices {
     DefaultProjectDependencyFactory createProjectDependencyFactory(
         Instantiator instantiator,
         StartParameter startParameter,
-        ProjectAccessListener projectAccessListener,
         ImmutableAttributesFactory attributesFactory) {
         NotationParser<Object, Capability> capabilityNotationParser = new CapabilityNotationParserFactory(false).create();
-        return new DefaultProjectDependencyFactory(
-            projectAccessListener, instantiator, startParameter.isBuildProjectDependencies(), capabilityNotationParser, attributesFactory);
+        return new DefaultProjectDependencyFactory(instantiator, startParameter.isBuildProjectDependencies(), capabilityNotationParser, attributesFactory);
     }
 
     DependencyFactory createDependencyFactory(

@@ -54,11 +54,6 @@ public class DelegatingProjectDependency implements ProjectDependencyInternal {
     }
 
     @Override
-    public void beforeResolved() {
-        delegate.beforeResolved();
-    }
-
-    @Override
     public Configuration findProjectConfiguration() {
         return delegate.findProjectConfiguration();
     }

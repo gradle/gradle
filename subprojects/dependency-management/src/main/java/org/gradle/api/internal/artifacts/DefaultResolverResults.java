@@ -148,11 +148,6 @@ public class DefaultResolverResults implements ResolverResults {
     }
 
     @Override
-    public boolean hasResolutionResult() {
-        return resolutionResult != null;
-    }
-
-    @Override
     public void retainState(Object artifactResolveState) {
         this.artifactResolveState = artifactResolveState;
     }

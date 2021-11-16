@@ -439,4 +439,95 @@ class IsolatedProjectToolingModelsWithDependencyResolutionIntegrationTest extend
         }
     }
 
+    def "updates cached state when upstream project dependency changes"() {
+        given:
+        withSomeToolingModelBuilderPluginThatPerformsDependencyResolutionInBuildSrc()
+        settingsFile << """
+            include("a")
+            include("b")
+            include("c")
+        """
+        file("a/build.gradle") << """
+            plugins.apply(my.MyPlugin)
+            dependencies {
+                implementation project(":b")
+            }
+        """
+        file("b/build.gradle") << """
+            plugins.apply(my.MyPlugin)
+            dependencies {
+                implementation project(":c")
+            }
+        """
+        file("c/build.gradle") << """
+            plugins.apply(my.MyPlugin)
+        """
+
+        when:
+        executer.withArguments(ENABLE_CLI)
+        def model = runBuildAction(new FetchCustomModelForEachProject())
+
+        then:
+        model.size() == 3
+        model[0].message == "project :a classpath = 2"
+        model[1].message == "project :b classpath = 1"
+        model[2].message == "project :c classpath = 0"
+
+        and:
+        fixture.assertStateStored {
+            projectConfigured(":buildSrc")
+            projectConfigured(":")
+            buildModelCreated()
+            modelsCreated(":a", ":b", ":c")
+        }
+
+        when:
+        executer.withArguments(ENABLE_CLI)
+        def model2 = runBuildAction(new FetchCustomModelForEachProject())
+
+        then:
+        model2.size() == 3
+        model2[0].message == "project :a classpath = 2"
+        model2[1].message == "project :b classpath = 1"
+        model2[2].message == "project :c classpath = 0"
+
+        and:
+        fixture.assertStateLoaded {
+        }
+
+        when:
+        file("c/build.gradle") << """
+            // some change
+        """
+        executer.withArguments(ENABLE_CLI)
+        def model3 = runBuildAction(new FetchCustomModelForEachProject())
+
+        then:
+        model3.size() == 3
+        model3[0].message == "project :a classpath = 2"
+        model3[1].message == "project :b classpath = 1"
+        model3[2].message == "project :c classpath = 0"
+
+        and:
+        fixture.assertStateRecreated {
+            fileChanged("c/build.gradle")
+            projectConfigured(":buildSrc")
+            projectConfigured(":")
+            modelsCreated(":a", ":b", ":c")
+        }
+
+        when:
+        executer.withArguments(ENABLE_CLI)
+        def model4 = runBuildAction(new FetchCustomModelForEachProject())
+
+        then:
+        model4.size() == 3
+        model4[0].message == "project :a classpath = 2"
+        model4[1].message == "project :b classpath = 1"
+        model4[2].message == "project :c classpath = 0"
+
+        and:
+        fixture.assertStateLoaded {
+        }
+    }
 }

@@ -83,7 +83,7 @@ class DefaultBuildModelControllerServices(
             } else {
                 registration.addProvider(VintageIsolatedProjectsProvider())
             }
-            if (buildModelParameters.isProjectScopeModelCache) {
+            if (buildModelParameters.isIntermediateModelCache) {
                 registration.addProvider(ConfigurationCacheModelProvider())
             } else {
                 registration.addProvider(VintageModelProvider())

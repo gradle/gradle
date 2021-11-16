@@ -119,6 +119,7 @@ public class DefaultConfigurationFactory {
             configurationsProvider,
             resolver,
             dependencyResolutionListeners,
+            listenerManager.getBroadcaster(ProjectDependencyObservedListener.class),
             metaDataProvider,
             resolutionStrategyFactory,
             fileCollectionFactory,

@@ -76,7 +76,6 @@ import org.gradle.configuration.project.ProjectEvaluator
 import org.gradle.groovy.scripts.EmptyScript
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.initialization.ClassLoaderScopeRegistryListener
-import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.Factory
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.logging.LoggingManagerInternal
@@ -226,7 +225,6 @@ class DefaultProjectTest extends Specification {
         pluginManager.getPluginContainer() >> pluginContainer
 
         serviceRegistryMock.get((Type) DeferredProjectConfiguration) >> Stub(DeferredProjectConfiguration)
-        serviceRegistryMock.get((Type) ProjectAccessListener) >> Stub(ProjectAccessListener)
 
         serviceRegistryMock.get(ITaskFactory) >> Stub(ITaskFactory)
 
