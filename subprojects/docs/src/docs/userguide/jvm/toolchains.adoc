@@ -159,12 +159,7 @@ Supported Package Managers:
 * https://github.com/shyiko/jabba[Jabba]
 * https://sdkman.io/[SDKMAN!]
 
-[NOTE]
-====
-None of the toolchain types takes precedence over another. No location is prioritized over another, nor is any of the
-package managers. From the set of all detected JRE/JDK installations, one will be picked according to the
-<<sec:precedence,Toolchain Precedence Rules>>.
-====
+Among the set of all detected JRE/JDK installations, one will be picked according to the <<sec:precedence,Toolchain Precedence Rules>>.
 
 [[sub:disable_auto_detect]]
 === How to disable auto-detection
