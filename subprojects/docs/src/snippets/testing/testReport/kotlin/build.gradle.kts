@@ -1,3 +1,8 @@
+plugins {
+    // because this snippet is used in TestReportIntegrationTest which rewrites build files for different JUnit flavors
+    java
+}
+
 // tag::test-report[]
 val testReportData by configurations.creating {
     isCanBeResolved = true
@@ -12,8 +17,6 @@ dependencies {
     testReportData(project(":core"))
     testReportData(project(":util"))
 }
-
-val reporting = the<ReportingExtension>()
 
 tasks.register<TestReport>("testReport") {
     destinationDirectory.set(reporting.baseDirectory.dir("allTests"))
