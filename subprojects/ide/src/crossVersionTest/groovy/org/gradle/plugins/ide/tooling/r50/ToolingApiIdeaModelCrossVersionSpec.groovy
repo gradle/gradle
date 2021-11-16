@@ -22,7 +22,6 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.idea.IdeaContentRoot
 import org.gradle.tooling.model.idea.IdeaModule
 import org.gradle.tooling.model.idea.IdeaProject
-import org.gradle.util.GradleVersion
 
 /**
  * NOTE: Starting with Gradle 5.0 the contract of IdeaModule#sourceDirs and IdeaModule#testSourceDirs changes in
@@ -171,18 +170,8 @@ idea.module {
         root.resourceDirectories.any { it.directory == file('mainResources')}
         root.resourceDirectories.any { it.directory == file('fooResources')}
         root.testDirectories.size() == 1
-        // root.testDirectories[0].directory == file('testSources') TODO: fails to update test srcDir?
-        if (targetVersion > GradleVersion.version("7.3")) {
-            root.testDirectories[0].directory == file('src/test/java')
-        } else {
-            root.testDirectories[0].directory == file('testSources')
-        }
+        root.testDirectories[0].directory == file('testSources')
         root.testResourceDirectories.size() == 1
-        // root.testResourceDirectories[0].directory == file('testResources') TODO: fails to update test resourceDir?
-        if (targetVersion > GradleVersion.version("7.3")) {
-            root.testResourceDirectories[0].directory == file('src/test/resources')
-        } else {
-            root.testResourceDirectories[0].directory == file('testResources')
-        }
+        root.testResourceDirectories[0].directory == file('testResources')
     }
 }

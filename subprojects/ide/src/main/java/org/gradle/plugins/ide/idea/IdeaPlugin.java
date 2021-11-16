@@ -28,6 +28,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
@@ -110,9 +111,8 @@ public class IdeaPlugin extends IdePlugin {
     private final IdeArtifactRegistry artifactRegistry;
     private final ProjectStateRegistry projectPathRegistry;
 
-
-    private final Set<File> testSourceDirs = Sets.newLinkedHashSet();
-    private final Set<File> testResourceDirs = Sets.newLinkedHashSet();
+    private ConfigurableFileCollection testSourceDirs;
+    private ConfigurableFileCollection testResourceDirs;
 
     @Inject
     public IdeaPlugin(Instantiator instantiator, UniqueProjectNameProvider uniqueProjectNameProvider, IdeArtifactRegistry artifactRegistry, ProjectStateRegistry projectPathRegistry) {
@@ -137,6 +137,9 @@ public class IdeaPlugin extends IdePlugin {
         getCleanTask().configure(withDescription("Cleans IDEA project files (IML, IPR)"));
 
         ideaModel = project.getExtensions().create("idea", IdeaModel.class);
+
+        testSourceDirs = project.getObjects().fileCollection();
+        testResourceDirs = project.getObjects().fileCollection();
 
         configureIdeaWorkspace(project);
         configureIdeaProject(project);
@@ -287,13 +290,7 @@ public class IdeaPlugin extends IdePlugin {
                 return project.getProjectDir();
             }
         });
-        Set<File> testSourceDirs = Sets.newLinkedHashSet();
-        conventionMapping.map("testSourceDirs", new Callable<Set<File>>() {
-            @Override
-            public Set<File> call() {
-                return testSourceDirs;
-            }
-        });
+        conventionMapping.map("testSourceDirs", () -> testSourceDirs.getFiles());
         Set<File> resourceDirs = Sets.newLinkedHashSet();
         conventionMapping.map("resourceDirs", new Callable<Set<File>>() {
             @Override
@@ -301,13 +298,7 @@ public class IdeaPlugin extends IdePlugin {
                 return resourceDirs;
             }
         });
-        Set<File> testResourceDirs = Sets.newLinkedHashSet();
-        conventionMapping.map("testResourceDirs", new Callable<Set<File>>() {
-            @Override
-            public Set<File> call() throws Exception {
-                return testResourceDirs;
-            }
-        });
+        conventionMapping.map("testResourceDirs", () -> testResourceDirs.getFiles());
 
         Set<File> excludeDirs = Sets.newLinkedHashSet();
         conventionMapping.map("excludeDirs", new Callable<Set<File>>() {
@@ -395,7 +386,7 @@ public class IdeaPlugin extends IdePlugin {
                 return sourceDirs;
             }
         });
-        convention.map("testSourceDirs", () -> testSourceDirs);
+        convention.map("testSourceDirs", () -> testSourceDirs.getFiles());
         Set<File> resourceDirs = Sets.newLinkedHashSet();
         convention.map("resourceDirs", new Callable<Set<File>>() {
             @Override
@@ -405,7 +396,7 @@ public class IdeaPlugin extends IdePlugin {
                 return resourceDirs;
             }
         });
-        convention.map("testResourceDirs", () -> testResourceDirs);
+        convention.map("testResourceDirs", () -> testResourceDirs.getFiles());
         Map<String, FileCollection> singleEntryLibraries = new LinkedHashMap<String, FileCollection>(2);
         convention.map("singleEntryLibraries", new Callable<Map<String, FileCollection>>() {
             @Override
@@ -462,8 +453,8 @@ public class IdeaPlugin extends IdePlugin {
     private void configureIdeaModuleForTestSuites(final Project project) {
         final TestingExtension testing = project.getExtensions().getByType(TestingExtension.class);
         testing.getSuites().withType(JvmTestSuite.class).configureEach(suite -> {
-            testSourceDirs.addAll(suite.getSources().getAllJava().getSrcDirs());
-            testResourceDirs.addAll(suite.getSources().getResources().getSrcDirs());
+            testSourceDirs.from(project.provider(() -> suite.getSources().getAllJava().getSrcDirs()));
+            testResourceDirs.from(project.provider(() -> suite.getSources().getResources().getSrcDirs()));
         });
     }
 
