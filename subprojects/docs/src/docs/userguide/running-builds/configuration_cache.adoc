@@ -63,6 +63,12 @@ Build configuration inputs include:
 - System properties, Gradle properties and configuration files used during the configuration phase, accessed using value suppliers such as providers for properties, environment variables etc...
 - `buildSrc` build configuration inputs and source files.
 
+Gradle uses its own optimized serialization mechanism and format to store the configuration cache entries.
+It automatically serializes the state of arbitrary object graphs.
+If your tasks hold references to objects with simple state or of supported types you don't have anything to do to support the serialization.
+
+As a fallback and to provide some aid in migrating existing tasks, some semantics of <<configuration_cache#config_cache:not_yet_implemented:java_serialization, Java Serialization>> are supported. But it is not recommended relying on it, mostly for performance reasons.
+
 [[config_cache:intro:performance_improvements]]
 === Performance improvements
 
