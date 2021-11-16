@@ -78,7 +78,7 @@ Specifies the port number on which process is listening when debug is enabled.
 _Default is `5005`._
 
 `org.gradle.debug.server=(true,false)`::
-Then set to `true` and debugging enabled, Gradle will run the build with socked-attach mode of debugger. Otherwise socket-listen is used.
+If set to `true` and debugging is enabled, Gradle will run the build with the socket-attach mode of the debugger. Otherwise, the socket-listen mode is used.
 _Default is `true`._
 
 `org.gradle.debug.suspend=(true,false)`::
