@@ -111,8 +111,8 @@ public class IdeaPlugin extends IdePlugin {
     private final IdeArtifactRegistry artifactRegistry;
     private final ProjectStateRegistry projectPathRegistry;
 
-    private ConfigurableFileCollection testSourceDirs;
-    private ConfigurableFileCollection testResourceDirs;
+    private ConfigurableFileCollection completeTestSourceDirs;
+    private ConfigurableFileCollection completeTestResourceDirs;
 
     @Inject
     public IdeaPlugin(Instantiator instantiator, UniqueProjectNameProvider uniqueProjectNameProvider, IdeArtifactRegistry artifactRegistry, ProjectStateRegistry projectPathRegistry) {
@@ -138,8 +138,8 @@ public class IdeaPlugin extends IdePlugin {
 
         ideaModel = project.getExtensions().create("idea", IdeaModel.class);
 
-        testSourceDirs = project.getObjects().fileCollection();
-        testResourceDirs = project.getObjects().fileCollection();
+        completeTestSourceDirs = project.getObjects().fileCollection();
+        completeTestResourceDirs = project.getObjects().fileCollection();
 
         configureIdeaWorkspace(project);
         configureIdeaProject(project);
@@ -398,7 +398,16 @@ public class IdeaPlugin extends IdePlugin {
                 return sourceDirs;
             }
         });
-        convention.map("testSourceDirs", () -> testSourceDirs.getFiles());
+        Set<File> testSourceDirs = Sets.newLinkedHashSet();
+        completeTestSourceDirs.from(testSourceDirs);
+        convention.map("testSourceDirs", new Callable<Set<File>>() {
+            @Override
+            public Set<File> call() {
+                SourceSetContainer sourceSets = project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets();
+                testSourceDirs.addAll(sourceSets.getByName("test").getAllJava().getSrcDirs());
+                return testSourceDirs;
+            }
+        });
         Set<File> resourceDirs = Sets.newLinkedHashSet();
         convention.map("resourceDirs", new Callable<Set<File>>() {
             @Override
@@ -408,7 +417,17 @@ public class IdeaPlugin extends IdePlugin {
                 return resourceDirs;
             }
         });
-        convention.map("testResourceDirs", () -> testResourceDirs.getFiles());
+        Set<File> testResourceDirs = Sets.newLinkedHashSet();
+        completeTestResourceDirs.from(testResourceDirs);
+        convention.map("testResourceDirs", new Callable<Set<File>>() {
+            @Override
+            public Set<File> call() {
+                SourceSetContainer sourceSets = project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets();
+                testResourceDirs.addAll(sourceSets.getByName("test").getResources().getSrcDirs());
+                return testResourceDirs;
+            }
+        });
+
         Map<String, FileCollection> singleEntryLibraries = new LinkedHashMap<String, FileCollection>(2);
         convention.map("singleEntryLibraries", new Callable<Map<String, FileCollection>>() {
             @Override
@@ -465,8 +484,8 @@ public class IdeaPlugin extends IdePlugin {
     private void configureIdeaModuleForTestSuites(final Project project) {
         final TestingExtension testing = project.getExtensions().getByType(TestingExtension.class);
         testing.getSuites().withType(JvmTestSuite.class).configureEach(suite -> {
-            testSourceDirs.from(project.provider(() -> suite.getSources().getAllJava().getSrcDirs()));
-            testResourceDirs.from(project.provider(() -> suite.getSources().getResources().getSrcDirs()));
+            completeTestSourceDirs.from(project.provider(() -> suite.getSources().getAllJava().getSrcDirs()));
+            completeTestResourceDirs.from(project.provider(() -> suite.getSources().getResources().getSrcDirs()));
         });
     }
 
