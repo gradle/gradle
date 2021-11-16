@@ -73,7 +73,7 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
     }
 
     @Override
-    public <T> AttributeContainer attribute(Attribute<T> key, Provider<? extends T> provider) {
+    public <T> AttributeContainer attributeProvider(Attribute<T> key, Provider<? extends T> provider) {
         checkInsertionAllowed(key);
         assertAttributeValueIsNotNull(provider);
         // We can only sometimes check the type of the provider ahead of time.
