@@ -42,21 +42,15 @@ public class JavaToolchainQueryService {
     private final Provider<Boolean> detectEnabled;
     private final Provider<Boolean> downloadEnabled;
     private final Map<JavaToolchainSpec, JavaToolchain> matchingToolchains;
-    private final File currentJvmHome;
 
     @Inject
     public JavaToolchainQueryService(JavaInstallationRegistry registry, JavaToolchainFactory toolchainFactory, JavaToolchainProvisioningService provisioningService, ProviderFactory factory) {
-        this(registry, toolchainFactory, provisioningService, factory, Jvm.current().getJavaHome());
-    }
-
-    protected JavaToolchainQueryService(JavaInstallationRegistry registry, JavaToolchainFactory toolchainFactory, JavaToolchainProvisioningService provisioningService, ProviderFactory factory, File currentJvmHome) {
         this.registry = registry;
         this.toolchainFactory = toolchainFactory;
         this.installService = provisioningService;
         this.detectEnabled = factory.gradleProperty(AutoDetectingInstallationSupplier.AUTO_DETECT).map(Boolean::parseBoolean);
         this.downloadEnabled = factory.gradleProperty(DefaultJavaToolchainProvisioningService.AUTO_DOWNLOAD).map(Boolean::parseBoolean);
         this.matchingToolchains = new ConcurrentHashMap<>();
-        this.currentJvmHome = currentJvmHome;
     }
 
     <T> Provider<T> toolFor(JavaToolchainSpec spec, Transformer<T, JavaToolchain> toolFunction) {
@@ -81,24 +75,13 @@ public class JavaToolchainQueryService {
             return asToolchain(((SpecificInstallationToolchainSpec) filter).getJavaHome(), filter).get();
         }
 
-        if (detectEnabled.getOrElse(true)) {
-            Optional<JavaToolchain> currentAsMatching = Stream.of(asToolchain(currentJvmHome, filter))
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .filter(new ToolchainMatcher(filter))
-                .findFirst();
-            if (currentAsMatching.isPresent()) {
-                return currentAsMatching.get();
-            }
-        }
-
         return registry.listInstallations().stream()
             .map(InstallationLocation::getLocation)
             .map(javaHome -> asToolchain(javaHome, filter))
             .filter(Optional::isPresent)
             .map(Optional::get)
             .filter(new ToolchainMatcher(filter))
-            .min(new JavaToolchainComparator())
+            .min(new JavaToolchainComparator(detectEnabled.getOrElse(true)))
             .orElseGet(() -> downloadToolchain(filter));
     }
 

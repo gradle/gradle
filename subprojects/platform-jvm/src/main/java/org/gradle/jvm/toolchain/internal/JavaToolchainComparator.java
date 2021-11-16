@@ -23,10 +23,17 @@ import java.util.Comparator;
 
 public class JavaToolchainComparator implements Comparator<JavaToolchain> {
 
+    private final boolean currentJvmMatters;
+
+    public JavaToolchainComparator(boolean currentJvmMatters) {
+        this.currentJvmMatters = currentJvmMatters;
+    }
+
     @Override
     public int compare(JavaToolchain o1, JavaToolchain o2) {
         return Comparator
-            .comparing(JavaToolchain::isJdk)
+            .comparing((JavaToolchain toolchain) -> currentJvmMatters && toolchain.isCurrentJvm())
+            .thenComparing(JavaToolchain::isJdk)
             .thenComparing(this::extractVendor, Comparator.reverseOrder())
             .thenComparing(JavaToolchain::getToolVersion)
             // It is possible for different JDK builds to have exact same version. The input order
