@@ -490,8 +490,8 @@ public class IdeaPlugin extends IdePlugin {
             completeTestSourceDirs.from(project.provider(() -> suite.getSources().getAllJava().getSrcDirs()));
             completeTestResourceDirs.from(project.provider(() -> suite.getSources().getResources().getSrcDirs()));
 
-            ideaModule.getTestSourceDirs().addAll(completeTestSourceDirs.getFiles());
-            ideaModule.getTestResourceDirs().addAll(completeTestResourceDirs.getFiles());
+            ideaModule.setTestSourceDirs(completeTestSourceDirs.getFiles());
+            ideaModule.setTestResourceDirs(completeTestResourceDirs.getFiles());
         });
 
     }
