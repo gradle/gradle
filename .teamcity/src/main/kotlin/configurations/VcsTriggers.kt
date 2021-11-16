@@ -22,7 +22,6 @@ val triggerExcludes = """
         -:.idea
         -:.github
         -:.teamcity
-        -:.teamcityTest
         -:subprojects/docs/src/docs/release
     """.trimIndent()
 

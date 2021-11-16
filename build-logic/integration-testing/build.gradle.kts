@@ -2,6 +2,8 @@ plugins {
     id("gradlebuild.build-logic.kotlin-dsl-gradle-plugin")
 }
 
+description = "Provides plugins to create and configure integration, cross-version and distribution tests"
+
 dependencies {
     implementation(project(":basics"))
     implementation(project(":cleanup"))

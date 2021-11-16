@@ -57,9 +57,6 @@ public interface ProviderFactory {
     /**
      * Creates a {@link Provider} whose value is fetched from the environment variable with the given name.
      *
-     * The returned provider cannot be queried at configuration time but can produce a configuration time provider
-     * via {@link Provider#forUseAtConfigurationTime()}.
-     *
      * @param variableName The name of the environment variable.
      * @return The provider. Never returns null.
      * @since 6.1
@@ -68,9 +65,6 @@ public interface ProviderFactory {
 
     /**
      * Creates a {@link Provider} whose value is fetched from the environment variable with the given name.
-     *
-     * The returned provider cannot be queried at configuration time but can produce a configuration time provider
-     * via {@link Provider#forUseAtConfigurationTime()}.
      *
      * @param variableName The provider for the name of the environment variable; when the given provider has no value, the returned provider has no value.
      * @return The provider. Never returns null.
@@ -81,9 +75,6 @@ public interface ProviderFactory {
     /**
      * Creates a {@link Provider} whose value is fetched from system properties using the given property name.
      *
-     * The returned provider cannot be queried at configuration time but can produce a configuration time provider
-     * via {@link Provider#forUseAtConfigurationTime()}.
-     *
      * @param propertyName the name of the system property
      * @return the provider for the system property, never returns null
      * @since 6.1
@@ -92,9 +83,6 @@ public interface ProviderFactory {
 
     /**
      * Creates a {@link Provider} whose value is fetched from system properties using the given property name.
-     *
-     * The returned provider cannot be queried at configuration time but can produce a configuration time provider
-     * via {@link Provider#forUseAtConfigurationTime()}.
      *
      * @param propertyName the name of the system property
      * @return the provider for the system property, never returns null
@@ -105,9 +93,6 @@ public interface ProviderFactory {
     /**
      * Creates a {@link Provider} whose value is fetched from the Gradle property of the given name.
      *
-     * The returned provider cannot be queried at configuration time but can produce a configuration time provider
-     * via {@link Provider#forUseAtConfigurationTime()}.
-     *
      * @param propertyName the name of the Gradle property
      * @return the provider for the Gradle property, never returns null
      * @since 6.2
@@ -116,9 +101,6 @@ public interface ProviderFactory {
 
     /**
      * Creates a {@link Provider} whose value is fetched from the Gradle property of the given name.
-     *
-     * The returned provider cannot be queried at configuration time but can produce a configuration time provider
-     * via {@link Provider#forUseAtConfigurationTime()}.
      *
      * @param propertyName the name of the Gradle property
      * @return the provider for the Gradle property, never returns null
@@ -160,9 +142,6 @@ public interface ProviderFactory {
 
     /**
      * Creates a {@link Provider} whose value is obtained from the given {@link ValueSource}.
-     *
-     * The returned provider cannot be queried at configuration time but can produce a configuration time provider
-     * via {@link Provider#forUseAtConfigurationTime()}.
      *
      * @param valueSourceType the type of the {@link ValueSource}
      * @param configuration action to configure the parameters to the given {@link ValueSource}

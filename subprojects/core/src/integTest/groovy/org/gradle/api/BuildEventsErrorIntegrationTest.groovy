@@ -18,7 +18,6 @@ package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
-import spock.lang.Unroll
 
 class BuildEventsErrorIntegrationTest extends AbstractIntegrationSpec {
 
@@ -95,7 +94,6 @@ allprojects {
                 .assertHasLineNumber(3)
     }
 
-    @Unroll
     @UnsupportedWithConfigurationCache(iterationMatchers = ".*Gradle.buildFinished.*")
     def "produces reasonable error when Gradle.#method closure fails"() {
         settingsFile << """
@@ -121,7 +119,6 @@ gradle.rootProject { task a }
         "buildFinished"     | _
     }
 
-    @Unroll
     @UnsupportedWithConfigurationCache(iterationMatchers = ".*Gradle.buildFinished.*")
     def "produces reasonable error when Gradle.#method action fails"() {
         settingsFile << """
@@ -148,7 +145,6 @@ gradle.rootProject { task a }
         "buildFinished"     | _
     }
 
-    @Unroll
     @UnsupportedWithConfigurationCache
     def "produces reasonable error when BuildListener.#method method fails"() {
         settingsFile << """

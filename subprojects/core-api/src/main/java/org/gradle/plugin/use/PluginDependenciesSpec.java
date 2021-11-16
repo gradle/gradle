@@ -45,7 +45,7 @@ import org.gradle.api.provider.ProviderConvertible;
  * This implies the following constraints:
  * </p>
  * <ul>
- * <li>Only {@link #id(String)} method calls may be top level statements</li>
+ * <li>Only {@link #id(String)}, {@link #alias(Provider)}, and {@link #alias(ProviderConvertible)} method calls may be top level statements</li>
  * <li>{@link #id(String)} calls may only be followed by a {@link PluginDependencySpec#version(String)} and/or {@link PluginDependencySpec#apply(boolean)} method call on the returned object</li>
  * <li>{@link #id(String)}, {@link PluginDependencySpec#version(String)} and {@link PluginDependencySpec#apply(boolean)} methods must be called with a literal argument (i.e. not a variable)</li>
  * <li>The <code>plugins {}</code> script block must follow any <code>buildscript {}</code> script block, but must precede all other logic in the script</li>

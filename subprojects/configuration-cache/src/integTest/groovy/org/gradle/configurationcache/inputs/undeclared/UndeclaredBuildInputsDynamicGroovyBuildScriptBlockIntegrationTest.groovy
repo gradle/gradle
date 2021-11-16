@@ -23,7 +23,7 @@ class UndeclaredBuildInputsDynamicGroovyBuildScriptBlockIntegrationTest extends 
     }
 
     @Override
-    void buildLogicApplication(SystemPropertyRead read) {
+    void buildLogicApplication(BuildInputRead read) {
         buildFile << """
             buildscript {
                 println("apply = " + ${read.groovyExpression})

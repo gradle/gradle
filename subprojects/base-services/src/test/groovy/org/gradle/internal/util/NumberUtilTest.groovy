@@ -17,7 +17,6 @@
 package org.gradle.internal.util
 
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import static org.gradle.internal.util.NumberUtil.formatBytes
 import static org.gradle.internal.util.NumberUtil.percentOf
@@ -52,7 +51,6 @@ class NumberUtilTest extends Specification {
         ex.message == "Unable to calculate percentage: -1 of 100. All inputs must be >= 0"
     }
 
-    @Unroll
     def "formats bytes (#bytes -> #humanReadableString)"(long bytes, String humanReadableString) {
         expect:
         formatBytes(bytes) == humanReadableString
@@ -79,7 +77,6 @@ class NumberUtilTest extends Specification {
         100L * 1000**5      | "88.8 PiB"
     }
 
-    @Unroll
     def "converts to 1024 based human readable format (#bytes -> #humanReadableString)"() {
         expect:
         formatBytes(bytes) == humanReadableString
@@ -90,7 +87,6 @@ class NumberUtilTest extends Specification {
         null  | 'unknown size'
     }
 
-    @Unroll
     def "converts 2^10 based human readable format (±#bytes -> ±#humanReadableString)"(long bytes, String humanReadableString) {
         expect:
         formatBytes(bytes) == humanReadableString

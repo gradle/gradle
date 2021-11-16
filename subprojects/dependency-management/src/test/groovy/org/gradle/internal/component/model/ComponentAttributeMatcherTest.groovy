@@ -26,7 +26,6 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.util.AttributeTestUtil
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import static org.gradle.util.AttributeTestUtil.attributes
 import static org.gradle.util.TestUtil.objectFactory
@@ -546,7 +545,6 @@ class ComponentAttributeMatcherTest extends Specification {
         result == [candidate1]
     }
 
-    @Unroll
     def "prefers a shorter match with compatible requested values and more than one extra attribute (type: #type)"() {
         def matcher = new ComponentAttributeMatcher()
         def usage = Attribute.of("usage", String)

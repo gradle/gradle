@@ -19,7 +19,6 @@ package org.gradle.integtests.resolve.transform
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import spock.lang.Unroll
 
 class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyResolutionTest implements ArtifactTransformTestFixture {
     /**
@@ -459,7 +458,6 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         failure.assertHasCause("broken")
     }
 
-    @Unroll
     def "can use input path sensitivity #pathSensitivity for parameter object"() {
         settingsFile << """
                 include 'a', 'b', 'c'

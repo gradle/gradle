@@ -20,7 +20,6 @@ import groovy.transform.CompileStatic
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
-import spock.lang.Unroll
 
 class FailOnDynamicVersionsResolveIntegrationTest extends AbstractModuleDependencyResolveTest {
 
@@ -318,7 +317,6 @@ class FailOnDynamicVersionsResolveIntegrationTest extends AbstractModuleDependen
         failure.assertHasCause("Could not resolve org:test:[1.2, 2.0[: Resolution strategy disallows usage of dynamic versions")
     }
 
-    @Unroll
     @ToBeFixedForConfigurationCache
     def "fails with combination of selectors (#selector1 and #selector2)"() {
         buildFile << """

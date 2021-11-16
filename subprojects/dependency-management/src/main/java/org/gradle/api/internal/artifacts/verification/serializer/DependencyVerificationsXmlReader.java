@@ -33,7 +33,7 @@ import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
-import org.xml.sax.helpers.DefaultHandler;
+import org.xml.sax.ext.DefaultHandler2;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
@@ -79,6 +79,7 @@ public class DependencyVerificationsXmlReader {
             SAXParser saxParser = createSecureParser();
             XMLReader xmlReader = saxParser.getXMLReader();
             VerifiersHandler handler = new VerifiersHandler(builder);
+            xmlReader.setProperty("http://xml.org/sax/properties/lexical-handler", handler);
             xmlReader.setContentHandler(handler);
             xmlReader.parse(new InputSource(in));
         } catch (Exception e) {
@@ -106,7 +107,7 @@ public class DependencyVerificationsXmlReader {
         return spf.newSAXParser();
     }
 
-    private static class VerifiersHandler extends DefaultHandler {
+    private static class VerifiersHandler extends DefaultHandler2 {
         private final Interner<String> stringInterner = Interners.newStrongInterner();
         private final DependencyVerifierBuilder builder;
         private boolean inMetadata;
@@ -396,5 +397,11 @@ public class DependencyVerificationsXmlReader {
             return stringInterner.intern(value);
         }
 
+        @Override
+        public void comment(char[] ch, int start, int length) throws SAXException {
+            if (!inMetadata) {
+                builder.addTopLevelComment(new String(ch, start, length));
+            }
+        }
     }
 }

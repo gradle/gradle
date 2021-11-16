@@ -37,6 +37,7 @@ import org.gradle.kotlin.dsl.support.bytecode.genericTypeOf
 import org.gradle.kotlin.dsl.support.bytecode.internalName
 import org.gradle.kotlin.dsl.support.bytecode.jvmGetterSignatureFor
 import org.gradle.kotlin.dsl.support.bytecode.kotlinDeprecation
+import org.gradle.kotlin.dsl.support.bytecode.providerConvertibleOfStar
 import org.gradle.kotlin.dsl.support.bytecode.providerOfStar
 import org.gradle.kotlin.dsl.support.bytecode.publicFunctionFlags
 import org.gradle.kotlin.dsl.support.bytecode.publicFunctionWithAnnotationsFlags
@@ -213,6 +214,57 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
             signature = JvmMethodSignature(
                 propertyName,
                 "(Lorg/gradle/api/artifacts/dsl/DependencyHandler;Lorg/gradle/api/provider/Provider;Lorg/gradle/api/Action;)V"
+            )
+        ),
+        AccessorFragment(
+            source = name.run {
+                """
+                    /**
+                     * Adds a dependency to the '$original' configuration.
+                     *
+                     * @param dependencyNotation notation for the dependency to be added.
+                     * @param dependencyConfiguration expression to use to configure the dependency.
+                     * @return The dependency.
+                     *
+                     * @see [DependencyHandler.add]
+                     */$deprecationBlock
+                    fun DependencyHandler.`$kotlinIdentifier`(
+                        dependencyNotation: ProviderConvertible<*>,
+                        dependencyConfiguration: Action<ExternalModuleDependency>
+                    ): Unit = addConfiguredDependencyTo(
+                        this, "$stringLiteral", dependencyNotation, dependencyConfiguration
+                    )
+                """
+            },
+            bytecode = {
+                publicStaticMaybeDeprecatedMethod(signature, config) {
+                    ALOAD(0)
+                    LDC(propertyName)
+                    ALOAD(1)
+                    ALOAD(2)
+                    invokeRuntime(
+                        "addConfiguredDependencyTo",
+                        "(L${GradleTypeName.dependencyHandler};Ljava/lang/String;Lorg/gradle/api/provider/ProviderConvertible;Lorg/gradle/api/Action;)V"
+                    )
+                    RETURN()
+                }
+            },
+            metadata = {
+                writer.writeFunctionOf(
+                    functionFlags = functionFlags,
+                    receiverType = GradleType.dependencyHandler,
+                    returnType = KotlinType.unit,
+                    name = propertyName,
+                    parameters = {
+                        visitParameter("dependencyNotation", providerConvertibleOfStar())
+                        visitParameter("dependencyConfiguration", actionTypeOf(GradleType.externalModuleDependency))
+                    },
+                    signature = signature
+                )
+            },
+            signature = JvmMethodSignature(
+                propertyName,
+                "(Lorg/gradle/api/artifacts/dsl/DependencyHandler;Lorg/gradle/api/provider/ProviderConvertible;Lorg/gradle/api/Action;)V"
             )
         ),
         AccessorFragment(

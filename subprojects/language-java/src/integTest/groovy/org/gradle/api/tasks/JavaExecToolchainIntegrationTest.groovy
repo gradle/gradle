@@ -17,15 +17,13 @@
 package org.gradle.api.tasks;
 
 import org.gradle.api.JavaVersion
-import org.gradle.integtests.fixtures.AbstractPluginIntegrationTest
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.jvm.Jvm
 import spock.lang.IgnoreIf
-import spock.lang.Unroll
 
-class JavaExecToolchainIntegrationTest extends AbstractPluginIntegrationTest {
+class JavaExecToolchainIntegrationTest extends AbstractIntegrationSpec {
 
-    @Unroll
     @IgnoreIf({ AvailableJavaHomes.differentJdk == null })
     def "can manually set java launcher via  #type toolchain on java exec task #jdk"() {
         buildFile << """

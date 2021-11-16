@@ -21,12 +21,10 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.IgnoreIf
-import spock.lang.Unroll
 
 class JreJavaHomeGroovyIntegrationTest extends AbstractIntegrationSpec {
 
     @IgnoreIf({ AvailableJavaHomes.bestJre == null})
-    @Unroll
     def "groovy java cross compilation works in forking mode = #forkMode when JAVA_HOME is set to JRE"() {
         given:
         def jreJavaHome = AvailableJavaHomes.bestJre
@@ -53,7 +51,6 @@ class JreJavaHomeGroovyIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Requires(TestPrecondition.WINDOWS)
-    @Unroll
     def "groovy compiler works when gradle is started with no JAVA_HOME defined in forking mode = #forkMode"() {
         given:
         writeJavaTestSource("src/main/groovy")

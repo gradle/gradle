@@ -24,7 +24,7 @@ import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 
 @CompileStatic
-trait SnasphotterFixture {
+trait SnapshotterFixture {
     abstract TestNameTestDirectoryProvider getTemporaryFolder()
 
     final FileCollectionSnapshotter snapshotter = TestFiles.fileCollectionSnapshotter()
@@ -37,13 +37,13 @@ trait SnasphotterFixture {
                     ? it as File
                     : temporaryFolder.file(it)
             }
-            def snapshot = snapshotter.snapshot(TestFiles.fixed(files))
+            def snapshot = snapshotter.snapshot(TestFiles.fixed(files)).snapshot
             builder.put(propertyName, snapshot)
         }
         return builder.build()
     }
 
     FileSystemSnapshot snapshot(File... files) {
-        snapshotter.snapshot(TestFiles.fixed(files))
+        snapshotter.snapshot(TestFiles.fixed(files)).snapshot
     }
 }

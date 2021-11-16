@@ -120,7 +120,18 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
     }
 
     private void waitForWorkToComplete() {
-        // Release worker lease while waiting
+        lock.lock();
+        try {
+            if (pendingOperations == 0) {
+                // All work is finished, clean up
+                markFinished();
+                return;
+            }
+        } finally {
+            lock.unlock();
+        }
+
+        // Need to wait for work to complete, so release worker lease while waiting
         workerLeases.blocking(() -> {
             lock.lock();
             try {
@@ -133,14 +144,18 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
                     }
                 }
 
-                queueState = QueueState.Done;
-                if (!failures.isEmpty()) {
-                    throw new MultipleBuildOperationFailures(failures, logLocation);
-                }
+                markFinished();
             } finally {
                 lock.unlock();
             }
         });
+    }
+
+    private void markFinished() {
+        queueState = QueueState.Done;
+        if (!failures.isEmpty()) {
+            throw new MultipleBuildOperationFailures(failures, logLocation);
+        }
     }
 
     private void addFailure(Throwable failure) {

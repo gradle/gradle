@@ -17,7 +17,6 @@
 package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Unroll
 
 class CompositeBuildConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationSpec {
 
@@ -302,7 +301,6 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
         notExecuted ':includedBuild:fooJar'
     }
 
-    @Unroll
     def "attribute values are matched across builds - #type"() {
         given:
         file('settings.gradle') << """

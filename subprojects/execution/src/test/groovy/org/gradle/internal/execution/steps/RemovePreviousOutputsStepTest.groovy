@@ -28,7 +28,7 @@ import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 
-class RemovePreviousOutputsStepTest extends StepSpec<InputChangesContext> implements SnasphotterFixture {
+class RemovePreviousOutputsStepTest extends StepSpec<InputChangesContext> implements SnapshotterFixture {
     @Rule
     TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
     def previousExecutionState = Mock(PreviousExecutionState)

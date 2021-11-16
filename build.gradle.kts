@@ -9,3 +9,5 @@ plugins {
     id("gradlebuild.wrapper")                    // Local development: Convenience tasks to update the wrapper (like 'nightlyWrapper')
     id("gradlebuild.quick-check")                // Local development: Convenience task `quickCheck` for running checkstyle/codenarc only on changed files before commit
 }
+
+description = "Adaptable, fast automation for all"

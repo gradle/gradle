@@ -174,11 +174,11 @@ class TestFilesCleanupServiceTest {
 
     @Test
     fun `fail build if leftover file found and test passes`() {
-        val result = run(":successful-test-with-leftover:test").buildAndFail()
+        val result = run(":successful-test-with-leftover:test", "--no-watch-fs").buildAndFail()
         assertEquals(TaskOutcome.SUCCESS, result.task(":successful-test-with-leftover:test")!!.outcome)
 
         assertEquals(1, StringUtils.countMatches(result.output, "Found non-empty test files dir"))
-        assertEquals(1, StringUtils.countMatches(result.output, "Failed to stop service 'testFilesCleanupsuccessful-test-with-leftover'"))
+        assertEquals(1, StringUtils.countMatches(result.output, "Failed to stop service 'testFilesCleanupBuildService'"))
         result.output.assertContains("successful-test-with-leftover/build/tmp/test files/leftover")
 
         assertArchivedFilesSeen("report-successful-test-with-leftover-leftover.zip")
@@ -191,7 +191,8 @@ class TestFilesCleanupServiceTest {
             ":failed-report-with-leftover:test",
             ":successful-report:test",
             ":failed-test-with-leftover:test",
-            "--continue"
+            "--continue",
+            "--no-watch-fs"
         ).buildAndFail()
         assertEquals(TaskOutcome.SUCCESS, result.task(":successful-report:test")!!.outcome)
         assertEquals(TaskOutcome.FAILED, result.task(":failed-report-with-leftover:test")!!.outcome)
@@ -199,7 +200,7 @@ class TestFilesCleanupServiceTest {
 
         // leftover files failed tests are reported but not counted as an exception, but cleaned up eventually
         assertEquals(1, StringUtils.countMatches(result.output, "Found non-empty test files dir"))
-        assertEquals(1, StringUtils.countMatches(result.output, "Failed to stop service 'testFilesCleanupfailed-report-with-leftover'"))
+        assertEquals(1, StringUtils.countMatches(result.output, "Failed to stop service 'testFilesCleanupBuildService'"))
         result.output.assertContains("failed-report-with-leftover/build/tmp/test files/leftover")
         result.output.assertContains("failed-test-with-leftover/build/tmp/test files/leftover")
 
@@ -218,7 +219,7 @@ class TestFilesCleanupServiceTest {
 
     @Test
     fun `build does not fail if a flaky test has leftover files`() {
-        val result = run(":flaky-test-with-leftover:test").build()
+        val result = run(":flaky-test-with-leftover:test", "--no-watch-fs").build()
 
         // leftover files failed tests are reported but not counted as an exception, but cleaned up eventually
         assertEquals(1, StringUtils.countMatches(result.output, "Leftover files"))

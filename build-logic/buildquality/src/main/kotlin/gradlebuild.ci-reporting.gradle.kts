@@ -15,9 +15,10 @@
  */
 
 import gradlebuild.basics.BuildEnvironment
+import gradlebuild.testcleanup.TestFilesCleanupRootPlugin
 import gradlebuild.testcleanup.extension.TestFileCleanUpExtension
-import gradlebuild.testcleanup.TestFilesCleanupService
-import org.gradle.kotlin.dsl.support.serviceOf
+import gradlebuild.testcleanup.extension.TestFilesCleanupBuildServiceRootExtension
+import gradlebuild.testcleanup.extension.TestFilesCleanupProjectState
 
 /**
  * When run from a Continuous Integration environment, we only want to archive a subset of reports, mostly for
@@ -33,5 +34,13 @@ val testFilesCleanup = extensions.create<TestFileCleanUpExtension>("testFilesCle
 }
 
 if (BuildEnvironment.isCiServer && project.name != "gradle-kotlin-dsl-accessors") {
-    TestFilesCleanupService.register(project, testFilesCleanup.reportOnly, serviceOf())
+    rootProject.plugins.apply(TestFilesCleanupRootPlugin::class.java)
+    val globalExtension = rootProject.extensions.getByType<TestFilesCleanupBuildServiceRootExtension>()
+
+    val projectState = objects.newInstance(TestFilesCleanupProjectState::class.java)
+
+    globalExtension.projectStates.put(path, projectState)
+    projectState.projectBuildDir.set(buildDir)
+    projectState.projectName.set(name)
+    projectState.reportOnly.set(testFilesCleanup.reportOnly)
 }

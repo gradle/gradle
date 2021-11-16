@@ -28,7 +28,6 @@ import org.gradle.internal.taskgraph.CalculateTreeTaskGraphBuildOperationType
 import org.gradle.launcher.exec.RunBuildBuildOperationType
 import org.gradle.vcs.fixtures.GitFileRepository
 import org.junit.Rule
-import spock.lang.Unroll
 
 import java.util.regex.Pattern
 
@@ -37,7 +36,6 @@ class SourceDependencyBuildOperationIntegrationTest extends AbstractIntegrationS
     GitFileRepository repo = new GitFileRepository('buildB', temporaryFolder.getTestDirectory())
     def operations = new BuildOperationsFixture(executer, temporaryFolder)
 
-    @Unroll
     @ToBeFixedForConfigurationCache
     def "generates configure, task graph and run tasks operations for source dependency build with #display"() {
         given:

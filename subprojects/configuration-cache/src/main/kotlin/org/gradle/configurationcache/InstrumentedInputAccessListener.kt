@@ -16,9 +16,6 @@
 
 package org.gradle.configurationcache
 
-import org.gradle.configuration.internal.UserCodeApplicationContext
-import org.gradle.configurationcache.problems.ProblemsListener
-import org.gradle.configurationcache.problems.location
 import org.gradle.configurationcache.serialization.Workarounds
 import org.gradle.internal.classpath.Instrumented
 import org.gradle.internal.event.ListenerManager
@@ -62,23 +59,24 @@ val allowedProperties = setOf(
 
 
 @ServiceScope(Scopes.BuildTree::class)
-class SystemPropertyAccessListener(
-    private val problems: ProblemsListener,
-    private val userCodeContext: UserCodeApplicationContext,
+class InstrumentedInputAccessListener(
     listenerManager: ListenerManager
 ) : Instrumented.Listener {
-    private
-    val broadcast = listenerManager.getBroadcaster(UndeclaredBuildInputListener::class.java)
 
     private
-    val nullProperties = mutableSetOf<String>()
+    val broadcast = listenerManager.getBroadcaster(UndeclaredBuildInputListener::class.java)
 
     override fun systemPropertyQueried(key: String, value: Any?, consumer: String) {
         if (allowedProperties.contains(key) || Workarounds.canReadSystemProperty(consumer)) {
             return
         }
-        if (nullProperties.add(key)) {
-            broadcast.systemPropertyRead(key, value, userCodeContext.location(consumer))
+        broadcast.systemPropertyRead(key, value, consumer)
+    }
+
+    override fun envVariableQueried(key: String, value: String?, consumer: String) {
+        if (Workarounds.canReadEnvironmentVariable(consumer)) {
+            return
         }
+        broadcast.envVariableRead(key, value, consumer)
     }
 }

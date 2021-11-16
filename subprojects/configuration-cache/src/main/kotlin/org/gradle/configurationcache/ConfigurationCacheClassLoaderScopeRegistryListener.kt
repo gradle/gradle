@@ -18,7 +18,6 @@ package org.gradle.configurationcache
 
 import org.gradle.api.internal.initialization.ClassLoaderScopeIdentifier
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderId
-import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.configurationcache.serialization.ClassLoaderRole
 import org.gradle.configurationcache.serialization.ScopeLookup
 import org.gradle.initialization.ClassLoaderScopeId
@@ -35,10 +34,6 @@ import java.io.Closeable
 @ServiceScope(Scopes.BuildTree::class)
 internal
 class ConfigurationCacheClassLoaderScopeRegistryListener(
-
-    private
-    val startParameter: ConfigurationCacheStartParameter,
-
     private
     val listenerManager: ClassLoaderScopeRegistryListenerManager
 
@@ -51,9 +46,7 @@ class ConfigurationCacheClassLoaderScopeRegistryListener(
     val loaders = mutableMapOf<ClassLoader, Pair<ClassLoaderScopeSpec, ClassLoaderRole>>()
 
     override fun afterStart() {
-        if (startParameter.isEnabled) {
-            listenerManager.add(this)
-        }
+        listenerManager.add(this)
     }
 
     /**

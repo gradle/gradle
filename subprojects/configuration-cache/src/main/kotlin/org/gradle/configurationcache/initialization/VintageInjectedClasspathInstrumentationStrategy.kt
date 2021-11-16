@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.project;
+package org.gradle.configurationcache.initialization
 
-import org.gradle.initialization.ProjectAccessHandler;
+import org.gradle.internal.classpath.CachedClasspathTransformer
 
-public class ConfigurationOnDemandProjectAccessListener implements ProjectAccessHandler {
-    @Override
-    public void beforeResolvingProjectDependency(ProjectInternal targetProject) {
-        targetProject.getOwner().ensureConfigured();
+
+class VintageInjectedClasspathInstrumentationStrategy : AbstractInjectedClasspathInstrumentationStrategy() {
+    override fun whenAgentPresent(): CachedClasspathTransformer.StandardTransform {
+        // For now, disable the instrumentation
+        return CachedClasspathTransformer.StandardTransform.None
     }
 }

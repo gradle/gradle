@@ -27,7 +27,7 @@ dependencyResolutionManagement {
     }
 }
 
-if (providers.systemProperty("create1").forUseAtConfigurationTime().getOrNull() != null) {
+if (providers.systemProperty("create1").getOrNull() != null) {
     // tag::consume_catalog[]
     dependencyResolutionManagement {
         versionCatalogs {
@@ -39,7 +39,7 @@ if (providers.systemProperty("create1").forUseAtConfigurationTime().getOrNull() 
     // end::consume_catalog[]
 }
 
-if (providers.systemProperty("create2").forUseAtConfigurationTime().getOrNull() != null) {
+if (providers.systemProperty("create2").getOrNull() != null) {
     // tag::overwrite_version[]
     dependencyResolutionManagement {
         versionCatalogs {

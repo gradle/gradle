@@ -34,6 +34,7 @@ public class TaskReportRenderer extends TextReportRenderer {
     private boolean currentProjectHasRules;
     private boolean hasContent;
     private boolean detail;
+    private boolean showTypes;
 
     @Override
     public void startProject(ProjectDetails project) {
@@ -52,6 +53,10 @@ public class TaskReportRenderer extends TextReportRenderer {
 
     public void showDetail(boolean detail) {
         this.detail = detail;
+    }
+
+    public void showTypes(boolean showTypes) {
+        this.showTypes = showTypes;
     }
 
     /**
@@ -86,11 +91,23 @@ public class TaskReportRenderer extends TextReportRenderer {
 
     private void writeTask(TaskDetails task, String prefix) {
         getTextOutput().text(prefix);
+        maybeWriteTaskNameAndType(task);
+        maybeWriteTaskDescription(task);
+        getTextOutput().println();
+    }
+
+    private void maybeWriteTaskNameAndType(TaskDetails task) {
         getTextOutput().withStyle(Identifier).text(task.getPath());
+        if (showTypes) {
+            final StyledTextOutput typeOutput = getTextOutput().withStyle(Info);
+            typeOutput.format(" (%s)", task.getTypeName());
+        }
+    }
+
+    private void maybeWriteTaskDescription(TaskDetails task) {
         if (GUtil.isTrue(task.getDescription())) {
             getTextOutput().withStyle(Description).format(" - %s", task.getDescription());
         }
-        getTextOutput().println();
     }
 
     private void addSubheading(String header) {

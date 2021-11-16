@@ -20,7 +20,6 @@ import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.WithExternalRepository
 import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
-import spock.lang.Unroll
 
 import static org.gradle.performance.annotations.ScenarioType.PER_COMMIT
 import static org.gradle.performance.results.OperatingSystem.LINUX
@@ -51,7 +50,6 @@ class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionPerformanc
         result.assertCurrentVersionHasNotRegressed()
     }
 
-    @Unroll
     def "resolve large dependency graph (parallel = #parallel, locking = #locking)"() {
         startServer()
 

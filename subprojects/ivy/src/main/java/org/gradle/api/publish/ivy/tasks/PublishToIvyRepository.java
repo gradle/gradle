@@ -144,7 +144,7 @@ public class PublishToIvyRepository extends DefaultTask {
         if (repository == null) {
             throw new InvalidUserDataException("The 'repository' property is required");
         }
-        getDuplicatePublicationTracker().checkCanPublish(publicationInternal, repository.getUrl(), repository.getName());
+        getDuplicatePublicationTracker().checkCanPublish(getProject(), publicationInternal, repository.getUrl(), repository.getName());
 
         doPublish(publicationInternal, repository);
     }

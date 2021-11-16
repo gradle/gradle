@@ -11,16 +11,15 @@ val aggregate by configurations.creating {
 }
 
 // Resolvable configuration to resolve the classes of all dependencies
-val classPath by configurations.creating {
+val classesPath by configurations.creating {
     isVisible = false
     isCanBeResolved = true
     isCanBeConsumed = false
     extendsFrom(aggregate)
     attributes {
-        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
-        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
-        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.CLASSES))
-        attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling.EXTERNAL))
+        attribute(Usage.USAGE_ATTRIBUTE, objects.named<Usage>(Usage.JAVA_RUNTIME))
+        attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>(Category.LIBRARY))
+        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named<LibraryElements>(LibraryElements.CLASSES))
     }
 }
 
@@ -31,9 +30,9 @@ val sourcesPath by configurations.creating {
     isCanBeConsumed = false
     extendsFrom(aggregate)
     attributes {
-        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
-        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.DOCUMENTATION))
-        attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named("source-folders"))
+        attribute(Usage.USAGE_ATTRIBUTE, objects.named<Usage>(Usage.VERIFICATION))
+        attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>(Category.DOCUMENTATION))
+        attribute(Sources.SOURCES_ATTRIBUTE, objects.named<Sources>(Sources.ALL_SOURCE_DIRS))
     }
 }
 
@@ -44,15 +43,15 @@ val coverageDataPath by configurations.creating {
     isCanBeConsumed = false
     extendsFrom(aggregate)
     attributes {
-        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
-        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.DOCUMENTATION))
-        attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named("jacoco-coverage-data"))
+        attribute(Usage.USAGE_ATTRIBUTE, objects.named<Usage>(Usage.VERIFICATION))
+        attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>(Category.DOCUMENTATION))
+        attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named<DocsType>(DocsType.JACOCO_COVERAGE))
     }
 }
 
 // Register a code coverage report task to generate the aggregated report
 val codeCoverageReport by tasks.registering(JacocoReport::class) {
-    additionalClassDirs(classPath.filter { it.isDirectory() })
+    additionalClassDirs(classesPath.filter { it.isDirectory() })
     additionalSourceDirs(sourcesPath.incoming.artifactView { lenient(true) }.files)
     executionData(coverageDataPath.incoming.artifactView { lenient(true) }.files.filter { it.exists() })
 

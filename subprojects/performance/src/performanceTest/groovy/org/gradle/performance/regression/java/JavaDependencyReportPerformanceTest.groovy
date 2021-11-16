@@ -19,7 +19,6 @@ package org.gradle.performance.regression.java
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
-import spock.lang.Unroll
 
 import static org.gradle.performance.annotations.ScenarioType.PER_DAY
 import static org.gradle.performance.generator.JavaTestProjectGenerator.LARGE_JAVA_MULTI_PROJECT
@@ -30,7 +29,6 @@ import static org.gradle.performance.results.OperatingSystem.LINUX
 )
 class JavaDependencyReportPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
-    @Unroll
     def "generate dependency report"() {
         given:
         def subProject = (runner.testProject == LARGE_JAVA_MULTI_PROJECT.projectName) ? 'project363:' : ''

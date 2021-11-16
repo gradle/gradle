@@ -19,7 +19,6 @@ package org.gradle.api.internal.changedetection.state
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.Actions
-import spock.lang.Unroll
 
 class TaskCustomTypesInputPropertyIntegrationTest extends AbstractIntegrationSpec {
     String customSerializableType() {
@@ -356,7 +355,6 @@ task someTask {
         skipped(":someTask")
     }
 
-    @Unroll
     @ToBeFixedForConfigurationCache(because = "ClassNotFoundException: ArrayList1_groovyProxy", iterationMatchers = '.*\\[type: Map, #2\\]$')
     def "task can take as input a collection of custom types from various sources"() {
         def buildSrcType = file("buildSrc/src/main/java/CustomType.java")

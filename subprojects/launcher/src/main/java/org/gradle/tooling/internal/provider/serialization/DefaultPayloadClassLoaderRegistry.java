@@ -97,6 +97,10 @@ public class DefaultPayloadClassLoaderRegistry implements PayloadClassLoaderRegi
 
     private ClassLoader getClassLoader(ClassLoaderDetails details) {
         ClassLoader classLoader = cache.getClassLoader(details, detailsToClassLoader);
+        // A single classloader is used in the daemon for a given set of client owned classloaders
+        // When this classloader is reused for multiple requests, the classpath of subsequent requests may be different.
+        // So, update the classpath of this shared classloader
+        // It would be better to not combine client classloaders but instead to recreate the client side structure
         if (details.spec instanceof ClientOwnedClassLoaderSpec) {
             ClientOwnedClassLoaderSpec spec = (ClientOwnedClassLoaderSpec) details.spec;
             VisitableURLClassLoader urlClassLoader = (VisitableURLClassLoader) classLoader;

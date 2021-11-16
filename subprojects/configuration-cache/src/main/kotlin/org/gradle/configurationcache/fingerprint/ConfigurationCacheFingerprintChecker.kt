@@ -40,6 +40,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
         val gradleUserHomeDir: File
         val allInitScripts: List<File>
         val buildStartTime: Long
+        fun gradleProperty(propertyName: String): String?
         fun fingerprintOf(fileCollection: FileCollectionInternal): HashCode
         fun hashCodeOf(file: File): HashCode?
         fun displayNameOf(fileOrDirectory: File): String
@@ -106,9 +107,19 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                 val reason = checkInitScriptsAreUpToDate(fingerprints, host.allInitScripts)
                 if (reason != null) return reason
             }
+            is ConfigurationCacheFingerprint.UndeclaredGradleProperty -> input.run {
+                if (host.gradleProperty(key) != value) {
+                    return "Gradle property '$key' has changed"
+                }
+            }
             is ConfigurationCacheFingerprint.UndeclaredSystemProperty -> input.run {
                 if (System.getProperty(key) != value) {
                     return "system property '$key' has changed"
+                }
+            }
+            is ConfigurationCacheFingerprint.UndeclaredEnvironmentVariable -> input.run {
+                if (System.getenv(key) != value) {
+                    return "environment variable '$key' has changed"
                 }
             }
             is ConfigurationCacheFingerprint.ChangingDependencyResolutionValue -> input.run {

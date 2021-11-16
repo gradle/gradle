@@ -19,7 +19,6 @@ package org.gradle.integtests.resolve.maven
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
-import spock.lang.Unroll
 
 import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser.FORMAT_VERSION
 
@@ -574,7 +573,6 @@ task checkRelease {
         succeeds("checkRelease")
     }
 
-    @Unroll
     @ToBeFixedForConfigurationCache
     def "consumer can use attribute of type #type"() {
         def a = mavenHttpRepo.module("test", "a", "1.2")

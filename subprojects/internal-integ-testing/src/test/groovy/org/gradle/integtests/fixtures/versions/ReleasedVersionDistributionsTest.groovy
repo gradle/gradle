@@ -19,7 +19,6 @@ package org.gradle.integtests.fixtures.versions
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.internal.Factory
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import static org.gradle.util.GradleVersion.version
 
@@ -77,7 +76,6 @@ class ReleasedVersionDistributionsTest extends Specification {
         versions().supported*.version == [version("1.3-rc-1"), version("1.2")]
     }
 
-    @Unroll
     def "get previous distribution for #description"() {
         when:
         def versions = new ReleasedVersionDistributions(IntegrationTestBuildContext.INSTANCE)

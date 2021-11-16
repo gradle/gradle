@@ -35,10 +35,6 @@ class CatalogPluginsKotlinDSLIntegrationTest extends AbstractVersionCatalogInteg
     @Rule
     final MavenHttpPluginRepository pluginPortal = MavenHttpPluginRepository.asGradlePluginPortal(executer, mavenRepo)
 
-    def setup() {
-        usePluginRepoMirror = false // otherwise the plugin portal fixture doesn't work!
-    }
-
     def "can declare multiple catalogs"() {
         String taskName = 'greet'
         String message = 'Hello from plugin!'

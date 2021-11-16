@@ -106,7 +106,6 @@ class ProjectFactoryTest extends Specification {
         then:
         result == project
         1 * instantiator.newInstance(DefaultProject, "name", parent, projectDir, buildFile, _, gradle, projectState, serviceRegistryFactory, rootProjectScope, baseScope) >> project
-        1 * parent.addChildProject(project)
         1 * projectRegistry.addProject(project)
     }
 }

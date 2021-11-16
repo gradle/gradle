@@ -90,6 +90,7 @@ class PerformanceTestBuildTypeTest {
             "-Dorg.gradle.internal.plugins.portal.url.override=%gradle.plugins.portal.url%",
             "-s",
             "--no-configuration-cache",
+            "%additional.gradle.parameters%",
             "--daemon",
             "--continue",
             "\"-Dscan.tag.PerformanceTest\""

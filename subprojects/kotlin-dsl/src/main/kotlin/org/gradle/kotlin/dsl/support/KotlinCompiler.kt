@@ -57,6 +57,9 @@ import org.jetbrains.kotlin.config.LanguageVersion
 import org.jetbrains.kotlin.config.LanguageVersionSettingsImpl
 
 import org.jetbrains.kotlin.extensions.StorageComponentContainerContributor.Companion.registerExtension
+import org.jetbrains.kotlin.load.java.JavaTypeEnhancementState
+import org.jetbrains.kotlin.load.java.Jsr305Settings
+import org.jetbrains.kotlin.load.java.ReportLevel
 
 import org.jetbrains.kotlin.name.NameUtils
 
@@ -352,6 +355,7 @@ val gradleKotlinDslLanguageVersionSettings = LanguageVersionSettingsImpl(
     apiVersion = ApiVersion.KOTLIN_1_4,
     analysisFlags = mapOf(
         AnalysisFlags.skipMetadataVersionCheck to true,
+        JvmAnalysisFlags.javaTypeEnhancementState to JavaTypeEnhancementState(Jsr305Settings(ReportLevel.STRICT, ReportLevel.STRICT)) { ReportLevel.STRICT },
         JvmAnalysisFlags.jvmDefaultMode to JvmDefaultMode.ENABLE,
     ),
     specificFeatures = mapOf(

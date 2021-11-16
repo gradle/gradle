@@ -37,6 +37,7 @@ import java.lang.invoke.SerializedLambda;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import static org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL;
@@ -98,6 +99,8 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
     private static final String RETURN_CALL_SITE_ARRAY = getMethodDescriptor(getType(CallSiteArray.class));
     private static final String RETURN_VOID_FROM_CALL_SITE_ARRAY = getMethodDescriptor(Type.VOID_TYPE, getType(CallSiteArray.class));
     private static final String RETURN_OBJECT_FROM_SERIALIZED_LAMBDA = getMethodDescriptor(OBJECT_TYPE, SERIALIZED_LAMBDA_TYPE);
+    private static final String RETURN_MAP = getMethodDescriptor(getType(Map.class));
+    private static final String RETURN_MAP_FROM_STRING = getMethodDescriptor(getType(Map.class), STRING_TYPE);
 
     private static final String LAMBDA_METAFACTORY_TYPE = getType(LambdaMetafactory.class).getInternalName();
     private static final String LAMBDA_METAFACTORY_METHOD_DESCRIPTOR = getMethodDescriptor(getType(CallSite.class), getType(MethodHandles.Lookup.class), STRING_TYPE, getType(MethodType.class), getType(Object[].class));
@@ -273,6 +276,18 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
                     _LDC(binaryClassNameOf(className));
                     _INVOKESTATIC(INSTRUMENTED_TYPE, "systemProperties", RETURN_PROPERTIES_FROM_STRING);
                     return true;
+                } else if (name.equals("getenv")) {
+                    if (descriptor.equals(RETURN_STRING_FROM_STRING)) {
+                        // System.getenv(String) -> String
+                        _LDC(binaryClassNameOf(className));
+                        _INVOKESTATIC(INSTRUMENTED_TYPE, "getenv", RETURN_STRING_FROM_STRING_STRING);
+                        return true;
+                    } else if (descriptor.equals(RETURN_MAP)) {
+                        // System.getenv() -> Map<String, String>
+                        _LDC(binaryClassNameOf(className));
+                        _INVOKESTATIC(INSTRUMENTED_TYPE, "getenv", RETURN_MAP_FROM_STRING);
+                        return true;
+                    }
                 }
             } else if (owner.equals(INTEGER_TYPE.getInternalName()) && name.equals("getInteger")) {
                 if (descriptor.equals(RETURN_INTEGER_FROM_STRING)) {

@@ -17,7 +17,6 @@
 package org.gradle.internal.buildoption
 
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class BooleanCommandLineOptionConfigurationTest extends Specification {
 
@@ -72,7 +71,6 @@ class BooleanCommandLineOptionConfigurationTest extends Specification {
         configuration.deprecated
     }
 
-    @Unroll
     def "is instantiated with null constructor parameter values (#longOption, #shortOption, #enabledDescription, #disabledDescription)"() {
         when:
         BooleanCommandLineOptionConfiguration.create(longOption, shortOption, enabledDescription, disabledDescription)

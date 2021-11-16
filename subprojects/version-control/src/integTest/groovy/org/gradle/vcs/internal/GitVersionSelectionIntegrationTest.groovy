@@ -23,7 +23,6 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.vcs.fixtures.GitHttpRepository
 import org.junit.Rule
-import spock.lang.Unroll
 
 class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
     @Rule
@@ -227,7 +226,6 @@ Required by:
         result.assertTasksExecuted(":dep:jar_2.0", ":checkDeps")
     }
 
-    @Unroll
     @ToBeFixedForConfigurationCache
     def "selects and builds from highest tag that matches #selector selector"() {
         given:
@@ -280,7 +278,6 @@ Required by:
         "[1.0,1.9]" | _
     }
 
-    @Unroll
     @ToBeFixedForConfigurationCache
     def "reports on and recovers from missing version for selector #selector"() {
         given:
@@ -340,7 +337,6 @@ Required by:
         "[1.0,1.9]" | _
     }
 
-    @Unroll
     def "static selector cannot reference #selector"() {
         given:
         buildFile << """

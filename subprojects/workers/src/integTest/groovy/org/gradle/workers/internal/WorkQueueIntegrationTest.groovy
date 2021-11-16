@@ -19,7 +19,6 @@ package org.gradle.workers.internal
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.workers.fixtures.WorkerExecutorFixture
 import org.junit.Rule
-import spock.lang.Unroll
 
 import static org.gradle.workers.fixtures.WorkerExecutorFixture.ISOLATION_MODES
 
@@ -58,7 +57,6 @@ class WorkQueueIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
         """
     }
 
-    @Unroll
     def "can wait on work items submitted to a queue with #isolationMode"() {
         buildFile << """
             task runWork(type: WorkItemTask) {
@@ -106,7 +104,6 @@ class WorkQueueIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
         isolationMode << ISOLATION_MODES
     }
 
-    @Unroll
     def "all errors are reported when waiting on work submitted to a queue in #isolationMode"() {
         buildFile << """
             task runWork(type: WorkItemTask) {
@@ -161,7 +158,6 @@ class WorkQueueIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
         isolationMode << ISOLATION_MODES
     }
 
-    @Unroll
     def "errors in work submitted to other queues cause a task failure when waiting for work in #isolationMode"() {
         buildFile << """
             task runWork(type: WorkItemTask) {

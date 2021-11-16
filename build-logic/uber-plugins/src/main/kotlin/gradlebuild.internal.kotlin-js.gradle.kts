@@ -15,6 +15,7 @@
  */
 
 import org.jetbrains.kotlin.gradle.dsl.KotlinJsCompile
+import org.jetbrains.kotlin.gradle.plugin.KotlinJsCompilerType
 
 plugins {
     kotlin("js")
@@ -25,7 +26,7 @@ plugins {
 }
 
 kotlin {
-    js {
+    js(KotlinJsCompilerType.IR) {
         browser {
             webpackTask {
                 sourceMaps = false

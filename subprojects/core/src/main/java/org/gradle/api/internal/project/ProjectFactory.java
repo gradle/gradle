@@ -67,9 +67,6 @@ public class ProjectFactory implements IProjectFactory {
             gradle.getServices().get(DependencyResolutionManagementInternal.class).configureProject(project);
         });
 
-        if (parent != null) {
-            parent.addChildProject(project);
-        }
         gradle.getProjectRegistry().addProject(project);
         return project;
     }

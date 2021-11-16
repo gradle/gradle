@@ -16,6 +16,7 @@
 
 package org.gradle.api.attributes;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
@@ -60,4 +61,11 @@ public interface Category extends Named {
      */
     String DOCUMENTATION = "documentation";
 
+    /**
+     * The source code category
+     *
+     * @since 7.4
+     */
+    @Incubating
+    String SOURCES = "sources";
 }
