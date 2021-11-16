@@ -332,7 +332,9 @@ abstract class AbstractSmokeTest extends Specification {
     }
 
     protected static SmokeTestGradleRunner expectAgpFileTreeDeprecations(String agpVersion, SmokeTestGradleRunner runner) {
-        expectAgpFileTreeDeprecationWarnings(runner, "compileDebugAidl", "compileDebugRenderscript", "stripDebugDebugSymbols", "bundleLibResDebug")
+        if (agpVersion.startsWith("4.") || agpVersion.startsWith("7.0.") || agpVersion.startsWith("7.1.")) {
+            expectAgpFileTreeDeprecationWarnings(runner, "compileDebugAidl", "compileDebugRenderscript", "stripDebugDebugSymbols", "bundleLibResDebug")
+        }
         if (agpVersion.startsWith("4.")) {
             expectAgpFileTreeDeprecationWarnings(runner, "mergeDebugNativeLibs")
         }
