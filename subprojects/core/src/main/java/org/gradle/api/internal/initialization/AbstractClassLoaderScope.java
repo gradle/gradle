@@ -21,8 +21,10 @@ import org.gradle.initialization.ClassLoaderScopeId;
 import org.gradle.initialization.ClassLoaderScopeRegistryListener;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.plugin.use.PluginId;
 
 import javax.annotation.Nullable;
+import java.util.Map;
 import java.util.function.Function;
 
 /**
@@ -33,11 +35,13 @@ public abstract class AbstractClassLoaderScope implements ClassLoaderScope {
     protected final ClassLoaderScopeIdentifier id;
     protected final ClassLoaderCache classLoaderCache;
     protected final ClassLoaderScopeRegistryListener listener;
+    protected final Map<PluginId, String> pluginVersionMap;
 
-    protected AbstractClassLoaderScope(ClassLoaderScopeIdentifier id, ClassLoaderCache classLoaderCache, ClassLoaderScopeRegistryListener listener) {
+    protected AbstractClassLoaderScope(ClassLoaderScopeIdentifier id, ClassLoaderCache classLoaderCache, ClassLoaderScopeRegistryListener listener, Map<PluginId, String> pluginVersionMap) {
         this.id = id;
         this.classLoaderCache = classLoaderCache;
         this.listener = listener;
+        this.pluginVersionMap = pluginVersionMap;
     }
 
     /**
@@ -52,6 +56,17 @@ public abstract class AbstractClassLoaderScope implements ClassLoaderScope {
      */
     public String getPath() {
         return id.getPath();
+    }
+
+    @Nullable
+    @Override
+    public String getPluginVersion(PluginId pluginId) {
+        return pluginVersionMap.get(pluginId);
+    }
+
+    @Override
+    public void setPluginVersion(PluginId pluginId, String version) {
+        immutable();
     }
 
     @Override
@@ -80,6 +95,6 @@ public abstract class AbstractClassLoaderScope implements ClassLoaderScope {
 
     @Override
     public ClassLoaderScope createLockedChild(String name, ClassPath localClasspath, @Nullable HashCode classpathImplementationHash, Function<ClassLoader, ClassLoader> localClassLoaderFactory) {
-        return new ImmutableClassLoaderScope(id.child(name), this, localClasspath, classpathImplementationHash, localClassLoaderFactory, classLoaderCache, listener);
+        return new ImmutableClassLoaderScope(id.child(name), this, localClasspath, classpathImplementationHash, localClassLoaderFactory, classLoaderCache, listener, pluginVersionMap);
     }
 }

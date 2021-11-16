@@ -19,6 +19,7 @@ package org.gradle.api.internal.initialization;
 import org.gradle.initialization.ClassLoaderScopeId;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.plugin.use.PluginId;
 
 import javax.annotation.Nullable;
 import java.util.function.Function;
@@ -59,6 +60,25 @@ public interface ClassLoaderScope {
      * some parent.
      */
     boolean defines(Class<?> clazz);
+
+    /**
+     * Returns the plugin version for the given plugin id, if known to this scope.
+     *
+     * @param pluginId the id of the plugin
+     * @return the version, if known
+     */
+    @Nullable
+    String getPluginVersion(PluginId pluginId);
+
+    /**
+     * Sets the plugin version for the given plugin id.
+     *
+     * <p>Can not be called after being locked.</p>
+     *
+     * @param pluginId the id of the plugin
+     * @param version the version of the plugin
+     */
+    void setPluginVersion(PluginId pluginId, String version);
 
     /**
      * Makes the provided classes visible to this scope, but not to children. The classes are loaded in their own ClassLoader whose parent is the export

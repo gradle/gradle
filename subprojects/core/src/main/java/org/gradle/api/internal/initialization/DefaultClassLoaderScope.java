@@ -22,9 +22,11 @@ import org.gradle.initialization.ClassLoaderScopeRegistryListener;
 import org.gradle.internal.classloader.CachingClassLoader;
 import org.gradle.internal.classloader.MultiParentClassLoader;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.plugin.use.PluginId;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
@@ -49,7 +51,7 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
     private ClassLoader effectiveExportClassLoader;
 
     public DefaultClassLoaderScope(ClassLoaderScopeIdentifier id, ClassLoaderScope parent, ClassLoaderCache classLoaderCache, ClassLoaderScopeRegistryListener listener) {
-        super(id, classLoaderCache, listener);
+        super(id, classLoaderCache, listener, new LinkedHashMap<>());
         this.parent = parent;
         listener.childScopeCreated(parent.getId(), id);
     }
@@ -149,6 +151,15 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
             }
         }
         return false;
+    }
+
+    @Override
+    public void setPluginVersion(PluginId pluginId, String version) {
+        assertNotLocked();
+        if (pluginVersionMap.containsKey(pluginId)) {
+            throw new IllegalStateException("Plugin version already set for plugin " + pluginId);
+        }
+        pluginVersionMap.put(pluginId, version);
     }
 
     protected ClassLoader loader(ClassLoaderId classLoaderId, ClassLoader parent, ClassPath classPath) {

@@ -20,6 +20,8 @@ import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.initialization.ClassLoaderScopeRegistryListener;
 import org.gradle.internal.classloader.CachingClassLoader;
 
+import java.util.Collections;
+
 public class RootClassLoaderScope extends AbstractClassLoaderScope {
 
     private final ClassLoader localClassLoader;
@@ -28,7 +30,7 @@ public class RootClassLoaderScope extends AbstractClassLoaderScope {
     private final CachingClassLoader cachingExportClassLoader;
 
     public RootClassLoaderScope(String name, ClassLoader localClassLoader, ClassLoader exportClassLoader, ClassLoaderCache classLoaderCache, ClassLoaderScopeRegistryListener listener) {
-        super(new ClassLoaderScopeIdentifier(null, name), classLoaderCache, listener);
+        super(new ClassLoaderScopeIdentifier(null, name), classLoaderCache, listener, Collections.emptyMap());
         this.localClassLoader = localClassLoader;
         this.cachingLocalClassLoader = new CachingClassLoader(localClassLoader);
         this.exportClassLoader = exportClassLoader;

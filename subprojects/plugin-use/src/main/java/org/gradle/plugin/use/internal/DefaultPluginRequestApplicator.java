@@ -113,6 +113,10 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
                                 pluginImplsFromOtherLoaders.put(result, plugin);
                             }
                         });
+                        String pluginVersion = result.found.getPluginVersion();
+                        if (pluginVersion != null) {
+                            classLoaderScope.setPluginVersion(result.found.getPluginId(), pluginVersion);
+                        }
                     }
                 });
             }

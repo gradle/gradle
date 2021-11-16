@@ -189,7 +189,7 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         succeeds "test"
     }
 
-    def "cannot request plugin version of plugin already requested on parent project"() {
+    def "can request plugin version of plugin already requested on parent project if it's the same"() {
 
         given:
         withBinaryPluginPublishedLocally()
@@ -210,10 +210,39 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         file("a/build.gradle") << requestPlugin("my-plugin", "1.0")
 
         when:
+        succeeds "help"
+
+        then:
+        operations.hasOperation("Apply plugin my-plugin to root project 'root'")
+        operations.hasOperation("Apply plugin my-plugin to project ':a'")
+    }
+
+    def "cannot request plugin version of plugin already requested on parent project if the version differs"() {
+
+        given:
+        withBinaryPluginPublishedLocally()
+
+        and:
+        withSettings """
+
+            pluginManagement {
+                ${withLocalPluginRepository()}
+            }
+
+            include("a")
+
+        """
+
+        and:
+        buildFile << requestPlugin("my-plugin", "1.0")
+        file("a/build.gradle") << requestPlugin("my-plugin", "1.0.1")
+
+        when:
         fails "help"
 
         then:
-        failureHasCause("Plugin request for plugin already on the classpath must not include a version")
+        failureDescriptionStartsWith("Error resolving plugin [id: 'my-plugin', version: '1.0.1']")
+        failureHasCause("The request for this plugin could not be satisfied because the plugin is already on the classpath with a different version (1.0).")
 
         and:
         operations.hasOperation("Apply plugin my-plugin to root project 'root'")
@@ -233,7 +262,7 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
 
         then:
         failureDescriptionStartsWith("Error resolving plugin [id: 'my-plugin', version: '1.0']")
-        failureHasCause("Plugin request for plugin already on the classpath must not include a version")
+        failureHasCause("The request for this plugin could not be satisfied because the plugin is already on the classpath with an unknown version, so compatibility cannot be checked.")
     }
 
     @IgnoreIf({ GradleContextualExecuter.embedded }) // TestKit usage inside of the test requires distribution

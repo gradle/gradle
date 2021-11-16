@@ -21,8 +21,10 @@ import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
 import org.gradle.initialization.ClassLoaderScopeRegistryListener;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.plugin.use.PluginId;
 
 import javax.annotation.Nullable;
+import java.util.Map;
 import java.util.function.Function;
 
 /**
@@ -35,9 +37,12 @@ public class ImmutableClassLoaderScope extends AbstractClassLoaderScope {
     private final HashCode classpathImplementationHash;
     private final ClassLoader localClassLoader;
 
-    public ImmutableClassLoaderScope(ClassLoaderScopeIdentifier id, ClassLoaderScope parent, ClassPath classPath, @Nullable HashCode classpathImplementationHash,
-                                     @Nullable Function<ClassLoader, ClassLoader> localClassLoaderFactory, ClassLoaderCache classLoaderCache, ClassLoaderScopeRegistryListener listener) {
-        super(id, classLoaderCache, listener);
+    public ImmutableClassLoaderScope(
+        ClassLoaderScopeIdentifier id, ClassLoaderScope parent, ClassPath classPath, @Nullable HashCode classpathImplementationHash,
+        @Nullable Function<ClassLoader, ClassLoader> localClassLoaderFactory, ClassLoaderCache classLoaderCache, ClassLoaderScopeRegistryListener listener,
+        Map<PluginId, String> pluginVersionMap
+    ) {
+        super(id, classLoaderCache, listener, pluginVersionMap);
         this.parent = parent;
         this.classPath = classPath;
         this.classpathImplementationHash = classpathImplementationHash;
