@@ -17,7 +17,6 @@
 package org.gradle.testing
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.Matchers
 
 class TestVerificationFailureHandlingIntegrationTest extends AbstractIntegrationSpec {
@@ -124,9 +123,7 @@ class TestVerificationFailureHandlingIntegrationTest extends AbstractIntegration
      * Cause the test VM to fail at startup by providing an invalid JVM argument.
      */
     def withFatalTestExecutionError() {
-        if (OperatingSystem.current().windows) {
-            executer.withStackTraceChecksDisabled() // ignore additional ST only seen on Windows
-        }
+        executer.withStackTraceChecksDisabled() // ignore additional ST
         withPassingTest()
         buildFile << '''
             tasks.named('test', Test).configure {
