@@ -62,7 +62,6 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
 
         root.testDirectories.size() == 1
         root.testDirectories.first().directory == file('src/test/java')
-
         root.testResourceDirectories.size() == 1
         root.testResourceDirectories.first().directory == file('src/test/resources')
     }
