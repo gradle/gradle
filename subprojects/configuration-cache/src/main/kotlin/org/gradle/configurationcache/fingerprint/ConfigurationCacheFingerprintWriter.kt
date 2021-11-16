@@ -267,7 +267,7 @@ class ConfigurationCacheFingerprintWriter(
 
     override fun dependencyObserved(consumingProject: ProjectState?, targetProject: ProjectState, requestedState: ConfigurationInternal.InternalState, target: ResolvedProjectConfiguration) {
         if (host.cacheIntermediateModels && consumingProject != null) {
-            projectScopedWriter.write(ProjectSpecificFingerprint.ProjectDependency(consumingProject.identityPath, targetProject.identityPath))
+            projectScopedWriter.write(ProjectSpecificFingerprint.ProjectDependency(consumingProject.identityPath.path, targetProject.identityPath.path))
         }
     }
 

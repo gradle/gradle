@@ -455,6 +455,9 @@ class IsolatedProjectToolingModelsWithDependencyResolutionIntegrationTest extend
         """
         file("b/build.gradle") << """
             plugins.apply(my.MyPlugin)
+            dependencies {
+                implementation project(":c")
+            }
         """
         file("c/build.gradle") << """
             plugins.apply(my.MyPlugin)
@@ -466,8 +469,8 @@ class IsolatedProjectToolingModelsWithDependencyResolutionIntegrationTest extend
 
         then:
         model.size() == 3
-        model[0].message == "project :a classpath = 1"
-        model[1].message == "project :b classpath = 0"
+        model[0].message == "project :a classpath = 2"
+        model[1].message == "project :b classpath = 1"
         model[2].message == "project :c classpath = 0"
 
         and:
@@ -484,8 +487,8 @@ class IsolatedProjectToolingModelsWithDependencyResolutionIntegrationTest extend
 
         then:
         model2.size() == 3
-        model2[0].message == "project :a classpath = 1"
-        model2[1].message == "project :b classpath = 0"
+        model2[0].message == "project :a classpath = 2"
+        model2[1].message == "project :b classpath = 1"
         model2[2].message == "project :c classpath = 0"
 
         and:
@@ -493,7 +496,7 @@ class IsolatedProjectToolingModelsWithDependencyResolutionIntegrationTest extend
         }
 
         when:
-        file("b/build.gradle") << """
+        file("c/build.gradle") << """
             // some change
         """
         executer.withArguments(ENABLE_CLI)
@@ -501,18 +504,16 @@ class IsolatedProjectToolingModelsWithDependencyResolutionIntegrationTest extend
 
         then:
         model3.size() == 3
-        model3[0].message == "project :a classpath = 1"
-        model3[1].message == "project :b classpath = 0"
+        model3[0].message == "project :a classpath = 2"
+        model3[1].message == "project :b classpath = 1"
         model3[2].message == "project :c classpath = 0"
 
         and:
         fixture.assertStateRecreated {
-            fileChanged("b/build.gradle")
+            fileChanged("c/build.gradle")
             projectConfigured(":buildSrc")
             projectConfigured(":")
-            // TODO - model should be created
-//            modelsCreated(":a")
-            modelsCreated(":b")
+            modelsCreated(":a", ":b", ":c")
         }
 
         when:
@@ -521,8 +522,8 @@ class IsolatedProjectToolingModelsWithDependencyResolutionIntegrationTest extend
 
         then:
         model4.size() == 3
-        model4[0].message == "project :a classpath = 1"
-        model4[1].message == "project :b classpath = 0"
+        model4[0].message == "project :a classpath = 2"
+        model4[1].message == "project :b classpath = 1"
         model4[2].message == "project :c classpath = 0"
 
         and:
