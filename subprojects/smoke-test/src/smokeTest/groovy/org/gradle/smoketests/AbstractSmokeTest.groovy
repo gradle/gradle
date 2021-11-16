@@ -17,6 +17,7 @@
 package org.gradle.smoketests
 
 import org.apache.commons.io.FileUtils
+import org.gradle.api.JavaVersion
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheMaxProblemsOption
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption
@@ -320,6 +321,9 @@ abstract class AbstractSmokeTest extends Specification {
         if (AGP_VERSIONS.isAgpNightly(agpVersion)) {
             def init = AGP_VERSIONS.createAgpNightlyRepositoryInitScript()
             extraArgs += ["-I", init.canonicalPath]
+        }
+        if (agpVersion.startsWith("7.2") && JavaVersion.current().java9Compatible) {
+            runner = runner.withJvmArguments('--add-opens', 'java.logging/java.util.logging=ALL-UNNAMED')
         }
         return runner.withArguments([runner.arguments, extraArgs].flatten())
     }
