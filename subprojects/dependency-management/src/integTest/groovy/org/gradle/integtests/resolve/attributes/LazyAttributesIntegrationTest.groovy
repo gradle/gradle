@@ -88,7 +88,7 @@ class LazyAttributesIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
-    def "providers used as attribute values with mismatched types names fail properly"() {
+    def "providers used as attribute values with mismatched Attribute types fail properly"() {
         buildFile << """
             plugins {
                 id 'java'

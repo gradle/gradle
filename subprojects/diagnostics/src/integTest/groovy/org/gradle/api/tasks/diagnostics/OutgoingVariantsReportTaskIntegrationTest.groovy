@@ -39,6 +39,11 @@ class OutgoingVariantsReportTaskIntegrationTest extends AbstractIntegrationSpec 
         run ':outgoingVariants'
 
         then:
+        def jarPath = file('build/libs/myLib-1.0.jar').getRelativePathFromBase()
+        def builtMainClassesPath = file('build/classes/java/main').getRelativePathFromBase()
+        def builtMainResourcesPath = file('build/resources/main').getRelativePathFromBase()
+        def sourceMainJavaPath = file('src/main/java').getRelativePathFromBase()
+        def sourceMainResourcePath = file( 'src/main/resources').getRelativePathFromBase()
         outputContains """> Task :outgoingVariants
 --------------------------------------------------
 Variant apiElements
@@ -55,7 +60,7 @@ Attributes
     - org.gradle.usage               = java-api
 
 Artifacts
-    - build${File.separator}libs${File.separator}myLib-1.0.jar (artifactType = jar)
+    - $jarPath (artifactType = jar)
 
 Secondary variants (*)
     - Variant : classes
@@ -66,7 +71,21 @@ Secondary variants (*)
           - org.gradle.libraryelements     = classes
           - org.gradle.usage               = java-api
        - Artifacts
-          - build${File.separator}classes${File.separator}java${File.separator}main (artifactType = java-classes-directory)
+          - $builtMainClassesPath (artifactType = java-classes-directory)
+
+--------------------------------------------------
+Variant mainSourceElements
+--------------------------------------------------
+Capabilities
+    - org:myLib:1.0 (default capability)
+Attributes
+    - org.gradle.category = sources
+    - org.gradle.sources  = all-source-directories
+    - org.gradle.usage    = verification
+
+Artifacts
+    - $sourceMainJavaPath (artifactType = directory)
+    - $sourceMainResourcePath (artifactType = directory)
 
 --------------------------------------------------
 Variant runtimeElements
@@ -83,7 +102,7 @@ Attributes
     - org.gradle.usage               = java-runtime
 
 Artifacts
-    - build${File.separator}libs${File.separator}myLib-1.0.jar (artifactType = jar)
+    - $jarPath (artifactType = jar)
 
 Secondary variants (*)
     - Variant : classes
@@ -94,7 +113,7 @@ Secondary variants (*)
           - org.gradle.libraryelements     = classes
           - org.gradle.usage               = java-runtime
        - Artifacts
-          - build${File.separator}classes${File.separator}java${File.separator}main (artifactType = java-classes-directory)
+          - $builtMainClassesPath (artifactType = java-classes-directory)
     - Variant : resources
        - Attributes
           - org.gradle.category            = library
@@ -103,7 +122,22 @@ Secondary variants (*)
           - org.gradle.libraryelements     = resources
           - org.gradle.usage               = java-runtime
        - Artifacts
-          - build${File.separator}resources${File.separator}main (artifactType = java-resources-directory)
+          - $builtMainResourcesPath (artifactType = java-resources-directory)
+
+--------------------------------------------------
+Variant testResultsElementsForTest
+--------------------------------------------------
+Capabilities
+    - org:myLib:1.0 (default capability)
+Attributes
+    - org.gradle.category      = documentation
+    - org.gradle.docstype      = test-results-bin
+    - org.gradle.targetname    = test
+    - org.gradle.testsuitename = test
+    - org.gradle.testsuitetype = unit-tests
+    - org.gradle.usage         = verification
+
+Artifacts
 """
         and:
         doesNotHaveLegacyVariantsLegend()
@@ -126,6 +160,13 @@ Secondary variants (*)
         run ':outgoingVariants'
 
         then:
+        def jarPath = file('build/libs/myLib-1.0.jar').getRelativePathFromBase()
+        def javadocJarPath = file('build/libs/myLib-1.0-javadoc.jar').getRelativePathFromBase()
+        def sourcesJarPath = file('build/libs/myLib-1.0-sources.jar').getRelativePathFromBase()
+        def builtMainClassesPath = file('build/classes/java/main').getRelativePathFromBase()
+        def builtMainResourcesPath = file('build/resources/main').getRelativePathFromBase()
+        def sourceMainJavaPath = file('src/main/java').getRelativePathFromBase()
+        def sourceMainResourcePath = file('src/main/resources').getRelativePathFromBase()
         outputContains """> Task :outgoingVariants
 --------------------------------------------------
 Variant apiElements
@@ -142,7 +183,7 @@ Attributes
     - org.gradle.usage               = java-api
 
 Artifacts
-    - build${File.separator}libs${File.separator}myLib-1.0.jar (artifactType = jar)
+    - $jarPath (artifactType = jar)
 
 Secondary variants (*)
     - Variant : classes
@@ -153,7 +194,7 @@ Secondary variants (*)
           - org.gradle.libraryelements     = classes
           - org.gradle.usage               = java-api
        - Artifacts
-          - build${File.separator}classes${File.separator}java${File.separator}main (artifactType = java-classes-directory)
+          - $builtMainClassesPath (artifactType = java-classes-directory)
 
 --------------------------------------------------
 Variant javadocElements
@@ -169,7 +210,21 @@ Attributes
     - org.gradle.usage               = java-runtime
 
 Artifacts
-    - build${File.separator}libs${File.separator}myLib-1.0-javadoc.jar (artifactType = jar)
+    - $javadocJarPath (artifactType = jar)
+
+--------------------------------------------------
+Variant mainSourceElements
+--------------------------------------------------
+Capabilities
+    - org:myLib:1.0 (default capability)
+Attributes
+    - org.gradle.category = sources
+    - org.gradle.sources  = all-source-directories
+    - org.gradle.usage    = verification
+
+Artifacts
+    - $sourceMainJavaPath (artifactType = directory)
+    - $sourceMainResourcePath (artifactType = directory)
 
 --------------------------------------------------
 Variant runtimeElements
@@ -186,7 +241,7 @@ Attributes
     - org.gradle.usage               = java-runtime
 
 Artifacts
-    - build${File.separator}libs${File.separator}myLib-1.0.jar (artifactType = jar)
+    - $jarPath (artifactType = jar)
 
 Secondary variants (*)
     - Variant : classes
@@ -197,7 +252,7 @@ Secondary variants (*)
           - org.gradle.libraryelements     = classes
           - org.gradle.usage               = java-runtime
        - Artifacts
-          - build${File.separator}classes${File.separator}java${File.separator}main (artifactType = java-classes-directory)
+          - $builtMainClassesPath (artifactType = java-classes-directory)
     - Variant : resources
        - Attributes
           - org.gradle.category            = library
@@ -206,7 +261,7 @@ Secondary variants (*)
           - org.gradle.libraryelements     = resources
           - org.gradle.usage               = java-runtime
        - Artifacts
-          - build${File.separator}resources${File.separator}main (artifactType = java-resources-directory)
+          - $builtMainResourcesPath (artifactType = java-resources-directory)
 
 --------------------------------------------------
 Variant sourcesElements
@@ -222,7 +277,22 @@ Attributes
     - org.gradle.usage               = java-runtime
 
 Artifacts
-    - build${File.separator}libs${File.separator}myLib-1.0-sources.jar (artifactType = jar)
+    - $sourcesJarPath (artifactType = jar)
+
+--------------------------------------------------
+Variant testResultsElementsForTest
+--------------------------------------------------
+Capabilities
+    - org:myLib:1.0 (default capability)
+Attributes
+    - org.gradle.category      = documentation
+    - org.gradle.docstype      = test-results-bin
+    - org.gradle.targetname    = test
+    - org.gradle.testsuitename = test
+    - org.gradle.testsuitetype = unit-tests
+    - org.gradle.usage         = verification
+
+Artifacts
 """
         and:
         doesNotHaveLegacyVariantsLegend()
@@ -241,6 +311,9 @@ Artifacts
         run ':outgoingVariants', '--variant', 'runtimeElements'
 
         then:
+        def jarPath = file('build/libs/myLib-1.0.jar').getRelativePathFromBase()
+        def builtMainClassesPath = file('build/classes/java/main').getRelativePathFromBase()
+        def builtMainResourcesPath = file('build/resources/main').getRelativePathFromBase()
         outputContains """> Task :outgoingVariants
 --------------------------------------------------
 Variant runtimeElements
@@ -257,7 +330,7 @@ Attributes
     - org.gradle.usage               = java-runtime
 
 Artifacts
-    - build${File.separator}libs${File.separator}myLib-1.0.jar (artifactType = jar)
+    - $jarPath (artifactType = jar)
 
 Secondary variants (*)
     - Variant : classes
@@ -268,7 +341,7 @@ Secondary variants (*)
           - org.gradle.libraryelements     = classes
           - org.gradle.usage               = java-runtime
        - Artifacts
-          - build${File.separator}classes${File.separator}java${File.separator}main (artifactType = java-classes-directory)
+          - $builtMainClassesPath (artifactType = java-classes-directory)
     - Variant : resources
        - Attributes
           - org.gradle.category            = library
@@ -277,7 +350,7 @@ Secondary variants (*)
           - org.gradle.libraryelements     = resources
           - org.gradle.usage               = java-runtime
        - Artifacts
-          - build${File.separator}resources${File.separator}main (artifactType = java-resources-directory)
+          - $builtMainResourcesPath (artifactType = java-resources-directory)
 """
 
         and:
@@ -297,7 +370,7 @@ Secondary variants (*)
         then:
         outputContains("""> Task :outgoingVariants
 There is no variant named 'nope' defined on this project.
-Here are the available outgoing variants: apiElements, archives, default, runtimeElements
+Here are the available outgoing variants: apiElements, archives, default, mainSourceElements, runtimeElements, testResultsElementsForTest
 """)
         and:
         doesNotHaveLegacyVariantsLegend()
@@ -314,7 +387,7 @@ Here are the available outgoing variants: apiElements, archives, default, runtim
         """
 
         when:
-        executer.expectDeprecationWarning()
+        executer.expectDeprecationWarning('(l) Legacy or deprecated configuration. Those are variants created for backwards compatibility which are both resolvable and consumable.')
         run ':outgoingVariants', '--all'
 
         then:
@@ -364,6 +437,20 @@ Artifacts
     - build${File.separator}libs${File.separator}myLib-1.0.jar (artifactType = jar)
 
 --------------------------------------------------
+Variant mainSourceElements
+--------------------------------------------------
+Capabilities
+    - org:myLib:1.0 (default capability)
+Attributes
+    - org.gradle.category = sources
+    - org.gradle.sources  = all-source-directories
+    - org.gradle.usage    = verification
+
+Artifacts
+    - src${File.separator}main${File.separator}java (artifactType = directory)
+    - src${File.separator}main${File.separator}resources (artifactType = directory)
+
+--------------------------------------------------
 Variant runtimeElements
 --------------------------------------------------
 Description = Elements of runtime for main.
@@ -399,6 +486,21 @@ Secondary variants (*)
           - org.gradle.usage               = java-runtime
        - Artifacts
           - build${File.separator}resources${File.separator}main (artifactType = java-resources-directory)
+
+--------------------------------------------------
+Variant testResultsElementsForTest
+--------------------------------------------------
+Capabilities
+    - org:myLib:1.0 (default capability)
+Attributes
+    - org.gradle.category      = documentation
+    - org.gradle.docstype      = test-results-bin
+    - org.gradle.targetname    = test
+    - org.gradle.testsuitename = test
+    - org.gradle.testsuitetype = unit-tests
+    - org.gradle.usage         = verification
+
+Artifacts
 """
 
         and:

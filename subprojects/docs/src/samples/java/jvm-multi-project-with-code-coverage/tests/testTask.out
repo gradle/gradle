@@ -12,7 +12,6 @@
 > Task :application:compileJava
 > Task :application:processResources NO-SOURCE
 > Task :application:classes
-> Task :application:jar
 > Task :application:compileTestJava
 > Task :application:processTestResources NO-SOURCE
 > Task :application:testClasses
