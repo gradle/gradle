@@ -334,7 +334,7 @@ Specifies the port number on which process is listening when debug is enabled. _
 If set to `true` and debugging is enabled, Gradle will run the build with the socket-attach mode of the debugger. Otherwise, the socket-listen mode is used.
 
 `-Dorg.gradle.debug.suspend=true`::
-When set to `true` and debugging enabled, Gradle will suspend the virtual machine until a debugger is attached.
+When set to `true` and debugging is enabled, the JVM running Gradle will suspend until a debugger is attached.
 
 `-Dorg.gradle.daemon.debug=true`::
 Debug <<gradle_daemon.adoc#gradle_daemon, Gradle Daemon>> process.
