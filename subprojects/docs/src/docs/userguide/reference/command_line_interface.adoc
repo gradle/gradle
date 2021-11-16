@@ -331,7 +331,7 @@ Debug Gradle client (non-Daemon) process. Gradle will wait for you to attach a d
 Specifies the port number on which process is listening when debug is enabled. _Default is `5005`._
 
 `-Dorg.gradle.debug.server=true`::
-Then set to `true` and debugging enabled, Gradle will run the build with socked-attach mode of debugger. Otherwise socket-listen is used.
+If set to `true` and debugging is enabled, Gradle will run the build with the socket-attach mode of the debugger. Otherwise, the socket-listen mode is used.
 
 `-Dorg.gradle.debug.suspend=true`::
 When set to `true` and debugging enabled, Gradle will suspend the virtual machine until a debugger is attached.
