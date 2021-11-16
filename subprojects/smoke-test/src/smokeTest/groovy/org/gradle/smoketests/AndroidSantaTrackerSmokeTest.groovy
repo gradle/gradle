@@ -120,7 +120,9 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
 
     private SmokeTestGradleRunner runnerForLocationExpectingLintDeprecations(File location, boolean isCleanBuild, String agpVersion, String... tasks) {
         SmokeTestGradleRunner runner = isCleanBuild ? runnerForLocationMaybeExpectingWorkerExecutorDeprecation(location, agpVersion, tasks) : runnerForLocation(location, agpVersion, tasks)
-        expectAgpFileTreeDeprecationWarnings(runner, "compileDebugAidl", "compileDebugRenderscript")
+        if (agpVersion.startsWith("4.") || agpVersion.startsWith("7.0.") || agpVersion.startsWith("7.1.")) {
+            expectAgpFileTreeDeprecationWarnings(runner, "compileDebugAidl", "compileDebugRenderscript")
+        }
         if (agpVersion.startsWith("7.")) {
             expectAgpFileTreeDeprecationWarnings(runner, "stripDebugDebugSymbols", "bundleLibResDebug")
         }
