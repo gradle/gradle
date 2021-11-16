@@ -23,7 +23,7 @@ import spock.lang.IgnoreIf
 
 class JavaExecToolchainIntegrationTest extends AbstractIntegrationSpec {
 
-    @IgnoreIf({ AvailableJavaHomes.differentVersion == null })
+    @IgnoreIf({ AvailableJavaHomes.differentJdk == null })
     def "can manually set java launcher via  #type toolchain on java exec task #jdk"() {
         buildFile << """
             plugins {
@@ -63,13 +63,13 @@ class JavaExecToolchainIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         type           | jdk
-        'differentJdk' | AvailableJavaHomes.differentVersion
+        'differentJdk' | AvailableJavaHomes.differentJdk
         'current'      | Jvm.current()
     }
 
-    @IgnoreIf({ AvailableJavaHomes.differentVersion == null })
+    @IgnoreIf({ AvailableJavaHomes.differentJdk == null })
     def "JavaExec task is configured using default toolchain"() {
-        def someJdk = AvailableJavaHomes.differentVersion
+        def someJdk = AvailableJavaHomes.differentJdk
         buildFile << """
             plugins {
                 id 'java'

@@ -28,7 +28,7 @@ import static org.junit.Assume.assumeNotNull
 
 class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec {
 
-    @IgnoreIf({ AvailableJavaHomes.differentVersion == null })
+    @IgnoreIf({ AvailableJavaHomes.differentJdk == null })
     def "can manually set java compiler via #type toolchain on java compile task"() {
         buildFile << """
             apply plugin: "java"
@@ -51,7 +51,7 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         type           | jdk
-        'differentJdk' | AvailableJavaHomes.differentVersion
+        'differentJdk' | AvailableJavaHomes.differentJdk
         'current'      | Jvm.current()
     }
 

@@ -24,7 +24,7 @@ import org.gradle.test.fixtures.file.TestFile
 class JavaToolchainUpToDateIntegrationTest extends AbstractIntegrationSpec {
 
     def "compile and test reacting to toolchains are up-to-date without changes"() {
-        def someJdk = AvailableJavaHomes.differentVersion
+        def someJdk = AvailableJavaHomes.differentJdk
         buildscriptWithToolchain(someJdk)
 
         file("src/main/java/Foo.java") << "public class Foo {}"

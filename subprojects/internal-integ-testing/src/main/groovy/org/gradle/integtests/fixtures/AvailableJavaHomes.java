@@ -89,10 +89,6 @@ public abstract class AvailableJavaHomes {
 
     @Nullable
     public static Jvm getJdk(final JavaVersion version) {
-        Jvm current = Jvm.current();
-        if (version.equals(current.getJavaVersion())) {
-            return current; //toolchains prefer the JDK running Gradle (if it matches)
-        }
         return Iterables.getFirst(getAvailableJdks(version), null);
     }
 
