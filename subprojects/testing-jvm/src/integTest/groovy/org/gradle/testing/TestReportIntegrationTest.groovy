@@ -131,7 +131,7 @@ def subTest = tasks.register('subTest', Test) {
 
 def testReport = tasks.register('testReport', TestReport) {
     destinationDirectory = reporting.baseDirectory.dir('allTests')
-    testResults.from([test, superTest, subTest].collect { it.flatMap { t -> t.binaryResultsDirectory } })
+    testResults.from(test, superTest, subTest)
 }
 
 tasks.named('build').configure { it.dependsOn testReport }
@@ -212,7 +212,7 @@ public class SubClassTests extends SuperClassTests {
             }
 
             tasks.register('testReport', TestReport) {
-                testResults.from(test.flatMap { it.binaryResultsDirectory }, otherTests.flatMap { it.binaryResultsDirectory })
+                testResults.from(test, otherTests)
                 destinationDirectory = reporting.baseDirectory.dir('tr')
             }
         """
@@ -271,7 +271,7 @@ public class SubClassTests extends SuperClassTests {
              $junitSetup
 
             tasks.register('testReport', TestReport) {
-                testResults.from(tasks.named('test', Test).flatMap { it.binaryResultsDirectory })
+                testResults.from(tasks.named('test', Test))
                 destinationDirectory = reporting.baseDirectory.dir("tr")
             }
         """
@@ -293,7 +293,7 @@ public class SubClassTests extends SuperClassTests {
             apply plugin: 'java'
 
             tasks.register('testReport', TestReport) {
-                testResults.from(tasks.named('test', Test).flatMap { it.binaryResultsDirectory })
+                testResults.from(tasks.named('test', Test))
                 destinationDirectory = reporting.baseDirectory.dir('tr')
             }
         """
