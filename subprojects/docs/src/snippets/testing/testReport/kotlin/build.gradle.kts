@@ -14,7 +14,7 @@ dependencies {
 }
 
 tasks.register<TestReport>("testReport") {
-    destinationDirectory.set(layout.buildDirectory.dir("reports/allTests").get().asFile)
+    destinationDirectory.set(reporting.baseDirectory.dir("allTests"))
     // Use test results from testReportData configuration
     testResults.from(testReportData)
 }

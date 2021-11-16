@@ -152,8 +152,7 @@ public class TestReport extends DefaultTask {
             .willBeRemovedInGradle8()
             .withDslReference()
             .nagUser();
-        resultDirs.setFrom(getObjectFactory().fileCollection());
-        reportOn(testResultDirs);
+        resultDirs.setFrom(testResultDirs);
     }
 
     /**
