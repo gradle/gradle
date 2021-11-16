@@ -34,6 +34,7 @@ import org.gradle.api.internal.file.FileTreeInternal
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree
 import org.gradle.api.internal.project.ProjectState
+import org.gradle.api.internal.properties.GradleProperties
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.internal.provider.sources.EnvironmentVariableValueSource
 import org.gradle.api.internal.provider.sources.FileContentValueSource
@@ -51,6 +52,7 @@ import org.gradle.configurationcache.problems.PropertyTrace
 import org.gradle.configurationcache.problems.StructuredMessage
 import org.gradle.configurationcache.serialization.DefaultWriteContext
 import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.initialization.GradlePropertiesController
 import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.resource.local.FileResourceListener
@@ -72,7 +74,8 @@ class ConfigurationCacheFingerprintWriter(
     UndeclaredBuildInputListener,
     ChangingValueDependencyResolutionListener,
     ProjectDependencyObservedListener,
-    FileResourceListener {
+    FileResourceListener,
+    GradlePropertiesController.Listener {
 
     interface Host {
         val gradleUserHomeDir: File
@@ -356,6 +359,12 @@ class ConfigurationCacheFingerprintWriter(
 
     private
     fun locationFor(consumer: String?) = host.location(consumer)
+
+    override fun onGradlePropertiesLoaded(properties: GradleProperties) {
+        properties.mergeProperties(emptyMap()).forEach { (key, value) ->
+            gradlePropertyRead(key, value, "Gradle runtime")
+        }
+    }
 }
 
 
