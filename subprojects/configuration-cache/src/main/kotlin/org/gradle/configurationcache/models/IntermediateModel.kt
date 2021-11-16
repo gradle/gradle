@@ -14,21 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.provider.model.internal;
+package org.gradle.configurationcache.models
 
-import org.gradle.api.internal.project.ProjectState;
-import org.gradle.tooling.provider.model.UnknownModelException;
+import org.gradle.configurationcache.extensions.uncheckedCast
+import org.gradle.tooling.provider.model.UnknownModelException
 
-import javax.annotation.Nullable;
-import java.util.function.Function;
 
-public interface ToolingModelScope {
-    @Nullable
-    ProjectState getTarget();
+sealed class IntermediateModel {
+    abstract fun <T> result(): T?
 
-    /**
-     * Creates the given model
-     */
-    @Nullable
-    Object getModel(String modelName, @Nullable Function<Class<?>, Object> parameterFactory) throws UnknownModelException;
+    class NoModel(val message: String) : IntermediateModel() {
+        override fun <T> result() = throw UnknownModelException(message)
+    }
+
+    object NullModel : IntermediateModel() {
+        override fun <T> result(): T? = null
+    }
+
+    class Model(val value: Any) : IntermediateModel() {
+        override fun <T> result(): T? = value.uncheckedCast()
+    }
 }
