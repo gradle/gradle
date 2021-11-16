@@ -223,7 +223,6 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
 
     @Test
     fun `in-memory script class loading cache releases memory of unused entries`() {
-
         // given: buildSrc memory hog
         val memoryHogMb = 128
         val myTask = withFile(
@@ -254,9 +253,9 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
         }
 
         // expect: memory hog released
-        val runs = 20
+        val runs = 10
         // For some reason we have 5 references to the task class.
-        val daemonHeapMb = memoryHogMb * 5 + 128
+        val daemonHeapMb = memoryHogMb * 5 + 300
         for (run in 1..runs) {
             println("Run number $run")
             myTask.writeText(myTask.readText().replace("runAction${run - 1}", "runAction$run"))
