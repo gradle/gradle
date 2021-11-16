@@ -485,14 +485,15 @@ public class IdeaPlugin extends IdePlugin {
 
     private void configureIdeaModuleForTestSuites(final Project project) {
         final TestingExtension testing = project.getExtensions().getByType(TestingExtension.class);
+        final IdeaModule ideaModule = ideaModelFor(project).getModule();
         testing.getSuites().withType(JvmTestSuite.class).configureEach(suite -> {
             completeTestSourceDirs.from(project.provider(() -> suite.getSources().getAllJava().getSrcDirs()));
             completeTestResourceDirs.from(project.provider(() -> suite.getSources().getResources().getSrcDirs()));
+
+            ideaModule.getTestSourceDirs().addAll(completeTestSourceDirs.getFiles());
+            ideaModule.getTestResourceDirs().addAll(completeTestResourceDirs.getFiles());
         });
 
-        final IdeaModule ideaModule = ideaModelFor(project).getModule();
-        ideaModule.getTestSourceDirs().addAll(completeTestSourceDirs.getFiles());
-        ideaModule.getTestResourceDirs().addAll(completeTestResourceDirs.getFiles());
     }
 
     private void configureIdeaModuleForWar(final Project project) {
