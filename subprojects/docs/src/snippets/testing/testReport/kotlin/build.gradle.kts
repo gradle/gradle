@@ -13,8 +13,10 @@ dependencies {
     testReportData(project(":util"))
 }
 
+val reporting = the<ReportingExtension>()
+
 tasks.register<TestReport>("testReport") {
-    destinationDirectory.set(the<ReportingExtension>().baseDirectory.dir("allTests"))
+    destinationDirectory.set(reporting.baseDirectory.dir("allTests"))
     // Use test results from testReportData configuration
     testResults.from(testReportData)
 }
