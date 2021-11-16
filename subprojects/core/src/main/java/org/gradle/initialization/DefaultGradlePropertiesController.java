@@ -17,6 +17,7 @@
 package org.gradle.initialization;
 
 import org.gradle.api.internal.properties.GradleProperties;
+import org.gradle.internal.event.ListenerManager;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -27,9 +28,11 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
     private State state = new NotLoaded();
     private final GradleProperties sharedGradleProperties = new SharedGradleProperties();
     private final IGradlePropertiesLoader propertiesLoader;
+    private final ListenerManager listenerManager;
 
-    public DefaultGradlePropertiesController(IGradlePropertiesLoader propertiesLoader) {
+    public DefaultGradlePropertiesController(IGradlePropertiesLoader propertiesLoader, ListenerManager listenerManager) {
         this.propertiesLoader = propertiesLoader;
+        this.listenerManager = listenerManager;
     }
 
     @Override
@@ -82,10 +85,9 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
 
         @Override
         public State loadGradlePropertiesFrom(File settingsDir) {
-            return new Loaded(
-                propertiesLoader.loadGradleProperties(settingsDir),
-                settingsDir
-            );
+            GradleProperties gradleProperties = propertiesLoader.loadGradleProperties(settingsDir);
+            onGradlePropertiesLoaded(gradleProperties);
+            return new Loaded(gradleProperties, settingsDir);
         }
 
         @Override
@@ -150,5 +152,9 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
         public State overrideWith(GradleProperties gradleProperties) {
             return new Overridden(gradleProperties);
         }
+    }
+
+    private void onGradlePropertiesLoaded(GradleProperties gradleProperties) {
+        listenerManager.getBroadcaster(Listener.class).onGradlePropertiesLoaded(gradleProperties);
     }
 }

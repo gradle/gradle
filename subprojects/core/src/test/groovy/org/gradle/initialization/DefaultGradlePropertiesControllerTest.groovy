@@ -17,6 +17,7 @@
 package org.gradle.initialization
 
 import org.gradle.api.internal.properties.GradleProperties
+import org.gradle.internal.event.ListenerManager
 import spock.lang.Specification
 
 class DefaultGradlePropertiesControllerTest extends Specification {
@@ -25,7 +26,8 @@ class DefaultGradlePropertiesControllerTest extends Specification {
 
         given:
         def propertiesLoader = Mock(IGradlePropertiesLoader)
-        def subject = new DefaultGradlePropertiesController(propertiesLoader)
+        def listenerManager = Mock(ListenerManager)
+        def subject = new DefaultGradlePropertiesController(propertiesLoader, listenerManager)
         def properties = subject.gradleProperties
         0 * propertiesLoader.loadGradleProperties(_)
 
@@ -48,17 +50,19 @@ class DefaultGradlePropertiesControllerTest extends Specification {
         given:
         def settingsDir = new File('.')
         def propertiesLoader = Mock(IGradlePropertiesLoader)
-        def subject = new DefaultGradlePropertiesController(propertiesLoader)
-        def properties = subject.gradleProperties
+        def listenerManager = Mock(ListenerManager)
+        def subject = new DefaultGradlePropertiesController(propertiesLoader, listenerManager)
         def loadedProperties = Mock(GradleProperties)
         1 * propertiesLoader.loadGradleProperties(settingsDir) >> loadedProperties
         1 * loadedProperties.mergeProperties(_) >> [property: '42']
         1 * loadedProperties.find(_) >> '42'
+        1 * listenerManager.getBroadcaster(GradlePropertiesController.Listener) >> Stub(GradlePropertiesController.Listener)
 
         when:
         subject.loadGradlePropertiesFrom(settingsDir)
 
         then:
+        def properties = subject.gradleProperties
         properties.find("property") == '42'
         properties.mergeProperties([:]) == [property: '42']
     }
@@ -69,7 +73,8 @@ class DefaultGradlePropertiesControllerTest extends Specification {
         // use a different File instance for each call to ensure it is compared by value
         def currentDir = { new File('.') }
         def propertiesLoader = Mock(IGradlePropertiesLoader)
-        def subject = new DefaultGradlePropertiesController(propertiesLoader)
+        def listenerManager = Mock(ListenerManager)
+        def subject = new DefaultGradlePropertiesController(propertiesLoader, listenerManager)
         def loadedProperties = Mock(GradleProperties)
 
         when: "calling the method multiple times with the same value"
@@ -78,6 +83,7 @@ class DefaultGradlePropertiesControllerTest extends Specification {
 
         then:
         1 * propertiesLoader.loadGradleProperties(currentDir()) >> loadedProperties
+        1 * listenerManager.getBroadcaster(GradlePropertiesController.Listener) >> Stub(GradlePropertiesController.Listener)
     }
 
     def "loadGradlePropertiesFrom fails when called with different argument"() {
@@ -85,9 +91,11 @@ class DefaultGradlePropertiesControllerTest extends Specification {
         given:
         def settingsDir = new File('a')
         def propertiesLoader = Mock(IGradlePropertiesLoader)
-        def subject = new DefaultGradlePropertiesController(propertiesLoader)
+        def listenerManager = Mock(ListenerManager)
+        def subject = new DefaultGradlePropertiesController(propertiesLoader, listenerManager)
         def loadedProperties = Mock(GradleProperties)
         1 * propertiesLoader.loadGradleProperties(settingsDir) >> loadedProperties
+        1 * listenerManager.getBroadcaster(GradlePropertiesController.Listener) >> Stub(GradlePropertiesController.Listener)
 
         when:
         subject.loadGradlePropertiesFrom(settingsDir)

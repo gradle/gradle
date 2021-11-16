@@ -17,6 +17,7 @@
 package org.gradle.initialization;
 
 import org.gradle.api.internal.properties.GradleProperties;
+import org.gradle.internal.service.scopes.EventScope;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -45,4 +46,9 @@ public interface GradlePropertiesController {
      * @throws IllegalStateException if called with a different argument in the same build
      */
     void loadGradlePropertiesFrom(File settingsDir);
+
+    @EventScope(Scopes.Build.class)
+    interface Listener {
+        void onGradlePropertiesLoaded(GradleProperties properties);
+    }
 }
