@@ -291,6 +291,7 @@ public class IdeaPlugin extends IdePlugin {
             }
         });
         Set<File> testSourceDirs = Sets.newLinkedHashSet();
+        completeTestSourceDirs.from(testSourceDirs);
         conventionMapping.map("testSourceDirs", new Callable<Set<File>>() {
             @Override
             public Set<File> call() {
@@ -305,6 +306,7 @@ public class IdeaPlugin extends IdePlugin {
             }
         });
         Set<File> testResourceDirs = Sets.newLinkedHashSet();
+        completeTestResourceDirs.from(testResourceDirs);
         conventionMapping.map("testResourceDirs", new Callable<Set<File>>() {
             @Override
             public Set<File> call() throws Exception {
@@ -487,6 +489,10 @@ public class IdeaPlugin extends IdePlugin {
             completeTestSourceDirs.from(project.provider(() -> suite.getSources().getAllJava().getSrcDirs()));
             completeTestResourceDirs.from(project.provider(() -> suite.getSources().getResources().getSrcDirs()));
         });
+
+        final IdeaModule ideaModule = ideaModelFor(project).getModule();
+        ideaModule.getTestSourceDirs().addAll(completeTestSourceDirs.getFiles());
+        ideaModule.getTestResourceDirs().addAll(completeTestResourceDirs.getFiles());
     }
 
     private void configureIdeaModuleForWar(final Project project) {
