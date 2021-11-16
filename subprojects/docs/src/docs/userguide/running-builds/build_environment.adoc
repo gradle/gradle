@@ -74,7 +74,7 @@ When set to `true`, Gradle will run the build with remote debugging enabled, lis
 _Default is `false`._
 
 `org.gradle.debug.port=(port number)`::
-Specifies the port number on which process is listening when debug is enabled.
+Specifies the port number to listen on when debug is enabled.
 _Default is `5005`._
 
 `org.gradle.debug.server=(true,false)`::
