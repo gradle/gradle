@@ -170,7 +170,7 @@ public class IdeaModule {
     private boolean downloadJavadoc;
     private File contentRoot;
     @Deprecated
-    private Set<File> testSourceDirs = Sets.newLinkedHashSet();
+    private Set<File> testSourceDirs;
     private ConfigurableFileCollection testSources;
     private Set<File> excludeDirs;
     private Boolean inheritOutputDirs;
@@ -604,9 +604,9 @@ public class IdeaModule {
         Path contentRoot = getPathFactory().path(getContentRoot());
         Set<Path> sourceFolders = pathsOf(existing(getSourceDirs()));
         Set<Path> generatedSourceFolders = pathsOf(existing(getGeneratedSourceDirs()));
-        Set<Path> testSourceFolders = pathsOf(existing(getTestSourceDirs()));
+        Set<Path> testSourceFolders = pathsOf(existing(getTestSources().getFiles()));
         Set<Path> resourceFolders = pathsOf(existing(getResourceDirs()));
-        Set<Path> testResourceFolders = pathsOf(existing(getTestResourceDirs()));
+        Set<Path> testResourceFolders = pathsOf(existing(getTestResources().getFiles()));
         Set<Path> excludeFolders = pathsOf(getExcludeDirs());
         Path outputDir = getOutputDir() != null ? getPathFactory().path(getOutputDir()) : null;
         Path testOutputDir = getTestOutputDir() != null ? getPathFactory().path(getTestOutputDir()) : null;
