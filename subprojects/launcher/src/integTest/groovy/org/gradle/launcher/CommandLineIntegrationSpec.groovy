@@ -99,7 +99,6 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     @Issue('https://github.com/gradle/gradle/issues/18084')
-    @Unroll
     @Timeout(30)
     def "reasonable failure message when org.gradle.debug.port=#value"() {
         given:
