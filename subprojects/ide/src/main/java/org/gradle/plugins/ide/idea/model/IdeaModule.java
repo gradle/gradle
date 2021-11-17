@@ -328,6 +328,8 @@ public class IdeaModule {
     /**
      * The directories containing the test sources.
      *
+     * <strong>Note that late changes to default test directories may NOT be reflected in this collection and {@link #getTestSources()} should be preferred.</strong>
+     *
      * For example see docs for {@link IdeaModule}
      */
     public Set<File> getTestSourceDirs() {
@@ -339,7 +341,11 @@ public class IdeaModule {
     }
 
     /**
-     * The complete collection of test sources.
+     * The complete and up-to-date collection of test source directories
+     *
+     * This should be preferred to {@link #getTestSourceDirs()} as it will include late changes to default directories.
+     *
+     * @return lazily configurable collection of test source directories
      * @since 7.4
      */
     @Incubating
@@ -366,9 +372,12 @@ public class IdeaModule {
     }
 
     /**
-     * The directories containing the test resources. <p> For example see docs for {@link IdeaModule}
+     * The complete and up-to-date collection of test resource directories.
      *
-     * @since 4.7
+     * This should be preferred to {@link #getTestResourceDirs()} as it will include late changes to default directories.
+     *
+     * @return lazily configurable collection of test resource directories
+     * @since 7.4
      */
     public Set<File> getTestResourceDirs() {
         return testResourceDirs;
