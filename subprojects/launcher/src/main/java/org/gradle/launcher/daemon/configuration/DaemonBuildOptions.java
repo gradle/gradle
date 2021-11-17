@@ -172,14 +172,14 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
 
         @Override
         public void applyTo(String value, DaemonParameters settings, Origin origin) {
-            String hint = "must be a positive number";
+            String hint = "must be a number between 1 and 65535";
             int port = 0;
             try {
                 port = Integer.parseInt(value);
             } catch (NumberFormatException e) {
                 origin.handleInvalidValue(value, hint);
             }
-            if (port < 1) {
+            if (port < 1 || port > 65535) {
                 origin.handleInvalidValue(value, hint);
             } else {
                 settings.setDebugPort(port);
