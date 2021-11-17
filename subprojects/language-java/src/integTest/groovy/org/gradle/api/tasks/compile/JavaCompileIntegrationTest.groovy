@@ -17,7 +17,7 @@
 package org.gradle.api.tasks.compile
 
 import groovy.test.NotYetImplemented
-import org.gradle.integtests.fixtures.AbstractPluginIntegrationTest
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -26,7 +26,7 @@ import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 import spock.lang.Issue
 
-class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
+class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
     Resources resources = new Resources()

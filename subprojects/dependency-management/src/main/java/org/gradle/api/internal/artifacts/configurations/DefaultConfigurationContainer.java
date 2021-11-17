@@ -31,14 +31,12 @@ import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultRootComponentMetadataBuilder;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.LocalComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.CapabilitiesResolutionInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultCapabilitiesResolution;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.notations.ComponentIdentifierParserFactory;
-import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
@@ -60,8 +58,6 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
 
     public DefaultConfigurationContainer(
         Instantiator instantiator,
-        DependencyMetaDataProvider dependencyMetaDataProvider,
-        LocalComponentMetadataBuilder localComponentMetadataBuilder,
         DependencySubstitutionRules globalDependencySubstitutionRules,
         VcsMappingsStore vcsMappingsStore,
         ComponentIdentifierFactory componentIdentifierFactory,
@@ -69,10 +65,10 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         ImmutableModuleIdentifierFactory moduleIdentifierFactory,
         ComponentSelectorConverter componentSelectorConverter,
         DependencyLockingProvider dependencyLockingProvider,
-        ProjectStateRegistry projectStateRegistry,
         CollectionCallbackActionDecorator callbackDecorator,
         NotationParser<Object, ComponentSelector> moduleSelectorNotationParser,
         ObjectFactory objectFactory,
+        DefaultRootComponentMetadataBuilder.Factory rootComponentMetadataBuilderFactory,
         DefaultConfigurationFactory defaultConfigurationFactory
     ) {
         super(Configuration.class, instantiator, new Configuration.Namer(), callbackDecorator);
@@ -81,7 +77,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
             CapabilitiesResolutionInternal capabilitiesResolutionInternal = instantiator.newInstance(DefaultCapabilitiesResolution.class, new CapabilityNotationParserFactory(false).create(), new ComponentIdentifierParserFactory().create());
             return instantiator.newInstance(DefaultResolutionStrategy.class, globalDependencySubstitutionRules, vcsMappingsStore, componentIdentifierFactory, moduleIdentifierFactory, componentSelectorConverter, dependencyLockingProvider, capabilitiesResolutionInternal, instantiator, objectFactory, attributesFactory, moduleSelectorNotationParser, dependencyCapabilityNotationParser);
         };
-        this.rootComponentMetadataBuilder = new DefaultRootComponentMetadataBuilder(dependencyMetaDataProvider, componentIdentifierFactory, moduleIdentifierFactory, localComponentMetadataBuilder, this, projectStateRegistry, dependencyLockingProvider);
+        this.rootComponentMetadataBuilder = rootComponentMetadataBuilderFactory.create(this);
         this.defaultConfigurationFactory = defaultConfigurationFactory;
     }
 

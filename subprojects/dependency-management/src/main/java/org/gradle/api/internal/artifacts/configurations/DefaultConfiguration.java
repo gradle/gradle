@@ -89,6 +89,7 @@ import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.provider.AbstractProviderWithValue;
 import org.gradle.api.internal.tasks.FailureCollectingTaskDependencyResolveContext;
@@ -177,6 +178,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private DefaultPublishArtifactSet allArtifacts;
     private final ConfigurationResolvableDependencies resolvableDependencies;
     private ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners;
+    private ProjectDependencyObservedListener dependencyObservedBroadcast;
     private final BuildOperationExecutor buildOperationExecutor;
     private final Instantiator instantiator;
     private Factory<ResolutionStrategyInternal> resolutionStrategyFactory;
@@ -247,6 +249,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         ConfigurationsProvider configurationsProvider,
         ConfigurationResolver resolver,
         ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners,
+        ProjectDependencyObservedListener dependencyObservedBroadcast,
         DependencyMetaDataProvider metaDataProvider,
         Factory<ResolutionStrategyInternal> resolutionStrategyFactory,
         FileCollectionFactory fileCollectionFactory,
@@ -277,6 +280,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.resolutionStrategyFactory = resolutionStrategyFactory;
         this.fileCollectionFactory = fileCollectionFactory;
         this.dependencyResolutionListeners = dependencyResolutionListeners;
+        this.dependencyObservedBroadcast = dependencyObservedBroadcast;
         this.buildOperationExecutor = buildOperationExecutor;
         this.instantiator = instantiator;
         this.attributesFactory = attributesFactory;
@@ -801,13 +805,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     private void markReferencedProjectConfigurationsObserved(InternalState requestedState, ResolverResults results) {
+        ProjectInternal consumingProject = domainObjectContext.getProject();
+        ProjectState consumingProjectState = consumingProject == null ? null : consumingProject.getOwner();
         for (ResolvedProjectConfiguration projectResult : results.getResolvedLocalComponents().getResolvedProjectConfigurations()) {
-            ProjectInternal project = projectStateRegistry.stateFor(projectResult.getId()).getMutableModel();
-            ConfigurationInternal targetConfig = (ConfigurationInternal) project.getConfigurations().findByName(projectResult.getTargetConfiguration());
-            if (targetConfig != null) {
-                // Can be null when dependency metadata for target project has been loaded from cache
-                targetConfig.markAsObserved(requestedState);
-            }
+            ProjectState targetProjectState = projectStateRegistry.stateFor(projectResult.getId());
+            dependencyObservedBroadcast.dependencyObserved(consumingProjectState, targetProjectState, requestedState, projectResult);
         }
     }
 
@@ -854,6 +856,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 // Traverse graph
                 ResolverResults results = new DefaultResolverResults();
                 resolver.resolveBuildDependencies(DefaultConfiguration.this, results);
+                markReferencedProjectConfigurationsObserved(BUILD_DEPENDENCIES_RESOLVED, results);
                 return new BuildDependenciesResolved(results);
             } // Otherwise, already have a result, so reuse it
             return initial;
@@ -1364,13 +1367,15 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         private final ResolutionHost resolutionHost;
         private SelectedArtifactSet selectedArtifacts;
 
-        private ConfigurationFileCollection(ResolutionResultProvider<VisitedArtifactSet> resultProvider,
-                                            Spec<? super Dependency> dependencySpec,
-                                            AttributeContainerInternal viewAttributes,
-                                            Spec<? super ComponentIdentifier> componentSpec,
-                                            boolean lenient,
-                                            boolean allowNoMatchingVariants,
-                                            ResolutionHost resolutionHost) {
+        private ConfigurationFileCollection(
+            ResolutionResultProvider<VisitedArtifactSet> resultProvider,
+            Spec<? super Dependency> dependencySpec,
+            AttributeContainerInternal viewAttributes,
+            Spec<? super ComponentIdentifier> componentSpec,
+            boolean lenient,
+            boolean allowNoMatchingVariants,
+            ResolutionHost resolutionHost
+        ) {
             this.resultProvider = resultProvider;
             this.dependencySpec = dependencySpec;
             this.viewAttributes = viewAttributes;

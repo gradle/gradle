@@ -22,14 +22,18 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.execution.internal.TaskInputsListener
 import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
+import org.gradle.api.internal.artifacts.configurations.ProjectDependencyObservedListener
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.Expiry
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ChangingValueDependencyResolutionListener
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfiguration
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileCollectionStructureVisitor
 import org.gradle.api.internal.file.FileTreeInternal
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree
+import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.internal.provider.sources.EnvironmentVariableValueSource
 import org.gradle.api.internal.provider.sources.FileContentValueSource
@@ -46,8 +50,8 @@ import org.gradle.configurationcache.problems.PropertyProblem
 import org.gradle.configurationcache.problems.PropertyTrace
 import org.gradle.configurationcache.problems.StructuredMessage
 import org.gradle.configurationcache.serialization.DefaultWriteContext
-import org.gradle.configurationcache.serialization.runWriteOperation
 import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.resource.local.FileResourceListener
 import org.gradle.internal.scripts.ScriptExecutionListener
@@ -58,7 +62,8 @@ import java.io.File
 internal
 class ConfigurationCacheFingerprintWriter(
     private val host: Host,
-    private val writeContext: DefaultWriteContext,
+    buildScopedContext: DefaultWriteContext,
+    projectScopedContext: DefaultWriteContext,
     private val fileCollectionFactory: FileCollectionFactory,
     private val directoryFileTreeFactory: DirectoryFileTreeFactory
 ) : ValueSourceProviderFactory.Listener,
@@ -66,17 +71,25 @@ class ConfigurationCacheFingerprintWriter(
     ScriptExecutionListener,
     UndeclaredBuildInputListener,
     ChangingValueDependencyResolutionListener,
+    ProjectDependencyObservedListener,
     FileResourceListener {
 
     interface Host {
         val gradleUserHomeDir: File
         val allInitScripts: List<File>
         val buildStartTime: Long
+        val cacheIntermediateModels: Boolean
         fun fingerprintOf(fileCollection: FileCollectionInternal): HashCode
         fun hashCodeOf(file: File): HashCode?
         fun reportInput(input: PropertyProblem)
         fun location(consumer: String?): PropertyTrace
     }
+
+    private
+    val buildScopedWriter = ScopedFingerprintWriter<ConfigurationCacheFingerprint>(buildScopedContext)
+
+    private
+    val projectScopedWriter = ScopedFingerprintWriter<ProjectSpecificFingerprint>(projectScopedContext)
 
     private
     val projectForThread = ThreadLocal<Path>()
@@ -118,17 +131,12 @@ class ConfigurationCacheFingerprintWriter(
      * **MUST ALWAYS BE CALLED**
      */
     fun close() {
-        // we synchronize access to all resources used by callbacks
-        // in case there was still an event being dispatched at closing time.
-        synchronized(writeContext) {
-            synchronized(this) {
-                if (closestChangingValue != null) {
-                    unsafeWrite(closestChangingValue)
-                }
+        synchronized(this) {
+            closestChangingValue?.let {
+                buildScopedWriter.write(it)
             }
-            unsafeWrite(null)
-            writeContext.close()
         }
+        CompositeStoppable.stoppable(buildScopedWriter, projectScopedWriter).stop()
     }
 
     override fun onDynamicVersionSelection(requested: ModuleComponentSelector, expiry: Expiry, versions: Set<ModuleVersionIdentifier>) {
@@ -257,23 +265,23 @@ class ConfigurationCacheFingerprintWriter(
         }
     }
 
-    private
-    fun write(value: ConfigurationCacheFingerprint) {
-        val project = projectForThread.get()
-        val contextualized = if (project != null) {
-            ConfigurationCacheFingerprint.ProjectSpecificInput(project.path, value)
-        } else {
-            value
-        }
-        synchronized(writeContext) {
-            unsafeWrite(contextualized)
+    override fun dependencyObserved(consumingProject: ProjectState?, targetProject: ProjectState, requestedState: ConfigurationInternal.InternalState, target: ResolvedProjectConfiguration) {
+        if (host.cacheIntermediateModels && consumingProject != null) {
+            projectScopedWriter.write(ProjectSpecificFingerprint.ProjectDependency(consumingProject.identityPath, targetProject.identityPath))
         }
     }
 
+    fun append(fingerprint: ProjectSpecificFingerprint) {
+        projectScopedWriter.write(fingerprint)
+    }
+
     private
-    fun unsafeWrite(value: ConfigurationCacheFingerprint?) {
-        writeContext.runWriteOperation {
-            write(value)
+    fun write(value: ConfigurationCacheFingerprint) {
+        val project = projectForThread.get()
+        if (project != null) {
+            projectScopedWriter.write(ProjectSpecificFingerprint.ProjectFingerprint(project, value))
+        } else {
+            buildScopedWriter.write(value)
         }
     }
 

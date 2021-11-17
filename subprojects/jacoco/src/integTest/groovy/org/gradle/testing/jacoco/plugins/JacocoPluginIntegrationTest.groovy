@@ -20,6 +20,7 @@ import org.gradle.api.Project
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testing.jacoco.plugins.fixtures.JacocoReportFixture
 import org.gradle.testing.jacoco.plugins.fixtures.JavaProjectUnderTest
 
@@ -144,5 +145,226 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         then:
         errorOutput.contains("JaCoCo destination file must not be null if output type is FILE")
     }
-}
 
+    @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
+    def "jacoco plugin adds outgoing variants for default test suite"() {
+        settingsFile << "rootProject.name = 'Test'"
+
+        expect:
+        succeeds "outgoingVariants"
+
+        def resultsExecPath = new TestFile(getTestDirectory(), 'build/jacoco/test.exec').getRelativePathFromBase()
+        outputContains("""
+            --------------------------------------------------
+            Variant coverageDataElementsForTest
+            --------------------------------------------------
+            Capabilities
+                - :Test:unspecified (default capability)
+            Attributes
+                - org.gradle.category      = documentation
+                - org.gradle.docstype      = jacoco-coverage-bin
+                - org.gradle.targetname    = test
+                - org.gradle.testsuitename = test
+                - org.gradle.testsuitetype = unit-tests
+                - org.gradle.usage         = verification
+
+            Artifacts
+                - $resultsExecPath (artifactType = binary)""".stripIndent())
+    }
+
+    @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
+    def "jacoco plugin adds outgoing variants for custom test suite"() {
+        settingsFile << "rootProject.name = 'Test'"
+
+        buildFile << """
+            testing {
+                suites {
+                    integrationTest(JvmTestSuite) {
+                        testType = TestType.INTEGRATION_TESTS
+
+                        dependencies {
+                            implementation project
+                        }
+                    }
+                }
+            }
+        """.stripIndent()
+
+        expect:
+        succeeds "outgoingVariants"
+
+        def resultsExecPath = new TestFile(getTestDirectory(), 'build/jacoco/integrationTest.exec').getRelativePathFromBase()
+        outputContains("""
+            --------------------------------------------------
+            Variant coverageDataElementsForIntegrationTest
+            --------------------------------------------------
+            Capabilities
+                - :Test:unspecified (default capability)
+            Attributes
+                - org.gradle.category      = documentation
+                - org.gradle.docstype      = jacoco-coverage-bin
+                - org.gradle.targetname    = integrationTest
+                - org.gradle.testsuitename = integrationTest
+                - org.gradle.testsuitetype = integration-tests
+                - org.gradle.usage         = verification
+
+            Artifacts
+                - $resultsExecPath (artifactType = binary)""".stripIndent())
+    }
+
+    def "Jacoco coverage data can be consumed by another task via Dependency Management"() {
+        buildFile << """
+            test {
+                jacoco {
+                    destinationFile = layout.buildDirectory.file("jacoco/jacocoData.exec").get().asFile
+                }
+            }
+            """.stripIndent()
+
+        buildFile << """
+            // A resolvable configuration to collect JaCoCo coverage data
+            def coverageDataConfig = configurations.create("coverageData") {
+                visible = true
+                canBeResolved = true
+                canBeConsumed = false
+                attributes {
+                    attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.VERIFICATION))
+                    attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION))
+                    attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType, DocsType.JACOCO_COVERAGE))
+                }
+            }
+
+            dependencies {
+                coverageData project
+            }
+
+            def testResolve = tasks.register('testResolve') {
+                doLast {
+                    assert coverageDataConfig.resolvedConfiguration.files*.name == [test.jacoco.destinationFile.name]
+                }
+            }
+            """.stripIndent()
+
+        expect:
+        succeeds('testResolve')
+    }
+
+    def "Jacoco coverage data can be consumed by another task in a different project via Dependency Management"() {
+        def subADir = createDir("subA")
+        final JavaProjectUnderTest subA = new JavaProjectUnderTest(subADir)
+        subA.writeBuildScript()
+        subADir.file("build.gradle") << """
+            test {
+                jacoco {
+                    destinationFile = layout.buildDirectory.file("jacoco/subA.exec").get().asFile
+                }
+            }
+            """.stripIndent()
+
+        def subBDir = createDir("subB")
+        final JavaProjectUnderTest subB = new JavaProjectUnderTest(subBDir)
+        subB.writeBuildScript()
+        subBDir.file("build.gradle") << """
+            test {
+                jacoco {
+                    destinationFile = layout.buildDirectory.file("jacoco/subB.exec").get().asFile
+                }
+            }
+            """.stripIndent()
+
+        settingsFile << """
+            include ':subA'
+            include ':subB'
+            """.stripIndent()
+
+        buildFile << """
+            dependencies {
+                implementation project(':subA')
+                implementation project(':subB')
+            }
+
+            // A resolvable configuration to collect JaCoCo coverage data
+            def coverageDataConfig = configurations.create("coverageData") {
+                visible = false
+                canBeResolved = true
+                canBeConsumed = false
+                extendsFrom(configurations.implementation)
+                attributes {
+                    attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.VERIFICATION))
+                    attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION))
+                    attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType, DocsType.JACOCO_COVERAGE))
+                }
+            }
+
+            def testResolve = tasks.register('testResolve') {
+                doLast {
+                    assert coverageDataConfig.getResolvedConfiguration().getFiles()*.getName() == ["subA.exec", "subB.exec"]
+                }
+            }
+            """.stripIndent()
+
+        expect:
+        succeeds('testResolve')
+    }
+
+    def "Jacoco coverage data can be consumed across transitive project dependencies via Dependency Management"() {
+        def directDir = createDir("direct")
+        final JavaProjectUnderTest subDirect = new JavaProjectUnderTest(directDir)
+        subDirect.writeBuildScript()
+        directDir.file("build.gradle") << """
+            dependencies {
+                implementation project(':transitive')
+            }
+
+            test {
+                jacoco {
+                    destinationFile = layout.buildDirectory.file("jacoco/direct.exec").get().asFile
+                }
+            }
+            """.stripIndent()
+
+        def transitiveDir = createDir("transitive")
+        final JavaProjectUnderTest subTransitive = new JavaProjectUnderTest(transitiveDir)
+        subTransitive.writeBuildScript()
+        transitiveDir.file("build.gradle") << """
+            test {
+                jacoco {
+                    destinationFile = layout.buildDirectory.file("jacoco/transitive.exec").get().asFile
+                }
+            }
+            """.stripIndent()
+
+        settingsFile << """
+            include ':direct'
+            include ':transitive'
+            """.stripIndent()
+
+        buildFile << """
+            dependencies {
+                implementation project(':direct')
+            }
+
+            // A resolvable configuration to collect JaCoCo coverage data
+            def coverageDataConfig = configurations.create("coverageData") {
+                visible = false
+                canBeResolved = true
+                canBeConsumed = false
+                extendsFrom(configurations.implementation)
+                attributes {
+                    attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.VERIFICATION))
+                    attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION))
+                    attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType, DocsType.JACOCO_COVERAGE))
+                }
+            }
+
+            def testResolve = tasks.register('testResolve') {
+                doLast {
+                    assert coverageDataConfig.getResolvedConfiguration().getFiles()*.getName() == ["direct.exec", "transitive.exec"]
+                }
+            }
+            """.stripIndent()
+
+        expect:
+        succeeds('testResolve')
+    }
+}

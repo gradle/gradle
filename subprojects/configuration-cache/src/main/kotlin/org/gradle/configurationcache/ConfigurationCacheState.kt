@@ -82,7 +82,7 @@ import kotlin.contracts.contract
 
 internal
 enum class StateType {
-    Work, Model, Entry, Fingerprint, IntermediateModels, ProjectMetadata
+    Work, Model, Entry, BuildFingerprint, ProjectFingerprint, IntermediateModels, ProjectMetadata
 }
 
 

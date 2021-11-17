@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.initialization;
+package org.gradle.configurationcache.fingerprint
 
-import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.util.Path
 
 
-public interface ProjectAccessListener {
-    void beforeResolvingProjectDependency(ProjectInternal dependencyProject);
+internal
+sealed class ProjectSpecificFingerprint {
+    data class ProjectFingerprint(
+        val projectPath: Path,
+        val value: ConfigurationCacheFingerprint
+    ) : ProjectSpecificFingerprint()
+
+    class ProjectDependency(
+        val consumingProject: Path,
+        val targetProject: Path
+    ) : ProjectSpecificFingerprint()
 }
