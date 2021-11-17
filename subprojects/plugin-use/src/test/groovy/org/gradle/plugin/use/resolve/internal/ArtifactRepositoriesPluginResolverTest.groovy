@@ -21,10 +21,6 @@ import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.ResolvedConfiguration
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.MavenVersionSelectorScheme
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser
 import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.groovy.scripts.TextResourceScriptSource
@@ -32,12 +28,12 @@ import org.gradle.internal.resource.StringTextResource
 import org.gradle.plugin.management.internal.DefaultPluginRequest
 import org.gradle.plugin.management.internal.PluginRequestInternal
 import org.gradle.plugin.use.internal.DefaultPluginId
+import org.gradle.plugin.use.internal.PluginRepositoriesProvider
 import spock.lang.Specification
 
 import static org.gradle.plugin.use.resolve.internal.ArtifactRepositoriesPluginResolver.SOURCE_NAME
 
 class ArtifactRepositoriesPluginResolverTest extends Specification {
-    def versionSelectorScheme = new MavenVersionSelectorScheme(new DefaultVersionSelectorScheme(new DefaultVersionComparator(), new VersionParser()))
     def repository = Mock(ArtifactRepositoryInternal) {
         getDisplayName() >> "maven(url)"
     }
@@ -62,7 +58,7 @@ class ArtifactRepositoriesPluginResolverTest extends Specification {
     }
     def result = Mock(PluginResolutionResult)
 
-    def resolver = new ArtifactRepositoriesPluginResolver(resolution, versionSelectorScheme)
+    def resolver = new ArtifactRepositoriesPluginResolver(resolution, Stub(PluginRepositoriesProvider))
 
     PluginRequestInternal request(String id, String version = null) {
         new DefaultPluginRequest(DefaultPluginId.of(id), version, true, 1, new TextResourceScriptSource(new StringTextResource("test", "test")))

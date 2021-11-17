@@ -81,6 +81,9 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
             return;
         }
 
+        // This should move to settings finalization
+        pluginRepositoriesProvider.prepareForPluginResolution();
+
         final PluginResolver effectivePluginResolver = wrapInAlreadyInClasspathResolver(classLoaderScope);
         if (!requests.isEmpty()) {
             addPluginArtifactRepositories(scriptHandler.getRepositories());

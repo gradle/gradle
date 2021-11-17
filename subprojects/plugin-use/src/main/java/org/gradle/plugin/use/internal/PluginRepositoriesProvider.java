@@ -20,6 +20,8 @@ import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import java.util.List;
 
 public interface PluginRepositoriesProvider {
+    void prepareForPluginResolution();
+
     List<ArtifactRepository> getPluginRepositories();
 
     boolean isExclusiveContentInUse();
