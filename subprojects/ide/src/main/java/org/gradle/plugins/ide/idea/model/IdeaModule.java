@@ -20,9 +20,11 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
@@ -160,12 +162,16 @@ public class IdeaModule {
     private Set<File> sourceDirs;
     private Set<File> generatedSourceDirs = Sets.newLinkedHashSet();
     private Set<File> resourceDirs = Sets.newLinkedHashSet();
+    @Deprecated
     private Set<File> testResourceDirs = Sets.newLinkedHashSet();
+    private ConfigurableFileCollection testResources;
     private Map<String, Map<String, Collection<Configuration>>> scopes = Maps.newLinkedHashMap();
     private boolean downloadSources = true;
     private boolean downloadJavadoc;
     private File contentRoot;
-    private Set<File> testSourceDirs;
+    @Deprecated
+    private Set<File> testSourceDirs = Sets.newLinkedHashSet();
+    private ConfigurableFileCollection testSources;
     private Set<File> excludeDirs;
     private Boolean inheritOutputDirs;
     private File outputDir;
@@ -183,6 +189,12 @@ public class IdeaModule {
     public IdeaModule(Project project, IdeaModuleIml iml) {
         this.project = project;
         this.iml = iml;
+
+        this.testSources = project.getObjects().fileCollection();
+        this.testResources = project.getObjects().fileCollection();
+
+        testSources.from(project.provider(() -> getTestSourceDirs()));
+        testResources.from(project.provider(() -> getTestResourceDirs()));
     }
 
     /**
@@ -313,7 +325,6 @@ public class IdeaModule {
         this.contentRoot = contentRoot;
     }
 
-
     /**
      * The directories containing the test sources.
      *
@@ -325,6 +336,15 @@ public class IdeaModule {
 
     public void setTestSourceDirs(Set<File> testSourceDirs) {
         this.testSourceDirs = testSourceDirs;
+    }
+
+    /**
+     * The complete collection of test sources.
+     * @since 7.4
+     */
+    @Incubating
+    public ConfigurableFileCollection getTestSources() {
+        return testSources;
     }
 
     /**
@@ -361,6 +381,16 @@ public class IdeaModule {
      */
     public void setTestResourceDirs(Set<File> testResourceDirs) {
         this.testResourceDirs = testResourceDirs;
+    }
+
+
+    /**
+     * The complete collection of test resources.
+     * @since 7.4
+     */
+    @Incubating
+    public ConfigurableFileCollection getTestResources() {
+        return testResources;
     }
 
     /**

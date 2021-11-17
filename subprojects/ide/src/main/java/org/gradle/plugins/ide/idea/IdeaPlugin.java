@@ -28,7 +28,6 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
@@ -111,9 +110,6 @@ public class IdeaPlugin extends IdePlugin {
     private final IdeArtifactRegistry artifactRegistry;
     private final ProjectStateRegistry projectPathRegistry;
 
-    private ConfigurableFileCollection completeTestSourceDirs;
-    private ConfigurableFileCollection completeTestResourceDirs;
-
     @Inject
     public IdeaPlugin(Instantiator instantiator, UniqueProjectNameProvider uniqueProjectNameProvider, IdeArtifactRegistry artifactRegistry, ProjectStateRegistry projectPathRegistry) {
         this.instantiator = instantiator;
@@ -137,9 +133,6 @@ public class IdeaPlugin extends IdePlugin {
         getCleanTask().configure(withDescription("Cleans IDEA project files (IML, IPR)"));
 
         ideaModel = project.getExtensions().create("idea", IdeaModel.class);
-
-        completeTestSourceDirs = project.getObjects().fileCollection();
-        completeTestResourceDirs = project.getObjects().fileCollection();
 
         configureIdeaWorkspace(project);
         configureIdeaProject(project);
@@ -291,7 +284,6 @@ public class IdeaPlugin extends IdePlugin {
             }
         });
         Set<File> testSourceDirs = Sets.newLinkedHashSet();
-        completeTestSourceDirs.from(testSourceDirs);
         conventionMapping.map("testSourceDirs", new Callable<Set<File>>() {
             @Override
             public Set<File> call() {
@@ -306,7 +298,6 @@ public class IdeaPlugin extends IdePlugin {
             }
         });
         Set<File> testResourceDirs = Sets.newLinkedHashSet();
-        completeTestResourceDirs.from(testResourceDirs);
         conventionMapping.map("testResourceDirs", new Callable<Set<File>>() {
             @Override
             public Set<File> call() throws Exception {
@@ -401,7 +392,6 @@ public class IdeaPlugin extends IdePlugin {
             }
         });
         Set<File> testSourceDirs = Sets.newLinkedHashSet();
-        completeTestSourceDirs.from(testSourceDirs);
         convention.map("testSourceDirs", new Callable<Set<File>>() {
             @Override
             public Set<File> call() {
@@ -420,7 +410,6 @@ public class IdeaPlugin extends IdePlugin {
             }
         });
         Set<File> testResourceDirs = Sets.newLinkedHashSet();
-        completeTestResourceDirs.from(testResourceDirs);
         convention.map("testResourceDirs", new Callable<Set<File>>() {
             @Override
             public Set<File> call() {
@@ -487,13 +476,9 @@ public class IdeaPlugin extends IdePlugin {
         final TestingExtension testing = project.getExtensions().getByType(TestingExtension.class);
         final IdeaModule ideaModule = ideaModelFor(project).getModule();
         testing.getSuites().withType(JvmTestSuite.class).configureEach(suite -> {
-            completeTestSourceDirs.from(project.provider(() -> suite.getSources().getAllJava().getSrcDirs()));
-            completeTestResourceDirs.from(project.provider(() -> suite.getSources().getResources().getSrcDirs()));
-
-            ideaModule.setTestSourceDirs(completeTestSourceDirs.getFiles());
-            ideaModule.setTestResourceDirs(completeTestResourceDirs.getFiles());
+            ideaModule.getTestSources().from(project.provider(() -> suite.getSources().getAllJava().getSrcDirs()));
+            ideaModule.getTestResources().from(project.provider(() -> suite.getSources().getResources().getSrcDirs()));
         });
-
     }
 
     private void configureIdeaModuleForWar(final Project project) {
