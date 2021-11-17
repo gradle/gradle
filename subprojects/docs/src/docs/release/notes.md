@@ -113,6 +113,14 @@ repositories {
 ```
 See [the documentation](userguide/kotlin_dsl.html#type-safe-accessors) for details.
 
+### Gradle Option Improvements
+
+#### Additional Daemon Debug Options
+
+Additional options were added for use with `-Dorg.gradle.debug=true`. These allow specification of the port, server mode, and suspend mode.
+
+See [the documentation](userguide/command_line_interface.html#sec:command_line_debugging) for details.
+
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
