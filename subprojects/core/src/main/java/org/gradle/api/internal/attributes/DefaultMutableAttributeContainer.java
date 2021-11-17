@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.attributes;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
@@ -24,7 +26,6 @@ import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -33,7 +34,7 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
     private final ImmutableAttributesFactory immutableAttributesFactory;
     private final AttributeContainerInternal parent;
     private ImmutableAttributes state = ImmutableAttributes.EMPTY;
-    private final Map<Attribute<?>, Provider<?>> lazyAttributes = new HashMap<>();
+    private Map<Attribute<?>, Provider<?>> lazyAttributes = ImmutableMap.of();
 
     public DefaultMutableAttributeContainer(ImmutableAttributesFactory immutableAttributesFactory) {
         this(immutableAttributesFactory, null);
@@ -85,7 +86,7 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
                 assertAttributeTypeIsValid(valueType, key);
             }
         }
-        lazyAttributes.put(key, provider);
+        addLazyAttribute(key, provider);
         return this;
     }
 
@@ -133,7 +134,7 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
     }
 
     private <T> T realizeLazyAttribute(Attribute<T> key) {
-        Provider<?> provider = lazyAttributes.remove(key);
+        Provider<?> provider = removeLazyAttribute(key);
         final T value = Cast.uncheckedCast(provider.get());
         attribute(key, value);
         return value;
@@ -167,7 +168,7 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
     private void realizeAllLazyAttributes() {
         if (!lazyAttributes.isEmpty()) {
             lazyAttributes.forEach((key, value) -> doInsertion(Cast.uncheckedNonnullCast(key), (Object) value.get()));
-            lazyAttributes.clear();
+            lazyAttributes = ImmutableMap.of();
         }
     }
 
@@ -207,6 +208,24 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
         int result = parent != null ? parent.hashCode() : 0;
         result = 31 * result + state.hashCode();
         result = 31 * result + asImmutable().hashCode();
+        return result;
+    }
+
+    private <T> void addLazyAttribute(Attribute<T> key, Provider<? extends T> provider) {
+        final Map<Attribute<?>, Provider<?>> temp = Maps.newHashMap(lazyAttributes);
+        temp.put(key, provider);
+        lazyAttributes = ImmutableMap.copyOf(temp);
+    }
+
+    private <T> Provider<? extends T> removeLazyAttribute(Attribute<T> key) {
+        @SuppressWarnings("unchecked")
+        final Provider<? extends T> result = (Provider<? extends T>) lazyAttributes.get(key);
+
+        final Map<Attribute<?>, Provider<?>> temp = Maps.newHashMap(lazyAttributes);
+        //noinspection SuspiciousMethodCalls
+        temp.remove(lazyAttributes);
+        lazyAttributes = ImmutableMap.copyOf(temp);
+
         return result;
     }
 }
