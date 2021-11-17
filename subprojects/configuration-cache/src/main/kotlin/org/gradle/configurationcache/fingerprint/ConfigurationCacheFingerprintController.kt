@@ -93,6 +93,9 @@ class ConfigurationCacheFingerprintController internal constructor(
         open fun commit(buildScopedFingerprint: ConfigurationCacheStateFile, projectScopedFingerprint: ConfigurationCacheStateFile): WritingState =
             illegalStateFor("commit")
 
+        open fun append(fingerprint: ProjectSpecificFingerprint): Unit =
+            illegalStateFor("append")
+
         open fun <T> collectFingerprintForProject(identityPath: Path, action: () -> T): T =
             illegalStateFor("collectFingerprintForProject")
 
@@ -161,6 +164,10 @@ class ConfigurationCacheFingerprintController internal constructor(
 
         override fun pause(): WritingState {
             return this
+        }
+
+        override fun append(fingerprint: ProjectSpecificFingerprint) {
+            fingerprintWriter.append(fingerprint)
         }
 
         override fun commit(buildScopedFingerprint: ConfigurationCacheStateFile, projectScopedFingerprint: ConfigurationCacheStateFile): WritingState {
@@ -232,6 +239,13 @@ class ConfigurationCacheFingerprintController internal constructor(
     suspend fun ReadContext.checkProjectScopedFingerprint(host: Host): CheckedFingerprint =
         ConfigurationCacheFingerprintChecker(CacheFingerprintCheckerHost(host)).run {
             checkProjectScopedFingerprint()
+        }
+
+    suspend fun ReadContext.collectFingerprintForReusedProjects(host: Host, reusedProjects: Set<Path>): Unit =
+        ConfigurationCacheFingerprintChecker(CacheFingerprintCheckerHost(host)).run {
+            visitEntriesForProjects(reusedProjects) { fingerprint ->
+                writingState.append(fingerprint)
+            }
         }
 
     private

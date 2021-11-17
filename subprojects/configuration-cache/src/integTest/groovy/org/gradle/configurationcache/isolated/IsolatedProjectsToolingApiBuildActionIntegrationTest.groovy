@@ -36,7 +36,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         file("a/build.gradle") << """
             plugins.apply(my.MyPlugin)
         """
-        // Intentionally don't apply to project b. Should split this case (some project's don't have the model available) out into a separate test
+        // Intentionally don't apply to project b. Should split this case (some projects don't have the model available) out into a separate test
 
         when:
         executer.withArguments(ENABLE_CLI)
@@ -114,16 +114,16 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         then:
         model5.size() == 2
         model5[0].message == "this is the root project"
-        model5[1].message == "It works from project :a" // TODO - fix this
+        model5[1].message == "this is project a"
 
         and:
-        fixture.assertStateLoaded()
-//        fixture.assertStateRecreated {
-//            fileChanged("a/build.gradle")
-//            projectConfigured(":buildSrc")
-//            modelsCreated(":a")
-//        }
-//        outputContains("creating model for project ':a'")
+        fixture.assertStateRecreated {
+            fileChanged("a/build.gradle")
+            projectConfigured(":buildSrc")
+            projectConfigured(":")
+            modelsCreated(":a")
+        }
+        outputContains("creating model for project ':a'")
     }
 
     def "invalidates all cached models when build scoped input changes"() {
@@ -256,7 +256,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         fixture.assertStateRecreated {
             gradlePropertyChanged("some-input")
             projectConfigured(":buildSrc")
-            projectsConfigured(":", ":b")
+            projectsConfigured(":")
             modelsCreated(":a")
         }
 
@@ -335,7 +335,6 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         fixture.assertStateRecreated {
             fileChanged("build.gradle")
             projectConfigured(":buildSrc")
-            projectConfigured(":b")
             modelsCreated(":")
         }
         outputContains("creating model for root project 'root'")
@@ -410,7 +409,6 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         fixture.assertStateRecreated {
             fileChanged("build.gradle")
             projectConfigured(":buildSrc")
-            projectConfigured(":b")
             modelsCreated(":")
         }
         outputContains("creating model for root project 'root'")

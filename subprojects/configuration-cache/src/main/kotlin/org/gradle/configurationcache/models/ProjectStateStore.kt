@@ -28,6 +28,7 @@ import org.gradle.util.Path
 import java.io.Closeable
 import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
+import java.util.function.Consumer
 
 
 /**
@@ -76,6 +77,16 @@ abstract class ProjectStateStore<K, V>(
             if (identityPath == null || !checkedFingerprint.invalidProjects.contains(identityPath)) {
                 // Can reuse the value
                 previousValues[entry.key] = entry.value
+            }
+        }
+    }
+
+    fun visitReusedProjects(consumer: Consumer<Path>) {
+        val currentProjects = currentValues.keys.mapNotNull { projectPathForKey(it) }
+        val previousProjects = previousValues.keys.mapNotNull { projectPathForKey(it) }
+        for (path in currentProjects) {
+            if (previousProjects.contains(path)) {
+                consumer.accept(path)
             }
         }
     }
