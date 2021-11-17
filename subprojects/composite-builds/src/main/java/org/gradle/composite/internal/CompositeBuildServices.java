@@ -19,7 +19,6 @@ package org.gradle.composite.internal;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentProvider;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.api.internal.initialization.ScriptClassPathInitializer;
@@ -71,8 +70,8 @@ public class CompositeBuildServices extends AbstractPluginServiceRegistry {
             return new DefaultBuildableCompositeBuildContext();
         }
 
-        public LocalComponentProvider createLocalComponentProvider() {
-            return new LocalComponentInAnotherBuildProvider(new IncludedBuildDependencyMetadataBuilder());
+        public DefaultLocalComponentInAnotherBuildProvider createLocalComponentProvider() {
+            return new DefaultLocalComponentInAnotherBuildProvider(new IncludedBuildDependencyMetadataBuilder());
         }
     }
 

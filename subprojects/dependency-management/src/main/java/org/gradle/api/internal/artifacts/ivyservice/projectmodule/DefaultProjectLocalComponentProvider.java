@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.Module;
@@ -41,31 +40,21 @@ import java.util.concurrent.ConcurrentHashMap;
 public class DefaultProjectLocalComponentProvider implements LocalComponentProvider {
     private final LocalComponentMetadataBuilder metadataBuilder;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
-    private final BuildIdentifier thisBuild;
     private final Map<ProjectComponentIdentifier, CalculatedValueContainer<LocalComponentMetadata, ?>> projects = new ConcurrentHashMap<>();
 
     public DefaultProjectLocalComponentProvider(
         LocalComponentMetadataBuilder metadataBuilder,
-        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-        BuildIdentifier thisBuild
+        ImmutableModuleIdentifierFactory moduleIdentifierFactory
     ) {
         this.metadataBuilder = metadataBuilder;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
-        this.thisBuild = thisBuild;
     }
 
     @Nullable
     @Override
     public LocalComponentMetadata getComponent(ProjectState projectState) {
-        if (!isLocalProject(projectState.getComponentIdentifier())) {
-            return null;
-        }
         projectState.ensureConfigured();
         return projectState.fromMutableState(p -> getLocalComponentMetadata(projectState, p));
-    }
-
-    private boolean isLocalProject(ProjectComponentIdentifier projectIdentifier) {
-        return projectIdentifier.getBuild().equals(thisBuild);
     }
 
     private LocalComponentMetadata getLocalComponentMetadata(ProjectState projectState, ProjectInternal project) {

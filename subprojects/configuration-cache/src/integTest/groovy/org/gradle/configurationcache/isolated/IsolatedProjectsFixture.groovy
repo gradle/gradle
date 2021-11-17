@@ -142,6 +142,9 @@ class IsolatedProjectsFixture {
         if (details.changedSystemProperty != null) {
             reasons.add("system property '$details.changedSystemProperty'")
         }
+        if (details.changedTask != null) {
+            reasons.add("an input to task '${details.changedTask}'")
+        }
 
         def messages = reasons.collect { reason ->
             if (details.models.isEmpty()) {
@@ -300,9 +303,14 @@ class IsolatedProjectsFixture {
         List<String> changedFiles = []
         String changedGradleProperty
         String changedSystemProperty
+        String changedTask
 
         void fileChanged(String name) {
             changedFiles.add(name)
+        }
+
+        void taskInputChanged(String name) {
+            changedTask = name
         }
 
         void gradlePropertyChanged(String name) {
