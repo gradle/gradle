@@ -139,6 +139,9 @@ class IsolatedProjectsFixture {
         if (details.changedGradleProperty != null) {
             reasons.add("Gradle property '$details.changedGradleProperty'")
         }
+        if (details.changedSystemProperty != null) {
+            reasons.add("system property '$details.changedSystemProperty'")
+        }
 
         def messages = reasons.collect { reason ->
             if (details.models.isEmpty()) {
@@ -296,6 +299,7 @@ class IsolatedProjectsFixture {
     static class StoreRecreatedDetails extends StoreDetails {
         List<String> changedFiles = []
         String changedGradleProperty
+        String changedSystemProperty
 
         void fileChanged(String name) {
             changedFiles.add(name)
@@ -303,6 +307,10 @@ class IsolatedProjectsFixture {
 
         void gradlePropertyChanged(String name) {
             changedGradleProperty = name
+        }
+
+        void systemPropertyChanged(String name) {
+            changedSystemProperty = name
         }
     }
 
