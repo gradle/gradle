@@ -3,7 +3,7 @@ plugins {
     id("gradlebuild.binary-compatibility")
 }
 
-description = """Test for verify that Gradle code complies with architectural rules.
+description = """Verifies that Gradle code complies with architectural rules.
     | For example that nullable annotations are used consistently or that or that public api classes do not extend internal types.
 """.trimMargin()
 
