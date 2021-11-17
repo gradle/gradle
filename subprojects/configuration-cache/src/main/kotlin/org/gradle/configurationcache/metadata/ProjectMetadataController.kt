@@ -182,6 +182,11 @@ class ProjectMetadataController(
         // TODO - don't unpack the artifacts
         val artifacts = readList {
             readNonNull<PublishArtifactLocalArtifactMetadata>().publishArtifact
+//            when (val artifact = readNonNull<LocalComponentArtifactMetadata>()) {
+//                is PublishArtifactLocalArtifactMetadata -> artifact.publishArtifact
+//                is CompositeProjectComponentArtifactMetadata -> (artifact.delegate as PublishArtifactLocalArtifactMetadata).publishArtifact
+//                else -> throw IllegalArgumentException()
+//            }
         }
         metadata.addVariant(configurationName, variantName, identifier, Describables.of(variantName), attributes, ImmutableCapabilities.EMPTY, artifacts)
     }

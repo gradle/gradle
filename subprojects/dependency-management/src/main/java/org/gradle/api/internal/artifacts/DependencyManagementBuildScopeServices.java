@@ -620,10 +620,11 @@ class DependencyManagementBuildScopeServices {
         return new DefaultProjectPublicationRegistry();
     }
 
-    LocalComponentProvider createProjectComponentProvider(LocalComponentMetadataBuilder metaDataBuilder,
-                                                          ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-                                                          BuildState currentBuild) {
-        return new DefaultProjectLocalComponentProvider(metaDataBuilder, moduleIdentifierFactory, currentBuild.getBuildIdentifier());
+    LocalComponentProvider createProjectComponentProvider(
+        LocalComponentMetadataBuilder metaDataBuilder,
+        ImmutableModuleIdentifierFactory moduleIdentifierFactory
+    ) {
+        return new DefaultProjectLocalComponentProvider(metaDataBuilder, moduleIdentifierFactory);
     }
 
     ComponentSelectorConverter createModuleVersionSelectorFactory(ComponentIdentifierFactory componentIdentifierFactory, LocalComponentRegistry localComponentRegistry) {

@@ -19,6 +19,7 @@ package org.gradle.configurationcache
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultLocalComponentRegistry
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentInAnotherBuildProvider
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentProvider
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry
 import org.gradle.api.internal.project.CrossProjectModelAccess
@@ -180,13 +181,15 @@ class DefaultBuildModelControllerServices(
         }
 
         fun createLocalComponentRegistry(
+            currentBuild: BuildState,
             projectStateRegistry: ProjectStateRegistry,
             calculatedValueContainerFactory: CalculatedValueContainerFactory,
             cache: BuildTreeConfigurationCache,
-            providers: List<LocalComponentProvider>
+            provider: LocalComponentProvider,
+            otherBuildProvider: LocalComponentInAnotherBuildProvider
         ): LocalComponentRegistry {
-            val effectiveProviders = listOf(ConfigurationCacheAwareLocalComponentProvider(providers, cache))
-            return DefaultLocalComponentRegistry(projectStateRegistry, calculatedValueContainerFactory, effectiveProviders)
+            val effectiveProvider = ConfigurationCacheAwareLocalComponentProvider(provider, cache)
+            return VintageModelProvider().createLocalComponentRegistry(currentBuild, projectStateRegistry, calculatedValueContainerFactory, effectiveProvider, otherBuildProvider)
         }
     }
 
@@ -207,11 +210,13 @@ class DefaultBuildModelControllerServices(
         }
 
         fun createLocalComponentRegistry(
+            currentBuild: BuildState,
             projectStateRegistry: ProjectStateRegistry,
             calculatedValueContainerFactory: CalculatedValueContainerFactory,
-            providers: List<LocalComponentProvider>
+            provider: LocalComponentProvider,
+            otherBuildProvider: LocalComponentInAnotherBuildProvider
         ): LocalComponentRegistry {
-            return DefaultLocalComponentRegistry(projectStateRegistry, calculatedValueContainerFactory, providers)
+            return DefaultLocalComponentRegistry(currentBuild.buildIdentifier, projectStateRegistry, calculatedValueContainerFactory, provider, otherBuildProvider)
         }
     }
 }

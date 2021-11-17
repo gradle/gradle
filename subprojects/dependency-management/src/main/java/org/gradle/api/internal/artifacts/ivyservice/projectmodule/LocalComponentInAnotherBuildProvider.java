@@ -21,12 +21,12 @@ import org.gradle.internal.component.local.model.LocalComponentMetadata;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * A provider of dependency resolution metadata for locally produced components.
+ * A provider of dependency resolution metadata for components produced by another build in the build tree.
  *
  * <p>In general, you should be using {@link LocalComponentRegistry} instead of this type.</p>
  */
 @ThreadSafe
-public interface LocalComponentProvider {
+public interface LocalComponentInAnotherBuildProvider {
     /**
      * @return The component metadata for the supplied identifier.
      */
