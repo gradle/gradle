@@ -53,7 +53,7 @@ public class CompositeAwareTaskSelector extends TaskSelector {
         }
         return getUnqualifiedBuildSelector().getFilter(path);
 
-        //todo: turn issue #18196 into an integration test, which is fixed by this change
+        //todo: turn issue #18196 into an integration test, which is fixed by this change (manually confirmed)
     }
 
     @Override
