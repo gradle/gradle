@@ -27,6 +27,7 @@ import org.gradle.internal.hash.HashCode
 import org.gradle.internal.util.NumberUtil.ordinal
 import org.gradle.util.Path
 import java.io.File
+import java.util.function.Consumer
 
 
 internal
@@ -68,7 +69,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
     suspend fun ReadContext.checkProjectScopedFingerprint(): CheckedFingerprint {
         // TODO: log some debug info
         var firstReason: InvalidationReason? = null
-        val projects = mutableMapOf<String, ProjectInvalidationState>()
+        val projects = mutableMapOf<Path, ProjectInvalidationState>()
         while (true) {
             when (val input = read()) {
                 null -> break
@@ -97,12 +98,28 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
         return if (firstReason == null) {
             CheckedFingerprint.Valid
         } else {
-            CheckedFingerprint.ProjectsInvalid(firstReason!!, projects.entries.filter { it.value.isInvalid }.map { Path.path(it.key) }.toSet())
+            CheckedFingerprint.ProjectsInvalid(firstReason!!, projects.entries.filter { it.value.isInvalid }.map { it.key }.toSet())
+        }
+    }
+
+    suspend fun ReadContext.visitEntriesForProjects(reusedProjects: Set<Path>, consumer: Consumer<ProjectSpecificFingerprint>) {
+        while (true) {
+            when (val input = read()) {
+                null -> break
+                is ProjectSpecificFingerprint.ProjectFingerprint ->
+                    if (reusedProjects.contains(input.projectPath)) {
+                        consumer.accept(input)
+                    }
+                is ProjectSpecificFingerprint.ProjectDependency ->
+                    if (reusedProjects.contains(input.consumingProject)) {
+                        consumer.accept(input)
+                    }
+            }
         }
     }
 
     private
-    fun MutableMap<String, ProjectInvalidationState>.entryFor(path: String) = getOrPut(path) { ProjectInvalidationState() }
+    fun MutableMap<Path, ProjectInvalidationState>.entryFor(path: Path) = getOrPut(path) { ProjectInvalidationState() }
 
     private
     fun check(input: ConfigurationCacheFingerprint): InvalidationReason? {

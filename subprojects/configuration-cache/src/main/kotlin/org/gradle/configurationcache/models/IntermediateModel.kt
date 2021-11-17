@@ -14,20 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache.fingerprint
+package org.gradle.configurationcache.models
 
-import org.gradle.util.Path
+import org.gradle.configurationcache.extensions.uncheckedCast
+import org.gradle.tooling.provider.model.UnknownModelException
 
 
-internal
-sealed class ProjectSpecificFingerprint {
-    data class ProjectFingerprint(
-        val projectPath: Path,
-        val value: ConfigurationCacheFingerprint
-    ) : ProjectSpecificFingerprint()
+sealed class IntermediateModel {
+    abstract fun <T> result(): T?
 
-    class ProjectDependency(
-        val consumingProject: Path,
-        val targetProject: Path
-    ) : ProjectSpecificFingerprint()
+    class NoModel(val message: String) : IntermediateModel() {
+        override fun <T> result() = throw UnknownModelException(message)
+    }
+
+    object NullModel : IntermediateModel() {
+        override fun <T> result(): T? = null
+    }
+
+    class Model(val value: Any) : IntermediateModel() {
+        override fun <T> result(): T? = value.uncheckedCast()
+    }
 }
