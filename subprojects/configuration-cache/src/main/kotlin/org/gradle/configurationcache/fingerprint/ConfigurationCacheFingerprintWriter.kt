@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache.fingerprint
 
+import com.google.common.collect.Maps.newConcurrentMap
 import com.google.common.collect.Sets.newConcurrentHashSet
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
@@ -89,13 +90,16 @@ class ConfigurationCacheFingerprintWriter(
     val buildScopedWriter = ScopedFingerprintWriter<ConfigurationCacheFingerprint>(buildScopedContext)
 
     private
+    val buildScopedSink = BuildScopedSink(host, buildScopedWriter)
+
+    private
     val projectScopedWriter = ScopedFingerprintWriter<ProjectSpecificFingerprint>(projectScopedContext)
 
     private
-    val projectForThread = ThreadLocal<Path>()
+    val sinksForProject = newConcurrentMap<Path, ProjectScopedSink>()
 
     private
-    val capturedFiles = newConcurrentHashSet<File>()
+    val projectForThread = ThreadLocal<ProjectScopedSink>()
 
     private
     val undeclaredGradleProperties = newConcurrentHashSet<String>()
@@ -111,13 +115,8 @@ class ConfigurationCacheFingerprintWriter(
 
     init {
         val initScripts = host.allInitScripts
-        capturedFiles.addAll(initScripts)
-        write(
-            ConfigurationCacheFingerprint.InitScripts(
-                initScripts.map(::inputFile)
-            )
-        )
-        write(
+        buildScopedSink.initScripts(initScripts)
+        buildScopedSink.write(
             ConfigurationCacheFingerprint.GradleEnvironment(
                 host.gradleUserHomeDir,
                 jvmFingerprint()
@@ -133,7 +132,7 @@ class ConfigurationCacheFingerprintWriter(
     fun close() {
         synchronized(this) {
             closestChangingValue?.let {
-                buildScopedWriter.write(it)
+                buildScopedSink.write(it)
             }
         }
         CompositeStoppable.stoppable(buildScopedWriter, projectScopedWriter).stop()
@@ -168,22 +167,22 @@ class ConfigurationCacheFingerprintWriter(
 
     private
     fun gradlePropertyRead(key: String, value: String?, consumer: String?) {
+        sink().gradlePropertyRead(key, value)
         if (undeclaredGradleProperties.add(key)) {
-            write(ConfigurationCacheFingerprint.UndeclaredGradleProperty(key, value))
             reportGradlePropertyInput(key, consumer)
         }
     }
 
     override fun systemPropertyRead(key: String, value: Any?, consumer: String?) {
+        sink().systemPropertyRead(key, value)
         if (undeclaredSystemProperties.add(key)) {
-            write(ConfigurationCacheFingerprint.UndeclaredSystemProperty(key, value))
             reportSystemPropertyInput(key, consumer)
         }
     }
 
     override fun envVariableRead(key: String, value: String?, consumer: String?) {
+        sink().envVariableRead(key, value)
         if (undeclaredEnvironmentVariables.add(key)) {
-            write(ConfigurationCacheFingerprint.UndeclaredEnvironmentVariable(key, value))
             reportEnvironmentVariableInput(key, consumer)
         }
     }
@@ -215,7 +214,7 @@ class ConfigurationCacheFingerprintWriter(
 
     private
     fun <P : ValueSourceParameters, T : Any> captureValueSource(obtainedValue: ValueSourceProviderFactory.Listener.ObtainedValue<T, P>) {
-        write(ValueSource(obtainedValue.uncheckedCast()))
+        sink().write(ValueSource(obtainedValue.uncheckedCast()))
         reportValueSourceInput(obtainedValue.valueSourceType)
     }
 
@@ -231,22 +230,12 @@ class ConfigurationCacheFingerprintWriter(
 
     private
     fun captureFile(file: File) {
-        if (!capturedFiles.add(file)) {
-            return
-        }
-        write(inputFile(file))
+        sink().captureFile(file)
     }
 
     private
-    fun inputFile(file: File) =
-        InputFile(
-            file,
-            host.hashCodeOf(file)
-        )
-
-    private
     fun captureTaskInputs(task: TaskInternal, fileSystemInputs: FileCollectionInternal) {
-        write(
+        sink().write(
             ConfigurationCacheFingerprint.TaskInputs(
                 task.identityPath.path,
                 simplify(fileSystemInputs),
@@ -257,7 +246,8 @@ class ConfigurationCacheFingerprintWriter(
 
     fun <T> collectFingerprintForProject(identityPath: Path, action: () -> T): T {
         val previous = projectForThread.get()
-        projectForThread.set(identityPath)
+        val projectSink = sinksForProject.computeIfAbsent(identityPath) { ProjectScopedSink(host, identityPath, projectScopedWriter) }
+        projectForThread.set(projectSink)
         try {
             return action()
         } finally {
@@ -272,18 +262,12 @@ class ConfigurationCacheFingerprintWriter(
     }
 
     fun append(fingerprint: ProjectSpecificFingerprint) {
+        // TODO - should add to report as an input
         projectScopedWriter.write(fingerprint)
     }
 
     private
-    fun write(value: ConfigurationCacheFingerprint) {
-        val project = projectForThread.get()
-        if (project != null) {
-            projectScopedWriter.write(ProjectSpecificFingerprint.ProjectFingerprint(project, value))
-        } else {
-            buildScopedWriter.write(value)
-        }
-    }
+    fun sink(): Sink = projectForThread.get() ?: buildScopedSink
 
     private
     fun simplify(source: FileCollectionInternal): FileCollectionInternal {
@@ -360,6 +344,85 @@ class ConfigurationCacheFingerprintWriter(
 
     private
     fun locationFor(consumer: String?) = host.location(consumer)
+
+    private
+    abstract class Sink(
+        private val host: Host
+    ) {
+        val capturedFiles = newConcurrentHashSet<File>()
+
+        private
+        val undeclaredGradleProperties = newConcurrentHashSet<String>()
+
+        private
+        val undeclaredSystemProperties = newConcurrentHashSet<String>()
+
+        private
+        val undeclaredEnvironmentVariables = newConcurrentHashSet<String>()
+
+        fun captureFile(file: File) {
+            if (!capturedFiles.add(file)) {
+                return
+            }
+            write(inputFile(file))
+        }
+
+        fun gradlePropertyRead(key: String, value: String?) {
+            if (undeclaredGradleProperties.add(key)) {
+                write(ConfigurationCacheFingerprint.UndeclaredGradleProperty(key, value))
+            }
+        }
+
+        fun systemPropertyRead(key: String, value: Any?) {
+            if (undeclaredSystemProperties.add(key)) {
+                write(ConfigurationCacheFingerprint.UndeclaredSystemProperty(key, value))
+            }
+        }
+
+        fun envVariableRead(key: String, value: String?) {
+            if (undeclaredEnvironmentVariables.add(key)) {
+                write(ConfigurationCacheFingerprint.UndeclaredEnvironmentVariable(key, value))
+            }
+        }
+
+        abstract fun write(value: ConfigurationCacheFingerprint)
+
+        fun inputFile(file: File) =
+            InputFile(
+                file,
+                host.hashCodeOf(file)
+            )
+    }
+
+    private
+    class BuildScopedSink(
+        host: Host,
+        private val writer: ScopedFingerprintWriter<ConfigurationCacheFingerprint>
+    ) : Sink(host) {
+        override fun write(value: ConfigurationCacheFingerprint) {
+            writer.write(value)
+        }
+
+        fun initScripts(initScripts: List<File>) {
+            capturedFiles.addAll(initScripts)
+            write(
+                ConfigurationCacheFingerprint.InitScripts(
+                    initScripts.map(::inputFile)
+                )
+            )
+        }
+    }
+
+    private
+    class ProjectScopedSink(
+        host: Host,
+        private val project: Path,
+        private val writer: ScopedFingerprintWriter<ProjectSpecificFingerprint>
+    ) : Sink(host) {
+        override fun write(value: ConfigurationCacheFingerprint) {
+            writer.write(ProjectSpecificFingerprint.ProjectFingerprint(project, value))
+        }
+    }
 }
 
 
