@@ -51,14 +51,18 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
     private Path path;
     private String buildFileName;
 
-    public DefaultProjectDescriptor(@Nullable DefaultProjectDescriptor parent, String name, File dir,
-                                    ProjectDescriptorRegistry projectDescriptorRegistry, PathToFileResolver fileResolver) {
+    public DefaultProjectDescriptor(
+        @Nullable DefaultProjectDescriptor parent, String name, File dir,
+        ProjectDescriptorRegistry projectDescriptorRegistry, PathToFileResolver fileResolver
+    ) {
         this(parent, name, dir, projectDescriptorRegistry, fileResolver, null);
     }
 
-    public DefaultProjectDescriptor(@Nullable DefaultProjectDescriptor parent, String name, File dir,
-                                    ProjectDescriptorRegistry projectDescriptorRegistry, PathToFileResolver fileResolver,
-                                    @Nullable ScriptFileResolver scriptFileResolver) {
+    public DefaultProjectDescriptor(
+        @Nullable DefaultProjectDescriptor parent, String name, File dir,
+        ProjectDescriptorRegistry projectDescriptorRegistry, PathToFileResolver fileResolver,
+        @Nullable ScriptFileResolver scriptFileResolver
+    ) {
         this.parent = parent;
         this.name = name;
         this.fileResolver = fileResolver;
