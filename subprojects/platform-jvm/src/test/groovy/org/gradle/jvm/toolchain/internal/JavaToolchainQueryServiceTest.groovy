@@ -397,13 +397,28 @@ class JavaToolchainQueryServiceTest extends Specification {
 
     String changeMinorVersion(String version, Function<Integer, Integer> mapping) {
         try {
-            def lastDotIndex = version.lastIndexOf('.')
-            def minorVersion = Integer.parseInt(version.substring(lastDotIndex + 1, version.length()))
+            def firstNonVersionCharIndex = findFirstNonVersionCharIndex(version)
+            def trimmedVersion = version.substring(0, firstNonVersionCharIndex)
+            def lastDotIndex = trimmedVersion.lastIndexOf('.')
+            def minorVersion = Integer.parseInt(trimmedVersion.substring(lastDotIndex + 1, trimmedVersion.length()))
             def newMinorVersion = mapping.apply(minorVersion)
-            def newVersion = version.substring(0, lastDotIndex + 1) + newMinorVersion
+            def newVersion = version.substring(0, lastDotIndex + 1) + newMinorVersion + version.substring(firstNonVersionCharIndex)
             return newVersion
         } catch (Exception ignored) {
             return null
         }
+    }
+
+    private static int findFirstNonVersionCharIndex(String s) {
+        for (int i = 0; i < s.length(); ++i) {
+            if (!isDigitOrPeriod(s.charAt(i))) {
+                return i;
+            }
+        }
+        return s.length();
+    }
+
+    private static boolean isDigitOrPeriod(char c) {
+        return (c >= '0' && c <= '9') || c == '.';
     }
 }

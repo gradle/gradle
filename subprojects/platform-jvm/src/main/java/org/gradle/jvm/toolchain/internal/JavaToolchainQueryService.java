@@ -80,7 +80,7 @@ public class JavaToolchainQueryService {
             .filter(Optional::isPresent)
             .map(Optional::get)
             .filter(new ToolchainMatcher(filter))
-            .min(new JavaToolchainComparator(detectEnabled.getOrElse(true)))
+            .min(new JavaToolchainComparator())
             .orElseGet(() -> downloadToolchain(filter));
     }
 
