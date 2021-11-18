@@ -110,10 +110,10 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
         fails "help"
 
         and:
-        failure.assertHasDescription "Value '$value' given for org.gradle.debug.port Gradle property is invalid (must be a positive number)"
+        failure.assertHasDescription "Value '$value' given for org.gradle.debug.port Gradle property is invalid (must be a number between 1 and 65535)"
 
         where:
-        value << ["-1", "0", "1.1", "foo", " 1"]
+        value << ["-1", "0", "1.1", "foo", " 1", "65536"]
     }
 
     @Issue('https://github.com/gradle/gradle/issues/18084')
