@@ -25,20 +25,28 @@ import java.util.Map;
 import java.util.Set;
 
 class DefaultGradleProperties implements GradleProperties {
-    final Map<String, String> defaultProperties;
-    final Map<String, String> overrideProperties;
-    final ImmutableMap<String, String> gradleProperties;
+    private final Map<String, String> defaultProperties;
+    private final Map<String, String> overrideProperties;
+    private final ImmutableMap<String, String> gradleProperties;
+    private final Listener listener;
 
-    public DefaultGradleProperties(Map<String, String> defaultProperties, Map<String, String> overrideProperties) {
+    public DefaultGradleProperties(
+        Map<String, String> defaultProperties,
+        Map<String, String> overrideProperties,
+        Listener listener
+    ) {
         this.defaultProperties = defaultProperties;
         this.overrideProperties = overrideProperties;
+        this.listener = listener;
         gradleProperties = immutablePropertiesWith(ImmutableMap.of());
     }
 
     @Nullable
     @Override
     public String find(String propertyName) {
-        return gradleProperties.get(propertyName);
+        String value = gradleProperties.get(propertyName);
+        listener.onPropertyRead(propertyName, value);
+        return value;
     }
 
     @Override

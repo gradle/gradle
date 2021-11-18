@@ -57,7 +57,9 @@ public class DefaultGradlePropertiesLoaderTest {
         gradleUserHomeDir = tmpDir.createDir("gradleUserHome");
         settingsDir = tmpDir.createDir("settingsDir");
         gradleInstallationHomeDir = tmpDir.createDir("gradleInstallationHome");
-        gradlePropertiesLoader = new DefaultGradlePropertiesLoader(startParameter);
+        gradlePropertiesLoader = new DefaultGradlePropertiesLoader(startParameter, (name, value) -> {
+            // ignore Gradle property reads
+        });
         startParameter.setGradleUserHomeDir(gradleUserHomeDir);
         startParameter.setGradleHomeDir(gradleInstallationHomeDir);
     }

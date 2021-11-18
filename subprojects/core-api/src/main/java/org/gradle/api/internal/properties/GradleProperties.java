@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal.properties;
 
+import org.gradle.internal.service.scopes.EventScope;
+import org.gradle.internal.service.scopes.Scopes;
+
 import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.Set;
@@ -37,4 +40,9 @@ public interface GradleProperties {
      * @param properties read-only properties to be merged with the set of loaded properties.
      */
     Map<String, String> mergeProperties(Map<String, String> properties);
+
+    @EventScope(Scopes.Build.class)
+    interface Listener {
+        void onPropertyRead(String name, @Nullable String value);
+    }
 }
