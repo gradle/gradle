@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.attributes;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
@@ -26,6 +24,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -34,7 +33,7 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
     private final ImmutableAttributesFactory immutableAttributesFactory;
     private final AttributeContainerInternal parent;
     private ImmutableAttributes state = ImmutableAttributes.EMPTY;
-    private Map<Attribute<?>, Provider<?>> lazyAttributes = ImmutableMap.of();
+    private Map<Attribute<?>, Provider<?>> lazyAttributes = null;
 
     public DefaultMutableAttributeContainer(ImmutableAttributesFactory immutableAttributesFactory) {
         this(immutableAttributesFactory, null);
@@ -50,13 +49,16 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
         return asImmutable().toString();
     }
 
+    private Set<Attribute<?>> nonParentKeys() {
+        return (lazyAttributes == null) ? state.keySet() : Sets.union(state.keySet(), lazyAttributes.keySet());
+    }
+
     @Override
     public Set<Attribute<?>> keySet() {
-        final Set<Attribute<?>> selfKeys = Sets.union(state.keySet(), lazyAttributes.keySet());
         if (parent == null) {
-            return selfKeys;
+            return nonParentKeys();
         } else {
-            return Sets.union(parent.keySet(), selfKeys);
+            return Sets.union(parent.keySet(), nonParentKeys());
         }
     }
 
@@ -92,8 +94,7 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
 
     private <T> void checkInsertionAllowed(Attribute<T> key) {
         // Don't just use keySet() method instead, since we should be allowed to override attributes already in the parent
-        final Set<Attribute<?>> keys = Sets.union(state.keySet(), lazyAttributes.keySet());
-        for (Attribute<?> attribute : keys) {
+        for (Attribute<?> attribute : nonParentKeys()) {
             String name = key.getName();
             if (attribute.getName().equals(name) && attribute.getType() != key.getType()) {
                 throw new IllegalArgumentException("Cannot have two attributes with the same name but different types. "
@@ -124,7 +125,7 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
     @Override
     public <T> T getAttribute(Attribute<T> key) {
         T attribute = state.getAttribute(key);
-        if (attribute == null && lazyAttributes.containsKey(key)) {
+        if (attribute == null && lazyAttributes != null && lazyAttributes.containsKey(key)) {
             attribute = realizeLazyAttribute(key);
         }
         if (attribute == null && parent != null) {
@@ -142,12 +143,12 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
 
     @Override
     public boolean isEmpty() {
-        return state.isEmpty() && lazyAttributes.isEmpty() && (parent == null || parent.isEmpty());
+        return state.isEmpty() && lazyAttributes == null && (parent == null || parent.isEmpty());
     }
 
     @Override
     public boolean contains(Attribute<?> key) {
-        return state.contains(key) || lazyAttributes.containsKey(key) || (parent != null && parent.contains(key));
+        return state.contains(key) || (lazyAttributes != null && lazyAttributes.containsKey(key)) || (parent != null && parent.contains(key));
     }
 
     @Override
@@ -166,9 +167,9 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
     }
 
     private void realizeAllLazyAttributes() {
-        if (!lazyAttributes.isEmpty()) {
+        if (lazyAttributes != null) {
             lazyAttributes.forEach((key, value) -> doInsertion(Cast.uncheckedNonnullCast(key), (Object) value.get()));
-            lazyAttributes = ImmutableMap.of();
+            lazyAttributes = null;
         }
     }
 
@@ -212,20 +213,18 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
     }
 
     private <T> void addLazyAttribute(Attribute<T> key, Provider<? extends T> provider) {
-        final Map<Attribute<?>, Provider<?>> temp = Maps.newHashMap(lazyAttributes);
-        temp.put(key, provider);
-        lazyAttributes = ImmutableMap.copyOf(temp);
+        if (lazyAttributes == null) {
+            lazyAttributes = new LinkedHashMap<>(1);
+        }
+        lazyAttributes.put(key, provider);
     }
 
     private <T> Provider<? extends T> removeLazyAttribute(Attribute<T> key) {
         @SuppressWarnings("unchecked")
-        final Provider<? extends T> result = (Provider<? extends T>) lazyAttributes.get(key);
-
-        final Map<Attribute<?>, Provider<?>> temp = Maps.newHashMap(lazyAttributes);
-        //noinspection SuspiciousMethodCalls
-        temp.remove(lazyAttributes);
-        lazyAttributes = ImmutableMap.copyOf(temp);
-
+        final Provider<? extends T> result = (Provider<? extends T>) lazyAttributes.remove(key);
+        if (lazyAttributes.size() == 0) {
+            lazyAttributes = null;
+        }
         return result;
     }
 }
