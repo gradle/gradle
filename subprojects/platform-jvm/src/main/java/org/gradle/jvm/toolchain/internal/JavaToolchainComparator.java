@@ -23,16 +23,16 @@ import java.util.Comparator;
 
 public class JavaToolchainComparator implements Comparator<JavaToolchain> {
 
-    private final boolean currentJvmMatters;
+    private final boolean prioritizeCurrentJvm;
 
-    public JavaToolchainComparator(boolean currentJvmMatters) {
-        this.currentJvmMatters = currentJvmMatters;
+    public JavaToolchainComparator(boolean prioritizeCurrentJvm) {
+        this.prioritizeCurrentJvm = prioritizeCurrentJvm;
     }
 
     @Override
     public int compare(JavaToolchain o1, JavaToolchain o2) {
         return Comparator
-            .comparing((JavaToolchain toolchain) -> currentJvmMatters && toolchain.isCurrentJvm())
+            .comparing((JavaToolchain toolchain) -> prioritizeCurrentJvm && toolchain.isCurrentJvm())
             .thenComparing(JavaToolchain::isJdk)
             .thenComparing(this::extractVendor, Comparator.reverseOrder())
             .thenComparing(JavaToolchain::getToolVersion)
