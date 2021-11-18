@@ -98,7 +98,7 @@ dependencies {
     compile 'org.test:projectA:latest.release'
     components {
         all(StatusRule, {
-            params(project.properties['releaseVersion'] == null ? '' : project.properties['releaseVersion'])
+            params(project.findProperty('releaseVersion') ?: '')
         })
     }
 }
