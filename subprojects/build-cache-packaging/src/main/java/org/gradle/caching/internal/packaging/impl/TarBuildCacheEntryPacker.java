@@ -53,6 +53,7 @@ import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -62,8 +63,6 @@ import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
@@ -267,11 +266,13 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
     }
 
     private RegularFileSnapshot unpackFile(TarArchiveInputStream input, TarArchiveEntry entry, File file, String fileName) throws IOException {
-        Files.copy(input, file.toPath(), StandardCopyOption.REPLACE_EXISTING);
-        chmodUnpackedFile(entry, file);
-        String internedAbsolutePath = stringInterner.intern(file.getAbsolutePath());
-        String internedFileName = stringInterner.intern(fileName);
-        return new RegularFileSnapshot(internedAbsolutePath, internedFileName, HashCode.fromString(entry.getExtraPaxHeader("MD5")), DefaultFileMetadata.file(entry.getRealSize(), file.lastModified(), DIRECT));
+        try (OutputStream output = new FileOutputStream(file)) {
+            IOUtils.copyLarge(input, output);
+            chmodUnpackedFile(entry, file);
+            String internedAbsolutePath = stringInterner.intern(file.getAbsolutePath());
+            String internedFileName = stringInterner.intern(fileName);
+            return new RegularFileSnapshot(internedAbsolutePath, internedFileName, HashCode.fromString(entry.getExtraPaxHeader("MD5")), DefaultFileMetadata.file(entry.getRealSize(), file.lastModified(), DIRECT));
+        }
     }
 
     @Nullable
