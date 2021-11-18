@@ -16,26 +16,32 @@
 
 package org.gradle.tooling.internal.provider;
 
-import com.google.common.collect.ImmutableMap;
 import org.gradle.api.execution.internal.FileChangeListener;
 import org.gradle.api.execution.internal.TaskInputsListener;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.file.FileCollectionInternal;
+import org.gradle.api.internal.file.FileCollectionStructureVisitor;
+import org.gradle.api.internal.file.FileTreeInternal;
+import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
+import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.execution.plan.InputAccessHierarchy;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.ContinuousExecutionGate;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.file.FileHierarchySet;
 import org.gradle.internal.filewatch.PendingChangesListener;
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.watch.registry.FileWatcherRegistry;
-import org.gradle.internal.watch.registry.impl.Combiners;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -45,6 +51,7 @@ import static org.gradle.internal.filewatch.DefaultFileSystemChangeWaiterFactory
 public class FileSystemChangeListener implements FileChangeListener, TaskInputsListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(FileSystemChangeListener.class);
 
+    private final InputAccessHierarchy inputAccessHierarchy;
     private final PendingChangesListener pendingChangesListener;
     private final BuildCancellationToken cancellationToken;
     private final ContinuousExecutionGate continuousExecutionGate;
@@ -53,10 +60,15 @@ public class FileSystemChangeListener implements FileChangeListener, TaskInputsL
     private final CountDownLatch cancellationArrived = new CountDownLatch(1);
     private final FileEventCollector fileEventCollector = new FileEventCollector();
     private final long quietPeriod;
-    private volatile FileHierarchySet inputs = FileHierarchySet.empty();
     private volatile long lastChangeAt = monotonicClockMillis();
 
-    public FileSystemChangeListener(PendingChangesListener pendingChangesListener, BuildCancellationToken cancellationToken, ContinuousExecutionGate continuousExecutionGate) {
+    public FileSystemChangeListener(
+        InputAccessHierarchy inputAccessHierarchy,
+        PendingChangesListener pendingChangesListener,
+        BuildCancellationToken cancellationToken,
+        ContinuousExecutionGate continuousExecutionGate
+    ) {
+        this.inputAccessHierarchy = inputAccessHierarchy;
         this.pendingChangesListener = pendingChangesListener;
         this.cancellationToken = cancellationToken;
         this.continuousExecutionGate = continuousExecutionGate;
@@ -64,7 +76,7 @@ public class FileSystemChangeListener implements FileChangeListener, TaskInputsL
     }
 
     public boolean hasAnyInputs() {
-        return inputs != FileHierarchySet.empty();
+        return !inputAccessHierarchy.isEmpty();
     }
 
     void wait(Runnable notifier) {
@@ -105,7 +117,7 @@ public class FileSystemChangeListener implements FileChangeListener, TaskInputsL
     public void handleChange(FileWatcherRegistry.Type type, Path path) {
         String absolutePath = path.toString();
         lastChangeAt = monotonicClockMillis();
-        if (inputs.contains(absolutePath)) {
+        if (inputAccessHierarchy.isInput(absolutePath)) {
             // got a change, store it
             fileEventCollector.onChange(type, path);
             notifyChangeArrived();
@@ -126,10 +138,36 @@ public class FileSystemChangeListener implements FileChangeListener, TaskInputsL
     }
 
     @Override
-    public synchronized void onExecute(TaskInternal task, ImmutableMap<String, CurrentFileCollectionFingerprint> fingerprints) {
-        this.inputs = fingerprints.values().stream()
-            .flatMap(fingerprint -> fingerprint.getRootHashes().keySet().stream())
-            .reduce(inputs, FileHierarchySet::plus, Combiners.nonCombining());
+    public synchronized void onExecute(TaskInternal task, FileCollectionInternal fileSystemInputs) {
+        Set<String> taskInputs = new LinkedHashSet<>();
+        Set<FilteredTree> filteredFileTreeTaskInputs = new LinkedHashSet<>();
+        fileSystemInputs.visitStructure(new FileCollectionStructureVisitor() {
+            @Override
+            public void visitCollection(FileCollectionInternal.Source source, Iterable<File> contents) {
+                contents.forEach(location -> taskInputs.add(location.getAbsolutePath()));
+            }
+
+            @Override
+            public void visitGenericFileTree(FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
+                fileTree.forEach(location -> taskInputs.add(location.getAbsolutePath()));
+            }
+
+            @Override
+            public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
+                if (patterns.isEmpty()) {
+                    taskInputs.add(root.getAbsolutePath());
+                } else {
+                    filteredFileTreeTaskInputs.add(new FilteredTree(root.getAbsolutePath(), patterns));
+                }
+            }
+
+            @Override
+            public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
+                taskInputs.add(file.getAbsolutePath());
+            }
+        });
+        inputAccessHierarchy.recordInputs(taskInputs);
+        filteredFileTreeTaskInputs.forEach(fileTree -> inputAccessHierarchy.recordFilteredInput(fileTree.getRoot(), fileTree.getPatterns().getAsSpec()));
     }
 
     private static long monotonicClockMillis() {
@@ -194,5 +232,41 @@ public class FileSystemChangeListener implements FileChangeListener, TaskInputsL
         private void logOutput(StyledTextOutput logger, String message, Object... objects) {
             logger.formatln(message, objects);
         }
+    }
+
+    private static class FilteredTree {
+        private final String root;
+        private final PatternSet patterns;
+
+        private FilteredTree(String root, PatternSet patterns) {
+            this.root = root;
+            this.patterns = patterns;
+        }
+
+        public String getRoot() {
+            return root;
+        }
+
+        public PatternSet getPatterns() {
+            return patterns;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            FilteredTree that = (FilteredTree) o;
+            return root.equals(that.root) && patterns.equals(that.patterns);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(root, patterns);
+        }
+
     }
 }

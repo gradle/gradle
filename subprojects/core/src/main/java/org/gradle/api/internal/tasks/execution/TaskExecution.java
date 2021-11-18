@@ -496,7 +496,6 @@ public class TaskExecution implements UnitOfWork {
                 }
             }
         });
-        taskInputsListeners.broadcastFileSystemInputsOf(task, inputFingerprints);
     }
 
     @Override

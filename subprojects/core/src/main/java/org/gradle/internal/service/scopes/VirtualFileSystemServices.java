@@ -46,6 +46,7 @@ import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.scopes.BuildTreeScopedCache;
 import org.gradle.cache.scopes.GlobalScopedCache;
+import org.gradle.execution.plan.InputAccessHierarchyFactory;
 import org.gradle.initialization.RootBuildLifecycleListener;
 import org.gradle.internal.build.BuildAddedListener;
 import org.gradle.internal.classloader.ClasspathHasher;
@@ -236,6 +237,10 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                 }
             );
             return virtualFileSystem;
+        }
+
+        InputAccessHierarchyFactory createInputAccessHierarchyFactory(FileSystem fileSystem, Stat stat) {
+            return new InputAccessHierarchyFactory(fileSystem.isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE, stat);
         }
 
         FileSystemAccess createFileSystemAccess(

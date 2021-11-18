@@ -20,6 +20,7 @@ import org.gradle.api.execution.internal.TaskInputsListeners;
 import org.gradle.api.internal.changedetection.state.FileHasherStatistics;
 import org.gradle.deployment.internal.DeploymentRegistryInternal;
 import org.gradle.execution.WorkValidationWarningReporter;
+import org.gradle.execution.plan.InputAccessHierarchyFactory;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.initialization.BuildRequestMetaData;
@@ -165,7 +166,8 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
             BuildTreeModelControllerServices buildModelServices,
             WorkerLeaseService workerLeaseService,
             BuildLayoutValidator buildLayoutValidator,
-            BuildLifecycleAwareVirtualFileSystem virtualFileSystem
+            BuildLifecycleAwareVirtualFileSystem virtualFileSystem,
+            InputAccessHierarchyFactory inputAccessHierarchyFactory
         ) {
             return new SubscribableBuildActionExecutor(
                 listenerManager,
@@ -182,6 +184,7 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                     buildStartedTime,
                     clock,
                     virtualFileSystem,
+                    inputAccessHierarchyFactory,
                     new RunAsWorkerThreadBuildActionExecutor(
                         workerLeaseService,
                         new RunAsBuildOperationBuildActionExecutor(

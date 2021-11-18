@@ -16,12 +16,10 @@
 
 package org.gradle.api.execution.internal;
 
-import com.google.common.collect.ImmutableMap;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.internal.event.AnonymousListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 
 public class DefaultTaskInputsListeners implements TaskInputsListeners {
 
@@ -44,10 +42,5 @@ public class DefaultTaskInputsListeners implements TaskInputsListeners {
     @Override
     public void broadcastFileSystemInputsOf(TaskInternal task, FileCollectionInternal fileSystemInputs) {
         broadcaster.getSource().onExecute(task, fileSystemInputs);
-    }
-
-    @Override
-    public void broadcastFileSystemInputsOf(TaskInternal task, ImmutableMap<String, CurrentFileCollectionFingerprint> fingerprints) {
-        broadcaster.getSource().onExecute(task, fingerprints);
     }
 }

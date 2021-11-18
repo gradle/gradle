@@ -16,10 +16,8 @@
 
 package org.gradle.api.execution.internal;
 
-import com.google.common.collect.ImmutableMap;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileCollectionInternal;
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.service.scopes.EventScope;
 import org.gradle.internal.service.scopes.Scope.Global;
 
@@ -38,5 +36,4 @@ public interface TaskInputsListener {
      * @param fileSystemInputs the file system inputs relevant to the task execution
      */
     default void onExecute(TaskInternal task, FileCollectionInternal fileSystemInputs) {}
-    default void onExecute(TaskInternal task, ImmutableMap<String, CurrentFileCollectionFingerprint> fingerprints) {}
 }
