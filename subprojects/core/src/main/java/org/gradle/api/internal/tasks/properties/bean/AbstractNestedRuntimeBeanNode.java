@@ -38,7 +38,11 @@ import org.gradle.internal.reflect.validation.TypeValidationContext;
 import javax.annotation.Nullable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import java.util.Queue;
+import java.util.Set;
 
 public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Object> {
     protected AbstractNestedRuntimeBeanNode(@Nullable RuntimeBeanNode<?> parentNode, @Nullable String propertyName, Object bean, TypeMetadata typeMetadata) {
@@ -91,6 +95,7 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
             method.setAccessible(true);
         }
 
+        @SuppressWarnings({"unchecked", "rawtypes"})
         @Override
         public TaskDependencyContainer getTaskDependencies() {
             if (isProvider()) {
@@ -101,6 +106,36 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
                     Object dependency = valueSupplier.get();
                     if (dependency != null) {
                         context.add(dependency);
+                    }
+                };
+            }
+            if (isMap()) {
+                return context -> {
+                    Object dependency = valueSupplier.get();
+                    if (dependency instanceof Map) {
+                        Map<Object, Object> map = (Map<Object, Object>) dependency;
+                        if (!map.isEmpty()) {
+                            for (Object value : map.values()) {
+                                if (value instanceof TaskDependencyContainer) {
+                                    context.add(value);
+                                }
+                            }
+                        }
+                    }
+                };
+            }
+            if (isList() || isSet()) {
+                return context -> {
+                    Object dependency = valueSupplier.get();
+                    if (dependency instanceof Collection) {
+                        Collection<Object> c = (Collection<Object>) dependency;
+                        if (!c.isEmpty()) {
+                            for (Object value : c) {
+                                if (value instanceof TaskDependencyContainer) {
+                                    context.add(value);
+                                }
+                            }
+                        }
                     }
                 };
             }
@@ -125,6 +160,18 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
 
         private boolean isBuildable() {
             return Buildable.class.isAssignableFrom(method.getReturnType());
+        }
+
+        private boolean isMap() {
+            return Map.class.isAssignableFrom(method.getReturnType());
+        }
+
+        private boolean isList() {
+            return List.class.isAssignableFrom(method.getReturnType());
+        }
+
+        private boolean isSet() {
+            return Set.class.isAssignableFrom(method.getReturnType());
         }
 
         @Nullable

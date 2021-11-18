@@ -21,10 +21,11 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.provider.Provider;
 import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.JavaForkOptions;
-import org.gradle.util.internal.GUtil;
 import org.gradle.util.internal.ArgumentsSplitter;
+import org.gradle.util.internal.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,6 +39,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.concurrent.Callable;
 
 public class JvmOptions {
     private static final String XMS_PREFIX = "-Xms";
@@ -101,10 +103,28 @@ public class JvmOptions {
         return args;
     }
 
+    private String realizedValueOf(Object o) {
+        if (o == null) {
+            return null;
+        }
+        if (o instanceof Provider) {
+            return realizedValueOf(((Provider<?>) o).get());
+        }
+        if (o instanceof Callable)  {
+            try {
+                return realizedValueOf(((Callable<?>) o).call());
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return o.toString();
+    }
+
     protected void formatSystemProperties(Map<String, ?> properties, List<String> args) {
         for (Map.Entry<String, ?> entry : properties.entrySet()) {
-            if (entry.getValue() != null && entry.getValue().toString().length() > 0) {
-                args.add("-D" + entry.getKey() + "=" + entry.getValue().toString());
+            String value = realizedValueOf(entry.getValue());
+            if (entry.getValue() != null && value.length() > 0) {
+                args.add("-D" + entry.getKey() + "=" + value);
             } else {
                 args.add("-D" + entry.getKey());
             }
