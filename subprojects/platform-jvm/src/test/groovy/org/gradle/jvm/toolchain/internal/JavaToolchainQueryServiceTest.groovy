@@ -32,9 +32,11 @@ import org.gradle.jvm.toolchain.JvmImplementation
 import org.gradle.jvm.toolchain.JvmVendorSpec
 import org.gradle.jvm.toolchain.install.internal.JavaToolchainProvisioningService
 import org.gradle.util.TestUtil
-import spock.lang.Ignore
+import org.junit.Assume
 import spock.lang.Issue
 import spock.lang.Specification
+
+import java.util.function.Function
 
 import static org.gradle.api.internal.file.TestFiles.systemSpecificAbsolutePath
 import static org.gradle.internal.jvm.inspection.JvmInstallationMetadata.JavaInstallationCapability.J9_VIRTUAL_MACHINE
@@ -283,13 +285,20 @@ class JavaToolchainQueryServiceTest extends Specification {
         installed == 1
     }
 
-    @Ignore //todo: need to make it work somehow
     def "prefer version Gradle is running on as long as it is a match"() {
+        def currentVersion = System.getProperty("java.version")
+        Assume.assumeTrue(currentVersion.matches("[\\\\.0-9]*"))
+
+        ArrayList<String> installations = installationsBasedOnVersion(currentVersion)
+
+        def currentHome = System.getProperty("java.home")
+
         given:
-        def registry = createDeterministicInstallationRegistry(["1.8.1", "1.8.2", "1.8.3"])
+        def registry = createDeterministicInstallationRegistry(installations,
+            installation -> currentHome.replace(System.getProperty("java.version"), installation))
         def toolchainFactory = newToolchainFactory()
         def queryService = new JavaToolchainQueryService(registry, toolchainFactory, Mock(JavaToolchainProvisioningService), createProviderFactory())
-        def versionToFind = JavaLanguageVersion.of(8)
+        def versionToFind = JavaLanguageVersion.of(JavaVersion.toVersion(currentVersion).majorVersion)
 
         when:
         def filter = new DefaultToolchainSpec(TestUtil.objectFactory())
@@ -298,7 +307,20 @@ class JavaToolchainQueryServiceTest extends Specification {
 
         then:
         toolchain.languageVersion == versionToFind
-        toolchain.getInstallationPath().toString() == systemSpecificAbsolutePath("/path/1.8.2")
+        toolchain.getInstallationPath().toString() == systemSpecificAbsolutePath(currentHome)
+    }
+
+    private ArrayList<String> installationsBasedOnVersion(String version) {
+        def higherVersion = changeMinorVersion(version, i -> i + 1)
+        Assume.assumeNotNull(higherVersion)
+
+        def lowerVersion = changeMinorVersion(version, i -> i - 1)
+
+        def installations = [version, higherVersion]
+        if (lowerVersion != null) {
+            installations.add(lowerVersion)
+        }
+        installations
     }
 
     private JavaToolchainFactory newToolchainFactory() {
@@ -355,7 +377,11 @@ class JavaToolchainQueryServiceTest extends Specification {
     }
 
     def createDeterministicInstallationRegistry(List<String> installations) {
-        def installationLocations = installations.collect { new InstallationLocation(new File("/path/${it}").absoluteFile, "test") } as LinkedHashSet
+        createDeterministicInstallationRegistry(installations, installation -> "/path/${installation}")
+    }
+
+    def createDeterministicInstallationRegistry(List<String> installations, Function<String, String> pathnameMapper) {
+        def installationLocations = installations.collect { new InstallationLocation(new File(pathnameMapper.apply(it)).absoluteFile, "test") } as LinkedHashSet
         Mock(JavaInstallationRegistry) {
             listInstallations() >> installationLocations
             installationExists(_ as InstallationLocation) >> true
@@ -366,6 +392,18 @@ class JavaToolchainQueryServiceTest extends Specification {
         return Mock(ProviderFactory) {
             gradleProperty("org.gradle.java.installations.auto-detect") >> Providers.ofNullable("true")
             gradleProperty("org.gradle.java.installations.auto-download") >> Providers.ofNullable("true")
+        }
+    }
+
+    String changeMinorVersion(String version, Function<Integer, Integer> mapping) {
+        try {
+            def lastDotIndex = version.lastIndexOf('.')
+            def minorVersion = Integer.parseInt(version.substring(lastDotIndex + 1, version.length()))
+            def newMinorVersion = mapping.apply(minorVersion)
+            def newVersion = version.substring(0, lastDotIndex + 1) + newMinorVersion
+            return newVersion
+        } catch (Exception ignored) {
+            return null
         }
     }
 }
