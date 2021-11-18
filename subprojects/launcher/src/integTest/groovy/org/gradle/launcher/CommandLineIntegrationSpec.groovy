@@ -20,15 +20,11 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.jvm.JDWPUtil
 import org.gradle.test.fixtures.ConcurrentTestUtil
-import org.junit.Rule
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Timeout
 
 class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
-    @Rule
-    JDWPUtil jdwpClient = new JDWPUtil(5005)
-
     @IgnoreIf({ GradleContextualExecuter.parallel })
     def "reasonable failure message when --max-workers=#value"() {
         given:
@@ -66,6 +62,9 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
 
     @IgnoreIf({ !CommandLineIntegrationSpec.debugPortIsFree() || GradleContextualExecuter.embedded })
     def "can debug with org.gradle.debug=true"() {
+        given:
+        JDWPUtil jdwpClient = new JDWPUtil(5005)
+
         when:
         def gradle = executer.withArgument("-Dorg.gradle.debug=true").withTasks("help").start()
 
