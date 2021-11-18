@@ -22,6 +22,7 @@ import org.gradle.api.internal.properties.GradleProperties;
 import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 class DefaultGradleProperties implements GradleProperties {
     final Map<String, String> defaultProperties;
@@ -38,6 +39,11 @@ class DefaultGradleProperties implements GradleProperties {
     @Override
     public String find(String propertyName) {
         return gradleProperties.get(propertyName);
+    }
+
+    @Override
+    public Set<String> getPropertyNames() {
+        return gradleProperties.keySet();
     }
 
     @Override

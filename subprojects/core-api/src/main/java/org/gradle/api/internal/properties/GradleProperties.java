@@ -18,6 +18,7 @@ package org.gradle.api.internal.properties;
 
 import javax.annotation.Nullable;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Immutable set of Gradle properties loaded at the start of the build.
@@ -26,6 +27,8 @@ public interface GradleProperties {
 
     @Nullable
     String find(String propertyName);
+
+    Set<String> getPropertyNames();
 
     /**
      * Merges the loaded properties with the given properties and returns an immutable

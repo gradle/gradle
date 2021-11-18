@@ -29,8 +29,9 @@ import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.management.DependencyResolutionManagementInternal
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
-import org.gradle.util.TestUtil
 import spock.lang.Specification
+
+import static org.gradle.util.TestUtil.instantiatorFactory
 
 class SettingsFactoryTest extends Specification {
 
@@ -58,23 +59,28 @@ class SettingsFactoryTest extends Specification {
         1 * projectDescriptorRegistry.addProject(_ as DefaultProjectDescriptor)
         1 * scriptHandlerFactory.create(scriptSource, _ as ClassLoaderScope) >> Mock(ScriptHandlerInternal)
         1 * scope.createChild(_) >> scope
-        1 * expectedGradleProperties.find('myKey') >> 'myValue'
+        1 * expectedGradleProperties.propertyNames >> Collections.singleton('myKey')
+        2 * expectedGradleProperties.find('myKey') >> 'myValue'
 
         when:
-        SettingsFactory settingsFactory = new SettingsFactory(TestUtil.instantiatorFactory().decorateLenient(), serviceRegistryFactory, scriptHandlerFactory);
+        SettingsFactory settingsFactory = new SettingsFactory(instantiatorFactory().decorateLenient(), serviceRegistryFactory, scriptHandlerFactory);
         GradleInternal gradle = Mock(GradleInternal)
 
-        DefaultSettings settings = (DefaultSettings) settingsFactory.createSettings(gradle,
+        DefaultSettings settings = settingsFactory.createSettings(gradle,
             settingsDir, scriptSource, expectedGradleProperties, startParameter, scope);
 
         then:
         gradle.is(settings.gradle)
         projectDescriptorRegistry.is(settings.projectDescriptorRegistry)
-        // TODO:cc - restore properties behavior
-//        settings.properties['myKey'] == 'myValue'
-        settings.properties != null
+
+        and: 'Gradle properties are visible through the settings object'
         settings.myKey == 'myValue'
 
+        and: 'Gradle properties are visible through the properties object'
+        def properties = settings.properties
+        properties['myKey'] == 'myValue'
+
+        and:
         settingsDir.is settings.getSettingsDir()
         scriptSource.is settings.getSettingsScript()
         startParameter.is settings.getStartParameter()
