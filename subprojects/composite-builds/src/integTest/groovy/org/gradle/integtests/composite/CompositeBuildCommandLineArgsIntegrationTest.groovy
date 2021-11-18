@@ -135,7 +135,7 @@ includeBuild '../buildB'
         assertTaskExecuted(":buildB", ":jar")
     }
 
-    def "does not exclude tasks when building artifact for included build"() {
+    def "excludes tasks when building artifact for included build"() {
         given:
         dependency 'org.test:buildB:1.0'
 
@@ -143,7 +143,8 @@ includeBuild '../buildB'
         execute(buildA, ":checkDeps", ["--exclude-task", "jar"])
 
         then:
-        assertTaskExecuted(":buildB", ":jar")
+        assertTaskNotExecuted(":buildA", ":jar")
+        assertTaskNotExecuted(":buildB", ":jar")
     }
 
     // Included build tasks are incorrect executed with `--dry-run`. See gradle/composite-builds#113

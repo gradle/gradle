@@ -99,23 +99,26 @@ class CompositeBuildTaskExcludeIntegrationTest extends AbstractIntegrationSpec {
         result.assertTaskNotExecuted(":included:sub:test")
     }
 
-    def "excluding a task from a root project does not affect included task with same path"() {
+    def "excluding a task from a root project does affect included task with same path"() {
         when:
         succeeds("build", "-x", ":sub:test")
 
         then:
-        result.assertTasksExecuted(":test", ":build", ":sub:build", ":included:test", ":included:build", ":included:sub:test", ":included:sub:build")
+        result.assertTasksExecuted(":test", ":build", ":sub:build", ":included:test", ":included:build", ":included:sub:build")
         result.assertTaskNotExecuted(":sub:test")
+        result.assertTaskNotExecuted(":included:sub:test")
     }
 
-    def "cannot use unqualified task paths to exclude tasks from included build roots"() {
+    def "can use unqualified task paths to exclude tasks from included build roots"() {
         when:
         run("build", "-x", "test")
 
         then:
-        result.assertTasksExecuted(":build", ":sub:build", ":included:build", ":included:sub:build", ":included:test", ":included:sub:test")
+        result.assertTasksExecuted(":build", ":sub:build", ":included:build", ":included:sub:build")
         result.assertTaskNotExecuted(":test")
         result.assertTaskNotExecuted(":sub:test")
+        result.assertTaskNotExecuted(":included:test")
+        result.assertTaskNotExecuted(":included:sub:test")
     }
 
     def "cannot use unqualified absolute paths to to exclude task from included build root"() {
@@ -123,12 +126,13 @@ class CompositeBuildTaskExcludeIntegrationTest extends AbstractIntegrationSpec {
         runAndFail("build", "-x", "included:test")
     }
 
-    def "cannot use unqualified task paths to exclude tasks from included build subproject"() {
+    def "can use unqualified task paths to exclude tasks from included build subproject"() {
         when:
         run("build", "-x", "sub:test")
 
         then:
-        result.assertTasksExecuted(":test", ":build", ":sub:build", ":included:test", ":included:build", ":included:sub:test", ":included:sub:build")
+        result.assertTasksExecuted(":test", ":build", ":sub:build", ":included:test", ":included:build", ":included:sub:build")
         result.assertTaskNotExecuted(":sub:test")
+        result.assertTaskNotExecuted(":included:sub:test")
     }
 }
