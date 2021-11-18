@@ -36,8 +36,6 @@ import org.gradle.internal.reflect.Instantiator;
 
 import java.util.List;
 import java.util.Set;
-import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class ConfigurationVariantMapping {
@@ -73,7 +71,6 @@ public class ConfigurationVariantMapping {
         action.execute(details);
         String outgoingConfigurationName = outgoingConfiguration.getName();
         if (details.shouldPublish()) {
-            checkIfAllowedToPublish(details);
             registerUsageContext(outgoing, seen, defaultConfigurationVariant, outgoingConfigurationName, details.getMavenScope(), details.isOptional());
         }
         NamedDomainObjectContainer<ConfigurationVariant> extraVariants = outgoingConfiguration.getOutgoing().getVariants();
@@ -81,7 +78,6 @@ public class ConfigurationVariantMapping {
             details = new DefaultConfigurationVariantDetails(variant);
             action.execute(details);
             if (details.shouldPublish()) {
-                checkIfAllowedToPublish(details);
                 String name = outgoingConfigurationName + StringUtils.capitalize(variant.getName());
                 registerUsageContext(outgoing, seen, variant, name, details.getMavenScope(), details.isOptional());
             }
@@ -91,14 +87,6 @@ public class ConfigurationVariantMapping {
     private void registerUsageContext(ImmutableCollection.Builder<UsageContext> outgoing, Set<String> seen, ConfigurationVariant variant, String name, String scope, boolean optional) {
         assertNoDuplicateVariant(name, seen);
         outgoing.add(new FeatureConfigurationUsageContext(name, outgoingConfiguration, variant, scope, optional));
-    }
-
-    private void checkIfAllowedToPublish(ConfigurationVariantDetails details) {
-        List<Attribute> unpublishableAttributes = details.getConfigurationVariant().getAttributes().keySet().stream().filter(a -> !a.isPublishable()).collect(Collectors.toList());
-        if (!unpublishableAttributes.isEmpty()) {
-            throw new InvalidUserDataException("Cannot publish feature variant '" + details.getConfigurationVariant().getName() +
-                "' as it is defined by unpublishable attributes: '" + unpublishableAttributes.stream().map(Attribute::getName).sorted().collect(Collectors.joining(", ")) + "'!");
-        }
     }
 
     static class DefaultConfigurationVariant implements ConfigurationVariant {
@@ -180,7 +168,7 @@ public class ConfigurationVariantMapping {
 
         @Override
         public boolean shouldPublish() {
-            return !skip;
+            return !skip && assertHasNoUnpublishableAttributes();
         }
 
         @Override
@@ -191,6 +179,16 @@ public class ConfigurationVariantMapping {
         @Override
         public boolean isOptional() {
             return optional;
+        }
+
+        private boolean assertHasNoUnpublishableAttributes() {
+            List<Attribute<?>> unpublishableAttributes = getConfigurationVariant().getAttributes().keySet().stream().filter(a -> !a.isPublishable()).collect(Collectors.toList());
+            if (unpublishableAttributes.isEmpty()) {
+                return true;
+            } else {
+                throw new InvalidUserDataException("Cannot publish feature variant '" + getConfigurationVariant().getName() +
+                    "' as it is defined by unpublishable attributes: '" + unpublishableAttributes.stream().map(Attribute::getName).sorted().collect(Collectors.joining(", ")) + "'");
+            }
         }
     }
 }

@@ -28,8 +28,8 @@ import org.gradle.api.Named;
  */
 @Incubating
 public interface Verification extends Named {
-    Attribute<Verification> TEST_SUITE_NAME_ATTRIBUTE = Attribute.of("org.gradle.testsuitename", Verification.class);
-    Attribute<Verification> TARGET_NAME_ATTRIBUTE = Attribute.of("org.gradle.targetname", Verification.class);
+    Attribute<Verification> TEST_SUITE_NAME_ATTRIBUTE = Attribute.of("org.gradle.testsuitename", Verification.class, false);
+    Attribute<Verification> TARGET_NAME_ATTRIBUTE = Attribute.of("org.gradle.targetname", Verification.class, false);
 
     /**
      * The typical documentation for Java APIs

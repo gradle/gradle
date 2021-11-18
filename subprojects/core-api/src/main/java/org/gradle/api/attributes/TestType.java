@@ -28,7 +28,7 @@ import org.gradle.api.Named;
  */
 @Incubating
 public interface TestType extends Named {
-    Attribute<TestType> TEST_TYPE_ATTRIBUTE = Attribute.of("org.gradle.testsuitetype", TestType.class);
+    Attribute<TestType> TEST_TYPE_ATTRIBUTE = Attribute.of("org.gradle.testsuitetype", TestType.class, false);
 
     /**
      * Unit tests, the default type of Test Suite
