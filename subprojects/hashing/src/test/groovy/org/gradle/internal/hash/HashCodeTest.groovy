@@ -167,6 +167,12 @@ class HashCodeTest extends Specification {
         thrown Exception
     }
 
+    def "can parse hash through roundtrip"() {
+        expect:
+        def originalHash = Hashing.md5().hashString("asdf")
+        originalHash == HashCode.fromString(originalHash.toString())
+    }
+
     def "can create compact string representation"() {
         expect:
         Hashing.md5().hashString("").toCompactString() == "ck2u8j60r58fu0sgyxrigm3cu"

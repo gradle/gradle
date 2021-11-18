@@ -19,7 +19,6 @@ package org.gradle.caching.internal.packaging.impl;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Interner;
-import com.google.common.io.CountingOutputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
@@ -54,7 +53,6 @@ import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -64,6 +62,8 @@ import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
@@ -131,7 +131,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
     private void packMetadata(OriginWriter writeMetadata, TarArchiveOutputStream tarOutput) throws IOException {
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         writeMetadata.execute(output);
-        createTarEntry(METADATA_PATH, output.size(), UnixPermissions.FILE_FLAG | UnixPermissions.DEFAULT_FILE_PERM, tarOutput);
+        createTarEntry(METADATA_PATH, output.size(), null, UnixPermissions.FILE_FLAG | UnixPermissions.DEFAULT_FILE_PERM, tarOutput);
         tarOutput.write(output.toByteArray());
         tarOutput.closeArchiveEntry();
     }
@@ -156,10 +156,13 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
         return packingVisitor.getPackedEntryCount();
     }
 
-    private static void createTarEntry(String path, long size, int mode, TarArchiveOutputStream tarOutput) throws IOException {
+    private static void createTarEntry(String path, long size, @Nullable HashCode hash, int mode, TarArchiveOutputStream tarOutput) throws IOException {
         TarArchiveEntry entry = new TarArchiveEntry(path, true);
         entry.setSize(size);
         entry.setMode(mode);
+        if (hash!=null) {
+            entry.addPaxHeader("MD5", hash.toString());
+        }
         tarOutput.putArchiveEntry(entry);
     }
 
@@ -264,13 +267,11 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
     }
 
     private RegularFileSnapshot unpackFile(TarArchiveInputStream input, TarArchiveEntry entry, File file, String fileName) throws IOException {
-        try (CountingOutputStream output = new CountingOutputStream(new FileOutputStream(file))) {
-            HashCode hash = streamHasher.hashCopy(input, output);
-            chmodUnpackedFile(entry, file);
-            String internedAbsolutePath = stringInterner.intern(file.getAbsolutePath());
-            String internedFileName = stringInterner.intern(fileName);
-            return new RegularFileSnapshot(internedAbsolutePath, internedFileName, hash, DefaultFileMetadata.file(output.getCount(), file.lastModified(), DIRECT));
-        }
+        Files.copy(input, file.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        chmodUnpackedFile(entry, file);
+        String internedAbsolutePath = stringInterner.intern(file.getAbsolutePath());
+        String internedFileName = stringInterner.intern(fileName);
+        return new RegularFileSnapshot(internedAbsolutePath, internedFileName, HashCode.fromString(entry.getExtraPaxHeader("MD5")), DefaultFileMetadata.file(entry.getRealSize(), file.lastModified(), DIRECT));
     }
 
     @Nullable
@@ -365,7 +366,8 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
                     assertCorrectType(isRoot, snapshot);
                     File file = new File(snapshot.getAbsolutePath());
                     int fileMode = filePermissionAccess.getUnixMode(file);
-                    storeFileEntry(file, targetPath, file.length(), fileMode, tarOutput);
+                    HashCode hash = fileSnapshot.getHash();
+                    storeFileEntry(file, targetPath, file.length(), fileMode, hash, tarOutput);
                 }
 
                 @Override
@@ -411,7 +413,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
 
         private void storeMissingTree(String treePath, TarArchiveOutputStream tarOutput) {
             try {
-                createTarEntry("missing-" + treePath, 0, UnixPermissions.FILE_FLAG | UnixPermissions.DEFAULT_FILE_PERM, tarOutput);
+                createTarEntry("missing-" + treePath, 0, null, UnixPermissions.FILE_FLAG | UnixPermissions.DEFAULT_FILE_PERM, tarOutput);
                 tarOutput.closeArchiveEntry();
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
@@ -420,16 +422,16 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
 
         private void storeDirectoryEntry(String path, int mode, TarArchiveOutputStream tarOutput) {
             try {
-                createTarEntry(path + "/", 0, UnixPermissions.DIR_FLAG | mode, tarOutput);
+                createTarEntry(path + "/", 0, null, UnixPermissions.DIR_FLAG | mode, tarOutput);
                 tarOutput.closeArchiveEntry();
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             }
         }
 
-        private void storeFileEntry(File inputFile, String path, long size, int mode, TarArchiveOutputStream tarOutput) {
+        private void storeFileEntry(File inputFile, String path, long size, int mode, HashCode hash, TarArchiveOutputStream tarOutput) {
             try {
-                createTarEntry(path, size, UnixPermissions.FILE_FLAG | mode, tarOutput);
+                createTarEntry(path, size, hash, UnixPermissions.FILE_FLAG | mode, tarOutput);
                 try (FileInputStream input = new FileInputStream(inputFile)) {
                     IOUtils.copyLarge(input, tarOutput, COPY_BUFFERS.get());
                 }
