@@ -24,6 +24,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -33,7 +34,7 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
     private final ImmutableAttributesFactory immutableAttributesFactory;
     private final AttributeContainerInternal parent;
     private ImmutableAttributes state = ImmutableAttributes.EMPTY;
-    private Map<Attribute<?>, Provider<?>> lazyAttributes = null;
+    private Map<Attribute<?>, Provider<?>> lazyAttributes = Collections.emptyMap();
 
     public DefaultMutableAttributeContainer(ImmutableAttributesFactory immutableAttributesFactory) {
         this(immutableAttributesFactory, null);
@@ -49,10 +50,6 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
         return asImmutable().toString();
     }
 
-    private Set<Attribute<?>> nonParentKeys() {
-        return (lazyAttributes == null) ? state.keySet() : Sets.union(state.keySet(), lazyAttributes.keySet());
-    }
-
     @Override
     public Set<Attribute<?>> keySet() {
         if (parent == null) {
@@ -60,6 +57,10 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
         } else {
             return Sets.union(parent.keySet(), nonParentKeys());
         }
+    }
+
+    private Set<Attribute<?>> nonParentKeys() {
+        return Sets.union(state.keySet(), lazyAttributes.keySet());
     }
 
     @Override
@@ -125,7 +126,7 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
     @Override
     public <T> T getAttribute(Attribute<T> key) {
         T attribute = state.getAttribute(key);
-        if (attribute == null && lazyAttributes != null && lazyAttributes.containsKey(key)) {
+        if (attribute == null && lazyAttributes.containsKey(key)) {
             attribute = realizeLazyAttribute(key);
         }
         if (attribute == null && parent != null) {
@@ -134,21 +135,14 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
         return attribute;
     }
 
-    private <T> T realizeLazyAttribute(Attribute<T> key) {
-        Provider<?> provider = removeLazyAttribute(key);
-        final T value = Cast.uncheckedCast(provider.get());
-        attribute(key, value);
-        return value;
-    }
-
     @Override
     public boolean isEmpty() {
-        return state.isEmpty() && lazyAttributes == null && (parent == null || parent.isEmpty());
+        return keySet().isEmpty();
     }
 
     @Override
     public boolean contains(Attribute<?> key) {
-        return state.contains(key) || (lazyAttributes != null && lazyAttributes.containsKey(key)) || (parent != null && parent.contains(key));
+        return keySet().contains(key);
     }
 
     @Override
@@ -163,13 +157,6 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
                 attributes = immutableAttributesFactory.concat(attributes, state);
             }
             return attributes;
-        }
-    }
-
-    private void realizeAllLazyAttributes() {
-        if (lazyAttributes != null) {
-            lazyAttributes.forEach((key, value) -> doInsertion(Cast.uncheckedNonnullCast(key), (Object) value.get()));
-            lazyAttributes = null;
         }
     }
 
@@ -213,18 +200,28 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
     }
 
     private <T> void addLazyAttribute(Attribute<T> key, Provider<? extends T> provider) {
-        if (lazyAttributes == null) {
+        if (lazyAttributes == Collections.EMPTY_MAP) {
             lazyAttributes = new LinkedHashMap<>(1);
         }
         lazyAttributes.put(key, provider);
     }
 
-    private <T> Provider<? extends T> removeLazyAttribute(Attribute<T> key) {
-        @SuppressWarnings("unchecked")
-        final Provider<? extends T> result = (Provider<? extends T>) lazyAttributes.remove(key);
-        if (lazyAttributes.size() == 0) {
-            lazyAttributes = null;
+    private <T> T realizeLazyAttribute(Attribute<T> key) {
+        Provider<? extends T> provider = removeLazyAttribute(key);
+        final T value = provider.get();
+        attribute(key, value);
+        return value;
+    }
+
+    private void realizeAllLazyAttributes() {
+        if (!lazyAttributes.isEmpty()) {
+            lazyAttributes.forEach((key, value) -> doInsertion(Cast.uncheckedNonnullCast(key), (Object) value.get()));
+            lazyAttributes.clear();
         }
-        return result;
+    }
+
+    private <T> Provider<? extends T> removeLazyAttribute(Attribute<T> key) {
+        // This can only be called once we know the key is in the lazyAttributes map
+        return Cast.uncheckedNonnullCast(lazyAttributes.remove(key));
     }
 }
