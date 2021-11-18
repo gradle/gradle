@@ -42,7 +42,7 @@ class JavaToolchainComparatorTest extends Specification {
         ]
 
         when:
-        toolchains.sort(new JavaToolchainComparator())
+        toolchains.sort(new JavaToolchainComparator(false))
 
         then:
         assertOrder(toolchains, "11.0.0", "8.0.0", "6.0.0", "5.1.0")
@@ -60,7 +60,7 @@ class JavaToolchainComparatorTest extends Specification {
         ]
 
         when:
-        toolchains.sort(new JavaToolchainComparator())
+        toolchains.sort(new JavaToolchainComparator(false))
 
         then:
         assertOrder(toolchains, "8.3.0", "8.2.0", "8.1.0", "8.8.0", "8.7.0", "8.4.0")
@@ -75,7 +75,7 @@ class JavaToolchainComparatorTest extends Specification {
         ]
 
         when:
-        toolchains.sort(new JavaToolchainComparator())
+        toolchains.sort(new JavaToolchainComparator(false))
 
         then:
         assertOrder(toolchains, "8.0.1234", "8.0.123", "8.0.1")
@@ -94,7 +94,7 @@ class JavaToolchainComparatorTest extends Specification {
         def toolchains = [jre, jdk]
 
         when:
-        toolchains.sort(new JavaToolchainComparator())
+        toolchains.sort(new JavaToolchainComparator(false))
 
         then:
         toolchains == [jdk, jre]
@@ -108,7 +108,7 @@ class JavaToolchainComparatorTest extends Specification {
         def toolchains = [prevJdk, nextJdk]
 
         when:
-        toolchains.sort(new JavaToolchainComparator())
+        toolchains.sort(new JavaToolchainComparator(false))
 
         then:
         toolchains == [nextJdk, prevJdk]
@@ -127,7 +127,7 @@ class JavaToolchainComparatorTest extends Specification {
         ]
 
         when:
-        toolchains.sort(new JavaToolchainComparator())
+        toolchains.sort(new JavaToolchainComparator(true))
 
         then:
         assertOrder(toolchains,  "8.0.0", "8.3.0", "8.2.0", "8.1.0", "8.8.0", "8.7.0", "8.4.0")
