@@ -104,100 +104,46 @@ class PublishingVariantsIntegTest extends AbstractIntegrationSpec {
         succeeds("build", "publishToMavenLocal")
     }
 
-    def "test new variants are not publishable"() {
+    def "variants are not publishable when using non-publishable attribute: #attributeValue"() {
         given:
-        settingsFile << "rootProject.name = 'lib'"
-
         buildFile << """
-            import org.gradle.api.JavaVersion
-            import org.gradle.api.Plugin
-            import org.gradle.api.Project
-            import org.gradle.api.artifacts.Configuration
-            import org.gradle.api.attributes.Bundling
-            import org.gradle.api.attributes.Category
-            import org.gradle.api.attributes.LibraryElements
-            import org.gradle.api.attributes.Usage
-            import org.gradle.api.attributes.java.TargetJvmVersion
-            import org.gradle.api.component.SoftwareComponentFactory
-            import org.gradle.api.tasks.bundling.Jar
-            import org.gradle.api.component.AdhocComponentWithVariants
-            import org.gradle.api.plugins.internal.JavaConfigurationVariantMapping
-
-            import javax.inject.Inject
-
-            class InstrumentedJarsPlugin implements Plugin<Project> {
-                private final SoftwareComponentFactory softwareComponentFactory
-
-                @Inject
-                InstrumentedJarsPlugin(SoftwareComponentFactory softwareComponentFactory) {
-                    this.softwareComponentFactory = softwareComponentFactory
-                }
-
-                @Override
-                void apply(Project project) {
-                    Configuration outgoingConfiguration = createOutgoingConfiguration(project, "myConf")
-                    AdhocComponentWithVariants component = configurePublication(project, "myAdhocComponent", outgoingConfiguration)
-                    //addVariantToExistingComponent(project, outgoingConfiguration, component)
-
-                    AdhocComponentWithVariants java2 = softwareComponentFactory.adhoc("java2");
-                    java2.addVariantsFromConfiguration(project.configurations.getByName("testResultsElementsForTest"), new JavaConfigurationVariantMapping("runtime", false));
-                    project.getComponents().add(java2);
-                }
-
-                private Configuration createOutgoingConfiguration(Project project, String configurationName) {
-                    project.configurations.create(configurationName) { Configuration cnf ->
-                        cnf.canBeConsumed = true
-                        cnf.canBeResolved = false
-                        cnf.attributes {
-                            it.attribute(Category.CATEGORY_ATTRIBUTE, project.objects.named(Category, Category.LIBRARY))
-                            it.attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME))
-                            it.attribute(Bundling.BUNDLING_ATTRIBUTE, project.objects.named(Bundling, Bundling.EXTERNAL))
-                            it.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, JavaVersion.current().majorVersion.toInteger())
-                            it.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, project.objects.named(LibraryElements, configurationName + '-jar'))
-                        }
-                    }
-                }
-
-                private AdhocComponentWithVariants configurePublication(Project project, String componentName, Configuration outgoing) {
-                    // create an adhoc component
-                    def adhocComponent = softwareComponentFactory.adhoc(componentName)
-                    // add it to the list of components that this project declares
-                    project.components.add(adhocComponent)
-                    // and register a variant for publication
-                    adhocComponent.addVariantsFromConfiguration(outgoing) {
-                        it.mapToMavenScope("runtime")
-                    }
-                }
-
-                private void addVariantToExistingComponent(Project project, Configuration outgoing, AdhocComponentWithVariants component) {
-                    component.addVariantsFromConfiguration(outgoing) {
-                        // dependencies for this variant are considered runtime dependencies
-                        it.mapToMavenScope("runtime")
-                        // and also optional dependencies, because we don't want them to leak
-                        it.mapToOptional()
-                    }
-                }
-            }
-
             plugins {
                 id 'java'
                 id 'maven-publish'
             }
 
-            apply plugin: InstrumentedJarsPlugin
+            def testConf = configurations.create('testConf') { Configuration cnf ->
+                cnf.canBeConsumed = true
+                cnf.canBeResolved = false
+                cnf.attributes {
+                    attribute($interfaceType.$attributeConstant, objects.named($interfaceType, $interfaceType.$attributeValueConstant))
+                }
+            }
+
+            def javaComponent = components.findByName("java")
+            javaComponent.addVariantsFromConfiguration(testConf) {
+                it.mapToMavenScope("runtime")
+            }
 
             publishing {
                 publications {
                     mavenJava(MavenPublication) {
-                        from components.java2
+                        from components.java
                     }
                 }
             }""".stripIndent()
 
-        when:
+        expect:
         ExecutionFailure failure = fails("publishToMavenLocal")
+        failure.assertHasCause("Cannot publish feature variant 'testConf' as it is defined by unpublishable attributes: '$attributeValue'")
 
-        then:
-        failure.assertHasCause("Cannot publish feature variant 'testResultsElementsForTest' as it is defined by unpublishable attributes: 'org.gradle.targetname, org.gradle.testsuitename, org.gradle.testsuitetype'")
+        where:
+        interfaceType || attributeConstant || attributeValueConstant || attributeValue
+        'Sources' || 'SOURCES_ATTRIBUTE' || 'ALL_SOURCE_DIRS' || 'org.gradle.sources'
+//        'attribute(Sources.SOURCES_ATTRIBUTE, objects.named(Sources, Sources.ALL_SOURCE_DIRS))' ||
+//        'attribute(TestType.TEST_TYPE_ATTRIBUTE, objects.named(TestType, TestType.UNIT_TESTS))' || 'org.gradle.testsuitetype'
+//        'attribute(TestType.TEST_TYPE_ATTRIBUTE, objects.named(TestType, TestType.INTEGRATION_TESTS))' || 'org.gradle.testsuitetype'
+//        'attribute(Verification.SOURCES_ATTRIBUTE, objects.named(Sources, Sources.ALL_SOURCE_DIRS))' || 'org.gradle.sources'
+//        'attribute(Sources.SOURCES_ATTRIBUTE, objects.named(Sources, Sources.ALL_SOURCE_DIRS))' || 'org.gradle.sources'
     }
 }
