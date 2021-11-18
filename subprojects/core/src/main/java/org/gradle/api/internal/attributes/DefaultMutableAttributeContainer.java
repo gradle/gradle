@@ -34,7 +34,7 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
     private final ImmutableAttributesFactory immutableAttributesFactory;
     private final AttributeContainerInternal parent;
     private ImmutableAttributes state = ImmutableAttributes.EMPTY;
-    private Map<Attribute<?>, Provider<?>> lazyAttributes = Collections.emptyMap();
+    private Map<Attribute<?>, Provider<?>> lazyAttributes = Cast.uncheckedCast(Collections.EMPTY_MAP);
 
     public DefaultMutableAttributeContainer(ImmutableAttributesFactory immutableAttributesFactory) {
         this(immutableAttributesFactory, null);
