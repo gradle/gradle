@@ -114,10 +114,11 @@ See [the documentation](userguide/kotlin_dsl.html#type-safe-accessors) for detai
 
 ### Dependency verification improvements
 
-[Dependency verification](userguide/dependency_verification.html) is a feature that allows build to verify the checksums and signatures of the plugins and dependencies that are used by your project.
+[Dependency verification](userguide/dependency_verification.html) is a feature that allows to verify the checksums and signatures of the plugins and dependencies that are used by the build of your project.
 
 With this release, the generation of the dependency verification file has been improved to produce stable output.
-This allows you to leverage generation as an update strategy for the verification metadata when dependencies change in your project.
+This means that for the same inputs - build configuration and previous verification file - Gradle will always produce the same output.
+This allows you to leverage [the verification metadata bootstrapping feature](userguide/dependency_verification.html#sec:bootstrapping-verification) as an update strategy when dependencies change in your project.
 Have a look at [the documentation](userguide/dependency_verification.html#sec:verification-update) for more details.
 
 
