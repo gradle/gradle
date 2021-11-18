@@ -300,9 +300,10 @@ according to the <<sec:precedence,Toolchain Precedence Rules>>.
 [[sec:precedence]]
 == Precedence
 
-Gradle will select the first installation that matches the toolchain specification of the build, by looking at all known installations
-sorted according to the following rules:
+Gradle will sort all the JDK/JRE installations matching the toolchain specification of the build and will pick the first one. Sorting
+is done based on the following rules:
 
+. the installation currently running Gradle is preferred over any other
 . JDK installations are preferred over JRE ones
 . certain vendors take precedence over others; their ordering (from the highest priority to lowest):
 .. ADOPTIUM
@@ -326,8 +327,10 @@ between installations of the same type, from the same vendor and with the same v
 
 All these rules are applied as multilevel sorting criteria, *in the order they are shown*. Let's illustrate with an example. Let's
 say that the only criteria we have added to our toolchain specification is that we want Java version 17 and that on our local machine
-following *matching* installations have been detected: Oracle JRE v17.0.0, Oracle JDK v17.0.1, Microsoft JDK 17.0.0, Microsoft JRE 17.0.1,
-Microsoft JDK 17.0.1.
+following matching installations have been detected: Oracle JRE v17.0.0, Oracle JDK v17.0.1, Microsoft JDK 17.0.0, Microsoft JRE 17.0.1,
+Microsoft JDK 17.0.1. Let's also assume that Gradle is being run by an installation with a different major version, so it's not a match
+of the toolchain specification (the point being that otherwise that installation would have priority over every other one and our example
+would be less informative).
 
 When we apply the above rules to sort this set we will end up with following ordering:
 
@@ -342,13 +345,6 @@ end up first after applying the rule of preferring that vendor over Oracle. Then
 by the rule saying that we prefer higher version numbers over lower ones. Applying any more rules won't change the final order.
 
 The installation that will be picked is the first one, the Microsoft JDK 17.0.1.
-
-[NOTE]
-====
-There is one important exception to the above-mentioned precedence rules. When <<sec:auto_detection,auto-detection>> is enabled
-and the JVM running Gradle matches the toolchain specification, the installation of that JVM will be picked over any other matching
-installation.
-====
 
 [[sec:plugins]]
 == Toolchains for plugin authors
