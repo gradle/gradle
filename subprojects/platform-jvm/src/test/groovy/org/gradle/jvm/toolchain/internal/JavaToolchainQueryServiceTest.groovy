@@ -32,7 +32,6 @@ import org.gradle.jvm.toolchain.JvmImplementation
 import org.gradle.jvm.toolchain.JvmVendorSpec
 import org.gradle.jvm.toolchain.install.internal.JavaToolchainProvisioningService
 import org.gradle.util.TestUtil
-import org.junit.Assume
 import spock.lang.Issue
 import spock.lang.Specification
 
@@ -286,19 +285,11 @@ class JavaToolchainQueryServiceTest extends Specification {
     }
 
     def "prefer version Gradle is running on as long as it is a match"() {
-        def currentVersion = System.getProperty("java.version")
-        Assume.assumeTrue(currentVersion.matches("[\\\\.0-9]*"))
-
-        ArrayList<String> installations = installationsBasedOnVersion(currentVersion)
-
-        def currentHome = System.getProperty("java.home")
-
         given:
-        def registry = createDeterministicInstallationRegistry(installations,
-            installation -> currentHome.replace(System.getProperty("java.version"), installation))
-        def toolchainFactory = newToolchainFactory()
+        def registry = createDeterministicInstallationRegistry(["1.8.1", "1.8.2", "1.8.3"])
+        def toolchainFactory = newToolchainFactory(javaHome -> javaHome.toString().endsWith("1.8.2"))
         def queryService = new JavaToolchainQueryService(registry, toolchainFactory, Mock(JavaToolchainProvisioningService), createProviderFactory())
-        def versionToFind = JavaLanguageVersion.of(JavaVersion.toVersion(currentVersion).majorVersion)
+        def versionToFind = JavaLanguageVersion.of(8)
 
         when:
         def filter = new DefaultToolchainSpec(TestUtil.objectFactory())
@@ -307,30 +298,26 @@ class JavaToolchainQueryServiceTest extends Specification {
 
         then:
         toolchain.languageVersion == versionToFind
-        toolchain.getInstallationPath().toString() == systemSpecificAbsolutePath(currentHome)
-    }
-
-    private ArrayList<String> installationsBasedOnVersion(String version) {
-        def higherVersion = changeMinorVersion(version, i -> i + 1)
-        Assume.assumeNotNull(higherVersion)
-
-        def lowerVersion = changeMinorVersion(version, i -> i - 1)
-
-        def installations = [version, higherVersion]
-        if (lowerVersion != null) {
-            installations.add(lowerVersion)
-        }
-        installations
+        toolchain.getInstallationPath().toString() == systemSpecificAbsolutePath("/path/1.8.2")
     }
 
     private JavaToolchainFactory newToolchainFactory() {
+        newToolchainFactory(javaHome -> false)
+    }
+
+    private JavaToolchainFactory newToolchainFactory(Function<File, Boolean> currentJvmMapper) {
         def compilerFactory = Mock(JavaCompilerFactory)
         def toolFactory = Mock(ToolchainToolFactory)
         def toolchainFactory = new JavaToolchainFactory(Mock(JvmMetadataDetector), compilerFactory, toolFactory, TestFiles.fileFactory()) {
             Optional<JavaToolchain> newInstance(File javaHome, JavaToolchainInput input) {
                 def metadata = newMetadata(javaHome)
                 if(metadata.isValidInstallation()) {
-                    def toolchain = new JavaToolchain(metadata, compilerFactory, toolFactory, TestFiles.fileFactory(), input)
+                    def toolchain = new JavaToolchain(metadata, compilerFactory, toolFactory, TestFiles.fileFactory(), input) {
+                        @Override
+                        boolean isCurrentJvm() {
+                            return currentJvmMapper.apply(javaHome)
+                        }
+                    }
                     return Optional.of(toolchain)
                 }
                 return Optional.empty()
@@ -377,11 +364,7 @@ class JavaToolchainQueryServiceTest extends Specification {
     }
 
     def createDeterministicInstallationRegistry(List<String> installations) {
-        createDeterministicInstallationRegistry(installations, installation -> "/path/${installation}")
-    }
-
-    def createDeterministicInstallationRegistry(List<String> installations, Function<String, String> pathnameMapper) {
-        def installationLocations = installations.collect { new InstallationLocation(new File(pathnameMapper.apply(it)).absoluteFile, "test") } as LinkedHashSet
+        def installationLocations = installations.collect { new InstallationLocation(new File("/path/${it}").absoluteFile, "test") } as LinkedHashSet
         Mock(JavaInstallationRegistry) {
             listInstallations() >> installationLocations
             installationExists(_ as InstallationLocation) >> true
@@ -393,32 +376,5 @@ class JavaToolchainQueryServiceTest extends Specification {
             gradleProperty("org.gradle.java.installations.auto-detect") >> Providers.ofNullable("true")
             gradleProperty("org.gradle.java.installations.auto-download") >> Providers.ofNullable("true")
         }
-    }
-
-    String changeMinorVersion(String version, Function<Integer, Integer> mapping) {
-        try {
-            def firstNonVersionCharIndex = findFirstNonVersionCharIndex(version)
-            def trimmedVersion = version.substring(0, firstNonVersionCharIndex)
-            def lastDotIndex = trimmedVersion.lastIndexOf('.')
-            def minorVersion = Integer.parseInt(trimmedVersion.substring(lastDotIndex + 1, trimmedVersion.length()))
-            def newMinorVersion = mapping.apply(minorVersion)
-            def newVersion = version.substring(0, lastDotIndex + 1) + newMinorVersion + version.substring(firstNonVersionCharIndex)
-            return newVersion
-        } catch (Exception ignored) {
-            return null
-        }
-    }
-
-    private static int findFirstNonVersionCharIndex(String s) {
-        for (int i = 0; i < s.length(); ++i) {
-            if (!isDigitOrPeriod(s.charAt(i))) {
-                return i;
-            }
-        }
-        return s.length();
-    }
-
-    private static boolean isDigitOrPeriod(char c) {
-        return (c >= '0' && c <= '9') || c == '.';
     }
 }
