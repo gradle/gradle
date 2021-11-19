@@ -16,32 +16,17 @@
 
 package org.gradle.initialization;
 
-import com.google.common.collect.Sets;
-import groovy.lang.DelegatingMetaClass;
-import groovy.lang.GroovyObject;
-import groovy.lang.MetaClass;
-import groovy.lang.MetaProperty;
 import org.gradle.StartParameter;
-import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.internal.extensibility.ExtensibleDynamicObject;
-import org.gradle.internal.metaobject.AbstractDynamicObject;
-import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 
 import java.io.File;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static org.gradle.internal.metaobject.DynamicInvokeResult.found;
-import static org.gradle.internal.metaobject.DynamicInvokeResult.notFound;
 
 public class SettingsFactory {
     private final Instantiator instantiator;
@@ -74,59 +59,7 @@ public class SettingsFactory {
             settingsScript,
             startParameter
         );
-        final GroovyObject groovyObject = (GroovyObject) settings;
-        MetaClass metaClass = groovyObject.getMetaClass();
-        groovyObject.setMetaClass(
-            delegatingMetaClassFor(gradleProperties, metaClass)
-        );
-        extensibleDynamicObjectOf(settings).setParent(
-            dynamicObjectFor(gradleProperties)
-        );
+        DefaultGradleProperties.exposeGradlePropertiesDynamically(gradleProperties, settings);
         return settings;
-    }
-
-    private DelegatingMetaClass delegatingMetaClassFor(GradleProperties gradleProperties, MetaClass metaClass) {
-        return new DelegatingMetaClass(metaClass) {
-            @Override
-            public List<MetaProperty> getProperties() {
-                List<MetaProperty> groovyProperties = super.getProperties();
-                Set<String> groovyPropertyNames = groovyProperties.stream().map(MetaProperty::getName).collect(Collectors.toSet());
-                Sets.difference(gradleProperties.getPropertyNames(), groovyPropertyNames).forEach(s -> {
-                    groovyProperties.add(
-                        new MetaProperty(s, Object.class) {
-                            @Override
-                            public Object getProperty(Object object) {
-                                return gradleProperties.find(getName());
-                            }
-
-                            @Override
-                            public void setProperty(Object object, Object newValue) {
-                                throw new UnsupportedOperationException();
-                            }
-                        }
-                    );
-                });
-                return groovyProperties;
-            }
-        };
-    }
-
-    private AbstractDynamicObject dynamicObjectFor(GradleProperties gradleProperties) {
-        return new AbstractDynamicObject() {
-            @Override
-            public String getDisplayName() {
-                return "Gradle properties";
-            }
-
-            @Override
-            public DynamicInvokeResult tryGetProperty(String name) {
-                String value = gradleProperties.find(name);
-                return value != null ? found(value) : notFound();
-            }
-        };
-    }
-
-    private static ExtensibleDynamicObject extensibleDynamicObjectOf(Object o) {
-        return (ExtensibleDynamicObject) ((DynamicObjectAware) o).getAsDynamicObject();
     }
 }

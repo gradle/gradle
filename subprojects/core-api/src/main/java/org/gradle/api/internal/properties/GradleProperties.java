@@ -41,6 +41,9 @@ public interface GradleProperties {
      */
     Map<String, String> mergeProperties(Map<String, String> properties);
 
+    /**
+     * Gets notified whenever {@link #find(String)} is called.
+     */
     @EventScope(Scopes.Build.class)
     interface Listener {
         void onPropertyRead(String name, @Nullable Object value);
