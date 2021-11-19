@@ -23,7 +23,8 @@ import javax.inject.Inject;
 
 public abstract class GradlePropertyValueSource extends AbstractPropertyValueSource<GradlePropertyValueSource.Parameters> {
 
-    public interface Parameters extends AbstractPropertyValueSource.Parameters {}
+    public interface Parameters extends AbstractPropertyValueSource.Parameters {
+    }
 
     @Inject
     protected abstract GradleProperties getGradleProperties();
