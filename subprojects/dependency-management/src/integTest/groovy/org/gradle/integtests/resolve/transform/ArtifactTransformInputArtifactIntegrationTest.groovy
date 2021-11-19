@@ -20,6 +20,7 @@ import org.gradle.api.tasks.PathSensitivity
 import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
+import spock.lang.Issue
 
 import java.util.regex.Pattern
 
@@ -1248,6 +1249,45 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         result.assertTasksNotSkipped(":b:producer", ":a:resolve")
         transformed()
         outputContains("result = [b.jar.green, c.jar.green]")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/19003")
+    def "can transform an empty input artifact"() {
+        settingsFile << "include 'a', 'b'"
+        setupBuildWithColorTransformAction {
+            produceDirs()
+        }
+        buildFile << """
+            project(':a') {
+                dependencies {
+                    implementation project(':b')
+                }
+            }
+
+            abstract class MakeGreen implements TransformAction<TransformParameters.None> {
+                // Make sure empty directories in the input are ignored, making the fingerprint empty.
+                @PathSensitive(PathSensitivity.RELATIVE)
+                @IgnoreEmptyDirectories
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+
+                void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
+                    println "processing \${input.name}"
+                    def output = outputs.file(input.name + ".green")
+                    output.text = input.name + ".green"
+                }
+            }
+        """
+
+        when:
+        executer.withArguments("-PbEmptyDir")
+        run(":a:resolve")
+
+        then:
+        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        transformed("b-dir")
+        outputContains("result = [b-dir.green]")
     }
 
     void transformed(String... expected) {
