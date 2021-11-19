@@ -72,6 +72,15 @@ To ignore directories in Gradle 8.0 and later, the input property needs to be an
 Finally, using `@link:{javadocPath}/org/gradle/api/tasks/InputDirectory.html[InputDirectory]` implies `@IgnoreEmptyDirectories`, so no changes are necessary when using this annotation.
 The same is true for `@link:{javadocPath}/org/gradle/api/tasks/TaskInputs.html#dir-java.lang.Object-[inputs.dir()]` when registering an input directory via the runtime API.
 
+[[tar_tree_no_backing_file]]
+==== Tar trees from resources without backing files
+
+It is possible to create tar trees from arbitrary resources.
+If the resource is not created via `project.resources`, then it may not have a backing file.
+Creating a tar tree from a resource with no backing file has been deprecated.
+Instead of using a resource without a backing file it seems to be better to have a task to download or create the tar file or use dependency management to download the file from an URL.
+This way, Gradle is able to apply optimizations like up-to-date checks instead of re-running the logic to create the resource every time.
+
 [[changes_7.3]]
 == Upgrading from 7.2 and earlier
 

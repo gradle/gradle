@@ -198,7 +198,7 @@ public class DefaultFileOperations implements FileOperations {
                 DeprecationLogger.deprecateAction("Creating a tarTree from a resource without a backing file")
                     .withAdvice("Use a task or declare a dependency to create the tar file.")
                     .willBecomeAnErrorInGradle8()
-                    .undocumented()
+                    .withUpgradeGuideSection(7, "tar_tree_no_backing_file")
                     .nagUser();
             }
         }
