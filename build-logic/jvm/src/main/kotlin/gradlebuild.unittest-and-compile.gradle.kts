@@ -230,7 +230,13 @@ fun Test.configureRerun() {
     }
 }
 
-fun Test.determineMaxRetry() = if (project.name in listOf("smoke-test", "performance", "build-scan-performance")) 1 else 2
+fun Project.isFlakyTestQuarantine() = providers.gradleProperty("flakyTestQuarantine").isPresent
+
+fun Test.determineMaxRetry() = when {
+    project.isFlakyTestQuarantine() -> 4
+    project.name in listOf("smoke-test", "performance", "build-scan-performance") -> 1
+    else -> 2
+}
 
 fun configureTests() {
     normalization {
