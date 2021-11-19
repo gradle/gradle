@@ -102,5 +102,14 @@
         ],
         "selected": "cglib:cglib",
         "upgrade": "3.2.6"
+    },
+    {
+        "//": "`com.jcraft:jsch` is outdated - replace with `com.github.mwiede:jsch`",
+        "name": "jsch",
+        "providedBy": [
+            "com.jcraft:jsch"
+        ],
+        "selected": "com.github.mwiede:jsch",
+        "upgrade": "0.1.70"
     }
 ]

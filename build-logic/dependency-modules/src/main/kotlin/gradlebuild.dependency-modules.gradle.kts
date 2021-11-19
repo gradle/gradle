@@ -77,6 +77,12 @@ dependencies {
 }
 
 
+configurations.all {
+    // `com.jcraft:jsch` is outdated - replace with `com.github.mwiede:jsch`
+    exclude("com.jcraft", "jsch")
+}
+
+
 fun applyAutomaticUpgradeOfCapabilities() {
     configurations.all {
         resolutionStrategy.capabilitiesResolution.all {

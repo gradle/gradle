@@ -466,6 +466,11 @@
             <pgp value="635ee627345f3c1dd422b2e207d3516820bcf6b1"/>
          </artifact>
       </component>
+      <component group="com.github.mwiede" name="jsch" version="0.1.70">
+         <artifact name="jsch-0.1.70.jar">
+            <pgp value="d4d4dec73685b1a135e45e5c47933d17f199636b"/>
+         </artifact>
+      </component>
       <component group="com.github.siom79.japicmp" name="japicmp" version="0.14.3">
          <artifact name="japicmp-0.14.3.jar">
             <pgp value="fffd810fffde203d5fa27263beabcfbee059e4e5"/>
