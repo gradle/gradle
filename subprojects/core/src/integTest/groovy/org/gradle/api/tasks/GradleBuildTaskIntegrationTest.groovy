@@ -100,7 +100,7 @@ class GradleBuildTaskIntegrationTest extends AbstractIntegrationSpec {
             println "other build file"
         '''
 
-        executer.expectDocumentedDeprecationWarning("Specifying custom build file location has been deprecated. This is scheduled to be removed in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#configuring_custom_build_layout");
+        executer.expectDocumentedDeprecationWarning("Specifying custom build file location has been deprecated. This is scheduled to be removed in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#configuring_custom_build_layout")
 
         when:
         run 'otherBuild'
@@ -303,5 +303,48 @@ class GradleBuildTaskIntegrationTest extends AbstractIntegrationSpec {
         and:
         def runNestedBuildOps = buildOperations.all(RunNestedBuildBuildOperationType)
         runNestedBuildOps.size() == 3
+    }
+
+    def "can excluded tasks from nested builds"() {
+        given:
+        settingsFile << "rootProject.name = 'parent'"
+        buildFile << """
+            task first {
+                doLast {
+                    println('first')
+                }
+            }
+
+            task second {
+                doLast {
+                    println('second')
+                }
+
+                dependsOn(first)
+            }
+
+            task both(type:GradleBuild) {
+                buildName = 'bp'
+
+                // ensure to pass excluded tasks
+                startParameter = gradle.startParameter.newInstance()
+
+                tasks = [first.name, second.name]
+
+                doLast {
+                    println("both")
+                }
+            }
+        """
+
+        when:
+//        args('-x', ':bp:second')
+        args('-x', 'second')
+        run 'both'
+
+        then:
+        executed(":both")
+        executed(":bp:first")
+        notExecuted(":bp:second")
     }
 }
