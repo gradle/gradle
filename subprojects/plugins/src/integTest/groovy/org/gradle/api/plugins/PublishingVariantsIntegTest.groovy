@@ -16,94 +16,10 @@
 
 package org.gradle.api.plugins
 
-import org.gradle.api.component.AdhocComponentWithVariants
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 
-import static org.gradle.util.Matchers.containsText
-
 class PublishingVariantsIntegTest extends AbstractIntegrationSpec {
-    def "publishing variants with duplicate names fails"() {
-        given:
-        settingsFile << "rootProject.name = 'lib'"
-
-        buildFile << """
-            plugins {
-                id 'java'
-                id 'maven-publish'
-            }
-
-            repositories {
-                mavenLocal()
-            }
-
-            //def conf1 = configurations.create('sample1')
-            //def conf2 = configurations.create('sample1')
-
-            //components.java.withVariantsFromConfiguration(conf1) {
-            //    skip()
-            //}
-            //components.java.withVariantsFromConfiguration(conf2)
-
-            publishing {
-                publications {
-                    mavenJava(MavenPublication) {
-                        from components.java
-                    }
-                }
-            }
-
-            group 'org.sample.SampleLib'
-            """.stripIndent()
-
-        file("src/main/java/org/sample/SampleLib.java") << """
-            public class SampleLib {
-                public void foo() {}
-            }
-            """.stripIndent()
-
-        when:
-        succeeds("outgoingVariants", "publishToMavenLocal")
-
-        then:
-        outputContains("Variant")
-    }
-
-    def "test variant guarantees"() {
-        given:
-        settingsFile << "rootProject.name = 'lib'"
-
-        buildFile << """
-            plugins {
-                id 'java'
-                id 'maven-publish'
-            }
-
-            repositories {
-                mavenLocal()
-            }
-
-            publishing {
-                publications {
-                    mavenJava(MavenPublication) {
-                        from components.java
-                    }
-                }
-            }
-
-            group 'org.sample.SampleLib'
-            """.stripIndent()
-
-        file("src/main/java/org/sample/SampleLib.java") << """
-            public class SampleLib {
-                public void foo() {}
-            }
-            """.stripIndent()
-
-        expect:
-        succeeds("build", "publishToMavenLocal")
-    }
-
     def "variants are not publishable when using non-publishable attribute: #attributeValue"() {
         given:
         buildFile << """
@@ -140,10 +56,6 @@ class PublishingVariantsIntegTest extends AbstractIntegrationSpec {
         where:
         interfaceType || attributeConstant || attributeValueConstant || attributeValue
         'Sources' || 'SOURCES_ATTRIBUTE' || 'ALL_SOURCE_DIRS' || 'org.gradle.sources'
-//        'attribute(Sources.SOURCES_ATTRIBUTE, objects.named(Sources, Sources.ALL_SOURCE_DIRS))' ||
-//        'attribute(TestType.TEST_TYPE_ATTRIBUTE, objects.named(TestType, TestType.UNIT_TESTS))' || 'org.gradle.testsuitetype'
-//        'attribute(TestType.TEST_TYPE_ATTRIBUTE, objects.named(TestType, TestType.INTEGRATION_TESTS))' || 'org.gradle.testsuitetype'
-//        'attribute(Verification.SOURCES_ATTRIBUTE, objects.named(Sources, Sources.ALL_SOURCE_DIRS))' || 'org.gradle.sources'
-//        'attribute(Sources.SOURCES_ATTRIBUTE, objects.named(Sources, Sources.ALL_SOURCE_DIRS))' || 'org.gradle.sources'
+        'TestType' || 'TEST_TYPE_ATTRIBUTE' || 'UNIT_TESTS' || 'org.gradle.testsuitetype'
     }
 }
