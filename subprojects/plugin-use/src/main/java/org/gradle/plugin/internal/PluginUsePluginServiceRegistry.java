@@ -46,7 +46,7 @@ import org.gradle.plugin.management.internal.autoapply.DefaultAutoAppliedPluginR
 import org.gradle.plugin.use.internal.DefaultPluginRequestApplicator;
 import org.gradle.plugin.use.internal.InjectedPluginClasspath;
 import org.gradle.plugin.use.internal.PluginDependencyResolutionServices;
-import org.gradle.plugin.use.internal.PluginRepositoriesProvider;
+import org.gradle.plugin.use.resolve.internal.PluginRepositoriesProvider;
 import org.gradle.plugin.use.internal.PluginResolverFactory;
 import org.gradle.plugin.use.resolve.service.internal.ClientInjectedClasspathPluginResolver;
 import org.gradle.plugin.use.resolve.service.internal.DefaultInjectedClasspathPluginResolver;

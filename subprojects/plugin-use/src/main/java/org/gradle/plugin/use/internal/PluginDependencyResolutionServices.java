@@ -37,6 +37,7 @@ import org.gradle.api.internal.artifacts.repositories.descriptor.RepositoryDescr
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.Factory;
+import org.gradle.plugin.use.resolve.internal.PluginRepositoriesProvider;
 
 import java.util.List;
 import java.util.stream.Collectors;

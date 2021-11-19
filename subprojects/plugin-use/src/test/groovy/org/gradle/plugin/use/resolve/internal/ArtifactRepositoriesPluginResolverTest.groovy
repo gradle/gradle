@@ -28,7 +28,6 @@ import org.gradle.internal.resource.StringTextResource
 import org.gradle.plugin.management.internal.DefaultPluginRequest
 import org.gradle.plugin.management.internal.PluginRequestInternal
 import org.gradle.plugin.use.internal.DefaultPluginId
-import org.gradle.plugin.use.internal.PluginRepositoriesProvider
 import spock.lang.Specification
 
 import static org.gradle.plugin.use.resolve.internal.ArtifactRepositoriesPluginResolver.SOURCE_NAME

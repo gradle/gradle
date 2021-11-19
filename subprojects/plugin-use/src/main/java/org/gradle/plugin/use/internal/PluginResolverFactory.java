@@ -24,6 +24,7 @@ import org.gradle.plugin.use.resolve.internal.ArtifactRepositoriesPluginResolver
 import org.gradle.plugin.use.resolve.internal.CompositePluginResolver;
 import org.gradle.plugin.use.resolve.internal.CorePluginResolver;
 import org.gradle.plugin.use.resolve.internal.NoopPluginResolver;
+import org.gradle.plugin.use.resolve.internal.PluginRepositoriesProvider;
 import org.gradle.plugin.use.resolve.internal.PluginResolver;
 import org.gradle.plugin.use.resolve.internal.PluginResolverContributor;
 import org.gradle.plugin.use.resolve.service.internal.ClientInjectedClasspathPluginResolver;

@@ -29,7 +29,6 @@ import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal
 import org.gradle.plugin.management.internal.InvalidPluginRequestException;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.use.PluginId;
-import org.gradle.plugin.use.internal.PluginRepositoriesProvider;
 
 import javax.annotation.Nonnull;
 import java.util.Iterator;
