@@ -46,7 +46,6 @@ Executing the build (e.g. using `gradle check`) will now handle several things f
 Toolchain support is available in the Java plugins and for the tasks they define.
 For the Groovy plugin, compilation is supported but not yet Groovydoc generation.
 For the Scala plugin, compilation and Scaladoc generation are supported.
-
 ====
 
 [[sec:vendors]]
@@ -146,7 +145,7 @@ Please note however that this may realize (and provision) a toolchain eagerly.
 == Auto detection of installed toolchains
 
 By default, Gradle automatically detects local JRE/JDK installations so no further configuration is required by the user.
-The following is a list of common package managers and locations that are supported by the JVM auto detection.
+The following is a list of common package managers and locations that are supported by the JVM auto-detection.
 
 Operation-system specific locations:
 
@@ -159,6 +158,8 @@ Supported Package Managers:
 * https://asdf-vm.com/#/[Asdf-vm]
 * https://github.com/shyiko/jabba[Jabba]
 * https://sdkman.io/[SDKMAN!]
+
+Among the set of all detected JRE/JDK installations, one will be picked according to the <<sec:precedence,Toolchain Precedence Rules>>.
 
 [[sub:disable_auto_detect]]
 === How to disable auto-detection
@@ -288,6 +289,62 @@ Gradle will treat these directories as possible installations but will not desce
 ----
 org.gradle.java.installations.paths=/custom/path/jdk1.8,/shared/jre11
 ----
+
+[NOTE]
+====
+Custom toolchains are not prioritized over <<sec:auto_detection,auto-detected>> ones. If auto-detection is turned on, custom toolchains
+can still be specified but all they will do is to extend the set of detected JRE/JDK locations. Among these locations, one will be picked
+according to the <<sec:precedence,Toolchain Precedence Rules>>.
+====
+
+[[sec:precedence]]
+== Precedence
+
+Gradle will sort all the JDK/JRE installations matching the toolchain specification of the build and will pick the first one. Sorting
+is done based on the following rules:
+
+. the installation currently running Gradle is preferred over any other
+. JDK installations are preferred over JRE ones
+. certain vendors take precedence over others; their ordering (from the highest priority to lowest):
+.. ADOPTIUM
+.. ADOPTOPENJDK
+.. AMAZON
+.. APPLE
+.. AZUL
+.. BELLSOFT
+.. GRAAL_VM
+.. HEWLETT_PACKARD
+.. IBM
+.. IBM_SEMERU
+.. MICROSOFT
+.. ORACLE
+.. SAP
+.. everything else
+. higher major versions take precedence over lower ones
+. higher minor versions take precedence over lower ones
+. installation paths take precedence according to their lexicographic ordering (last resort criteria for deterministically deciding
+between installations of the same type, from the same vendor and with the same version)
+
+All these rules are applied as multilevel sorting criteria, *in the order they are shown*. Let's illustrate with an example. Let's
+say that the only criteria we have added to our toolchain specification is that we want Java version 17 and that on our local machine
+following matching installations have been detected: Oracle JRE v17.0.0, Oracle JDK v17.0.1, Microsoft JDK 17.0.0, Microsoft JRE 17.0.1,
+Microsoft JDK 17.0.1. Let's also assume that Gradle is being run by an installation with a different major version, so it's not a match
+of the toolchain specification (the point being that otherwise that installation would have priority over every other one and our example
+would be less informative).
+
+When we apply the above rules to sort this set we will end up with following ordering:
+
+. Microsoft JDK 17.0.1
+. Microsoft JDK 17.0.0
+. Oracle JDK v17.0.0
+. Microsoft JRE v17.0.1
+. Oracle JRE v17.0.1
+
+The JREs end up last after applying the rule of preferring JDKs over JREs. Then in both categories the Microsoft installations
+end up first after applying the rule of preferring that vendor over Oracle. Then the two Microsoft JDKs get ordered further
+by the rule saying that we prefer higher version numbers over lower ones. Applying any more rules won't change the final order.
+
+The installation that will be picked is the first one, the Microsoft JDK 17.0.1.
 
 [[sec:plugins]]
 == Toolchains for plugin authors
