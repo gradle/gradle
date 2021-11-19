@@ -35,7 +35,7 @@ public abstract class GradlePropertyValueSource extends AbstractPropertyValueSou
         if (propertyName == null) {
             return null;
         }
-        return getGradleProperties().find(propertyName);
+        return (String) getGradleProperties().find(propertyName);
     }
 
     @Override

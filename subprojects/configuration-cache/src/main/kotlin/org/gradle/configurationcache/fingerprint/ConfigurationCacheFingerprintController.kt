@@ -27,6 +27,7 @@ import org.gradle.configuration.internal.UserCodeApplicationContext
 import org.gradle.configurationcache.CheckedFingerprint
 import org.gradle.configurationcache.ConfigurationCacheStateFile
 import org.gradle.configurationcache.extensions.hashCodeOf
+import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.configurationcache.problems.ConfigurationCacheReport
 import org.gradle.configurationcache.problems.PropertyProblem
@@ -307,7 +308,7 @@ class ConfigurationCacheFingerprintController internal constructor(
             get() = buildCommencedTimeProvider.currentTime
 
         override fun gradleProperty(propertyName: String): String? =
-            gradleProperties.find(propertyName)
+            gradleProperties.find(propertyName)?.uncheckedCast()
 
         override fun hashCodeOf(file: File) =
             fileSystemAccess.hashCodeOf(file)

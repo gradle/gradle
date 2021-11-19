@@ -167,7 +167,11 @@ class ConfigurationCacheFingerprintWriter(
         captureFile(file)
     }
 
-    override fun onPropertyRead(key: String, value: String?) {
+    override fun onPropertyRead(key: String, value: Any?) {
+        require(value is String?) {
+            "Unsupported Gradle property type '${value?.javaClass}' in property '$key', " +
+                "only String properties are supported with the configuration cache."
+        }
         gradlePropertyRead(key, value, null)
     }
 

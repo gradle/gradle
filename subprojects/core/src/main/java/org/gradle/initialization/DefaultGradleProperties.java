@@ -43,8 +43,8 @@ class DefaultGradleProperties implements GradleProperties {
 
     @Nullable
     @Override
-    public String find(String propertyName) {
-        String value = gradleProperties.get(propertyName);
+    public Object find(String propertyName) {
+        Object value = gradleProperties.get(propertyName);
         listener.onPropertyRead(propertyName, value);
         return value;
     }

@@ -51,7 +51,7 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
 
         @Nullable
         @Override
-        public String find(String propertyName) {
+        public Object find(String propertyName) {
             return gradleProperties().find(propertyName);
         }
 

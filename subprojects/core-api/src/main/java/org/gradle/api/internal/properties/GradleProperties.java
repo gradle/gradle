@@ -29,7 +29,7 @@ import java.util.Set;
 public interface GradleProperties {
 
     @Nullable
-    String find(String propertyName);
+    Object find(String propertyName);
 
     Set<String> getPropertyNames();
 
@@ -43,6 +43,6 @@ public interface GradleProperties {
 
     @EventScope(Scopes.Build.class)
     interface Listener {
-        void onPropertyRead(String name, @Nullable String value);
+        void onPropertyRead(String name, @Nullable Object value);
     }
 }
