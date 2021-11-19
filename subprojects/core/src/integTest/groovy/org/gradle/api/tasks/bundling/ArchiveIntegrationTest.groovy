@@ -238,6 +238,9 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
             }
 '''
         when:
+        executer.expectDeprecationWarning(
+            "Creating a tarTree from a resource without a backing file has been deprecated. " +
+            "This will fail with an error in Gradle 8.0. Use a task or declare a dependency to create the tar file.")
         run 'copy'
         then:
         file('dest').assertHasDescendants('someDir/1.txt')

@@ -50,6 +50,7 @@ import org.gradle.api.tasks.WorkResults;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.StreamHasher;
@@ -189,6 +190,18 @@ public class DefaultFileOperations implements FileOperations {
                 return new LocalResourceAdapter(new LocalFileStandInExternalResource(tarFile, fileSystem));
             }
         });
+
+        if (tarPath instanceof ReadableResource) {
+            boolean hasBackingFile = tarPath instanceof ReadableResourceInternal
+                && ((ReadableResourceInternal) tarPath).getBackingFile() != null;
+            if (!hasBackingFile) {
+                DeprecationLogger.deprecateAction("Creating a tarTree from a resource without a backing file")
+                    .withAdvice("Use a task or declare a dependency to create the tar file.")
+                    .willBecomeAnErrorInGradle8()
+                    .undocumented()
+                    .nagUser();
+            }
+        }
 
         TarFileTree tarTree = new TarFileTree(fileProvider, resource.map(MaybeCompressedFileResource::new), getExpandDir(), fileSystem, directoryFileTreeFactory, streamHasher, fileHasher);
         return new FileTreeAdapter(tarTree, patternSetFactory);

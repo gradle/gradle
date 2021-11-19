@@ -472,6 +472,10 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
                 }))
             }
         """
+        executer.expectDeprecationWarning(
+            "Creating a tarTree from a resource without a backing file has been deprecated. " +
+            "This will fail with an error in Gradle 8.0. Use a task or declare a dependency to create the tar file."
+        )
 
         expect:
         fails("taskWithInvalidOutput")
