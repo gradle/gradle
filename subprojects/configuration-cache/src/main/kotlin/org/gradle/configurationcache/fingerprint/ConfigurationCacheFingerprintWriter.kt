@@ -35,6 +35,7 @@ import org.gradle.api.internal.file.FileTreeInternal
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree
 import org.gradle.api.internal.project.ProjectState
+import org.gradle.api.internal.properties.GradleProperties
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.internal.provider.sources.EnvironmentVariableValueSource
 import org.gradle.api.internal.provider.sources.FileContentValueSource
@@ -73,7 +74,8 @@ class ConfigurationCacheFingerprintWriter(
     UndeclaredBuildInputListener,
     ChangingValueDependencyResolutionListener,
     ProjectDependencyObservedListener,
-    FileResourceListener {
+    FileResourceListener,
+    GradleProperties.Listener {
 
     interface Host {
         val gradleUserHomeDir: File
@@ -163,6 +165,14 @@ class ConfigurationCacheFingerprintWriter(
 
     override fun fileObserved(file: File) {
         captureFile(file)
+    }
+
+    override fun onPropertyRead(key: String, value: Any?) {
+        require(value is String?) {
+            "Unsupported Gradle property type '${value?.javaClass}' in property '$key', " +
+                "only String properties are supported with the configuration cache."
+        }
+        gradlePropertyRead(key, value, null)
     }
 
     private

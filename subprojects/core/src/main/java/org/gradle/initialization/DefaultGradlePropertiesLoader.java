@@ -34,9 +34,11 @@ public class DefaultGradlePropertiesLoader implements IGradlePropertiesLoader {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultGradlePropertiesLoader.class);
 
     private final StartParameterInternal startParameter;
+    private final GradleProperties.Listener listener;
 
-    public DefaultGradlePropertiesLoader(StartParameterInternal startParameter) {
+    public DefaultGradlePropertiesLoader(StartParameterInternal startParameter, GradleProperties.Listener listener) {
         this.startParameter = startParameter;
+        this.listener = listener;
     }
 
     @Override
@@ -60,7 +62,11 @@ public class DefaultGradlePropertiesLoader implements IGradlePropertiesLoader {
         overrideProperties.putAll(getSystemProjectProperties(systemProperties));
         overrideProperties.putAll(startParameter.getProjectProperties());
 
-        return new DefaultGradleProperties(defaultProperties, overrideProperties);
+        return new DefaultGradleProperties(
+            defaultProperties,
+            overrideProperties,
+            listener
+        );
     }
 
     Map<String, String> getAllSystemProperties() {

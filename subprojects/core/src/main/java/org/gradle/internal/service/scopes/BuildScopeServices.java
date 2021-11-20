@@ -328,8 +328,13 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new DefaultGradlePropertiesController(propertiesLoader);
     }
 
-    protected IGradlePropertiesLoader createGradlePropertiesLoader() {
-        return new DefaultGradlePropertiesLoader((StartParameterInternal) get(StartParameter.class));
+    protected IGradlePropertiesLoader createGradlePropertiesLoader(
+        ListenerManager listenerManager
+    ) {
+        return new DefaultGradlePropertiesLoader(
+            (StartParameterInternal) get(StartParameter.class),
+            listenerManager.getBroadcaster(GradleProperties.Listener.class)
+        );
     }
 
     protected ValueSourceProviderFactory createValueSourceProviderFactory(
