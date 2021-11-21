@@ -1023,7 +1023,7 @@ public class NodeState implements DependencyGraphNode {
         boolean alreadyRemoving = removingOutgoingEdges;
         removingOutgoingEdges = true;
         if (!outgoingEdges.isEmpty() && !alreadyRemoving) {
-            for (EdgeState outgoingDependency : outgoingEdges) {
+            for (EdgeState outgoingDependency : Lists.newArrayList(outgoingEdges)) {
                 outgoingDependency.markUnused();
                 ComponentState targetComponent = outgoingDependency.getTargetComponent();
                 if (targetComponent == component) {
