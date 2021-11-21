@@ -107,11 +107,17 @@
         };
     }
 
-    var currentChapterFileName = window.location.pathname.substr(window.location.pathname.lastIndexOf("/") + 1);
-    if (currentChapterFileName === "index.html" || currentChapterFileName === "") {
-        currentChapterFileName = window.location.pathname.substr(0, window.location.pathname.lastIndexOf("/"));
-        currentChapterFileName = currentChapterFileName.substr(currentChapterFileName.lastIndexOf("/") + 1) + "/index.html";
+    function getCurrentChapterFileName(givenUrl) {
+        var currentChapterFileName = givenUrl.substr(givenUrl.lastIndexOf("/") + 1);
+        if (currentChapterFileName === "index.html" || currentChapterFileName === "") {
+            currentChapterFileName = givenUrl.substr(0, givenUrl.lastIndexOf("/"));
+            currentChapterFileName = currentChapterFileName.substr(currentChapterFileName.lastIndexOf("/") + 1) + "/index.html";
+        }
+        return currentChapterFileName;
     }
+
+    var currentLink = undefined;
+    var currentChapterFileName = getCurrentChapterFileName(window.location.pathname);
     [].forEach.call(document.querySelectorAll(".docs-navigation a[href$='/" + currentChapterFileName + "']"), function (link) {
         // Add "active" to all links same as current URL
         link.classList.add("active");
@@ -126,8 +132,7 @@
             parentListEl = parentListEl.parentNode.closest("li");
         }
 
-        // Scroll to center of the page if deep link, otherwise loadNavigationPosition() will handle it
-        link.scrollIntoView({ behavior: 'auto', block: 'center', inline: 'center' });
+        currentLink = link;
     });
 
     // Load side navigation position as it was previously
@@ -149,14 +154,31 @@
         sessionStorage.setItem("expanded-items", expandedItems);
 
         // Load sidebar position
+        var isEqualToPreviousClicked = sessionStorage.getItem("previous-clicked-chapter") === currentChapterFileName;
         var sidebar = document.querySelector(".docs-navigation");
         var sidebarTop = sessionStorage.getItem("sidebar-scroll");
-        if (sidebarTop !== null) {
+        if (isEqualToPreviousClicked && sidebarTop !== null) {
             sidebar.scrollTop = parseInt(sidebarTop, 10);
+        } else if (currentLink) {
+            // Scroll to center of the page if deep link
+            currentLink.scrollIntoView({ behavior: 'auto', block: 'center', inline: 'center' })
         }
+
         [].forEach.call(document.querySelectorAll(".docs-navigation a"), function(el) {
-            el.addEventListener("click", function() {
+            el.addEventListener("click", function(event) {
                 sessionStorage.setItem("sidebar-scroll", sidebar.scrollTop);
+                var elHref = el.getAttribute("href");
+                if (elHref) {
+                    sessionStorage.setItem("previous-clicked-chapter", getCurrentChapterFileName(elHref));
+                }
+                if (elHref && elHref.lastIndexOf("../userguide/", 0) !== 0
+                        && elHref.lastIndexOf("../samples/", 0) !== 0
+                        && elHref.lastIndexOf("#", 0) !== 0) {
+                    // Clear storage if we will move out of user guide docs (e.g. to the release notes or dsl),
+                    // we recognize such links since they don't start with "../userguide/" or "../samples/" or "#"
+                    sessionStorage.removeItem("sidebar-scroll");
+                    sessionStorage.removeItem("expanded-items");
+                }
             }, false);
         });
     }
@@ -178,7 +200,7 @@
             if (evt.target.classList.toggle("expanded")) {
                 expandedItems.push(targetHref)
             }
-            sessionStorage.setItem("expanded-items", expandedItems)
+            sessionStorage.setItem("expanded-items", expandedItems);
             evt.target.setAttribute("aria-expanded", evt.target.classList.contains("expanded").toString());
             return false;
         }, false);
