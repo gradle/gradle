@@ -16,6 +16,7 @@
 
 package org.gradle.launcher
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.jvm.JDWPUtil
@@ -127,9 +128,9 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
         def handle = executer.withArguments("-Dorg.gradle.debug=true", "-Dorg.gradle.debug.server=false", "-Dorg.gradle.debug.port=${jdwpClient.port}").withTasks("help").start()
 
         and:
-        ConcurrentTestUtil.poll() {
-            jdwpClient.resume()
-        }
+        jdwpClient.accept()
+        jdwpClient.resume()
+        jdwpClient.asyncResumeWhile { handle.running }
 
         then:
         handle.waitForFinish()
@@ -146,8 +147,18 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
         JDWPUtil jdwpClient = new JDWPUtil()
         jdwpClient.listen()
 
-        expect: 'finish task without the need of resuming the process'
-        executer.withArguments("-Dorg.gradle.debug=true", "-Dorg.gradle.debug.suspend=false", "-Dorg.gradle.debug.server=false", "-Dorg.gradle.debug.port=${jdwpClient.port}").withTasks("help").run()
+        when:
+        def handle = executer.withArguments("-Dorg.gradle.debug=true", "-Dorg.gradle.debug.suspend=false", "-Dorg.gradle.debug.server=false", "-Dorg.gradle.debug.port=${jdwpClient.port}").withTasks("help").start()
+
+        and:
+        jdwpClient.accept()
+        if (JavaVersion.current() == JavaVersion.VERSION_1_8) {
+            // Only on Java 8, we must actually resume the VM on events, or it won't finish.
+            jdwpClient.asyncResumeWhile { handle.running }
+        }
+
+        then:
+        handle.waitForFinish()
 
         cleanup:
         jdwpClient.close()
