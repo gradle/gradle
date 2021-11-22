@@ -400,7 +400,8 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         succeeds("checkConfiguration")
     }
 
-    def "test framework may not be changed once options have been used with test suites"() {
+    // TODO: Test Framework Selection - Revert this to may NOT in Gradle 8
+    def "test framework MAY be changed once options have been used with test suites"() {
         buildFile << """
             plugins {
                 id 'java'
@@ -432,10 +433,10 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
             check.dependsOn testing.suites
         """
 
-        when:
-        fails("check")
-        then:
-        failure.assertHasCause("The value for task ':integrationTest' property 'testFrameworkProperty' is final and cannot be changed any further.")
+        executer.expectDocumentedDeprecationWarning("Accessing test options prior to setting test framework has been deprecated. This is scheduled to be removed in Gradle 8.0.")
+
+        expect:
+        succeeds("check")
     }
 
     // This checks for backwards compatibility with builds that may rely on this
@@ -471,8 +472,11 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
+        executer.expectDocumentedDeprecationWarning("Accessing test options prior to setting test framework has been deprecated. This is scheduled to be removed in Gradle 8.0.")
+        executer.expectDocumentedDeprecationWarning("Accessing test options prior to setting test framework has been deprecated. This is scheduled to be removed in Gradle 8.0.")
+
         when:
-        run "test"
+        succeeds( "test")
 
         then:
         executedAndNotSkipped(":test")

@@ -22,7 +22,6 @@ import org.gradle.integtests.fixtures.TestResources
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
-import spock.lang.IgnoreRest
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -117,7 +116,6 @@ public class MyTest {
         outputContains('MyTest > testMyMethod FAILED')
     }
 
-    @IgnoreRest
     @Issue('https://github.com/gradle/gradle/issues/4924')
     def "re-executes test when #type is changed"() {
         given:
@@ -173,6 +171,6 @@ public class MyTest {
         executedAndNotSkipped ':test'
 
         where:
-        type << ['includeCategories']//
+        type << ['includeCategories', 'excludeCategories']
     }
 }
