@@ -936,7 +936,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         //      }
         // }
 
-        // TODO: Restore this to re-enable fail-fast behavior for Gradle 8
+        // TODO: Test Framework Selection - Restore this to re-enable fail-fast behavior for Gradle 8
 //        if (!userHasConfiguredTestFramework) {
 //            testFramework.finalizeValue();
 //        }
