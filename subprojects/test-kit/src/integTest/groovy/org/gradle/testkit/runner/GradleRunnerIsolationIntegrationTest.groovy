@@ -41,8 +41,8 @@ class GradleRunnerIsolationIntegrationTest extends BaseGradleRunnerIntegrationTe
                 doLast {
                     // Uses testkit dir
                     assert gradle.gradleUserHomeDir == file(new URI("${testKitDir.toURI()}"))
-                    assert !project.ext.has('myProp1')
-                    assert !project.ext.has('myProp2')
+                    assert !project.hasProperty('myProp1')
+                    assert !project.hasProperty('myProp2')
                 }
             }
         """
@@ -58,8 +58,9 @@ class GradleRunnerIsolationIntegrationTest extends BaseGradleRunnerIntegrationTe
                 doLast {
                     // uses specified user home dir
                     assert gradle.gradleUserHomeDir == file(new URI("${gradleUserHome.toURI()}"))
-                    assert project.ext.myProp1 == "propertiesFile"
-                    assert project.ext.myProp2 == "initScript"
+                    // TODO:configuration-cache restore `ext` property access
+                    assert project.myProp1 == "propertiesFile"
+                    assert project.myProp2 == "initScript"
                 }
             }
         """
