@@ -39,30 +39,32 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
 
         given:
         def configurationCache = newConfigurationCacheFixture()
-        buildKotlinFile """
-            abstract class PrintString : DefaultTask() {
-                @get:Input
-                abstract val string: Property<String>
+        buildFile """
+            abstract class PrintString extends DefaultTask {
+                @Input
+                abstract Property<String> getString()
+
                 @TaskAction
-                fun printString() {
+                void printString() {
                     println("The string is " + string.get())
                 }
             }
-            abstract class ProduceString : DefaultTask() {
-                @get:OutputFile
-                abstract val outputFile: RegularFileProperty
+            abstract class ProduceString extends DefaultTask {
+                @OutputFile
+                abstract RegularFileProperty getOutputFile()
+
                 @TaskAction
-                fun printString() {
+                void printString() {
                     outputFile.get().asFile.writeText("absent")
                 }
             }
-            val producer = tasks.register<ProduceString>("produceString") {
+            def producer = tasks.register("produceString", ProduceString) {
                 outputFile.set(layout.buildDirectory.file("output.txt"))
             }
-            val stringProvider = providers
+            def stringProvider = providers
                 .$operator("string")
                 .orElse($orElseArgument)
-            tasks.register<PrintString>("printString") {
+            tasks.register("printString", PrintString) {
                 string.set(stringProvider)
             }
         """
@@ -125,18 +127,26 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
 
         given:
         def configurationCache = newConfigurationCacheFixture()
-        buildKotlinFile """
-            val stringProvider = providers
-                .$operator("string")
-            abstract class PrintString @Inject constructor(objects: ObjectFactory) : DefaultTask() {
-                @get:Input
-                val string: Property<String> = objects.property<String>().convention("absent")
+        buildFile """
+
+            def stringProvider = providers.$operator("string")
+
+            abstract class PrintString extends DefaultTask {
+
+                @Input
+                abstract Property<String> getString()
+
+                PrintString() {
+                    getString().convention("absent")
+                }
+
                 @TaskAction
-                fun printString() {
+                void printString() {
                     println("The string is " + string.orNull)
                 }
             }
-            tasks.register<PrintString>("printString") {
+
+            tasks.register("printString", PrintString) {
                 string.set(stringProvider)
             }
         """
@@ -145,14 +155,14 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
         configurationCacheFails "printString"
 
         then:
-        failureDescriptionContains missingValueMessage { type('Build_gradle.PrintString').property('string') }
+        failureDescriptionContains missingValueMessage { type('PrintString').property('string') }
         configurationCache.assertStateStored()
 
         when:
         configurationCacheFails "printString"
 
         then:
-        failureDescriptionContains missingValueMessage { type('Build_gradle.PrintString').property('string') }
+        failureDescriptionContains missingValueMessage { type('PrintString').property('string') }
         configurationCache.assertStateLoaded()
 
         where:
@@ -164,19 +174,23 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
 
         given:
         def configurationCache = newConfigurationCacheFixture()
-        buildKotlinFile """
-            val stringProvider = providers
-                .$operator("string")
-            abstract class PrintString : DefaultTask() {
-                @get:Input
-                @get:Optional
-                abstract val string: Property<String>
+        buildFile """
+
+            def stringProvider = providers.$operator("string")
+
+            abstract class PrintString extends DefaultTask {
+
+                @Input
+                @Optional
+                abstract Property<String> getString()
+
                 @TaskAction
-                fun printString() {
+                void printString() {
                     println("The string is " + (string.orNull ?: "absent"))
                 }
             }
-            tasks.register<PrintString>("printString") {
+
+            tasks.register("printString", PrintString) {
                 string.set(stringProvider)
             }
         """
@@ -241,6 +255,7 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
         and: "the input is reported"
         problems.assertResultHasProblems(result) {
             withInput("Build file 'build.gradle.kts': system property 'greeting'")
+            withInput("Build file 'build.gradle.kts': Gradle property 'org.gradle.kotlin.dsl.accessors'")
         }
 
         when:
@@ -387,6 +402,7 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
         configurationCache.assertStateStored()
         problems.assertResultHasProblems(result) {
             withInput("Build file 'build.gradle.kts': $reportedInput")
+            withInput("Build file 'build.gradle.kts': Gradle property 'org.gradle.kotlin.dsl.accessors'")
         }
 
         when:
