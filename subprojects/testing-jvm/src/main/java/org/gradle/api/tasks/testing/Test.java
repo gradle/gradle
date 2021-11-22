@@ -949,7 +949,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      *
      * @return The test framework options.
      */
-    @Internal
+    @Nested
     public TestFrameworkOptions getOptions() {
         optionsAccessed = true;
         return getTestFramework().getOptions();

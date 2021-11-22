@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-apply plugin: "java"
+package org.gradle;
 
-repositories {
-    mavenCentral()
+public interface CategoryB {
 }
