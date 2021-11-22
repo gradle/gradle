@@ -1380,7 +1380,7 @@ task b(dependsOn: a)
         given:
         file('inputDir1').createDir()
         file('inputDir2').createDir()
-        buildFile << '''
+        buildFile '''
     class MyTask extends DefaultTask {
         @TaskAction
         void processFiles(IncrementalTaskInputs inputs) {
@@ -1388,8 +1388,9 @@ task b(dependsOn: a)
         }
     }
 
-    task myTask (type: MyTask){
-        project.ext.inputDirs.split(',').each { inputs.dir(it) }
+    task myTask(type: MyTask) {
+        // TODO:configuration-cache restore Gradle property access via `project.ext`
+        project./*ext.*/inputDirs.split(',').each { inputs.dir(it) }
         outputs.upToDateWhen { true }
     }
 '''
