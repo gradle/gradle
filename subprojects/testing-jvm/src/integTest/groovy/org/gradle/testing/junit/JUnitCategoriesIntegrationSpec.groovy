@@ -124,12 +124,11 @@ public class MyTest {
         |testing {
         |   suites {
         |       test {
+        |           useJUnit()
         |           targets {
         |               all {
         |                   testTask.configure {
-        |                       options {
-        |                           ${type} 'org.gradle.CategoryA'
-        |                       }
+        |                       options { ${type} 'org.gradle.CategoryA' }
         |                   }
         |               }
         |           }
@@ -145,7 +144,23 @@ public class MyTest {
 
         when:
         resources.maybeCopy("JUnitCategoriesIntegrationSpec/reExecutesWhenPropertyIsChanged")
-        buildFile << "test.useJUnit()"
+        buildFile << """
+        |testing {
+        |   suites {
+        |       test {
+        |           useJUnit()
+        |           targets {
+        |               all {
+        |                   testTask.configure {
+        |                       options {
+        |                           ${type} 'org.gradle.CategoryB'
+        |                       }
+        |                   }
+        |               }
+        |           }
+        |       }
+        |   }
+        |}""".stripMargin()
 
         and:
         succeeds ':test'
