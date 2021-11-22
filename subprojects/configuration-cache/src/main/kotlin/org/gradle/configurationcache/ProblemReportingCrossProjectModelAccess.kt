@@ -106,6 +106,10 @@ class ProblemReportingCrossProjectModelAccess(
         return delegate.findProject(referrer, relativeTo, path)?.wrap(referrer)
     }
 
+    override fun access(referrer: ProjectInternal, project: ProjectInternal): ProjectInternal {
+        return project.wrap(referrer)
+    }
+
     override fun getSubprojects(referrer: ProjectInternal, relativeTo: ProjectInternal): MutableSet<out ProjectInternal> {
         return delegate.getSubprojects(referrer, relativeTo).mapTo(LinkedHashSet()) { it.wrap(referrer) }
     }
@@ -811,11 +815,19 @@ class ProblemReportingCrossProjectModelAccess(
         }
 
         override fun getParent(): ProjectInternal? {
-            return delegate.parent
+            return delegate.getParent(referrer)
+        }
+
+        override fun getParent(referrer: ProjectInternal): ProjectInternal? {
+            return delegate.getParent(referrer)
         }
 
         override fun getRootProject(): ProjectInternal {
-            return delegate.rootProject
+            return delegate.getRootProject(referrer)
+        }
+
+        override fun getRootProject(referrer: ProjectInternal): ProjectInternal {
+            return delegate.getRootProject(referrer)
         }
 
         override fun evaluate(): Project {

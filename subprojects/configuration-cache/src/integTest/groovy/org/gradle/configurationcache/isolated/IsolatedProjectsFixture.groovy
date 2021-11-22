@@ -81,7 +81,9 @@ class IsolatedProjectsFixture {
 
         spec.problems.assertResultHasProblems(spec.result) {
             withTotalProblemsCount(totalProblems)
-            withUniqueProblems(details.problems.collect { it.message })
+            withUniqueProblems(details.problems.collect {
+                it.message.replace('/', File.separator)
+            })
         }
 
         assertProjectsConfigured(details)
@@ -113,7 +115,9 @@ class IsolatedProjectsFixture {
 
         spec.problems.assertFailureHasProblems(spec.failure) {
             withTotalProblemsCount(totalProblems)
-            withUniqueProblems(details.problems.collect { it.message })
+            withUniqueProblems(details.problems.collect {
+                it.message.replace('/', File.separator)
+            })
         }
 
         assertProjectsConfigured(details)
