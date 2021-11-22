@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework;
 import org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestFramework;
@@ -41,6 +42,8 @@ import org.gradle.api.tasks.TaskDependency;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
+import java.util.HashMap;
+import java.util.Map;
 
 public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     public enum Frameworks {
@@ -135,6 +138,11 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
 
         addDefaultTestTarget();
 
+        // Until the values here can be finalized upon the user setting them (see the org.gradle.api.tasks.testing.Test#testFramework(Closure) method),
+        // in Gradle 8, we will be executing the provider lambda used as the convention multiple times.  So make sure, within a Test Suite, that we
+        // always return the same one via computeIfAbsent() against this map.
+        final Map<Frameworks, TestFramework> testFrameworkMap = new HashMap<>(3);
+
         this.targets.withType(JvmTestSuiteTarget.class).configureEach(target -> {
             target.getTestTask().configure(task -> {
                 task.getTestFrameworkProperty().convention(getTestingFramework().map(framework -> {
@@ -142,12 +150,12 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
                         case NONE: // fall-through
                         case JUNIT4: // fall-through
                         case KOTLIN_TEST:
-                            return new JUnitTestFramework(task, (DefaultTestFilter) task.getFilter());
+                            return testFrameworkMap.computeIfAbsent(framework.framework, f -> new JUnitTestFramework(task, (DefaultTestFilter) task.getFilter()));
                         case JUNIT_JUPITER: // fall-through
                         case SPOCK:
-                            return new JUnitPlatformTestFramework((DefaultTestFilter) task.getFilter());
+                            return testFrameworkMap.computeIfAbsent(framework.framework, f -> new JUnitPlatformTestFramework((DefaultTestFilter) task.getFilter()));
                         case TESTNG:
-                            return new TestNGTestFramework(task, task.getClasspath(), (DefaultTestFilter) task.getFilter(), getObjectFactory());
+                            return testFrameworkMap.computeIfAbsent(framework.framework, f -> new TestNGTestFramework(task, task.getClasspath(), (DefaultTestFilter) task.getFilter(), getObjectFactory()));
                         default:
                             throw new IllegalStateException("do not know how to handle " + framework);
                     }
