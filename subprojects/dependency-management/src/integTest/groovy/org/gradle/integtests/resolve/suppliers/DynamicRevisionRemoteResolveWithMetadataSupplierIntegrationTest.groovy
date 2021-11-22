@@ -25,6 +25,7 @@ import org.gradle.test.fixtures.HttpModule
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.IvyHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpModule
+import spock.lang.Ignore
 
 
 @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "ivy")
@@ -474,6 +475,7 @@ abstract class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest e
         checkResolve "group:projectA:1.+": ["group:projectA:1.2", "didn't match version 2.0"], "group:projectB:latest.release": ["group:projectB:1.1", "didn't match version 2.2"]
     }
 
+    @Ignore("wip:configuration-cache")
     @ToBeFixedForConfigurationCache
     def "can inject configuration into metadata provider"() {
         given:
