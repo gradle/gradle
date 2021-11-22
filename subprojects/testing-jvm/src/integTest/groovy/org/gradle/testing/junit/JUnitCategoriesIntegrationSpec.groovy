@@ -130,7 +130,9 @@ public class MyTest {
         |           targets {
         |               all {
         |                   testTask.configure {
-        |                       options { ${type} 'org.gradle.CategoryA' }
+        |                       options {
+        |                           ${type} 'org.gradle.CategoryA'
+        |                       }
         |                   }
         |               }
         |           }
