@@ -25,8 +25,10 @@ import org.gradle.api.plugins.ExtraPropertiesExtension
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.internal.GUtil
 import org.junit.Rule
+import spock.lang.Ignore
 import spock.lang.Specification
 
+@Ignore("wip:configuration-cache")
 class ProjectPropertySettingBuildLoaderTest extends Specification {
     @Rule
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass());
