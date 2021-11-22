@@ -16,38 +16,41 @@
 
 package org.gradle.configurationcache
 
+import org.junit.Assume
+
 class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
     def "detects dynamic Gradle property access in settings script"() {
+        Assume.assumeFalse(scriptFile == 'settings.gradle' && dynamicPropertyExpression =~ /property|findProperty/)
         given:
         def configurationCache = newConfigurationCacheFixture()
-        settingsFile << """
+        file(scriptFile) << """
             println($dynamicPropertyExpression)
         """
 
         when:
-        configurationCacheRun "help", "-PtheProperty=1"
+        configurationCacheRun "help", "-PgradleProp=1"
 
         then:
         configurationCache.assertStateStored()
 
         when:
-        configurationCacheRun "help", "-PtheProperty=1"
+        configurationCacheRun "help", "-PgradleProp=1"
 
         then:
         configurationCache.assertStateLoaded()
 
         when:
-        configurationCacheRun "help", "-PtheProperty=2"
+        configurationCacheRun "help", "-PgradleProp=2"
 
         then:
         configurationCache.assertStateStored()
-        output.contains("because Gradle property 'theProperty' has changed.")
+        output.contains("because Gradle property 'gradleProp' has changed.")
 
         where:
-        dynamicPropertyExpression << [
-            'theProperty',
-            'properties.theProperty'
-        ]
+        [dynamicPropertyExpression, scriptFile] << [
+            ['gradleProp', 'properties.gradleProp', 'property("gradleProp")', 'findProperty("gradleProp")'],
+            ['settings.gradle', 'build.gradle']
+        ].combinations()
     }
 }

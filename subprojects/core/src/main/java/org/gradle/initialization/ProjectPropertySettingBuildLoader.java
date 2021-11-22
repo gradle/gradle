@@ -19,6 +19,7 @@ package org.gradle.initialization;
 import org.gradle.api.Project;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.gradle.internal.Pair;
@@ -51,7 +52,9 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
     @Override
     public void load(SettingsInternal settings, GradleInternal gradle) {
         buildLoader.load(settings, gradle);
-        setProjectProperties(gradle.getRootProject(), new CachingPropertyApplicator());
+        ProjectInternal rootProject = gradle.getRootProject();
+        setProjectProperties(rootProject, new CachingPropertyApplicator());
+        DefaultGradleProperties.exposeGradlePropertiesDynamically(gradleProperties, rootProject);
     }
 
     private void setProjectProperties(Project project, CachingPropertyApplicator applicator) {
@@ -79,7 +82,7 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
     // even if in practice it was never enforced (one can pass other property types, such as boolean) and
     // fixing the method signature would be a binary breaking change in a public API.
     private void configurePropertiesOf(Project project, CachingPropertyApplicator applicator, Map<String, String> properties) {
-        for (Map.Entry<String, String> entry : gradleProperties.mergeProperties(properties).entrySet()) {
+        for (Map.Entry<String, String> entry : properties.entrySet()) {
             applicator.configureProperty(project, entry.getKey(), entry.getValue());
         }
     }
