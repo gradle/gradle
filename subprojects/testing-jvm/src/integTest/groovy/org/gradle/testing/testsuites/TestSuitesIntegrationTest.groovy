@@ -596,4 +596,78 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         expect:
         succeeds("mytest", "assertNoTestClasses")
     }
+
+    def "multiple getTestingFramework() calls on a test suite return same instance"() {
+        given:
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            def first = testing.suites.test.getTestingFramework()
+            def second = testing.suites.test.getTestingFramework()
+
+            tasks.register('assertSameFrameworkInstance') {
+                doLast {
+                    assert first === second
+                }
+            }""".stripIndent()
+
+        expect:
+        succeeds("assertSameFrameworkInstance")
+    }
+
+    def "multiple getTestingFramework() calls on a test suite return same instance even when calling useJUnit"() {
+        given:
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            def first = testing.suites.test.getTestingFramework()
+
+            testing {
+                suites {
+                    test {
+                        useJUnit()
+                    }
+                }
+            }
+
+            def second = testing.suites.test.getTestingFramework()
+
+            tasks.register('assertSameFrameworkInstance') {
+                doLast {
+                    assert first === second
+                }
+            }""".stripIndent()
+
+        expect:
+        succeeds("assertSameFrameworkInstance")
+    }
+
+    def "multiple getTestingFramework() calls on a test suite return same instance even after toggling testing framework"() {
+        given:
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            def first = testing.suites.test.getTestingFramework()
+
+            testing.suites.test.useJUnit()
+            testing.suites.test.useTestNG()
+            testing.suites.test.useJUnit()
+
+            def second = testing.suites.test.getTestingFramework()
+
+            tasks.register('assertSameFrameworkInstance') {
+                doLast {
+                    assert first === second
+                }
+            }""".stripIndent()
+
+        expect:
+        succeeds("assertSameFrameworkInstance")
+    }
 }
