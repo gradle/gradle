@@ -31,7 +31,7 @@ def sourcesPath = configurations.create('sourcesPath') {
     extendsFrom(aggregate)
     attributes {
         attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.VERIFICATION))
-        attribute(Verification.VERIFICATION_TYPE_ATTRIBUTE, objects.named(Verification, Verification.MAIN_SOURCES))
+        attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objects.named(VerificationType, VerificationType.MAIN_SOURCES))
     }
 }
 
@@ -43,7 +43,7 @@ def coverageDataPath = configurations.create('coverageDataPath') {
     extendsFrom(aggregate)
     attributes {
         attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.VERIFICATION))
-        attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType, VerficiationType.JACOCO_COVERAGE))
+        attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objects.named(VerificationType, VerificationType.JACOCO_RESULTS))
     }
 }
 

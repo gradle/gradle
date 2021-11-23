@@ -31,7 +31,7 @@ val sourcesPath by configurations.creating {
     extendsFrom(aggregate)
     attributes {
         attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>(Category.VERIFICATION))
-        attribute(Verification.VERIFICATION_TYPE_ATTRIBUTE, objects.named(Verification, Verification.MAIN_SOURCES))
+        attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objects.named<VerificationType>(VerificationType.MAIN_SOURCES))
     }
 }
 
