@@ -20,18 +20,13 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 
 /**
- * Attributes to specific the type of source code contained in this variant.
+ * Attribute to define the test suite name.
  * <p>
- * This attribute is usually found on variants that have the {@link Category} attribute valued at {@link Category#SOURCES documentation}.
+ * This attribute is usually found on variants that have the {@link Category} attribute valued at {@link Category#VERIFICATION verification}.
  *
  * @since 7.4
  */
 @Incubating
-public interface Sources extends Named {
-    Attribute<Sources> SOURCES_ATTRIBUTE = Attribute.of("org.gradle.sources", Sources.class);
-
-    /**
-     * A list of directories containing source code, includes code in transitive dependencies
-     */
-    String ALL_SOURCE_DIRS = "all-source-directories";
+public interface TestSuiteName extends Named {
+    Attribute<TestSuiteName> TEST_SUITE_NAME_ATTRIBUTE = Attribute.of("org.gradle.testsuite.name", TestSuiteName.class);
 }

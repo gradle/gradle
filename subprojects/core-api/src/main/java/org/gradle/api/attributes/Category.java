@@ -62,10 +62,10 @@ public interface Category extends Named {
     String DOCUMENTATION = "documentation";
 
     /**
-     * The source code category
+     * The verification category, for variants which contain the results of running verification tasks (e.g. Test, Jacoco)
      *
      * @since 7.4
      */
     @Incubating
-    String SOURCES = "sources";
+    String VERIFICATION = "verification";
 }
