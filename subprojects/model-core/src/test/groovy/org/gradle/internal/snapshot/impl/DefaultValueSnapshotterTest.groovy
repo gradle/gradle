@@ -42,7 +42,7 @@ class DefaultValueSnapshotterTest extends Specification {
         getClassLoaderHash(_) >> HashCode.fromInt(123)
     }
     def managedFactoryRegistry = Mock(ManagedFactoryRegistry)
-    def snapshotter = new DefaultValueSnapshotter(classLoaderHasher, managedFactoryRegistry)
+    def snapshotter = new DefaultValueSnapshotter([], classLoaderHasher, managedFactoryRegistry)
 
     def "creates snapshot for string"() {
         expect:
@@ -824,7 +824,7 @@ class DefaultValueSnapshotterTest extends Specification {
 
         expect:
         def snapshot = snapshotter.snapshot(value)
-        snapshot instanceof SerializedValueSnapshot
+        snapshot instanceof JavaSerializedValueSnapshot
         snapshot == snapshotter.snapshot(value)
         snapshot == snapshotter.snapshot(new Bean())
         snapshot != snapshotter.snapshot(new Bean(prop: "value2"))
@@ -841,7 +841,7 @@ class DefaultValueSnapshotterTest extends Specification {
 
         expect:
         def isolated = snapshotter.isolate(original)
-        isolated instanceof SerializedValueSnapshot
+        isolated instanceof JavaSerializedValueSnapshot
         def other = isolated.isolate()
         other.prop == "123"
         !other.is(original)

@@ -23,19 +23,19 @@ import org.gradle.internal.snapshot.ValueSnapshot;
 import javax.annotation.Nullable;
 
 /**
- * Isolates a Serialized value and is a snapshot for that value.
+ * Isolates a value serialized using Java Serialization and is a snapshot for that value.
  */
-public class IsolatedSerializedValueSnapshot extends SerializedValueSnapshot implements Isolatable<Object> {
+public class IsolatedJavaSerializedValueSnapshot extends JavaSerializedValueSnapshot implements Isolatable<Object> {
     private final Class<?> originalClass;
 
-    public IsolatedSerializedValueSnapshot(@Nullable HashCode implementationHash, byte[] serializedValue, Class<?> originalClass) {
+    public IsolatedJavaSerializedValueSnapshot(@Nullable HashCode implementationHash, byte[] serializedValue, Class<?> originalClass) {
         super(implementationHash, serializedValue);
         this.originalClass = originalClass;
     }
 
     @Override
     public ValueSnapshot asSnapshot() {
-        return new SerializedValueSnapshot(getImplementationHash(), getValue());
+        return new JavaSerializedValueSnapshot(getImplementationHash(), getValue());
     }
 
     @Override

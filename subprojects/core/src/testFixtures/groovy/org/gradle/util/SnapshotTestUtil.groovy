@@ -25,7 +25,7 @@ import org.gradle.internal.state.DefaultManagedFactoryRegistry
 
 class SnapshotTestUtil {
     static ValueSnapshotter valueSnapshotter() {
-        return new DefaultValueSnapshotter(new ClassLoaderHierarchyHasher() {
+        return new DefaultValueSnapshotter([], new ClassLoaderHierarchyHasher() {
             @Override
             HashCode getClassLoaderHash(ClassLoader classLoader) {
                 return HashCode.fromInt(classLoader.hashCode())
