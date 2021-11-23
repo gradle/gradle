@@ -146,11 +146,10 @@ class ProblemReportingCrossProjectModelAccess(
             if (result.isFound) {
                 return result.value
             }
+            onAccess()
             val delegateBean = (delegate as DynamicObjectAware).asDynamicObject
             val delegateResult = delegateBean.tryGetProperty(propertyName)
             if (delegateResult.isFound) {
-                // Only report properties that exist
-                onAccess()
                 return delegateResult.value
             }
             throw thisBean.getMissingProperty(propertyName)
@@ -164,11 +163,10 @@ class ProblemReportingCrossProjectModelAccess(
             if (result.isFound) {
                 return result.value
             }
+            onAccess()
             val delegateBean = (delegate as DynamicObjectAware).asDynamicObject
             val delegateResult = delegateBean.tryInvokeMethod(name, *varargs)
             if (delegateResult.isFound) {
-                // Only report methods that exist
-                onAccess()
                 return delegateResult.value
             }
             throw thisBean.methodMissingException(name, args)
@@ -980,6 +978,10 @@ class ProblemReportingCrossProjectModelAccess(
             problems.onProblem(
                 PropertyProblem(location, message, exception, null)
             )
+            // Configure the target project, if it would normally be configured before the referring project
+            if (delegate.compareTo(referrer) < 0) {
+                delegate.owner.ensureConfigured()
+            }
         }
     }
 }
