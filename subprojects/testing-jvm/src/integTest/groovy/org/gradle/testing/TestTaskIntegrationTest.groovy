@@ -324,7 +324,7 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
     }
 
     def "options set prior to changing test framework will produce additional warning and have no effect"() {
-        ignoreWhenJUnit4()
+        ignoreWhenJUnitPlatform()
 
         given:
         file('src/test/java/MyTest.java') << junitJupiterStandaloneTestClass()
@@ -344,6 +344,9 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
                 options {
                     excludeCategories = ["Slow"]
                 }
+            }
+
+            test {
                 useJUnitPlatform()
             }
 
