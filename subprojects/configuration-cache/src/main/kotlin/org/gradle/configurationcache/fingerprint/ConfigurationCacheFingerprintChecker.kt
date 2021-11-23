@@ -27,6 +27,7 @@ import org.gradle.internal.hash.HashCode
 import org.gradle.internal.util.NumberUtil.ordinal
 import org.gradle.util.Path
 import java.io.File
+import java.util.function.Consumer
 
 
 internal
@@ -47,26 +48,11 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
         fun instantiateValueSourceOf(obtainedValue: ObtainedValue): ValueSource<Any, ValueSourceParameters>
     }
 
-    suspend fun ReadContext.checkFingerprint(): CheckedFingerprint {
+    suspend fun ReadContext.checkBuildScopedFingerprint(): CheckedFingerprint {
         // TODO: log some debug info
-        var firstReason: InvalidationReason? = null
-        val invalidProjects = mutableSetOf<String>()
         while (true) {
             when (val input = read()) {
                 null -> break
-                is ConfigurationCacheFingerprint.ProjectSpecificInput -> input.run {
-                    // An input that is specific to a project. If it is out-of-date, then invalidate that project's values and continue checking values
-                    // Don't check a value for a project that is already out-of-date
-                    if (!invalidProjects.contains(input.projectPath)) {
-                        val reason = check(input.value)
-                        if (reason != null) {
-                            if (firstReason == null) {
-                                firstReason = reason
-                            }
-                            invalidProjects.add(input.projectPath)
-                        }
-                    }
-                }
                 is ConfigurationCacheFingerprint -> {
                     // An input that is not specific to a project. If it is out-of-date, then invalidate the whole cache entry and skip any further checks
                     val reason = check(input)
@@ -77,12 +63,63 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                 else -> throw IllegalStateException("Unexpected configuration cache fingerprint: $input")
             }
         }
+        return CheckedFingerprint.Valid
+    }
+
+    suspend fun ReadContext.checkProjectScopedFingerprint(): CheckedFingerprint {
+        // TODO: log some debug info
+        var firstReason: InvalidationReason? = null
+        val projects = mutableMapOf<Path, ProjectInvalidationState>()
+        while (true) {
+            when (val input = read()) {
+                null -> break
+                is ProjectSpecificFingerprint.ProjectFingerprint -> input.run {
+                    // An input that is specific to a project. If it is out-of-date, then invalidate that project's values and continue checking values
+                    // Don't check a value for a project that is already out-of-date
+                    val state = projects.entryFor(input.projectPath)
+                    if (!state.isInvalid) {
+                        val reason = check(input.value)
+                        if (reason != null) {
+                            if (firstReason == null) {
+                                firstReason = reason
+                            }
+                            state.invalidate()
+                        }
+                    }
+                }
+                is ProjectSpecificFingerprint.ProjectDependency -> {
+                    val consumer = projects.entryFor(input.consumingProject)
+                    val target = projects.entryFor(input.targetProject)
+                    target.consumedBy(consumer)
+                }
+                else -> throw IllegalStateException("Unexpected configuration cache fingerprint: $input")
+            }
+        }
         return if (firstReason == null) {
             CheckedFingerprint.Valid
         } else {
-            CheckedFingerprint.ProjectsInvalid(firstReason!!, invalidProjects.map { Path.path(it) }.toSet())
+            CheckedFingerprint.ProjectsInvalid(firstReason!!, projects.entries.filter { it.value.isInvalid }.map { it.key }.toSet())
         }
     }
+
+    suspend fun ReadContext.visitEntriesForProjects(reusedProjects: Set<Path>, consumer: Consumer<ProjectSpecificFingerprint>) {
+        while (true) {
+            when (val input = read()) {
+                null -> break
+                is ProjectSpecificFingerprint.ProjectFingerprint ->
+                    if (reusedProjects.contains(input.projectPath)) {
+                        consumer.accept(input)
+                    }
+                is ProjectSpecificFingerprint.ProjectDependency ->
+                    if (reusedProjects.contains(input.consumingProject)) {
+                        consumer.accept(input)
+                    }
+            }
+        }
+    }
+
+    private
+    fun MutableMap<Path, ProjectInvalidationState>.entryFor(path: Path) = getOrPut(path) { ProjectInvalidationState() }
 
     private
     fun check(input: ConfigurationCacheFingerprint): InvalidationReason? {
@@ -135,7 +172,6 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                     return "JVM has changed"
                 }
             }
-            else -> throw IllegalStateException("Unexpected configuration cache fingerprint: $input")
         }
         return null
     }
@@ -204,4 +240,37 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
         (valueSource as? Describable)?.let {
             it.displayName + " has changed"
         } ?: "a build logic input of type '${unpackType(valueSource).simpleName}' has changed"
+
+    private
+    class ProjectInvalidationState {
+        // When true, the project is definitely invalid
+        // When false, validity is not known
+        private
+        var invalid = false
+
+        private
+        val consumedBy = mutableSetOf<ProjectInvalidationState>()
+
+        val isInvalid: Boolean
+            get() = invalid
+
+        fun consumedBy(consumer: ProjectInvalidationState) {
+            if (invalid) {
+                consumer.invalidate()
+            } else {
+                consumedBy.add(consumer)
+            }
+        }
+
+        fun invalidate() {
+            if (invalid) {
+                return
+            }
+            invalid = true
+            for (consumer in consumedBy) {
+                consumer.invalidate()
+            }
+            consumedBy.clear()
+        }
+    }
 }

@@ -33,12 +33,18 @@ public class DefaultIvyArtifactName implements IvyArtifactName {
     private final int hashCode;
 
     public static DefaultIvyArtifactName forPublishArtifact(PublishArtifact publishArtifact) {
-        String name = publishArtifact.getName();
-        if (name == null) {
-            name = publishArtifact.getFile().getName();
+        // TODO: 18791 There must be a better way to handle the failure of JacocoPluginIntegrationTest#"reports miss configuration of destination file"
+        // after adding the destination file as an artifact in JacocoPlugin - that test uses a provider { null } for the destination file.
+        try {
+            String name = publishArtifact.getName();
+            if (name == null) {
+                name = publishArtifact.getFile().getName();
+            }
+            String classifier = GUtil.elvis(publishArtifact.getClassifier(), null);
+            return new DefaultIvyArtifactName(name, publishArtifact.getType(), publishArtifact.getExtension(), classifier);
+        } catch (Exception e) {
+            return null;
         }
-        String classifier = GUtil.elvis(publishArtifact.getClassifier(), null);
-        return new DefaultIvyArtifactName(name, publishArtifact.getType(), publishArtifact.getExtension(), classifier);
     }
 
     public static DefaultIvyArtifactName forFile(File file, @Nullable String classifier) {

@@ -44,14 +44,16 @@ class DefaultRootComponentMetadataBuilderTest extends Specification {
 
     def mid = DefaultModuleIdentifier.newId('foo', 'bar')
 
-    def builder = new DefaultRootComponentMetadataBuilder(
+    def builderFactory = new DefaultRootComponentMetadataBuilder.Factory(
         metaDataProvider,
         componentIdentifierFactory,
         moduleIdentifierFactory,
         configurationComponentMetaDataBuilder,
-        configurationsProvider,
         projectStateRegistry,
-        dependencyLockingProvider)
+        dependencyLockingProvider
+    )
+
+    def builder = builderFactory.create(configurationsProvider)
 
     def "caches root component metadata"() {
         componentIdentifierFactory.createComponentIdentifier(_) >> {

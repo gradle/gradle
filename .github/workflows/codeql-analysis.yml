@@ -58,7 +58,7 @@ jobs:
 
     - name: Compile with Gradle with Build Scan
       if: ${{ matrix.language == 'java' && github.repository_owner == 'gradle' }}
-      run: ./gradlew --no-configuration-cache --init-script .github/workflows/codeql-analysis.init.gradle -DcacheNode=us -S testClasses
+      run: ./gradlew --no-configuration-cache --init-script .github/workflows/codeql-analysis.init.gradle -DcacheNode=us -S testClasses -Dhttp.keepAlive=false
       env:
         # Set the GRADLE_ENTERPRISE_ACCESS_KEY so that Gradle Build Scans are generated
         GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}

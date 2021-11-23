@@ -16,7 +16,7 @@
 
 package org.gradle.internal.enterprise.core
 
-import org.gradle.integtests.fixtures.AbstractPluginIntegrationTest
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.enterprise.GradleEnterprisePluginCheckInFixture
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -30,7 +30,7 @@ import static org.gradle.internal.logging.LoggingConfigurationBuildOptions.Stack
 
 @Issue("https://github.com/gradle/gradle/issues/3516")
 @Requires(TestPrecondition.ONLINE)
-class BuildScanBuildFailureHintIntegrationTest extends AbstractPluginIntegrationTest {
+class BuildScanBuildFailureHintIntegrationTest extends AbstractIntegrationSpec {
 
     private static final List<String> DUMMY_TASK_ONLY = [DUMMY_TASK_NAME]
     private static final List<String> DUMMY_TASK_AND_BUILD_SCAN = [DUMMY_TASK_NAME, "--$BuildScanOption.LONG_OPTION"]

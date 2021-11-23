@@ -18,13 +18,13 @@ package org.gradle.plugin.use.internal;
 
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.internal.Factory;
 import org.gradle.plugin.use.resolve.internal.ArtifactRepositoriesPluginResolver;
 import org.gradle.plugin.use.resolve.internal.CompositePluginResolver;
 import org.gradle.plugin.use.resolve.internal.CorePluginResolver;
 import org.gradle.plugin.use.resolve.internal.NoopPluginResolver;
+import org.gradle.plugin.use.resolve.internal.PluginRepositoriesProvider;
 import org.gradle.plugin.use.resolve.internal.PluginResolver;
 import org.gradle.plugin.use.resolve.internal.PluginResolverContributor;
 import org.gradle.plugin.use.resolve.service.internal.ClientInjectedClasspathPluginResolver;
@@ -39,22 +39,23 @@ public class PluginResolverFactory implements Factory<PluginResolver> {
     private final DocumentationRegistry documentationRegistry;
     private final ClientInjectedClasspathPluginResolver injectedClasspathPluginResolver;
     private final DependencyResolutionServices dependencyResolutionServices;
+    private final PluginRepositoriesProvider pluginRepositoriesProvider;
     private final List<PluginResolverContributor> pluginResolverContributors;
-    private final VersionSelectorScheme versionSelectorScheme;
 
     public PluginResolverFactory(
         PluginRegistry pluginRegistry,
         DocumentationRegistry documentationRegistry,
         ClientInjectedClasspathPluginResolver injectedClasspathPluginResolver,
         DependencyResolutionServices dependencyResolutionServices,
-        List<PluginResolverContributor> pluginResolverContributors,
-        VersionSelectorScheme versionSelectorScheme) {
+        PluginRepositoriesProvider pluginRepositoriesProvider,
+        List<PluginResolverContributor> pluginResolverContributors
+    ) {
         this.pluginRegistry = pluginRegistry;
         this.documentationRegistry = documentationRegistry;
         this.injectedClasspathPluginResolver = injectedClasspathPluginResolver;
         this.dependencyResolutionServices = dependencyResolutionServices;
+        this.pluginRepositoriesProvider = pluginRepositoriesProvider;
         this.pluginResolverContributors = pluginResolverContributors;
-        this.versionSelectorScheme = versionSelectorScheme;
     }
 
     @Override
@@ -93,6 +94,6 @@ public class PluginResolverFactory implements Factory<PluginResolver> {
         injectedClasspathPluginResolver.collectResolversInto(resolvers);
 
         pluginResolverContributors.forEach(contributor -> contributor.collectResolversInto(resolvers));
-        resolvers.add(ArtifactRepositoriesPluginResolver.createWithDefaults(dependencyResolutionServices, versionSelectorScheme));
+        resolvers.add(new ArtifactRepositoriesPluginResolver(dependencyResolutionServices, pluginRepositoriesProvider));
     }
 }

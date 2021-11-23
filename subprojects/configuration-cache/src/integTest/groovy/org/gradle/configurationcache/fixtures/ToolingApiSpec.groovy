@@ -64,7 +64,7 @@ trait ToolingApiSpec {
 
         addPluginImplementation(childBuildName, """
             def model = project.extensions.create("myExtension", MyExtension)
-            model.message = "It works from project \${project.path}"
+            model.message = "It works from project \${project.identityPath}"
         """)
     }
 

@@ -29,7 +29,9 @@ import org.gradle.api.artifacts.ConfigurationVariant;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
+import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.LibraryElements;
+import org.gradle.api.attributes.Sources;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.SoftwareComponentFactory;
@@ -251,6 +253,8 @@ public class JavaPlugin implements Plugin<Project> {
      */
     public static final String TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME = "testRuntimeClasspath";
 
+    private static final String SOURCE_ELEMENTS_VARIANT_NAME = "mainSourceElements";
+
     private final ObjectFactory objectFactory;
     private final SoftwareComponentFactory softwareComponentFactory;
     private final JvmPluginServices jvmServices;
@@ -279,22 +283,21 @@ public class JavaPlugin implements Plugin<Project> {
         projectInternal.getServices().get(ComponentRegistry.class).setMainComponent(new BuildableJavaComponentImpl(project, javaExtension));
         BuildOutputCleanupRegistry buildOutputCleanupRegistry = projectInternal.getServices().get(BuildOutputCleanupRegistry.class);
 
-        configureSourceSets(project, javaExtension, buildOutputCleanupRegistry);
-        configureConfigurations(project, javaExtension);
+        SourceSet mainSourceSet = javaExtension.getSourceSets().create(SourceSet.MAIN_SOURCE_SET_NAME);
+        configureSourceSets(project, javaExtension, buildOutputCleanupRegistry, mainSourceSet);
+        configureConfigurations(project, javaExtension, mainSourceSet);
 
         configureJavadocTask(project, javaExtension);
         configureArchivesAndComponent(project, javaExtension);
         configureBuild(project);
     }
 
-    private void configureSourceSets(Project project, JavaPluginExtension pluginExtension, final BuildOutputCleanupRegistry buildOutputCleanupRegistry) {
+    private void configureSourceSets(Project project, JavaPluginExtension pluginExtension, final BuildOutputCleanupRegistry buildOutputCleanupRegistry, SourceSet mainSourceSet) {
         SourceSetContainer sourceSets = pluginExtension.getSourceSets();
-
-        sourceSets.create(SourceSet.MAIN_SOURCE_SET_NAME);
 
         // The built-in test suite must be configured after the main source set is available due to some
         // special handling in the IntelliJ model builder
-        configureBuiltInTest(project, project.getExtensions().getByType(TestingExtension.class), pluginExtension);
+        configureBuiltInTest(project, project.getExtensions().getByType(TestingExtension.class), pluginExtension, mainSourceSet);
 
         // Register the project's source set output directories
         sourceSets.all(sourceSet ->
@@ -302,9 +305,9 @@ public class JavaPlugin implements Plugin<Project> {
         );
     }
 
-    private void configureBuiltInTest(Project project, TestingExtension testing, JavaPluginExtension java) {
+    private void configureBuiltInTest(Project project, TestingExtension testing, JavaPluginExtension java, SourceSet mainSourceSet) {
         final NamedDomainObjectProvider<JvmTestSuite> testSuite = testing.getSuites().register(DEFAULT_TEST_SUITE_NAME, JvmTestSuite.class, suite -> {
-            final FileCollection mainSourceSetOutput = java.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getOutput();
+            final FileCollection mainSourceSetOutput = mainSourceSet.getOutput();
             final FileCollection testSourceSetOutput = suite.getSources().getOutput();
 
             suite.getSources().setCompileClasspath(project.getObjects().fileCollection().from(mainSourceSetOutput, project.getConfigurations().getByName(TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME)));
@@ -397,8 +400,7 @@ public class JavaPlugin implements Plugin<Project> {
             JavaBasePlugin.BUILD_DEPENDENTS_TASK_NAME, TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME));
     }
 
-
-    private void configureConfigurations(Project project, JavaPluginExtension extension) {
+    private void configureConfigurations(Project project, JavaPluginExtension extension, SourceSet mainSourceSet) {
         ConfigurationContainer configurations = project.getConfigurations();
 
         Configuration defaultConfiguration = configurations.getByName(Dependency.DEFAULT_CONFIGURATION);
@@ -410,15 +412,13 @@ public class JavaPlugin implements Plugin<Project> {
         testImplementationConfiguration.extendsFrom(implementationConfiguration);
         testRuntimeOnlyConfiguration.extendsFrom(runtimeOnlyConfiguration);
 
-        SourceSet main = extension.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
-
         final DeprecatableConfiguration apiElementsConfiguration = (DeprecatableConfiguration) jvmServices.createOutgoingElements(API_ELEMENTS_CONFIGURATION_NAME,
-            builder -> builder.fromSourceSet(main)
+            builder -> builder.fromSourceSet(mainSourceSet)
                 .providesApi()
                 .withDescription("API elements for main."));
 
         final DeprecatableConfiguration runtimeElementsConfiguration = (DeprecatableConfiguration) jvmServices.createOutgoingElements(RUNTIME_ELEMENTS_CONFIGURATION_NAME,
-            builder -> builder.fromSourceSet(main)
+            builder -> builder.fromSourceSet(mainSourceSet)
                 .providesRuntime()
                 .withDescription("Elements of runtime for main.")
                 .extendsFrom(implementationConfiguration, runtimeOnlyConfiguration));
@@ -426,6 +426,29 @@ public class JavaPlugin implements Plugin<Project> {
 
         apiElementsConfiguration.deprecateForDeclaration(IMPLEMENTATION_CONFIGURATION_NAME, COMPILE_ONLY_CONFIGURATION_NAME);
         runtimeElementsConfiguration.deprecateForDeclaration(IMPLEMENTATION_CONFIGURATION_NAME, COMPILE_ONLY_CONFIGURATION_NAME, RUNTIME_ONLY_CONFIGURATION_NAME);
+
+        createSourcesVariant(project, extension, mainSourceSet);
+    }
+
+    private Configuration createSourcesVariant(Project project, JavaPluginExtension java, SourceSet mainSourceSet) {
+        final Configuration variant = project.getConfigurations().create(SOURCE_ELEMENTS_VARIANT_NAME);
+        variant.setVisible(false);
+        variant.setCanBeResolved(false);
+        variant.setCanBeConsumed(true);
+        variant.extendsFrom(project.getConfigurations().getByName(JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME));
+
+        final ObjectFactory objects = project.getObjects();
+        variant.attributes(attributes -> {
+            attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.VERIFICATION));
+            attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.SOURCES));
+            attributes.attribute(Sources.SOURCES_ATTRIBUTE, objects.named(Sources.class, Sources.ALL_SOURCE_DIRS));
+        });
+
+        variant.getOutgoing().artifacts(mainSourceSet.getAllSource().getSourceDirectories().getElements().flatMap(e -> project.provider(() -> e)), artifact -> {
+            artifact.setType(ArtifactTypeDefinition.DIRECTORY_TYPE);
+        });
+
+        return variant;
     }
 
     /**

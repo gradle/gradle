@@ -20,10 +20,9 @@ import org.gradle.api.internal.artifacts.DefaultProjectDependencyFactory
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.initialization.ProjectAccessListener
 import org.gradle.util.AttributeTestUtil
-import org.gradle.util.internal.GUtil
 import org.gradle.util.TestUtil
+import org.gradle.util.internal.GUtil
 import spock.lang.Specification
 
 class ProjectDependencyFactoryTest extends Specification {
@@ -31,7 +30,7 @@ class ProjectDependencyFactoryTest extends Specification {
     def projectDummy = Mock(ProjectInternal)
     def projectFinder = Mock(ProjectFinder)
     def capabilityNotationParser = new CapabilityNotationParserFactory(false).create()
-    def depFactory = new DefaultProjectDependencyFactory(Mock(ProjectAccessListener), TestUtil.instantiatorFactory().decorateLenient(), true, capabilityNotationParser, AttributeTestUtil.attributesFactory())
+    def depFactory = new DefaultProjectDependencyFactory(TestUtil.instantiatorFactory().decorateLenient(), true, capabilityNotationParser, AttributeTestUtil.attributesFactory())
     def factory = new ProjectDependencyFactory(depFactory)
 
     def "creates project dependency with map notation"() {

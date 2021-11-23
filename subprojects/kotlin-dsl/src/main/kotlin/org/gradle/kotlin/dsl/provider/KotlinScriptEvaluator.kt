@@ -46,6 +46,7 @@ import org.gradle.internal.operations.CallableBuildOperation
 import org.gradle.internal.scripts.CompileScriptBuildOperationType.Details
 import org.gradle.internal.scripts.CompileScriptBuildOperationType.Result
 import org.gradle.internal.scripts.ScriptExecutionListener
+import org.gradle.internal.service.scopes.ExceptionCollector
 import org.gradle.internal.snapshot.ValueSnapshot
 import org.gradle.kotlin.dsl.accessors.PluginAccessorClassPathGenerator
 import org.gradle.kotlin.dsl.cache.KotlinDslWorkspaceProvider
@@ -85,7 +86,7 @@ class StandardKotlinScriptEvaluator(
     private val pluginRequestApplicator: PluginRequestApplicator,
     private val pluginRequestsHandler: PluginRequestsHandler,
     private val embeddedKotlinProvider: EmbeddedKotlinProvider,
-    private val classPathModeExceptionCollector: ClassPathModeExceptionCollector,
+    private val exceptionCollector: ExceptionCollector,
     private val kotlinScriptBasePluginsApplicator: KotlinScriptBasePluginsApplicator,
     private val scriptSourceHasher: ScriptSourceHasher,
     private val classpathHasher: ClasspathHasher,
@@ -125,9 +126,9 @@ class StandardKotlinScriptEvaluator(
     }
 
     private
-    inline fun withOptions(options: EvalOptions, action: () -> Unit) {
+    fun withOptions(options: EvalOptions, action: () -> Unit) {
         if (EvalOption.IgnoreErrors in options)
-            classPathModeExceptionCollector.ignoringErrors(action)
+            exceptionCollector.ignoringErrors(action)
         else
             action()
     }
@@ -144,6 +145,15 @@ class StandardKotlinScriptEvaluator(
     val interpreter by lazy {
         Interpreter(InterpreterHost())
     }
+
+    private
+    inline fun <T> ExceptionCollector.ignoringErrors(f: () -> T): T? =
+        try {
+            f()
+        } catch (e: Exception) {
+            addException(e)
+            null
+        }
 
     inner class InterpreterHost : Interpreter.Host {
 

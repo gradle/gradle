@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.plugin.use.resolve.internal;
 
-package org.gradle.initialization;
+import org.gradle.api.artifacts.repositories.ArtifactRepository;
 
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.internal.service.scopes.Scopes;
-import org.gradle.internal.service.scopes.ServiceScope;
+import java.util.List;
 
+public interface PluginRepositoriesProvider {
+    void prepareForPluginResolution();
 
-@ServiceScope(Scopes.Build.class)
-public interface ProjectAccessHandler {
-    void beforeResolvingProjectDependency(ProjectInternal dependencyProject);
+    List<ArtifactRepository> getPluginRepositories();
+
+    boolean isExclusiveContentInUse();
 }

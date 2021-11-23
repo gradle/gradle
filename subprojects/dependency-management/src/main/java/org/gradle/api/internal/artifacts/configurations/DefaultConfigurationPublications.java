@@ -35,10 +35,12 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -160,6 +162,28 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
         ConfigurablePublishArtifact publishArtifact = artifactNotationParser.parseNotation(notation);
         artifacts.add(publishArtifact);
         configureAction.execute(publishArtifact);
+    }
+
+    @Override
+    public void artifacts(Provider<? extends Iterable<? extends Object>> provider) {
+        artifacts.addAllLater(provider.map(iterable -> {
+            List<PublishArtifact> results = new ArrayList<>();
+            iterable.forEach(notation -> results.add(artifactNotationParser.parseNotation(notation)));
+            return results;
+        }));
+    }
+
+    @Override
+    public void artifacts(Provider<? extends Iterable<? extends Object>> provider, Action<? super ConfigurablePublishArtifact> configureAction) {
+        artifacts.addAllLater(provider.map(iterable -> {
+            List<PublishArtifact> results = new ArrayList<>();
+            iterable.forEach(notation -> {
+                ConfigurablePublishArtifact artifact = artifactNotationParser.parseNotation(notation);
+                configureAction.execute(artifact);
+                results.add(artifact);
+            });
+            return results;
+        }));
     }
 
     @Override

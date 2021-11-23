@@ -172,7 +172,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     private boolean renderWelcomeMessage;
     private boolean disableToolchainDownload = true;
     private boolean disableToolchainDetection = true;
-
+    private boolean disablePluginRepositoryMirror = false;
 
     private int expectedGenericDeprecationWarnings;
     private final List<String> expectedDeprecationWarnings = new ArrayList<>();
@@ -430,6 +430,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         }
 
         executer.withTestConsoleAttached(consoleAttachment);
+
+        if (disablePluginRepositoryMirror) {
+            executer.withPluginRepositoryMirrorDisabled();
+        }
 
         return executer;
     }
@@ -866,8 +870,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     }
 
     @Override
-    public GradleExecuter withPluginRepositoryMirror() {
-        beforeExecute(gradleExecuter -> withArgument("-D" + PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY + "=" + gradlePluginRepositoryMirrorUrl()));
+    public GradleExecuter withPluginRepositoryMirrorDisabled() {
+        disablePluginRepositoryMirror = true;
         return this;
     }
 
@@ -1094,6 +1098,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
             if (!tmpDirPath.contains(" ") || (getDistribution().isSupportsSpacesInGradleAndJavaOpts() && supportsWhiteSpaceInEnvVars())) {
                 properties.put("java.io.tmpdir", tmpDirPath);
             }
+        }
+
+        if (!disablePluginRepositoryMirror) {
+            properties.put(PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY, gradlePluginRepositoryMirrorUrl());
         }
 
         properties.put("file.encoding", getDefaultCharacterEncoding());

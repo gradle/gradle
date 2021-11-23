@@ -16,8 +16,6 @@
 
 package org.gradle.configurationcache.isolated
 
-import spock.lang.Ignore
-
 class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest {
     def setup() {
         settingsFile << """
@@ -38,6 +36,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         file("a/build.gradle") << """
             plugins.apply(my.MyPlugin)
         """
+        // Intentionally don't apply to project b. Should split this case (some projects don't have the model available) out into a separate test
 
         when:
         executer.withArguments(ENABLE_CLI)
@@ -88,7 +87,6 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         fixture.assertStateRecreated {
             fileChanged("build.gradle")
             projectConfigured(":buildSrc")
-            projectConfigured(":b")
             modelsCreated(":")
         }
         outputContains("creating model for root project 'root'")
@@ -104,81 +102,28 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
 
         and:
         fixture.assertStateLoaded()
-    }
-
-    def "caches BuildAction that queries model that performs dependency resolution"() {
-        given:
-        withSomeToolingModelBuilderPluginThatPerformsDependencyResolutionInBuildSrc()
-        settingsFile << """
-            include("a")
-            include("b")
-            include("c")
-        """
-        file("a/build.gradle") << """
-            plugins.apply(my.MyPlugin)
-        """
-        file("b/build.gradle") << """
-            plugins.apply(my.MyPlugin)
-        """
-        file("c/build.gradle") << """
-            plugins.apply(my.MyPlugin)
-        """
-
-        when:
-        executer.withArguments(ENABLE_CLI)
-        def model = runBuildAction(new FetchCustomModelForEachProject())
-
-        then:
-        model.size() == 3
-        model[0].message == "project :a classpath = 0"
-        model[1].message == "project :b classpath = 0"
-        model[2].message == "project :c classpath = 0"
-
-        and:
-        fixture.assertStateStored {
-            projectConfigured(":buildSrc")
-            projectConfigured(":")
-            buildModelCreated()
-            modelsCreated(":a", ":b", ":c")
-        }
-
-        when:
-        executer.withArguments(ENABLE_CLI)
-        def model2 = runBuildAction(new FetchCustomModelForEachProject())
-
-        then:
-        model2.size() == 3
-        model2[0].message == "project :a classpath = 0"
-        model2[1].message == "project :b classpath = 0"
-        model2[2].message == "project :c classpath = 0"
-
-        and:
-        fixture.assertStateLoaded {
-        }
 
         when:
         file("a/build.gradle") << """
-            dependencies {
-                implementation(project(":b"))
-            }
+            myExtension.message = 'this is project a'
         """
+
         executer.withArguments(ENABLE_CLI)
-        def model3 = runBuildAction(new FetchCustomModelForEachProject())
+        def model5 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
-        model3.size() == 3
-        model3[0].message == "project :a classpath = 1"
-        model3[1].message == "project :b classpath = 0"
-        model3[2].message == "project :c classpath = 0"
+        model5.size() == 2
+        model5[0].message == "this is the root project"
+        model5[1].message == "this is project a"
 
         and:
         fixture.assertStateRecreated {
             fileChanged("a/build.gradle")
             projectConfigured(":buildSrc")
             projectConfigured(":")
-            projectConfigured(":b") // should not be configured
             modelsCreated(":a")
         }
+        outputContains("creating model for project ':a'")
     }
 
     def "invalidates all cached models when build scoped input changes"() {
@@ -262,69 +207,124 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
     def "invalidates cached model when model builder input changes"() {
         given:
         withSomeToolingModelBuilderPluginInBuildSrc("""
-            project.providers.gradleProperty("some-input").get()
+            project.providers.gradleProperty("shared-input").getOrNull()
+            project.providers.systemProperty("\${project.name}-input").getOrNull()
         """)
         settingsFile << """
             include("a")
             include("b")
+            include("c")
         """
         file("a/build.gradle") << """
             plugins.apply(my.MyPlugin)
         """
+        file("b/build.gradle") << """
+            plugins.apply(my.MyPlugin)
+        """
 
         when:
-        executer.withArguments(ENABLE_CLI, "-Psome-input=12")
+        executer.withArguments(ENABLE_CLI, "-Pshared-input=12", "-Da-input=14")
         def model = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
-        model.size() == 1
+        model.size() == 2
         model[0].message == "It works from project :a"
+        model[1].message == "It works from project :b"
 
         and:
         fixture.assertStateStored {
             projectConfigured(":buildSrc")
-            projectsConfigured(":", ":b")
+            projectsConfigured(":", ":c")
             buildModelCreated()
-            modelsCreated(":a")
+            modelsCreated(":a", ":b")
         }
 
         when:
-        executer.withArguments(ENABLE_CLI, "-Psome-input=12")
+        executer.withArguments(ENABLE_CLI, "-Pshared-input=12", "-Da-input=14")
         def model2 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
-        model2.size() == 1
+        model2.size() == 2
         model2[0].message == "It works from project :a"
+        model2[1].message == "It works from project :b"
 
         and:
         fixture.assertStateLoaded()
 
         when:
-        executer.withArguments(ENABLE_CLI, "-Psome-input=2")
+        executer.withArguments(ENABLE_CLI, "-Pshared-input=2", "-Da-input=14")
         def model3 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
-        model3.size() == 1
+        model3.size() == 2
         model3[0].message == "It works from project :a"
+        model3[1].message == "It works from project :b"
 
         and:
         fixture.assertStateRecreated {
-            gradlePropertyChanged("some-input")
+            gradlePropertyChanged("shared-input")
             projectConfigured(":buildSrc")
-            projectsConfigured(":", ":b")
+            projectsConfigured(":")
+            modelsCreated(":a", ":b")
+        }
+
+        when:
+        executer.withArguments(ENABLE_CLI, "-Pshared-input=2", "-Da-input=14")
+        def model4 = runBuildAction(new FetchCustomModelForEachProject())
+
+        then:
+        model4.size() == 2
+        model4[0].message == "It works from project :a"
+        model4[1].message == "It works from project :b"
+
+        and:
+        fixture.assertStateLoaded()
+
+        when:
+        executer.withArguments(ENABLE_CLI, "-Pshared-input=2", "-Da-input=2")
+        def model5 = runBuildAction(new FetchCustomModelForEachProject())
+
+        then:
+        model5.size() == 2
+        model5[0].message == "It works from project :a"
+        model5[1].message == "It works from project :b"
+
+        and:
+        fixture.assertStateRecreated {
+            systemPropertyChanged("a-input")
+            projectConfigured(":buildSrc")
+            projectsConfigured(":")
             modelsCreated(":a")
         }
 
         when:
-        executer.withArguments(ENABLE_CLI, "-Psome-input=2")
-        def model4 = runBuildAction(new FetchCustomModelForEachProject())
+        executer.withArguments(ENABLE_CLI, "-Pshared-input=2", "-Da-input=2")
+        def model6 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
-        model4.size() == 1
-        model4[0].message == "It works from project :a"
+        model6.size() == 2
+        model6[0].message == "It works from project :a"
+        model6[1].message == "It works from project :b"
 
         and:
         fixture.assertStateLoaded()
+
+        when:
+        executer.withArguments(ENABLE_CLI, "-Pshared-input=2", "-Da-input=2", "-Db-input=new")
+        def model7 = runBuildAction(new FetchCustomModelForEachProject())
+
+        then:
+        model7.size() == 2
+        model7[0].message == "It works from project :a"
+        model7[1].message == "It works from project :b"
+
+        and:
+        fixture.assertStateRecreated {
+            systemPropertyChanged("b-input")
+            projectConfigured(":buildSrc")
+            projectsConfigured(":")
+            modelsCreated(":b")
+        }
     }
 
     def "caches execution of BuildAction that queries each model multiple times"() {
@@ -390,7 +390,6 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         fixture.assertStateRecreated {
             fileChanged("build.gradle")
             projectConfigured(":buildSrc")
-            projectConfigured(":b")
             modelsCreated(":")
         }
         outputContains("creating model for root project 'root'")
@@ -408,8 +407,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         fixture.assertStateLoaded()
     }
 
-    @Ignore("https://github.com/gradle/gradle/pull/18858 - Those phased build actions no longer have 'isRunsTasks' set to true")
-    def "caches execution of phased BuildAction that queries custom tooling model and that runs tasks"() {
+    def "caches execution of BuildAction that queries nullable custom tooling model"() {
         given:
         withSomeNullableToolingModelBuilderPluginInBuildSrc()
         settingsFile << """
@@ -466,7 +464,6 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         fixture.assertStateRecreated {
             fileChanged("build.gradle")
             projectConfigured(":buildSrc")
-            projectConfigured(":b")
             modelsCreated(":")
         }
         outputContains("creating model for root project 'root'")

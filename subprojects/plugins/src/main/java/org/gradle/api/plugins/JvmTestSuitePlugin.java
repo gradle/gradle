@@ -16,11 +16,21 @@
 
 package org.gradle.api.plugins;
 
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
+import org.gradle.api.attributes.Category;
+import org.gradle.api.attributes.DocsType;
+import org.gradle.api.attributes.TestType;
+import org.gradle.api.attributes.Usage;
+import org.gradle.api.attributes.Verification;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
+import org.gradle.api.plugins.jvm.JvmTestSuiteTarget;
 import org.gradle.api.plugins.jvm.internal.DefaultJvmTestSuite;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.testing.Test;
@@ -43,6 +53,7 @@ import org.gradle.testing.base.TestingExtension;
 @Incubating
 public class JvmTestSuitePlugin implements Plugin<Project> {
     public static final String DEFAULT_TEST_SUITE_NAME = SourceSet.TEST_SOURCE_SET_NAME;
+    private static final String TEST_RESULTS_ELEMENTS_VARIANT_PREFIX = "testResultsElementsFor";
 
     @Override
     public void apply(Project project) {
@@ -65,6 +76,7 @@ public class JvmTestSuitePlugin implements Plugin<Project> {
         });
 
         testSuites.withType(JvmTestSuite.class).all(testSuite -> {
+            testSuite.getTestType().convention(TestType.UNIT_TESTS);
             testSuite.getTargets().all(target -> {
                 target.getTestTask().configure(test -> {
                     test.getConventionMapping().map("testClassesDirs", () -> testSuite.getSources().getOutput().getClassesDirs());
@@ -72,5 +84,43 @@ public class JvmTestSuitePlugin implements Plugin<Project> {
                 });
             });
         });
+
+        configureTestDataElementsVariants(project);
+    }
+
+    private void configureTestDataElementsVariants(Project project) {
+        final TestingExtension testing = project.getExtensions().getByType(TestingExtension.class);
+        final ExtensiblePolymorphicDomainObjectContainer<TestSuite> testSuites = testing.getSuites();
+
+        testSuites.withType(JvmTestSuite.class).configureEach(suite -> {
+            suite.getTargets().configureEach(target -> {
+                createTestDataVariant(project, suite, target);
+            });
+        });
+    }
+
+    private Configuration createTestDataVariant(Project project, JvmTestSuite suite, JvmTestSuiteTarget target) {
+        final Configuration variant = project.getConfigurations().create(TEST_RESULTS_ELEMENTS_VARIANT_PREFIX + StringUtils.capitalize(target.getName()));
+        variant.setVisible(false);
+        variant.setCanBeResolved(false);
+        variant.setCanBeConsumed(true);
+        variant.extendsFrom(project.getConfigurations().getByName(JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME));
+
+        final ObjectFactory objects = project.getObjects();
+        variant.attributes(attributes -> {
+            attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.VERIFICATION));
+            attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.DOCUMENTATION));
+            attributes.attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType.class, DocsType.TEST_RESULTS));
+            attributes.attribute(Verification.TEST_SUITE_NAME_ATTRIBUTE, objects.named(Verification.class, suite.getName()));
+            attributes.attribute(Verification.TARGET_NAME_ATTRIBUTE, objects.named(Verification.class, suite.getName()));
+            attributes.attributeProvider(TestType.TEST_TYPE_ATTRIBUTE, suite.getTestType().map(tt -> objects.named(TestType.class, tt)));
+        });
+
+        variant.getOutgoing().artifact(
+            target.getTestTask().flatMap(task -> task.getBinaryResultsDirectory().file("results.bin")),
+            artifact -> artifact.setType(ArtifactTypeDefinition.BINARY_DATA_TYPE)
+        );
+
+        return variant;
     }
 }

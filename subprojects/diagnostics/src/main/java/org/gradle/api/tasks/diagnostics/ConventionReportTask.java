@@ -38,7 +38,6 @@ import java.util.Set;
 
 import static java.util.Collections.singleton;
 import static java.util.Objects.requireNonNull;
-import static org.gradle.api.specs.Specs.satisfyNone;
 import static org.gradle.internal.serialization.Transient.varOf;
 
 /**
@@ -70,7 +69,7 @@ public abstract class ConventionReportTask extends ConventionTask {
 
     protected ConventionReportTask() {
         reportDir = getProject().getObjects().directoryProperty();
-        getOutputs().upToDateWhen(satisfyNone());
+        doNotTrackState("Uses the whole project state as an input");
     }
 
     @Internal

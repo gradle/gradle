@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugin.use.internal;
 
-import org.gradle.api.artifacts.repositories.ArtifactRepository;
+package org.gradle.configurationcache.initialization
 
-import java.util.List;
+import org.gradle.internal.classpath.CachedClasspathTransformer
 
-public interface PluginRepositoriesProvider {
-    List<ArtifactRepository> getPluginRepositories();
 
-    boolean isExclusiveContentInUse();
+class VintageInjectedClasspathInstrumentationStrategy : AbstractInjectedClasspathInstrumentationStrategy() {
+    override fun whenAgentPresent(): CachedClasspathTransformer.StandardTransform {
+        // For now, disable the instrumentation
+        return CachedClasspathTransformer.StandardTransform.None
+    }
 }

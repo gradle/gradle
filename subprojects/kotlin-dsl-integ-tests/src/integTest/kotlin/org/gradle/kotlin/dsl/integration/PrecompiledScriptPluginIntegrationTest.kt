@@ -457,7 +457,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
                 attributes {
                     attribute(
                         LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE,
-                        objects.named(LibraryElements.JAR)
+                        objects.named<LibraryElements>(LibraryElements.JAR)
                     )
                 }
             }

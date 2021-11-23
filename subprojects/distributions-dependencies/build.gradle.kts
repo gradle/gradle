@@ -11,6 +11,8 @@ plugins {
     id("gradlebuild.platform")
 }
 
+description = "Provides a platform dependency to align all distribution versions"
+
 val antVersion = "1.10.11"
 val archunitVersion = "0.20.1"
 val asmVersion = "9.1"

@@ -43,5 +43,6 @@ abstract class AbstractVersionCatalogIntegrationTest extends AbstractHttpDepende
         """
         resolve.expectDefaultConfiguration("runtime")
         resolve.prepare()
+        executer.withPluginRepositoryMirrorDisabled() // otherwise the plugin portal fixture doesn't work!
     }
 }

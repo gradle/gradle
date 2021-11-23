@@ -26,7 +26,7 @@ import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.io.File;
 
-class CompositeProjectComponentArtifactMetadata implements LocalComponentArtifactMetadata, ComponentArtifactIdentifier, DisplayName {
+public class CompositeProjectComponentArtifactMetadata implements LocalComponentArtifactMetadata, ComponentArtifactIdentifier, DisplayName {
     private final ProjectComponentIdentifier componentIdentifier;
     private final LocalComponentArtifactMetadata delegate;
     private final File file;
@@ -35,6 +35,10 @@ class CompositeProjectComponentArtifactMetadata implements LocalComponentArtifac
         this.componentIdentifier = componentIdentifier;
         this.delegate = delegate;
         this.file = file;
+    }
+
+    public LocalComponentArtifactMetadata getDelegate() {
+        return delegate;
     }
 
     @Override

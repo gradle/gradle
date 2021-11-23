@@ -36,10 +36,6 @@ class TomlDependenciesExtensionIntegrationTest extends AbstractVersionCatalogInt
 
     TestFile tomlFile = testDirectory.file("gradle/libs.versions.toml")
 
-    def setup() {
-        usePluginRepoMirror = false // otherwise the plugin portal fixture doesn't work!
-    }
-
     @UnsupportedWithConfigurationCache(because = "the test uses an extension directly in the task body")
     def "dependencies declared in TOML file trigger the creation of an extension (notation=#notation)"() {
         tomlFile << """[libraries]

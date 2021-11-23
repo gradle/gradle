@@ -19,11 +19,17 @@ package org.gradle.configurationcache
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultLocalComponentRegistry
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentInAnotherBuildProvider
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentProvider
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry
+import org.gradle.api.internal.project.CrossProjectModelAccess
+import org.gradle.api.internal.project.DefaultCrossProjectModelAccess
+import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.project.ProjectRegistry
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.configuration.ProjectsPreparer
 import org.gradle.configuration.ScriptPluginFactory
+import org.gradle.configuration.internal.UserCodeApplicationContext
 import org.gradle.configuration.project.BuildScriptProcessor
 import org.gradle.configuration.project.ConfigureActionsProjectEvaluator
 import org.gradle.configuration.project.DelayedConfigurationActions
@@ -34,6 +40,8 @@ import org.gradle.configurationcache.build.ConfigurationCacheIncludedBuildState
 import org.gradle.configurationcache.build.NoOpBuildModelController
 import org.gradle.configurationcache.extensions.get
 import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprintController
+import org.gradle.configurationcache.initialization.ConfigurationCacheBuildEnablement
+import org.gradle.configurationcache.problems.ProblemsListener
 import org.gradle.execution.DefaultTaskSchedulingPreparer
 import org.gradle.execution.ExcludedTaskFilteringProjectsPreparer
 import org.gradle.initialization.BuildCancellationToken
@@ -64,15 +72,22 @@ class DefaultBuildModelControllerServices(
             registration.add(BuildDefinition::class.java, buildDefinition)
             registration.add(BuildState::class.java, owner)
             registration.addProvider(ServicesProvider(buildDefinition, parentBuild, services))
-            if (buildModelParameters.isProjectScopeModelCache) {
-                registration.addProvider(CacheProjectServicesProvider())
-            } else {
-                registration.addProvider(VintageProjectServicesProvider())
-            }
             if (buildModelParameters.isConfigurationCache) {
-                registration.addProvider(ConfigurationCacheServicesProvider())
+                registration.add(ConfigurationCacheBuildEnablement::class.java)
+                registration.add(ConfigurationCacheProblemsListenerManagerAction::class.java)
+                registration.addProvider(ConfigurationCacheBuildControllerProvider())
             } else {
-                registration.addProvider(VintageServicesProvider())
+                registration.addProvider(VintageBuildControllerProvider())
+            }
+            if (buildModelParameters.isIsolatedProjects) {
+                registration.addProvider(ConfigurationCacheIsolatedProjectsProvider())
+            } else {
+                registration.addProvider(VintageIsolatedProjectsProvider())
+            }
+            if (buildModelParameters.isIntermediateModelCache) {
+                registration.addProvider(ConfigurationCacheModelProvider())
+            } else {
+                registration.addProvider(VintageModelProvider())
             }
         }
     }
@@ -98,7 +113,7 @@ class DefaultBuildModelControllerServices(
     }
 
     private
-    class ConfigurationCacheServicesProvider {
+    class ConfigurationCacheBuildControllerProvider {
         fun createBuildModelController(
             build: BuildState,
             gradle: GradleInternal,
@@ -108,13 +123,13 @@ class DefaultBuildModelControllerServices(
             if (build is ConfigurationCacheIncludedBuildState) {
                 return NoOpBuildModelController(gradle)
             }
-            val vintageController = VintageServicesProvider().createBuildModelController(build, gradle, stateTransitionControllerFactory)
+            val vintageController = VintageBuildControllerProvider().createBuildModelController(build, gradle, stateTransitionControllerFactory)
             return ConfigurationCacheAwareBuildModelController(gradle, vintageController, cache)
         }
     }
 
     private
-    class VintageServicesProvider {
+    class VintageBuildControllerProvider {
         fun createBuildModelController(
             build: BuildState,
             gradle: GradleInternal,
@@ -132,7 +147,28 @@ class DefaultBuildModelControllerServices(
     }
 
     private
-    class CacheProjectServicesProvider {
+    class ConfigurationCacheIsolatedProjectsProvider {
+        fun createCrossProjectModelAccess(
+            projectRegistry: ProjectRegistry<ProjectInternal>,
+            problemsListener: ProblemsListener,
+            userCodeApplicationContext: UserCodeApplicationContext
+        ): CrossProjectModelAccess {
+            val delegate = VintageIsolatedProjectsProvider().createCrossProjectModelAccess(projectRegistry)
+            return ProblemReportingCrossProjectModelAccess(delegate, problemsListener, userCodeApplicationContext)
+        }
+    }
+
+    private
+    class VintageIsolatedProjectsProvider {
+        fun createCrossProjectModelAccess(
+            projectRegistry: ProjectRegistry<ProjectInternal>
+        ): CrossProjectModelAccess {
+            return DefaultCrossProjectModelAccess(projectRegistry)
+        }
+    }
+
+    private
+    class ConfigurationCacheModelProvider {
         fun createProjectEvaluator(
             buildOperationExecutor: BuildOperationExecutor,
             cachingServiceLocator: CachingServiceLocator,
@@ -140,23 +176,25 @@ class DefaultBuildModelControllerServices(
             fingerprintController: ConfigurationCacheFingerprintController,
             cancellationToken: BuildCancellationToken
         ): ProjectEvaluator {
-            val evaluator = VintageProjectServicesProvider().createProjectEvaluator(buildOperationExecutor, cachingServiceLocator, scriptPluginFactory, cancellationToken)
+            val evaluator = VintageModelProvider().createProjectEvaluator(buildOperationExecutor, cachingServiceLocator, scriptPluginFactory, cancellationToken)
             return ConfigurationCacheAwareProjectEvaluator(evaluator, fingerprintController)
         }
 
         fun createLocalComponentRegistry(
+            currentBuild: BuildState,
             projectStateRegistry: ProjectStateRegistry,
             calculatedValueContainerFactory: CalculatedValueContainerFactory,
             cache: BuildTreeConfigurationCache,
-            providers: List<LocalComponentProvider>
+            provider: LocalComponentProvider,
+            otherBuildProvider: LocalComponentInAnotherBuildProvider
         ): LocalComponentRegistry {
-            val effectiveProviders = listOf(ConfigurationCacheAwareLocalComponentProvider(providers, cache))
-            return DefaultLocalComponentRegistry(projectStateRegistry, calculatedValueContainerFactory, effectiveProviders)
+            val effectiveProvider = ConfigurationCacheAwareLocalComponentProvider(provider, cache)
+            return VintageModelProvider().createLocalComponentRegistry(currentBuild, projectStateRegistry, calculatedValueContainerFactory, effectiveProvider, otherBuildProvider)
         }
     }
 
     private
-    class VintageProjectServicesProvider {
+    class VintageModelProvider {
         fun createProjectEvaluator(
             buildOperationExecutor: BuildOperationExecutor,
             cachingServiceLocator: CachingServiceLocator,
@@ -172,11 +210,13 @@ class DefaultBuildModelControllerServices(
         }
 
         fun createLocalComponentRegistry(
+            currentBuild: BuildState,
             projectStateRegistry: ProjectStateRegistry,
             calculatedValueContainerFactory: CalculatedValueContainerFactory,
-            providers: List<LocalComponentProvider>
+            provider: LocalComponentProvider,
+            otherBuildProvider: LocalComponentInAnotherBuildProvider
         ): LocalComponentRegistry {
-            return DefaultLocalComponentRegistry(projectStateRegistry, calculatedValueContainerFactory, providers)
+            return DefaultLocalComponentRegistry(currentBuild.buildIdentifier, projectStateRegistry, calculatedValueContainerFactory, provider, otherBuildProvider)
         }
     }
 }

@@ -69,7 +69,7 @@ tasks {
     if (BuildEnvironment.isCiServer) {
         remoteProjects.forEach { remoteProject ->
             remoteProject {
-                outputs.upToDateWhen { false }
+                doNotTrackState("Do a full checkout on CI")
             }
         }
     }
