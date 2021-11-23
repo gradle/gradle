@@ -283,6 +283,8 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
     }
 
     def "options set prior to setting same test framework will warn and have no effect"() {
+        ignoreWhenJupiter()
+
         given:
         file('src/test/java/MyTest.java') << standaloneTestClass()
 
@@ -319,6 +321,8 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
     }
 
     def "options set prior to changing test framework will produce additional warning and have no effect"() {
+        ignoreWhenJUnitPlatform()
+
         given:
         file('src/test/java/MyTest.java') << junitPlatformStandaloneTestClass()
 
