@@ -373,6 +373,98 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
         succeeds('testResolve')
     }
 
+    def "Only one suite with a given test type allowed per project"() {
+        settingsFile << """rootProject.name = 'Test'"""
+        buildFile << """plugins {
+                id 'java'
+            }
+
+            testing {
+                suites {
+                    primaryIntTest(JvmTestSuite) {
+                        testType = TestType.INTEGRATION_TESTS
+                    }
+
+                    secondaryIntTest(JvmTestSuite) {
+                        testType = TestType.INTEGRATION_TESTS
+                    }
+                }
+            }
+            """.stripIndent()
+
+        expect:
+        fails('primaryIntTest', 'secondaryIntTest')
+        result.assertHasErrorOutput("Could not configure suite: 'secondaryIntTest'. Another test suite: 'primaryIntTest' uses the type: 'integration-tests' and has already been configured in project: 'Test'.")
+    }
+
+    def "Only one suite with a given test type allowed per project (including the built-in test suite)"() {
+        settingsFile << """rootProject.name = 'Test'"""
+        buildFile << """plugins {
+                id 'java'
+            }
+
+            testing {
+                suites {
+                    secondaryTest(JvmTestSuite) {
+                        testType = TestType.UNIT_TESTS
+                    }
+                }
+            }
+            """.stripIndent()
+
+        expect:
+        fails('test', 'secondaryTest')
+        result.assertHasErrorOutput("Could not configure suite: 'test'. Another test suite: 'secondaryTest' uses the type: 'unit-tests' and has already been configured in project: 'Test'.")
+    }
+
+    def "Test suites in different projects can use same test type"() {
+        def subADir = createDir("subA")
+        subADir.file("build.gradle") << """
+            plugins {
+                id 'java'
+            }
+
+            testing {
+                suites {
+                    integrationTest(JvmTestSuite) {
+                        testType = TestType.INTEGRATION_TESTS
+                    }
+                }
+            }""".stripIndent()
+
+        def subBDir = createDir("subB")
+        subBDir.file("build.gradle") << """
+            plugins {
+                id 'java'
+            }
+
+            testing {
+                suites {
+                    integrationTest(JvmTestSuite) {
+                        testType = TestType.INTEGRATION_TESTS
+                    }
+                }
+            }""".stripIndent()
+
+        settingsFile << """
+            include ':subA'
+            include ':subB'
+            """.stripIndent()
+
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            tasks.register('allIntegrationTests') {
+                dependsOn(':subA:integrationTest', ':subB:integrationTest')
+            }
+            """.stripIndent()
+
+        expect:
+        succeeds('allIntegrationTests')
+    }
+
     private String systemFilePath(String path) {
         return path.replace('/', File.separator)
     }

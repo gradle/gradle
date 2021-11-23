@@ -17,10 +17,12 @@
 package org.gradle.api.plugins;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.tools.ant.BuildException;
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.Category;
@@ -36,6 +38,9 @@ import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.testing.base.TestSuite;
 import org.gradle.testing.base.TestingExtension;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * A {@link org.gradle.api.Plugin} that adds extensions for declaring, compiling and running {@link JvmTestSuite}s.
@@ -54,6 +59,8 @@ import org.gradle.testing.base.TestingExtension;
 public class JvmTestSuitePlugin implements Plugin<Project> {
     public static final String DEFAULT_TEST_SUITE_NAME = SourceSet.TEST_SOURCE_SET_NAME;
     private static final String TEST_RESULTS_ELEMENTS_VARIANT_PREFIX = "testResultsElementsFor";
+
+    private final Map<String, TestSuite> testTypesInUse = new HashMap<>(2); // Assume limited initial amount of test types/project, just unit and integration
 
     @Override
     public void apply(Project project) {
@@ -94,12 +101,12 @@ public class JvmTestSuitePlugin implements Plugin<Project> {
 
         testSuites.withType(JvmTestSuite.class).configureEach(suite -> {
             suite.getTargets().configureEach(target -> {
-                createTestDataVariant(project, suite, target);
+                addTestReusltsVariant(project, suite, target);
             });
         });
     }
 
-    private Configuration createTestDataVariant(Project project, JvmTestSuite suite, JvmTestSuiteTarget target) {
+    private void addTestReusltsVariant(Project project, JvmTestSuite suite, JvmTestSuiteTarget target) {
         final Configuration variant = project.getConfigurations().create(TEST_RESULTS_ELEMENTS_VARIANT_PREFIX + StringUtils.capitalize(target.getName()));
         variant.setVisible(false);
         variant.setCanBeResolved(false);
@@ -113,14 +120,22 @@ public class JvmTestSuitePlugin implements Plugin<Project> {
             attributes.attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType.class, DocsType.TEST_RESULTS));
             attributes.attribute(Verification.TEST_SUITE_NAME_ATTRIBUTE, objects.named(Verification.class, suite.getName()));
             attributes.attribute(Verification.TARGET_NAME_ATTRIBUTE, objects.named(Verification.class, suite.getName()));
-            attributes.attributeProvider(TestType.TEST_TYPE_ATTRIBUTE, suite.getTestType().map(tt -> objects.named(TestType.class, tt)));
+            attributes.attributeProvider(TestType.TEST_TYPE_ATTRIBUTE, suite.getTestType().map(createNamedTestTypeAndVerifyUniqueness(project, suite)));
         });
 
         variant.getOutgoing().artifact(
             target.getTestTask().flatMap(task -> task.getBinaryResultsDirectory().file("results.bin")),
             artifact -> artifact.setType(ArtifactTypeDefinition.BINARY_DATA_TYPE)
         );
+    }
 
-        return variant;
+    private Transformer<TestType, String> createNamedTestTypeAndVerifyUniqueness(Project project, TestSuite suite) {
+        return tt -> {
+            final TestSuite other = testTypesInUse.putIfAbsent(tt, suite);
+            if (null != other) {
+                throw new BuildException("Could not configure suite: '" + suite.getName() + "'. Another test suite: '" + other.getName() + "' uses the type: '" + tt + "' and has already been configured in project: '" + project.getName() + "'.");
+            }
+            return project.getObjects().named(TestType.class, tt);
+        };
     }
 }
