@@ -28,7 +28,6 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
 
         buildFile << """
             plugins {
-                id 'jvm-test-suite'
                 id 'java'
             }
             """
@@ -70,7 +69,6 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
 
         buildFile << """
             plugins {
-                id 'jvm-test-suite'
                 id 'java'
             }
 
@@ -113,7 +111,6 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
     def "Test coverage data can be consumed by another task via Dependency Management"() {
         buildFile << """
             plugins {
-                id 'jvm-test-suite'
                 id 'java'
             }
 
@@ -172,7 +169,6 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
         def subADir = createDir("subA")
         subADir.file("build.gradle") << """
             plugins {
-                id 'jvm-test-suite'
                 id 'java'
             }
 
@@ -277,7 +273,6 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
         def subDirectDir = createDir("direct")
         subDirectDir.file("build.gradle") << """
             plugins {
-                id 'jvm-test-suite'
                 id 'java'
             }
 
@@ -312,7 +307,6 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
         def subTransitiveDir = createDir("transitive")
         subTransitiveDir.file("build.gradle") << """
             plugins {
-                id 'jvm-test-suite'
                 id 'java'
             }
 
