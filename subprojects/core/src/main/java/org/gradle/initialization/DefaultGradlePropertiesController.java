@@ -56,11 +56,6 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
         }
 
         @Override
-        public Set<String> getPropertyNames() {
-            return gradleProperties().getPropertyNames();
-        }
-
-        @Override
         public Map<String, String> mergeProperties(Map<String, String> properties) {
             return gradleProperties().mergeProperties(properties);
         }

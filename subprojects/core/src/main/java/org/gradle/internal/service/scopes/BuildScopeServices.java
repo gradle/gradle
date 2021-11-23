@@ -334,7 +334,6 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     ) {
         return new DefaultGradlePropertiesLoader(
             (StartParameterInternal) get(StartParameter.class),
-            listenerManager.getBroadcaster(GradleProperties.Listener.class),
             listenerManager.getBroadcaster(FileResourceListener.class)
         );
     }

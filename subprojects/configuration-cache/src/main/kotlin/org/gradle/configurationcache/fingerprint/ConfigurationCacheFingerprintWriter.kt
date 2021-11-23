@@ -35,7 +35,6 @@ import org.gradle.api.internal.file.FileTreeInternal
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree
 import org.gradle.api.internal.project.ProjectState
-import org.gradle.api.internal.properties.GradleProperties
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.internal.provider.sources.EnvironmentVariableValueSource
 import org.gradle.api.internal.provider.sources.FileContentValueSource
@@ -76,8 +75,7 @@ class ConfigurationCacheFingerprintWriter(
     ChangingValueDependencyResolutionListener,
     ProjectDependencyObservedListener,
     CoupledProjectsListener,
-    FileResourceListener,
-    GradleProperties.Listener {
+    FileResourceListener {
 
     interface Host {
         val gradleUserHomeDir: File
@@ -107,9 +105,6 @@ class ConfigurationCacheFingerprintWriter(
 
     private
     val projectDependencies = newConcurrentHashSet<ProjectSpecificFingerprint>()
-
-    private
-    val undeclaredGradleProperties = newConcurrentHashSet<String>()
 
     private
     val undeclaredSystemProperties = newConcurrentHashSet<String>()
@@ -172,22 +167,6 @@ class ConfigurationCacheFingerprintWriter(
         captureFile(file)
     }
 
-    override fun onPropertyRead(key: String, value: Any?) {
-        require(value is String?) {
-            "Unsupported Gradle property type '${value?.javaClass}' in property '$key', " +
-                "only String properties are supported with the configuration cache."
-        }
-        gradlePropertyRead(key, value, null)
-    }
-
-    private
-    fun gradlePropertyRead(key: String, value: String?, consumer: String?) {
-        sink().gradlePropertyRead(key, value)
-        if (undeclaredGradleProperties.add(key)) {
-            reportGradlePropertyInput(key, consumer)
-        }
-    }
-
     override fun systemPropertyRead(key: String, value: Any?, consumer: String?) {
         sink().systemPropertyRead(key, value)
         if (undeclaredSystemProperties.add(key)) {
@@ -213,7 +192,7 @@ class ConfigurationCacheFingerprintWriter(
                 }
             }
             is GradlePropertyValueSource.Parameters -> {
-                gradlePropertyRead(parameters.propertyName.get(), obtainedValue.value.get() as? String, null)
+                // The set of Gradle properties is already an input
             }
             is SystemPropertyValueSource.Parameters -> {
                 systemPropertyRead(parameters.propertyName.get(), obtainedValue.value.get(), null)
