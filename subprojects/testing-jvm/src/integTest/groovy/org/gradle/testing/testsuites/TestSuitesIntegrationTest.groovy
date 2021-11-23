@@ -584,8 +584,8 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 id 'java'
             }
 
-            def first = testing.suites.test.getTestingFramework()
-            def second = testing.suites.test.getTestingFramework()
+            def first = testing.suites.test.getVersionedTestingFramework()
+            def second = testing.suites.test.getVersionedTestingFramework()
 
             tasks.register('assertSameFrameworkInstance') {
                 doLast {
@@ -604,7 +604,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 id 'java'
             }
 
-            def first = testing.suites.test.getTestingFramework()
+            def first = testing.suites.test.getVersionedTestingFramework()
 
             testing {
                 suites {
@@ -614,7 +614,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            def second = testing.suites.test.getTestingFramework()
+            def second = testing.suites.test.getVersionedTestingFramework()
 
             tasks.register('assertSameFrameworkInstance') {
                 doLast {
@@ -633,13 +633,13 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 id 'java'
             }
 
-            def first = testing.suites.test.getTestingFramework()
+            def first = testing.suites.test.getVersionedTestingFramework()
 
             testing.suites.test.useJUnit()
             testing.suites.test.useTestNG()
             testing.suites.test.useJUnit()
 
-            def second = testing.suites.test.getTestingFramework()
+            def second = testing.suites.test.getVersionedTestingFramework()
 
             tasks.register('assertSameFrameworkInstance') {
                 doLast {
