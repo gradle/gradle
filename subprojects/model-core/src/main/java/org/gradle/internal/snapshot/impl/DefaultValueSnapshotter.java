@@ -194,7 +194,7 @@ public class DefaultValueSnapshotter implements ValueSnapshotter, IsolatableFact
         } catch (Exception e) {
             throw newValueSerializationException(value.getClass(), e);
         }
-        return visitor.gradleSerialized(serializer, value, outputStream.toByteArray());
+        return visitor.gradleSerialized(value, outputStream.toByteArray());
     }
 
     private <T> T javaSerialization(Object value, ValueVisitor<T> visitor) {
@@ -258,7 +258,7 @@ public class DefaultValueSnapshotter implements ValueSnapshotter, IsolatableFact
 
         T properties(ImmutableList<MapEntrySnapshot<T>> elements);
 
-        T gradleSerialized(Serializer<?> serializer, Object value, byte[] serializedValue);
+        T gradleSerialized(Object value, byte[] serializedValue);
 
         T javaSerialized(Object value, byte[] serializedValue);
     }
@@ -341,8 +341,8 @@ public class DefaultValueSnapshotter implements ValueSnapshotter, IsolatableFact
         }
 
         @Override
-        public ValueSnapshot gradleSerialized(Serializer<?> serializer, Object value, byte[] serializedValue) {
-            return new GradleSerializedValueSnapshot(serializer, classLoaderHasher.getClassLoaderHash(value.getClass().getClassLoader()), serializedValue);
+        public ValueSnapshot gradleSerialized(Object value, byte[] serializedValue) {
+            return new GradleSerializedValueSnapshot(classLoaderHasher.getClassLoaderHash(value.getClass().getClassLoader()), serializedValue);
         }
 
         @Override
@@ -466,7 +466,7 @@ public class DefaultValueSnapshotter implements ValueSnapshotter, IsolatableFact
         }
 
         @Override
-        public Isolatable<?> gradleSerialized(Serializer<?> serializer, Object value, byte[] serializedValue) {
+        public Isolatable<?> gradleSerialized(Object value, byte[] serializedValue) {
             throw new UnsupportedOperationException("Isolating values of type '" + value.getClass().getSimpleName() + "' is not supported");
         }
 
