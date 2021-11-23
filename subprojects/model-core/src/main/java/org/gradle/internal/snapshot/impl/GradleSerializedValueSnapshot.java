@@ -17,33 +17,26 @@
 package org.gradle.internal.snapshot.impl;
 
 import com.google.common.base.Objects;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
-import org.gradle.internal.serialize.Serializer;
-import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
-import org.gradle.internal.snapshot.ValueSnapshottingException;
 
 import javax.annotation.Nullable;
-import java.io.ByteArrayInputStream;
 import java.util.Arrays;
 
 /**
  * An immutable snapshot of the state of some value.
  */
 public class GradleSerializedValueSnapshot implements ValueSnapshot {
-    protected final Serializer<?> serializer;
+
     private final HashCode implementationHash;
     private final byte[] serializedValue;
 
     public GradleSerializedValueSnapshot(
-        Serializer<?> serializer,
         @Nullable HashCode implementationHash,
         byte[] serializedValue
     ) {
-        this.serializer = serializer;
         this.implementationHash = implementationHash;
         this.serializedValue = serializedValue;
     }
@@ -77,19 +70,6 @@ public class GradleSerializedValueSnapshot implements ValueSnapshot {
                 // Same serialized content - value has not changed
                 return true;
             }
-
-            // Deserialize the old value and use the equals() implementation. This will be removed at some point
-            Object oldValue = populateClass(value.getClass());
-            if (oldValue.equals(value)) {
-                DeprecationLogger.deprecateIndirectUsage("Using objects as inputs that have a different serialized form but are equal")
-                    .withContext("Type '" + value.getClass().getName() + "' has a custom implementation for equals().")
-                    .withAdvice("Declare the property as @Nested instead to expose its properties as inputs.")
-                    .willBeRemovedInGradle8()
-                    .withUserManual("upgrading_version_7", "equals_up_to_date_deprecation")
-                    .nagUser();
-                // Same value
-                return true;
-            }
         }
         return false;
     }
@@ -114,15 +94,6 @@ public class GradleSerializedValueSnapshot implements ValueSnapshot {
         }
         GradleSerializedValueSnapshot other = (GradleSerializedValueSnapshot) obj;
         return Objects.equal(implementationHash, other.implementationHash) && Arrays.equals(serializedValue, other.serializedValue);
-    }
-
-    protected Object populateClass(Class<?> originalClass) {
-        try {
-            KryoBackedDecoder decoder = new KryoBackedDecoder(new ByteArrayInputStream(serializedValue));
-            return serializer.read(decoder);
-        } catch (Exception e) {
-            throw new ValueSnapshottingException("Couldn't populate class " + originalClass.getName(), e);
-        }
     }
 
     @Override

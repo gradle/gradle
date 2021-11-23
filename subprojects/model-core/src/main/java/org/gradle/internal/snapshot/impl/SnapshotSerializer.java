@@ -129,7 +129,7 @@ public class SnapshotSerializer extends AbstractSerializer<ValueSnapshot> {
                     classLoaderHasher
                 );
             case GRADLE_SERIALIZED_SNAPSHOT:
-                return new GradleSerializedValueSnapshot(null, decoder.readBoolean() ? serializer.read(decoder) : null, decoder.readBinary());
+                return new GradleSerializedValueSnapshot(decoder.readBoolean() ? serializer.read(decoder) : null, decoder.readBinary());
             case DEFAULT_SNAPSHOT:
                 return new JavaSerializedValueSnapshot(decoder.readBoolean() ? serializer.read(decoder) : null, decoder.readBinary());
             default:
