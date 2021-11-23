@@ -43,6 +43,7 @@ import org.gradle.api.internal.provider.sources.GradlePropertyValueSource
 import org.gradle.api.internal.provider.sources.SystemPropertyValueSource
 import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.api.tasks.util.PatternSet
+import org.gradle.configurationcache.CoupledProjectsListener
 import org.gradle.configurationcache.UndeclaredBuildInputListener
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprint.InputFile
@@ -74,6 +75,7 @@ class ConfigurationCacheFingerprintWriter(
     UndeclaredBuildInputListener,
     ChangingValueDependencyResolutionListener,
     ProjectDependencyObservedListener,
+    CoupledProjectsListener,
     FileResourceListener,
     GradleProperties.Listener {
 
@@ -102,6 +104,9 @@ class ConfigurationCacheFingerprintWriter(
 
     private
     val projectForThread = ThreadLocal<ProjectScopedSink>()
+
+    private
+    val projectDependencies = newConcurrentHashSet<ProjectSpecificFingerprint>()
 
     private
     val undeclaredGradleProperties = newConcurrentHashSet<String>()
@@ -267,7 +272,19 @@ class ConfigurationCacheFingerprintWriter(
 
     override fun dependencyObserved(consumingProject: ProjectState?, targetProject: ProjectState, requestedState: ConfigurationInternal.InternalState, target: ResolvedProjectConfiguration) {
         if (host.cacheIntermediateModels && consumingProject != null) {
-            projectScopedWriter.write(ProjectSpecificFingerprint.ProjectDependency(consumingProject.identityPath, targetProject.identityPath))
+            val dependency = ProjectSpecificFingerprint.ProjectDependency(consumingProject.identityPath, targetProject.identityPath)
+            if (projectDependencies.add(dependency)) {
+                projectScopedWriter.write(dependency)
+            }
+        }
+    }
+
+    override fun onProjectReference(referrer: ProjectState, target: ProjectState) {
+        if (host.cacheIntermediateModels) {
+            val dependency = ProjectSpecificFingerprint.CoupledProjects(referrer.identityPath, target.identityPath)
+            if (projectDependencies.add(dependency)) {
+                projectScopedWriter.write(dependency)
+            }
         }
     }
 

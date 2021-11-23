@@ -100,6 +100,7 @@ import java.util.concurrent.Callable
 class ProblemReportingCrossProjectModelAccess(
     private val delegate: CrossProjectModelAccess,
     private val problems: ProblemsListener,
+    private val coupledProjectsListener: CoupledProjectsListener,
     private val userCodeContext: UserCodeApplicationContext
 ) : CrossProjectModelAccess {
     override fun findProject(referrer: ProjectInternal, relativeTo: ProjectInternal, path: String): ProjectInternal? {
@@ -123,7 +124,7 @@ class ProblemReportingCrossProjectModelAccess(
         return if (this == referrer) {
             this
         } else {
-            ProblemReportingProject(this, referrer, problems, userCodeContext)
+            ProblemReportingProject(this, referrer, problems, coupledProjectsListener, userCodeContext)
         }
     }
 
@@ -132,6 +133,7 @@ class ProblemReportingCrossProjectModelAccess(
         val delegate: ProjectInternal,
         val referrer: ProjectInternal,
         val problems: ProblemsListener,
+        val coupledProjectsListener: CoupledProjectsListener,
         val userCodeContext: UserCodeApplicationContext
     ) : ProjectInternal, GroovyObjectSupport() {
 
@@ -978,6 +980,7 @@ class ProblemReportingCrossProjectModelAccess(
             problems.onProblem(
                 PropertyProblem(location, message, exception, null)
             )
+            coupledProjectsListener.onProjectReference(referrer.owner, delegate.owner)
             // Configure the target project, if it would normally be configured before the referring project
             if (delegate.compareTo(referrer) < 0) {
                 delegate.owner.ensureConfigured()

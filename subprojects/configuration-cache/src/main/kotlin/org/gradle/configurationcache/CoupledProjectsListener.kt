@@ -14,25 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache.fingerprint
+package org.gradle.configurationcache
 
-import org.gradle.util.Path
+import org.gradle.api.internal.project.ProjectState
+import org.gradle.internal.service.scopes.EventScope
+import org.gradle.internal.service.scopes.Scopes
 
 
-internal
-sealed class ProjectSpecificFingerprint {
-    data class ProjectFingerprint(
-        val projectPath: Path,
-        val value: ConfigurationCacheFingerprint
-    ) : ProjectSpecificFingerprint()
-
-    data class ProjectDependency(
-        val consumingProject: Path,
-        val targetProject: Path
-    ) : ProjectSpecificFingerprint()
-
-    data class CoupledProjects(
-        val referringProject: Path,
-        val targetProject: Path
-    ) : ProjectSpecificFingerprint()
+@EventScope(Scopes.Build::class)
+interface CoupledProjectsListener {
+    /**
+     * Notified when the build logic for a project accesses the mutable state of some other project.
+     */
+    fun onProjectReference(referrer: ProjectState, target: ProjectState)
 }

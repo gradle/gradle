@@ -89,8 +89,7 @@ class IsolatedProjectsToolingApiCoupledProjectsIntegrationTest extends AbstractI
 
         then:
         model3.size() == 3
-        // TODO - should use the updated message
-        model3[0].message == "project a"
+        model3[0].message == "new project a"
         model3[1].message == "project b"
         model3[2].message == "It works from project :c"
 
@@ -99,9 +98,8 @@ class IsolatedProjectsToolingApiCoupledProjectsIntegrationTest extends AbstractI
             fileChanged("build.gradle")
             projectConfigured(":buildSrc")
             projectConfigured(":")
-            // TODO - should invalidate the model for projects a and b
-            modelsCreated()
-            problem("Build file 'build.gradle': Cannot access project ':a' from project ':'", 2)
+            modelsCreated(":a", ":b")
+            problem("Build file 'build.gradle': Cannot access project ':a' from project ':'", 3)
             problem("Build file 'build.gradle': Cannot access project ':b' from project ':'")
         }
     }
@@ -238,9 +236,39 @@ class IsolatedProjectsToolingApiCoupledProjectsIntegrationTest extends AbstractI
             fileChanged("b/build.gradle")
             projectConfigured(":buildSrc")
             projectConfigured(":")
-            // TODO - should invalidate the model for project a
-            projectConfigured(":a")
-            modelsCreated(":b")
+            modelsCreated(":a", ":b")
+            problem("Build file 'b/build.gradle': Cannot access project ':a' from project ':b'")
+        }
+
+        when:
+        executer.withArguments(ENABLE_CLI)
+        def model4 = runBuildAction(new FetchCustomModelForEachProject())
+
+        then:
+        model4.size() == 2
+        model4[0].message == "the message"
+        model4[1].message == "the message"
+
+        and:
+        fixture.assertStateLoaded()
+
+        file("a/build.gradle") << """
+            myExtension.message = "new message"
+        """
+        executer.withArguments(ENABLE_CLI, WARN_PROBLEMS_CLI_OPT)
+        def model5 = runBuildAction(new FetchCustomModelForEachProject())
+
+        then:
+        model5.size() == 2
+        model5[0].message == "new message"
+        model5[1].message == "new message"
+
+        and:
+        fixture.assertStateRecreatedWithProblems {
+            fileChanged("a/build.gradle")
+            projectConfigured(":buildSrc")
+            projectConfigured(":")
+            modelsCreated(":a", ":b")
             problem("Build file 'b/build.gradle': Cannot access project ':a' from project ':b'")
         }
     }
