@@ -282,6 +282,39 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
         0 * _
     }
 
+    def "starts watching ignored unsupported file system when watching is enabled"() {
+        def unsupportedFileSystemMountPoint = file("unsupported").createDir()
+        def unwatchableContent = unsupportedFileSystemMountPoint.file("file.txt").createFile()
+        def unsupportedFileSystem = Stub(FileSystemInfo) {
+            getMountPoint() >> unsupportedFileSystemMountPoint
+            getFileSystemType() >> "unsupported"
+        }
+        watchableFileSystemDetector.detectUnsupportedFileSystems() >> { it -> Stream.of(unsupportedFileSystem) }
+
+        when:
+        buildStarted(WatchMode.DEFAULT)
+        registerWatchableHierarchies([unsupportedFileSystemMountPoint])
+        addSnapshot(snapshotRegularFile(unwatchableContent))
+        then:
+        vfsHasSnapshotsAt(unwatchableContent)
+        0 * _
+
+        when:
+        buildFinished(Integer.MAX_VALUE, WatchMode.ENABLED)
+        then:
+        !vfsHasSnapshotsAt(unwatchableContent)
+
+        when:
+        registerWatchableHierarchies([unsupportedFileSystemMountPoint])
+        buildStarted(WatchMode.ENABLED)
+        addSnapshot(snapshotRegularFile(unwatchableContent))
+        then:
+        vfsHasSnapshotsAt(unwatchableContent)
+        1 * watcher.startWatching({ equalIgnoringOrder(it, [unsupportedFileSystemMountPoint]) })
+        ifNonHierarchical * watcher.startWatching({ equalIgnoringOrder(it, [probeRegistry.getProbeDirectory(unsupportedFileSystemMountPoint)]) })
+        0 * _
+    }
+
     def "watching continues for watched hierarchies that are confirmed by watch probe"() {
         def watchableHierarchy = file("watchable").createDir()
         def watchableHierarchyProbeDir = watchableHierarchy.file(".gradle")
