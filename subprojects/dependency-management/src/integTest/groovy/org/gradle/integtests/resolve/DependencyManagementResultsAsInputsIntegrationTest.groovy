@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 
 class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
@@ -27,6 +28,8 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
         """
         mavenRepo.module("org.external", "external-lib").publish()
         file('lib/file-lib.jar') << 'content'
+        // We need fresh daemons to load snapshots from disk in tests below
+        executer.requireIsolatedDaemons()
     }
 
     def "can use #type as task input"() {
@@ -65,13 +68,16 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
         executedAndNotSkipped(":verify")
 
         when:
+        killDaemons()
         succeeds("verify", "-Dn=foo")
+
+        then:
 
         then:
         skipped(":verify")
 
         when:
-        succeeds("verify", "-Dn=bar", '-d')
+        succeeds("verify", "-Dn=bar")
 
         then:
         executedAndNotSkipped(":verify")
@@ -135,6 +141,7 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
         executedAndNotSkipped ":project-lib:jar", ":verify"
 
         when:
+        killDaemons()
         succeeds "verify"
 
         then:
@@ -217,6 +224,7 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
         executedAndNotSkipped ":project-lib:jar", ":verify"
 
         when:
+        killDaemons()
         succeeds "verify"
 
         then:
@@ -232,5 +240,9 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
 
         then:
         executedAndNotSkipped ":project-lib:jar", ":verify"
+    }
+
+    private void killDaemons() {
+        new DaemonLogsAnalyzer(executer.daemonBaseDir).killAll()
     }
 }
