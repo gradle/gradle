@@ -152,7 +152,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
             return HashCode.fromInt(1234)
         }
     }
-    def valueSnapshotter = new DefaultValueSnapshotter(classloaderHierarchyHasher, null)
+    def valueSnapshotter = new DefaultValueSnapshotter([], classloaderHierarchyHasher, null)
     def inputFingerprinter = new DefaultInputFingerprinter(fileCollectionSnapshotter, fingerprinterRegistry, valueSnapshotter)
     def reservedFileSystemLocationRegistry = Stub(ReservedFileSystemLocationRegistry)
     def overlappingOutputDetector = Stub(OverlappingOutputDetector)

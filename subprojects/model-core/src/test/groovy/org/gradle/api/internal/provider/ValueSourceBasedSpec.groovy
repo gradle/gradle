@@ -32,6 +32,7 @@ abstract class ValueSourceBasedSpec extends Specification {
 
     def listenerManager = new DefaultListenerManager(Scopes.Build)
     def isolatableFactory = new DefaultValueSnapshotter(
+        [],
         null,
         TestUtil.managedFactoryRegistry()
     )

@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
+import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
@@ -39,15 +40,17 @@ public class DefaultPreviousExecutionStateSerializer extends AbstractSerializer<
     private final Serializer<FileCollectionFingerprint> fileCollectionFingerprintSerializer;
     private final Serializer<FileSystemSnapshot> fileSystemSnapshotSerializer;
     private final Serializer<ImplementationSnapshot> implementationSnapshotSerializer;
-    private final Serializer<ValueSnapshot> valueSnapshotSerializer = new SnapshotSerializer();
+    private final Serializer<ValueSnapshot> valueSnapshotSerializer;
 
     public DefaultPreviousExecutionStateSerializer(
         Serializer<FileCollectionFingerprint> fileCollectionFingerprintSerializer,
-        Serializer<FileSystemSnapshot> fileSystemSnapshotSerializer
+        Serializer<FileSystemSnapshot> fileSystemSnapshotSerializer,
+        ClassLoaderHierarchyHasher classLoaderHasher
     ) {
         this.fileCollectionFingerprintSerializer = fileCollectionFingerprintSerializer;
         this.fileSystemSnapshotSerializer = fileSystemSnapshotSerializer;
         this.implementationSnapshotSerializer = new ImplementationSnapshotSerializer();
+        this.valueSnapshotSerializer = new SnapshotSerializer(classLoaderHasher);
     }
 
     @Override

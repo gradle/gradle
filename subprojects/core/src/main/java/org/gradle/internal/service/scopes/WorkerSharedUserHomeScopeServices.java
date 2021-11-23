@@ -18,11 +18,22 @@ package org.gradle.internal.service.scopes;
 
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter;
+import org.gradle.internal.snapshot.impl.ValueSnapshotterSerializerRegistry;
 import org.gradle.internal.state.ManagedFactoryRegistry;
+
+import java.util.List;
 
 public class WorkerSharedUserHomeScopeServices {
 
-    DefaultValueSnapshotter createValueSnapshotter(ClassLoaderHierarchyHasher classLoaderHierarchyHasher, ManagedFactoryRegistry managedFactoryRegistry) {
-        return new DefaultValueSnapshotter(classLoaderHierarchyHasher, managedFactoryRegistry);
+    DefaultValueSnapshotter createValueSnapshotter(
+        List<ValueSnapshotterSerializerRegistry> valueSnapshotterSerializerRegistryList,
+        ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
+        ManagedFactoryRegistry managedFactoryRegistry
+    ) {
+        return new DefaultValueSnapshotter(
+            valueSnapshotterSerializerRegistryList,
+            classLoaderHierarchyHasher,
+            managedFactoryRegistry
+        );
     }
 }

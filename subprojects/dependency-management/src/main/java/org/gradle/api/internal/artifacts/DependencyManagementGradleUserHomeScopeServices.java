@@ -36,6 +36,8 @@ import org.gradle.internal.execution.history.ExecutionHistoryCacheAccess;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.impl.DefaultExecutionHistoryStore;
 import org.gradle.internal.file.FileAccessTimeJournal;
+import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
+import org.gradle.internal.snapshot.impl.ValueSnapshotterSerializerRegistry;
 
 public class DependencyManagementGradleUserHomeScopeServices {
 
@@ -53,11 +55,13 @@ public class DependencyManagementGradleUserHomeScopeServices {
         };
     }
 
-    ArtifactCachesProvider createArtifactCaches(GlobalScopedCache globalScopedCache,
-                                                CacheRepository cacheRepository,
-                                                DefaultArtifactCaches.WritableArtifactCacheLockingParameters parameters,
-                                                ListenerManager listenerManager,
-                                                DocumentationRegistry documentationRegistry) {
+    ArtifactCachesProvider createArtifactCaches(
+        GlobalScopedCache globalScopedCache,
+        CacheRepository cacheRepository,
+        DefaultArtifactCaches.WritableArtifactCacheLockingParameters parameters,
+        ListenerManager listenerManager,
+        DocumentationRegistry documentationRegistry
+    ) {
         DefaultArtifactCaches artifactCachesProvider = new DefaultArtifactCaches(globalScopedCache, cacheRepository, parameters, documentationRegistry);
         listenerManager.addListener(new BuildAdapter() {
             @Override
@@ -77,12 +81,14 @@ public class DependencyManagementGradleUserHomeScopeServices {
     ExecutionHistoryStore createExecutionHistoryStore(
         ExecutionHistoryCacheAccess executionHistoryCacheAccess,
         InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,
-        StringInterner stringInterner
+        StringInterner stringInterner,
+        ClassLoaderHierarchyHasher classLoaderHasher
     ) {
         return new DefaultExecutionHistoryStore(
             executionHistoryCacheAccess,
             inMemoryCacheDecoratorFactory,
-            stringInterner
+            stringInterner,
+            classLoaderHasher
         );
     }
 
@@ -101,6 +107,14 @@ public class DependencyManagementGradleUserHomeScopeServices {
             fileAccessTimeJournal,
             executionHistoryStore,
             crossBuildInMemoryCacheFactory.newCacheRetainingDataFromPreviousBuild(Try::isSuccessful)
+        );
+    }
+
+    ValueSnapshotterSerializerRegistry createDependencyManagementValueSnapshotterSerializerRegistry(
+        ImmutableModuleIdentifierFactory moduleIdentifierFactory
+    ) {
+        return new DependencyManagementValueSnapshotterSerializerRegistry(
+            moduleIdentifierFactory
         );
     }
 }

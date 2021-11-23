@@ -19,11 +19,14 @@ package org.gradle.internal.snapshot.impl;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.attributes.Attribute;
+import org.gradle.internal.Cast;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.logging.text.TreeFormatter;
+import org.gradle.internal.serialize.Serializer;
+import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.snapshot.ValueSnapshottingException;
@@ -42,10 +45,16 @@ import java.util.Properties;
 import java.util.Set;
 
 public class DefaultValueSnapshotter implements ValueSnapshotter, IsolatableFactory {
+    private final List<ValueSnapshotterSerializerRegistry> valueSnapshotterSerializerRegistryList;
     private final ValueVisitor<ValueSnapshot> valueSnapshotValueVisitor;
     private final ValueVisitor<Isolatable<?>> isolatableValueVisitor;
 
-    public DefaultValueSnapshotter(ClassLoaderHierarchyHasher classLoaderHasher, ManagedFactoryRegistry managedFactoryRegistry) {
+    public DefaultValueSnapshotter(
+        List<ValueSnapshotterSerializerRegistry> valueSnapshotterSerializerRegistryList,
+        ClassLoaderHierarchyHasher classLoaderHasher,
+        ManagedFactoryRegistry managedFactoryRegistry
+    ) {
+        this.valueSnapshotterSerializerRegistryList = valueSnapshotterSerializerRegistryList;
         this.valueSnapshotValueVisitor = new ValueSnapshotVisitor(classLoaderHasher);
         this.isolatableValueVisitor = new IsolatableVisitor(classLoaderHasher, managedFactoryRegistry);
     }
@@ -97,7 +106,8 @@ public class DefaultValueSnapshotter implements ValueSnapshotter, IsolatableFact
         if (value instanceof Class<?>) {
             return visitor.classValue((Class<?>) value);
         }
-        if (value.getClass().equals(File.class)) {
+        Class<?> valueClass = value.getClass();
+        if (valueClass.equals(File.class)) {
             // Not subtypes as we don't know whether they are immutable or not
             return visitor.fileValue((File) value);
         }
@@ -132,17 +142,17 @@ public class DefaultValueSnapshotter implements ValueSnapshotter, IsolatableFact
                 return visitor.map(builder.build());
             }
         }
-        if (value.getClass().isArray()) {
+        if (valueClass.isArray()) {
             int length = Array.getLength(value);
             if (length == 0) {
-                return visitor.emptyArray(value.getClass().getComponentType());
+                return visitor.emptyArray(valueClass.getComponentType());
             }
             ImmutableList.Builder<T> builder = ImmutableList.builderWithExpectedSize(length);
             for (int i = 0; i < length; i++) {
                 Object element = Array.get(value, i);
                 builder.add(processValue(element, visitor));
             }
-            return visitor.array(builder.build(), value.getClass().getComponentType());
+            return visitor.array(builder.build(), valueClass.getComponentType());
         }
         if (value instanceof Attribute) {
             return visitor.attributeValue((Attribute<?>) value);
@@ -164,25 +174,45 @@ public class DefaultValueSnapshotter implements ValueSnapshotter, IsolatableFact
             return visitor.hashCode((HashCode) value);
         }
 
-        // Fall back to serialization
-        return serialize(value, visitor);
+        // Pluggable serialization
+        for (ValueSnapshotterSerializerRegistry registry : valueSnapshotterSerializerRegistryList) {
+            if (registry.canSerialize(valueClass)) {
+                return gradleSerialization(value, registry.build(valueClass), visitor);
+            }
+        }
+
+        // Fall back to Java serialization
+        return javaSerialization(value, visitor);
     }
 
-    private <T> T serialize(Object value, ValueVisitor<T> visitor) {
-        ByteArrayOutputStream outputStream;
-        try {
-            outputStream = new ByteArrayOutputStream();
-            ObjectOutputStream objectStr = new ObjectOutputStream(outputStream);
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private <T> T gradleSerialization(Object value, Serializer serializer, ValueVisitor<T> visitor) {
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        try (KryoBackedEncoder encoder = new KryoBackedEncoder(outputStream)) {
+            serializer.write(encoder, Cast.uncheckedCast(value));
+            encoder.flush();
+        } catch (Exception e) {
+            throw newValueSerializationException(value.getClass(), e);
+        }
+        return visitor.gradleSerialized(serializer, value, outputStream.toByteArray());
+    }
+
+    private <T> T javaSerialization(Object value, ValueVisitor<T> visitor) {
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        try (ObjectOutputStream objectStr = new ObjectOutputStream(outputStream)) {
             objectStr.writeObject(value);
             objectStr.flush();
         } catch (IOException e) {
-            TreeFormatter formatter = new TreeFormatter();
-            formatter.node("Could not serialize value of type ");
-            formatter.appendType(value.getClass());
-            throw new ValueSnapshottingException(formatter.toString(), e);
+            throw newValueSerializationException(value.getClass(), e);
         }
+        return visitor.javaSerialized(value, outputStream.toByteArray());
+    }
 
-        return visitor.serialized(value, outputStream.toByteArray());
+    private ValueSnapshottingException newValueSerializationException(Class<?> valueType, Throwable cause) {
+        TreeFormatter formatter = new TreeFormatter();
+        formatter.node("Could not serialize value of type ");
+        formatter.appendType(valueType);
+        return new ValueSnapshottingException(formatter.toString(), cause);
     }
 
     private interface ValueVisitor<T> {
@@ -228,7 +258,9 @@ public class DefaultValueSnapshotter implements ValueSnapshotter, IsolatableFact
 
         T properties(ImmutableList<MapEntrySnapshot<T>> elements);
 
-        T serialized(Object value, byte[] serializedValue);
+        T gradleSerialized(Serializer<?> serializer, Object value, byte[] serializedValue);
+
+        T javaSerialized(Object value, byte[] serializedValue);
     }
 
     private static class ValueSnapshotVisitor implements ValueVisitor<ValueSnapshot> {
@@ -309,8 +341,13 @@ public class DefaultValueSnapshotter implements ValueSnapshotter, IsolatableFact
         }
 
         @Override
-        public ValueSnapshot serialized(Object value, byte[] serializedValue) {
-            return new SerializedValueSnapshot(classLoaderHasher.getClassLoaderHash(value.getClass().getClassLoader()), serializedValue);
+        public ValueSnapshot gradleSerialized(Serializer<?> serializer, Object value, byte[] serializedValue) {
+            return new GradleSerializedValueSnapshot(serializer, classLoaderHasher.getClassLoaderHash(value.getClass().getClassLoader()), serializedValue);
+        }
+
+        @Override
+        public ValueSnapshot javaSerialized(Object value, byte[] serializedValue) {
+            return new JavaSerializedValueSnapshot(classLoaderHasher.getClassLoaderHash(value.getClass().getClassLoader()), serializedValue);
         }
 
         @Override
@@ -429,8 +466,13 @@ public class DefaultValueSnapshotter implements ValueSnapshotter, IsolatableFact
         }
 
         @Override
-        public Isolatable<?> serialized(Object value, byte[] serializedValue) {
-            return new IsolatedSerializedValueSnapshot(classLoaderHasher.getClassLoaderHash(value.getClass().getClassLoader()), serializedValue, value.getClass());
+        public Isolatable<?> gradleSerialized(Serializer<?> serializer, Object value, byte[] serializedValue) {
+            throw new UnsupportedOperationException("Isolating values of type '" + value.getClass().getSimpleName() + "' is not supported");
+        }
+
+        @Override
+        public Isolatable<?> javaSerialized(Object value, byte[] serializedValue) {
+            return new IsolatedJavaSerializedValueSnapshot(classLoaderHasher.getClassLoaderHash(value.getClass().getClassLoader()), serializedValue, value.getClass());
         }
 
         @Override

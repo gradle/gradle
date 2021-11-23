@@ -32,7 +32,7 @@ import spock.lang.Specification
 
 class DefaultBuildServicesRegistryTest extends Specification {
     def listenerManager = new DefaultListenerManager(Scopes.Build)
-    def isolatableFactory = new DefaultValueSnapshotter(null, TestUtil.managedFactoryRegistry())
+    def isolatableFactory = new DefaultValueSnapshotter([], null, TestUtil.managedFactoryRegistry())
     def leaseRegistry = Stub(SharedResourceLeaseRegistry)
     def buildIdentifier = Mock(BuildIdentifier)
     def registry = new DefaultBuildServicesRegistry(buildIdentifier, TestUtil.domainObjectCollectionFactory(), TestUtil.instantiatorFactory(), TestUtil.services(), listenerManager, isolatableFactory, leaseRegistry)
