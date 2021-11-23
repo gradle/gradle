@@ -26,13 +26,13 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
         """
 
         when:
-        configurationCacheRun "help", "-PtheProperty=1"
+        configurationCacheRun "help", "-PtheProperty=1", "-PunusedProperty=42"
 
         then:
         configurationCache.assertStateStored()
 
         when:
-        configurationCacheRun "help", "-PtheProperty=1"
+        configurationCacheRun "help", "-PunusedProperty=42", "-PtheProperty=1"
 
         then:
         configurationCache.assertStateLoaded()
@@ -42,12 +42,12 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
 
         then:
         configurationCache.assertStateStored()
-        output.contains("because Gradle property 'theProperty' has changed.")
+        output.contains("because the set of Gradle properties has changed.")
 
         where:
         dynamicPropertyExpression << [
             'theProperty',
-            'properties.theProperty'
+            'ext.theProperty'
         ]
     }
 }

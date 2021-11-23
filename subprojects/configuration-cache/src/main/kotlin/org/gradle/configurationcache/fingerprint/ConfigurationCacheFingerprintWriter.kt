@@ -80,6 +80,7 @@ class ConfigurationCacheFingerprintWriter(
     interface Host {
         val gradleUserHomeDir: File
         val allInitScripts: List<File>
+        val startParameterProperties: Map<String, Any?>
         val buildStartTime: Long
         val cacheIntermediateModels: Boolean
         fun fingerprintOf(fileCollection: FileCollectionInternal): HashCode
@@ -121,7 +122,8 @@ class ConfigurationCacheFingerprintWriter(
         buildScopedSink.write(
             ConfigurationCacheFingerprint.GradleEnvironment(
                 host.gradleUserHomeDir,
-                jvmFingerprint()
+                jvmFingerprint(),
+                host.startParameterProperties
             )
         )
     }

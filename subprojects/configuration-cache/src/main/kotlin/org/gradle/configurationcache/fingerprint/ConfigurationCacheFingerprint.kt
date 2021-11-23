@@ -28,7 +28,8 @@ sealed class ConfigurationCacheFingerprint {
 
     data class GradleEnvironment(
         val gradleUserHomeDir: File,
-        val jvm: String
+        val jvm: String,
+        val startParameterProperties: Map<String, Any?>
     ) : ConfigurationCacheFingerprint()
 
     data class InitScripts(

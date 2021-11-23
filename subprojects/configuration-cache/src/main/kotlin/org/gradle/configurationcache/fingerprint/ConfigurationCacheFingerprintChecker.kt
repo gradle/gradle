@@ -40,6 +40,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
     interface Host {
         val gradleUserHomeDir: File
         val allInitScripts: List<File>
+        val startParameterProperties: Map<String, Any?>
         val buildStartTime: Long
         fun gradleProperty(propertyName: String): String?
         fun fingerprintOf(fileCollection: FileCollectionInternal): HashCode
@@ -180,6 +181,9 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                 }
                 if (jvmFingerprint() != jvm) {
                     return "JVM has changed"
+                }
+                if (host.startParameterProperties != startParameterProperties) {
+                    return "the set of Gradle properties has changed"
                 }
             }
         }
