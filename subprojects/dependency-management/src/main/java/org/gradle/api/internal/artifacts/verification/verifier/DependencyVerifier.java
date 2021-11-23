@@ -17,11 +17,12 @@ package org.gradle.api.internal.artifacts.verification.verifier;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.bouncycastle.openpgp.PGPPublicKey;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.ArtifactVerificationOperation;
 import org.gradle.api.internal.artifacts.verification.model.ArtifactVerificationMetadata;
 import org.gradle.api.internal.artifacts.verification.model.Checksum;
@@ -40,18 +41,22 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 public class DependencyVerifier {
-    private final Map<ComponentIdentifier, ComponentVerificationMetadata> verificationMetadata;
+    private static final Comparator<ModuleComponentIdentifier> MODULE_COMPONENT_IDENTIFIER_COMPARATOR = Comparator.comparing(ModuleComponentIdentifier::getGroup)
+        .thenComparing(ModuleComponentIdentifier::getModule)
+        .thenComparing(ModuleComponentIdentifier::getVersion);
+    private final Map<ModuleComponentIdentifier, ComponentVerificationMetadata> verificationMetadata;
     private final DependencyVerificationConfiguration config;
     private final List<String> topLevelComments;
 
-    DependencyVerifier(Map<ComponentIdentifier, ComponentVerificationMetadata> verificationMetadata, DependencyVerificationConfiguration config, List<String> topLevelComments) {
-        this.verificationMetadata = ImmutableMap.copyOf(verificationMetadata);
+    DependencyVerifier(Map<ModuleComponentIdentifier, ComponentVerificationMetadata> verificationMetadata, DependencyVerificationConfiguration config, List<String> topLevelComments) {
+        this.verificationMetadata = ImmutableSortedMap.copyOf(verificationMetadata, MODULE_COMPONENT_IDENTIFIER_COMPARATOR);
         this.config = config;
         this.topLevelComments = topLevelComments;
     }
