@@ -283,7 +283,7 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
     }
 
     def "options set prior to setting same test framework will warn and have no effect"() {
-        ignoreWhenJupiter()
+        ignoreWhenJUnitPlatform()
 
         given:
         file('src/test/java/MyTest.java') << standaloneTestClass()
@@ -321,10 +321,10 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
     }
 
     def "options set prior to changing test framework will produce additional warning and have no effect"() {
-        ignoreWhenJUnitPlatform()
+        ignoreWhenJUnit4()
 
         given:
-        file('src/test/java/MyTest.java') << junitPlatformStandaloneTestClass()
+        file('src/test/java/MyTest.java') << junitJupiterStandaloneTestClass()
 
         settingsFile << "rootProject.name = 'Sample'"
         buildFile << """
@@ -362,7 +362,7 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
 
     def "options accessed and not explicitly configured prior to setting test framework will also warn"() {
         given:
-        file('src/test/java/MyTest.java') << junitPlatformStandaloneTestClass()
+        file('src/test/java/MyTest.java') << junitJupiterStandaloneTestClass()
 
         settingsFile << "rootProject.name = 'Sample'"
         buildFile << """
@@ -397,7 +397,7 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
 
     def "options configured after setting test framework works"() {
         given:
-        file('src/test/java/MyTest.java') << junitPlatformStandaloneTestClass()
+        file('src/test/java/MyTest.java') << junitJupiterStandaloneTestClass()
 
         settingsFile << "rootProject.name = 'Sample'"
         buildFile << """
@@ -446,11 +446,11 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         """.stripIndent()
     }
 
-    private static String junitPlatformStandaloneTestClass() {
-        return junitPlatformTestClass('MyTest')
+    private static String junitJupiterStandaloneTestClass() {
+        return junitJupiterTestClass('MyTest')
     }
 
-    private static String junitPlatformTestClass(String className) {
+    private static String junitJupiterTestClass(String className) {
         return """
             import org.junit.jupiter.api.*;
 
