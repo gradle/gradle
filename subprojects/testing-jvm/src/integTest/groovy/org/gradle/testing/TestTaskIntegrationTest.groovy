@@ -292,10 +292,7 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         file('src/test/java/MyTest.java') << standaloneTestClass()
 
         settingsFile << "rootProject.name = 'Sample'"
-        buildFile << """
-            import org.gradle.api.internal.tasks.testing.*
-
-            apply plugin: 'java'
+        buildFile << """apply plugin: 'java'
 
             ${mavenCentralRepository()}
             dependencies {
@@ -311,7 +308,7 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
 
             tasks.register('verifyTestOptions') {
                 doLast {
-                    assert tasks.getByName("test").getOptions().getClass() == JUnitOptions.class
+                    assert tasks.getByName("test").getOptions().getClass() == JUnitOptions
                     assert !tasks.getByName("test").getOptions().getExcludeCategories().contains("Slow")
                 }
             }
@@ -330,10 +327,7 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         file('src/test/java/MyTest.java') << junitJupiterStandaloneTestClass()
 
         settingsFile << "rootProject.name = 'Sample'"
-        buildFile << """
-            import org.gradle.api.internal.tasks.testing.*
-
-            apply plugin: 'java'
+        buildFile << """apply plugin: 'java'
 
             ${mavenCentralRepository()}
             dependencies {
@@ -352,7 +346,7 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
 
             tasks.register('verifyTestOptions') {
                 doLast {
-                    assert tasks.getByName("test").getOptions().getClass() == JUnitPlatformOptions.class
+                    assert tasks.getByName("test").getOptions().getClass() == JUnitPlatformOptions
                 }
             }
         """.stripIndent()
@@ -389,8 +383,8 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
 
             tasks.register('verifyTestOptions') {
                 doLast {
-                    assert options.getClass() == JUnitOptions.class
-                    assert tasks.getByName("test").getOptions().getClass() == JUnitPlatformOptions.class
+                    assert options.getClass() == JUnitOptions
+                    assert tasks.getByName("test").getOptions().getClass() == JUnitPlatformOptions
                 }
             }
         """.stripIndent()
