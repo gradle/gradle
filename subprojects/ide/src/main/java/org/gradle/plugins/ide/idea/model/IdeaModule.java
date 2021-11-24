@@ -332,10 +332,12 @@ public class IdeaModule {
      *
      * For example see docs for {@link IdeaModule}
      */
+    @Deprecated
     public Set<File> getTestSourceDirs() {
         return testSourceDirs;
     }
 
+    @Deprecated
     public void setTestSourceDirs(Set<File> testSourceDirs) {
         this.testSourceDirs = testSourceDirs;
     }
@@ -372,13 +374,11 @@ public class IdeaModule {
     }
 
     /**
-     * The complete and up-to-date collection of test resource directories.
+     * The directories containing the test resources. <p> For example see docs for {@link IdeaModule}
      *
-     * This should be preferred to {@link #getTestResourceDirs()} as it will include late changes to default directories.
-     *
-     * @return lazily configurable collection of test resource directories
-     * @since 7.4
+     * @since 4.7
      */
+    @Deprecated
     public Set<File> getTestResourceDirs() {
         return testResourceDirs;
     }
@@ -388,13 +388,17 @@ public class IdeaModule {
      *
      * @since 4.7
      */
+    @Deprecated
     public void setTestResourceDirs(Set<File> testResourceDirs) {
         this.testResourceDirs = testResourceDirs;
     }
 
-
     /**
-     * The complete collection of test resources.
+     * The complete and up-to-date collection of test resource directories.
+     *
+     * This should be preferred to {@link #getTestResourceDirs()} as it will include late changes to default directories.
+     *
+     * @return lazily configurable collection of test resource directories
      * @since 7.4
      */
     @Incubating
