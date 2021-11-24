@@ -123,16 +123,17 @@ public class JacocoPlugin implements Plugin<Project> {
         variant.setVisible(false);
         variant.setCanBeResolved(false);
         variant.setCanBeConsumed(true);
-        variant.extendsFrom(project.getConfigurations().getByName(JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME));
+        variant.extendsFrom(project.getConfigurations().getByName(suite.getSources().getImplementationConfigurationName()),
+                project.getConfigurations().getByName(suite.getSources().getRuntimeOnlyConfigurationName()));
 
         final ObjectFactory objects = project.getObjects();
         variant.attributes(attributes -> {
-            attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.VERIFICATION));
             attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.DOCUMENTATION));
             attributes.attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType.class, DocsType.JACOCO_COVERAGE));
-            attributes.attribute(Verification.TEST_SUITE_NAME_ATTRIBUTE, objects.named(Verification.class, suite.getName()));
             attributes.attribute(Verification.TARGET_NAME_ATTRIBUTE, objects.named(Verification.class, suite.getName()));
+            attributes.attribute(Verification.TEST_SUITE_NAME_ATTRIBUTE, objects.named(Verification.class, suite.getName()));
             attributes.attributeProvider(TestType.TEST_TYPE_ATTRIBUTE, suite.getTestType().map(tt -> objects.named(TestType.class, tt)));
+            attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.VERIFICATION));
         });
 
         variant.getOutgoing().artifact(target.getTestTask().map(task -> task.getExtensions().getByType(JacocoTaskExtension.class).getDestinationFile()), artifact -> {
@@ -210,7 +211,7 @@ public class JacocoPlugin implements Plugin<Project> {
 
     private void configureJacocoReportDefaults(final JacocoPluginExtension extension, final JacocoReport reportTask) {
         reportTask.getReports().all(action(report ->
-            report.getRequired().set(report.getName().equals("html"))
+            report.getRequired().convention(report.getName().equals("html"))
         ));
         DirectoryProperty reportsDir = extension.getReportsDirectory();
         reportTask.getReports().all(action(report -> {
