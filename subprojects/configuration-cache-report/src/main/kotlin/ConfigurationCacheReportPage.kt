@@ -220,12 +220,10 @@ object ConfigurationCacheReportPage : Component<ConfigurationCacheReportPage.Mod
     fun displayTabButton(tab: Tab, activeTab: Tab, problemsCount: Int): View<Intent> = div(
         attributes {
             className("group-selector")
-            if (problemsCount == 0) {
-                className("group-selector--disabled")
-            } else if (tab == activeTab) {
-                className("group-selector--active")
-            } else {
-                onClick { Intent.SetTab(tab) }
+            when {
+                problemsCount == 0 -> className("group-selector--disabled")
+                tab == activeTab -> className("group-selector--active")
+                else -> onClick { Intent.SetTab(tab) }
             }
         },
         span(
