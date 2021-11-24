@@ -61,7 +61,7 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         outputs.recompiledFiles("A", "AHelper", "AHelperResource.txt")
     }
 
-    @Issue("https://https://github.com/micronaut-projects/micronaut-core/issues/6536")
+    @Issue("https://github.com/micronaut-projects/micronaut-core/issues/6536")
     def "remembers generated files across multiple compilations"() {
         given:
         def a = java "@Helper class A {}"

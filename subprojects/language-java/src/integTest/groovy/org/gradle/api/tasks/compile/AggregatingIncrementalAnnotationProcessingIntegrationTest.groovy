@@ -436,7 +436,7 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
         succeeds "compileJava"
     }
 
-    @Issue("https://https://github.com/micronaut-projects/micronaut-core/issues/6536")
+    @Issue("https://github.com/micronaut-projects/micronaut-core/issues/6536")
     def "does not reprocess if nothing in the current sourceSet changed"() {
         given:
         withProcessor(new AnnotatedGeneratedClassProcessorFixture())
