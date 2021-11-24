@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.mvnsettings;
 
 import org.apache.maven.settings.building.SettingsBuildingException;
+import org.gradle.util.internal.MavenUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,7 +57,7 @@ public class DefaultLocalMavenRepositoryLocator implements LocalMavenRepositoryL
                     return file;
                 }
             } else {
-                File defaultLocation = new File(system.getProperty("user.home"), "/.m2/repository").getAbsoluteFile();
+                File defaultLocation = new File(MavenUtil.getUserMavenDir(), "repository").getAbsoluteFile();
                 LOGGER.debug("No local repository in Settings file defined. Using default path: {}", defaultLocation);
                 return defaultLocation;
             }

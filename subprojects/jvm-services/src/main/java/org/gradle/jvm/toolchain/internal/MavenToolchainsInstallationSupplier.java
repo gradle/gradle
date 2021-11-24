@@ -20,6 +20,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.util.internal.MavenUtil;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
@@ -86,7 +87,7 @@ public class MavenToolchainsInstallationSupplier extends AutoDetectingInstallati
     }
 
     private String defaultMavenToolchainsDefinitionsLocation() {
-        return new File(System.getProperty("user.home"), ".m2/toolchains.xml").getAbsolutePath();
+        return new File(MavenUtil.getUserMavenDir(), "toolchains.xml").getAbsolutePath();
     }
 
     private void logFileNotFound(IOException e) {
