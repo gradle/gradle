@@ -18,6 +18,7 @@ import elmish.Component
 import elmish.View
 import elmish.a
 import elmish.attributes
+import elmish.br
 import elmish.code
 import elmish.div
 import elmish.empty
@@ -149,7 +150,7 @@ object ConfigurationCacheReportPage : Component<ConfigurationCacheReportPage.Mod
         learnMore(model.documentationLink),
         div(
             attributes { className("title") },
-            h1(model.summary()),
+            displaySummary(model),
         ),
         div(
             attributes { className("groups") },
@@ -172,30 +173,46 @@ object ConfigurationCacheReportPage : Component<ConfigurationCacheReportPage.Mod
     private
     fun viewInputs(inputTree: ProblemTreeModel): View<Intent> =
         div(
-            div(
-                attributes { className("title") },
-                h1("The following build logic inputs were automatically detected and will cause the cache to be discarded when their value change:"),
-            ),
-            div(
-                attributes { className("inputs") },
-                viewTree(inputTree.tree.focus().children, Intent::InputTreeIntent)
-            )
+            attributes { className("inputs") },
+            viewTree(inputTree.tree.focus().children, Intent::InputTreeIntent)
         )
 
     private
-    fun Model.summary() =
-        "$totalProblems ${problemOrProblems()} found $cacheAction the configuration cache".let {
-            if (totalProblems > reportedProblems) "$it, only the first $reportedProblems ${reportedWasOrWere()} included in this report"
+    fun displaySummary(model: Model): View<Intent> {
+        return h1(
+            "${model.cacheAction.capitalize()} the configuration cache",
+            br(),
+            small(model.inputsSummary()),
+            br(),
+            small(model.problemsSummary()),
+        )
+    }
+
+    private
+    fun Model.inputsSummary() =
+        "${inputTree.problemCount} build logic input ${wasOrWere(inputTree.problemCount)} found".let {
+            if (inputTree.problemCount > 0) "$it and will cause the cache to be discarded when ${itsOrTheir(inputTree.problemCount)} value change"
+            else it
+        }
+
+    private
+    fun Model.problemsSummary() =
+        "$totalProblems ${problemOrProblems()} ${wasOrWere((totalProblems))} found".let {
+            if (totalProblems > reportedProblems) "$it, only the first $reportedProblems ${wasOrWere(reportedProblems)} included in this report"
             else it
         }
 
     private
     fun Model.problemOrProblems() =
-        if (totalProblems == 1) "problem was" else "problems were"
+        if (totalProblems == 1) "problem" else "problems"
 
     private
-    fun Model.reportedWasOrWere() =
-        if (reportedProblems == 1) "was" else "were"
+    fun wasOrWere(count: Int) =
+        if (count == 1) "was" else "were"
+
+    private
+    fun itsOrTheir(count: Int) =
+        if (count == 1) "its" else "there"
 
     private
     fun displayTabButton(tab: Tab, activeTab: Tab, problemsCount: Int): View<Intent> = div(
@@ -419,4 +436,8 @@ object ConfigurationCacheReportPage : Component<ConfigurationCacheReportPage.Mod
         Tree.ViewState.Collapsed -> "expand"
         Tree.ViewState.Expanded -> "collapse"
     }
+
+    private
+    fun String.capitalize() =
+        replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
 }

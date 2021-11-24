@@ -62,6 +62,9 @@ val li = ViewFactory("li")
 val a = ViewFactory("a")
 
 
+val br = ViewFactory("br")
+
+
 fun <I> render(view: View<I>, into: Element, send: (I) -> Unit) {
     into.innerHTML = ""
     into.appendElementFor(view, send)
