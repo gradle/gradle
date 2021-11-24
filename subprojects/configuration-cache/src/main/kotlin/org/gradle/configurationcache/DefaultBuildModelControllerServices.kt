@@ -54,6 +54,7 @@ import org.gradle.internal.build.BuildModelController
 import org.gradle.internal.build.BuildModelControllerServices
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.buildtree.BuildModelParameters
+import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.model.StateTransitionControllerFactory
 import org.gradle.internal.operations.BuildOperationExecutor
@@ -151,10 +152,11 @@ class DefaultBuildModelControllerServices(
         fun createCrossProjectModelAccess(
             projectRegistry: ProjectRegistry<ProjectInternal>,
             problemsListener: ProblemsListener,
-            userCodeApplicationContext: UserCodeApplicationContext
+            userCodeApplicationContext: UserCodeApplicationContext,
+            listenerManager: ListenerManager
         ): CrossProjectModelAccess {
             val delegate = VintageIsolatedProjectsProvider().createCrossProjectModelAccess(projectRegistry)
-            return ProblemReportingCrossProjectModelAccess(delegate, problemsListener, userCodeApplicationContext)
+            return ProblemReportingCrossProjectModelAccess(delegate, problemsListener, listenerManager.getBroadcaster(CoupledProjectsListener::class.java), userCodeApplicationContext)
         }
     }
 

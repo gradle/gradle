@@ -92,6 +92,12 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                     val target = projects.entryFor(input.targetProject)
                     target.consumedBy(consumer)
                 }
+                is ProjectSpecificFingerprint.CoupledProjects -> {
+                    val referrer = projects.entryFor(input.referringProject)
+                    val target = projects.entryFor(input.targetProject)
+                    target.consumedBy(referrer)
+                    referrer.consumedBy(target)
+                }
                 else -> throw IllegalStateException("Unexpected configuration cache fingerprint: $input")
             }
         }
@@ -112,6 +118,10 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                     }
                 is ProjectSpecificFingerprint.ProjectDependency ->
                     if (reusedProjects.contains(input.consumingProject)) {
+                        consumer.accept(input)
+                    }
+                is ProjectSpecificFingerprint.CoupledProjects ->
+                    if (reusedProjects.contains(input.referringProject)) {
                         consumer.accept(input)
                     }
             }
