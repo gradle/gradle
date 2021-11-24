@@ -5,6 +5,7 @@ import common.JvmVendor
 import common.JvmVersion
 import common.Os
 import common.VersionedSettingsBranch
+import common.toCapitalized
 import configurations.BaseGradleBuildType
 import configurations.BuildDistributions
 import configurations.CheckLinks
@@ -262,7 +263,7 @@ data class TestCoverage(
 
     private
     val testCoveragePrefix
-        get() = "${testType.name.capitalize()}_$uuid"
+        get() = "${testType.name.toCapitalized()}_$uuid"
 
     fun asConfigurationId(model: CIBuildModel, subProject: String = ""): String {
         val prefix = "${testCoveragePrefix}_"
@@ -280,7 +281,7 @@ data class TestCoverage(
     }
 
     fun asName(): String =
-        "${testType.name.capitalize()} ${testJvmVersion.name.capitalize()} ${vendor.name.capitalize()} ${os.asName()}${if (withoutDependencies) " without dependencies" else ""}"
+        "${testType.name.toCapitalized()} ${testJvmVersion.name.toCapitalized()} ${vendor.name.toCapitalized()} ${os.asName()}${if (withoutDependencies) " without dependencies" else ""}"
 
     val isQuick: Boolean = withoutDependencies || testType == TestType.quick
     val isPlatform: Boolean = testType == TestType.platform

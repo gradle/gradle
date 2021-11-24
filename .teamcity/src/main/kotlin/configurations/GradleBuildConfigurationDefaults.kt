@@ -70,15 +70,12 @@ fun BuildFeatures.publishBuildStatusToGithub(model: CIBuildModel) {
     }
 }
 
-fun BuildFeatures.triggeredOnPullRequests(model: CIBuildModel) {
+fun BuildFeatures.enablePullRequestFeature() {
     pullRequests {
         vcsRootExtId = "Gradle_Branches_GradlePersonalBranches"
         provider = github {
-            authType = token {
-                token = "%github.bot-gradle.token%"
-            }
-            filterAuthorRole = PullRequests.GitHubRoleFilter.MEMBER
-            filterTargetBranch = model.branch.branchFilter()
+            authType = vcsRoot()
+            filterAuthorRole = PullRequests.GitHubRoleFilter.EVERYBODY
         }
     }
 }
