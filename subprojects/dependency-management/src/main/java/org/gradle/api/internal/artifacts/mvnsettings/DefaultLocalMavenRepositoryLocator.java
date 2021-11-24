@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.mvnsettings;
 
 import org.apache.maven.settings.building.SettingsBuildingException;
-import org.gradle.util.internal.MavenUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,14 +29,16 @@ public class DefaultLocalMavenRepositoryLocator implements LocalMavenRepositoryL
 
     private final MavenSettingsProvider settingsProvider;
     private final SystemPropertyAccess system;
+    private final MavenFileLocations mavenFileLocations;
     private String localRepoPathFromMavenSettings;
 
     public DefaultLocalMavenRepositoryLocator(MavenSettingsProvider settingsProvider) {
-        this(settingsProvider, new CurrentSystemPropertyAccess());
+        this(settingsProvider, new DefaultMavenFileLocations(), new CurrentSystemPropertyAccess());
     }
 
-    protected DefaultLocalMavenRepositoryLocator(MavenSettingsProvider settingsProvider, SystemPropertyAccess system) {
+    protected DefaultLocalMavenRepositoryLocator(MavenSettingsProvider settingsProvider, MavenFileLocations mavenFileLocations, SystemPropertyAccess system) {
         this.settingsProvider = settingsProvider;
+        this.mavenFileLocations = mavenFileLocations;
         this.system = system;
     }
 
@@ -57,7 +58,7 @@ public class DefaultLocalMavenRepositoryLocator implements LocalMavenRepositoryL
                     return file;
                 }
             } else {
-                File defaultLocation = new File(MavenUtil.getUserMavenDir(), "repository").getAbsoluteFile();
+                File defaultLocation = new File(mavenFileLocations.getUserMavenDir(), "repository").getAbsoluteFile();
                 LOGGER.debug("No local repository in Settings file defined. Using default path: {}", defaultLocation);
                 return defaultLocation;
             }
@@ -95,7 +96,7 @@ public class DefaultLocalMavenRepositoryLocator implements LocalMavenRepositoryL
         return result.toString();
     }
 
-    public static interface SystemPropertyAccess {
+    public interface SystemPropertyAccess {
         String getProperty(String name);
         String getEnv(String name);
     }

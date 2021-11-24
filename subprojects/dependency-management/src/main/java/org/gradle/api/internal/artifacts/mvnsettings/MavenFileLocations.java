@@ -19,8 +19,8 @@ package org.gradle.api.internal.artifacts.mvnsettings;
 import java.io.File;
 
 public interface MavenFileLocations {
-    public File getUserMavenDir();
-    public File getGlobalMavenDir();
-    public File getUserSettingsFile();
-    public File getGlobalSettingsFile();
+    File getUserMavenDir();
+    File getGlobalMavenDir();
+    File getUserSettingsFile();
+    File getGlobalSettingsFile();
 }
