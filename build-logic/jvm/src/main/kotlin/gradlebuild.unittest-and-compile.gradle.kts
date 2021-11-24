@@ -16,8 +16,14 @@
 
 import com.gradle.enterprise.gradleplugin.testdistribution.internal.TestDistributionExtensionInternal
 import gradlebuild.basics.BuildEnvironment
+import gradlebuild.basics.isExperimentalTestFilteringEnabled
+import gradlebuild.basics.maxParallelForks
+import gradlebuild.basics.maxTestDistributionPartitionSecond
+import gradlebuild.basics.rerunAllTests
 import gradlebuild.basics.tasks.ClasspathManifest
 import gradlebuild.basics.testDistributionEnabled
+import gradlebuild.basics.testJavaVendor
+import gradlebuild.basics.testJavaVersion
 import gradlebuild.filterEnvironmentVariables
 import gradlebuild.jvm.argumentproviders.CiEnvironmentProvider
 import gradlebuild.jvm.extension.UnitTestAndCompileExtension
@@ -172,21 +178,15 @@ fun configureJarTasks() {
     }
 }
 
-fun getPropertyFromAnySource(propertyName: String): Provider<String> {
-    return providers.gradleProperty(propertyName)
-        .orElse(providers.systemProperty(propertyName))
-        .orElse(providers.environmentVariable(propertyName))
-}
-
 fun Test.jvmVersionForTest(): JavaLanguageVersion {
-    return JavaLanguageVersion.of(getPropertyFromAnySource("testJavaVersion").getOrElse(JavaVersion.current().majorVersion))
+    return JavaLanguageVersion.of(project.testJavaVersion)
 }
 
 fun Test.configureJvmForTest() {
     jvmArgumentProviders.add(CiEnvironmentProvider(this))
     val launcher = project.javaToolchains.launcherFor {
         languageVersion.set(jvmVersionForTest())
-        getPropertyFromAnySource("testJavaVendor").map {
+        project.testJavaVendor.map {
             when (it.toLowerCase()) {
                 "oracle" -> vendor.set(JvmVendorSpec.ORACLE)
                 "openjdk" -> vendor.set(JvmVendorSpec.ADOPTOPENJDK)
@@ -215,7 +215,7 @@ fun Test.isUnitTest() = listOf("test", "writePerformanceScenarioDefinitions", "w
 fun Test.usesEmbeddedExecuter() = name.startsWith("embedded")
 
 fun Test.configureRerun() {
-    if (providers.gradleProperty("rerunAllTests").isPresent) {
+    if (project.rerunAllTests.isPresent) {
         doNotTrackState("All tests should re-run")
     }
 }
@@ -263,7 +263,7 @@ fun configureTests() {
             }
         }
 
-        if (project.testDistributionEnabled() && !isUnitTest()) {
+        if (project.testDistributionEnabled && !isUnitTest()) {
             println("Remote test distribution has been enabled for $testName")
 
             distribution {
@@ -301,16 +301,6 @@ fun removeTeamcityTempProperty() {
 }
 
 fun Project.enableExperimentalTestFiltering() = !setOf("build-scan-performance", "configuration-cache", "kotlin-dsl", "performance", "smoke-test", "soak").contains(name) && isExperimentalTestFilteringEnabled
-
-val Project.isExperimentalTestFilteringEnabled
-    get() = providers.systemProperty("gradle.internal.testselection.enabled").getOrElse("false").toBoolean()
-
-// Controls the test distribution partition size. The test classes smaller than this value will be merged into a "partition"
-val Project.maxTestDistributionPartitionSecond: Long?
-    get() = providers.systemProperty("testDistributionPartitionSizeInSeconds").orNull?.toLong()
-
-val Project.maxParallelForks: Int
-    get() = (findProperty("maxParallelForks")?.toString()?.toInt() ?: 4) * (if (System.getenv("BUILD_AGENT_VARIANT") == "AX41") 2 else 1)
 
 /**
  * Test lifecycle tasks that correspond to CIBuildModel.TestType (see .teamcity/Gradle_Check/model/CIBuildModel.kt).
