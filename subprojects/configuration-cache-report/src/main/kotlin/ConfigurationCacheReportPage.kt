@@ -22,7 +22,6 @@ import elmish.code
 import elmish.div
 import elmish.empty
 import elmish.h1
-import elmish.hr
 import elmish.ol
 import elmish.pre
 import elmish.small
@@ -105,6 +104,7 @@ object ConfigurationCacheReportPage : Component<ConfigurationCacheReportPage.Mod
     }
 
     enum class Tab(val text: String) {
+        Inputs("Build logic inputs"),
         ByMessage("Problems grouped by message"),
         ByLocation("Problems grouped by location")
     }
@@ -149,9 +149,7 @@ object ConfigurationCacheReportPage : Component<ConfigurationCacheReportPage.Mod
     override fun view(model: Model): View<Intent> = div(
         attributes { className("report-wrapper") },
         viewHeader(model),
-        viewProblems(model),
-        hr(),
-        viewInputs(model.inputTree)
+        viewProblems(model)
     )
 
     private
@@ -177,6 +175,7 @@ object ConfigurationCacheReportPage : Component<ConfigurationCacheReportPage.Mod
         ),
         div(
             attributes { className("groups") },
+            displayTabButton(Tab.Inputs, model.tab, model.inputTree.problemCount),
             displayTabButton(Tab.ByMessage, model.tab, model.messageTree.problemCount),
             displayTabButton(Tab.ByLocation, model.tab, model.locationTree.problemCount)
         )
@@ -186,6 +185,7 @@ object ConfigurationCacheReportPage : Component<ConfigurationCacheReportPage.Mod
     fun viewProblems(model: Model) = div(
         attributes { className("content") },
         when (model.tab) {
+            Tab.Inputs -> viewInputs(model.inputTree)
             Tab.ByMessage -> viewTree(model.messageTree, Intent::MessageTreeIntent, model.displayFilter)
             Tab.ByLocation -> viewTree(model.locationTree, Intent::TaskTreeIntent, model.displayFilter)
         }
