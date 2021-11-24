@@ -21,7 +21,6 @@ import org.gradle.api.internal.properties.GradleProperties;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Map;
-import java.util.Set;
 
 public class DefaultGradlePropertiesController implements GradlePropertiesController {
 

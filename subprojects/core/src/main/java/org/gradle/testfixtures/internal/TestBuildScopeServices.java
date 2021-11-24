@@ -29,9 +29,7 @@ import org.gradle.internal.service.scopes.BuildScopeServices;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.util.Collections;
 import java.util.Map;
-import java.util.Set;
 
 public class TestBuildScopeServices extends BuildScopeServices {
     private final File homeDir;

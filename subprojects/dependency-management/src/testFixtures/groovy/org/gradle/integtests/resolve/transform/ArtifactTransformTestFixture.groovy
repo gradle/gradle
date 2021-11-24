@@ -453,11 +453,11 @@ allprojects { p ->
         void produceFiles() {
             producerTaskClassName = "FileProducer"
             producerConfig = """
-                output.convention(layout.buildDirectory.file(providers.gradleProperty("\${project.name}FileName").orElse("\${project.name}.jar")))
-                content.convention(providers.gradleProperty("\${project.name}Content").orElse(project.name))
+                output.convention(layout.buildDirectory.file(providers.systemProperty("\${project.name}FileName").orElse("\${project.name}.jar")))
+                content.convention(providers.systemProperty("\${project.name}Content").orElse(project.name))
             """.stripIndent()
             producerConfigOverrides = """
-                layout.buildDirectory.convention(layout.projectDirectory.dir(providers.gradleProperty("\${project.name}OutputDir").orElse("build")))
+                layout.buildDirectory.convention(layout.projectDirectory.dir(providers.systemProperty("\${project.name}OutputDir").orElse("build")))
             """.stripIndent()
         }
 
@@ -467,15 +467,15 @@ allprojects { p ->
         void produceJars() {
             producerTaskClassName = "JarProducer"
             producerConfig = """
-                output.convention(layout.buildDirectory.file(providers.gradleProperty("\${project.name}FileName").orElse("\${project.name}.jar")))
-                content.convention(providers.gradleProperty("\${project.name}Content").orElse(project.name))
-                timestamp.convention(providers.gradleProperty("\${project.name}Timestamp").map { Long.parseLong(it) }.orElse(123L))
-                entryName.convention(providers.gradleProperty("\${project.name}EntryName").orElse("thing.class"))
+                output.convention(layout.buildDirectory.file(providers.systemProperty("\${project.name}FileName").orElse("\${project.name}.jar")))
+                content.convention(providers.systemProperty("\${project.name}Content").orElse(project.name))
+                timestamp.convention(providers.systemProperty("\${project.name}Timestamp").map { Long.parseLong(it) }.orElse(123L))
+                entryName.convention(providers.systemProperty("\${project.name}EntryName").orElse("thing.class"))
             """.stripIndent()
             producerConfigOverrides = """
-                layout.buildDirectory.convention(layout.projectDirectory.dir(providers.gradleProperty("\${project.name}OutputDir").orElse("build")))
+                layout.buildDirectory.convention(layout.projectDirectory.dir(providers.systemProperty("\${project.name}OutputDir").orElse("build")))
                 tasks.withType(JarProducer) {
-                    if (project.hasProperty("\${project.name}ProduceNothing")) {
+                    if (providers.systemProperty("\${project.name}ProduceNothing").present) {
                         content = ""
                     }
                 }
@@ -494,20 +494,21 @@ allprojects { p ->
         void produceDirs() {
             producerTaskClassName = "DirProducer"
             producerConfig = """
-                output.convention(layout.buildDirectory.dir(providers.gradleProperty("\${project.name}DirName").orElse("\${project.name}-dir")))
+                output.convention(layout.buildDirectory.dir(providers.systemProperty("\${project.name}DirName").orElse("\${project.name}-dir")))
                 def defaultContent = project.name
-                content.convention(providers.gradleProperty("\${project.name}Content").orElse(defaultContent))
-                def defaultNames = providers.gradleProperty("\${project.name}EmptyDir").present ? [] : [project.name]
-                names.convention(providers.gradleProperty("\${project.name}Name").map { [it] }.orElse(defaultNames))
+                content.convention(providers.systemProperty("\${project.name}Content").orElse(defaultContent))
+                def defaultNames = providers.systemProperty("\${project.name}EmptyDir").present ? [] : [project.name]
+                names.convention(providers.systemProperty("\${project.name}Name").map { [it] }.orElse(defaultNames))
             """.stripIndent()
             producerConfigOverrides = """
-                layout.buildDirectory.convention(layout.projectDirectory.dir(providers.gradleProperty("\${project.name}OutputDir").orElse("build")))
+                layout.buildDirectory.convention(layout.projectDirectory.dir(providers.systemProperty("\${project.name}OutputDir").orElse("build")))
                 tasks.withType(DirProducer) {
-                    if (project.hasProperty("\${project.name}ProduceNothing")) {
+                    if (providers.systemProperty("\${project.name}ProduceNothing").present) {
                         content = ""
                     }
-                    if (project.hasProperty("\${project.name}Names")) {
-                        names.set(project.property("\${project.name}Names").split(',') as List)
+                    def namesProperty = providers.systemProperty("\${project.name}Names")
+                    if (namesProperty.present) {
+                        names.set(namesProperty.map { it.split(',') as List })
                     }
                 }
             """.stripIndent()

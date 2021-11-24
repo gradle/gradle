@@ -167,8 +167,8 @@ class IsolatedProjectsFixture {
         details.changedFiles.each { file ->
             reasons.add("file '${file.replace('/', File.separator)}'")
         }
-        if (details.changedGradleProperty != null) {
-            reasons.add("Gradle property '$details.changedGradleProperty'")
+        if (details.changedGradleProperty) {
+            reasons.add("the set of Gradle properties")
         }
         if (details.changedSystemProperty != null) {
             reasons.add("system property '$details.changedSystemProperty'")
@@ -266,7 +266,9 @@ class IsolatedProjectsFixture {
         def expectedProjectModels = details.models.collect { [it.path] * it.count }.flatten()
         assert models.size() == expectedProjectModels.size() + details.buildModelQueries
         models.removeAll { it.details.projectPath == null }
-        assert models.collect { fullPath(it) }.sort() == expectedProjectModels.sort()
+        def sortedProjectModels = models.collect { fullPath(it) }.sort()
+        def sortedExpectedProjectModels = expectedProjectModels.sort()
+        assert sortedProjectModels == sortedExpectedProjectModels
     }
 
     private void assertHasWarningThatIncubatingFeatureUsed() {
@@ -347,7 +349,7 @@ class IsolatedProjectsFixture {
 
     static class StoreRecreatedDetails extends StoreDetails {
         List<String> changedFiles = []
-        String changedGradleProperty
+        boolean changedGradleProperty
         String changedSystemProperty
         String changedTask
 
@@ -359,8 +361,8 @@ class IsolatedProjectsFixture {
             changedTask = name
         }
 
-        void gradlePropertyChanged(String name) {
-            changedGradleProperty = name
+        void gradlePropertyChanged() {
+            changedGradleProperty = true
         }
 
         void systemPropertyChanged(String name) {
