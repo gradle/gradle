@@ -16,15 +16,13 @@
 
 package gradlebuild.basics
 
+import gradlebuild.basics.BuildParams.CI_ENVIRONMENT_VARIABLE
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.file.Directory
 import org.gradle.api.provider.Provider
 import org.gradle.internal.os.OperatingSystem
 import java.io.ByteArrayOutputStream
-
-
-fun Project.testDistributionEnabled() = providers.systemProperty("enableTestDistribution").orNull?.toBoolean() == true
 
 
 fun Project.repoRoot() = layout.projectDirectory.parentOrRoot()
@@ -100,13 +98,8 @@ object BuildEnvironment {
         "CODEQL_PLATFORM",
         "CODEQL_RUNNER"
     )
-    const val CI_ENVIRONMENT_VARIABLE = "CI"
-    const val BUILD_BRANCH = "BUILD_BRANCH"
-    const val BUILD_COMMIT_ID = "BUILD_COMMIT_ID"
-    const val BUILD_VCS_NUMBER = "BUILD_VCS_NUMBER"
 
     val isCiServer = CI_ENVIRONMENT_VARIABLE in System.getenv()
-    val isIntelliJIDEA by lazy { System.getProperty("idea.version") != null }
     val isTravis = "TRAVIS" in System.getenv()
     val isJenkins = "JENKINS_HOME" in System.getenv()
     val isGhActions = "GITHUB_ACTIONS" in System.getenv()
