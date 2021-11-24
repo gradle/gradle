@@ -95,13 +95,8 @@ object ConfigurationCacheReportPage : Component<ConfigurationCacheReportPage.Mod
         val messageTree: ProblemTreeModel,
         val locationTree: ProblemTreeModel,
         val inputTree: ProblemTreeModel,
-        val displayFilter: DisplayFilter = DisplayFilter.All,
         val tab: Tab = if (totalProblems == 0) Tab.Inputs else Tab.ByMessage
     )
-
-    enum class DisplayFilter {
-        All, Errors, Warnings
-    }
 
     enum class Tab(val text: String) {
         Inputs("Build logic inputs"),
@@ -118,8 +113,6 @@ object ConfigurationCacheReportPage : Component<ConfigurationCacheReportPage.Mod
         data class InputTreeIntent(val delegate: ProblemTreeIntent) : Intent()
 
         data class Copy(val text: String) : Intent()
-
-        data class SetFilter(val displayFilter: DisplayFilter) : Intent()
 
         data class SetTab(val tab: Tab) : Intent()
     }
@@ -138,9 +131,6 @@ object ConfigurationCacheReportPage : Component<ConfigurationCacheReportPage.Mod
             window.navigator.clipboard.writeText(intent.text)
             model
         }
-        is Intent.SetFilter -> model.copy(
-            displayFilter = intent.displayFilter
-        )
         is Intent.SetTab -> model.copy(
             tab = intent.tab
         )
@@ -160,18 +150,6 @@ object ConfigurationCacheReportPage : Component<ConfigurationCacheReportPage.Mod
         div(
             attributes { className("title") },
             h1(model.summary()),
-            div(
-                attributes { className("filters") },
-                div(
-                    span("View"),
-                    div(
-                        attributes { className("filters-group") },
-                        displayFilterButton(DisplayFilter.All, model.displayFilter),
-                        displayFilterButton(DisplayFilter.Errors, model.displayFilter),
-                        displayFilterButton(DisplayFilter.Warnings, model.displayFilter)
-                    )
-                )
-            )
         ),
         div(
             attributes { className("groups") },
@@ -186,8 +164,8 @@ object ConfigurationCacheReportPage : Component<ConfigurationCacheReportPage.Mod
         attributes { className("content") },
         when (model.tab) {
             Tab.Inputs -> viewInputs(model.inputTree)
-            Tab.ByMessage -> viewTree(model.messageTree, Intent::MessageTreeIntent, model.displayFilter)
-            Tab.ByLocation -> viewTree(model.locationTree, Intent::TaskTreeIntent, model.displayFilter)
+            Tab.ByMessage -> viewTree(model.messageTree, Intent::MessageTreeIntent)
+            Tab.ByLocation -> viewTree(model.locationTree, Intent::TaskTreeIntent)
         }
     )
 
@@ -241,18 +219,6 @@ object ConfigurationCacheReportPage : Component<ConfigurationCacheReportPage.Mod
     )
 
     private
-    fun displayFilterButton(displayFilter: DisplayFilter, activeFilter: DisplayFilter): View<Intent> = span(
-        attributes {
-            className("btn")
-            if (displayFilter == activeFilter) {
-                className("btn-active")
-            }
-            onClick { Intent.SetFilter(displayFilter) }
-        },
-        displayFilter.name
-    )
-
-    private
     fun learnMore(documentationLink: String): View<Intent> = div(
         attributes { className("learn-more") },
         span("Learn more about the "),
@@ -264,8 +230,8 @@ object ConfigurationCacheReportPage : Component<ConfigurationCacheReportPage.Mod
     )
 
     private
-    fun viewTree(model: ProblemTreeModel, treeIntent: (ProblemTreeIntent) -> Intent, displayFilter: DisplayFilter): View<Intent> =
-        viewTree(applyFilter(displayFilter, model), treeIntent)
+    fun viewTree(model: ProblemTreeModel, treeIntent: (ProblemTreeIntent) -> Intent): View<Intent> =
+        viewTree(model.tree.focus().children, treeIntent)
 
     private
     fun viewTree(
@@ -291,16 +257,6 @@ object ConfigurationCacheReportPage : Component<ConfigurationCacheReportPage.Mod
             }
         )
     )
-
-    private
-    fun applyFilter(displayFilter: DisplayFilter, model: ProblemTreeModel): Sequence<Tree.Focus<ProblemNode>> {
-        val children = model.tree.focus().children
-        return when (displayFilter) {
-            DisplayFilter.All -> children
-            DisplayFilter.Errors -> children.filter { it.tree.label is ProblemNode.Error }
-            DisplayFilter.Warnings -> children.filter { it.tree.label is ProblemNode.Warning }
-        }
-    }
 
     private
     fun viewNode(node: ProblemNode): View<Intent> = when (node) {

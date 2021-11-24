@@ -40,11 +40,6 @@
     flex: 1 0 100%;
 }
 
-.filters {
-    margin-left: auto;
-    font-size: 0.875rem;
-}
-
 .content {
     font-size: 0.875rem;
     padding: 192px 0 48px;
@@ -173,43 +168,6 @@ ul .tree-btn {
 
 .copy-button::selection {
     color: transparent;
-}
-
-.filters-group {
-    display: inline-flex;
-    background-color: #EDEEEF;
-    border-radius: 5px;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-    height: 30px;
-    align-items: center;
-    padding: 0 3px;
-    margin-left: 8px;
-    line-height: 1rem;
-}
-
-.btn {
-    padding: 4px 10px;
-    border-radius: 3px;
-    cursor: pointer;
-    position: relative;
-    height: 24px;
-    min-width: 78px;
-    display: inline-block;
-    text-align: center;
-}
-
-.btn:hover {
-    color: #3cafc6;
-    background-color: #d8eff3;
-    box-shadow: none;
-}
-
-.btn-active {
-    cursor: default;
-    background: #fff;
 }
 
 .groups {
