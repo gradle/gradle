@@ -235,13 +235,6 @@ class ConfigurationCacheFingerprintWriter(
     }
 
     private
-    fun reportFile(file: File) {
-        if (reportedFiles.add(file)) {
-            reportFileInput(file)
-        }
-    }
-
-    private
     fun captureTaskInputs(task: TaskInternal, fileSystemInputs: FileCollectionInternal) {
         sink().write(
             ConfigurationCacheFingerprint.TaskInputs(
@@ -314,6 +307,13 @@ class ConfigurationCacheFingerprintWriter(
     }
 
     private
+    fun reportFile(file: File) {
+        if (reportedFiles.add(file)) {
+            reportFileInput(file)
+        }
+    }
+
+    private
     fun reportFileInput(file: File) {
         reportInput(null, null) {
             text("file ")
@@ -370,9 +370,6 @@ class ConfigurationCacheFingerprintWriter(
         private val host: Host
     ) {
         val capturedFiles = newConcurrentHashSet<File>()
-
-        private
-        val undeclaredGradleProperties = newConcurrentHashSet<String>()
 
         private
         val undeclaredSystemProperties = newConcurrentHashSet<String>()
