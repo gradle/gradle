@@ -155,11 +155,6 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                 val reason = checkInitScriptsAreUpToDate(fingerprints, host.allInitScripts)
                 if (reason != null) return reason
             }
-            is ConfigurationCacheFingerprint.UndeclaredGradleProperty -> input.run {
-                if (host.gradleProperty(key) != value) {
-                    return "Gradle property '$key' has changed"
-                }
-            }
             is ConfigurationCacheFingerprint.UndeclaredSystemProperty -> input.run {
                 if (System.getProperty(key) != value) {
                     return "system property '$key' has changed"

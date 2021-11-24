@@ -330,14 +330,6 @@ class ConfigurationCacheFingerprintWriter(
     }
 
     private
-    fun reportGradlePropertyInput(key: String, consumer: String?) {
-        reportInput(consumer, DocumentationSection.RequirementsUndeclaredGradlePropRead) {
-            text("Gradle property ")
-            reference(key)
-        }
-    }
-
-    private
     fun reportSystemPropertyInput(key: String, consumer: String?) {
         reportInput(consumer, DocumentationSection.RequirementsUndeclaredSysPropRead) {
             text("system property ")
@@ -393,12 +385,6 @@ class ConfigurationCacheFingerprintWriter(
                 return
             }
             write(inputFile(file))
-        }
-
-        fun gradlePropertyRead(key: String, value: String?) {
-            if (undeclaredGradleProperties.add(key)) {
-                write(ConfigurationCacheFingerprint.UndeclaredGradleProperty(key, value))
-            }
         }
 
         fun systemPropertyRead(key: String, value: Any?) {
