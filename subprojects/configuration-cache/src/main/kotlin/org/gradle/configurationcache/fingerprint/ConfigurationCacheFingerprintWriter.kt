@@ -85,6 +85,7 @@ class ConfigurationCacheFingerprintWriter(
         val cacheIntermediateModels: Boolean
         fun fingerprintOf(fileCollection: FileCollectionInternal): HashCode
         fun hashCodeOf(file: File): HashCode?
+        fun displayNameOf(file: File): String
         fun reportInput(input: PropertyProblem)
         fun location(consumer: String?): PropertyTrace
     }
@@ -112,6 +113,9 @@ class ConfigurationCacheFingerprintWriter(
 
     private
     val undeclaredEnvironmentVariables = newConcurrentHashSet<String>()
+
+    private
+    val reportedFiles = newConcurrentHashSet<File>()
 
     private
     var closestChangingValue: ConfigurationCacheFingerprint.ChangingDependencyResolutionValue? = null
@@ -191,6 +195,7 @@ class ConfigurationCacheFingerprintWriter(
                 parameters.file.orNull?.asFile?.let { file ->
                     // TODO - consider the potential race condition in computing the hash code here
                     captureFile(file)
+                    reportFile(file)
                 }
             }
             is GradlePropertyValueSource.Parameters -> {
@@ -227,6 +232,13 @@ class ConfigurationCacheFingerprintWriter(
     private
     fun captureFile(file: File) {
         sink().captureFile(file)
+    }
+
+    private
+    fun reportFile(file: File) {
+        if (reportedFiles.add(file)) {
+            reportFileInput(file)
+        }
     }
 
     private
@@ -299,6 +311,14 @@ class ConfigurationCacheFingerprintWriter(
             }
         })
         return fileCollectionFactory.resolving(elements)
+    }
+
+    private
+    fun reportFileInput(file: File) {
+        reportInput(null, null) {
+            text("file ")
+            reference(host.displayNameOf(file))
+        }
     }
 
     private

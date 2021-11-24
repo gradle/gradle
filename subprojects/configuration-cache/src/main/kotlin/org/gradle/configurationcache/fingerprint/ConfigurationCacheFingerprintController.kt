@@ -283,6 +283,9 @@ class ConfigurationCacheFingerprintController internal constructor(
         override fun hashCodeOf(file: File) =
             fileSystemAccess.hashCodeOf(file)
 
+        override fun displayNameOf(file: File): String =
+            GFileUtils.relativePathOf(file, rootDirectory)
+
         override fun fingerprintOf(fileCollection: FileCollectionInternal): HashCode =
             fileCollectionFingerprinter.fingerprint(fileCollection).hash
 
@@ -331,9 +334,9 @@ class ConfigurationCacheFingerprintController internal constructor(
                 obtainedValue.valueSourceParametersType,
                 obtainedValue.valueSourceParameters
             )
-
-        private
-        val rootDirectory
-            get() = startParameter.rootDirectory
     }
+
+    private
+    val rootDirectory
+        get() = startParameter.rootDirectory
 }
