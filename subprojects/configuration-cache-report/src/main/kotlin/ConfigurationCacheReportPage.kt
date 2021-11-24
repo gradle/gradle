@@ -96,7 +96,7 @@ object ConfigurationCacheReportPage : Component<ConfigurationCacheReportPage.Mod
         val locationTree: ProblemTreeModel,
         val inputTree: ProblemTreeModel,
         val displayFilter: DisplayFilter = DisplayFilter.All,
-        val tab: Tab = Tab.ByMessage
+        val tab: Tab = if (totalProblems == 0) Tab.Inputs else Tab.ByMessage
     )
 
     enum class DisplayFilter {
