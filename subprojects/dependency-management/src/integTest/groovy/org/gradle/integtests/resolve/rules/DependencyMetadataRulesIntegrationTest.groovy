@@ -767,7 +767,13 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
                 }
             }
 
-            configurations { anotherConfiguration { attributes { attribute(Attribute.of('format', String), 'custom') } } }
+            configurations {
+                anotherConfiguration { attributes { attribute(Attribute.of('format', String), 'custom') } }
+
+                // Need to ensure runtime, customVariant and anotherConfiguration don't share identical attributes
+                runtime { attributes { attribute(Attribute.of('other', String), 'test') } }
+                customVariant { attributes { attribute(Attribute.of('other', String), 'test2') } }
+            }
 
             dependencies {
                 anotherConfiguration group: 'org.test', name: 'moduleA', version: '1.0' ${publishedModulesHaveAttributes ? "" : ", configuration: '$variantToTest'"}
