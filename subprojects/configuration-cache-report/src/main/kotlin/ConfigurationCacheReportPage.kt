@@ -101,7 +101,7 @@ object ConfigurationCacheReportPage : Component<ConfigurationCacheReportPage.Mod
     )
 
     enum class Tab(val text: String) {
-        Inputs("Build logic inputs"),
+        Inputs("Build configuration inputs"),
         ByMessage("Problems grouped by message"),
         ByLocation("Problems grouped by location")
     }
@@ -192,7 +192,7 @@ object ConfigurationCacheReportPage : Component<ConfigurationCacheReportPage.Mod
 
     private
     fun Model.inputsSummary() =
-        found(inputTree.problemCount, "build logic input").let {
+        found(inputTree.problemCount, "build configuration input").let {
             if (inputTree.problemCount > 0) "$it and will cause the cache to be discarded when ${itsOrTheir(inputTree.problemCount)} value change"
             else it
         }
