@@ -62,26 +62,31 @@ public class MavenToolchainsInstallationSupplier extends AutoDetectingInstallati
 
     @Override
     protected Set<InstallationLocation> findCandidates() {
-        try (FileInputStream toolchain = new FileInputStream(toolchainLocation.get())) {
-            DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
-            XPath xpath = xPathFactory.newXPath();
-            XPathExpression expression = xpath.compile(PARSE_EXPRESSION);
+        File toolchainFile = new File(toolchainLocation.get());
+        if (toolchainFile.exists()) {
+            try (FileInputStream toolchain = new FileInputStream(toolchainFile)) {
+                DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
+                XPath xpath = xPathFactory.newXPath();
+                XPathExpression expression = xpath.compile(PARSE_EXPRESSION);
 
-            NodeList nodes = (NodeList) expression.evaluate(documentBuilder.parse(toolchain), XPathConstants.NODESET);
-            Set<String> locations = new HashSet<>();
-            for (int i = 0; i < nodes.getLength(); i++) {
-                Node item = nodes.item(i);
-                if (item != null && item.getNodeType() == Node.TEXT_NODE) {
-                    locations.add(item.getNodeValue().trim());
+                NodeList nodes = (NodeList) expression.evaluate(documentBuilder.parse(toolchain), XPathConstants.NODESET);
+                Set<String> locations = new HashSet<>();
+                for (int i = 0; i < nodes.getLength(); i++) {
+                    Node item = nodes.item(i);
+                    if (item != null && item.getNodeType() == Node.TEXT_NODE) {
+                        locations.add(item.getNodeValue().trim());
+                    }
+                }
+                return locations.stream()
+                    .map(jdkHome -> new InstallationLocation(new File(jdkHome), "Maven Toolchains"))
+                    .collect(Collectors.toSet());
+            } catch (IOException | ParserConfigurationException | SAXException | XPathExpressionException e) {
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug(String.format("Java Toolchain auto-detection failed to parse Maven Toolchains located at %s", toolchainLocation), e);
+                } else {
+                    LOGGER.info(String.format("Java Toolchain auto-detection failed to parse Maven Toolchains located at %s", toolchainLocation));
                 }
             }
-            return locations.stream()
-                .map(jdkHome -> new InstallationLocation(new File(jdkHome), "Maven Toolchains"))
-                .collect(Collectors.toSet());
-        } catch (IOException e) {
-            logFileNotFound(e);
-        } catch (ParserConfigurationException | SAXException | XPathExpressionException e) {
-            logParsingFailure(e);
         }
         return Collections.emptySet();
     }
@@ -90,17 +95,4 @@ public class MavenToolchainsInstallationSupplier extends AutoDetectingInstallati
         return new File(MavenUtil.getUserMavenDir(), "toolchains.xml").getAbsolutePath();
     }
 
-    private void logFileNotFound(IOException e) {
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug(String.format("Java Toolchain auto-detection can't find Maven Toolchains file at location %s", toolchainLocation), e);
-        }
-    }
-
-    private void logParsingFailure(Exception e) {
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug(String.format("Java Toolchain auto-detection failed to parse Maven Toolchains located at %s", toolchainLocation), e);
-        } else {
-            LOGGER.info(String.format("Java Toolchain auto-detection failed to parse Maven Toolchains located at %s", toolchainLocation));
-        }
-    }
 }
