@@ -209,13 +209,17 @@ object ConfigurationCacheReportPage : Component<ConfigurationCacheReportPage.Mod
     private
     fun Model.summary() =
         "$totalProblems ${problemOrProblems()} found $cacheAction the configuration cache".let {
-            if (totalProblems > reportedProblems) "$it, only the first $reportedProblems were included in this report"
+            if (totalProblems > reportedProblems) "$it, only the first $reportedProblems ${reportedWasOrWere()} included in this report"
             else it
         }
 
     private
     fun Model.problemOrProblems() =
         if (totalProblems == 1) "problem was" else "problems were"
+
+    private
+    fun Model.reportedWasOrWere() =
+        if (reportedProblems == 1) "was" else "were"
 
     private
     fun displayTabButton(tab: Tab, activeTab: Tab, problemsCount: Int): View<Intent> = div(
