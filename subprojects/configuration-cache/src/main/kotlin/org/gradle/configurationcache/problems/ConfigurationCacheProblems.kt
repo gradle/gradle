@@ -118,7 +118,8 @@ class ConfigurationCacheProblems(
 
         val outputDirectory = outputDirectoryFor(reportDir)
         val cacheActionText = cacheAction.summaryText()
-        val htmlReportFile = report.writeReportFileTo(outputDirectory, cacheActionText, problemCount)
+        val requestedTasksText = startParameter.requestedTaskNames.joinToString(" ")
+        val htmlReportFile = report.writeReportFileTo(outputDirectory, cacheActionText, requestedTasksText, problemCount)
         if (htmlReportFile == null) {
             // there was nothing to report
             require(!failed)
