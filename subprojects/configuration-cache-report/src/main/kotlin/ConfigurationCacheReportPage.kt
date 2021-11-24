@@ -192,29 +192,38 @@ object ConfigurationCacheReportPage : Component<ConfigurationCacheReportPage.Mod
 
     private
     fun Model.inputsSummary() =
-        "${inputTree.problemCount} build logic input ${wasOrWere(inputTree.problemCount)} found".let {
+        found(inputTree.problemCount, "build logic input").let {
             if (inputTree.problemCount > 0) "$it and will cause the cache to be discarded when ${itsOrTheir(inputTree.problemCount)} value change"
             else it
         }
 
     private
     fun Model.problemsSummary() =
-        "$totalProblems ${problemOrProblems()} ${wasOrWere((totalProblems))} found".let {
+        found(totalProblems, "problem").let {
             if (totalProblems > reportedProblems) "$it, only the first $reportedProblems ${wasOrWere(reportedProblems)} included in this report"
             else it
         }
 
     private
-    fun Model.problemOrProblems() =
-        if (totalProblems == 1) "problem" else "problems"
+    fun found(count: Int, what: String) =
+        "${count.toStringOrNo()} ${what.sIfPlural(count)} ${wasOrWere(count)} found"
+
+    private
+    fun Int.toStringOrNo() =
+        if (this != 0) toString()
+        else "No"
+
+    private
+    fun String.sIfPlural(count: Int) =
+        if (count < 2) this else "${this}s"
 
     private
     fun wasOrWere(count: Int) =
-        if (count == 1) "was" else "were"
+        if (count <= 1) "was" else "were"
 
     private
     fun itsOrTheir(count: Int) =
-        if (count == 1) "its" else "there"
+        if (count <= 1) "its" else "their"
 
     private
     fun displayTabButton(tab: Tab, activeTab: Tab, problemsCount: Int): View<Intent> = div(
