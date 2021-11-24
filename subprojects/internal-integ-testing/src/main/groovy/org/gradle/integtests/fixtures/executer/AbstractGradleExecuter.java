@@ -81,6 +81,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -1336,7 +1337,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
                         i++;
                     } else if (isDeprecationMessageInHelpDescription(line)) {
                         i++;
-                    } else if (expectedDeprecationWarnings.removeIf(warning -> line.contains(warning))) {
+                    } else if (removeFirstExpectedDeprecationWarning(warning -> line.contains(warning))) {
                         // Deprecation warning is expected
                         i++;
                         i = skipStackTrace(lines, i);
@@ -1354,6 +1355,15 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
                     } else {
                         i++;
                     }
+                }
+            }
+
+            private boolean removeFirstExpectedDeprecationWarning(final Predicate<String> condition) {
+                final Optional<String> firstMatch = expectedDeprecationWarnings.stream().filter(condition).findFirst();
+                if (firstMatch.isPresent()) {
+                    return expectedDeprecationWarnings.remove(firstMatch.get());
+                } else {
+                    return false;
                 }
             }
 

@@ -67,6 +67,7 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.jvm.Jvm;
@@ -169,6 +170,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     private final ConfigurableFileCollection stableClasspath;
     private final Property<TestFramework> testFramework;
     private boolean userHasConfiguredTestFramework;
+    private boolean optionsAccessed;
 
     private boolean scanForTestClasses = true;
     private long forkEvery;
@@ -918,8 +920,9 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         // multiple times for a single task--either switching between frameworks or overwriting
         // the existing configuration for a test framework--we need to keep track if the user has
         // explicitly set a test framework
-        // With test suites, users should never need to call the useXXX methods, so we can forbid
-        // them from doing something like this from the beginning.
+        // With test suites, users should never need to call the useXXX methods, so we can warn if
+        // them from doing something like this (for now, in order to preserve existing builds).
+        // This behavior should be restored to fail fast once again with the next major version.
         //
         // testTask.configure {
         //      options {
@@ -933,9 +936,11 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         //      }
         // }
 
-        if (!userHasConfiguredTestFramework) {
-            testFramework.finalizeValue();
-        }
+        // TODO: Test Framework Selection - Restore this to re-enable fail-fast behavior for Gradle 8
+//        if (!userHasConfiguredTestFramework) {
+//            testFramework.finalizeValue();
+//        }
+
         return testFramework.get();
     }
 
@@ -944,13 +949,17 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      *
      * @return The test framework options.
      */
-    @Internal
+    @Nested
     public TestFrameworkOptions getOptions() {
+        optionsAccessed = true;
         return getTestFramework().getOptions();
     }
 
     /**
      * Configures test framework specific options. Make sure to call {@link #useJUnit()}, {@link #useJUnitPlatform()} or {@link #useTestNG()} before using this method.
+     * <p>
+     * Any previous option configuration will be <strong>DISCARDED</strong> upon changing the test framework.  Accessing options prior to setting the test framework will be
+     * deprecated in Gradle 8.
      *
      * @return The test framework options.
      */
@@ -975,6 +984,18 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     private <T extends TestFrameworkOptions> TestFramework useTestFramework(TestFramework testFramework, @Nullable Action<? super T> testFrameworkConfigure) {
+        if (optionsAccessed) {
+            DeprecationLogger.deprecateAction("Accessing test options prior to setting test framework")
+                .withContext("\nTest options have already been accessed for task: '" + getProject().getName() + ":" + getName() + "' prior to setting the test framework to: '" + testFramework.getClass().getSimpleName() + "'. Any previous configuration will be discarded.\n")
+                .willBeRemovedInGradle8()
+                .withDslReference(Test.class, "options")
+                .nagUser();
+
+            if (!this.testFramework.get().getClass().equals(testFramework.getClass())) {
+                getLogger().warn("Test framework is changing from '{}', previous option configuration would not be applicable.", this.testFramework.get().getClass().getSimpleName());
+            }
+        }
+
         userHasConfiguredTestFramework = true;
         this.testFramework.set(testFramework);
 
