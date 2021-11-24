@@ -22,10 +22,11 @@ import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.scala.ScalaDoc
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.test.fixtures.Flaky
 import org.gradle.util.TestUtil
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
+import org.junit.experimental.categories.Category
 import spock.lang.Issue
 
 import static org.gradle.api.tasks.TaskDependencyMatchers.dependsOn
@@ -33,19 +34,18 @@ import static org.hamcrest.CoreMatchers.equalTo
 import static org.hamcrest.CoreMatchers.instanceOf
 import static org.hamcrest.MatcherAssert.assertThat
 
-@Ignore
 @Issue("https://github.com/gradle/gradle-private/issues/3440")
+@Category(Flaky)
 class ScalaPlugin3Test {
     @Rule
     public TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
-    private final Project project = TestUtil.create(temporaryFolder).rootProject()
-
-    private final ScalaPlugin scalaPlugin = new ScalaPlugin()
-
     @LeaksFileHandles
     @Test
     void addsScalaDoc3TasksToTheProject() {
+        Project project = TestUtil.create(temporaryFolder).rootProject()
+        ScalaPlugin scalaPlugin = new ScalaPlugin()
+
         scalaPlugin.apply(project)
         temporaryFolder.createFile('libs/scala3-library_3-3.0.1.jar)')
         project.dependencies.add('implementation', project.files('libs/scala3-library_3-3.0.1.jar)'))

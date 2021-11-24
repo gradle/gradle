@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling
-
-import org.gradle.api.JavaVersion
 import org.gradle.test.fixtures.Flaky
 
-@Flaky(because = "https://github.com/gradle/gradle-private/issues/3430")
-class ToolingApiClientMinJdkCompatibilityTest extends ToolingApiClientJdkCompatibilityTest {
-    JavaVersion getClientJdkVersion() {
-        return JavaVersion.VERSION_1_8
+runner {
+    exclude {
+        annotation Flaky
     }
 }
+

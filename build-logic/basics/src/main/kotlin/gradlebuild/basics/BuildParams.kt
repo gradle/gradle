@@ -29,6 +29,7 @@ import gradlebuild.basics.BuildParams.BUILD_SERVER_URL
 import gradlebuild.basics.BuildParams.BUILD_TIMESTAMP
 import gradlebuild.basics.BuildParams.BUILD_VCS_NUMBER
 import gradlebuild.basics.BuildParams.BUILD_VERSION_QUALIFIER
+import gradlebuild.basics.BuildParams.FLAKY_TEST_QUARANTINE
 import gradlebuild.basics.BuildParams.CI_ENVIRONMENT_VARIABLE
 import gradlebuild.basics.BuildParams.GRADLE_INSTALL_PATH
 import gradlebuild.basics.BuildParams.INCLUDE_PERFORMANCE_TEST_SCENARIOS
@@ -71,6 +72,7 @@ object BuildParams {
     const val BUILD_VERSION_QUALIFIER = "versionQualifier"
     const val CI_ENVIRONMENT_VARIABLE = "CI"
     const val GRADLE_INSTALL_PATH = "gradle_installPath"
+    const val FLAKY_TEST_QUARANTINE = "flakyTestQuarantine"
     const val INCLUDE_PERFORMANCE_TEST_SCENARIOS = "includePerformanceTestScenarios"
     const val MAX_PARALLEL_FORKS = "maxParallelForks"
     const val PERFORMANCE_BASELINES = "performanceBaselines"
@@ -178,6 +180,10 @@ val Project.buildTimestamp: Provider<String>
 
 val Project.buildVersionQualifier: Provider<String>
     get() = gradleProperty(BUILD_VERSION_QUALIFIER)
+
+
+val Project.flakyTestQuarantine: Provider<String>
+    get() = gradleProperty(FLAKY_TEST_QUARANTINE)
 
 
 val Project.ignoreIncomingBuildReceipt: Provider<Boolean>

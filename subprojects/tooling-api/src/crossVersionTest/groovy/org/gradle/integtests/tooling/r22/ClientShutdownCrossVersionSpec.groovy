@@ -20,8 +20,8 @@ import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.tooling.model.gradle.GradleBuild
+import org.gradle.test.fixtures.Flaky
 import org.junit.Rule
-import spock.lang.Ignore
 
 class ClientShutdownCrossVersionSpec extends ToolingApiSpecification {
     private static final JVM_OPTS = ["-Xmx1024m", "-XX:+HeapDumpOnOutOfMemoryError"] + NORMALIZED_BUILD_JVM_OPTS
@@ -49,7 +49,7 @@ class ClientShutdownCrossVersionSpec extends ToolingApiSpecification {
         thrown(IllegalStateException)
     }
 
-    @Ignore('https://github.com/gradle/gradle-private/issues/3477')
+    @Flaky(because = 'https://github.com/gradle/gradle-private/issues/3477')
     def "cleans up idle daemons when tooling API session is shutdown"() {
         withConnection { connection ->
             connection.model(GradleBuild).setJvmArguments(buildJvmArguments).get()
