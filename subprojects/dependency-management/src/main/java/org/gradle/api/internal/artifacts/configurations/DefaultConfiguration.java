@@ -24,6 +24,7 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.DomainObjectSet;
+import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
@@ -1076,6 +1077,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     @Override
+    public boolean isMutable() {
+        return canBeMutated;
+    }
+
+    @Override
     public void preventFromFurtherMutation() {
         // TODO This should use the same `MutationValidator` infrastructure that we use for other mutation types
         if (canBeMutated) {
@@ -1087,6 +1093,29 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             configurationAttributes = new ImmutableAttributeContainerWithErrorMessage(delegatee, this.displayName);
             outgoing.preventFromFurtherMutation();
             canBeMutated = false;
+
+            if (isCanBeConsumed()) {
+                ensureUniqueAttributesOnConsumableConfigurations();
+            }
+        }
+    }
+
+    private void ensureUniqueAttributesOnConsumableConfigurations() {
+        if (configurationsProvider != null) {
+            final Set<? extends ConfigurationInternal> all = configurationsProvider.getAll();
+            if (all != null) {
+                final Set<? extends ConfigurationInternal> potentialDuplicates = configurationsProvider.getAll().stream()
+                    .filter(c -> c != this)
+                    .filter(c -> !c.isMutable())
+                    .filter(c -> c.isCanBeConsumed())
+                    .collect(Collectors.toSet());
+
+                for (ConfigurationInternal other : potentialDuplicates) {
+                    if (!other.getAttributes().isEmpty() && !getAttributes().isEmpty() && other.getAttributes().asMap().equals(getAttributes().asMap())) {
+                        throw new GradleException("Consumable configurations within a project must have unique attribute sets, but " + getDisplayName() + " and " + other.getDisplayName() + " contain identical attribute sets.");
+                    }
+                }
+            }
         }
     }
 
