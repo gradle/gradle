@@ -192,9 +192,8 @@ object ConfigurationCacheReportPage : Component<ConfigurationCacheReportPage.Mod
     )
 
     private
-    fun viewInputs(inputTree: ProblemTreeModel): View<Intent> = when (inputTree.problemCount) {
-        0 -> h1("No build logic inputs were detected.")
-        else -> div(
+    fun viewInputs(inputTree: ProblemTreeModel): View<Intent> =
+        div(
             div(
                 attributes { className("title") },
                 h1("The following build logic inputs were automatically detected and will cause the cache to be discarded when their value change:"),
@@ -204,7 +203,6 @@ object ConfigurationCacheReportPage : Component<ConfigurationCacheReportPage.Mod
                 viewTree(inputTree.tree.focus().children, Intent::InputTreeIntent)
             )
         )
-    }
 
     private
     fun Model.summary() =
@@ -225,7 +223,9 @@ object ConfigurationCacheReportPage : Component<ConfigurationCacheReportPage.Mod
     fun displayTabButton(tab: Tab, activeTab: Tab, problemsCount: Int): View<Intent> = div(
         attributes {
             className("group-selector")
-            if (tab == activeTab) {
+            if (problemsCount == 0) {
+                className("group-selector--disabled")
+            } else if (tab == activeTab) {
                 className("group-selector--active")
             } else {
                 onClick { Intent.SetTab(tab) }
