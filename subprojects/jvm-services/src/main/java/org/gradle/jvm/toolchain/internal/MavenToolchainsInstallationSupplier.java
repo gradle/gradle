@@ -77,18 +77,29 @@ public class MavenToolchainsInstallationSupplier extends AutoDetectingInstallati
             return locations.stream()
                 .map(jdkHome -> new InstallationLocation(new File(jdkHome), "Maven Toolchains"))
                 .collect(Collectors.toSet());
-        } catch (IOException | ParserConfigurationException | SAXException | XPathExpressionException e) {
-            String errorMessage = String.format("Java Toolchain auto-detection failed to parse Maven Toolchains located at %s", toolchainLocation);
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug(errorMessage, e);
-            } else {
-                LOGGER.info(errorMessage);
-            }
+        } catch (IOException e) {
+            logFileNotFound(e);
+        } catch (ParserConfigurationException | SAXException | XPathExpressionException e) {
+            logParsingFailure(e);
         }
         return Collections.emptySet();
     }
 
     private String defaultMavenToolchainsDefinitionsLocation() {
         return new File(System.getProperty("user.home"), ".m2/toolchains.xml").getAbsolutePath();
+    }
+
+    private void logFileNotFound(IOException e) {
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug(String.format("Java Toolchain auto-detection can't find Maven Toolchains file at location %s", toolchainLocation), e);
+        }
+    }
+
+    private void logParsingFailure(Exception e) {
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug(String.format("Java Toolchain auto-detection failed to parse Maven Toolchains located at %s", toolchainLocation), e);
+        } else {
+            LOGGER.info(String.format("Java Toolchain auto-detection failed to parse Maven Toolchains located at %s", toolchainLocation));
+        }
     }
 }
