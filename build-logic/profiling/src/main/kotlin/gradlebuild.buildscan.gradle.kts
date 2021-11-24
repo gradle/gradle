@@ -20,6 +20,7 @@ import gradlebuild.basics.BuildEnvironment.isCodeQl
 import gradlebuild.basics.BuildEnvironment.isGhActions
 import gradlebuild.basics.BuildEnvironment.isJenkins
 import gradlebuild.basics.BuildEnvironment.isTravis
+import gradlebuild.basics.buildBranch
 import gradlebuild.basics.buildConfigurationId
 import gradlebuild.basics.buildId
 import gradlebuild.basics.buildServerUrl
@@ -136,9 +137,10 @@ fun isExpectedCompileCacheMiss() =
     isInBuild(
         "Check_CompileAllBuild",
         "Component_GradlePlugin_Performance_PerformanceLatestMaster",
-        "Component_GradlePlugin_Performance_PerformanceLatestReleased",
-        "Check_Gradleception"
-    )
+        "Component_GradlePlugin_Performance_PerformanceLatestReleased"
+    ) || (isInBuild("Check_Gradleception") && !isOnBranch("master", "release"))
+
+fun Project.isOnBranch(vararg branches: String) = buildBranch.orNull in branches
 
 fun isInBuild(vararg buildTypeIds: String) = buildConfigurationId.orNull?.let { currentBuildTypeId ->
     buildTypeIds.any { currentBuildTypeId.endsWith(it) }
