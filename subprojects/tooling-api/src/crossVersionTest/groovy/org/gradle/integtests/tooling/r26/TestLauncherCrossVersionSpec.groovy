@@ -185,7 +185,7 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         assertTaskNotExecuted(":test")
         assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":secondTest")
         assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":secondTest")
-        events.testTasksAndExecutors.size() == 1
+        events.testTasksAndExecutors.size() in [1, 2]
         events.testClassesAndMethods.size() == (supportsEfficientClassFiltering() ? 3 : 4)
     }
 
@@ -494,6 +494,12 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
 
     def removeTestClass() {
         // Removes MyTest.class to trigger a new build because it's input of test task.
+        // Previously we made changes to the source files, but that might trigger
+        // two builds - one is from `MyTest.java` change, another one is from
+        // `MyTest.class` change. The timing of these two builds and cancellation
+        // resulted in flakiness. To resolve this issue,
+        // We now do a change to the class file so there
+        // will be only one continuous build triggered.
         assert file("build/classes/java/test/example/MyTest.class").delete()
     }
 
