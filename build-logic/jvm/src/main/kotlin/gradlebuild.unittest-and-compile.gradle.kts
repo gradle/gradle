@@ -24,6 +24,7 @@ import gradlebuild.basics.tasks.ClasspathManifest
 import gradlebuild.basics.testDistributionEnabled
 import gradlebuild.basics.testJavaVendor
 import gradlebuild.basics.testJavaVersion
+import gradlebuild.basics.flakyTestQuarantine
 import gradlebuild.filterEnvironmentVariables
 import gradlebuild.jvm.argumentproviders.CiEnvironmentProvider
 import gradlebuild.jvm.extension.UnitTestAndCompileExtension
@@ -182,6 +183,15 @@ fun Test.jvmVersionForTest(): JavaLanguageVersion {
     return JavaLanguageVersion.of(project.testJavaVersion)
 }
 
+fun Test.configureTestQuarantine() {
+    if (project.flakyTestQuarantine.isPresent) {
+        systemProperty("spock.configuration", "FlakyTestQuarantineSpockConfig.groovy")
+        (options as JUnitPlatformOptions).includeTags("org.gradle.test.fixtures.Flaky")
+    } else {
+        (options as JUnitPlatformOptions).excludeTags("org.gradle.test.fixtures.Flaky")
+    }
+}
+
 fun Test.configureJvmForTest() {
     jvmArgumentProviders.add(CiEnvironmentProvider(this))
     val launcher = project.javaToolchains.launcherFor {
@@ -253,6 +263,7 @@ fun configureTests() {
         }
 
         useJUnitPlatform()
+        configureTestQuarantine()
 
         if (project.enableExperimentalTestFiltering() && !isUnitTest()) {
             distribution {

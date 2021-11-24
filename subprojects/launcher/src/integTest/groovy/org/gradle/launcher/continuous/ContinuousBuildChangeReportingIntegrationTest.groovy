@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
-import spock.lang.Ignore
+import org.gradle.test.fixtures.Flaky
 
 import static org.gradle.internal.filewatch.DefaultFileSystemChangeWaiterFactory.QUIET_PERIOD_SYSPROP
 import static org.gradle.internal.filewatch.DefaultFileWatcherEventListener.SHOW_INDIVIDUAL_CHANGES_LIMIT
@@ -122,7 +122,7 @@ class ContinuousBuildChangeReportingIntegrationTest extends AbstractContinuousIn
         changesCount << [1, changesLimit, 11]
     }
 
-    @Ignore('https://github.com/gradle/gradle-private/issues/3205')
+    @Flaky(because = 'https://github.com/gradle/gradle-private/issues/3205')
     def "should report the changes when directories are created #changesCount"(changesCount) {
         given:
         def inputDirectories = (1..changesCount).collect { inputDir.file("input${it}Directory") }
@@ -141,7 +141,7 @@ class ContinuousBuildChangeReportingIntegrationTest extends AbstractContinuousIn
         changesCount << [1, changesLimit, 11]
     }
 
-    @Ignore('https://github.com/gradle/gradle-private/issues/3205')
+    @Flaky(because = 'https://github.com/gradle/gradle-private/issues/3205')
     def "should report the changes when directories are deleted #changesCount"(changesCount) {
         given:
         def inputDirectories = (1..changesCount).collect { inputDir.file("input${it}Directory").createDir() }
