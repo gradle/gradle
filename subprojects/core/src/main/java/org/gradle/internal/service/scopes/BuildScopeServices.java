@@ -285,7 +285,13 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     }
 
     protected ExecFactory decorateExecFactory(ExecFactory parent, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, ObjectFactory objectFactory, JavaModuleDetector javaModuleDetector) {
-        return parent.forContext(fileResolver, fileCollectionFactory, instantiator, objectFactory, javaModuleDetector);
+        return parent.forContext()
+            .withFileResolver(fileResolver)
+            .withFileCollectionFactory(fileCollectionFactory)
+            .withInstantiator(instantiator)
+            .withObjectFactory(objectFactory)
+            .withJavaModuleDetector(javaModuleDetector)
+            .build();
     }
 
     protected PublicBuildPath createPublicBuildPath(BuildState buildState) {
