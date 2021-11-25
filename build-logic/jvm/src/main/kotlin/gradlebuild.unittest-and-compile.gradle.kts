@@ -230,10 +230,8 @@ fun Test.configureRerun() {
     }
 }
 
-fun Project.isFlakyTestQuarantine() = providers.gradleProperty("flakyTestQuarantine").isPresent
-
 fun Test.determineMaxRetry() = when {
-    project.isFlakyTestQuarantine() -> 4
+    project.flakyTestQuarantine.isPresent -> 4
     else -> 1
 }
 
