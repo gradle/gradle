@@ -28,18 +28,29 @@ import org.gradle.internal.reflect.Instantiator;
  * Manages forking/spawning processes.
  */
 public interface ExecFactory extends ExecActionFactory, ExecHandleFactory, JavaExecHandleFactory, JavaForkOptionsFactory, ProcessOperations {
-    /**
-     * Creates a new factory for the given context.
-     */
-    ExecFactory forContext(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, ObjectFactory objectFactory);
 
     /**
-     * Creates a new factory for the given context.
+     * Creates a new factory for the given context. Returns a {@link Builder} for further configuration of the created instance. You must provide an Instantiator when creating the child factory from
+     * the root one.
      */
-    ExecFactory forContext(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, ObjectFactory objectFactory, JavaModuleDetector javaModuleDetector);
+    Builder forContext();
 
     /**
-     * Creates a new factory for the given context.
+     * Builder to configure an instance of the new factory.
      */
-    ExecFactory forContext(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, BuildCancellationToken buildCancellationToken, ObjectFactory objectFactory, JavaModuleDetector javaModuleDetector);
+    interface Builder {
+        Builder withFileResolver(FileResolver fileResolver);
+
+        Builder withFileCollectionFactory(FileCollectionFactory fileCollectionFactory);
+
+        Builder withInstantiator(Instantiator instantiator);
+
+        Builder withObjectFactory(ObjectFactory objectFactory);
+
+        Builder withJavaModuleDetector(JavaModuleDetector javaModuleDetector);
+
+        Builder withBuildCancellationToken(BuildCancellationToken buildCancellationToken);
+
+        ExecFactory build();
+    }
 }
