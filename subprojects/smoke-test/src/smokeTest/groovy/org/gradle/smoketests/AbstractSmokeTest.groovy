@@ -112,9 +112,10 @@ abstract class AbstractSmokeTest extends Specification {
         })
 
         // https://plugins.gradle.org/plugin/org.gretty
-        static gretty = JavaVersion.current() < JavaVersion.VERSION_11 ? "3.0.7" : "4.0.0"
-        // No need to update grettyServletContainer, gretty just doesn't support jetty9 from version 4.0.0 anymore
-        static grettyServletContainer = JavaVersion.current() <= JavaVersion.VERSION_11 ? "jetty9.4" : "jetty11"
+        static gretty = [
+            [version: "3.0.7", servletContainer: "jetty9.4", javaMinVersion: JavaVersion.VERSION_1_8],
+            [version: "4.0.0", servletContainer: "jetty11", javaMinVersion: JavaVersion.VERSION_11]
+        ]
 
         // https://plugins.gradle.org/plugin/org.ajoberstar.grgit
         static grgit = "4.1.0"
