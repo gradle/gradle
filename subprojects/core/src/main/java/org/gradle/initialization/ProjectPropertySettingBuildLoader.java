@@ -24,6 +24,7 @@ import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.gradle.internal.Pair;
 import org.gradle.internal.reflect.JavaPropertyReflectionUtil;
 import org.gradle.internal.reflect.PropertyMutator;
+import org.gradle.internal.resource.local.FileResourceListener;
 import org.gradle.util.internal.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,11 +42,13 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
     private static final Logger LOGGER = LoggerFactory.getLogger(ProjectPropertySettingBuildLoader.class);
 
     private final GradleProperties gradleProperties;
+    private final FileResourceListener fileResourceListener;
     private final BuildLoader buildLoader;
 
-    public ProjectPropertySettingBuildLoader(GradleProperties gradleProperties, BuildLoader buildLoader) {
+    public ProjectPropertySettingBuildLoader(GradleProperties gradleProperties, BuildLoader buildLoader, FileResourceListener fileResourceListener) {
         this.buildLoader = buildLoader;
         this.gradleProperties = gradleProperties;
+        this.fileResourceListener = fileResourceListener;
     }
 
     @Override
@@ -64,6 +67,7 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
     private void addPropertiesToProject(Project project, CachingPropertyApplicator applicator) {
         File projectPropertiesFile = new File(project.getProjectDir(), Project.GRADLE_PROPERTIES);
         LOGGER.debug("Looking for project properties from: {}", projectPropertiesFile);
+        fileResourceListener.fileObserved(projectPropertiesFile);
         if (projectPropertiesFile.isFile()) {
             Properties projectProperties = GUtil.loadProperties(projectPropertiesFile);
             LOGGER.debug("Adding project properties (if not overwritten by user properties): {}",

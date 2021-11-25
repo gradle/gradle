@@ -19,6 +19,7 @@ import org.gradle.api.Project;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.internal.Cast;
+import org.gradle.internal.resource.local.FileResourceListener;
 import org.gradle.util.internal.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,11 +35,11 @@ public class DefaultGradlePropertiesLoader implements IGradlePropertiesLoader {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultGradlePropertiesLoader.class);
 
     private final StartParameterInternal startParameter;
-    private final GradleProperties.Listener listener;
+    private final FileResourceListener fileResourceListener;
 
-    public DefaultGradlePropertiesLoader(StartParameterInternal startParameter, GradleProperties.Listener listener) {
+    public DefaultGradlePropertiesLoader(StartParameterInternal startParameter, FileResourceListener fileResourceListener) {
         this.startParameter = startParameter;
-        this.listener = listener;
+        this.fileResourceListener = fileResourceListener;
     }
 
     @Override
@@ -62,11 +63,7 @@ public class DefaultGradlePropertiesLoader implements IGradlePropertiesLoader {
         overrideProperties.putAll(getSystemProjectProperties(systemProperties));
         overrideProperties.putAll(startParameter.getProjectProperties());
 
-        return new DefaultGradleProperties(
-            defaultProperties,
-            overrideProperties,
-            listener
-        );
+        return new DefaultGradleProperties(defaultProperties, overrideProperties);
     }
 
     Map<String, String> getAllSystemProperties() {
@@ -77,18 +74,18 @@ public class DefaultGradlePropertiesLoader implements IGradlePropertiesLoader {
         return System.getenv();
     }
 
-    private void addGradleProperties(Map<String, String> target, File... files) {
-        for (File propertyFile : files) {
-            if (propertyFile != null && propertyFile.isFile()) {
-                Properties properties = GUtil.loadProperties(propertyFile);
-                target.putAll(Cast.uncheckedNonnullCast(properties));
-            }
+    private void addGradleProperties(Map<String, String> target, File propertyFile) {
+        fileResourceListener.fileObserved(propertyFile);
+        if (propertyFile.isFile()) {
+            Properties properties = GUtil.loadProperties(propertyFile);
+            target.putAll(Cast.uncheckedNonnullCast(properties));
         }
     }
 
     private Map<String, String> getSystemProjectProperties(Map<String, String> systemProperties) {
         Map<String, String> systemProjectProperties = new HashMap<>();
         for (Map.Entry<String, String> entry : systemProperties.entrySet()) {
+            // TODO:configuration-cache collect these system properties as inputs
             if (entry.getKey().startsWith(SYSTEM_PROJECT_PROPERTIES_PREFIX) && entry.getKey().length() > SYSTEM_PROJECT_PROPERTIES_PREFIX.length()) {
                 systemProjectProperties.put(entry.getKey().substring(SYSTEM_PROJECT_PROPERTIES_PREFIX.length()), entry.getValue());
             }
@@ -100,6 +97,7 @@ public class DefaultGradlePropertiesLoader implements IGradlePropertiesLoader {
     private Map<String, String> getEnvProjectProperties(Map<String, String> envProperties) {
         Map<String, String> envProjectProperties = new HashMap<>();
         for (Map.Entry<String, String> entry : envProperties.entrySet()) {
+            // TODO:configuration-cache collect these environment variables as inputs
             if (entry.getKey().startsWith(ENV_PROJECT_PROPERTIES_PREFIX) && entry.getKey().length() > ENV_PROJECT_PROPERTIES_PREFIX.length()) {
                 envProjectProperties.put(entry.getKey().substring(ENV_PROJECT_PROPERTIES_PREFIX.length()), entry.getValue());
             }
