@@ -36,12 +36,6 @@ class BindingsBackedCodec(private val bindings: List<Binding>) : Codec<Any?> {
 
     internal
     companion object {
-
-        operator fun invoke(bindings: BindingsBuilder.() -> Unit) =
-            BindingsBackedCodec(
-                BindingsBuilder().apply(bindings).build()
-            )
-
         private
         const val NULL_VALUE: Int = -1
     }
@@ -109,12 +103,26 @@ typealias Decoding = DecodingProvider<Any>
 
 
 internal
-class BindingsBuilder {
+class Bindings(
+    private val bindings: List<Binding>
+) {
+    internal
+    companion object {
+        fun of(builder: BindingsBuilder.() -> Unit) = BindingsBuilder(emptyList()).apply(builder).build()
+    }
 
+    fun append(builder: BindingsBuilder.() -> Unit) = BindingsBuilder(bindings).apply(builder).build()
+
+    fun build() = BindingsBackedCodec(bindings.toList())
+}
+
+
+internal
+class BindingsBuilder(initialBindings: List<Binding>) {
     private
-    val bindings = mutableListOf<Binding>()
+    val bindings = initialBindings.toMutableList()
 
-    fun build(): List<Binding> = bindings.toList()
+    fun build() = Bindings(bindings.toList())
 
     inline fun <reified T> bind(codec: Codec<T>) =
         bind(T::class.java, codec)

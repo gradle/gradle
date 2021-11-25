@@ -35,6 +35,7 @@ import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.composite.internal.BuildTreeWorkGraphController
 import org.gradle.configurationcache.problems.DocumentationSection.NotYetImplementedJavaSerialization
+import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.codecs.jos.JavaObjectSerializationCodec
 import org.gradle.configurationcache.serialization.codecs.transform.CalculateArtifactsCodec
 import org.gradle.configurationcache.serialization.codecs.transform.ChainedTransformationNodeCodec
@@ -90,7 +91,7 @@ class Codecs(
     fileResolver: FileResolver,
     instantiator: Instantiator,
     listenerManager: ListenerManager,
-    taskNodeFactory: TaskNodeFactory,
+    val taskNodeFactory: TaskNodeFactory,
     inputFingerprinter: InputFingerprinter,
     buildOperationExecutor: BuildOperationExecutor,
     classLoaderHierarchyHasher: ClassLoaderHierarchyHasher,
@@ -108,8 +109,8 @@ class Codecs(
     buildStateRegistry: BuildStateRegistry,
     documentationRegistry: DocumentationRegistry,
 ) {
-
-    val userTypesCodec = BindingsBackedCodec {
+    private
+    val userTypesBindings = Bindings.of {
 
         unsupportedTypes()
 
@@ -188,29 +189,37 @@ class Codecs(
         bind(JavaObjectSerializationCodec())
 
         bind(BeanSpecCodec)
+    }
 
+    fun userTypesCodec(): Codec<Any?> = userTypesBindings.append {
         // This protects the BeanCodec against StackOverflowErrors but
         // we can still get them for the other codecs, for instance,
         // with deeply nested Lists, deeply nested Maps, etc.
         bind(reentrant(BeanCodec()))
-    }
+    }.build()
 
-    val internalTypesCodec = BindingsBackedCodec {
+    private
+    val internalTypesBindings = Bindings.of {
         baseTypes()
 
         providerTypes(propertyFactory, filePropertyFactory, valueSourceProviderFactory, buildStateRegistry)
         fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory, artifactSetConverter, fileOperations, fileFactory, patternSetFactory)
 
         bind(BuildIdentifierSerializer())
-        bind(TaskNodeCodec(userTypesCodec, taskNodeFactory))
         bind(TaskInAnotherBuildCodec(includedTaskGraph))
+
+        bind(DefaultResolvableArtifactCodec(calculatedValueContainerFactory))
+    }
+
+    fun internalTypesCodec(): Codec<Any?> = internalTypesBindings.append {
+        val userTypesCodec = userTypesCodec()
+
+        bind(TaskNodeCodec(userTypesCodec, taskNodeFactory))
         bind(DelegatingCodec<TransformationNode>(userTypesCodec))
         bind(ActionNodeCodec(userTypesCodec))
 
-        bind(DefaultResolvableArtifactCodec(calculatedValueContainerFactory))
-
         bind(NotImplementedCodec)
-    }
+    }.build()
 
     private
     fun BindingsBuilder.providerTypes(

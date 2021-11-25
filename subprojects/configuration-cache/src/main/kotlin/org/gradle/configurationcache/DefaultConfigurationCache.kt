@@ -401,7 +401,7 @@ class DefaultConfigurationCache internal constructor(
     fun cacheFingerprintWriterContextFor(outputStream: OutputStream): DefaultWriteContext {
         val (context, codecs) = cacheIO.writerContextFor(outputStream, "fingerprint")
         return context.apply {
-            push(IsolateOwner.OwnerHost(host), codecs.userTypesCodec)
+            push(IsolateOwner.OwnerHost(host), codecs.userTypesCodec())
         }
     }
 
@@ -464,7 +464,7 @@ class DefaultConfigurationCache internal constructor(
     fun <T> readFingerprintFile(fingerprintFile: ConfigurationCacheStateFile, action: suspend ReadContext.(ConfigurationCacheFingerprintController.Host) -> T): T =
         fingerprintFile.inputStream().use { inputStream ->
             cacheIO.withReadContextFor(inputStream) { codecs ->
-                withIsolate(IsolateOwner.OwnerHost(host), codecs.userTypesCodec) {
+                withIsolate(IsolateOwner.OwnerHost(host), codecs.userTypesCodec()) {
                     action(object : ConfigurationCacheFingerprintController.Host {
                         override val valueSourceProviderFactory: ValueSourceProviderFactory
                             get() = host.service()

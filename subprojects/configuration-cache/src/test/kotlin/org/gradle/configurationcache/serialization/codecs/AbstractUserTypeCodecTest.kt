@@ -146,7 +146,7 @@ abstract class AbstractUserTypeCodecTest {
         )
 
     private
-    fun userTypesCodec() = codecs().userTypesCodec
+    fun userTypesCodec() = codecs().userTypesCodec()
 
     protected
     fun codecs() = Codecs(

@@ -62,7 +62,7 @@ class ProjectMetadataController(
 
     override fun write(encoder: Encoder, value: LocalComponentMetadata) {
         val (context, codecs) = cacheIO.writerContextFor(encoder)
-        context.push(IsolateOwner.OwnerHost(host), codecs.userTypesCodec)
+        context.push(IsolateOwner.OwnerHost(host), codecs.userTypesCodec())
         context.runWriteOperation {
             write(value.id)
             write(value.moduleVersionId)
@@ -116,7 +116,7 @@ class ProjectMetadataController(
 
     override fun read(decoder: Decoder): LocalComponentMetadata {
         val (context, codecs) = cacheIO.readerContextFor(decoder)
-        context.push(IsolateOwner.OwnerHost(host), codecs.userTypesCodec)
+        context.push(IsolateOwner.OwnerHost(host), codecs.userTypesCodec())
         return context.runReadOperation {
             val id = readNonNull<ComponentIdentifier>()
             val moduleVersionId = readNonNull<ModuleVersionIdentifier>()

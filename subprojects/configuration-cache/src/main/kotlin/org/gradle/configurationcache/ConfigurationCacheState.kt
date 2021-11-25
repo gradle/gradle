@@ -602,11 +602,11 @@ class ConfigurationCacheState(
 
     private
     val internalTypesCodec
-        get() = codecs.internalTypesCodec
+        get() = codecs.internalTypesCodec()
 
     private
     val userTypesCodec
-        get() = codecs.userTypesCodec
+        get() = codecs.userTypesCodec()
 
     private
     fun storedBuilds() = object : StoredBuilds {
