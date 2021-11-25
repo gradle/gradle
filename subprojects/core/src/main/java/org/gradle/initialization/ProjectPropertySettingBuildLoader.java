@@ -54,7 +54,8 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
     @Override
     public void load(SettingsInternal settings, GradleInternal gradle) {
         buildLoader.load(settings, gradle);
-        setProjectProperties(gradle.getRootProject(), new CachingPropertyApplicator());
+        Project rootProject = gradle.getRootProject();
+        setProjectProperties(rootProject, new CachingPropertyApplicator(rootProject.getClass()));
     }
 
     private void setProjectProperties(Project project, CachingPropertyApplicator applicator) {
@@ -93,16 +94,17 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
      * to avoid too many searches.
      */
     private static class CachingPropertyApplicator {
-        private Class<? extends Project> projectClazz;
+        private final Class<? extends Project> projectClass;
         private final Map<Pair<String, ? extends Class<?>>, PropertyMutator> mutators = newHashMap();
+
+        CachingPropertyApplicator(Class<? extends Project> projectClass) {
+            this.projectClass = projectClass;
+        }
 
         void configureProperty(Project project, String name, @Nullable Object value) {
             if (isPossibleProperty(name)) {
                 Class<? extends Project> clazz = project.getClass();
-                if (clazz != projectClazz) {
-                    mutators.clear();
-                    projectClazz = clazz;
-                }
+                assert clazz == projectClass;
                 Class<?> valueType = value == null ? null : value.getClass();
                 PropertyMutator propertyMutator = propertyMutatorOf(clazz, name, valueType);
                 if (propertyMutator != null) {
