@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts.verification.verifier;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -41,22 +40,21 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.google.common.collect.ImmutableMap.toImmutableMap;
+
 public class DependencyVerifier {
-    private static final Comparator<ModuleComponentIdentifier> MODULE_COMPONENT_IDENTIFIER_COMPARATOR = Comparator.comparing(ModuleComponentIdentifier::getGroup)
-        .thenComparing(ModuleComponentIdentifier::getModule)
-        .thenComparing(ModuleComponentIdentifier::getVersion);
-    private final Map<ModuleComponentIdentifier, ComponentVerificationMetadata> verificationMetadata;
+    private final Map<String, ComponentVerificationMetadata> verificationMetadata;
     private final DependencyVerificationConfiguration config;
     private final List<String> topLevelComments;
 
     DependencyVerifier(Map<ModuleComponentIdentifier, ComponentVerificationMetadata> verificationMetadata, DependencyVerificationConfiguration config, List<String> topLevelComments) {
-        this.verificationMetadata = ImmutableSortedMap.copyOf(verificationMetadata, MODULE_COMPONENT_IDENTIFIER_COMPARATOR);
+        this.verificationMetadata = verificationMetadata.entrySet().stream()
+            .collect(toImmutableMap(entry -> toStringKey(entry.getKey()), Map.Entry::getValue));
         this.config = config;
         this.topLevelComments = topLevelComments;
     }
@@ -101,7 +99,7 @@ public class DependencyVerifier {
 
     private void doVerifyArtifact(ModuleComponentArtifactIdentifier foundArtifact, ChecksumService checksumService, SignatureVerificationService signatureVerificationService, File file, File signature, ArtifactVerificationResultBuilder builder) {
         PublicKeyService publicKeyService = signatureVerificationService.getPublicKeyService();
-        ComponentVerificationMetadata componentVerification = verificationMetadata.get(foundArtifact.getComponentIdentifier());
+        ComponentVerificationMetadata componentVerification = verificationMetadata.get(toStringKey(foundArtifact.getComponentIdentifier()));
         if (componentVerification != null) {
             String foundArtifactFileName = foundArtifact.getFileName();
             List<ArtifactVerificationMetadata> verifications = componentVerification.getArtifactVerifications();
@@ -146,6 +144,10 @@ public class DependencyVerifier {
             }
         }
         builder.failWith(new MissingChecksums(file));
+    }
+
+    private String toStringKey(ModuleComponentIdentifier moduleComponentIdentifier) {
+        return moduleComponentIdentifier.getGroup() + ":" + moduleComponentIdentifier.getModule() + ":" + moduleComponentIdentifier.getVersion();
     }
 
     private Set<String> allTrustedKeys(ModuleComponentArtifactIdentifier id, Set<String> artifactSpecificKeys) {

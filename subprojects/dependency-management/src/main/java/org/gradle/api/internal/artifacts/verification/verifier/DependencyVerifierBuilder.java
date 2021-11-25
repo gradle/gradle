@@ -41,6 +41,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class DependencyVerifierBuilder {
+    private static final Comparator<ModuleComponentIdentifier> MODULE_COMPONENT_IDENTIFIER_COMPARATOR = Comparator.comparing(ModuleComponentIdentifier::getGroup)
+        .thenComparing(ModuleComponentIdentifier::getModule)
+        .thenComparing(ModuleComponentIdentifier::getVersion);
     private final Map<ModuleComponentIdentifier, ComponentVerificationsBuilder> byComponent = Maps.newHashMap();
     private final List<DependencyVerificationConfiguration.TrustedArtifact> trustedArtifacts = Lists.newArrayList();
     private final Set<DependencyVerificationConfiguration.TrustedKey> trustedKeys = Sets.newLinkedHashSet();
@@ -128,7 +131,9 @@ public class DependencyVerifierBuilder {
 
     public DependencyVerifier build() {
         ImmutableMap.Builder<ModuleComponentIdentifier, ComponentVerificationMetadata> builder = ImmutableMap.builderWithExpectedSize(byComponent.size());
-        byComponent.forEach((key, value) -> builder.put(key, value.build()));
+        byComponent.entrySet().stream()
+            .sorted(Map.Entry.comparingByKey(MODULE_COMPONENT_IDENTIFIER_COMPARATOR))
+            .forEachOrdered(entry -> builder.put(entry.getKey(), entry.getValue().build()));
         return new DependencyVerifier(builder.build(), new DependencyVerificationConfiguration(isVerifyMetadata, isVerifySignatures, trustedArtifacts, useKeyServers, ImmutableList.copyOf(keyServers), ImmutableSet.copyOf(ignoredKeys), ImmutableList.copyOf(trustedKeys)), topLevelComments);
     }
 
