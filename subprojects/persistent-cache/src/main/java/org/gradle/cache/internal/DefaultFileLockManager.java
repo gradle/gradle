@@ -388,7 +388,7 @@ public class DefaultFileLockManager implements FileLockManager {
                             }
                             if (fileLockContentionHandler.maybePingOwner(lockInfo.port, lockInfo.lockId, displayName, backoff.getTimer().getElapsedMillis() - lastPingTime, backoff.getSignal())) {
                                 lastPingTime = backoff.getTimer().getElapsedMillis();
-                                LOGGER.debug("The file lock for {} is held by a different Gradle process (pid: {}, lockId: {}). Pinged owner at port {}", displayName, lockInfo.pid, lockInfo.lockId, lockInfo.port);
+                                LOGGER.debug("[thread: {}] The file lock for {} is held by a different Gradle process (pid: {}, lockId: {}). Pinged owner at port {}", Thread.currentThread().getName(), displayName, lockInfo.pid, lockInfo.lockId, lockInfo.port);
                             }
                         } else {
                             LOGGER.debug("The file lock for {} is held by a different Gradle process. I was unable to read on which port the owner listens for lock access requests.", displayName);
