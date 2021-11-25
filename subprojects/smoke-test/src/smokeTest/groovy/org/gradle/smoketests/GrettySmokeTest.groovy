@@ -26,7 +26,7 @@ import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 )
 class GrettySmokeTest extends AbstractPluginValidatingSmokeTest {
 
-    def 'run jetty with gretty version'() {
+    def 'run Jetty with Gretty #grettyConfig.version'() {
         given:
         useSample('gretty-example')
         buildFile << """
