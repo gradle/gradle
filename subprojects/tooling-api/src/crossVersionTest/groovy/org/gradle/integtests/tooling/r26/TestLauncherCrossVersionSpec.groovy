@@ -464,7 +464,7 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
 
             task secondTest(type:Test) {
                 classpath = sourceSets.moreTests.runtimeClasspath
-                ${separateClassesDirs(targetVersion) ? "testClassesDirs": "testClassesDir"} = sourceSets.moreTests.output.${separateClassesDirs(targetVersion) ? "classesDirs": "classesDir"}
+                ${separateClassesDirs(targetVersion) ? "testClassesDirs" : "testClassesDir"} = sourceSets.moreTests.output.${separateClassesDirs(targetVersion) ? "classesDirs" : "classesDir"}
             }
 
             build.dependsOn secondTest
@@ -500,7 +500,14 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         // resulted in flakiness. To resolve this issue,
         // We now do a change to the class file so there
         // will be only one continuous build triggered.
-        assert file("build/classes/java/test/example/MyTest.class").delete()
+        if (file("build/classes/java/test/example/MyTest.class").exists()) {
+            // for Gradle 4.0+
+            assert file("build/classes/java/test/example/MyTest.class").delete()
+        }
+        if (file("build/classes/test/example/MyTest.class").exists()) {
+            // for Gradle < 4.0
+            assert file("build/classes/test/example/MyTest.class").delete()
+        }
     }
 
     String simpleJavaProject() {
