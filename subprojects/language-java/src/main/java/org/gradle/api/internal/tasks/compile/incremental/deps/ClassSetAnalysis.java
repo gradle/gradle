@@ -157,6 +157,9 @@ public class ClassSetAnalysis {
      * - the originating types of generated classes that need to be recompiled, since they wouldn't exist if the originating type is not reprocessed
      */
     public Set<String> getTypesToReprocess(Set<String> compiledClasses) {
+        if (compiledClasses.isEmpty()) {
+            return Collections.emptySet();
+        }
         Set<String> typesToReprocess = new HashSet<>(annotationProcessingData.getAggregatedTypes());
         for (Map.Entry<String, Set<String>> entry : annotationProcessingData.getGeneratedTypesByOrigin().entrySet()) {
             if (entry.getValue().stream().anyMatch(compiledClasses::contains)) {
