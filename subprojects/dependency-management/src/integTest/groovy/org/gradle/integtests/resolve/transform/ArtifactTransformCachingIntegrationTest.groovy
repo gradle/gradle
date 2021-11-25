@@ -28,10 +28,8 @@ import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
-import org.gradle.test.fixtures.Flaky
 import org.junit.Rule
 import spock.lang.Issue
-import spock.lang.Requires
 
 import java.util.regex.Pattern
 
@@ -41,8 +39,6 @@ import static org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServi
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 import static org.hamcrest.Matchers.containsString
 
-@Flaky(because = "https://github.com/gradle/gradle-private/issues/3413")
-@Requires({ !GradleContextualExecuter.configCache })
 class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyResolutionTest implements FileAccessTimeJournalFixture, ValidationMessageChecker {
     private final static long MAX_CACHE_AGE_IN_DAYS = LeastRecentlyUsedCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES
 
