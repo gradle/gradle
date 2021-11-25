@@ -173,8 +173,8 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
                 assert events.tests.size() == (supportsEfficientClassFiltering() ? 5 : 6)
                 events.clear()
 
-                // Change the tests sources and wait for the tests to run again
-                changeTestSource()
+                // Change the input to tests and wait for the tests to run again
+                removeTestClass()
                 waitingForBuild()
             }
         }
@@ -185,10 +185,8 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         assertTaskNotExecuted(":test")
         assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":secondTest")
         assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":secondTest")
-        assertTestExecuted(className: "example.MyTest", methodName: "foo3", task: ":secondTest")
-        assertTestExecuted(className: "example.MyTest", methodName: "foo4", task: ":secondTest")
-        events.testTasksAndExecutors.size() in [2, 3, 4] // also accept it as a valid result when the test task get started twice (event: 'Gradle Test Run :secondTest')
-        events.testClassesAndMethods.size() in (supportsEfficientClassFiltering() ? [5, 10] : [6, 12]) // also accept it as a valid result when tests get executed twice
+        events.testTasksAndExecutors.size() in [1, 2]
+        events.testClassesAndMethods.size() == (supportsEfficientClassFiltering() ? 3 : 4)
     }
 
     public <T> T withCancellation(@ClosureParams(value = SimpleType, options = ["org.gradle.tooling.CancellationToken"]) Closure<T> cl) {
@@ -466,7 +464,7 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
 
             task secondTest(type:Test) {
                 classpath = sourceSets.moreTests.runtimeClasspath
-                ${separateClassesDirs(targetVersion) ? "testClassesDirs": "testClassesDir"} = sourceSets.moreTests.output.${separateClassesDirs(targetVersion) ? "classesDirs": "classesDir"}
+                ${separateClassesDirs(targetVersion) ? "testClassesDirs" : "testClassesDir"} = sourceSets.moreTests.output.${separateClassesDirs(targetVersion) ? "classesDirs" : "classesDir"}
             }
 
             build.dependsOn secondTest
@@ -494,25 +492,22 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         """
     }
 
-    def changeTestSource() {
-        // adding two more test methods
-        file("src/test/java/example/MyTest.java").text = """
-            package example;
-            public class MyTest {
-                @org.junit.Test public void foo() throws Exception {
-                     org.junit.Assert.assertEquals(1, 1);
-                }
-                @org.junit.Test public void foo2() throws Exception {
-                     org.junit.Assert.assertEquals(1, 1);
-                }
-                @org.junit.Test public void foo3() throws Exception {
-                     org.junit.Assert.assertEquals(1, 1);
-                }
-                @org.junit.Test public void foo4() throws Exception {
-                     org.junit.Assert.assertEquals(1, 1);
-                }
-            }
-        """
+    def removeTestClass() {
+        // Removes MyTest.class to trigger a new build because it's input of test task.
+        // Previously we made changes to the source files, but that might trigger
+        // two builds - one is from `MyTest.java` change, another one is from
+        // `MyTest.class` change. The timing of these two builds and cancellation
+        // resulted in flakiness. To resolve this issue,
+        // We now do a change to the class file so there
+        // will be only one continuous build triggered.
+        if (file("build/classes/java/test/example/MyTest.class").exists()) {
+            // for Gradle 4.0+
+            assert file("build/classes/java/test/example/MyTest.class").delete()
+        }
+        if (file("build/classes/test/example/MyTest.class").exists()) {
+            // for Gradle < 4.0
+            assert file("build/classes/test/example/MyTest.class").delete()
+        }
     }
 
     String simpleJavaProject() {
