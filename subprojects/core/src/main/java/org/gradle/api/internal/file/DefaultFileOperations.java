@@ -195,8 +195,8 @@ public class DefaultFileOperations implements FileOperations {
             boolean hasBackingFile = tarPath instanceof ReadableResourceInternal
                 && ((ReadableResourceInternal) tarPath).getBackingFile() != null;
             if (!hasBackingFile) {
-                DeprecationLogger.deprecateAction("Creating a tarTree from a resource without a backing file")
-                    .withAdvice("Use a task or declare a dependency to create the tar file.")
+                DeprecationLogger.deprecateAction("Using tarTree() on a resource without a backing file")
+                    .withAdvice("Convert the resource to a file and then pass this file to tarTree(). For converting the resource to a file you can use a custom task or declare a dependency.")
                     .willBecomeAnErrorInGradle8()
                     .withUpgradeGuideSection(7, "tar_tree_no_backing_file")
                     .nagUser();

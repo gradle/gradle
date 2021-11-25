@@ -239,8 +239,9 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
 '''
         when:
         executer.expectDocumentedDeprecationWarning(
-            "Creating a tarTree from a resource without a backing file has been deprecated. " +
-                "This will fail with an error in Gradle 8.0. Use a task or declare a dependency to create the tar file. " +
+            "Using tarTree() on a resource without a backing file has been deprecated. " +
+                "This will fail with an error in Gradle 8.0. " +
+                "Convert the resource to a file and then pass this file to tarTree(). For converting the resource to a file you can use a custom task or declare a dependency. " +
                 "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#tar_tree_no_backing_file"
         )
         run 'copy'
