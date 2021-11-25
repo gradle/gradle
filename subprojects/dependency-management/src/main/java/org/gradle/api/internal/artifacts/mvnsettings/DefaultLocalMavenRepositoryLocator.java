@@ -29,14 +29,16 @@ public class DefaultLocalMavenRepositoryLocator implements LocalMavenRepositoryL
 
     private final MavenSettingsProvider settingsProvider;
     private final SystemPropertyAccess system;
+    private final MavenFileLocations mavenFileLocations;
     private String localRepoPathFromMavenSettings;
 
     public DefaultLocalMavenRepositoryLocator(MavenSettingsProvider settingsProvider) {
-        this(settingsProvider, new CurrentSystemPropertyAccess());
+        this(settingsProvider, new DefaultMavenFileLocations(), new CurrentSystemPropertyAccess());
     }
 
-    protected DefaultLocalMavenRepositoryLocator(MavenSettingsProvider settingsProvider, SystemPropertyAccess system) {
+    protected DefaultLocalMavenRepositoryLocator(MavenSettingsProvider settingsProvider, MavenFileLocations mavenFileLocations, SystemPropertyAccess system) {
         this.settingsProvider = settingsProvider;
+        this.mavenFileLocations = mavenFileLocations;
         this.system = system;
     }
 
@@ -56,7 +58,7 @@ public class DefaultLocalMavenRepositoryLocator implements LocalMavenRepositoryL
                     return file;
                 }
             } else {
-                File defaultLocation = new File(system.getProperty("user.home"), "/.m2/repository").getAbsoluteFile();
+                File defaultLocation = new File(mavenFileLocations.getUserMavenDir(), "repository").getAbsoluteFile();
                 LOGGER.debug("No local repository in Settings file defined. Using default path: {}", defaultLocation);
                 return defaultLocation;
             }
@@ -94,7 +96,7 @@ public class DefaultLocalMavenRepositoryLocator implements LocalMavenRepositoryL
         return result.toString();
     }
 
-    public static interface SystemPropertyAccess {
+    public interface SystemPropertyAccess {
         String getProperty(String name);
         String getEnv(String name);
     }

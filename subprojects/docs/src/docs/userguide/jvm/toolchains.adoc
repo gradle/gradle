@@ -145,19 +145,13 @@ Please note however that this may realize (and provision) a toolchain eagerly.
 == Auto detection of installed toolchains
 
 By default, Gradle automatically detects local JRE/JDK installations so no further configuration is required by the user.
-The following is a list of common package managers and locations that are supported by the JVM auto-detection.
+The following is a list of common package managers, tools, and locations that are supported by the JVM auto-detection.
 
-Operation-system specific locations:
+JVM auto-detection knows how to work with:
 
-* Linux
-* MacOs
-* Windows
-
-Supported Package Managers:
-
-* https://asdf-vm.com/#/[Asdf-vm]
-* https://github.com/shyiko/jabba[Jabba]
-* https://sdkman.io/[SDKMAN!]
+* Operation-system specific locations: Linux, macOS, Windows
+* Package Managers: https://asdf-vm.com/#/[Asdf-vm], https://github.com/shyiko/jabba[Jabba], https://sdkman.io/[SDKMAN!]
+* https://maven.apache.org/guides/mini/guide-using-toolchains.html[Maven Toolchain] specifications
 
 Among the set of all detected JRE/JDK installations, one will be picked according to the <<sec:precedence,Toolchain Precedence Rules>>.
 

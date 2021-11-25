@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,26 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.mvnsettings;
+package org.gradle.util.internal;
 
+import org.gradle.internal.SystemProperties;
+
+import javax.annotation.Nullable;
 import java.io.File;
 
-public interface MavenFileLocations {
-    File getUserMavenDir();
-    File getGlobalMavenDir();
-    File getUserSettingsFile();
-    File getGlobalSettingsFile();
+public class MavenUtil {
+
+    public static File getUserMavenDir() {
+        return new File(SystemProperties.getInstance().getUserHome(), ".m2");
+    }
+
+    @Nullable
+    public static File getGlobalMavenDir() {
+        String m2Home = System.getenv("M2_HOME");
+        if (m2Home == null) {
+            return null;
+        }
+        return new File(m2Home);
+    }
+
 }
