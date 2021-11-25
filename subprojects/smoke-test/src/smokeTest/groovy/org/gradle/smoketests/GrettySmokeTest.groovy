@@ -17,12 +17,9 @@
 package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
-@Requires(TestPrecondition.JDK11_OR_LATER)
 @UnsupportedWithConfigurationCache(
     because = "The Gretty plugin does not support configuration caching"
 )
@@ -48,7 +45,7 @@ class GrettySmokeTest extends AbstractPluginValidatingSmokeTest {
 
                 httpPort = new ServerSocket(0).withCloseable { socket -> socket.getLocalPort() }
                 integrationTestTask = 'checkContainerUp'
-                servletContainer = 'jetty11'
+                servletContainer = '${TestedVersions.grettyServletContainer}'
             }
 
             task checkContainerUp {
