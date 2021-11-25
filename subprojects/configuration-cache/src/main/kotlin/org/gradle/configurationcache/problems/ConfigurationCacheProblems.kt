@@ -118,8 +118,8 @@ class ConfigurationCacheProblems(
 
         val outputDirectory = outputDirectoryFor(reportDir)
         val cacheActionText = cacheAction.summaryText()
-        val requestedTasksText = startParameter.requestedTaskNames.joinToString(" ")
-        val htmlReportFile = report.writeReportFileTo(outputDirectory, cacheActionText, requestedTasksText, problemCount)
+        val requestedTasks = startParameter.requestedTasksOrDefault()
+        val htmlReportFile = report.writeReportFileTo(outputDirectory, cacheActionText, requestedTasks, problemCount)
         if (htmlReportFile == null) {
             // there was nothing to report
             require(!failed)
@@ -156,6 +156,10 @@ class ConfigurationCacheProblems(
             LOAD -> "reusing"
             STORE -> "storing"
         }
+
+    private
+    fun ConfigurationCacheStartParameter.requestedTasksOrDefault() =
+        requestedTaskNames.takeIf { it.isNotEmpty() }?.joinToString(" ") ?: "default tasks"
 
     private
     fun outputDirectoryFor(buildDir: File): File =
