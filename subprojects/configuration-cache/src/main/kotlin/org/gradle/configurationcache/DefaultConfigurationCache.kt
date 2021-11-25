@@ -239,7 +239,6 @@ class DefaultConfigurationCache internal constructor(
     }
 
     override fun stop() {
-        Instrumented.discardListener()
         val stoppable = CompositeStoppable.stoppable()
         if (intermediateModels.isInitialized()) {
             stoppable.add(intermediateModels.value)
@@ -268,7 +267,11 @@ class DefaultConfigurationCache internal constructor(
     private
     fun <T> runWorkThatContributesToCacheEntry(action: () -> T): T {
         prepareForWork()
-        return action()
+        try {
+            return action()
+        } finally {
+            doneWithWork()
+        }
     }
 
     private
@@ -276,6 +279,12 @@ class DefaultConfigurationCache internal constructor(
         prepareConfigurationTimeBarrier()
         startCollectingCacheFingerprint()
         Instrumented.setListener(instrumentedInputAccessListener)
+    }
+
+    private
+    fun doneWithWork() {
+        Instrumented.discardListener()
+        cacheFingerprintController.stopCollectingFingerprint()
     }
 
     private
@@ -318,7 +327,6 @@ class DefaultConfigurationCache internal constructor(
         }
 
         hasSavedValues = true
-        cacheFingerprintController.stopCollectingFingerprint()
     }
 
     private
