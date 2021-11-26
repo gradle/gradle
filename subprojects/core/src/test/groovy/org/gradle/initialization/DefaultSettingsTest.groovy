@@ -19,6 +19,7 @@ package org.gradle.initialization
 import org.gradle.StartParameter
 import org.gradle.api.Project
 import org.gradle.api.UnknownProjectException
+import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.FeaturePreviewsActivationFixture
@@ -115,12 +116,15 @@ class DefaultSettingsTest extends Specification {
         String projectB = "b"
 
         when:
-        settings.includeFlat([projectA, projectB] as String[])
+        includeFlat(settings, projectA, projectB)
 
         then:
         settings.rootProject.children.size() == 2
         testDescriptor(settings.project(":" + projectA), projectA, new File(settingsDir.parentFile, projectA))
         testDescriptor(settings.project(":" + projectB), projectB, new File(settingsDir.parentFile, projectB))
+
+        where:
+        includeFlat << [{ Settings settings, String p1, String p2 -> settings.includeFlat([p1, p2] as String[]) }, { Settings settings, String p1, String p2 -> settings.includeFlat([p1, p2]) }]
     }
 
     void testDescriptor(DefaultProjectDescriptor descriptor, String name, File projectDir) {
