@@ -9,6 +9,7 @@ import configurations.BaseGradleBuildType
 import configurations.BuildDistributions
 import configurations.CheckLinks
 import configurations.CompileAllProduction
+import configurations.FlakyTestQuarantine
 import configurations.FunctionalTest
 import configurations.Gradleception
 import configurations.SanityCheck
@@ -91,7 +92,12 @@ data class CIBuildModel(
         Stage(
             StageNames.READY_FOR_RELEASE,
             trigger = Trigger.daily,
-            specificBuilds = listOf(SpecificBuild.TestPerformanceTest),
+            specificBuilds = listOf(
+                SpecificBuild.TestPerformanceTest,
+                SpecificBuild.FlakyTestQuarantineLinux,
+                SpecificBuild.FlakyTestQuarantineMacOs,
+                SpecificBuild.FlakyTestQuarantineWindows
+            ),
             functionalTests = listOf(
                 TestCoverage(7, TestType.parallel, Os.LINUX, JvmCategory.MAX_VERSION, DEFAULT_LINUX_FUNCTIONAL_TEST_BUCKET_SIZE),
                 TestCoverage(8, TestType.soak, Os.LINUX, JvmCategory.MAX_VERSION, 1),
@@ -426,6 +432,21 @@ enum class SpecificBuild {
     ConfigCacheSmokeTestsMaxJavaVersion {
         override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
             return SmokeTests(model, stage, JvmCategory.MAX_VERSION, "configCacheSmokeTest")
+        }
+    },
+    FlakyTestQuarantineLinux {
+        override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
+            return FlakyTestQuarantine(model, stage, Os.LINUX)
+        }
+    },
+    FlakyTestQuarantineMacOs {
+        override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
+            return FlakyTestQuarantine(model, stage, Os.MACOS)
+        }
+    },
+    FlakyTestQuarantineWindows {
+        override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
+            return FlakyTestQuarantine(model, stage, Os.WINDOWS)
         }
     },
     SmokeTestsExperimentalJDK {

@@ -230,7 +230,10 @@ fun Test.configureRerun() {
     }
 }
 
-fun Test.determineMaxRetry() = if (project.name in listOf("smoke-test", "performance", "build-scan-performance")) 1 else 2
+fun Test.determineMaxRetry() = when {
+    project.flakyTestQuarantine.isPresent -> 4
+    else -> 1
+}
 
 fun configureTests() {
     normalization {
