@@ -18,15 +18,12 @@ package org.gradle.initialization;
 import org.gradle.api.Project;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.properties.GradleProperties;
-import org.gradle.internal.resource.local.FileResourceListener;
-import org.gradle.util.internal.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 
 import static org.gradle.api.Project.GRADLE_PROPERTIES;
 import static org.gradle.internal.Cast.uncheckedNonnullCast;
@@ -35,11 +32,11 @@ public class DefaultGradlePropertiesLoader implements IGradlePropertiesLoader {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultGradlePropertiesLoader.class);
 
     private final StartParameterInternal startParameter;
-    private final FileResourceListener fileResourceListener;
+    private final Environment environment;
 
-    public DefaultGradlePropertiesLoader(StartParameterInternal startParameter, FileResourceListener fileResourceListener) {
+    public DefaultGradlePropertiesLoader(StartParameterInternal startParameter, Environment environment) {
         this.startParameter = startParameter;
-        this.fileResourceListener = fileResourceListener;
+        this.environment = environment;
     }
 
     @Override
@@ -67,10 +64,9 @@ public class DefaultGradlePropertiesLoader implements IGradlePropertiesLoader {
     }
 
     private void addGradleProperties(Map<String, String> target, File propertyFile) {
-        fileResourceListener.fileObserved(propertyFile);
-        if (propertyFile.isFile()) {
-            Properties properties = GUtil.loadProperties(propertyFile);
-            target.putAll(uncheckedNonnullCast(properties));
+        Map<String, String> propertiesFile = environment.propertiesFile(propertyFile);
+        if (propertiesFile != null) {
+            target.putAll(propertiesFile);
         }
     }
 

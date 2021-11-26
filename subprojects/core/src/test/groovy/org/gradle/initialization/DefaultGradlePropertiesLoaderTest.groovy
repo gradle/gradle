@@ -20,7 +20,6 @@ import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.properties.GradleProperties
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.SetSystemProperties
-import org.gradle.util.internal.GUtil
 import org.gradle.util.internal.WrapUtil
 import org.junit.Rule
 import spock.lang.Specification
@@ -48,40 +47,39 @@ class DefaultGradlePropertiesLoaderTest extends Specification {
     @Rule
     public SetSystemProperties sysProp = new SetSystemProperties()
 
+    final Environment environment = Mock(Environment)
+
     def setup() {
         gradleUserHomeDir = tmpDir.createDir("gradleUserHome")
         settingsDir = tmpDir.createDir("settingsDir")
         gradleInstallationHomeDir = tmpDir.createDir("gradleInstallationHome")
-        gradlePropertiesLoader = new DefaultGradlePropertiesLoader(
-            startParameter,
-            {
-                // ignore file reads
-            }
-        )
+        gradlePropertiesLoader = new DefaultGradlePropertiesLoader(startParameter, environment)
         startParameter.setGradleUserHomeDir(gradleUserHomeDir)
         startParameter.setGradleHomeDir(gradleInstallationHomeDir)
     }
 
-    private static void writePropertyFile(File dir, Map<?, ?> propertiesMap) {
-        Properties properties = new Properties()
-        properties.putAll(propertiesMap)
-        GUtil.saveProperties(properties, new File(dir, Project.GRADLE_PROPERTIES))
+    private static File fromDir(File dir) {
+        new File(dir, Project.GRADLE_PROPERTIES)
     }
 
     def mergeAddsPropertiesFromInstallationPropertiesFile() {
         given:
-        writePropertyFile(gradleInstallationHomeDir, map("settingsProp", "settings value"))
+        1 * environment.propertiesFile(fromDir(gradleInstallationHomeDir)) >> [
+            "settingsProp": "settings value"
+        ]
 
         when:
-        Map<String, String> properties = loadAndMergePropertiesWith(emptyMap())
+        def properties = loadAndMergePropertiesWith(emptyMap())
 
         then:
-        assertEquals("settings value", properties.get("settingsProp"))
+        assertEquals("settings value", properties["settingsProp"])
     }
 
     def mergeAddsPropertiesFromUserPropertiesFile() {
         given:
-        writePropertyFile(gradleUserHomeDir, map("userProp", "user value"))
+        1 * environment.propertiesFile(fromDir(gradleUserHomeDir)) >> [
+            "userProp": "user value"
+        ]
 
         when:
         Map<String, String> properties = loadAndMergePropertiesWith(emptyMap())
@@ -92,7 +90,9 @@ class DefaultGradlePropertiesLoaderTest extends Specification {
 
     def mergeAddsPropertiesFromSettingsPropertiesFile() {
         given:
-        writePropertyFile(settingsDir, map("settingsProp", "settings value"))
+        1 * environment.propertiesFile(fromDir(gradleUserHomeDir)) >> [
+            "settingsProp": "settings value"
+        ]
 
         when:
         Map<String, String> properties = loadAndMergePropertiesWith(emptyMap())
@@ -140,19 +140,19 @@ class DefaultGradlePropertiesLoaderTest extends Specification {
 
     def projectPropertiesHavePrecedenceOverInstallationPropertiesFile() {
         given:
-        writePropertyFile(gradleInstallationHomeDir, map("prop", "settings value"))
-        Map<String, String> projectProperties = uncheckedNonnullCast(map("prop", "project value"))
+        1 * environment.propertiesFile(fromDir(gradleInstallationHomeDir)) >> ["prop": "settings value"]
+        Map<String, String> projectProperties = ["prop": "project value"]
 
         when:
         Map<String, String> properties = loadAndMergePropertiesWith(projectProperties)
 
         then:
-        assertEquals("project value", properties.get("prop"))
+        "project value" == properties["prop"]
     }
 
     def projectPropertiesHavePrecedenceOverSettingsPropertiesFile() {
         given:
-        writePropertyFile(settingsDir, map("prop", "settings value"))
+        1 * environment.propertiesFile(fromDir(settingsDir)) >> ["prop": "settings value"]
         Map<String, String> projectProperties = uncheckedNonnullCast(map("prop", "project value"))
 
         when:
@@ -164,20 +164,20 @@ class DefaultGradlePropertiesLoaderTest extends Specification {
 
     def userPropertiesFileHasPrecedenceOverSettingsPropertiesFile() {
         given:
-        writePropertyFile(gradleUserHomeDir, map("prop", "user value"))
-        writePropertyFile(settingsDir, map("prop", "settings value"))
+        1 * environment.propertiesFile(fromDir(gradleUserHomeDir)) >> ["prop": "user value"]
+        1 * environment.propertiesFile(fromDir(settingsDir)) >> ["prop": "settings value"]
 
         when:
         Map<String, String> properties = loadAndMergePropertiesWith(emptyMap())
 
         then:
-        assertEquals("user value", properties.get("prop"))
+        "user value" == properties["prop"]
     }
 
     def userPropertiesFileHasPrecedenceOverProjectProperties() {
         given:
-        writePropertyFile(gradleUserHomeDir, map("prop", "user value"))
-        writePropertyFile(settingsDir, map("prop", "settings value"))
+        1 * environment.propertiesFile(fromDir(gradleUserHomeDir)) >> ["prop": "user value"]
+        1 * environment.propertiesFile(fromDir(settingsDir)) >> ["prop": "settings value"]
         Map<String, String> projectProperties = uncheckedNonnullCast(map("prop", "project value"))
 
         when:
@@ -189,8 +189,8 @@ class DefaultGradlePropertiesLoaderTest extends Specification {
 
     def environmentVariablesHavePrecedenceOverProjectProperties() {
         given:
-        writePropertyFile(gradleUserHomeDir, map("prop", "user value"))
-        writePropertyFile(settingsDir, map("prop", "settings value"))
+        1 * environment.propertiesFile(fromDir(gradleUserHomeDir)) >> map("prop", "user value")
+        1 * environment.propertiesFile(fromDir(settingsDir)) >> map("prop", "settings value")
         Map<String, String> projectProperties = uncheckedNonnullCast(map("prop", "project value"))
         envProperties = uncheckedNonnullCast(map(ENV_PROJECT_PROPERTIES_PREFIX + "prop", "env value"))
 
@@ -203,8 +203,8 @@ class DefaultGradlePropertiesLoaderTest extends Specification {
 
     def systemPropertiesHavePrecedenceOverEnvironmentVariables() {
         given:
-        writePropertyFile(gradleUserHomeDir, map("prop", "user value"))
-        writePropertyFile(settingsDir, map("prop", "settings value"))
+        1 * environment.propertiesFile(fromDir(gradleUserHomeDir)) >> map("prop", "user value")
+        1 * environment.propertiesFile(fromDir(settingsDir)) >> map("prop", "settings value")
         Map<String, String> projectProperties = uncheckedNonnullCast(map("prop", "project value"))
         envProperties = uncheckedNonnullCast(map(ENV_PROJECT_PROPERTIES_PREFIX + "prop", "env value"))
         systemProperties = uncheckedNonnullCast(map(SYSTEM_PROJECT_PROPERTIES_PREFIX + "prop", "system value"))
@@ -218,8 +218,8 @@ class DefaultGradlePropertiesLoaderTest extends Specification {
 
     def startParameterPropertiesHavePrecedenceOverSystemProperties() {
         given:
-        writePropertyFile(gradleUserHomeDir, map("prop", "user value"))
-        writePropertyFile(settingsDir, map("prop", "settings value"))
+        1 * environment.propertiesFile(fromDir(gradleUserHomeDir)) >> map("prop", "user value")
+        1 * environment.propertiesFile(fromDir(settingsDir)) >> map("prop", "settings value")
         Map<String, String> projectProperties = uncheckedNonnullCast(map("prop", "project value"))
         envProperties = uncheckedNonnullCast(map(ENV_PROJECT_PROPERTIES_PREFIX + "prop", "env value"))
         systemProperties = uncheckedNonnullCast(map(SYSTEM_PROJECT_PROPERTIES_PREFIX + "prop", "system value"))
@@ -235,11 +235,11 @@ class DefaultGradlePropertiesLoaderTest extends Specification {
     def loadSetsSystemProperties() {
         given:
         startParameter.setSystemPropertiesArgs(WrapUtil.toMap("systemPropArgKey", "systemPropArgValue"))
-        writePropertyFile(gradleUserHomeDir, map(SYSTEM_PROP_PREFIX + ".userSystemProp", "userSystemValue"))
-        writePropertyFile(settingsDir, map(
+        1 * environment.propertiesFile(fromDir(gradleUserHomeDir)) >> map(SYSTEM_PROP_PREFIX + ".userSystemProp", "userSystemValue")
+        1 * environment.propertiesFile(fromDir(settingsDir)) >> map(
             SYSTEM_PROP_PREFIX + ".userSystemProp", "settingsSystemValue",
             SYSTEM_PROP_PREFIX + ".settingsSystemProp2", "settingsSystemValue2"
-        ))
+        )
 
         when:
         loadProperties()
@@ -268,10 +268,10 @@ class DefaultGradlePropertiesLoaderTest extends Specification {
 
     def reloadsProperties() {
         given:
-        writePropertyFile(settingsDir, map("prop1", "value", "prop2", "value"))
+        1 * environment.propertiesFile(fromDir(settingsDir)) >> map("prop1", "value", "prop2", "value")
 
         File otherSettingsDir = tmpDir.createDir("otherSettingsDir")
-        writePropertyFile(otherSettingsDir, map("prop1", "otherValue"))
+        1 * environment.propertiesFile(fromDir(otherSettingsDir)) >> map("prop1", "otherValue")
 
         when:
         Map<String, String> properties = loadAndMergePropertiesWith(emptyMap())
@@ -299,8 +299,8 @@ class DefaultGradlePropertiesLoaderTest extends Specification {
 
     def startParameterSystemPropertiesHavePrecedenceOverPropertiesFiles() {
         given:
-        writePropertyFile(gradleUserHomeDir, map("systemProp.prop", "user value"))
-        writePropertyFile(settingsDir, map("systemProp.prop", "settings value"))
+        1 * environment.propertiesFile(fromDir(gradleUserHomeDir)) >> map("systemProp.prop", "user value")
+        1 * environment.propertiesFile(fromDir(settingsDir)) >> map("systemProp.prop", "settings value")
         systemProperties = uncheckedNonnullCast(map("prop", "system value"))
         startParameter.setSystemPropertiesArgs(WrapUtil.toMap("prop", "commandline value"))
 
