@@ -21,6 +21,7 @@ import configurations.buildScanCustomValue
 import configurations.buildScanTag
 import configurations.checkCleanAndroidUserHomeScriptUnixLike
 import configurations.checkCleanAndroidUserHomeScriptWindows
+import configurations.enablePullRequestFeature
 import configurations.m2CleanScriptUnixLike
 import configurations.m2CleanScriptWindows
 import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
@@ -90,6 +91,10 @@ fun BuildType.applyDefaultSettings(os: Os = Os.LINUX, buildJvm: Jvm = BuildToolB
         root(AbsoluteId("Gradle_Branches_GradlePersonalBranches"))
         checkoutMode = CheckoutMode.ON_AGENT
         branchFilter = branchesFilterExcluding()
+    }
+
+    features {
+        enablePullRequestFeature()
     }
 
     requirements {

@@ -10,8 +10,5 @@ open class BaseGradleBuildType(
 ) : BuildType() {
     init {
         this.init()
-        features {
-            enablePullRequestFeature()
-        }
     }
 }
