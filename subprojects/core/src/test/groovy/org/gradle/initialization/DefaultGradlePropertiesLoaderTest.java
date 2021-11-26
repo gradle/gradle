@@ -284,7 +284,6 @@ public class DefaultGradlePropertiesLoaderTest {
     private GradleProperties loadPropertiesFrom(File settingsDir) {
         return gradlePropertiesLoader.loadProperties(
             settingsDir,
-            startParameter,
             systemProperties,
             envProperties
         );
