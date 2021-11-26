@@ -340,7 +340,7 @@ Many of these options can be specified in `gradle.properties` so command-line fl
 Toggles the <<build_cache.adoc#build_cache, Gradle build cache>>. Gradle will try to reuse outputs from previous builds. _Default is off_.
 
 `--configuration-cache`, `--no-configuration-cache`::
-Toggles the <<configuration_cache.adoc#sec:config_cache,Configuration Cache>>. Gradle will try to reuse the build configuration from previous builds. This is an incubating and highly experimental feature, it is disabled by default.
+Toggles the <<configuration_cache.adoc#sec:config_cache,Configuration Cache>>. Gradle will try to reuse the build configuration from previous builds. _Default is off_.
 
 `--configuration-cache-problems=(fail,warn)`::
 Configures how the configuration cache handles problems. Default is `fail`.
