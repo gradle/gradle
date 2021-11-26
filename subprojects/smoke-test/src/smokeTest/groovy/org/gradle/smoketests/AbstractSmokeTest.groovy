@@ -47,12 +47,10 @@ import static org.gradle.test.fixtures.server.http.MavenHttpPluginRepository.PLU
 abstract class AbstractSmokeTest extends Specification {
 
     protected static final AndroidGradlePluginVersions AGP_VERSIONS = new AndroidGradlePluginVersions()
+    protected static final String AGP_NO_CC_ITERATION_MATCHER = ".*agp=4\\..*"
+
     protected static final KotlinGradlePluginVersions KOTLIN_VERSIONS = new KotlinGradlePluginVersions()
-    protected static final String AGP_4_X_ITERATION_MATCHER = ".*agp=4\\..*"
-    protected static final String AGP_4_0_ITERATION_MATCHER = ".*agp=4\\.0\\..*"
-    protected static final String AGP_4_1_ITERATION_MATCHER = ".*agp=4\\.1\\..*"
-    protected static final String AGP_4_2_ITERATION_MATCHER = ".*agp=4\\.2\\..*"
-    protected static final String AGP_7_ITERATION_MATCHER = ".*agp=7\\..*"
+    protected static final String KGP_NO_CC_ITERATION_MATCHER = ".*(kotlin=1\\.3\\.|kotlin=1\\.4\\.[01]).*"
 
     static class TestedVersions {
         /**

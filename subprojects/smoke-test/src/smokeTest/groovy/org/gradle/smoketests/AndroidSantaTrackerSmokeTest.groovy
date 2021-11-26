@@ -23,7 +23,7 @@ import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest {
 
-    @UnsupportedWithConfigurationCache(iterationMatchers = [AGP_4_X_ITERATION_MATCHER])
+    @UnsupportedWithConfigurationCache(iterationMatchers = [AGP_NO_CC_ITERATION_MATCHER])
     def "check deprecation warnings produced by building Santa Tracker (agp=#agpVersion)"() {
 
         given:
@@ -43,7 +43,7 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
         agpVersion << TESTED_AGP_VERSIONS
     }
 
-    @UnsupportedWithConfigurationCache(iterationMatchers = [AGP_4_X_ITERATION_MATCHER])
+    @UnsupportedWithConfigurationCache(iterationMatchers = [AGP_NO_CC_ITERATION_MATCHER])
     def "incremental Java compilation works for Santa Tracker (agp=#agpVersion)"() {
 
         given:
@@ -80,7 +80,7 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
         agpVersion << TESTED_AGP_VERSIONS
     }
 
-    @UnsupportedWithConfigurationCache(iterationMatchers = [AGP_4_X_ITERATION_MATCHER])
+    @UnsupportedWithConfigurationCache(iterationMatchers = [AGP_NO_CC_ITERATION_MATCHER])
     def "can lint Santa-Tracker (agp=#agpVersion)"() {
 
         given:
