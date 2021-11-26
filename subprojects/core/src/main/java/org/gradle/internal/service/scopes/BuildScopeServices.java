@@ -24,6 +24,7 @@ import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.internal.DependencyClassPathProvider;
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.internal.ExternalProcessStartedListener;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.artifacts.DefaultModule;
@@ -284,13 +285,14 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return fileCollectionFactory.withResolver(fileResolver);
     }
 
-    protected ExecFactory decorateExecFactory(ExecFactory parent, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, ObjectFactory objectFactory, JavaModuleDetector javaModuleDetector) {
+    protected ExecFactory decorateExecFactory(ExecFactory parent, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, ObjectFactory objectFactory, JavaModuleDetector javaModuleDetector, ListenerManager listenerManager) {
         return parent.forContext()
             .withFileResolver(fileResolver)
             .withFileCollectionFactory(fileCollectionFactory)
             .withInstantiator(instantiator)
             .withObjectFactory(objectFactory)
             .withJavaModuleDetector(javaModuleDetector)
+            .withExternalProcessStartedListener(listenerManager.getBroadcaster(ExternalProcessStartedListener.class))
             .build();
     }
 
@@ -363,7 +365,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             instantiatorFactory,
             isolatableFactory,
             gradleProperties,
-            new DefaultExecOperations(execFactory),
+            new DefaultExecOperations(execFactory.forContext().withoutExternalProcessStartedListener().build()),
             services
         );
     }
