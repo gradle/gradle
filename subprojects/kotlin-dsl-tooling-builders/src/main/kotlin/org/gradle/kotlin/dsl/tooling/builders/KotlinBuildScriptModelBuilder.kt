@@ -33,7 +33,6 @@ import org.gradle.initialization.DependenciesAccessors
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.resource.TextFileResourceLoader
-import org.gradle.internal.service.scopes.ExceptionCollector
 import org.gradle.internal.time.Time.startTimer
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.accessors.AccessorsClassPath
@@ -41,8 +40,10 @@ import org.gradle.kotlin.dsl.accessors.PluginAccessorClassPathGenerator
 import org.gradle.kotlin.dsl.accessors.ProjectAccessorsClassPathGenerator
 import org.gradle.kotlin.dsl.execution.EvalOption
 import org.gradle.kotlin.dsl.precompile.PrecompiledScriptDependenciesResolver
+import org.gradle.kotlin.dsl.provider.ClassPathModeExceptionCollector
 import org.gradle.kotlin.dsl.provider.KotlinScriptClassPathProvider
 import org.gradle.kotlin.dsl.provider.KotlinScriptEvaluator
+import org.gradle.kotlin.dsl.provider.ignoringErrors
 import org.gradle.kotlin.dsl.resolver.EditorReports
 import org.gradle.kotlin.dsl.resolver.SourceDistributionResolver
 import org.gradle.kotlin.dsl.resolver.SourcePathProvider
@@ -399,14 +400,14 @@ data class KotlinScriptTargetModelBuilder(
 
     fun buildModel(): KotlinBuildScriptModel {
         val classpathSources = sourcePathFor(sourceLookupScriptHandlers)
-        val exceptionCollector = project.serviceOf<ExceptionCollector>()
+        val classPathModeExceptionCollector = project.serviceOf<ClassPathModeExceptionCollector>()
         val accessorsClassPath =
-            exceptionCollector.ignoringErrors {
+            classPathModeExceptionCollector.ignoringErrors {
                 accessorsClassPath(scriptClassPath)
             } ?: AccessorsClassPath.empty
 
         val additionalImports =
-            exceptionCollector.ignoringErrors {
+            classPathModeExceptionCollector.ignoringErrors {
                 additionalImports()
             } ?: emptyList()
 
@@ -414,8 +415,8 @@ data class KotlinScriptTargetModelBuilder(
             (scriptClassPath + accessorsClassPath.bin).asFiles,
             (gradleSource() + classpathSources + accessorsClassPath.src).asFiles,
             implicitImports + additionalImports,
-            buildEditorReportsFor(exceptionCollector.exceptions),
-            exceptionCollector.exceptions.map(::exceptionToString),
+            buildEditorReportsFor(classPathModeExceptionCollector.exceptions),
+            classPathModeExceptionCollector.exceptions.map(::exceptionToString),
             enclosingScriptProjectDir
         )
     }
@@ -490,7 +491,7 @@ inline fun KotlinScriptClassPathProvider.safeCompilationClassPathOf(
     compilationClassPathOf(classLoaderScope)
 } catch (error: Exception) {
     getGradle().run {
-        serviceOf<ExceptionCollector>().addException(error)
+        serviceOf<ClassPathModeExceptionCollector>().collect(error)
         compilationClassPathOf(if (projectScript) baseProjectClassLoaderScope() else this.classLoaderScope)
     }
 }
@@ -516,16 +517,6 @@ val Project.hierarchy: Sequence<Project>
 private
 val Project.isLocationAwareEditorHintsEnabled: Boolean
     get() = findProperty(EditorReports.locationAwareEditorHintsPropertyName) == "true"
-
-
-private
-inline fun <T> ExceptionCollector.ignoringErrors(f: () -> T): T? =
-    try {
-        f()
-    } catch (e: Exception) {
-        addException(e)
-        null
-    }
 
 
 internal
