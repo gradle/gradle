@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
+import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
@@ -28,24 +29,29 @@ import org.gradle.internal.model.CalculatedValueContainer;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.model.ValueCalculator;
 
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class DefaultLocalComponentRegistry implements LocalComponentRegistry {
+    private final BuildIdentifier thisBuild;
     private final ProjectStateRegistry projectStateRegistry;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
+    private final LocalComponentProvider provider;
+    private final LocalComponentInAnotherBuildProvider otherBuildProvider;
     private final Map<ProjectComponentIdentifier, CalculatedValueContainer<LocalComponentMetadata, ?>> projects = new ConcurrentHashMap<>();
-    private final List<LocalComponentProvider> providers;
 
     public DefaultLocalComponentRegistry(
+        BuildIdentifier thisBuild,
         ProjectStateRegistry projectStateRegistry,
         CalculatedValueContainerFactory calculatedValueContainerFactory,
-        List<LocalComponentProvider> providers
+        LocalComponentProvider provider,
+        LocalComponentInAnotherBuildProvider otherBuildProvider
     ) {
+        this.thisBuild = thisBuild;
         this.projectStateRegistry = projectStateRegistry;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
-        this.providers = providers;
+        this.provider = provider;
+        this.otherBuildProvider = otherBuildProvider;
     }
 
     @Override
@@ -82,13 +88,15 @@ public class DefaultLocalComponentRegistry implements LocalComponentRegistry {
 
         @Override
         public LocalComponentMetadata calculateValue(NodeExecutionContext context) {
-            for (LocalComponentProvider provider : providers) {
-                LocalComponentMetadata componentMetaData = provider.getComponent(projectState);
-                if (componentMetaData != null) {
-                    return componentMetaData;
-                }
+            if (isLocalProject(projectState.getComponentIdentifier())) {
+                return provider.getComponent(projectState);
+            } else {
+                return otherBuildProvider.getComponent(projectState);
             }
-            throw new IllegalArgumentException(projectState.getComponentIdentifier() + " not found.");
+        }
+
+        private boolean isLocalProject(ProjectComponentIdentifier projectIdentifier) {
+            return projectIdentifier.getBuild().equals(thisBuild);
         }
     }
 }

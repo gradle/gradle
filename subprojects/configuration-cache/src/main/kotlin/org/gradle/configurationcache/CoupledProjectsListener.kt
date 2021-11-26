@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugin.use.internal;
 
-import org.gradle.api.artifacts.repositories.ArtifactRepository;
+package org.gradle.configurationcache
 
-import java.util.List;
+import org.gradle.api.internal.project.ProjectState
+import org.gradle.internal.service.scopes.EventScope
+import org.gradle.internal.service.scopes.Scopes
 
-public interface PluginRepositoriesProvider {
-    List<ArtifactRepository> getPluginRepositories();
 
-    boolean isExclusiveContentInUse();
+@EventScope(Scopes.Build::class)
+interface CoupledProjectsListener {
+    /**
+     * Notified when the build logic for a project accesses the mutable state of some other project.
+     */
+    fun onProjectReference(referrer: ProjectState, target: ProjectState)
 }

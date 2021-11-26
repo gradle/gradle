@@ -24,11 +24,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 class DefaultGradleProperties implements GradleProperties {
-    final Map<String, String> defaultProperties;
-    final Map<String, String> overrideProperties;
-    final ImmutableMap<String, String> gradleProperties;
+    private final Map<String, String> defaultProperties;
+    private final Map<String, String> overrideProperties;
+    private final ImmutableMap<String, String> gradleProperties;
 
-    public DefaultGradleProperties(Map<String, String> defaultProperties, Map<String, String> overrideProperties) {
+    public DefaultGradleProperties(
+        Map<String, String> defaultProperties,
+        Map<String, String> overrideProperties
+    ) {
         this.defaultProperties = defaultProperties;
         this.overrideProperties = overrideProperties;
         gradleProperties = immutablePropertiesWith(ImmutableMap.of());
@@ -36,7 +39,7 @@ class DefaultGradleProperties implements GradleProperties {
 
     @Nullable
     @Override
-    public String find(String propertyName) {
+    public Object find(String propertyName) {
         return gradleProperties.get(propertyName);
     }
 

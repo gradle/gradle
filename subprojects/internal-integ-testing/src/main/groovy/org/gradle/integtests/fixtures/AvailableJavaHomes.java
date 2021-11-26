@@ -42,6 +42,7 @@ import org.gradle.jvm.toolchain.internal.InstallationSupplier;
 import org.gradle.jvm.toolchain.internal.JabbaInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.JavaInstallationRegistry;
 import org.gradle.jvm.toolchain.internal.LinuxInstallationSupplier;
+import org.gradle.jvm.toolchain.internal.MavenToolchainsInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.OsXInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.SdkmanInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.WindowsInstallationSupplier;
@@ -146,7 +147,7 @@ public abstract class AvailableJavaHomes {
     }
 
     /**
-     * Returns a JDK is that has a different Java home to the current one, and which is supported by the Gradle version under test.
+     * Returns a JDK that has a different Java home than the current one, and which is supported by the Gradle version under test.
      */
     @Nullable
     public static Jvm getDifferentJdk() {
@@ -231,6 +232,7 @@ public abstract class AvailableJavaHomes {
             new EnvVariableJvmLocator(),
             new JabbaInstallationSupplier(providerFactory()),
             new LinuxInstallationSupplier(providerFactory()),
+            new MavenToolchainsInstallationSupplier(providerFactory()),
             new OsXInstallationSupplier(TestFiles.execHandleFactory(), providerFactory(), OperatingSystem.current()),
             new SdkmanInstallationSupplier(providerFactory()),
             new WindowsInstallationSupplier(windowsRegistry, OperatingSystem.current(), providerFactory())

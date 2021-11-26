@@ -16,16 +16,23 @@
 
 package org.gradle.configurationcache.fingerprint
 
+import org.gradle.util.Path
+
 
 internal
 sealed class ProjectSpecificFingerprint {
     data class ProjectFingerprint(
-        val projectPath: String,
+        val projectPath: Path,
         val value: ConfigurationCacheFingerprint
     ) : ProjectSpecificFingerprint()
 
-    class ProjectDependency(
-        val consumingProject: String,
-        val targetProject: String
+    data class ProjectDependency(
+        val consumingProject: Path,
+        val targetProject: Path
+    ) : ProjectSpecificFingerprint()
+
+    data class CoupledProjects(
+        val referringProject: Path,
+        val targetProject: Path
     ) : ProjectSpecificFingerprint()
 }

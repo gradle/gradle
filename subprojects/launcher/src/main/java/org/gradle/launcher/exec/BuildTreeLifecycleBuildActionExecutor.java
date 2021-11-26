@@ -55,7 +55,7 @@ public class BuildTreeLifecycleBuildActionExecutor implements BuildSessionAction
             } else if (action instanceof ClientProvidedBuildAction) {
                 actionRequirements = new RunActionRequirements(action.getStartParameter(), action.isRunTasks());
             } else if (action instanceof ClientProvidedPhasedAction) {
-                actionRequirements = new RunPhasedActionRequirements(action.getStartParameter(), false);
+                actionRequirements = new RunPhasedActionRequirements(action.getStartParameter(), action.isRunTasks());
             } else {
                 actionRequirements = new RunTasksRequirements(action.getStartParameter());
             }

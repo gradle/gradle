@@ -33,6 +33,10 @@
    Then check the diff, remove the unnecessary entries (for old dependencies) and make sure
    the new ones are correct.
 
+   If the generation above did not resolve your issue, a task might be missing that exercise the
+   dependency but is not covered by the current resolveAllDependencies. Edit the task definition to
+   add the required task dependency.
+
    Gradle *cannot* automatically determine that an entry in this file is outdated and no longer
    required. As such, try to remove older entries when you upgrade dependencies.
 

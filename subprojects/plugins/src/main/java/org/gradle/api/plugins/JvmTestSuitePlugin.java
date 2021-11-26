@@ -33,6 +33,7 @@ import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.jvm.JvmTestSuiteTarget;
 import org.gradle.api.plugins.jvm.internal.DefaultJvmTestSuite;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.tasks.testing.AbstractTestTask;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.testing.base.TestSuite;
 import org.gradle.testing.base.TestingExtension;
@@ -104,7 +105,9 @@ public class JvmTestSuitePlugin implements Plugin<Project> {
         variant.setVisible(false);
         variant.setCanBeResolved(false);
         variant.setCanBeConsumed(true);
-        variant.extendsFrom(project.getConfigurations().getByName(JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME));
+        variant.extendsFrom(project.getConfigurations().getByName(suite.getSources().getImplementationConfigurationName()),
+            project.getConfigurations().getByName(suite.getSources().getRuntimeOnlyConfigurationName()));
+
 
         final ObjectFactory objects = project.getObjects();
         variant.attributes(attributes -> {
@@ -113,12 +116,12 @@ public class JvmTestSuitePlugin implements Plugin<Project> {
             attributes.attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType.class, DocsType.TEST_RESULTS));
             attributes.attribute(Verification.TEST_SUITE_NAME_ATTRIBUTE, objects.named(Verification.class, suite.getName()));
             attributes.attribute(Verification.TARGET_NAME_ATTRIBUTE, objects.named(Verification.class, suite.getName()));
-            attributes.attribute(TestType.TEST_TYPE_ATTRIBUTE, suite.getTestType().map(tt -> objects.named(TestType.class, tt)));
+            attributes.attributeProvider(TestType.TEST_TYPE_ATTRIBUTE, suite.getTestType().map(tt -> objects.named(TestType.class, tt)));
         });
 
         variant.getOutgoing().artifact(
-            target.getTestTask().flatMap(task -> task.getBinaryResultsDirectory().file("results.bin")),
-            artifact -> artifact.setType(ArtifactTypeDefinition.BINARY_DATA_TYPE)
+            target.getTestTask().flatMap(AbstractTestTask::getBinaryResultsDirectory),
+            artifact -> artifact.setType(ArtifactTypeDefinition.DIRECTORY_TYPE)
         );
 
         return variant;

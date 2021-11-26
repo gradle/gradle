@@ -17,6 +17,7 @@
 package org.gradle.smoketests
 
 import org.apache.commons.io.FileUtils
+import org.gradle.api.JavaVersion
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheMaxProblemsOption
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption
@@ -111,7 +112,10 @@ abstract class AbstractSmokeTest extends Specification {
         })
 
         // https://plugins.gradle.org/plugin/org.gretty
-        static gretty = "3.0.6"
+        static gretty = [
+            [version: "3.0.7", servletContainer: "jetty9.4", javaMinVersion: JavaVersion.VERSION_1_8],
+            [version: "4.0.0", servletContainer: "jetty11", javaMinVersion: JavaVersion.VERSION_11]
+        ]
 
         // https://plugins.gradle.org/plugin/org.ajoberstar.grgit
         static grgit = "4.1.0"
@@ -168,7 +172,7 @@ abstract class AbstractSmokeTest extends Specification {
 
         // https://plugins.gradle.org/plugin/org.jetbrains.kotlin.plugin.allopen
         // https://plugins.gradle.org/plugin/org.jetbrains.kotlin.plugin.spring
-        static kotlinPlugins = Versions.of("1.4.21-2", "1.4.31", "1.5.31", "1.6.0-RC2")
+        static kotlinPlugins = Versions.of("1.4.21-2", "1.4.31", "1.5.31", "1.6.0")
 
         // https://plugins.gradle.org/plugin/com.moowork.grunt
         // https://plugins.gradle.org/plugin/com.moowork.gulp
@@ -321,6 +325,9 @@ abstract class AbstractSmokeTest extends Specification {
             def init = AGP_VERSIONS.createAgpNightlyRepositoryInitScript()
             extraArgs += ["-I", init.canonicalPath]
         }
+        if (agpVersion.startsWith("7.2") && JavaVersion.current().java9Compatible) {
+            runner = runner.withJvmArguments('--add-opens', 'java.logging/java.util.logging=ALL-UNNAMED')
+        }
         return runner.withArguments([runner.arguments, extraArgs].flatten())
     }
 
@@ -332,7 +339,9 @@ abstract class AbstractSmokeTest extends Specification {
     }
 
     protected static SmokeTestGradleRunner expectAgpFileTreeDeprecations(String agpVersion, SmokeTestGradleRunner runner) {
-        expectAgpFileTreeDeprecationWarnings(runner, "compileDebugAidl", "compileDebugRenderscript", "stripDebugDebugSymbols", "bundleLibResDebug")
+        if (agpVersion.startsWith("4.") || agpVersion.startsWith("7.0.") || agpVersion.startsWith("7.1.")) {
+            expectAgpFileTreeDeprecationWarnings(runner, "compileDebugAidl", "compileDebugRenderscript", "stripDebugDebugSymbols", "bundleLibResDebug")
+        }
         if (agpVersion.startsWith("4.")) {
             expectAgpFileTreeDeprecationWarnings(runner, "mergeDebugNativeLibs")
         }

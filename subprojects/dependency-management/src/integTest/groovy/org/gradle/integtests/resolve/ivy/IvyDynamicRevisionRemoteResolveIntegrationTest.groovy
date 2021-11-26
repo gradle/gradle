@@ -67,7 +67,6 @@ dependencies {
         assert succeeds('checkDeps')
     }
 
-    @ToBeFixedForConfigurationCache
     def "uses latest version from version range and latest status"() {
         given:
         useRepository ivyHttpRepo

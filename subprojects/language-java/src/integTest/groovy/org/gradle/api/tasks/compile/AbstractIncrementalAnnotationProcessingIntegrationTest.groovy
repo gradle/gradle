@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.CompilationOutputsFixture
 import org.gradle.language.fixtures.AnnotationProcessorFixture
 import org.gradle.language.fixtures.CompileJavaBuildOperationsFixture
 import org.gradle.test.fixtures.file.TestFile
+import org.intellij.lang.annotations.Language
 
 abstract class AbstractIncrementalAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
 
@@ -53,6 +54,9 @@ abstract class AbstractIncrementalAnnotationProcessingIntegrationTest extends Ab
             dependencies {
                 compileOnly project(":annotation")
                 annotationProcessor project(":processor")
+
+                testCompileOnly project(":annotation")
+                testAnnotationProcessor project(":processor")
             }
         """
 
@@ -70,7 +74,7 @@ abstract class AbstractIncrementalAnnotationProcessingIntegrationTest extends Ab
         processor.writeAnnotationProcessorTo(processorProjectDir)
     }
 
-    protected final File java(String... classBodies) {
+    protected final File java(@Language("java") String... classBodies) {
         javaInPackage('', classBodies)
     }
 

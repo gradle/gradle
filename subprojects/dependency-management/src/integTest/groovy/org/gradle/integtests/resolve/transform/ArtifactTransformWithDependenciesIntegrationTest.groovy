@@ -815,7 +815,7 @@ project(':common') {
         assertTransformationsExecuted()
 
         when:
-        run ":app:resolveGreen", "-PcommonOutputDir=out"
+        run ":app:resolveGreen", "-DcommonOutputDir=out"
 
         then: // new path, should re-run
         result.assertTasksNotSkipped(":common:producer")
@@ -825,14 +825,14 @@ project(':common') {
         )
 
         when:
-        run ":app:resolveGreen", "-PcommonOutputDir=out"
+        run ":app:resolveGreen", "-DcommonOutputDir=out"
 
         then: // no changes, should be up-to-date
         result.assertTasksNotSkipped()
         assertTransformationsExecuted()
 
         when:
-        run ":app:resolveGreen", "-PcommonOutputDir=out", "-PcommonFileName=common-blue.jar"
+        run ":app:resolveGreen", "-DcommonOutputDir=out", "-DcommonFileName=common-blue.jar"
 
         then: // new name, should re-run
         result.assertTasksNotSkipped(":common:producer", ":app:resolveGreen")
@@ -842,14 +842,14 @@ project(':common') {
         )
 
         when:
-        run ":app:resolveGreen", "-PcommonOutputDir=out", "-PcommonFileName=common-blue.jar"
+        run ":app:resolveGreen", "-DcommonOutputDir=out", "-DcommonFileName=common-blue.jar"
 
         then: // no changes, should be up-to-date
         result.assertTasksNotSkipped()
         assertTransformationsExecuted()
 
         when:
-        run ":app:resolveGreen", "-PcommonOutputDir=out", "-PcommonFileName=common-blue.jar", "-PcommonContent=new"
+        run ":app:resolveGreen", "-DcommonOutputDir=out", "-DcommonFileName=common-blue.jar", "-DcommonContent=new"
 
         then: // new content, should re-run
         result.assertTasksNotSkipped(":common:producer", ":app:resolveGreen")
@@ -918,7 +918,7 @@ abstract class NoneTransform implements TransformAction<TransformParameters.None
         assertTransformationsExecuted()
 
         when:
-        run ":app:resolveGreen", "-PcommonOutputDir=out"
+        run ":app:resolveGreen", "-DcommonOutputDir=out"
 
         then: // new path, should skip consumer
         result.assertTasksNotSkipped(":common:producer")
@@ -927,7 +927,7 @@ abstract class NoneTransform implements TransformAction<TransformParameters.None
         )
 
         when:
-        run ":app:resolveGreen", "-PcommonOutputDir=out", "-PcommonFileName=common-blue.jar"
+        run ":app:resolveGreen", "-DcommonOutputDir=out", "-DcommonFileName=common-blue.jar"
 
         then: // new name, should skip consumer
         result.assertTasksNotSkipped(":common:producer", ":app:resolveGreen")
@@ -936,14 +936,14 @@ abstract class NoneTransform implements TransformAction<TransformParameters.None
         )
 
         when:
-        run ":app:resolveGreen", "-PcommonOutputDir=out", "-PcommonFileName=common-blue.jar"
+        run ":app:resolveGreen", "-DcommonOutputDir=out", "-DcommonFileName=common-blue.jar"
 
         then: // no changes, should be up-to-date
         result.assertTasksNotSkipped()
         assertTransformationsExecuted()
 
         when:
-        run ":app:resolveGreen", "-PcommonOutputDir=out", "-PcommonFileName=common-blue.jar", "-PcommonContent=new"
+        run ":app:resolveGreen", "-DcommonOutputDir=out", "-DcommonFileName=common-blue.jar", "-DcommonContent=new"
 
         then: // new content, should re-run
         result.assertTasksNotSkipped(":common:producer", ":app:resolveGreen")
@@ -1014,7 +1014,7 @@ abstract class ClasspathTransform implements TransformAction<TransformParameters
         assertTransformationsExecuted()
 
         when:
-        run ":app:resolveGreen", "-PcommonOutputDir=out"
+        run ":app:resolveGreen", "-DcommonOutputDir=out"
 
         then: // new path, should skip consumer
         result.assertTasksNotSkipped(":common:producer")
@@ -1023,7 +1023,7 @@ abstract class ClasspathTransform implements TransformAction<TransformParameters
         )
 
         when:
-        run ":app:resolveGreen", "-PcommonOutputDir=out", "-PcommonFileName=common-blue.jar"
+        run ":app:resolveGreen", "-DcommonOutputDir=out", "-DcommonFileName=common-blue.jar"
 
         then: // new name, should skip consumer
         result.assertTasksNotSkipped(":common:producer", ":app:resolveGreen")
@@ -1032,14 +1032,14 @@ abstract class ClasspathTransform implements TransformAction<TransformParameters
         )
 
         when:
-        run ":app:resolveGreen", "-PcommonOutputDir=out", "-PcommonFileName=common-blue.jar"
+        run ":app:resolveGreen", "-DcommonOutputDir=out", "-DcommonFileName=common-blue.jar"
 
         then: // no changes, should be up-to-date
         result.assertTasksNotSkipped()
         assertTransformationsExecuted()
 
         when:
-        run ":app:resolveGreen", "-PcommonOutputDir=out", "-PcommonFileName=common-blue.jar", "-PcommonContent=new"
+        run ":app:resolveGreen", "-DcommonOutputDir=out", "-DcommonFileName=common-blue.jar", "-DcommonContent=new"
 
         then: // new content, should re-run
         result.assertTasksNotSkipped(":common:producer", ":app:resolveGreen")

@@ -363,7 +363,12 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public ProjectInternal getRootProject() {
-        return rootProject;
+        return getRootProject(this);
+    }
+
+    @Override
+    public ProjectInternal getRootProject(ProjectInternal referrer) {
+        return getCrossProjectModelAccess().access(referrer, rootProject);
     }
 
     @Override
@@ -401,7 +406,16 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public ProjectInternal getParent() {
-        return parent;
+        return getParent(this);
+    }
+
+    @Nullable
+    @Override
+    public ProjectInternal getParent(ProjectInternal referrer) {
+        if (parent == null) {
+            return null;
+        }
+        return getCrossProjectModelAccess().access(referrer, parent);
     }
 
     @Nullable

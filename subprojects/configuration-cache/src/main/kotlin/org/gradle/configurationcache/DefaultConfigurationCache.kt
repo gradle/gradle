@@ -164,7 +164,10 @@ class DefaultConfigurationCache internal constructor(
     override fun finalizeCacheEntry() {
         if (hasSavedValues) {
             store.useForStore { layout ->
-                writeConfigurationCacheFingerprint(layout)
+                val reusedProjects = mutableSetOf<Path>()
+                intermediateModels.value.visitReusedProjects(reusedProjects::add)
+                projectMetadata.value.visitReusedProjects(reusedProjects::add)
+                writeConfigurationCacheFingerprint(layout, reusedProjects)
                 cacheIO.writeCacheEntryDetailsTo(buildStateRegistry, intermediateModels.value.values, projectMetadata.value.values, layout.fileFor(StateType.Entry))
             }
             hasSavedValues = false
@@ -236,7 +239,6 @@ class DefaultConfigurationCache internal constructor(
     }
 
     override fun stop() {
-        Instrumented.discardListener()
         val stoppable = CompositeStoppable.stoppable()
         if (intermediateModels.isInitialized()) {
             stoppable.add(intermediateModels.value)
@@ -265,7 +267,11 @@ class DefaultConfigurationCache internal constructor(
     private
     fun <T> runWorkThatContributesToCacheEntry(action: () -> T): T {
         prepareForWork()
-        return action()
+        try {
+            return action()
+        } finally {
+            doneWithWork()
+        }
     }
 
     private
@@ -273,6 +279,12 @@ class DefaultConfigurationCache internal constructor(
         prepareConfigurationTimeBarrier()
         startCollectingCacheFingerprint()
         Instrumented.setListener(instrumentedInputAccessListener)
+    }
+
+    private
+    fun doneWithWork() {
+        Instrumented.discardListener()
+        cacheFingerprintController.stopCollectingFingerprint()
     }
 
     private
@@ -315,7 +327,6 @@ class DefaultConfigurationCache internal constructor(
         }
 
         hasSavedValues = true
-        cacheFingerprintController.stopCollectingFingerprint()
     }
 
     private
@@ -367,7 +378,15 @@ class DefaultConfigurationCache internal constructor(
         )
 
     private
-    fun writeConfigurationCacheFingerprint(layout: ConfigurationCacheRepository.Layout) {
+    fun writeConfigurationCacheFingerprint(layout: ConfigurationCacheRepository.Layout, reusedProjects: Set<Path>) {
+        // Collect fingerprint entries for any projects whose state was reused from cache
+        if (reusedProjects.isNotEmpty()) {
+            readFingerprintFile(layout.fileForRead(StateType.ProjectFingerprint)) { host ->
+                cacheFingerprintController.run {
+                    collectFingerprintForReusedProjects(host, reusedProjects)
+                }
+            }
+        }
         cacheFingerprintController.commitFingerprintTo(layout.fileFor(StateType.BuildFingerprint), layout.fileFor(StateType.ProjectFingerprint))
     }
 
@@ -413,7 +432,7 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun checkBuildScopedFingerprint(fingerprintFile: ConfigurationCacheStateFile): CheckedFingerprint {
-        return checkFingerprint(fingerprintFile) { host ->
+        return readFingerprintFile(fingerprintFile) { host ->
             cacheFingerprintController.run {
                 checkBuildScopedFingerprint(host)
             }
@@ -422,7 +441,7 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun checkProjectScopedFingerprint(fingerprintFile: ConfigurationCacheStateFile): CheckedFingerprint {
-        return checkFingerprint(fingerprintFile) { host ->
+        return readFingerprintFile(fingerprintFile) { host ->
             cacheFingerprintController.run {
                 checkProjectScopedFingerprint(host)
             }
@@ -430,7 +449,7 @@ class DefaultConfigurationCache internal constructor(
     }
 
     private
-    fun <T> checkFingerprint(fingerprintFile: ConfigurationCacheStateFile, action: suspend ReadContext.(ConfigurationCacheFingerprintController.Host) -> T): T =
+    fun <T> readFingerprintFile(fingerprintFile: ConfigurationCacheStateFile, action: suspend ReadContext.(ConfigurationCacheFingerprintController.Host) -> T): T =
         fingerprintFile.inputStream().use { inputStream ->
             cacheIO.withReadContextFor(inputStream) { codecs ->
                 withIsolate(IsolateOwner.OwnerHost(host), codecs.userTypesCodec) {

@@ -20,6 +20,10 @@ import gradlebuild.basics.BuildEnvironment.isCodeQl
 import gradlebuild.basics.BuildEnvironment.isGhActions
 import gradlebuild.basics.BuildEnvironment.isJenkins
 import gradlebuild.basics.BuildEnvironment.isTravis
+import gradlebuild.basics.buildConfigurationId
+import gradlebuild.basics.buildId
+import gradlebuild.basics.buildServerUrl
+import gradlebuild.basics.environmentVariable
 import gradlebuild.basics.kotlindsl.execAndGetStdout
 import gradlebuild.basics.tasks.ClasspathManifest
 import gradlebuild.basics.testDistributionEnabled
@@ -70,7 +74,7 @@ if (isCiServer) {
     }
 }
 
-if (project.testDistributionEnabled()) {
+if (project.testDistributionEnabled) {
     buildScan?.tag("TEST_DISTRIBUTION")
 }
 
@@ -136,7 +140,7 @@ fun isExpectedCompileCacheMiss() =
         "Check_Gradleception"
     )
 
-fun isInBuild(vararg buildTypeIds: String) = System.getenv("BUILD_TYPE_ID")?.let { currentBuildTypeId ->
+fun isInBuild(vararg buildTypeIds: String) = buildConfigurationId.orNull?.let { currentBuildTypeId ->
     buildTypeIds.any { currentBuildTypeId.endsWith(it) }
 } ?: false
 
@@ -196,7 +200,7 @@ fun Project.extractCiData() {
 }
 
 fun BuildScanExtension.whenEnvIsSet(envName: String, action: BuildScanExtension.(envValue: String) -> Unit) {
-    val envValue: String? = System.getenv(envName)
+    val envValue: String? = environmentVariable(envName).orNull
     if (!envValue.isNullOrEmpty()) {
         action(envValue)
     }
@@ -238,9 +242,9 @@ open class FileSystemWatchingBuildOperationListener(private val buildOperationLi
 }
 
 fun Project.extractAllReportsFromCI() {
-    val teamCityServerUrl = System.getenv("BUILD_SERVER_URL") ?: return
+    val teamCityServerUrl = buildServerUrl.orNull ?: return
     val capturedReportingTypes = listOf("html") // can add xml, text, junitXml if wanted
-    val basePath = "$teamCityServerUrl/repository/download/${System.getenv("BUILD_TYPE_ID")}/${System.getenv("BUILD_ID")}:id/.teamcity/gradle-logs"
+    val basePath = "$teamCityServerUrl/repository/download/${buildConfigurationId.get()}/${buildId.get()}:id/.teamcity/gradle-logs"
 
     gradle.taskGraph.afterTask {
         if (state.failure != null && this is Reporting<*>) {

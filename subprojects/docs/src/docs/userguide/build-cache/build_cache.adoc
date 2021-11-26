@@ -414,6 +414,11 @@ This also applies to any `buildSrc` projects of any included builds.
 
 The <<organizing_gradle_projects.adoc#sec:build_sources,`buildSrc` directory>> is treated as an <<composite_builds.adoc#composite_build_intro,included build>>, and as such it inherits the build cache configuration from the top-level build.
 
+[NOTE]
+====
+This configuration precedence does not apply to <<composite_builds.adoc#included_plugin_builds,plugin builds>> included through `pluginManagement` as these are loaded _before_ the cache configuration itself.
+====
+
 [[sec:build_cache_setup_http_backend]]
 == How to set up an HTTP build cache backend
 
