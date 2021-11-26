@@ -24,7 +24,6 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.compile.CompilationSourceDirs;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.provider.Property;
@@ -340,7 +339,6 @@ public class EclipseClasspath {
     public List<ClasspathEntry> resolveDependencies() {
         ProjectInternal projectInternal = (ProjectInternal) this.project;
         IdeArtifactRegistry ideArtifactRegistry = projectInternal.getServices().get(IdeArtifactRegistry.class);
-        ProjectStateRegistry projectRegistry = projectInternal.getServices().get(ProjectStateRegistry.class);
         boolean inferModulePath = false;
         Task javaCompileTask = project.getTasks().findByName(JavaPlugin.COMPILE_JAVA_TASK_NAME);
         if (javaCompileTask instanceof JavaCompile) {
@@ -351,7 +349,7 @@ public class EclipseClasspath {
                 inferModulePath = JavaModuleDetector.isModuleSource(true, sourceRoots);
             }
         }
-        ClasspathFactory classpathFactory = new ClasspathFactory(this, ideArtifactRegistry, projectRegistry, new DefaultGradleApiSourcesResolver(project), inferModulePath);
+        ClasspathFactory classpathFactory = new ClasspathFactory(this, ideArtifactRegistry, new DefaultGradleApiSourcesResolver(project), inferModulePath);
         return classpathFactory.createEntries();
     }
 

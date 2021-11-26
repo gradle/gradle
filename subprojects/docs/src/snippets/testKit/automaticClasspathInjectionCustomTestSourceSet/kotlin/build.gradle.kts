@@ -24,7 +24,6 @@ dependencies {
     "functionalTestImplementation"("org.spockframework:spock-core:2.0-groovy-3.0") {
         exclude(group = "org.codehaus.groovy")
     }
-    "functionalTestImplementation"("org.junit.jupiter:junit-jupiter-api")
 }
 // end::custom-test-source-set[]
 

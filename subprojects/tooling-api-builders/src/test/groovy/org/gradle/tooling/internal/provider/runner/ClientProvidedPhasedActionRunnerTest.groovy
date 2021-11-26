@@ -16,13 +16,12 @@
 
 package org.gradle.tooling.internal.provider.runner
 
-
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.initialization.BuildEventConsumer
-import org.gradle.internal.build.BuildToolingModelAction
-import org.gradle.internal.build.BuildToolingModelController
 import org.gradle.internal.build.event.BuildEventSubscriptions
 import org.gradle.internal.buildtree.BuildTreeLifecycleController
+import org.gradle.internal.buildtree.BuildTreeModelAction
+import org.gradle.internal.buildtree.BuildTreeModelController
 import org.gradle.tooling.internal.protocol.InternalBuildActionFailureException
 import org.gradle.tooling.internal.protocol.InternalBuildActionVersion2
 import org.gradle.tooling.internal.protocol.InternalPhasedAction
@@ -52,7 +51,7 @@ class ClientProvidedPhasedActionRunnerTest extends Specification {
         deserialize(serializedAction) >> phasedAction
     }
     def buildController = Mock(BuildTreeLifecycleController)
-    def toolingModelController = Stub(BuildToolingModelController)
+    def modelController = Stub(BuildTreeModelController)
 
     def runner = new ClientProvidedPhasedActionRunner(Stub(BuildControllerFactory), payloadSerializer, buildEventConsumer)
 
@@ -76,9 +75,9 @@ class ClientProvidedPhasedActionRunnerTest extends Specification {
         result.clientFailure == null
 
         and:
-        1 * buildController.fromBuildModel(_, _) >> { Boolean b, BuildToolingModelAction modelAction ->
-            modelAction.beforeTasks(toolingModelController)
-            modelAction.fromBuildModel(toolingModelController)
+        1 * buildController.fromBuildModel(_, _) >> { Boolean b, BuildTreeModelAction modelAction ->
+            modelAction.beforeTasks(modelController)
+            modelAction.fromBuildModel(modelController)
         }
         1 * projectsLoadedAction.execute(_) >> result1
         1 * buildFinishedAction.execute(_) >> result2
@@ -109,9 +108,9 @@ class ClientProvidedPhasedActionRunnerTest extends Specification {
         result.clientFailure.cause == failure
 
         and:
-        1 * buildController.fromBuildModel(_, _) >> { Boolean b, BuildToolingModelAction modelAction ->
-            modelAction.beforeTasks(toolingModelController)
-            modelAction.fromBuildModel(toolingModelController)
+        1 * buildController.fromBuildModel(_, _) >> { Boolean b, BuildTreeModelAction modelAction ->
+            modelAction.beforeTasks(modelController)
+            modelAction.fromBuildModel(modelController)
         }
         1 * projectsLoadedAction.execute(_) >> {
             throw failure
@@ -129,7 +128,7 @@ class ClientProvidedPhasedActionRunnerTest extends Specification {
         then:
         result.buildFailure == failure
         result.clientFailure == failure
-        1 * buildController.fromBuildModel(_, _) >> { Boolean b, BuildToolingModelAction modelAction -> throw failure }
+        1 * buildController.fromBuildModel(_, _) >> { Boolean b, BuildTreeModelAction modelAction -> throw failure }
     }
 
     def "action not run if null"() {
@@ -142,9 +141,9 @@ class ClientProvidedPhasedActionRunnerTest extends Specification {
         result.clientFailure == null
 
         and:
-        1 * buildController.fromBuildModel(_, _) >> { Boolean b, BuildToolingModelAction modelAction ->
-            modelAction.beforeTasks(toolingModelController)
-            modelAction.fromBuildModel(toolingModelController)
+        1 * buildController.fromBuildModel(_, _) >> { Boolean b, BuildTreeModelAction modelAction ->
+            modelAction.beforeTasks(modelController)
+            modelAction.fromBuildModel(modelController)
         }
         1 * phasedAction.getProjectsLoadedAction() >> null
         1 * phasedAction.getBuildFinishedAction() >> null
@@ -156,9 +155,9 @@ class ClientProvidedPhasedActionRunnerTest extends Specification {
         runner.run(new ClientProvidedPhasedAction(startParameter, serializedAction, true, clientSubscriptions), buildController)
 
         then:
-        1 * buildController.fromBuildModel(true, _) >> { Boolean b, BuildToolingModelAction modelAction ->
-            modelAction.beforeTasks(toolingModelController)
-            modelAction.fromBuildModel(toolingModelController)
+        1 * buildController.fromBuildModel(true, _) >> { Boolean b, BuildTreeModelAction modelAction ->
+            modelAction.beforeTasks(modelController)
+            modelAction.fromBuildModel(modelController)
         }
     }
 }

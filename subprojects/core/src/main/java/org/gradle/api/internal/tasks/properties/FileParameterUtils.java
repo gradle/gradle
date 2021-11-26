@@ -109,7 +109,6 @@ public class FileParameterUtils {
         String propertyName,
         PropertyValue value,
         OutputFilePropertyType filePropertyType,
-        ContentTracking contentTracking,
         FileCollectionFactory fileCollectionFactory,
         boolean locationOnly,
         Consumer<OutputFilePropertySpec> consumer
@@ -127,15 +126,15 @@ public class FileParameterUtils {
         }
         // From here on, we already unpacked providers, so we can fail if any of the file collections contains a provider which is not present.
         if (filePropertyType == OutputFilePropertyType.DIRECTORIES || filePropertyType == OutputFilePropertyType.FILES) {
-            resolveCompositeOutputFilePropertySpecs(ownerDisplayName, propertyName, unpackedValue, filePropertyType.getOutputType(), contentTracking, fileCollectionFactory, consumer);
+            resolveCompositeOutputFilePropertySpecs(ownerDisplayName, propertyName, unpackedValue, filePropertyType.getOutputType(), fileCollectionFactory, consumer);
         } else {
             FileCollectionInternal outputFiles = fileCollectionFactory.resolving(unpackedValue);
-            DefaultCacheableOutputFilePropertySpec filePropertySpec = new DefaultCacheableOutputFilePropertySpec(propertyName, null, outputFiles, filePropertyType.getOutputType(), contentTracking);
+            DefaultCacheableOutputFilePropertySpec filePropertySpec = new DefaultCacheableOutputFilePropertySpec(propertyName, null, outputFiles, filePropertyType.getOutputType());
             consumer.accept(filePropertySpec);
         }
     }
 
-    private static void resolveCompositeOutputFilePropertySpecs(final String ownerDisplayName, final String propertyName, Object unpackedValue, final TreeType outputType, ContentTracking contentTracking, FileCollectionFactory fileCollectionFactory, Consumer<OutputFilePropertySpec> consumer) {
+    private static void resolveCompositeOutputFilePropertySpecs(final String ownerDisplayName, final String propertyName, Object unpackedValue, final TreeType outputType, FileCollectionFactory fileCollectionFactory, Consumer<OutputFilePropertySpec> consumer) {
         if (unpackedValue instanceof Map) {
             for (Map.Entry<?, ?> entry : ((Map<?, ?>) unpackedValue).entrySet()) {
                 Object key = entry.getKey();
@@ -144,7 +143,7 @@ public class FileParameterUtils {
                 }
                 String id = key.toString();
                 FileCollectionInternal outputFiles = fileCollectionFactory.resolving(entry.getValue());
-                consumer.accept(new DefaultCacheableOutputFilePropertySpec(propertyName, "." + id, outputFiles, outputType, contentTracking));
+                consumer.accept(new DefaultCacheableOutputFilePropertySpec(propertyName, "." + id, outputFiles, outputType));
             }
         } else {
             FileCollectionInternal outputFileCollection = fileCollectionFactory.resolving(unpackedValue);
@@ -154,7 +153,7 @@ public class FileParameterUtils {
                 public void visitCollection(FileCollectionInternal.Source source, Iterable<File> contents) {
                     for (File content : contents) {
                         FileCollectionInternal outputFiles = fileCollectionFactory.fixed(content);
-                        consumer.accept(new DefaultCacheableOutputFilePropertySpec(propertyName, "$" + index.incrementAndGet(), outputFiles, outputType, contentTracking));
+                        consumer.accept(new DefaultCacheableOutputFilePropertySpec(propertyName, "$" + index.incrementAndGet(), outputFiles, outputType));
                     }
                 }
 
@@ -174,7 +173,6 @@ public class FileParameterUtils {
                     // but because @OutputDirectory also doesn't support it we choose not to.
                     consumer.accept(new DirectoryTreeOutputFilePropertySpec(
                         propertyName + "$" + index.incrementAndGet(),
-                        contentTracking,
                         new PropertyFileCollection(ownerDisplayName, propertyName, "output", fileTree),
                         root
                     ));

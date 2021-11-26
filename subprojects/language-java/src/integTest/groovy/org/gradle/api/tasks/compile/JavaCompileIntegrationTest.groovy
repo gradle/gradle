@@ -17,7 +17,7 @@
 package org.gradle.api.tasks.compile
 
 import groovy.test.NotYetImplemented
-import org.gradle.integtests.fixtures.AbstractPluginIntegrationTest
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -25,9 +25,8 @@ import org.gradle.util.internal.Resources
 import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 import spock.lang.Issue
-import spock.lang.Unroll
 
-class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
+class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
     Resources resources = new Resources()
@@ -396,7 +395,6 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
         noExceptionThrown()
     }
 
-    @Unroll
     def "can depend on #scenario without building the jar"() {
         given:
         settingsFile << "include 'a', 'b'"
@@ -877,9 +875,9 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
             apply plugin: 'java'
 
             compileJava {
-                if (providers.gradleProperty("java7").forUseAtConfigurationTime().isPresent()) {
+                if (providers.gradleProperty("java7").isPresent()) {
                     options.bootstrapClasspath = files("$jdk7bootClasspath")
-                } else if (providers.gradleProperty("java8").forUseAtConfigurationTime().isPresent()) {
+                } else if (providers.gradleProperty("java8").isPresent()) {
                     options.bootstrapClasspath = files("$jdk8bootClasspath")
                 }
                 options.fork = true

@@ -19,7 +19,6 @@ import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Queues;
 import com.google.common.collect.Sets;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
@@ -31,6 +30,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DependencyVerifyi
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.report.DependencyVerificationReportWriter;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.report.VerificationReport;
+import org.gradle.api.internal.artifacts.verification.DependencyVerificationException;
 import org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationsXmlReader;
 import org.gradle.api.internal.artifacts.verification.signatures.BuildTreeDefinedKeys;
 import org.gradle.api.internal.artifacts.verification.signatures.SignatureVerificationService;
@@ -95,8 +95,8 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
             this.reportWriter = new DependencyVerificationReportWriter(gradleUserHome.toPath(), documentationRegistry, verificationsFile, verifier.getSuggestedWriteFlags(), reportsDirectory, gradlePropertiesFactory);
         } catch (FileNotFoundException e) {
             throw UncheckedException.throwAsUncheckedException(e);
-        } catch (InvalidUserDataException e) {
-            throw new InvalidUserDataException("Unable to read dependency verification metadata from " + verificationsFile, e.getCause());
+        } catch (DependencyVerificationException e) {
+            throw new DependencyVerificationException("Unable to read dependency verification metadata from " + verificationsFile, e.getCause());
         }
         this.signatureVerificationService = signatureVerificationServiceFactory.create(keyrings, keyServers(), verifier.getConfiguration().isUseKeyServers());
     }
@@ -179,7 +179,7 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
                     failures.clear();
                     hasFatalFailure.set(false);
                 } else {
-                    throw new InvalidUserDataException(errorMessage);
+                    throw new DependencyVerificationException(errorMessage);
                 }
             }
         }

@@ -76,7 +76,6 @@ import org.gradle.configuration.project.ProjectEvaluator
 import org.gradle.groovy.scripts.EmptyScript
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.initialization.ClassLoaderScopeRegistryListener
-import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.Factory
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.logging.LoggingManagerInternal
@@ -88,6 +87,7 @@ import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.resource.StringTextResource
 import org.gradle.internal.resource.TextFileResourceLoader
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.internal.service.scopes.ExceptionCollector
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory
 import org.gradle.model.internal.manage.schema.ModelSchemaStore
@@ -130,6 +130,7 @@ class DefaultProjectTest extends Specification {
     ServiceRegistry serviceRegistryMock
     ServiceRegistryFactory projectServiceRegistryFactoryMock
     TaskContainerInternal taskContainerMock = Stub(TaskContainerInternal)
+    ExceptionCollector exceptionCollectorMock = Stub(ExceptionCollector)
     Factory<AntBuilder> antBuilderFactoryMock = Stub(Factory)
     AntBuilder testAntBuilder
 
@@ -180,6 +181,8 @@ class DefaultProjectTest extends Specification {
 
         testTask = TestUtil.create(temporaryFolder).task(DefaultTask)
 
+        exceptionCollectorMock.decorate(_) >> { args -> args[0] }
+
         projectRegistry = new DefaultProjectRegistry()
 
         projectServiceRegistryFactoryMock = Stub(ServiceRegistryFactory)
@@ -187,6 +190,7 @@ class DefaultProjectTest extends Specification {
 
         projectServiceRegistryFactoryMock.createFor({ it != null }) >> serviceRegistryMock
         serviceRegistryMock.get(TaskContainerInternal) >> taskContainerMock
+        serviceRegistryMock.get(ExceptionCollector) >> exceptionCollectorMock
         taskContainerMock.getTasksAsDynamicObject() >> new BeanDynamicObject(new TaskContainerDynamicObject(someTask: testTask))
         serviceRegistryMock.get((Type) RepositoryHandler) >> repositoryHandlerMock
         serviceRegistryMock.get(ConfigurationContainer) >> configurationContainerMock
@@ -226,7 +230,6 @@ class DefaultProjectTest extends Specification {
         pluginManager.getPluginContainer() >> pluginContainer
 
         serviceRegistryMock.get((Type) DeferredProjectConfiguration) >> Stub(DeferredProjectConfiguration)
-        serviceRegistryMock.get((Type) ProjectAccessListener) >> Stub(ProjectAccessListener)
 
         serviceRegistryMock.get(ITaskFactory) >> Stub(ITaskFactory)
 
@@ -248,17 +251,20 @@ class DefaultProjectTest extends Specification {
         serviceRegistryMock.get((Type) DependencyLockingHandler) >> Stub(DependencyLockingHandler)
 
         projectState = Mock(ProjectState)
+        projectState.name >> 'root'
         project = defaultProject('root', projectState, null, rootDir, rootProjectClassLoaderScope)
         def child1ClassLoaderScope = rootProjectClassLoaderScope.createChild("project-child1")
         child1State = Mock(ProjectState)
         child1 = defaultProject("child1", child1State, project, new File("child1"), child1ClassLoaderScope)
-        project.addChildProject(child1)
+        child1State.mutableModel >> child1
+        child1State.name >> "child1"
         chilchildState = Mock(ProjectState)
         childchild = defaultProject("childchild", chilchildState, child1, new File("childchild"), child1ClassLoaderScope.createChild("project-childchild"))
-        child1.addChildProject(childchild)
         child2State = Mock(ProjectState)
         child2 = defaultProject("child2", child2State, project, new File("child2"), rootProjectClassLoaderScope.createChild("project-child2"))
-        project.addChildProject(child2)
+        child2State.mutableModel >> child2
+        child2State.name >> "child2"
+        projectState.childProjects >> ([child1State, child2State] as Set)
         [project, child1, childchild, child2].each {
             projectRegistry.addProject(it)
         }
@@ -447,25 +453,10 @@ class DefaultProjectTest extends Specification {
         }
     }
 
-    def addAndGetChildProject() {
-        given:
-        def child1 = Stub(ProjectInternal) {
-            getName() >> 'child1'
-        }
-        def child2 = Stub(ProjectInternal) {
-            getName() >> 'child2'
-        }
-
-        when:
-        project.addChildProject(child1)
-        then:
+    def getChildProject() {
+        expect:
         project.childProjects.size() == 2
         project.childProjects.child1.is(child1)
-
-        when:
-        project.addChildProject(child2)
-        then:
-        project.childProjects.size() == 2
         project.childProjects.child2.is(child2)
     }
 

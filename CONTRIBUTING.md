@@ -34,6 +34,20 @@ Contributors must follow the Code of Conduct outlined at [https://gradle.org/con
 
 ## Making Changes
 
+### Configuration cache enabled by default
+
+The build of Gradle enables the configuration cache by default as an experiment.
+
+Most use cases support the configuration cache but some don't. For example, building the documentation currently requires to disable the configuration cache.
+
+The build fails if a task that is known to have problems is scheduled. You can disable the configuration cache with `--no-configuration-cache`. You can ignore problems with `--configuration-cache-problems=warn`.
+
+Tasks known to have problems are listed in the build logic. You can find this list at:
+
+    build-logic-settings/cc-experiment-plugin/src/main/kotlin/gradlebuild.internal.cc-experiment.settings.gradle.kts
+
+For more information on the configuration cache, see the [user manual](https://docs.gradle.org/current/userguide/configuration_cache.html).
+
 ### Installing from source
 
 To create an install from the source tree you can run either of the following:

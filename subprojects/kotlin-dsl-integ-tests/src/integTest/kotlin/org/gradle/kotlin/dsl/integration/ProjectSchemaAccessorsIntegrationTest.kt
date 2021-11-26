@@ -1247,6 +1247,43 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
+    fun `accessors to extensions of the repository handler`() {
+
+        withKotlinBuildSrc()
+        withFile(
+            "buildSrc/src/main/kotlin/Mine.kt",
+            """
+            open class Mine {
+                val some = 19
+                val more = 23
+            }
+            """
+        )
+        withFile(
+            "buildSrc/src/main/kotlin/my-plugin.gradle.kts",
+            """
+            (repositories as ExtensionAware).extensions.create<Mine>("mine")
+            """
+        )
+
+        withBuildScript(
+            """
+            plugins {
+                `my-plugin`
+            }
+
+            repositories {
+                println(mine.some + project.repositories.mine.more)
+            }
+            """.trimIndent()
+        )
+
+        build("help").apply {
+            assertThat(output, containsString("42"))
+        }
+    }
+
+    @Test
     fun `can access project extension of nested type compiled to Java 11`() {
 
         assumeJava11()

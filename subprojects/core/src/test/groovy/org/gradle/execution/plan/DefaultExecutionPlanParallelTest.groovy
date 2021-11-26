@@ -21,7 +21,6 @@ import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.TaskInternal
-import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.tasks.Destroys
 import org.gradle.api.tasks.InputDirectory
@@ -31,7 +30,7 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.OutputFiles
 import org.gradle.api.tasks.TaskAction
-import org.gradle.composite.internal.IncludedBuildTaskGraph
+import org.gradle.composite.internal.BuildTreeWorkGraphController
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.test.fixtures.file.TestFile
@@ -41,7 +40,6 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
-import spock.lang.Unroll
 
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
 
@@ -54,7 +52,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
 
     def setup() {
         _ * lease.tryLock() >> true
-        def taskNodeFactory = new TaskNodeFactory(project.gradle, Stub(DocumentationRegistry), Stub(IncludedBuildTaskGraph))
+        def taskNodeFactory = new TaskNodeFactory(project.gradle, Stub(DocumentationRegistry), Stub(BuildTreeWorkGraphController))
         def dependencyResolver = new TaskDependencyResolver([new TaskNodeDependencyResolver(taskNodeFactory)])
         executionPlan = new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, dependencyResolver, nodeValidator, new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, fs), new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, fs))
     }
@@ -62,6 +60,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
     TaskInternal task(Map<String, ?> options = [:], String name) {
         def task = createTask(name, options.project ?: this.project, options.type ?: TaskInternal)
         _ * task.taskDependencies >> taskDependencyResolvingTo(task, options.dependsOn ?: [])
+        _ * task.lifecycleDependencies >> taskDependencyResolvingTo(task, options.dependsOn ?: [])
         _ * task.finalizedBy >> taskDependencyResolvingTo(task, options.finalizedBy ?: [])
         _ * task.shouldRunAfter >> taskDependencyResolvingTo(task, [])
         _ * task.mustRunAfter >> taskDependencyResolvingTo(task, options.mustRunAfter ?: [])
@@ -155,7 +154,6 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         lockedProjects.empty
     }
 
-    @Unroll
     def "two tasks with #relation relationship are not executed in parallel"() {
         given:
         Task a = task("a", type: Async)
@@ -931,8 +929,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
             nextTaskNode = executionPlan.selectNext(lease, resourceLockState)
         }
         if (nextTaskNode?.task instanceof Async) {
-            def project = (ProjectInternal) nextTaskNode.task.project
-            project.owner.accessLock.unlock()
+            nextTaskNode.projectToLock.unlock()
         }
         return nextTaskNode
     }

@@ -17,21 +17,29 @@
 package org.gradle.buildinit.plugins
 
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
-
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.IgnoreIf
 import spock.lang.Issue
-import spock.lang.Unroll
 
+import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.GROOVY
 
 class GroovyGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec {
 
     @Override
     String subprojectName() { 'plugin' }
 
-    @Unroll
+    def "defaults to Groovy build scripts"() {
+        when:
+        run ('init', '--type', 'groovy-gradle-plugin')
+
+        then:
+        dslFixtureFor(GROOVY).assertGradleFilesGenerated()
+    }
+
     @IgnoreIf({ GradleContextualExecuter.embedded }) // This test runs a build that itself runs a build in a test worker with 'gradleApi()' dependency, which needs to pick up Gradle modules from a real distribution
     def "creates sample source if no source present with #scriptDsl build scripts"() {
+        def dslFixture = dslFixtureFor(scriptDsl)
+
         when:
         run('init', '--type', 'groovy-gradle-plugin', '--dsl', scriptDsl.id)
 
@@ -42,6 +50,35 @@ class GroovyGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec 
 
         and:
         commonJvmFilesGenerated(scriptDsl)
+        dslFixture.assertDoesNotUseTestSuites()
+
+        when:
+        run("build")
+
+        then:
+        assertTestPassed("some.thing.SomeThingPluginTest", "plugin registers task")
+        assertFunctionalTestPassed("some.thing.SomeThingPluginFunctionalTest", "can run task")
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
+    }
+
+    @IgnoreIf({ GradleContextualExecuter.embedded }) // This test runs a build that itself runs a build in a test worker with 'gradleApi()' dependency, which needs to pick up Gradle modules from a real distribution
+    def "creates build using test suites with #scriptDsl build scripts when using --incubating"() {
+        def dslFixture = dslFixtureFor(scriptDsl)
+
+        when:
+        run('init', '--type', 'groovy-gradle-plugin', '--dsl', scriptDsl.id, '--incubating')
+
+        then:
+        subprojectDir.file("src/main/groovy").assertHasDescendants("some/thing/SomeThingPlugin.groovy")
+        subprojectDir.file("src/test/groovy").assertHasDescendants("some/thing/SomeThingPluginTest.groovy")
+        subprojectDir.file("src/functionalTest/groovy").assertHasDescendants("some/thing/SomeThingPluginFunctionalTest.groovy")
+
+        and:
+        commonJvmFilesGenerated(scriptDsl)
+        dslFixture.assertHasTestSuite("test")
+        dslFixture.assertHasTestSuite("functionalTest")
 
         when:
         run("build")
@@ -55,7 +92,6 @@ class GroovyGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec 
     }
 
     @Issue("https://github.com/gradle/gradle/issues/18206")
-    @Unroll
     @IgnoreIf({ GradleContextualExecuter.embedded }) // This test runs a build that itself runs builds in a test worker with 'gradleApi()' dependency, which needs to pick up Gradle modules from a real distribution
     def "re-running check succeeds"() {
         given:

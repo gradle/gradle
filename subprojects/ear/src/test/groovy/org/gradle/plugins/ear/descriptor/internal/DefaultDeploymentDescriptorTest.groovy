@@ -24,7 +24,6 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import javax.xml.parsers.DocumentBuilderFactory
 
@@ -52,7 +51,6 @@ class DefaultDeploymentDescriptorTest extends Specification {
         root.childNodes.length == 0
     }
 
-    @Unroll
     def "writes version #version default descriptor"() {
         def out = new StringWriter()
         descriptor.version = version

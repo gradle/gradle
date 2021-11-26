@@ -17,7 +17,7 @@
 package org.gradle.configurationcache.serialization.codecs
 
 import org.gradle.api.artifacts.component.BuildIdentifier
-import org.gradle.composite.internal.IncludedBuildTaskGraph
+import org.gradle.composite.internal.BuildTreeWorkGraphController
 import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
@@ -26,7 +26,7 @@ import org.gradle.execution.plan.TaskInAnotherBuild
 
 
 class TaskInAnotherBuildCodec(
-    private val includedTaskGraph: IncludedBuildTaskGraph
+    private val includedTaskGraph: BuildTreeWorkGraphController
 ) : Codec<TaskInAnotherBuild> {
 
     override suspend fun WriteContext.encode(value: TaskInAnotherBuild) {

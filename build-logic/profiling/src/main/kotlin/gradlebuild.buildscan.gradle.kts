@@ -16,9 +16,14 @@
 
 import com.gradle.scan.plugin.BuildScanExtension
 import gradlebuild.basics.BuildEnvironment.isCiServer
+import gradlebuild.basics.BuildEnvironment.isCodeQl
 import gradlebuild.basics.BuildEnvironment.isGhActions
 import gradlebuild.basics.BuildEnvironment.isJenkins
 import gradlebuild.basics.BuildEnvironment.isTravis
+import gradlebuild.basics.buildConfigurationId
+import gradlebuild.basics.buildId
+import gradlebuild.basics.buildServerUrl
+import gradlebuild.basics.environmentVariable
 import gradlebuild.basics.kotlindsl.execAndGetStdout
 import gradlebuild.basics.tasks.ClasspathManifest
 import gradlebuild.basics.testDistributionEnabled
@@ -69,7 +74,7 @@ if (isCiServer) {
     }
 }
 
-if (project.testDistributionEnabled()) {
+if (project.testDistributionEnabled) {
     buildScan?.tag("TEST_DISTRIBUTION")
 }
 
@@ -135,7 +140,7 @@ fun isExpectedCompileCacheMiss() =
         "Check_Gradleception"
     )
 
-fun isInBuild(vararg buildTypeIds: String) = System.getenv("BUILD_TYPE_ID")?.let { currentBuildTypeId ->
+fun isInBuild(vararg buildTypeIds: String) = buildConfigurationId.orNull?.let { currentBuildTypeId ->
     buildTypeIds.any { currentBuildTypeId.endsWith(it) }
 } ?: false
 
@@ -155,13 +160,13 @@ fun extractCheckstyleAndCodenarcData() {
         tasks.withType<Checkstyle>().configureEach {
             finalizedBy(extractCheckstyleBuildScanData)
             extractCheckstyleBuildScanData {
-                reports.xml.outputLocation.orNull?.let { xmlOutputs.from(it.asFile) }
+                xmlOutputs.from(reports.xml.outputLocation)
             }
         }
         tasks.withType<CodeNarc>().configureEach {
             finalizedBy(extractCodeNarcBuildScanData)
             extractCodeNarcBuildScanData {
-                reports.xml.outputLocation.orNull?.let { xmlOutputs.from(it.asFile) }
+                xmlOutputs.from(reports.xml.outputLocation)
             }
         }
     }
@@ -187,22 +192,28 @@ fun Project.extractCiData() {
             }
         }
     }
+    if (isCodeQl) {
+        buildScan {
+            tag("CODEQL")
+        }
+    }
 }
 
 fun BuildScanExtension.whenEnvIsSet(envName: String, action: BuildScanExtension.(envValue: String) -> Unit) {
-    val envValue: String? = System.getenv(envName)
+    val envValue: String? = environmentVariable(envName).orNull
     if (!envValue.isNullOrEmpty()) {
         action(envValue)
     }
 }
 
 fun Project.extractWatchFsData() {
-    gradle.serviceOf<BuildOperationListenerManager>().let { listenerManager ->
-        listenerManager.addListener(FileSystemWatchingBuildOperationListener(listenerManager, buildScan))
+    val listenerManager = gradle.serviceOf<BuildOperationListenerManager>()
+    buildScan?.background {
+        listenerManager.addListener(FileSystemWatchingBuildOperationListener(listenerManager, this))
     }
 }
 
-open class FileSystemWatchingBuildOperationListener(private val buildOperationListenerManager: BuildOperationListenerManager, private val buildScan: BuildScanExtension?) : BuildOperationListener {
+open class FileSystemWatchingBuildOperationListener(private val buildOperationListenerManager: BuildOperationListenerManager, private val buildScan: BuildScanExtension) : BuildOperationListener {
 
     override fun started(buildOperation: BuildOperationDescriptor, startEvent: OperationStartEvent) {
     }
@@ -215,13 +226,14 @@ open class FileSystemWatchingBuildOperationListener(private val buildOperationLi
             is RunBuildBuildOperationType.Result -> buildOperationListenerManager.removeListener(this)
             is BuildFinishedFileSystemWatchingBuildOperationType.Result -> {
                 if (result.isWatchingEnabled) {
-                    buildScan?.value("watchFsStoppedDuringBuild", result.isStoppedWatchingDuringTheBuild.toString())
+                    buildScan.value("watchFsStoppedDuringBuild", result.isStoppedWatchingDuringTheBuild.toString())
+                    buildScan.value("watchFsStateInvalidatedAtStart", result.isStateInvalidatedAtStartOfBuild.toString())
                     result.statistics?.let {
-                        buildScan?.value("watchFsEventsReceivedDuringBuild", it.numberOfReceivedEvents.toString())
-                        buildScan?.value("watchFsRetainedDirectories", it.retainedDirectories.toString())
-                        buildScan?.value("watchFsRetainedFiles", it.retainedRegularFiles.toString())
-                        buildScan?.value("watchFsRetainedMissingFiles", it.retainedMissingFiles.toString())
-                        buildScan?.value("watchFsWatchedHierarchies", it.numberOfWatchedHierarchies.toString())
+                        buildScan.value("watchFsEventsReceivedDuringBuild", it.numberOfReceivedEvents.toString())
+                        buildScan.value("watchFsRetainedDirectories", it.retainedDirectories.toString())
+                        buildScan.value("watchFsRetainedFiles", it.retainedRegularFiles.toString())
+                        buildScan.value("watchFsRetainedMissingFiles", it.retainedMissingFiles.toString())
+                        buildScan.value("watchFsWatchedHierarchies", it.numberOfWatchedHierarchies.toString())
                     }
                 }
             }
@@ -230,8 +242,9 @@ open class FileSystemWatchingBuildOperationListener(private val buildOperationLi
 }
 
 fun Project.extractAllReportsFromCI() {
+    val teamCityServerUrl = buildServerUrl.orNull ?: return
     val capturedReportingTypes = listOf("html") // can add xml, text, junitXml if wanted
-    val basePath = "${System.getenv("BUILD_SERVER_URL")}/repository/download/${System.getenv("BUILD_TYPE_ID")}/${System.getenv("BUILD_ID")}:id/.teamcity/gradle-logs"
+    val basePath = "$teamCityServerUrl/repository/download/${buildConfigurationId.get()}/${buildId.get()}:id/.teamcity/gradle-logs"
 
     gradle.taskGraph.afterTask {
         if (state.failure != null && this is Reporting<*>) {

@@ -15,6 +15,7 @@ dependencies {
     }
 
     implementation(project(":base-services"))
+    implementation(project(":enterprise-operations"))
     implementation(project(":messaging"))
     implementation(project(":native"))
     implementation(project(":logging"))

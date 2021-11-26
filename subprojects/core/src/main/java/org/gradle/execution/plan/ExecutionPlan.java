@@ -24,6 +24,7 @@ import org.gradle.internal.work.WorkerLeaseRegistry;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -31,6 +32,105 @@ import java.util.Set;
  * Represents a graph of dependent work items, returned in execution order.
  */
 public interface ExecutionPlan extends Describable {
+    ExecutionPlan EMPTY = new ExecutionPlan() {
+        @Override
+        public void useFilter(Spec<? super Task> filter) {
+            throw new IllegalStateException();
+        }
+
+        @Override
+        public void setContinueOnFailure(boolean continueOnFailure) {
+            throw new IllegalStateException();
+        }
+
+        @Nullable
+        @Override
+        public Node selectNext(WorkerLeaseRegistry.WorkerLease workerLease, ResourceLockState resourceLockState) {
+            return null;
+        }
+
+        @Override
+        public void finishedExecuting(Node node) {
+            throw new IllegalStateException();
+        }
+
+        @Override
+        public void abortAllAndFail(Throwable t) {
+        }
+
+        @Override
+        public void cancelExecution() {
+        }
+
+        @Override
+        public TaskNode getNode(Task task) {
+            throw new IllegalStateException();
+        }
+
+        @Override
+        public void addNodes(Collection<? extends Node> nodes) {
+            throw new IllegalStateException();
+        }
+
+        @Override
+        public void addEntryTasks(Collection<? extends Task> tasks) {
+            throw new IllegalStateException();
+        }
+
+        @Override
+        public void determineExecutionPlan() {
+        }
+
+        @Override
+        public Set<Task> getTasks() {
+            return Collections.emptySet();
+        }
+
+        @Override
+        public Set<Task> getRequestedTasks() {
+            return Collections.emptySet();
+        }
+
+        @Override
+        public List<Node> getScheduledNodes() {
+            return Collections.emptyList();
+        }
+
+        @Override
+        public List<Node> getScheduledNodesPlusDependencies() {
+            return Collections.emptyList();
+        }
+
+        @Override
+        public Set<Task> getFilteredTasks() {
+            return Collections.emptySet();
+        }
+
+        @Override
+        public void collectFailures(Collection<? super Throwable> failures) {
+        }
+
+        @Override
+        public boolean allNodesComplete() {
+            return true;
+        }
+
+        @Override
+        public boolean hasNodesRemaining() {
+            return false;
+        }
+
+        @Override
+        public int size() {
+            return 0;
+        }
+
+        @Override
+        public String getDisplayName() {
+            return "empty";
+        }
+    };
+
     void useFilter(Spec<? super Task> filter);
 
     void setContinueOnFailure(boolean continueOnFailure);
@@ -60,12 +160,12 @@ public interface ExecutionPlan extends Describable {
 
     void determineExecutionPlan();
 
-    void clear();
-
     /**
      * @return The set of all available tasks. This includes tasks that have not yet been executed, as well as tasks that have been processed.
      */
     Set<Task> getTasks();
+
+    Set<Task> getRequestedTasks();
 
     List<Node> getScheduledNodes();
 

@@ -18,14 +18,12 @@ package org.gradle.smoketests
 
 
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.TaskOutcome
 import spock.lang.Issue
 
 class TestRetryPluginSmokeTest extends AbstractSmokeTest {
-
-    @Issue('https://plugins.gradle.org/plugin/org.gradle.test-retry')
-    def 'test retry plugin'() {
-        when:
+    def setup() {
         sourceFile()
         testSourceFile()
         buildFile << """
@@ -35,7 +33,13 @@ class TestRetryPluginSmokeTest extends AbstractSmokeTest {
             }
 
             ${mavenCentralRepository()}
+        """
+    }
 
+    @Issue('https://plugins.gradle.org/plugin/org.gradle.test-retry')
+    def 'test retry plugin'() {
+        given:
+        buildFile << """
             dependencies {
                 testImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
             }
@@ -49,17 +53,57 @@ class TestRetryPluginSmokeTest extends AbstractSmokeTest {
                 retry {
                     maxRetries = 2
                 }
-            }"""
+            }
+        """
 
-        then:
+        when:
         def result = runner('test').buildAndFail()
+        then:
+        assertTaskFailed(result, ":test")
+        assertHasFlakyOutput(result)
+    }
 
-        and:
-        result.task(":test").outcome == TaskOutcome.FAILED
+    @Issue('https://plugins.gradle.org/plugin/org.gradle.test-retry')
+    def 'test retry plugin with test suites'() {
+        given:
+        buildFile << """
+            testing {
+                suites {
+                    test {
+                        useJUnitJupiter('5.7.1')
+                        targets {
+                            all {
+                                testTask.configure {
+                                    doFirst {
+                                        file("marker.file").delete()
+                                    }
+                                    retry {
+                                        maxRetries = 2
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        """
+
+        when:
+        def result = runner('test').buildAndFail()
+        then:
+        assertTaskFailed(result, ":test")
+        assertHasFlakyOutput(result)
+    }
+
+    static void assertTaskFailed(BuildResult result, String task) {
+        assert result.task(task).outcome == TaskOutcome.FAILED
+    }
+
+    static void assertHasFlakyOutput(BuildResult result) {
         def output = result.output
-        output.findAll("flaky\\(\\) FAILED").size() == 1
-        output.findAll("failing\\(\\) FAILED").size() == 3
-        output.contains("6 tests completed, 4 failed")
+        assert output.findAll("flaky\\(\\) FAILED").size() == 1
+        assert output.findAll("failing\\(\\) FAILED").size() == 3
+        assert output.contains("6 tests completed, 4 failed")
     }
 
     private TestFile testSourceFile() {

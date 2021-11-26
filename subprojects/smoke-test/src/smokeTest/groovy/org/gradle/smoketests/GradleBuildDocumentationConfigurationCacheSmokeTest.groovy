@@ -23,11 +23,18 @@ import spock.lang.Ignore
 
 class GradleBuildDocumentationConfigurationCacheSmokeTest extends AbstractGradleBuildConfigurationCacheSmokeTest {
 
-    def "can build DSL documentation with configuration cache enabled"() {
+    def "can build documentation with configuration cache enabled"() {
 
         given:
         def tasks = [
-            ':docs:dslHtml'
+            ':docs:dslHtml',
+            ':docs:releaseNotes',
+            ':docs:generateDocInfo',
+            ':docs:apiMapping',
+            ':docs:defaultImports',
+            ':docs:checkDeadInternalLinks',
+            ':docs:checkstyleApi',
+            ':docs:incubationReport',
         ]
 
         when:
@@ -45,6 +52,13 @@ class GradleBuildDocumentationConfigurationCacheSmokeTest extends AbstractGradle
         then:
         assertConfigurationCacheStateLoaded()
         result.task(":docs:dslHtml").outcome == TaskOutcome.FROM_CACHE
+        result.task(":docs:releaseNotes").outcome == TaskOutcome.FROM_CACHE
+        result.task(":docs:generateDocInfo").outcome == TaskOutcome.FROM_CACHE
+        result.task(":docs:apiMapping").outcome == TaskOutcome.FROM_CACHE
+        result.task(":docs:defaultImports").outcome == TaskOutcome.FROM_CACHE
+        result.task(":docs:checkDeadInternalLinks").outcome == TaskOutcome.FROM_CACHE
+        result.task(":docs:checkstyleApi").outcome == TaskOutcome.FROM_CACHE
+        result.task(":docs:incubationReport").outcome == TaskOutcome.FROM_CACHE
     }
 
     @Ignore("Broken by at least the Asciidoctor plugin, and takes 40mins on CI")

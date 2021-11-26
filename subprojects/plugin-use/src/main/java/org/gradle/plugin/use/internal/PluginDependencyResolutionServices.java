@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.artifacts.repositories.RepositoryContentDescriptor;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
+import org.gradle.api.internal.artifacts.JavaEcosystemSupport;
 import org.gradle.api.internal.artifacts.dsl.RepositoryHandlerInternal;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
 import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal;
@@ -36,6 +37,7 @@ import org.gradle.api.internal.artifacts.repositories.descriptor.RepositoryDescr
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.Factory;
+import org.gradle.plugin.use.resolve.internal.PluginRepositoriesProvider;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -102,10 +104,32 @@ public class PluginDependencyResolutionServices implements DependencyResolutionS
     }
 
     private class DefaultPluginRepositoriesProvider implements PluginRepositoriesProvider {
+        private final Object lock = new Object();
+        private List<ArtifactRepository> repositories;
+
+        @Override
+        public void prepareForPluginResolution() {
+            synchronized (lock) {
+                if (repositories == null) {
+                    DependencyResolutionServices dependencyResolutionServices = getDependencyResolutionServices();
+                    RepositoryHandler repositories = getResolveRepositoryHandler();
+                    if (repositories.isEmpty()) {
+                        repositories.gradlePluginPortal();
+                    }
+                    JavaEcosystemSupport.configureSchema(dependencyResolutionServices.getAttributesSchema(), dependencyResolutionServices.getObjectFactory());
+                    this.repositories = getResolveRepositoryHandler().stream().map(PluginArtifactRepository::new).collect(Collectors.toList());
+                }
+            }
+        }
 
         @Override
         public List<ArtifactRepository> getPluginRepositories() {
-            return getResolveRepositoryHandler().stream().map(PluginArtifactRepository::new).collect(Collectors.toList());
+            synchronized (lock) {
+                if (repositories == null) {
+                    throw new IllegalStateException("Plugin repositories have not been prepared.");
+                }
+                return repositories;
+            }
         }
 
         @Override

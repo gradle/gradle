@@ -5,5 +5,5 @@ plugins {
 tasks.register<Copy>("deployToTomcat") {
     from(tasks.war)
     into(layout.projectDirectory.dir("tomcat/webapps"))
-    ignoreExistingContentInDestinationDir()
+    doNotTrackState("Deployment directory contains unreadable files")
 }

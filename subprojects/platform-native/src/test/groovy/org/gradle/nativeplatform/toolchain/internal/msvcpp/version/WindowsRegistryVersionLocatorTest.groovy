@@ -22,7 +22,6 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.internal.VersionNumber
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import static org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioInstallCandidate.Compatibility.LEGACY
 
@@ -34,7 +33,6 @@ class WindowsRegistryVersionLocatorTest extends Specification {
     def windowsRegistry = Mock(WindowsRegistry)
     def locator = new WindowsRegistryVersionLocator(windowsRegistry)
 
-    @Unroll
     def "can locate installed versions in windows registry (#architecture)"() {
         given:
         def dir1 = tmpDir.createDir("Visual Studio 14.0")

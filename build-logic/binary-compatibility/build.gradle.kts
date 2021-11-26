@@ -3,6 +3,8 @@ plugins {
     id("gradlebuild.build-logic.groovy-dsl-gradle-plugin")
 }
 
+description = "Provides a plugin for configuring japicmp-gradle-plugin to detect binary incompatible changes"
+
 dependencies {
     implementation("me.champeau.gradle:japicmp-gradle-plugin")
 

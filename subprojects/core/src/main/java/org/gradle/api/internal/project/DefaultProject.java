@@ -102,6 +102,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.TextUriResourceLoader;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.scopes.ExceptionCollector;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.internal.typeconversion.TypeConverter;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
@@ -182,8 +183,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     private Property<Object> status;
 
-    private final Map<String, Project> childProjects = Maps.newTreeMap();
-
     private List<String> defaultTasks = new ArrayList<>();
 
     private final ProjectStateInternal state;
@@ -198,6 +197,8 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     private final TaskContainerInternal taskContainer;
 
+    private final ExceptionCollector exceptionCollector;
+
     private DependencyHandler dependencyHandler;
 
     private ConfigurationContainer configurationContainer;
@@ -206,7 +207,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     private ListenerBroadcast<ProjectEvaluationListener> evaluationListener = newProjectEvaluationListenerBroadcast();
 
-    private final ListenerBroadcast<RuleBasedPluginListener> ruleBasedPluginListenerBroadcast = new ListenerBroadcast<RuleBasedPluginListener>(RuleBasedPluginListener.class);
+    private final ListenerBroadcast<RuleBasedPluginListener> ruleBasedPluginListenerBroadcast = new ListenerBroadcast<>(RuleBasedPluginListener.class);
 
     private final ExtensibleDynamicObject extensibleDynamicObject;
 
@@ -214,16 +215,18 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     private boolean preparedForRuleBasedPlugins;
 
-    public DefaultProject(String name,
-                          @Nullable ProjectInternal parent,
-                          File projectDir,
-                          File buildFile,
-                          ScriptSource buildScriptSource,
-                          GradleInternal gradle,
-                          ProjectState owner,
-                          ServiceRegistryFactory serviceRegistryFactory,
-                          ClassLoaderScope selfClassLoaderScope,
-                          ClassLoaderScope baseClassLoaderScope) {
+    public DefaultProject(
+        String name,
+        @Nullable ProjectInternal parent,
+        File projectDir,
+        File buildFile,
+        ScriptSource buildScriptSource,
+        GradleInternal gradle,
+        ProjectState owner,
+        ServiceRegistryFactory serviceRegistryFactory,
+        ClassLoaderScope selfClassLoaderScope,
+        ClassLoaderScope baseClassLoaderScope
+    ) {
         this.owner = owner;
         this.classLoaderScope = selfClassLoaderScope;
         this.baseClassLoaderScope = baseClassLoaderScope;
@@ -244,6 +247,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
         services = serviceRegistryFactory.createFor(this);
         taskContainer = services.get(TaskContainerInternal.class);
+        exceptionCollector = services.get(ExceptionCollector.class);
 
         extensibleDynamicObject = new ExtensibleDynamicObject(this, Project.class, services.get(InstantiatorFactory.class).decorateLenient(services));
         if (parent != null) {
@@ -253,12 +257,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
         evaluationListener.add(gradle.getProjectEvaluationBroadcaster());
 
-        ruleBasedPluginListenerBroadcast.add(new RuleBasedPluginListener() {
-            @Override
-            public void prepareForRuleBasedPlugins(Project project) {
-                populateModelRegistry(services.get(ModelRegistry.class));
-            }
-        });
+        ruleBasedPluginListenerBroadcast.add((RuleBasedPluginListener) project -> populateModelRegistry(services.get(ModelRegistry.class)));
     }
 
     @SuppressWarnings("unused")
@@ -331,18 +330,13 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     private ListenerBroadcast<ProjectEvaluationListener> newProjectEvaluationListenerBroadcast() {
-        return new ListenerBroadcast<ProjectEvaluationListener>(ProjectEvaluationListener.class);
+        return new ListenerBroadcast<>(ProjectEvaluationListener.class);
     }
 
     private void populateModelRegistry(ModelRegistry modelRegistry) {
         registerServiceOn(modelRegistry, "serviceRegistry", SERVICE_REGISTRY_MODEL_TYPE, services, instanceDescriptorFor("serviceRegistry"));
         // TODO:LPTR This ignores changes to Project.buildDir after model node has been created
-        registerFactoryOn(modelRegistry, "buildDir", FILE_MODEL_TYPE, new Factory<File>() {
-            @Override
-            public File create() {
-                return getBuildDir();
-            }
-        });
+        registerFactoryOn(modelRegistry, "buildDir", FILE_MODEL_TYPE, this::getBuildDir);
         registerInstanceOn(modelRegistry, "projectIdentifier", PROJECT_IDENTIFIER_MODEL_TYPE, this);
         registerInstanceOn(modelRegistry, "extensionContainer", EXTENSION_CONTAINER_MODEL_TYPE, getExtensions());
         modelRegistry.getRoot().applyToSelf(BasicServicesRules.class);
@@ -373,7 +367,12 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public ProjectInternal getRootProject() {
-        return rootProject;
+        return getRootProject(this);
+    }
+
+    @Override
+    public ProjectInternal getRootProject(ProjectInternal referrer) {
+        return getCrossProjectModelAccess().access(referrer, rootProject);
     }
 
     @Override
@@ -411,9 +410,19 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public ProjectInternal getParent() {
-        return parent;
+        return getParent(this);
     }
 
+    @Nullable
+    @Override
+    public ProjectInternal getParent(ProjectInternal referrer) {
+        if (parent == null) {
+            return null;
+        }
+        return getCrossProjectModelAccess().access(referrer, parent);
+    }
+
+    @Nullable
     @Override
     public ProjectIdentifier getParentIdentifier() {
         return parent;
@@ -490,6 +499,10 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public Map<String, Project> getChildProjects() {
+        Map<String, Project> childProjects = Maps.newTreeMap();
+        for (ProjectState project : owner.getChildProjects()) {
+            childProjects.put(project.getName(), project.getMutableModel());
+        }
         return childProjects;
     }
 
@@ -782,11 +795,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     @Override
-    public void addChildProject(ProjectInternal childProject) {
-        childProjects.put(childProject.getName(), childProject);
-    }
-
-    @Override
     public File getProjectDir() {
         return projectDir;
     }
@@ -808,8 +816,8 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public void evaluationDependsOnChildren() {
-        for (Project project : childProjects.values()) {
-            DefaultProject defaultProjectToEvaluate = (DefaultProject) project;
+        for (ProjectState project : owner.getChildProjects()) {
+            ProjectInternal defaultProjectToEvaluate = project.getMutableModel();
             evaluationDependsOn(defaultProjectToEvaluate);
         }
     }
@@ -1042,7 +1050,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     public void afterEvaluate(Action<? super Project> action) {
         assertMutatingMethodAllowed("afterEvaluate(Action)");
         failAfterProjectIsEvaluated("afterEvaluate(Action)");
-        evaluationListener.add("afterEvaluate", getListenerBuildOperationDecorator().decorate("Project.afterEvaluate", action));
+        evaluationListener.add("afterEvaluate", exceptionCollector.decorate(getListenerBuildOperationDecorator().decorate("Project.afterEvaluate", action)));
     }
 
     @Override
@@ -1055,7 +1063,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     public void afterEvaluate(Closure closure) {
         assertMutatingMethodAllowed("afterEvaluate(Closure)");
         failAfterProjectIsEvaluated("afterEvaluate(Closure)");
-        evaluationListener.add(new ClosureBackedMethodInvocationDispatch("afterEvaluate", getListenerBuildOperationDecorator().decorate("Project.afterEvaluate", Cast.<Closure<?>>uncheckedNonnullCast(closure))));
+        evaluationListener.add(new ClosureBackedMethodInvocationDispatch("afterEvaluate", exceptionCollector.decorate(getListenerBuildOperationDecorator().decorate("Project.afterEvaluate", Cast.<Closure<?>>uncheckedNonnullCast(closure)))));
     }
 
     private void failAfterProjectIsEvaluated(String methodPrototype) {

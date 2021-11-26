@@ -16,30 +16,33 @@
 
 package org.gradle.api.plugins;
 
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Incubating;
-import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.file.FileCollection;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
+import org.gradle.api.attributes.Category;
+import org.gradle.api.attributes.DocsType;
+import org.gradle.api.attributes.TestType;
+import org.gradle.api.attributes.Usage;
+import org.gradle.api.attributes.Verification;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
+import org.gradle.api.plugins.jvm.JvmTestSuiteTarget;
 import org.gradle.api.plugins.jvm.internal.DefaultJvmTestSuite;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.tasks.testing.AbstractTestTask;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.testing.base.TestSuite;
 import org.gradle.testing.base.TestingExtension;
-
-import java.util.concurrent.Callable;
-
-import static org.gradle.api.plugins.JavaPlugin.TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME;
-import static org.gradle.api.plugins.JavaPlugin.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME;
 
 /**
  * A {@link org.gradle.api.Plugin} that adds extensions for declaring, compiling and running {@link JvmTestSuite}s.
  * <p>
  * This plugin provides conventions for several things:
  * <ul>
- *     <li>A built-in {@code test} test suite which represents the {@link Test} task in the Java plugin.</li>
  *     <li>All other {@code JvmTestSuite} will use the JUnit Jupiter testing framework unless specified otherwise.</li>
  *     <li>A single test suite target is added to each {@code JvmTestSuite}.</li>
  *
@@ -51,6 +54,7 @@ import static org.gradle.api.plugins.JavaPlugin.TEST_RUNTIME_CLASSPATH_CONFIGURA
 @Incubating
 public class JvmTestSuitePlugin implements Plugin<Project> {
     public static final String DEFAULT_TEST_SUITE_NAME = SourceSet.TEST_SOURCE_SET_NAME;
+    private static final String TEST_RESULTS_ELEMENTS_VARIANT_PREFIX = "testResultsElementsFor";
 
     @Override
     public void apply(Project project) {
@@ -64,13 +68,16 @@ public class JvmTestSuitePlugin implements Plugin<Project> {
         // TODO: Deprecate this behavior?
         // Why would any Test task created need to use the test source set's classes?
         project.getTasks().withType(Test.class).configureEach(test -> {
-            SourceSet testSourceSet = java.getSourceSets().getByName(SourceSet.TEST_SOURCE_SET_NAME);
-            test.getConventionMapping().map("testClassesDirs", () -> testSourceSet.getOutput().getClassesDirs());
-            test.getConventionMapping().map("classpath", () -> testSourceSet.getRuntimeClasspath());
+            // The test task may have already been created but the test sourceSet may not exist yet.
+            // So defer looking up the java extension and sourceSet until the convention mapping is resolved.
+            // See https://github.com/gradle/gradle/issues/18622
+            test.getConventionMapping().map("testClassesDirs", () ->  project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets().findByName(SourceSet.TEST_SOURCE_SET_NAME).getOutput().getClassesDirs());
+            test.getConventionMapping().map("classpath", () -> project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets().findByName(SourceSet.TEST_SOURCE_SET_NAME).getRuntimeClasspath());
             test.getModularity().getInferModulePath().convention(java.getModularity().getInferModulePath());
         });
 
         testSuites.withType(JvmTestSuite.class).all(testSuite -> {
+            testSuite.getTestType().convention(TestType.UNIT_TESTS);
             testSuite.getTargets().all(target -> {
                 target.getTestTask().configure(test -> {
                     test.getConventionMapping().map("testClassesDirs", () -> testSuite.getSources().getOutput().getClassesDirs());
@@ -79,21 +86,44 @@ public class JvmTestSuitePlugin implements Plugin<Project> {
             });
         });
 
-        configureBuiltInTest(project, testing, java);
+        configureTestDataElementsVariants(project);
     }
 
-    private void configureBuiltInTest(Project project, TestingExtension testing, JavaPluginExtension java) {
-        final NamedDomainObjectProvider<JvmTestSuite> testSuite = testing.getSuites().register(DEFAULT_TEST_SUITE_NAME, JvmTestSuite.class, suite -> {
-            final Callable<FileCollection> mainSourceSetOutput = () -> java.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getOutput();
-            final Callable<FileCollection> testSourceSetOutput = () -> java.getSourceSets().getByName(SourceSet.TEST_SOURCE_SET_NAME).getOutput();
+    private void configureTestDataElementsVariants(Project project) {
+        final TestingExtension testing = project.getExtensions().getByType(TestingExtension.class);
+        final ExtensiblePolymorphicDomainObjectContainer<TestSuite> testSuites = testing.getSuites();
 
-            suite.getSources().setCompileClasspath(project.getObjects().fileCollection().from(mainSourceSetOutput, project.getConfigurations().getByName(TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME)));
-            suite.getSources().setRuntimeClasspath(project.getObjects().fileCollection().from(testSourceSetOutput, mainSourceSetOutput, project.getConfigurations().getByName(TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME)));
+        testSuites.withType(JvmTestSuite.class).configureEach(suite -> {
+            suite.getTargets().configureEach(target -> {
+                createTestDataVariant(project, suite, target);
+            });
+        });
+    }
+
+    private Configuration createTestDataVariant(Project project, JvmTestSuite suite, JvmTestSuiteTarget target) {
+        final Configuration variant = project.getConfigurations().create(TEST_RESULTS_ELEMENTS_VARIANT_PREFIX + StringUtils.capitalize(target.getName()));
+        variant.setVisible(false);
+        variant.setCanBeResolved(false);
+        variant.setCanBeConsumed(true);
+        variant.extendsFrom(project.getConfigurations().getByName(suite.getSources().getImplementationConfigurationName()),
+            project.getConfigurations().getByName(suite.getSources().getRuntimeOnlyConfigurationName()));
+
+
+        final ObjectFactory objects = project.getObjects();
+        variant.attributes(attributes -> {
+            attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.VERIFICATION));
+            attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.DOCUMENTATION));
+            attributes.attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType.class, DocsType.TEST_RESULTS));
+            attributes.attribute(Verification.TEST_SUITE_NAME_ATTRIBUTE, objects.named(Verification.class, suite.getName()));
+            attributes.attribute(Verification.TARGET_NAME_ATTRIBUTE, objects.named(Verification.class, suite.getName()));
+            attributes.attributeProvider(TestType.TEST_TYPE_ATTRIBUTE, suite.getTestType().map(tt -> objects.named(TestType.class, tt)));
         });
 
-        // Force the realization of this test suite, targets and task
-        testSuite.get();
+        variant.getOutgoing().artifact(
+            target.getTestTask().flatMap(AbstractTestTask::getBinaryResultsDirectory),
+            artifact -> artifact.setType(ArtifactTypeDefinition.DIRECTORY_TYPE)
+        );
 
-        project.getTasks().named(JavaBasePlugin.CHECK_TASK_NAME, task -> task.dependsOn(testSuite));
+        return variant;
     }
 }

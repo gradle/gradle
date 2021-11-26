@@ -129,7 +129,7 @@ object CharArrayCodec : Codec<CharArray> {
     override suspend fun WriteContext.encode(value: CharArray) {
         writeSmallInt(value.size)
         for (i in 0 until value.size) {
-            writeSmallInt(value[i].toInt())
+            writeSmallInt(value[i].code)
         }
     }
 

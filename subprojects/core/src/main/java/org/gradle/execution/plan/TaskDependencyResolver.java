@@ -19,12 +19,15 @@ package org.gradle.execution.plan;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.CachingTaskDependencyResolveContext;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Set;
 
 @NonNullApi
+@ServiceScope(Scopes.Build.class)
 public class TaskDependencyResolver {
     private final List<DependencyResolver> dependencyResolvers;
     private CachingTaskDependencyResolveContext<Node> context;

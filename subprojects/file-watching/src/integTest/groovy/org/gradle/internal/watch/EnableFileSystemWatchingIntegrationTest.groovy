@@ -18,7 +18,6 @@ package org.gradle.internal.watch
 
 import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.internal.watch.vfs.WatchMode
-import spock.lang.Unroll
 
 class EnableFileSystemWatchingIntegrationTest extends AbstractFileSystemWatchingIntegrationTest {
     private static final String ENABLED_MESSAGE = "Watching the file system is configured to be enabled"
@@ -40,7 +39,6 @@ class EnableFileSystemWatchingIntegrationTest extends AbstractFileSystemWatching
         outputContains(ACTIVE_MESSAGE)
     }
 
-    @Unroll
     def "can be enabled via gradle.properties (enabled: #enabled)"() {
         buildFile << """
             apply plugin: "java"
@@ -59,7 +57,6 @@ class EnableFileSystemWatchingIntegrationTest extends AbstractFileSystemWatching
         false   | DISABLED_MESSAGE       | INACTIVE_MESSAGE
     }
 
-    @Unroll
     def "can be enabled via system property (enabled: #enabled)"() {
         buildFile << """
             apply plugin: "java"
@@ -77,7 +74,6 @@ class EnableFileSystemWatchingIntegrationTest extends AbstractFileSystemWatching
         false   | DISABLED_MESSAGE       | INACTIVE_MESSAGE
     }
 
-    @Unroll
     def "can be enabled via #commandLineOption"() {
         buildFile << """
             apply plugin: "java"
@@ -95,7 +91,6 @@ class EnableFileSystemWatchingIntegrationTest extends AbstractFileSystemWatching
         "--no-watch-fs"   | DISABLED_MESSAGE       | INACTIVE_MESSAGE
     }
 
-    @Unroll
     def "setting to #watchMode via command-line init script has no effect"() {
         buildFile << """
             apply plugin: "java"
@@ -115,7 +110,6 @@ class EnableFileSystemWatchingIntegrationTest extends AbstractFileSystemWatching
         watchMode << WatchMode.values()
     }
 
-    @Unroll
     def "setting to #watchMode via init script in user home has no effect"() {
         buildFile << """
             apply plugin: "java"
@@ -134,5 +128,18 @@ class EnableFileSystemWatchingIntegrationTest extends AbstractFileSystemWatching
 
         where:
         watchMode << WatchMode.values()
+    }
+
+    def "cannot define a custom build scope cache dir when watching is explicitly enabled"() {
+        buildFile << """
+        """
+        file("buildSrc/build.gradle") << """
+        """
+
+        when:
+        fails("help", "--watch-fs", "--project-cache-dir=broken")
+
+        then:
+        failure.assertHasDescription("Enabling file system watching via --watch-fs (or via the org.gradle.vfs.watch property) with --project-cache-dir also specified is not supported; remove either option to fix this problem")
     }
 }

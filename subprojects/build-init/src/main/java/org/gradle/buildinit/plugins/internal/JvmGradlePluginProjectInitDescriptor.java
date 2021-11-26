@@ -26,9 +26,11 @@ import java.util.Optional;
 
 public abstract class JvmGradlePluginProjectInitDescriptor extends LanguageLibraryProjectInitDescriptor {
     private final DocumentationRegistry documentationRegistry;
+    private final TemplateLibraryVersionProvider libraryVersionProvider;
 
-    public JvmGradlePluginProjectInitDescriptor(DocumentationRegistry documentationRegistry) {
+    public JvmGradlePluginProjectInitDescriptor(DocumentationRegistry documentationRegistry, TemplateLibraryVersionProvider libraryVersionProvider) {
         this.documentationRegistry = documentationRegistry;
+        this.libraryVersionProvider = libraryVersionProvider;
     }
 
     @Override
@@ -59,25 +61,31 @@ public abstract class JvmGradlePluginProjectInitDescriptor extends LanguageLibra
             g.propertyAssignment(null, "implementationClass", withPackage(settings, pluginClassName), true);
         }));
 
-        BuildScriptBuilder.Expression functionalTestSourceSet = buildScriptBuilder.createContainerElement("Add a source set for the functional test suite", "sourceSets", "functionalTest", "functionalTestSourceSet");
-        buildScriptBuilder.methodInvocation(null, "gradlePlugin.testSourceSets", functionalTestSourceSet);
+        final BuildScriptBuilder.Expression functionalTestSourceSet;
+        if (settings.isUseTestSuites()) {
+            configureDefaultTestSuite(buildScriptBuilder, settings.getTestFramework(), libraryVersionProvider);
 
-        BuildScriptBuilder.Expression functionalTestConfiguration = buildScriptBuilder.containerElementExpression("configurations", "functionalTestImplementation");
-        BuildScriptBuilder.Expression testConfiguration = buildScriptBuilder.containerElementExpression("configurations", "testImplementation");
-        buildScriptBuilder.methodInvocation(null, functionalTestConfiguration, "extendsFrom", testConfiguration);
-        BuildScriptBuilder.Expression functionalTest = buildScriptBuilder.taskRegistration("Add a task to run the functional tests", "functionalTest", "Test", b -> {
-            b.propertyAssignment(null, "testClassesDirs", buildScriptBuilder.propertyExpression(functionalTestSourceSet, "output.classesDirs"), true);
-            b.propertyAssignment(null, "classpath", buildScriptBuilder.propertyExpression(functionalTestSourceSet, "runtimeClasspath"), true);
-            if(getTestFrameworks().contains(BuildInitTestFramework.SPOCK) || getTestFrameworks().contains(BuildInitTestFramework.JUNIT_JUPITER)) {
-                b.methodInvocation(null, "useJUnitPlatform");
-            }
-        });
-        buildScriptBuilder.taskMethodInvocation("Run the functional tests as part of `check`", "check", "Task", "dependsOn", functionalTest);
-        if(getTestFrameworks().contains(BuildInitTestFramework.SPOCK) || getTestFrameworks().contains(BuildInitTestFramework.JUNIT_JUPITER)) {
-            if (!buildScriptBuilder.isUsingTestSuites()) {
+            addTestSuite("functionalTest", buildScriptBuilder, settings.getTestFramework(), libraryVersionProvider);
+            functionalTestSourceSet = buildScriptBuilder.containerElementExpression("sourceSets", "functionalTest");
+        } else {
+            functionalTestSourceSet = buildScriptBuilder.createContainerElement("Add a source set for the functional test suite", "sourceSets", "functionalTest", "functionalTestSourceSet");
+
+            BuildScriptBuilder.Expression functionalTestConfiguration = buildScriptBuilder.containerElementExpression("configurations", "functionalTestImplementation");
+            BuildScriptBuilder.Expression testConfiguration = buildScriptBuilder.containerElementExpression("configurations", "testImplementation");
+            buildScriptBuilder.methodInvocation(null, functionalTestConfiguration, "extendsFrom", testConfiguration);
+            BuildScriptBuilder.Expression functionalTest = buildScriptBuilder.taskRegistration("Add a task to run the functional tests", "functionalTest", "Test", b -> {
+                b.propertyAssignment(null, "testClassesDirs", buildScriptBuilder.propertyExpression(functionalTestSourceSet, "output.classesDirs"), true);
+                b.propertyAssignment(null, "classpath", buildScriptBuilder.propertyExpression(functionalTestSourceSet, "runtimeClasspath"), true);
+                if (getTestFrameworks().contains(BuildInitTestFramework.SPOCK) || getTestFrameworks().contains(BuildInitTestFramework.JUNIT_JUPITER)) {
+                    b.methodInvocation(null, "useJUnitPlatform");
+                }
+            });
+            buildScriptBuilder.taskMethodInvocation("Run the functional tests as part of `check`", "check", "Task", "dependsOn", functionalTest);
+            if (getTestFrameworks().contains(BuildInitTestFramework.SPOCK) || getTestFrameworks().contains(BuildInitTestFramework.JUNIT_JUPITER)) {
                 buildScriptBuilder.taskMethodInvocation("Use JUnit Jupiter for unit tests.", "test", "Test", "useJUnitPlatform");
             }
         }
+        buildScriptBuilder.methodInvocation(null, "gradlePlugin.testSourceSets", functionalTestSourceSet);
     }
 
     @Override

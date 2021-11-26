@@ -25,11 +25,21 @@ import java.util.function.Consumer;
  */
 public interface IncludedBuildTaskResource {
     enum State {
-        WAITING, SUCCESS, FAILED;
+        Waiting(false), Success(true), Failed(true);
+
+        private final boolean complete;
+
+        State(boolean complete) {
+            this.complete = complete;
+        }
+
+        public boolean isComplete() {
+            return complete;
+        }
     }
 
     /**
-     * Queues a task for execution, but does not schedule it. Use {@link IncludedBuildTaskGraph#runScheduledTasks(Consumer)} or {@link IncludedBuildTaskGraph#populateTaskGraphs()} to schedule tasks.
+     * Queues a task for execution, but does not schedule it. Use {@link org.gradle.internal.buildtree.BuildTreeWorkGraph#scheduleWork(Consumer)} to schedule queued tasks.
      */
     void queueForExecution();
 

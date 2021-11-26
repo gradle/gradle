@@ -88,10 +88,6 @@ public class BuildScriptBuilder {
         return this;
     }
 
-    public boolean isUsingIncubatingAPIs() {
-        return useIncubatingAPIs;
-    }
-
     public boolean isUsingTestSuites() {
         return useTestSuites;
     }
@@ -170,8 +166,7 @@ public class BuildScriptBuilder {
         return this;
     }
 
-    public void dependencyForSuite(String suite, String configuration, String comment, String... dependencies) {
-        final SuiteSpec targetSuite = block.testing.suites.stream().filter((SuiteSpec s) -> s.getName().equals(suite)).findFirst().orElseThrow(() -> new IllegalArgumentException("Unknown suite: " + suite));
+    public void dependencyForSuite(SuiteSpec targetSuite, String configuration, String comment, String... dependencies) {
         targetSuite.dependencies.dependency(configuration, comment, dependencies);
     }
 
@@ -203,6 +198,7 @@ public class BuildScriptBuilder {
      * @param dependencies The dependencies, in string notation
      */
     public BuildScriptBuilder testImplementationDependency(@Nullable String comment, String... dependencies) {
+        assert !isUsingTestSuites() : "do not add dependencies directly to testImplementation configuration";
         return dependency("testImplementation", comment, dependencies);
     }
 
@@ -213,6 +209,7 @@ public class BuildScriptBuilder {
      * @param dependencies The dependencies, in string notation
      */
     public BuildScriptBuilder testRuntimeOnlyDependency(@Nullable String comment, String... dependencies) {
+        assert !isUsingTestSuites() : "do not add dependencies directly to testRuntimeOnly configuration";
         return dependency("testRuntimeOnly", comment, dependencies);
     }
 
@@ -1224,36 +1221,47 @@ public class BuildScriptBuilder {
         }
 
         @Override
-        public void junitSuite(String name) {
-            suites.add(new SuiteSpec(null, name, SuiteSpec.TestSuiteFramework.JUNIT, builder));
+        public SuiteSpec junitSuite(String name, TemplateLibraryVersionProvider libraryVersionProvider) {
+            final SuiteSpec spec = new SuiteSpec(null, name, SuiteSpec.TestSuiteFramework.JUNIT, libraryVersionProvider.getVersion("junit"), builder);
+            suites.add(spec);
+            return spec;
         }
 
         @Override
-        public void junitJupiterSuite(String name) {
-            suites.add(new SuiteSpec(null, name, SuiteSpec.TestSuiteFramework.JUNIT_PLATFORM, builder));
+        public SuiteSpec junitJupiterSuite(String name, TemplateLibraryVersionProvider libraryVersionProvider) {
+            final SuiteSpec spec = new SuiteSpec(null, name, SuiteSpec.TestSuiteFramework.JUNIT_PLATFORM, libraryVersionProvider.getVersion("junit-jupiter"),  builder);
+            suites.add(spec);
+            return spec;
         }
 
         @Override
-        public void spockSuite(String name) {
-            suites.add(new SuiteSpec(null, name, SuiteSpec.TestSuiteFramework.SPOCK, builder));
+        public SuiteSpec spockSuite(String name, TemplateLibraryVersionProvider libraryVersionProvider) {
+            final SuiteSpec spec = new SuiteSpec(null, name, SuiteSpec.TestSuiteFramework.SPOCK, libraryVersionProvider.getVersion("spock"),  builder);
+            suites.add(spec);
+            return spec;
         }
 
         @Override
-        public void kotlinTestSuite(String name) {
-            suites.add(new SuiteSpec(null, name, SuiteSpec.TestSuiteFramework.KOTLIN_TEST, builder));
+        public SuiteSpec kotlinTestSuite(String name, TemplateLibraryVersionProvider libraryVersionProvider) {
+            final SuiteSpec spec = new SuiteSpec(null, name, SuiteSpec.TestSuiteFramework.KOTLIN_TEST, null,  builder);
+            suites.add(spec);
+            return spec;
         }
 
         @Override
-        public void testNG(String name) {
-            suites.add(new SuiteSpec(null, name, SuiteSpec.TestSuiteFramework.TEST_NG, builder));
+        public SuiteSpec testNG(String name, TemplateLibraryVersionProvider libraryVersionProvider) {
+            final SuiteSpec spec = new SuiteSpec(null, name, SuiteSpec.TestSuiteFramework.TEST_NG, libraryVersionProvider.getVersion("testng"),  builder);
+            suites.add(spec);
+            return spec;
         }
     }
 
-    private static class SuiteSpec extends AbstractStatement {
+    public static class SuiteSpec extends AbstractStatement {
         private final BuildScriptBuilder builder;
 
         private final String name;
         private final TestSuiteFramework framework;
+        private final String frameworkVersion;
 
         private final DependenciesBlock dependencies = new DependenciesBlock();
         private final TargetsBlock targets;
@@ -1261,20 +1269,19 @@ public class BuildScriptBuilder {
         private final boolean isDefaultTestSuite;
         private final boolean isDefaultFramework;
 
-        SuiteSpec(@Nullable String comment, String name, TestSuiteFramework framework, BuildScriptBuilder builder) {
+        SuiteSpec(@Nullable String comment, String name, TestSuiteFramework framework, String frameworkVersion, BuildScriptBuilder builder) {
             super(comment);
             this.builder = builder;
             this.framework = framework;
+            this.frameworkVersion = frameworkVersion;
             this.name = name;
             targets = new TargetsBlock(builder);
 
             isDefaultTestSuite = JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME.equals(name);
             isDefaultFramework = framework == TestSuiteFramework.getDefault();
 
-            if (isDefaultTestSuite) {
-                dependencies.dependency("implementation", null, framework.getImplementationDependency());
-            } else {
-                dependencies.selfDependency("implementation", null);
+            if (!isDefaultTestSuite) {
+                dependencies.selfDependency("implementation", name + " test suite depends on the production code in tests");
                 targets.all(true);
             }
         }
@@ -1282,7 +1289,11 @@ public class BuildScriptBuilder {
         private Action<? super ScriptBlockBuilder> buildSuiteConfigurationContents() {
             return b -> {
                 if (isDefaultTestSuite || !isDefaultFramework) {
-                    b.methodInvocation(null, framework.method.methodName);
+                    if (frameworkVersion == null) {
+                        b.methodInvocation("Use " + framework.displayName + " test framework", framework.method.methodName);
+                    } else {
+                        b.methodInvocation("Use " + framework.displayName + " test framework", framework.method.methodName, frameworkVersion);
+                    }
                 }
 
                 if (!dependencies.dependencies.isEmpty()) {
@@ -1308,41 +1319,44 @@ public class BuildScriptBuilder {
             return Type.Group;
         }
 
+        void implementation(String comment, String... dependencies) {
+            this.dependencies.dependency("implementation", comment, dependencies);
+        }
+
+        void runtimeOnly(String comment, String... dependencies) {
+            this.dependencies.dependency("runtimeOnly", comment, dependencies);
+        }
+
         @Override
         public void writeCodeTo(PrettyPrinter printer) {
             if (isDefaultTestSuite) {
-                printer.printStatement(builder.suiteConfiguration(null, builder.block.testing, name, JvmTestSuite.class.getSimpleName(), buildSuiteConfigurationContents()));
+                printer.printStatement(builder.suiteConfiguration("Configure the built-in test suite", builder.block.testing, name, JvmTestSuite.class.getSimpleName(), buildSuiteConfigurationContents()));
             } else {
-                printer.printStatement(builder.suiteRegistration(null, builder.block.testing, name, JvmTestSuite.class.getSimpleName(), buildSuiteConfigurationContents()));
+                printer.printStatement(builder.suiteRegistration("Create a new test suite", builder.block.testing, name, JvmTestSuite.class.getSimpleName(), buildSuiteConfigurationContents()));
             }
         }
 
         public enum TestSuiteFramework {
-            JUNIT(new MethodInvocationExpression("useJUnit"), DefaultJvmTestSuite.Frameworks.JUNIT4),
-            JUNIT_PLATFORM(new MethodInvocationExpression("useJUnitJupiter"), DefaultJvmTestSuite.Frameworks.JUNIT_JUPITER),
-            SPOCK(new MethodInvocationExpression("useSpock"), DefaultJvmTestSuite.Frameworks.SPOCK),
-            KOTLIN_TEST(new MethodInvocationExpression("useKotlinTest"), DefaultJvmTestSuite.Frameworks.KOTLIN_TEST),
-            TEST_NG(new MethodInvocationExpression("useTestNG"), DefaultJvmTestSuite.Frameworks.TESTNG);
+            JUNIT(new MethodInvocationExpression("useJUnit"), DefaultJvmTestSuite.Frameworks.JUNIT4, "JUnit4"),
+            JUNIT_PLATFORM(new MethodInvocationExpression("useJUnitJupiter"), DefaultJvmTestSuite.Frameworks.JUNIT_JUPITER, "JUnit Jupiter"),
+            SPOCK(new MethodInvocationExpression("useSpock"), DefaultJvmTestSuite.Frameworks.SPOCK, "Spock"),
+            KOTLIN_TEST(new MethodInvocationExpression("useKotlinTest"), DefaultJvmTestSuite.Frameworks.KOTLIN_TEST, "Kotlin Test"),
+            TEST_NG(new MethodInvocationExpression("useTestNG"), DefaultJvmTestSuite.Frameworks.TESTNG, "TestNG");
 
+            final String displayName;
             final MethodInvocationExpression method;
             final DefaultJvmTestSuite.Frameworks framework;
 
-            TestSuiteFramework(MethodInvocationExpression method, DefaultJvmTestSuite.Frameworks framework) {
+            TestSuiteFramework(MethodInvocationExpression method, DefaultJvmTestSuite.Frameworks framework, String displayName) {
                 this.method = method;
                 this.framework = framework;
+                this.displayName = displayName;
             }
 
             public static TestSuiteFramework getDefault() {
                 return JUNIT_PLATFORM;
             }
 
-            public MethodInvocationExpression getMethodInvocation() {
-                return method;
-            }
-
-            public String getImplementationDependency() {
-                return framework.getDependency();
-            }
         }
     }
 
@@ -1388,13 +1402,11 @@ public class BuildScriptBuilder {
     private static class TargetSpec extends BlockStatement implements BlockBody {
         private final BuildScriptBuilder builder;
         private final String name;
-        private final boolean testTaskShouldRunAfter;
 
         TargetSpec(@Nullable String comment, String name, BuildScriptBuilder builder, boolean testTaskShouldRunAfter) {
             super(comment);
             this.builder = builder;
             this.name = name;
-            this.testTaskShouldRunAfter = testTaskShouldRunAfter;
 
             if (testTaskShouldRunAfter) {
                 configureShouldRunAfterTest();
@@ -1414,7 +1426,7 @@ public class BuildScriptBuilder {
         private void configureShouldRunAfterTest() {
             final MethodInvocation shouldRunAfterCall = new MethodInvocation(null, new MethodInvocationExpression(null, "shouldRunAfter", Collections.singletonList(new LiteralValue("test"))));
             final NoArgClosureExpression configBlock = new NoArgClosureExpression(shouldRunAfterCall);
-            final MethodInvocation functionalTestConfiguration = new MethodInvocation(null, new MethodInvocationExpression(expressionValue(builder.propertyExpression("testTask")), "configure", configBlock));
+            final MethodInvocation functionalTestConfiguration = new MethodInvocation("This test suite should run after the built-in test suite has run its tests", new MethodInvocationExpression(expressionValue(builder.propertyExpression("testTask")), "configure", configBlock));
             add(functionalTestConfiguration);
         }
 
@@ -1563,10 +1575,10 @@ public class BuildScriptBuilder {
             final ExpressionValue testSuites = expressionValue(builder.propertyExpression(builder.propertyExpression("testing"), "suites"));
             if (builder.dsl == BuildInitDsl.GROOVY) {
                 final Expression suiteDependedUpon = builder.propertyExpression(testSuites, suite.getName());
-                builder.taskMethodInvocation(null, "check", Task.class.getSimpleName(), "dependsOn", suiteDependedUpon);
+                builder.taskMethodInvocation("Include " + suite.getName() + " as part of the check lifecycle", "check", Task.class.getSimpleName(), "dependsOn", suiteDependedUpon);
             } else {
                 final ExpressionValue namedMethod = new MethodInvocationExpression(testSuites, "named", Collections.singletonList(new StringValue(suite.getName())));
-                builder.taskMethodInvocation(null, "check", Task.class.getSimpleName(), "dependsOn", namedMethod);
+                builder.taskMethodInvocation("Include " + suite.getName() + " as part of the check lifecycle", "check", Task.class.getSimpleName(), "dependsOn", namedMethod);
             }
         }
 
@@ -2218,7 +2230,7 @@ public class BuildScriptBuilder {
 
         @Override
         public String suiteConfiguration(String suiteName, String suiteType) {
-            return suiteName + "(" + suiteType + ")";
+            return suiteName;
         }
 
         @Override

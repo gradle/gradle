@@ -18,7 +18,6 @@ package org.gradle.buildinit.plugins
 
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.test.fixtures.file.LeaksFileHandles
-import spock.lang.Unroll
 
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.KOTLIN
 
@@ -31,48 +30,17 @@ class KotlinLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
     @Override
     String subprojectName() { 'lib' }
 
-    @Unroll
-    def "defaults to kotlin build scripts, when incubating flag = #incubating"() {
+    def "defaults to kotlin build scripts"() {
         when:
-        run (['init', '--type', 'kotlin-library'] + (incubating ? ['--incubating'] : []) )
+        run ('init', '--type', 'kotlin-library')
 
         then:
         dslFixtureFor(KOTLIN).assertGradleFilesGenerated()
-
-        where:
-        incubating << [true, false]
     }
 
-    @Unroll
-    def "incubating option adds runnable test suites with #scriptDsl DSL"() {
+    def "creates sample source if no source present with #scriptDsl build scripts"() {
         def dslFixture = dslFixtureFor(scriptDsl)
 
-        when:
-        run ('init', '--type', 'kotlin-library', '--incubating', '--dsl', scriptDsl.id)
-        then:
-        dslFixture.assertContainsTestSuite('test')
-        dslFixture.assertContainsTestSuite('integrationTest')
-
-        when:
-        succeeds('test')
-        then:
-        assertTestPassed("some.thing.LibraryTest", "someLibraryMethodReturnsTrue")
-        assertTestsDoNotExist("some.thing.LibraryIntegTest")
-        assertIntegrationTestsDidNotRun("some.thing.LibraryIntegTest")
-
-        when:
-        succeeds('clean', 'integrationTest')
-        then:
-        assertTestsDidNotRun("some.thing.LibraryTest")
-        assertIntegrationTestsDoNotExist("some.thing.LibraryTest")
-        assertIntegrationTestPassed("some.thing.LibraryIntegTest", "gradleWebsiteIsReachable")
-
-        where:
-        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
-    }
-
-    @Unroll
-    def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'kotlin-library', '--dsl', scriptDsl.id)
 
@@ -82,6 +50,7 @@ class KotlinLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
 
         and:
         commonJvmFilesGenerated(scriptDsl)
+        dslFixture.assertDoesNotUseTestSuites()
 
         when:
         run("build")
@@ -93,7 +62,28 @@ class KotlinLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    @Unroll
+    def "creates build using test suites with #scriptDsl build scripts when using --incubating"() {
+        def dslFixture = dslFixtureFor(scriptDsl)
+
+        when:
+        run ('init', '--type', 'kotlin-library', '--dsl', scriptDsl.id, '--incubating')
+        then:
+        subprojectDir.file("src/main/kotlin").assertHasDescendants(SAMPLE_LIBRARY_CLASS)
+        subprojectDir.file("src/test/kotlin").assertHasDescendants(SAMPLE_LIBRARY_TEST_CLASS)
+
+        and:
+        commonJvmFilesGenerated(scriptDsl)
+        dslFixture.assertHasTestSuite('test')
+
+        when:
+        succeeds('test')
+        then:
+        assertTestPassed("some.thing.LibraryTest", "someLibraryMethodReturnsTrue")
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
+    }
+
     def "creates sample source with package and #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'kotlin-library', '--package', 'my.lib', '--dsl', scriptDsl.id)
@@ -115,7 +105,6 @@ class KotlinLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    @Unroll
     def "source generation is skipped when kotlin sources detected with #scriptDsl build scripts"() {
         setup:
         subprojectDir.file("src/main/kotlin/org/acme/SampleMain.kt") << """

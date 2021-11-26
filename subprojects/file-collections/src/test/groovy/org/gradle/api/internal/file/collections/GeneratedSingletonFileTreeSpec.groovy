@@ -52,6 +52,7 @@ class GeneratedSingletonFileTreeSpec extends Specification {
             assert details.file == generatedFile
             assert generatedFile.text == "contents!"
         }
+        1 * generationListener.execute(generatedFile)
         1 * contentWriter.execute(_) >> { OutputStream outputStream ->
             outputStream << "contents!"
         }
@@ -98,6 +99,7 @@ class GeneratedSingletonFileTreeSpec extends Specification {
             assert generatedFile.isFile()
             assert generatedFile.text == "contents!"
         }
+        1 * generationListener.execute(generatedFile)
         1 * contentWriter.execute(_) >> { OutputStream outputStream ->
             outputStream << "contents!"
         }

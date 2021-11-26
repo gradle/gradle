@@ -19,7 +19,6 @@ package org.gradle.plugins.ide.idea.model.internal;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -29,7 +28,6 @@ import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.plugins.ide.idea.model.Dependency;
 import org.gradle.plugins.ide.idea.model.FilePath;
@@ -58,9 +56,9 @@ public class IdeaDependenciesProvider {
     private final ProjectComponentIdentifier currentProjectId;
     private final GradleApiSourcesResolver gradleApiSourcesResolver;
 
-    public IdeaDependenciesProvider(Project project, IdeArtifactRegistry artifactRegistry, ProjectStateRegistry projectRegistry, GradleApiSourcesResolver gradleApiSourcesResolver) {
+    public IdeaDependenciesProvider(ProjectInternal project, IdeArtifactRegistry artifactRegistry, GradleApiSourcesResolver gradleApiSourcesResolver) {
         moduleDependencyBuilder = new ModuleDependencyBuilder(artifactRegistry);
-        currentProjectId = projectRegistry.stateFor(project).getComponentIdentifier();
+        currentProjectId = project.getOwner().getComponentIdentifier();
         optimizer = new IdeaDependenciesOptimizer();
         this.gradleApiSourcesResolver = gradleApiSourcesResolver;
     }

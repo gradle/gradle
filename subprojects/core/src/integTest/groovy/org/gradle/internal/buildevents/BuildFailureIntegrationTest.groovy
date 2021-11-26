@@ -20,6 +20,10 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class BuildFailureIntegrationTest extends AbstractIntegrationSpec {
     def "still prints errors when exception misbehaves"() {
+        // When running in-process, the NPE propagates out of the test fixtures
+        executer.requireIsolatedDaemons()
+        executer.requireDaemon()
+
         buildFile << """
 class BadException extends Exception {
    String getMessage() {
@@ -32,6 +36,7 @@ throw new BadException()
         when:
         fails("help")
         then:
-        result.assertHasErrorOutput("Unable to get message for failure of type BadException due to null")
+        failure.assertHasDescription("A problem occurred evaluating root project")
+        failure.assertHasCause("Unable to get message for failure of type BadException due to null")
     }
 }

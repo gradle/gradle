@@ -45,7 +45,7 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer {
     private static final Logger LOGGER = LoggerFactory.getLogger(InstrumentingClasspathFileTransformer.class);
-    private static final int CACHE_FORMAT = 4;
+    private static final int CACHE_FORMAT = 5;
 
     private final FileLockManager fileLockManager;
     private final ClasspathWalker classpathWalker;

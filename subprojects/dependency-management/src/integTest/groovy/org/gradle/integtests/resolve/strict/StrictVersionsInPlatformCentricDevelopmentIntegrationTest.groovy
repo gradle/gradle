@@ -19,7 +19,6 @@ import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
-import spock.lang.Unroll
 
 import static org.gradle.integtests.resolve.strict.StrictVersionsInPlatformCentricDevelopmentIntegrationTest.PlatformType.ENFORCED_PLATFORM
 import static org.gradle.integtests.resolve.strict.StrictVersionsInPlatformCentricDevelopmentIntegrationTest.PlatformType.LEGACY_PLATFORM
@@ -148,7 +147,6 @@ class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends Abstract
         requiredVersion
     }
 
-    @Unroll
     void "(1) all future releases of org:foo:3.0 are bad and the platform enforces 3.0 [#platformType]"() {
         initialRepository(platformType)
         singleLibraryBuildFile(platformType)
@@ -207,7 +205,6 @@ class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends Abstract
         platformType << PlatformType.values()
     }
 
-    @Unroll
     void "(2) org:foo:3.1.1 and platform upgrade 1.1 are release [#platformType]"() {
         updatedRepository(platformType)
         singleLibraryBuildFile(platformType)
@@ -266,7 +263,6 @@ class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends Abstract
         platformType << PlatformType.values()
     }
 
-    @Unroll
     @ToBeFixedForConfigurationCache(iterationMatchers = [
         ".*\\[PLATFORM\\].*",
         ".*\\[LEGACY_PLATFORM\\].*",
@@ -327,7 +323,6 @@ class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends Abstract
         platformType << PlatformType.values()
     }
 
-    @Unroll
     @ToBeFixedForConfigurationCache(iterationMatchers = [
         ".*\\[ENFORCED_PLATFORM\\].*"
     ])
@@ -412,7 +407,6 @@ class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends Abstract
         platformType << PlatformType.values()
     }
 
-    @Unroll
     @ToBeFixedForConfigurationCache
     void "(5) if two libraries are combined without agreeing on an override, the original platform constraint is brought back [#platformType]"() {
         updatedRepository(platformType)

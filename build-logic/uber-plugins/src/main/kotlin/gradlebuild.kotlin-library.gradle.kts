@@ -34,8 +34,7 @@ configurations.transitiveSourcesElements {
 
 tasks {
     withType<KotlinCompile>().configureEach {
-        val launcher = javaToolchains.launcherFor(java.toolchain)
-        configureKotlinCompilerForGradleBuild(launcher)
+        configureKotlinCompilerForGradleBuild()
         if (name == "compileTestKotlin") {
             // Make sure the classes dir is used for test compilation (required by tests accessing internal methods) - https://github.com/gradle/gradle/issues/11501
             classpath = sourceSets.main.get().output.classesDirs + classpath - files(tasks.jar)
@@ -63,7 +62,7 @@ tasks {
     }
 }
 
-fun KotlinCompile.configureKotlinCompilerForGradleBuild(launcher: Provider<JavaLauncher>) {
+fun KotlinCompile.configureKotlinCompilerForGradleBuild() {
     kotlinOptions {
         incremental = true
         allWarningsAsErrors = true
@@ -76,6 +75,5 @@ fun KotlinCompile.configureKotlinCompilerForGradleBuild(launcher: Provider<JavaL
             "-Xskip-metadata-version-check"
         )
         jvmTarget = "1.8"
-        kotlinJavaToolchain.toolchain.use(launcher)
     }
 }

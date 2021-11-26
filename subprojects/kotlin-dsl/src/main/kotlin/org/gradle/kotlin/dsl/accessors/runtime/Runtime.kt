@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.plugins.Convention
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.provider.Provider
+import org.gradle.api.provider.ProviderConvertible
 
 import org.gradle.kotlin.dsl.support.mapOfNonNullValuesOf
 import org.gradle.kotlin.dsl.support.uncheckedCast
@@ -70,6 +71,16 @@ fun addConfiguredDependencyTo(
     configurationAction: Action<ExternalModuleDependency>
 ) {
     dependencies.addProvider(configuration, dependencyNotation, configurationAction)
+}
+
+
+fun addConfiguredDependencyTo(
+    dependencies: DependencyHandler,
+    configuration: String,
+    dependencyNotation: ProviderConvertible<*>,
+    configurationAction: Action<ExternalModuleDependency>
+) {
+    dependencies.addProviderConvertible(configuration, dependencyNotation, configurationAction)
 }
 
 

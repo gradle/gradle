@@ -26,7 +26,6 @@ import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaExtract
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import org.gradle.model.internal.type.ModelType
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import static org.gradle.model.ModelTypeTesting.fullyQualifiedNameOf
 
@@ -458,7 +457,6 @@ class DefaultStructBindingsStoreTest extends Specification {
 - Method setItems(java.util.List<java.lang.Integer>) is not a valid method: it should take parameter with type 'List<String>'"""
     }
 
-    @Unroll
     def "misaligned types #firstType.simpleName and #secondType.simpleName"() {
         def interfaceWithPrimitiveProperty = new GroovyClassLoader(getClass().classLoader).parseClass """
             import org.gradle.model.Managed
@@ -629,7 +627,6 @@ class DefaultStructBindingsStoreTest extends Specification {
         )
     }
 
-    @Unroll
     def "finds #results.simpleName as the converging types among #types.simpleName"() {
         expect:
         DefaultStructBindingsStore.findConvergingTypes(types.collect { ModelType.of(it) }) as List == results.collect { ModelType.of(it) }

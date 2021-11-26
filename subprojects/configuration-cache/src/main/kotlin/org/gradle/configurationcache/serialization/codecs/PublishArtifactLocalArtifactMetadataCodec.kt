@@ -47,7 +47,7 @@ object PublishArtifactLocalArtifactMetadataCodec : Codec<PublishArtifactLocalArt
         writeFile(value.file)
     }
 
-    override suspend fun ReadContext.decode(): PublishArtifactLocalArtifactMetadata? {
+    override suspend fun ReadContext.decode(): PublishArtifactLocalArtifactMetadata {
         val componentId = read() as ComponentIdentifier
         val ivyName = read() as IvyArtifactName
         val file = readFile()

@@ -47,10 +47,6 @@ abstract class MergeReportAssets : DefaultTask() {
     @get:PathSensitive(PathSensitivity.NONE)
     abstract val jsFile: RegularFileProperty
 
-    @get:InputFile
-    @get:PathSensitive(PathSensitivity.NONE)
-    abstract val kotlinJs: RegularFileProperty
-
     @get:OutputFile
     abstract val outputFile: RegularFileProperty
 
@@ -59,7 +55,6 @@ abstract class MergeReportAssets : DefaultTask() {
         outputFile.get().asFile.writeText(
             htmlFile.get().asFile.readText().also {
                 require(it.contains(cssTag))
-                require(it.contains(kotlinJsTag))
                 require(it.contains(jsTag))
             }.replace(
                 cssTag,
@@ -74,13 +69,6 @@ abstract class MergeReportAssets : DefaultTask() {
                 </style>
                 """.trimIndent()
             ).replace(
-                kotlinJsTag,
-                """
-                <script type="text/javascript">
-                ${kotlinJs.get().asFile.readText()}
-                </script>
-                """.trimIndent()
-            ).replace(
                 jsTag,
                 """
                 <script type="text/javascript">
@@ -93,9 +81,6 @@ abstract class MergeReportAssets : DefaultTask() {
 
     private
     val cssTag = """<link rel="stylesheet" href="./configuration-cache-report.css">"""
-
-    private
-    val kotlinJsTag = """<script type="text/javascript" src="kotlin.js"></script>"""
 
     private
     val jsTag = """<script type="text/javascript" src="configuration-cache-report.js"></script>"""

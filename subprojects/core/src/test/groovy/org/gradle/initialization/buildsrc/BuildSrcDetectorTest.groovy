@@ -20,7 +20,6 @@ package org.gradle.initialization.buildsrc
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import static BuildSrcDetector.isValidBuildSrcBuild
 
@@ -69,7 +68,6 @@ class BuildSrcDetectorTest extends Specification {
         isValidBuildSrcBuild(buildSrcDir)
     }
 
-    @Unroll
     def "does not ignore buildSrc directory with #fileName file"() {
         when:
         def buildSrcDir = temp.createDir("buildSrc")

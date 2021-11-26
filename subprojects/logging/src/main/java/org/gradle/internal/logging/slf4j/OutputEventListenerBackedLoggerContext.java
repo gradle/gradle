@@ -34,6 +34,7 @@ public class OutputEventListenerBackedLoggerContext implements ILoggerFactory {
 
     static final String HTTP_CLIENT_WIRE_LOGGER_NAME = "org.apache.http.wire";
     static final String META_INF_EXTENSION_MODULE_LOGGER_NAME = "org.codehaus.groovy.runtime.m12n.MetaInfExtensionModule";
+    private static final String GROOVY_VM_PLUGIN_FACTORY = "org.codehaus.groovy.vmplugin.VMPluginFactory";
 
     private final ConcurrentMap<String, Logger> loggers = new ConcurrentHashMap<String, Logger>();
     private final AtomicReference<LogLevel> level = new AtomicReference<LogLevel>();
@@ -51,6 +52,10 @@ public class OutputEventListenerBackedLoggerContext implements ILoggerFactory {
         addNoOpLogger("org.apache.http.headers");
         addNoOpLogger(META_INF_EXTENSION_MODULE_LOGGER_NAME);
         addNoOpLogger("org.littleshoot.proxy.HttpRequestHandler");
+        // We ignore logging from here because this is when the Groovy runtime is initialized.
+        // This may happen in BuildOperationTrace, and then the logging from the plugin factory would go into the build operation trace again.
+        // That then will fail because we can't use JsonOutput in BuildOperationTrace when the Groovy VM hasn't been initialized.
+        addNoOpLogger(GROOVY_VM_PLUGIN_FACTORY);
     }
 
     private void addNoOpLogger(String name) {

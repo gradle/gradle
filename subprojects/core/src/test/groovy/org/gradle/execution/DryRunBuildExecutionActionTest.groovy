@@ -15,11 +15,10 @@
  */
 package org.gradle.execution
 
-
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.TaskInternal
-import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
+import org.gradle.execution.plan.ExecutionPlan
 import org.gradle.internal.SystemProperties
 import org.gradle.internal.logging.text.TestStyledTextOutputFactory
 import org.gradle.util.Path
@@ -27,19 +26,17 @@ import spock.lang.Specification
 
 import static org.gradle.util.internal.WrapUtil.toList
 
-public class DryRunBuildExecutionActionTest extends Specification {
+class DryRunBuildExecutionActionTest extends Specification {
     private static final String EOL = SystemProperties.instance.lineSeparator
-    def executionContext = Mock(BuildExecutionContext.class)
-    def gradle = Mock(GradleInternal.class)
-    def taskGraph = Mock(TaskExecutionGraphInternal.class)
-    def startParameter = Mock(StartParameterInternal.class)
+    def delegate = Mock(BuildWorkExecutor)
+    def executionPlan = Mock(ExecutionPlan)
+    def gradle = Mock(GradleInternal)
+    def startParameter = Mock(StartParameterInternal)
     def textOutputFactory = new TestStyledTextOutputFactory()
-    def action = new DryRunBuildExecutionAction(textOutputFactory)
+    def action = new DryRunBuildExecutionAction(textOutputFactory, delegate)
 
     def setup() {
         _ * gradle.getStartParameter() >> startParameter
-        _ * executionContext.getGradle() >> gradle
-        _ * gradle.getTaskGraph() >> taskGraph
     }
 
     def "print all selected tasks before proceeding when dry run is enabled"() {
@@ -49,16 +46,16 @@ public class DryRunBuildExecutionActionTest extends Specification {
 
         given:
         startParameter.isDryRun() >> true
-        taskGraph.getAllTasks() >> toList(task1, task2)
+        executionPlan.tasks >> toList(task1, task2)
 
         when:
-        action.execute(executionContext, [])
+        action.execute(gradle, executionPlan)
 
         then:
         textOutputFactory.toString() == "{$category}:task1 {progressstatus}SKIPPED$EOL{$category}:task2 {progressstatus}SKIPPED$EOL"
         1 * task1.getIdentityPath() >> Path.path(':task1')
         1 * task2.getIdentityPath() >> Path.path(':task2')
-        0 * executionContext.proceed()
+        0 * delegate.execute(_, _)
     }
 
     def "proceeds when dry run is not selected"() {
@@ -66,9 +63,9 @@ public class DryRunBuildExecutionActionTest extends Specification {
         startParameter.isDryRun() >> false
 
         when:
-        action.execute(executionContext, [])
+        action.execute(gradle, executionPlan)
 
         then:
-        1 * executionContext.proceed()
+        1 * delegate.execute(gradle, executionPlan)
     }
 }

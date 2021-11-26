@@ -1,5 +1,5 @@
 tasks.register("installExecutable", Copy) {
     from "build/my-binary"
     into "/usr/local/bin"
-    ignoreExistingContentInDestinationDir()
+    doNotTrackState("Installation directory contains unrelated files")
 }

@@ -100,22 +100,33 @@ class ConfigurationCacheProblems(
         return "configuration-cache"
     }
 
+    /**
+     * Writes the report to the given [reportDir] if any [diagnostics][DiagnosticKind] have
+     * been reported in which case a warning is also logged with the location of the report.
+     */
     override fun report(reportDir: File, validationFailures: Consumer<in Throwable>) {
         val summary = summarizer.get()
         val problemCount = summary.problemCount
-        if (problemCount == 0) {
-            return
-        }
+        val hasProblems = problemCount > 0
+        val hasFailedOnProblems = hasProblems && isFailOnProblems
         val hasTooManyProblems = problemCount > startParameter.maxProblems
-        if (cacheAction == STORE && (isFailOnProblems || hasTooManyProblems)) {
+        val failed = hasFailedOnProblems || hasTooManyProblems
+        if (cacheAction == STORE && failed) {
             // Invalidate stored state if problems fail the build
             requireNotNull(invalidateStoredState).invoke()
         }
-        val cacheActionText = cacheAction.summaryText()
+
         val outputDirectory = outputDirectoryFor(reportDir)
+        val cacheActionText = cacheAction.summaryText()
         val htmlReportFile = report.writeReportFileTo(outputDirectory, cacheActionText, problemCount)
+        if (htmlReportFile == null) {
+            // there was nothing to report
+            require(!failed)
+            return
+        }
+
         when {
-            isFailOnProblems -> {
+            hasFailedOnProblems -> {
                 // TODO - always include this as a build failure;
                 //  currently it is disabled when a serialization problem happens
                 validationFailures.accept(

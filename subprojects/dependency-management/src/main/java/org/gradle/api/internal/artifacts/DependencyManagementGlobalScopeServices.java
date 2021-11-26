@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.transform.InputArtifact;
 import org.gradle.api.artifacts.transform.InputArtifactDependencies;
+import org.gradle.api.internal.artifacts.configurations.MarkConfigurationObservedListener;
 import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyContextManager;
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
@@ -67,6 +68,7 @@ import org.gradle.internal.resource.connector.ResourceConnectorFactory;
 import org.gradle.internal.resource.local.FileResourceConnector;
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.transport.file.FileConnectorFactory;
+import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.typeconversion.CrossBuildCachingNotationConverter;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
@@ -74,6 +76,10 @@ import org.gradle.work.Incremental;
 import org.gradle.work.NormalizeLineEndings;
 
 class DependencyManagementGlobalScopeServices {
+    void configure(ServiceRegistration registration) {
+        registration.add(MarkConfigurationObservedListener.class);
+    }
+
     FileResourceRepository createFileResourceRepository(FileSystem fileSystem) {
         return new FileResourceConnector(fileSystem);
     }

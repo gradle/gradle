@@ -17,7 +17,9 @@
 package org.gradle.integtests.tooling
 
 import org.gradle.api.JavaVersion
+import org.gradle.test.fixtures.Flaky
 
+@Flaky(because = "https://github.com/gradle/gradle-private/issues/3430")
 class ToolingApiClientCurrentJdkCompatibilityTest extends ToolingApiClientJdkCompatibilityTest {
     JavaVersion getClientJdkVersion() {
         return JavaVersion.current()

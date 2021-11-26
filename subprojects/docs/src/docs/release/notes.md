@@ -7,22 +7,16 @@ We would like to thank the following community members for their contributions t
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
 -->
-[Attix Zhang](https://github.com/attix-zhang),
-[anatawa12](https://github.com/anatawa12),
-[Anil Kumar Myla](https://github.com/anilkumarmyla),
-[Marcono1234](https://github.com/Marcono1234),
-[Nicola Corti](https://github.com/cortinico),
-[Scott Palmer](https://github.com/swpalmer),
-[Marcin Zajączkowski](https://github.com/szpak),
-[Alex Landau](https://github.com/AlexLandau),
-[Stefan Oehme](https://github.com/oehme),
-[yinghao niu](https://github.com/towith),
-[Björn Kautler](https://github.com/Vampire),
-[Tomasz Godzik](https://github.com/tgodzik),
-[Kristian Kraljic](https://github.com/kristian),
-[Matthew Haughton](https://github.com/3flex),
-[Xin Wang](https://github.com/scaventz)
-
+[Michael Bailey](https://github.com/yogurtearl),
+[Jochen Schalanda](https://github.com/joschi),
+[Jendrik Johannes](https://github.com/jjohannes),
+[Roberto Perez Alcolea](https://github.com/rpalcolea),
+[Konstantin Gribov](https://github.com/grossws),
+[Piyush Mor](https://github.com/piyushmor),
+[Róbert Papp](https://github.com/TWiStErRob),
+[Piyush Mor](https://github.com/piyushmor),
+[Ned Twigg](https://github.com/nedtwigg),
+[Nikolas Grottendieck](https://github.com/Okeanos).
 
 ## Upgrade instructions
 
@@ -30,9 +24,11 @@ Switch your build to use Gradle @version@ by updating your wrapper:
 
 `./gradlew wrapper --gradle-version=@version@`
 
-See the [Gradle 7.x upgrade guide](userguide/upgrading_version_7.html#changes_@baseVersion@) to learn about deprecations, breaking changes and other considerations when upgrading to Gradle @version@.
+See the [Gradle 7.x upgrade guide](userguide/upgrading_version_7.html#changes_@baseVersion@) to learn about deprecations, breaking changes and other considerations when upgrading to Gradle @version@. 
 
 For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).
+
+## New features and usability improvements
 
 <!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. --> 
 
@@ -60,86 +56,74 @@ Example:
 
 ==========================================================
 ADD RELEASE FEATURES BELOW
-vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
---->
+### JVM toolchains improvements
 
-## New features and usability improvements
+[Java toolchains](userguide/toolchains.html) provide an easy way to declare which Java version your project should be built with.
+By default, Gradle will [detect installed JDKs](userguide/toolchains.html#sec:auto_detection) or automatically download new toolchain versions.
 
-### Support for Java 17
+#### Changes following migration from AdoptOpenJDK to Adoptium
 
-Gradle 7.3 supports compiling, testing and running on Java 17.
+Following the migration of [AdoptOpenJDK](https://adoptopenjdk.net/) to [Eclipse Adoptium](https://adoptium.net/), a number of changes have been made for toolchains:
+* `ADOPTIUM` and `IBM_SEMERU` are now recognized as vendors,
+* Both of the above can be used as vendors and trigger auto-provisioning,
+* Using `ADOPTOPENJDK` as a vendor and having it trigger auto-provisioning will emit a [deprecation warning](userguide/upgrading_version_7.html#adoptopenjdk_download).
 
-<a name="tooling-api"></a>
-### Tooling API improvements
+See [the documentation](userguide/toolchains.html#sec:provisioning) for details.
 
-TBD - The tooling API allows applications to embed Gradle. This API is used by IDEs such as IDEA, Android Studio
-and Buildship to integrate Gradle into the IDE.
+### Kotlin DSL improvements
 
-#### File download progress events
+#### Type-safe accessors for extensions of `repositories {}`
 
-TBD - some build may download many files or very large files, for example when resolving many dependencies, and this
-may cause Gradle builds to be slow. This release adds new events that notify the embedding IDE as files such as
-dependency artifacts are downloaded. This allows the IDE to show better progress information Gradle is running.
+The Kotlin DSL now generates type-safe model accessors for extensions registered on the `repositories {}` block.
 
-<a name="scala"></a>
-### Scala plugin improvements
 
-Scala plugin allows users to compile their Scala code using Gradle and the Zinc incremental compiler underneath.
+For example, starting with this version of Gradle, the [`asciidoctorj-gems-plugin`](https://asciidoctor.github.io/asciidoctor-gradle-plugin/master/user-guide/#asciidoctorj-gems-plugin) can be configured directly via the generated type-safe accessors:
 
-#### Scala 3 support
 
-Newest version of Scala 3 brings about numerous features while keeping compatibility with most of the existing
-Scala 2 code. Due to some large changes in the compiler it was neccessary to adjust the Scala plugin
-to be able to compile Scala 3 code. All existing configuration options should still be usable with the newest
-language version. To see more about the language features go to
-[overview of the new features in Scala 3](https://docs.scala-lang.org/scala3/new-in-scala3.html).
+```kotlin
+repositories {
+    ruby {
+        gems()
+    }
+}
+```
 
-### Allow copying single files into directories which contain unreadable files.
+Whereas before it required to use [`withGroovyBuilder`]():
 
-Sometimes you want to copy files into a directory which contains unreadable files or which is not exclusively owned by the build.
-For example when you are deploying single files into application servers or installing executables.
-This may fail or be slow since Gradle tries to track all the content in the destination directory.
+```kotlin
+repositories {
+    withGroovyBuilder {
+        "ruby" {
+            "gems"()
+        }
+    }
+}
+```
 
-The `Copy` task now has a method [`Copy.ignoreExistingContentInDestinationDir()`](dsl/org.gradle.api.tasks.Copy.html#org.gradle.api.tasks.Copy:ignoreExistingContentInDestinationDir()) that forces Gradle to ignore content in the destination directory.
-This uses the new [untracked](#untracked) feature under the hood.
-See the samples in the user manual about [Deploying single files into application servers](userguide/working_with_files.html#sec:copy_deploy) and [Installing executables](userguide/working_with_files.html#sec:install_executable).
+or, required more tinkering in order to discover what names and types to use, relying on the API:
+```kotlin
+repositories {
+    this as ExtensionAware
+    configure<com.github.jrubygradle.api.core.RepositoryHandlerExtension> {
+        gems()
+    }
+}
+```
+See [the documentation](userguide/kotlin_dsl.html#type-safe-accessors) for details.
 
-### More robust file system watching
+### Dependency verification improvements
 
-When running an incremental build, Gradle needs to understand what has changed since the previous build on the file system.
-To do this it tries to rely on the operating system's [file system events](userguide/gradle_daemon.html#sec:daemon_watch_fs) whenever possible.
-However, these events can be unreliable in some environments, which could cause Gradle to ignore some changes.
-To prevent this, Gradle now makes a change to the file system whenever it first starts watching something.
-If a file system event for this change does not arrive by the start of the next build, Gradle concludes that file system events are unreliable, and will fall back to checking the file system for files involved in the build for changes.  
+[Dependency verification](userguide/dependency_verification.html) is a feature that allows to verify the checksums and signatures of the plugins and dependencies that are used by the build of your project.
 
-### Input normalization support in configuration cache
-The [input normalization](userguide/more_about_tasks.html#sec:configure_input_normalization) is now correctly tracked by the experimental [configuration cache](userguide/configuration_cache.html). Task up-to-date checks now consider normalization
-rules when the configuration cache is enabled, leading to fewer rebuilds.
+With this release, the generation of the dependency verification file has been improved to produce stable output.
+This means that for the same inputs - build configuration and previous verification file - Gradle will always produce the same output.
+This allows you to leverage [the verification metadata bootstrapping feature](userguide/dependency_verification.html#sec:bootstrapping-verification) as an update strategy when dependencies change in your project.
+Have a look at [the documentation](userguide/dependency_verification.html#sec:verification-update) for more details.
 
-<a name="plugin-development-improvements"></a>
-## Plugin development improvements
 
-<a name="untracked"></a>
-### Allow plugin authors to declare inputs or outputs as untracked
-
-For up-to-date checks and the build cache, Gradle needs to track the state of the inputs and outputs of a task.
-Though it is not always desirable or possible for Gradle to fully track the state of the input and output files.
-For example:
-- The location contains unreadable files like pipes where Gradle cannot track the content.
-- Another tool like Git already takes care of keeping the state, so it doesn't make sense for Gradle to do additional bookkeeping.
-- The build does not own the output location exclusively and Gradle would need to track the state of a potentially large amount of content.
-
-Gradle 7.3 introduces the annotation [`@Untracked`](javadoc/org/gradle/api/tasks/Untracked.html) and the method [TaskFilePropertyBuilder.untracked()](javadoc/org/gradle/api/tasks/TaskFilePropertyBuilder.html##untracked--) to declare that Gradle should not track the state of the input or output property.
-This allows implementing the above use-cases.
-If a task has any untracked properties, then Gradle does not do any optimizations for running the task.
-For example, such a task will always be out of date and never from the build cache.
-
-See the samples in the user manual about [Integrating an external tool which does its own up-to-date checking](userguide/more_about_tasks.html#sec:untracked_external_tool).
-
-<!--
-
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
 ==========================================================
 
@@ -151,9 +135,9 @@ See the User Manual section on the “[Feature Lifecycle](userguide/feature_life
 
 The following are the features that have been promoted in this Gradle release.
 
-### Disabling caching by default
-
-The [`@DisableCachingByDefault` annotation](userguide/build_cache.html#sec:task_output_caching_disabled_by_default) is now a stable feature.
+<!--
+### Example promoted
+-->
 
 ## Fixed issues
 
@@ -167,7 +151,7 @@ We love getting contributions from the Gradle community. For information on cont
 
 ## Reporting problems
 
-If you find a problem with this release, please file a bug on [GitHub Issues](https://github.com/gradle/gradle/issues) adhering to our issue guidelines.
+If you find a problem with this release, please file a bug on [GitHub Issues](https://github.com/gradle/gradle/issues) adhering to our issue guidelines. 
 If you're not sure you're encountering a bug, please use the [forum](https://discuss.gradle.org/c/help-discuss).
 
 We hope you will build happiness with Gradle, and we look forward to your feedback via [Twitter](https://twitter.com/gradle) or on [GitHub](https://github.com/gradle).

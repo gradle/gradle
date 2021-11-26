@@ -28,7 +28,6 @@ import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
@@ -37,6 +36,7 @@ import org.gradle.internal.work.AsyncWorkTracker;
 import org.gradle.internal.work.ConditionalExecutionQueueFactory;
 import org.gradle.internal.work.DefaultConditionalExecutionQueueFactory;
 import org.gradle.internal.work.WorkerLeaseRegistry;
+import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.process.internal.JavaForkOptionsFactory;
 import org.gradle.process.internal.health.memory.MemoryManager;
 import org.gradle.process.internal.health.memory.OsMemoryInfo;
@@ -67,8 +67,8 @@ public class WorkersServices extends AbstractPluginServiceRegistry {
             return new DefaultWorkerDirectoryProvider(gradleUserHomeDirProvider);
         }
 
-        ConditionalExecutionQueueFactory createConditionalExecutionQueueFactory(ExecutorFactory executorFactory, ParallelismConfiguration parallelismConfiguration, ResourceLockCoordinationService resourceLockCoordinationService) {
-            return new DefaultConditionalExecutionQueueFactory(parallelismConfiguration, executorFactory, resourceLockCoordinationService);
+        ConditionalExecutionQueueFactory createConditionalExecutionQueueFactory(ExecutorFactory executorFactory, ParallelismConfiguration parallelismConfiguration, WorkerLeaseService workerLeaseService) {
+            return new DefaultConditionalExecutionQueueFactory(parallelismConfiguration, executorFactory, workerLeaseService);
         }
 
         WorkerExecutionQueueFactory createWorkerExecutionQueueFactory(ConditionalExecutionQueueFactory conditionalExecutionQueueFactory) {

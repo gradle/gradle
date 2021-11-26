@@ -22,7 +22,6 @@ import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecuterResult;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
-import org.gradle.api.internal.tasks.properties.ContentTracking;
 import org.gradle.api.internal.tasks.properties.FilePropertySpec;
 import org.gradle.api.internal.tasks.properties.TaskProperties;
 import org.gradle.internal.execution.BuildOutputCleanupRegistry;
@@ -72,12 +71,16 @@ public class CleanupStaleOutputsExecuter implements TaskExecuter {
 
     @Override
     public TaskExecuterResult execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
+        if (!task.getReasonNotToTrackState().isPresent()) {
+            cleanupStaleOutputs(context);
+        }
+        return executer.execute(task, state, context);
+    }
+
+    private void cleanupStaleOutputs(TaskExecutionContext context) {
         Set<File> filesToDelete = new HashSet<>();
         TaskProperties properties = context.getTaskProperties();
         for (FilePropertySpec outputFileSpec : properties.getOutputFileProperties()) {
-            if (outputFileSpec.getContentTracking() == ContentTracking.UNTRACKED) {
-                continue;
-            }
             FileCollection files = outputFileSpec.getPropertyFiles();
             for (File file : files) {
                 if (cleanupRegistry.isOutputOwnedByBuild(file) && !outputFilesRepository.isGeneratedByGradle(file) && file.exists()) {
@@ -110,7 +113,6 @@ public class CleanupStaleOutputsExecuter implements TaskExecuter {
                 }
             });
         }
-        return executer.execute(task, state, context);
     }
 
 }

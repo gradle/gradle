@@ -408,8 +408,8 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
         def input = file("readableFile.txt").createFile()
 
         def outputDirectory = file("output")
-        def unreadableOutput = file("${outputDirectory.name}/unreadableFile")
-        unreadableOutput.createFile().makeUnreadable()
+        def unreadableOutput = outputDirectory.file("unreadableFile").createFile()
+        unreadableOutput.makeUnreadable()
 
         buildFile << """
             task sync(type: Sync) {
@@ -418,18 +418,27 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
+        expect:
+        unreadableOutput.exists()
+
         when:
         executer.withStackTraceChecksDisabled()
         executer.expectDocumentedDeprecationWarning("Cannot access a file in the destination directory (see --info log for details). " +
             "Syncing to a directory which contains unreadable content has been deprecated. " +
             "This will fail with an error in Gradle 8.0. " +
-            "Use a Copy task with Copy.ignoreExistingContentInDestinationDir() instead. " +
+            "Use a Copy task with Task.doNotTrackState() instead. " +
             "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#declare_unreadable_input_output")
         run "sync", "--info"
         then:
         outputDirectory.list().contains input.name
         outputContains("Cannot access output property 'destinationDir' of task ':sync'")
         executedAndNotSkipped(":sync")
+
+        cleanup:
+        // The Sync task should delete the unreadable output, though that doesn't work every time.
+        if (unreadableOutput.exists()) {
+            unreadableOutput.makeReadable()
+        }
     }
 
     @Issue("https://github.com/gradle/gradle/issues/9586")

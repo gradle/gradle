@@ -17,8 +17,8 @@
 package org.gradle.tooling.internal.provider.serialization;
 
 import com.google.common.collect.Sets;
-import javax.annotation.concurrent.ThreadSafe;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.lang.ref.WeakReference;
 import java.net.URL;
 import java.util.ArrayList;
@@ -44,7 +44,7 @@ public class ClientSidePayloadClassLoaderRegistry implements PayloadClassLoaderR
     private final ClassLoaderCache classLoaderCache;
     private final Lock lock = new ReentrantLock(); // protects the following state
     // Contains only application owned ClassLoaders
-    private final Map<UUID, LocalClassLoaderMapping> classLoaders = new LinkedHashMap<UUID, LocalClassLoaderMapping>();
+    private final Map<UUID, LocalClassLoaderMapping> classLoaders = new LinkedHashMap<>();
 
     public ClientSidePayloadClassLoaderRegistry(PayloadClassLoaderRegistry delegate, ClasspathInferer classpathInferer, ClassLoaderCache classLoaderCache) {
         this.delegate = delegate;
@@ -54,10 +54,10 @@ public class ClientSidePayloadClassLoaderRegistry implements PayloadClassLoaderR
 
     @Override
     public SerializeMap newSerializeSession() {
-        final Set<ClassLoader> candidates = new LinkedHashSet<ClassLoader>();
-        final Set<URL> classPath = new LinkedHashSet<URL>();
-        final Map<ClassLoader, Short> classLoaderIds = new HashMap<ClassLoader, Short>();
-        final Map<Short, ClassLoaderDetails> classLoaderDetails = new HashMap<Short, ClassLoaderDetails>();
+        final Set<ClassLoader> candidates = new LinkedHashSet<>();
+        final Set<URL> classPath = new LinkedHashSet<>();
+        final Map<ClassLoader, Short> classLoaderIds = new HashMap<>();
+        final Map<Short, ClassLoaderDetails> classLoaderDetails = new HashMap<>();
         return new SerializeMap() {
             @Override
             public short visitClass(Class<?> target) {
@@ -84,15 +84,9 @@ public class ClientSidePayloadClassLoaderRegistry implements PayloadClassLoaderR
 
             @Override
             public void collectClassLoaderDefinitions(Map<Short, ClassLoaderDetails> details) {
-                lock.lock();
-                UUID uuid;
-                try {
-                    uuid = getUuidForLocalClassLoaders(candidates);
-                } finally {
-                    lock.unlock();
-                }
+                ClassLoaderDetails clientClassLoaders = getDetailsForClassLoaders(candidates, classPath);
                 details.putAll(classLoaderDetails);
-                details.put(CLIENT_CLASS_LOADER_ID, new ClassLoaderDetails(uuid, new ClientOwnedClassLoaderSpec(new ArrayList<URL>(classPath))));
+                details.put(CLIENT_CLASS_LOADER_ID, clientClassLoaders);
             }
         };
     }
@@ -103,13 +97,7 @@ public class ClientSidePayloadClassLoaderRegistry implements PayloadClassLoaderR
         return new DeserializeMap() {
             @Override
             public Class<?> resolveClass(ClassLoaderDetails classLoaderDetails, String className) throws ClassNotFoundException {
-                Set<ClassLoader> candidates;
-                lock.lock();
-                try {
-                    candidates = getClassLoaders(classLoaderDetails.uuid);
-                } finally {
-                    lock.unlock();
-                }
+                Set<ClassLoader> candidates = getClassLoaders(classLoaderDetails);
                 if (candidates != null) {
                     // TODO:ADAM - This isn't quite right
                     // MB: I think ^ refers to the first capable classloader loading the class. This could be different
@@ -128,53 +116,92 @@ public class ClientSidePayloadClassLoaderRegistry implements PayloadClassLoaderR
         };
     }
 
-    private Set<ClassLoader> getClassLoaders(UUID uuid) {
-        LocalClassLoaderMapping localClassLoaderMapping = classLoaders.get(uuid);
-        if (localClassLoaderMapping == null) {
-            return null;
-        }
-        Set<ClassLoader> candidates = Sets.newLinkedHashSet();
-        for (WeakReference<ClassLoader> reference : localClassLoaderMapping.classLoaders) {
-            ClassLoader classLoader = reference.get();
-            if (classLoader != null) {
-                candidates.add(classLoader);
+    private Set<ClassLoader> getClassLoaders(ClassLoaderDetails details) {
+        lock.lock();
+        try {
+            // Locate the set of classloaders for the given details. First, try to locate by UUID.
+            // A match by UUID means the entry was created by this client and can be reused
+            LocalClassLoaderMapping localClassLoaderMapping = classLoaders.get(details.uuid);
+            if (localClassLoaderMapping != null) {
+                return localClassLoaderMapping.getClassLoaders();
             }
-        }
-        return candidates;
-    }
 
-    private UUID getUuidForLocalClassLoaders(Set<ClassLoader> candidates) {
-        for (LocalClassLoaderMapping localClassLoaderMapping : new ArrayList<LocalClassLoaderMapping>(classLoaders.values())) {
-            Set<ClassLoader> localCandidates = new LinkedHashSet<ClassLoader>();
-            for (WeakReference<ClassLoader> reference : localClassLoaderMapping.classLoaders) {
-                ClassLoader cl = reference.get();
-                if (cl != null) {
-                    localCandidates.add(cl);
+            // Try to locate by classloader spec
+            // A match by classloader spec means the entry in the daemon was created by another client with exactly the same classloader structure as this client
+            for (LocalClassLoaderMapping classLoaderMapping : new ArrayList<>(classLoaders.values())) {
+                if (classLoaderMapping.details.spec.equals(details.spec)) {
+                    // Found an entry with the same spec, so reuse it
+                    classLoaders.put(details.uuid, classLoaderMapping);
+                    return classLoaderMapping.getClassLoaders();
                 }
             }
-            if (localCandidates.isEmpty()) {
-                classLoaders.remove(localClassLoaderMapping.uuid);
-                continue;
-            }
-            if (localCandidates.equals(candidates)) {
-                return localClassLoaderMapping.uuid;
-            }
+            return null;
+        } finally {
+            lock.unlock();
         }
+    }
 
-        LocalClassLoaderMapping details = new LocalClassLoaderMapping(UUID.randomUUID());
-        for (ClassLoader candidate : candidates) {
-            details.classLoaders.add(new WeakReference<ClassLoader>(candidate));
+    private ClassLoaderDetails getDetailsForClassLoaders(Set<ClassLoader> candidates, Set<URL> classPath) {
+        lock.lock();
+        try {
+            // Determine whether the given set of classloaders have already been used for some previous request
+            // A single daemon side classloader is used for a given set of client side classloaders
+            // So, if we find an entry for the given set of classloaders, then reuse it
+            for (LocalClassLoaderMapping localClassLoaderMapping : new ArrayList<>(classLoaders.values())) {
+                Set<ClassLoader> localCandidates = new LinkedHashSet<>();
+                for (WeakReference<ClassLoader> reference : localClassLoaderMapping.classLoaders) {
+                    ClassLoader cl = reference.get();
+                    if (cl != null) {
+                        localCandidates.add(cl);
+                    }
+                }
+                if (localCandidates.isEmpty()) {
+                    // Classloaders in this entry have all been garbage collected, so remove the entry
+                    classLoaders.remove(localClassLoaderMapping.details.uuid);
+                    continue;
+                }
+                if (localCandidates.equals(candidates)) {
+                    // A match. Because the entry is reused, add any additional classpath entries
+                    return new ClassLoaderDetails(localClassLoaderMapping.details.uuid, new ClientOwnedClassLoaderSpec(new ArrayList<>(classPath)));
+                }
+            }
+
+            // Haven't seen the classloaders before - add a new entry
+            UUID uuid = UUID.randomUUID();
+            ClassLoaderDetails clientClassLoaders = new ClassLoaderDetails(uuid, new ClientOwnedClassLoaderSpec(new ArrayList<>(classPath)));
+            LocalClassLoaderMapping mapping = new LocalClassLoaderMapping(clientClassLoaders);
+            for (ClassLoader candidate : candidates) {
+                mapping.classLoaders.add(new WeakReference<>(candidate));
+            }
+            classLoaders.put(uuid, mapping);
+            return mapping.details;
+        } finally {
+            lock.unlock();
         }
-        classLoaders.put(details.uuid, details);
-        return details.uuid;
     }
 
     private static class LocalClassLoaderMapping {
         private final Set<WeakReference<ClassLoader>> classLoaders = Sets.newLinkedHashSet();
-        private final UUID uuid;
+        private final ClassLoaderDetails details;
 
-        private LocalClassLoaderMapping(UUID uuid) {
-            this.uuid = uuid;
+        private LocalClassLoaderMapping(ClassLoaderDetails details) {
+            this.details = details;
+        }
+
+        @Override
+        public String toString() {
+            return "{details=" + details + " classloaders=" + classLoaders + "}";
+        }
+
+        Set<ClassLoader> getClassLoaders() {
+            Set<ClassLoader> candidates = Sets.newLinkedHashSet();
+            for (WeakReference<ClassLoader> reference : classLoaders) {
+                ClassLoader classLoader = reference.get();
+                if (classLoader != null) {
+                    candidates.add(classLoader);
+                }
+            }
+            return candidates;
         }
     }
 }

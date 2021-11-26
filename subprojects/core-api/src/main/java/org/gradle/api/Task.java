@@ -77,7 +77,7 @@ import java.util.Set;
  * next task by throwing a {@link org.gradle.api.tasks.StopExecutionException}. Using these exceptions allows you to
  * have precondition actions which skip execution of the task, or part of the task, if not true.</p>
  *
- * <a id="dependencies"></a><h3>Task Dependencies and Task Ordering</h3>
+ * <a name="dependencies"></a><h3>Task Dependencies and Task Ordering</h3>
  *
  * <p>A task may have dependencies on other tasks or might be scheduled to always run after another task.
  * Gradle ensures that all task dependencies and ordering rules are honored when executing tasks, so that the task is executed after
@@ -121,7 +121,7 @@ import java.util.Set;
  *
  * <h3>Using a Task in a Build File</h3>
  *
- * <a id="properties"></a> <h4>Dynamic Properties</h4>
+ * <a name="properties"></a> <h4>Dynamic Properties</h4>
  *
  * <p>A {@code Task} has 4 'scopes' for properties. You can access these properties by name from the build file or by
  * calling the {@link #property(String)} method. You can change the value of these properties by calling the {@link #setProperty(String, Object)} method.</p>
@@ -266,6 +266,18 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      * @param onlyIfClosure code to execute to determine if task should be run
      */
     void onlyIf(Closure onlyIfClosure);
+
+    /**
+     * Do not track the state of the task.
+     *
+     * Instructs Gradle to treat the task as untracked.
+     *
+     * @see org.gradle.api.tasks.UntrackedTask
+     * @since 7.3
+     */
+    @Incubating
+    @Internal
+    void doNotTrackState(String reasonNotToTrackState);
 
     /**
      * <p>Execute the task only if the given spec is satisfied. The spec will be evaluated at task execution time, not

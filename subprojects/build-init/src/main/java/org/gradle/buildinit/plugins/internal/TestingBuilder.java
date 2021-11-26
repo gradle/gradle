@@ -16,10 +16,12 @@
 
 package org.gradle.buildinit.plugins.internal;
 
+import org.gradle.buildinit.plugins.internal.BuildScriptBuilder.SuiteSpec;
+
 public interface TestingBuilder {
-    void junitSuite(String name);
-    void junitJupiterSuite(String name);
-    void spockSuite(String name);
-    void kotlinTestSuite(String name);
-    void testNG(String name);
+    SuiteSpec junitSuite(String name, TemplateLibraryVersionProvider libraryVersionProvider);
+    SuiteSpec junitJupiterSuite(String name, TemplateLibraryVersionProvider libraryVersionProvider);
+    SuiteSpec spockSuite(String name, TemplateLibraryVersionProvider libraryVersionProvider);
+    SuiteSpec kotlinTestSuite(String name, TemplateLibraryVersionProvider libraryVersionProvider);
+    SuiteSpec testNG(String name, TemplateLibraryVersionProvider libraryVersionProvider);
 }

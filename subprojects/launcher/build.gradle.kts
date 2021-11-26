@@ -5,6 +5,7 @@ plugins {
 
 dependencies {
     implementation(project(":base-services"))
+    implementation(project(":enterprise-operations"))
     implementation(project(":cli"))
     implementation(project(":messaging"))
     implementation(project(":build-option"))
@@ -39,6 +40,7 @@ dependencies {
 
     manifestClasspath(project(":bootstrap"))
     manifestClasspath(project(":base-services"))
+    manifestClasspath(project(":worker-services"))
     manifestClasspath(project(":core-api"))
     manifestClasspath(project(":core"))
     manifestClasspath(project(":persistent-cache"))

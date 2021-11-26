@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableSortedSet
 import org.gradle.api.GradleException
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.tasks.properties.CacheableOutputFilePropertySpec
-import org.gradle.api.internal.tasks.properties.ContentTracking
 import org.gradle.api.internal.tasks.properties.InputFilePropertySpec
 import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec
 import org.gradle.api.internal.tasks.properties.TaskProperties
@@ -35,19 +34,15 @@ import javax.annotation.Nullable
 
 class DefaultTaskCacheabilityResolverTest extends Specification {
     def task = Stub(TaskInternal)
-    def trackedInputProperty = Stub(InputFilePropertySpec) {
-        getContentTracking() >> ContentTracking.TRACKED
-    }
-    def cacheableOutputProperty = Stub(CacheableOutputFilePropertySpec) {
-        getContentTracking() >> ContentTracking.TRACKED
-    }
+    def inputProperty = Stub(InputFilePropertySpec)
+    def cacheableOutputProperty = Stub(CacheableOutputFilePropertySpec)
     def relativeFilePathResolver = Mock(RelativeFilePathResolver)
     def resolver = new DefaultTaskCacheabilityResolver(relativeFilePathResolver)
 
     def "report no reason if the task is cacheable"() {
         expect:
         determineNoCacheReason(
-            [trackedInputProperty],
+            [inputProperty],
             [cacheableOutputProperty],
             [spec({ true })],
         ) == null
@@ -166,40 +161,19 @@ class DefaultTaskCacheabilityResolverTest extends Specification {
         1 * relativeFilePathResolver.resolveForDisplay(overlappingOutputs.overlappedFilePath) >> "relative/path"
     }
 
-    def "caching is disabled for untracked inputs"() {
-        def untrackedInput = Stub(InputFilePropertySpec) {
-            getContentTracking() >> ContentTracking.UNTRACKED
-            getPropertyName() >> 'untrackedInput'
-        }
-
+    def "caching is disabled for untracked tasks"() {
         when:
         def reason = determineNoCacheReason(
-            [untrackedInput],
+            [inputProperty],
             [cacheableOutputProperty],
             [spec({ true })]
         )
 
         then:
-        reason.category == CachingDisabledReasonCategory.NON_CACHEABLE_INPUTS
-        reason.message == "Input property 'untrackedInput' is untracked"
-    }
+        task.getReasonNotToTrackState() >> Optional.of("For tests")
 
-    def "caching is disabled for untracked outputs"() {
-        def untrackedOutput = Stub(CacheableOutputFilePropertySpec) {
-            getContentTracking() >> ContentTracking.UNTRACKED
-            getPropertyName() >> 'untrackedOutput'
-        }
-
-        when:
-        def reason = determineNoCacheReason(
-            [trackedInputProperty],
-            [untrackedOutput],
-            [spec({ true })]
-        )
-
-        then:
-        reason.category == CachingDisabledReasonCategory.NON_CACHEABLE_OUTPUT
-        reason.message == "Output property 'untrackedOutput' is untracked"
+        reason.category == CachingDisabledReasonCategory.DISABLE_CONDITION_SATISFIED
+        reason.message == "Task is untracked because: For tests"
     }
 
     static def spec(Spec<TaskInternal> spec, String description = "test cacheIf()") {

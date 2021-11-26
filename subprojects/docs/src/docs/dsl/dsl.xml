@@ -551,6 +551,32 @@
     </section>
 
     <section>
+        <title>Test types</title>
+        <para>Listed below are the tasks and configurable objects related to modeled Test Suites:</para>
+        <table>
+            <title>Test types</title>
+            <tr>
+                <td>org.gradle.testing.base.TestingExtension</td>
+            </tr>
+            <tr>
+                <td>org.gradle.testing.base.TestSuite</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.plugins.jvm.JvmTestSuite</td>
+            </tr>
+            <tr>
+                <td>org.gradle.testing.base.TestSuiteTarget</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.plugins.jvm.JvmTestSuiteTarget</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.tasks.testing.Test</td>
+            </tr>
+        </table>
+    </section>
+
+    <section>
         <title>Reporting types</title>
         <para>Listed below are some of the types which are used when generating reports:</para>
         <table>
@@ -575,6 +601,12 @@
             </tr>
             <tr>
                 <td>org.gradle.api.reporting.ReportingExtension</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.tasks.testing.AggregateTestReport</td>
+            </tr>
+            <tr>
+                <td>org.gradle.testing.jacoco.plugins.JacocoCoverageReport</td>
             </tr>
         </table>
     </section>

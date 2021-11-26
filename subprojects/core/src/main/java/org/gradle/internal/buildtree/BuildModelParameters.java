@@ -25,13 +25,22 @@ public class BuildModelParameters {
     private final boolean configurationCache;
     private final boolean isolatedProjects;
     private final boolean requiresBuildModel;
+    private final boolean intermediateModelCache;
     private final boolean parallelToolingApiActions;
 
-    public BuildModelParameters(boolean configureOnDemand, boolean configurationCache, boolean isolatedProjects, boolean requiresBuildModel, boolean parallelToolingApiActions) {
+    public BuildModelParameters(
+        boolean configureOnDemand,
+        boolean configurationCache,
+        boolean isolatedProjects,
+        boolean requiresBuildModel,
+        boolean intermediateModelCache,
+        boolean parallelToolingApiActions
+    ) {
         this.configureOnDemand = configureOnDemand;
         this.configurationCache = configurationCache;
         this.isolatedProjects = isolatedProjects;
         this.requiresBuildModel = requiresBuildModel;
+        this.intermediateModelCache = intermediateModelCache;
         this.parallelToolingApiActions = parallelToolingApiActions;
     }
 
@@ -54,6 +63,13 @@ public class BuildModelParameters {
 
     public boolean isIsolatedProjects() {
         return isolatedProjects;
+    }
+
+    /**
+     * Should intermediate tooling models be cached?
+     */
+    public boolean isIntermediateModelCache() {
+        return intermediateModelCache;
     }
 
     /**

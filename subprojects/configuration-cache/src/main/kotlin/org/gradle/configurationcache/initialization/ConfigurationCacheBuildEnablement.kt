@@ -22,11 +22,10 @@ import org.gradle.util.Path
 
 
 class ConfigurationCacheBuildEnablement(
-    private val buildPath: PublicBuildPath,
-    private val startParameter: ConfigurationCacheStartParameter
+    private val buildPath: PublicBuildPath
 ) {
     val isProblemListenerEnabledForCurrentBuild by lazy {
-        startParameter.isEnabled && BUILD_SRC != buildPath.buildPath.lastSegment()
+        BUILD_SRC != buildPath.buildPath.lastSegment()
     }
 
     private

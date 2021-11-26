@@ -15,6 +15,8 @@
  */
 package org.gradle.api.tasks.diagnostics.internal
 
+import org.gradle.api.Task
+
 class AggregateMultiProjectTaskReportModelTest extends AbstractTaskModelSpec {
     final AggregateMultiProjectTaskReportModel model = new AggregateMultiProjectTaskReportModel(false, true, null)
 
@@ -57,6 +59,10 @@ class AggregateMultiProjectTaskReportModelTest extends AbstractTaskModelSpec {
         TaskDetails task1 = taskDetails(':task')
         TaskDetails task2 = taskDetails(':other')
         TaskDetails task3 = taskDetails(':sub:task')
+        _ * task1.findTask(_) >> Mock(Task)
+        _ * task2.findTask(_) >> Mock(Task)
+        _ * task3.findTask(_) >> Mock(Task)
+
         TaskReportModel project1 = Mock()
         TaskReportModel project2 = Mock()
         _ * project1.groups >> (['group'] as LinkedHashSet)
@@ -79,6 +85,10 @@ class AggregateMultiProjectTaskReportModelTest extends AbstractTaskModelSpec {
         TaskDetails task1 = taskDetails(':task')
         TaskDetails task2 = taskDetails(':other')
         TaskDetails task3 = taskDetails(':sub:task')
+        _ * task1.findTask(_) >> Mock(Task)
+        _ * task2.findTask(_) >> Mock(Task)
+        _ * task3.findTask(_) >> Mock(Task)
+
         TaskReportModel project1 = Mock()
         TaskReportModel project2 = Mock()
         _ * project1.groups >> (['group1'] as LinkedHashSet)

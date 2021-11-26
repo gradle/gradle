@@ -28,11 +28,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CompositeBuildClassPathInitializer implements ScriptClassPathInitializer {
-    private final IncludedBuildTaskGraph includedBuildTaskGraph;
+    private final BuildTreeWorkGraphController buildTreeWorkGraphController;
     private final BuildState currentBuild;
 
-    public CompositeBuildClassPathInitializer(IncludedBuildTaskGraph includedBuildTaskGraph, BuildState currentBuild) {
-        this.includedBuildTaskGraph = includedBuildTaskGraph;
+    public CompositeBuildClassPathInitializer(BuildTreeWorkGraphController buildTreeWorkGraphController, BuildState currentBuild) {
+        this.buildTreeWorkGraphController = buildTreeWorkGraphController;
         this.currentBuild = currentBuild;
     }
 
@@ -49,14 +49,13 @@ public class CompositeBuildClassPathInitializer implements ScriptClassPathInitia
             }
         }
         if (!tasksToBuild.isEmpty()) {
-            includedBuildTaskGraph.withNewTaskGraph(() -> {
-                includedBuildTaskGraph.prepareTaskGraph(() -> {
+            buildTreeWorkGraphController.withNewWorkGraph(graph -> {
+                graph.scheduleWork(builder -> {
                     for (Pair<BuildIdentifier, TaskInternal> task : tasksToBuild) {
-                        includedBuildTaskGraph.locateTask(task.left, task.right).queueForExecution();
+                        buildTreeWorkGraphController.locateTask(task.left, task.right).queueForExecution();
                     }
-                    includedBuildTaskGraph.populateTaskGraphs();
                 });
-                includedBuildTaskGraph.runScheduledTasks();
+                graph.runWork().rethrow();
                 return null;
             });
         }

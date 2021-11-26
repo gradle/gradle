@@ -16,10 +16,17 @@
 
 package org.gradle.internal.resources;
 
-import org.gradle.api.Action;
-
 public class ProjectLock extends ExclusiveAccessResourceLock {
-    public ProjectLock(String displayName, ResourceLockCoordinationService coordinationService, Action<ResourceLock> lockAction, Action<ResourceLock> unlockAction) {
-        super(displayName, coordinationService, lockAction, unlockAction);
+    private final ResourceLock allProjectsLock;
+
+    public ProjectLock(String displayName, ResourceLockCoordinationService coordinationService, ResourceLockContainer owner, ResourceLock allProjectsLock) {
+        super(displayName, coordinationService, owner);
+        this.allProjectsLock = allProjectsLock;
+    }
+
+    @Override
+    protected boolean canAcquire() {
+        // Either the "all projects" lock is not held, or it is held by this thread
+        return !allProjectsLock.isLocked() || allProjectsLock.isLockedByCurrentThread();
     }
 }

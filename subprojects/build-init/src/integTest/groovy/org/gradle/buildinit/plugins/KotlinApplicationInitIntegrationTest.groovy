@@ -18,7 +18,6 @@ package org.gradle.buildinit.plugins
 
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.test.fixtures.file.LeaksFileHandles
-import spock.lang.Unroll
 
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.KOTLIN
 
@@ -39,7 +38,6 @@ class KotlinApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         dslFixtureFor(KOTLIN).assertGradleFilesGenerated()
     }
 
-    @Unroll
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'kotlin-application', '--dsl', scriptDsl.id)
@@ -67,7 +65,36 @@ class KotlinApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    @Unroll
+    def "creates build using test suites with #scriptDsl build scripts when using --incubating"() {
+        def dslFixture = dslFixtureFor(scriptDsl)
+
+        when:
+        run('init', '--type', 'kotlin-application', '--dsl', scriptDsl.id, '--incubating')
+
+        then:
+        subprojectDir.file("src/main/kotlin").assertHasDescendants(SAMPLE_APP_CLASS)
+        subprojectDir.file("src/test/kotlin").assertHasDescendants(SAMPLE_APP_TEST_CLASS)
+
+        and:
+        commonJvmFilesGenerated(scriptDsl)
+        dslFixture.assertHasTestSuite('test')
+
+        when:
+        run("build")
+
+        then:
+        assertTestPassed("some.thing.AppTest", "appHasAGreeting")
+
+        when:
+        run("run")
+
+        then:
+        outputContains("Hello World!")
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
+    }
+
     def "creates sample source with package and #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'kotlin-application', '--package', 'my.app', '--dsl', scriptDsl.id)
@@ -95,7 +122,6 @@ class KotlinApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    @Unroll
     def "setupProjectLayout is skipped when kotlin sources detected with #scriptDsl build scripts"() {
         setup:
         subprojectDir.file("src/main/kotlin/org/acme/SampleMain.kt") << """

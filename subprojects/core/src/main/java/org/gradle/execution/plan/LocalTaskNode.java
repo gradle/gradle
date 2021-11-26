@@ -28,7 +28,6 @@ import org.gradle.api.internal.tasks.properties.TaskProperties;
 import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.execution.WorkValidationContext;
-import org.gradle.internal.resources.ResourceDeadlockException;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.service.ServiceRegistry;
 
@@ -44,6 +43,8 @@ public class LocalTaskNode extends TaskNode {
     private final TaskInternal task;
     private final WorkValidationContext validationContext;
     private ImmutableActionSet<Task> postAction = ImmutableActionSet.empty();
+    private Set<Node> lifecycleSuccessors;
+
     private boolean isolated;
     private List<? extends ResourceLock> resourceLocks;
     private TaskProperties taskProperties;
@@ -70,8 +71,8 @@ public class LocalTaskNode extends TaskNode {
         if (isolated) {
             return null;
         } else {
-            // Running the task requires access to the task's owning project
-            return ((ProjectInternal) task.getProject()).getOwner().getAccessLock();
+            // Running the task requires permission to execute against its containing project
+            return ((ProjectInternal) task.getProject()).getOwner().getTaskExecutionLock();
         }
     }
 
@@ -130,6 +131,9 @@ public class LocalTaskNode extends TaskNode {
             addDependencySuccessor(targetNode);
             processHardSuccessor.execute(targetNode);
         }
+
+        lifecycleSuccessors = dependencyResolver.resolveDependenciesFor(task, task.getLifecycleDependencies());
+
         for (Node targetNode : getFinalizedBy(dependencyResolver)) {
             if (!(targetNode instanceof TaskNode)) {
                 throw new IllegalStateException("Only tasks can be finalizers: " + targetNode);
@@ -198,36 +202,19 @@ public class LocalTaskNode extends TaskNode {
         PropertyWalker propertyWalker = serviceRegistry.get(PropertyWalker.class);
         try {
             taskProperties = DefaultTaskProperties.resolve(propertyWalker, fileCollectionFactory, task);
-            taskProperties.getOutputFileProperties()
-                .forEach(spec -> withDeadlockHandling(
-                    taskNode,
-                    "an output",
-                    "output property '" + spec.getPropertyName() + "'",
-                    () -> {
-                        File outputLocation = spec.getOutputFile();
-                        if (outputLocation != null) {
-                            mutations.outputPaths.add(outputLocation.getAbsolutePath());
-                        }
-                        mutations.hasOutputs = true;
-                    }
-                ));
-
-            withDeadlockHandling(
-                taskNode,
-                "a local state", "local state properties",
-                () -> taskProperties.getLocalStateFiles()
-                    .forEach(file -> {
-                        mutations.outputPaths.add(file.getAbsolutePath());
-                        mutations.hasLocalState = true;
-                    })
-            );
-
-            withDeadlockHandling(
-                taskNode,
-                "a destroyable", "destroyables",
-                () -> taskProperties.getDestroyableFiles()
-                    .forEach(file -> mutations.destroyablePaths.add(file.getAbsolutePath()))
-            );
+            taskProperties.getOutputFileProperties().forEach(spec -> {
+                File outputLocation = spec.getOutputFile();
+                if (outputLocation != null) {
+                    mutations.outputPaths.add(outputLocation.getAbsolutePath());
+                }
+                mutations.hasOutputs = true;
+            });
+            taskProperties.getLocalStateFiles().forEach(file -> {
+                mutations.outputPaths.add(file.getAbsolutePath());
+                mutations.hasLocalState = true;
+            });
+            taskProperties.getDestroyableFiles()
+                .forEach(file -> mutations.destroyablePaths.add(file.getAbsolutePath()));
             mutations.hasFileInputs = !taskProperties.getInputFileProperties().isEmpty();
         } catch (Exception e) {
             throw new TaskExecutionException(task, e);
@@ -248,11 +235,14 @@ public class LocalTaskNode extends TaskNode {
         }
     }
 
-    private void withDeadlockHandling(TaskNode task, String singular, String description, Runnable runnable) {
-        try {
-            runnable.run();
-        } catch (ResourceDeadlockException e) {
-            throw new IllegalStateException(String.format("A deadlock was detected while resolving the %s for task '%s'. This can be caused, for instance, by %s property causing dependency resolution.", description, task, singular), e);
-        }
+    /**
+     * Used to determine whether a {@link Node} consumes the <b>outcome</b> of a successor task vs. its output(s).
+     *
+     * @param dependency a non-successful successor node in the execution plan
+     * @return true if the successor node dependency was declared with an explicit dependsOn relationship, false otherwise (implying task output -> task input relationship)
+     */
+    @Override
+    protected boolean dependsOnOutcome(Node dependency) {
+        return lifecycleSuccessors.contains(dependency);
     }
 }

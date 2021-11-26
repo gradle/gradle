@@ -22,7 +22,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.junit.Rule
-import spock.lang.Unroll
 
 import java.util.concurrent.TimeUnit
 
@@ -47,7 +46,6 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
         }
     }
 
-    @Unroll
     def "does not invalidate configuration cache entry when dynamic version information has not expired (#scenario)"() {
         given:
         RepoFixture defaultRepo = new RepoFixture(remoteRepo)
@@ -120,7 +118,6 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
         scenario << DynamicVersionScenario.values()
     }
 
-    @Unroll
     def "invalidates configuration cache entry when dynamic version information has expired (#scenario)"() {
         given:
         RepoFixture defaultRepo = new RepoFixture(remoteRepo)
@@ -374,7 +371,6 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
     }
 
     // This documents current behaviour, rather than desired behaviour. The contents of the artifact does not affect the contents of the task graph and so should not be treated as an input
-    @Unroll
     def "reports changes to artifact in #repo.displayName"() {
         repo.setup(this)
         taskTypeLogsInputFileCollectionContent()
@@ -434,7 +430,6 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
         new MavenLocalRepo() | _
     }
 
-    @Unroll
     def "reports changes to metadata in #repo.displayName"() {
         repo.setup(this)
         taskTypeLogsInputFileCollectionContent()
@@ -494,7 +489,6 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
         new MavenLocalRepo() | _
     }
 
-    @Unroll
     def "reports changes to matching versions in #repo.displayName"() {
         repo.setup(this)
         taskTypeLogsInputFileCollectionContent()

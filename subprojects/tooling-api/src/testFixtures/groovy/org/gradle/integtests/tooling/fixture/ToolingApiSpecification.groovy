@@ -287,15 +287,18 @@ abstract class ToolingApiSpecification extends Specification {
     }
 
     void assertHasBuildSuccessfulLogging() {
+        assertHasNoDeprecationWarnings()
         assert stdout.toString().contains("BUILD SUCCESSFUL")
     }
 
     void assertHasBuildFailedLogging() {
+        assertHasNoDeprecationWarnings()
         def failureOutput = targetDist.selectOutputWithFailureLogging(stdout, stderr).toString()
         assert failureOutput.contains("BUILD FAILED")
     }
 
     void assertHasConfigureSuccessfulLogging() {
+        assertHasNoDeprecationWarnings()
         if (targetDist.isToolingApiLogsConfigureSummary()) {
             assert stdout.toString().contains("CONFIGURE SUCCESSFUL")
         } else {
@@ -304,12 +307,23 @@ abstract class ToolingApiSpecification extends Specification {
     }
 
     void assertHasConfigureFailedLogging() {
+        assertHasNoDeprecationWarnings()
         def failureOutput = targetDist.selectOutputWithFailureLogging(stdout, stderr).toString()
         if (targetDist.isToolingApiLogsConfigureSummary()) {
             assert failureOutput.contains("CONFIGURE FAILED")
         } else {
             assert failureOutput.contains("BUILD FAILED")
         }
+    }
+
+    private void assertHasNoDeprecationWarnings() {
+        if (targetVersion < GradleVersion.version("6.9")) {
+            // Older versions have deprecations
+            return
+        }
+        assert !stdout.toString()
+            .replace("[deprecated]", "IGNORE") // deprecated command-line argument
+            .containsIgnoreCase("deprecated")
     }
 
     ExecutionResult getResult() {
@@ -321,7 +335,13 @@ abstract class ToolingApiSpecification extends Specification {
     }
 
     def <T> T loadToolingModel(Class<T> modelClass) {
-        withConnection { connection -> connection.getModel(modelClass) }
+        def result = withConnection { connection ->
+            def builder = connection.model(modelClass)
+            collectOutputs(builder)
+            builder.get()
+        }
+        assertHasConfigureSuccessfulLogging()
+        return result
     }
 
     protected GradleVersion getTargetVersion() {

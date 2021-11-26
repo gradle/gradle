@@ -23,7 +23,6 @@ import org.gradle.internal.enterprise.impl.legacy.LegacyGradleEnterprisePluginCh
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin
 import org.gradle.util.internal.VersionNumber
 import spock.lang.Issue
-import spock.lang.Unroll
 
 import static org.gradle.initialization.StartParameterBuildOptions.BuildScanOption
 
@@ -109,7 +108,6 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         pluginAppliedOnce()
     }
 
-    @Unroll
     def "uses #sequence version of plugin when explicit in plugins block"() {
         when:
         fixture.runtimeVersion = version
@@ -129,7 +127,6 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         "newer"  | PLUGIN_NEWER_VERSION
     }
 
-    @Unroll
     def "uses #sequence version of plugin when added to buildscript classpath"() {
         when:
         fixture.runtimeVersion = version
@@ -159,7 +156,6 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         "newer"  | PLUGIN_NEWER_VERSION
     }
 
-    @Unroll
     def "uses #sequence version of plugin when added to initscript classpath"() {
         when:
         fixture.runtimeVersion = version

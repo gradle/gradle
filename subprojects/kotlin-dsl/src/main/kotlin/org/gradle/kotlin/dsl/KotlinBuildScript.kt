@@ -37,7 +37,7 @@ import kotlin.script.templates.ScriptTemplateDefinition
  */
 @ScriptTemplateDefinition(
     resolver = KotlinBuildScriptDependenciesResolver::class,
-    scriptFilePattern = ".+\\.gradle\\.kts"
+    scriptFilePattern = ".+(?<!(^|\\.)(init|settings))\\.gradle\\.kts"
 )
 @ScriptTemplateAdditionalCompilerArguments(
     [

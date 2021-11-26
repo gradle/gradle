@@ -62,7 +62,7 @@ import static com.google.common.collect.Lists.newLinkedList;
 import static com.google.common.collect.Sets.newIdentityHashSet;
 
 /**
- * A reusable implementation of ExecutionPlan. The {@link #addEntryTasks(java.util.Collection)} and {@link #clear()} methods are NOT threadsafe, and callers must synchronize access to these methods.
+ * The mutation methods on this implementation are NOT threadsafe, and callers must synchronize access to these methods.
  */
 @NonNullApi
 public class DefaultExecutionPlan implements ExecutionPlan {
@@ -490,25 +490,19 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     }
 
     @Override
-    public void clear() {
-        taskNodeFactory.clear();
-        dependencyResolver.clear();
-        entryNodes.clear();
-        nodeMapping.clear();
-        executionQueue.clear();
-        projectLocks.clear();
-        failureCollector.clearFailures();
-        producedButNotYetConsumed.clear();
-        reachableCache.clear();
-        dependenciesWhichRequireMonitoring.clear();
-        runningNodes.clear();
-        outputHierarchy.clear();
-        destroyableHierarchy.clear();
+    public Set<Task> getTasks() {
+        return nodeMapping.getTasks();
     }
 
     @Override
-    public Set<Task> getTasks() {
-        return nodeMapping.getTasks();
+    public Set<Task> getRequestedTasks() {
+        Set<Task> requested = new LinkedHashSet<>();
+        for (Node entryNode : entryNodes) {
+            if (entryNode instanceof TaskNode) {
+                requested.add(((TaskNode) entryNode).getTask());
+            }
+        }
+        return requested;
     }
 
     @Override
@@ -574,17 +568,23 @@ public class DefaultExecutionPlan implements ExecutionPlan {
             Node node = iterator.next();
             if (node.isReady() && node.allDependenciesComplete()) {
                 foundReadyNode = true;
-                MutationInfo mutations = getResolvedMutationInfo(node);
-
-                if (!tryAcquireLocksForNode(node, workerLease, mutations)) {
-                    resourceLockState.releaseLocks();
-                    continue;
-                }
 
                 if (!tryAcquireWorkerLeaseForNode(node, workerLease)) {
                     resourceLockState.releaseLocks();
                     // if we can't get a worker lease, we won't be able to execute any other nodes, either
                     break;
+                }
+
+                if (!tryAcquireLocksForNode(node)) {
+                    resourceLockState.releaseLocks();
+                    continue;
+                }
+
+                MutationInfo mutations = getResolvedMutationInfo(node);
+
+                if (conflictsWithOtherNodes(node, mutations)) {
+                    resourceLockState.releaseLocks();
+                    continue;
                 }
 
                 if (node.allDependenciesSuccessful()) {
@@ -604,20 +604,26 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         return null;
     }
 
-    private boolean tryAcquireLocksForNode(Node node, WorkerLeaseRegistry.WorkerLease workerLease, MutationInfo mutations) {
+    private boolean tryAcquireLocksForNode(Node node) {
         if (!tryLockProjectFor(node)) {
             LOGGER.debug("Cannot acquire project lock for node {}", node);
             return false;
         } else if (!tryLockSharedResourceFor(node)) {
             LOGGER.debug("Cannot acquire shared resource lock for node {}", node);
             return false;
-        } else if (!canRunWithCurrentlyExecutedNodes(mutations)) {
-            LOGGER.debug("Node {} cannot run with currently running nodes {}", node, runningNodes);
-            return false;
-        } else if (doesDestroyNotYetConsumedOutputOfAnotherNode(node, mutations.destroyablePaths)) {
-            return false;
         }
         return true;
+    }
+
+    private boolean conflictsWithOtherNodes(Node node, MutationInfo mutations) {
+        if (!canRunWithCurrentlyExecutedNodes(mutations)) {
+            LOGGER.debug("Node {} cannot run with currently running nodes {}", node, runningNodes);
+            return true;
+        } else if (doesDestroyNotYetConsumedOutputOfAnotherNode(node, mutations.destroyablePaths)) {
+            LOGGER.debug("Node {} destroys not yet consumed output of another node", node);
+            return true;
+        }
+        return false;
     }
 
     private boolean tryAcquireWorkerLeaseForNode(Node node, WorkerLeaseRegistry.WorkerLease workerLease) {

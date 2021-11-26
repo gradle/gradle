@@ -8,6 +8,7 @@ dependencies {
     api(project(":snapshots"))
 
     implementation(project(":base-services"))
+    implementation(project(":enterprise-operations"))
     implementation(project(":core-api"))
     implementation(project(":files"))
     implementation(project(":file-temp"))

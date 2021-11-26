@@ -27,12 +27,12 @@ import org.gradle.api.tasks.javadoc.Javadoc
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.TestUtil
-import org.junit.Assert
 
 import static org.gradle.api.file.FileCollectionMatchers.sameCollection
 import static org.gradle.api.tasks.TaskDependencyMatchers.dependsOn
 import static org.gradle.util.internal.WrapUtil.toLinkedSet
 import static org.gradle.util.internal.WrapUtil.toSet
+import static org.hamcrest.MatcherAssert.assertThat
 
 class JavaPluginTest extends AbstractProjectBuilderSpec {
     def "adds configurations to the project"() {
@@ -259,7 +259,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         set.getOutput().getBuildDependencies().getDependencies(null)*.name == [ 'customClasses' ]
         set.output.generatedSourcesDirs.files == toLinkedSet(new File(project.buildDir, 'generated/sources/annotationProcessor/java/custom'))
         set.output.generatedSourcesDirs.buildDependencies.getDependencies(null)*.name == [ 'compileCustomJava' ]
-        Assert.assertThat(set.runtimeClasspath, sameCollection(set.output + project.configurations.customRuntimeClasspath))
+        assertThat(set.runtimeClasspath, sameCollection(set.output + project.configurations.customRuntimeClasspath))
     }
 
     def "creates standard tasks and applies mappings"() {
@@ -363,7 +363,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         task instanceof Javadoc
         task dependsOn(JavaPlugin.CLASSES_TASK_NAME)
         task.source.files == project.sourceSets.main.allJava.files
-        Assert.assertThat(task.classpath, sameCollection(project.layout.files(project.sourceSets.main.output, project.sourceSets.main.compileClasspath)))
+        assertThat(task.classpath, sameCollection(project.layout.files(project.sourceSets.main.output, project.sourceSets.main.compileClasspath)))
         task.destinationDir == project.file("$project.docsDir/javadoc")
         task.title == project.extensions.getByType(ReportingExtension).apiDocTitle
 

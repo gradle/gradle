@@ -16,9 +16,9 @@
 
 package org.gradle.plugins.ide.idea.model
 
+import groovy.xml.XmlNodePrinter
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
-
 import spock.lang.Specification
 
 class ProjectLibraryTest extends Specification {

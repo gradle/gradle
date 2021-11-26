@@ -18,7 +18,6 @@ package org.gradle.configurationcache.fixtures
 
 import org.apache.tools.ant.util.TeeOutputStream
 import org.gradle.api.Action
-import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.integtests.fixtures.executer.AbstractGradleExecuter
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
@@ -29,15 +28,17 @@ import org.gradle.integtests.tooling.fixture.ToolingApi
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.tooling.ProjectConnection
 
+import java.util.function.Function
+
 class ToolingApiBackedGradleExecuter extends AbstractGradleExecuter {
-    final List<String> jvmArgs = []
+    private final jvmArgs = []
 
     ToolingApiBackedGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider) {
         super(distribution, testDirectoryProvider)
     }
 
-    void withJvmArgs(String... args) {
-        jvmArgs.addAll(args)
+    void withToolingApiJvmArgs(String... args) {
+        jvmArgs.addAll(args.toList())
     }
 
     @Override
@@ -50,10 +51,11 @@ class ToolingApiBackedGradleExecuter extends AbstractGradleExecuter {
         def error = new ByteArrayOutputStream()
         def args = allArgs
         args.remove("--no-daemon")
+
         usingToolingConnection(workingDir) { connection ->
             connection.newBuild()
-                .addJvmArguments(jvmArgs)
                 .withArguments(args)
+                .addJvmArguments(jvmArgs)
                 .setStandardOutput(new TeeOutputStream(output, System.out))
                 .setStandardError(new TeeOutputStream(error, System.err))
                 .run()
@@ -61,19 +63,37 @@ class ToolingApiBackedGradleExecuter extends AbstractGradleExecuter {
         return OutputScrapingExecutionResult.from(output.toString(), error.toString())
     }
 
+    ExecutionResult runBuildWithToolingConnection(Function<ProjectConnection, ExecutionResult> action) {
+        return run {
+            def result = null
+            usingToolingConnection(workingDir) {
+                result = action(it)
+            }
+            result
+        }
+    }
+
+    ExecutionFailure runFailingBuildWithToolingConnection(Function<ProjectConnection, ExecutionFailure> action) {
+        // Can just run the action
+        return runBuildWithToolingConnection(action)
+    }
+
     void usingToolingConnection(File workingDir, Action<ProjectConnection> action) {
         def toolingApi = new ToolingApi(distribution, testDirectoryProvider)
         toolingApi.withConnector {
             it.forProjectDirectory(workingDir)
         }
+
+        def systemPropertiesBeforeInvocation = new HashMap<String, Object>(System.getProperties())
+
         try {
             toolingApi.withConnection {
                 action.execute(it)
             }
         } finally {
             if (GradleContextualExecuter.embedded) {
-                System.clearProperty(StartParameterBuildOptions.ConfigurationCacheOption.PROPERTY_NAME)
-                System.clearProperty(StartParameterBuildOptions.IsolatedProjectsOption.PROPERTY_NAME)
+                System.getProperties().clear()
+                System.getProperties().putAll(systemPropertiesBeforeInvocation)
             }
         }
     }

@@ -4,6 +4,13 @@ plugins {
 
 gradlebuildJava.usedInWorkers()
 
+description = """Basic testing related plugins, which establish conventions for testing output directories,
+and setup basic testing-related features lik a testSuites container and the testing extension.  It provides most of the
+testing-related abstract base types and interfaces for things like Test tasks, listeners and filters.
+
+This project is a implementation dependency of many other testing-related subprojects in the Gradle build.
+"""
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":messaging"))
@@ -27,6 +34,7 @@ dependencies {
     implementation(libs.ant) // only used for DateUtils
 
     testImplementation(project(":file-collections"))
+    testImplementation(project(":enterprise-operations"))
     testImplementation(libs.commonsIo)
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":messaging")))

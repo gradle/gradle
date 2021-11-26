@@ -175,4 +175,63 @@ class InitBuildSpec extends Specification {
         e.message == "Package name is not supported for 'some-type' build type."
     }
 
+    def "should reject invalid package name: #invalidPackageName"() {
+        given:
+        projectLayoutRegistry.get("java-library") >> projectSetupDescriptor
+        projectSetupDescriptor.modularizationOptions >> [ModularizationOption.SINGLE_PROJECT]
+        projectSetupDescriptor.testFrameworks >> [SPOCK]
+        projectSetupDescriptor.dsls >> [GROOVY]
+        projectSetupDescriptor.supportsPackage() >> true
+        init.type = "java-library"
+        init.packageName = invalidPackageName
+
+        when:
+        init.setupProjectLayout()
+
+        then:
+        GradleException e = thrown()
+        e.message == "Package name: '" + invalidPackageName + "' is not valid - it may contain invalid characters or reserved words."
+
+        where:
+        invalidPackageName << [
+            'some.new.thing',
+            'my.package',
+            '2rt9.thing',
+            'a.class.of.mine',
+            'if.twice.then.double',
+            'custom.for.stuff',
+            'th-is.isnt.legal',
+            'nor.is.-.this',
+            'nor.is._.this',
+        ]
+    }
+
+    def "should allow unusual but valid package name: #validPackageName"() {
+        given:
+        projectLayoutRegistry.get("java-library") >> projectSetupDescriptor
+        projectSetupDescriptor.modularizationOptions >> [ModularizationOption.SINGLE_PROJECT]
+        projectSetupDescriptor.testFrameworks >> [SPOCK]
+        projectSetupDescriptor.dsls >> [GROOVY]
+        projectSetupDescriptor.getFurtherReading(_ as InitSettings) >> Optional.empty()
+        projectSetupDescriptor.componentType >> ComponentType.LIBRARY
+        projectSetupDescriptor.supportsPackage() >> true
+        init.type = "java-library"
+        init.dsl = "groovy"
+        init.testFramework = "spock"
+        init.packageName = validPackageName
+
+        when:
+        init.setupProjectLayout()
+
+        then:
+        1 * projectSetupDescriptor.generate({it.dsl == GROOVY && it.testFramework == SPOCK})
+
+        where:
+        validPackageName << [
+            'including.underscores_is.okay',
+            'any._leading.underscore.is.valid',
+            'numb3rs.are.okay123',
+            'and.$so.are.dollars$'
+        ]
+    }
 }

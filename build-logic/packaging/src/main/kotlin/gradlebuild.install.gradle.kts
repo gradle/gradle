@@ -14,18 +14,12 @@
  * limitations under the License.
  */
 
+import gradlebuild.basics.gradleInstallPath
 import gradlebuild.basics.repoRoot
 import gradlebuild.packaging.GradleDistributionSpecs.binDistributionSpec
 import gradlebuild.packaging.GradleDistributionSpecs.allDistributionSpec
 
-val installPathProperty = "gradle_installPath"
-val installDirectory = repoRoot().dir(
-    providers.gradleProperty(installPathProperty).orElse(
-        provider<String> {
-            throw RuntimeException("You can't install without setting the $installPathProperty property.")
-        }
-    )
-).map { validateInstallDir(it) }
+val installDirectory = repoRoot().dir(gradleInstallPath).map { validateInstallDir(it) }
 
 tasks.register<Sync>("install") {
     description = "Installs the minimal distribution"

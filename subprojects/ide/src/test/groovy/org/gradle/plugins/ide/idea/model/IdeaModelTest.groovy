@@ -20,7 +20,7 @@ import org.gradle.api.Action
 import org.gradle.api.XmlProvider
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectStateRegistry
-import org.gradle.composite.internal.IncludedBuildTaskGraph
+import org.gradle.composite.internal.BuildTreeWorkGraphController
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.xml.XmlTransformer
 import org.gradle.plugins.ide.api.XmlFileContentMerger
@@ -66,7 +66,7 @@ class IdeaModelTest extends Specification {
             getServices() >> Stub(ServiceRegistry) {
                 get(ProjectStateRegistry) >> (ProjectStateRegistry) null
                 get(IdeArtifactRegistry) >> (IdeArtifactRegistry) null
-                get(IncludedBuildTaskGraph) >> (IncludedBuildTaskGraph) null
+                get(BuildTreeWorkGraphController) >> (BuildTreeWorkGraphController) null
             }
         }
         model.project = new IdeaProject(gradleProject, xmlMerger)

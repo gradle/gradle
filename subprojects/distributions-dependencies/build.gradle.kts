@@ -11,7 +11,9 @@ plugins {
     id("gradlebuild.platform")
 }
 
-val antVersion = "1.10.9"
+description = "Provides a platform dependency to align all distribution versions"
+
+val antVersion = "1.10.11"
 val archunitVersion = "0.20.1"
 val asmVersion = "9.1"
 val awsS3Version = "1.11.948"
@@ -48,7 +50,7 @@ dependencies {
         api(libs.bsh)                   { version { strictly("2.0b6") }}
         api(libs.capsule)               { version { strictly("0.6.3") }}
         api(libs.commonsCodec)          { version { strictly("1.15") }}
-        api(libs.commonsCompress)       { version { strictly("1.20") }}
+        api(libs.commonsCompress)       { version { strictly("1.21") }}
         api(libs.commonsHttpclient)     { version { strictly("4.5.13") }}
         api(libs.commonsIo)             { version { strictly("2.6") }}
         api(libs.commonsLang)           { version { strictly("2.6") }}
@@ -101,6 +103,7 @@ dependencies {
         api(libs.jsr305)                { version { strictly("3.0.2") }}
         api(libs.julToSlf4j)            { version { strictly(slf4jVersion) }}
         api(libs.junit)                 { version { strictly("4.13.2") }}
+        api(libs.junit5JupiterApi)      { version { strictly("5.7.2") }}
         api(libs.junit5Vintage)         { version { strictly("5.7.2") }}
         api(libs.junitPlatform)         { version { strictly("1.7.2") }}
         api(libs.jzlib)                 { version { strictly("1.1.3") }}

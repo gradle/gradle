@@ -18,10 +18,8 @@ package org.gradle.api.file
 
 import org.gradle.api.tasks.TasksWithInputsAndOutputs
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Unroll
 
 class FilePropertyLifecycleIntegrationTest extends AbstractIntegrationSpec implements TasksWithInputsAndOutputs {
-    @Unroll
     def "task #annotation file property is implicitly finalized when task starts execution"() {
         buildFile << """
             class SomeTask extends DefaultTask {
@@ -56,7 +54,6 @@ class FilePropertyLifecycleIntegrationTest extends AbstractIntegrationSpec imple
         "@OutputFile" | _
     }
 
-    @Unroll
     def "task #annotation directory property is implicitly finalized when task starts execution"() {
         buildFile << """
             class SomeTask extends DefaultTask {
@@ -91,7 +88,6 @@ class FilePropertyLifecycleIntegrationTest extends AbstractIntegrationSpec imple
         "@OutputDirectory" | _
     }
 
-    @Unroll
     def "task ad hoc file property registered using #registrationMethod is implicitly finalized when task starts execution"() {
         given:
         buildFile << """
@@ -122,7 +118,6 @@ task thing {
         "outputs.file"     | _
     }
 
-    @Unroll
     def "task ad hoc directory property registered using #registrationMethod is implicitly finalized when task starts execution"() {
         given:
         buildFile << """

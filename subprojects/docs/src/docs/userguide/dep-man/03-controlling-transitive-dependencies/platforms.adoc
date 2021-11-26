@@ -284,14 +284,14 @@ or
 See the https://toml.io[TOML specification] for details.
 ====
 
-[[sub:programmatic-access-to-catalog]]
-=== Programmatic access to catalog
+[[sub:type-unsafe-access-to-catalog]]
+=== Type unsafe API
 
-You can also access version catalog programmatically with the version catalog extension and API:
+Version catalogs can be accessed through a type unsafe API. This API is available in situations where generated accessors are not. It is accessed through the version catalog extension:
 
 ====
-include::sample[dir="snippets/dependencyManagement/catalogs-settings/groovy",files="build.gradle[tags=programmatic_access]"]
-include::sample[dir="snippets/dependencyManagement/catalogs-settings/kotlin",files="build.gradle.kts[tags=programmatic_access]"]
+include::sample[dir="snippets/dependencyManagement/catalogs-settings/groovy",files="build.gradle[tags=type_unsafe_access]"]
+include::sample[dir="snippets/dependencyManagement/catalogs-settings/kotlin",files="build.gradle.kts[tags=type_unsafe_access]"]
 ====
 
 Check the link:{javadocPath}/org/gradle/api/artifacts/VersionCatalog.html[version catalog API] for all supported methods.
@@ -445,6 +445,15 @@ You can enable this behavior by using the `enforcedPlatform` keyword, instead of
 ====
 include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-enforcedConstraintsFromBOM/groovy",files="build.gradle[tags=dependency-on-bom]"]
 include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-enforcedConstraintsFromBOM/kotlin",files="build.gradle.kts[tags=dependency-on-bom]"]
+====
+
+[WARNING]
+====
+Using `enforcedPlatform` needs to be considered with care if your software component can be consumed by others.
+This declaration is effectively transitive and so will apply to the dependency graph of your consumers.
+Unfortunately they will have to use `exclude` if they happen to disagree with one of the forced versions.
+
+Instead, if your reusable software component has a strong opinion on some third party dependency versions, consider using a <<rich_versions.adoc#sec:strict-version,rich version declaration>> with a `strictly`.
 ====
 
 [[sub:platforms-vs-catalog]]

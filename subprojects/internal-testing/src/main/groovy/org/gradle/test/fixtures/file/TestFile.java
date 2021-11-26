@@ -28,6 +28,8 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.testing.internal.util.RetryUtil;
 import org.hamcrest.Matcher;
+import org.intellij.lang.annotations.Language;
+import org.junit.Assert;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -63,16 +65,17 @@ import static java.nio.file.StandardCopyOption.COPY_ATTRIBUTES;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 
 public class TestFile extends File {
     private boolean useNativeTools;
+    private final File relativeBase;
 
     public TestFile(File file, Object... path) {
         super(join(file, path).getAbsolutePath());
+        this.relativeBase = file;
     }
 
     public TestFile(URI uri) {
@@ -90,6 +93,11 @@ public class TestFile extends File {
     public TestFile usingNativeTools() {
         useNativeTools = true;
         return this;
+    }
+
+    public TestFile java(@Language("java") String src) {
+        Assert.assertTrue(getName() + " doesn't look like a Java file.", getName().endsWith(".java"));
+        return setText(src);
     }
 
     Object writeReplace() throws ObjectStreamException {
@@ -438,7 +446,11 @@ public class TestFile extends File {
     }
 
     public TestFile assertDoesNotExist() {
-        assertFalse(String.format("%s should not exist", this), exists());
+        if (exists()) {
+            Set<String> descendants = new TreeSet<String>();
+            visit(descendants, "", this, false);
+            throw new AssertionError(String.format("%s should not exist:\n%s", this, String.join("\n", descendants)));
+        }
         return this;
     }
 
@@ -856,6 +868,19 @@ public class TestFile extends File {
      */
     public URI relativizeFrom(TestFile baseDir) {
         return baseDir.toURI().relativize(toURI());
+    }
+
+    /**
+     * Returns a human-readable relative path to this file from the base directory passed to create this TestFile.
+     *
+     * Fails if this TestFile was created in a way that did not provide a relative base.
+     *
+     * @see #relativizeFrom(TestFile)
+     * @see java.nio.file.Path#relativize(Path)
+     */
+    public String getRelativePathFromBase() {
+        Assert.assertTrue("relativeBase must have been set during construction", !relativeBase.toPath().equals(this.toPath()));
+        return relativeBase.toPath().relativize(this.toPath()).toString();
     }
 
     public static class Snapshot {

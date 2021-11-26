@@ -16,15 +16,13 @@
 
 package gradlebuild.basics
 
+import gradlebuild.basics.BuildParams.CI_ENVIRONMENT_VARIABLE
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.file.Directory
 import org.gradle.api.provider.Provider
 import org.gradle.internal.os.OperatingSystem
 import java.io.ByteArrayOutputStream
-
-
-fun Project.testDistributionEnabled() = providers.systemProperty("enableTestDistribution").forUseAtConfigurationTime().orNull?.toBoolean() == true
 
 
 fun Project.repoRoot() = layout.projectDirectory.parentOrRoot()
@@ -87,16 +85,29 @@ fun toPreTestedCommitBaseBranch(actualBranch: String): String = when {
 
 object BuildEnvironment {
 
-    const val CI_ENVIRONMENT_VARIABLE = "CI"
-    const val BUILD_BRANCH = "BUILD_BRANCH"
-    const val BUILD_COMMIT_ID = "BUILD_COMMIT_ID"
-    const val BUILD_VCS_NUMBER = "BUILD_VCS_NUMBER"
+    /**
+     * A selection of environment variables injected into the enviroment by the `codeql-env.sh` script.
+     */
+    private
+    val CODEQL_ENVIRONMENT_VARIABLES = arrayOf(
+        "CODEQL_JAVA_HOME",
+        "CODEQL_EXTRACTOR_JAVA_SCRATCH_DIR",
+        "CODEQL_ACTION_RUN_MODE",
+        "CODEQL_ACTION_VERSION",
+        "CODEQL_DIST",
+        "CODEQL_PLATFORM",
+        "CODEQL_RUNNER"
+    )
 
     val isCiServer = CI_ENVIRONMENT_VARIABLE in System.getenv()
-    val isIntelliJIDEA by lazy { System.getProperty("idea.version") != null }
     val isTravis = "TRAVIS" in System.getenv()
     val isJenkins = "JENKINS_HOME" in System.getenv()
     val isGhActions = "GITHUB_ACTIONS" in System.getenv()
+    val isCodeQl: Boolean by lazy {
+        // This logic is kept here instead of `codeql-analysis.init.gradle` because that file will hopefully be removed in the future.
+        // Removing that file is waiting on the GitHub team fixing an issue in Autobuilder logic.
+        CODEQL_ENVIRONMENT_VARIABLES.any { it in System.getenv() }
+    }
     val jvm = org.gradle.internal.jvm.Jvm.current()
     val javaVersion = JavaVersion.current()
     val isWindows = OperatingSystem.current().isWindows

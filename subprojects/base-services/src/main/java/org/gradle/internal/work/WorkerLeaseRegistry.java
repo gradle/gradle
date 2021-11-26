@@ -26,41 +26,32 @@ import org.gradle.internal.resources.ResourceLock;
  */
 public interface WorkerLeaseRegistry {
     /**
-     * Returns the worker lease associated with the current thread. Allows child leases to be created for this lease. Fails when there is no lease associated with this thread.
+     * Returns the worker lease associated with the current thread. Allows child leases to be created for this lease.
+     *
+     * Fails when there is no lease associated with this thread.
      */
     WorkerLease getCurrentWorkerLease();
 
     /**
-     * Gets a {@link ResourceLock} that can be used to reserve a worker lease.  Note that this does not actually reserve a lease,
+     * Creates a new {@link ResourceLock} that can be used to reserve a worker lease.  Note that this does not actually reserve a lease,
      * it simply creates a {@link ResourceLock} representing the worker lease.  The worker lease can be reserved only when
      * {@link ResourceLock#tryLock()} is called from a {@link org.gradle.internal.resources.ResourceLockCoordinationService#withStateLock(org.gradle.api.Transformer)}
      * transform.
+     *
+     * NOTE: This method must be called from the thread that will attempt to acquire and release the worker lease.
      */
     WorkerLease getWorkerLease();
 
     /**
-     * For the given action, update the worker lease registry to associate the current thread with the worker lease.
-     * Note that this does not actually reserve the worker lease.
+     * Starts a new lease for the current thread. Marks the reservation of a lease. Blocks until a lease is available.
      *
-     * @param sharedLease Lease to associate as shared
-     * @param action action to execute
+     * <p>Note that the caller must call {@link WorkerLeaseCompletion#leaseFinish()} to mark the completion of the lease and to release the lease for other threads to use.
+     *
+     * <p>It is generally better to use {@link WorkerThreadRegistry#runAsWorkerThread(Runnable)} instead of this method.</p>
      */
-    void withSharedLease(WorkerLease sharedLease, Runnable action);
+    WorkerLeaseCompletion startWorker();
 
     interface WorkerLease extends ResourceLock {
-        /**
-         * Creates a child lease of the current worker lease, but does not acquire the lease.  For use with {@link org.gradle.internal.resources.ResourceLockCoordinationService#withStateLock(org.gradle.api.Transformer)}
-         * to coordinate the locking of multiple resources.
-         */
-        WorkerLease createChild();
-
-        /**
-         * Starts a child lease of the current worker lease. Marks the reservation of a lease. Blocks until a lease is available.
-         * Allows one child lease to proceed without a lease, so that the child effectively borrows the parent's lease, on the assumption that the parent is not doing any real work while children are running.
-         *
-         * <p>Note that the caller must call {@link WorkerLeaseCompletion#leaseFinish()} to mark the completion of the lease and to release the lease for other threads to use.
-         */
-        WorkerLeaseCompletion startChild();
     }
 
     interface WorkerLeaseCompletion {

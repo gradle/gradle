@@ -4,6 +4,7 @@ plugins {
 }
 
 dependencies {
+    implementation project(':list')
     implementation project(':utilities')
 }
 

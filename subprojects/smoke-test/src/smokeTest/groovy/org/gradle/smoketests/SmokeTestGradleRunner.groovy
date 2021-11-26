@@ -16,10 +16,12 @@
 
 package org.gradle.smoketests
 
+import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.InvalidPluginMetadataException
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
+import org.gradle.util.internal.TextUtil
 import org.slf4j.LoggerFactory
 
 import javax.annotation.Nullable
@@ -118,7 +120,7 @@ class SmokeTestGradleRunner extends GradleRunner {
         if (ignoreDeprecationWarnings) {
             return
         }
-        def lines = result.output.readLines()
+        def lines = normalize(result.output.readLines())
         def remainingWarnings = new ArrayList<>(expectedDeprecationWarnings)
         def totalExpectedDeprecations = remainingWarnings.size()
         int foundDeprecations = 0
@@ -131,6 +133,20 @@ class SmokeTestGradleRunner extends GradleRunner {
         }
         assert remainingWarnings.empty, "Expected ${totalExpectedDeprecations} deprecation warnings, found ${foundDeprecations} deprecation warnings. Did not match the following:\n${remainingWarnings.collect { " - $it" }.join("\n")}"
         expectedDeprecationWarnings.clear()
+    }
+
+    private List<String> normalize(List<String> lines) {
+        List<String> result = new ArrayList<>()
+        String basePath = TextUtil.normaliseFileSeparators(projectDir.canonicalPath) + '/'
+        OutputScrapingExecutionResult.normalize(lines).each { line ->
+            String normalizedLine = TextUtil.normaliseFileSeparators(line)
+            if (normalizedLine.contains(basePath)) {
+                result << normalizedLine.replace(basePath, '')
+            } else {
+                result << line
+            }
+        }
+        return result
     }
 
     @Override

@@ -77,22 +77,31 @@ include::sample[dir="snippets/developingPlugins/publishingPlugins/kotlin",files=
 
 Now specify the details of the plugin.
 This is done in a `plugins` block within the `gradlePlugin` block.
-The most important part is the `id` property, as that both uniquely identifies it on the {portal} and prevents namespace clashes between different plugin authors.
+The most important part is the `id` property, as that both uniquely identifies it on the {portal} and prevents namespace clashes between different
+plugin authors.
 
-As a convention, we recommend you use an ID based on the reverse-domain pattern used for Java packages, for example `org.example.greeting`.
-You can use this example ID for the Greeting Plugin project, but substitute the values for more appropriate ones if you're working with your own plugin that you actually want published.
+If you would like to associate your plugin with a particular organization, you also set the ID based on that organization’s domain using the
+reverse-domain pattern used for Java packages, for example `org.example.greeting`. If the plugin doesn't belong to any specific organization,
+then the plugin ID should be associated with the author, for example by using the author's GitHub ID in a reverse domain pattern, like `io.github.johndoe`.
+Remember that the plugin id and project group should match, i.e. have the same top level namespace.
+
+You can use the below example ID for the Greeting Plugin project, but substitute the values for more appropriate ones if you're working with your own
+plugin that you actually want published.
 
 ====
 include::sample[dir="snippets/developingPlugins/publishingPlugins/groovy",files="build.gradle[tags=gradle-plugin]"]
 include::sample[dir="snippets/developingPlugins/publishingPlugins/kotlin",files="build.gradle.kts[tags=gradle-plugin]"]
 ====
-<1> Make sure your project has a `group` set which is used for the artifacts (jar and metadata) you publish in the repository of the {portal}.
+<1> Make sure your project has a `group` set which is used for the artifacts (jar and metadata) you publish in the repository of the {portal}
+    and which is descriptive of the plugin author or the organization the plugin belongs too.
 <2> Set the version for this publication. You need to increase the version, if you already published the plugin before.
-<3> Each plugin in a bundle is specified in the `plugins` blocks. As you are only publishing a single plugin at this point there will only be one entry, but should your project publish a bundle in the future you will list each of them in here.
+<3> Each plugin in a bundle is specified in the `plugins` blocks. As you are only publishing a single plugin at this point there will only be
+    one entry, but should your project publish a bundle in the future you will list each of them in here.
 <4> The name for each plugin block does not affect the plugin configuration, but needs to be unique for each plugin provided.
 <5> Set the unique `id` of the plugin.
 <6> Set the plugin name in human-readable form.
-<7> Set a description that will be displayed on the portal. Although this is optional, it provides useful information to people would might want to use your plugin. Please give careful thought to the value of this property.
+<7> Set a description that will be displayed on the portal. it provides useful information to people would mightwant to use your plugin.
+    Please give careful thought to the value of this property.
 
 NOTE: If you are publishing multiple plugins, please note that it's possible to use custom tags and a custom version per plugin using the `pluginBundle` block.
 Please refer to the {plugin-reference-documentation} for an example.

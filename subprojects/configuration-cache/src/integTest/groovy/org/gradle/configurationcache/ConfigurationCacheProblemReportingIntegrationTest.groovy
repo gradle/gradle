@@ -24,7 +24,6 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.invocation.DefaultGradle
 import spock.lang.Ignore
 import spock.lang.IgnoreIf
-import spock.lang.Unroll
 
 import static org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheProblemsFixture.resolveConfigurationCacheReportDirectory
 
@@ -48,7 +47,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
             }
         """
         def reportDir = {
-            resolveConfigurationCacheReportDirectory(testDirectory, failure.error, 'out')
+            resolveConfigurationCacheReportDirectory(testDirectory.file('out'), failure.error)
         }
 
         when:
@@ -93,7 +92,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         configurationCacheFails 'broken'
 
         then:
-        resolveConfigurationCacheReportDirectory(testDirectory, failure.error, 'out')?.isDirectory()
+        resolveConfigurationCacheReportDirectory(testDirectory.file('out'), failure.error)?.isDirectory()
     }
 
     def "state serialization errors always halt the build and invalidate the cache"() {
@@ -685,7 +684,6 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         }
     }
 
-    @Unroll
     def "reports #invocation access during execution"() {
 
         def configurationCache = newConfigurationCacheFixture()
@@ -767,7 +765,6 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         'Task.taskDependencies' | 'taskDependencies'
     }
 
-    @Unroll
     def "reports build listener registration on #registrationPoint"() {
 
         given:
@@ -793,7 +790,6 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         "TaskExecutionGraph.afterTask"                | "gradle.taskGraph.afterTask {}"
     }
 
-    @Unroll
     def "does not report problems on configuration listener registration on #registrationPoint"() {
 
         given:
@@ -916,10 +912,12 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         configurationCacheFails("ok", "-DPROP=12")
 
         then:
-        outputContains("Configuration cache entry discarded with 32 problems.")
-        // TODO - use fixture. Need to be able to accept a range of expected problem counts
-        failure.assertThatDescription(containsNormalizedString("Script 'script.gradle': read system property 'PROP'"))
-        failure.assertThatDescription(containsNormalizedString("Script 'script.gradle': registration of listener on 'Gradle.buildFinished' is unsupported"))
+        outputContains("Configuration cache entry discarded with 16 problems")
+        problems.assertFailureHasProblems(failure) {
+            totalProblemsCount = 16
+            withInput("Script 'script.gradle': system property 'PROP'")
+            withProblem("Script 'script.gradle': registration of listener on 'Gradle.buildFinished' is unsupported")
+        }
     }
 
     def "reports problems from deferred task configuration action block"() {
@@ -938,9 +936,9 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         configurationCacheFails("ok", "-DPROP=12")
 
         then:
-        outputContains("Configuration cache entry discarded with 2 problems.")
+        outputContains("Configuration cache entry discarded with 1 problem.")
         problems.assertFailureHasProblems(failure) {
-            withProblem("Script 'script.gradle': read system property 'PROP'")
+            withInput("Script 'script.gradle': system property 'PROP'")
             withProblem("Script 'script.gradle': registration of listener on 'Gradle.buildFinished' is unsupported")
         }
     }
@@ -961,9 +959,9 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         configurationCacheFails("ok", "-DPROP=12")
 
         then:
-        outputContains("Configuration cache entry discarded with 2 problems.")
+        outputContains("Configuration cache entry discarded with 1 problem.")
         problems.assertFailureHasProblems(failure) {
-            withProblem("Script 'script.gradle': read system property 'PROP'")
+            withInput("Script 'script.gradle': system property 'PROP'")
             withProblem("Script 'script.gradle': registration of listener on 'Gradle.buildFinished' is unsupported")
         }
     }

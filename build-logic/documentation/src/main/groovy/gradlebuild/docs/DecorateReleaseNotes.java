@@ -19,6 +19,7 @@ package gradlebuild.docs;
 import org.apache.tools.ant.filters.ReplaceTokens;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.tasks.CacheableTask;
@@ -30,6 +31,7 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.util.Collections;
 import java.util.HashMap;
@@ -89,11 +91,14 @@ public abstract class DecorateReleaseNotes extends DefaultTask {
     @Input
     public abstract MapProperty<String, String> getReplacementTokens();
 
+    @Inject
+    protected abstract FileSystemOperations getFs();
+
     @TaskAction
     public void transform() {
         File destinationFile = getDestinationFile().get().getAsFile();
 
-        getProject().copy(copySpec -> {
+        getFs().copy(copySpec -> {
             copySpec.from(getHtmlFile());
             copySpec.into(destinationFile.getParentFile());
             copySpec.rename(s -> destinationFile.getName());

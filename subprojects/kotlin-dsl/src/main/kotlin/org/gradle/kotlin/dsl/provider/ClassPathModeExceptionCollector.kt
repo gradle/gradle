@@ -16,26 +16,27 @@
 package org.gradle.kotlin.dsl.provider
 
 import org.gradle.internal.concurrent.Stoppable
+import org.gradle.internal.service.scopes.ExceptionCollector
 
 
-open class ClassPathModeExceptionCollector : Stoppable {
-
-    private
-    val collection = mutableListOf<Exception>()
+@Deprecated("Scheduled to be removed in Gradle 8.0", ReplaceWith("org.gradle.internal.service.scopes.ExceptionCollector"))
+open class ClassPathModeExceptionCollector(private val delegate: ExceptionCollector) : Stoppable {
 
     val exceptions: List<Exception>
-        get() = collection
+        get() = delegate.exceptions
 
     fun collect(error: Exception) {
-        collection.add(error)
+        delegate.addException(error)
     }
 
     override fun stop() {
-        collection.clear()
+        delegate.stop()
     }
 }
 
 
+@Suppress("unused", "deprecation")
+@Deprecated("Scheduled to be removed in Gradle 8.0")
 inline fun <T> ClassPathModeExceptionCollector.ignoringErrors(f: () -> T): T? =
     try {
         f()

@@ -18,7 +18,6 @@ package org.gradle.integtests.resolve
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 import spock.lang.Issue
-import spock.lang.Unroll
 
 @FluidDependenciesResolveTest
 class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -33,7 +32,6 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
         """
     }
 
-    @Unroll
     def "resolves strictly for dependency resolve failures when #expression is used"() {
         settingsFile << "include 'child'"
         def m1 = mavenHttpRepo.module('org.foo', 'hiphop').publish()
@@ -80,7 +78,6 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
         "resolvedArtifacts"                        | _
     }
 
-    @Unroll
     def "resolves strictly for artifact resolve failures when #expression is used"() {
         settingsFile << "include 'child'"
         def m1 = mavenHttpRepo.module('org.foo', 'hiphop').publish()

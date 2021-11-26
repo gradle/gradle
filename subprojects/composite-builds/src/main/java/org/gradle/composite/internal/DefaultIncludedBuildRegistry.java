@@ -227,7 +227,8 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
             return;
         }
         currentlyConfiguring.add(buildToConfigure);
-        GradleInternal gradle = buildToConfigure.getConfiguredBuild();
+        buildToConfigure.ensureProjectsConfigured();
+        GradleInternal gradle = buildToConfigure.getMutableModel();
         for (IncludedBuildInternal reference : gradle.includedBuilds()) {
             BuildState target = reference.getTarget();
             if (target instanceof IncludedBuildState) {

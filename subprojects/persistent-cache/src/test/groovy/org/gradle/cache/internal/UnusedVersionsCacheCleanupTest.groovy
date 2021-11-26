@@ -24,7 +24,6 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GradleVersion
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Unroll
 
 @CleanupTestDirectory
 class UnusedVersionsCacheCleanupTest extends Specification {
@@ -36,7 +35,6 @@ class UnusedVersionsCacheCleanupTest extends Specification {
     def usedGradleVersions = Stub(UsedGradleVersions)
     def progressMonitor = Mock(CleanupProgressMonitor)
 
-    @Unroll
     def "deletes unused cache directories for mapping #mapping, Gradle versions #gradleVersions and existing cache versions #existingCacheVersions"() {
         given:
         def parentCacheVersion = CacheVersion.parse(parentVersion)

@@ -18,9 +18,7 @@ package org.gradle.testing.testng
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.testing.fixture.TestNGCoverage
-import spock.lang.Ignore
 import spock.lang.Issue
-import spock.lang.Unroll
 
 class TestNGUpToDateCheckIntegrationTest extends AbstractIntegrationSpec {
 
@@ -44,11 +42,29 @@ class TestNGUpToDateCheckIntegrationTest extends AbstractIntegrationSpec {
         '''.stripIndent()
     }
 
-    @Unroll
     @Issue('https://github.com/gradle/gradle/issues/4924')
     def 'test task is up-to-date when #property is changed because it should not impact output'() {
         given:
-        TestNGCoverage.enableTestNG(buildFile)
+        buildScript """
+            apply plugin: "java"
+            ${mavenCentralRepository()}
+            testing {
+                suites {
+                    test {
+                        useTestNG('${TestNGCoverage.NEWEST}')
+                        targets {
+                            all {
+                                testTask.configure {
+                                    options {
+                                        /* left empty */
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        """
 
         when:
         succeeds ':test'
@@ -97,12 +113,29 @@ class TestNGUpToDateCheckIntegrationTest extends AbstractIntegrationSpec {
         'groupByInstances'    | '= true'
     }
 
-    @Ignore("SLG Temporarily ignore this test until we can figure out how ordering between test framework selection and option configuration works")
-    @Unroll
     @Issue('https://github.com/gradle/gradle/issues/4924')
     def "re-executes test when #property is changed"() {
         given:
-        TestNGCoverage.enableTestNG(buildFile)
+        buildScript """
+            apply plugin: "java"
+            ${mavenCentralRepository()}
+            testing {
+                suites {
+                    test {
+                        useTestNG('${TestNGCoverage.NEWEST}')
+                        targets {
+                            all {
+                                testTask.configure {
+                                    options {
+                                        /* left empty */
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        """
 
         when:
         succeeds ':test'

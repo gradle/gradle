@@ -21,11 +21,9 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Issue
-import spock.lang.Unroll
 
 import static org.junit.Assert.assertTrue
 
-@Unroll
 class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements UnreadableCopyDestinationFixture {
 
     @Requires(TestPrecondition.FILE_PERMISSIONS)
@@ -75,7 +73,6 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
     }
 
     @Requires(TestPrecondition.FILE_PERMISSIONS)
-    @Unroll
     def "fileMode can be modified in copy task"() {
         given:
 
@@ -149,7 +146,6 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
     }
 
     @Requires(TestPrecondition.FILE_PERMISSIONS)
-    @Unroll
     def "fileMode can be modified in copy action"() {
         given:
         file("reference.txt") << 'test file"'
@@ -178,7 +174,6 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
     }
 
     @Requires(TestPrecondition.FILE_PERMISSIONS)
-    @Unroll
     def "dirMode can be modified in copy task"() {
         given:
         TestFile parent = getTestDirectory().createDir("testparent")
@@ -303,7 +298,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
 
     @Requires(TestPrecondition.FILE_PERMISSIONS)
     @Issue('https://github.com/gradle/gradle/issues/9576')
-    def "can copy into destination directory with unreadable file when using ignoreExistingContentInDestinationDir"() {
+    def "can copy into destination directory with unreadable file when using doNotTrackState"() {
         given:
         def input = file("readableFile.txt").createFile()
 
@@ -315,7 +310,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
             task copy(type: Copy) {
                 from '${input.name}'
                 into '${outputDirectory.name}'
-                ignoreExistingContentInDestinationDir()
+                doNotTrackState("Destination contains unreadable files")
             }
         """
 

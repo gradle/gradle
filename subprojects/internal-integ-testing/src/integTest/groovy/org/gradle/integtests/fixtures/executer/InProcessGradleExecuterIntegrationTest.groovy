@@ -23,7 +23,6 @@ import org.gradle.util.internal.RedirectStdOutAndErr
 import org.junit.Rule
 import spock.lang.Requires
 import spock.lang.Specification
-import spock.lang.Unroll
 
 @Requires({ GradleContextualExecuter.embedded })
 class InProcessGradleExecuterIntegrationTest extends Specification {
@@ -34,7 +33,6 @@ class InProcessGradleExecuterIntegrationTest extends Specification {
     def distribution = new UnderDevelopmentGradleDistribution(IntegrationTestBuildContext.INSTANCE)
     def executer = new GradleContextualExecuter(distribution, temporaryFolder, IntegrationTestBuildContext.INSTANCE)
 
-    @Unroll
     @ToBeFixedForConfigurationCache
     def "can write to System.out and System.err around build invocation with #console console when errors are redirected to stdout"() {
         given:
@@ -91,7 +89,6 @@ class InProcessGradleExecuterIntegrationTest extends Specification {
         console << [ConsoleOutput.Plain, ConsoleOutput.Rich, ConsoleOutput.Verbose]
     }
 
-    @Unroll
     @ToBeFixedForConfigurationCache
     def "can write to System.out and System.err around build invocation with #console console when errors are written to stderr"() {
         given:
