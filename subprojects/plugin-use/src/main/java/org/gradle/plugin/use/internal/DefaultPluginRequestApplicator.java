@@ -119,7 +119,12 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
                         });
                         String pluginVersion = result.found.getPluginVersion();
                         if (pluginVersion != null) {
-                            classLoaderScope.setPluginVersion(result.found.getPluginId(), pluginVersion);
+                            PluginVersionTracker tracker = classLoaderScope.getData(PluginVersionTracker.class);
+                            if (tracker == null) {
+                                tracker = new PluginVersionTracker(null);
+                                classLoaderScope.setData(PluginVersionTracker.class, tracker);
+                            }
+                            tracker.setPluginVersion(result.found.getPluginId().getId(), pluginVersion);
                         }
                     }
                 });

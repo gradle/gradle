@@ -16,13 +16,14 @@
 
 package org.gradle.api.internal.initialization;
 
+import com.google.common.collect.ClassToInstanceMap;
+import com.google.common.collect.MutableClassToInstanceMap;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
 import org.gradle.initialization.ClassLoaderScopeRegistryListener;
 import org.gradle.internal.classloader.CachingClassLoader;
 import org.gradle.internal.classloader.MultiParentClassLoader;
 import org.gradle.internal.classpath.ClassPath;
-import org.gradle.plugin.use.PluginId;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -50,8 +51,8 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
     private ClassLoader effectiveLocalClassLoader;
     private ClassLoader effectiveExportClassLoader;
 
-    public DefaultClassLoaderScope(ClassLoaderScopeIdentifier id, ClassLoaderScope parent, ClassLoaderCache classLoaderCache, ClassLoaderScopeRegistryListener listener) {
-        super(id, classLoaderCache, listener, new LinkedHashMap<>());
+    public DefaultClassLoaderScope(ClassLoaderScopeIdentifier id, ClassLoaderScope parent, ClassLoaderCache classLoaderCache, ClassLoaderScopeRegistryListener listener, ClassToInstanceMap<ClassLoaderScopeData> dataMap) {
+        super(id, classLoaderCache, listener, MutableClassToInstanceMap.create(new LinkedHashMap<>(dataMap)));
         this.parent = parent;
         listener.childScopeCreated(parent.getId(), id);
     }
@@ -154,12 +155,8 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
     }
 
     @Override
-    public void setPluginVersion(PluginId pluginId, String version) {
-        assertNotLocked();
-        if (pluginVersionMap.containsKey(pluginId)) {
-            throw new IllegalStateException("Plugin version already set for plugin " + pluginId);
-        }
-        pluginVersionMap.put(pluginId, version);
+    public <T extends ClassLoaderScopeData> void setData(Class<T> key, T data) {
+        dataMap.putInstance(key, data);
     }
 
     protected ClassLoader loader(ClassLoaderId classLoaderId, ClassLoader parent, ClassPath classPath) {

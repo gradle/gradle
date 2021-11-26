@@ -16,14 +16,16 @@
 
 package org.gradle.api.internal.initialization;
 
+import com.google.common.collect.ClassToInstanceMap;
+import com.google.common.collect.ImmutableClassToInstanceMap;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.initialization.ClassLoaderScopeId;
 import org.gradle.initialization.ClassLoaderScopeRegistryListener;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.plugin.use.PluginId;
 
 import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.Map;
 import java.util.function.Function;
 
@@ -35,13 +37,13 @@ public abstract class AbstractClassLoaderScope implements ClassLoaderScope {
     protected final ClassLoaderScopeIdentifier id;
     protected final ClassLoaderCache classLoaderCache;
     protected final ClassLoaderScopeRegistryListener listener;
-    protected final Map<PluginId, String> pluginVersionMap;
+    protected final ClassToInstanceMap<ClassLoaderScopeData> dataMap;
 
-    protected AbstractClassLoaderScope(ClassLoaderScopeIdentifier id, ClassLoaderCache classLoaderCache, ClassLoaderScopeRegistryListener listener, Map<PluginId, String> pluginVersionMap) {
+    protected AbstractClassLoaderScope(ClassLoaderScopeIdentifier id, ClassLoaderCache classLoaderCache, ClassLoaderScopeRegistryListener listener, ClassToInstanceMap<ClassLoaderScopeData> dataMap) {
         this.id = id;
         this.classLoaderCache = classLoaderCache;
         this.listener = listener;
-        this.pluginVersionMap = pluginVersionMap;
+        this.dataMap = dataMap;
     }
 
     /**
@@ -58,15 +60,15 @@ public abstract class AbstractClassLoaderScope implements ClassLoaderScope {
         return id.getPath();
     }
 
-    @Nullable
     @Override
-    public String getPluginVersion(PluginId pluginId) {
-        return pluginVersionMap.get(pluginId);
+    public <T extends ClassLoaderScopeData> void setData(Class<T> key, T data) {
+        immutable();
     }
 
+    @Nullable
     @Override
-    public void setPluginVersion(PluginId pluginId, String version) {
-        immutable();
+    public <T extends ClassLoaderScopeData> T getData(Class<T> key) {
+        return dataMap.getInstance(key);
     }
 
     @Override
@@ -88,13 +90,24 @@ public abstract class AbstractClassLoaderScope implements ClassLoaderScope {
         throw new UnsupportedOperationException(String.format("Class loader scope %s is immutable", id));
     }
 
+    private ImmutableClassToInstanceMap<ClassLoaderScopeData> prepareDataMapForChild() {
+        ImmutableClassToInstanceMap.Builder<ClassLoaderScopeData> builder = ImmutableClassToInstanceMap.builder();
+        for (Map.Entry<Class<? extends ClassLoaderScopeData>, ClassLoaderScopeData> entry : dataMap.entrySet()) {
+            ClassLoaderScopeData child = entry.getValue().createChild();
+            if (child != null) {
+                builder.putAll(Collections.singletonMap(entry.getKey(), child));
+            }
+        }
+        return builder.build();
+    }
+
     @Override
     public ClassLoaderScope createChild(String name) {
-        return new DefaultClassLoaderScope(id.child(name), this, classLoaderCache, listener);
+        return new DefaultClassLoaderScope(id.child(name), this, classLoaderCache, listener, prepareDataMapForChild());
     }
 
     @Override
     public ClassLoaderScope createLockedChild(String name, ClassPath localClasspath, @Nullable HashCode classpathImplementationHash, Function<ClassLoader, ClassLoader> localClassLoaderFactory) {
-        return new ImmutableClassLoaderScope(id.child(name), this, localClasspath, classpathImplementationHash, localClassLoaderFactory, classLoaderCache, listener, pluginVersionMap);
+        return new ImmutableClassLoaderScope(id.child(name), this, localClasspath, classpathImplementationHash, localClassLoaderFactory, classLoaderCache, listener, prepareDataMapForChild());
     }
 }

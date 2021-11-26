@@ -24,6 +24,7 @@ import org.gradle.plugin.management.internal.InvalidPluginRequestException;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin;
 import org.gradle.plugin.use.PluginId;
+import org.gradle.plugin.use.internal.PluginVersionTracker;
 
 public class AlreadyOnClasspathPluginResolver implements PluginResolver {
     private final PluginResolver delegate;
@@ -59,7 +60,8 @@ public class AlreadyOnClasspathPluginResolver implements PluginResolver {
                     );
                 }
             }
-            String existingVersion = parentLoaderScope.getPluginVersion(pluginId);
+            PluginVersionTracker tracker = parentLoaderScope.getData(PluginVersionTracker.class);
+            String existingVersion = tracker == null ? null : tracker.getPluginVersion(pluginId.getId());
             if (existingVersion != null) {
                 if (existingVersion.equals(pluginRequest.getOriginalRequest().getVersion())) {
                     resolveAlreadyOnClasspath(pluginId, existingVersion, result);

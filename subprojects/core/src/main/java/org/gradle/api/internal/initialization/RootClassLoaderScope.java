@@ -16,11 +16,10 @@
 
 package org.gradle.api.internal.initialization;
 
+import com.google.common.collect.ImmutableClassToInstanceMap;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.initialization.ClassLoaderScopeRegistryListener;
 import org.gradle.internal.classloader.CachingClassLoader;
-
-import java.util.Collections;
 
 public class RootClassLoaderScope extends AbstractClassLoaderScope {
 
@@ -30,7 +29,7 @@ public class RootClassLoaderScope extends AbstractClassLoaderScope {
     private final CachingClassLoader cachingExportClassLoader;
 
     public RootClassLoaderScope(String name, ClassLoader localClassLoader, ClassLoader exportClassLoader, ClassLoaderCache classLoaderCache, ClassLoaderScopeRegistryListener listener) {
-        super(new ClassLoaderScopeIdentifier(null, name), classLoaderCache, listener, Collections.emptyMap());
+        super(new ClassLoaderScopeIdentifier(null, name), classLoaderCache, listener, ImmutableClassToInstanceMap.of());
         this.localClassLoader = localClassLoader;
         this.cachingLocalClassLoader = new CachingClassLoader(localClassLoader);
         this.exportClassLoader = exportClassLoader;
