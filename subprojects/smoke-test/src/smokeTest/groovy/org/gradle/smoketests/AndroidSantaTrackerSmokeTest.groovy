@@ -23,13 +23,7 @@ import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest {
 
-    // TODO:configuration-cache remove once fixed upstream
-    @Override
-    protected int maxConfigurationCacheProblems() {
-        return 150
-    }
-
-    @UnsupportedWithConfigurationCache(iterationMatchers = [AGP_4_0_ITERATION_MATCHER, AGP_4_1_ITERATION_MATCHER])
+    @UnsupportedWithConfigurationCache(iterationMatchers = [AGP_4_x_ITERATION_MATCHER])
     def "check deprecation warnings produced by building Santa Tracker (agp=#agpVersion)"() {
 
         given:
@@ -49,7 +43,7 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
         agpVersion << TESTED_AGP_VERSIONS
     }
 
-    @UnsupportedWithConfigurationCache(iterationMatchers = [AGP_4_0_ITERATION_MATCHER, AGP_4_1_ITERATION_MATCHER])
+    @UnsupportedWithConfigurationCache(iterationMatchers = [AGP_4_x_ITERATION_MATCHER])
     def "incremental Java compilation works for Santa Tracker (agp=#agpVersion)"() {
 
         given:
@@ -86,7 +80,7 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
         agpVersion << TESTED_AGP_VERSIONS
     }
 
-    @UnsupportedWithConfigurationCache(iterationMatchers = [AGP_4_0_ITERATION_MATCHER, AGP_4_1_ITERATION_MATCHER, AGP_4_2_ITERATION_MATCHER])
+    @UnsupportedWithConfigurationCache(iterationMatchers = [AGP_4_x_ITERATION_MATCHER])
     def "can lint Santa-Tracker (agp=#agpVersion)"() {
 
         given:
@@ -151,6 +145,30 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
         }
         if (agpVersion.startsWith("7.0.") || agpVersion.startsWith("7.1.")) {
             expectAgpFileTreeDeprecationWarnings(runner, "stripDebugDebugSymbols", "bundleLibResDebug")
+        }
+        return runner
+    }
+
+    private SmokeTestGradleRunner runnerForLocationExpectingLintDeprecations(File location, boolean isCleanBuild, String agpVersion, String task) {
+        SmokeTestGradleRunner runner = isCleanBuild ? runnerForLocationMaybeExpectingWorkerExecutorDeprecation(location, agpVersion, task) : runnerForLocation(location, agpVersion, task)
+        def outputsUsedWithoutDependency = [
+            'common': ['common'],
+            'playgames': ['common', 'playgames'],
+            'doodles-lib': ['common', 'doodles-lib'],
+        ]
+        outputsUsedWithoutDependency.each { from, tos ->
+            tos.each { to ->
+                runner.expectLegacyDeprecationWarningIf(
+                    agpVersion.startsWith("4.1"),
+                    "Gradle detected a problem with the following location: '$to/build/intermediates/full_jar/debug/full.jar'. " +
+                        "Reason: Task ':$from:lintDebug' uses this output of task ':$to:createFullJarDebug' without declaring an explicit or implicit dependency. " +
+                        "This can lead to incorrect results being produced, depending on what order the tasks are executed. " +
+                        "Please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/validation_problems.html#implicit_dependency for more details about this problem. " +
+                        "This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0. " +
+                        "Execution optimizations are disabled to ensure correctness. " +
+                        "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/more_about_tasks.html#sec:up_to_date_checks for more details."
+                )
+            }
         }
         return runner
     }
