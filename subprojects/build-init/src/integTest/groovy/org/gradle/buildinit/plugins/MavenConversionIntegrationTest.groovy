@@ -17,7 +17,7 @@
 
 package org.gradle.buildinit.plugins
 
-import org.gradle.api.logging.configuration.WarningMode
+
 import org.gradle.buildinit.InsecureProtocolOption
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
@@ -133,7 +133,7 @@ Root project 'webinar-parent'
     def "flatmultimodule"() {
         def dsl = dslFixtureFor(scriptDsl)
         executer.beforeExecute {
-            executer.inDirectory(targetDir.file("webinar-parent")).withWarningMode(WarningMode.None) // FIXME we cannot assert warnings in this test as withWarningMode is ignored for the Kotlin DSL
+            executer.inDirectory(targetDir.file("webinar-parent"))
         }
 
         when:
