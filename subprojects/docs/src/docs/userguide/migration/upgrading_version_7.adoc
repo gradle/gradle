@@ -308,14 +308,14 @@ link:{groovyDslPath}/org.gradle.api.tasks.GradleBuild.html[GradleBuild] task as 
 <<authoring_maintainable_build_scripts#sec:avoiding_use_of_gradlebuild, Avoid using the GradleBuild task type>> section.
 
 Setting custom build layout using
-link:{groovyDslPath}/org.gradle.StartParameter.html[StartParameter] methods
-link:{groovyDslPath}/org.gradle.StartParameter.html#setBuildFile-java.io.File-[setBuildFile(File)]
+link:{javadocPath}/org/gradle/StartParameter.html[StartParameter] methods
+link:{javadocPath}/org/gradle/StartParameter.html#setBuildFile-java.io.File-[setBuildFile(File)]
 and
-link:{groovyDslPath}/org.gradle.StartParameter.html#setSettingsFile-java.io.File-[setSettingsFile(File)]
+link:{javadocPath}/org/gradle/StartParameter.html#setSettingsFile-java.io.File-[setSettingsFile(File)]
 as well as the counterpart getters
-link:{groovyDslPath}/org.gradle.StartParameter.html#getBuildFile--[getBuildFile()]
+link:{javadocPath}/org/gradle/StartParameter.html#getBuildFile--[getBuildFile()]
 and
-link:{groovyDslPath}/org.gradle.StartParameter.html#getSettingsFile--[getSettingsFile()]
+link:{javadocPath}/org/gradle/StartParameter.html#getSettingsFile--[getSettingsFile()]
 have been deprecated.
 
 Please use standard locations for settings and build files:
