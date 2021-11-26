@@ -124,6 +124,7 @@ import org.gradle.initialization.DefaultGradlePropertiesLoader;
 import org.gradle.initialization.DefaultProjectDescriptorRegistry;
 import org.gradle.initialization.DefaultSettingsLoaderFactory;
 import org.gradle.initialization.DefaultSettingsPreparer;
+import org.gradle.initialization.Environment;
 import org.gradle.initialization.GradlePropertiesController;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.initialization.IGradlePropertiesLoader;
@@ -330,11 +331,11 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     }
 
     protected IGradlePropertiesLoader createGradlePropertiesLoader(
-        ListenerManager listenerManager
+        Environment environment
     ) {
         return new DefaultGradlePropertiesLoader(
             (StartParameterInternal) get(StartParameter.class),
-            listenerManager.getBroadcaster(FileResourceListener.class)
+            environment
         );
     }
 
