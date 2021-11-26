@@ -66,7 +66,7 @@ class Gradleception(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(sta
                 name = "BUILD_WITH_BUILT_GRADLE"
                 tasks = "clean :distributions-full:install"
                 gradleHome = "%teamcity.build.checkoutDir%/dogfood-first"
-                gradleParams = "-Pgradle_installPath=dogfood-second -PignoreIncomingBuildReceipt=true -PbuildTimestamp=$dogfoodTimestamp2 $defaultParameters"
+                gradleParams = "-Pgradle_installPath=dogfood-second -PignoreIncomingBuildReceipt=true -PpromotionCommitId=HEAD -PbuildTimestamp=$dogfoodTimestamp2 $defaultParameters"
             }
 
             localGradle {
