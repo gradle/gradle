@@ -16,12 +16,18 @@
 
 package org.gradle.api.internal.provider
 
+
 import org.gradle.api.Describable
 import org.gradle.api.GradleException
+import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.ValueSource
 import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.internal.state.Managed
+import org.gradle.process.ExecOperations
+import org.gradle.process.ExecResult
+
+import javax.inject.Inject
 
 import static org.gradle.api.internal.provider.ValueSourceProviderFactory.Listener.ObtainedValue
 
@@ -147,6 +153,19 @@ class DefaultValueSourceProviderFactoryTest extends ValueSourceBasedSpec {
         e.cause.message == 'Value is null'
     }
 
+    def "value source can get ExecOperations injected"() {
+        when:
+        def provider = createProviderOf(ExecValueSource) {
+            it.parameters {
+                it.command = ["echo", "hello"]
+            }
+        }
+        provider.get()
+
+        then:
+        1 * execOperations.exec(_) >> _
+    }
+
     static abstract class EchoValueSource implements ValueSource<String, Parameters> {
 
         interface Parameters extends ValueSourceParameters {
@@ -173,6 +192,25 @@ class DefaultValueSourceProviderFactoryTest extends ValueSourceBasedSpec {
         @Override
         Integer obtain() {
             return 42
+        }
+    }
+
+    static abstract class ExecValueSource implements ValueSource<ExecResult, Parameters> {
+        final ExecOperations execOperations
+        interface Parameters extends ValueSourceParameters {
+            ListProperty<String> getCommand()
+        }
+
+        @Inject
+        ExecValueSource(ExecOperations execOperations) {
+            this.execOperations = execOperations
+        }
+
+        @Override
+        ExecResult obtain() {
+            return execOperations.exec {
+                commandLine(getParameters().command.get())
+            }
         }
     }
 }
