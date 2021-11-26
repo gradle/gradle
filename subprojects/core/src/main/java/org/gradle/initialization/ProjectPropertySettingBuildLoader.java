@@ -20,7 +20,6 @@ import org.gradle.api.Project;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.properties.GradleProperties;
-import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.gradle.internal.Pair;
 import org.gradle.internal.reflect.JavaPropertyReflectionUtil;
 import org.gradle.internal.reflect.PropertyMutator;
@@ -103,21 +102,27 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
 
         void configureProperty(Project project, String name, @Nullable Object value) {
             if (isPossibleProperty(name)) {
-                Class<? extends Project> clazz = project.getClass();
-                assert clazz == projectClass;
-                Class<?> valueType = value == null ? null : value.getClass();
-                PropertyMutator propertyMutator = propertyMutatorOf(clazz, name, valueType);
+                assert project.getClass() == projectClass;
+                PropertyMutator propertyMutator = propertyMutatorFor(name, typeOf(value));
                 if (propertyMutator != null) {
                     propertyMutator.setValue(project, value);
-                    return;
+                } else {
+                    setExtraPropertyOf(project, name, value);
                 }
-                ExtraPropertiesExtension extraProperties = project.getExtensions().getExtraProperties();
-                extraProperties.set(name, value);
             }
         }
 
+        private void setExtraPropertyOf(Project project, String name, @Nullable Object value) {
+            project.getExtensions().getExtraProperties().set(name, value);
+        }
+
         @Nullable
-        private PropertyMutator propertyMutatorOf(Class<? extends Project> clazz, String propertyName, @Nullable Class<?> valueType) {
+        private Class<?> typeOf(@Nullable Object value) {
+            return value == null ? null : value.getClass();
+        }
+
+        @Nullable
+        private PropertyMutator propertyMutatorFor(String propertyName, @Nullable Class<?> valueType) {
             final Pair<String, ? extends Class<?>> key = Pair.of(propertyName, valueType);
             final PropertyMutator cached = mutators.get(key);
             if (cached != null) {
@@ -126,7 +131,7 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
             if (mutators.containsKey(key)) {
                 return null;
             }
-            final PropertyMutator mutator = JavaPropertyReflectionUtil.writeablePropertyIfExists(clazz, propertyName, valueType);
+            final PropertyMutator mutator = JavaPropertyReflectionUtil.writeablePropertyIfExists(projectClass, propertyName, valueType);
             mutators.put(key, mutator);
             return mutator;
         }
