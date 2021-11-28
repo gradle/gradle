@@ -79,6 +79,7 @@ public class OsXInstallationSupplier extends AutoDetectingInstallationSupplier {
         ExecHandleBuilder execHandleBuilder = execHandleFactory.newExec();
         execHandleBuilder.workingDir(new File(".").getAbsoluteFile());
         execHandleBuilder.commandLine("/usr/libexec/java_home", "-V");
+        execHandleBuilder.getEnvironment().remove("JAVA_VERSION");
         // verbose output is written to stderr
         execHandleBuilder.setErrorOutput(outputStream);
         execHandleBuilder.setStandardOutput(new ByteArrayOutputStream());
