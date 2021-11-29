@@ -25,6 +25,7 @@ import org.gradle.configurationcache.initialization.VintageInjectedClasspathInst
 import org.gradle.configurationcache.problems.ConfigurationCacheProblems
 import org.gradle.configurationcache.serialization.beans.BeanStateReaderLookup
 import org.gradle.configurationcache.serialization.beans.BeanStateWriterLookup
+import org.gradle.configurationcache.serialization.codecs.jos.JavaSerializationEncodingLookup
 import org.gradle.internal.buildtree.BuildActionModelRequirements
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.buildtree.BuildTreeModelControllerServices
@@ -96,6 +97,7 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
             registration.add(DefaultConfigurationCache::class.java)
             registration.add(BeanStateWriterLookup::class.java)
             registration.add(BeanStateReaderLookup::class.java)
+            registration.add(JavaSerializationEncodingLookup::class.java)
         } else {
             registration.add(VintageInjectedClasspathInstrumentationStrategy::class.java)
             registration.add(VintageBuildTreeLifecycleControllerFactory::class.java)

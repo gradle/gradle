@@ -37,6 +37,7 @@ import org.gradle.composite.internal.BuildTreeWorkGraphController
 import org.gradle.configurationcache.problems.DocumentationSection.NotYetImplementedJavaSerialization
 import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.codecs.jos.JavaObjectSerializationCodec
+import org.gradle.configurationcache.serialization.codecs.jos.JavaSerializationEncodingLookup
 import org.gradle.configurationcache.serialization.codecs.transform.CalculateArtifactsCodec
 import org.gradle.configurationcache.serialization.codecs.transform.ChainedTransformationNodeCodec
 import org.gradle.configurationcache.serialization.codecs.transform.DefaultTransformerCodec
@@ -81,6 +82,7 @@ import org.gradle.internal.state.ManagedFactoryRegistry
 import java.io.Externalizable
 
 
+internal
 class Codecs(
     directoryFileTreeFactory: DirectoryFileTreeFactory,
     fileCollectionFactory: FileCollectionFactory,
@@ -108,6 +110,7 @@ class Codecs(
     includedTaskGraph: BuildTreeWorkGraphController,
     buildStateRegistry: BuildStateRegistry,
     documentationRegistry: DocumentationRegistry,
+    javaSerializationEncodingLookup: JavaSerializationEncodingLookup
 ) {
     private
     val userTypesBindings = Bindings.of {
@@ -186,7 +189,7 @@ class Codecs(
 
         // Java serialization integration
         bind(unsupported<Externalizable>(NotYetImplementedJavaSerialization))
-        bind(JavaObjectSerializationCodec())
+        bind(JavaObjectSerializationCodec(javaSerializationEncodingLookup))
 
         bind(BeanSpecCodec)
     }
