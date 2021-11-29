@@ -17,9 +17,9 @@ val classesPath by configurations.creating {
     isCanBeConsumed = false
     extendsFrom(aggregate)
     attributes {
-        attribute(Usage.USAGE_ATTRIBUTE, objects.named<Usage>(Usage.JAVA_RUNTIME))
-        attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>(Category.LIBRARY))
-        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named<LibraryElements>(LibraryElements.CLASSES))
+        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
+        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
+        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.CLASSES))
     }
 }
 
@@ -30,9 +30,9 @@ val sourcesPath by configurations.creating {
     isCanBeConsumed = false
     extendsFrom(aggregate)
     attributes {
-        attribute(Usage.USAGE_ATTRIBUTE, objects.named<Usage>(Usage.VERIFICATION))
-        attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>(Category.DOCUMENTATION))
-        attribute(Sources.SOURCES_ATTRIBUTE, objects.named<Sources>(Sources.ALL_SOURCE_DIRS))
+        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.VERIFICATION))
+        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.DOCUMENTATION))
+        attribute(Sources.SOURCES_ATTRIBUTE, objects.named(Sources.ALL_SOURCE_DIRS))
     }
 }
 
@@ -43,9 +43,9 @@ val coverageDataPath by configurations.creating {
     isCanBeConsumed = false
     extendsFrom(aggregate)
     attributes {
-        attribute(Usage.USAGE_ATTRIBUTE, objects.named<Usage>(Usage.VERIFICATION))
-        attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>(Category.DOCUMENTATION))
-        attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named<DocsType>(DocsType.JACOCO_COVERAGE))
+        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.VERIFICATION))
+        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.DOCUMENTATION))
+        attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType.JACOCO_COVERAGE))
     }
 }
 
