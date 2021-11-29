@@ -1,6 +1,7 @@
 package configurations
 
 import common.Os
+import common.VersionedSettingsBranch
 import common.applyDefaultSettings
 import common.buildToolGradleParameters
 import common.checkCleanM2AndAndroidUserHome
@@ -76,6 +77,7 @@ fun BuildFeatures.enablePullRequestFeature() {
         provider = github {
             authType = vcsRoot()
             filterAuthorRole = PullRequests.GitHubRoleFilter.EVERYBODY
+            filterTargetBranch = "+:refs/heads/${VersionedSettingsBranch.fromDslContext().branchName}"
         }
     }
 }
