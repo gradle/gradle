@@ -28,6 +28,7 @@ import org.gradle.internal.scan.UsedByScanPlugin;
  *     <li>{@code library}: Indicates that the variant is a library, that usually means a binary and a set of dependencies</li>
  *     <li>{@code platform}: Indicates that the variant is a platform, that usually means a definition of dependency constraints</li>
  *     <li>{@code documentation}: Indicates that the variant is documentation of the software module</li>
+ *     <li>{@code verification}: Indicates that the variant is output from a testing or code quality verification tool</li>
  * </ul>
  * One value is used for derivation. A {@code platform} variant can be consumed as a {@code enforced-platform} which means all the dependency
  * information it provides is applied as {@code forced}.
