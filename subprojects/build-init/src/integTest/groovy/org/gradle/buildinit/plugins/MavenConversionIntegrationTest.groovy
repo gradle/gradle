@@ -358,7 +358,7 @@ ${TextUtil.indent(configLines.join("\n"), "                    ")}
         run 'clean', 'build'
 
         then:
-        dsl.getBuildFile().text.contains("compileOnly 'junit:junit:4.10'") || dsl.getBuildFile().text.contains('compileOnly("junit:junit:4.10")')
+        dsl.getBuildFile().text.contains("compileOnly 'junit:junit:4.13.1'") || dsl.getBuildFile().text.contains('compileOnly("junit:junit:4.13.1")')
         targetDir.file("build/libs/myThing-0.0.1-SNAPSHOT.jar").exists()
     }
 
