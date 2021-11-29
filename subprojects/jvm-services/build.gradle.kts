@@ -15,6 +15,7 @@ dependencies {
     implementation(libs.nativePlatform)
     implementation(libs.guava)
     implementation(libs.asm)
+    implementation(libs.xmlApis)
 
     testImplementation(project(":native"))
     testImplementation(project(":file-collections"))

@@ -35,7 +35,6 @@ import org.gradle.api.internal.file.FileTreeInternal
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree
 import org.gradle.api.internal.project.ProjectState
-import org.gradle.api.internal.properties.GradleProperties
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.internal.provider.sources.EnvironmentVariableValueSource
 import org.gradle.api.internal.provider.sources.FileContentValueSource
@@ -43,6 +42,7 @@ import org.gradle.api.internal.provider.sources.GradlePropertyValueSource
 import org.gradle.api.internal.provider.sources.SystemPropertyValueSource
 import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.api.tasks.util.PatternSet
+import org.gradle.configurationcache.CoupledProjectsListener
 import org.gradle.configurationcache.UndeclaredBuildInputListener
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprint.InputFile
@@ -74,16 +74,18 @@ class ConfigurationCacheFingerprintWriter(
     UndeclaredBuildInputListener,
     ChangingValueDependencyResolutionListener,
     ProjectDependencyObservedListener,
-    FileResourceListener,
-    GradleProperties.Listener {
+    CoupledProjectsListener,
+    FileResourceListener {
 
     interface Host {
         val gradleUserHomeDir: File
         val allInitScripts: List<File>
+        val startParameterProperties: Map<String, Any?>
         val buildStartTime: Long
         val cacheIntermediateModels: Boolean
         fun fingerprintOf(fileCollection: FileCollectionInternal): HashCode
         fun hashCodeOf(file: File): HashCode?
+        fun displayNameOf(file: File): String
         fun reportInput(input: PropertyProblem)
         fun location(consumer: String?): PropertyTrace
     }
@@ -104,13 +106,16 @@ class ConfigurationCacheFingerprintWriter(
     val projectForThread = ThreadLocal<ProjectScopedSink>()
 
     private
-    val undeclaredGradleProperties = newConcurrentHashSet<String>()
+    val projectDependencies = newConcurrentHashSet<ProjectSpecificFingerprint>()
 
     private
     val undeclaredSystemProperties = newConcurrentHashSet<String>()
 
     private
     val undeclaredEnvironmentVariables = newConcurrentHashSet<String>()
+
+    private
+    val reportedFiles = newConcurrentHashSet<File>()
 
     private
     var closestChangingValue: ConfigurationCacheFingerprint.ChangingDependencyResolutionValue? = null
@@ -121,7 +126,8 @@ class ConfigurationCacheFingerprintWriter(
         buildScopedSink.write(
             ConfigurationCacheFingerprint.GradleEnvironment(
                 host.gradleUserHomeDir,
-                jvmFingerprint()
+                jvmFingerprint(),
+                host.startParameterProperties
             )
         )
     }
@@ -167,22 +173,6 @@ class ConfigurationCacheFingerprintWriter(
         captureFile(file)
     }
 
-    override fun onPropertyRead(key: String, value: Any?) {
-        require(value is String?) {
-            "Unsupported Gradle property type '${value?.javaClass}' in property '$key', " +
-                "only String properties are supported with the configuration cache."
-        }
-        gradlePropertyRead(key, value, null)
-    }
-
-    private
-    fun gradlePropertyRead(key: String, value: String?, consumer: String?) {
-        sink().gradlePropertyRead(key, value)
-        if (undeclaredGradleProperties.add(key)) {
-            reportGradlePropertyInput(key, consumer)
-        }
-    }
-
     override fun systemPropertyRead(key: String, value: Any?, consumer: String?) {
         sink().systemPropertyRead(key, value)
         if (undeclaredSystemProperties.add(key)) {
@@ -205,10 +195,11 @@ class ConfigurationCacheFingerprintWriter(
                 parameters.file.orNull?.asFile?.let { file ->
                     // TODO - consider the potential race condition in computing the hash code here
                     captureFile(file)
+                    reportFile(file)
                 }
             }
             is GradlePropertyValueSource.Parameters -> {
-                gradlePropertyRead(parameters.propertyName.get(), obtainedValue.value.get() as? String, null)
+                // The set of Gradle properties is already an input
             }
             is SystemPropertyValueSource.Parameters -> {
                 systemPropertyRead(parameters.propertyName.get(), obtainedValue.value.get(), null)
@@ -267,7 +258,19 @@ class ConfigurationCacheFingerprintWriter(
 
     override fun dependencyObserved(consumingProject: ProjectState?, targetProject: ProjectState, requestedState: ConfigurationInternal.InternalState, target: ResolvedProjectConfiguration) {
         if (host.cacheIntermediateModels && consumingProject != null) {
-            projectScopedWriter.write(ProjectSpecificFingerprint.ProjectDependency(consumingProject.identityPath, targetProject.identityPath))
+            val dependency = ProjectSpecificFingerprint.ProjectDependency(consumingProject.identityPath, targetProject.identityPath)
+            if (projectDependencies.add(dependency)) {
+                projectScopedWriter.write(dependency)
+            }
+        }
+    }
+
+    override fun onProjectReference(referrer: ProjectState, target: ProjectState) {
+        if (host.cacheIntermediateModels) {
+            val dependency = ProjectSpecificFingerprint.CoupledProjects(referrer.identityPath, target.identityPath)
+            if (projectDependencies.add(dependency)) {
+                projectScopedWriter.write(dependency)
+            }
         }
     }
 
@@ -304,18 +307,25 @@ class ConfigurationCacheFingerprintWriter(
     }
 
     private
-    fun reportValueSourceInput(valueSourceType: Class<out Any>) {
-        reportInput(consumer = null, documentationSection = null) {
-            text("build logic input of type ")
-            reference(valueSourceType.simpleName)
+    fun reportFile(file: File) {
+        if (reportedFiles.add(file)) {
+            reportFileInput(file)
         }
     }
 
     private
-    fun reportGradlePropertyInput(key: String, consumer: String?) {
-        reportInput(consumer, DocumentationSection.RequirementsUndeclaredGradlePropRead) {
-            text("Gradle property ")
-            reference(key)
+    fun reportFileInput(file: File) {
+        reportInput(null, null) {
+            text("file ")
+            reference(host.displayNameOf(file))
+        }
+    }
+
+    private
+    fun reportValueSourceInput(valueSourceType: Class<out Any>) {
+        reportInput(consumer = null, documentationSection = null) {
+            text("build logic input of type ")
+            reference(valueSourceType.simpleName)
         }
     }
 
@@ -362,9 +372,6 @@ class ConfigurationCacheFingerprintWriter(
         val capturedFiles = newConcurrentHashSet<File>()
 
         private
-        val undeclaredGradleProperties = newConcurrentHashSet<String>()
-
-        private
         val undeclaredSystemProperties = newConcurrentHashSet<String>()
 
         private
@@ -375,12 +382,6 @@ class ConfigurationCacheFingerprintWriter(
                 return
             }
             write(inputFile(file))
-        }
-
-        fun gradlePropertyRead(key: String, value: String?) {
-            if (undeclaredGradleProperties.add(key)) {
-                write(ConfigurationCacheFingerprint.UndeclaredGradleProperty(key, value))
-            }
         }
 
         fun systemPropertyRead(key: String, value: Any?) {

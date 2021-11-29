@@ -102,7 +102,6 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.TextUriResourceLoader;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.service.scopes.ExceptionCollector;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.internal.typeconversion.TypeConverter;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
@@ -197,8 +196,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     private final TaskContainerInternal taskContainer;
 
-    private final ExceptionCollector exceptionCollector;
-
     private DependencyHandler dependencyHandler;
 
     private ConfigurationContainer configurationContainer;
@@ -247,7 +244,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
         services = serviceRegistryFactory.createFor(this);
         taskContainer = services.get(TaskContainerInternal.class);
-        exceptionCollector = services.get(ExceptionCollector.class);
 
         extensibleDynamicObject = new ExtensibleDynamicObject(this, Project.class, services.get(InstantiatorFactory.class).decorateLenient(services));
         if (parent != null) {
@@ -367,7 +363,12 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public ProjectInternal getRootProject() {
-        return rootProject;
+        return getRootProject(this);
+    }
+
+    @Override
+    public ProjectInternal getRootProject(ProjectInternal referrer) {
+        return getCrossProjectModelAccess().access(referrer, rootProject);
     }
 
     @Override
@@ -405,7 +406,16 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public ProjectInternal getParent() {
-        return parent;
+        return getParent(this);
+    }
+
+    @Nullable
+    @Override
+    public ProjectInternal getParent(ProjectInternal referrer) {
+        if (parent == null) {
+            return null;
+        }
+        return getCrossProjectModelAccess().access(referrer, parent);
     }
 
     @Nullable
@@ -1036,7 +1046,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     public void afterEvaluate(Action<? super Project> action) {
         assertMutatingMethodAllowed("afterEvaluate(Action)");
         failAfterProjectIsEvaluated("afterEvaluate(Action)");
-        evaluationListener.add("afterEvaluate", exceptionCollector.decorate(getListenerBuildOperationDecorator().decorate("Project.afterEvaluate", action)));
+        evaluationListener.add("afterEvaluate", getListenerBuildOperationDecorator().decorate("Project.afterEvaluate", action));
     }
 
     @Override
@@ -1049,7 +1059,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     public void afterEvaluate(Closure closure) {
         assertMutatingMethodAllowed("afterEvaluate(Closure)");
         failAfterProjectIsEvaluated("afterEvaluate(Closure)");
-        evaluationListener.add(new ClosureBackedMethodInvocationDispatch("afterEvaluate", exceptionCollector.decorate(getListenerBuildOperationDecorator().decorate("Project.afterEvaluate", Cast.<Closure<?>>uncheckedNonnullCast(closure)))));
+        evaluationListener.add(new ClosureBackedMethodInvocationDispatch("afterEvaluate", getListenerBuildOperationDecorator().decorate("Project.afterEvaluate", Cast.<Closure<?>>uncheckedNonnullCast(closure))));
     }
 
     private void failAfterProjectIsEvaluated(String methodPrototype) {

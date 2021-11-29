@@ -40,6 +40,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
     interface Host {
         val gradleUserHomeDir: File
         val allInitScripts: List<File>
+        val startParameterProperties: Map<String, Any?>
         val buildStartTime: Long
         fun gradleProperty(propertyName: String): String?
         fun fingerprintOf(fileCollection: FileCollectionInternal): HashCode
@@ -92,6 +93,12 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                     val target = projects.entryFor(input.targetProject)
                     target.consumedBy(consumer)
                 }
+                is ProjectSpecificFingerprint.CoupledProjects -> {
+                    val referrer = projects.entryFor(input.referringProject)
+                    val target = projects.entryFor(input.targetProject)
+                    target.consumedBy(referrer)
+                    referrer.consumedBy(target)
+                }
                 else -> throw IllegalStateException("Unexpected configuration cache fingerprint: $input")
             }
         }
@@ -112,6 +119,10 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                     }
                 is ProjectSpecificFingerprint.ProjectDependency ->
                     if (reusedProjects.contains(input.consumingProject)) {
+                        consumer.accept(input)
+                    }
+                is ProjectSpecificFingerprint.CoupledProjects ->
+                    if (reusedProjects.contains(input.referringProject)) {
                         consumer.accept(input)
                     }
             }
@@ -144,11 +155,6 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                 val reason = checkInitScriptsAreUpToDate(fingerprints, host.allInitScripts)
                 if (reason != null) return reason
             }
-            is ConfigurationCacheFingerprint.UndeclaredGradleProperty -> input.run {
-                if (host.gradleProperty(key) != value) {
-                    return "Gradle property '$key' has changed"
-                }
-            }
             is ConfigurationCacheFingerprint.UndeclaredSystemProperty -> input.run {
                 if (System.getProperty(key) != value) {
                     return "system property '$key' has changed"
@@ -170,6 +176,9 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                 }
                 if (jvmFingerprint() != jvm) {
                     return "JVM has changed"
+                }
+                if (host.startParameterProperties != startParameterProperties) {
+                    return "the set of Gradle properties has changed"
                 }
             }
         }

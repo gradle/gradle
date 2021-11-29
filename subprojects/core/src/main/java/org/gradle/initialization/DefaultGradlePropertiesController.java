@@ -21,7 +21,6 @@ import org.gradle.api.internal.properties.GradleProperties;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Map;
-import java.util.Set;
 
 public class DefaultGradlePropertiesController implements GradlePropertiesController {
 
@@ -53,11 +52,6 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
         @Override
         public Object find(String propertyName) {
             return gradleProperties().find(propertyName);
-        }
-
-        @Override
-        public Set<String> getPropertyNames() {
-            return gradleProperties().getPropertyNames();
         }
 
         @Override

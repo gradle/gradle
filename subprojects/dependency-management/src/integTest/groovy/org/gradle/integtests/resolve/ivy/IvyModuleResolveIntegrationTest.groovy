@@ -226,7 +226,6 @@ task retrieve(type: Sync) {
         "a->a(*),b(*);b->b(*)"  | ["projectB-a-1.5.jar", "projectB-b-1.5.jar", "projectC-1.7.jar", "projectD-1.7.jar"]
     }
 
-    @ToBeFixedForConfigurationCache
     def "prefers revConstraint over rev when dynamic resolve mode is used"() {
         given:
         buildFile << """

@@ -44,7 +44,7 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
         expect:
         succeeds "outgoingVariants"
 
-        def resultsBinPath = new TestFile(getTestDirectory(), 'build/test-results/test/binary/results.bin').getRelativePathFromBase()
+        def resultsPath = new TestFile(getTestDirectory(), 'build/test-results/test/binary').getRelativePathFromBase()
         outputContains("""
             --------------------------------------------------
             Variant testResultsElementsForTest
@@ -59,7 +59,7 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
                 - org.gradle.verificationtype      = test-results
 
             Artifacts
-                - $resultsBinPath (artifactType = binary)
+                - $resultsPath (artifactType = directory)
             """.stripIndent())
     }
 
@@ -89,7 +89,7 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
         expect:
         succeeds "outgoingVariants"
 
-        def resultsBinPath = new TestFile(getTestDirectory(), 'build/test-results/integrationTest/binary/results.bin').getRelativePathFromBase()
+        def resultsPath = new TestFile(getTestDirectory(), 'build/test-results/integrationTest/binary').getRelativePathFromBase()
         outputContains("""
             --------------------------------------------------
             Variant testResultsElementsForIntegrationTest
@@ -104,7 +104,7 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
                 - org.gradle.verificationtype      = test-results
 
             Artifacts
-                - $resultsBinPath (artifactType = binary)
+                - $resultsPath (artifactType = directory)
             """.stripIndent())
     }
 
@@ -141,7 +141,7 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
 
         buildFile << """
             // A resolvable configuration to collect test results data
-            def testDataConfig = configurations.create("testData") {
+            def testDataConfig = configurations.create('testData') {
                 visible = false
                 canBeResolved = true
                 canBeConsumed = false
@@ -155,9 +155,16 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
                 testData project
             }
 
+            // Extract the artifact view for cc compatibility by providing it as an explicit task input
+            def artifactView = testDataConfig.incoming.artifactView { view ->
+                                   view.componentFilter { it in ProjectComponentIdentifier }
+                                   view.lenient = true
+                               }
+
             def testResolve = tasks.register('testResolve') {
+                inputs.files(artifactView.files)
                 doLast {
-                    assert testDataConfig.getResolvedConfiguration().getFiles()*.getName() == [test.binaryResultsDirectory.file("results.bin").get().getAsFile().getName()]
+                    assert inputs.files.singleFile.name == 'binary'
                 }
             }""".stripIndent()
 
@@ -255,11 +262,19 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
+            // Extract the artifact view for cc compatibility by providing it as an explicit task input
+            def artifactView = testDataConfig.incoming.artifactView { view ->
+                                   view.componentFilter { it in ProjectComponentIdentifier }
+                                   view.lenient = true
+                               }
+
+
             def testResolve = tasks.register('testResolve') {
-                def expectedResultsFiles = [file("subA/build/test-results/test/binary/results.bin"),
-                                            file("subB/build/test-results/test/binary/results.bin")]
+                inputs.files(artifactView.files)
+                def expectedResultsFiles = [file("subA/build/test-results/test/binary"),
+                                            file("subB/build/test-results/test/binary")]
                 doLast {
-                    assert testDataConfig.getResolvedConfiguration().getFiles().containsAll(expectedResultsFiles)
+                    assert inputs.files.files.containsAll(expectedResultsFiles)
                 }
             }
 
@@ -364,8 +379,12 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
 
             def testResolve = tasks.register('testResolve') {
                 doLast {
-                    assert testDataConfig.getResolvedConfiguration().getFiles().containsAll([project(':direct').tasks["test"].binaryResultsDirectory.file("results.bin").get().getAsFile(),
-                                                                                             project(':transitive').tasks["test"].binaryResultsDirectory.file("results.bin").get().getAsFile()])
+                    def artifactView = testDataConfig.incoming.artifactView { view ->
+                        view.componentFilter { it in ProjectComponentIdentifier }
+                        view.lenient = true
+                    }.files
+                    assert artifactView.files.containsAll([project(':direct').tasks["test"].binaryResultsDirectory.get().asFile,
+                                                           project(':transitive').tasks["test"].binaryResultsDirectory.get().asFile])
                 }
             }
 

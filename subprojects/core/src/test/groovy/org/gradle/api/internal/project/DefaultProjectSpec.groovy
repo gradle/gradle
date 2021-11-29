@@ -34,7 +34,6 @@ import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.management.DependencyResolutionManagementInternal
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.internal.service.scopes.ExceptionCollector
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -149,13 +148,12 @@ class DefaultProjectSpec extends Specification {
         nestedChild2.identityPath == Path.path(":nested:child1:child2")
     }
 
-    def project(String name, ProjectInternal parent, GradleInternal build) {
+    ProjectInternal project(String name, ProjectInternal parent, GradleInternal build) {
         def serviceRegistryFactory = Stub(ServiceRegistryFactory)
         def serviceRegistry = Stub(ServiceRegistry)
 
         _ * serviceRegistryFactory.createFor(_) >> serviceRegistry
         _ * serviceRegistry.get(TaskContainerInternal) >> Stub(TaskContainerInternal)
-        _ * serviceRegistry.get(ExceptionCollector) >> Stub(ExceptionCollector)
         _ * serviceRegistry.get(InstantiatorFactory) >> Stub(InstantiatorFactory)
         _ * serviceRegistry.get(AttributesSchema) >> Stub(AttributesSchema)
         _ * serviceRegistry.get(ModelRegistry) >> Stub(ModelRegistry)
@@ -176,6 +174,7 @@ class DefaultProjectSpec extends Specification {
         return Spy(DefaultProject, constructorArgs: [name, parent, projectDir, new File("build file"), Stub(ScriptSource), build, container, serviceRegistryFactory, Stub(ClassLoaderScope), Stub(ClassLoaderScope)]) {
             getFileOperations() >> fileOperations
             getObjects() >> objectFactory
+            getCrossProjectModelAccess() >> Stub(CrossProjectModelAccess)
         }
     }
 }

@@ -40,12 +40,17 @@ class Gradleception(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(sta
     val buildScanTagForType = buildScanTag("Gradleception")
     val defaultParameters = (buildToolGradleParameters() + listOf(buildScanTagForType) + "-Porg.gradle.java.installations.auto-download=false").joinToString(separator = " ")
 
+    params {
+        // Override the default commit id so the build steps produce reproducible distribution
+        param("env.BUILD_COMMIT_ID", "HEAD")
+    }
+
     applyDefaults(
         model,
         this,
         ":distributions-full:install",
         notQuick = true,
-        extraParameters = "-Pgradle_installPath=dogfood-first-for-hash -PignoreIncomingBuildReceipt=true -PpromotionCommitId=HEAD -PbuildTimestamp=$dogfoodTimestamp1 $buildScanTagForType",
+        extraParameters = "-Pgradle_installPath=dogfood-first-for-hash -PignoreIncomingBuildReceipt=true -PbuildTimestamp=$dogfoodTimestamp1 $buildScanTagForType",
         extraSteps = {
             script {
                 name = "CALCULATE_MD5_VERSION_FOR_DOGFOODING_DISTRIBUTION"

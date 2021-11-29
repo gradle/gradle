@@ -26,7 +26,7 @@ In other words, the configuration cache saves the output of the configuration ph
 
 [IMPORTANT]
 ====
-This feature is currently *_highly experimental_* and not enabled by default.
+This feature is currently *_experimental_* and not enabled by default.
 
 Not all <<configuration_cache#config_cache:plugins:core, core Gradle plugins>> are supported.
 Your build and the plugins you depend on might require changes to fulfil the <<configuration_cache#config_cache:requirements, requirements>>.

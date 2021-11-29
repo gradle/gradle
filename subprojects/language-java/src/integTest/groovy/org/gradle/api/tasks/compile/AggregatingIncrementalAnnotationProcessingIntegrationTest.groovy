@@ -436,6 +436,23 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
         succeeds "compileJava"
     }
 
+    @Issue("https://github.com/micronaut-projects/micronaut-core/issues/6536")
+    def "does not reprocess if nothing in the current sourceSet changed"() {
+        given:
+        withProcessor(new AnnotatedGeneratedClassProcessorFixture())
+        javaTestSourceFile "@Bean class Test {}"
+        outputs.snapshot { succeeds "compileTestJava" }
+
+        when:
+        java "class Unrelated {}"
+
+        then:
+        succeeds "compileTestJava"
+
+        and:
+        outputs.recompiledClasses("Unrelated")
+    }
+
     private boolean serviceRegistryReferences(String... services) {
         def registry = file("build/classes/java/main/ServiceRegistryResource.txt").text
         services.every() {

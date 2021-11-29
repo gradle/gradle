@@ -17,16 +17,22 @@
 package org.gradle.initialization;
 
 import org.gradle.StartParameter;
+import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.internal.extensibility.ExtensibleDynamicObject;
+import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 
 import java.io.File;
+import java.util.Map;
+
+import static java.util.Collections.emptyMap;
 
 public class SettingsFactory {
     private final Instantiator instantiator;
@@ -59,7 +65,9 @@ public class SettingsFactory {
             settingsScript,
             startParameter
         );
-        DefaultGradleProperties.exposeGradlePropertiesDynamically(gradleProperties, settings);
+        Map<String, String> properties = gradleProperties.mergeProperties(emptyMap());
+        DynamicObject dynamicObject = ((DynamicObjectAware) settings).getAsDynamicObject();
+        ((ExtensibleDynamicObject) dynamicObject).addProperties(properties);
         return settings;
     }
 }

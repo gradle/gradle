@@ -22,6 +22,7 @@ import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
 import org.gradle.api.internal.plugins.PluginAwareInternal
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.cache.CacheOpenException
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.internal.ScriptSourceHasher
@@ -46,7 +47,6 @@ import org.gradle.internal.operations.CallableBuildOperation
 import org.gradle.internal.scripts.CompileScriptBuildOperationType.Details
 import org.gradle.internal.scripts.CompileScriptBuildOperationType.Result
 import org.gradle.internal.scripts.ScriptExecutionListener
-import org.gradle.internal.service.scopes.ExceptionCollector
 import org.gradle.internal.snapshot.ValueSnapshot
 import org.gradle.kotlin.dsl.accessors.PluginAccessorClassPathGenerator
 import org.gradle.kotlin.dsl.cache.KotlinDslWorkspaceProvider
@@ -86,7 +86,7 @@ class StandardKotlinScriptEvaluator(
     private val pluginRequestApplicator: PluginRequestApplicator,
     private val pluginRequestsHandler: PluginRequestsHandler,
     private val embeddedKotlinProvider: EmbeddedKotlinProvider,
-    private val exceptionCollector: ExceptionCollector,
+    private val classPathModeExceptionCollector: ClassPathModeExceptionCollector,
     private val kotlinScriptBasePluginsApplicator: KotlinScriptBasePluginsApplicator,
     private val scriptSourceHasher: ScriptSourceHasher,
     private val classpathHasher: ClasspathHasher,
@@ -126,9 +126,9 @@ class StandardKotlinScriptEvaluator(
     }
 
     private
-    fun withOptions(options: EvalOptions, action: () -> Unit) {
+    inline fun withOptions(options: EvalOptions, action: () -> Unit) {
         if (EvalOption.IgnoreErrors in options)
-            exceptionCollector.ignoringErrors(action)
+            classPathModeExceptionCollector.ignoringErrors(action)
         else
             action()
     }
@@ -146,19 +146,10 @@ class StandardKotlinScriptEvaluator(
         Interpreter(InterpreterHost())
     }
 
-    private
-    inline fun <T> ExceptionCollector.ignoringErrors(f: () -> T): T? =
-        try {
-            f()
-        } catch (e: Exception) {
-            addException(e)
-            null
-        }
-
     inner class InterpreterHost : Interpreter.Host {
 
         override fun pluginAccessorsFor(scriptHost: KotlinScriptHost<*>): ClassPath =
-            (scriptHost.target as? Project)?.let {
+            (scriptHost.target as? ProjectInternal)?.let {
                 val pluginAccessorClassPathGenerator = it.serviceOf<PluginAccessorClassPathGenerator>()
                 pluginAccessorClassPathGenerator.pluginSpecBuildersClassPath(it).bin
             } ?: ClassPath.EMPTY
@@ -209,7 +200,7 @@ class StandardKotlinScriptEvaluator(
             )
         }
 
-        override fun applyBasePluginsTo(project: Project) {
+        override fun applyBasePluginsTo(project: ProjectInternal) {
             kotlinScriptBasePluginsApplicator
                 .apply(project)
         }

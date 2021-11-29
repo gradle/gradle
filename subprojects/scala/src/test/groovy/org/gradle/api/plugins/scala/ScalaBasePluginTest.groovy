@@ -15,7 +15,6 @@
  */
 package org.gradle.api.plugins.scala
 
-import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.internal.artifacts.configurations.Configurations
 import org.gradle.api.plugins.JavaBasePlugin
@@ -24,122 +23,122 @@ import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.scala.ScalaCompile
 import org.gradle.api.tasks.scala.ScalaDoc
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.TestUtil
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 import static org.gradle.api.tasks.TaskDependencyMatchers.dependsOn
-import static org.gradle.util.Matchers.isEmpty
-import static org.gradle.util.internal.WrapUtil.toLinkedSet
-import static org.gradle.util.internal.WrapUtil.toSet
-import static org.hamcrest.CoreMatchers.equalTo
 import static org.hamcrest.CoreMatchers.hasItem
-import static org.hamcrest.CoreMatchers.instanceOf
-import static org.hamcrest.MatcherAssert.assertThat
-import static org.junit.Assert.assertFalse
-import static org.junit.Assert.assertTrue
 
-class ScalaBasePluginTest {
-    @Rule
-    public TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
-    private final Project project = TestUtil.create(temporaryFolder).rootProject()
+class ScalaBasePluginTest extends AbstractProjectBuilderSpec {
 
-    @Before
-    void before() {
+    def setup() {
         project.pluginManager.apply(ScalaBasePlugin)
     }
 
-    @Test
-    void appliesTheJavaPluginToTheProject() {
-        assertTrue(project.getPlugins().hasPlugin(JavaBasePlugin))
+    def appliesTheJavaPluginToTheProject() {
+        expect:
+        project.getPlugins().hasPlugin(JavaBasePlugin)
     }
 
-    @Test
-    void addsZincConfigurationToTheProject() {
+    def addsZincConfigurationToTheProject() {
+        when:
         def configuration = project.configurations.getByName(ScalaBasePlugin.ZINC_CONFIGURATION_NAME)
-        assertThat(Configurations.getNames(configuration.extendsFrom), equalTo(toSet()))
-        assertFalse(configuration.visible)
-        assertTrue(configuration.transitive)
+
+        then:
+        Configurations.getNames(configuration.extendsFrom).empty
+        !configuration.visible
+        configuration.transitive
     }
 
-    @Test
-    void preconfiguresZincClasspathForCompileTasksThatUseZinc() {
+    def preconfiguresZincClasspathForCompileTasksThatUseZinc() {
+        when:
         project.sourceSets.create('custom')
         def task = project.tasks.compileCustomScala
-        assert task.zincClasspath instanceof Configuration
-        assert task.zincClasspath.incoming.dependencies.find { it.name.contains('zinc') }
+
+        then:
+        task.zincClasspath instanceof Configuration
+        task.zincClasspath.incoming.dependencies.find { it.name.contains('zinc') }
     }
 
-    @Test
-    void addsScalaConventionToNewSourceSet() {
+    def addsScalaConventionToNewSourceSet() {
+        when:
         def sourceSet = project.sourceSets.create('custom')
-        assertThat(sourceSet.scala.displayName, equalTo("custom Scala source"))
-        assertThat(sourceSet.scala.srcDirs, equalTo(toLinkedSet(project.file("src/custom/scala"))))
+
+        then:
+        sourceSet.scala.displayName == "custom Scala source"
+        sourceSet.scala.srcDirs == [project.file("src/custom/scala")] as Set
     }
 
-    @Test
-    void addsCompileTaskForNewSourceSet() {
+    def addsCompileTaskForNewSourceSet() {
+        when:
         project.sourceSets.create('custom')
         SourceSet customSourceSet = project.sourceSets.custom
         def task = project.tasks['compileCustomScala']
-        assertThat(task, instanceOf(ScalaCompile.class))
-        assertThat(task.description, equalTo('Compiles the custom Scala source.'))
-        assertThat(task.classpath.files as List, equalTo([
+
+        then:
+        task instanceof ScalaCompile
+        task.description == 'Compiles the custom Scala source.'
+        task.classpath.files as List == [
             customSourceSet.java.destinationDirectory.get().asFile
-        ]))
-        assertThat(task.source as List, equalTo(customSourceSet.scala as List))
-        assertThat(task, dependsOn('compileCustomJava'))
+        ]
+        task.source as List == customSourceSet.scala as List
+        task dependsOn('compileCustomJava')
     }
 
-    @Test
-    void preconfiguresIncrementalCompileOptions() {
+    def preconfiguresIncrementalCompileOptions() {
+        when:
         project.sourceSets.create('custom')
         project.tasks.create('customJar', Jar)
-        ScalaCompile task = project.tasks['compileCustomScala']
+        def task = project.tasks['compileCustomScala']
         project.gradle.buildListenerBroadcaster.projectsEvaluated(project.gradle)
 
-        assertThat(task.scalaCompileOptions.incrementalOptions.analysisFile.get().asFile, equalTo(new File("$project.buildDir/tmp/scala/compilerAnalysis/compileCustomScala.analysis")))
-        assertThat(task.scalaCompileOptions.incrementalOptions.classfileBackupDir.get().asFile, equalTo(new File("$project.buildDir/tmp/scala/classfileBackup/compileCustomScala.bak")))
-        assertThat(task.scalaCompileOptions.incrementalOptions.publishedCode.get().asFile, equalTo(project.tasks['customJar'].archiveFile.get().asFile))
-        assertThat(task.analysisMappingFile.get().asFile, equalTo(new File("$project.buildDir/tmp/scala/compilerAnalysis/compileCustomScala.mapping")))
+        then:
+        task.scalaCompileOptions.incrementalOptions.analysisFile.get().asFile == new File("$project.buildDir/tmp/scala/compilerAnalysis/compileCustomScala.analysis")
+        task.scalaCompileOptions.incrementalOptions.classfileBackupDir.get().asFile == new File("$project.buildDir/tmp/scala/classfileBackup/compileCustomScala.bak")
+        task.scalaCompileOptions.incrementalOptions.publishedCode.get().asFile == project.tasks['customJar'].archiveFile.get().asFile
+        task.analysisMappingFile.get().asFile == new File("$project.buildDir/tmp/scala/compilerAnalysis/compileCustomScala.mapping")
     }
 
-    @Test
-    void incrementalCompileOptionsCanBeOverridden() {
+    def incrementalCompileOptionsCanBeOverridden() {
+        when:
         project.sourceSets.create('custom')
         project.tasks.create('customJar', Jar)
-        ScalaCompile task = project.tasks['compileCustomScala']
+        def task = project.tasks['compileCustomScala']
         task.scalaCompileOptions.incrementalOptions.analysisFile.set(project.file("my/file"))
         task.scalaCompileOptions.incrementalOptions.classfileBackupDir.set(project.file("my/classes.bak"))
         task.scalaCompileOptions.incrementalOptions.publishedCode.set(project.file("my/published/code.jar"))
         project.gradle.buildListenerBroadcaster.projectsEvaluated(project.gradle)
 
-        assertThat(task.scalaCompileOptions.incrementalOptions.analysisFile.get().asFile, equalTo(project.file("my/file")))
-        assertThat(task.scalaCompileOptions.incrementalOptions.classfileBackupDir.get().asFile, equalTo(project.file("my/classes.bak")))
-        assertThat(task.scalaCompileOptions.incrementalOptions.publishedCode.get().asFile, equalTo(project.file("my/published/code.jar")))
+        then:
+        task.scalaCompileOptions.incrementalOptions.analysisFile.get().asFile == project.file("my/file")
+        task.scalaCompileOptions.incrementalOptions.classfileBackupDir.get().asFile == project.file("my/classes.bak")
+        task.scalaCompileOptions.incrementalOptions.publishedCode.get().asFile == project.file("my/published/code.jar")
     }
 
-    @Test
-    void dependenciesOfJavaPluginTasksIncludeScalaCompileTasks() {
+    def dependenciesOfJavaPluginTasksIncludeScalaCompileTasks() {
+        when:
         project.sourceSets.create('custom')
         def task = project.tasks['customClasses']
-        assertThat(task, dependsOn(hasItem('compileCustomScala')))
+
+        then:
+        task dependsOn(hasItem('compileCustomScala'))
     }
 
-    @Test
-    void configuresCompileTasksDefinedByTheBuildScript() {
+    def configuresCompileTasksDefinedByTheBuildScript() {
+        when:
         def task = project.task('otherCompile', type: ScalaCompile)
-        assertThat(task.source, isEmpty())
-        assertThat(task, dependsOn())
+
+        then:
+        task.source.isEmpty()
+        task dependsOn()
     }
 
-    @Test
-    void configuresScalaDocTasksDefinedByTheBuildScript() {
+    def configuresScalaDocTasksDefinedByTheBuildScript() {
+        when:
         def task = project.task('otherScaladoc', type: ScalaDoc)
-        assertThat(task.destinationDir, equalTo(project.file("$project.docsDir/scaladoc")))
-        assertThat(task.title, equalTo(project.extensions.getByType(ReportingExtension).apiDocTitle))
-        assertThat(task, dependsOn())
+
+        then:
+        task.destinationDir == project.file("$project.docsDir/scaladoc")
+        task.title == project.extensions.getByType(ReportingExtension).apiDocTitle
+        task dependsOn()
     }
 }

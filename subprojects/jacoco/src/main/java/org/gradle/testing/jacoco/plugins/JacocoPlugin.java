@@ -123,7 +123,8 @@ public class JacocoPlugin implements Plugin<Project> {
         variant.setVisible(false);
         variant.setCanBeResolved(false);
         variant.setCanBeConsumed(true);
-        variant.extendsFrom(project.getConfigurations().getByName(JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME));
+        variant.extendsFrom(project.getConfigurations().getByName(suite.getSources().getImplementationConfigurationName()),
+                project.getConfigurations().getByName(suite.getSources().getRuntimeOnlyConfigurationName()));
 
         final ObjectFactory objects = project.getObjects();
         variant.attributes(attributes -> {
@@ -209,7 +210,7 @@ public class JacocoPlugin implements Plugin<Project> {
 
     private void configureJacocoReportDefaults(final JacocoPluginExtension extension, final JacocoReport reportTask) {
         reportTask.getReports().all(action(report ->
-            report.getRequired().set(report.getName().equals("html"))
+            report.getRequired().convention(report.getName().equals("html"))
         ));
         DirectoryProperty reportsDir = extension.getReportsDirectory();
         reportTask.getReports().all(action(report -> {

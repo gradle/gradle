@@ -235,9 +235,16 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
                 coverageData project
             }
 
+            // Extract the artifact view for cc compatibility by providing it as an explicit task input
+            def artifactView = coverageDataConfig.incoming.artifactView { view ->
+                                   view.componentFilter { it in ProjectComponentIdentifier }
+                                   view.lenient = true
+                               }
+
             def testResolve = tasks.register('testResolve') {
+                inputs.files(artifactView.files)
                 doLast {
-                    assert coverageDataConfig.resolvedConfiguration.files*.name == [test.jacoco.destinationFile.name]
+                    assert inputs.files.singleFile.name == 'jacocoData.exec'
                 }
             }
             """.stripIndent()
@@ -292,9 +299,16 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
+            // Extract the artifact view for cc compatibility by providing it as an explicit task input
+            def artifactView = coverageDataConfig.incoming.artifactView { view ->
+                                   view.componentFilter { it in ProjectComponentIdentifier }
+                                   view.lenient = true
+                               }
+
             def testResolve = tasks.register('testResolve') {
+                inputs.files(artifactView.files)
                 doLast {
-                    assert coverageDataConfig.getResolvedConfiguration().getFiles()*.getName() == ["subA.exec", "subB.exec"]
+                    assert inputs.files*.name == ["subA.exec", "subB.exec"]
                 }
             }
             """.stripIndent()
@@ -352,9 +366,17 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
+
+            // Extract the artifact view for cc compatibility by providing it as an explicit task input
+            def artifactView = coverageDataConfig.incoming.artifactView { view ->
+                                   view.componentFilter { it in ProjectComponentIdentifier }
+                                   view.lenient = true
+                               }
+
             def testResolve = tasks.register('testResolve') {
+                inputs.files(artifactView.files)
                 doLast {
-                    assert coverageDataConfig.getResolvedConfiguration().getFiles()*.getName() == ["direct.exec", "transitive.exec"]
+                    assert inputs.files*.name == ["direct.exec", "transitive.exec"]
                 }
             }
             """.stripIndent()

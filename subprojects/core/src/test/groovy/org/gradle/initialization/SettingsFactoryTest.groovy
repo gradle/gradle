@@ -39,7 +39,7 @@ class SettingsFactoryTest extends Specification {
         given:
         def settingsDir = new File("settingsDir")
         def scriptSource = Mock(ScriptSource)
-        def expectedGradleProperties = Mock(GradleProperties)
+        def gradleProperties = Mock(GradleProperties)
         def startParameter = new StartParameter()
         def serviceRegistryFactory = Mock(ServiceRegistryFactory)
         def settingsServices = Mock(ServiceRegistry)
@@ -47,7 +47,7 @@ class SettingsFactoryTest extends Specification {
         def scriptPluginFactory = Mock(ScriptPluginFactory)
         def scriptHandlerFactory = Mock(ScriptHandlerFactory)
         def projectDescriptorRegistry = Mock(ProjectDescriptorRegistry)
-        def scope = Mock(ClassLoaderScope)//new ClassLoaderScopeIdentifier(rootScope.id, 'buildSrc'), rootScope, cache)
+        def scope = Mock(ClassLoaderScope)
 
         1 * serviceRegistryFactory.createFor(_ as Settings) >> settingsServices
         1 * settingsServices.get(FileResolver) >> fileResolver
@@ -59,15 +59,14 @@ class SettingsFactoryTest extends Specification {
         1 * projectDescriptorRegistry.addProject(_ as DefaultProjectDescriptor)
         1 * scriptHandlerFactory.create(scriptSource, _ as ClassLoaderScope) >> Mock(ScriptHandlerInternal)
         1 * scope.createChild(_) >> scope
-        1 * expectedGradleProperties.propertyNames >> Collections.singleton('myKey')
-        2 * expectedGradleProperties.find('myKey') >> 'myValue'
+        1 * gradleProperties.mergeProperties(_) >> ['myKey': 'myValue']
 
         when:
-        SettingsFactory settingsFactory = new SettingsFactory(instantiatorFactory().decorateLenient(), serviceRegistryFactory, scriptHandlerFactory);
+        SettingsFactory settingsFactory = new SettingsFactory(instantiatorFactory().decorateLenient(), serviceRegistryFactory, scriptHandlerFactory)
         GradleInternal gradle = Mock(GradleInternal)
 
-        DefaultSettings settings = settingsFactory.createSettings(gradle,
-            settingsDir, scriptSource, expectedGradleProperties, startParameter, scope);
+        DefaultSettings settings = (DefaultSettings) settingsFactory.createSettings(gradle,
+            settingsDir, scriptSource, gradleProperties, startParameter, scope)
 
         then:
         gradle.is(settings.gradle)
@@ -76,9 +75,11 @@ class SettingsFactoryTest extends Specification {
         and: 'Gradle properties are visible through the settings object'
         settings.myKey == 'myValue'
 
-        and: 'Gradle properties are visible through the properties object'
-        def properties = settings.properties
-        properties['myKey'] == 'myValue'
+        and: 'Gradle properties are visible through the ext extension'
+        settings.ext.myKey == 'myValue'
+
+        and: 'Gradle properties are NOT visible through the Groovy properties builtin'
+        'myKey' !in settings.properties
 
         and:
         settingsDir.is settings.getSettingsDir()

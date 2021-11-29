@@ -14,14 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.service.scopes;
+package org.gradle.configurationcache
 
-import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.api.internal.project.ProjectState
+import org.gradle.internal.service.scopes.EventScope
+import org.gradle.internal.service.scopes.Scopes
 
-public class ToolingServices extends AbstractPluginServiceRegistry {
 
-    @Override
-    public void registerBuildServices(ServiceRegistration registration) {
-        registration.addProvider(new ToolingBuildServices());
-    }
+@EventScope(Scopes.Build::class)
+interface CoupledProjectsListener {
+    /**
+     * Notified when the build logic for a project accesses the mutable state of some other project.
+     */
+    fun onProjectReference(referrer: ProjectState, target: ProjectState)
 }
