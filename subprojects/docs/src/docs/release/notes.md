@@ -16,7 +16,8 @@ Include only their name, impactful features should be called out separately belo
 [Róbert Papp](https://github.com/TWiStErRob),
 [Piyush Mor](https://github.com/piyushmor),
 [Ned Twigg](https://github.com/nedtwigg),
-[Nikolas Grottendieck](https://github.com/Okeanos).
+[Nikolas Grottendieck](https://github.com/Okeanos),
+[Lars Grefer](https://github.com/larsgrefer).
 
 ## Upgrade instructions
 
