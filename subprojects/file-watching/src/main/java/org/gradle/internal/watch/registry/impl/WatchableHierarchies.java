@@ -68,7 +68,7 @@ public class WatchableHierarchies {
      * Hierarchies in usage order, most recent first.
      */
     private final Deque<File> hierarchies = new ArrayDeque<>();
-    private final List<File> ignoredUnwatchableHierarchiesSinceLastBuildFinish = new ArrayList<>();
+    private final List<File> watchableHierarchiesSinceLastBuildFinish = new ArrayList<>();
 
     public WatchableHierarchies(
         FileWatcherProbeRegistry probeRegistry,
@@ -88,11 +88,16 @@ public class WatchableHierarchies {
                 watchableHierarchyPath
             ));
         }
+        watchableHierarchiesSinceLastBuildFinish.add(watchableHierarchy);
         if (unwatchableFiles.contains(watchableHierarchyPath)) {
             LOGGER.info("Not watching {} since the file system is not supported", watchableHierarchy);
-            ignoredUnwatchableHierarchiesSinceLastBuildFinish.add(watchableHierarchy);
             return;
         }
+        doRegisterWatchableHierarchy(watchableHierarchy, root);
+    }
+
+    private void doRegisterWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root) {
+        String watchableHierarchyPath = watchableHierarchy.getAbsolutePath();
         if (!watchableFiles.contains(watchableHierarchyPath)) {
             checkThatNothingExistsInNewWatchableHierarchy(watchableHierarchyPath, root);
             hierarchies.addFirst(watchableHierarchy);
@@ -113,7 +118,7 @@ public class WatchableHierarchies {
         if (!shouldWatchUnsupportedFileSystems(watchMode)) {
             newRoot = removeUnwatchableFileSystems(newRoot, invalidator);
         }
-        ignoredUnwatchableHierarchiesSinceLastBuildFinish.clear();
+        watchableHierarchiesSinceLastBuildFinish.clear();
         return newRoot;
     }
 
@@ -196,8 +201,8 @@ public class WatchableHierarchies {
         if (shouldWatchUnsupportedFileSystems(watchMode)) {
             unwatchableFiles = FileHierarchySet.empty();
             // Replay the watchable hierarchies since the end of last build, since they have become watchable.
-            for (File ignoredHierarchy : ignoredUnwatchableHierarchiesSinceLastBuildFinish) {
-                registerWatchableHierarchy(ignoredHierarchy, newRoot);
+            for (File watchableHierarchy : watchableHierarchiesSinceLastBuildFinish) {
+                doRegisterWatchableHierarchy(watchableHierarchy, newRoot);
             }
         } else {
             unwatchableFiles = detectUnsupportedHierarchies();
