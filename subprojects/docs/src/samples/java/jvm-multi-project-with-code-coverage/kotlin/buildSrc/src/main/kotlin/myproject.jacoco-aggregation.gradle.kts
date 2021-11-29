@@ -14,9 +14,9 @@ val classesPath: Configuration by configurations.creating {
     isCanBeConsumed = false
     extendsFrom(configurations.implementation.get())
     attributes {
-        attribute(Usage.USAGE_ATTRIBUTE, objects.named<Usage>(Usage.JAVA_RUNTIME))
-        attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>(Category.LIBRARY))
-        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named<LibraryElements>(LibraryElements.CLASSES))
+        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
+        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
+        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.CLASSES))
     }
 }
 
@@ -27,8 +27,8 @@ val sourcesPath: Configuration by configurations.creating {
     isCanBeConsumed = false
     extendsFrom(configurations.implementation.get())
     attributes {
-        attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>(Category.VERIFICATION))
-        attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objects.named<VerificationType>(VerificationType.MAIN_SOURCES))
+        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.VERIFICATION))
+        attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objects.named(VerificationType.MAIN_SOURCES))
     }
 }
 
@@ -39,8 +39,8 @@ val coverageDataPath: Configuration by configurations.creating {
     isCanBeConsumed = false
     extendsFrom(configurations.implementation.get())
     attributes {
-        attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>(Category.VERIFICATION))
-        attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objects.named<VerificationType>(VerificationType.JACOCO_RESULTS))
+        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.VERIFICATION))
+        attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objects.named(VerificationType.JACOCO_RESULTS))
     }
 }
 
