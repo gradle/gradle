@@ -94,7 +94,7 @@ In addition to the ecosystem independent attributes defined above, the JVM ecosy
 
 | link:{javadocPath}/org/gradle/api/attributes/TestSuiteType.html#TEST_SUITE_TYPE_ATTRIBUTE[`org.gradle.testsuite.type`]
 | Indicates the type of test suite (unit test, integration test, performance test, etc.)
-| `TestSuiteType` values built from constants defined in link:{javadocPath}/org/gradle/api/attributes/java/TestSuiteType.html[TestSuiteType] or other custom values for user-defined test suite types.
+| `TestSuiteType` values built from constants defined in link:{javadocPath}/org/gradle/api/attributes/TestSuiteType.html[TestSuiteType] or other custom values for user-defined test suite types.
 | No default, no compatibility
 |===
 
