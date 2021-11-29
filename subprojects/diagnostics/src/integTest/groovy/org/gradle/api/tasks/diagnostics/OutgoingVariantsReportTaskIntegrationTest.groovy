@@ -44,7 +44,7 @@ class OutgoingVariantsReportTaskIntegrationTest extends AbstractIntegrationSpec 
         def builtMainResourcesPath = file('build/resources/main').getRelativePathFromBase()
         def sourceMainJavaPath = file('src/main/java').getRelativePathFromBase()
         def sourceMainResourcePath = file( 'src/main/resources').getRelativePathFromBase()
-        def resultsBinPath = file('build/test-results/test/binary/results.bin').getRelativePathFromBase()
+        def resultsBinPath = file('build/test-results/test/binary').getRelativePathFromBase()
         outputContains """> Task :outgoingVariants
 --------------------------------------------------
 Variant apiElements
@@ -138,7 +138,7 @@ Attributes
     - org.gradle.verificationtype      = test-results
 
 Artifacts
-    - $resultsBinPath (artifactType = binary)
+    - $resultsBinPath (artifactType = directory)
 """
         and:
         doesNotHaveLegacyVariantsLegend()
@@ -168,7 +168,7 @@ Artifacts
         def builtMainResourcesPath = file('build/resources/main').getRelativePathFromBase()
         def sourceMainJavaPath = file('src/main/java').getRelativePathFromBase()
         def sourceMainResourcePath = file('src/main/resources').getRelativePathFromBase()
-        def resultsBinPath = file('build/test-results/test/binary/results.bin').getRelativePathFromBase()
+        def resultsBinPath = file('build/test-results/test/binary').getRelativePathFromBase()
         outputContains """> Task :outgoingVariants
 --------------------------------------------------
 Variant apiElements
@@ -294,7 +294,7 @@ Attributes
     - org.gradle.verificationtype      = test-results
 
 Artifacts
-    - $resultsBinPath (artifactType = binary)
+    - $resultsBinPath (artifactType = directory)
 """
         and:
         doesNotHaveLegacyVariantsLegend()
@@ -398,7 +398,7 @@ Here are the available outgoing variants: apiElements, archives, default, mainSo
         def builtMainResourcesPath = file('build/resources/main').getRelativePathFromBase()
         def sourceMainJavaPath = file('src/main/java').getRelativePathFromBase()
         def sourceMainResourcePath = file('src/main/resources').getRelativePathFromBase()
-        def resultsBinPath = file('build/test-results/test/binary/results.bin').getRelativePathFromBase()
+        def resultsBinPath = file('build/test-results/test/binary').getRelativePathFromBase()
         outputContains """> Task :outgoingVariants
 --------------------------------------------------
 Variant apiElements
@@ -508,7 +508,7 @@ Attributes
     - org.gradle.verificationtype      = test-results
 
 Artifacts
-    - $resultsBinPath (artifactType = binary)
+    - $resultsBinPath (artifactType = directory)
 """
 
         and:
