@@ -26,7 +26,8 @@ class FlakyTestQuarantine(model: CIBuildModel, stage: Stage, os: Os) : BaseGradl
             StageNames.QUICK_FEEDBACK_LINUX_ONLY,
             StageNames.QUICK_FEEDBACK,
             StageNames.READY_FOR_MERGE,
-            StageNames.READY_FOR_NIGHTLY
+            StageNames.READY_FOR_NIGHTLY,
+            StageNames.READY_FOR_RELEASE,
         )
     }.flatMap { it.functionalTests }.filter { it.os == os }
 
@@ -40,7 +41,7 @@ class FlakyTestQuarantine(model: CIBuildModel, stage: Stage, os: Os) : BaseGradl
             ).joinToString(separator = " ")
         steps {
             gradleWrapper {
-                name = "FLAKY_TEST_QUARANTINE_${testCoverage.testJvmVersion.name.uppercase()}"
+                name = "FLAKY_TEST_QUARANTINE_${testCoverage.testType.name.uppercase()}_${testCoverage.testJvmVersion.name.uppercase()}"
                 tasks = "${testCoverage.testType.name}Test"
                 gradleParams = parameters
                 executionMode = BuildStep.ExecutionMode.ALWAYS
