@@ -144,9 +144,13 @@ public class WatchableHierarchies {
                 result = invalidator.invalidate(locationToRemove.toString(), result);
             }
         }
+        rebuildWatchableFiles();
+        return result;
+    }
+
+    private void rebuildWatchableFiles() {
         this.watchableFiles = hierarchies.stream()
             .reduce(FileHierarchySet.empty(), FileHierarchySet::plus, Combiners.nonCombining());
-        return result;
     }
 
     private SnapshotHierarchy removeUnwatchableFileSystems(SnapshotHierarchy root, Invalidator invalidator) {
@@ -196,16 +200,26 @@ public class WatchableHierarchies {
     @CheckReturnValue
     private SnapshotHierarchy updateUnwatchableFilesOnBuildStart(SnapshotHierarchy root, Invalidator invalidator, WatchMode watchMode) {
         SnapshotHierarchy newRoot = root;
-        // Make sure we don't have any unwatchable files in the VFS, since the some previously unwatchable files may become watchable.
-        newRoot = invalidateUnwatchableHierarchies(newRoot, invalidator, unwatchableFiles);
-        if (shouldWatchUnsupportedFileSystems(watchMode)) {
-            unwatchableFiles = FileHierarchySet.empty();
+        FileHierarchySet oldUnwatchableFiles = unwatchableFiles;
+        unwatchableFiles = shouldWatchUnsupportedFileSystems(watchMode)
+            ? FileHierarchySet.empty()
+            : detectUnsupportedHierarchies();
+        if (!oldUnwatchableFiles.equals(unwatchableFiles)) {
+            // Remove previously unwatchable files, since they may become watchable.
+            // If we register a watchable hierarchy, then there mustn't be anything in the VFS at that location.
+            newRoot = invalidateUnwatchableHierarchies(newRoot, invalidator, oldUnwatchableFiles);
+            // Remove current unwatchable files, since they still may be watched.
+            newRoot = invalidateUnwatchableHierarchies(newRoot, invalidator, unwatchableFiles);
+
+            hierarchies.removeIf(unwatchableFiles::contains);
+            rebuildWatchableFiles();
+
             // Replay the watchable hierarchies since the end of last build, since they have become watchable.
             for (File watchableHierarchy : watchableHierarchiesSinceLastBuildFinish) {
-                doRegisterWatchableHierarchy(watchableHierarchy, newRoot);
+                if (!unwatchableFiles.contains(watchableHierarchy)) {
+                    doRegisterWatchableHierarchy(watchableHierarchy, newRoot);
+                }
             }
-        } else {
-            unwatchableFiles = detectUnsupportedHierarchies();
         }
         return newRoot;
     }
