@@ -20,6 +20,7 @@ import com.google.common.collect.Maps
 import spock.lang.Specification
 
 import java.util.function.BiConsumer
+import java.util.function.Consumer
 
 abstract class AbstractAccessTrackingMapTest extends Specification {
     protected final Map<String, String> innerMap = ['existing': 'existingValue', 'other': 'otherValue']
@@ -83,26 +84,33 @@ abstract class AbstractAccessTrackingMapTest extends Specification {
         0 * consumer._
     }
 
-    def "access to existing element with forEach() is tracked"() {
+    def "aggregating method #methodName reports all map contents as inputs"() {
         when:
-        def iterated = new HashMap<Object, Object>()
-        getMapUnderTestToRead().forEach { k, v -> iterated.put(k, v) }
+        operation.accept(getMapUnderTestToRead())
 
         then:
-        iterated == innerMap
-        1 * consumer.accept('existing', 'existingValue')
-        1 * consumer.accept('other', 'otherValue')
+        (1.._) * consumer.accept('existing', 'existingValue')
+        (1.._) * consumer.accept('other', 'otherValue')
         0 * consumer._
+
+        where:
+        methodName              | operation
+        "forEach()"             | call(m -> m.forEach((k, v) -> { }))
+        "isEmpty()"             | call(m -> m.isEmpty())
+        "size()"                | call(m -> m.size())
+        "hashCode()"            | call(m -> m.hashCode())
+        "equals()"              | call(m -> Objects.equals(m, Collections.emptyMap()))  // Ensure that a real equals is invoked and not a Groovy helper
+        "entrySet().size()"     | call(m -> m.entrySet().size())
+        "entrySet().iterator()" | call(m -> m.entrySet().iterator())
+        "keySet().size()"       | call(m -> m.keySet().size())
+        "keySet().iterator()"   | call(m -> m.keySet().iterator())
     }
 
-    def "entrySet() enumeration is tracked"() {
+    def "method toString() does not report map contents as inputs"() {
         when:
-        def result = new HashSet<>(getMapUnderTestToRead().entrySet())
+        getMapUnderTestToRead().toString()
 
         then:
-        result == innerMap.entrySet()
-        1 * consumer.accept('existing', 'existingValue')
-        1 * consumer.accept('other', 'otherValue')
         0 * consumer._
     }
 
@@ -191,5 +199,10 @@ abstract class AbstractAccessTrackingMapTest extends Specification {
 
     static Map.Entry<String, String> entry(String key, String value) {
         return Maps.immutableEntry(key, value)
+    }
+
+    // Shortcut to have a typed lambda expression in where: block
+    private static Consumer<Map<? super String, ? super String>> call(Consumer<Map<? super String, ? super String>> consumer) {
+        return consumer
     }
 }
