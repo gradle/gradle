@@ -65,7 +65,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         ].combinations()
     }
 
-    @UnsupportedWithConfigurationCache(iterationMatchers = [AGP_4_0_ITERATION_MATCHER, AGP_4_1_ITERATION_MATCHER])
+    @UnsupportedWithConfigurationCache(iterationMatchers = AGP_NO_CC_ITERATION_MATCHER)
     def "android library and application APK assembly (agp=#agpVersion, ide=#ide)"() {
 
         given:

@@ -45,14 +45,15 @@ class TestFilesCleanupServiceTest {
             include(":successful-test-with-leftover")
             include(":failed-report-with-leftover")
             include(":flaky-test-with-leftover")
+            include(":flaky-test-without-leftover")
             include(":successful-report")
             """.trimIndent()
         )
 
-        fun File.writeTestWithLeftover(fail: Boolean) {
+        fun File.writeFlakyTest(fail: Boolean) {
             mkdirsAndWriteText(
                 """
-            class FailedTestWithLeftover {
+            class FlakyTest {
                 @org.junit.jupiter.api.Test
                 public void test() {
                     ${if (fail) "throw new IllegalStateException();" else ""}
@@ -62,9 +63,10 @@ class TestFilesCleanupServiceTest {
             )
         }
 
-        projectDir.resolve("failed-test-with-leftover/src/test/java/FailedTestWithLeftover.java").writeTestWithLeftover(true)
-        projectDir.resolve("flaky-test-with-leftover/src/test/java/FailedTestWithLeftover.java").writeTestWithLeftover(true)
-        projectDir.resolve("successful-test-with-leftover/src/test/java/FailedTestWithLeftover.java").writeTestWithLeftover(false)
+        projectDir.resolve("failed-test-with-leftover/src/test/java/FlakyTest.java").writeFlakyTest(true)
+        projectDir.resolve("flaky-test-with-leftover/src/test/java/FlakyTest.java").writeFlakyTest(true)
+        projectDir.resolve("flaky-test-without-leftover/src/test/java/FlakyTest.java").writeFlakyTest(true)
+        projectDir.resolve("successful-test-with-leftover/src/test/java/FlakyTest.java").writeFlakyTest(false)
 
         projectDir.resolve("build.gradle.kts").writeText(
             """
@@ -82,11 +84,12 @@ class TestFilesCleanupServiceTest {
                 apply(plugin = "gradlebuild.ci-reporting")
             }
 
-            project(":failed-test-with-leftover").configureTestWithLeftover(false)
-            project(":flaky-test-with-leftover").configureTestWithLeftover(true)
-            project(":successful-test-with-leftover").configureTestWithLeftover(false)
+            project(":failed-test-with-leftover").configureTestWithLeftover(false, true)
+            project(":flaky-test-with-leftover").configureTestWithLeftover(true, true)
+            project(":flaky-test-without-leftover").configureTestWithLeftover(true, false)
+            project(":successful-test-with-leftover").configureTestWithLeftover(false, true)
 
-            fun Project.configureTestWithLeftover(ignoreFailures: Boolean) {
+            fun Project.configureTestWithLeftover(ignoreFailures: Boolean, hasLeftover: Boolean) {
                 apply(plugin = "java-library")
                 repositories {
                     mavenCentral()
@@ -98,10 +101,12 @@ class TestFilesCleanupServiceTest {
 
                 tasks.named<Test>("test").configure {
                     this.ignoreFailures = ignoreFailures
-                    doFirst {
-                        project.layout.buildDirectory.file("tmp/test files/leftover/leftover").get().asFile.apply {
-                            parentFile.mkdirs()
-                            createNewFile()
+                    if (hasLeftover) {
+                        doFirst {
+                            project.layout.buildDirectory.file("tmp/test files/leftover/leftover").get().asFile.apply {
+                                parentFile.mkdirs()
+                                createNewFile()
+                            }
                         }
                     }
                     useJUnitPlatform()
@@ -183,6 +188,14 @@ class TestFilesCleanupServiceTest {
 
         assertArchivedFilesSeen("report-successful-test-with-leftover-leftover.zip")
         assertLeftoverFilesCleanedUpEventually("successful-test-with-leftover/build/tmp/test files")
+    }
+
+    @Test
+    fun `flaky tests without leftovers get reports achieved`() {
+        val result = run(":flaky-test-without-leftover:test", "--no-watch-fs").build()
+        assertEquals(TaskOutcome.SUCCESS, result.task(":flaky-test-without-leftover:test")!!.outcome)
+
+        assertArchivedFilesSeen("report-flaky-test-without-leftover-test.zip")
     }
 
     @Test

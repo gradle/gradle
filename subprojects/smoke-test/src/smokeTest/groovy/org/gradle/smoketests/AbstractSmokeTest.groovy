@@ -47,11 +47,10 @@ import static org.gradle.test.fixtures.server.http.MavenHttpPluginRepository.PLU
 abstract class AbstractSmokeTest extends Specification {
 
     protected static final AndroidGradlePluginVersions AGP_VERSIONS = new AndroidGradlePluginVersions()
+    protected static final String AGP_NO_CC_ITERATION_MATCHER = ".*agp=4\\..*"
+
     protected static final KotlinGradlePluginVersions KOTLIN_VERSIONS = new KotlinGradlePluginVersions()
-    protected static final String AGP_4_0_ITERATION_MATCHER = ".*agp=4\\.0\\..*"
-    protected static final String AGP_4_1_ITERATION_MATCHER = ".*agp=4\\.1\\..*"
-    protected static final String AGP_4_2_ITERATION_MATCHER = ".*agp=4\\.2\\..*"
-    protected static final String AGP_7_ITERATION_MATCHER = ".*agp=7\\..*"
+    protected static final String KGP_NO_CC_ITERATION_MATCHER = ".*(kotlin=1\\.3\\.|kotlin=1\\.4\\.[01]).*"
 
     static class TestedVersions {
         /**
@@ -112,7 +111,10 @@ abstract class AbstractSmokeTest extends Specification {
         })
 
         // https://plugins.gradle.org/plugin/org.gretty
-        static gretty = "3.0.6"
+        static gretty = [
+            [version: "3.0.7", servletContainer: "jetty9.4", javaMinVersion: JavaVersion.VERSION_1_8],
+            [version: "4.0.0", servletContainer: "jetty11", javaMinVersion: JavaVersion.VERSION_11]
+        ]
 
         // https://plugins.gradle.org/plugin/org.ajoberstar.grgit
         static grgit = "4.1.0"

@@ -35,6 +35,9 @@ class ConfigurationCacheStartParameter(
     private
     val startParameter = startParameter as StartParameterInternal
 
+    val gradleProperties: Map<String, Any?>
+        get() = startParameter.projectProperties
+
     val isQuiet: Boolean
         get() = startParameter.isConfigurationCacheQuiet
 

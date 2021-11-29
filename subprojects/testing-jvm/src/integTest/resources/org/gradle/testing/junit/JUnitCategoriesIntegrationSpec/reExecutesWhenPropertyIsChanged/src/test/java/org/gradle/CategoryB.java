@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.service.scopes;
+package org.gradle;
 
-public class ToolingBuildServices {
-
-    @SuppressWarnings("unused")
-    public ExceptionCollector createExceptionCollector() {
-        boolean inLenientMode = KotlinDslExceptionCollector.CLASSPATH_MODE_SYSTEM_PROPERTY_VALUE.equals(System.getProperty(KotlinDslExceptionCollector.PROVIDER_MODE_SYSTEM_PROPERTY_NAME));
-        return inLenientMode ? new KotlinDslExceptionCollector() : ExceptionCollector.NOOP;
-    }
+public interface CategoryB {
 }

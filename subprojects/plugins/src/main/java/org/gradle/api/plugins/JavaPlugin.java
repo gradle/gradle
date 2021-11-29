@@ -439,9 +439,9 @@ public class JavaPlugin implements Plugin<Project> {
 
         final ObjectFactory objects = project.getObjects();
         variant.attributes(attributes -> {
-            attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.VERIFICATION));
             attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.SOURCES));
             attributes.attribute(Sources.SOURCES_ATTRIBUTE, objects.named(Sources.class, Sources.ALL_SOURCE_DIRS));
+            attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.VERIFICATION));
         });
 
         variant.getOutgoing().artifacts(mainSourceSet.getAllSource().getSourceDirectories().getElements().flatMap(e -> project.provider(() -> e)), artifact -> {

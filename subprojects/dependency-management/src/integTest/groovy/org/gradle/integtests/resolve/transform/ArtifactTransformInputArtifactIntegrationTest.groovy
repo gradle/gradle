@@ -105,7 +105,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b.jar.green, c.jar.green]")
 
         when:
-        executer.withArguments("-PbContent=new")
+        executer.withArguments("-DbContent=new")
         succeeds(":a:resolve")
 
         then: // new content, should run
@@ -114,7 +114,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b.jar.green, c.jar.green]")
 
         when:
-        executer.withArguments("-PbContent=new")
+        executer.withArguments("-DbContent=new")
         succeeds(":a:resolve")
 
         then: // no change, should be up to date
@@ -123,7 +123,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b.jar.green, c.jar.green]")
 
         when:
-        executer.withArguments("-PbContent=new", "-PbOutputDir=out")
+        executer.withArguments("-DbContent=new", "-DbOutputDir=out")
         succeeds(":a:resolve")
 
         then: // path has changed, should run
@@ -132,7 +132,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b.jar.green, c.jar.green]")
 
         when:
-        executer.withArguments("-PbContent=new", "-PbOutputDir=out")
+        executer.withArguments("-DbContent=new", "-DbOutputDir=out")
         succeeds(":a:resolve")
 
         then: // no change, should be up to date
@@ -141,7 +141,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b.jar.green, c.jar.green]")
 
         when:
-        executer.withArguments("-PbContent=new", "-PbOutputDir=out", "-PbFileName=b-blue.jar")
+        executer.withArguments("-DbContent=new", "-DbOutputDir=out", "-DbFileName=b-blue.jar")
         succeeds(":a:resolve")
 
         then: // new file name, should run
@@ -150,7 +150,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b-blue.jar.green, c.jar.green]")
 
         when:
-        executer.withArguments("-PbContent=new", "-PbOutputDir=out", "-PbFileName=b-blue.jar")
+        executer.withArguments("-DbContent=new", "-DbOutputDir=out", "-DbFileName=b-blue.jar")
         succeeds(":a:resolve")
 
         then: // no change, should be up to date
@@ -222,7 +222,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b-dir.green, c-dir.green]")
 
         when:
-        executer.withArguments("-PbName=new")
+        executer.withArguments("-DbName=new")
         succeeds(":a:resolve")
 
         then: // directory content has changed (file renamed)
@@ -231,7 +231,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b-dir.green, c-dir.green]")
 
         when:
-        executer.withArguments("-PbName=new")
+        executer.withArguments("-DbName=new")
         succeeds(":a:resolve")
 
         then: // no change, should be up-to-date
@@ -240,7 +240,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b-dir.green, c-dir.green]")
 
         when:
-        executer.withArguments("-PbName=new", "-PbContent=new")
+        executer.withArguments("-DbName=new", "-DbContent=new")
         succeeds(":a:resolve")
 
         then: // directory content has changed (file contents changed)
@@ -249,7 +249,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b-dir.green, c-dir.green]")
 
         when:
-        executer.withArguments("-PbName=new", "-PbContent=new")
+        executer.withArguments("-DbName=new", "-DbContent=new")
         succeeds(":a:resolve")
 
         then: // no change, should be up-to-date
@@ -258,7 +258,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b-dir.green, c-dir.green]")
 
         when:
-        executer.withArguments("-PbName=new", "-PbContent=new", "-PbDirName=b-blue")
+        executer.withArguments("-DbName=new", "-DbContent=new", "-DbDirName=b-blue")
         succeeds(":a:resolve")
 
         then: // directory name has changed
@@ -267,7 +267,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b-blue.green, c-dir.green]")
 
         when:
-        executer.withArguments("-PbName=new", "-PbContent=new", "-PbDirName=b-blue")
+        executer.withArguments("-DbName=new", "-DbContent=new", "-DbDirName=b-blue")
         succeeds(":a:resolve")
 
         then: // no change, should be up-to-date
@@ -276,7 +276,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b-blue.green, c-dir.green]")
 
         when:
-        executer.withArguments("-PbName=new", "-PbContent=new", "-PbDirName=b-blue", "-PbOutputDir=out")
+        executer.withArguments("-DbName=new", "-DbContent=new", "-DbDirName=b-blue", "-DbOutputDir=out")
         succeeds(":a:resolve")
 
         then: // directory path has changed
@@ -284,7 +284,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         transformed("b-blue")
 
         when:
-        executer.withArguments("-PbName=new", "-PbContent=new", "-PbDirName=b-blue", "-PbOutputDir=out")
+        executer.withArguments("-DbName=new", "-DbContent=new", "-DbDirName=b-blue", "-DbOutputDir=out")
         succeeds(":a:resolve")
 
         then: // no change, should be up-to-date
@@ -353,7 +353,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b.jar.green, c.jar.green]")
 
         when:
-        succeeds(":a:resolve", "-PbContent=")
+        succeeds(":a:resolve", "-DbContent=")
 
         then: // file is missing, should run
         result.assertTasksNotSkipped(":b:producer", ":a:resolve")
@@ -444,7 +444,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b.green, c.green]")
 
         when:
-        executer.withArguments("-PbOutputDir=out")
+        executer.withArguments("-DbOutputDir=out")
         withBuildCache().succeeds(":a:resolve")
 
         then: // path has changed, but should be up to date
@@ -453,7 +453,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b.green, c.green]")
 
         when:
-        executer.withArguments("-PbOutputDir=out", "-PbFileName=b-blue.jar")
+        executer.withArguments("-DbOutputDir=out", "-DbFileName=b-blue.jar")
         withBuildCache().succeeds(":a:resolve")
 
         then: // name has changed, but should be up to date
@@ -462,7 +462,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b.green, c.green]")
 
         when:
-        withBuildCache().executer.withArguments("-PbOutputDir=out", "-PbFileName=b-blue.jar", "-PbContent=b-new")
+        withBuildCache().executer.withArguments("-DbOutputDir=out", "-DbFileName=b-blue.jar", "-DbContent=b-new")
         succeeds(":a:resolve")
 
         then: // new content, should run
@@ -471,7 +471,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b-new.green, c.green]")
 
         when:
-        withBuildCache().executer.withArguments("-PbOutputDir=out", "-PbFileName=b-blue.jar", "-PbContent=b-new")
+        withBuildCache().executer.withArguments("-DbOutputDir=out", "-DbFileName=b-blue.jar", "-DbContent=b-new")
         succeeds(":a:resolve")
 
         then: // no change, should be up to date
@@ -525,7 +525,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b-dir.green, c-dir.green]")
 
         when:
-        executer.withArguments("-PbOutputDir=out")
+        executer.withArguments("-DbOutputDir=out")
         withBuildCache().succeeds(":a:resolve")
 
         then: // path has changed, but should be up to date
@@ -534,7 +534,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b-dir.green, c-dir.green]")
 
         when:
-        executer.withArguments("-PbOutputDir=out", "-PbDirName=b-blue")
+        executer.withArguments("-DbOutputDir=out", "-DbDirName=b-blue")
         withBuildCache().succeeds(":a:resolve")
 
         then: // name has changed, but should be up to date
@@ -543,7 +543,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b-dir.green, c-dir.green]")
 
         when:
-        executer.withArguments("-PbOutputDir=out", "-PbDirName=b-blue", "-PbContent=new")
+        executer.withArguments("-DbOutputDir=out", "-DbDirName=b-blue", "-DbContent=new")
         withBuildCache().succeeds(":a:resolve")
 
         then: // new content, should run
@@ -552,7 +552,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b-blue.green, c-dir.green]")
 
         when:
-        executer.withArguments("-PbOutputDir=out", "-PbDirName=b-blue", "-PbContent=new")
+        executer.withArguments("-DbOutputDir=out", "-DbDirName=b-blue", "-DbContent=new")
         withBuildCache().succeeds(":a:resolve")
 
         then: // no change, should be up to date
@@ -561,7 +561,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b-blue.green, c-dir.green]")
 
         when:
-        executer.withArguments("-PbOutputDir=out", "-PbDirName=b-blue", "-PbContent=new", "-PbName=new")
+        executer.withArguments("-DbOutputDir=out", "-DbDirName=b-blue", "-DbContent=new", "-DbName=new")
         withBuildCache().succeeds(":a:resolve")
 
         then: // new content (renamed file), should run
@@ -616,7 +616,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b.jar.green, c.jar.green]")
 
         when:
-        executer.withArguments("-PbOutputDir=out")
+        executer.withArguments("-DbOutputDir=out")
         withBuildCache().succeeds(":a:resolve")
 
         then: // path has changed, but should be up to date
@@ -625,7 +625,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b.jar.green, c.jar.green]")
 
         when:
-        executer.withArguments("-PbOutputDir=out", "-PbFileName=b-blue.jar")
+        executer.withArguments("-DbOutputDir=out", "-DbFileName=b-blue.jar")
         withBuildCache().succeeds(":a:resolve")
 
         then: // name has changed, should run
@@ -634,7 +634,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b-blue.jar.green, c.jar.green]")
 
         when:
-        executer.withArguments("-PbOutputDir=out", "-PbFileName=b-blue.jar", "-PbContent=new")
+        executer.withArguments("-DbOutputDir=out", "-DbFileName=b-blue.jar", "-DbContent=new")
         withBuildCache().succeeds(":a:resolve")
 
         then: // new content, should run
@@ -643,7 +643,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b-blue.jar.green, c.jar.green]")
 
         when:
-        executer.withArguments("-PbOutputDir=out", "-PbFileName=b-blue.jar", "-PbContent=new")
+        executer.withArguments("-DbOutputDir=out", "-DbFileName=b-blue.jar", "-DbContent=new")
         withBuildCache().succeeds(":a:resolve")
 
         then: // no change, should be up to date
@@ -699,7 +699,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b-dir.green, c-dir.green]")
 
         when:
-        executer.withArguments("-PbOutputDir=out")
+        executer.withArguments("-DbOutputDir=out")
         succeeds(":a:resolve")
 
         then: // path has changed, but path is baked into workspace identity
@@ -708,7 +708,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b-dir.green, c-dir.green]")
 
         when:
-        executer.withArguments("-PbOutputDir=out", "-PbDirName=b-blue")
+        executer.withArguments("-DbOutputDir=out", "-DbDirName=b-blue")
         succeeds(":a:resolve")
 
         then: // name has changed, but path is baked into workspace identity
@@ -717,7 +717,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b-blue.green, c-dir.green]")
 
         when:
-        executer.withArguments("-PbOutputDir=out", "-PbDirName=b-blue", "-PbContent=new")
+        executer.withArguments("-DbOutputDir=out", "-DbDirName=b-blue", "-DbContent=new")
         succeeds(":a:resolve")
 
         then: // new content, should run
@@ -726,7 +726,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b-blue.green, c-dir.green]")
 
         when:
-        executer.withArguments("-PbOutputDir=out", "-PbDirName=b-blue", "-PbContent=new")
+        executer.withArguments("-DbOutputDir=out", "-DbDirName=b-blue", "-DbContent=new")
         succeeds(":a:resolve")
 
         then: // no change, should be up to date
@@ -735,7 +735,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b-blue.green, c-dir.green]")
 
         when:
-        executer.withArguments("-PbOutputDir=out", "-PbDirName=b-blue", "-PbContent=new", "-PbName=new")
+        executer.withArguments("-DbOutputDir=out", "-DbDirName=b-blue", "-DbContent=new", "-DbName=new")
         succeeds(":a:resolve")
 
         then: // new content (renamed file), should not run
@@ -789,7 +789,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b-dir.green, c-dir.green]")
 
         when:
-        executer.withArguments("-PbOutputDir=out")
+        executer.withArguments("-DbOutputDir=out")
         withBuildCache().succeeds(":a:resolve")
 
         then: // path has changed, should be up to date
@@ -798,7 +798,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b-dir.green, c-dir.green]")
 
         when:
-        executer.withArguments("-PbOutputDir=out", "-PbDirName=b-blue")
+        executer.withArguments("-DbOutputDir=out", "-DbDirName=b-blue")
         withBuildCache().succeeds(":a:resolve")
 
         then: // name has changed, should be up to date
@@ -807,7 +807,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b-dir.green, c-dir.green]")
 
         when:
-        executer.withArguments("-PbOutputDir=out", "-PbDirName=b-blue", "-PbContent=new")
+        executer.withArguments("-DbOutputDir=out", "-DbDirName=b-blue", "-DbContent=new")
         withBuildCache().succeeds(":a:resolve")
 
         then: // new content, should run
@@ -816,7 +816,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b-blue.green, c-dir.green]")
 
         when:
-        executer.withArguments("-PbOutputDir=out", "-PbDirName=b-blue", "-PbContent=new")
+        executer.withArguments("-DbOutputDir=out", "-DbDirName=b-blue", "-DbContent=new")
         withBuildCache().succeeds(":a:resolve")
 
         then: // no change, should be up to date
@@ -825,7 +825,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b-blue.green, c-dir.green]")
 
         when:
-        executer.withArguments("-PbOutputDir=out", "-PbDirName=b-blue", "-PbContent=new", "-PbName=new")
+        executer.withArguments("-DbOutputDir=out", "-DbDirName=b-blue", "-DbContent=new", "-DbName=new")
         withBuildCache().succeeds(":a:resolve")
 
         then: // new content (renamed file), should not run
@@ -1044,7 +1044,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b.jar.green, c.jar.green]")
 
         when:
-        executer.withArguments("-PbContent=new")
+        executer.withArguments("-DbContent=new")
         succeeds(":a:resolve")
 
         then: // new content, should run
@@ -1053,7 +1053,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b.jar.green, c.jar.green]")
 
         when:
-        executer.withArguments("-PbContent=new")
+        executer.withArguments("-DbContent=new")
         succeeds(":a:resolve")
 
         then: // no change, should be up to date
@@ -1062,7 +1062,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b.jar.green, c.jar.green]")
 
         when:
-        executer.withArguments("-PbContent=new", "-PbTimestamp=567")
+        executer.withArguments("-DbContent=new", "-DbTimestamp=567")
         succeeds(":a:resolve")
 
         then: // timestamp change only, should not run
@@ -1071,7 +1071,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b.jar.green, c.jar.green]")
 
         when:
-        executer.withArguments("-PbContent=new", "-PbTimestamp=567", "-PbOutputDir=out")
+        executer.withArguments("-DbContent=new", "-DbTimestamp=567", "-DbOutputDir=out")
         succeeds(":a:resolve")
 
         then: // path has changed, but path is baked into workspace identity
@@ -1080,7 +1080,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b.jar.green, c.jar.green]")
 
         when:
-        executer.withArguments("-PbContent=new", "-PbTimestamp=567", "-PbOutputDir=out", "-PbFileName=b-blue.jar")
+        executer.withArguments("-DbContent=new", "-DbTimestamp=567", "-DbOutputDir=out", "-DbFileName=b-blue.jar")
         succeeds(":a:resolve")
 
         then: // new file name, but path is baked into workspace identity
@@ -1144,7 +1144,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b.jar.green, c.jar.green]")
 
         when:
-        executer.withArguments("-PbContent=new")
+        executer.withArguments("-DbContent=new")
         withBuildCache().succeeds(":a:resolve")
 
         then: // new content, should run
@@ -1153,7 +1153,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b.jar.green, c.jar.green]")
 
         when:
-        executer.withArguments("-PbContent=new")
+        executer.withArguments("-DbContent=new")
         withBuildCache().succeeds(":a:resolve")
 
         then: // no change, should be up to date
@@ -1162,7 +1162,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b.jar.green, c.jar.green]")
 
         when:
-        executer.withArguments("-PbContent=new", "-PbTimestamp=567")
+        executer.withArguments("-DbContent=new", "-DbTimestamp=567")
         withBuildCache().succeeds(":a:resolve")
 
         then: // timestamp change only, should not run
@@ -1171,7 +1171,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b.jar.green, c.jar.green]")
 
         when:
-        executer.withArguments("-PbContent=new", "-PbTimestamp=567", "-PbOutputDir=out")
+        executer.withArguments("-DbContent=new", "-DbTimestamp=567", "-DbOutputDir=out")
         withBuildCache().succeeds(":a:resolve")
 
         then: // path has changed, should not run
@@ -1180,7 +1180,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b.jar.green, c.jar.green]")
 
         when:
-        executer.withArguments("-PbContent=new", "-PbTimestamp=567", "-PbOutputDir=out", "-PbFileName=b-blue.jar")
+        executer.withArguments("-DbContent=new", "-DbTimestamp=567", "-DbOutputDir=out", "-DbFileName=b-blue.jar")
         withBuildCache().succeeds(":a:resolve")
 
         then: // new file name, should not run
@@ -1233,7 +1233,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         """
 
         when:
-        executer.withArguments("-PbEntryName=ignored.txt")
+        executer.withArguments("-DbEntryName=ignored.txt")
         run(":a:resolve")
 
         then:
@@ -1242,7 +1242,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b.jar.green, c.jar.green]")
 
         when:
-        executer.withArguments("-PbEntryName=ignored.txt", "-PbContent=different")
+        executer.withArguments("-DbEntryName=ignored.txt", "-DbContent=different")
         run(":a:resolve")
 
         then: // change is ignored due to normalization
@@ -1281,7 +1281,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         """
 
         when:
-        executer.withArguments("-PbEmptyDir")
+        executer.withArguments("-DbEmptyDir")
         run(":a:resolve")
 
         then:

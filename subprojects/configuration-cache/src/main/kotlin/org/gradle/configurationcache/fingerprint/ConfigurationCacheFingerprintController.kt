@@ -268,6 +268,9 @@ class ConfigurationCacheFingerprintController internal constructor(
         override val gradleUserHomeDir: File
             get() = startParameter.gradleUserHomeDir
 
+        override val startParameterProperties: Map<String, Any?>
+            get() = startParameter.gradleProperties
+
         override val allInitScripts: List<File>
             get() = startParameter.allInitScripts
 
@@ -279,6 +282,9 @@ class ConfigurationCacheFingerprintController internal constructor(
 
         override fun hashCodeOf(file: File) =
             fileSystemAccess.hashCodeOf(file)
+
+        override fun displayNameOf(file: File): String =
+            GFileUtils.relativePathOf(file, rootDirectory)
 
         override fun fingerprintOf(fileCollection: FileCollectionInternal): HashCode =
             fileCollectionFingerprinter.fingerprint(fileCollection).hash
@@ -304,6 +310,9 @@ class ConfigurationCacheFingerprintController internal constructor(
         override val allInitScripts: List<File>
             get() = startParameter.allInitScripts
 
+        override val startParameterProperties: Map<String, Any?>
+            get() = startParameter.gradleProperties
+
         override val buildStartTime: Long
             get() = buildCommencedTimeProvider.currentTime
 
@@ -325,9 +334,9 @@ class ConfigurationCacheFingerprintController internal constructor(
                 obtainedValue.valueSourceParametersType,
                 obtainedValue.valueSourceParameters
             )
-
-        private
-        val rootDirectory
-            get() = startParameter.rootDirectory
     }
+
+    private
+    val rootDirectory
+        get() = startParameter.rootDirectory
 }

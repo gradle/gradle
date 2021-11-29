@@ -83,7 +83,7 @@ enum class Os(
 
     fun escapeKeyValuePair(key: String, value: String) = if (this == WINDOWS) """$key="$value"""" else """"$key=$value""""
 
-    fun asName() = name.toLowerCase().capitalize()
+    fun asName() = name.lowercase().toCapitalized()
 
     fun javaInstallationLocations(): String {
         val paths = enumValues<JvmVersion>().joinToString(",") { version ->

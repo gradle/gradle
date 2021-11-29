@@ -15,6 +15,8 @@
  */
 package org.gradle.api.reporting;
 
+import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
+import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
@@ -51,11 +53,12 @@ public class ReportingExtension {
 
     private final ProjectInternal project;
     private final DirectoryProperty baseDirectory;
-
+    private final ExtensiblePolymorphicDomainObjectContainer<ReportSpec> reports;
 
     public ReportingExtension(Project project) {
         this.project = (ProjectInternal)project;
         this.baseDirectory = project.getObjects().directoryProperty();
+        this.reports = project.getObjects().polymorphicDomainObjectContainer(ReportSpec.class);
         baseDirectory.set(project.getLayout().getBuildDirectory().dir(DEFAULT_REPORTS_DIR_NAME));
     }
 
@@ -129,4 +132,14 @@ public class ReportingExtension {
         }
     }
 
+    /**
+     * Container for aggregation reports, which may be configured automatically in reaction to the presence of the jvm-test-suite plugin.
+     *
+     * @return A container of known aggregation reports
+     * @since 7.4
+     */
+    @Incubating
+    public ExtensiblePolymorphicDomainObjectContainer<ReportSpec> getReports() {
+        return reports;
+    }
 }

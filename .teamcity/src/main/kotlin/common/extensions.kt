@@ -21,6 +21,7 @@ import configurations.buildScanCustomValue
 import configurations.buildScanTag
 import configurations.checkCleanAndroidUserHomeScriptUnixLike
 import configurations.checkCleanAndroidUserHomeScriptWindows
+import configurations.enablePullRequestFeature
 import configurations.m2CleanScriptUnixLike
 import configurations.m2CleanScriptWindows
 import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
@@ -38,6 +39,7 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.script
 import jetbrains.buildServer.configs.kotlin.v2019_2.failureConditions.BuildFailureOnText
 import jetbrains.buildServer.configs.kotlin.v2019_2.failureConditions.failOnText
 import jetbrains.buildServer.configs.kotlin.v2019_2.ui.add
+import java.util.Locale
 
 fun BuildSteps.customGradle(init: GradleBuildStep.() -> Unit, custom: GradleBuildStep.() -> Unit): GradleBuildStep =
     GradleBuildStep(init)
@@ -89,6 +91,10 @@ fun BuildType.applyDefaultSettings(os: Os = Os.LINUX, buildJvm: Jvm = BuildToolB
         root(AbsoluteId("Gradle_Branches_GradlePersonalBranches"))
         checkoutMode = CheckoutMode.ON_AGENT
         branchFilter = branchesFilterExcluding()
+    }
+
+    features {
+        enablePullRequestFeature()
     }
 
     requirements {
@@ -203,10 +209,10 @@ fun BuildType.killProcessStep(stepName: String, daemon: Boolean) {
             name = stepName
             executionMode = BuildStep.ExecutionMode.ALWAYS
             tasks = "killExistingProcessesStartedByGradle"
-            gradleParams = (
-                buildToolGradleParameters(daemon) +
-                    "-DpublishStrategy=publishOnFailure" // https://github.com/gradle/gradle-enterprise-conventions-plugin/pull/8
-                ).joinToString(separator = " ")
+            gradleParams =
+                buildToolGradleParameters(daemon).joinToString(separator = " ")
         }
     }
 }
+
+fun String.toCapitalized() = this.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }

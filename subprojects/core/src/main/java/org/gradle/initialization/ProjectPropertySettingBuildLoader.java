@@ -20,10 +20,10 @@ import org.gradle.api.Project;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.properties.GradleProperties;
-import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.gradle.internal.Pair;
 import org.gradle.internal.reflect.JavaPropertyReflectionUtil;
 import org.gradle.internal.reflect.PropertyMutator;
+import org.gradle.internal.resource.local.FileResourceListener;
 import org.gradle.util.internal.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,17 +41,20 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
     private static final Logger LOGGER = LoggerFactory.getLogger(ProjectPropertySettingBuildLoader.class);
 
     private final GradleProperties gradleProperties;
+    private final FileResourceListener fileResourceListener;
     private final BuildLoader buildLoader;
 
-    public ProjectPropertySettingBuildLoader(GradleProperties gradleProperties, BuildLoader buildLoader) {
+    public ProjectPropertySettingBuildLoader(GradleProperties gradleProperties, BuildLoader buildLoader, FileResourceListener fileResourceListener) {
         this.buildLoader = buildLoader;
         this.gradleProperties = gradleProperties;
+        this.fileResourceListener = fileResourceListener;
     }
 
     @Override
     public void load(SettingsInternal settings, GradleInternal gradle) {
         buildLoader.load(settings, gradle);
-        setProjectProperties(gradle.getRootProject(), new CachingPropertyApplicator());
+        Project rootProject = gradle.getRootProject();
+        setProjectProperties(rootProject, new CachingPropertyApplicator(rootProject.getClass()));
     }
 
     private void setProjectProperties(Project project, CachingPropertyApplicator applicator) {
@@ -64,6 +67,7 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
     private void addPropertiesToProject(Project project, CachingPropertyApplicator applicator) {
         File projectPropertiesFile = new File(project.getProjectDir(), Project.GRADLE_PROPERTIES);
         LOGGER.debug("Looking for project properties from: {}", projectPropertiesFile);
+        fileResourceListener.fileObserved(projectPropertiesFile);
         if (projectPropertiesFile.isFile()) {
             Properties projectProperties = GUtil.loadProperties(projectPropertiesFile);
             LOGGER.debug("Adding project properties (if not overwritten by user properties): {}",
@@ -89,29 +93,36 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
      * to avoid too many searches.
      */
     private static class CachingPropertyApplicator {
-        private Class<? extends Project> projectClazz;
+        private final Class<? extends Project> projectClass;
         private final Map<Pair<String, ? extends Class<?>>, PropertyMutator> mutators = newHashMap();
+
+        CachingPropertyApplicator(Class<? extends Project> projectClass) {
+            this.projectClass = projectClass;
+        }
 
         void configureProperty(Project project, String name, @Nullable Object value) {
             if (isPossibleProperty(name)) {
-                Class<? extends Project> clazz = project.getClass();
-                if (clazz != projectClazz) {
-                    mutators.clear();
-                    projectClazz = clazz;
-                }
-                Class<?> valueType = value == null ? null : value.getClass();
-                PropertyMutator propertyMutator = propertyMutatorOf(clazz, name, valueType);
+                assert project.getClass() == projectClass;
+                PropertyMutator propertyMutator = propertyMutatorFor(name, typeOf(value));
                 if (propertyMutator != null) {
                     propertyMutator.setValue(project, value);
-                    return;
+                } else {
+                    setExtraPropertyOf(project, name, value);
                 }
-                ExtraPropertiesExtension extraProperties = project.getExtensions().getExtraProperties();
-                extraProperties.set(name, value);
             }
         }
 
+        private void setExtraPropertyOf(Project project, String name, @Nullable Object value) {
+            project.getExtensions().getExtraProperties().set(name, value);
+        }
+
         @Nullable
-        private PropertyMutator propertyMutatorOf(Class<? extends Project> clazz, String propertyName, @Nullable Class<?> valueType) {
+        private Class<?> typeOf(@Nullable Object value) {
+            return value == null ? null : value.getClass();
+        }
+
+        @Nullable
+        private PropertyMutator propertyMutatorFor(String propertyName, @Nullable Class<?> valueType) {
             final Pair<String, ? extends Class<?>> key = Pair.of(propertyName, valueType);
             final PropertyMutator cached = mutators.get(key);
             if (cached != null) {
@@ -120,7 +131,7 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
             if (mutators.containsKey(key)) {
                 return null;
             }
-            final PropertyMutator mutator = JavaPropertyReflectionUtil.writeablePropertyIfExists(clazz, propertyName, valueType);
+            final PropertyMutator mutator = JavaPropertyReflectionUtil.writeablePropertyIfExists(projectClass, propertyName, valueType);
             mutators.put(key, mutator);
             return mutator;
         }
