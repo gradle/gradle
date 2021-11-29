@@ -102,6 +102,9 @@ typealias Encoding = EncodingProvider<Any>
 typealias Decoding = DecodingProvider<Any>
 
 
+/**
+ * An immutable set of bindings, from which a [Codec] can be created.
+ */
 internal
 class Bindings(
     private val bindings: List<Binding>

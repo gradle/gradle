@@ -26,7 +26,8 @@ import org.gradle.configurationcache.serialization.DefaultReadContext
 import org.gradle.configurationcache.serialization.DefaultWriteContext
 import org.gradle.configurationcache.serialization.LoggingTracer
 import org.gradle.configurationcache.serialization.Tracer
-import org.gradle.configurationcache.serialization.beans.BeanConstructors
+import org.gradle.configurationcache.serialization.beans.BeanStateReaderLookup
+import org.gradle.configurationcache.serialization.beans.BeanStateWriterLookup
 import org.gradle.configurationcache.serialization.codecs.Codecs
 import org.gradle.configurationcache.serialization.readCollection
 import org.gradle.configurationcache.serialization.readFile
@@ -57,7 +58,8 @@ class ConfigurationCacheIO internal constructor(
     private val host: DefaultConfigurationCache.Host,
     private val problems: ConfigurationCacheProblems,
     private val scopeRegistryListener: ConfigurationCacheClassLoaderScopeRegistryListener,
-    private val beanConstructors: BeanConstructors
+    private val beanStateReaderLookup: BeanStateReaderLookup,
+    private val beanStateWriterLookup: BeanStateWriterLookup
 ) {
     private
     val codecs = codecs()
@@ -259,6 +261,7 @@ class ConfigurationCacheIO internal constructor(
         codecs.userTypesCodec(),
         encoder,
         scopeRegistryListener,
+        beanStateWriterLookup,
         logger,
         tracer,
         problems
@@ -271,8 +274,7 @@ class ConfigurationCacheIO internal constructor(
     ) = DefaultReadContext(
         codecs.userTypesCodec(),
         decoder,
-        service(),
-        beanConstructors,
+        beanStateReaderLookup,
         logger,
         problems
     )

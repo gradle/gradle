@@ -107,8 +107,7 @@ class DefaultConfigurationCache internal constructor(
     val projectMetadata = lazy { ProjectMetadataController(host, cacheIO, store) }
 
     private
-    val cacheIO: ConfigurationCacheIO
-        get() = host.service()
+    val cacheIO by lazy { host.service<ConfigurationCacheIO>() }
 
     private
     val gradlePropertiesController: GradlePropertiesController
