@@ -144,11 +144,11 @@
             <artifactId>fastjson</artifactId>
             <version>1.2.76</version>
         </dependency>
-<!--        <dependency>-->
-<!--            <groupId>org.jetbrains.teamcity</groupId>-->
-<!--            <artifactId>server-api</artifactId>-->
-<!--            <version>${teamcity.dsl.version}</version>-->
-<!--        </dependency>-->
+        <dependency>
+            <groupId>org.jetbrains.teamcity</groupId>
+            <artifactId>server-api</artifactId>
+            <version>${teamcity.dsl.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.jetbrains.teamcity</groupId>
             <artifactId>configs-dsl-kotlin</artifactId>
