@@ -122,6 +122,7 @@ public class WatchableHierarchies {
         return newRoot;
     }
 
+    @CheckReturnValue
     private SnapshotHierarchy removeUnwatchedSnapshots(SnapshotHierarchy root, Invalidator invalidator) {
         RemoveUnwatchedFiles removeUnwatchedFilesVisitor = new RemoveUnwatchedFiles(root, invalidator);
         root.rootSnapshots()
@@ -129,6 +130,7 @@ public class WatchableHierarchies {
         return removeUnwatchedFilesVisitor.getRootWithUnwatchedFilesRemoved();
     }
 
+    @CheckReturnValue
     private SnapshotHierarchy removeWatchedHierarchiesOverLimit(SnapshotHierarchy root, Predicate<File> isWatchedHierarchy, int maximumNumberOfWatchedHierarchies, Invalidator invalidator) {
         hierarchies.removeIf(hierarchy -> !isWatchedHierarchy.test(hierarchy));
         SnapshotHierarchy result = root;
@@ -153,6 +155,7 @@ public class WatchableHierarchies {
             .reduce(FileHierarchySet.empty(), FileHierarchySet::plus, Combiners.nonCombining());
     }
 
+    @CheckReturnValue
     private SnapshotHierarchy removeUnwatchableFileSystems(SnapshotHierarchy root, Invalidator invalidator) {
         SnapshotHierarchy invalidatedRoot = invalidateUnsupportedFileSystems(root, invalidator);
         if (invalidatedRoot != root) {
@@ -163,6 +166,7 @@ public class WatchableHierarchies {
         return invalidatedRoot;
     }
 
+    @CheckReturnValue
     public SnapshotHierarchy removeUnwatchableContentOnBuildStart(SnapshotHierarchy root, Invalidator invalidator, WatchMode watchMode) {
         SnapshotHierarchy newRoot = root;
         newRoot = removeUnprovenHierarchies(newRoot, invalidator, watchMode);
@@ -183,6 +187,7 @@ public class WatchableHierarchies {
             }, nonCombining());
     }
 
+    @CheckReturnValue
     private SnapshotHierarchy invalidateUnsupportedFileSystems(SnapshotHierarchy root, Invalidator invalidator) {
         try {
             return watchableFileSystemDetector.detectUnsupportedFileSystems()
