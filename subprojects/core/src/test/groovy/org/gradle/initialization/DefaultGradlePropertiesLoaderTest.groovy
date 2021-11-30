@@ -40,8 +40,8 @@ class DefaultGradlePropertiesLoaderTest extends Specification {
     private File gradleUserHomeDir
     private File settingsDir
     private File gradleInstallationHomeDir
-    private Map<String, String> systemProperties = emptyMap()
-    private Map<String, String> environmentVariables = emptyMap()
+    private Map<String, String> prefixedSystemProperties = emptyMap()
+    private Map<String, String> prefixedEnvironmentVariables = emptyMap()
     private Map<String, String> systemPropertiesArgs = emptyMap()
     private Map<String, String> projectPropertiesArgs = emptyMap()
 
@@ -58,6 +58,12 @@ class DefaultGradlePropertiesLoaderTest extends Specification {
         _ * startParameter.gradleHomeDir >> gradleInstallationHomeDir
         _ * startParameter.projectProperties >> { projectPropertiesArgs }
         _ * startParameter.systemPropertiesArgs >> { systemPropertiesArgs }
+        _ * environment.systemProperties >> Mock(Environment.Properties) {
+            _ * it.byNamePrefix(_) >> { prefixedSystemProperties }
+        }
+        _ * environment.variables >> Mock(Environment.Properties) {
+            _ * it.byNamePrefix(_) >> { prefixedEnvironmentVariables }
+        }
     }
 
     private static File fromDir(File dir) {
@@ -105,9 +111,8 @@ class DefaultGradlePropertiesLoaderTest extends Specification {
 
     def mergeAddsPropertiesFromEnvironmentVariablesWithPrefix() {
         given:
-        environmentVariables = [
-            (ENV_PROJECT_PROPERTIES_PREFIX + "envProp"): "env value",
-            "ignoreMe": "ignored"
+        prefixedEnvironmentVariables = [
+            (ENV_PROJECT_PROPERTIES_PREFIX + "envProp"): "env value"
         ]
 
         when:
@@ -119,9 +124,8 @@ class DefaultGradlePropertiesLoaderTest extends Specification {
 
     def mergeAddsPropertiesFromSystemPropertiesWithPrefix() {
         given:
-        systemProperties = [
-            (SYSTEM_PROJECT_PROPERTIES_PREFIX + "systemProp"): "system value",
-            "ignoreMe": "ignored"
+        prefixedSystemProperties = [
+            (SYSTEM_PROJECT_PROPERTIES_PREFIX + "systemProp"): "system value"
         ]
 
         when:
@@ -195,7 +199,7 @@ class DefaultGradlePropertiesLoaderTest extends Specification {
         given:
         1 * environment.propertiesFile(fromDir(gradleUserHomeDir)) >> ["prop": "user value"]
         1 * environment.propertiesFile(fromDir(settingsDir)) >> ["prop": "settings value"]
-        environmentVariables = [(ENV_PROJECT_PROPERTIES_PREFIX + "prop"): "env value"]
+        prefixedEnvironmentVariables = [(ENV_PROJECT_PROPERTIES_PREFIX + "prop"): "env value"]
         def projectProperties = ["prop": "project value"]
 
         when:
@@ -209,8 +213,8 @@ class DefaultGradlePropertiesLoaderTest extends Specification {
         given:
         1 * environment.propertiesFile(fromDir(gradleUserHomeDir)) >> ["prop": "user value"]
         1 * environment.propertiesFile(fromDir(settingsDir)) >> ["prop": "settings value"]
-        environmentVariables = [(ENV_PROJECT_PROPERTIES_PREFIX + "prop"): "env value"]
-        systemProperties = [(SYSTEM_PROJECT_PROPERTIES_PREFIX + "prop"): "system value"]
+        prefixedEnvironmentVariables = [(ENV_PROJECT_PROPERTIES_PREFIX + "prop"): "env value"]
+        prefixedSystemProperties = [(SYSTEM_PROJECT_PROPERTIES_PREFIX + "prop"): "system value"]
         def projectProperties = ["prop": "project value"]
 
         when:
@@ -225,8 +229,8 @@ class DefaultGradlePropertiesLoaderTest extends Specification {
         1 * environment.propertiesFile(fromDir(gradleUserHomeDir)) >> ["prop": "user value"]
         1 * environment.propertiesFile(fromDir(settingsDir)) >> ["prop": "settings value"]
         projectPropertiesArgs = ["prop": "param value"]
-        environmentVariables = [(ENV_PROJECT_PROPERTIES_PREFIX + "prop"): "env value"]
-        systemProperties = [(SYSTEM_PROJECT_PROPERTIES_PREFIX + "prop"): "system value"]
+        prefixedEnvironmentVariables = [(ENV_PROJECT_PROPERTIES_PREFIX + "prop"): "env value"]
+        prefixedSystemProperties = [(SYSTEM_PROJECT_PROPERTIES_PREFIX + "prop"): "system value"]
         def projectProperties = ["prop": "project value"]
 
         when:
@@ -311,7 +315,7 @@ class DefaultGradlePropertiesLoaderTest extends Specification {
         1 * environment.propertiesFile(fromDir(gradleUserHomeDir)) >> ["systemProp.prop": "user value"]
         1 * environment.propertiesFile(fromDir(settingsDir)) >> ["systemProp.prop": "settings value"]
         systemPropertiesArgs = ["prop": "commandline value"]
-        systemProperties = ["prop": "system value"]
+        prefixedSystemProperties = [:]
 
         when:
         loadProperties()
@@ -329,10 +333,6 @@ class DefaultGradlePropertiesLoaderTest extends Specification {
     }
 
     private GradleProperties loadPropertiesFrom(File settingsDir) {
-        return gradlePropertiesLoader.loadProperties(
-            settingsDir,
-            systemProperties,
-            environmentVariables
-        )
+        return gradlePropertiesLoader.loadProperties(settingsDir)
     }
 }

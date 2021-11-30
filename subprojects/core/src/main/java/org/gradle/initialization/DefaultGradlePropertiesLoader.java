@@ -41,12 +41,12 @@ public class DefaultGradlePropertiesLoader implements IGradlePropertiesLoader {
 
     @Override
     public GradleProperties loadGradleProperties(File rootDir) {
-        return loadProperties(rootDir, uncheckedNonnullCast(System.getProperties()), System.getenv());
+        return loadProperties(rootDir);
     }
 
-    GradleProperties loadProperties(File rootDir, Map<String, String> systemProperties, Map<String, String> environmentVariables) {
-        Map<String, String> defaultProperties = new HashMap<>();
-        Map<String, String> overrideProperties = new HashMap<>();
+    GradleProperties loadProperties(File rootDir) {
+        Map<String, Object> defaultProperties = new HashMap<>();
+        Map<String, Object> overrideProperties = new HashMap<>();
 
         addGradlePropertiesFrom(startParameter.getGradleHomeDir(), defaultProperties);
         addGradlePropertiesFrom(rootDir, defaultProperties);
@@ -59,46 +59,37 @@ public class DefaultGradlePropertiesLoader implements IGradlePropertiesLoader {
         setSystemPropertiesFromGradleProperties(overrideProperties);
         System.getProperties().putAll(startParameter.getSystemPropertiesArgs());
 
-        overrideProperties.putAll(projectPropertiesFromEnvironmentVariables(environmentVariables));
-        overrideProperties.putAll(projectPropertiesFromSystemProperties(systemProperties));
+        overrideProperties.putAll(projectPropertiesFromEnvironmentVariables());
+        overrideProperties.putAll(projectPropertiesFromSystemProperties());
         overrideProperties.putAll(startParameter.getProjectProperties());
 
         return new DefaultGradleProperties(defaultProperties, overrideProperties);
     }
 
-    private void addGradlePropertiesFrom(File dir, Map<String, String> target) {
+    private void addGradlePropertiesFrom(File dir, Map<String, Object> target) {
         Map<String, String> propertiesFile = environment.propertiesFile(new File(dir, GRADLE_PROPERTIES));
         if (propertiesFile != null) {
             target.putAll(propertiesFile);
         }
     }
 
-    private Map<String, String> projectPropertiesFromSystemProperties(Map<String, String> systemProperties) {
-        // TODO:configuration-cache collect these system properties as inputs
-        Map<String, String> systemProjectProperties = selectByPrefix(systemProperties, SYSTEM_PROJECT_PROPERTIES_PREFIX);
+    private Map<String, String> projectPropertiesFromSystemProperties() {
+        Map<String, String> systemProjectProperties = byPrefix(SYSTEM_PROJECT_PROPERTIES_PREFIX, environment.getSystemProperties());
         LOGGER.debug("Found system project properties: {}", systemProjectProperties.keySet());
         return systemProjectProperties;
     }
 
-    private Map<String, String> projectPropertiesFromEnvironmentVariables(Map<String, String> environmentVariables) {
-        // TODO:configuration-cache collect these environment variables as inputs
-        Map<String, String> envProjectProperties = selectByPrefix(environmentVariables, ENV_PROJECT_PROPERTIES_PREFIX);
+    private Map<String, String> projectPropertiesFromEnvironmentVariables() {
+        Map<String, String> envProjectProperties = byPrefix(ENV_PROJECT_PROPERTIES_PREFIX, environment.getVariables());
         LOGGER.debug("Found env project properties: {}", envProjectProperties.keySet());
         return envProjectProperties;
     }
 
-    private Map<String, String> selectByPrefix(Map<String, String> properties, String prefix) {
-        Map<String, String> result = new HashMap<>();
-        int prefixLength = prefix.length();
-        for (String key : properties.keySet()) {
-            if (key.length() > prefixLength && key.startsWith(prefix)) {
-                result.put(key.substring(prefixLength), properties.get(key));
-            }
-        }
-        return result;
+    private Map<String, String> byPrefix(String prefix, Environment.Properties properties) {
+        return mapKeysRemovingPrefix(prefix, properties.byNamePrefix(prefix));
     }
 
-    private void setSystemPropertiesFromGradleProperties(Map<String, String> properties) {
+    private void setSystemPropertiesFromGradleProperties(Map<String, Object> properties) {
         if (properties.isEmpty()) {
             return;
         }
@@ -106,8 +97,19 @@ public class DefaultGradlePropertiesLoader implements IGradlePropertiesLoader {
         int prefixLength = prefix.length();
         for (String key : properties.keySet()) {
             if (key.length() > prefixLength && key.startsWith(prefix)) {
-                System.setProperty(key.substring(prefixLength), properties.get(key));
+                System.setProperty(key.substring(prefixLength), uncheckedNonnullCast(properties.get(key)));
             }
         }
+    }
+
+    private static Map<String, String> mapKeysRemovingPrefix(String prefix, Map<String, String> mapWithPrefix) {
+        Map<String, String> mapWithoutPrefix = new HashMap<>(mapWithPrefix.size());
+        for (Map.Entry<String, String> entry : mapWithPrefix.entrySet()) {
+            mapWithoutPrefix.put(
+                entry.getKey().substring(prefix.length()),
+                entry.getValue()
+            );
+        }
+        return mapWithoutPrefix;
     }
 }
