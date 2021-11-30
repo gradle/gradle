@@ -158,13 +158,6 @@ class PluginVariantResolveIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            configurations.archives {
-                attributes {
-                    // Need to disambiguate archives from default, now that they will have (the same) attributes
-                    attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, 'test'))
-                }
-            }
-
             java {
                // make sure we add a sources variant like in the bug report
                // because this is this variant which causes the problem: because there's
