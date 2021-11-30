@@ -66,8 +66,6 @@ The JVM Test Suite Plugin introduces some modeling concepts backed by new APIs. 
 ==== Test Suite ====
 A test suite is a collection of JVM-based tests.
 
-A test suite has a type
-
 ==== Test Suite Target ====
 For the initial release of this plugin, each test suite has a single target.  This results in a 1:1:1 relationship between test suite, test suite target and a matching link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] task.  The name of the `Test` task is derived from the suite name.  Future iterations of the plugin will allow defining multiple targets based other attributes, such as a particular JDK/JRE runtime.
 
@@ -84,7 +82,7 @@ The `Test` task associated with the target inherits its name from the suite.  Ot
 ==== Test Suite Type ====
 Each test suite must be assigned a type.  Types can be used to group related test suites across multiple Gradle projects within a build.
 
-The type of a test suite can be configured using the suites's link:{groovyDslPath}/org.gradle.api.plugins.jvm.JvmTestSuite.html#getTestType[test type property].  The type *must be unique* across all test suites in the same Gradle project.  By convention, the type is set to the name of the test suite, converted to kebab case - with the exception of the built-in test suite, which uses the value link:{groovyDslPath}/org.gradle.api.attributes.TestSuiteType.html#UNIT_TEST['unit-test'].
+The type of a test suite can be configured using the suites's link:{groovyDslPath}/org.gradle.api.plugins.jvm.JvmTestSuite.html#getTestType[test type property].  The type *must be unique* across all test suites in the same Gradle project.  By convention, the type is set to the name of the test suite, converted to dash-case - with the exception of the built-in test suite, which uses the value link:{groovyDslPath}/org.gradle.api.attributes.TestSuiteType.html#UNIT_TEST['unit-test'].
 
 Common values are available as constants in link:{groovyDslPath}/org.gradle.api.attributes.TestSuiteType.html[TestSuiteType].
 
