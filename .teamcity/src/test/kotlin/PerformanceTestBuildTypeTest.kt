@@ -55,7 +55,8 @@ class PerformanceTestBuildTypeTest {
     @Test
     fun `create correct PerformanceTest build type`() {
         val performanceTest = PerformanceTest(
-            buildModel, Stage(
+            buildModel,
+            Stage(
                 StageNames.READY_FOR_MERGE,
                 specificBuilds = listOf(
                     SpecificBuild.BuildDistributions,
@@ -81,7 +82,8 @@ class PerformanceTestBuildTypeTest {
                 "KILL_GRADLE_PROCESSES",
                 "GRADLE_RUNNER",
                 "CHECK_CLEAN_M2_ANDROID_USER_HOME"
-            ), performanceTest.steps.items.map(BuildStep::name)
+            ),
+            performanceTest.steps.items.map(BuildStep::name)
         )
 
         val expectedRunnerParams = listOf(
@@ -105,12 +107,14 @@ class PerformanceTestBuildTypeTest {
         )
 
         assertEquals(
-            (listOf(
-                "clean",
-                ":performance:largeTestProjectPerformanceTest --channel %performance.channel% ",
-                ":performance:smallTestProjectPerformanceTest --channel %performance.channel% ",
-                "extraParameters"
-            ) + expectedRunnerParams).joinToString(" "),
+            (
+                listOf(
+                    "clean",
+                    ":performance:largeTestProjectPerformanceTest --channel %performance.channel% ",
+                    ":performance:smallTestProjectPerformanceTest --channel %performance.channel% ",
+                    "extraParameters"
+                ) + expectedRunnerParams
+                ).joinToString(" "),
             performanceTest.getGradleStep("GRADLE_RUNNER").gradleParams!!.trim()
         )
         assertEquals(BuildStep.ExecutionMode.DEFAULT, performanceTest.getGradleStep("GRADLE_RUNNER").executionMode)

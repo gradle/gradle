@@ -13,10 +13,10 @@ class SanityCheck(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(stage
     }
 
     applyDefaults(
-            model,
-            this,
-            "sanityCheck",
-            extraParameters = "-DenableCodeQuality=true ${buildScanTag("SanityCheck")} " + "-Porg.gradle.java.installations.auto-download=false"
+        model,
+        this,
+        "sanityCheck",
+        extraParameters = "-DenableCodeQuality=true ${buildScanTag("SanityCheck")} " + "-Porg.gradle.java.installations.auto-download=false"
     )
 }) {
     companion object {
