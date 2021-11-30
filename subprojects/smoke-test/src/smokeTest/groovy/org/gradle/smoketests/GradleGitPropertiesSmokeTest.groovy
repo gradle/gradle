@@ -16,6 +16,10 @@
 
 package org.gradle.smoketests
 
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
+
+@Requires(TestPrecondition.JDK11_OR_LATER)
 class GradleGitPropertiesSmokeTest extends AbstractPluginValidatingSmokeTest {
     @Override
     Map<String, Versions> getPluginsToValidate() {
