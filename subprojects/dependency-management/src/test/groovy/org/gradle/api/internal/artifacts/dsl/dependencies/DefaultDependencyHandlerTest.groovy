@@ -42,6 +42,7 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.reflect.TypeOf
 import org.gradle.internal.Factory
+import org.gradle.plugin.use.PluginDependency
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -214,6 +215,34 @@ class DefaultDependencyHandlerTest extends Specification {
         e.message.startsWith('Could not find method someConf() for arguments [] on ')
     }
 
+    void "creates a plugin dependency from map"() {
+        PluginDependency dependency = Mock()
+
+        when:
+        def result = dependencyHandler.plugin([:])
+
+        then:
+        result == dependency
+
+        and:
+        1 * dependencyFactory.createPluginDependency([:]) >> dependency
+    }
+
+    void "creates and configures a plugin from some notation"() {
+        PluginDependency dependency = Mock()
+        Action<PluginDependency> configure = Mock()
+
+        when:
+        def result = dependencyHandler.plugin("someNotation", configure)
+
+        then:
+        result == dependency
+        1 * configure.execute(dependency)
+
+        and:
+        1 * dependencyFactory.createPluginDependency("someNotation") >> dependency
+    }
+
     void "creates a project dependency from map"() {
         ProjectDependency projectDependency = Mock()
 
@@ -336,6 +365,21 @@ class DefaultDependencyHandlerTest extends Specification {
         then:
         1 * dependencyFactory.createDependency(null)
     }
+
+    void "plugin dependencies delegates to parser"() {
+        PluginDependency dependency = Mock()
+        Action<PluginDependency> configure = Mock()
+
+        when:
+        def result = dependencyHandler.plugin("org.test.plugin:0.1.0", configure)
+
+        then:
+        result == dependency
+        1 * configure.execute(dependency)
+
+        and:
+        1 * dependencyFactory.createPluginDependency("org.test.plugin:0.1.0") >> dependency
+   }
 
     void "platform dependencies are endorsing"() {
         ModuleDependency dep1 = new DefaultExternalModuleDependency("org", "platform", "")

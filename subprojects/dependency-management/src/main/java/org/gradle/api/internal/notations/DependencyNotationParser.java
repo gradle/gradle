@@ -42,6 +42,7 @@ import org.gradle.internal.typeconversion.NotationConverterToNotationParserAdapt
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.gradle.internal.typeconversion.TypeConversionException;
+import org.gradle.plugin.use.PluginDependency;
 
 import java.util.Map;
 
@@ -55,7 +56,7 @@ public class DependencyNotationParser {
                                                   Interner<String> stringInterner) {
         NotationConverter<String, ? extends ExternalModuleDependency> stringNotationConverter =
             new DependencyStringNotationConverter<>(instantiator, DefaultExternalModuleDependency.class, stringInterner);
-        NotationConverter<MinimalExternalModuleDependency, ? extends MinimalExternalModuleDependency> minimalExternalDependencyNotationConverter =
+        MinimalExternalDependencyNotationConverter minimalExternalDependencyNotationConverter =
             new MinimalExternalDependencyNotationConverter(instantiator);
         MapNotationConverter<? extends ExternalModuleDependency> mapNotationConverter =
             new DependencyMapNotationConverter<>(instantiator, DefaultExternalModuleDependency.class);
@@ -73,6 +74,7 @@ public class DependencyNotationParser {
             .fromType(FileCollection.class, filesNotationConverter)
             .fromType(Project.class, projectNotationConverter)
             .fromType(DependencyFactoryInternal.ClassPathNotation.class, dependencyClassPathNotationConverter)
+            .fromType(PluginDependency.class, new DependencyPluginNotationConverter(minimalExternalDependencyNotationConverter))
             .invalidNotationMessage("Comprehensive documentation on dependency notations is available in DSL reference for DependencyHandler type.")
             .toComposite();
         return new DependencyNotationParser(

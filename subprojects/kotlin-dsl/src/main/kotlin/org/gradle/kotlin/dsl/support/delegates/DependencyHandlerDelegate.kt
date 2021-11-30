@@ -36,6 +36,7 @@ import org.gradle.api.attributes.AttributesSchema
 import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderConvertible
+import org.gradle.plugin.use.PluginDependency
 
 
 /**
@@ -126,6 +127,12 @@ abstract class DependencyHandlerDelegate : DependencyHandler {
 
     override fun <T : TransformParameters?> registerTransform(actionType: Class<out TransformAction<T>>, registrationAction: Action<in TransformSpec<T>>) =
         delegate.registerTransform(actionType, registrationAction)
+
+    override fun plugin(notation: Any): PluginDependency =
+        delegate.plugin(notation)
+
+    override fun plugin(notation: Any, configureAction: Action<in PluginDependency>): PluginDependency =
+        delegate.plugin(notation, configureAction)
 
     override fun platform(notation: Any): Dependency =
         delegate.platform(notation)

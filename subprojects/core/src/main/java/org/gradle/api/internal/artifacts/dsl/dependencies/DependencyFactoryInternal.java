@@ -17,10 +17,11 @@ package org.gradle.api.internal.artifacts.dsl.dependencies;
 
 import groovy.lang.Closure;
 import org.gradle.api.artifacts.ClientModule;
-import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.dsl.DependencyFactory;
+import org.gradle.plugin.use.PluginDependency;
 
 import java.util.Map;
 
@@ -45,6 +46,7 @@ public interface DependencyFactoryInternal extends DependencyFactory {
 
     Dependency createDependency(Object dependencyNotation);
     DependencyConstraint createDependencyConstraint(Object dependencyNotation);
+    PluginDependency createPluginDependency(Object dependencyNotation);
     ClientModule createModule(Object dependencyNotation, Closure configureClosure);
     ProjectDependency createProjectDependencyFromMap(ProjectFinder projectFinder, Map<? extends String, ? extends Object> map);
 }

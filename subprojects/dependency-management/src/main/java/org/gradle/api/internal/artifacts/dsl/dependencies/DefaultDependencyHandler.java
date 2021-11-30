@@ -60,6 +60,7 @@ import org.gradle.internal.component.external.model.ImmutableCapability;
 import org.gradle.internal.component.external.model.ProjectTestFixtures;
 import org.gradle.internal.metaobject.MethodAccess;
 import org.gradle.internal.metaobject.MethodMixIn;
+import org.gradle.plugin.use.PluginDependency;
 import org.gradle.util.internal.ConfigureUtil;
 
 import javax.annotation.Nullable;
@@ -328,6 +329,18 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
     @Override
     public <T extends TransformParameters> void registerTransform(Class<? extends TransformAction<T>> actionType, Action<? super TransformSpec<T>> registrationAction) {
         transforms.registerTransform(actionType, registrationAction);
+    }
+
+    @Override
+    public PluginDependency plugin(Object notation) {
+        return dependencyFactory.createPluginDependency(notation);
+    }
+
+    @Override
+    public PluginDependency plugin(Object notation, Action<? super PluginDependency> configureAction) {
+        PluginDependency dependency = plugin(notation);
+        configureAction.execute(dependency);
+        return dependency;
     }
 
     @Override

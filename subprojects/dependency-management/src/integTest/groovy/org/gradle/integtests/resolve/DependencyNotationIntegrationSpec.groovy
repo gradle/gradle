@@ -83,6 +83,45 @@ task checkDeps {
         succeeds 'checkDeps'
     }
 
+    def "understands plugin dependency notations"() {
+        when:
+        buildFile <<  """
+import org.gradle.api.internal.artifacts.dependencies.*
+
+configurations {
+    conf
+}
+
+dependencies {
+    conf plugin('org.jetbrains.kotlin.jvm:1.6.0')
+
+    conf(plugin('org.jetbrains.dokka')) {
+        version {
+           prefer '1.4.30'
+        }
+        transitive = false
+        force = true
+    }
+}
+
+task checkDeps {
+    doLast {
+        def deps = configurations.conf.incoming.dependencies
+
+        assert deps.find { it instanceof ExternalDependency && it.group == 'org.jetbrains.kotlin.jvm' && it.name == 'org.jetbrains.kotlin.jvm.gradle.plugin' && it.version == '1.6.0'  }
+
+        def configuredDep = deps.find { it instanceof ExternalDependency && it.group == 'org.jetbrains.dokka' && it.name == 'org.jetbrains.dokka.gradle.plugin' }
+        assert configuredDep.version == '1.4.30'
+        assert configuredDep.transitive == false
+        assert configuredDep.force == true
+    }
+}
+"""
+        then:
+        executer.expectDeprecationWarning()
+        succeeds 'checkDeps'
+    }
+
     def "understands project notations"() {
         when:
         settingsFile << "include 'otherProject'"

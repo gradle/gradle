@@ -31,6 +31,7 @@ import org.gradle.kotlin.dsl.support.delegates.ClientModuleDelegate
 import org.gradle.kotlin.dsl.support.excludeMapFor
 import org.gradle.kotlin.dsl.support.mapOfNonNullValuesOf
 import org.gradle.kotlin.dsl.support.uncheckedCast
+import org.gradle.plugin.use.PluginDependency
 
 
 /**
@@ -250,6 +251,23 @@ fun DependencyHandler.project(
             else mapOf("path" to path)
         )
     )
+
+
+/**
+ * Creates a dependency on a Gradle plugin.
+ *
+ * @param id the id of the plugin to be added as a dependency.
+ * @param version the optional version of the module to be added as a dependency.
+ *
+ * @return The dependency.
+ *
+ * @see [DependencyHandler.plugin]
+ */
+fun DependencyHandler.plugin(
+    id: String,
+    version: String? = null
+): PluginDependency =
+    plugin(mapOfNonNullValuesOf("id" to id, "version" to version))
 
 
 /**

@@ -29,6 +29,7 @@ import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
+import org.gradle.plugin.use.PluginDependency;
 
 import javax.annotation.Nullable;
 import java.util.Map;
@@ -537,6 +538,28 @@ public interface DependencyHandler extends ExtensionAware {
      * @since 5.3
      */
     <T extends TransformParameters> void registerTransform(Class<? extends TransformAction<T>> actionType, Action<? super TransformSpec<T>> registrationAction);
+
+    /**
+     * Declares a dependency on a Gradle plugin.
+     *
+     * @param notation the id of the plugin
+     * @return The dependency.
+     *
+     * @since 8.0
+     */
+    PluginDependency plugin(Object notation);
+
+    /**
+     * Declares a dependency on a Gradle plugin. The dependency is configured using the given closure before
+     * it is returned.
+     *
+     * @param notation the id of the plugin
+     * @param configureAction the dependency configuration block
+     * @return The dependency.
+     *
+     * @since 8.0
+     */
+    PluginDependency plugin(Object notation, Action<? super PluginDependency> configureAction);
 
     /**
      * Declares a dependency on a platform. If the target coordinates represent multiple

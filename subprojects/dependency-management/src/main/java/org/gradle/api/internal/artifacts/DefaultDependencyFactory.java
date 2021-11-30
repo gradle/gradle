@@ -41,6 +41,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.typeconversion.NotationParser;
+import org.gradle.plugin.use.PluginDependency;
 
 import javax.annotation.Nullable;
 import java.util.Map;
@@ -51,6 +52,7 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
     private final Instantiator instantiator;
     private final DependencyNotationParser dependencyNotationParser;
     private final NotationParser<Object, DependencyConstraint> dependencyConstraintNotationParser;
+    private final NotationParser<Object, PluginDependency> pluginDependencyNotationParser;
     private final NotationParser<Object, ClientModule> clientModuleNotationParser;
     private final NotationParser<Object, Capability> capabilityNotationParser;
     private final ProjectDependencyFactory projectDependencyFactory;
@@ -60,6 +62,7 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
         Instantiator instantiator,
         DependencyNotationParser dependencyNotationParser,
         NotationParser<Object, DependencyConstraint> dependencyConstraintNotationParser,
+        NotationParser<Object, PluginDependency> dependencyPluginNotationParser,
         NotationParser<Object, ClientModule> clientModuleNotationParser,
         NotationParser<Object, Capability> capabilityNotationParser,
         ProjectDependencyFactory projectDependencyFactory,
@@ -68,6 +71,7 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
         this.instantiator = instantiator;
         this.dependencyNotationParser = dependencyNotationParser;
         this.dependencyConstraintNotationParser = dependencyConstraintNotationParser;
+        this.pluginDependencyNotationParser = dependencyPluginNotationParser;
         this.clientModuleNotationParser = clientModuleNotationParser;
         this.capabilityNotationParser = capabilityNotationParser;
         this.projectDependencyFactory = projectDependencyFactory;
@@ -84,6 +88,11 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
         }
         injectServices(dependency);
         return dependency;
+    }
+
+    @Override
+    public PluginDependency createPluginDependency(Object dependencyNotation) {
+        return pluginDependencyNotationParser.parseNotation(dependencyNotation);
     }
 
     private void injectServices(Dependency dependency) {
