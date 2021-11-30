@@ -27,6 +27,9 @@ import org.gradle.api.file.RegularFile;
 import org.gradle.api.initialization.Settings;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.process.ExecOutput;
+import org.gradle.process.ExecSpec;
+import org.gradle.process.JavaExecSpec;
 
 import java.util.concurrent.Callable;
 import java.util.function.BiFunction;
@@ -139,6 +142,42 @@ public interface ProviderFactory {
      * @since 6.1
      */
     FileContents fileContents(Provider<RegularFile> file);
+
+    /**
+     * Allows lazy access to the output of the external process.
+     *
+     * When the process output is read at configuration time it is considered as an input to the
+     * configuration model. Consequent builds will re-execute the process to obtain the output and
+     * check if the cached model is still up-to-date.
+     *
+     * The process input and output streams cannot be configured.
+     *
+     *
+     * @param action the configuration of the external process with the output stream
+     * pre-configured.
+     * @return an interface that allows lazy access to the process' output.
+     * @since 7.4
+     */
+    @Incubating
+    ExecOutput exec(Action<? super ExecSpec> action);
+
+    /**
+     * Allows lazy access to the output of the external java process.
+     *
+     * When the process output is read at configuration time it is considered as an input to the
+     * configuration model. Consequent builds will re-execute the process to obtain the output and
+     * check if the cached model is still up-to-date.
+     *
+     * The process input and output streams cannot be configured.
+     *
+     * @param action the configuration of the external process with the output stream
+     * pre-configured.
+     * @return an interface that allows lazy access to the process' output.
+     *
+     * @since 7.4
+     */
+    @Incubating
+    ExecOutput javaexec(Action<? super JavaExecSpec> action);
 
     /**
      * Creates a {@link Provider} whose value is obtained from the given {@link ValueSource}.

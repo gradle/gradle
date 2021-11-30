@@ -66,6 +66,7 @@ class LibrariesSourceGeneratorTest extends Specification implements VersionCatal
             Stub(ExecOperations),
             TestUtil.services()
         ),
+        null,
         null
     )
 
