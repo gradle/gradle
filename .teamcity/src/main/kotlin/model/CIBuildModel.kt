@@ -5,10 +5,12 @@ import common.JvmVendor
 import common.JvmVersion
 import common.Os
 import common.VersionedSettingsBranch
+import common.toCapitalized
 import configurations.BaseGradleBuildType
 import configurations.BuildDistributions
 import configurations.CheckLinks
 import configurations.CompileAllProduction
+import configurations.FlakyTestQuarantine
 import configurations.FunctionalTest
 import configurations.Gradleception
 import configurations.SanityCheck
@@ -91,7 +93,12 @@ data class CIBuildModel(
         Stage(
             StageNames.READY_FOR_RELEASE,
             trigger = Trigger.daily,
-            specificBuilds = listOf(SpecificBuild.TestPerformanceTest),
+            specificBuilds = listOf(
+                SpecificBuild.TestPerformanceTest,
+                SpecificBuild.FlakyTestQuarantineLinux,
+                SpecificBuild.FlakyTestQuarantineMacOs,
+                SpecificBuild.FlakyTestQuarantineWindows
+            ),
             functionalTests = listOf(
                 TestCoverage(7, TestType.parallel, Os.LINUX, JvmCategory.MAX_VERSION, DEFAULT_LINUX_FUNCTIONAL_TEST_BUCKET_SIZE),
                 TestCoverage(8, TestType.soak, Os.LINUX, JvmCategory.MAX_VERSION, 1),
@@ -140,14 +147,18 @@ data class CIBuildModel(
             trigger = Trigger.never,
             runsIndependent = true,
             flameGraphs = listOf(
-                FlameGraphGeneration(14, "File System Watching", listOf("santaTrackerAndroidBuild", "largeJavaMultiProject").map {
-                    PerformanceScenario(
-                        Scenario(
-                            "org.gradle.performance.regression.corefeature.FileSystemWatchingPerformanceTest",
-                            "assemble for non-abi change with file system watching and configuration caching"
-                        ), it
-                    )
-                })
+                FlameGraphGeneration(
+                    14, "File System Watching",
+                    listOf("santaTrackerAndroidBuild", "largeJavaMultiProject").map {
+                        PerformanceScenario(
+                            Scenario(
+                                "org.gradle.performance.regression.corefeature.FileSystemWatchingPerformanceTest",
+                                "assemble for non-abi change with file system watching and configuration caching"
+                            ),
+                            it
+                        )
+                    }
+                )
             )
         ),
         Stage(
@@ -262,7 +273,7 @@ data class TestCoverage(
 
     private
     val testCoveragePrefix
-        get() = "${testType.name.capitalize()}_$uuid"
+        get() = "${testType.name.toCapitalized()}_$uuid"
 
     fun asConfigurationId(model: CIBuildModel, subProject: String = ""): String {
         val prefix = "${testCoveragePrefix}_"
@@ -280,7 +291,7 @@ data class TestCoverage(
     }
 
     fun asName(): String =
-        "${testType.name.capitalize()} ${testJvmVersion.name.capitalize()} ${vendor.name.capitalize()} ${os.asName()}${if (withoutDependencies) " without dependencies" else ""}"
+        "${testType.name.toCapitalized()} ${testJvmVersion.name.toCapitalized()} ${vendor.name.toCapitalized()} ${os.asName()}${if (withoutDependencies) " without dependencies" else ""}"
 
     val isQuick: Boolean = withoutDependencies || testType == TestType.quick
     val isPlatform: Boolean = testType == TestType.platform
@@ -426,6 +437,21 @@ enum class SpecificBuild {
     ConfigCacheSmokeTestsMaxJavaVersion {
         override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
             return SmokeTests(model, stage, JvmCategory.MAX_VERSION, "configCacheSmokeTest")
+        }
+    },
+    FlakyTestQuarantineLinux {
+        override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
+            return FlakyTestQuarantine(model, stage, Os.LINUX)
+        }
+    },
+    FlakyTestQuarantineMacOs {
+        override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
+            return FlakyTestQuarantine(model, stage, Os.MACOS)
+        }
+    },
+    FlakyTestQuarantineWindows {
+        override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
+            return FlakyTestQuarantine(model, stage, Os.WINDOWS)
         }
     },
     SmokeTestsExperimentalJDK {

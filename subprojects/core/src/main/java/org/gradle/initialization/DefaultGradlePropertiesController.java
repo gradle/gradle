@@ -21,7 +21,6 @@ import org.gradle.api.internal.properties.GradleProperties;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Map;
-import java.util.Set;
 
 public class DefaultGradlePropertiesController implements GradlePropertiesController {
 
@@ -43,6 +42,11 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
         state = state.loadGradlePropertiesFrom(settingsDir);
     }
 
+    @Override
+    public void unloadGradleProperties() {
+       state = new NotLoaded();
+    }
+
     public void overrideWith(GradleProperties gradleProperties) {
         state = state.overrideWith(gradleProperties);
     }
@@ -56,12 +60,7 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
         }
 
         @Override
-        public Set<String> getPropertyNames() {
-            return gradleProperties().getPropertyNames();
-        }
-
-        @Override
-        public Map<String, String> mergeProperties(Map<String, String> properties) {
+        public Map<String, Object> mergeProperties(Map<String, Object> properties) {
             return gradleProperties().mergeProperties(properties);
         }
 

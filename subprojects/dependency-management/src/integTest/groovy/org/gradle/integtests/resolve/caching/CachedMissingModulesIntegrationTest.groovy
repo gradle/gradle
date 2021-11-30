@@ -236,7 +236,6 @@ Required by:
         run 'retrieve'
     }
 
-    @ToBeFixedForConfigurationCache
     def "previously cached empty version list is ignored when no result can be found"() {
         given:
         def repo1 = mavenHttpRepo("repo1")

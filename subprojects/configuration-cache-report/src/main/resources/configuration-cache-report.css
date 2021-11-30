@@ -40,14 +40,9 @@
     flex: 1 0 100%;
 }
 
-.filters {
-    margin-left: auto;
-    font-size: 0.875rem;
-}
-
 .content {
     font-size: 0.875rem;
-    padding: 192px 0 48px;
+    padding: 240px 0 48px;
     overflow-x: auto;
     white-space: nowrap;
 }
@@ -175,43 +170,6 @@ ul .tree-btn {
     color: transparent;
 }
 
-.filters-group {
-    display: inline-flex;
-    background-color: #EDEEEF;
-    border-radius: 5px;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-    height: 30px;
-    align-items: center;
-    padding: 0 3px;
-    margin-left: 8px;
-    line-height: 1rem;
-}
-
-.btn {
-    padding: 4px 10px;
-    border-radius: 3px;
-    cursor: pointer;
-    position: relative;
-    height: 24px;
-    min-width: 78px;
-    display: inline-block;
-    text-align: center;
-}
-
-.btn:hover {
-    color: #3cafc6;
-    background-color: #d8eff3;
-    box-shadow: none;
-}
-
-.btn-active {
-    cursor: default;
-    background: #fff;
-}
-
 .groups {
     display: flex;
     border-bottom: 1px solid #EDEEEF;
@@ -242,6 +200,10 @@ ul .tree-btn {
 
 .group-selector--active .group-selector__count {
     background-color: #686868;
+}
+
+.group-selector--disabled {
+    cursor: not-allowed;
 }
 
 .accordion-header {
@@ -329,6 +291,14 @@ h3 {
 
 h4, h5, h6 {
     font-size: 0.875rem;
+}
+
+h1 code {
+    font-weight: bold;
+}
+
+h1 small {
+    font-weight: normal;
 }
 
 ul, ol, dl {

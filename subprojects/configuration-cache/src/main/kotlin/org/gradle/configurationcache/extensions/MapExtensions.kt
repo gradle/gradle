@@ -14,14 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.service.scopes;
+package org.gradle.configurationcache.extensions
 
-import org.gradle.internal.service.ServiceRegistration;
 
-public class ToolingServices extends AbstractPluginServiceRegistry {
-
-    @Override
-    public void registerBuildServices(ServiceRegistration registration) {
-        registration.addProvider(new ToolingBuildServices());
-    }
-}
+internal
+fun <V> Map<String, V>.filterKeysByPrefix(prefix: String): Map<String, V?> =
+    filterKeys { key -> key.length > prefix.length && key.startsWith(prefix) }

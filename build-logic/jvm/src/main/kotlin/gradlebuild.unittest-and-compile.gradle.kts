@@ -16,6 +16,7 @@
 
 import com.gradle.enterprise.gradleplugin.testdistribution.internal.TestDistributionExtensionInternal
 import gradlebuild.basics.BuildEnvironment
+import gradlebuild.basics.flakyTestQuarantine
 import gradlebuild.basics.isExperimentalTestFilteringEnabled
 import gradlebuild.basics.maxParallelForks
 import gradlebuild.basics.maxTestDistributionPartitionSecond
@@ -24,7 +25,6 @@ import gradlebuild.basics.tasks.ClasspathManifest
 import gradlebuild.basics.testDistributionEnabled
 import gradlebuild.basics.testJavaVendor
 import gradlebuild.basics.testJavaVersion
-import gradlebuild.basics.flakyTestQuarantine
 import gradlebuild.filterEnvironmentVariables
 import gradlebuild.jvm.argumentproviders.CiEnvironmentProvider
 import gradlebuild.jvm.extension.UnitTestAndCompileExtension
@@ -84,9 +84,9 @@ fun configureSourcesVariant() {
         isCanBeConsumed = true
         extendsFrom(configurations.implementation.get())
         attributes {
-            attribute(Usage.USAGE_ATTRIBUTE, objects.named<Usage>(Usage.JAVA_RUNTIME))
-            attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>(Category.DOCUMENTATION))
-            attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named<DocsType>("gradle-source-folders"))
+            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.DOCUMENTATION))
+            attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named("gradle-source-folders"))
         }
         val main = sourceSets.main.get()
         main.java.srcDirs.forEach {
@@ -230,7 +230,15 @@ fun Test.configureRerun() {
     }
 }
 
-fun Test.determineMaxRetry() = if (project.name in listOf("smoke-test", "performance", "build-scan-performance")) 1 else 2
+fun Test.determineMaxRetries() = when {
+    project.flakyTestQuarantine.isPresent -> 4
+    else -> 1
+}
+
+fun Test.determineMaxFailures() = when {
+    project.flakyTestQuarantine.isPresent -> Integer.MAX_VALUE
+    else -> 10
+}
 
 fun configureTests() {
     normalization {
@@ -254,8 +262,8 @@ fun configureTests() {
         if (BuildEnvironment.isCiServer) {
             configureRerun()
             retry {
-                maxRetries.convention(determineMaxRetry())
-                maxFailures.set(10)
+                maxRetries.convention(determineMaxRetries())
+                maxFailures.set(determineMaxFailures())
             }
             doFirst {
                 logger.lifecycle("maxParallelForks for '$path' is $maxParallelForks")

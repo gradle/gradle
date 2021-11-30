@@ -118,12 +118,4 @@ public interface Usage extends Named {
      */
     @Incubating
     String VERSION_CATALOG = "version-catalog";
-
-    /**
-     * Variants meant to be consumed by verification tasks.
-     *
-     * @since 7.4
-     */
-    @Incubating
-    String VERIFICATION = "verification";
 }

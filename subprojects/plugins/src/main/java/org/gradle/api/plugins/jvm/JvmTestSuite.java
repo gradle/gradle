@@ -20,7 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Buildable;
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Incubating;
-import org.gradle.api.attributes.TestType;
+import org.gradle.api.attributes.TestSuiteType;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.testing.base.TestSuite;
@@ -71,7 +71,7 @@ public interface JvmTestSuite extends TestSuite, Buildable {
     /**
      * Get the test type for this test suite.
      *
-     * Defaults to {@link TestType#UNIT_TESTS}
+     * Defaults to {@link TestSuiteType#UNIT_TESTS}
      *
      * @since 7.4
      */

@@ -14,9 +14,9 @@ val classesPath: Configuration by configurations.creating {
     isCanBeConsumed = false
     extendsFrom(configurations.implementation.get())
     attributes {
-        attribute(Usage.USAGE_ATTRIBUTE, objects.named<Usage>(Usage.JAVA_RUNTIME))
-        attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>(Category.LIBRARY))
-        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named<LibraryElements>(LibraryElements.CLASSES))
+        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
+        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
+        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.CLASSES))
     }
 }
 
@@ -27,9 +27,8 @@ val sourcesPath: Configuration by configurations.creating {
     isCanBeConsumed = false
     extendsFrom(configurations.implementation.get())
     attributes {
-        attribute(Usage.USAGE_ATTRIBUTE, objects.named<Usage>(Usage.VERIFICATION))
-        attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>(Category.SOURCES))
-        attribute(Sources.SOURCES_ATTRIBUTE, objects.named<Sources>(Sources.ALL_SOURCE_DIRS))
+        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.VERIFICATION))
+        attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objects.named(VerificationType.MAIN_SOURCES))
     }
 }
 
@@ -40,9 +39,8 @@ val coverageDataPath: Configuration by configurations.creating {
     isCanBeConsumed = false
     extendsFrom(configurations.implementation.get())
     attributes {
-        attribute(Usage.USAGE_ATTRIBUTE, objects.named<Usage>(Usage.VERIFICATION))
-        attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>(Category.DOCUMENTATION))
-        attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named<DocsType>(DocsType.JACOCO_COVERAGE))
+        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.VERIFICATION))
+        attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objects.named(VerificationType.JACOCO_RESULTS))
     }
 }
 

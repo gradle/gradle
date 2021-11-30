@@ -42,6 +42,8 @@ import org.gradle.configurationcache.extensions.get
 import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprintController
 import org.gradle.configurationcache.initialization.ConfigurationCacheBuildEnablement
 import org.gradle.configurationcache.problems.ProblemsListener
+import org.gradle.configurationcache.services.ConfigurationCacheEnvironment
+import org.gradle.configurationcache.services.DefaultEnvironment
 import org.gradle.execution.DefaultTaskSchedulingPreparer
 import org.gradle.execution.ExcludedTaskFilteringProjectsPreparer
 import org.gradle.initialization.BuildCancellationToken
@@ -77,8 +79,10 @@ class DefaultBuildModelControllerServices(
                 registration.add(ConfigurationCacheBuildEnablement::class.java)
                 registration.add(ConfigurationCacheProblemsListenerManagerAction::class.java)
                 registration.addProvider(ConfigurationCacheBuildControllerProvider())
+                registration.add(ConfigurationCacheEnvironment::class.java)
             } else {
                 registration.addProvider(VintageBuildControllerProvider())
+                registration.add(DefaultEnvironment::class.java)
             }
             if (buildModelParameters.isIsolatedProjects) {
                 registration.addProvider(ConfigurationCacheIsolatedProjectsProvider())

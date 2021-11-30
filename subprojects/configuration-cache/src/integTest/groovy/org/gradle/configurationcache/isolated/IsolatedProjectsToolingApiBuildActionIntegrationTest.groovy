@@ -262,9 +262,10 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
 
         and:
         fixture.assertStateRecreated {
-            gradlePropertyChanged("shared-input")
+            gradlePropertyChanged()
+            buildModelQueries = 1 // TODO:configuration-cache ???
             projectConfigured(":buildSrc")
-            projectsConfigured(":")
+            projectsConfigured(":", ":a", ":b", ":c")
             modelsCreated(":a", ":b")
         }
 
