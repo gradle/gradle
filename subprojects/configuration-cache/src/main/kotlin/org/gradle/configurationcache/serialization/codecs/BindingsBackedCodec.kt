@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache.serialization.codecs
 
+import com.google.common.collect.ImmutableList
 import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.configurationcache.extensions.uncheckedCast
 
@@ -107,7 +108,7 @@ typealias Decoding = DecodingProvider<Any>
  */
 internal
 class Bindings(
-    private val bindings: List<Binding>
+    private val bindings: ImmutableList<Binding>
 ) {
     internal
     companion object {
@@ -116,16 +117,16 @@ class Bindings(
 
     fun append(builder: BindingsBuilder.() -> Unit) = BindingsBuilder(bindings).apply(builder).build()
 
-    fun build() = BindingsBackedCodec(bindings.toList())
+    fun build() = BindingsBackedCodec(bindings)
 }
 
 
 internal
 class BindingsBuilder(initialBindings: List<Binding>) {
     private
-    val bindings = initialBindings.toMutableList()
+    val bindings = ArrayList(initialBindings)
 
-    fun build() = Bindings(bindings.toList())
+    fun build() = Bindings(ImmutableList.copyOf(bindings))
 
     inline fun <reified T> bind(codec: Codec<T>) =
         bind(T::class.java, codec)
