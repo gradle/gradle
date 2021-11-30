@@ -443,6 +443,10 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
                 id 'java'
             }
 
+            repositories {
+                ${mavenCentralRepository()}
+            }
+
             testing {
                 suites {
                     integrationTest(JvmTestSuite) {
@@ -455,6 +459,10 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
         subBDir.file("build.gradle") << """
             plugins {
                 id 'java'
+            }
+
+            repositories {
+                ${mavenCentralRepository()}
             }
 
             testing {
