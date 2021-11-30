@@ -28,7 +28,7 @@ import java.util.Map;
  *
  * Access to resources will be tracked when storing to the configuration cache.
  */
-@ServiceScope(Scopes.BuildTree.class)
+@ServiceScope(Scopes.Build.class)
 public interface Environment {
 
     /**
