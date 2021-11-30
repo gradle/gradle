@@ -34,6 +34,7 @@ import javax.annotation.CheckReturnValue;
 import java.io.File;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Deque;
 import java.util.List;
 import java.util.function.Predicate;
@@ -146,12 +147,12 @@ public class WatchableHierarchies {
                 result = invalidator.invalidate(locationToRemove.toString(), result);
             }
         }
-        rebuildWatchableFiles();
+        watchableFiles = buildWatchableFilesFromHierarchies(hierarchies);
         return result;
     }
 
-    private void rebuildWatchableFiles() {
-        this.watchableFiles = hierarchies.stream()
+    private static FileHierarchySet buildWatchableFilesFromHierarchies(Collection<File> hierarchies) {
+        return hierarchies.stream()
             .reduce(FileHierarchySet.empty(), FileHierarchySet::plus, Combiners.nonCombining());
     }
 
@@ -217,7 +218,7 @@ public class WatchableHierarchies {
             newRoot = invalidateUnwatchableHierarchies(newRoot, invalidator, unwatchableFiles);
 
             hierarchies.removeIf(unwatchableFiles::contains);
-            rebuildWatchableFiles();
+            watchableFiles = buildWatchableFilesFromHierarchies(hierarchies);
 
             // Replay the watchable hierarchies since the end of last build, since they have become watchable.
             for (File watchableHierarchy : watchableHierarchiesSinceLastBuildFinish) {
