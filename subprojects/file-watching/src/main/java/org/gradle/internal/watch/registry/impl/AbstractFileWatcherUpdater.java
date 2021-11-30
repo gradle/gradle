@@ -55,7 +55,6 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
 
     @Override
     public final SnapshotHierarchy updateVfsOnBuildStarted(SnapshotHierarchy root, WatchMode watchMode) {
-        watchableHierarchies.updateUnsupportedFileSystems(watchMode);
         SnapshotHierarchy newRoot = watchableHierarchies.removeUnwatchableContentOnBuildStart(root, createInvalidator(), watchMode);
         newRoot = doUpdateVfsOnBuildStarted(newRoot);
         if (root != newRoot) {
