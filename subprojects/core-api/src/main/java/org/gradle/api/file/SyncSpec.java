@@ -24,7 +24,7 @@ import org.gradle.internal.HasInternalProtocol;
 /**
  * Synchronizes the contents of a destination directory with some source directories and files.
  *
- * @since 7.3
+ * @since 7.4
  */
 @Incubating
 @HasInternalProtocol
