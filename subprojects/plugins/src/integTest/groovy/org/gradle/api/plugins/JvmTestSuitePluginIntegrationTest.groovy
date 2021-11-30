@@ -74,7 +74,7 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
             testing {
                 suites {
                     integrationTest(JvmTestSuite) {
-                        testType = TestType.INTEGRATION_TEST
+                        testType = TestSuiteType.INTEGRATION_TEST
 
                         dependencies {
                             implementation project
@@ -396,11 +396,11 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
             testing {
                 suites {
                     primaryIntTest(JvmTestSuite) {
-                        testType = TestType.INTEGRATION_TEST
+                        testType = TestSuiteType.INTEGRATION_TEST
                     }
 
                     secondaryIntTest(JvmTestSuite) {
-                        testType = TestType.INTEGRATION_TEST
+                        testType = TestSuiteType.INTEGRATION_TEST
                     }
                 }
             }
@@ -420,7 +420,7 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
             testing {
                 suites {
                     secondaryTest(JvmTestSuite) {
-                        testType = TestType.UNIT_TEST
+                        testType = TestSuiteType.UNIT_TEST
                     }
                 }
             }
@@ -445,7 +445,7 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
             testing {
                 suites {
                     integrationTest(JvmTestSuite) {
-                        testType = TestType.INTEGRATION_TEST
+                        testType = TestSuiteType.INTEGRATION_TEST
                     }
                 }
             }""".stripIndent()
@@ -463,7 +463,7 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
             testing {
                 suites {
                     integrationTest(JvmTestSuite) {
-                        testType = TestType.INTEGRATION_TEST
+                        testType = TestSuiteType.INTEGRATION_TEST
                     }
                 }
             }""".stripIndent()

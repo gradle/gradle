@@ -41,7 +41,7 @@ class TestSuitesDependenciesIntegrationTest extends AbstractIntegrationSpec {
                 }
                 integTest(JvmTestSuite) {
                     useJUnit()
-                    testType = TestType.INTEGRATION_TEST
+                    testType = TestSuiteType.INTEGRATION_TEST
                 }
             }
         }
@@ -82,7 +82,7 @@ class TestSuitesDependenciesIntegrationTest extends AbstractIntegrationSpec {
         testing {
             suites {
                 integTest(JvmTestSuite) {
-                    testType = TestType.INTEGRATION_TEST
+                    testType = TestSuiteType.INTEGRATION_TEST
                 }
             }
         }
@@ -121,7 +121,7 @@ class TestSuitesDependenciesIntegrationTest extends AbstractIntegrationSpec {
         testing {
             suites {
                 integTest(JvmTestSuite) {
-                    testType = TestType.INTEGRATION_TEST
+                    testType = TestSuiteType.INTEGRATION_TEST
                     dependencies {
                         implementation project
                     }
@@ -178,7 +178,7 @@ class TestSuitesDependenciesIntegrationTest extends AbstractIntegrationSpec {
                         compileOnly  'javax.servlet:servlet-api:2.5'
                         runtimeOnly 'mysql:mysql-connector-java:6.0.6'
                     }
-                    testType = TestType.INTEGRATION_TEST
+                    testType = TestSuiteType.INTEGRATION_TEST
                 }
             }
         }
@@ -226,7 +226,7 @@ class TestSuitesDependenciesIntegrationTest extends AbstractIntegrationSpec {
         testing {
             suites {
                 integTest(JvmTestSuite) {
-                    testType = TestType.INTEGRATION_TEST
+                    testType = TestSuiteType.INTEGRATION_TEST
                 }
             }
         }
@@ -294,7 +294,7 @@ class TestSuitesDependenciesIntegrationTest extends AbstractIntegrationSpec {
                         compileOnly libs.commons.lang3
                         runtimeOnly libs.mysql.connector
                     }
-                    testType = TestType.INTEGRATION_TEST
+                    testType = TestSuiteType.INTEGRATION_TEST
                 }
             }
         }
@@ -354,7 +354,7 @@ class TestSuitesDependenciesIntegrationTest extends AbstractIntegrationSpec {
                     dependencies {
                         implementation libs.bundles.groovy
                     }
-                    testType = TestType.INTEGRATION_TEST
+                    testType = TestSuiteType.INTEGRATION_TEST
                 }
             }
         }
@@ -415,7 +415,7 @@ class TestSuitesDependenciesIntegrationTest extends AbstractIntegrationSpec {
                         runtimeOnly libs.commons.io
                         runtimeOnly libs.commons.io.csv
                     }
-                    testType = TestType.INTEGRATION_TEST
+                    testType = TestSuiteType.INTEGRATION_TEST
                 }
             }
         }
@@ -475,7 +475,7 @@ class TestSuitesDependenciesIntegrationTest extends AbstractIntegrationSpec {
                         compileOnly libs.commons.lang3
                         runtimeOnly libs.mysql.connector
                     }
-                    testType = TestType.INTEGRATION_TEST
+                    testType = TestSuiteType.INTEGRATION_TEST
                 }
             }
         }

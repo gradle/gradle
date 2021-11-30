@@ -179,7 +179,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
             testing {
                 suites {
                     integrationTest(JvmTestSuite) {
-                        testType = TestType.INTEGRATION_TEST
+                        testType = TestSuiteType.INTEGRATION_TEST
 
                         dependencies {
                             implementation project

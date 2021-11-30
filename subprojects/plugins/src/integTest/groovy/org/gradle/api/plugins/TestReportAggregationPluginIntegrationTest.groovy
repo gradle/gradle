@@ -177,7 +177,7 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
             testing {
                 suites {
                     integTest(JvmTestSuite) {
-                        testType = TestType.INTEGRATION_TEST
+                        testType = TestSuiteType.INTEGRATION_TEST
                         useJUnit()
                         dependencies {
                           implementation project
@@ -192,7 +192,7 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
             testing {
                 suites {
                     integTest(JvmTestSuite) {
-                        testType = TestType.INTEGRATION_TEST
+                        testType = TestSuiteType.INTEGRATION_TEST
                         useJUnit()
                         dependencies {
                             implementation project(':transitive') // necessary to access Divisor when compiling test
@@ -292,7 +292,7 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
             reporting {
                 reports {
                     testAggregateTestReport(AggregateTestReport) {
-                        testType = TestType.UNIT_TEST
+                        testType = TestSuiteType.UNIT_TEST
                     }
                 }
             }
