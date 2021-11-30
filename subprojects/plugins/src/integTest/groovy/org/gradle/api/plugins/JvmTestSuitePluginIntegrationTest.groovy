@@ -51,12 +51,11 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
             Capabilities
                 - :Test:unspecified (default capability)
             Attributes
-                - org.gradle.category      = documentation
-                - org.gradle.docstype      = test-results-bin
-                - org.gradle.targetname    = test
-                - org.gradle.testsuitename = test
-                - org.gradle.testsuitetype = unit-test
-                - org.gradle.usage         = verification
+                - org.gradle.category              = verification
+                - org.gradle.testsuite.name        = test
+                - org.gradle.testsuite.target.name = test
+                - org.gradle.testsuite.type        = unit-test
+                - org.gradle.verificationtype      = test-results
 
             Artifacts
                 - $resultsPath (artifactType = directory)
@@ -96,12 +95,11 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
             Capabilities
                 - :Test:unspecified (default capability)
             Attributes
-                - org.gradle.category      = documentation
-                - org.gradle.docstype      = test-results-bin
-                - org.gradle.targetname    = integrationTest
-                - org.gradle.testsuitename = integrationTest
-                - org.gradle.testsuitetype = integration-test
-                - org.gradle.usage         = verification
+                - org.gradle.category              = verification
+                - org.gradle.testsuite.name        = integrationTest
+                - org.gradle.testsuite.target.name = integrationTest
+                - org.gradle.testsuite.type        = integration-test
+                - org.gradle.verificationtype      = test-results
 
             Artifacts
                 - $resultsPath (artifactType = directory)
@@ -145,9 +143,8 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
                 canBeResolved = true
                 canBeConsumed = false
                 attributes {
-                    attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.VERIFICATION))
-                    attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION))
-                    attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType, DocsType.TEST_RESULTS))
+                    attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.VERIFICATION))
+                    attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objects.named(VerificationType, VerificationType.TEST_RESULTS))
                 }
             }
 
@@ -256,9 +253,8 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
                 canBeConsumed = false
                 extendsFrom(configurations.implementation)
                 attributes {
-                    attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.VERIFICATION))
-                    attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION))
-                    attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType, DocsType.TEST_RESULTS))
+                    attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.VERIFICATION))
+                    attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objects.named(VerificationType, VerificationType.TEST_RESULTS))
                 }
             }
 
@@ -370,9 +366,8 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
                 canBeConsumed = false
                 extendsFrom(configurations.implementation)
                 attributes {
-                    attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.VERIFICATION))
-                    attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION))
-                    attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType, DocsType.TEST_RESULTS))
+                    attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.VERIFICATION))
+                    attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objects.named(VerificationType, VerificationType.TEST_RESULTS))
                 }
             }
 

@@ -20,27 +20,13 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 
 /**
- * Attributes to qualify the type of testing a Test Suite will perform
+ * Attribute to define the test suite target's name.
  * <p>
- * This attribute is usually found on variants that have the {@link Category} attribute valued at {@link Usage#VERIFICATION verification}.
+ * This attribute is usually found on variants that have the {@link Category} attribute valued at {@link Category#VERIFICATION verification}.
  *
  * @since 7.4
  */
 @Incubating
-public interface TestType extends Named {
-    Attribute<TestType> TEST_TYPE_ATTRIBUTE = Attribute.of("org.gradle.testsuitetype", TestType.class);
-
-    /**
-     * Unit tests, the default type of Test Suite
-     */
-    String UNIT_TEST = "unit-test";
-
-    String INTEGRATION_TEST = "integration-test";
-
-    /**
-     * Functional tests, will be added automatically when initializing a new plugin project
-     */
-    String FUNCTIONAL_TEST = "functional-test";
-
-    String PERFORMANCE_TEST = "performance-test";
+public interface TestSuiteTargetName extends Named {
+    Attribute<TestSuiteTargetName> TEST_SUITE_TARGET_NAME_ATTRIBUTE = Attribute.of("org.gradle.testsuite.target.name", TestSuiteTargetName.class);
 }

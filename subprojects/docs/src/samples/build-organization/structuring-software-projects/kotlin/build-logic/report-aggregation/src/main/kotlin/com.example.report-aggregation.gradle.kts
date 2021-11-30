@@ -30,9 +30,8 @@ val sourcesPath by configurations.creating {
     isCanBeConsumed = false
     extendsFrom(aggregate)
     attributes {
-        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.VERIFICATION))
-        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.DOCUMENTATION))
-        attribute(Sources.SOURCES_ATTRIBUTE, objects.named(Sources.ALL_SOURCE_DIRS))
+        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.VERIFICATION))
+        attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objects.named(VerificationType.MAIN_SOURCES))
     }
 }
 
@@ -43,9 +42,8 @@ val coverageDataPath by configurations.creating {
     isCanBeConsumed = false
     extendsFrom(aggregate)
     attributes {
-        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.VERIFICATION))
-        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.DOCUMENTATION))
-        attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType.JACOCO_COVERAGE))
+        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.VERIFICATION))
+        attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objects.named(VerificationType.JACOCO_RESULTS))
     }
 }
 

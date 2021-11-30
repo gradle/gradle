@@ -23,11 +23,10 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.attributes.Bundling;
 import org.gradle.api.attributes.Category;
-import org.gradle.api.attributes.DocsType;
-import org.gradle.api.attributes.Sources;
-import org.gradle.api.attributes.TestType;
-import org.gradle.api.attributes.Usage;
+import org.gradle.api.attributes.TestSuiteType;
+import org.gradle.api.attributes.VerificationType;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
@@ -70,9 +69,9 @@ public abstract class JacocoReportAggregationPlugin implements Plugin<Project> {
         sourceDirectoriesConf.setCanBeConsumed(false);
         sourceDirectoriesConf.setCanBeResolved(true);
         sourceDirectoriesConf.attributes(attributes -> {
-            attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.SOURCES));
-            attributes.attribute(Sources.SOURCES_ATTRIBUTE, objects.named(Sources.class, Sources.ALL_SOURCE_DIRS));
-            attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.VERIFICATION));
+            attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling.class, Bundling.EXTERNAL));
+            attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.VERIFICATION));
+            attributes.attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objects.named(VerificationType.class, VerificationType.MAIN_SOURCES));
         });
 
         ArtifactView sourceDirectories = sourceDirectoriesConf.getIncoming().artifactView(view -> {
@@ -105,10 +104,9 @@ public abstract class JacocoReportAggregationPlugin implements Plugin<Project> {
                 executionDataConf.setCanBeConsumed(false);
                 executionDataConf.setCanBeResolved(true);
                 executionDataConf.attributes(attributes -> {
-                    attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.DOCUMENTATION));
-                    attributes.attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType.class, DocsType.JACOCO_COVERAGE));
-                    attributes.attributeProvider(TestType.TEST_TYPE_ATTRIBUTE, report.getTestType().map(tt -> objects.named(TestType.class, tt)));
-                    attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.VERIFICATION));
+                    attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.VERIFICATION));
+                    attributes.attributeProvider(TestSuiteType.TEST_SUITE_TYPE_ATTRIBUTE, report.getTestType().map(tt -> objects.named(TestSuiteType.class, tt)));
+                    attributes.attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objects.named(VerificationType.class, VerificationType.JACOCO_RESULTS));
                 });
 
                 Callable<FileCollection> executionData = () ->

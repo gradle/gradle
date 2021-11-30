@@ -20,18 +20,27 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 
 /**
- * Attributes to specific the type of source code contained in this variant.
+ * Attribute to qualify the type of testing a Test Suite will perform.
  * <p>
- * This attribute is usually found on variants that have the {@link Category} attribute valued at {@link Category#SOURCES documentation}.
+ * This attribute is usually found on variants that have the {@link Category} attribute valued at {@link Category#VERIFICATION verification}.
  *
  * @since 7.4
  */
 @Incubating
-public interface Sources extends Named {
-    Attribute<Sources> SOURCES_ATTRIBUTE = Attribute.of("org.gradle.sources", Sources.class);
+public interface TestSuiteType extends Named {
+    Attribute<TestSuiteType> TEST_SUITE_TYPE_ATTRIBUTE = Attribute.of("org.gradle.testsuite.type", TestSuiteType.class);
 
     /**
-     * A list of directories containing source code, includes code in transitive dependencies
+     * Unit tests, the default type of Test Suite
      */
-    String ALL_SOURCE_DIRS = "all-source-directories";
+    String UNIT_TEST = "unit-test";
+
+    String INTEGRATION_TEST = "integration-test";
+
+    /**
+     * Functional tests, will be added automatically when initializing a new plugin project
+     */
+    String FUNCTIONAL_TEST = "functional-test";
+
+    String PERFORMANCE_TEST = "performance-test";
 }

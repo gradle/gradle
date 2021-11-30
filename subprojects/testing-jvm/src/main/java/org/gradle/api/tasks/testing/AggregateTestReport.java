@@ -37,7 +37,7 @@ public interface AggregateTestReport extends ReportSpec {
     TaskProvider<TestReport> getReportTask();
 
     /**
-     * Contains a value representing the type of test suite this task belongs to.  See static constants on {@link org.gradle.api.attributes.TestType} for examples.
+     * Contains a value representing the type of test suite this task belongs to.  See static constants on {@link org.gradle.api.attributes.TestSuiteType} for examples.
      *
      * @return this report's test type
      */
