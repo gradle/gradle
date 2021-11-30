@@ -108,7 +108,7 @@
             <plugin>
                 <groupId>com.github.gantsign.maven</groupId>
                 <artifactId>ktlint-maven-plugin</artifactId>
-                <version>1.1.1</version>
+                <version>1.11.1</version>
                 <executions>
                     <execution>
                         <id>check</id>
