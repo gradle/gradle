@@ -2,6 +2,8 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
+description = "The Gradle build option parser."
+
 gradlebuildJava.usedInWorkers()
 
 dependencies {

@@ -124,6 +124,7 @@ import org.gradle.initialization.DefaultGradlePropertiesLoader;
 import org.gradle.initialization.DefaultProjectDescriptorRegistry;
 import org.gradle.initialization.DefaultSettingsLoaderFactory;
 import org.gradle.initialization.DefaultSettingsPreparer;
+import org.gradle.initialization.Environment;
 import org.gradle.initialization.GradlePropertiesController;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.initialization.IGradlePropertiesLoader;
@@ -186,6 +187,7 @@ import org.gradle.internal.operations.logging.DefaultBuildOperationLoggerFactory
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.DefaultTextFileResourceLoader;
 import org.gradle.internal.resource.TextFileResourceLoader;
+import org.gradle.internal.resource.local.FileResourceListener;
 import org.gradle.internal.scripts.ScriptExecutionListener;
 import org.gradle.internal.service.CachingServiceLocator;
 import org.gradle.internal.service.DefaultServiceRegistry;
@@ -328,8 +330,13 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new DefaultGradlePropertiesController(propertiesLoader);
     }
 
-    protected IGradlePropertiesLoader createGradlePropertiesLoader() {
-        return new DefaultGradlePropertiesLoader((StartParameterInternal) get(StartParameter.class));
+    protected IGradlePropertiesLoader createGradlePropertiesLoader(
+        Environment environment
+    ) {
+        return new DefaultGradlePropertiesLoader(
+            (StartParameterInternal) get(StartParameter.class),
+            environment
+        );
     }
 
     protected ValueSourceProviderFactory createValueSourceProviderFactory(
@@ -360,11 +367,16 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new DefaultActorFactory(get(ExecutorFactory.class));
     }
 
-    protected BuildLoader createBuildLoader(GradleProperties gradleProperties, BuildOperationExecutor buildOperationExecutor) {
+    protected BuildLoader createBuildLoader(
+        GradleProperties gradleProperties,
+        BuildOperationExecutor buildOperationExecutor,
+        ListenerManager listenerManager
+    ) {
         return new NotifyingBuildLoader(
             new ProjectPropertySettingBuildLoader(
                 gradleProperties,
-                new InstantiatingBuildLoader()
+                new InstantiatingBuildLoader(),
+                listenerManager.getBroadcaster(FileResourceListener.class)
             ),
             buildOperationExecutor
         );

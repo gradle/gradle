@@ -52,6 +52,7 @@ import org.gradle.api.internal.project.CrossProjectConfigurator;
 import org.gradle.api.internal.project.DefaultAntBuilderFactory;
 import org.gradle.api.internal.project.DeferredProjectConfiguration;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.project.ant.DefaultAntLoggingAdapterFactory;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
@@ -123,10 +124,11 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
 
     protected PluginRegistry createPluginRegistry(PluginRegistry rootRegistry) {
         PluginRegistry parentRegistry;
-        if (project.getParent() == null) {
+        ProjectState parent = project.getOwner().getBuildParent();
+        if (parent == null) {
             parentRegistry = rootRegistry.createChild(project.getBaseClassLoaderScope());
         } else {
-            parentRegistry = project.getParent().getServices().get(PluginRegistry.class);
+            parentRegistry = parent.getMutableModel().getServices().get(PluginRegistry.class);
         }
         return parentRegistry.createChild(project.getClassLoaderScope());
     }

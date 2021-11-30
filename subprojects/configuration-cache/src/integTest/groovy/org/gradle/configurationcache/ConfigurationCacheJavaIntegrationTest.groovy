@@ -569,9 +569,9 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
                 isCanBeConsumed = false
                 isTransitive = false
                 attributes {
-                    attribute(Usage.USAGE_ATTRIBUTE, objects.named<Usage>(Usage.JAVA_RUNTIME))
-                    attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>(Category.LIBRARY))
-                    attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named<LibraryElements>(LibraryElements.JAR))
+                    attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
+                    attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
+                    attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.JAR))
                 }
             }
 

@@ -25,7 +25,7 @@ class InMemoryPgpSignatoryProviderIntegrationSpec extends SigningIntegrationSpec
         given:
         buildFile << """
             signing {
-                useInMemoryPgpKeys(project.properties['secretKey'], project.properties['password'])
+                useInMemoryPgpKeys(project.property('secretKey'), project.property('password'))
                 sign(jar)
             }
         """
@@ -49,7 +49,7 @@ class InMemoryPgpSignatoryProviderIntegrationSpec extends SigningIntegrationSpec
             signing {
                 useInMemoryPgpKeys('foo', 'bar')
                 signatories {
-                    custom(project.properties['secretKey'], project.properties['password'])
+                    custom(project.property('secretKey'), project.property('password'))
                 }
                 sign(jar)*.signatory = signatories.custom
             }
@@ -72,7 +72,7 @@ class InMemoryPgpSignatoryProviderIntegrationSpec extends SigningIntegrationSpec
         given:
         buildFile << """
             signing {
-                useInMemoryPgpKeys(project.properties['secretKey'], '')
+                useInMemoryPgpKeys(project.property('secretKey'), '')
                 sign(jar)
             }
         """
@@ -94,7 +94,7 @@ class InMemoryPgpSignatoryProviderIntegrationSpec extends SigningIntegrationSpec
         given:
         buildFile << """
             signing {
-                useInMemoryPgpKeys(project.properties['keyId'], project.properties['secretKey'], project.properties['password'])
+                useInMemoryPgpKeys(project.property('keyId'), project.property('secretKey'), project.property('password'))
                 sign(jar)
             }
         """

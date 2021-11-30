@@ -67,7 +67,7 @@ class DefaultMutableAttributeContainerTest extends Specification {
         def container = new DefaultMutableAttributeContainer(attributesFactory)
 
         when:
-        container.attribute(testAttribute, testProperty)
+        container.attributeProvider(testAttribute, testProperty)
         then:
         def e = thrown(IllegalArgumentException)
         e.message.contains("Unexpected type for attribute 'test' provided. Expected a value of type java.lang.String but found a value of type java.lang.Integer.")
@@ -79,7 +79,7 @@ class DefaultMutableAttributeContainerTest extends Specification {
         def container = new DefaultMutableAttributeContainer(attributesFactory)
 
         when:
-        container.attribute(testAttribute, testProperty)
+        container.attributeProvider(testAttribute, testProperty)
         container.getAttribute(testAttribute)
         then:
         def e = thrown(IllegalArgumentException)
@@ -96,7 +96,7 @@ class DefaultMutableAttributeContainerTest extends Specification {
         def child = new DefaultMutableAttributeContainer(attributesFactory, parent)
 
         when:
-        child.attribute(testAttr, testProperty)
+        child.attributeProvider(testAttr, testProperty)
 
         then:
         "child" == child.getAttribute(testAttr)
@@ -110,8 +110,8 @@ class DefaultMutableAttributeContainerTest extends Specification {
         def container2 = new DefaultMutableAttributeContainer(attributesFactory)
 
         when:
-        container1.attribute(testAttribute, testProperty1)
-        container2.attribute(testAttribute, testProperty2)
+        container1.attributeProvider(testAttribute, testProperty1)
+        container2.attributeProvider(testAttribute, testProperty2)
 
         then:
         container1 == container2
@@ -126,8 +126,8 @@ class DefaultMutableAttributeContainerTest extends Specification {
         def container2 = new DefaultMutableAttributeContainer(attributesFactory)
 
         when:
-        container1.attribute(testAttribute, testProperty1)
-        container2.attribute(testAttribute, testProperty2)
+        container1.attributeProvider(testAttribute, testProperty1)
+        container2.attributeProvider(testAttribute, testProperty2)
 
         then:
         container1 != container2
@@ -142,8 +142,8 @@ class DefaultMutableAttributeContainerTest extends Specification {
         def container2 = new DefaultMutableAttributeContainer(attributesFactory)
 
         when:
-        container1.attribute(testAttribute, testProperty1)
-        container2.attribute(testAttribute, testProperty2)
+        container1.attributeProvider(testAttribute, testProperty1)
+        container2.attributeProvider(testAttribute, testProperty2)
 
         then:
         container1.hashCode() == container2.hashCode()
@@ -157,8 +157,8 @@ class DefaultMutableAttributeContainerTest extends Specification {
         def container2 = new DefaultMutableAttributeContainer(attributesFactory)
 
         when:
-        container1.attribute(testAttribute, testProperty1)
-        container2.attribute(testAttribute, testProperty2)
+        container1.attributeProvider(testAttribute, testProperty1)
+        container2.attributeProvider(testAttribute, testProperty2)
 
         then:
         container1.hashCode() != container2.hashCode()

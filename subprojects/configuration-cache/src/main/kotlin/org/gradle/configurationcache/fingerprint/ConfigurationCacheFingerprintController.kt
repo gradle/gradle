@@ -27,6 +27,7 @@ import org.gradle.configuration.internal.UserCodeApplicationContext
 import org.gradle.configurationcache.CheckedFingerprint
 import org.gradle.configurationcache.ConfigurationCacheStateFile
 import org.gradle.configurationcache.extensions.hashCodeOf
+import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.configurationcache.problems.ConfigurationCacheReport
 import org.gradle.configurationcache.problems.PropertyProblem
@@ -267,6 +268,9 @@ class ConfigurationCacheFingerprintController internal constructor(
         override val gradleUserHomeDir: File
             get() = startParameter.gradleUserHomeDir
 
+        override val startParameterProperties: Map<String, Any?>
+            get() = startParameter.gradleProperties
+
         override val allInitScripts: List<File>
             get() = startParameter.allInitScripts
 
@@ -278,6 +282,9 @@ class ConfigurationCacheFingerprintController internal constructor(
 
         override fun hashCodeOf(file: File) =
             fileSystemAccess.hashCodeOf(file)
+
+        override fun displayNameOf(file: File): String =
+            GFileUtils.relativePathOf(file, rootDirectory)
 
         override fun fingerprintOf(fileCollection: FileCollectionInternal): HashCode =
             fileCollectionFingerprinter.fingerprint(fileCollection).hash
@@ -303,11 +310,14 @@ class ConfigurationCacheFingerprintController internal constructor(
         override val allInitScripts: List<File>
             get() = startParameter.allInitScripts
 
+        override val startParameterProperties: Map<String, Any?>
+            get() = startParameter.gradleProperties
+
         override val buildStartTime: Long
             get() = buildCommencedTimeProvider.currentTime
 
         override fun gradleProperty(propertyName: String): String? =
-            gradleProperties.find(propertyName)
+            gradleProperties.find(propertyName)?.uncheckedCast()
 
         override fun hashCodeOf(file: File) =
             fileSystemAccess.hashCodeOf(file)
@@ -324,9 +334,9 @@ class ConfigurationCacheFingerprintController internal constructor(
                 obtainedValue.valueSourceParametersType,
                 obtainedValue.valueSourceParameters
             )
-
-        private
-        val rootDirectory
-            get() = startParameter.rootDirectory
     }
+
+    private
+    val rootDirectory
+        get() = startParameter.rootDirectory
 }

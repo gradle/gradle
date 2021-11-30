@@ -20,15 +20,15 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 
 /**
- * Attributes to qualify the type of testing a Test Suite will perform
+ * Attribute to qualify the type of testing a Test Suite will perform.
  * <p>
- * This attribute is usually found on variants that have the {@link Category} attribute valued at {@link Usage#VERIFICATION verification}.
+ * This attribute is usually found on variants that have the {@link Category} attribute valued at {@link Category#VERIFICATION verification}.
  *
  * @since 7.4
  */
 @Incubating
-public interface TestType extends Named {
-    Attribute<TestType> TEST_TYPE_ATTRIBUTE = Attribute.of("org.gradle.testsuitetype", TestType.class);
+public interface TestSuiteType extends Named {
+    Attribute<TestSuiteType> TEST_SUITE_TYPE_ATTRIBUTE = Attribute.of("org.gradle.testsuite.type", TestSuiteType.class);
 
     /**
      * Unit tests, the default type of Test Suite

@@ -44,6 +44,7 @@ class OutgoingVariantsReportTaskIntegrationTest extends AbstractIntegrationSpec 
         def builtMainResourcesPath = file('build/resources/main').getRelativePathFromBase()
         def sourceMainJavaPath = file('src/main/java').getRelativePathFromBase()
         def sourceMainResourcePath = file( 'src/main/resources').getRelativePathFromBase()
+        def resultsBinPath = file('build/test-results/test/binary').getRelativePathFromBase()
         outputContains """> Task :outgoingVariants
 --------------------------------------------------
 Variant apiElements
@@ -79,9 +80,9 @@ Variant mainSourceElements
 Capabilities
     - org:myLib:1.0 (default capability)
 Attributes
-    - org.gradle.category = sources
-    - org.gradle.sources  = all-source-directories
-    - org.gradle.usage    = verification
+    - org.gradle.category            = verification
+    - org.gradle.dependency.bundling = external
+    - org.gradle.verificationtype    = main-sources
 
 Artifacts
     - $sourceMainJavaPath (artifactType = directory)
@@ -130,14 +131,14 @@ Variant testResultsElementsForTest
 Capabilities
     - org:myLib:1.0 (default capability)
 Attributes
-    - org.gradle.category      = documentation
-    - org.gradle.docstype      = test-results-bin
-    - org.gradle.targetname    = test
-    - org.gradle.testsuitename = test
-    - org.gradle.testsuitetype = unit-tests
-    - org.gradle.usage         = verification
+    - org.gradle.category              = verification
+    - org.gradle.testsuite.name        = test
+    - org.gradle.testsuite.target.name = test
+    - org.gradle.testsuite.type        = unit-tests
+    - org.gradle.verificationtype      = test-results
 
 Artifacts
+    - $resultsBinPath (artifactType = directory)
 """
         and:
         doesNotHaveLegacyVariantsLegend()
@@ -167,6 +168,7 @@ Artifacts
         def builtMainResourcesPath = file('build/resources/main').getRelativePathFromBase()
         def sourceMainJavaPath = file('src/main/java').getRelativePathFromBase()
         def sourceMainResourcePath = file('src/main/resources').getRelativePathFromBase()
+        def resultsBinPath = file('build/test-results/test/binary').getRelativePathFromBase()
         outputContains """> Task :outgoingVariants
 --------------------------------------------------
 Variant apiElements
@@ -218,9 +220,9 @@ Variant mainSourceElements
 Capabilities
     - org:myLib:1.0 (default capability)
 Attributes
-    - org.gradle.category = sources
-    - org.gradle.sources  = all-source-directories
-    - org.gradle.usage    = verification
+    - org.gradle.category            = verification
+    - org.gradle.dependency.bundling = external
+    - org.gradle.verificationtype    = main-sources
 
 Artifacts
     - $sourceMainJavaPath (artifactType = directory)
@@ -285,14 +287,14 @@ Variant testResultsElementsForTest
 Capabilities
     - org:myLib:1.0 (default capability)
 Attributes
-    - org.gradle.category      = documentation
-    - org.gradle.docstype      = test-results-bin
-    - org.gradle.targetname    = test
-    - org.gradle.testsuitename = test
-    - org.gradle.testsuitetype = unit-tests
-    - org.gradle.usage         = verification
+    - org.gradle.category              = verification
+    - org.gradle.testsuite.name        = test
+    - org.gradle.testsuite.target.name = test
+    - org.gradle.testsuite.type        = unit-tests
+    - org.gradle.verificationtype      = test-results
 
 Artifacts
+    - $resultsBinPath (artifactType = directory)
 """
         and:
         doesNotHaveLegacyVariantsLegend()
@@ -391,6 +393,12 @@ Here are the available outgoing variants: apiElements, archives, default, mainSo
         run ':outgoingVariants', '--all'
 
         then:
+        def jarPath = file('build/libs/myLib-1.0.jar').getRelativePathFromBase()
+        def builtMainClassesPath = file('build/classes/java/main').getRelativePathFromBase()
+        def builtMainResourcesPath = file('build/resources/main').getRelativePathFromBase()
+        def sourceMainJavaPath = file('src/main/java').getRelativePathFromBase()
+        def sourceMainResourcePath = file('src/main/resources').getRelativePathFromBase()
+        def resultsBinPath = file('build/test-results/test/binary').getRelativePathFromBase()
         outputContains """> Task :outgoingVariants
 --------------------------------------------------
 Variant apiElements
@@ -407,7 +415,7 @@ Attributes
     - org.gradle.usage               = java-api
 
 Artifacts
-    - build${File.separator}libs${File.separator}myLib-1.0.jar (artifactType = jar)
+    - $jarPath (artifactType = jar)
 
 Secondary variants (*)
     - Variant : classes
@@ -418,7 +426,7 @@ Secondary variants (*)
           - org.gradle.libraryelements     = classes
           - org.gradle.usage               = java-api
        - Artifacts
-          - build${File.separator}classes${File.separator}java${File.separator}main (artifactType = java-classes-directory)
+          - $builtMainClassesPath (artifactType = java-classes-directory)
 
 --------------------------------------------------
 Variant archives (l)
@@ -426,7 +434,7 @@ Variant archives (l)
 Description = Configuration for archive artifacts.
 
 Artifacts
-    - build${File.separator}libs${File.separator}myLib-1.0.jar (artifactType = jar)
+    - $jarPath (artifactType = jar)
 
 --------------------------------------------------
 Variant default (l)
@@ -434,7 +442,7 @@ Variant default (l)
 Description = Configuration for default artifacts.
 
 Artifacts
-    - build${File.separator}libs${File.separator}myLib-1.0.jar (artifactType = jar)
+    - $jarPath (artifactType = jar)
 
 --------------------------------------------------
 Variant mainSourceElements
@@ -442,13 +450,13 @@ Variant mainSourceElements
 Capabilities
     - org:myLib:1.0 (default capability)
 Attributes
-    - org.gradle.category = sources
-    - org.gradle.sources  = all-source-directories
-    - org.gradle.usage    = verification
+    - org.gradle.category            = verification
+    - org.gradle.dependency.bundling = external
+    - org.gradle.verificationtype    = main-sources
 
 Artifacts
-    - src${File.separator}main${File.separator}java (artifactType = directory)
-    - src${File.separator}main${File.separator}resources (artifactType = directory)
+    - $sourceMainJavaPath (artifactType = directory)
+    - $sourceMainResourcePath (artifactType = directory)
 
 --------------------------------------------------
 Variant runtimeElements
@@ -465,7 +473,7 @@ Attributes
     - org.gradle.usage               = java-runtime
 
 Artifacts
-    - build${File.separator}libs${File.separator}myLib-1.0.jar (artifactType = jar)
+    - $jarPath (artifactType = jar)
 
 Secondary variants (*)
     - Variant : classes
@@ -476,7 +484,7 @@ Secondary variants (*)
           - org.gradle.libraryelements     = classes
           - org.gradle.usage               = java-runtime
        - Artifacts
-          - build${File.separator}classes${File.separator}java${File.separator}main (artifactType = java-classes-directory)
+          - $builtMainClassesPath (artifactType = java-classes-directory)
     - Variant : resources
        - Attributes
           - org.gradle.category            = library
@@ -485,7 +493,7 @@ Secondary variants (*)
           - org.gradle.libraryelements     = resources
           - org.gradle.usage               = java-runtime
        - Artifacts
-          - build${File.separator}resources${File.separator}main (artifactType = java-resources-directory)
+          - $builtMainResourcesPath (artifactType = java-resources-directory)
 
 --------------------------------------------------
 Variant testResultsElementsForTest
@@ -493,14 +501,14 @@ Variant testResultsElementsForTest
 Capabilities
     - org:myLib:1.0 (default capability)
 Attributes
-    - org.gradle.category      = documentation
-    - org.gradle.docstype      = test-results-bin
-    - org.gradle.targetname    = test
-    - org.gradle.testsuitename = test
-    - org.gradle.testsuitetype = unit-tests
-    - org.gradle.usage         = verification
+    - org.gradle.category              = verification
+    - org.gradle.testsuite.name        = test
+    - org.gradle.testsuite.target.name = test
+    - org.gradle.testsuite.type        = unit-tests
+    - org.gradle.verificationtype      = test-results
 
 Artifacts
+    - $resultsBinPath (artifactType = directory)
 """
 
         and:
@@ -554,6 +562,9 @@ Capabilities
         run ':outgoingVariants', '--variant', 'runtimeElements'
 
         then:
+        def jarPath = file('build/libs/myLib-1.0.jar').getRelativePathFromBase()
+        def builtMainClassesPath = file('build/classes/java/main').getRelativePathFromBase()
+        def builtMainResourcesPath = file('build/resources/main').getRelativePathFromBase()
         outputContains """> Task :outgoingVariants
 --------------------------------------------------
 Variant runtimeElements
@@ -570,7 +581,7 @@ Attributes
     - org.gradle.usage               = java-runtime
 
 Artifacts
-    - build${File.separator}libs${File.separator}myLib-1.0.jar (artifactType = jar)
+    - $jarPath (artifactType = jar)
 
 Secondary variants (*)
     - Variant : classes
@@ -581,7 +592,7 @@ Secondary variants (*)
           - org.gradle.libraryelements     = classes
           - org.gradle.usage               = java-runtime
        - Artifacts
-          - build${File.separator}classes${File.separator}java${File.separator}main (artifactType = java-classes-directory)
+          - $builtMainClassesPath (artifactType = java-classes-directory)
           - foo
     - Variant : resources
        - Attributes
@@ -591,7 +602,7 @@ Secondary variants (*)
           - org.gradle.libraryelements     = resources
           - org.gradle.usage               = java-runtime
        - Artifacts
-          - build${File.separator}resources${File.separator}main (artifactType = java-resources-directory)
+          - $builtMainResourcesPath (artifactType = java-resources-directory)
 """
 
         and:

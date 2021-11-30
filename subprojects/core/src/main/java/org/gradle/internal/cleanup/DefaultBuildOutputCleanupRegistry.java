@@ -31,6 +31,8 @@ import java.util.Set;
 public class DefaultBuildOutputCleanupRegistry implements BuildOutputCleanupRegistry {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultBuildOutputCleanupRegistry.class);
 
+    private final Object lock = new Object();
+
     private final FileCollectionFactory fileCollectionFactory;
     private final Set<FileCollection> outputs = Sets.newHashSet();
     private Set<String> resolvedPaths;
@@ -41,14 +43,16 @@ public class DefaultBuildOutputCleanupRegistry implements BuildOutputCleanupRegi
 
     @Override
     public void registerOutputs(Object files) {
-        if (resolvedPaths != null) {
-            // Some tasks cannot declare the dependencies on other projects, yet, for example the dependencies task.
-            // When configure on demand is enabled, those other projects are realized at execution time, long after the BuildOutputRegistry
-            // has been finalized. We ignore those problems for now, until the dependencies can be declared properly.
-            // See https://github.com/gradle/gradle/issues/18460.
-            LOGGER.debug("More outputs are being registered even though the build output cleanup registry has already been finalized. New outputs: {}", files);
-        } else {
-            this.outputs.add(fileCollectionFactory.resolving(files));
+        synchronized (lock) {
+            if (resolvedPaths != null) {
+                // Some tasks cannot declare the dependencies on other projects, yet, for example the dependencies task.
+                // When configure on demand is enabled, those other projects are realized at execution time, long after the BuildOutputRegistry
+                // has been finalized. We ignore those problems for now, until the dependencies can be declared properly.
+                // See https://github.com/gradle/gradle/issues/18460.
+                LOGGER.debug("More outputs are being registered even though the build output cleanup registry has already been finalized. New outputs: {}", files);
+            } else {
+                this.outputs.add(fileCollectionFactory.resolving(files));
+            }
         }
     }
 

@@ -161,9 +161,6 @@ abstract class TestFilesCleanupService @Inject constructor(
         // First run: collect and archieve leftover files
         parameters.projectStates.get().forEach { (projectPath: String, projectExtension: TestFileCleanUpExtension) ->
             val tmpTestFiles = projectExtension.tmpTestFiles()
-            if (tmpTestFiles.isEmpty()) {
-                return@forEach
-            }
 
             projectExtension.prepareReportsForCiPublishing(
                 if (tmpTestFiles.isEmpty()) getFailedTaskPaths(projectPath) else getExecutedTaskPaths(projectPath),

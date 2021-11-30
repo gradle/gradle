@@ -48,6 +48,9 @@ class ConfigurationCacheInitScriptsIntegrationTest extends AbstractConfiguration
         then:
         outputContains 'foo!'
         configurationCache.assertStateStored()
+        problems.assertResultHasProblems(result) {
+            withInput("Initialization script 'initscript.gradle': file 'input.txt'")
+        }
 
         when:
         buildLogicInput.text = 'bar!'

@@ -20,7 +20,9 @@ import common.Os
 import common.VersionedSettingsBranch
 import configurations.BaseGradleBuildType
 import configurations.PerformanceTest
+import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildStep
+import jetbrains.buildServer.configs.kotlin.v2019_2.DslContext
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.GradleBuildStep
 import model.CIBuildModel
 import model.JsonBasedGradleSubprojectProvider
@@ -36,6 +38,12 @@ import org.junit.jupiter.api.Test
 import java.io.File
 
 class PerformanceTestBuildTypeTest {
+    init {
+        // Set the project id here, so we can use methods on the DslContext
+        DslContext.projectId = AbsoluteId("Gradle_Master")
+        DslContext.addParameters("Branch" to "master")
+    }
+
     private
     val buildModel = CIBuildModel(
         projectId = "Gradle_Check",
@@ -47,7 +55,8 @@ class PerformanceTestBuildTypeTest {
     @Test
     fun `create correct PerformanceTest build type`() {
         val performanceTest = PerformanceTest(
-            buildModel, Stage(
+            buildModel,
+            Stage(
                 StageNames.READY_FOR_MERGE,
                 specificBuilds = listOf(
                     SpecificBuild.BuildDistributions,
@@ -73,7 +82,8 @@ class PerformanceTestBuildTypeTest {
                 "KILL_GRADLE_PROCESSES",
                 "GRADLE_RUNNER",
                 "CHECK_CLEAN_M2_ANDROID_USER_HOME"
-            ), performanceTest.steps.items.map(BuildStep::name)
+            ),
+            performanceTest.steps.items.map(BuildStep::name)
         )
 
         val expectedRunnerParams = listOf(
@@ -97,12 +107,14 @@ class PerformanceTestBuildTypeTest {
         )
 
         assertEquals(
-            (listOf(
-                "clean",
-                ":performance:largeTestProjectPerformanceTest --channel %performance.channel% ",
-                ":performance:smallTestProjectPerformanceTest --channel %performance.channel% ",
-                "extraParameters"
-            ) + expectedRunnerParams).joinToString(" "),
+            (
+                listOf(
+                    "clean",
+                    ":performance:largeTestProjectPerformanceTest --channel %performance.channel% ",
+                    ":performance:smallTestProjectPerformanceTest --channel %performance.channel% ",
+                    "extraParameters"
+                ) + expectedRunnerParams
+                ).joinToString(" "),
             performanceTest.getGradleStep("GRADLE_RUNNER").gradleParams!!.trim()
         )
         assertEquals(BuildStep.ExecutionMode.DEFAULT, performanceTest.getGradleStep("GRADLE_RUNNER").executionMode)

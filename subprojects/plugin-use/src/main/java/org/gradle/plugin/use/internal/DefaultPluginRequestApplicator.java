@@ -38,6 +38,7 @@ import org.gradle.plugin.management.internal.PluginRequests;
 import org.gradle.plugin.management.internal.PluginResolutionStrategyInternal;
 import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.resolve.internal.AlreadyOnClasspathPluginResolver;
+import org.gradle.plugin.use.resolve.internal.PluginRepositoriesProvider;
 import org.gradle.plugin.use.resolve.internal.PluginResolution;
 import org.gradle.plugin.use.resolve.internal.PluginResolutionResult;
 import org.gradle.plugin.use.resolve.internal.PluginResolveContext;
@@ -80,6 +81,9 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
             defineScriptHandlerClassScope(scriptHandler, classLoaderScope, Collections.emptyList());
             return;
         }
+
+        // This should move to settings finalization
+        pluginRepositoriesProvider.prepareForPluginResolution();
 
         final PluginResolver effectivePluginResolver = wrapInAlreadyInClasspathResolver(classLoaderScope);
         if (!requests.isEmpty()) {

@@ -112,8 +112,8 @@ class ResolveConfigurationResolutionBuildOperationResult implements ResolveConfi
         }
 
         @Override
-        public <T> AttributeContainer attribute(Attribute<T> key, Provider<? extends T> provider) {
-            return getDesugared().attribute(key, provider);
+        public <T> AttributeContainer attributeProvider(Attribute<T> key, Provider<? extends T> provider) {
+            return getDesugared().attributeProvider(key, provider);
         }
 
         @Nullable

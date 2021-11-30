@@ -16,6 +16,11 @@
 
 package org.gradle.internal.classpath
 
+import com.google.common.io.ByteStreams
+import com.google.common.io.CharStreams
+
+import java.util.function.Consumer
+
 class AccessTrackingPropertiesTest extends AbstractAccessTrackingMapTest {
     @Override
     protected Properties getMapUnderTestToRead() {
@@ -157,9 +162,55 @@ class AccessTrackingPropertiesTest extends AbstractAccessTrackingMapTest {
         'missing'  | 'someValue'     | null            | false
     }
 
+    def "aggregating method #methodName reports all properties as inputs"() {
+        when:
+        operation.accept(getMapUnderTestToRead())
+
+        then:
+        (1.._) * consumer.accept('existing', 'existingValue')
+        (1.._) * consumer.accept('other', 'otherValue')
+        0 * consumer._
+
+        where:
+        methodName                                | operation
+        "propertyNames()"                         | call(p -> p.propertyNames())
+        "keys()"                                  | call(p -> p.keys())
+        "elements()"                              | call(p -> p.elements())
+        "replaceAll(BiFunction)"                  | call(p -> p.replaceAll((k, v) -> v))
+        "save(OutputStream, String)"              | call(p -> p.save(ByteStreams.nullOutputStream(), ""))
+        "store(OutputStream, String)"             | call(p -> p.store(ByteStreams.nullOutputStream(), ""))
+        "store(Writer, String)"                   | call(p -> p.store(CharStreams.nullWriter(), ""))
+        "storeToXML(OutputSteam, String)"         | call(p -> p.storeToXML(ByteStreams.nullOutputStream(), ""))
+        "storeToXML(OutputSteam, String, String)" | call(p -> p.storeToXML(ByteStreams.nullOutputStream(), "", "UTF-8"))
+        "list(PrintStream)"                       | call(p -> p.list(new PrintStream(ByteStreams.nullOutputStream())))
+        "list(PrintWriter)"                       | call(p -> p.list(new PrintWriter(ByteStreams.nullOutputStream())))
+        "equals(Object)"                          | call(p -> Objects.equals(p, new Properties()))  // Ensure that a real equals is invoked and not a Groovy helper
+        "stringPropertyNames().iterator()"        | call(p -> p.stringPropertyNames().iterator())
+        "stringPropertyNames().size()"            | call(p -> p.stringPropertyNames().size())
+    }
+
+    def "method #methodName does not report properties as inputs"() {
+        when:
+        operation.accept(getMapUnderTestToRead())
+
+        then:
+        0 * consumer._
+        where:
+        methodName          | operation
+        "toString()"        | call(p -> p.toString())
+        "clear()"           | call(p -> p.clear())
+        "load(Reader)"      | call(p -> p.load(new StringReader("")))
+        "load(InputStream)" | call(p -> p.load(new ByteArrayInputStream(new byte[0])))
+    }
+
     private static Properties propertiesWithContent(Map<String, String> contents) {
         Properties props = new Properties()
         props.putAll(contents)
         return props
+    }
+
+    // Shortcut to have a typed lambda expression in where: block
+    private static Consumer<Properties> call(Consumer<Properties> consumer) {
+        return consumer
     }
 }

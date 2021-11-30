@@ -401,7 +401,8 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         succeeds("checkConfiguration")
     }
 
-    def "test framework may not be changed once options have been used with test suites"() {
+    // TODO: Test Framework Selection - Revert this to may NOT in Gradle 8
+    def "test framework MAY be changed once options have been used with test suites"() {
         buildFile << """
             plugins {
                 id 'java'
@@ -433,10 +434,10 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
             check.dependsOn testing.suites
         """
 
-        when:
-        fails("check")
-        then:
-        failure.assertHasCause("The value for task ':integrationTest' property 'testFrameworkProperty' is final and cannot be changed any further.")
+        executer.expectDocumentedDeprecationWarning("Accessing test options prior to setting test framework has been deprecated. This is scheduled to be removed in Gradle 8.0.")
+
+        expect:
+        succeeds("check")
     }
 
     // This checks for backwards compatibility with builds that may rely on this
@@ -472,8 +473,11 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
+        executer.expectDocumentedDeprecationWarning("Accessing test options prior to setting test framework has been deprecated. This is scheduled to be removed in Gradle 8.0.")
+        executer.expectDocumentedDeprecationWarning("Accessing test options prior to setting test framework has been deprecated. This is scheduled to be removed in Gradle 8.0.")
+
         when:
-        run "test"
+        succeeds( "test")
 
         then:
         executedAndNotSkipped(":test")
@@ -591,5 +595,79 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         """
         expect:
         succeeds("mytest", "assertNoTestClasses")
+    }
+
+    def "multiple getTestingFramework() calls on a test suite return same instance"() {
+        given:
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            def first = testing.suites.test.getVersionedTestingFramework()
+            def second = testing.suites.test.getVersionedTestingFramework()
+
+            tasks.register('assertSameFrameworkInstance') {
+                doLast {
+                    assert first === second
+                }
+            }""".stripIndent()
+
+        expect:
+        succeeds("assertSameFrameworkInstance")
+    }
+
+    def "multiple getTestingFramework() calls on a test suite return same instance even when calling useJUnit"() {
+        given:
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            def first = testing.suites.test.getVersionedTestingFramework()
+
+            testing {
+                suites {
+                    test {
+                        useJUnit()
+                    }
+                }
+            }
+
+            def second = testing.suites.test.getVersionedTestingFramework()
+
+            tasks.register('assertSameFrameworkInstance') {
+                doLast {
+                    assert first === second
+                }
+            }""".stripIndent()
+
+        expect:
+        succeeds("assertSameFrameworkInstance")
+    }
+
+    def "multiple getTestingFramework() calls on a test suite return same instance even after toggling testing framework"() {
+        given:
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            def first = testing.suites.test.getVersionedTestingFramework()
+
+            testing.suites.test.useJUnit()
+            testing.suites.test.useTestNG()
+            testing.suites.test.useJUnit()
+
+            def second = testing.suites.test.getVersionedTestingFramework()
+
+            tasks.register('assertSameFrameworkInstance') {
+                doLast {
+                    assert first === second
+                }
+            }""".stripIndent()
+
+        expect:
+        succeeds("assertSameFrameworkInstance")
     }
 }

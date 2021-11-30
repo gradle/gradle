@@ -16,6 +16,8 @@ Include only their name, impactful features should be called out separately belo
 [Róbert Papp](https://github.com/TWiStErRob),
 [Piyush Mor](https://github.com/piyushmor),
 [Ned Twigg](https://github.com/nedtwigg),
+[Nikolas Grottendieck](https://github.com/Okeanos),
+[Lars Grefer](https://github.com/larsgrefer),
 [Marcin Mielnicki](https://github.com/platan).
 
 ## Upgrade instructions
@@ -25,6 +27,9 @@ Switch your build to use Gradle @version@ by updating your wrapper:
 `./gradlew wrapper --gradle-version=@version@`
 
 See the [Gradle 7.x upgrade guide](userguide/upgrading_version_7.html#changes_@baseVersion@) to learn about deprecations, breaking changes and other considerations when upgrading to Gradle @version@. 
+
+NOTE: Gradle 7.3 has had *one* patch release, which fixes several issues from the original release.
+We recommend always using the latest patch release.
 
 For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).
 
@@ -115,10 +120,11 @@ See [the documentation](userguide/kotlin_dsl.html#type-safe-accessors) for detai
 
 ### Dependency verification improvements
 
-[Dependency verification](userguide/dependency_verification.html) is a feature that allows build to verify the checksums and signatures of the plugins and dependencies that are used by your project.
+[Dependency verification](userguide/dependency_verification.html) is a feature that allows to verify the checksums and signatures of the plugins and dependencies that are used by the build of your project.
 
 With this release, the generation of the dependency verification file has been improved to produce stable output.
-This allows you to leverage generation as an update strategy for the verification metadata when dependencies change in your project.
+This means that for the same inputs - build configuration and previous verification file - Gradle will always produce the same output.
+This allows you to leverage [the verification metadata bootstrapping feature](userguide/dependency_verification.html#sec:bootstrapping-verification) as an update strategy when dependencies change in your project.
 Have a look at [the documentation](userguide/dependency_verification.html#sec:verification-update) for more details.
 
 ### Gradle Option Improvements

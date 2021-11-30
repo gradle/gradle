@@ -74,7 +74,7 @@ fun BuildSteps.substDirOnWindows(os: Os) {
             scriptContent = """
                 subst p: /d
                 subst p: "%teamcity.build.checkoutDir%"
-                """.trimIndent()
+            """.trimIndent()
         }
         cleanBuildLogicBuild("P:/build-logic-commons")
         cleanBuildLogicBuild("P:/build-logic")

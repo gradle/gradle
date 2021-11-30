@@ -26,8 +26,13 @@ sealed class ProjectSpecificFingerprint {
         val value: ConfigurationCacheFingerprint
     ) : ProjectSpecificFingerprint()
 
-    class ProjectDependency(
+    data class ProjectDependency(
         val consumingProject: Path,
+        val targetProject: Path
+    ) : ProjectSpecificFingerprint()
+
+    data class CoupledProjects(
+        val referringProject: Path,
         val targetProject: Path
     ) : ProjectSpecificFingerprint()
 }

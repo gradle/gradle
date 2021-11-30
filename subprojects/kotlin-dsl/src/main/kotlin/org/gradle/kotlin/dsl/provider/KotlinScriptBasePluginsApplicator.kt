@@ -16,10 +16,10 @@
 
 package org.gradle.kotlin.dsl.provider
 
-import org.gradle.api.Project
+import org.gradle.api.internal.project.ProjectInternal
 
 
 interface KotlinScriptBasePluginsApplicator {
 
-    fun apply(project: Project)
+    fun apply(project: ProjectInternal)
 }

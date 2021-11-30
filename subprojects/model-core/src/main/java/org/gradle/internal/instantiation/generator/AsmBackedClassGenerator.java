@@ -164,12 +164,14 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         return new ManagedObjectFactory(details.services, details.instantiator, details.roleHandler);
     }
 
-    private AsmBackedClassGenerator(boolean decorate, String suffix,
-                                    Collection<? extends InjectAnnotationHandler> allKnownAnnotations,
-                                    Collection<Class<? extends Annotation>> enabledInjectAnnotations,
-                                    PropertyRoleAnnotationHandler roleHandler,
-                                    CrossBuildInMemoryCache<Class<?>, GeneratedClassImpl> generatedClasses,
-                                    int factoryId) {
+    private AsmBackedClassGenerator(
+        boolean decorate, String suffix,
+        Collection<? extends InjectAnnotationHandler> allKnownAnnotations,
+        Collection<Class<? extends Annotation>> enabledInjectAnnotations,
+        PropertyRoleAnnotationHandler roleHandler,
+        CrossBuildInMemoryCache<Class<?>, GeneratedClassImpl> generatedClasses,
+        int factoryId
+    ) {
         super(allKnownAnnotations, enabledInjectAnnotations, roleHandler, generatedClasses);
         this.decorate = decorate;
         this.suffix = suffix;
@@ -179,11 +181,13 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
     /**
      * Returns a generator that applies DSL mix-in, extensibility and service injection for generated classes.
      */
-    static ClassGenerator decorateAndInject(Collection<? extends InjectAnnotationHandler> allKnownAnnotations,
-                                            PropertyRoleAnnotationHandler roleHandler,
-                                            Collection<Class<? extends Annotation>> enabledInjectAnnotations,
-                                            CrossBuildInMemoryCacheFactory cacheFactory,
-                                            int factoryId) {
+    static ClassGenerator decorateAndInject(
+        Collection<? extends InjectAnnotationHandler> allKnownAnnotations,
+        PropertyRoleAnnotationHandler roleHandler,
+        Collection<Class<? extends Annotation>> enabledInjectAnnotations,
+        CrossBuildInMemoryCacheFactory cacheFactory,
+        int factoryId
+    ) {
         String suffix;
         CrossBuildInMemoryCache<Class<?>, GeneratedClassImpl> generatedClasses;
         if (enabledInjectAnnotations.isEmpty()) {
@@ -210,11 +214,13 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
     /**
      * Returns a generator that applies service injection only for generated classes, and will generate classes only if required.
      */
-    static ClassGenerator injectOnly(Collection<? extends InjectAnnotationHandler> allKnownAnnotations,
-                                     PropertyRoleAnnotationHandler roleHandler,
-                                     Collection<Class<? extends Annotation>> enabledInjectAnnotations,
-                                     CrossBuildInMemoryCacheFactory cacheFactory,
-                                     int factoryId) {
+    static ClassGenerator injectOnly(
+        Collection<? extends InjectAnnotationHandler> allKnownAnnotations,
+        PropertyRoleAnnotationHandler roleHandler,
+        Collection<Class<? extends Annotation>> enabledInjectAnnotations,
+        CrossBuildInMemoryCacheFactory cacheFactory,
+        int factoryId
+    ) {
         // TODO - the suffix should be a deterministic function of the known and enabled annotations
         // For now, just assign using a counter
         String suffix = ClassGeneratorSuffixRegistry.assign("$Inject");
@@ -742,8 +748,13 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             }
 
             // GENERATE private DynamicObject dynamicObjectHelper
-            visitor.visitField(ACC_PRIVATE | ACC_TRANSIENT, DYNAMIC_OBJECT_HELPER_FIELD, ABSTRACT_DYNAMIC_OBJECT_TYPE.getDescriptor(), null, null);
-
+            visitor.visitField(
+                ACC_PRIVATE | ACC_TRANSIENT,
+                DYNAMIC_OBJECT_HELPER_FIELD,
+                ABSTRACT_DYNAMIC_OBJECT_TYPE.getDescriptor(),
+                null,
+                null
+            );
             // END
 
             if (extensible) {
@@ -757,11 +768,9 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                     visitor.visitTypeInsn(CHECKCAST, EXTENSIBLE_DYNAMIC_OBJECT_HELPER_TYPE.getInternalName());
                     visitor.visitMethodInsn(INVOKEVIRTUAL, EXTENSIBLE_DYNAMIC_OBJECT_HELPER_TYPE.getInternalName(), "getConvention", RETURN_CONVENTION, false);
                 });
-
                 // END
 
             }
-
             // END
 
             // GENERATE public DynamicObject getAsDynamicObject() {
@@ -772,7 +781,6 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             // }
 
             addLazyGetter("getAsDynamicObject", DYNAMIC_OBJECT_TYPE, RETURN_DYNAMIC_OBJECT, null, DYNAMIC_OBJECT_HELPER_FIELD, ABSTRACT_DYNAMIC_OBJECT_TYPE, this::generateCreateDynamicObject);
-
             // END
         }
 
