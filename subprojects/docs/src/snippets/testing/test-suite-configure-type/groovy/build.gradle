@@ -29,7 +29,7 @@ repositories {
 testing {
     suites {
         secondaryTest(JvmTestSuite) {
-            testType = TestSuitesType.INTEGRATION_TEST // <1>
+            testType = TestSuiteType.INTEGRATION_TEST // <1>
         }
     }
 }
