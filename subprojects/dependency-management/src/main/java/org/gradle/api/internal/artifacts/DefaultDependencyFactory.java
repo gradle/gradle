@@ -30,12 +30,14 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.notations.ProjectDependencyFactory;
 import org.gradle.internal.typeconversion.NotationParser;
+import org.gradle.plugin.use.PluginDependency;
 
 import java.util.Map;
 
 public class DefaultDependencyFactory implements DependencyFactory {
     private final NotationParser<Object, Dependency> dependencyNotationParser;
     private final NotationParser<Object, DependencyConstraint> dependencyConstraintNotationParser;
+    private final NotationParser<Object, PluginDependency> pluginDependencyNotationParser;
     private final NotationParser<Object, ClientModule> clientModuleNotationParser;
     private final NotationParser<Object, Capability> capabilityNotationParser;
     private final ProjectDependencyFactory projectDependencyFactory;
@@ -43,12 +45,14 @@ public class DefaultDependencyFactory implements DependencyFactory {
 
     public DefaultDependencyFactory(NotationParser<Object, Dependency> dependencyNotationParser,
                                     NotationParser<Object, DependencyConstraint> dependencyConstraintNotationParser,
+                                    NotationParser<Object, PluginDependency> dependencyPluginNotationParser,
                                     NotationParser<Object, ClientModule> clientModuleNotationParser,
                                     NotationParser<Object, Capability> capabilityNotationParser,
                                     ProjectDependencyFactory projectDependencyFactory,
                                     ImmutableAttributesFactory attributesFactory) {
         this.dependencyNotationParser = dependencyNotationParser;
         this.dependencyConstraintNotationParser = dependencyConstraintNotationParser;
+        this.pluginDependencyNotationParser = dependencyPluginNotationParser;
         this.clientModuleNotationParser = clientModuleNotationParser;
         this.capabilityNotationParser = capabilityNotationParser;
         this.projectDependencyFactory = projectDependencyFactory;
@@ -60,6 +64,11 @@ public class DefaultDependencyFactory implements DependencyFactory {
         Dependency dependency = dependencyNotationParser.parseNotation(dependencyNotation);
         injectServices(dependency);
         return dependency;
+    }
+
+    @Override
+    public PluginDependency createPluginDependency(Object dependencyNotation) {
+        return pluginDependencyNotationParser.parseNotation(dependencyNotation);
     }
 
     private void injectServices(Dependency dependency) {

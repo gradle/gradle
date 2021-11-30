@@ -39,6 +39,7 @@ import org.gradle.internal.typeconversion.NotationConverter;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.gradle.internal.typeconversion.TypeConversionException;
+import org.gradle.plugin.use.PluginDependency;
 
 public class DependencyNotationParser {
     public static NotationParser<Object, Dependency> parser(Instantiator instantiator,
@@ -50,11 +51,14 @@ public class DependencyNotationParser {
                                                             Interner<String> stringInterner,
                                                             ImmutableAttributesFactory attributesFactory,
                                                             NotationParser<Object, Capability> capabilityNotationParser) {
+        MinimalExternalDependencyNotationConverter minimalConverter =
+            new MinimalExternalDependencyNotationConverter(instantiator, attributesFactory, capabilityNotationParser);
         return NotationParserBuilder
             .toType(Dependency.class)
             .fromCharSequence(new DependencyStringNotationConverter<>(instantiator, DefaultExternalModuleDependency.class, stringInterner))
-            .fromType(MinimalExternalModuleDependency.class, new MinimalExternalDependencyNotationConverter(instantiator, attributesFactory, capabilityNotationParser))
+            .fromType(MinimalExternalModuleDependency.class, minimalConverter)
             .converter(new DependencyMapNotationConverter<>(instantiator, DefaultExternalModuleDependency.class))
+            .fromType(PluginDependency.class, new DependencyPluginNotationConverter(minimalConverter))
             .fromType(FileCollection.class, new DependencyFilesNotationConverter(instantiator))
             .fromType(Project.class, new DependencyProjectNotationConverter(dependencyFactory))
             .fromType(DependencyFactory.ClassPathNotation.class, new DependencyClassPathNotationConverter(instantiator, classPathRegistry, fileCollectionFactory, runtimeShadedJarFactory, currentGradleInstallation))
