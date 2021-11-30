@@ -15,7 +15,7 @@
  */
 package org.gradle.nativeplatform
 
-import groovy.transform.NotYetImplemented
+import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
@@ -27,7 +27,6 @@ import org.gradle.util.TestPrecondition
 import org.hamcrest.CoreMatchers
 import spock.lang.IgnoreIf
 import spock.lang.Issue
-import spock.lang.Unroll
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VISUALCPP
 
@@ -329,7 +328,6 @@ model {
         file("build/libs/hello/shared/runtime/new_output/_hello.dll").assertExists()
     }
 
-    @Unroll
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
     @ToBeFixedForConfigurationCache
     def "can link to #linkage library binary with custom output file"() {

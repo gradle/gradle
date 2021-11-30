@@ -18,9 +18,11 @@ package org.gradle.api.plugins.internal;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.component.SoftwareComponentFactory;
+import org.gradle.api.internal.tasks.DefaultSourceSetContainer;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.jvm.internal.DefaultJvmPluginServices;
 import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
+import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.Describables;
 import org.gradle.internal.instantiation.InstanceGenerator;
@@ -63,6 +65,10 @@ public class PluginAuthorServices extends AbstractPluginServiceRegistry {
                 tasks,
                 components,
                 instantiator);
+        }
+
+        SourceSetContainer createSourceSetContainer(ObjectFactory objectFactory) {
+            return objectFactory.newInstance(DefaultSourceSetContainer.class);
         }
     }
 }

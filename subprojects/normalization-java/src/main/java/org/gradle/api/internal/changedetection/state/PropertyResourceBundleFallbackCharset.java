@@ -31,8 +31,8 @@ import java.nio.charset.StandardCharsets;
  * to load the properties file using UTF-8 encoding and if it encounters an error, tries to
  * load the file using ISO-8859-1 encoding.
  *
- * This class is only necessary because {@link sun.util.PropertyResourceBundleCharset} is not
- * available in Java 8.  This class can be removed in favor of {@link sun.util.PropertyResourceBundleCharset}
+ * This class is only necessary because {@code sun.util.PropertyResourceBundleCharset} is not
+ * available in Java 8.  This class can be removed in favor of {@code sun.util.PropertyResourceBundleCharset}
  * once Java 8 is no longer supported.
  */
 public class PropertyResourceBundleFallbackCharset extends Charset {

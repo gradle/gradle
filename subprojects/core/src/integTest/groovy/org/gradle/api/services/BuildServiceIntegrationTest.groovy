@@ -18,7 +18,6 @@ package org.gradle.api.services
 
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.file.ProjectLayout
-import org.gradle.api.logging.LoggingOutput
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.Input
@@ -36,7 +35,6 @@ import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheTest
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.process.ExecOperations
-import spock.lang.Unroll
 
 import javax.inject.Inject
 
@@ -532,7 +530,6 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
         outputContains("service: closed with value 12")
     }
 
-    @Unroll
     def "can inject Gradle provided service #serviceType into build service"() {
         serviceWithInjectedService(serviceType)
         buildFile << """
@@ -556,11 +553,9 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
             FileSystemOperations,
             ObjectFactory,
             ProviderFactory,
-            LoggingOutput
         ].collect { it.name }
     }
 
-    @Unroll
     def "cannot inject Gradle provided service #serviceType into build service"() {
         serviceWithInjectedService(serviceType.name)
         buildFile << """
@@ -612,7 +607,6 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
         dest.file
     }
 
-    @Unroll
     def "task cannot use build service for #annotationType property"() {
         serviceImplementation()
         buildFile << """

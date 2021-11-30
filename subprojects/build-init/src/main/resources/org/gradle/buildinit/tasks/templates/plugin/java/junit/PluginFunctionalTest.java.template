@@ -10,18 +10,27 @@ import java.nio.file.Files;
 import org.gradle.testkit.runner.GradleRunner;
 import org.gradle.testkit.runner.BuildResult;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * A simple functional test for the '${pluginId.value}' plugin.
  */
 class ${className.javaIdentifier} {
+    @TempDir
+    File projectDir;
+
+    private File getBuildFile() {
+        return new File(projectDir, "build.gradle");
+    }
+
+    private File getSettingsFile() {
+        return new File(projectDir, "settings.gradle");
+    }
+
     @Test void canRunTask() throws IOException {
-        // Setup the test build
-        File projectDir = new File("build/functionalTest");
-        Files.createDirectories(projectDir.toPath());
-        writeString(new File(projectDir, "settings.gradle"), "");
-        writeString(new File(projectDir, "build.gradle"),
+        writeString(getSettingsFile(), "");
+        writeString(getBuildFile(),
             "plugins {" +
             "  id('${pluginId.value}')" +
             "}");

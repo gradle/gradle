@@ -29,7 +29,6 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Unroll
 
 @CleanupTestDirectory
 class PathNormalizationStrategyTest extends Specification {
@@ -93,7 +92,6 @@ class PathNormalizationStrategyTest extends Specification {
         }
     }
 
-    @Unroll
     def "sensitivity NAME_ONLY (DirectorySensitivity: #strategy.directorySensitivity)"() {
         def fingerprints = collectFingerprints(strategy)
         expect:
@@ -110,19 +108,18 @@ class PathNormalizationStrategyTest extends Specification {
         ]
     }
 
-    @Unroll
     def "sensitivity RELATIVE (DirectorySensitivity: #strategy.directorySensitivity)"() {
         def fingerprints = collectFingerprints(strategy)
         expect:
         fingerprints[jarFile1]                      == jarFile1.name
         fingerprints[jarFile2]                      == jarFile2.name
-        fingerprints[resources]                     == rootDirectoryFingerprintFor(strategy.directorySensitivity)
+        fingerprints[resources]                     == null
         fingerprints[resources.file(fileInRoot)]    == fileInRoot
         fingerprints[resources.file(subDirA)]       == directoryFingerprintFor(subDirA, strategy.directorySensitivity)
         fingerprints[resources.file(fileInSubdirA)] == fileInSubdirA
         fingerprints[resources.file(subDirB)]       == directoryFingerprintFor(subDirB, strategy.directorySensitivity)
         fingerprints[resources.file(fileInSubdirB)] == fileInSubdirB
-        fingerprints[emptyRootDir]                  == rootDirectoryFingerprintFor(strategy.directorySensitivity)
+        fingerprints[emptyRootDir]                  == null
         fingerprints[missingFile]                   == missingFile.name
 
         where:
@@ -132,7 +129,6 @@ class PathNormalizationStrategyTest extends Specification {
         ]
     }
 
-    @Unroll
     def "sensitivity ABSOLUTE (DirectorySensitivity: #strategy.directorySensitivity)"() {
         def fingerprints = collectFingerprints(strategy)
         expect:

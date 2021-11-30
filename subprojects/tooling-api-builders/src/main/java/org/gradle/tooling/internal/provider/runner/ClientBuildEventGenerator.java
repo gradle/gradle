@@ -26,6 +26,7 @@ import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationProgressEvent;
 import org.gradle.internal.operations.OperationStartEvent;
 import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
+import org.gradle.tooling.internal.protocol.events.InternalProgressEvent;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -91,7 +92,9 @@ public class ClientBuildEventGenerator implements BuildOperationListener {
 
     @Override
     public void progress(OperationIdentifier operationIdentifier, OperationProgressEvent progressEvent) {
-        if (running.containsKey(operationIdentifier)) {
+        Operation operation = running.get(operationIdentifier);
+        if (operation != null) {
+            operation.progress(progressEvent);
             return;
         }
         fallback.progress(operationIdentifier, progressEvent);
@@ -118,6 +121,8 @@ public class ClientBuildEventGenerator implements BuildOperationListener {
         public abstract void generateStartEvent(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent);
 
         public abstract void generateFinishEvent(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent);
+
+        public abstract void progress(OperationProgressEvent progressEvent);
     }
 
     private static class EnabledOperation extends Operation {
@@ -137,6 +142,14 @@ public class ClientBuildEventGenerator implements BuildOperationListener {
         }
 
         @Override
+        public void progress(OperationProgressEvent progressEvent) {
+            InternalProgressEvent mapped = mapper.createProgressEvent(descriptor, progressEvent);
+            if (mapped != null) {
+                progressEventConsumer.progress(mapped);
+            }
+        }
+
+        @Override
         public void generateFinishEvent(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
             progressEventConsumer.finished(mapper.createFinishedEvent(descriptor, buildOperation.getDetails(), finishEvent));
         }
@@ -145,6 +158,10 @@ public class ClientBuildEventGenerator implements BuildOperationListener {
     private static final Operation DISABLED_OPERATION = new Operation() {
         @Override
         public void generateStartEvent(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
+        }
+
+        @Override
+        public void progress(OperationProgressEvent progressEvent) {
         }
 
         @Override

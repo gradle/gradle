@@ -6,7 +6,7 @@ plugins {
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(11)
-        vendor = JvmVendorSpec.ADOPTOPENJDK
+        vendor = JvmVendorSpec.ADOPTIUM
     }
 }
 // end::toolchain-known-vendor[]
@@ -25,7 +25,7 @@ java {
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(11)
-        vendor = JvmVendorSpec.ADOPTOPENJDK
+        vendor = JvmVendorSpec.IBM_SEMERU
         implementation = JvmImplementation.J9
     }
 }

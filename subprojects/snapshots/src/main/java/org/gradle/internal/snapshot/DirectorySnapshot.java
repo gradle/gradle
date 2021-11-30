@@ -17,6 +17,7 @@
 package org.gradle.internal.snapshot;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import org.gradle.internal.file.FileMetadata.AccessType;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
@@ -75,7 +76,9 @@ public class DirectorySnapshot extends AbstractFileSystemLocationSnapshot {
         switch (result) {
             case CONTINUE:
                 visitor.enterDirectory(this);
-                children.visitChildren((name, child) -> child.accept(visitor));
+                children.stream()
+                    .map(ChildMap.Entry::getValue)
+                    .forEach(child -> child.accept(visitor));
                 visitor.leaveDirectory(this);
                 return CONTINUE;
             case SKIP_SUBTREE:
@@ -95,7 +98,9 @@ public class DirectorySnapshot extends AbstractFileSystemLocationSnapshot {
             switch (result) {
                 case CONTINUE:
                     visitor.enterDirectory(this, pathTracker);
-                    children.visitChildren((name, child) -> child.accept(pathTracker, visitor));
+                    children.stream()
+                        .map(ChildMap.Entry::getValue)
+                        .forEach(child -> child.accept(pathTracker, visitor));
                     visitor.leaveDirectory(this, pathTracker);
                     return CONTINUE;
                 case SKIP_SUBTREE:
@@ -121,8 +126,10 @@ public class DirectorySnapshot extends AbstractFileSystemLocationSnapshot {
     }
 
     @VisibleForTesting
-    public List<FileSystemLocationSnapshot> getChildren() {
-        return children.values();
+    public ImmutableList<FileSystemLocationSnapshot> getChildren() {
+        return children.stream()
+            .map(ChildMap.Entry::getValue)
+            .collect(ImmutableList.toImmutableList());
     }
 
     @Override
@@ -158,11 +165,10 @@ public class DirectorySnapshot extends AbstractFileSystemLocationSnapshot {
                         diffListener.nodeAdded(node);
                     }
                 });
-                children.visitChildren((__, existingChild) -> {
-                    if (existingChild != child) {
-                        diffListener.nodeAdded(existingChild);
-                    }
-                });
+                children.stream()
+                    .map(ChildMap.Entry::getValue)
+                    .filter(existingChild -> existingChild != child)
+                    .forEach(diffListener::nodeAdded);
                 return invalidated;
             }
 
@@ -174,17 +180,18 @@ public class DirectorySnapshot extends AbstractFileSystemLocationSnapshot {
             @Override
             public void handleExactMatchWithChild(FileSystemLocationSnapshot child) {
                 diffListener.nodeRemoved(DirectorySnapshot.this);
-                children.visitChildren((__, existingChild) -> {
-                    if (existingChild != child) {
-                        diffListener.nodeAdded(existingChild);
-                    }
-                });
+                children.stream()
+                    .map(ChildMap.Entry::getValue)
+                    .filter(existingChild -> existingChild != child)
+                    .forEach(diffListener::nodeAdded);
             }
 
             @Override
             public void handleUnrelatedToAnyChild() {
                 diffListener.nodeRemoved(DirectorySnapshot.this);
-                children.visitChildren((__, child) -> diffListener.nodeAdded(child));
+                children.stream()
+                    .map(ChildMap.Entry::getValue)
+                    .forEach(diffListener::nodeAdded);
             }
         });
         return Optional.of(new PartialDirectoryNode(newChildren));

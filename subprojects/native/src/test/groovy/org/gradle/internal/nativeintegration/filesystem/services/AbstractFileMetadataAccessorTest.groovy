@@ -16,6 +16,7 @@
 
 package org.gradle.internal.nativeintegration.filesystem.services
 
+import org.gradle.api.UncheckedIOException
 import org.gradle.internal.file.FileMetadata
 import org.gradle.internal.file.FileMetadata.AccessType
 import org.gradle.internal.file.FileType
@@ -174,11 +175,57 @@ abstract class AbstractFileMetadataAccessorTest extends Specification {
         def pipe = tmpDir.file("testPipe").createNamedPipe()
 
         when:
-        def stat = accessor.stat(pipe)
+        accessor.stat(pipe)
         then:
-        stat.type == FileType.Missing
+        thrown(UncheckedIOException)
+    }
+
+    @Requires(TestPrecondition.FILE_PERMISSIONS)
+    def "stat a file in an unreadable directory"() {
+        def unreadableDir = tmpDir.createDir("unreadableDir")
+        def fileInDir = unreadableDir.createFile("inDir")
+        unreadableDir.makeUnreadable()
+
+        expect:
+        def stat = accessor.stat(fileInDir)
+        stat.type == FileType.RegularFile
+        assertSameLastModified(stat, fileInDir)
+        stat.length == 0
+        assertSameAccessType(stat, DIRECT)
+
+        cleanup:
+        unreadableDir.makeReadable()
+    }
+
+    @Requires(TestPrecondition.FILE_PERMISSIONS)
+    def "stat an unreadable file"() {
+        def unreadableFile = tmpDir.createFile("unreadable")
+        unreadableFile.makeUnreadable()
+
+        expect:
+        def stat = accessor.stat(unreadableFile)
+        stat.type == FileType.RegularFile
+        assertSameLastModified(stat, unreadableFile)
+        stat.length == 0
+        assertSameAccessType(stat, DIRECT)
+
+        cleanup:
+        unreadableFile.makeReadable()
+    }
+
+    @Requires(TestPrecondition.FILE_PERMISSIONS)
+    def "stat an unreadable directory"() {
+        def unreadableDir = tmpDir.createDir("unreadable")
+        unreadableDir.makeUnreadable()
+
+        expect:
+        def stat = accessor.stat(unreadableDir)
+        stat.type == FileType.Directory
         stat.lastModified == 0
         stat.length == 0
         assertSameAccessType(stat, DIRECT)
+
+        cleanup:
+        unreadableDir.makeReadable()
     }
 }

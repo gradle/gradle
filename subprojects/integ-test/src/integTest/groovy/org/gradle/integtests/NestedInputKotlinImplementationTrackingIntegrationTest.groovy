@@ -16,7 +16,7 @@
 
 package org.gradle.integtests
 
-import org.gradle.integtests.fixtures.AbstractPluginIntegrationTest
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.KotlinDslTestUtil
 import org.gradle.test.fixtures.file.LeaksFileHandles
@@ -24,7 +24,7 @@ import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
 
 @LeaksFileHandles
-class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractPluginIntegrationTest implements DirectoryBuildCacheFixture {
+class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
 
     @Override
     protected String getDefaultBuildFileName() {
@@ -136,7 +136,7 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractPlu
     def "task action defined in Kotlin 1.5 can be tracked when using language version 1.4"() {
         file("buildSrc/build.gradle.kts") << """
             plugins {
-                kotlin("jvm") version("1.5.10")
+                kotlin("jvm") version("1.5.31")
                 `java-gradle-plugin`
             }
 

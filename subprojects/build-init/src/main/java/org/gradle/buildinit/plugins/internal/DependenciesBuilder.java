@@ -23,6 +23,8 @@ public interface DependenciesBuilder {
 
     void platformDependency(String configuration, @Nullable String comment, String dependency);
 
+    void selfDependency(String configuration, @Nullable String comment);
+
     void dependency(String configuration, @Nullable String comment, String... dependencies);
 
     void dependencyConstraint(String configuration, @Nullable String comment, String... dependencies);

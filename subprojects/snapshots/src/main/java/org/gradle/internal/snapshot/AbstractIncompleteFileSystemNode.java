@@ -20,6 +20,7 @@ import org.gradle.internal.file.FileType;
 
 import java.util.Optional;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 public abstract class AbstractIncompleteFileSystemNode implements FileSystemNode {
     protected final ChildMap<FileSystemNode> children;
@@ -142,8 +143,10 @@ public abstract class AbstractIncompleteFileSystemNode implements FileSystemNode
     protected abstract Optional<FileSystemNode> withAllChildrenRemoved();
 
     @Override
-    public void accept(SnapshotHierarchy.SnapshotVisitor snapshotVisitor) {
-        children.visitChildren((childPath, child) -> child.accept(snapshotVisitor));
+    public Stream<FileSystemLocationSnapshot> rootSnapshots() {
+        return children.stream()
+            .map(ChildMap.Entry::getValue)
+            .flatMap(ReadOnlyFileSystemNode::rootSnapshots);
     }
 
     @Override
@@ -152,7 +155,7 @@ public abstract class AbstractIncompleteFileSystemNode implements FileSystemNode
     }
 
     private static boolean anyChildMatches(ChildMap<FileSystemNode> children, Predicate<FileSystemNode> predicate) {
-        return children.entries().stream()
+        return children.stream()
             .map(ChildMap.Entry::getValue)
             .anyMatch(predicate);
     }

@@ -15,12 +15,15 @@
  */
 package gradlebuild.docs
 
+import org.gradle.api.file.ArchiveOperations
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.file.FileTree
 import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.logging.LogLevel
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.InputDirectory
@@ -33,6 +36,7 @@ import org.gradle.api.tasks.SourceTask
 import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.work.WorkerLeaseService
+import org.gradle.process.ExecOperations
 
 import javax.inject.Inject
 
@@ -65,22 +69,36 @@ abstract class Docbook2Xhtml extends SourceTask {
     @Inject
     abstract WorkerLeaseService getWorkerLeaseService();
 
+    @Inject
+    abstract ObjectFactory getObjects()
+
+    @Inject
+    abstract FileSystemOperations getFs()
+
+    @Inject
+    abstract ArchiveOperations getArchives()
+
+    @Inject
+    abstract ExecOperations getExecOps()
+
     @TaskAction
     def transform() {
         logging.captureStandardOutput(LogLevel.INFO)
         logging.captureStandardError(LogLevel.INFO)
 
         def destDir = destinationDirectory.get().asFile
-        project.delete(destDir, temporaryDir)
+        fs.delete {
+            delete(destDir, temporaryDir)
+        }
 
-        def xslClasspath = classpath.plus(project.files(ClasspathUtil.getClasspathForClass(XslTransformer)))
+        def xslClasspath = classpath.plus(objects.fileCollection().from(ClasspathUtil.getClasspathForClass(XslTransformer)))
 
-        project.copy {
+        fs.copy {
             from(getStylesheetDirectory()) {
                 include "**/*.xml"
                 include "*.xsl"
             }
-            from(project.zipTree(getDocbookStylesheets().singleFile)) {
+            from(archives.zipTree(getDocbookStylesheets().singleFile)) {
                 eachFile {
                     fcd -> fcd.path = fcd.path.replaceFirst("^docbook", "")
                 }
@@ -105,8 +123,8 @@ abstract class Docbook2Xhtml extends SourceTask {
                 File outFile = fvd.relativePath.replaceLastName(newFileName).getFile(destDir)
                 outFile.parentFile.mkdirs()
 
-                project.javaexec {
-                    main = XslTransformer.name
+                execOps.javaexec {
+                    mainClass.set(XslTransformer.name)
                     args stylesheetFile.absolutePath
                     args fvd.file.absolutePath
                     args outFile.absolutePath

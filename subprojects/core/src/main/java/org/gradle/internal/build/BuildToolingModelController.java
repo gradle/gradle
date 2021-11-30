@@ -18,11 +18,7 @@ package org.gradle.internal.build;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectState;
-import org.gradle.internal.operations.RunnableBuildOperation;
-import org.gradle.tooling.provider.model.UnknownModelException;
-import org.gradle.tooling.provider.model.internal.ToolingModelBuilderLookup;
-
-import java.util.Collection;
+import org.gradle.tooling.provider.model.internal.ToolingModelScope;
 
 /**
  * Coordinates the building of tooling models.
@@ -33,16 +29,7 @@ public interface BuildToolingModelController {
      */
     GradleInternal getConfiguredModel();
 
-    ToolingModelBuilderLookup.Builder locateBuilderForDefaultTarget(String modelName, boolean param) throws UnknownModelException;
+    ToolingModelScope locateBuilderForTarget(String modelName, boolean param);
 
-    ToolingModelBuilderLookup.Builder locateBuilderForTarget(BuildState target, String modelName, boolean param) throws UnknownModelException;
-
-    ToolingModelBuilderLookup.Builder locateBuilderForTarget(ProjectState target, String modelName, boolean param) throws UnknownModelException;
-
-    boolean queryModelActionsRunInParallel();
-
-    /**
-     * Runs the given actions, possibly in parallel.
-     */
-    void runQueryModelActions(Collection<? extends RunnableBuildOperation> actions);
+    ToolingModelScope locateBuilderForTarget(ProjectState target, String modelName, boolean param);
 }

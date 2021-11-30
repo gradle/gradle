@@ -24,7 +24,6 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.test.fixtures.file.ClassFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.Unroll
 
 abstract class BasicJavaCompilerIntegrationSpec extends AbstractIntegrationSpec {
     def setup() {
@@ -212,7 +211,6 @@ compileJava {
     }
 
     @Requires(TestPrecondition.JDK9_OR_LATER)
-    @Unroll
     def "compile with release flag using #notation notation"() {
         given:
         goodCode()

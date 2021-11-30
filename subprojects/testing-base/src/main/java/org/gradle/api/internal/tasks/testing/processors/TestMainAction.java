@@ -24,19 +24,22 @@ import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.internal.tasks.testing.results.AttachParentTestResultProcessor;
 import org.gradle.internal.time.Clock;
+import org.gradle.internal.work.WorkerLeaseService;
 
 public class TestMainAction implements Runnable {
     private final Runnable detector;
     private final TestClassProcessor processor;
     private final TestResultProcessor resultProcessor;
+    private final WorkerLeaseService workerLeaseService;
     private final Clock clock;
     private final Object rootTestSuiteId;
     private final String displayName;
 
-    public TestMainAction(Runnable detector, TestClassProcessor processor, TestResultProcessor resultProcessor, Clock clock, Object rootTestSuiteId, String displayName) {
+    public TestMainAction(Runnable detector, TestClassProcessor processor, TestResultProcessor resultProcessor, WorkerLeaseService workerLeaseService, Clock clock, Object rootTestSuiteId, String displayName) {
         this.detector = detector;
         this.processor = processor;
         this.resultProcessor = new AttachParentTestResultProcessor(resultProcessor);
+        this.workerLeaseService = workerLeaseService;
         this.clock = clock;
         this.rootTestSuiteId = rootTestSuiteId;
         this.displayName = displayName;
@@ -51,7 +54,13 @@ public class TestMainAction implements Runnable {
             try {
                 detector.run();
             } finally {
-                processor.stop();
+                // Release worker lease while waiting for tests to complete
+                workerLeaseService.blocking(new Runnable() {
+                    @Override
+                    public void run() {
+                        processor.stop();
+                    }
+                });
             }
         } finally {
             resultProcessor.completed(suite.getId(), new TestCompleteEvent(clock.getCurrentTime()));

@@ -60,6 +60,8 @@ data class CIBuildModel(
                 SpecificBuild.Gradleception,
                 SpecificBuild.CheckLinks,
                 SpecificBuild.SmokeTestsMaxJavaVersion,
+                SpecificBuild.SantaTrackerSmokeTests,
+                SpecificBuild.ConfigCacheSantaTrackerSmokeTests,
                 SpecificBuild.GradleBuildSmokeTests,
                 SpecificBuild.ConfigCacheSmokeTestsMaxJavaVersion,
                 SpecificBuild.ConfigCacheSmokeTestsMinJavaVersion
@@ -341,7 +343,7 @@ enum class PerformanceTestType(
     historical(
         displayName = "Historical Performance Test",
         timeout = 2280,
-        defaultBaselines = "3.5.1,4.10.3,5.6.4,last",
+        defaultBaselines = "3.5.1,4.10.3,5.6.4,6.9.1,last",
         channel = "historical",
         extraParameters = "--checks none"
     ),
@@ -399,6 +401,16 @@ enum class SpecificBuild {
     SmokeTestsMaxJavaVersion {
         override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
             return SmokeTests(model, stage, JvmCategory.MAX_VERSION)
+        }
+    },
+    SantaTrackerSmokeTests {
+        override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
+            return SmokeTests(model, stage, JvmCategory.SANTA_TRACKER_SMOKE_TEST_VERSION, "santaTrackerSmokeTest")
+        }
+    },
+    ConfigCacheSantaTrackerSmokeTests {
+        override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
+            return SmokeTests(model, stage, JvmCategory.SANTA_TRACKER_SMOKE_TEST_VERSION, "configCacheSantaTrackerSmokeTest")
         }
     },
     GradleBuildSmokeTests {

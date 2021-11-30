@@ -16,6 +16,7 @@
 
 package org.gradle.internal.execution.steps
 
+import com.google.common.collect.ImmutableSet
 import com.google.common.collect.ImmutableSortedMap
 import org.gradle.internal.execution.OutputSnapshotter
 import org.gradle.internal.execution.UnitOfWork
@@ -103,22 +104,27 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<BeforeExecutionContex
         def knownFileFingerprint = Mock(CurrentFileCollectionFingerprint)
         def inputSnapshot = Mock(ValueSnapshot)
         def inputFileFingerprint = Mock(CurrentFileCollectionFingerprint)
+        def knownInputProperties = ImmutableSortedMap.of("known", knownSnapshot)
+        def knownInputFileProperties = ImmutableSortedMap.of("known-file", knownFileFingerprint)
 
         when:
         step.execute(work, context)
 
         then:
-        _ * context.inputProperties >> ImmutableSortedMap.of("known", knownSnapshot)
-        _ * context.inputFileProperties >> ImmutableSortedMap.of("known-file", knownFileFingerprint)
+        _ * context.inputProperties >> knownInputProperties
+        _ * context.inputFileProperties >> knownInputFileProperties
         1 * inputFingerprinter.fingerprintInputProperties(
             ImmutableSortedMap.of(),
             ImmutableSortedMap.of(),
-            ImmutableSortedMap.of("known", knownSnapshot),
-            ImmutableSortedMap.of("known-file", knownFileFingerprint),
+            knownInputProperties,
+            knownInputFileProperties,
             _
         ) >> new DefaultInputFingerprinter.InputFingerprints(
+            knownInputProperties,
             ImmutableSortedMap.of("input", inputSnapshot),
-            ImmutableSortedMap.of("input-file", inputFileFingerprint))
+            knownInputFileProperties,
+            ImmutableSortedMap.of("input-file", inputFileFingerprint),
+            ImmutableSet.of())
         interaction { snapshotState() }
         1 * delegate.execute(work, _ as BeforeExecutionContext) >> { UnitOfWork work, BeforeExecutionContext delegateContext ->
             def state = delegateContext.beforeExecutionState.get()
@@ -227,7 +233,7 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<BeforeExecutionContex
         _ * work.visitImplementations(_ as UnitOfWork.ImplementationVisitor) >> { UnitOfWork.ImplementationVisitor visitor ->
             visitor.visitImplementation(implementationSnapshot)
         }
-        _ * inputFingerprinter.fingerprintInputProperties(_, _, _, _, _) >> new DefaultInputFingerprinter.InputFingerprints(ImmutableSortedMap.of(), ImmutableSortedMap.of())
+        _ * inputFingerprinter.fingerprintInputProperties(_, _, _, _, _) >> new DefaultInputFingerprinter.InputFingerprints(ImmutableSortedMap.of(), ImmutableSortedMap.of(), ImmutableSortedMap.of(), ImmutableSortedMap.of(), ImmutableSet.of())
         _ * work.overlappingOutputHandling >> IGNORE_OVERLAPS
         _ * outputSnapshotter.snapshotOutputs(work, _) >> ImmutableSortedMap.of()
         _ * context.history >> Optional.of(executionHistoryStore)

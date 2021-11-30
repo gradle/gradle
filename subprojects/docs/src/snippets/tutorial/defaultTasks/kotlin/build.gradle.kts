@@ -1,6 +1,6 @@
 defaultTasks("clean", "run")
 
-task("clean") {
+tasks.register("clean") {
     doLast {
         println("Default Cleaning!")
     }

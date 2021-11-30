@@ -25,7 +25,7 @@ class UndeclaredBuildInputsKotlinScriptPluginIntegrationTest extends AbstractUnd
     }
 
     @Override
-    void buildLogicApplication(SystemPropertyRead read) {
+    void buildLogicApplication(BuildInputRead read) {
         kotlinDsl(script, read)
         buildFile << """
             apply from: "plugin.gradle.kts"

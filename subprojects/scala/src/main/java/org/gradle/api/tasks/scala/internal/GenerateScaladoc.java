@@ -16,10 +16,12 @@
 
 package org.gradle.api.tasks.scala.internal;
 
+import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.file.RegularFile;
 import org.gradle.internal.process.ArgWriter;
 import org.gradle.workers.WorkAction;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -33,8 +35,11 @@ public abstract class GenerateScaladoc implements WorkAction<ScaladocParameters>
         ScaladocParameters parameters = getParameters();
         Path optionsFile = parameters.getOptionsFile().map(RegularFile::getAsFile).map(File::toPath).getOrNull();
         try {
+            getFileSystemOperations().delete(spec -> spec.delete(parameters.getOutputDirectory()));
+            parameters.getOutputDirectory().get().getAsFile().mkdirs();
+
             List<String> args = generateArgList(parameters, optionsFile);
-            invokeScalaDoc(args);
+            invokeScalaDoc(args, parameters.getIsScala3().get());
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
             throw new RuntimeException("Could not generate scaladoc", e);
         } finally {
@@ -68,10 +73,18 @@ public abstract class GenerateScaladoc implements WorkAction<ScaladocParameters>
         return args;
     }
 
-    private void invokeScalaDoc(List<String> args) throws ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException {
-        Class<?> scaladocClass = Thread.currentThread().getContextClassLoader().loadClass("scala.tools.nsc.ScalaDoc");
-        Method process = scaladocClass.getMethod("process", String[].class);
+    private void invokeScalaDoc(List<String> args, Boolean isScala3) throws ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException {
+        ClassLoader scalaClassLoader = Thread.currentThread().getContextClassLoader();
+
+        String scaladocFqName = isScala3 ? "dotty.tools.scaladoc.Main" : "scala.tools.nsc.ScalaDoc";
+        String scaladocEntryName = isScala3 ? "run" : "process";
+
+        Class<?> scaladocClass = scalaClassLoader.loadClass(scaladocFqName);
+        Method process = scaladocClass.getMethod(scaladocEntryName, String[].class);
         Object scaladoc = scaladocClass.getDeclaredConstructor().newInstance();
         process.invoke(scaladoc, new Object[]{args.toArray(new String[0])});
     }
+
+    @Inject
+    public abstract FileSystemOperations getFileSystemOperations();
 }

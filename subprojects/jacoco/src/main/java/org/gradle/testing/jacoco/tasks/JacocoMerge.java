@@ -23,6 +23,7 @@ import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.CacheableTask;
+import org.gradle.api.tasks.IgnoreEmptyDirectories;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.PathSensitive;
@@ -52,6 +53,7 @@ public class JacocoMerge extends JacocoBase {
     /**
      * Collection of execution data files to merge.
      */
+    @IgnoreEmptyDirectories
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
     public FileCollection getExecutionData() {

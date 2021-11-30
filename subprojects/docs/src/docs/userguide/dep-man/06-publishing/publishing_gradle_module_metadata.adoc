@@ -24,7 +24,6 @@ Publication of Gradle Module Metadata will enable better dependency management f
 - automatically getting dependencies for specific <<feature_variants.adoc#feature_variants,features of your library>>
 
 Gradle Module Metadata is automatically published when using the <<publishing_maven.adoc#publishing_maven,Maven Publish plugin>> or the <<publishing_ivy.adoc#publishing_ivy,Ivy Publish plugin>>.
-It is _not_ supported on the legacy `maven` and `ivy` plugins.
 
 The specification for Gradle Module Metadata can be found {metadata-file-spec}[here].
 

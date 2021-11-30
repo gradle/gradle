@@ -34,7 +34,7 @@ repositories {
     maven { url '${mavenRepo.uri}' }
 }
 
-if (providers.systemProperty('explicitDeps').forUseAtConfigurationTime().present) {
+if (providers.systemProperty('explicitDeps').present) {
     dependencies {
         conf "org:explicit-dependency:1.0"
     }
@@ -115,7 +115,6 @@ project.status = 'foo'
     }
 
     @Issue("gradle/gradle#812")
-    @ToBeFixedForConfigurationCache
     def "can use defaultDependencies in a multi-project build"() {
         buildFile.text = """
 subprojects {

@@ -20,6 +20,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.tasks.CacheableTask
+import org.gradle.api.tasks.IgnoreEmptyDirectories
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputDirectory
@@ -56,6 +57,7 @@ abstract class ExtractPrecompiledScriptPluginPlugins : DefaultTask() {
     lateinit var plugins: List<PrecompiledScriptPlugin>
 
     @get:InputFiles
+    @get:IgnoreEmptyDirectories
     @get:PathSensitive(PathSensitivity.RELATIVE)
     @Suppress("unused")
     internal

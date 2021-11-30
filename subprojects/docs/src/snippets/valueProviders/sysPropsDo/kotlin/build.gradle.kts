@@ -1,1 +1,1 @@
-val enabled = providers.systemProperty("some-property").forUseAtConfigurationTime().isPresent
+val enabled = providers.systemProperty("some-property").isPresent

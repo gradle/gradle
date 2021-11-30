@@ -113,7 +113,7 @@ public class ScalaBasePlugin implements Plugin<Project> {
         configureConfigurations(project, incrementalAnalysisUsage, scalaPluginExtension);
 
         configureCompileDefaults(project, scalaRuntime);
-        configureSourceSetDefaults(project, incrementalAnalysisUsage, objectFactory);
+        configureSourceSetDefaults(project, incrementalAnalysisUsage, objectFactory, scalaRuntime);
         configureScaladoc(project, scalaRuntime);
     }
 
@@ -170,7 +170,7 @@ public class ScalaBasePlugin implements Plugin<Project> {
     }
 
     @SuppressWarnings("deprecation")
-    private void configureSourceSetDefaults(final Project project, final Usage incrementalAnalysisUsage, final ObjectFactory objectFactory) {
+    private void configureSourceSetDefaults(final Project project, final Usage incrementalAnalysisUsage, final ObjectFactory objectFactory, final ScalaRuntime scalaRuntime) {
         project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets().all(new Action<SourceSet>() {
             @Override
             public void execute(final SourceSet sourceSet) {
@@ -200,14 +200,14 @@ public class ScalaBasePlugin implements Plugin<Project> {
                 incrementalAnalysis.extendsFrom(classpath);
                 incrementalAnalysis.getAttributes().attribute(USAGE_ATTRIBUTE, incrementalAnalysisUsage);
 
-                configureScalaCompile(project, sourceSet, incrementalAnalysis, incrementalAnalysisUsage);
+                configureScalaCompile(project, sourceSet, incrementalAnalysis, incrementalAnalysisUsage, scalaRuntime);
             }
 
         });
     }
 
     @SuppressWarnings("deprecation")
-    private void configureScalaCompile(final Project project, final SourceSet sourceSet, final Configuration incrementalAnalysis, final Usage incrementalAnalysisUsage) {
+    private void configureScalaCompile(final Project project, final SourceSet sourceSet, final Configuration incrementalAnalysis, final Usage incrementalAnalysisUsage, final ScalaRuntime scalaRuntime) {
         final ScalaSourceDirectorySet scalaSourceSet = sourceSet.getExtensions().getByType(ScalaSourceDirectorySet.class);
 
         final TaskProvider<ScalaCompile> scalaCompileTask = project.getTasks().register(sourceSet.getCompileTaskName("scala"), ScalaCompile.class, scalaCompile -> {
@@ -215,7 +215,6 @@ public class ScalaBasePlugin implements Plugin<Project> {
             scalaCompile.setDescription("Compiles the " + scalaSourceSet + ".");
             scalaCompile.setSource(scalaSourceSet);
             scalaCompile.getJavaLauncher().convention(getToolchainTool(project, JavaToolchainService::launcherFor));
-
             scalaCompile.getAnalysisMappingFile().set(project.getLayout().getBuildDirectory().file("tmp/scala/compilerAnalysis/" + scalaCompile.getName() + ".mapping"));
 
             // cannot compute at task execution time because we need association with source set

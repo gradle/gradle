@@ -26,6 +26,9 @@ import kotlinx.dom.appendText
 val empty = View.Empty
 
 
+val hr = ViewFactory("hr")
+
+
 val h1 = ViewFactory("h1")
 
 

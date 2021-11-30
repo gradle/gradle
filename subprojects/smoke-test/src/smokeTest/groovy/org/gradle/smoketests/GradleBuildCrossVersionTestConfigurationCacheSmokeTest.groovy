@@ -41,6 +41,6 @@ class GradleBuildCrossVersionTestConfigurationCacheSmokeTest extends AbstractGra
 
         then:
         assertConfigurationCacheStateLoaded()
-        result.task(":configuration-cache:embeddedCrossVersionTest").outcome == TaskOutcome.SUCCESS
+        result.task(":configuration-cache:embeddedCrossVersionTest").outcome == TaskOutcome.FROM_CACHE
     }
 }

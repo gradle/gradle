@@ -19,13 +19,16 @@ import groovy.transform.CompileStatic
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
 import org.gradle.api.DefaultTask
-import org.gradle.api.Task
+import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
+import org.gradle.process.ExecOperations
 import org.gradle.work.DisableCachingByDefault
+
+import javax.inject.Inject
 
 /**
  * Checkout a project template from a git repository.
@@ -33,6 +36,15 @@ import org.gradle.work.DisableCachingByDefault
 @CompileStatic
 @DisableCachingByDefault(because = "Not worth caching")
 abstract class RemoteProject extends DefaultTask {
+
+    private final FileSystemOperations fsOps
+    private final ExecOperations execOps
+
+    @Inject
+    RemoteProject(FileSystemOperations fsOps, ExecOperations execOps) {
+        this.fsOps = fsOps
+        this.execOps = execOps
+    }
 
     /**
      * URI of the git repository.
@@ -66,29 +78,27 @@ abstract class RemoteProject extends DefaultTask {
     @TaskAction
     void checkoutAndCopy() {
         outputDirectory.deleteDir()
-        File checkoutDir = checkout(this, remoteUri.get(), ref.get())
+        File checkoutDir = checkout(fsOps, execOps, remoteUri.get(), ref.get(), temporaryDir)
         moveToOutputDir(checkoutDir, outputDirectory, subdirectory.getOrNull())
     }
 
-    private static File cleanTemporaryDir(Task task, File tmpDir) {
+    private static File cleanTemporaryDir(FileSystemOperations fsOps, File tmpDir) {
         if (tmpDir.exists()) {
-            task.project.delete(tmpDir)
+            fsOps.delete {
+                it.delete(tmpDir)
+            }
         }
         return tmpDir
     }
 
-    static File checkout(Task task, String remoteUri, String ref) {
-        checkout(task, remoteUri, ref, task.getTemporaryDir())
-    }
-
     @TypeChecked(TypeCheckingMode.SKIP)
-    static File checkout(Task task, String remoteUri, String ref, File checkoutDir) {
-        cleanTemporaryDir(task, checkoutDir)
-        task.project.exec {
+    static File checkout(FileSystemOperations fsOps, ExecOperations execOps, String remoteUri, String ref, File checkoutDir) {
+        cleanTemporaryDir(fsOps, checkoutDir)
+        execOps.exec {
             commandLine = ["git", "clone", "--no-checkout", remoteUri, checkoutDir.absolutePath]
             errorOutput = System.out
         }
-        task.project.exec {
+        execOps.exec {
             commandLine = ["git", "checkout", ref]
             workingDir = checkoutDir
             errorOutput = System.out

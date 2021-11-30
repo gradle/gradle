@@ -135,7 +135,7 @@ public class DependentComponentsReport extends DefaultTask {
     @TaskAction
     public void report() {
         // Once we are here, the project lock is held. If we synchronize to avoid cross-project operations, we will have a dead lock.
-        getWorkerLeaseService().withoutProjectLock(() -> {
+        getWorkerLeaseService().runAsIsolatedTask(() -> {
             // Output reports per execution, not mixed.
             // Cross-project ModelRegistry operations do not happen concurrently.
             synchronized (DependentComponentsReport.class) {

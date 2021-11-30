@@ -200,6 +200,12 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
         }
 
         @Override
+        public void progress(BuildOperationDescriptor descriptor, long progress, long total, String units, String status) {
+            progress(descriptor, status);
+            buildOperationListener.progress(descriptor.getId(), new OperationProgressEvent(clock.getCurrentTime(), new OperationProgressDetails(progress, total, units)));
+        }
+
+        @Override
         public void stop(BuildOperationDescriptor descriptor, BuildOperationState operationState, @Nullable BuildOperationState parent, DefaultBuildOperationRunner.ReadableBuildOperationContext context) {
             if (statusProgressLogger != null) {
                 statusProgressLogger.completed();

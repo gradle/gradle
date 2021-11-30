@@ -149,7 +149,6 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
 
     def "can run and cancel test execution in continuous mode"() {
         given:
-        events.skipValidation = true
         collectDescriptorsFromBuild()
         and: // Need to run the test task beforehand, since continuous build doesn't handle the new directories created after 'clean'
         launchTests(testDescriptors("example.MyTest", null, ":secondTest"))
@@ -424,6 +423,10 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         assertTaskExecuted(":sub7:test")
         assertTaskExecuted(":sub8:test")
         assertTaskExecuted(":sub9:test")
+
+        and:
+        assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":test")
+        assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":sub0:test")
     }
 
     ProgressListener failingProgressListener() {

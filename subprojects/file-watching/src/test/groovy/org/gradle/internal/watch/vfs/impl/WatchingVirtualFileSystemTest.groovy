@@ -121,8 +121,11 @@ class WatchingVirtualFileSystemTest extends Specification {
 
     def "collects hierarchies to watch and notifies the vfs"() {
         def watchableHierarchy = new File("watchable")
+        def watcherProbe = new File(watchableHierarchy, ".gradle/watch-probe")
         def anotherWatchableHierarchy = new File("anotherWatchable")
+        def anotherWatcherProbe = new File(anotherWatchableHierarchy, ".gradle/watch-probe")
         def newWatchableHierarchy = new File("newWatchable")
+        def newWatcherProbe = new File(newWatchableHierarchy, ".gradle/watch-probe")
 
         when:
         watchingVirtualFileSystem.registerWatchableHierarchy(watchableHierarchy)

@@ -19,14 +19,14 @@ package org.gradle.integtests.resolve.verification
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.cache.CachingIntegrationFixture
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.IgnoreIf
 import spock.lang.Issue
-import spock.lang.Unroll
 
 import static org.gradle.util.Matchers.containsText
 
 class DependencyVerificationIntegrityCheckIntegTest extends AbstractDependencyVerificationIntegTest implements CachingIntegrationFixture {
-    @Unroll
     def "doesn't fail if verification metadata matches for #kind"() {
         createMetadataFile {
             addChecksum("org:foo:1.0", kind, jar)
@@ -78,7 +78,6 @@ class DependencyVerificationIntegrityCheckIntegTest extends AbstractDependencyVe
         noExceptionThrown()
     }
 
-    @Unroll
     @ToBeFixedForConfigurationCache
     def "fails verifying the file but not resolution itself if verification metadata fails for #kind"() {
         createMetadataFile {
@@ -119,7 +118,6 @@ This can indicate that a dependency has been compromised. Please carefully verif
         "sha512" | "734fce768f0e1a3aec423cb4804e5cdf343fd317418a5da1adc825256805c5cad9026a3e927ae43ecc12d378ce8f45cc3e16ade9114c9a147fda3958d357a85b"
     }
 
-    @Unroll
     def "doesn't fail the build but logs errors if lenient mode is used (#param)"() {
         createMetadataFile {
             addChecksum("org:foo:1.0", 'sha1', "invalid")
@@ -152,7 +150,6 @@ This can indicate that a dependency has been compromised. Please carefully verif
         param << [["-F", "lenient"], ["--dependency-verification", "lenient"], ["-Dorg.gradle.dependency.verification=lenient"]]
     }
 
-    @Unroll
     def "can fully disable verification (#param)"() {
         createMetadataFile {
             addChecksum("org:foo:1.0", 'sha1', "invalid")
@@ -180,7 +177,6 @@ This can indicate that a dependency has been compromised. Please carefully verif
         param << [["-F", "off"], ["--dependency-verification", "off"], ["-Dorg.gradle.dependency.verification=off"], []]
     }
 
-    @Unroll
     def "can override whatever the gradle.properties file says (#param)"() {
         createMetadataFile {
             addChecksum("org:foo:1.0", 'sha1', "invalid")
@@ -217,7 +213,6 @@ This can indicate that a dependency has been compromised. Please carefully verif
         """
     }
 
-    @Unroll
     def "can collect multiple errors in a single dependency graph (terse output=#terse)"() {
         createMetadataFile {
             addChecksum("org:foo:1.0", "sha1", "invalid")
@@ -268,7 +263,6 @@ This can indicate that a dependency has been compromised. Please carefully verif
         terse << [true, false]
     }
 
-    @Unroll
     def "displays repository information (terse output=#terse)"() {
         createMetadataFile {
             noMetadataVerification()
@@ -316,7 +310,6 @@ This can indicate that a dependency has been compromised. Please carefully verif
         terse << [true, false]
     }
 
-    @Unroll
     def "fails on the first access to an artifact (not at the end of the build) using #firstResolution"() {
         createMetadataFile {
             addChecksum("org:foo:1.0", "sha1", "invalid")
@@ -404,7 +397,6 @@ This can indicate that a dependency has been compromised. Please carefully verif
         message
     }
 
-    @Unroll
     def "fails if any of the checksums (#wrong) declared in the metadata file is wrong"() {
         createMetadataFile {
             addChecksum("org:foo:1.0", "md5", md5)
@@ -464,7 +456,6 @@ This can indicate that a dependency has been compromised. Please carefully verif
         failure.assertHasCause("""Dependency verification failed""")
     }
 
-    @Unroll
     def "can detect a compromised plugin using buildscript block (terse output=#terse)"() {
         createMetadataFile {
             addChecksum("com:myplugin", "sha1", "woot")
@@ -502,7 +493,6 @@ This can indicate that a dependency has been compromised. Please carefully verif
         terse << [true, false]
     }
 
-    @Unroll
     def "fails if a dependency doesn't have an associated checksum (terse output=#terse)"() {
         createMetadataFile {
             // nothing in it
@@ -566,7 +556,6 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
 
     }
 
-    @Unroll
     def "can verify dependencies of buildSrc (terse output=#terse)"() {
         createMetadataFile {
             addChecksum("org:foo", "sha1", "16e066e005a935ac60f06216115436ab97c5da02")
@@ -606,7 +595,6 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
         terse << [true, false]
     }
 
-    @Unroll
     def "dependency verification also checks included build dependencies (terse output=#terse)"() {
         createMetadataFile {
             addChecksum("org:foo", "sha1", "16e066e005a935ac60f06216115436ab97c5da02")
@@ -656,7 +644,6 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
         terse << [true, false]
     }
 
-    @Unroll
     @Issue("https://github.com/gradle/gradle/issues/4934")
     @ToBeFixedForConfigurationCache
     def "can detect a tampered file in the local cache (terse output=#terse)"() {
@@ -716,7 +703,6 @@ This can indicate that a dependency has been compromised. Please carefully verif
      */
     @Issue("https://github.com/gradle/gradle/issues/4934")
     @ToBeFixedForConfigurationCache
-    @Unroll
     def "can detect a tampered metadata file in the local cache (stop in between = #stop)"() {
         createMetadataFile {
             addChecksum("org:foo", "sha1", "16e066e005a935ac60f06216115436ab97c5da02")
@@ -833,7 +819,6 @@ This can indicate that a dependency has been compromised. Please carefully verif
         succeeds ":compileJava"
     }
 
-    @Unroll
     def "doesn't fail if verification metadata matches for #kind using alternate checksum"() {
         createMetadataFile {
             addChecksum("org:foo:1.0", kind, "primary-jar")
@@ -867,7 +852,17 @@ This can indicate that a dependency has been compromised. Please carefully verif
         given:
         javaLibrary()
         uncheckedModule("org", "foo")
-        file("gradle/verification-metadata.xml") << "j'adore les fruits au sirop"
+        file("gradle/verification-metadata.xml") << """<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata>
+   <configuration>
+      <verify-metadata>true</verify-metadata>
+      <verify-signatures>true</verify-signatures>
+   </configuration>
+    <trusted-keys>
+         <trusted-key id="4db1a49729b053caf015cee9a6adfc93ef34893e" group="org.hamcrest"/>
+      </trusted-keys>
+</verification-metadata>
+"""
         buildFile << """
             dependencies {
                 implementation "org:foo:1.0"
@@ -878,12 +873,13 @@ This can indicate that a dependency has been compromised. Please carefully verif
         fails ":compileJava"
 
         then:
-        errorOutput.contains("Unable to read dependency verification metadata from")
-        errorOutput.contains("verification-metadata.xml")
+        errorOutput.contains("> Could not resolve all dependencies for configuration ':compileClasspath'.")
+        errorOutput.contains("   > Dependency verification cannot be performed")
+        errorOutput.contains("      > Unable to read dependency verification metadata from")
+        errorOutput.contains("         > Invalid dependency verification metadata file: <trusted-keys> must be found under the <configuration> tag")
         failure.assertThatCause(containsText("Dependency verification cannot be performed"))
     }
 
-    @Unroll
     def "can disable verification for specific configurations (terse output=#terse)"() {
         createMetadataFile {
             addChecksum("org:foo:1.0", 'sha1', "invalid")
@@ -931,7 +927,6 @@ This can indicate that a dependency has been compromised. Please carefully verif
         terse << [true, false]
     }
 
-    @Unroll
     @ToBeFixedForConfigurationCache
     def "can disable verification of a detached configuration (terse output=#terse)"() {
         createMetadataFile {
@@ -1069,4 +1064,73 @@ This can indicate that a dependency has been compromised. Please carefully verif
   - foo-1.0.jar (org:foo:1.0) from repository maven
   - foo-1.0.pom (org:foo:1.0) from repository maven"""
     }
+
+    @IgnoreIf({ GradleContextualExecuter.embedded })
+    @Issue("https://github.com/gradle/gradle/issues/18498")
+    def "fails validation for local repository with cached metadata rule"() {
+        def repoDir = testDirectory.createDir("repo")
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+            @CacheableRule
+            abstract class SamplesVariantRule implements ComponentMetadataRule {
+
+                @Inject
+                abstract ObjectFactory getObjectFactory()
+
+                void execute(ComponentMetadataContext ctx) {
+                    def variant = "samplessources"
+                    def id = ctx.details.id
+                    org.gradle.api.attributes.Category category = objectFactory.named(org.gradle.api.attributes.Category, org.gradle.api.attributes.Category.DOCUMENTATION)
+                    DocsType docsType = objectFactory.named(DocsType, variant)
+                    ctx.details.addVariant(variant) { VariantMetadata vm ->
+                        vm.attributes{ AttributeContainer ac ->
+                            ac.attribute(org.gradle.api.attributes.Category.CATEGORY_ATTRIBUTE, category)
+                            ac.attribute(DocsType.DOCS_TYPE_ATTRIBUTE, docsType)
+                        }
+                        vm.withFiles {
+                            it.addFile("\${id.name}-\${id.version}-\${variant}.jar")
+                        }
+                    }
+
+                }
+            }
+            repositories {
+                maven { url "${repoDir.toURI()}" }
+            }
+            dependencies {
+                components.all(SamplesVariantRule)
+                implementation('org:monitor:1.0')
+            }
+            tasks.register('resolveCompileClasspath') {
+                configurations.compileClasspath.resolve()
+            }
+        """
+        mavenLocal(repoDir).module('org', 'monitor', '1.0').publish()
+        createMetadataFile {
+            // Just so we enable dependency verification
+            addChecksum("org:dummy:1.0", "sha256", "some-value", "pom", "pom")
+        }
+
+        when:
+        fails "resolveCompileClasspath"
+
+        then:
+        failure.assertThatCause(containsText("""
+2 artifacts failed verification:
+  - monitor-1.0.jar (org:monitor:1.0) from repository maven
+  - monitor-1.0.pom (org:monitor:1.0) from repository maven"""))
+
+        when:
+        executer.requireIsolatedDaemons()
+        fails "resolveCompileClasspath"
+
+        then:
+        failure.assertThatCause(containsText("""
+2 artifacts failed verification:
+  - monitor-1.0.jar (org:monitor:1.0) from repository maven
+  - monitor-1.0.pom (org:monitor:1.0) from repository maven"""))
+    }
+
 }

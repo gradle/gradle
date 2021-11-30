@@ -217,8 +217,8 @@ fun applyDefaultDependencies(model: CIBuildModel, buildType: BuildType, notQuick
         buildType.dependencies {
             dependency(RelativeId(stageTriggerId(model, StageNames.QUICK_FEEDBACK_LINUX_ONLY))) {
                 snapshot {
-                    onDependencyFailure = FailureAction.CANCEL
-                    onDependencyCancel = FailureAction.CANCEL
+                    onDependencyFailure = FailureAction.FAIL_TO_START
+                    onDependencyCancel = FailureAction.FAIL_TO_START
                 }
             }
         }

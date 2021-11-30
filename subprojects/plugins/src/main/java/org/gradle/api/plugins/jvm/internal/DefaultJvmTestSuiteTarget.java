@@ -19,15 +19,8 @@ package org.gradle.api.plugins.jvm.internal;
 import org.gradle.api.Buildable;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
-import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
-import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework;
-import org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestFramework;
 import org.gradle.api.plugins.JavaBasePlugin;
-import org.gradle.api.plugins.jvm.JUnitPlatformTestingFramework;
-import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.jvm.JvmTestSuiteTarget;
-import org.gradle.api.plugins.jvm.JvmTestingFramework;
-import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskProvider;
@@ -37,27 +30,17 @@ import org.gradle.util.internal.GUtil;
 import javax.inject.Inject;
 
 public abstract class DefaultJvmTestSuiteTarget implements JvmTestSuiteTarget, Buildable {
-    private final JvmTestSuite suite;
     private final String name;
     private final TaskProvider<Test> testTask;
 
-    @Inject public DefaultJvmTestSuiteTarget(JvmTestSuite suite, String name, TaskContainer tasks) {
-        this.suite = suite;
+    @Inject
+    public DefaultJvmTestSuiteTarget(String name, TaskContainer tasks) {
         this.name = name;
 
         // Might not always want Test type here?
-        testTask = tasks.register(name, Test.class, t -> {
-            t.setDescription("Runs the " + GUtil.toWords(suite.getName()) + " suite.");
+        this.testTask = tasks.register(name, Test.class, t -> {
+            t.setDescription("Runs the " + GUtil.toWords(name) + " suite.");
             t.setGroup(JavaBasePlugin.VERIFICATION_GROUP);
-
-            Property<JvmTestingFramework> targetTestingFramework = getTestingFramework();
-            t.getTestFrameworkProperty().convention(targetTestingFramework.map(framework -> {
-                if (framework instanceof JUnitPlatformTestingFramework) {
-                    return new JUnitPlatformTestFramework((DefaultTestFilter) t.getFilter());
-                } else {
-                    return new JUnitTestFramework(t, (DefaultTestFilter) t.getFilter());
-                }
-            }));
         });
     }
 

@@ -27,11 +27,11 @@ public class BuildScriptBuilderFactory {
         this.documentationRegistry = documentationRegistry;
     }
 
-    public BuildScriptBuilder scriptForNewProjects(BuildInitDsl dsl, String fileNameWithoutExtension) {
-        return new BuildScriptBuilder(dsl, documentationRegistry, fileNameWithoutExtension, InsecureProtocolOption.FAIL);
+    public BuildScriptBuilder scriptForNewProjects(BuildInitDsl dsl, String fileNameWithoutExtension, boolean useIncubatingAPIs) {
+        return new BuildScriptBuilder(dsl, documentationRegistry, fileNameWithoutExtension, useIncubatingAPIs, InsecureProtocolOption.FAIL);
     }
 
-    public BuildScriptBuilder scriptForMavenConversion(BuildInitDsl dsl, String fileNameWithoutExtension, InsecureProtocolOption insecureProtocolOption) {
-        return new BuildScriptBuilder(dsl, documentationRegistry, fileNameWithoutExtension, insecureProtocolOption);
+    public BuildScriptBuilder scriptForMavenConversion(BuildInitDsl dsl, String fileNameWithoutExtension, boolean useIncubatingAPIs, InsecureProtocolOption insecureProtocolOption) {
+        return new BuildScriptBuilder(dsl, documentationRegistry, fileNameWithoutExtension, useIncubatingAPIs, insecureProtocolOption);
     }
 }

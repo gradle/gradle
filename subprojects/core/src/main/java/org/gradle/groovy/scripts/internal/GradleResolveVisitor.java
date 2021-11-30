@@ -1551,7 +1551,7 @@ public class GradleResolveVisitor extends ResolveVisitor {
     @Override
     public void visitCatchStatement(CatchStatement cs) {
         resolveOrFail(cs.getExceptionType(), cs);
-        if (cs.getExceptionType() == ClassHelper.DYNAMIC_TYPE) {
+        if (cs.getExceptionType() == ClassHelper.OBJECT_TYPE) {
             cs.getVariable().setType(ClassHelper.make(Exception.class));
         }
         super.visitCatchStatement(cs);

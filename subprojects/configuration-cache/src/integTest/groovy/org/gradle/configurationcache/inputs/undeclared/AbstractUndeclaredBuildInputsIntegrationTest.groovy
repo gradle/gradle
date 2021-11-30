@@ -17,14 +17,12 @@
 package org.gradle.configurationcache.inputs.undeclared
 
 import org.gradle.configurationcache.AbstractConfigurationCacheIntegrationTest
-import spock.lang.Unroll
 
 abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
-    abstract void buildLogicApplication(SystemPropertyRead read)
+    abstract void buildLogicApplication(BuildInputRead read)
 
     abstract String getLocation()
 
-    @Unroll
     def "reports undeclared system property read using #propertyRead.groovyExpression prior to task execution from plugin"() {
         buildLogicApplication(propertyRead)
         def configurationCache = newConfigurationCacheFixture()
@@ -35,7 +33,10 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractConf
         then:
         configurationCache.assertStateStored()
         // TODO - use problems configurationCache, need to be able to ignore problems from the Kotlin plugin
-        result.normalizedOutput.contains("$location: read system property 'CI'")
+        problems.assertResultHasProblems(result) {
+            withInput("$location: system property 'CI'")
+            ignoringUnexpectedInputs()
+        }
         outputContains("apply = $value")
         outputContains("task = $value")
 
@@ -51,10 +52,10 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractConf
         when:
         configurationCacheRun("thing", "-DCI=$newValue")
 
-        then:
-        configurationCache.assertStateLoaded() // undeclared properties are not considered build inputs, but probably should be
+        then: 'undeclared properties are considered build inputs'
+        configurationCache.assertStateStored()
         problems.assertResultHasProblems(result)
-        outputDoesNotContain("apply =")
+        outputContains("apply = $newValue")
         outputContains("task = $newValue")
 
         where:
@@ -73,23 +74,68 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractConf
         SystemPropertyRead.booleanGetBoolean("CI")                                    | "true" | "false"
     }
 
-    @Unroll
     def "reports undeclared system property read using when iterating over system properties"() {
         buildLogicApplication(propertyRead)
         def configurationCache = newConfigurationCacheFixture()
 
         when:
-        configurationCacheFails("thing", "-DCI=$value")
+        configurationCacheRun("thing", "-DCI=$value")
 
         then:
         configurationCache.assertStateStored()
-        // TODO - use the configurationCache, need to be able to ignore other problems
-        failure.assertHasDescription("Configuration cache problems found in this build.")
+        problems.assertResultHasProblems(result) {
+            withInput("$location: system property 'CI'")
+            ignoringUnexpectedInputs()
+        }
         outputContains("apply = $value")
         outputContains("task = $value")
 
         where:
         propertyRead                                              | value  | newValue
         SystemPropertyRead.systemGetPropertiesFilterEntries("CI") | "true" | "false"
+    }
+
+    def "reports undeclared environment variable read using #envVarRead.groovyExpression prior to task execution from plugin"() {
+        buildLogicApplication(envVarRead)
+        def configurationCache = newConfigurationCacheFixture()
+
+        when:
+        EnvVariableInjection.environmentVariable("CI", value).setup(this)
+        configurationCacheRunLenient "thing"
+
+        then:
+        configurationCache.assertStateStored()
+        problems.assertResultHasProblems(result) {
+            withInput("$location: environment variable 'CI'")
+            ignoringUnexpectedInputs()
+        }
+        outputContains("apply = $value")
+        outputContains("task = $value")
+
+        when:
+        EnvVariableInjection.environmentVariable("CI", value).setup(this)
+        configurationCacheRunLenient "thing"
+
+        then:
+        configurationCache.assertStateLoaded()
+        problems.assertResultHasProblems(result)
+        outputDoesNotContain("apply =")
+        outputContains("task = $value")
+
+        when:
+        EnvVariableInjection.environmentVariable("CI", newValue).setup(this)
+        configurationCacheRun("thing")
+
+        then: 'undeclared properties are considered build inputs'
+        configurationCache.assertStateStored()
+        problems.assertResultHasProblems(result)
+        outputContains("apply = $newValue")
+        outputContains("task = $newValue")
+
+        where:
+        envVarRead                                          | value  | newValue
+        EnvVariableRead.getEnv("CI")                        | "true" | "false"
+        EnvVariableRead.getEnvGet("CI")                     | "true" | "false"
+        EnvVariableRead.getEnvGetOrDefault("CI", "default") | "true" | "false"
     }
 }

@@ -17,7 +17,6 @@ package org.gradle.cli
 
 import spock.lang.Issue
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class CommandLineParserTest extends Specification {
     private final CommandLineParser parser = new CommandLineParser()
@@ -174,7 +173,6 @@ class CommandLineParserTest extends Specification {
         result.option('long-option-a').values == ['arg']
     }
 
-    @Unroll
     def "parse fails for invalid option name #badOptionName"() {
         when:
         parser.option(badOptionName)
@@ -456,7 +454,6 @@ class CommandLineParserTest extends Specification {
         e.message == 'Unknown command-line option \'-u\'.'
     }
 
-    @Unroll
     def "parse fails when command line contains unknown option with newline #arg"() {
         when:
         parser.parse(arg)

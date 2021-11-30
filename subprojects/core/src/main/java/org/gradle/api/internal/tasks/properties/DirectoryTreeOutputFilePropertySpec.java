@@ -28,8 +28,8 @@ import java.io.File;
 public class DirectoryTreeOutputFilePropertySpec extends AbstractFilePropertySpec implements OutputFilePropertySpec {
     private final File root;
 
-    public DirectoryTreeOutputFilePropertySpec(String propertyName, ContentTracking contentTracking, FileCollectionInternal files, File root) {
-        super(propertyName, OutputNormalizer.class, contentTracking, files);
+    public DirectoryTreeOutputFilePropertySpec(String propertyName, FileCollectionInternal files, File root) {
+        super(propertyName, OutputNormalizer.class, files);
         this.root = root;
     }
 

@@ -19,18 +19,21 @@ package org.gradle.internal.logging.text;
 import org.gradle.api.Action;
 import org.gradle.internal.SystemProperties;
 
+import java.util.Arrays;
+
 /**
  * A {@link StyledTextOutput} that breaks text up into lines.
  */
 public abstract class AbstractLineChoppingStyledTextOutput extends AbstractStyledTextOutput {
     private final char[] eolChars;
     private final String eol;
-    private int seenCharsFromEol;
+    private SeenFromEol seenFromEol;
     private State currentState = INITIAL_STATE;
 
     protected AbstractLineChoppingStyledTextOutput() {
         eol = SystemProperties.getInstance().getLineSeparator();
         eolChars = eol.toCharArray();
+        seenFromEol = new SeenFromEol(eolChars);
     }
 
     @Override
@@ -40,7 +43,7 @@ public abstract class AbstractLineChoppingStyledTextOutput extends AbstractStyle
         while (context.hasChar()) {
             currentState.execute(context);
         }
-        seenCharsFromEol = context.seenCharsFromEol;
+        seenFromEol = context.seenFromEol;
         context.flushLineText();
     }
 
@@ -63,18 +66,20 @@ public abstract class AbstractLineChoppingStyledTextOutput extends AbstractStyle
     private interface State extends Action<StateContext> {}
 
     private class StateContext {
-        private final String text;
-        private int pos;
-        private int max;
-        private int start;
-        private int seenCharsFromEol = AbstractLineChoppingStyledTextOutput.this.seenCharsFromEol;
+        private final SeenFromEol seenFromEol = AbstractLineChoppingStyledTextOutput.this.seenFromEol.copy();
         private final char[] eolChars = AbstractLineChoppingStyledTextOutput.this.eolChars;
         private final String eol = AbstractLineChoppingStyledTextOutput.this.eol;
+
+        private final String text;
+        private final int max;
+
+        private int start;
+        private int pos;
 
         StateContext(String text) {
             this.text = text;
             this.max = text.length();
-            this.pos = -seenCharsFromEol;
+            this.pos = -seenFromEol.size();
             this.start = pos;
         }
 
@@ -88,16 +93,16 @@ public abstract class AbstractLineChoppingStyledTextOutput extends AbstractStyle
 
         boolean isCurrentCharEquals(char value) {
             char ch;
-            if ((seenCharsFromEol + pos) < 0) {
-                ch = eolChars[pos+AbstractLineChoppingStyledTextOutput.this.seenCharsFromEol];
+            if (seenFromEol.size() + pos < 0) {
+                ch = eolChars[pos+AbstractLineChoppingStyledTextOutput.this.seenFromEol.size()];
             } else {
-                ch = text.charAt(pos + seenCharsFromEol);
+                ch = text.charAt(pos + seenFromEol.size());
             }
             return ch == value;
         }
 
         boolean hasChar() {
-            return (pos + seenCharsFromEol) < max;
+            return pos + seenFromEol.size() < max;
         }
 
         void setState(State state) {
@@ -106,7 +111,7 @@ public abstract class AbstractLineChoppingStyledTextOutput extends AbstractStyle
 
         void reset() {
             start = pos;
-            seenCharsFromEol = 0;
+            seenFromEol.clear();
         }
 
         void flushLineText() {
@@ -116,7 +121,7 @@ public abstract class AbstractLineChoppingStyledTextOutput extends AbstractStyle
                 String data = "";
                 // Flushing data split across previous and current appending
                 if (start < 0 && pos >= 0) {
-                    data = eol.substring(0, Math.abs(start)) + text.substring(0, pos);
+                    data = seenFromEol.string(Math.abs(start)) + text.substring(0, pos);
                 // Flushing data coming only from current appending
                 } else if (start >= 0) {
                     data = text.substring(start, pos);
@@ -140,24 +145,24 @@ public abstract class AbstractLineChoppingStyledTextOutput extends AbstractStyle
     private static final State SYSTEM_EOL_PARSING_STATE = new State() {
         @Override
         public void execute(StateContext context) {
-            if (context.seenCharsFromEol < context.eolChars.length) {
-                if (!context.eol.equals("\r\n") && context.isCurrentCharEquals(context.eolChars[context.seenCharsFromEol])) {
-                    context.seenCharsFromEol++;
-                    if (context.seenCharsFromEol == context.eolChars.length) {
+            if (!context.seenFromEol.all()) {
+                if (!context.eol.equals("\r\n") && context.isCurrentCharEquals(context.eolChars[context.seenFromEol.size()])) {
+                    context.seenFromEol.add();
+                    if (context.seenFromEol.all()) {
                         context.flushLineText();
                         context.flushEndLine(context.eol);
-                        context.next(context.seenCharsFromEol);
+                        context.next(context.seenFromEol.size());
                         context.reset();
                         context.setState(START_LINE_STATE);
                     }
                     return;
-                } else if (context.seenCharsFromEol == 0) {
+                } else if (context.seenFromEol.none()) {
                     WELL_KNOWN_EOL_PARSING_STATE.execute(context);
                     return;
                 }
             }
 
-            context.next(context.seenCharsFromEol);
+            context.next(context.seenFromEol.size());
             context.flushLineText();
             context.reset();
             context.setState(INITIAL_STATE);
@@ -170,7 +175,7 @@ public abstract class AbstractLineChoppingStyledTextOutput extends AbstractStyle
         @Override
         public void execute(StateContext context) {
             if (context.isCurrentCharEquals('\r')) {
-                context.seenCharsFromEol++;
+                context.seenFromEol.add('\r');
                 context.setState(WINDOWS_EOL_PARSING_ODDITY_STATE);
             } else if (context.isCurrentCharEquals('\n')) {
                 context.flushLineText();
@@ -198,7 +203,7 @@ public abstract class AbstractLineChoppingStyledTextOutput extends AbstractStyle
                 context.next();
             } else {
                 context.next();
-                context.seenCharsFromEol = 0;
+                context.seenFromEol.clear();
                 context.setState(INITIAL_STATE);
             }
         }
@@ -211,4 +216,56 @@ public abstract class AbstractLineChoppingStyledTextOutput extends AbstractStyle
             context.setState(INITIAL_STATE);
         }
     };
+
+    private static class SeenFromEol {
+
+        private final char[] eol;
+        private final char[] seen;
+        private int count;
+
+        SeenFromEol(char[] eol) {
+            this.eol = eol;
+            this.seen = new char[eol.length];
+            this.count = 0;
+        }
+
+        private SeenFromEol(char[] eol, char[] seen, int count) {
+            this.eol = eol;
+            this.seen = seen;
+            this.count = count;
+        }
+
+        SeenFromEol copy() {
+            return new SeenFromEol(eol, Arrays.copyOf(seen, seen.length), count);
+        }
+
+        public void add(char c) {
+            seen[count++] = c;
+        }
+
+        public void add() {
+            seen[count] = eol[count];
+            count++;
+        }
+
+        void clear() {
+            count = 0;
+        }
+
+        int size() {
+            return count;
+        }
+
+        boolean all() {
+            return count == seen.length;
+        }
+
+        boolean none() {
+            return count == 0;
+        }
+
+        public String string(int length) {
+            return new String(seen, 0, length);
+        }
+    }
 }

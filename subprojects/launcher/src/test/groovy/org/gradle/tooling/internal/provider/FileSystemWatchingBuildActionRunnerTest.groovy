@@ -32,9 +32,7 @@ import org.gradle.internal.watch.vfs.VfsLogging
 import org.gradle.internal.watch.vfs.WatchLogging
 import org.gradle.internal.watch.vfs.WatchMode
 import spock.lang.Specification
-import spock.lang.Unroll
 
-@Unroll
 class FileSystemWatchingBuildActionRunnerTest extends Specification {
 
     def watchingHandler = Mock(BuildLifecycleAwareVirtualFileSystem)
@@ -42,23 +40,33 @@ class FileSystemWatchingBuildActionRunnerTest extends Specification {
     def buildOperationRunner = Mock(BuildOperationRunner)
     def buildController = Stub(BuildTreeLifecycleController)
     def delegate = Mock(BuildActionRunner)
-    def buildAction = Mock(BuildAction)
+    def buildAction = Stub(BuildAction)
     def buildOperationProgressEventEmitter = Mock(BuildOperationProgressEventEmitter)
 
-    def "watching virtual file system is informed about watching the file system being #watchMode.description (VFS logging: #vfsLogging, watch logging: #watchLogging)"() {
+    def runner = new FileSystemWatchingBuildActionRunner(
+        buildOperationProgressEventEmitter,
+        watchingHandler,
+        Stub(StatStatistics.Collector),
+        Stub(FileHasherStatistics.Collector),
+        Stub(DirectorySnapshotterStatistics.Collector),
+        buildOperationRunner,
+        delegate)
+
+    def setup() {
         _ * startParameter.getSystemPropertiesArgs() >> [:]
+        _ * buildAction.startParameter >> startParameter
+    }
+
+    def "watching virtual file system is informed about watching the file system being #watchMode.description (VFS logging: #vfsLogging, watch logging: #watchLogging)"() {
         _ * startParameter.watchFileSystemMode >> watchMode
+        _ * startParameter.projectCacheDir >> null
         _ * startParameter.isWatchFileSystemDebugLogging() >> (watchLogging == WatchLogging.DEBUG)
         _ * startParameter.isVfsVerboseLogging() >> (vfsLogging == VfsLogging.VERBOSE)
-        _ * startParameter.isVfsDebugLogging() >> false
-
-        def runner = new FileSystemWatchingBuildActionRunner(buildOperationProgressEventEmitter, watchingHandler, Stub(StatStatistics.Collector), Stub(FileHasherStatistics.Collector), Stub(DirectorySnapshotterStatistics.Collector), buildOperationRunner, delegate)
 
         when:
         runner.run(buildAction, buildController)
 
         then:
-        _ * buildAction.startParameter >> startParameter
         1 * watchingHandler.afterBuildStarted(watchMode, vfsLogging, watchLogging, buildOperationRunner) >> actuallyEnabled
 
         then:
@@ -85,5 +93,40 @@ class FileSystemWatchingBuildActionRunnerTest extends Specification {
         WatchMode.ENABLED  | VfsLogging.NORMAL  | WatchLogging.DEBUG  | true
         WatchMode.DISABLED | VfsLogging.NORMAL  | WatchLogging.NORMAL | false
         WatchMode.DISABLED | VfsLogging.NORMAL  | WatchLogging.DEBUG  | false
+    }
+
+    def "watching enabled by default is disabled when project cache dir is specified"() {
+        _ * startParameter.watchFileSystemMode >> WatchMode.DEFAULT
+        _ * startParameter.projectCacheDir >> Mock(File)
+
+        when:
+        runner.run(buildAction, buildController)
+
+        then:
+        1 * watchingHandler.afterBuildStarted(WatchMode.DISABLED, _, _, buildOperationRunner)
+
+        then:
+        1 * buildOperationProgressEventEmitter.emitNowForCurrent(_)
+
+        then:
+        1 * delegate.run(buildAction, buildController)
+
+        then:
+        1 * watchingHandler.beforeBuildFinished(WatchMode.DISABLED, _, _, buildOperationRunner, _)
+
+        then:
+        0 * _
+    }
+
+    def "fails when watching is enabled and project cache dir is specified"() {
+        _ * startParameter.watchFileSystemMode >> WatchMode.ENABLED
+        _ * startParameter.projectCacheDir >> Mock(File)
+
+        when:
+        runner.run(buildAction, buildController)
+
+        then:
+        def ex = thrown IllegalStateException
+        ex.message == "Enabling file system watching via --watch-fs (or via the org.gradle.vfs.watch property) with --project-cache-dir also specified is not supported; remove either option to fix this problem"
     }
 }

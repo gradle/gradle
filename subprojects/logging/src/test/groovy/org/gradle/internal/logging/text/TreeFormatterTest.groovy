@@ -412,6 +412,34 @@ Some thing.''')
         formatter.toString() == toPlatformLineSeparators("thing []")
     }
 
+    def "can append array of types"() {
+        when:
+        formatter.node("thing ")
+        formatter.appendTypes(Class, Number, String)
+
+        then:
+        formatter.toString() == toPlatformLineSeparators("thing (Class, Number, String)")
+    }
+
+    def "can append empty array of types"() {
+        when:
+        formatter.node("thing ")
+        formatter.appendTypes()
+
+        then:
+        formatter.toString() == toPlatformLineSeparators("thing ()")
+    }
+
+    def "cannot append array of types with null"() {
+        when:
+        formatter.node("thing ")
+        formatter.appendTypes(Class, Number, null)
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'type cannot be null'
+    }
+
     def "cannot append after children started"() {
         when:
         formatter.node("Root")

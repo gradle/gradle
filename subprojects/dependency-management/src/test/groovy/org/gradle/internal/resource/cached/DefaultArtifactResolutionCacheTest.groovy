@@ -25,7 +25,6 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.internal.BuildCommencedTimeProvider
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class DefaultArtifactResolutionCacheTest extends Specification {
 
@@ -45,8 +44,7 @@ class DefaultArtifactResolutionCacheTest extends Specification {
         index = new DefaultCachedExternalResourceIndex("index", BaseSerializerFactory.STRING_SERIALIZER, timeProvider, cacheLockingManager, fileAccessTracker, tmp.testDirectory.toPath())
     }
 
-    @Unroll
-    "stores entry - lastModified = #lastModified"() {
+    def "stores entry - lastModified = #lastModified"() {
         given:
         def key = "key"
         def artifactFile = tmp.createFile("artifact") << "content"

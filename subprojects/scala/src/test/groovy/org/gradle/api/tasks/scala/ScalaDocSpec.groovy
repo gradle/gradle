@@ -18,10 +18,11 @@ package org.gradle.api.tasks.scala
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.project.taskfactory.TaskInstantiator
 import org.gradle.api.tasks.AbstractConventionTaskTest
-
 import org.gradle.util.internal.WrapUtil
 
-import static org.gradle.api.tasks.compile.AbstractCompileTest.*
+import static org.gradle.api.tasks.scala.ScalaCompileTest.TEST_PATTERN_1
+import static org.gradle.api.tasks.scala.ScalaCompileTest.TEST_PATTERN_2
+import static org.gradle.api.tasks.scala.ScalaCompileTest.TEST_PATTERN_3
 
 class ScalaDocSpec extends AbstractConventionTaskTest {
 

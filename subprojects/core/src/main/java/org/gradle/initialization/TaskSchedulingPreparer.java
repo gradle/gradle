@@ -17,7 +17,8 @@
 package org.gradle.initialization;
 
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.execution.plan.ExecutionPlan;
 
 public interface TaskSchedulingPreparer {
-    void prepareForTaskScheduling(GradleInternal gradle);
+    void prepareForTaskScheduling(GradleInternal gradle, ExecutionPlan executionPlan);
 }

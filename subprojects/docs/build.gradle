@@ -1,10 +1,10 @@
 import gradlebuild.integrationtests.model.GradleDistribution
 import org.asciidoctor.gradle.jvm.AsciidoctorTask
+import org.gradle.docs.internal.tasks.CheckLinks
 import org.gradle.docs.samples.internal.tasks.InstallSample
 
 import static gradlebuild.basics.BuildEnvironmentKt.repoRoot
 import static gradlebuild.basics.Repositories_extensionsKt.googleApisJs
-import org.gradle.docs.internal.tasks.CheckLinks
 
 plugins {
     id 'gradlebuild.internal.java'
@@ -226,6 +226,55 @@ samples {
             category = "Spring"
             common {
                 from(templates.springBootWebApplication)
+            }
+        }
+
+        incubatingJvmMultiProjectWithAdditionalTestTypes {
+            sampleDirectory = samplesRoot.dir("incubating/java/jvm-multi-project-with-additional-test-types")
+            displayName = "Using additional test types with Test Suites (Incubating)"
+            description = "Add an additional test type (e.g. integration tests) to a project using the new Test Suites API."
+            category = "Java"
+
+            common {
+                from(templates.javaApplicationAsSubproject)
+                from(templates.javaJunit5TestForApplication)
+                from(templates.javaJunit5IntegrationTestForApplication)
+
+                from(templates.javaListLibraryAsSubproject)
+                from(templates.javaJunit5TestForListLibrary)
+                from(templates.javaJunit5IntegrationTestForUtilitiesLibrary)
+
+                from(templates.javaUtilitiesLibraryAsSubproject)
+            }
+        }
+        incubatingJavaModulesMultiProjectWithIntegrationTests {
+            sampleDirectory = samplesRoot.dir("incubating/java/modules-multi-project-with-integration-tests")
+            displayName = "Building Java Modules with Blackbox Tests with Test Suites (Incubating)"
+            description = "Build Java Modules with blackbox integration tests using the new Test Suites API."
+            category = "Java Modules"
+            common {
+                from(templates.javaApplicationAsSubproject)
+                from(templates.javaListLibraryAsSubproject)
+                from(templates.javaUtilitiesLibraryAsSubproject)
+                from(templates.javaModuleInfoForListLibrary)
+                from(templates.javaModuleInfoForUtilitiesLibrary)
+                from(templates.javaModuleInfoForApplication)
+                from(templates.javaJunit5TestForApplication)
+                from(templates.javaJunit5TestForListLibrary)
+
+                from(templates.javaJunit5IntegrationTestForApplication)
+                from(templates.javaJunit5ModuleInfoForApplication)
+                from(templates.javaJunit5IntegrationTestForUtilitiesLibrary)
+                from(templates.javaJunit5ModuleInfoForUtilitiesLibrary)
+            }
+        }
+        incubatingPublishingConventionPlugins {
+            sampleDirectory = samplesRoot.dir("incubating/build-organization/publishing-convention-plugins")
+            displayName = "Sharing build logic in a multi-repo setup with Test Suites (Incubating)"
+            description = "Organize and publish build logic for reuse in other projects using the new Test Suites API."
+            category = "Java"
+            common {
+                from(templates.precompiledScriptPluginUtils)
             }
         }
 
@@ -504,6 +553,7 @@ tasks.named("docsTest") { task ->
         // Do not execute Java Module tests on JVM < 9
         if (!javaVersion.java9Compatible) {
             excludeTestsMatching "org.gradle.docs.samples.*.java-modules-*.sample"
+            excludeTestsMatching "org.gradle.docs.samples.*.incubating-java-modules-*.sample"
             excludeTestsMatching 'org.gradle.docs.samples.*.snippet-java-library-module*.sample'
         }
     }

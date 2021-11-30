@@ -20,9 +20,7 @@ import org.apache.http.conn.HttpHostConnectException
 import org.gradle.api.UncheckedIOException
 import org.gradle.internal.resource.transport.http.HttpErrorStatusCodeException
 import spock.lang.Specification
-import spock.lang.Unroll
 
-@Unroll
 class NetworkOperationBackOffAndRetryTest extends Specification {
 
     def 'retries operation on transient network issue and fails after max attempts - #ex'() {

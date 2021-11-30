@@ -2,6 +2,8 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
+description = "Implementation of the Maven Publish Plugin that provides the ability to publish build artifacts to Maven repositories."
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":base-services-groovy"))
@@ -39,6 +41,7 @@ dependencies {
     testImplementation(testFixtures(project(":dependency-management")))
 
     integTestImplementation(project(":ear"))
+    integTestImplementation(project(":enterprise-operations"))
 
     testFixturesApi(project(":base-services")) {
         because("Test fixtures export the Action class")

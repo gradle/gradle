@@ -47,7 +47,7 @@ class BuildProgressCrossVersionSpec extends AbstractProgressCrossVersionSpec {
         [initScript1, initScript2].each { it << '' }
 
         when:
-        def events = new ProgressEvents()
+        def events = ProgressEvents.create()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild()

@@ -32,21 +32,33 @@ Here's an example:
 
 ### Generating
 
-Run the `viewReleaseNotes` task to generate the release notes, and open them in your browser (requires Java 6).
-
-### Editing
-
-You can run the `editReleaseNotes` task to open the raw markdown notes in whatever editor is registered for this file type (requires Java 6).
+Run the `:docs:releaseNotes` task to generate the release notes.
 
 ## User Manual
 
 The source for the user manual lives @ `src/docs/userguide`, and is authored in [Asciidoctor](https://asciidoctor.org).
 
-To generate the user manual and see your changes, run:
+To generate the user manual for the final preview and see all changes, you normally want to run:
+
+    ./gradlew stageDocs
+
+That will generate all the docs in the `build/docs` directory.
+
+For development and fast feedback you should use:
+
+    ./gradlew stageDocs -PquickDocs
+
+Alternatively, if you want to serve the docs in a built-in webserver, you can use:
+
+    ./gradlew serveDocs -PquickDocs
+
+The flag -PquickDocs disables some slow documentation tasks, like creating the DSL reference or the single page user manual PDF or HTML.
+
+If you really want to generate just the user manual, you can run:
 
     ./gradlew :docs:userguide
-    
-This will generate:
+
+But note that the generated documentation might not be fully functional (e.g. links will not work). This will generate:
 
  - A multi-page HTML manual in `build/working/usermanual/render-multi/` for each chapter. There is a 1-1 mapping from `.adoc` file to `.html` file.
  - A single-page HTML manual at `build/working/usermanual/render-single-html/userguide_single.html`
@@ -54,10 +66,6 @@ This will generate:
 
 Note that PNG files in the source are generated from ".graphml" files in the same directory.  You can edit these files
 with tools like [yEd](http://www.yworks.com/en/products_yed_about.html) and then generate the associated PNG.
-
-If you just need to see a change to one of the userguide sections, try:
-
-    ./gradlew :docs:userguide -x :docs:userguideSinglePageHtml -x :docs:userguideSinglePagePdf
 
 ### Authoring with AsciiDoc
 

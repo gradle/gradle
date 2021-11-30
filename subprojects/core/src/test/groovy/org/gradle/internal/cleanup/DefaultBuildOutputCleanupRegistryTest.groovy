@@ -63,14 +63,14 @@ class DefaultBuildOutputCleanupRegistryTest extends Specification {
         !registry.isOutputOwnedByBuild(file('different-file/build/outputs'))
     }
 
-    def "cannot register files after the outputs have been resolved"() {
+    def "outputs registered after finalization are ignored"() {
         given:
         registry.resolveOutputs()
 
         when:
         registry.registerOutputs(file('build'))
         then:
-        thrown(GradleException)
+        !registry.isOutputOwnedByBuild(file("build"))
     }
 
     def "cannot query outputs when they have not been resolved"() {

@@ -73,7 +73,7 @@ abstract class AbstractExecutionPlanSpec extends Specification {
 
         def lock = new MockLock(project, acquired)
         locks.add(lock)
-        _ * projectState.accessLock >> lock
+        _ * projectState.taskExecutionLock >> lock
 
         return project
     }

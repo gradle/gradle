@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.changedetection.state.FileHasherStatistics;
+import org.gradle.initialization.StartParameterBuildOptions;
 import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
 import org.gradle.internal.file.StatStatistics;
@@ -81,6 +82,22 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
         }
         if (verboseVfsLogging == VfsLogging.VERBOSE) {
             logVfsStatistics("since last build", statStatisticsCollector, fileHasherStatisticsCollector, directorySnapshotterStatisticsCollector);
+        }
+
+        if (action.getStartParameter().getProjectCacheDir() != null) {
+            // We'd like to create the probe in the `.gradle` directory under the build root,
+            // but if project cache is somewhere else, then we don't want to put trash in there
+            // See https://github.com/gradle/gradle/issues/17262
+            switch (watchFileSystemMode) {
+                case ENABLED:
+                    throw new IllegalStateException("Enabling file system watching via --watch-fs (or via the " + StartParameterBuildOptions.WatchFileSystemOption.GRADLE_PROPERTY + " property) with --project-cache-dir also specified is not supported; remove either option to fix this problem");
+                case DEFAULT:
+                    LOGGER.info("File system watching is disabled because --project-cache-dir is specified");
+                    watchFileSystemMode = WatchMode.DISABLED;
+                    break;
+                default:
+                    break;
+            }
         }
 
         boolean actuallyWatching = virtualFileSystem.afterBuildStarted(watchFileSystemMode, verboseVfsLogging, debugWatchLogging, buildOperationRunner);

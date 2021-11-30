@@ -255,7 +255,7 @@ This produces the following output at the start and end of the build:
 +
 ----
 $ gradle assemble --watch-fs -Dorg.gradle.vfs.verbose=true
-Received 3 file system events since last build while watching 1 hierarchies
+Received 3 file system events since last build while watching 1 locations
 Virtual file system retained information about 2 files, 2 directories and 0 missing files since last build
 > Task :compileJava NO-SOURCE
 > Task :processResources NO-SOURCE
@@ -265,7 +265,7 @@ Virtual file system retained information about 2 files, 2 directories and 0 miss
 
 BUILD SUCCESSFUL in 58ms
 1 actionable task: 1 up-to-date
-Received 5 file system events during the current build while watching 1 hierarchies
+Received 5 file system events during the current build while watching 1 locations
 Virtual file system retains information about 3 files, 2 directories and 2 missing files until next build
 ----
 +

@@ -21,6 +21,7 @@ enum class JvmCategory(
     override val version: JvmVersion
 ) : Jvm {
     MIN_VERSION(JvmVendor.oracle, JvmVersion.java8),
-    MAX_VERSION(JvmVendor.oracle, JvmVersion.java16),
-    EXPERIMENTAL_VERSION(JvmVendor.oracle, JvmVersion.java17)
+    MAX_VERSION(JvmVendor.oracle, JvmVersion.java17),
+    SANTA_TRACKER_SMOKE_TEST_VERSION(JvmVendor.openjdk, JvmVersion.java11),
+    EXPERIMENTAL_VERSION(JvmVendor.oracle, JvmVersion.java18)
 }

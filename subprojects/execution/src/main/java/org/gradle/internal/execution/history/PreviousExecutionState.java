@@ -21,7 +21,7 @@ import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 
 /**
- * A execution state after the previous execution has finished.
+ * Captures the state a {@link org.gradle.internal.execution.UnitOfWork} after the previous execution has finished.
  */
 public interface PreviousExecutionState extends InputExecutionState, OutputExecutionState {
 
@@ -35,6 +35,9 @@ public interface PreviousExecutionState extends InputExecutionState, OutputExecu
      */
     boolean isSuccessful();
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     ImmutableSortedMap<String, FileCollectionFingerprint> getInputFileProperties();
 }

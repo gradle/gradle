@@ -16,40 +16,27 @@
 
 package org.gradle.internal.watch.vfs.impl
 
-import org.gradle.internal.file.FileMetadata.AccessType
-import org.gradle.internal.file.impl.DefaultFileMetadata
-import org.gradle.internal.hash.Hashing
-import org.gradle.internal.snapshot.DirectorySnapshot
-import org.gradle.internal.snapshot.PathUtil
-import org.gradle.internal.snapshot.RegularFileSnapshot
-import org.gradle.internal.watch.registry.impl.SnapshotWatchedDirectoryFinder
+import org.gradle.internal.snapshot.TestSnapshotFixture
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Unroll
 
-@Unroll
-class SnapshotWatchedDirectoryFinderTest extends Specification {
+import static org.gradle.internal.watch.registry.impl.SnapshotWatchedDirectoryFinder.getDirectoryToWatch
 
-    def "resolves directories to watch from snapshot"() {
-        when:
-        def directoriesToWatch = SnapshotWatchedDirectoryFinder.getDirectoriesToWatch(snapshot).collect { it.toString() } as Set
-        then:
-        normalizeLineSeparators(directoriesToWatch) == (expectedDirectoriesToWatch as Set)
+class SnapshotWatchedDirectoryFinderTest extends Specification implements TestSnapshotFixture {
 
-        where:
-        snapshot                                       | expectedDirectoriesToWatch
-        fileSnapshot('/some/absolute/parent/file')     | ['/some/absolute/parent']
-        directorySnapshot('/some/absolute/parent/dir') | ['/some/absolute/parent', '/some/absolute/parent/dir']
-    }
+    @Rule
+    TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
-    private static RegularFileSnapshot fileSnapshot(String absolutePath) {
-        new RegularFileSnapshot(absolutePath, absolutePath.substring(absolutePath.lastIndexOf('/') + 1), Hashing.md5().hashString(absolutePath), DefaultFileMetadata.file(1, 1, AccessType.DIRECT))
-    }
+    def "resolves directory to watch from snapshot"() {
+        def parent = temporaryFolder.createDir("parent")
+        def dir = parent.createDir("dir")
+        def file = parent.createFile("file.txt")
+        def missingFile = parent.file("missing/file.txt")
 
-    private static DirectorySnapshot directorySnapshot(String absolutePath) {
-        new DirectorySnapshot(absolutePath, PathUtil.getFileName(absolutePath), AccessType.DIRECT, Hashing.md5().hashString(absolutePath), [])
-    }
-
-    private static Set<String> normalizeLineSeparators(Set<String> paths) {
-        return paths*.replace(File.separatorChar, '/' as char) as Set
+        expect:
+        getDirectoryToWatch(regularFile(file.absolutePath)) == parent
+        getDirectoryToWatch(directory(dir.absolutePath, [])) == dir
+        getDirectoryToWatch(missing(missingFile.absolutePath)) == parent
     }
 }

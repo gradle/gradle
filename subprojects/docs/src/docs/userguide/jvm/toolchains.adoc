@@ -46,7 +46,6 @@ Executing the build (e.g. using `gradle check`) will now handle several things f
 Toolchain support is available in the Java plugins and for the tasks they define.
 For the Groovy plugin, compilation is supported but not yet Groovydoc generation.
 For the Scala plugin, compilation and Scaladoc generation are supported.
-
 ====
 
 [[sec:vendors]]
@@ -80,7 +79,7 @@ Acts as a placeholder and matches any implementation from any vendor (e.g. hotsp
 `J9`::
 Matches only virtual machine implementations using the OpenJ9/IBM J9 runtime engine.
 
-For example, to use an https://www.eclipse.org/openj9/[Open J9] JVM, distributed via https://adoptopenjdk.net/[AdoptOpenJDK],
+For example, to use an https://www.eclipse.org/openj9/[IBM Semeru] JVM, distributed via https://adoptopenjdk.net/[AdoptOpenJDK],
 you can specify the filter as shown in the example below.
 
 ====
@@ -146,19 +145,15 @@ Please note however that this may realize (and provision) a toolchain eagerly.
 == Auto detection of installed toolchains
 
 By default, Gradle automatically detects local JRE/JDK installations so no further configuration is required by the user.
-The following is a list of common package managers and locations that are supported by the JVM auto detection.
+The following is a list of common package managers, tools, and locations that are supported by the JVM auto-detection.
 
-Operation-system specific locations:
+JVM auto-detection knows how to work with:
 
-* Linux
-* MacOs
-* Windows
+* Operation-system specific locations: Linux, macOS, Windows
+* Package Managers: https://asdf-vm.com/#/[Asdf-vm], https://github.com/shyiko/jabba[Jabba], https://sdkman.io/[SDKMAN!]
+* https://maven.apache.org/guides/mini/guide-using-toolchains.html[Maven Toolchain] specifications
 
-Supported Package Managers:
-
-* https://asdf-vm.com/#/[Asdf-vm]
-* https://github.com/shyiko/jabba[Jabba]
-* https://sdkman.io/[SDKMAN!]
+Among the set of all detected JRE/JDK installations, one will be picked according to the <<sec:precedence,Toolchain Precedence Rules>>.
 
 [[sub:disable_auto_detect]]
 === How to disable auto-detection
@@ -173,7 +168,7 @@ In order to disable auto-detection, you can use the `org.gradle.java.installatio
 
 If Gradle can't find a locally available toolchain which matches the requirements of the build, it will automatically try to download it from AdoptOpenJDK.
 By default, it will request a HotSpot JDK matching the current operating system and architecture.
-Provisioning JDKs are installed in the <<directory_layout.adoc#dir:gradle_user_home,Gradle User Home directory>>.
+Provisioned JDKs are installed in the <<directory_layout.adoc#dir:gradle_user_home,Gradle User Home directory>>.
 
 [NOTE]
 ====
@@ -181,7 +176,19 @@ Gradle will only download JDK versions for GA releases.
 There is no support for downloading early access versions.
 ====
 
+Once a provisioned JDK has been installed in the <<directory_layout.adoc#dir:gradle_user_home,Gradle User Home directory>> it becomes one of the JDKs visible to <<#sec:auto_detection,auto detection>>
+and can be used by any subsequent builds, just like any other JDK installed on the system.
+Since auto-provisioning only kicks in when auto-detection fails to find a matching JDK, auto-provisioning can only download new JDKs and is in no way involved in updating any of the already installed ones.
+None of the auto-provisioned JDKs will ever be revisited and automatically updated by auto-provisioning, even if there is a newer minor version available for them.
+
 By default, the public https://api.adoptopenjdk.net/[AdoptOpenJDK APIs] are used to determine and download a matching JDK.
+
+[WARNING]
+====
+Due to changes in AdoptOpenJDK and the migration to https://adoptium.net/[Eclipse Adoptium], the endpoint now serves JDKs from https://adoptium.net/[Eclipse Adoptium] or https://developer.ibm.com/languages/java/semeru-runtimes/[IBM Semeru] and no longer builds from AdoptOpenJDK.
+Using `JvmVendorSpec.ADOPTOPENJDK` and having it resolved through auto provisioning will result in a deprecation warning.
+====
+
 In case you want to use another server that is compatible with v3 of the AdoptOpenJDK API, you can point Gradle to use a different host.
 For that you use the Gradle property as in the example below:
 
@@ -218,20 +225,23 @@ gradle -q javaToolchains
      | Location:           /Users/username/myJavaInstalls/8.0.242.hs-adpt/jre
      | Language Version:   8
      | Vendor:             AdoptOpenJDK
-     | Is JDK:             true
+     | Architecture:       x86_64
+     | Is JDK:             false
      | Detected by:        system property 'org.gradle.java.installations.paths'
 
- + OpenJDK 15-ea
-     | Location:           /Users/username/.sdkman/candidates/java/15.ea.21-open
-     | Language Version:   15
-     | Vendor:             AdoptOpenJDK
+ + Microsoft JDK 16.0.2+7
+     | Location:           /Users/username/.sdkman/candidates/java/16.0.2.7.1-ms
+     | Language Version:   16
+     | Vendor:             Microsoft
+     | Architecture:       aarch64
      | Is JDK:             true
      | Detected by:        SDKMAN!
 
- + OpenJDK 16
-     | Location:           /Users/user/customJdks/16.ea.20-open
-     | Language Version:   16
+ + OpenJDK 15-ea
+     | Location:           /Users/user/customJdks/15.ea.21-open
+     | Language Version:   15
      | Vendor:             AdoptOpenJDK
+     | Architecture:       x86_64
      | Is JDK:             true
      | Detected by:        environment variable 'JDK16'
 
@@ -239,7 +249,8 @@ gradle -q javaToolchains
      | Location:           /Library/Java/JavaVirtualMachines/jdk1.7.0_80.jdk/Contents/Home/jre
      | Language Version:   7
      | Vendor:             Oracle
-     | Is JDK:             true
+     | Architecture:       x86_64
+     | Is JDK:             false
      | Detected by:        macOS java_home
 ----
 
@@ -272,6 +283,62 @@ Gradle will treat these directories as possible installations but will not desce
 ----
 org.gradle.java.installations.paths=/custom/path/jdk1.8,/shared/jre11
 ----
+
+[NOTE]
+====
+Custom toolchains are not prioritized over <<sec:auto_detection,auto-detected>> ones. If auto-detection is turned on, custom toolchains
+can still be specified but all they will do is to extend the set of detected JRE/JDK locations. Among these locations, one will be picked
+according to the <<sec:precedence,Toolchain Precedence Rules>>.
+====
+
+[[sec:precedence]]
+== Precedence
+
+Gradle will sort all the JDK/JRE installations matching the toolchain specification of the build and will pick the first one. Sorting
+is done based on the following rules:
+
+. the installation currently running Gradle is preferred over any other
+. JDK installations are preferred over JRE ones
+. certain vendors take precedence over others; their ordering (from the highest priority to lowest):
+.. ADOPTIUM
+.. ADOPTOPENJDK
+.. AMAZON
+.. APPLE
+.. AZUL
+.. BELLSOFT
+.. GRAAL_VM
+.. HEWLETT_PACKARD
+.. IBM
+.. IBM_SEMERU
+.. MICROSOFT
+.. ORACLE
+.. SAP
+.. everything else
+. higher major versions take precedence over lower ones
+. higher minor versions take precedence over lower ones
+. installation paths take precedence according to their lexicographic ordering (last resort criteria for deterministically deciding
+between installations of the same type, from the same vendor and with the same version)
+
+All these rules are applied as multilevel sorting criteria, *in the order they are shown*. Let's illustrate with an example. Let's
+say that the only criteria we have added to our toolchain specification is that we want Java version 17 and that on our local machine
+following matching installations have been detected: Oracle JRE v17.0.0, Oracle JDK v17.0.1, Microsoft JDK 17.0.0, Microsoft JRE 17.0.1,
+Microsoft JDK 17.0.1. Let's also assume that Gradle is being run by an installation with a different major version, so it's not a match
+of the toolchain specification (the point being that otherwise that installation would have priority over every other one and our example
+would be less informative).
+
+When we apply the above rules to sort this set we will end up with following ordering:
+
+. Microsoft JDK 17.0.1
+. Microsoft JDK 17.0.0
+. Oracle JDK v17.0.0
+. Microsoft JRE v17.0.1
+. Oracle JRE v17.0.1
+
+The JREs end up last after applying the rule of preferring JDKs over JREs. Then in both categories the Microsoft installations
+end up first after applying the rule of preferring that vendor over Oracle. Then the two Microsoft JDKs get ordered further
+by the rule saying that we prefer higher version numbers over lower ones. Applying any more rules won't change the final order.
+
+The installation that will be picked is the first one, the Microsoft JDK 17.0.1.
 
 [[sec:plugins]]
 == Toolchains for plugin authors

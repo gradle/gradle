@@ -40,7 +40,6 @@ class GradleRunnerMiscEndUserIntegrationTest extends BaseTestKitEndUserIntegrati
                 testImplementation('org.spockframework:spock-core:2.0-groovy-3.0') {
                     exclude group: 'org.codehaus.groovy'
                 }
-                testImplementation('org.junit.jupiter:junit-jupiter-api')
             }
 
             ${mavenCentralRepository()}

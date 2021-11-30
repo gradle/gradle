@@ -17,7 +17,6 @@
 package org.gradle.api.publish.ivy
 
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import spock.lang.Unroll
 
 class IvyGradleModuleMetadataPublishIntegrationTest extends AbstractIvyPublishIntegTest {
     def setup() {
@@ -883,7 +882,6 @@ class TestCapability implements Capability {
         variant.dependencyConstraints[0].rejectsVersion == []
     }
 
-    @Unroll
     @ToBeFixedForConfigurationCache
     def "publishes Gradle metadata redirection marker when Gradle metadata task is enabled (enabled=#enabled)"() {
         given:

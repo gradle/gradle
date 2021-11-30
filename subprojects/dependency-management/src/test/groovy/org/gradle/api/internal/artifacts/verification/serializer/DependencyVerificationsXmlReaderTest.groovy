@@ -16,12 +16,12 @@
 
 package org.gradle.api.internal.artifacts.verification.serializer
 
-import org.gradle.api.InvalidUserDataException
+
+import org.gradle.api.internal.artifacts.verification.DependencyVerificationException
 import org.gradle.api.internal.artifacts.verification.model.ChecksumKind
 import org.gradle.api.internal.artifacts.verification.model.IgnoredKey
 import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifier
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class DependencyVerificationsXmlReaderTest extends Specification {
     private DependencyVerifier verifier
@@ -31,7 +31,7 @@ class DependencyVerificationsXmlReaderTest extends Specification {
         parse("invalid")
 
         then:
-        InvalidUserDataException e = thrown()
+        DependencyVerificationException e = thrown()
         e.message == "Unable to read dependency verification metadata"
     }
 
@@ -55,12 +55,11 @@ class DependencyVerificationsXmlReaderTest extends Specification {
 </verification-metadata>"""
 
         then:
-        InvalidUserDataException e = thrown()
+        DependencyVerificationException e = thrown()
         e.message == "Unable to read dependency verification metadata"
         e.cause.message == "Invalid dependency verification metadata file: <component> must be found under the <components> tag"
     }
 
-    @Unroll
     def "parses configuration (metadata=#verifyMetadata, signatures=#verifySignatures)"() {
         when:
         parse """<?xml version="1.0" encoding="UTF-8"?>
@@ -167,7 +166,7 @@ class DependencyVerificationsXmlReaderTest extends Specification {
 </verification-metadata>
 """
         then:
-        InvalidUserDataException ex = thrown()
+        DependencyVerificationException ex = thrown()
         ex.message == "Unable to read dependency verification metadata"
         ex.cause.message == "A trusted artifact must have at least one of group, name, version or file name not null"
     }

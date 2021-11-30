@@ -34,7 +34,13 @@ class TestNGFailurePolicyIntegrationTest extends AbstractSampleIntegrationTest {
 
     void usingTestNG(String version) {
         buildFile << """
-            dependencies { testImplementation "org.testng:testng:${version}" }
+            testing {
+                suites {
+                    test {
+                        useTestNG('${version}')
+                    }
+                }
+            }
         """
     }
 
@@ -52,10 +58,22 @@ class TestNGFailurePolicyIntegrationTest extends AbstractSampleIntegrationTest {
 
     def "can be configured to continue executing tests after a config method failure"() {
         when:
-        usingTestNG(NEWEST)
+        usingTestNG('6.14.3') // TODO test fails with TestNG 7.x; see https://github.com/gradle/gradle/issues/10507
         buildFile << """
-            test.options {
-                configFailurePolicy "continue"
+            testing {
+                suites {
+                    test {
+                        targets {
+                            all {
+                                testTask.configure {
+                                    options {
+                                        configFailurePolicy "continue"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
         """
 
@@ -71,8 +89,20 @@ class TestNGFailurePolicyIntegrationTest extends AbstractSampleIntegrationTest {
         when:
         usingTestNG("5.12.1")
         buildFile << """
-            test.options {
-                configFailurePolicy "continue"
+            testing {
+                suites {
+                    test {
+                        targets {
+                            all {
+                                testTask.configure {
+                                    options {
+                                        configFailurePolicy "continue"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
         """
 

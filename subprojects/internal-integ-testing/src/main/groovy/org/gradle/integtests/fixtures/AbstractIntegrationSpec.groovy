@@ -362,6 +362,10 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
         succeeds(*tasks)
     }
 
+    protected ExecutionResult run(List<String> tasks) {
+        succeeds(tasks.toArray(new String[tasks.size()]))
+    }
+
     protected GradleExecuter args(String... args) {
         executer.withArguments(args)
     }

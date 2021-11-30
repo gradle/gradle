@@ -16,10 +16,10 @@
 package org.gradle.buildinit.plugins
 
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
+import org.gradle.buildinit.plugins.internal.BuildScriptBuilder
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.hamcrest.Matcher
-import spock.lang.Unroll
 
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.GROOVY
 import static org.hamcrest.CoreMatchers.allOf
@@ -42,7 +42,6 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
         outputContains "init - Initializes a new Gradle build."
     }
 
-    @Unroll
     def "creates a simple project with #scriptDsl build scripts when no pom file present and no type specified"() {
         given:
         useTestDirectoryThatIsNotEmbeddedInAnotherBuild()
@@ -67,7 +66,31 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    @Unroll
+    def "creates a simple project with #scriptDsl build scripts when no pom file present and no type specified which uses @Incubating APIs"() {
+        given:
+        useTestDirectoryThatIsNotEmbeddedInAnotherBuild()
+        def dslFixture = ScriptDslFixture.of(scriptDsl, targetDir, null)
+
+        when:
+        runInitWith scriptDsl, '--incubating'
+
+        then:
+        commonFilesGenerated(scriptDsl, dslFixture)
+
+        and:
+        dslFixture.buildFile.assertContents(
+            allOf(
+                containsString("This is a general purpose Gradle build"),
+                containsString("Learn more about Gradle by exploring our samples at"),
+                containsString(BuildScriptBuilder.getIncubatingApisWarning())))
+
+        expect:
+        succeeds 'help'
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
+    }
+
     def "#targetScriptDsl build file generation is skipped when #existingScriptDsl build file already exists"() {
         given:
         def existingDslFixture = rootProjectDslFixtureFor(existingScriptDsl as BuildInitDsl)
@@ -91,7 +114,6 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
         [existingScriptDsl, targetScriptDsl] << ScriptDslFixture.scriptDslCombinationsFor(2)
     }
 
-    @Unroll
     def "#targetScriptDsl build file generation is skipped when #existingScriptDsl settings file already exists"() {
         given:
         def existingDslFixture = dslFixtureFor(existingScriptDsl as BuildInitDsl)
@@ -115,7 +137,6 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
         [existingScriptDsl, targetScriptDsl] << ScriptDslFixture.scriptDslCombinationsFor(2)
     }
 
-    @Unroll
     def "#targetScriptDsl build file generation is skipped when custom #existingScriptDsl build file exists"() {
         given:
         def existingDslFixture = dslFixtureFor(existingScriptDsl as BuildInitDsl)
@@ -140,7 +161,6 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
         [existingScriptDsl, targetScriptDsl] << ScriptDslFixture.scriptDslCombinationsFor(2)
     }
 
-    @Unroll
     def "#targetScriptDsl build file generation is skipped when part of a multi-project build with non-standard #existingScriptDsl settings file location"() {
         given:
         def existingDslFixture = dslFixtureFor(existingScriptDsl as BuildInitDsl)
@@ -181,7 +201,6 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
         pomValuesUsed(rootProjectDslFixtureFor(GROOVY))
     }
 
-    @Unroll
     def "pom conversion to #scriptDsl build scripts not triggered when build type is specified"() {
         given:
         pom()
@@ -274,6 +293,8 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
                Available values are:
                     groovy
                     kotlin
+
+     --incubating     Allow the generated build to use new features and APIs
 
      --insecure-protocol     How to handle insecure URLs used for Maven Repositories.
                              Available values are:
@@ -401,11 +422,12 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
         targetDir.file("gradlew").assertIsFile()
         targetDir.file("settings.gradle").assertIsFile()
         targetDir.file("build.gradle").assertIsFile()
-        targetDir.file(".gradle").assertDoesNotExist()
     }
 
-    private ExecutionResult runInitWith(BuildInitDsl dsl) {
-        run 'init', '--dsl', dsl.id
+    private ExecutionResult runInitWith(BuildInitDsl dsl, String... initOptions) {
+        def tasks = ['init', '--dsl', dsl.id]
+        tasks.addAll(initOptions)
+        run tasks
     }
 
     private static pomValuesUsed(ScriptDslFixture dslFixture) {

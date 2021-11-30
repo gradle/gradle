@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Interner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
@@ -67,8 +68,14 @@ import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuil
 import static org.gradle.problems.internal.RenderingUtils.oxfordListOf;
 
 public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderInternal {
+
+    private enum AliasType {
+        LIBRARY,
+        PLUGIN
+    }
+
     private final static Logger LOGGER = Logging.getLogger(DefaultVersionCatalogBuilder.class);
-    private final static List<String> FORBIDDEN_ALIAS_SUFFIX = ImmutableList.of("bundles", "versions", "version", "bundle", "plugin", "plugins");
+    private final static List<String> FORBIDDEN_LIBRARY_ALIAS_PREFIX = ImmutableList.of("bundles", "versions", "plugins");
     private final static Set<String> RESERVED_ALIAS_NAMES = ImmutableSet.of("extensions", "class", "convention");
 
     private final Interner<String> strings;
@@ -78,6 +85,10 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
     private final String name;
     private final Map<String, VersionModel> versionConstraints = Maps.newLinkedHashMap();
     private final Map<String, Supplier<DependencyModel>> dependencies = Maps.newLinkedHashMap();
+    /**
+     * Aliases that are being constructed, used to detect unfinished builders.
+     */
+    private final Set<String> aliasesInProgress = Sets.newLinkedHashSet();
     private final Map<String, Supplier<PluginModel>> plugins = Maps.newLinkedHashMap();
     private final Map<String, BundleModel> bundles = Maps.newLinkedHashMap();
     private final Lazy<DefaultVersionCatalog> model = Lazy.unsafe().of(this::doBuild);
@@ -132,6 +143,15 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
 
     private DefaultVersionCatalog doBuild() {
         maybeImportCatalogs();
+        if (!aliasesInProgress.isEmpty()) {
+            String alias = aliasesInProgress.iterator().next();
+            return throwVersionCatalogProblem(VersionCatalogProblemId.ALIAS_NOT_FINISHED, spec ->
+                spec.withShortDescription(() -> "Dependency alias builder '" + alias + "' was not finished.")
+                    .happensBecause("A version was not set or explicitly declared as not wanted")
+                    .addSolution("Call `.version()` to give the alias a version")
+                    .addSolution("Call `.withoutVersion()` to explicitly declare that the alias should not have a version")
+                    .documented());
+        }
         for (Map.Entry<String, BundleModel> entry : bundles.entrySet()) {
             String bundleName = entry.getKey();
             List<String> aliases = entry.getValue().getComponents();
@@ -226,7 +246,7 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
         }
         RegularFileProperty srcProp = objects.fileProperty();
         srcProp.set(modelFile);
-        Provider<byte[]> dataSource = providers.fileContents(srcProp).getAsBytes().forUseAtConfigurationTime();
+        Provider<byte[]> dataSource = providers.fileContents(srcProp).getAsBytes();
         try {
             TomlCatalogFileParser.parse(new ByteArrayInputStream(dataSource.get()), this);
         } catch (IOException e) {
@@ -270,7 +290,7 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
     @Override
     public AliasBuilder alias(String alias) {
         validateName("alias", alias);
-        return new DefaultAliasBuilder(normalize(alias));
+        return new DefaultAliasBuilder(alias);
     }
 
     private void validateName(String type, String value) {
@@ -279,31 +299,6 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
                 spec.withShortDescription(() -> "Invalid " + type + " '" + value + "' name")
                     .happensBecause(() -> type + " names must match the following regular expression: " + DependenciesModelHelper.ALIAS_REGEX)
                     .addSolution(() -> "Make sure the name matches the " + DependenciesModelHelper.ALIAS_REGEX + " regular expression")
-                    .documented()
-            );
-        }
-        if ("alias".equals(type)) {
-            validateAlias(value);
-        }
-    }
-
-    private void validateAlias(String alias) {
-        for (String suffix : FORBIDDEN_ALIAS_SUFFIX) {
-            String sl = alias.toLowerCase();
-            if (sl.endsWith(suffix)) {
-                throwVersionCatalogProblem(VersionCatalogProblemId.RESERVED_ALIAS_NAME, spec ->
-                    spec.withShortDescription(() -> "Alias '" + alias + "' is not a valid alias")
-                        .happensBecause(() -> "It shouldn't end with '" + suffix + "'")
-                        .addSolution(() -> "Use a different alias which doesn't end with " + oxfordListOf(FORBIDDEN_ALIAS_SUFFIX, "or"))
-                        .documented()
-                );
-            }
-        }
-        if (RESERVED_ALIAS_NAMES.contains(alias)) {
-            throwVersionCatalogProblem(VersionCatalogProblemId.RESERVED_ALIAS_NAME, spec ->
-                spec.withShortDescription(() -> "Alias '" + alias + "' is not a valid alias")
-                    .happensBecause(() -> "Alias '" + alias +"' is a reserved name in Gradle which prevents generation of accessors")
-                    .addSolution(() -> "Use a different alias which isn't in the reserved names " + oxfordListOf(RESERVED_ALIAS_NAMES, "or"))
                     .documented()
             );
         }
@@ -412,16 +407,22 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
 
     private class DefaultAliasBuilder implements AliasBuilder {
         private final String alias;
+        private final String normalizedAlias;
 
         public DefaultAliasBuilder(String alias) {
             this.alias = alias;
+            this.normalizedAlias = normalize(alias);
+            if (!aliasesInProgress.add(normalizedAlias)) {
+                LOGGER.warn("Duplicate alias builder registered for {}", normalizedAlias);
+            }
         }
 
         @Override
         public void to(String gavCoordinates) {
+            validateAlias(AliasType.LIBRARY);
             String[] coordinates = gavCoordinates.split(":");
             if (coordinates.length == 3) {
-                to(coordinates[0], coordinates[1]).version(coordinates[2]);
+                objects.newInstance(DefaultLibraryAliasBuilder.class, DefaultVersionCatalogBuilder.this, normalizedAlias, coordinates[0], coordinates[1]).version(coordinates[2]);
             } else {
                 throwVersionCatalogProblem(VersionCatalogProblemId.INVALID_DEPENDENCY_NOTATION, spec ->
                     spec.withShortDescription(() -> "On alias '" + alias + "' notation '" + gavCoordinates + "' is not a valid dependency notation")
@@ -434,12 +435,37 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
 
         @Override
         public LibraryAliasBuilder to(String group, String name) {
-            return objects.newInstance(DefaultLibraryAliasBuilder.class, DefaultVersionCatalogBuilder.this, alias, group, name);
+            validateAlias(AliasType.LIBRARY);
+            return objects.newInstance(DefaultLibraryAliasBuilder.class, DefaultVersionCatalogBuilder.this, normalizedAlias, group, name);
         }
 
         @Override
         public PluginAliasBuilder toPluginId(String id) {
-            return objects.newInstance(DefaultPluginAliasBuilder.class, DefaultVersionCatalogBuilder.this, alias, id);
+            validateAlias(AliasType.PLUGIN);
+            return objects.newInstance(DefaultPluginAliasBuilder.class, DefaultVersionCatalogBuilder.this, normalizedAlias, id);
+        }
+
+        private void validateAlias(AliasType type) {
+            if (type == AliasType.LIBRARY) {
+                for (String prefix : FORBIDDEN_LIBRARY_ALIAS_PREFIX) {
+                    if (normalizedAlias.equals(prefix) || normalizedAlias.startsWith(prefix + ".")) {
+                        throwVersionCatalogProblem(VersionCatalogProblemId.RESERVED_ALIAS_NAME, spec ->
+                            spec.withShortDescription(() -> "Alias '" + alias + "' is not a valid alias")
+                                .happensBecause(() -> "Prefix for dependency shouldn't be equal to '" + prefix + "'")
+                                .addSolution(() -> "Use a different alias which prefix is not equal to " + oxfordListOf(FORBIDDEN_LIBRARY_ALIAS_PREFIX, "or"))
+                                .documented()
+                        );
+                    }
+                }
+            }
+            if (RESERVED_ALIAS_NAMES.contains(normalizedAlias)) {
+                throwVersionCatalogProblem(VersionCatalogProblemId.RESERVED_ALIAS_NAME, spec ->
+                    spec.withShortDescription(() -> "Alias '" + alias + "' is not a valid alias")
+                        .happensBecause(() -> "Alias '" + alias +"' is a reserved name in Gradle which prevents generation of accessors")
+                        .addSolution(() -> "Use a different alias which isn't in the reserved names " + oxfordListOf(RESERVED_ALIAS_NAMES, "or"))
+                        .documented()
+                );
+            }
         }
     }
 
@@ -462,6 +488,7 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
         public void version(Action<? super MutableVersionConstraint> versionSpec) {
             MutableVersionConstraint versionBuilder = new DefaultMutableVersionConstraint("");
             versionSpec.execute(versionBuilder);
+            owner.aliasesInProgress.remove(alias);
             ImmutableVersionConstraint version = owner.versionConstraintInterner.intern(DefaultImmutableVersionConstraint.of(versionBuilder));
             DependencyModel model = new DependencyModel(owner.intern(group), owner.intern(name), null, version, owner.currentContext);
             Supplier<DependencyModel> previous = owner.dependencies.put(owner.intern(alias), () -> model);
@@ -488,6 +515,7 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
 
         @Override
         public void versionRef(String versionRef) {
+            owner.aliasesInProgress.remove(alias);
             owner.createAliasWithVersionRef(alias, group, name, versionRef);
         }
 
@@ -514,6 +542,7 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
         public void version(Action<? super MutableVersionConstraint> versionSpec) {
             MutableVersionConstraint versionBuilder = new DefaultMutableVersionConstraint("");
             versionSpec.execute(versionBuilder);
+            owner.aliasesInProgress.remove(alias);
             ImmutableVersionConstraint version = owner.versionConstraintInterner.intern(DefaultImmutableVersionConstraint.of(versionBuilder));
             PluginModel model = new PluginModel(owner.intern(id), null, version, owner.currentContext);
             Supplier<PluginModel> previous = owner.plugins.put(owner.intern(alias), () -> model);
@@ -540,6 +569,7 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
 
         @Override
         public void versionRef(String versionRef) {
+            owner.aliasesInProgress.remove(alias);
             owner.createPluginAliasWithVersionRef(alias, id, versionRef);
         }
     }

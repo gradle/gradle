@@ -37,7 +37,12 @@ import java.util.TreeSet;
 import java.util.regex.Pattern;
 
 public class OutputScrapingExecutionResult implements ExecutionResult {
-    static final Pattern STACK_TRACE_ELEMENT = Pattern.compile("\\s+(at\\s+)?([\\w.$_]+/)?[\\w.$_]+\\.[\\w$_ =+'-<>]+\\(.+?\\)(\\x1B\\[0K)?");
+    // This monster is to find lines in our logs that look like stack traces
+    // We want to match lines that contain just packages and classes:
+    // at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.lambda$executeIfValid$1(ExecuteActionsTaskExecuter.java:145)
+    // and with module names:
+    // at java.base/java.lang.Thread.dumpStack(Thread.java:1383)
+    static final Pattern STACK_TRACE_ELEMENT = Pattern.compile("\\s+(at\\s+)?([\\w.$_]+/)?[a-zA-Z_][\\w.$]+\\.[\\w$_ =+'-<>]+\\(.+?\\)(\\x1B\\[0K)?");
     private static final String TASK_PREFIX = "> Task ";
 
     //for example: ':a SKIPPED' or ':foo:bar:baz UP-TO-DATE' but not ':a'
@@ -146,8 +151,11 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     }
 
     private String normalize(LogContent output) {
+        return LogContent.of(normalize(output.getLines())).withNormalizedEol();
+    }
+
+    public static List<String> normalize(List<String> lines) {
         List<String> result = new ArrayList<>();
-        List<String> lines = output.getLines();
         int i = 0;
         while (i < lines.size()) {
             String line = lines.get(i);
@@ -162,7 +170,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
                 i++;
             } else if (line.contains(LoggingDeprecatedFeatureHandler.WARNING_SUMMARY)) {
                 // Remove the deprecations message: "Deprecated Gradle features...", "Use '--warning-mode all'...", "See https://docs.gradle.org...", and additional newline
-                i+=4;
+                i += 4;
             } else if (BUILD_RESULT_PATTERN.matcher(line).matches()) {
                 result.add(BUILD_RESULT_PATTERN.matcher(line).replaceFirst("$1 $2 in 0s"));
                 i++;
@@ -171,8 +179,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
                 i++;
             }
         }
-
-        return LogContent.of(result).withNormalizedEol();
+        return result;
     }
 
     /**
@@ -181,7 +188,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
      * Lambdas do have some non-deterministic class names, depending on when they are loaded.
      * Since we want to assert the Lambda class name for some deprecation warning tests, we replace the non-deterministic part by {@code <non-deterministic>}.
      */
-    private String normalizeLambdaIds(String line) {
+    private static String normalizeLambdaIds(String line) {
         return line.replaceAll("\\$\\$Lambda\\$[0-9]+/(0x)?[0-9a-f]+", "\\$\\$Lambda\\$<non-deterministic>");
     }
 
@@ -209,7 +216,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     @Override
     public ExecutionResult assertNotOutput(String expectedOutput) {
         String expectedText = LogContent.of(expectedOutput).withNormalizedEol();
-        if (getOutput().contains(expectedText)|| getError().contains(expectedText)) {
+        if (getOutput().contains(expectedText) || getError().contains(expectedText)) {
             failureOnUnexpectedOutput(String.format("Found unexpected text in build output.%nExpected not present: %s%n", expectedText));
         }
         return this;

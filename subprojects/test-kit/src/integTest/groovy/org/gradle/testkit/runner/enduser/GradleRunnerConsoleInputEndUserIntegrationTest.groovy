@@ -20,7 +20,12 @@ import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.IgnoreIf
 
-import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.*
+import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.DUMMY_TASK_NAME
+import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.PROMPT
+import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.YES
+import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.answerOutput
+import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.buildScanPlugin
+import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.buildScanPluginApplication
 
 @IgnoreIf({ GradleContextualExecuter.embedded }) // These tests run builds that themselves run a build in a test worker with 'gradleTestKit()' dependency, which needs to pick up Gradle modules from a real distribution
 class GradleRunnerConsoleInputEndUserIntegrationTest extends BaseTestKitEndUserIntegrationTest {

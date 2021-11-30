@@ -57,6 +57,9 @@ import org.jetbrains.kotlin.config.LanguageVersion
 import org.jetbrains.kotlin.config.LanguageVersionSettingsImpl
 
 import org.jetbrains.kotlin.extensions.StorageComponentContainerContributor.Companion.registerExtension
+import org.jetbrains.kotlin.load.java.JavaTypeEnhancementState
+import org.jetbrains.kotlin.load.java.Jsr305Settings
+import org.jetbrains.kotlin.load.java.ReportLevel
 
 import org.jetbrains.kotlin.name.NameUtils
 
@@ -67,7 +70,6 @@ import org.jetbrains.kotlin.scripting.configuration.ScriptingConfigurationKeys.S
 import org.jetbrains.kotlin.scripting.definitions.ScriptDefinition
 
 import org.jetbrains.kotlin.utils.PathUtil
-import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
 
 import org.slf4j.Logger
 
@@ -353,6 +355,7 @@ val gradleKotlinDslLanguageVersionSettings = LanguageVersionSettingsImpl(
     apiVersion = ApiVersion.KOTLIN_1_4,
     analysisFlags = mapOf(
         AnalysisFlags.skipMetadataVersionCheck to true,
+        JvmAnalysisFlags.javaTypeEnhancementState to JavaTypeEnhancementState(Jsr305Settings(ReportLevel.STRICT, ReportLevel.STRICT)) { ReportLevel.STRICT },
         JvmAnalysisFlags.jvmDefaultMode to JvmDefaultMode.ENABLE,
     ),
     specificFeatures = mapOf(
@@ -420,7 +423,7 @@ data class ScriptCompilationException(val errors: List<ScriptCompilationError>) 
     }
 
     val firstErrorLine
-        get() = errors.firstNotNullResult { it.location?.line }
+        get() = errors.asSequence().mapNotNull { it.location?.line }.firstOrNull()
 
     override val message: String
         get() = (

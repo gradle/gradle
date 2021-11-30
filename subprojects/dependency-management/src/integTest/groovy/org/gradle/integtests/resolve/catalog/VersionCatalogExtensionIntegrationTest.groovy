@@ -22,11 +22,9 @@ import org.gradle.api.internal.catalog.problems.VersionCatalogProblemTestFor
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.resolve.PluginDslSupport
 import spock.lang.Issue
-import spock.lang.Unroll
 
 class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogIntegrationTest implements PluginDslSupport, VersionCatalogErrorMessages {
 
-    @Unroll
     @UnsupportedWithConfigurationCache(because = "the test uses an extension directly in the task body")
     def "dependencies declared in settings trigger the creation of an extension (notation=#notation)"() {
         settingsFile << """
@@ -95,6 +93,67 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
             'alias("foo").to("org.gradle.test", "lib").version { require "1.0" }',
             'alias("foo").to("org.gradle.test", "lib").version("1.0")'
         ]
+    }
+
+    def "dependencies declared in settings will fail if left uninitialized"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        alias("my-great-lib").to("org.gradle.test", "lib")
+                    }
+                }
+            }
+        """
+
+        when:
+        fails()
+
+        then:
+        verifyContains(failure.error, aliasNotFinished {
+            inCatalog("libs")
+            alias("my.great.lib")
+        })
+    }
+
+    def "logs contain a message indicating if an unfinished builder is overwritten with one that finishes"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        // Even though this is unfinished, it will not trigger an error
+                        // It should log a message though.
+                        alias("my-great-lib").to("org.gradle.test", "lib")
+
+                        alias("my-great-lib").to("org.gradle.test", "lib").version("1.0")
+                    }
+                }
+            }
+        """
+
+        def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.0").publish()
+        buildFile << """
+            apply plugin: 'java-library'
+
+            dependencies {
+                implementation libs.my.great.lib
+            }
+        """
+
+        when:
+        lib.pom.expectGet()
+        lib.artifact.expectGet()
+
+        then:
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org.gradle.test:lib:1.0')
+            }
+        }
+        outputContains("Duplicate alias builder registered for my.great.lib")
     }
 
     def "can use the generated extension to declare a dependency"() {
@@ -204,42 +263,62 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
         }
     }
 
-    def "can use the generated extension to declare a dependency constraint"() {
+    def "can use the generated extension to declare a dependency constraint with and without sub-group"() {
         settingsFile << """
             dependencyResolutionManagement {
                 versionCatalogs {
                     libs {
-                        alias("myLib").to("org.gradle.test", "lib").version {
-                            require "1.0"
+                        version("myLib") {
+                            strictly "[1.0,1.1)"
                         }
+                        alias("myLib").to("org.gradle.test", "lib-core").versionRef("myLib")
+                        alias("myLib-ext").to("org.gradle.test", "lib-ext").versionRef("myLib")
                     }
                 }
             }
         """
-        def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.0").publish()
+        def publishLib = { String artifactId, String version ->
+            def lib = mavenHttpRepo.module("org.gradle.test", artifactId, version)
+                .withModuleMetadata()
+                .publish()
+            lib.moduleMetadata.expectGet()
+            lib.pom.expectGet()
+            return lib
+        }
+        publishLib("lib-core", "1.0").with {
+            it.rootMetaData.expectGet()
+            it.artifact.expectGet()
+        }
+        publishLib("lib-core", "1.1")
+        publishLib("lib-ext", "1.0").with {
+            it.rootMetaData.expectGet()
+            it.artifact.expectGet()
+        }
         buildFile << """
             apply plugin: 'java-library'
 
             dependencies {
-                implementation "org.gradle.test:lib" // intentional!
+                implementation "org.gradle.test:lib-core:1.+" // intentional!
+                implementation "org.gradle.test:lib-ext" // intentional!
                 constraints {
-                    implementation(libs.myLib)
+                    implementation libs.myLib //.asProvider() as a workaround
+                    implementation libs.myLib.ext
                 }
             }
         """
 
         when:
-        lib.pom.expectGet()
-        lib.artifact.expectGet()
-
-        then:
         run ':checkDeps'
 
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                constraint('org.gradle.test:lib:1.0')
-                edge('org.gradle.test:lib', 'org.gradle.test:lib:1.0')
+                constraint("org.gradle.test:lib-core:{strictly [1.0,1.1)}", "org.gradle.test:lib-core:1.0")
+                constraint("org.gradle.test:lib-ext:{strictly [1.0,1.1)}", "org.gradle.test:lib-ext:1.0")
+                edge("org.gradle.test:lib-core:1.+", "org.gradle.test:lib-core:1.0") {
+                    byReasons(["rejected version 1.1", "constraint"])
+                }
+                edge("org.gradle.test:lib-ext", "org.gradle.test:lib-ext:1.0")
             }
         }
     }
@@ -857,7 +936,6 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
         }
     }
 
-    @Unroll
     def "can generate a version accessor and use it in a build script"() {
         settingsFile << """
             dependencyResolutionManagement {
@@ -1352,6 +1430,7 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
                     libs {
                         alias("lib").to("org:test:1.0")
                         alias("lib2").to("org:test2:1.0")
+                        alias("plug").toPluginId("org.test2").version("1.0")
                         bundle("all", ["lib", "lib2"])
                     }
                     other {
@@ -1373,6 +1452,7 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
                     assert lib.present
                     assert lib.get() instanceof Provider
                     assert !libs.findDependency('missing').present
+                    assert libs.findPlugin('plug').present
                     assert libs.findBundle('all').present
                     assert !libs.findBundle('missing').present
                     assert other.findVersion('ver').present
@@ -1386,6 +1466,51 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
                     assert other.bundleAliases == []
                     assert other.versionAliases == ['ver']
 
+                }
+            }
+        """
+
+        when:
+        run 'verifyCatalogs'
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "can access versions with find methods without normalized aliases with optional API"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        version("my-ver", "1.1")
+                        alias("my-lib").to("org:test:1.0")
+                        alias("my-plug").toPluginId("org.test2").version("1.0")
+                        bundle("my-all", ["my-lib"])
+                    }
+                }
+            }
+        """
+
+        buildFile << """
+            def catalogs = project.extensions.getByType(VersionCatalogsExtension)
+            tasks.register("verifyCatalogs") {
+                doLast {
+                    def libs = catalogs.named("libs")
+                    assert libs.findVersion('my-ver').present
+                    assert libs.findVersion('my_ver').present
+                    assert libs.findVersion('my.ver').present
+
+                    assert libs.findDependency('my-lib').present
+                    assert libs.findDependency('my_lib').present
+                    assert libs.findDependency('my.lib').present
+
+                    assert libs.findBundle('my-all').present
+                    assert libs.findBundle('my_all').present
+                    assert libs.findBundle('my.all').present
+
+                    assert libs.findPlugin('my-plug').present
+                    assert libs.findPlugin('my_plug').present
+                    assert libs.findPlugin('my.plug').present
                 }
             }
         """
@@ -1738,6 +1863,104 @@ Second: 1.1"""
         ]
     }
 
+    @VersionCatalogProblemTestFor(
+        VersionCatalogProblemId.RESERVED_ALIAS_NAME
+    )
+    def "disallows aliases for dependency which prefix clash with reserved words"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        alias("$reservedName").to("org:lib1:1.0")
+                    }
+                }
+            }
+        """
+
+        when:
+        fails "help"
+
+        then:
+        verifyContains(failure.error, reservedAlias {
+            inCatalog("libs")
+            alias(reservedName).shouldNotBeEqualTo(prefix)
+            reservedAliasPrefix('bundles', 'plugins', 'versions')
+        })
+
+        where:
+        reservedName  | prefix
+        "bundles"     | "bundles"
+        "versions"    | "versions"
+        "plugins"     | "plugins"
+        "bundles-my"  | "bundles"
+        "versions-my" | "versions"
+        "plugins-my"  | "plugins"
+    }
+
+    @VersionCatalogProblemTestFor(
+        VersionCatalogProblemId.RESERVED_ALIAS_NAME
+    )
+    def "aliases for dependencies, plugins and versions do not clash with version catalog methods"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        version("$reservedName", "1.0")
+                        alias("$reservedName").to("org:lib1:1.0")
+                        alias("$reservedName").toPluginId("org:lib1").version("1.0")
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds "help"
+
+        then:
+        noExceptionThrown()
+
+        where:
+        reservedName << [
+            "bundleAliases",
+            "versionAliases",
+            "pluginAliases",
+            "dependencyAliases",
+            "findPlugin",
+            "findDependency",
+            "findVersion",
+            "findBundle"
+        ]
+    }
+
+    @VersionCatalogProblemTestFor(
+        VersionCatalogProblemId.RESERVED_ALIAS_NAME
+    )
+    def "allow aliases for plugins and versions which have are reserved words for dependencies"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        version("$reservedName", "1.0")
+                        alias("$reservedName").toPluginId("org:lib1").version("1.0")
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds "help"
+
+        then:
+        noExceptionThrown()
+
+        where:
+        reservedName << [
+            "bundles",
+            "versions",
+            "plugins"
+        ]
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/16768")
     def "the artifact notation doesn't require to set 'name'"() {
         settingsFile << """
@@ -1797,6 +2020,7 @@ Second: 1.1"""
                             prefer "1.1.0"
                             reject "1.0.5"
                         }
+                        alias("lib3").to("org", "test3").withoutVersion()
                         bundle("all", ["lib", "lib2"])
                         alias('greeter').toPluginId('com.acme.greeter').version('1.4')
                         alias('greeter2').toPluginId('com.acme.greeter2').version {
@@ -1822,6 +2046,9 @@ Second: 1.1"""
                     catalog.findDependency("lib2").ifPresent {
                         println("Found dependency: '\${it.get().toString()}'.")
                     }
+                    catalog.findDependency("lib3").ifPresent {
+                        println("Found dependency: '\${it.get().toString()}'.")
+                    }
                     catalog.findBundle("all").ifPresent {
                         println("Found bundle: '\${it.get().toString()}'.")
                     }
@@ -1842,9 +2069,129 @@ Second: 1.1"""
         outputContains "Found version: '1.5'."
         outputContains "Found dependency: 'org:test:1.0'."
         outputContains "Found dependency: 'org:test2:{require 1.0.0; prefer 1.1.0; reject 1.0.5}'."
+        outputContains "Found dependency: 'org:test3'."
         outputContains "Found bundle: '[org:test:1.0, org:test2:{require 1.0.0; prefer 1.1.0; reject 1.0.5}]'."
         outputContains "Found plugin: 'com.acme.greeter:1.4'."
         outputContains "Found plugin: 'com.acme.greeter2:{require 1.0.0; prefer 1.1.0; reject 1.0.5}'."
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/17874")
+    def "supports version catalogs in force method of resolutionStrategy"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        alias("myLib").to("org.gradle.test:lib:3.0.5")
+                        alias("myLib-subgroup").to("org.gradle.test:lib2:3.0.5")
+                    }
+                }
+            }
+        """
+
+        def lib = mavenHttpRepo.module("org.gradle.test", "lib", "3.0.5").publish()
+        def lib2 = mavenHttpRepo.module("org.gradle.test", "lib2", "3.0.5").publish()
+
+        buildFile << """
+            apply plugin: 'java-library'
+            dependencies {
+                implementation "org.gradle.test:lib:3.0.6"
+                implementation "org.gradle.test:lib2:3.0.6"
+                configurations.all {
+                    resolutionStrategy {
+                        force(libs.myLib)
+                        force(libs.myLib.subgroup)
+                    }
+                }
+            }
+        """
+
+        when:
+        lib.pom.expectGet()
+        lib.artifact.expectGet()
+        lib2.pom.expectGet()
+        lib2.artifact.expectGet()
+        succeeds ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org.gradle.test:lib:3.0.6", "org.gradle.test:lib:3.0.5")
+                edge("org.gradle.test:lib2:3.0.6", "org.gradle.test:lib2:3.0.5")
+            }
+        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/17874")
+    def "doesn't support rich versions from version catalogs in force method of resolutionStrategy"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        alias("myLib").to("org.gradle.test", "lib").version {
+                            strictly "[3.0, 4.0["
+                            prefer "3.0.5"
+                        }
+                    }
+                }
+            }
+        """
+
+        buildFile << """
+            apply plugin: 'java-library'
+            dependencies {
+                implementation "org.gradle.test:lib:3.0.6"
+                configurations.all {
+                    resolutionStrategy {
+                        force(libs.myLib)
+                    }
+                }
+            }
+        """
+
+        when:
+        fails ':checkDeps'
+
+        then:
+        failure.assertHasCause("Cannot convert a version catalog entry: 'org.gradle.test:lib:{strictly [3.0, 4.0[; prefer 3.0.5}' to an object of type ModuleVersionSelector. Rich versions are not supported for 'force()'.")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/17874")
+    def "fails if plugin, version or bundle is used in force of resolution strategy"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        version("myVersion", "1.0")
+                        alias("myLib").to("org.gradle.test:lib:3.0.5")
+                        bundle("myBundle", ["myLib"])
+                        alias("myPlugin").toPluginId("org.gradle.test").version("1.0")
+                    }
+                }
+            }
+        """
+
+        buildFile << """
+            apply plugin: 'java-library'
+            dependencies {
+                implementation "org.gradle.test:lib:3.0.6"
+                configurations.all {
+                    resolutionStrategy {
+                        force(libs.$catalogEntry)
+                    }
+                }
+            }
+        """
+
+        when:
+        fails ':checkDeps'
+
+        then:
+        failure.assertHasCause("Cannot convert a version catalog entry '$catalogEntryAsString' to an object of type ModuleVersionSelector. Only dependency accessors are supported but not plugin, bundle or version accessors for 'force()'.")
+
+        where:
+        catalogEntry         | catalogEntryAsString
+        "versions.myVersion" | "1.0"
+        "plugins.myPlugin"   | "org.gradle.test:1.0"
+        "bundles.myBundle"   | "[org.gradle.test:lib:3.0.5]"
+    }
 }

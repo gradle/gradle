@@ -20,6 +20,7 @@ dependencies {
         because("This isn't declared as part of integtesting's API, but should be as logging's classes are in fact visible on the API")
     }
     integTestImplementation(project(":build-option"))
+    integTestImplementation(project(":enterprise-operations"))
 
     integTestDistributionRuntimeOnly(project(":distributions-basics"))  {
         because("Requires ':toolingApiBuilders': Event handlers are in the wrong place, and should live in this project")

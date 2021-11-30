@@ -30,9 +30,7 @@ import org.gradle.util.TestPrecondition
 import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 import spock.lang.Issue
-import spock.lang.Unroll
 
-@Unroll
 class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSystemWatchingIntegrationTest {
     @Rule
     public final RepositoryHttpServer server = new RepositoryHttpServer(temporaryFolder)
@@ -113,7 +111,6 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
         // configuration cache registers all build directories at startup so the cache fingerprint can be checked
         def expectedWatchableCount = GradleContextualExecuter.isConfigCache() ? 3 : 2
         assertWatchableHierarchies([ImmutableSet.of(consumer, includedBuild)] * expectedWatchableCount)
-
         when:
         includedBuild.file("src/main/java/NewClass.java")  << "public class NewClass {}"
         withWatchFs().run("assemble")

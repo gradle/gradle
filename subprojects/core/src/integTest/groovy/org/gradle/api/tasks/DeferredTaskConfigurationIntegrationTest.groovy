@@ -17,7 +17,6 @@
 package org.gradle.api.tasks
 
 import spock.lang.Issue
-import spock.lang.Unroll
 
 class DeferredTaskConfigurationIntegrationTest extends AbstractDeferredTaskDefinitionIntegrationTest {
     def "build logic can configure each task only when required"() {
@@ -218,7 +217,6 @@ class DeferredTaskConfigurationIntegrationTest extends AbstractDeferredTaskDefin
         succeeds 'assertActionExecutionOrder'
     }
 
-    @Unroll
     def "can execute #description during task creation action execution"() {
         settingsFile << "include 'nested'"
         buildFile << """
@@ -234,7 +232,6 @@ class DeferredTaskConfigurationIntegrationTest extends AbstractDeferredTaskDefin
         [description, code] << INVALID_CALL_FROM_LAZY_CONFIGURATION
     }
 
-    @Unroll
     def "can execute #description during task configuration action execution"() {
         settingsFile << "include 'nested'"
         buildFile << """
@@ -251,7 +248,6 @@ class DeferredTaskConfigurationIntegrationTest extends AbstractDeferredTaskDefin
         [description, code] << INVALID_CALL_FROM_LAZY_CONFIGURATION
     }
 
-    @Unroll
     def "can execute #description on another project during task creation action execution"() {
         settingsFile << "include 'nested', 'other'"
         buildFile << """
@@ -372,7 +368,6 @@ class DeferredTaskConfigurationIntegrationTest extends AbstractDeferredTaskDefin
         result.assertTasksExecuted(":notByRule", ":bar", ":baz", ":foo")
     }
 
-    @Unroll
     def "can execute #description on another project during task configuration action execution"() {
         settingsFile << "include 'nested', 'other'"
         buildFile << """
@@ -391,7 +386,6 @@ class DeferredTaskConfigurationIntegrationTest extends AbstractDeferredTaskDefin
         [description, code] << INVALID_CALL_FROM_LAZY_CONFIGURATION
     }
 
-    @Unroll
     def "can execute #description during eager configuration action with registered task"() {
         buildFile << """
             tasks.withType(SomeTask) {

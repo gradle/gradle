@@ -30,14 +30,26 @@ import java.util.Set;
 public class DefaultPolymorphicDomainObjectContainer<T> extends AbstractPolymorphicDomainObjectContainer<T>
     implements ExtensiblePolymorphicDomainObjectContainer<T> {
     protected final DefaultPolymorphicNamedEntityInstantiator<T> namedEntityInstantiator;
+    private final Instantiator elementInstantiator;
 
+    // NOTE: This constructor exists for backwards compatibility
     public DefaultPolymorphicDomainObjectContainer(Class<T> type, Instantiator instantiator, Namer<? super T> namer, CollectionCallbackActionDecorator callbackDecorator) {
-        super(type, instantiator, namer, callbackDecorator);
-        namedEntityInstantiator = new DefaultPolymorphicNamedEntityInstantiator<T>(type, "this container");
+        this(type, instantiator, instantiator, namer, callbackDecorator);
     }
 
+    // NOTE: This constructor exists for backwards compatibility
     public DefaultPolymorphicDomainObjectContainer(Class<T> type, Instantiator instantiator, CollectionCallbackActionDecorator callbackDecorator) {
-        this(type, instantiator, Named.Namer.forType(type), callbackDecorator);
+        this(type, instantiator, instantiator, Named.Namer.forType(type), callbackDecorator);
+    }
+
+    public DefaultPolymorphicDomainObjectContainer(Class<T> type, Instantiator instantiator, Instantiator elementInstantiator, CollectionCallbackActionDecorator callbackDecorator) {
+        this(type, instantiator, elementInstantiator, Named.Namer.forType(type), callbackDecorator);
+    }
+
+    private DefaultPolymorphicDomainObjectContainer(Class<T> type, Instantiator instantiator, Instantiator elementInstantiator, Namer<? super T> namer, CollectionCallbackActionDecorator callbackDecorator) {
+        super(type, instantiator, namer, callbackDecorator);
+        this.namedEntityInstantiator = new DefaultPolymorphicNamedEntityInstantiator<T>(type, "this container");
+        this.elementInstantiator = elementInstantiator;
     }
 
     @Override
@@ -92,8 +104,8 @@ public class DefaultPolymorphicDomainObjectContainer<T> extends AbstractPolymorp
 
             @Override
             public U create(String name) {
-                return named ? getInstantiator().newInstance(implementationType, name)
-                    : getInstantiator().newInstance(implementationType);
+                return named ? elementInstantiator.newInstance(implementationType, name)
+                    : elementInstantiator.newInstance(implementationType);
             }
         });
     }

@@ -147,7 +147,10 @@ class LocalRepositoryEnvironmentProvider(project: Project) : CommandLineArgument
 
     @get:Classpath
     val jars: SortedSet<File>
-        get() = localRepo.asFileTree.matching { include("**/*.jar") }.files.toSortedSet()
+        get() = localRepo.asFileTree.matching {
+            include("**/*.jar")
+            exclude("**/*-javadoc.jar")
+        }.files.toSortedSet()
 
     /**
      * Make sure this stays type FileCollection (lazy) to not loose dependency information.

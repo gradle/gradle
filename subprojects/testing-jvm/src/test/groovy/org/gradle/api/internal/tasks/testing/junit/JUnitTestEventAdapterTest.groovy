@@ -17,10 +17,8 @@
 package org.gradle.api.internal.tasks.testing.junit
 
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class JUnitTestEventAdapterTest extends Specification {
-    @Unroll
     def 'can recognize JUnit4 description #description'() {
         expect:
         JUnitTestEventAdapter.methodName(description) == methodName

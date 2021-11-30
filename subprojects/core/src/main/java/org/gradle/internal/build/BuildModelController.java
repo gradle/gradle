@@ -18,6 +18,7 @@ package org.gradle.internal.build;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.execution.plan.ExecutionPlan;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
 
 /**
@@ -45,7 +46,12 @@ public interface BuildModelController {
     void prepareToScheduleTasks();
 
     /**
-     * Schedules the user requested tasks for this build.
+     * Sets up the given execution plan before any work is added to it. Must call {@link #prepareToScheduleTasks()} prior to calling this method.
      */
-    void scheduleRequestedTasks();
+    void initializeWorkGraph(ExecutionPlan plan);
+
+    /**
+     * Schedules the user requested tasks for this build into the given plan. Must call {@link  #initializeWorkGraph(ExecutionPlan)} prior to calling this method.
+     */
+    void scheduleRequestedTasks(ExecutionPlan plan);
 }

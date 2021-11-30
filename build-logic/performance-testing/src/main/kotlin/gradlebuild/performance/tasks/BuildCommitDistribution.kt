@@ -20,6 +20,7 @@ import gradlebuild.basics.repoRoot
 import gradlebuild.performance.generator.tasks.RemoteProject
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.provider.Property
@@ -30,8 +31,10 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.gradle.caching.http.HttpBuildCache
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.process.ExecOperations
 import org.gradle.work.DisableCachingByDefault
 import java.io.File
+import javax.inject.Inject
 
 
 // 5.1-commit-1a2b3c4d5e
@@ -40,7 +43,11 @@ val commitVersionRegex = """(\d+(\.\d+)+)-commit-[a-f0-9]+""".toRegex()
 
 
 @DisableCachingByDefault(because = "Child Gradle build will do its own caching")
-abstract class BuildCommitDistribution : DefaultTask() {
+abstract class BuildCommitDistribution @Inject internal constructor(
+    private val fsOps: FileSystemOperations,
+    private val execOps: ExecOperations,
+) : DefaultTask() {
+
     @get:Input
     @get:Optional
     abstract val commitBaseline: Property<String>
@@ -61,13 +68,17 @@ abstract class BuildCommitDistribution : DefaultTask() {
     fun buildCommitDistribution() {
         val rootProjectDir = project.repoRoot().asFile.absolutePath
         val commit = commitBaseline.map { it.substring(it.lastIndexOf('-') + 1) }
-        tryBuildDistribution(RemoteProject.checkout(this, rootProjectDir, commit.get()))
+        val checkoutDir = RemoteProject.checkout(fsOps, execOps, rootProjectDir, commit.get(), temporaryDir)
+        tryBuildDistribution(checkoutDir)
         println("Building the commit distribution succeeded, now the baseline is ${commitBaseline.get()}")
     }
 
     private
     fun tryBuildDistribution(checkoutDir: File) {
-        project.exec {
+        fsOps.delete {
+            delete(commitDistributionHome.get().asFile)
+        }
+        execOps.exec {
             commandLine(*getBuildCommands())
             workingDir = checkoutDir
         }
@@ -75,9 +86,9 @@ abstract class BuildCommitDistribution : DefaultTask() {
 
     private
     fun getBuildCommands(): Array<String> {
-        project.delete(commitDistributionHome.get().asFile)
         val buildCommands = mutableListOf(
             "./gradlew" + (if (OperatingSystem.current().isWindows()) ".bat" else ""),
+            "--no-configuration-cache",
             "clean",
             ":distributions-full:install",
             "-Pgradle_installPath=" + commitDistributionHome.get().asFile.absolutePath,

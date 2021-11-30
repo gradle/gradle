@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.LinkedHashMultimap;
+import com.google.common.collect.Ordering;
 import com.google.common.collect.SetMultimap;
 import com.google.common.reflect.TypeParameter;
 import com.google.common.reflect.TypeToken;
@@ -428,6 +429,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             this.outerType = outerType;
             this.injectedServices = injectedServices;
             this.annotationsTriggeringServiceInjection = annotationsTriggeringServiceInjection;
+
             ImmutableList.Builder<GeneratedConstructor<Object>> builder = ImmutableList.builderWithExpectedSize(generatedClass.getDeclaredConstructors().length);
             for (final Constructor<?> constructor : generatedClass.getDeclaredConstructors()) {
                 if (!constructor.isSynthetic()) {
@@ -435,7 +437,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                     builder.add(new GeneratedConstructorImpl(constructor));
                 }
             }
-            this.constructors = builder.build();
+            this.constructors = Ordering.from(new ConstructorComparator()).sortedCopy(builder.build());
         }
 
         @Override

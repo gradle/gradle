@@ -52,7 +52,7 @@ class ProgressLoggingExternalResourceUploaderTest extends Specification {
         }
         1 * inputStream.read(_, 0, 1024) >> 1024
         1 * inputStream.read(_, 0, 1024) >> 48
-        1 * context.progress("1 KiB/1 KiB uploaded")
+        1 * context.progress(1024, 1072, "bytes", "1 KiB/1 KiB uploaded")
         0 * context.progress(_)
     }
 

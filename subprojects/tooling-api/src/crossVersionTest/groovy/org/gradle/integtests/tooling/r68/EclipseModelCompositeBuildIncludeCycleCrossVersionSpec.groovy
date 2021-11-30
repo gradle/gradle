@@ -45,7 +45,10 @@ class EclipseModelCompositeBuildIncludeCycleCrossVersionSpec extends ToolingApiS
         when:
 
         List<String> result = withConnection { connection ->
-            connection.action(new AccessIncludedBuildProjectBuildAction()).run() }
+            def builder = connection.action(new AccessIncludedBuildProjectBuildAction())
+            collectOutputs(builder)
+            builder.run()
+        }
 
         then:
         result == ['module-a', 'module-c']

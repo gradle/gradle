@@ -24,14 +24,14 @@ import java.util.Optional;
 public interface VirtualFileSystem {
 
     /**
-     * Returns the snapshot stored at the absolute path.
+     * Returns the snapshot stored at the absolute path if it exists in the VFS.
      */
-    Optional<FileSystemLocationSnapshot> getSnapshot(String absolutePath);
+    Optional<FileSystemLocationSnapshot> findSnapshot(String absolutePath);
 
     /**
-     * Returns the metadata stored at the absolute path.
+     * Returns the metadata stored at the absolute path if it exists.
      */
-    Optional<MetadataSnapshot> getMetadata(String absolutePath);
+    Optional<MetadataSnapshot> findMetadata(String absolutePath);
 
     /**
      * Adds the information of the snapshot at the absolute path to the VFS.

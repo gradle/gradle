@@ -6,6 +6,7 @@ description = "A set of general-purpose resource abstractions"
 
 dependencies {
     implementation(project(":base-services"))
+    implementation(project(":enterprise-operations"))
     implementation(project(":files"))
     implementation(project(":messaging"))
     implementation(project(":native"))

@@ -18,7 +18,6 @@ package org.gradle.cache.internal;
 
 import org.gradle.cache.GlobalCache;
 import org.gradle.cache.GlobalCacheLocations;
-import org.gradle.internal.file.DefaultFileHierarchySet;
 import org.gradle.internal.file.FileHierarchySet;
 
 import java.io.File;
@@ -28,7 +27,7 @@ public class DefaultGlobalCacheLocations implements GlobalCacheLocations {
     private final FileHierarchySet globalCacheRoots;
 
     public DefaultGlobalCacheLocations(List<GlobalCache> globalCaches) {
-        FileHierarchySet globalCacheRoots = DefaultFileHierarchySet.of();
+        FileHierarchySet globalCacheRoots = FileHierarchySet.empty();
         for (GlobalCache globalCache : globalCaches) {
             for (File file : globalCache.getGlobalCacheRoots()) {
                 globalCacheRoots = globalCacheRoots.plus(file);

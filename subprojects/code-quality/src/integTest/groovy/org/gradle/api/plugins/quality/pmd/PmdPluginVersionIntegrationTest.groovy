@@ -15,6 +15,7 @@
  */
 package org.gradle.api.plugins.quality.pmd
 
+
 import org.gradle.util.internal.VersionNumber
 import org.hamcrest.Matcher
 import spock.lang.Issue
@@ -141,8 +142,12 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         }
 """
         expect:
-        fails("check")
+        // Use --continue so that when executing in parallel mode a deterministic set of tests run
+        // without --continue, sometimes both pmd tasks are run and sometimes only the only one task is run
+        fails("check", "--continue")
         failure.assertHasCause("Invalid rulesMinimumPriority '11'.  Valid range 1 (highest) to 5 (lowest).")
+        // pmdMain and pmdTest
+        failure.assertHasFailures(2)
     }
 
     def "gets reasonable message when priority level threshold is out of range from task"() {

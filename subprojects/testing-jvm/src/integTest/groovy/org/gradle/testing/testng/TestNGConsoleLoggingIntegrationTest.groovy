@@ -32,19 +32,29 @@ class TestNGConsoleLoggingIntegrationTest extends AbstractIntegrationSpec {
 
             dependencies {
                 implementation "org.codehaus.groovy:groovy:2.4.10"
-                testImplementation "org.testng:testng:6.3.1"
             }
 
-            test {
-                useTestNG()
-                testLogging {
-                    quiet {
-                        events "skipped", "failed"
-                        minGranularity 2
-                        maxGranularity -1
-                        displayGranularity 3
-                        exceptionFormat "full"
-                        stackTraceFilters "truncate", "groovy"
+            testing {
+                suites {
+                    test {
+                        useTestNG('6.3.1')
+
+                        targets {
+                            all {
+                                testTask.configure {
+                                    testLogging {
+                                        quiet {
+                                            events "skipped", "failed"
+                                            minGranularity 2
+                                            maxGranularity -1
+                                            displayGranularity 3
+                                            exceptionFormat "full"
+                                            stackTraceFilters "truncate", "groovy"
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -121,14 +131,24 @@ Gradle suite FAILED
 
             dependencies {
                 implementation "org.codehaus.groovy:groovy:2.4.10"
-                testImplementation "org.testng:testng:6.3.1"
             }
 
-            test {
-                useTestNG()
-                testLogging {
-                    quiet {
-                        events "standardOut", "standardError"
+            testing {
+                suites {
+                    test {
+                        useTestNG('6.3.1')
+
+                        targets {
+                            all {
+                                testTask.configure {
+                                    testLogging {
+                                        quiet {
+                                            events "standardOut", "standardError"
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }

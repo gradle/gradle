@@ -53,15 +53,15 @@ publishing {
     configurePublishingTasks()
 }
 
-val pgpSigningKey: Provider<String> = providers.environmentVariable("PGP_SIGNING_KEY").forUseAtConfigurationTime()
+val pgpSigningKey: Provider<String> = providers.environmentVariable("PGP_SIGNING_KEY")
 val signArtifacts: Boolean = !pgpSigningKey.orNull.isNullOrEmpty()
 
 tasks.withType<Sign>().configureEach { isEnabled = signArtifacts }
 
 signing {
     useInMemoryPgpKeys(
-        project.providers.environmentVariable("PGP_SIGNING_KEY").forUseAtConfigurationTime().orNull,
-        project.providers.environmentVariable("PGP_SIGNING_KEY_PASSPHRASE").forUseAtConfigurationTime().orNull
+        project.providers.environmentVariable("PGP_SIGNING_KEY").orNull,
+        project.providers.environmentVariable("PGP_SIGNING_KEY_PASSPHRASE").orNull
     )
     publishing.publications.configureEach {
         if (signArtifacts) {
@@ -73,12 +73,6 @@ signing {
 fun configureJavadocVariant() {
     java {
         withJavadocJar()
-    }
-    tasks.named<Javadoc>("javadoc") {
-        (options as StandardJavadocDocletOptions).apply {
-            addBooleanOption("html4", true)
-            addBooleanOption("Xdoclint:none", true)
-        }
     }
 }
 
@@ -205,10 +199,10 @@ fun publishNormalizedToLocalRepository() {
     // For local consumption by tests
     configurations.create("localLibsRepositoryElements") {
         attributes {
-            attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage.JAVA_RUNTIME))
-            attribute(Category.CATEGORY_ATTRIBUTE, project.objects.named(Category.LIBRARY))
-            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, project.objects.named("gradle-local-repository"))
-            attribute(Bundling.BUNDLING_ATTRIBUTE, project.objects.named(Bundling.EMBEDDED))
+            attribute(Usage.USAGE_ATTRIBUTE, project.objects.named<Usage>(Usage.JAVA_RUNTIME))
+            attribute(Category.CATEGORY_ATTRIBUTE, project.objects.named<Category>(Category.LIBRARY))
+            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, project.objects.named<LibraryElements>("gradle-local-repository"))
+            attribute(Bundling.BUNDLING_ATTRIBUTE, project.objects.named<Bundling>(Bundling.EMBEDDED))
         }
         isCanBeResolved = false
         isCanBeConsumed = true

@@ -16,6 +16,7 @@
 
 package org.gradle.internal.instantiation.generator;
 
+import com.google.common.collect.Ordering;
 import org.gradle.api.Describable;
 import org.gradle.internal.instantiation.ClassGenerationException;
 import org.gradle.internal.instantiation.InstanceGenerator;
@@ -97,7 +98,7 @@ class IdentityClassGenerator implements ClassGenerator {
                         }
                     });
                 }
-                return constructors;
+                return Ordering.from(new ConstructorComparator()).sortedCopy(constructors);
             }
         };
     }

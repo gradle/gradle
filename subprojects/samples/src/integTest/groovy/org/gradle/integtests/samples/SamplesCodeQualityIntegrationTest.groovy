@@ -20,14 +20,12 @@ import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
-import spock.lang.Unroll
 
 class SamplesCodeQualityIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
 
-    @Unroll
     @UsesSample('codeQuality/codeQuality')
     def "can generate reports with #dsl dsl"() {
         TestFile projectDir = sample.dir.file(dsl)

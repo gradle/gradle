@@ -21,15 +21,9 @@ import org.gradle.tooling.events.work.WorkItemFinishEvent;
 import org.gradle.tooling.events.work.WorkItemOperationDescriptor;
 import org.gradle.tooling.events.work.WorkItemOperationResult;
 
-public class DefaultWorkItemFinishEvent extends DefaultFinishEvent implements WorkItemFinishEvent {
+public class DefaultWorkItemFinishEvent extends DefaultFinishEvent<WorkItemOperationDescriptor, WorkItemOperationResult> implements WorkItemFinishEvent {
 
     public DefaultWorkItemFinishEvent(long eventTime, String displayName, WorkItemOperationDescriptor descriptor, WorkItemOperationResult result) {
         super(eventTime, displayName, descriptor, result);
     }
-
-    @Override
-    public WorkItemOperationDescriptor getDescriptor() {
-        return (WorkItemOperationDescriptor) super.getDescriptor();
-    }
-
 }

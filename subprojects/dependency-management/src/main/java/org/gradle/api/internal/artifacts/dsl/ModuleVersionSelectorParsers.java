@@ -18,8 +18,12 @@ package org.gradle.api.internal.artifacts.dsl;
 
 import org.gradle.api.IllegalDependencyNotation;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderConvertible;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.typeconversion.MapKey;
 import org.gradle.internal.typeconversion.MapNotationConverter;
@@ -28,6 +32,8 @@ import org.gradle.internal.typeconversion.NotationConverter;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.gradle.internal.typeconversion.TypeConversionException;
+import org.gradle.internal.typeconversion.TypeInfo;
+import org.gradle.internal.typeconversion.TypedNotationConverter;
 
 import java.util.Set;
 
@@ -35,21 +41,21 @@ import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.new
 
 public class ModuleVersionSelectorParsers {
 
-    private static final NotationParserBuilder<Object, ModuleVersionSelector> BUILDER = NotationParserBuilder
+    public static NotationParser<Object, Set<ModuleVersionSelector>> multiParser(String dslContext) {
+        return builder(dslContext).toFlatteningComposite();
+    }
+
+    public static NotationParser<Object, ModuleVersionSelector> parser(String dslContext) {
+        return builder(dslContext).toComposite();
+    }
+
+    private static NotationParserBuilder<Object, ModuleVersionSelector> builder(String dslContext) {
+        return NotationParserBuilder
             .toType(ModuleVersionSelector.class)
             .fromCharSequence(new StringConverter())
-            .converter(new MapConverter());
-
-    public static NotationParser<Object, Set<ModuleVersionSelector>> multiParser() {
-        return builder().toFlatteningComposite();
-    }
-
-    public static NotationParser<Object, ModuleVersionSelector> parser() {
-        return builder().toComposite();
-    }
-
-    private static NotationParserBuilder<Object, ModuleVersionSelector> builder() {
-        return BUILDER;
+            .converter(new MapConverter())
+            .converter(new ProviderConverter(dslContext))
+            .converter(new ProviderConvertibleConverter(dslContext));
     }
 
     static class MapConverter extends MapNotationConverter<ModuleVersionSelector> {
@@ -87,5 +93,74 @@ public class ModuleVersionSelectorParsers {
             }
             result.converted(newSelector(DefaultModuleIdentifier.newId(parsed.getGroup(), parsed.getName()), parsed.getVersion()));
         }
+    }
+
+    static class ProviderConvertibleConverter extends TypedNotationConverter<ProviderConvertible<?>, ModuleVersionSelector> {
+
+        private final ProviderConverter providerConverter;
+
+        public ProviderConvertibleConverter(String caller) {
+            super(new TypeInfo<>(ProviderConvertible.class));
+            this.providerConverter = new ProviderConverter(caller);
+        }
+
+        @Override
+        public void describe(DiagnosticsVisitor visitor) {
+            visitor.candidate("Version catalog type-safe accessors.");
+        }
+
+        @Override
+        protected ModuleVersionSelector parseType(ProviderConvertible<?> notation) {
+            return providerConverter.parseType(notation.asProvider());
+        }
+
+    }
+
+    static class ProviderConverter extends TypedNotationConverter<Provider<?>, ModuleVersionSelector> {
+
+        private final String caller;
+
+        public ProviderConverter(String caller) {
+            super(new TypeInfo<>(Provider.class));
+            this.caller = caller;
+        }
+
+        @Override
+        public void describe(DiagnosticsVisitor visitor) {
+            visitor.candidate("Version catalog type-safe accessors.");
+        }
+
+        @Override
+        protected ModuleVersionSelector parseType(Provider<?> notation) {
+            Class<?> providerTargetClass = getProviderTargetClass(notation);
+            if (!MinimalExternalModuleDependency.class.isAssignableFrom(providerTargetClass)) {
+                String notationAsString = notation.getOrNull() == null ? null : notation.get().toString();
+                throw new InvalidUserDataException("Cannot convert a version catalog entry '" + notationAsString + "' to an object of type ModuleVersionSelector. " +
+                    "Only dependency accessors are supported but not plugin, bundle or version accessors for '" + caller + "'.");
+            }
+            MinimalExternalModuleDependency dependency = (MinimalExternalModuleDependency) notation.get();
+            if (isNotRequiredVersionOnly(dependency.getVersionConstraint())) {
+                throw new InvalidUserDataException("Cannot convert a version catalog entry: '" + notation.get() + "' to an object of type ModuleVersionSelector. Rich versions are not supported for '" + caller + "'.");
+            } else if (dependency.getVersionConstraint().getRequiredVersion().isEmpty()) {
+                throw new InvalidUserDataException("Cannot convert a version catalog entry: '" + notation.get() + "' to an object of type ModuleVersionSelector. Version cannot be empty for '" + caller + "'.");
+            } else {
+                return newSelector(dependency.getModule(), dependency.getVersionConstraint().getRequiredVersion());
+            }
+        }
+
+        @SuppressWarnings("ConstantConditions")
+        private Class<?> getProviderTargetClass(Provider<?> notation) {
+            return notation.getOrNull() == null
+                ? null
+                : notation.get().getClass();
+        }
+
+        private boolean isNotRequiredVersionOnly(VersionConstraint constraint) {
+            return !constraint.getPreferredVersion().isEmpty()
+                || !constraint.getStrictVersion().isEmpty()
+                || !constraint.getRejectedVersions().isEmpty()
+                || constraint.getBranch() != null;
+        }
+
     }
 }

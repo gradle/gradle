@@ -25,6 +25,11 @@ public interface TestExecutionResult {
     TestExecutionResult assertTestClassesExecuted(String... testClasses);
 
     /**
+     * Asserts that the given test classes (and only the given test classes) were <strong>NOT</strong> executed.
+     */
+    TestExecutionResult assertTestClassesNotExecuted(String... testClasses);
+
+    /**
      * Returns the result for the given test class.
      */
     TestClassExecutionResult testClass(String testClass);
@@ -37,4 +42,6 @@ public interface TestExecutionResult {
     int getTotalNumberOfTestClassesExecuted();
 
     boolean testClassExists(String testClass);
+
+    boolean testClassDoesNotExist(String testClass);
 }

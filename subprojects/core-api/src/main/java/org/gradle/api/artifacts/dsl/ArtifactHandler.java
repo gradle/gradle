@@ -43,7 +43,7 @@ import org.gradle.api.artifacts.PublishArtifact;
  *
  * <li>A {@link org.gradle.api.file.RegularFile} or {@link org.gradle.api.file.Directory}.</li>
  *
- * <li>A {@link org.gradle.api.provider.Provider} of {@link java.io.File}, {@link org.gradle.api.file.RegularFile} or {@link org.gradle.api.file.Directory}. The information for publishing the artifact is extracted from the file or directory name. When the provider represents an output of a particular task, that task will be executed if the artifact is required.</li>
+ * <li>A {@link org.gradle.api.provider.Provider} of {@link java.io.File}, {@link org.gradle.api.file.RegularFile}, {@link org.gradle.api.file.Directory} or {@link org.gradle.api.Task}, with the limitation that the latter has to define a single file output property. The information for publishing the artifact is extracted from the file or directory name. When the provider represents an output of a particular task, that task will be executed if the artifact is required.</li>
  *
  * <li>{@link java.io.File}. The information for publishing the artifact is extracted from the file name.</li>
  *

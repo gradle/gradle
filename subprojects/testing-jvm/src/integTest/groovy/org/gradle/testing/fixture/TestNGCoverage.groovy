@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.internal.jvm.Jvm
 
 class TestNGCoverage {
-    final static String NEWEST = Jvm.current().javaVersion.java7Compatible ? '6.14.3' : '6.8.7'
+    final static String NEWEST = '7.4.0'
     final static String INITIAL_BROKEN_ICLASS_LISTENER = '6.9.10' // introduces initial, buggy IClassListener
     final static String FIXED_ICLASS_LISTENER = '6.9.13.3' // introduces fixed IClassListener
     final static String[] STANDARD_COVERAGE = ['5.14.10', '6.2', '6.8.7', '6.9.13.6', NEWEST]
@@ -36,8 +36,13 @@ class TestNGCoverage {
         buildFile << """
             apply plugin: 'java'
             ${RepoScriptBlockUtil.mavenCentralRepository()}
-            dependencies { testImplementation "org.testng:testng:${version}" }
-            test.useTestNG()
+            testing {
+                suites {
+                    test {
+                        useTestNG('${version}')
+                    }
+                }
+            }
         """
     }
 }

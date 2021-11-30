@@ -153,6 +153,8 @@ fun buildToolGradleParameters(daemon: Boolean = true, isContinue: Boolean = true
         "-PmaxParallelForks=%maxParallelForks%",
         "-Dorg.gradle.internal.plugins.portal.url.override=%gradle.plugins.portal.url%",
         "-s",
+        "--no-configuration-cache",
+        "%additional.gradle.parameters%",
         if (daemon) "--daemon" else "--no-daemon",
         if (isContinue) "--continue" else ""
     )
@@ -161,8 +163,8 @@ fun Dependencies.compileAllDependency(compileAllId: String) {
     // Compile All has to succeed before anything else is started
     dependency(RelativeId(compileAllId)) {
         snapshot {
-            onDependencyFailure = FailureAction.CANCEL
-            onDependencyCancel = FailureAction.CANCEL
+            onDependencyFailure = FailureAction.FAIL_TO_START
+            onDependencyCancel = FailureAction.FAIL_TO_START
         }
     }
     // Get the build receipt from sanity check to reuse the timestamp

@@ -21,7 +21,6 @@ import org.gradle.internal.logging.events.StyledTextOutputEvent
 import org.gradle.internal.logging.text.StyledTextOutput
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class DefaultRedrawableLabelTest extends Specification{
     def ansi = Mock(Ansi)
@@ -111,7 +110,6 @@ class DefaultRedrawableLabelTest extends Specification{
         0 * ansi._
     }
 
-    @Unroll
     def "scrolling the label down will decrement the write position rows by #rows"() {
         given:
         int previousWriteRow = label.writePosition.row
@@ -126,7 +124,6 @@ class DefaultRedrawableLabelTest extends Specification{
         rows << [0, 2, 5, 9, 21]
     }
 
-    @Unroll
     def "scrolling the label by the same number of rows in both direction between redraw won't rewrite the text to ansi"() {
         given:
         label.text = "text"
@@ -178,7 +175,6 @@ class DefaultRedrawableLabelTest extends Specification{
         0 * ansi._
     }
 
-    @Unroll
     def "scrolling the label by non-zero number of rows between redraw will rewrite the text to ansi to the new location"() {
         given:
         label.text = "text"

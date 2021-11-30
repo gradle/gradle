@@ -18,6 +18,7 @@ package org.gradle.internal.instantiation.generator
 
 import org.gradle.api.reflect.ObjectInstantiationException
 import org.gradle.internal.service.ServiceLookup
+import org.gradle.util.internal.TextUtil
 import spock.lang.Specification
 
 class DependencyInjectionUsingLenientConstructorSelectorTest extends Specification {
@@ -124,14 +125,27 @@ class DependencyInjectionUsingLenientConstructorSelectorTest extends Specificati
         e.cause.message == "No constructors of type DependencyInjectionUsingLenientConstructorSelectorTest.HasConstructors match parameters: ['a', 'b']"
     }
 
-    def "fails when no constructors are ambiguous"() {
+    def "fails when constructors are ambiguous"() {
         when:
         instantiator.newInstance(HasConstructors, ["a"] as Object[])
 
         then:
         ObjectInstantiationException e = thrown()
         e.cause instanceof IllegalArgumentException
-        e.cause.message == "Multiple constructors of type DependencyInjectionUsingLenientConstructorSelectorTest.HasConstructors match parameters: ['a']"
+        TextUtil.normaliseLineSeparators(e.cause.message) == """Multiple constructors for parameters ['a']:
+  1. candidate: DependencyInjectionUsingLenientConstructorSelectorTest.HasConstructors(String, Number)
+  2. best match: DependencyInjectionUsingLenientConstructorSelectorTest.HasConstructors(String, boolean)"""
+    }
+
+    def "uses exact match constructor when constructors could be ambiguous with multiple parameters"() {
+        when:
+        // HasSeveralParameters has 3 constructors
+        // 1 with 3 parameters and 2 with 4 parameters
+        // the constructor with 3 parameters is a subset of the 4 parameter constructor
+        def inst = instantiator.newInstance(HasSeveralParameters, ["a", 0, false] as Object[])
+
+        then:
+        inst.assertConstructor("String a, int b, boolean d")
     }
 
     def "fails on non-static inner class when outer type not provided as first parameter"() {
@@ -182,6 +196,27 @@ class DependencyInjectionUsingLenientConstructorSelectorTest extends Specificati
         }
     }
 
+    static class HasSeveralParameters {
+        private final String usedConstructor
+
+        HasSeveralParameters(String a, int b, String x, boolean d) {
+            this("String a, int b, String x, boolean d")
+        }
+        HasSeveralParameters(String a, int b, int c, boolean d) {
+            this("String a, int b, int c, boolean d")
+        }
+        HasSeveralParameters(String a, int b, boolean d) {
+            this("String a, int b, boolean d")
+        }
+
+        private HasSeveralParameters(String usedConstructor) {
+            this.usedConstructor = usedConstructor
+        }
+
+        void assertConstructor(String expectedConstructor) {
+            assert usedConstructor == expectedConstructor
+        }
+    }
     static class HasConstructors {
         HasConstructors(String param1, Number param2) {
         }

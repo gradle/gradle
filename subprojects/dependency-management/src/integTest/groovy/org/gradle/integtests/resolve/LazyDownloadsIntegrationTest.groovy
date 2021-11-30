@@ -17,7 +17,6 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import spock.lang.Unroll
 
 class LazyDownloadsIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def module = mavenHttpRepo.module("test", "test", "1.0").publish()
@@ -84,7 +83,6 @@ class LazyDownloadsIntegrationTest extends AbstractHttpDependencyResolutionTest 
         succeeds("artifacts")
     }
 
-    @Unroll
     def "downloads only the metadata on failure to resolve the graph - #expression"() {
         given:
         buildFile << """

@@ -42,6 +42,7 @@ import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.work.DisableCachingByDefault;
 
 import javax.annotation.Nullable;
+import javax.lang.model.SourceVersion;
 import java.util.List;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -56,6 +57,7 @@ public class InitBuild extends DefaultTask {
     private String type;
     private final Property<Boolean> splitProject = getProject().getObjects().property(Boolean.class);
     private String dsl;
+    private final Property<Boolean> useIncubatingAPIs = getProject().getObjects().property(Boolean.class);
     private String testFramework;
     private String projectName;
     private String packageName;
@@ -99,6 +101,25 @@ public class InitBuild extends DefaultTask {
     @Input
     public String getDsl() {
         return isNullOrEmpty(dsl) ? BuildInitDsl.GROOVY.getId() : dsl;
+    }
+
+    /**
+     * Can the generated build use new and unstable features?
+     *
+     * When enabled, the generated build will use new patterns, APIs or features that
+     * may be unstable between minor releases. Use this if you'd like to try out the
+     * latest features of Gradle.
+     *
+     * By default, init will generate a build that uses stable features and behavior.
+     *
+     * @since 7.3
+     */
+    @Input
+    @Optional
+    @Incubating
+    @Option(option = "incubating", description = "Allow the generated build to use new features and APIs")
+    public Property<Boolean> getUseIncubating() {
+        return useIncubatingAPIs;
     }
 
     /**
@@ -215,6 +236,13 @@ public class InitBuild extends DefaultTask {
             }
         }
 
+        boolean useIncubatingAPIs;
+        if (this.useIncubatingAPIs.isPresent()) {
+            useIncubatingAPIs = this.useIncubatingAPIs.get();
+        } else {
+            useIncubatingAPIs = inputHandler.askYesNoQuestion("Generate build using new APIs and behavior (some features may change in the next minor release)?", false);
+        }
+
         BuildInitTestFramework testFramework = null;
         if (modularizationOption == ModularizationOption.WITH_LIBRARY_PROJECTS) {
             // currently we only support JUnit5 tests for this combination
@@ -261,8 +289,14 @@ public class InitBuild extends DefaultTask {
             throw new GradleException("Package name is not supported for '" + initDescriptor.getId() + "' build type.");
         }
 
+        if (!isNullOrEmpty(packageName)) {
+            if (!SourceVersion.isName(packageName)) {
+                throw new GradleException("Package name: '" + packageName + "' is not valid - it may contain invalid characters or reserved words.");
+            }
+        }
+
         List<String> subprojectNames = initDescriptor.getComponentType().getDefaultProjectNames();
-        InitSettings settings = new InitSettings(projectName, subprojectNames,
+        InitSettings settings = new InitSettings(projectName, useIncubatingAPIs, subprojectNames,
             modularizationOption, dsl, packageName, testFramework, insecureProtocol.get(), projectDir);
         initDescriptor.generate(settings);
 

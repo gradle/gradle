@@ -16,14 +16,11 @@
 
 package org.gradle.internal.snapshot;
 
-import org.gradle.internal.scan.UsedByScanPlugin;
-
 import java.nio.file.Path;
 
 /**
  * Snapshotting service which is used by test distribution.
  */
-@UsedByScanPlugin("test-distribution")
 public interface SnapshottingService {
 
     /**

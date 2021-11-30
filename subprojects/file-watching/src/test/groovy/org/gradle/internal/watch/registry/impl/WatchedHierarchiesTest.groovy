@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,56 +16,68 @@
 
 package org.gradle.internal.watch.registry.impl
 
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.internal.file.FileHierarchySet
+import org.gradle.internal.snapshot.TestSnapshotFixture
 import spock.lang.Specification
 
-import java.nio.file.Paths
+import java.util.stream.Stream
 
-class WatchedHierarchiesTest extends Specification {
+import static org.gradle.internal.watch.registry.impl.AbstractFileWatcherUpdater.resolveWatchedFiles
 
-    @Requires(TestPrecondition.UNIX_DERIVATIVE)
-    def "resolves recursive UNIX roots #directories to #resolvedRoots"() {
-        expect:
-        resolveRecursiveRoots(directories) == resolvedRoots
-
-        where:
-        directories          | resolvedRoots
-        []                   | []
-        ["/a"]               | ["/a"]
-        ["/a", "/b"]         | ["/a", "/b"]
-        ["/a", "/a/b"]       | ["/a"]
-        ["/a/b", "/a"]       | ["/a"]
-        ["/a", "/a/b/c/d"]   | ["/a"]
-        ["/a/b/c/d", "/a"]   | ["/a"]
-        ["/a", "/b/a"]       | ["/a", "/b/a"]
-        ["/b/a", "/a"]       | ["/a", "/b/a"]
-        ["/a", "/b/a", "/a"] | ["/a", "/b/a"]
+class WatchedHierarchiesTest extends Specification implements TestSnapshotFixture {
+    def "does not watch when there's nothing to watch"() {
+        def watchable = Mock(WatchableHierarchies)
+        when:
+        def watched = resolveWatchedFiles(watchable, buildHierarchy([]))
+        then:
+        rootsOf(watched) == []
+        1 * watchable.stream() >> Stream.of()
     }
 
-    @Requires(TestPrecondition.WINDOWS)
-    def "resolves recursive Windows roots #directories to #resolvedRoots"() {
-        expect:
-        resolveRecursiveRoots(directories) == resolvedRoots
+    def "watches empty directory"() {
+        def watchable = Mock(WatchableHierarchies)
+        def dir = new File("empty").absoluteFile
 
-        where:
-        directories                 | resolvedRoots
-        []                             | []
-        ["C:\\a"]                      | ["C:\\a"]
-        ["C:\\a", "C:\\b"]             | ["C:\\a", "C:\\b"]
-        ["C:\\a", "C:\\a\\b"]          | ["C:\\a"]
-        ["C:\\a\\b", "C:\\a"]          | ["C:\\a"]
-        ["C:\\a", "C:\\a\\b\\c\\d"]    | ["C:\\a"]
-        ["C:\\a\\b\\c\\d", "C:\\a"]    | ["C:\\a"]
-        ["C:\\a", "C:\\b\\a"]          | ["C:\\a", "C:\\b\\a"]
-        ["C:\\b\\a", "C:\\a"]          | ["C:\\a", "C:\\b\\a"]
-        ["C:\\a", "C:\\b\\a", "C:\\a"] | ["C:\\a", "C:\\b\\a"]
+        when:
+        def watched = resolveWatchedFiles(watchable, buildHierarchy([
+            directory(dir.absolutePath, [])
+        ]))
+        then:
+        rootsOf(watched) == [dir.absolutePath]
+        1 * watchable.stream() >> Stream.of(dir)
     }
 
-    private static List<String> resolveRecursiveRoots(List<String> directories) {
-        WatchedHierarchies.resolveHierarchiesToWatch(
-            directories.stream().map(Paths.&get)
-        ).collect { it.toString() }
-            .sort()
+    def "does not watch directory with only missing files inside"() {
+        def watchable = Mock(WatchableHierarchies)
+        def dir = new File("empty").absoluteFile
+
+        when:
+        def watched = resolveWatchedFiles(watchable, buildHierarchy([
+            missing(dir.absolutePath + "/missing.txt")
+        ]))
+        then:
+        rootsOf(watched) == []
+        1 * watchable.stream() >> Stream.of(dir)
+    }
+
+    def "watches only outermost hierarchy"() {
+        def watchable = Mock(WatchableHierarchies)
+        def parent = new File("parent").absoluteFile
+        def child = new File(parent, "child").absoluteFile
+        def grandchild = new File(child, "grandchild").absoluteFile
+
+        when:
+        def watched = resolveWatchedFiles(watchable, buildHierarchy([
+            regularFile(new File(grandchild, "missing.txt").absolutePath)
+        ]))
+        then:
+        rootsOf(watched) == [parent.absolutePath]
+        1 * watchable.stream() >> Stream.of(parent, child, grandchild)
+    }
+
+    private static List<String> rootsOf(FileHierarchySet set) {
+        def roots = []
+        set.visitRoots((root -> roots.add(root)))
+        return roots
     }
 }

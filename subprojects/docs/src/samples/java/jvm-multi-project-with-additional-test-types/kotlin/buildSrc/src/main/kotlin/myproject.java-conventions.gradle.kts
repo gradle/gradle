@@ -9,32 +9,32 @@ repositories {
     mavenCentral()
 }
 
-testing {
-    suites {
-        val test by getting(JvmTestSuite::class) {
-            useJUnitPlatform()
+val integrationTest by sourceSets.creating
 
-            dependencies {
-                implementation("org.junit.jupiter:junit-jupiter:5.7.1")
-            }
-        }
+configurations[integrationTest.implementationConfigurationName].extendsFrom(configurations.testImplementation.get())
+configurations[integrationTest.runtimeOnlyConfigurationName].extendsFrom(configurations.testRuntimeOnly.get())
 
-        val integrationTest by registering(JvmTestSuite::class) {
-            dependencies {
-                implementation(project)
-            }
-
-            targets {
-                all {
-                    testTask.configure {
-                        shouldRunAfter(test)
-                    }
-                }
-            }
-        }
-    }
+tasks.test {
+    useJUnitPlatform()
 }
 
-tasks.named("check") {
-    dependsOn(testing.suites.named("integrationTest"))
+val integrationTestTask = tasks.register<Test>("integrationTest") {
+    description = "Runs integration tests."
+    group = "verification"
+    useJUnitPlatform()
+
+    testClassesDirs = integrationTest.output.classesDirs
+    classpath = configurations[integrationTest.runtimeClasspathConfigurationName] + integrationTest.output
+
+    shouldRunAfter(tasks.test)
+}
+
+tasks.check {
+    dependsOn(integrationTestTask)
+}
+
+dependencies {
+    testImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
+
+    "integrationTestImplementation"(project)
 }

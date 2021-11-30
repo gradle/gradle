@@ -68,12 +68,12 @@ public abstract class DefaultScript extends BasicScript {
     private ProviderFactory providerFactory;
     private LoggingManager loggingManager;
 
-    public ServiceRegistry __scriptServices;
+    private ServiceRegistry scriptServices;
 
     @Override
     public void init(final Object target, ServiceRegistry services) {
         super.init(target, services);
-        this.__scriptServices = services;
+        this.scriptServices = services;
         loggingManager = services.get(LoggingManager.class);
         if (target instanceof HasScriptServices) {
             HasScriptServices scriptServices = (HasScriptServices) target;
@@ -103,13 +103,13 @@ public abstract class DefaultScript extends BasicScript {
     }
 
     private DefaultObjectConfigurationAction createObjectConfigurationAction() {
-        ClassLoaderScope classLoaderScope = __scriptServices.get(ClassLoaderScope.class);
+        ClassLoaderScope classLoaderScope = scriptServices.get(ClassLoaderScope.class);
         return new DefaultObjectConfigurationAction(
             getFileResolver(),
-            __scriptServices.get(ScriptPluginFactory.class),
-            __scriptServices.get(ScriptHandlerFactory.class),
+            scriptServices.get(ScriptPluginFactory.class),
+            scriptServices.get(ScriptHandlerFactory.class),
             classLoaderScope,
-            __scriptServices.get(TextUriResourceLoader.Factory.class),
+            scriptServices.get(TextUriResourceLoader.Factory.class),
             getScriptTarget()
         );
     }
@@ -130,7 +130,7 @@ public abstract class DefaultScript extends BasicScript {
 
     @Override
     public ScriptHandler getBuildscript() {
-        return __scriptServices.get(ScriptHandler.class);
+        return scriptServices.get(ScriptHandler.class);
     }
 
     @Override

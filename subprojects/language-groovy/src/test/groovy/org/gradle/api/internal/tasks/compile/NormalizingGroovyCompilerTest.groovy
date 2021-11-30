@@ -15,11 +15,13 @@
  */
 package org.gradle.api.internal.tasks.compile
 
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.api.tasks.compile.GroovyCompileOptions
+import org.gradle.internal.service.DefaultServiceRegistry
+import org.gradle.internal.service.ServiceLookup
 import org.gradle.util.TestUtil
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class NormalizingGroovyCompilerTest extends Specification {
     org.gradle.language.base.internal.compile.Compiler<GroovyJavaJointCompileSpec> target = Mock()
@@ -32,7 +34,8 @@ class NormalizingGroovyCompilerTest extends Specification {
         spec.sourceFiles = files('House.scala', 'Person1.java', 'package.html', 'Person2.groovy')
         spec.destinationDir = new File("destinationDir")
         spec.compileOptions = new CompileOptions(TestUtil.objectFactory())
-        spec.groovyCompileOptions = new MinimalGroovyCompileOptions(new GroovyCompileOptions())
+        ServiceLookup services = new DefaultServiceRegistry().add(ObjectFactory, TestUtil.objectFactory())
+        spec.groovyCompileOptions = new MinimalGroovyCompileOptions(TestUtil.instantiatorFactory().decorateLenient(services).newInstance(GroovyCompileOptions.class))
     }
 
     def "silently excludes source files not ending in .java or .groovy by default"() {
@@ -72,7 +75,6 @@ class NormalizingGroovyCompilerTest extends Specification {
         e == failure
     }
 
-    @Unroll
     def "ignores compile failure when one of #options dot failOnError is false"() {
         target.execute(spec) >> { throw new CompilationFailedException() }
 

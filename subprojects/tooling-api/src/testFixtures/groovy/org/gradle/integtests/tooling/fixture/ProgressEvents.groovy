@@ -19,6 +19,7 @@ package org.gradle.integtests.tooling.fixture
 import junit.framework.AssertionFailedError
 import org.gradle.api.specs.Spec
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.test.fixtures.resource.RemoteArtifact
 import org.gradle.tooling.Failure
 import org.gradle.tooling.events.FailureResult
 import org.gradle.tooling.events.FinishEvent
@@ -33,6 +34,7 @@ import org.gradle.tooling.events.configuration.ProjectConfigurationOperationDesc
 import org.gradle.tooling.events.configuration.ProjectConfigurationStartEvent
 import org.gradle.tooling.events.download.FileDownloadFinishEvent
 import org.gradle.tooling.events.download.FileDownloadOperationDescriptor
+import org.gradle.tooling.events.download.FileDownloadResult
 import org.gradle.tooling.events.download.FileDownloadStartEvent
 import org.gradle.tooling.events.task.TaskFinishEvent
 import org.gradle.tooling.events.task.TaskOperationDescriptor
@@ -55,7 +57,6 @@ class ProgressEvents implements ProgressListener {
     private boolean dirty
     private final List<Operation> operations = new ArrayList<Operation>()
     private static final boolean IS_WINDOWS_OS = OperatingSystem.current().isWindows()
-    boolean skipValidation
 
     /**
      * Creates a {@link ProgressEvents} implementation for the current tooling api client version.
@@ -93,9 +94,8 @@ class ProgressEvents implements ProgressListener {
                     running[descriptor] = event
 
                     // Display name should be mostly unique
-                    if (!skipValidation && uniqueBuildOperation(descriptor)) {
-                        if (descriptor.displayName in ['Configure settings', 'Configure build', 'Calculate task graph', 'Run tasks']
-                            || descriptor.displayName.contains('/maven-metadata.xml')
+                    if (uniqueBuildOperation(descriptor)) {
+                        if (descriptor.displayName.contains('/maven-metadata.xml')
                             || descriptor.displayName.startsWith('Apply plugin ')
                             || descriptor.displayName.startsWith('Configure project ')
                             || descriptor.displayName.startsWith('Cross-configure project ')
@@ -108,7 +108,7 @@ class ProgressEvents implements ProgressListener {
                         } else {
                             def duplicateName = operations.find({
                                 !it.failed && // ignore previous operations with the same display name that failed, eg for retry of downloads
-                                it.descriptor.displayName == descriptor.displayName &&
+                                    it.descriptor.displayName == descriptor.displayName &&
                                     it.parent?.descriptor == descriptor.parent
                             })
                             if (duplicateName != null) {
@@ -152,7 +152,7 @@ class ProgressEvents implements ProgressListener {
                 } else {
                     def descriptor = event.descriptor
                     // operation should still be running
-                    assert running.containsKey(descriptor) != null
+                    assert running.containsKey(descriptor)
                     def operation = operations.find { it.descriptor == event.descriptor }
                     otherEvent(event, operation)
                 }
@@ -225,7 +225,7 @@ class ProgressEvents implements ProgressListener {
      */
     List<Operation> getTrees() {
         assertHasZeroOrMoreTrees()
-        return operations.findAll { it.descriptor.parent == null}
+        return operations.findAll { it.descriptor.parent == null }
     }
 
     /**
@@ -355,6 +355,7 @@ class ProgressEvents implements ProgressListener {
         final OperationDescriptor descriptor
         final Operation parent
         final List<Operation> children = []
+        final List<OperationStatus> statusEvents = []
         FinishEvent finishEvent
         OperationResult result
 
@@ -449,11 +450,18 @@ class ProgressEvents implements ProgressListener {
             assert descriptor instanceof TransformOperationDescriptor
         }
 
-        void assertIsDownload(URI uri) {
+        void assertIsDownload(RemoteArtifact artifact) {
+            assertIsDownload(artifact.uri, artifact.file.length())
+        }
+
+        void assertIsDownload(URI uri, long size) {
             assert startEvent instanceof FileDownloadStartEvent
             assert finishEvent instanceof FileDownloadFinishEvent
             assert descriptor instanceof FileDownloadOperationDescriptor
             assert descriptor.uri == uri
+            assert descriptor.displayName == "Download " + uri
+            assert finishEvent.result instanceof FileDownloadResult
+            assert finishEvent.result.bytesDownloaded == size
         }
 
         boolean isSuccessful() {
@@ -529,6 +537,14 @@ class ProgressEvents implements ProgressListener {
             return parent == null
                 ? false
                 : (predicate.test(parent) || parent.hasAncestor(predicate))
+        }
+    }
+
+    static class OperationStatus {
+        final ProgressEvent event
+
+        OperationStatus(ProgressEvent event) {
+            this.event = event
         }
     }
 

@@ -35,7 +35,5 @@ public interface IncludedBuildState extends NestedBuildState, CompositeBuildPart
 
     Action<? super DependencySubstitutions> getRegisteredDependencySubstitutions();
 
-    GradleInternal getConfiguredBuild();
-
     <T> T withState(Transformer<T, ? super GradleInternal> action);
 }

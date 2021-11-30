@@ -2,9 +2,12 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
+description = "Public and internal 'core' Gradle APIs that are required by other subprojects"
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":base-services-groovy"))
+    implementation(project(":enterprise-operations"))
     implementation(project(":files"))
     implementation(project(":logging"))
     implementation(project(":persistent-cache"))

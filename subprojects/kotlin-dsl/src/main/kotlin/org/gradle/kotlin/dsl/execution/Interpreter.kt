@@ -19,13 +19,13 @@ package org.gradle.kotlin.dsl.execution
 import com.google.common.annotations.VisibleForTesting
 import org.gradle.api.GradleScriptException
 import org.gradle.api.Project
-import org.gradle.api.artifacts.VersionCatalog
 import org.gradle.api.artifacts.VersionCatalogsExtension
 import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.GeneratedSubclass
 import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.api.internal.initialization.ClassLoaderScope
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.invocation.Gradle
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.classpath.ClassPath
@@ -123,7 +123,7 @@ class Interpreter(val host: Host) {
             pluginRequests: PluginRequests
         )
 
-        fun applyBasePluginsTo(project: Project)
+        fun applyBasePluginsTo(project: ProjectInternal)
 
         fun setupEmbeddedKotlinFor(scriptHost: KotlinScriptHost<*>)
 
@@ -335,17 +335,21 @@ class Interpreter(val host: Host) {
     private
     val KotlinScriptHost<*>.injectedProperties: Map<String, KotlinType>
         get() = when (target) {
-            is Project -> target.extensions.findByType(VersionCatalogsExtension::class.java)?.associateBy(VersionCatalog::getName) {
-                KotlinType(
-                    if (it is GeneratedSubclass) {
-                        it.publicType().kotlin
-                    } else {
-                        it.javaClass.kotlin
-                    }
-                )
-            } ?: mapOf()
+            is Project -> {
+                target.extensions.findByType(VersionCatalogsExtension::class.java)
+                    ?.map { it.name to target.extensions.findByName(it.name) }
+                    ?.filter { it.second != null }
+                    ?.associate { it.first to it.second!!.getKotlinType() }
+                    ?: mapOf()
+            }
             else -> mapOf()
         }
+
+    private
+    fun Any.getKotlinType(): KotlinType = when (this) {
+        is GeneratedSubclass -> KotlinType(this.publicType().kotlin)
+        else -> KotlinType(this.javaClass.kotlin)
+    }
 
     private
     fun loadClassInChildScopeOf(
@@ -395,7 +399,7 @@ class Interpreter(val host: Host) {
         }
 
         override fun applyBasePluginsTo(project: Project) {
-            host.applyBasePluginsTo(project)
+            host.applyBasePluginsTo(project as ProjectInternal)
         }
 
         override fun handleScriptException(

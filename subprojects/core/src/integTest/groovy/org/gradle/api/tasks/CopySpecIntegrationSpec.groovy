@@ -24,7 +24,7 @@ import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Issue
 
-class CopySpecIntegrationSpec extends AbstractIntegrationSpec {
+class CopySpecIntegrationSpec extends AbstractIntegrationSpec implements UnreadableCopyDestinationFixture {
 
     @Rule
     public final TestResources resources = new TestResources(testDirectoryProvider, "copyTestResources")
@@ -221,7 +221,7 @@ class CopySpecIntegrationSpec extends AbstractIntegrationSpec {
 
     @Requires(TestPrecondition.UNIX_DERIVATIVE)
     @Issue("https://github.com/gradle/gradle/issues/2552")
-    def "can copy files to output with named pipes"() {
+    def "copying files to a directory with named pipes causes a deprecation warning"() {
         def input = file("input.txt").createFile()
 
         def outputDirectory = file("output").createDir()
@@ -235,20 +235,14 @@ class CopySpecIntegrationSpec extends AbstractIntegrationSpec {
         """
 
         when:
-        executer.expectDeprecationWarning("Cannot access output property 'destinationDir' of task ':copy' (see --info log for details). " +
-            "Accessing unreadable inputs or outputs has been deprecated. " +
-            "This will fail with an error in Gradle 8.0. " +
-            "Declare the property as untracked.")
+        expectUnreadableCopyDestinationDeprecationWarning()
         run "copy"
         then:
         outputDirectory.list().contains input.name
         executedAndNotSkipped(":copy")
 
         when:
-        executer.expectDeprecationWarning("Cannot access output property 'destinationDir' of task ':copy' (see --info log for details). " +
-            "Accessing unreadable inputs or outputs has been deprecated. " +
-            "This will fail with an error in Gradle 8.0. " +
-            "Declare the property as untracked.")
+        expectUnreadableCopyDestinationDeprecationWarning()
         run "copy"
         then:
         outputDirectory.list().contains input.name

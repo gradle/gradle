@@ -20,7 +20,6 @@ import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.SharedLibraryFixture
-import spock.lang.Unroll
 
 class CppLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
 
@@ -30,7 +29,6 @@ class CppLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
     @Override
     String subprojectName() { 'lib' }
 
-    @Unroll
     @ToBeFixedForConfigurationCache(because = "cpp-library plugin")
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
@@ -61,7 +59,6 @@ class CppLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    @Unroll
     @ToBeFixedForConfigurationCache(because = "cpp-library plugin")
     def "creates sample source if project name is specified with #scriptDsl build scripts"() {
         when:
@@ -93,7 +90,6 @@ class CppLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
     }
 
 
-    @Unroll
     @ToBeFixedForConfigurationCache(because = "cpp-library plugin")
     def "source generation is skipped when cpp sources detected with #scriptDsl build scripts"() {
         setup:

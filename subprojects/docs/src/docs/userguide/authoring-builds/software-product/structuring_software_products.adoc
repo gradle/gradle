@@ -49,7 +49,7 @@ doing automated end-to-end testing as part of that.
 Basically, this is the part of the build that is not required on local development machines.
 
 [NOTE]
-The domain of our example is to get informed about link:https://gradle.org/releases/[Gradle Build Tool releases].
+The domain of our example is to build a tool to inform people about link:https://gradle.org/releases/[Gradle Build Tool releases].
 Concretely, the application lists Gradle releases with links to release notes (_user_ feature) and
 offers an administration interface for the range of releases to be listed (_admin_ feature).
 
@@ -131,7 +131,7 @@ It's up to you to decide what works best for you, the software you are building,
 
 == Defining an inner structure for components
 
-Before we get to the topic of connecting the components, lets first look at them individually.
+Before we get to the topic of connecting the components, let's first look at them individually.
 
 So far, each component is just an empty folder with an empty `settings.gradle(.kts)` file indicating that this is a component Gradle can work with in some form.
 To fill the component with content, you should define at least one project (referred to as subproject in Gradle's DSLs) in it.
@@ -172,11 +172,11 @@ Let's zoom into the _domain-model_ component:
 
 Initially, `release/build.gradle(.kts)` is empty.
 The project is of no specific type and does not offer any useful content.
-If we add more files to the `domain-model/release` folder now, for example Java source files, Gradle won't know what to do with these files and just ignore them.
-We need to assign a type to the project to make Gradle aware of the purpose of such files in the project.
+If we add more files to the `domain-model/release` folder now, for example Java source files, Gradle won't know what to do with these files and will just ignore them.
+We need to assign a type to the project to make Gradle aware of the purpose of such files.
 
 In Gradle, you assign a type to a project by <<plugins.adoc#plugins,applying a plugin>>.
-The simplest thing you can do is applying one of Gradle's core plugins, like `base` or `java-library`.
+The simplest thing you can do is to apply one of Gradle's core plugins, like `base` or `java-library`.
 
 However, usually you have additional configuration to do in the context of the product you are building.
 For example, if your project should be a "Java Library", it would not only apply the `java-library` plugin but also configure details such as setting the Java version to 11.
@@ -224,7 +224,7 @@ You need to use one of the following project types (i.e. Gradle core plugins) in
 If you apply other JVM language plugins on top, like `groovy`, `scala` or `org.jetbrains.kotlin.jvm`, you can also write the plugin class in the corresponding language.
 
 In our sample, we choose the option of using Gradle's DSLs for the convention plugins.
-The `build-logic` component has several projects where each of them defines a project type through a convention plugin –
+The `build-logic` component has several projects that each define a project type through a convention plugin - one of:
 `java-library`, `kotlin-library`, `spring-application`, `android-application`.
 Also, there is a project called `commons` for build configuration shared by all our project types.
 
@@ -239,7 +239,7 @@ Looking at the `build.gradle(.kts)` of the `build-logic` project for spring boot
 <1> That it is of type `groovy-gradle-plugin` or `kotlin-dsl` to allow convention plugins written in the corresponding DSL
 <2> It depends on our own `plugins-platform` from the `platforms` component
 <3> It depends on the `commons` project from `build-logic` to have access to our own commons convention plugin
-<4> It depends on the Spring Boot Gradle plugin from the Gradle Plugin Portal so that we may apply it
+<4> It depends on the Spring Boot Gradle plugin from the Gradle Plugin Portal so that we may apply that plugin to our Spring Boot projects
 
 Now, we can write the convention plugin for Spring application like this:
 
@@ -288,7 +288,7 @@ include::sample[dir="samples/build-organization/structuring-software-projects/gr
 include::sample[dir="samples/build-organization/structuring-software-projects/kotlin",files="server-application/settings.gradle.kts"]
 ====
 
-We see that the `settings.gradle(.kts)` file only defines location for build logic components, other production code components and the inner structue of the component.
+We see that the `settings.gradle(.kts)` file only defines location for build logic components, other production code components and the inner structure of the component.
 Only the `build.gradle(.kts)` file in the `app` project then defines actual dependencies by applying a convention plugin and utilizing the _dependencies_ block.
 
 .Configuring type and dependencies of the `app` project inside the `server-application` component
@@ -313,9 +313,9 @@ To summarize, if you follow the suggestions from this chapter, your setup should
    They might include minimal project-specific configuration, but these should be kept as minimal as possible.
    This also makes builds less dependent on Gradle's DSLs: If you put your build logic into convention plugins, you can write it directly in Java if you like.
 2. _Isolate cross-cutting technical concerns into project types._
-   Technical motivated build configuration is often cross-cutting the software architecture.
-   If a project is a "Java Library" or "Kotlin Library" may be totally independent of where it is located in the hierarchy of your components.
-   Using convention plugins, allows you to isolate the definition of such project types in a central place, while still reusing them wherever needed.
+   Technically motivated build configuration often cuts across the entire software architecture.
+   Whether or not a project is a "Java Library" or "Kotlin Library" may be totally independent of where it is located in the hierarchy of your components.
+   If you use convention plugins, this allows you to isolate the definition of such project types in a central place, while still reusing them wherever needed.
    (This is a huge advantage over so called <<sharing_build_logic_between_subprojects.adoc#sec:convention_plugins_vs_cross_configuration,cross project configuration>>, which has been popular with older Gradle versions, but is bound to the hierarchy of your project.)
 3. _Declare the origins of components in a central place._
    In this structure, the places where a build can find other components, independent of whether they are <<declaring_repositories.adoc#sub:centralized-repository-declaration,located in a binary repository>> or are <<composite_builds.adoc#settings_defined_composite,available locally as other Gradle builds>>, are defined centrally in the `settings.gradle(.kts)` file.
@@ -323,5 +323,5 @@ To summarize, if you follow the suggestions from this chapter, your setup should
    Note that <<structuring_software_products_details.adoc#settings_convention_plugins,there are different strategies to avoid duplicating this information>> in each `settings.gradle(.kts)` of each of your components.
 4. _Declare platforms in a central place._
    Having a platform component as in the example is optional.
-   You could do things without, e.g. by declaring <<dependency_constraints.adoc#dependency-constraints,dependency constraints>> directly in your convention plugins.
-   However, <<platforms.adoc#sec:sharing-dep-versions-between-projects,platforms>> are a good option to have all the boundaries for the environment in which your software operates defined in a central place.
+   You could do things without one of these, e.g. by declaring <<dependency_constraints.adoc#dependency-constraints,dependency constraints>> directly in your convention plugins.
+   However, <<platforms.adoc#sec:sharing-dep-versions-between-projects,platforms>> are a good option to ensure all the boundaries for the environment in which your software operates defined in a central place.

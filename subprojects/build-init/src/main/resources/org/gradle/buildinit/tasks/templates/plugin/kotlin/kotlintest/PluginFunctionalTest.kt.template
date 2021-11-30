@@ -3,31 +3,38 @@
  */
 ${packageDecl.statement}
 import java.io.File
-import org.gradle.testkit.runner.GradleRunner
-import kotlin.test.Test
+import java.nio.file.Files
 import kotlin.test.assertTrue
+import kotlin.test.Test
+import org.gradle.testkit.runner.GradleRunner
+import org.junit.Rule
+import org.junit.rules.TemporaryFolder
 
 /**
  * A simple functional test for the '${pluginId.value}' plugin.
  */
 class ${className.javaIdentifier} {
+    @get:Rule val tempFolder = TemporaryFolder()
+
+    private fun getProjectDir() = tempFolder.root
+    private fun getBuildFile() = getProjectDir().resolve("build.gradle")
+    private fun getSettingsFile() = getProjectDir().resolve("settings.gradle")
+
     @Test fun `can run task`() {
         // Setup the test build
-        val projectDir = File("build/functionalTest")
-        projectDir.mkdirs()
-        projectDir.resolve("settings.gradle").writeText("")
-        projectDir.resolve("build.gradle").writeText("""
-            plugins {
-                id('${pluginId.value}')
-            }
-        """)
+        getSettingsFile().writeText("")
+        getBuildFile().writeText("""
+plugins {
+    id('${pluginId.value}')
+}
+""")
 
         // Run the build
         val runner = GradleRunner.create()
         runner.forwardOutput()
         runner.withPluginClasspath()
         runner.withArguments("greeting")
-        runner.withProjectDir(projectDir)
+        runner.withProjectDir(getProjectDir())
         val result = runner.build();
 
         // Verify the result

@@ -43,7 +43,7 @@ class GroovyRuntimeTest extends AbstractProjectBuilderSpec {
     }
 
     def "inferred Groovy3 class path uses 'groovy' jars from classpath if all required pieces are found"() {
-        def groovyVersion = "3.0.8"
+        def groovyVersion = "3.0.9"
 
         when:
         def classpath = project.groovyRuntime.inferGroovyClasspath([

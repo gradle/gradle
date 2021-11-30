@@ -63,7 +63,7 @@ configurations {
                 // Accept the highest version with either a "release" branch or a status of 'milestone'
                 withModule('org.sample:api') { ComponentSelection selection ->
                     if (selection.getDescriptor(IvyModuleDescriptor)?.branch != "release" && selection.metadata?.status != 'milestone') {
-                        selection.reject("'org.sample:api' must have testing branch or milestone status")
+                        selection.reject("'org.sample:api' must be a release branch or have milestone status")
                     }
                 }
             }

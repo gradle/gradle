@@ -29,7 +29,11 @@ class DefaultPolymorphicDomainObjectContainerTest extends AbstractPolymorphicDom
     def barney = new DefaultPerson(name: "barney")
     def agedBarney = new DefaultAgeAwarePerson(name: "barney", age: 42)
 
-    def container = new DefaultPolymorphicDomainObjectContainer<Person>(Person, TestUtil.instantiatorFactory().decorateLenient(), callbackActionDecorator)
+    def container = createContainer()
+
+    private DefaultPolymorphicDomainObjectContainer<Person> createContainer() {
+        new DefaultPolymorphicDomainObjectContainer<Person>(Person, TestUtil.instantiatorFactory().decorateLenient(), TestUtil.instantiatorFactory().decorateLenient(), callbackActionDecorator)
+    }
 
     boolean supportsBuildOperations = true
 
@@ -143,7 +147,7 @@ class DefaultPolymorphicDomainObjectContainerTest extends AbstractPolymorphicDom
     }
 
     def "throws meaningful exception if it doesn't support creating domain objects without specifying a type"() {
-        container = new DefaultPolymorphicDomainObjectContainer<Person>(Person, TestUtil.instantiatorFactory().decorateLenient(), CollectionCallbackActionDecorator.NOOP)
+        container = createContainer()
 
         when:
         container.create("fred")
@@ -237,7 +241,7 @@ class DefaultPolymorphicDomainObjectContainerTest extends AbstractPolymorphicDom
     }
 
     def "throws meaningful exception if it doesn't support creating domain objects with the specified type"() {
-        container = new DefaultPolymorphicDomainObjectContainer<Person>(Person, TestUtil.instantiatorFactory().decorateLenient(), CollectionCallbackActionDecorator.NOOP)
+        container = createContainer()
 
         when:
         container.create("fred", Person)

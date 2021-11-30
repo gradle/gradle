@@ -71,7 +71,7 @@ class BuildEnvironmentIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("GRADLE-1762")
     def "build uses environment variables from where the build was launched"() {
-        file('build.gradle') << "println providers.environmentVariable('foo').forUseAtConfigurationTime().orNull"
+        file('build.gradle') << "println providers.environmentVariable('foo').orNull"
 
         when:
         def out = executer.withEnvironmentVars(foo: "gradle rocks!").run().output
@@ -121,7 +121,7 @@ assert classesDir.directory
 
     def "system properties should be made available to build"() {
         file('build.gradle') << """
-            println('prop1=' + providers.systemProperty('prop1').forUseAtConfigurationTime().get())
+            println('prop1=' + providers.systemProperty('prop1').get())
             task show {
                 doLast {
                     println('prop1=' + System.getProperty('prop1'))
@@ -134,7 +134,7 @@ assert classesDir.directory
             """
         } else {
             buildFile << """
-                println('prop2=' + providers.systemProperty('prop2').forUseAtConfigurationTime().orNull)
+                println('prop2=' + providers.systemProperty('prop2').orNull)
             """
         }
 
@@ -201,7 +201,7 @@ org.gradle.java.home=${TextUtil.escapeString(alternateJavaHome.canonicalPath)}
 
         file('build.gradle') << """
             assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.contains('-Xmx52m')
-            println('prop1=' + providers.systemProperty('prop1').forUseAtConfigurationTime().get())
+            println('prop1=' + providers.systemProperty('prop1').get())
             task show {
                 doLast {
                     println('prop1=' + System.getProperty('prop1'))
@@ -214,7 +214,7 @@ org.gradle.java.home=${TextUtil.escapeString(alternateJavaHome.canonicalPath)}
             """
         } else {
             buildFile << """
-                println('prop2=' + providers.systemProperty('prop2').forUseAtConfigurationTime().orNull)
+                println('prop2=' + providers.systemProperty('prop2').orNull)
             """
         }
 

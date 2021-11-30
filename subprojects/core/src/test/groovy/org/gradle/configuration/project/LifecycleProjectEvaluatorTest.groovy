@@ -17,12 +17,14 @@
 package org.gradle.configuration.project
 
 import org.gradle.StartParameter
+import org.gradle.api.BuildCancelledException
 import org.gradle.api.ProjectConfigurationException
 import org.gradle.api.ProjectEvaluationListener
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.ProjectStateInternal
+import org.gradle.initialization.BuildCancellationToken
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.util.Path
 import spock.lang.Specification
@@ -35,8 +37,9 @@ class LifecycleProjectEvaluatorTest extends Specification {
     private gradle = Mock(GradleInternal)
     private listener = Mock(ProjectEvaluationListener)
     private delegate = Mock(ProjectEvaluator)
+    private cancellationToken = Mock(BuildCancellationToken)
     private buildOperationExecutor = new TestBuildOperationExecutor()
-    private evaluator = new LifecycleProjectEvaluator(buildOperationExecutor, delegate)
+    private evaluator = new LifecycleProjectEvaluator(buildOperationExecutor, delegate, cancellationToken)
     private state = new ProjectStateInternal()
     private mutationState = Mock(ProjectState)
 
@@ -88,6 +91,18 @@ class LifecycleProjectEvaluatorTest extends Specification {
 
         and:
         operations.empty
+    }
+
+    void "fails when build has been cancelled"() {
+        when:
+        evaluate()
+
+        then:
+        1 * cancellationToken.cancellationRequested >> true
+        0 * delegate._
+
+        and:
+        thrown(BuildCancelledException)
     }
 
     void "evaluates the project firing all necessary listeners and updating the state"() {

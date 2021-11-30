@@ -48,10 +48,12 @@ import java.util.stream.Collectors;
 public class DependencyVerifier {
     private final Map<ComponentIdentifier, ComponentVerificationMetadata> verificationMetadata;
     private final DependencyVerificationConfiguration config;
+    private final List<String> topLevelComments;
 
-    DependencyVerifier(Map<ComponentIdentifier, ComponentVerificationMetadata> verificationMetadata, DependencyVerificationConfiguration config) {
+    DependencyVerifier(Map<ComponentIdentifier, ComponentVerificationMetadata> verificationMetadata, DependencyVerificationConfiguration config, List<String> topLevelComments) {
         this.verificationMetadata = ImmutableMap.copyOf(verificationMetadata);
         this.config = config;
+        this.topLevelComments = topLevelComments;
     }
 
     public void verify(ChecksumService checksumService,
@@ -224,6 +226,10 @@ public class DependencyVerifier {
 
     public DependencyVerificationConfiguration getConfiguration() {
         return config;
+    }
+
+    public List<String> getTopLevelComments() {
+        return topLevelComments;
     }
 
     public List<String> getSuggestedWriteFlags() {

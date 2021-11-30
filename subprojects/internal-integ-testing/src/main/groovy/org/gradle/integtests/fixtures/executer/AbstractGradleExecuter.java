@@ -81,8 +81,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.joining;
@@ -171,7 +173,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     private boolean renderWelcomeMessage;
     private boolean disableToolchainDownload = true;
     private boolean disableToolchainDetection = true;
-
+    private boolean disablePluginRepositoryMirror = false;
 
     private int expectedGenericDeprecationWarnings;
     private final List<String> expectedDeprecationWarnings = new ArrayList<>();
@@ -429,6 +431,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         }
 
         executer.withTestConsoleAttached(consoleAttachment);
+
+        if (disablePluginRepositoryMirror) {
+            executer.withPluginRepositoryMirrorDisabled();
+        }
 
         return executer;
     }
@@ -702,6 +708,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         return this;
     }
 
+    protected Map<String, String> getEnvironmentVars() {
+        return new HashMap<>(environmentVars);
+    }
+
     protected String toJvmArgsString(Iterable<String> jvmArgs) {
         StringBuilder result = new StringBuilder();
         for (String jvmArg : jvmArgs) {
@@ -861,8 +871,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     }
 
     @Override
-    public GradleExecuter withPluginRepositoryMirror() {
-        beforeExecute(gradleExecuter -> withArgument("-D" + PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY + "=" + gradlePluginRepositoryMirrorUrl()));
+    public GradleExecuter withPluginRepositoryMirrorDisabled() {
+        disablePluginRepositoryMirror = true;
         return this;
     }
 
@@ -1091,6 +1101,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
             }
         }
 
+        if (!disablePluginRepositoryMirror) {
+            properties.put(PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY, gradlePluginRepositoryMirrorUrl());
+        }
+
         properties.put("file.encoding", getDefaultCharacterEncoding());
         Locale locale = getDefaultLocale();
         if (locale != null) {
@@ -1131,12 +1145,22 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
     @Override
     public final ExecutionResult run() {
-        beforeBuildSetup();
-        try {
+        return run(() -> {
             ExecutionResult result = doRun();
             if (errorsShouldAppearOnStdout()) {
                 result = new ErrorsOnStdoutScrapingExecutionResult(result);
             }
+            return result;
+        });
+    }
+
+    /**
+     * Allows a subclass to expose additional APIs for running builds.
+     */
+    protected ExecutionResult run(Supplier<ExecutionResult> action) {
+        beforeBuildSetup();
+        try {
+            ExecutionResult result = action.get();
             afterBuildCleanup(result);
             return result;
         } finally {
@@ -1336,7 +1360,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
                         i++;
                     } else if (isDeprecationMessageInHelpDescription(line)) {
                         i++;
-                    } else if (expectedDeprecationWarnings.removeIf(warning -> line.contains(warning))) {
+                    } else if (removeFirstExpectedDeprecationWarning(warning -> line.contains(warning))) {
                         // Deprecation warning is expected
                         i++;
                         i = skipStackTrace(lines, i);
@@ -1354,6 +1378,15 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
                     } else {
                         i++;
                     }
+                }
+            }
+
+            private boolean removeFirstExpectedDeprecationWarning(final Predicate<String> condition) {
+                final Optional<String> firstMatch = expectedDeprecationWarnings.stream().filter(condition).findFirst();
+                if (firstMatch.isPresent()) {
+                    return expectedDeprecationWarnings.remove(firstMatch.get());
+                } else {
+                    return false;
                 }
             }
 

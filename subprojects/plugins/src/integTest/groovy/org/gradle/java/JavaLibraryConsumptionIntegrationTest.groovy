@@ -30,8 +30,10 @@ class JavaLibraryConsumptionIntegrationTest extends AbstractIntegrationSpec {
                 implementation 'io.reactivex:rxnetty:0.4.4'
             }
             task checkForRxJavaDependency {
-                assert configurations.runtimeClasspath.incoming.resolutionResult.allDependencies.find { it.requested.displayName == 'io.reactivex:rxjava:1.0.1' }
-                assert !configurations.compileClasspath.incoming.resolutionResult.allDependencies.find { it.requested.displayName == 'io.reactivex:rxjava:1.0.1' }
+                doLast {
+                    assert configurations.runtimeClasspath.incoming.resolutionResult.allDependencies.find { it.requested.displayName == 'io.reactivex:rxjava:1.0.1' }
+                    assert !configurations.compileClasspath.incoming.resolutionResult.allDependencies.find { it.requested.displayName == 'io.reactivex:rxjava:1.0.1' }
+                }
             }
         """
 

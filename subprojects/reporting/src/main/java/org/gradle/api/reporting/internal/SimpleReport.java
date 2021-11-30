@@ -68,6 +68,7 @@ public abstract class SimpleReport implements ConfigurableReport {
         return getOutputLocation().getAsFile().getOrNull();
     }
 
+    @Deprecated
     @Override
     public void setDestination(File file) {
         getOutputLocation().fileValue(file);
@@ -89,6 +90,7 @@ public abstract class SimpleReport implements ConfigurableReport {
     }
 
     @Override
+    @Deprecated
     public boolean isEnabled() {
         DeprecationLogger.deprecateProperty(Report.class, "enabled")
             .replaceWith("required")
@@ -100,6 +102,7 @@ public abstract class SimpleReport implements ConfigurableReport {
     }
 
     @Override
+    @Deprecated
     public void setEnabled(boolean enabled) {
         DeprecationLogger.deprecateProperty(Report.class, "enabled")
             .replaceWith("required")
@@ -111,6 +114,7 @@ public abstract class SimpleReport implements ConfigurableReport {
     }
 
     @Override
+    @Deprecated
     public void setEnabled(Provider<Boolean> enabled) {
         getRequired().set(enabled);
     }

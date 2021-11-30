@@ -50,7 +50,6 @@ import org.gradle.initialization.RootBuildLifecycleListener;
 import org.gradle.internal.build.BuildAddedListener;
 import org.gradle.internal.classloader.ClasspathHasher;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.execution.impl.DefaultOutputSnapshotter;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.OutputSnapshotter;
 import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinterRegistry;
@@ -58,6 +57,7 @@ import org.gradle.internal.execution.fingerprint.FileCollectionSnapshotter;
 import org.gradle.internal.execution.fingerprint.InputFingerprinter;
 import org.gradle.internal.execution.fingerprint.impl.DefaultFileCollectionFingerprinterRegistry;
 import org.gradle.internal.execution.fingerprint.impl.DefaultInputFingerprinter;
+import org.gradle.internal.execution.impl.DefaultOutputSnapshotter;
 import org.gradle.internal.file.Stat;
 import org.gradle.internal.fingerprint.GenericFileTreeSnapshotter;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
@@ -97,6 +97,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
+import java.io.File;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -217,7 +218,11 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             // to minimize the number of watches we don't watch anything within the global caches.
             Predicate<String> watchFilter = path -> !globalCacheLocations.isInsideGlobalCache(path);
 
-            BuildLifecycleAwareVirtualFileSystem virtualFileSystem = determineWatcherRegistryFactory(OperatingSystem.current(), nativeCapabilities, watchableFileSystemDetector, watchFilter)
+            BuildLifecycleAwareVirtualFileSystem virtualFileSystem = determineWatcherRegistryFactory(
+                OperatingSystem.current(),
+                nativeCapabilities,
+                watchableFileSystemDetector,
+                watchFilter)
                 .<BuildLifecycleAwareVirtualFileSystem>map(watcherRegistryFactory -> new WatchingVirtualFileSystem(
                     watcherRegistryFactory,
                     rootReference,
@@ -225,8 +230,10 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                     locationsWrittenByCurrentBuild
                 ))
                 .orElse(new WatchingNotSupportedVirtualFileSystem(rootReference));
-            listenerManager.addListener((BuildAddedListener) buildState ->
-                virtualFileSystem.registerWatchableHierarchy(buildState.getBuildRootDir())
+            listenerManager.addListener((BuildAddedListener) buildState -> {
+                    File buildRootDir = buildState.getBuildRootDir();
+                    virtualFileSystem.registerWatchableHierarchy(buildRootDir);
+                }
             );
             return virtualFileSystem;
         }
@@ -276,7 +283,12 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             return fileSystemAccess;
         }
 
-        private Optional<FileWatcherRegistryFactory> determineWatcherRegistryFactory(OperatingSystem operatingSystem, NativeCapabilities nativeCapabilities, WatchableFileSystemDetector watchableFileSystemDetector, Predicate<String> watchFilter) {
+        private Optional<FileWatcherRegistryFactory> determineWatcherRegistryFactory(
+            OperatingSystem operatingSystem,
+            NativeCapabilities nativeCapabilities,
+            WatchableFileSystemDetector watchableFileSystemDetector,
+            Predicate<String> watchFilter
+        ) {
             if (nativeCapabilities.useFileSystemWatching()) {
                 try {
                     if (operatingSystem.isMacOsX()) {
@@ -396,10 +408,11 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
         }
 
         InputFingerprinter createInputFingerprinter(
+            FileCollectionSnapshotter snapshotter,
             FileCollectionFingerprinterRegistry fingerprinterRegistry,
             ValueSnapshotter valueSnapshotter
         ) {
-            return new DefaultInputFingerprinter(fingerprinterRegistry, valueSnapshotter);
+            return new DefaultInputFingerprinter(snapshotter, fingerprinterRegistry, valueSnapshotter);
         }
 
         ResourceSnapshotterCacheService createResourceSnapshotterCacheService(

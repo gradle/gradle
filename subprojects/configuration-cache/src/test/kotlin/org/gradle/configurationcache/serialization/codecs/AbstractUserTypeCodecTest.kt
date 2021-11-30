@@ -32,7 +32,7 @@ import org.gradle.configurationcache.serialization.runReadOperation
 import org.gradle.configurationcache.serialization.runWriteOperation
 import org.gradle.configurationcache.serialization.withIsolate
 import org.gradle.internal.io.NullOutputStream
-import org.gradle.internal.serialize.Encoder
+import org.gradle.internal.serialize.FlushableEncoder
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
 import org.gradle.util.TestUtil
@@ -124,7 +124,7 @@ abstract class AbstractUserTypeCodecTest {
         }
 
     private
-    fun writeContextFor(encoder: Encoder, codec: Codec<Any?>, problemHandler: ProblemsListener) =
+    fun writeContextFor(encoder: FlushableEncoder, codec: Codec<Any?>, problemHandler: ProblemsListener) =
         DefaultWriteContext(
             codec = codec,
             encoder = encoder,

@@ -17,7 +17,6 @@
 package org.gradle.api.internal.provider;
 
 import org.gradle.api.Action;
-import org.gradle.api.Describable;
 import org.gradle.api.GradleException;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.internal.properties.GradleProperties;
@@ -46,21 +45,18 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
     private final InstantiatorFactory instantiatorFactory;
     private final IsolatableFactory isolatableFactory;
     private final GradleProperties gradleProperties;
-    private final ConfigurationTimeBarrier configurationTimeBarrier;
     private final AnonymousListenerBroadcast<Listener> broadcaster;
     private final IsolationScheme<ValueSource, ValueSourceParameters> isolationScheme = new IsolationScheme<>(ValueSource.class, ValueSourceParameters.class, ValueSourceParameters.None.class);
     private final InstanceGenerator paramsInstantiator;
     private final InstanceGenerator specInstantiator;
 
     public DefaultValueSourceProviderFactory(
-        ConfigurationTimeBarrier configurationTimeBarrier,
         ListenerManager listenerManager,
         InstantiatorFactory instantiatorFactory,
         IsolatableFactory isolatableFactory,
         GradleProperties gradleProperties,
         ServiceLookup services
     ) {
-        this.configurationTimeBarrier = configurationTimeBarrier;
         this.broadcaster = listenerManager.createAnonymousBroadcaster(ValueSourceProviderFactory.Listener.class);
         this.instantiatorFactory = instantiatorFactory;
         this.isolatableFactory = isolatableFactory;
@@ -106,8 +102,7 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         @Nullable Class<P> parametersType,
         @Nullable P parameters
     ) {
-        return new NonConfigurationTimeProvider<>(
-            configurationTimeBarrier,
+        return new ConfigurationTimeProvider<>(
             new LazilyObtainedValue<>(valueSourceType, parametersType, parameters)
         );
     }
@@ -182,57 +177,11 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         }
     }
 
-    private static class NonConfigurationTimeProvider<T, P extends ValueSourceParameters>
-        extends ValueSourceProvider<T, P> {
-
-        private ConfigurationTimeBarrier configurationTimeBarrier;
-
-        public NonConfigurationTimeProvider(ConfigurationTimeBarrier configurationTimeBarrier, LazilyObtainedValue<T, P> value) {
-            super(value);
-            this.configurationTimeBarrier = configurationTimeBarrier;
-        }
-
-        @Override
-        protected void vetoAtConfigurationTime() {
-            if (configurationTimeBarrier.isAtConfigurationTime()) {
-                throw new IllegalStateException(cannotObtainValueAtConfigurationTime());
-            }
-        }
-
-        @Override
-        public Provider<T> forUseAtConfigurationTime() {
-            return new ConfigurationTimeProvider<>(value);
-        }
-
-        private String cannotObtainValueAtConfigurationTime() {
-            TreeFormatter message = new TreeFormatter();
-            message.node("Cannot obtain value from provider of ");
-            if (Describable.class.isAssignableFrom(value.sourceType)) {
-                message.append(((Describable) value.source()).getDisplayName());
-            } else {
-                message.appendType(value.sourceType);
-            }
-            return message
-                .append(" at configuration time.")
-                .node("Use a provider returned by 'forUseAtConfigurationTime()' instead.")
-                .toString();
-        }
-    }
-
     private static class ConfigurationTimeProvider<T, P extends ValueSourceParameters>
         extends ValueSourceProvider<T, P> {
 
         public ConfigurationTimeProvider(LazilyObtainedValue<T, P> value) {
             super(value);
-        }
-
-        @Override
-        protected void vetoAtConfigurationTime() {
-        }
-
-        @Override
-        public Provider<T> forUseAtConfigurationTime() {
-            return this;
         }
     }
 
@@ -295,11 +244,8 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
 
         @Override
         protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
-            vetoAtConfigurationTime();
             return Value.ofNullable(value.obtain().get());
         }
-
-        protected abstract void vetoAtConfigurationTime();
     }
 
     private class LazilyObtainedValue<T, P extends ValueSourceParameters> {

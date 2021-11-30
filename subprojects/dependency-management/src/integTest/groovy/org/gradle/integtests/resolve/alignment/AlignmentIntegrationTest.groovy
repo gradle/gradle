@@ -1303,4 +1303,174 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
             virtualConfiguration("org:platform:1.1")
         }
     }
+
+    def 'does not fail on combination of replacement, alignment and excludes'() {
+        given:
+        repository {
+            'proto:java:0.5'()
+            'proto:java:1.0'()
+            'proto:java-util:1.0' {
+                dependsOn 'proto:java:1.0'
+            }
+            'proto:java-util:2.0' {
+                dependsOn 'proto:java:2.0'
+            }
+            'org:a:1.0' {
+                dependsOn group: 'proto', artifact: 'java', version: '1.0', exclusions: [[group: 'any', module: 'thing']]
+                dependsOn group: 'proto', artifact: 'java-util', version: '1.0', exclusions: [[group: 'any', module: 'thing']]
+            }
+            'align:first:1.0'()
+            'align:first:2.0'()
+            'align:second:1.0'()
+            'align:second:2.0'()
+            'align:third:2.0'()
+            'nebula:java:1.0'()
+            'nebula:java:1.1'()
+            'nebula:java:2.0'()
+            'org:g:1.0' {
+                dependsOn 'nebula:java:1.1'
+            }
+            'org:f:1.0' {
+                dependsOn 'proto:java:0.5'
+            }
+            'org:e:1.0' {
+                dependsOn 'nebula:java:1.1'
+            }
+            'align:second:1.0' {
+                dependsOn 'align:first:1.0'
+                dependsOn 'org:f:1.0'
+            }
+            'align:second:2.0' {
+                dependsOn 'align:third:2.0'
+                dependsOn 'align:first:1.0'
+                dependsOn 'org:f:1.0'
+            }
+            'org:d:1.0' {
+                dependsOn 'org:e:1.0'
+                dependsOn 'align:second:1.0'
+            }
+            'org:c:1.0' {
+                dependsOn 'org:d:1.0'
+            }
+            'org:b:1.0' {
+                dependsOn 'org:c:1.0'
+            }
+        }
+
+        when:
+        buildFile << """
+            dependencies {
+                conf 'org:a:1.0'
+                conf 'align:first:2.0'
+                conf 'nebula:java:2.0'
+                conf 'org:b:1.0'
+                conf 'org:g:1.0'
+
+                modules.module('proto:java') {
+                    it.replacedBy 'nebula:java'
+                }
+                components.all(AlignGroup.class)
+            }
+
+            class AlignGroup implements ComponentMetadataRule {
+                void execute(ComponentMetadataContext ctx) {
+                    ctx.details.with { it ->
+                        if (it.getId().getGroup().startsWith("nebula")) {
+                            it.belongsTo("aligned-group:nebula:\${it.getId().getVersion()}")
+                        }
+                        if (it.getId().getGroup().startsWith("proto")) {
+                            it.belongsTo("aligned-group:proto:\${it.getId().getVersion()}")
+                        }
+                        if (it.getId().getGroup().startsWith("align")) {
+                            it.belongsTo("aligned-group:align:\${it.getId().getVersion()}")
+                        }
+                    }
+                }
+            }
+"""
+        repositoryInteractions {
+            'nebula:java:2.0' {
+                allowAll()
+            }
+            'org:g:1.0' {
+                allowAll()
+            }
+            'org:f:1.0' {
+                allowAll()
+            }
+            'org:e:1.0' {
+                allowAll()
+            }
+            'org:d:1.0' {
+                allowAll()
+            }
+            'org:c:1.0' {
+                allowAll()
+            }
+            'org:b:1.0' {
+                allowAll()
+            }
+            'org:a:1.0' {
+                allowAll()
+            }
+            'align:first:2.0' {
+                allowAll()
+            }
+            'align:second:1.0' {
+                allowAll()
+            }
+            'align:second:2.0' {
+                allowAll()
+            }
+            'align:third:2.0' {
+                allowAll()
+            }
+            'proto:java-util:1.0' {
+                allowAll()
+            }
+            'proto:java-util:2.0' {
+                allowAll()
+            }
+            'proto:java:1.0' {
+                allowAll()
+            }
+            'proto:java:2.0' {
+                allowAll()
+            }
+        }
+        run 'checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org:a:1.0") {
+                    edge('proto:java:1.0', "nebula:java:2.0")
+                    module('proto:java-util:1.0') {
+                        edge('proto:java:1.0', "nebula:java:2.0")
+                    }
+                }
+                module('align:first:2.0')
+                module('nebula:java:2.0')
+                module('org:b:1.0') {
+                    module('org:c:1.0') {
+                        module('org:d:1.0') {
+                            module('org:e:1.0') {
+                                edge('nebula:java:1.1', 'nebula:java:2.0')
+                            }
+                            edge('align:second:1.0', 'align:second:2.0') {
+                                module('align:third:2.0')
+                                edge('align:first:1.0', 'align:first:2.0')
+                                module('org:f:1.0') {
+                                    edge('proto:java:0.5', 'nebula:java:2.0')
+                                }
+                            }
+                        }
+                    }
+                }
+                module('org:g:1.0') {
+                    edge('nebula:java:1.1', 'nebula:java:2.0')
+                }
+            }
+        }
+    }
 }

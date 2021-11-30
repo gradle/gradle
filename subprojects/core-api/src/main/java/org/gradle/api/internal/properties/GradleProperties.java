@@ -25,7 +25,7 @@ import java.util.Map;
 public interface GradleProperties {
 
     @Nullable
-    String find(String propertyName);
+    Object find(String propertyName);
 
     /**
      * Merges the loaded properties with the given properties and returns an immutable

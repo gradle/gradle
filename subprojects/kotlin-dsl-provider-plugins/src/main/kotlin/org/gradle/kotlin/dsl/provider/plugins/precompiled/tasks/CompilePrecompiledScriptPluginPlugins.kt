@@ -23,6 +23,7 @@ import org.gradle.api.file.FileTree
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.CacheableTask
+import org.gradle.api.tasks.IgnoreEmptyDirectories
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.PathSensitive
@@ -61,6 +62,7 @@ abstract class CompilePrecompiledScriptPluginPlugins @Inject constructor(
     )
 
     @get:InputFiles
+    @get:IgnoreEmptyDirectories
     @get:PathSensitive(PathSensitivity.RELATIVE)
     val sourceFiles: FileTree = sourceDirectorySet
 

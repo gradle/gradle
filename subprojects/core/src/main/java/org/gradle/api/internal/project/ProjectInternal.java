@@ -45,6 +45,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.registry.ModelRegistryScope;
+import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
@@ -65,8 +66,13 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
     @Override
     ProjectInternal getParent();
 
+    @Nullable
+    ProjectInternal getParent(ProjectInternal referrer);
+
     @Override
     ProjectInternal getRootProject();
+
+    ProjectInternal getRootProject(ProjectInternal referrer);
 
     Project evaluate();
 
@@ -76,8 +82,6 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
     TaskContainerInternal getTasks();
 
     ScriptSource getBuildScriptSource();
-
-    void addChildProject(ProjectInternal childProject);
 
     @Override
     ProjectInternal project(String path) throws UnknownProjectException;
@@ -104,7 +108,7 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
     DynamicObject getInheritedScope();
 
     @Override
-    @UsedByScanPlugin("test-distribution, test-retry")
+    @UsedByScanPlugin("test-retry")
     GradleInternal getGradle();
 
     ProjectEvaluationListener getProjectEvaluationBroadcaster();
@@ -169,6 +173,9 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
      * Returns the {@link ProjectState} that manages the state of this instance.
      */
     ProjectState getOwner();
+
+    @Override
+    InputNormalizationHandlerInternal getNormalization();
 
     @Override
     ScriptHandlerInternal getBuildscript();

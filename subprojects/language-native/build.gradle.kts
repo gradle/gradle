@@ -2,6 +2,8 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
+description = "Plugins and domain objects for building different native languages"
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":messaging"))
@@ -53,6 +55,7 @@ dependencies {
     testImplementation(testFixtures(project(":snapshots")))
 
     integTestImplementation(project(":native"))
+    integTestImplementation(project(":enterprise-operations"))
     integTestImplementation(project(":resources"))
     integTestImplementation(libs.nativePlatform)
     integTestImplementation(libs.ant)

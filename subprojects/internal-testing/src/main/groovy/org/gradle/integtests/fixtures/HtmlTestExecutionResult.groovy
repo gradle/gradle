@@ -22,9 +22,11 @@ import org.gradle.util.internal.TextUtil
 import org.hamcrest.Matcher
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
-import org.junit.Assert
 
 import static org.gradle.integtests.fixtures.DefaultTestExecutionResult.removeParentheses
+import static org.hamcrest.CoreMatchers.hasItems
+import static org.hamcrest.CoreMatchers.not
+import static org.hamcrest.MatcherAssert.assertThat
 
 class HtmlTestExecutionResult implements TestExecutionResult {
 
@@ -37,6 +39,15 @@ class HtmlTestExecutionResult implements TestExecutionResult {
     TestExecutionResult assertTestClassesExecuted(String... testClasses) {
         indexContainsTestClass(testClasses)
         assertHtmlReportForTestClassExists(testClasses)
+        return this
+    }
+
+    TestExecutionResult assertTestClassesNotExecuted(String... testClasses) {
+        def indexFile = new File(htmlReportDirectory, "index.html")
+        if (indexFile.exists()) {
+            List<String> executedTestClasses = getExecutedTestClasses()
+            assertThat(executedTestClasses, not(hasItems(testClasses)))
+        }
         return this
     }
 
@@ -61,6 +72,10 @@ class HtmlTestExecutionResult implements TestExecutionResult {
 
     boolean testClassExists(String testClass) {
         return new File(htmlReportDirectory, "classes/${FileUtils.toSafeFileName(testClass)}.html").exists()
+    }
+
+    boolean testClassDoesNotExist(String testClass) {
+        return !testClassExists(testClass)
     }
 
     TestClassExecutionResult testClass(String testClass) {
@@ -224,7 +239,7 @@ class HtmlTestExecutionResult implements TestExecutionResult {
             String causeLinePrefix = "Caused by: "
             def cause = testCase.messages.first().readLines().find { it.startsWith causeLinePrefix }?.substring(causeLinePrefix.length())
 
-            Assert.assertThat(cause, causeMatcher)
+            assertThat(cause, causeMatcher)
             this
         }
 

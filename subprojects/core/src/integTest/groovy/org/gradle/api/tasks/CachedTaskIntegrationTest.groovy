@@ -83,7 +83,6 @@ class CachedTaskIntegrationTest extends AbstractIntegrationSpec implements Direc
         skipped ":foo"
     }
 
-    @ToBeFixedForConfigurationCache(because = "task wrongly up-to-date")
     def "task is loaded from cache when returning to already cached state after failure"() {
         buildFile << """
             task foo {

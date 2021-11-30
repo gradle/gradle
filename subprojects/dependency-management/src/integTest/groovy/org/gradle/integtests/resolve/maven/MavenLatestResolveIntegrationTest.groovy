@@ -17,7 +17,6 @@ package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import spock.lang.Unroll
 
 class MavenLatestResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def setup() {
@@ -91,7 +90,6 @@ class MavenLatestResolveIntegrationTest extends AbstractHttpDependencyResolution
         "integration" | "projectA-1.2-SNAPSHOT.jar"
     }
 
-    @Unroll
     def "can resolve dynamic #versionDefinition version declared in pom as transitive dependency"() {
         given:
         mavenRepo().module('org.test', 'projectC', '1.1').publish()

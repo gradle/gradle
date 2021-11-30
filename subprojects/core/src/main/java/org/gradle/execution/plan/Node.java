@@ -20,6 +20,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.tasks.VerificationException;
 import org.gradle.internal.resources.ResourceLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -97,6 +98,14 @@ public abstract class Node implements Comparable<Node> {
             || state == ExecutionState.MUST_NOT_RUN;
     }
 
+    /**
+     * Whether this node failed with a verification failure.
+     * @return true if failed and threw {@link VerificationException}, false otherwise
+     */
+    public boolean isVerificationFailure() {
+        return getNodeFailure() != null && getNodeFailure().getCause() instanceof VerificationException;
+    }
+
     public boolean isFailed() {
         return getNodeFailure() != null || getExecutionFailure() != null;
     }
@@ -139,6 +148,9 @@ public abstract class Node implements Comparable<Node> {
     }
 
     public void require() {
+        if (state == ExecutionState.EXECUTED) {
+            return;
+        }
         if (state != ExecutionState.SHOULD_RUN) {
             // When the state changes to `SHOULD_RUN`, the dependencies need to be reprocessed since they also may be required now.
             dependenciesProcessed = false;
@@ -147,10 +159,14 @@ public abstract class Node implements Comparable<Node> {
     }
 
     public void doNotRequire() {
+        if (state == ExecutionState.EXECUTED) {
+            return;
+        }
         state = ExecutionState.NOT_REQUIRED;
     }
 
     public void mustNotRun() {
+        assert state == ExecutionState.UNKNOWN;
         state = ExecutionState.MUST_NOT_RUN;
     }
 
@@ -221,12 +237,32 @@ public abstract class Node implements Comparable<Node> {
     }
 
     public boolean allDependenciesSuccessful() {
-        for (Node dependency : dependencySuccessors) {
-            if (!dependency.isSuccessful()) {
-                return false;
-            }
-        }
-        return true;
+        return dependencySuccessors.stream().allMatch(this::shouldContinueExecution);
+    }
+
+    /**
+     * This {@link Node} may continue execution if the successor Node was successful, or if non-successful when two specific criteria are met:
+     * <ol>
+     *     <li>The successor node failure is a "verification failure"</li>
+     *     <li>The relationship to the successor Node is via task output/task input wiring, not an explicit dependsOn relationship (which are discouraged)</li>
+     * </ol>
+     *
+     * @param dependency a successor node in the execution plan
+     * @return true if the successor task was successful, or failed but a "recoverable" verification failure and this Node may continue execution; false otherwise
+     * @see <a href="https://github.com/gradle/gradle/issues/18912">gradle/gradle#18912</a>
+     */
+    protected boolean shouldContinueExecution(Node dependency) {
+        return dependency.isSuccessful() || (dependency.isVerificationFailure() && !dependsOnOutcome(dependency));
+    }
+
+    /**
+     * Can be overridden to indicate the relationship between this {@link Node} and a successor Node.
+     *
+     * @param dependency a non-successful successor node in the execution plan
+     * @return Always returns false unless overridden.
+     */
+    protected boolean dependsOnOutcome(Node dependency) {
+        return false;
     }
 
     @OverridingMethodsMustInvokeSuper

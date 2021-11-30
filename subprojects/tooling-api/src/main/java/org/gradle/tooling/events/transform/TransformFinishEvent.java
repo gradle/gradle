@@ -24,4 +24,6 @@ import org.gradle.tooling.events.FinishEvent;
  * @since 5.1
  */
 public interface TransformFinishEvent extends TransformProgressEvent, FinishEvent {
+    @Override
+    TransformOperationResult getResult();
 }

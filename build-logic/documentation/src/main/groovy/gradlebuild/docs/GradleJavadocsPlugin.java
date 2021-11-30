@@ -21,6 +21,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.quality.Checkstyle;
@@ -32,6 +33,7 @@ import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.external.javadoc.StandardJavadocDocletOptions;
 import gradlebuild.basics.BuildEnvironment;
 
+import javax.inject.Inject;
 import java.io.File;
 
 /**
@@ -39,7 +41,11 @@ import java.io.File;
  *
  * TODO: We should remove the workarounds here and migrate some of the changes here into the Javadoc task proper.
  */
-public class GradleJavadocsPlugin implements Plugin<Project> {
+public abstract class GradleJavadocsPlugin implements Plugin<Project> {
+
+    @Inject
+    protected abstract FileSystemOperations getFs();
+
     @Override
     public void apply(Project project) {
         ProjectLayout layout = project.getLayout();
@@ -100,11 +106,12 @@ public class GradleJavadocsPlugin implements Plugin<Project> {
                 options.addBooleanOption("html4", true);
                 options.addBooleanOption("-no-module-directories", true);
 
+                FileSystemOperations fs = getFs();
                 //noinspection Convert2Lambda
                 task.doLast(new Action<Task>() {
                     @Override
                     public void execute(Task task) {
-                        task.getProject().copy(copySpec -> {
+                        fs.copy(copySpec -> {
                             // Commit http://hg.openjdk.java.net/jdk/jdk/rev/89dc31d7572b broke use of JSZip (https://bugs.openjdk.java.net/browse/JDK-8214856)
                             // fixed in Java 12 by http://hg.openjdk.java.net/jdk/jdk/rev/b4982a22926b
                             // TODO: Remove this script.js workaround when we distribute Gradle using JDK 12 or higher

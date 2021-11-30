@@ -25,6 +25,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
 
     String projectTypePrompt = "Select type of project to generate:"
     String dslPrompt = "Select build script DSL:"
+    String incubatingPrompt = "Generate build using new APIs and behavior (some features may change in the next minor release)?"
     String basicType = "1: basic"
     String projectNamePrompt = "Project name (default: some-thing)"
     String convertMavenBuildPrompt = "Found a Maven build. Generate a Gradle build from this?"
@@ -57,6 +58,31 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
             assert handle.standardOutput.contains("2: Kotlin")
         }
         handle.stdinPipe.write(("2" + TextUtil.platformLineSeparator).bytes)
+
+        // Select 'no'
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains(incubatingPrompt)
+        }
+        handle.stdinPipe.write(("no" + TextUtil.platformLineSeparator).bytes)
+
+        // Select default project name
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains(projectNamePrompt)
+        }
+        handle.stdinPipe.write(TextUtil.platformLineSeparator.bytes)
+        handle.stdinPipe.close()
+        handle.waitForFinish()
+
+        then:
+        ScriptDslFixture.of(BuildInitDsl.KOTLIN, targetDir, null).assertGradleFilesGenerated()
+    }
+
+    def "does not prompt for options provided on the command-line"() {
+        when:
+        executer.withForceInteractive(true)
+        executer.withStdinPipe()
+        executer.withTasks("init", "--incubating", "--dsl", "kotlin", "--type", "basic")
+        def handle = executer.start()
 
         // Select default project name
         ConcurrentTestUtil.poll(60) {
@@ -106,6 +132,12 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
             assert handle.standardOutput.contains(dslPrompt)
         }
         handle.stdinPipe.write(("2" + TextUtil.platformLineSeparator).bytes)
+
+        // Select 'no'
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains(incubatingPrompt)
+        }
+        handle.stdinPipe.write(("no" + TextUtil.platformLineSeparator).bytes)
 
         // Select 'junit'
         ConcurrentTestUtil.poll(60) {
@@ -186,6 +218,12 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
             assert handle.standardOutput.contains(dslPrompt)
         }
         handle.stdinPipe.write(("2" + TextUtil.platformLineSeparator).bytes)
+
+        // Select 'no'
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains(incubatingPrompt)
+        }
+        handle.stdinPipe.write(("no" + TextUtil.platformLineSeparator).bytes)
 
         // Select default project name
         ConcurrentTestUtil.poll(60) {

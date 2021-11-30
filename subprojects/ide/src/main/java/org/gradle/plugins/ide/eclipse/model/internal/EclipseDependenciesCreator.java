@@ -31,7 +31,6 @@ import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
@@ -45,9 +44,9 @@ import org.gradle.plugins.ide.eclipse.model.Library;
 import org.gradle.plugins.ide.eclipse.model.UnresolvedLibrary;
 import org.gradle.plugins.ide.eclipse.model.Variable;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
+import org.gradle.plugins.ide.internal.resolver.GradleApiSourcesResolver;
 import org.gradle.plugins.ide.internal.resolver.IdeDependencySet;
 import org.gradle.plugins.ide.internal.resolver.IdeDependencyVisitor;
-import org.gradle.plugins.ide.internal.resolver.GradleApiSourcesResolver;
 import org.gradle.plugins.ide.internal.resolver.UnresolvedIdeDependencyHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,10 +64,10 @@ public class EclipseDependenciesCreator {
     private final GradleApiSourcesResolver gradleApiSourcesResolver;
     private final boolean inferModulePath;
 
-    public EclipseDependenciesCreator(EclipseClasspath classpath, IdeArtifactRegistry ideArtifactRegistry, ProjectStateRegistry projectRegistry, GradleApiSourcesResolver gradleApiSourcesResolver, boolean inferModulePath) {
+    public EclipseDependenciesCreator(EclipseClasspath classpath, IdeArtifactRegistry ideArtifactRegistry, GradleApiSourcesResolver gradleApiSourcesResolver, boolean inferModulePath) {
         this.classpath = classpath;
         this.projectDependencyBuilder = new ProjectDependencyBuilder(ideArtifactRegistry);
-        this.currentProjectId = projectRegistry.stateFor(classpath.getProject()).getComponentIdentifier();
+        this.currentProjectId = ((ProjectInternal) classpath.getProject()).getOwner().getComponentIdentifier();
         this.gradleApiSourcesResolver = gradleApiSourcesResolver;
         this.inferModulePath = inferModulePath;
     }

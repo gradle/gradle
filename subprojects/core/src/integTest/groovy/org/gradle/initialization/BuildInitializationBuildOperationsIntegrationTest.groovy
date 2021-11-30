@@ -19,6 +19,7 @@ package org.gradle.initialization
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationNotificationsFixture
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import spock.lang.Issue
 
 class BuildInitializationBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
 
@@ -231,4 +232,17 @@ class BuildInitializationBuildOperationsIntegrationTest extends AbstractIntegrat
         loadProjectsBuildOperations*.result.rootProject.projectDir == dirs
     }
 
+    @Issue("https://github.com/gradle/gradle/pull/18484")
+    def "can run a build with build operation trace and --debug"() {
+        buildFile << """
+            task foo {
+                doLast {
+                    println 'foo'
+                }
+            }
+        """
+        executer.withStackTraceChecksDisabled()
+        expect:
+        succeeds('foo', "--debug")
+    }
 }

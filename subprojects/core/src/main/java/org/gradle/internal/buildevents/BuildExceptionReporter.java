@@ -117,21 +117,16 @@ public class BuildExceptionReporter implements Action<Throwable> {
         writeGeneralTips(output);
     }
 
-    private FailureDetails constructFailureDetails(String granularity, Throwable failure) {
-        FailureDetails details = new FailureDetails(failure);
-        reportBuildFailure(granularity, failure, details);
-        return details;
-    }
-
-    private void reportBuildFailure(String granularity, Throwable failure, FailureDetails details) {
+    private ExceptionStyle getShowStackTraceOption() {
         if (loggingConfiguration.getShowStacktrace() != ShowStacktrace.INTERNAL_EXCEPTIONS) {
-            details.exceptionStyle = ExceptionStyle.FULL;
+            return ExceptionStyle.FULL;
+        } else {
+            return ExceptionStyle.NONE;
         }
-
-        formatGenericFailure(granularity, failure, details);
     }
 
-    private void formatGenericFailure(String granularity, Throwable failure, FailureDetails details) {
+    private FailureDetails constructFailureDetails(String granularity, Throwable failure) {
+        FailureDetails details = new FailureDetails(failure, getShowStackTraceOption());
         details.summary.format("%s failed with an exception.", granularity);
 
         fillInFailureResolution(details);
@@ -139,8 +134,10 @@ public class BuildExceptionReporter implements Action<Throwable> {
         if (failure instanceof ContextAwareException) {
             ((ContextAwareException) failure).accept(new ExceptionFormattingVisitor(details));
         } else {
-            details.renderDetails();
+            details.appendDetails();
         }
+        details.renderStackTrace();
+        return details;
     }
 
     private static class ExceptionFormattingVisitor extends ExceptionContextVisitor {
@@ -155,7 +152,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
         @Override
         protected void visitCause(Throwable cause) {
             failureDetails.failure = cause;
-            failureDetails.renderDetails();
+            failureDetails.appendDetails();
         }
 
         @Override
@@ -272,19 +269,10 @@ public class BuildExceptionReporter implements Action<Throwable> {
             output.println();
         }
 
-        Throwable exception = null;
-        switch (details.exceptionStyle) {
-            case NONE:
-                break;
-            case FULL:
-                exception = details.failure;
-                break;
-        }
-
-        if (exception != null) {
+        if (details.stackTrace.getHasContent()) {
             output.println();
             output.println("* Exception is:");
-            output.exception(exception);
+            details.stackTrace.writeTo(output);
             output.println();
         }
     }
@@ -294,16 +282,27 @@ public class BuildExceptionReporter implements Action<Throwable> {
         final BufferingStyledTextOutput summary = new BufferingStyledTextOutput();
         final BufferingStyledTextOutput details = new BufferingStyledTextOutput();
         final BufferingStyledTextOutput location = new BufferingStyledTextOutput();
+        final BufferingStyledTextOutput stackTrace = new BufferingStyledTextOutput();
         final BufferingStyledTextOutput resolution = new BufferingStyledTextOutput();
+        final ExceptionStyle exceptionStyle;
 
-        ExceptionStyle exceptionStyle = ExceptionStyle.NONE;
-
-        public FailureDetails(Throwable failure) {
+        public FailureDetails(Throwable failure, ExceptionStyle exceptionStyle) {
             this.failure = failure;
+            this.exceptionStyle = exceptionStyle;
         }
 
-        void renderDetails() {
+        void appendDetails() {
             renderStyledError(failure, details);
+        }
+
+        void renderStackTrace() {
+            if (exceptionStyle == ExceptionStyle.FULL) {
+                try {
+                    stackTrace.exception(failure);
+                } catch (Throwable t) {
+                    // Discard. Should also render this as a separate build failure
+                }
+            }
         }
     }
 

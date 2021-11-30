@@ -66,9 +66,11 @@ public class ProgressLoggingExternalResourceLister extends AbstractProgressLoggi
 
         @Override
         public List<String> call(BuildOperationContext context) {
-            List<String> list = delegate.list(parent);
-            context.setResult(LIST_RESULT);
-            return list;
+            try {
+                return delegate.list(parent);
+            } finally {
+                context.setResult(LIST_RESULT);
+            }
         }
 
         @Override

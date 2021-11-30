@@ -12,7 +12,7 @@ dependencies {
 // end::define-dependency[]
 
 // tag::use-configuration[]
-task("listJars") {
+tasks.register("listJars") {
     doLast {
         configurations["compile"].forEach { file: File -> println(file.name) }
     }

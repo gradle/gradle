@@ -56,7 +56,7 @@ trait FileSystemWatchingFixture {
 
         int getReceivedFileSystemEventsInCurrentBuild() {
             def duringBuildStatusLine = spec.result.getPostBuildOutputLineThatContains(" file system events during the current build")
-            def numberMatcher = duringBuildStatusLine =~ /Received (\d+) file system events during the current build while watching \d+ hierarchies/
+            def numberMatcher = duringBuildStatusLine =~ /Received (\d+) file system events during the current build while watching \d+ locations/
             return numberMatcher[0][1] as int
         }
 
@@ -68,7 +68,7 @@ trait FileSystemWatchingFixture {
 
         int getReceivedFileSystemEventsSinceLastBuild() {
             String eventsSinceLastBuild = spec.result.getOutputLineThatContains("file system events since last build")
-            def numberMatcher = eventsSinceLastBuild =~ /Received (\d+) file system events since last build while watching \d+ hierarchies/
+            def numberMatcher = eventsSinceLastBuild =~ /Received (\d+) file system events since last build while watching \d+ locations/
             return numberMatcher[0][1] as int
         }
 

@@ -17,6 +17,7 @@ dependencies {
     api(libs.futureKotlin("stdlib-jdk8"))
 
     implementation(project(":base-services"))
+    implementation(project(":enterprise-operations"))
     implementation(project(":functional"))
     implementation(project(":messaging"))
     implementation(project(":native"))

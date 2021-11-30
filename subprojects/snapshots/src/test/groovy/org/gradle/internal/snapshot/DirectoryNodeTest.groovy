@@ -19,11 +19,9 @@ package org.gradle.internal.snapshot
 import org.gradle.internal.file.FileMetadata.AccessType
 import org.gradle.internal.file.FileType
 import org.gradle.internal.hash.HashCode
-import spock.lang.Unroll
 
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
 
-@Unroll
 class DirectoryNodeTest extends AbstractFileSystemNodeWithChildrenTest<FileSystemNode, FileSystemLocationSnapshot> {
     @Override
     protected FileSystemNode createInitialRootNode(ChildMap<FileSystemLocationSnapshot> children) {
@@ -44,7 +42,7 @@ class DirectoryNodeTest extends AbstractFileSystemNodeWithChildrenTest<FileSyste
         resultRoot instanceof PartialDirectoryNode
         resultRoot.children == children
         removedNodes == [initialRoot.getSnapshot().get()]
-        addedNodes == children.values()
+        addedNodes == children.stream().map(ChildMap.Entry::getValue).toList()
         interaction { noMoreInteractions() }
 
         where:
@@ -60,7 +58,7 @@ class DirectoryNodeTest extends AbstractFileSystemNodeWithChildrenTest<FileSyste
         resultRoot instanceof PartialDirectoryNode
         resultRoot.children == childrenWithSelectedChildRemoved()
         removedNodes == [initialRoot.getSnapshot().get()]
-        addedNodes == childrenWithSelectedChildRemoved().values()
+        addedNodes == childrenWithSelectedChildRemoved().stream().map(ChildMap.Entry::getValue).toList()
         interaction { noMoreInteractions() }
 
         where:
@@ -77,7 +75,7 @@ class DirectoryNodeTest extends AbstractFileSystemNodeWithChildrenTest<FileSyste
         resultRoot instanceof PartialDirectoryNode
         resultRoot.children == childrenWithSelectedChildReplacedBy(invalidatedChild)
         removedNodes == [initialRoot.getSnapshot().get()]
-        addedNodes == childrenWithSelectedChildRemoved().values()
+        addedNodes == childrenWithSelectedChildRemoved().stream().map(ChildMap.Entry::getValue).toList()
 
         interaction {
             invalidateDescendantOfSelectedChild(invalidatedChild)
@@ -97,7 +95,7 @@ class DirectoryNodeTest extends AbstractFileSystemNodeWithChildrenTest<FileSyste
         resultRoot instanceof PartialDirectoryNode
         resultRoot.children == childrenWithSelectedChildRemoved()
         removedNodes == [initialRoot.getSnapshot().get()]
-        addedNodes == childrenWithSelectedChildRemoved().values()
+        addedNodes == childrenWithSelectedChildRemoved().stream().map(ChildMap.Entry::getValue).toList()
 
         interaction {
             invalidateDescendantOfSelectedChild(null)

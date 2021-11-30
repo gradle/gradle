@@ -18,8 +18,7 @@ package org.gradle.internal.snapshot;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.BiConsumer;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public abstract class AbstractListChildMap<T> implements ChildMap<T> {
     protected final List<Entry<T>> entries;
@@ -34,22 +33,8 @@ public abstract class AbstractListChildMap<T> implements ChildMap<T> {
     }
 
     @Override
-    public List<T> values() {
-        return entries.stream()
-            .map(Entry::getValue)
-            .collect(Collectors.toList());
-    }
-
-    @Override
-    public List<Entry<T>> entries() {
-        return entries;
-    }
-
-    @Override
-    public void visitChildren(BiConsumer<String, ? super T> visitor) {
-        for (Entry<T> child : entries) {
-            visitor.accept(child.getPath(), child.getValue());
-        }
+    public Stream<Entry<T>> stream() {
+        return entries.stream();
     }
 
     protected int findChildIndexWithCommonPrefix(VfsRelativePath targetPath, CaseSensitivity caseSensitivity) {

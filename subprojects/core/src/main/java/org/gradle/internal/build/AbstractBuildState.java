@@ -16,16 +16,43 @@
 
 package org.gradle.internal.build;
 
-import org.gradle.api.internal.SettingsInternal;
+import org.gradle.api.internal.BuildDefinition;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
-import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.buildtree.BuildTreeState;
+import org.gradle.internal.lazy.Lazy;
+import org.gradle.internal.service.scopes.BuildScopeServices;
 
-import java.util.function.Consumer;
+import javax.annotation.Nullable;
+import java.util.function.Function;
 
 public abstract class AbstractBuildState implements BuildState {
+    private final BuildScopeServices buildServices;
+    private final Lazy<BuildLifecycleController> buildLifecycleController;
+    private final Lazy<ProjectStateRegistry> projectStateRegistry;
+    private final Lazy<BuildWorkGraphController> workGraphController;
+
+    public AbstractBuildState(BuildTreeState buildTree, BuildDefinition buildDefinition, @Nullable BuildState parent) {
+        // Create the controllers using the services of the nested tree
+        BuildModelControllerServices buildModelControllerServices = buildTree.getServices().get(BuildModelControllerServices.class);
+        BuildModelControllerServices.Supplier supplier = buildModelControllerServices.servicesForBuild(buildDefinition, this, parent);
+        buildServices = prepareServices(buildTree, buildDefinition, supplier);
+        buildLifecycleController = Lazy.locking().of(() -> buildServices.get(BuildLifecycleController.class));
+        projectStateRegistry = Lazy.locking().of(() -> buildServices.get(ProjectStateRegistry.class));
+        workGraphController = Lazy.locking().of(() -> buildServices.get(BuildWorkGraphController.class));
+    }
+
+    protected BuildScopeServices prepareServices(BuildTreeState buildTree, BuildDefinition buildDefinition, BuildModelControllerServices.Supplier supplier) {
+        return new BuildScopeServices(buildTree.getServices(), supplier);
+    }
+
+    protected BuildScopeServices getBuildServices() {
+        return buildServices;
+    }
+
     @Override
     public DisplayName getDisplayName() {
         return Describables.of(getBuildIdentifier());
@@ -46,34 +73,41 @@ public abstract class AbstractBuildState implements BuildState {
         return true;
     }
 
-    protected abstract ProjectStateRegistry getProjectStateRegistry();
+    protected ProjectStateRegistry getProjectStateRegistry() {
+        return projectStateRegistry.get();
+    }
 
     @Override
     public BuildProjectRegistry getProjects() {
         return getProjectStateRegistry().projectsFor(getBuildIdentifier());
     }
 
-    protected abstract BuildLifecycleController getBuildController();
+    protected BuildLifecycleController getBuildController() {
+        return buildLifecycleController.get();
+    }
 
     @Override
     public void ensureProjectsLoaded() {
-        getBuildController().getLoadedSettings();
+        getBuildController().loadSettings();
     }
 
     @Override
     public void ensureProjectsConfigured() {
-        getBuildController().getConfiguredBuild();
+        getBuildController().configureProjects();
     }
 
     @Override
-    public SettingsInternal getLoadedSettings() throws IllegalStateException {
-        return getBuildController().getLoadedSettings();
+    public GradleInternal getMutableModel() {
+        return getBuildController().getGradle();
     }
 
     @Override
-    public void populateWorkGraph(Consumer<? super TaskExecutionGraphInternal> action) {
-        BuildLifecycleController buildController = getBuildController();
-        buildController.prepareToScheduleTasks();
-        buildController.populateWorkGraph(action);
+    public BuildWorkGraphController getWorkGraph() {
+        return workGraphController.get();
+    }
+
+    @Override
+    public <T> T withToolingModels(Function<? super BuildToolingModelController, T> action) {
+        return getBuildController().withToolingModels(action);
     }
 }

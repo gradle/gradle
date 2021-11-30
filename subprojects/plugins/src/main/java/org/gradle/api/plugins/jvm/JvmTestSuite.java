@@ -20,28 +20,148 @@ import org.gradle.api.Action;
 import org.gradle.api.Buildable;
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Incubating;
+import org.gradle.api.attributes.TestType;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.SourceSet;
-import org.gradle.platform.base.TestSuite;
+import org.gradle.testing.base.TestSuite;
 
 /**
- * A group of related tests which both distinguish tests used for different purposes and which
- * can be configured to run against repeatedly against multiple {@link JvmTestSuiteTarget}s.
+ * A test suite is a collection of JVM-based tests.
+ * <p>
+ * Each test suite consists of
+ * <ul>
+ *     <li>A {@link SourceSet}</li>
+ *     <li>A set of {@link JvmComponentDependencies compile and runtime dependencies}</li>
+ *     <li>One or more {@link JvmTestSuiteTarget targets}</li>
+ *     <li>A testing framework</li>
+ * </ul>
+ * <p>
+ * Based on the testing framework declared, Gradle will automatically add the appropriate dependencies and configure the underlying test task.
+ * </p>
  *
  * @since 7.3
  */
 @Incubating
 public interface JvmTestSuite extends TestSuite, Buildable {
+    /**
+     * Returns the container of {@link JvmTestSuiteTarget} objects part of this suite.
+     *
+     * Source set associated with this test suite. The name of this source set is the same as the test suite.
+     *
+     * @return source set for this test suite.
+     */
     SourceSet getSources();
+
+    /**
+     * Configure the sources for this test suite.
+     *
+     * @param configuration configuration applied against the SourceSet for this test suite
+     */
     void sources(Action<? super SourceSet> configuration);
 
+    /**
+     * Collection of test suite targets.
+     *
+     * Each test suite target executes the tests in this test suite with a particular context and task.
+     *
+     * @return collection of test suite targets.
+     */
     ExtensiblePolymorphicDomainObjectContainer<? extends JvmTestSuiteTarget> getTargets();
 
-    Property<JvmTestingFramework> getTestingFramework();
+    /**
+     * Get the test type for this test suite.
+     *
+     * Defaults to {@link TestType#UNIT_TESTS}
+     *
+     * @since 7.4
+     */
+    Property<String> getTestType();
 
-    void useJUnitPlatform();
+    /**
+     * Use the <a href="https://junit.org/junit5/docs/current/user-guide/">JUnit Jupiter</a> testing framework.
+     *
+     * <p>
+     *     Gradle will provide the version of JUnit Jupiter to use. Defaults to version {@code 5.7.1}
+     * </p>
+     */
+    void useJUnitJupiter();
+
+    /**
+     * Use the <a href="https://junit.org/junit5/docs/current/user-guide/">JUnit Jupiter</a> testing framework with a specific version.
+     *
+     * @param version version of JUnit Jupiter to use
+     */
+    void useJUnitJupiter(String version);
+
+    /**
+     * Use the <a href="https://junit.org/junit4/">JUnit4</a> testing framework.
+     * <p>
+     *     Gradle will provide the version of JUnit4 to use. Defaults to version {@code 4.13}
+     * </p>
+     */
     void useJUnit();
 
-    ComponentDependencies getDependencies();
-    void dependencies(Action<? super ComponentDependencies> dependencies);
+    /**
+     * Use the <a href="https://junit.org/junit4/">JUnit4</a> testing framework with a specific version.
+     *
+     * @param version version of JUnit4 to use
+     */
+    void useJUnit(String version);
+
+    /**
+     * Use the <a href="https://spockframework.org/">Spock Framework</a> testing framework.
+     * <p>
+     *     Gradle will provide the version of Spock to use. Defaults to version {@code 2.0-groovy-3.0}
+     * </p>
+     */
+    void useSpock();
+
+    /**
+     * Use the <a href="https://spockframework.org/">Spock Framework</a> testing framework with a specific version.
+     *
+     * @param version the version of Spock to use
+     */
+    void useSpock(String version);
+
+    /**
+     * Use the <a href="https://kotlinlang.org/api/latest/kotlin.test/">kotlin.test</a> testing framework.
+     * <p>
+     *     Gradle will provide the version of kotlin.test to use. Defaults to version {@code 1.5.31}
+     * </p>
+     */
+    void useKotlinTest();
+
+    /**
+     * Use the <a href="https://kotlinlang.org/api/latest/kotlin.test/">kotlin.test</a> testing framework with a specific version.
+     *
+     * @param version the version of kotlin.test to use
+     */
+    void useKotlinTest(String version);
+
+    /**
+     * Use the <a href="https://testng.org/doc/">TestNG</a> testing framework.
+     * <p>
+     *     Gradle will provide the version of TestNG to use. Defaults to version {@code 7.4.0}
+     * </p>
+     */
+    void useTestNG();
+
+    /**
+     * Use the <a href="https://testng.org/doc/">TestNG</a> testing framework with a specific version.
+     *
+     * @param version version of TestNG to use
+     */
+    void useTestNG(String version);
+
+    /**
+     * Dependency handler for this component.
+     *
+     * @return dependency handler
+     */
+    JvmComponentDependencies getDependencies();
+
+    /**
+     * Configure dependencies for this component.
+     */
+    void dependencies(Action<? super JvmComponentDependencies> dependencies);
 }

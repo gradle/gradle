@@ -23,7 +23,7 @@ import org.gradle.work.DisableCachingByDefault;
 
 import java.lang.annotation.Annotation;
 
-import static org.gradle.api.internal.tasks.properties.annotations.TypeAnnotationHandlerSupport.reportInvalidUseOfCacheableAnnotation;
+import static org.gradle.api.internal.tasks.properties.annotations.TypeAnnotationHandlerSupport.reportInvalidUseOfTypeAnnotation;
 
 public class DisableCachingByDefaultTypeAnnotationHandler implements TypeAnnotationHandler {
     @Override
@@ -34,7 +34,7 @@ public class DisableCachingByDefaultTypeAnnotationHandler implements TypeAnnotat
     @Override
     public void validateTypeMetadata(Class<?> classWithAnnotationAttached, TypeValidationContext visitor) {
         if (!Task.class.isAssignableFrom(classWithAnnotationAttached) && !TransformAction.class.isAssignableFrom(classWithAnnotationAttached)) {
-            reportInvalidUseOfCacheableAnnotation(classWithAnnotationAttached,
+            reportInvalidUseOfTypeAnnotation(classWithAnnotationAttached,
                 visitor,
                 getAnnotationType(),
                 Task.class, TransformAction.class);

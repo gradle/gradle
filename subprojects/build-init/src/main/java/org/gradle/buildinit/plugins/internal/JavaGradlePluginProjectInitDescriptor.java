@@ -27,7 +27,7 @@ public class JavaGradlePluginProjectInitDescriptor extends JvmGradlePluginProjec
     private final TemplateLibraryVersionProvider libraryVersionProvider;
 
     public JavaGradlePluginProjectInitDescriptor(TemplateLibraryVersionProvider libraryVersionProvider, DocumentationRegistry documentationRegistry) {
-        super(documentationRegistry);
+        super(documentationRegistry, libraryVersionProvider);
         this.libraryVersionProvider = libraryVersionProvider;
     }
 
@@ -54,10 +54,12 @@ public class JavaGradlePluginProjectInitDescriptor extends JvmGradlePluginProjec
     @Override
     public void generateProjectBuildScript(String projectName, InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
         super.generateProjectBuildScript(projectName, settings, buildScriptBuilder);
-        buildScriptBuilder.testImplementationDependency(
-            "Use JUnit Jupiter for testing.",
-            "org.junit.jupiter:junit-jupiter:" + libraryVersionProvider.getVersion("junit-jupiter")
-        );
+        if (!settings.isUseTestSuites()) {
+            buildScriptBuilder.testImplementationDependency(
+                "Use JUnit Jupiter for testing.",
+                "org.junit.jupiter:junit-jupiter:" + libraryVersionProvider.getVersion("junit-jupiter")
+            );
+        }
     }
 
     @Override

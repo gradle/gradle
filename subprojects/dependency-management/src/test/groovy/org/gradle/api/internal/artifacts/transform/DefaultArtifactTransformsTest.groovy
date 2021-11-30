@@ -32,7 +32,7 @@ import org.gradle.internal.component.model.AttributeMatchingExplanationBuilder
 import org.gradle.util.AttributeTestUtil
 import spock.lang.Specification
 
-import static org.gradle.api.internal.artifacts.ArtifactAttributes.ARTIFACT_FORMAT
+import static org.gradle.api.artifacts.type.ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE
 import static org.gradle.util.internal.TextUtil.toPlatformLineSeparators
 
 class DefaultArtifactTransformsTest extends Specification {
@@ -217,7 +217,7 @@ Found the following transforms:
 
     private static AttributeContainerInternal typeAttributes(String artifactType) {
         def attributeContainer = new DefaultMutableAttributeContainer(AttributeTestUtil.attributesFactory())
-        attributeContainer.attribute(ARTIFACT_FORMAT, artifactType)
+        attributeContainer.attribute(ARTIFACT_TYPE_ATTRIBUTE, artifactType)
         attributeContainer.asImmutable()
     }
 

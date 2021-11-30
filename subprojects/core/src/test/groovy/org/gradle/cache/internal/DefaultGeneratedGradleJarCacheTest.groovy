@@ -25,7 +25,6 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GradleVersion
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import static org.gradle.cache.internal.GeneratedGradleJarCache.CACHE_DISPLAY_NAME
 import static org.gradle.cache.internal.GeneratedGradleJarCache.CACHE_KEY
@@ -54,7 +53,6 @@ class DefaultGeneratedGradleJarCacheTest extends Specification {
         1 * cache.close()
     }
 
-    @Unroll
     def "creates JAR file on demand for identifier '#identifier'"(String identifier) {
         def cacheDir = tmpDir.testDirectory
         def jarFile = cacheDir.file("gradle-${identifier}-${gradleVersion}.jar")

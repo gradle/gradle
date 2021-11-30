@@ -20,13 +20,14 @@ import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.time.Clock;
 import org.gradle.tooling.events.OperationDescriptor;
-import org.gradle.tooling.events.OperationResult;
 import org.gradle.tooling.events.StatusEvent;
-import org.gradle.tooling.events.internal.ConsumerOperationDescriptor;
-import org.gradle.tooling.events.internal.DefaultFinishEvent;
-import org.gradle.tooling.events.internal.DefaultOperationFailureResult;
-import org.gradle.tooling.events.internal.DefaultOperationSuccessResult;
-import org.gradle.tooling.events.internal.DefaultStartEvent;
+import org.gradle.tooling.events.download.FileDownloadOperationDescriptor;
+import org.gradle.tooling.events.download.FileDownloadResult;
+import org.gradle.tooling.events.download.internal.DefaultFileDownloadFailureResult;
+import org.gradle.tooling.events.download.internal.DefaultFileDownloadFinishEvent;
+import org.gradle.tooling.events.download.internal.DefaultFileDownloadOperationDescriptor;
+import org.gradle.tooling.events.download.internal.DefaultFileDownloadStartEvent;
+import org.gradle.tooling.events.download.internal.DefaultFileDownloadSuccessResult;
 import org.gradle.tooling.events.internal.DefaultStatusEvent;
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
 import org.gradle.util.GradleVersion;
@@ -61,8 +62,16 @@ public class DistributionInstaller {
 
     public DistributionInstaller(ProgressLoggerFactory progressLoggerFactory, InternalBuildProgressListener buildProgressListener, Clock clock) {
         this.progressLoggerFactory = progressLoggerFactory;
-        this.buildProgressListener = buildProgressListener;
+        this.buildProgressListener = getListener(buildProgressListener);
         this.clock = clock;
+    }
+
+    private InternalBuildProgressListener getListener(InternalBuildProgressListener buildProgressListener) {
+        if (buildProgressListener.getSubscribedOperations().contains(InternalBuildProgressListener.FILE_DOWNLOAD)) {
+            return buildProgressListener;
+        } else {
+            return NO_OP;
+        }
     }
 
     /**
@@ -96,6 +105,7 @@ public class DistributionInstaller {
 
     private class ForwardingDownloadProgressListener implements DownloadProgressListener {
         private final OperationDescriptor descriptor;
+        private long downloaded = 0;
 
         ForwardingDownloadProgressListener(OperationDescriptor descriptor) {
             this.descriptor = descriptor;
@@ -103,8 +113,8 @@ public class DistributionInstaller {
 
         @Override
         public void downloadStatusChanged(URI address, long contentLength, long downloaded) {
-            String eventDisplayName = descriptor.getDisplayName() + " " + downloaded + "/" + contentLength + " bytes downloaded";
-            StatusEvent statusEvent = new DefaultStatusEvent(clock.getCurrentTime(), eventDisplayName, descriptor, contentLength, downloaded, "bytes");
+            this.downloaded = downloaded;
+            StatusEvent statusEvent = new DefaultStatusEvent(clock.getCurrentTime(), descriptor, contentLength, downloaded, "bytes");
             // This is called from the download thread. Only forward the events when not cancelled
             currentListener.get().onEvent(statusEvent);
         }
@@ -126,20 +136,21 @@ public class DistributionInstaller {
 
         private void doDownload(URI address, File destination) throws Exception {
             String displayName = "Download " + address;
-            OperationDescriptor descriptor = new ConsumerOperationDescriptor(displayName);
+            FileDownloadOperationDescriptor descriptor = new DefaultFileDownloadOperationDescriptor(displayName, address, null);
             long startTime = clock.getCurrentTime();
-            buildProgressListener.onEvent(new DefaultStartEvent(startTime, displayName + " started", descriptor));
+            buildProgressListener.onEvent(new DefaultFileDownloadStartEvent(startTime, displayName + " started", descriptor));
 
             Throwable failure = null;
+            long bytesDownloaded = 0;
             try {
-                withProgressLogging(address, destination, descriptor);
+                bytesDownloaded = withProgressLogging(address, destination, descriptor);
             } catch (Throwable t) {
                 failure = t;
             }
 
             long endTime = clock.getCurrentTime();
-            OperationResult result = failure == null ? new DefaultOperationSuccessResult(startTime, endTime) : new DefaultOperationFailureResult(startTime, endTime, Collections.singletonList(DefaultFailure.fromThrowable(failure)));
-            buildProgressListener.onEvent(new DefaultFinishEvent(endTime, displayName + " finished", descriptor, result));
+            FileDownloadResult result = failure == null ? new DefaultFileDownloadSuccessResult(startTime, endTime, bytesDownloaded) : new DefaultFileDownloadFailureResult(startTime, endTime, Collections.singletonList(DefaultFailure.fromThrowable(failure)), bytesDownloaded);
+            buildProgressListener.onEvent(new DefaultFileDownloadFinishEvent(endTime, displayName + " finished", descriptor, result));
             if (failure != null) {
                 if (failure instanceof Exception) {
                     throw (Exception) failure;
@@ -148,18 +159,19 @@ public class DistributionInstaller {
             }
         }
 
-        private void withProgressLogging(URI address, File destination, OperationDescriptor operationDescriptor) throws Throwable {
+        private long withProgressLogging(URI address, File destination, OperationDescriptor operationDescriptor) throws Throwable {
             ProgressLogger progressLogger = progressLoggerFactory.newOperation(DistributionInstaller.class);
             progressLogger.setDescription("Download " + address);
             progressLogger.started();
             try {
-                withAsyncDownload(address, destination, operationDescriptor);
+                return withAsyncDownload(address, destination, operationDescriptor);
             } finally {
                 progressLogger.completed();
             }
         }
 
-        private void withAsyncDownload(final URI address, final File destination, final OperationDescriptor operationDescriptor) throws Throwable {
+        private long withAsyncDownload(final URI address, final File destination, final OperationDescriptor operationDescriptor) throws Throwable {
+            final ForwardingDownloadProgressListener listener = new ForwardingDownloadProgressListener(operationDescriptor);
             currentListener.set(buildProgressListener);
             try {
                 // Start the download in another thread and wait for the result
@@ -167,7 +179,7 @@ public class DistributionInstaller {
                     @Override
                     public void run() {
                         try {
-                            new Download(new Logger(false), new ForwardingDownloadProgressListener(operationDescriptor), APP_NAME, GradleVersion.current().getVersion(), systemProperties).download(address, destination);
+                            new Download(new Logger(false), listener, APP_NAME, GradleVersion.current().getVersion(), systemProperties).download(address, destination);
                         } catch (Throwable t) {
                             synchronized (lock) {
                                 failure = t;
@@ -204,6 +216,7 @@ public class DistributionInstaller {
                 // The download thread may still be running. Ignore any further status events from it
                 currentListener.set(NO_OP);
             }
+            return listener.downloaded;
         }
     }
 }

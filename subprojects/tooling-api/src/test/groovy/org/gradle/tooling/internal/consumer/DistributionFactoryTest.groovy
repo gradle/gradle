@@ -41,6 +41,7 @@ class DistributionFactoryTest extends Specification {
     final InternalBuildProgressListener buildProgressListener = Mock()
 
     def setup() {
+        _ * buildProgressListener.subscribedOperations >> [InternalBuildProgressListener.FILE_DOWNLOAD]
         _ * progressLoggerFactory.newOperation(!null) >> progressLogger
     }
 
@@ -194,6 +195,7 @@ class DistributionFactoryTest extends Specification {
         dist.getToolingImplementationClasspath(progressLoggerFactory, buildProgressListener, customUserHome, cancellationToken)
 
         then:
+        1 * buildProgressListener.subscribedOperations >> [InternalBuildProgressListener.FILE_DOWNLOAD]
         1 * cancellationToken.addCallback(_)
 
         then:
@@ -208,6 +210,36 @@ class DistributionFactoryTest extends Specification {
         then:
         1 * loggerOne.completed()
         1 * buildProgressListener.onEvent({it instanceof FinishEvent})
+        0 * _._
+    }
+
+    def doesNotReportZipDownloadProgressWhenNotEnabled() {
+        ConnectionParameters customUserHome = DefaultConnectionParameters.builder().
+            setProjectDir(tmpDir.testDirectory)
+            .setGradleUserHomeDir(tmpDir.file('customUserHome'))
+            .build()
+        def zipFile = createZip {
+            lib {
+                file("gradle-launcher-0.9.jar")
+            }
+        }
+        def dist = factory.getDistribution(zipFile.toURI())
+        ProgressLogger loggerOne = Mock()
+
+        when:
+        dist.getToolingImplementationClasspath(progressLoggerFactory, buildProgressListener, customUserHome, cancellationToken)
+
+        then:
+        1 * buildProgressListener.subscribedOperations >> [InternalBuildProgressListener.TEST_EXECUTION]
+        1 * cancellationToken.addCallback(_)
+
+        then:
+        1 * progressLoggerFactory.newOperation(DistributionInstaller.class) >>> loggerOne
+        1 * loggerOne.setDescription("Download ${zipFile.toURI()}")
+        1 * loggerOne.started()
+
+        then:
+        1 * loggerOne.completed()
         0 * _._
     }
 

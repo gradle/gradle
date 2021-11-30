@@ -244,6 +244,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         for (MetadataSource<?> source : metadataSources.sources()) {
             MutableModuleComponentResolveMetadata value = source.create(name, componentResolvers, moduleVersionIdentifier, prescribedMetaData, artifactResolver, result);
             if (value != null) {
+                maybeDisableComponentMetadataRuleCaching(value);
                 result.resolved(value.asImmutable());
                 return;
             }
@@ -251,6 +252,14 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
 
         LOGGER.debug("No meta-data file or artifact found for module '{}' in repository '{}'.", moduleVersionIdentifier, getName());
         result.missing();
+    }
+
+    private void maybeDisableComponentMetadataRuleCaching(MutableModuleComponentResolveMetadata value) {
+        if (isLocal()) {
+            // Caching component metadata rules for local repositories leads to issues
+            // when in some cases cached file does not exist yet, but we anyway try to use it
+            value.setComponentMetadataRuleCachingEnabled(false);
+        }
     }
 
     protected abstract boolean isMetaDataArtifact(ArtifactType artifactType);

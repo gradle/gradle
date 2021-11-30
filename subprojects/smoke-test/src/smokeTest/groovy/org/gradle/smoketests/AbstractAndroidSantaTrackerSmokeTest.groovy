@@ -53,11 +53,12 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
     }
 
     protected BuildResult buildLocation(File projectDir, String agpVersion) {
-        return runnerForLocation(projectDir, agpVersion, "assembleDebug").build()
+        return expectAgpFileTreeDeprecations(agpVersion, runnerForLocation(projectDir, agpVersion, "assembleDebug"))
+            .build()
     }
 
     protected BuildResult buildLocationMaybeExpectingWorkerExecutorDeprecation(File location, String agpVersion) {
-        return runnerForLocationMaybeExpectingWorkerExecutorDeprecation(location, agpVersion, "assembleDebug")
+        return expectAgpFileTreeDeprecations(agpVersion, runnerForLocationMaybeExpectingWorkerExecutorDeprecation(location, agpVersion, "assembleDebug"))
             .build()
     }
 
@@ -77,9 +78,10 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
 
     protected SmokeTestGradleRunner runnerForLocation(File projectDir, String agpVersion, String... tasks) {
         def runnerArgs = [["-DagpVersion=$agpVersion", "-DkotlinVersion=$kotlinVersion", "--stacktrace"], tasks].flatten()
-        if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_17)) {
+        if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_16)) {
             // fall back to using Java 11 (LTS) for Android tests
-            // kapt does not support Java 17 for now: https://youtrack.jetbrains.com/issue/KT-47583
+            // Kapt is not compatible with JDK 16+, https://youtrack.jetbrains.com/issue/KT-45545,
+            // or Java 17 for now: https://youtrack.jetbrains.com/issue/KT-47583
             // perhaps we should always run Android tests on Java 11 instead of having some of them skipped by a precondition
             def jdk = AvailableJavaHomes.getJdk(JavaVersion.VERSION_11)
             runnerArgs += "-Dorg.gradle.java.home=${jdk.javaHome}"

@@ -17,24 +17,21 @@
 package org.gradle.api.plugins.jvm;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.JavaVersion;
-import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.testing.Test;
-import org.gradle.platform.base.TestSuiteTarget;
+import org.gradle.testing.base.TestSuiteTarget;
 
 /**
- * Defines a target environment against which a {@link JvmTestSuite} should be run, which can specify requirements
- * like the version of the JVM to use.
- *
- * A Test Suite can be run against multiple environments by defining multiple Targets.
+ * Defines the target environment against which a {@link JvmTestSuite} will be run.
  *
  * @since 7.3
  */
 @Incubating
 public interface JvmTestSuiteTarget extends TestSuiteTarget {
+    /**
+     * The {@link Test} task that runs the tests for the associated test suite.
+     *
+     * @return provider to the test task
+     */
     TaskProvider<Test> getTestTask();
-    Property<JavaVersion> getJavaVersion();
-
-    Property<JvmTestingFramework> getTestingFramework();
 }

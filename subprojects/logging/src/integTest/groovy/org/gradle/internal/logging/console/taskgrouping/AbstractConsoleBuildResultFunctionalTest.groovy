@@ -21,7 +21,6 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.console.AbstractConsoleGroupedTaskFunctionalTest
 import org.gradle.integtests.fixtures.executer.LogContent
-import spock.lang.Unroll
 
 abstract class AbstractConsoleBuildResultFunctionalTest extends AbstractConsoleGroupedTaskFunctionalTest {
     protected final StyledOutput buildFailed = styled(Ansi.Color.RED, Ansi.Attribute.INTENSITY_BOLD).text('BUILD FAILED').off()
@@ -98,7 +97,6 @@ BUILD SUCCESSFUL in [ \\dms]+
 .*"""
     }
 
-    @Unroll
     def "outcome for failed build is logged with appropriate styling for log level #level"() {
         buildFile << """
             task broken {
@@ -137,7 +135,6 @@ BUILD SUCCESSFUL in [ \\dms]+
         level << [LogLevel.DEBUG, LogLevel.INFO, LogLevel.LIFECYCLE, LogLevel.WARN, LogLevel.QUIET]
     }
 
-    @Unroll
     def "reports task execution statistics on build failure with log level #level"() {
         buildFile << """
             task broken {

@@ -2,6 +2,8 @@ plugins {
     id("gradlebuild.distribution.packaging")
 }
 
+description = "The collector project for the 'core' portion of the Gradle distribution"
+
 dependencies {
     coreRuntimeOnly(platform(project(":core-platform")))
 

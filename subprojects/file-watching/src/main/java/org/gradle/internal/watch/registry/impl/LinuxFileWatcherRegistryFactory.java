@@ -21,6 +21,7 @@ import net.rubygrapefruit.platform.file.FileEvents;
 import net.rubygrapefruit.platform.file.FileWatchEvent;
 import net.rubygrapefruit.platform.internal.jni.LinuxFileEventFunctions;
 import net.rubygrapefruit.platform.internal.jni.LinuxFileEventFunctions.LinuxFileWatcher;
+import org.gradle.internal.watch.registry.FileWatcherProbeRegistry;
 import org.gradle.internal.watch.registry.FileWatcherUpdater;
 import org.gradle.internal.watch.vfs.WatchableFileSystemDetector;
 
@@ -40,7 +41,7 @@ public class LinuxFileWatcherRegistryFactory extends AbstractFileWatcherRegistry
     }
 
     @Override
-    protected FileWatcherUpdater createFileWatcherUpdater(LinuxFileWatcher watcher, WatchableHierarchies watchableHierarchies) {
-        return new NonHierarchicalFileWatcherUpdater(watcher, watchableHierarchies);
+    protected FileWatcherUpdater createFileWatcherUpdater(LinuxFileWatcher watcher, FileWatcherProbeRegistry probeRegistry, WatchableHierarchies watchableHierarchies) {
+        return new NonHierarchicalFileWatcherUpdater(watcher, probeRegistry, watchableHierarchies);
     }
 }

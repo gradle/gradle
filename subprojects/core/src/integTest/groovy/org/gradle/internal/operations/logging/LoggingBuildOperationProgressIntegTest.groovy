@@ -38,7 +38,6 @@ import org.gradle.launcher.exec.RunBuildBuildOperationType
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
 import org.junit.Rule
-import spock.lang.Ignore
 
 import java.util.regex.Pattern
 
@@ -273,7 +272,6 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
         assertNestedTaskOutputTracked()
     }
 
-    @Ignore("https://github.com/gradle/gradle-private/issues/3393")
     def "supports debug level logging"() {
         when:
         buildFile << """

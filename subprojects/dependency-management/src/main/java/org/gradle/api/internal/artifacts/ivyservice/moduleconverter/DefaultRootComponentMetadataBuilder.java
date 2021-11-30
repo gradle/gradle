@@ -34,6 +34,8 @@ import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
 import org.gradle.internal.component.local.model.RootLocalComponentMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 
+import javax.inject.Inject;
+
 public class DefaultRootComponentMetadataBuilder implements RootComponentMetadataBuilder {
     private final DependencyMetaDataProvider metadataProvider;
     private final ComponentIdentifierFactory componentIdentifierFactory;
@@ -43,14 +45,21 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
     private final MetadataHolder holder;
     private final ProjectStateRegistry projectStateRegistry;
     private final DependencyLockingProvider dependencyLockingProvider;
+    private final DefaultRootComponentMetadataBuilder.Factory factory;
 
-    public DefaultRootComponentMetadataBuilder(DependencyMetaDataProvider metadataProvider,
-                                               ComponentIdentifierFactory componentIdentifierFactory,
-                                               ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-                                               LocalComponentMetadataBuilder localComponentMetadataBuilder,
-                                               ConfigurationsProvider configurationsProvider,
-                                               ProjectStateRegistry projectStateRegistry,
-                                               DependencyLockingProvider dependencyLockingProvider) {
+    /**
+     * Use {@link Factory#create} to create instances.
+     */
+    private DefaultRootComponentMetadataBuilder(
+        DependencyMetaDataProvider metadataProvider,
+        ComponentIdentifierFactory componentIdentifierFactory,
+        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+        LocalComponentMetadataBuilder localComponentMetadataBuilder,
+        ConfigurationsProvider configurationsProvider,
+        ProjectStateRegistry projectStateRegistry,
+        DependencyLockingProvider dependencyLockingProvider,
+        Factory factory
+    ) {
         this.metadataProvider = metadataProvider;
         this.componentIdentifierFactory = componentIdentifierFactory;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
@@ -58,6 +67,7 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
         this.configurationsProvider = configurationsProvider;
         this.projectStateRegistry = projectStateRegistry;
         this.dependencyLockingProvider = dependencyLockingProvider;
+        this.factory = factory;
         this.holder = new MetadataHolder();
     }
 
@@ -107,7 +117,7 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
 
     @Override
     public RootComponentMetadataBuilder withConfigurationsProvider(ConfigurationsProvider alternateProvider) {
-        return new DefaultRootComponentMetadataBuilder(metadataProvider, componentIdentifierFactory, moduleIdentifierFactory, localComponentMetadataBuilder, alternateProvider, projectStateRegistry, dependencyLockingProvider);
+        return factory.create(alternateProvider);
     }
 
     public MutationValidator getValidator() {
@@ -132,6 +142,46 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
                 cachedValue = null;
             }
             return null;
+        }
+    }
+
+
+    public static class Factory {
+        private final DependencyMetaDataProvider metaDataProvider;
+        private final ComponentIdentifierFactory componentIdentifierFactory;
+        private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
+        private final LocalComponentMetadataBuilder localComponentMetadataBuilder;
+        private final ProjectStateRegistry projectStateRegistry;
+        private final DependencyLockingProvider dependencyLockingProvider;
+
+        @Inject
+        public Factory(
+            DependencyMetaDataProvider metaDataProvider,
+            ComponentIdentifierFactory componentIdentifierFactory,
+            ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+            LocalComponentMetadataBuilder localComponentMetadataBuilder,
+            ProjectStateRegistry projectStateRegistry,
+            DependencyLockingProvider dependencyLockingProvider
+        ) {
+            this.metaDataProvider = metaDataProvider;
+            this.componentIdentifierFactory = componentIdentifierFactory;
+            this.moduleIdentifierFactory = moduleIdentifierFactory;
+            this.localComponentMetadataBuilder = localComponentMetadataBuilder;
+            this.projectStateRegistry = projectStateRegistry;
+            this.dependencyLockingProvider = dependencyLockingProvider;
+        }
+
+        public DefaultRootComponentMetadataBuilder create(ConfigurationsProvider configurationsProvider) {
+            return new DefaultRootComponentMetadataBuilder(
+                metaDataProvider,
+                componentIdentifierFactory,
+                moduleIdentifierFactory,
+                localComponentMetadataBuilder,
+                configurationsProvider,
+                projectStateRegistry,
+                dependencyLockingProvider,
+                this
+            );
         }
     }
 }

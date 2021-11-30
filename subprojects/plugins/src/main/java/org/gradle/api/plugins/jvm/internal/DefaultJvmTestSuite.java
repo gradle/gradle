@@ -16,76 +16,170 @@
 
 package org.gradle.api.plugins.jvm.internal;
 
+import com.google.common.base.Preconditions;
 import org.gradle.api.Action;
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
-import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.file.FileCollection;
+import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.internal.tasks.testing.TestFramework;
+import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
+import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework;
+import org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestFramework;
+import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JavaPlugin;
-import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.JvmTestSuitePlugin;
-import org.gradle.api.plugins.jvm.ComponentDependencies;
-import org.gradle.api.plugins.jvm.JUnitPlatformTestingFramework;
-import org.gradle.api.plugins.jvm.JUnitTestingFramework;
+import org.gradle.api.plugins.jvm.JvmComponentDependencies;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.jvm.JvmTestSuiteTarget;
-import org.gradle.api.plugins.jvm.JvmTestingFramework;
-import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskDependency;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
-
-import java.util.concurrent.Callable;
-
-import static org.gradle.api.plugins.JavaPlugin.TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME;
-import static org.gradle.api.plugins.JavaPlugin.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME;
+import java.util.HashMap;
+import java.util.Map;
 
 public abstract class DefaultJvmTestSuite implements JvmTestSuite {
+    public enum Frameworks {
+        JUNIT4("junit:junit", "4.13"),
+        JUNIT_JUPITER("org.junit.jupiter:junit-jupiter", "5.7.2"),
+        SPOCK("org.spockframework:spock-core", "2.0-groovy-3.0"),
+        KOTLIN_TEST("org.jetbrains.kotlin:kotlin-test-junit", "1.5.31"),
+        TESTNG("org.testng:testng", "7.4.0"),
+        NONE(null, null);
+
+        @Nullable
+        private final String module;
+        @Nullable
+        private final String defaultVersion;
+
+        Frameworks(@Nullable String module, @Nullable String defaultVersion) {
+            Preconditions.checkArgument(module != null && defaultVersion != null || module == null && defaultVersion == null, "Either module and version must both be null, or neither be null.");
+            this.module = module;
+            this.defaultVersion = defaultVersion;
+        }
+
+        @Nullable
+        public String getDefaultVersion() {
+            return defaultVersion;
+        }
+
+        @Nullable
+        public String getDependency() {
+            return getDependency(getDefaultVersion());
+        }
+
+        @Nullable
+        public String getDependency(String version) {
+            if (null != module) {
+                return module + ":" + version;
+            } else {
+                return null;
+            }
+        }
+    }
+
+    private static class VersionedTestingFramework {
+        private final Frameworks type;
+        private final String version;
+
+        private VersionedTestingFramework(Frameworks type, String version) {
+            Preconditions.checkNotNull(version);
+            this.type = type;
+            this.version = version;
+        }
+    }
+    private final static VersionedTestingFramework NO_OPINION = new VersionedTestingFramework(Frameworks.NONE, "unset");
+
     private final ExtensiblePolymorphicDomainObjectContainer<JvmTestSuiteTarget> targets;
     private final SourceSet sourceSet;
     private final String name;
-    private final ComponentDependencies dependencies;
+    private final JvmComponentDependencies dependencies;
+    private boolean attachedDependencies;
+    private final Action<Void> attachDependencyAction;
+
+    protected abstract Property<VersionedTestingFramework> getVersionedTestingFramework();
 
     @Inject
-    public DefaultJvmTestSuite(String name, Project project, JavaPluginExtension java) {
+    public DefaultJvmTestSuite(String name, ConfigurationContainer configurations, DependencyHandler dependencies, SourceSetContainer sourceSets) {
         this.name = name;
-        this.sourceSet = java.getSourceSets().create(getName());
+        this.sourceSet = sourceSets.create(getName());
 
-        Configuration compileOnly = project.getConfigurations().getByName(sourceSet.getCompileOnlyConfigurationName());
-        Configuration implementation = project.getConfigurations().getByName(sourceSet.getImplementationConfigurationName());
-        Configuration runtimeOnly = project.getConfigurations().getByName(sourceSet.getRuntimeOnlyConfigurationName());
+        Configuration compileOnly = configurations.getByName(sourceSet.getCompileOnlyConfigurationName());
+        Configuration implementation = configurations.getByName(sourceSet.getImplementationConfigurationName());
+        Configuration runtimeOnly = configurations.getByName(sourceSet.getRuntimeOnlyConfigurationName());
 
-        if (!getName().equals(JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME)) {
-            project.getDependencies().addProvider(implementation.getName(), getTestingFramework().map(framework -> {
-                if (framework instanceof JUnitPlatformTestingFramework) {
-                    return "org.junit.jupiter:junit-jupiter-api:" + framework.getVersion().get();
-                } else {
-                    return "junit:junit:" + framework.getVersion().get();
-                }
-            }));
-            project.getDependencies().addProvider(runtimeOnly.getName(), getTestingFramework().map(framework -> {
-                if (framework instanceof JUnitPlatformTestingFramework) {
-                    return "org.junit.jupiter:junit-jupiter-engine:" + framework.getVersion().get();
-                } else {
-                    return getObjectFactory().fileCollection();
-                }
-            }));
+        this.attachedDependencies = false;
+        // This complexity is to keep the built-in test suite from automatically adding dependencies
+        // unless a user explicitly calls one of the useXXX methods
+        // Eventually, we should deprecate this behavior and provide a way for users to opt out
+        // We could then always add these dependencies.
+        this.attachDependencyAction = x -> attachDependenciesForTestFramework(dependencies, implementation);
+
+        if (!name.equals(JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME)) {
+            useJUnitJupiter();
         } else {
-            final Callable<FileCollection> mainSourceSetOutput = () -> java.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getOutput();
-            final Callable<FileCollection> testSourceSetOutput = () -> java.getSourceSets().getByName(SourceSet.TEST_SOURCE_SET_NAME).getOutput();
-
-            this.sourceSet.setCompileClasspath(project.getObjects().fileCollection().from(mainSourceSetOutput, project.getConfigurations().getByName(TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME)));
-            this.sourceSet.setRuntimeClasspath(project.getObjects().fileCollection().from(testSourceSetOutput, mainSourceSetOutput, project.getConfigurations().getByName(TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME)));
+            // for the built-in test suite, we don't express an opinion, so we will not add any dependencies
+            // if a user explicitly calls useJUnit or useJUnitJupiter, the built-in test suite will behave like a custom one
+            // and add dependencies automatically.
+            getVersionedTestingFramework().convention(NO_OPINION);
         }
 
         this.targets = getObjectFactory().polymorphicDomainObjectContainer(JvmTestSuiteTarget.class);
-        this.targets.registerFactory(JvmTestSuiteTarget.class, targetName -> getObjectFactory().newInstance(DefaultJvmTestSuiteTarget.class, this, targetName, project.getTasks()));
+        this.targets.registerBinding(JvmTestSuiteTarget.class, DefaultJvmTestSuiteTarget.class);
 
-        this.dependencies = getObjectFactory().newInstance(DefaultComponentDependencies.class, implementation, compileOnly, runtimeOnly);
+        this.dependencies = getObjectFactory().newInstance(DefaultJvmComponentDependencies.class, implementation, compileOnly, runtimeOnly);
+
+        addDefaultTestTarget();
+
+        // Until the values here can be finalized upon the user setting them (see the org.gradle.api.tasks.testing.Test#testFramework(Closure) method),
+        // in Gradle 8, we will be executing the provider lambda used as the convention multiple times.  So make sure, within a Test Suite, that we
+        // always return the same one via computeIfAbsent() against this map.
+        final Map<Frameworks, TestFramework> frameworkLookup = new HashMap<>(3);
+
+        this.targets.withType(JvmTestSuiteTarget.class).configureEach(target -> {
+            target.getTestTask().configure(task -> {
+                task.getTestFrameworkProperty().convention(getVersionedTestingFramework().map(vtf -> {
+                    switch(vtf.type) {
+                        case NONE: // fall-through
+                        case JUNIT4: // fall-through
+                        case KOTLIN_TEST:
+                            return frameworkLookup.computeIfAbsent(vtf.type, f -> new JUnitTestFramework(task, (DefaultTestFilter) task.getFilter()));
+                        case JUNIT_JUPITER: // fall-through
+                        case SPOCK:
+                            return frameworkLookup.computeIfAbsent(vtf.type, f -> new JUnitPlatformTestFramework((DefaultTestFilter) task.getFilter()));
+                        case TESTNG:
+                            return frameworkLookup.computeIfAbsent(vtf.type, f -> new TestNGTestFramework(task, task.getClasspath(), (DefaultTestFilter) task.getFilter(), getObjectFactory()));
+                        default:
+                            throw new IllegalStateException("do not know how to handle " + vtf);
+                    }
+                }));
+            });
+        });
+    }
+
+    private void attachDependenciesForTestFramework(DependencyHandler dependencies, Configuration implementation) {
+        if (!attachedDependencies) {
+            dependencies.addProvider(implementation.getName(), getVersionedTestingFramework().map(framework -> {
+                switch (framework.type) {
+                    case JUNIT4: // fall-through
+                    case JUNIT_JUPITER: // fall-through
+                    case SPOCK: // fall-through
+                    case TESTNG: // fall-through
+                    case KOTLIN_TEST:
+                        return framework.type.getDependency(framework.version);
+                    default:
+                        throw new IllegalStateException("do not know how to handle " + framework);
+                }
+            }));
+            attachedDependencies = true;
+        }
     }
 
     @Override
@@ -95,9 +189,6 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
 
     @Inject
     public abstract ObjectFactory getObjectFactory();
-
-    @Inject
-    public abstract ProviderFactory getProviders();
 
     public SourceSet getSources() {
         return sourceSet;
@@ -110,7 +201,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         return targets;
     }
 
-    public void addTestTarget(JavaPluginExtension java) {
+    public void addDefaultTestTarget() {
         final String target;
         if (getName().equals(JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME)) {
             target = JavaPlugin.TEST_TASK_NAME;
@@ -118,35 +209,71 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
             target = getName(); // For now, we'll just name the test task for the single target for the suite with the suite name
         }
 
-        DefaultJvmTestSuiteTarget defaultJvmTestSuiteTarget = getObjectFactory().newInstance(DefaultJvmTestSuiteTarget.class, this, target);
-
-        defaultJvmTestSuiteTarget.getJavaVersion().set(java.getSourceCompatibility());
-        defaultJvmTestSuiteTarget.getJavaVersion().finalizeValue();
-
-        targets.add(defaultJvmTestSuiteTarget);
+        targets.register(target);
     }
 
     @Override
     public void useJUnit() {
-        JvmTestingFramework testingFramework = getObjectFactory().newInstance(JUnitTestingFramework.class);
-        getTestingFramework().convention(testingFramework);
-        testingFramework.getVersion().convention("4.13");
+        useJUnit(Frameworks.JUNIT4.defaultVersion);
     }
 
     @Override
-    public void useJUnitPlatform() {
-        JvmTestingFramework testingFramework = getObjectFactory().newInstance(JUnitPlatformTestingFramework.class);
-        getTestingFramework().convention(testingFramework);
-        testingFramework.getVersion().convention("5.7.1");
+    public void useJUnit(String version) {
+        setFrameworkTo(new VersionedTestingFramework(Frameworks.JUNIT4, version));
     }
 
     @Override
-    public ComponentDependencies getDependencies() {
+    public void useJUnitJupiter() {
+        useJUnitJupiter(Frameworks.JUNIT_JUPITER.defaultVersion);
+    }
+
+    @Override
+    public void useJUnitJupiter(String version) {
+        setFrameworkTo(new VersionedTestingFramework(Frameworks.JUNIT_JUPITER, version));
+    }
+
+    @Override
+    public void useSpock() {
+        useSpock(Frameworks.SPOCK.defaultVersion);
+    }
+
+    @Override
+    public void useSpock(String version) {
+        setFrameworkTo(new VersionedTestingFramework(Frameworks.SPOCK, version));
+    }
+
+    @Override
+    public void useKotlinTest() {
+        useKotlinTest(Frameworks.KOTLIN_TEST.defaultVersion);
+    }
+
+    @Override
+    public void useKotlinTest(String version) {
+        setFrameworkTo(new VersionedTestingFramework(Frameworks.KOTLIN_TEST, version));
+    }
+
+    @Override
+    public void useTestNG() {
+        useTestNG(Frameworks.TESTNG.defaultVersion);
+    }
+
+    @Override
+    public void useTestNG(String version) {
+        setFrameworkTo(new VersionedTestingFramework(Frameworks.TESTNG, version));
+    }
+
+    private void setFrameworkTo(VersionedTestingFramework framework) {
+        getVersionedTestingFramework().set(framework);
+        attachDependencyAction.execute(null);
+    }
+
+    @Override
+    public JvmComponentDependencies getDependencies() {
         return dependencies;
     }
 
     @Override
-    public void dependencies(Action<? super ComponentDependencies> action) {
+    public void dependencies(Action<? super JvmComponentDependencies> action) {
         action.execute(dependencies);
     }
 

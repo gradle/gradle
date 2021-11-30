@@ -81,7 +81,7 @@ class PerformanceTestBuildTypeTest {
             "-PtestJavaVersion=8",
             "-PtestJavaVendor=oracle",
             "-Porg.gradle.java.installations.auto-download=false",
-            "\"-Porg.gradle.java.installations.paths=%linux.java8.oracle.64bit%,%linux.java11.openjdk.64bit%,%linux.java15.openjdk.64bit%,%linux.java16.openjdk.64bit%,%linux.java17.openjdk.64bit%\"",
+            "\"-Porg.gradle.java.installations.paths=%linux.java8.oracle.64bit%,%linux.java11.openjdk.64bit%,%linux.java15.openjdk.64bit%,%linux.java16.openjdk.64bit%,%linux.java17.openjdk.64bit%,%linux.java18.openjdk.64bit%\"",
             "\"-Porg.gradle.performance.branchName=%teamcity.build.branch%\"",
             "\"-Porg.gradle.performance.db.url=%performance.db.url%\"",
             "\"-Porg.gradle.performance.db.username=%performance.db.username%\"",
@@ -89,6 +89,8 @@ class PerformanceTestBuildTypeTest {
             "-PmaxParallelForks=%maxParallelForks%",
             "-Dorg.gradle.internal.plugins.portal.url.override=%gradle.plugins.portal.url%",
             "-s",
+            "--no-configuration-cache",
+            "%additional.gradle.parameters%",
             "--daemon",
             "--continue",
             "\"-Dscan.tag.PerformanceTest\""

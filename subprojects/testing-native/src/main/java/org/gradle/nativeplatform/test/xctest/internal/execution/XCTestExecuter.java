@@ -31,6 +31,7 @@ import org.gradle.internal.io.LineBufferingOutputStream;
 import org.gradle.internal.io.TextStream;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.time.Clock;
+import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.ExecException;
 import org.gradle.process.internal.ExecHandle;
@@ -63,6 +64,11 @@ public class XCTestExecuter implements TestExecuter<XCTestTestExecutionSpec> {
         throw new UnsupportedOperationException();
     }
 
+    @Inject
+    public WorkerLeaseService getWorkerLeaseService() {
+        throw new UnsupportedOperationException();
+    }
+
     public IdGenerator<?> getIdGenerator() {
         return new LongIdGenerator();
     }
@@ -88,7 +94,7 @@ public class XCTestExecuter implements TestExecuter<XCTestTestExecutionSpec> {
 
         Runnable detector = new XCTestDetector(processor, testExecutionSpec.getTestSelection());
 
-        new TestMainAction(detector, processor, testResultProcessor, getTimeProvider(), rootTestSuiteId, "Gradle Test Run " + testExecutionSpec.getPath()).run();
+        new TestMainAction(detector, processor, testResultProcessor, getWorkerLeaseService(), getTimeProvider(), rootTestSuiteId, "Gradle Test Run " + testExecutionSpec.getPath()).run();
     }
 
     @Override

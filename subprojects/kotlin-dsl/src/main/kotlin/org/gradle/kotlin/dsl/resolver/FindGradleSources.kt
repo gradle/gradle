@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.transform.TransformOutputs
 import org.gradle.api.artifacts.transform.TransformParameters
 import org.gradle.api.file.FileSystemLocation
 import org.gradle.api.provider.Provider
+import org.gradle.api.tasks.IgnoreEmptyDirectories
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.kotlin.dsl.support.unzipTo
@@ -36,6 +37,7 @@ import java.io.File
  */
 @DisableCachingByDefault(because = "Only filters the input artifact")
 abstract class FindGradleSources : TransformAction<TransformParameters.None> {
+    @get:IgnoreEmptyDirectories
     @get:PathSensitive(PathSensitivity.RELATIVE)
     @get:InputArtifact
     abstract val input: Provider<FileSystemLocation>

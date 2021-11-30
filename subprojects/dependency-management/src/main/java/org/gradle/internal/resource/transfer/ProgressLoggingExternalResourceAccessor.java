@@ -118,13 +118,15 @@ public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLog
         @Override
         public T call(BuildOperationContext context) {
             ResourceOperation downloadOperation = createResourceOperation(context, ResourceOperation.Type.download);
-            T result = delegate.withContent(location, revalidate, (inputStream, metaData) -> {
-                downloadOperation.setContentLength(metaData.getContentLength());
-                ProgressLoggingInputStream stream = new ProgressLoggingInputStream(inputStream, downloadOperation);
-                return action.execute(stream, metaData);
-            });
-            context.setResult(new ReadOperationResult(downloadOperation.getTotalProcessedBytes()));
-            return result;
+            try {
+                return delegate.withContent(location, revalidate, (inputStream, metaData) -> {
+                    downloadOperation.setContentLength(metaData.getContentLength());
+                    ProgressLoggingInputStream stream = new ProgressLoggingInputStream(inputStream, downloadOperation);
+                    return action.execute(stream, metaData);
+                });
+            } finally {
+                context.setResult(new ReadOperationResult(downloadOperation.getTotalProcessedBytes()));
+            }
         }
 
         @Override
@@ -144,9 +146,11 @@ public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLog
 
         @Override
         public ExternalResourceMetaData call(BuildOperationContext context) {
-            ExternalResourceMetaData result = delegate.getMetaData(location, revalidate);
-            context.setResult(METADATA_RESULT);
-            return result;
+            try {
+                return delegate.getMetaData(location, revalidate);
+            } finally {
+                context.setResult(METADATA_RESULT);
+            }
         }
 
         @Override

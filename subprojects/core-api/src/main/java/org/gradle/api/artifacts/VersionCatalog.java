@@ -37,24 +37,36 @@ import java.util.Optional;
 public interface VersionCatalog extends Named {
     /**
      * Returns the dependency provider for the corresponding alias.
+     * <p>
+     * Note: Alias will be automatically normalized: '-', '_' and '.' will be replaced with '.'
+     * </p>
      * @param alias the alias of the dependency
      */
     Optional<Provider<MinimalExternalModuleDependency>> findDependency(String alias);
 
     /**
      * Returns the dependency provider for the corresponding bundle.
+     * <p>
+     * Note: Bundle will be automatically normalized: '-', '_' and '.' will be replaced with '.'
+     * </p>
      * @param bundle the alias of the bundle
      */
     Optional<Provider<ExternalModuleDependencyBundle>> findBundle(String bundle);
 
     /**
      * Returns the version constraint with the corresponding name in the catalog.
+     * <p>
+     * Note: Name will be automatically normalized: '-', '_' and '.' will be replaced with '.'
+     * </p>
      * @param name the name of the version
      */
     Optional<VersionConstraint> findVersion(String name);
 
     /**
      * Returns the plugin dependency provider for the requested alias.
+     * <p>
+     * Note: Alias will be automatically normalized: '-', '_' and '.' will be replaced with '.'
+     * </p>
      * @param alias the alias of the plugin
      *
      * @since 7.2

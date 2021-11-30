@@ -25,7 +25,7 @@ class JUnitCoverage {
     final static String LATEST_JUNIT5_VERSION = '5.7.1'
     final static String LATEST_JUPITER_VERSION = LATEST_JUNIT5_VERSION
     final static String LATEST_VINTAGE_VERSION = LATEST_JUNIT5_VERSION
-    final static String LATEST_LAUNCHER_VERSION = '1.7.0'
+    final static String LATEST_PLATFORM_VERSION = '1.7.1'
     final static String JUPITER = 'Jupiter:' + LATEST_JUPITER_VERSION
     final static String VINTAGE = 'Vintage:' + LATEST_VINTAGE_VERSION
     final static List<String> LARGE_COVERAGE = ['4.0', '4.4', '4.8.2', NEWEST]

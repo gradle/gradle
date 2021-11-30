@@ -24,12 +24,12 @@ import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.transform.TransformAction
 import org.gradle.api.artifacts.transform.TransformParameters
 import org.gradle.api.artifacts.transform.VariantTransform
+import org.gradle.api.artifacts.type.ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.capabilities.CapabilitiesMetadata
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.CollectionCallbackActionDecorator
-import org.gradle.api.internal.artifacts.ArtifactAttributes.ARTIFACT_FORMAT
 import org.gradle.api.internal.artifacts.ArtifactTransformRegistration
 import org.gradle.api.internal.artifacts.VariantTransformRegistry
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.LocalFileDependencyBackedArtifactSet
@@ -108,7 +108,7 @@ class LocalFileDependencyBackedArtifactSetCodec(
             // Do not write this if it will not be used
             // TODO - simplify extracting the mappings
             // TODO - deduplicate this data, as the mapping is project scoped and almost always the same across all projects of a given type
-            val matchingOnArtifactFormat = value.selector.requestedAttributes.keySet().contains(ARTIFACT_FORMAT)
+            val matchingOnArtifactFormat = value.selector.requestedAttributes.keySet().contains(ARTIFACT_TYPE_ATTRIBUTE)
             writeBoolean(matchingOnArtifactFormat)
             val mappings = mutableMapOf<ImmutableAttributes, MappingSpec>()
             value.artifactTypeRegistry.visitArtifactTypes { sourceAttributes ->

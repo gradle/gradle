@@ -100,19 +100,20 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
     }
 
     static class ToolingGlobalScopeServices {
-        BuildExecuter createBuildExecuter(StyledTextOutputFactory styledTextOutputFactory,
-                                          LoggingManagerInternal loggingManager,
-                                          WorkValidationWarningReporter workValidationWarningReporter,
-                                          GradleUserHomeScopeServiceRegistry userHomeServiceRegistry,
-                                          ServiceRegistry globalServices) {
+        BuildExecuter createBuildExecuter(
+            StyledTextOutputFactory styledTextOutputFactory,
+            LoggingManagerInternal loggingManager,
+            WorkValidationWarningReporter workValidationWarningReporter,
+            GradleUserHomeScopeServiceRegistry userHomeServiceRegistry,
+            ServiceRegistry globalServices
+        ) {
             // @formatter:off
             return
                 new SetupLoggingActionExecuter(loggingManager,
                 new SessionFailureReportingActionExecuter(styledTextOutputFactory, Time.clock(), workValidationWarningReporter,
                 new StartParamsValidatingActionExecuter(
-                new GradleThreadBuildActionExecuter(
                 new BuildSessionLifecycleBuildActionExecuter(userHomeServiceRegistry, globalServices
-                )))));
+                ))));
             // @formatter:on
         }
 
@@ -147,25 +148,26 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
     }
 
     static class ToolingBuildSessionScopeServices {
-        BuildSessionActionExecutor createActionExecutor(BuildEventListenerFactory listenerFactory,
-                                                        ExecutorFactory executorFactory,
-                                                        ListenerManager listenerManager,
-                                                        BuildOperationListenerManager buildOperationListenerManager,
-                                                        BuildOperationExecutor buildOperationExecutor,
-                                                        TaskInputsListeners inputsListeners,
-                                                        StyledTextOutputFactory styledTextOutputFactory,
-                                                        FileSystemChangeWaiterFactory fileSystemChangeWaiterFactory,
-                                                        BuildRequestMetaData requestMetaData,
-                                                        BuildCancellationToken cancellationToken,
-                                                        DeploymentRegistryInternal deploymentRegistry,
-                                                        BuildEventConsumer eventConsumer,
-                                                        BuildStartedTime buildStartedTime,
-                                                        Clock clock,
-                                                        LoggingBuildOperationProgressBroadcaster loggingBuildOperationProgressBroadcaster,
-                                                        BuildOperationNotificationValve buildOperationNotificationValve,
-                                                        BuildTreeModelControllerServices buildModelServices,
-                                                        WorkerLeaseService workerLeaseService,
-                                                        BuildLayoutValidator buildLayoutValidator
+        BuildSessionActionExecutor createActionExecutor(
+            BuildEventListenerFactory listenerFactory,
+            ExecutorFactory executorFactory,
+            ListenerManager listenerManager,
+            BuildOperationListenerManager buildOperationListenerManager,
+            BuildOperationExecutor buildOperationExecutor,
+            TaskInputsListeners inputsListeners,
+            StyledTextOutputFactory styledTextOutputFactory,
+            FileSystemChangeWaiterFactory fileSystemChangeWaiterFactory,
+            BuildRequestMetaData requestMetaData,
+            BuildCancellationToken cancellationToken,
+            DeploymentRegistryInternal deploymentRegistry,
+            BuildEventConsumer eventConsumer,
+            BuildStartedTime buildStartedTime,
+            Clock clock,
+            LoggingBuildOperationProgressBroadcaster loggingBuildOperationProgressBroadcaster,
+            BuildOperationNotificationValve buildOperationNotificationValve,
+            BuildTreeModelControllerServices buildModelServices,
+            WorkerLeaseService workerLeaseService,
+            BuildLayoutValidator buildLayoutValidator
         ) {
             return new SubscribableBuildActionExecutor(
                 listenerManager,
@@ -193,24 +195,26 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
     }
 
     static class ToolingBuildTreeScopeServices {
-        BuildTreeActionExecutor createActionExecutor(List<BuildActionRunner> buildActionRunners,
-                                                     StyledTextOutputFactory styledTextOutputFactory,
-                                                     BuildStateRegistry buildStateRegistry,
-                                                     BuildOperationProgressEventEmitter eventEmitter,
-                                                     WorkValidationWarningReporter workValidationWarningReporter,
-                                                     ListenerManager listenerManager,
-                                                     BuildStartedTime buildStartedTime,
-                                                     BuildRequestMetaData buildRequestMetaData,
-                                                     GradleEnterprisePluginManager gradleEnterprisePluginManager,
-                                                     BuildLifecycleAwareVirtualFileSystem virtualFileSystem,
-                                                     StatStatistics.Collector statStatisticsCollector,
-                                                     FileHasherStatistics.Collector fileHasherStatisticsCollector,
-                                                     DirectorySnapshotterStatistics.Collector directorySnapshotterStatisticsCollector,
-                                                     BuildOperationRunner buildOperationRunner,
-                                                     Clock clock,
-                                                     BuildLayout buildLayout,
-                                                     ExceptionAnalyser exceptionAnalyser,
-                                                     List<ProblemReporter> problemReporters) {
+        BuildTreeActionExecutor createActionExecutor(
+            List<BuildActionRunner> buildActionRunners,
+            StyledTextOutputFactory styledTextOutputFactory,
+            BuildStateRegistry buildStateRegistry,
+            BuildOperationProgressEventEmitter eventEmitter,
+            WorkValidationWarningReporter workValidationWarningReporter,
+            ListenerManager listenerManager,
+            BuildStartedTime buildStartedTime,
+            BuildRequestMetaData buildRequestMetaData,
+            GradleEnterprisePluginManager gradleEnterprisePluginManager,
+            BuildLifecycleAwareVirtualFileSystem virtualFileSystem,
+            StatStatistics.Collector statStatisticsCollector,
+            FileHasherStatistics.Collector fileHasherStatisticsCollector,
+            DirectorySnapshotterStatistics.Collector directorySnapshotterStatisticsCollector,
+            BuildOperationRunner buildOperationRunner,
+            Clock clock,
+            BuildLayout buildLayout,
+            ExceptionAnalyser exceptionAnalyser,
+            List<ProblemReporter> problemReporters
+        ) {
             return new RootBuildLifecycleBuildActionExecutor(
                 buildStateRegistry,
                 new BuildCompletionNotifyingBuildActionRunner(

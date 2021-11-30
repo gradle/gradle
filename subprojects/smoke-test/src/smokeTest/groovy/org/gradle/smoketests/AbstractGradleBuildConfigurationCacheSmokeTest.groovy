@@ -16,7 +16,7 @@
 
 package org.gradle.smoketests
 
-
+import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheMaxProblemsOption
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
@@ -55,18 +55,23 @@ abstract class AbstractGradleBuildConfigurationCacheSmokeTest extends AbstractGr
             .assertTestClassesExecuted(testClass)
     }
 
+    protected int maxConfigurationCacheProblems = 0
+
     void configurationCacheRun(List<String> tasks, int daemonId = 0) {
+        def ccOptions = [
+            "--stacktrace",
+            "--${ConfigurationCacheOption.LONG_OPTION}".toString(),
+        ]
+        if (maxConfigurationCacheProblems > 0) {
+            ccOptions += [
+                "--${ConfigurationCacheProblemsOption.LONG_OPTION}=warn".toString(),
+                "-D${ConfigurationCacheMaxProblemsOption.PROPERTY_NAME}=$maxConfigurationCacheProblems".toString(),
+            ]
+        }
         run(
-            tasks + [
-                "--${ConfigurationCacheOption.LONG_OPTION}".toString(),
-                "--${ConfigurationCacheProblemsOption.LONG_OPTION}=warn".toString(), // TODO:configuration-cache remove
-                TEST_BUILD_TIMESTAMP
-            ],
+            tasks + ccOptions,
             // use a unique testKitDir per daemonId other than 0 as 0 means default daemon.
             daemonId != 0 ? file("test-kit/$daemonId") : null
         )
     }
 }
-
-
-

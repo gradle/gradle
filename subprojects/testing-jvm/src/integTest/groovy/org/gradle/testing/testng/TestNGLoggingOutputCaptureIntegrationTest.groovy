@@ -34,11 +34,21 @@ class TestNGLoggingOutputCaptureIntegrationTest extends MultiVersionIntegrationS
         buildFile << """
             apply plugin: "java"
             ${mavenCentralRepository()}
-            dependencies { testImplementation "org.testng:testng:$version" }
-            test {
-                useTestNG()
-                reports.junitXml.outputPerTestCase = true
-                onOutput { test, event -> print "\$test -> \$event.message" }
+
+            testing {
+                suites {
+                    test {
+                        useTestNG('$version')
+                        targets {
+                            all {
+                                testTask.configure {
+                                    reports.junitXml.outputPerTestCase = true
+                                    onOutput { test, event -> print "\$test -> \$event.message" }
+                                }
+                            }
+                        }
+                    }
+                }
             }
         """
 

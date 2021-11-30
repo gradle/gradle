@@ -20,6 +20,7 @@ import com.google.common.base.Strings;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.UntrackedTask;
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
 import org.gradle.internal.logging.text.StyledTextOutput;
@@ -28,7 +29,6 @@ import org.gradle.jvm.toolchain.install.internal.DefaultJavaToolchainProvisionin
 import org.gradle.jvm.toolchain.internal.AutoDetectingInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.InstallationLocation;
 import org.gradle.jvm.toolchain.internal.JavaInstallationRegistry;
-import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
 import java.util.Comparator;
@@ -40,7 +40,7 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.Descriptio
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Identifier;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Normal;
 
-@DisableCachingByDefault(because = "Produces only non-cacheable console output")
+@UntrackedTask(because = "Produces only non-cacheable console output")
 public class ShowToolchainsTask extends DefaultTask {
 
     private static final Comparator<ReportableToolchain> TOOLCHAIN_COMPARATOR = Comparator
@@ -78,7 +78,7 @@ public class ShowToolchainsTask extends DefaultTask {
     }
 
     private Boolean getBooleanProperty(String propertyKey) {
-        return getProviderFactory().gradleProperty(propertyKey).forUseAtConfigurationTime().map(Boolean::parseBoolean).getOrElse(true);
+        return getProviderFactory().gradleProperty(propertyKey).map(Boolean::parseBoolean).getOrElse(true);
     }
 
     private List<ReportableToolchain> invalidToolchains(List<ReportableToolchain> toolchains) {

@@ -128,7 +128,7 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
     }
 
     private BuildResult publish() {
-        setIllegalAccessPermitForJDK16KotlinCompilerDaemonOptions(runner('publish'))
+        def runner = setIllegalAccessPermitForJDK16KotlinCompilerDaemonOptions(runner('publish'))
             .withProjectDir(new File(testProjectDir, 'producer'))
             .forwardOutput()
         // this deprecation is coming from the Kotlin plugin
@@ -137,7 +137,8 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
                 "Please use the destinationDirectory property instead. " +
                 "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#compile_task_wiring",
                 "https://youtrack.jetbrains.com/issue/KT-46019")
-            .build()
+        expectAgpFileTreeDeprecationWarnings(runner, "compileDebugAidl", "mergeDebugNativeLibs", "stripDebugDebugSymbols", "compileDebugRenderscript")
+        runner.build()
     }
 
     private BuildResult consumer(String runTask) {

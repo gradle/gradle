@@ -20,12 +20,33 @@ import org.gradle.api.internal.changedetection.state.ResourceEntryFilter;
 import org.gradle.api.internal.changedetection.state.ResourceFilter;
 import org.gradle.normalization.RuntimeClasspathNormalization;
 
+import javax.annotation.Nullable;
 import java.util.Map;
 
 public interface RuntimeClasspathNormalizationInternal extends RuntimeClasspathNormalization {
-     ResourceFilter getClasspathResourceFilter();
+    ResourceFilter getClasspathResourceFilter();
 
-     ResourceEntryFilter getManifestAttributeResourceEntryFilter();
+    ResourceEntryFilter getManifestAttributeResourceEntryFilter();
 
-     Map<String, ResourceEntryFilter> getPropertiesFileFilters();
+    Map<String, ResourceEntryFilter> getPropertiesFileFilters();
+
+    /**
+     * Returns the configuration of runtime classpath normalization in a configuration-cache friendly form.
+     * The normalization cannot be further configured after this call.
+     *
+     * @return the configuration of input normalization or {@code null} if there is no user-defined state.
+     */
+    @Nullable
+    CachedState computeCachedState();
+
+    /**
+     * Configures input normalization from cached state data.
+     */
+    void configureFromCachedState(CachedState state);
+
+    /**
+     * The opaque representation of the runtime classpath normalization state, intended to be serialized in the configuration cache.
+     */
+    interface CachedState {
+    }
 }

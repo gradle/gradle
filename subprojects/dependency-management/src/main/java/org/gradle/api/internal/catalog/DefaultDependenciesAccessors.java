@@ -37,6 +37,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.ClasspathNormalizer;
 import org.gradle.initialization.DependenciesAccessors;
 import org.gradle.internal.Cast;
@@ -210,6 +211,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
     @Override
     public void createExtensions(ProjectInternal project) {
         ExtensionContainer container = project.getExtensions();
+        ProviderFactory providerFactory = project.getProviders();
         try {
             if (!models.isEmpty()) {
                 ImmutableMap.Builder<String, VersionCatalog> catalogs = ImmutableMap.builderWithExpectedSize(models.size());
@@ -220,8 +222,8 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
                             factory = factories.computeIfAbsent(model.getName(), n -> loadFactory(classLoaderScope, ACCESSORS_PACKAGE + "." + ACCESSORS_CLASSNAME_PREFIX + StringUtils.capitalize(n)));
                         }
                         if (factory != null) {
-                            VersionCatalog catalog = container.create(model.getName(), factory, model);
-                            catalogs.put(catalog.getName(), catalog);
+                            container.create(model.getName(), factory, model);
+                            catalogs.put(model.getName(), new VersionCatalogView(model, providerFactory));
                         }
                     }
                 }
@@ -504,6 +506,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
 
     // public for injection
     public static class DefaultVersionCatalogsExtension implements VersionCatalogsExtension {
+
         private final Map<String, VersionCatalog> catalogs;
 
         @Inject

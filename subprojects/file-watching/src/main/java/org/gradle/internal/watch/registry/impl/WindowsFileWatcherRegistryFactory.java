@@ -22,6 +22,7 @@ import net.rubygrapefruit.platform.file.FileWatchEvent;
 import net.rubygrapefruit.platform.internal.jni.WindowsFileEventFunctions;
 import net.rubygrapefruit.platform.internal.jni.WindowsFileEventFunctions.WindowsFileWatcher;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
+import org.gradle.internal.watch.registry.FileWatcherProbeRegistry;
 import org.gradle.internal.watch.registry.FileWatcherUpdater;
 import org.gradle.internal.watch.vfs.WatchableFileSystemDetector;
 import org.slf4j.Logger;
@@ -40,7 +41,10 @@ public class WindowsFileWatcherRegistryFactory extends AbstractFileWatcherRegist
     // See https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-readdirectorychangesw#remarks:~:text=ERROR_INVALID_PARAMETER
     private static final int BUFFER_SIZE = 64 * 1024;
 
-    public WindowsFileWatcherRegistryFactory(WatchableFileSystemDetector watchableFileSystemDetector, Predicate<String> watchFilter) throws NativeIntegrationUnavailableException {
+    public WindowsFileWatcherRegistryFactory(
+        WatchableFileSystemDetector watchableFileSystemDetector,
+        Predicate<String> watchFilter
+    ) throws NativeIntegrationUnavailableException {
         super(FileEvents.get(WindowsFileEventFunctions.class), watchableFileSystemDetector, watchFilter);
     }
 
@@ -52,8 +56,12 @@ public class WindowsFileWatcherRegistryFactory extends AbstractFileWatcherRegist
     }
 
     @Override
-    protected FileWatcherUpdater createFileWatcherUpdater(WindowsFileWatcher watcher, WatchableHierarchies watchableHierarchies) {
-        return new HierarchicalFileWatcherUpdater(watcher, NO_VALIDATION, watchableHierarchies, root -> invalidateMovedPaths(watcher, root));
+    protected FileWatcherUpdater createFileWatcherUpdater(
+        WindowsFileWatcher watcher,
+        FileWatcherProbeRegistry probeRegistry,
+        WatchableHierarchies watchableHierarchies
+    ) {
+        return new HierarchicalFileWatcherUpdater(watcher, NO_VALIDATION, probeRegistry, watchableHierarchies, root -> invalidateMovedPaths(watcher, root));
     }
 
     private static SnapshotHierarchy invalidateMovedPaths(WindowsFileWatcher watcher, SnapshotHierarchy root) {

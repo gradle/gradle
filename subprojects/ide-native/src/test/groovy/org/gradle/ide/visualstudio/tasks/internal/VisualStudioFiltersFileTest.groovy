@@ -15,6 +15,8 @@
  */
 
 package org.gradle.ide.visualstudio.tasks.internal
+
+import groovy.xml.XmlParser
 import org.gradle.api.Transformer
 import org.gradle.internal.xml.XmlTransformer
 import org.gradle.test.fixtures.file.TestFile

@@ -17,7 +17,6 @@
 package org.gradle.internal.nativeintegration.jansi
 
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import static org.gradle.internal.nativeintegration.jansi.JansiLibraryFactory.*
 
@@ -42,7 +41,6 @@ class JansiLibraryFactoryTest extends Specification {
         jansiLibrary.resourcePath ==  "/META-INF/native/" + jansiLibrary.path
     }
 
-    @Unroll
     def "jansi library can be created for Linux platform #platform"() {
         when:
         JansiLibrary jansiLibrary = factory.create()
@@ -58,7 +56,6 @@ class JansiLibraryFactoryTest extends Specification {
         platform << ['linux32', 'linux64']
     }
 
-    @Unroll
     def "jansi library can be created for Windows platform #platform"() {
         when:
         JansiLibrary jansiLibrary = factory.create()

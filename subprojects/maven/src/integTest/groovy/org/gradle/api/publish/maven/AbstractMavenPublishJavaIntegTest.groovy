@@ -26,7 +26,6 @@ import org.gradle.test.fixtures.maven.MavenJavaModule
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Ignore
 import spock.lang.Issue
-import spock.lang.Unroll
 
 abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
     MavenFileModule module = mavenRepo.module("org.gradle.test", "publishTest", "1.9")
@@ -463,7 +462,6 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
         }
     }
 
-    @Unroll('can publish java-library with dependencies with maven incompatible version notation: #version')
     def "can publish java-library with dependencies with maven incompatible version notation: #version"() {
 
         given:
@@ -547,8 +545,7 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
         }
     }
 
-    @Unroll("'#gradleConfiguration' dependencies end up in '#mavenScope' scope with '#plugin' plugin")
-    void "maps dependencies in the correct Maven scope"() {
+    void "'#gradleConfiguration' dependencies end up in '#mavenScope' scope with '#plugin' plugin"() {
         given:
         createBuildScripts """
             publishing {
@@ -988,7 +985,6 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
         outputContains "Maven publication 'java' isn't attached to a component. Gradle metadata only supports publications with software components (e.g. from component.java)"
     }
 
-    @Unroll
     @ToBeFixedForConfigurationCache
     def 'can publish java library with a #config dependency on a published BOM platform"'() {
         given:
@@ -1150,7 +1146,6 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
         // Sadly this does not take care of the Gradle metadata
     }
 
-    @Unroll
     @ToBeFixedForConfigurationCache
     def 'can publish java library with a #config dependency on a java-platform subproject"'() {
         given:
@@ -1222,7 +1217,6 @@ include(':platform')
 
     }
 
-    @Unroll
     def "publishes Gradle metadata redirection marker when Gradle metadata task is enabled (enabled=#enabled)"() {
         given:
         createBuildScripts("""

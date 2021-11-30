@@ -17,6 +17,7 @@ dependencies {
     implementation(libs.asm)
     implementation(libs.asmTree)
     implementation(libs.junit)
+    implementation(libs.junit5JupiterApi)
     implementation(libs.spock)
     implementation(libs.spockJUnit4)
     implementation(libs.jsoup)

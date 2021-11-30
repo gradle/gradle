@@ -33,10 +33,56 @@ Some plugins will break with this new version of Gradle, for example because the
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
+[[changes_7.4]]
+== Upgrading from 7.3 and earlier
+
+=== Potential breaking changes
+
+=== Kotlin build scripts compilation enforces non-null APIs
+
+If a Kotlin build script uses a Java API that has nullability annotations (JSR-305) then the compilation will enforce those constraints. Previous Gradle versions, however, forgot to add the same enforcement to the Kotlin build script compilation. Starting from Gradle 7.4 the nullability checks are enforced in the script compilation.
+
+==== Updates to default tool integration versions
+
+- PMD has been updated to https://github.com/pmd/pmd/releases/tag/pmd_releases%2F6.39.0[PMD 6.39.0].
+
+=== Deprecations
+
+[[adoptopenjdk_download]]
+==== AdoptOpenJDK toolchain download
+
+Following the move from AdoptOpenJDK to Adoptium, under the Eclipse foundation, it is no longer possible to download an AdoptOpenJDK build from their end point.
+Instead, an Eclipse Temurin or IBM Semeru build is returned.
+
+Gradle 7.4+ will now emit a deprecation warning when the AdoptOpenJDK vendor is specified in the <<toolchains.adoc#sec:vendors,toolchain specification>> and it is used by auto provisioning.
+If you must use AdoptOpenJDK, you should turn off auto-download. If an Eclipse Temurin or IBM Semeru build works for you, specify `JvmVendorSpec.ADOPTIUM` or `JvmVendorSpec.IBM_SEMERU` as the vendor or leave the vendor unspecified.
+
+[[empty_directories_file_tree]]
+==== File trees and empty directory handling
+
+When using `@link:{javadocPath}/org/gradle/api/tasks/SkipWhenEmpty.html[SkipWhenEmpty]` on an input file collection, Gradle skips the task when it determines that the input is empty.
+If the input file collection consists only of file trees, Gradle ignores directories for the emptiness check.
+Though when checking for changes to the input file collection, Gradle only ignores directories when the `@link:{javadocPath}/org/gradle/api/tasks/IgnoreEmptyDirectories.html[IgnoreEmptyDirectories]` annotation is present.
+
+Gradle will now ignore directories for both the `@SkipWhenEmpty` check and for determining changes consistently.
+Until Gradle 8.0, Gradle will detect if an input file collection annotated with `@SkipWhenEmpty` consists only of file trees and then ignore directories automatically.
+Moreover, Gradle will issue a deprecation warning to advise the user that the behavior will change in Gradle 8.0, and that the input property should be annotated with `@IgnoreEmptyDirectories`.
+To ignore directories in Gradle 8.0 and later, the input property needs to be annotated with `@IgnoreEmptyDirectories`.
+
+Finally, using `@link:{javadocPath}/org/gradle/api/tasks/InputDirectory.html[InputDirectory]` implies `@IgnoreEmptyDirectories`, so no changes are necessary when using this annotation.
+The same is true for `@link:{javadocPath}/org/gradle/api/tasks/TaskInputs.html#dir-java.lang.Object-[inputs.dir()]` when registering an input directory via the runtime API.
+
 [[changes_7.3]]
 == Upgrading from 7.2 and earlier
 
 === Potential breaking changes
+
+==== Updates to bundled Gradle dependencies
+
+- Kotlin has been updated to https://github.com/JetBrains/kotlin/releases/tag/v1.5.31[Kotlin 1.5.31].
+- Groovy has been updated to https://groovy-lang.org/changelogs/changelog-3.0.9.html[Groovy 3.0.9].
+- Ant has been updated to https://archive.apache.org/dist/ant/RELEASE-NOTES-1.10.11.html[Ant 1.10.11] to fix https://github.com/advisories/GHSA-q5r4-cfpx-h6fh[CVE-2021-36373] and https://github.com/advisories/GHSA-5v34-g2px-j4fw[CVE-2021-36374].
+- Commons compress has been updated to https://commons.apache.org/proper/commons-compress/[Commons-compress 1.21] to fix https://github.com/advisories/GHSA-7hfm-57qf-j43q[CVE-2021-35515], https://github.com/advisories/GHSA-crv7-7245-f45f[CVE-2021-35516], https://github.com/advisories/GHSA-xqfj-vm6h-2x34[CVE-2021-35517] and https://github.com/advisories/GHSA-mc84-pj99-q6hh[CVE-2021-36090].
 
 ==== Application order of plugins in the `plugins` block
 
@@ -50,6 +96,27 @@ behavior of existing builds.
 Prior to this version, a dependency substitution target could not be excluded from a dependency graph.
 This was caused by checking for exclusions prior to performing the substitution.
 Now Gradle will also check for exclusion on the substitution result.
+
+==== Version catalog
+
+Generated accessors no longer give access to the type unsafe API.
+You have to use the <<platforms.adoc#sub:type-unsafe-access-to-catalog,version catalog extension>> instead.
+
+==== Toolchain support in Scala
+
+When using <<scala_plugin.adoc#sec:scala_tasks,toolchains in Scala>>, the `-target` option of the Scala compiler will now be set automatically.
+This means that using a version of Java that cannot be targeted by a version of Scala will result in an error.
+Providing this flag in the compiler options will disable this behaviour and allow to use a higher Java version to compile for a lower bytecode target.
+
+[[declare_unreadable_input_output]]
+==== Declaring input or output directories which contain unreadable content
+
+For up-to-date checks Gradle relies on tracking the state of the inputs and the outputs of a task.
+Gradle used to ignore unreadable files in the input or outputs to support certain use-cases, although it cannot track their state.
+Declaring input or output directories on tasks which contain unreadable content has been deprecated and these use-cases are now supported by declaring the task to be untracked.
+Use the @link:{javadocPath}/org/gradle/api/tasks/UntrackedTask.html[UntrackedTask] annotation or the @link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:doNotTrackState(java.lang.String)[Task.doNotTrackState()] method to declare a task as untracked.
+
+When you are using a `@link:{groovyDslPath}/org.gradle.api.tasks.Copy.html[Copy]` task for copying single files into a directory which contains unreadable files, use the method link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:doNotTrackState(java.lang.String)[Task.doNotTrackState()].
 
 [[changes_7.2]]
 == Upgrading from 7.1 and earlier
@@ -349,7 +416,7 @@ Now, it is officially annotated as deprecated and scheduled for removal in Gradl
 ==== Deprecated `java` plugin conventions
 
 The convention properties contributed by the `java` plugin have been deprecated and scheduled for removal in Gradle 8.0.
-They are replaced by the the properties of link:{groovyDslPath}/org.gradle.api.plugins.JavaPluginExtension.html[JavaPluginExtension] which can we configured in the `java {}` block.
+They are replaced by the the properties of link:{groovyDslPath}/org.gradle.api.plugins.JavaPluginExtension.html[JavaPluginExtension] which can be configured in the `java {}` block.
 
 [[plugin_configuration_consumption]]
 ==== Deprecated consumption of internal plugin configurations
@@ -437,6 +504,7 @@ The following source set interfaces are now deprecated and scheduled for removal
 - link:{javadocPath}/org/gradle/api/tasks/ScalaSourceSet.html[ScalaSourceSet]
 
 Clients should configure the sources with their plugin-specific configuration:
+
 - `groovy`: link:{javadocPath}/org/gradle/api/tasks/GroovySourceDirectorySet.html[GroovySourceDirectorySet]
 - `antlr`: link:{javadocPath}/org/gradle/api/plugins/antlr/AntlrSourceDirectorySet.html[AntlrSourceDirectorySet]
 - `scala`: link:{javadocPath}/org/gradle/api/tasks/ScalaSourceDirectorySet.html[ScalaSourceDirectorySet]

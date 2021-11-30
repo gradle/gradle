@@ -27,7 +27,6 @@ import org.gradle.internal.logging.services.LoggingServiceRegistry
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Subject
-import spock.lang.Unroll
 
 import java.util.function.Supplier
 
@@ -39,8 +38,7 @@ class DefaultVersionCatalogBuilderTest extends Specification implements VersionC
     @VersionCatalogProblemTestFor(
         VersionCatalogProblemId.INVALID_DEPENDENCY_NOTATION
     )
-    @Unroll("#notation is an invalid notation")
-    def "reasonable error message if notation is invalid"() {
+    def "#notation is an invalid notation"() {
         when:
         builder.alias("foo").to(notation)
 
@@ -59,8 +57,7 @@ class DefaultVersionCatalogBuilderTest extends Specification implements VersionC
     @VersionCatalogProblemTestFor(
         VersionCatalogProblemId.INVALID_ALIAS_NOTATION
     )
-    @Unroll("#notation is an invalid alias")
-    def "reasonable error message if alias is invalid"() {
+    def "#notation is an invalid alias"() {
         when:
         builder.alias(notation).to("org:foo:1.0")
 
@@ -78,7 +75,6 @@ class DefaultVersionCatalogBuilderTest extends Specification implements VersionC
     @VersionCatalogProblemTestFor(
         VersionCatalogProblemId.RESERVED_ALIAS_NAME
     )
-    @Unroll
     def "forbids using #name as a dependency alias"() {
         when:
         builder.alias(name).to("org:foo:1.0")
@@ -87,28 +83,76 @@ class DefaultVersionCatalogBuilderTest extends Specification implements VersionC
         InvalidUserDataException ex = thrown()
         verify(ex.message, reservedAlias {
             inCatalog('libs')
-            alias(name).shouldNotEndWith(suffix)
-            reservedAliasSuffix('bundle', 'bundles', 'version', 'versions', 'plugin', 'plugins')
+            alias(name).shouldNotBeEqualTo(prefix)
+            reservedAliasPrefix('bundles', 'plugins', 'versions')
         })
 
         where:
-        name          | suffix
-        "bundles"     | "bundles"
-        "versions"    | "versions"
-        "plugins"     | "plugins"
-        "fooBundle"   | "bundle"
-        "fooVersion"  | "version"
-        "fooPlugin"   | "plugin"
-        "foo.plugin"  | "plugin"
-        "foo.bundle"  | "bundle"
-        "foo.version" | "version"
+        name                  | prefix
+        "bundles"             | "bundles"
+        "versions"            | "versions"
+        "plugins"             | "plugins"
+        "bundles-my"          | "bundles"
+        "versions_my"         | "versions"
+        "plugins.my"          | "plugins"
+    }
+
+    @VersionCatalogProblemTestFor(
+        VersionCatalogProblemId.RESERVED_ALIAS_NAME
+    )
+    def "allows using #name as a dependency alias"() {
+        when:
+        builder.alias(name).to("org:foo:1.0")
+
+        then:
+        noExceptionThrown()
+
+        where:
+        name << [
+            "version",
+            "bundle",
+            "plugin",
+            "my-bundles",
+            "my-versions",
+            "my-plugins",
+            "my-bundle",
+            "my-plugin",
+            "my-version",
+            "myBundles",
+            "myPlugins",
+            "myVersions",
+            "bundlesOfMe",
+            "pluginsOfMe",
+            "versionsOfMe",
+        ]
+    }
+
+    @VersionCatalogProblemTestFor(
+        VersionCatalogProblemId.RESERVED_ALIAS_NAME
+    )
+    def "allows using #name for versions and plugins"() {
+        when:
+        builder.alias(name).toPluginId("org.foo").version("1.0")
+        builder.version(name, "1.0")
+
+        then:
+        noExceptionThrown()
+
+        where:
+        name << [
+            "bundles",
+            "versions",
+            "plugins",
+            "bundles-my",
+            "versions_my",
+            "plugins.my"
+        ]
     }
 
     @VersionCatalogProblemTestFor(
         VersionCatalogProblemId.INVALID_ALIAS_NOTATION
     )
-    @Unroll("#notation is an invalid bundle name")
-    def "reasonable error message if bundle name is invalid"() {
+    def "#notation is an invalid bundle name"() {
         when:
         builder.bundle(notation, [])
 

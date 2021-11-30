@@ -118,6 +118,15 @@ abstract class AbstractHttpCrossVersionSpec extends ToolingApiSpecification {
             this.projectD = projectD
         }
 
+        def useLargeJars() {
+            def file = new RandomAccessFile(projectB.artifact.file, "rw")
+            try {
+                file.setLength(100 * 1024) // not that large
+            } finally {
+                file.close()
+            }
+        }
+
         def expectResolved() {
             projectB.pom.expectGet()
             projectB.artifact.expectGet()

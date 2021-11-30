@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.executer.MoreMemorySampleModifier;
 import org.gradle.integtests.fixtures.logging.ArtifactResolutionOmittingOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.ConfigurationCacheOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.DependencyInsightOutputNormalizer;
+import org.gradle.integtests.fixtures.logging.EmbeddedKotlinOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.GradleWelcomeOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.NativeComponentReportOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.SampleOutputNormalizer;
@@ -39,7 +40,8 @@ import org.gradle.exemplar.test.runner.SamplesOutputNormalizers;
     ArtifactResolutionOmittingOutputNormalizer.class,
     NativeComponentReportOutputNormalizer.class,
     DependencyInsightOutputNormalizer.class,
-    ConfigurationCacheOutputNormalizer.class
+    ConfigurationCacheOutputNormalizer.class,
+    EmbeddedKotlinOutputNormalizer.class
 })
 @SampleModifiers({
     SetMirrorsSampleModifier.class,
@@ -51,7 +53,7 @@ import org.gradle.exemplar.test.runner.SamplesOutputNormalizers;
  * Say you want to run the snippet found at:
  *    src/snippets/dependencyManagement/customizingResolution-consistentResolution
  *
- * then you can run the followng command line:
+ * then you can run the following command line:
  *
  * ./gradlew :docs:docsTest --tests "*.snippet-dependency-management-customizing-resolution-consistent-resolution*"
  *

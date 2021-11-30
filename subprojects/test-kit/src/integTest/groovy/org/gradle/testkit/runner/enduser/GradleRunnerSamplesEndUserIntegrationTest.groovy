@@ -26,7 +26,6 @@ import org.gradle.testkit.runner.fixtures.NonCrossVersion
 import org.gradle.util.Requires
 import org.junit.Rule
 import spock.lang.IgnoreIf
-import spock.lang.Unroll
 
 import static org.gradle.util.TestPrecondition.JDK11_OR_EARLIER
 import static org.gradle.util.TestPrecondition.ONLINE
@@ -51,7 +50,6 @@ class GradleRunnerSamplesEndUserIntegrationTest extends BaseTestKitEndUserIntegr
         """
     }
 
-    @Unroll
     @UsesSample("testKit/junitQuickstart")
     def "junitQuickstart with #dsl dsl"() {
         expect:
@@ -69,7 +67,6 @@ class GradleRunnerSamplesEndUserIntegrationTest extends BaseTestKitEndUserIntegr
         succeeds "check"
     }
 
-    @Unroll
     @UsesSample("testKit/automaticClasspathInjectionQuickstart")
     def "automaticClasspathInjectionQuickstart with #dsl dsl"() {
         expect:
@@ -80,7 +77,6 @@ class GradleRunnerSamplesEndUserIntegrationTest extends BaseTestKitEndUserIntegr
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
     @UsesSample("testKit/automaticClasspathInjectionCustomTestSourceSet")
     def "automaticClasspathInjectionCustomTestSourceSet with #dsl dsl"() {
         expect:

@@ -16,9 +16,6 @@
 
 package org.gradle.api.internal.tasks.properties;
 
-import org.gradle.internal.scan.UsedByScanPlugin;
-
-@UsedByScanPlugin("test-distribution")
 public enum InputFilePropertyType {
     FILE(ValidationActions.INPUT_FILE_VALIDATOR),
     DIRECTORY(ValidationActions.INPUT_DIRECTORY_VALIDATOR),
