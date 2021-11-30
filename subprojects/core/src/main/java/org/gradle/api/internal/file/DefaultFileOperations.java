@@ -179,14 +179,6 @@ public class DefaultFileOperations implements FileOperations {
 
     @Override
     public FileTreeInternal tarTree(Object tarPath) {
-        if (tarPath instanceof ReadableResource) {
-            boolean hasBackingFile = tarPath instanceof ReadableResourceInternal
-                && ((ReadableResourceInternal) tarPath).getBackingFile() != null;
-            if (!hasBackingFile) {
-                throw new InvalidUserCodeException("Cannot use tarTree() on a resource without a backing file.");
-            }
-        }
-
         Provider<File> fileProvider = asFileProvider(tarPath);
         Provider<ReadableResourceInternal> resource = providers.provider(() -> {
             if (tarPath instanceof ReadableResourceInternal) {
@@ -197,13 +189,18 @@ public class DefaultFileOperations implements FileOperations {
             }
         });
 
-        TarFileTree tarTree = new TarFileTree(fileProvider, resource.map(MaybeCompressedFileResource::new), getExpandDir(), fileSystem, directoryFileTreeFactory, streamHasher, fileHasher);
+        TarFileTree tarTree = new TarFileTree(fileProvider, resource.map(MaybeCompressedFileResource::new), getExpandDir(), fileSystem, directoryFileTreeFactory, fileHasher);
         return new FileTreeAdapter(tarTree, patternSetFactory);
     }
 
     private Provider<File> asFileProvider(Object path) {
-        if (path instanceof ReadableResourceInternal) {
-            return providers.provider(() -> null);
+        if (path instanceof ReadableResource) {
+            boolean hasBackingFile = path instanceof ReadableResourceInternal
+                && ((ReadableResourceInternal) path).getBackingFile() != null;
+            if (!hasBackingFile) {
+                throw new InvalidUserCodeException("Cannot use tarTree() on a resource without a backing file.");
+            }
+            return providers.provider(() -> ((ReadableResourceInternal) path).getBackingFile());
         }
         if (path instanceof Provider) {
             ProviderInternal<?> provider = (ProviderInternal<?>) path;
