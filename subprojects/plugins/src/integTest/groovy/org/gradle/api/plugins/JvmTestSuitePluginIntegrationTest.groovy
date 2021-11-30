@@ -431,6 +431,28 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
         result.assertHasErrorOutput("Could not configure suite: 'test'. Another test suite: 'secondaryTest' uses the type: 'unit-test' and has already been configured in project: 'Test'.")
     }
 
+    def "Only one suite with a given test type allowed per project (using the default type of one suite and explicitly setting the other)"() {
+        settingsFile << """rootProject.name = 'Test'"""
+        buildFile << """plugins {
+                id 'java'
+            }
+
+            testing {
+                suites {
+                    integrationTest(JvmTestSuite)
+
+                    secondaryIntegrationTest(JvmTestSuite) {
+                        testType = TestSuiteType.INTEGRATION_TEST
+                    }
+                }
+            }
+            """.stripIndent()
+
+        expect:
+        fails('integrationTest', 'secondaryIntegrationTest')
+        result.assertHasErrorOutput("Could not configure suite: 'secondaryIntegrationTest'. Another test suite: 'integrationTest' uses the type: 'integration-test' and has already been configured in project: 'Test'.")
+    }
+
     def "Test suites in different projects can use same test type"() {
         def subADir = createDir("subA")
         subADir.file("build.gradle") << """
