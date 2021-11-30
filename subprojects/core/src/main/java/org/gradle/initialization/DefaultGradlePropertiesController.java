@@ -42,6 +42,11 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
         state = state.loadGradlePropertiesFrom(settingsDir);
     }
 
+    @Override
+    public void unloadGradleProperties() {
+       state = new NotLoaded();
+    }
+
     public void overrideWith(GradleProperties gradleProperties) {
         state = state.overrideWith(gradleProperties);
     }

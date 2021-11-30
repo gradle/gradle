@@ -329,10 +329,6 @@ class DefaultGradlePropertiesLoaderTest extends Specification {
     }
 
     private GradleProperties loadPropertiesFrom(File settingsDir) {
-        return gradlePropertiesLoader.loadProperties(
-            settingsDir,
-            systemProperties,
-            environmentVariables
-        )
+        return gradlePropertiesLoader.loadProperties(settingsDir)
     }
 }

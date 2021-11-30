@@ -16,38 +16,134 @@
 
 package org.gradle.configurationcache
 
+
+import static org.gradle.initialization.IGradlePropertiesLoader.ENV_PROJECT_PROPERTIES_PREFIX
+import static org.gradle.initialization.IGradlePropertiesLoader.SYSTEM_PROJECT_PROPERTIES_PREFIX
+
 class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+
+    def "invalidates cache when set of Gradle property defining system properties changes"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        settingsFile << """
+            println(gradleProp + '!')
+        """
+
+        when:
+        configurationCacheRun "help", "-D${SYSTEM_PROJECT_PROPERTIES_PREFIX}gradleProp=1"
+
+        then:
+        outputContains '1!'
+        configurationCache.assertStateStored()
+
+        when:
+        configurationCacheRun "help", "-D${SYSTEM_PROJECT_PROPERTIES_PREFIX}gradleProp=1"
+
+        then:
+        outputDoesNotContain '1!'
+        configurationCache.assertStateLoaded()
+
+        when:
+        configurationCacheRun "help", "-D${SYSTEM_PROJECT_PROPERTIES_PREFIX}gradleProp=2"
+
+        then:
+        outputContains '2!'
+        outputContains "because the set of system properties prefixed by '${SYSTEM_PROJECT_PROPERTIES_PREFIX}' has changed."
+        configurationCache.assertStateStored()
+
+        when:
+        configurationCacheRun "help", "-D${SYSTEM_PROJECT_PROPERTIES_PREFIX}gradleProp=2", "-D${SYSTEM_PROJECT_PROPERTIES_PREFIX}unusedProp=2"
+
+        then:
+        outputContains '2!'
+        outputContains "because the set of system properties prefixed by '${SYSTEM_PROJECT_PROPERTIES_PREFIX}' has changed."
+        configurationCache.assertStateStored()
+    }
+
+    def "invalidates cache when set of Gradle property defining environment variables changes"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        settingsFile << """
+            println(gradleProp + '!')
+        """
+
+        when:
+        executer.withEnvironmentVars([
+            (ENV_PROJECT_PROPERTIES_PREFIX + 'gradleProp'): 1
+        ])
+        configurationCacheRun "help"
+
+        then:
+        outputContains '1!'
+        configurationCache.assertStateStored()
+
+        when:
+        executer.withEnvironmentVars([
+            (ENV_PROJECT_PROPERTIES_PREFIX + 'gradleProp'): 1
+        ])
+        configurationCacheRun "help"
+
+        then:
+        outputDoesNotContain '1!'
+        configurationCache.assertStateLoaded()
+
+        when:
+        executer.withEnvironmentVars([
+            (ENV_PROJECT_PROPERTIES_PREFIX + 'gradleProp'): 2
+        ])
+        configurationCacheRun "help"
+
+        then:
+        outputContains '2!'
+        outputContains "because the set of environment variables prefixed by '$ENV_PROJECT_PROPERTIES_PREFIX' has changed."
+        configurationCache.assertStateStored()
+
+        when: 'the set of prefixed environment variables changes'
+        executer.withEnvironmentVars([
+            (ENV_PROJECT_PROPERTIES_PREFIX + 'unused'): 1,
+            (ENV_PROJECT_PROPERTIES_PREFIX + 'gradleProp'): 2
+        ])
+        configurationCacheRun "help"
+
+        then: 'the cache is invalidated'
+        outputContains '2!'
+        outputContains "because the set of environment variables prefixed by '${ENV_PROJECT_PROPERTIES_PREFIX}' has changed."
+        configurationCache.assertStateStored()
+    }
 
     def "detects dynamic Gradle property access in settings script"() {
         given:
         def configurationCache = newConfigurationCacheFixture()
         settingsFile << """
-            println($dynamicPropertyExpression)
+            println($dynamicPropertyExpression + '!')
         """
 
         when:
-        configurationCacheRun "help", "-PtheProperty=1", "-PunusedProperty=42"
+        configurationCacheRun "help", "-PgradleProp=1", "-PunusedProperty=42"
 
         then:
+        outputContains '1!'
         configurationCache.assertStateStored()
 
         when:
-        configurationCacheRun "help", "-PunusedProperty=42", "-PtheProperty=1"
+        configurationCacheRun "help", "-PunusedProperty=42", "-PgradleProp=1"
 
         then:
+        outputDoesNotContain '1!'
         configurationCache.assertStateLoaded()
 
         when:
-        configurationCacheRun "help", "-PtheProperty=2"
+        configurationCacheRun "help", "-PgradleProp=2"
 
         then:
+        outputContains '2!'
         configurationCache.assertStateStored()
-        output.contains("because the set of Gradle properties has changed.")
+        outputContains "because the set of Gradle properties has changed."
 
         where:
         dynamicPropertyExpression << [
-            'theProperty',
-            'ext.theProperty'
+            'gradleProp',
+            'ext.gradleProp'
         ]
     }
 }

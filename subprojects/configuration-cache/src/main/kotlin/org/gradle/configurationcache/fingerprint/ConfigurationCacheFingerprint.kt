@@ -82,6 +82,16 @@ sealed class ConfigurationCacheFingerprint {
         override val reason: String
             get() = "cached artifact information for $displayName has expired"
     }
+
+    class SystemPropertiesPrefixedBy(
+        val prefix: String,
+        val snapshot: Map<String, String?>
+    ) : ConfigurationCacheFingerprint()
+
+    class EnvironmentVariablesPrefixedBy(
+        val prefix: String,
+        val snapshot: Map<String, String?>
+    ) : ConfigurationCacheFingerprint()
 }
 
 
