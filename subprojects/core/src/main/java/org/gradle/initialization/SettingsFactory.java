@@ -65,7 +65,7 @@ public class SettingsFactory {
             settingsScript,
             startParameter
         );
-        Map<String, String> properties = gradleProperties.mergeProperties(emptyMap());
+        Map<String, Object> properties = gradleProperties.mergeProperties(emptyMap());
         DynamicObject dynamicObject = ((DynamicObjectAware) settings).getAsDynamicObject();
         ((ExtensibleDynamicObject) dynamicObject).addProperties(properties);
         return settings;

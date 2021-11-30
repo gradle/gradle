@@ -45,8 +45,8 @@ public class DefaultGradlePropertiesLoader implements IGradlePropertiesLoader {
     }
 
     GradleProperties loadProperties(File rootDir, Map<String, String> systemProperties, Map<String, String> environmentVariables) {
-        Map<String, String> defaultProperties = new HashMap<>();
-        Map<String, String> overrideProperties = new HashMap<>();
+        Map<String, Object> defaultProperties = new HashMap<>();
+        Map<String, Object> overrideProperties = new HashMap<>();
 
         addGradlePropertiesFrom(startParameter.getGradleHomeDir(), defaultProperties);
         addGradlePropertiesFrom(rootDir, defaultProperties);
@@ -66,7 +66,7 @@ public class DefaultGradlePropertiesLoader implements IGradlePropertiesLoader {
         return new DefaultGradleProperties(defaultProperties, overrideProperties);
     }
 
-    private void addGradlePropertiesFrom(File dir, Map<String, String> target) {
+    private void addGradlePropertiesFrom(File dir, Map<String, Object> target) {
         Map<String, String> propertiesFile = environment.propertiesFile(new File(dir, GRADLE_PROPERTIES));
         if (propertiesFile != null) {
             target.putAll(propertiesFile);
@@ -98,7 +98,7 @@ public class DefaultGradlePropertiesLoader implements IGradlePropertiesLoader {
         return result;
     }
 
-    private void setSystemPropertiesFromGradleProperties(Map<String, String> properties) {
+    private void setSystemPropertiesFromGradleProperties(Map<String, Object> properties) {
         if (properties.isEmpty()) {
             return;
         }
@@ -106,7 +106,7 @@ public class DefaultGradlePropertiesLoader implements IGradlePropertiesLoader {
         int prefixLength = prefix.length();
         for (String key : properties.keySet()) {
             if (key.length() > prefixLength && key.startsWith(prefix)) {
-                System.setProperty(key.substring(prefixLength), properties.get(key));
+                System.setProperty(key.substring(prefixLength), (String)properties.get(key));
             }
         }
     }
