@@ -192,7 +192,7 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
             testing {
                 suites {
                     integTest(JvmTestSuite) {
-                        testType = TestType.INTEGRATION_TESTS
+                        testType = TestSuiteType.INTEGRATION_TESTS
                         useJUnit()
                         dependencies {
                           implementation project
@@ -207,7 +207,7 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
             testing {
                 suites {
                     integTest(JvmTestSuite) {
-                        testType = TestType.INTEGRATION_TESTS
+                        testType = TestSuiteType.INTEGRATION_TESTS
                         useJUnit()
                         dependencies {
                             implementation project(':transitive') // necessary to access Divisor when compiling test
@@ -300,7 +300,7 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
             reporting {
                 reports {
                     testCodeCoverageReport(JacocoCoverageReport) {
-                        testType = TestType.UNIT_TESTS
+                        testType = TestSuiteType.UNIT_TESTS
                     }
                 }
             }

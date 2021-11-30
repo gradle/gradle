@@ -63,9 +63,9 @@ class JavaPluginIntegrationTest extends AbstractIntegrationSpec {
             Capabilities
                 - :${getTestDirectory().getName()}:unspecified (default capability)
             Attributes
-                - org.gradle.category = sources
-                - org.gradle.sources  = all-source-directories
-                - org.gradle.usage    = verification
+                - org.gradle.category            = verification
+                - org.gradle.dependency.bundling = external
+                - org.gradle.verificationtype    = main-sources
 
             Artifacts
                 - src${File.separator}main${File.separator}java (artifactType = directory)
@@ -94,9 +94,9 @@ class JavaPluginIntegrationTest extends AbstractIntegrationSpec {
             Capabilities
                 - :${getTestDirectory().getName()}:unspecified (default capability)
             Attributes
-                - org.gradle.category = sources
-                - org.gradle.sources  = all-source-directories
-                - org.gradle.usage    = verification
+                - org.gradle.category            = verification
+                - org.gradle.dependency.bundling = external
+                - org.gradle.verificationtype    = main-sources
 
             Artifacts
                 - src${File.separator}main${File.separator}java (artifactType = directory)
@@ -117,9 +117,8 @@ class JavaPluginIntegrationTest extends AbstractIntegrationSpec {
                 canBeResolved = true
                 canBeConsumed = false
                 attributes {
-                    attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.VERIFICATION))
-                    attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.SOURCES))
-                    attribute(Sources.SOURCES_ATTRIBUTE, objects.named(Sources, Sources.ALL_SOURCE_DIRS))
+                    attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.VERIFICATION))
+                    attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objects.named(VerificationType.class, VerificationType.MAIN_SOURCES))
                 }
             }
 
@@ -207,9 +206,8 @@ class JavaPluginIntegrationTest extends AbstractIntegrationSpec {
                 canBeConsumed = false
                 extendsFrom(configurations.implementation)
                 attributes {
-                    attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.VERIFICATION))
-                    attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.SOURCES))
-                    attribute(Sources.SOURCES_ATTRIBUTE, objects.named(Sources, Sources.ALL_SOURCE_DIRS))
+                    attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.VERIFICATION))
+                    attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objects.named(VerificationType, VerificationType.MAIN_SOURCES))
                 }
             }
 
