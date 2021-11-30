@@ -119,6 +119,10 @@ abstract class SettingsDelegate : Settings {
     override fun includeFlat(vararg projectNames: String?) =
         delegate.includeFlat(*projectNames)
 
+    override fun includeFlat(projectNames: Iterable<String>) {
+        delegate.includeFlat(projectNames)
+    }
+
     override fun getStartParameter(): StartParameter =
         delegate.startParameter
 

@@ -174,7 +174,7 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
     }
 
     @Override
-    public void includeFlat(String... projectNames) {
+    public void includeFlat(Iterable<String> projectNames) {
         for (String projectName : projectNames) {
             createProjectDescriptor(rootProjectDescriptor, projectName,
                 new File(rootProjectDescriptor.getProjectDir().getParentFile(), projectName));
