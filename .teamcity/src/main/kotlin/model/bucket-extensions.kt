@@ -56,7 +56,7 @@ fun <T, R> splitIntoBuckets(
         val bucketNumberOfFirstElement = if (largestElementSize % expectedBucketSize == 0)
             largestElementSize / expectedBucketSize
         else
-            // Leave at least one bucket for the remaining elements
+        // Leave at least one bucket for the remaining elements
             min(largestElementSize / expectedBucketSize + 1, expectedBucketNumber - 1)
         val bucketsOfFirstElement = largeElementSplitFunction(largestElement, bucketNumberOfFirstElement)
         val bucketsOfRestElements = splitIntoBuckets(list, toIntFunction, largeElementSplitFunction, smallElementAggregateFunction, expectedBucketNumber - bucketsOfFirstElement.size, maxNumberInBucket, noElementSplitFunction, canRunTogether)

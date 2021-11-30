@@ -129,7 +129,7 @@ fun BuildType.attachFileLeakDetector() {
             executionMode = BuildStep.ExecutionMode.ALWAYS
             scriptContent = """
             "%windows.java11.openjdk.64bit%\bin\java" gradle/AttachAgentToDaemon.java
-        """.trimIndent()
+            """.trimIndent()
         }
     }
 }
@@ -155,7 +155,17 @@ fun BuildType.dumpOpenFiles() {
     }
 }
 
-fun applyDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTasks: String, notQuick: Boolean = false, os: Os = Os.LINUX, extraParameters: String = "", timeout: Int = 90, extraSteps: BuildSteps.() -> Unit = {}, daemon: Boolean = true) {
+fun applyDefaults(
+    model: CIBuildModel,
+    buildType: BaseGradleBuildType,
+    gradleTasks: String,
+    notQuick: Boolean = false,
+    os: Os = Os.LINUX,
+    extraParameters: String = "",
+    timeout: Int = 90,
+    daemon: Boolean = true,
+    extraSteps: BuildSteps.() -> Unit = {}
+) {
     buildType.applyDefaultSettings(os, timeout = timeout)
 
     buildType.killProcessStep("KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS", daemon)

@@ -80,7 +80,8 @@ class Gradleception(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(sta
                 gradleHome = "%teamcity.build.checkoutDir%/dogfood-second"
                 gradleParams = defaultParameters
             }
-        })
+        }
+    )
 })
 
 fun BuildSteps.localGradle(init: GradleBuildStep.() -> Unit): GradleBuildStep =
