@@ -141,6 +141,21 @@ class ProblemReportingCrossProjectModelAccess(
             return delegate.toString()
         }
 
+        override fun equals(other: Any?): Boolean {
+            if (other === this) {
+                return true
+            }
+            if (other == null || other.javaClass != javaClass) {
+                return false
+            }
+            val project = other as ProblemReportingProject
+            return delegate == project.delegate && referrer == project.referrer
+        }
+
+        override fun hashCode(): Int {
+            return delegate.hashCode()
+        }
+
         override fun getProperty(propertyName: String): Any {
             // Attempt to get the property value via this instance. If not present, then attempt to lookup via the delegate
             val thisBean = BeanDynamicObject(this).withNotImplementsMissing()
