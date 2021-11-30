@@ -340,7 +340,7 @@ Many of these options can be specified in `gradle.properties` so command-line fl
 Toggles the <<build_cache.adoc#build_cache, Gradle build cache>>. Gradle will try to reuse outputs from previous builds. _Default is off_.
 
 `--configuration-cache`, `--no-configuration-cache`::
-Toggles the <<configuration_cache.adoc#sec:config_cache,Configuration Cache>>. Gradle will try to reuse the build configuration from previous builds. _Default is off_.
+Toggles the <<configuration_cache.adoc#config_cache,Configuration Cache>>. Gradle will try to reuse the build configuration from previous builds. _Default is off_.
 
 `--configuration-cache-problems=(fail,warn)`::
 Configures how the configuration cache handles problems. Default is `fail`.
@@ -504,7 +504,7 @@ Useful for <<organizing_gradle_projects.adoc#sec:build_sources, debugging and fi
 
 [[sec:dependency_verification_options]]
 == Dependency verification options
-Learn more about this in <<dependency_verification.adoc#sec:verifying-dependencies,dependency verification>>.
+Learn more about this in <<dependency_verification.adoc#verifying-dependencies,dependency verification>>.
 
 `-F=(strict,lenient,off)`, `--dependency-verification=(strict,lenient,off)`::
 Configures the dependency verification mode, see <<dependency_verification.adoc#sec:disabling-verification,what the options mean here>>. The default mode is `strict`.
