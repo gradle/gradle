@@ -33,14 +33,14 @@ public interface TestType extends Named {
     /**
      * Unit tests, the default type of Test Suite
      */
-    String UNIT_TESTS = "unit-tests";
+    String UNIT_TEST = "unit-test";
 
-    String INTEGRATION_TESTS = "integration-tests";
+    String INTEGRATION_TEST = "integration-test";
 
     /**
      * Functional tests, will be added automatically when initializing a new plugin project
      */
-    String FUNCTIONAL_TESTS = "functional-tests";
+    String FUNCTIONAL_TEST = "functional-test";
 
-    String PERFORMANCE_TESTS = "performance-tests";
+    String PERFORMANCE_TEST = "performance-test";
 }

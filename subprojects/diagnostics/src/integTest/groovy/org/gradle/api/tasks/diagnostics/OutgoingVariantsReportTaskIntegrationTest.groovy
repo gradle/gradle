@@ -134,7 +134,7 @@ Attributes
     - org.gradle.docstype      = test-results-bin
     - org.gradle.targetname    = test
     - org.gradle.testsuitename = test
-    - org.gradle.testsuitetype = unit-tests
+    - org.gradle.testsuitetype = unit-test
     - org.gradle.usage         = verification
 
 Artifacts
@@ -289,7 +289,7 @@ Attributes
     - org.gradle.docstype      = test-results-bin
     - org.gradle.targetname    = test
     - org.gradle.testsuitename = test
-    - org.gradle.testsuitetype = unit-tests
+    - org.gradle.testsuitetype = unit-test
     - org.gradle.usage         = verification
 
 Artifacts
@@ -497,7 +497,7 @@ Attributes
     - org.gradle.docstype      = test-results-bin
     - org.gradle.targetname    = test
     - org.gradle.testsuitename = test
-    - org.gradle.testsuitetype = unit-tests
+    - org.gradle.testsuitetype = unit-test
     - org.gradle.usage         = verification
 
 Artifacts

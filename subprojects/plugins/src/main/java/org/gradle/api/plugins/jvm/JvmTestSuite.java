@@ -71,7 +71,7 @@ public interface JvmTestSuite extends TestSuite, Buildable {
     /**
      * Get the test type for this test suite.
      *
-     * Defaults to {@link TestType#UNIT_TESTS}
+     * Defaults to {@link TestType#UNIT_TEST}
      *
      * @since 7.4
      */

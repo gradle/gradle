@@ -55,7 +55,7 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
                 - org.gradle.docstype      = test-results-bin
                 - org.gradle.targetname    = test
                 - org.gradle.testsuitename = test
-                - org.gradle.testsuitetype = unit-tests
+                - org.gradle.testsuitetype = unit-test
                 - org.gradle.usage         = verification
 
             Artifacts
@@ -75,7 +75,7 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
             testing {
                 suites {
                     integrationTest(JvmTestSuite) {
-                        testType = TestType.INTEGRATION_TESTS
+                        testType = TestType.INTEGRATION_TEST
 
                         dependencies {
                             implementation project
@@ -100,7 +100,7 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
                 - org.gradle.docstype      = test-results-bin
                 - org.gradle.targetname    = integrationTest
                 - org.gradle.testsuitename = integrationTest
-                - org.gradle.testsuitetype = integration-tests
+                - org.gradle.testsuitetype = integration-test
                 - org.gradle.usage         = verification
 
             Artifacts
@@ -401,11 +401,11 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
             testing {
                 suites {
                     primaryIntTest(JvmTestSuite) {
-                        testType = TestType.INTEGRATION_TESTS
+                        testType = TestType.INTEGRATION_TEST
                     }
 
                     secondaryIntTest(JvmTestSuite) {
-                        testType = TestType.INTEGRATION_TESTS
+                        testType = TestType.INTEGRATION_TEST
                     }
                 }
             }
@@ -413,7 +413,7 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         fails('primaryIntTest', 'secondaryIntTest')
-        result.assertHasErrorOutput("Could not configure suite: 'secondaryIntTest'. Another test suite: 'primaryIntTest' uses the type: 'integration-tests' and has already been configured in project: 'Test'.")
+        result.assertHasErrorOutput("Could not configure suite: 'secondaryIntTest'. Another test suite: 'primaryIntTest' uses the type: 'integration-test' and has already been configured in project: 'Test'.")
     }
 
     def "Only one suite with a given test type allowed per project (including the built-in test suite)"() {
@@ -425,7 +425,7 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
             testing {
                 suites {
                     secondaryTest(JvmTestSuite) {
-                        testType = TestType.UNIT_TESTS
+                        testType = TestType.UNIT_TEST
                     }
                 }
             }
@@ -433,7 +433,7 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         fails('test', 'secondaryTest')
-        result.assertHasErrorOutput("Could not configure suite: 'test'. Another test suite: 'secondaryTest' uses the type: 'unit-tests' and has already been configured in project: 'Test'.")
+        result.assertHasErrorOutput("Could not configure suite: 'test'. Another test suite: 'secondaryTest' uses the type: 'unit-test' and has already been configured in project: 'Test'.")
     }
 
     def "Test suites in different projects can use same test type"() {
@@ -446,7 +446,7 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
             testing {
                 suites {
                     integrationTest(JvmTestSuite) {
-                        testType = TestType.INTEGRATION_TESTS
+                        testType = TestType.INTEGRATION_TEST
                     }
                 }
             }""".stripIndent()
@@ -460,7 +460,7 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
             testing {
                 suites {
                     integrationTest(JvmTestSuite) {
-                        testType = TestType.INTEGRATION_TESTS
+                        testType = TestType.INTEGRATION_TEST
                     }
                 }
             }""".stripIndent()

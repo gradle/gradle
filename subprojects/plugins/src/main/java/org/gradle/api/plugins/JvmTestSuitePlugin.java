@@ -39,6 +39,7 @@ import org.gradle.api.tasks.testing.AbstractTestTask;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.testing.base.TestSuite;
 import org.gradle.testing.base.TestingExtension;
+import org.gradle.util.internal.TextUtil;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -84,7 +85,7 @@ public class JvmTestSuitePlugin implements Plugin<Project> {
         });
 
         testSuites.withType(JvmTestSuite.class).all(testSuite -> {
-            testSuite.getTestType().convention(TestType.UNIT_TESTS);
+            testSuite.getTestType().convention(getDefaultTestType(testSuite));
             testSuite.getTargets().all(target -> {
                 target.getTestTask().configure(test -> {
                     test.getConventionMapping().map("testClassesDirs", () -> testSuite.getSources().getOutput().getClassesDirs());
@@ -94,6 +95,10 @@ public class JvmTestSuitePlugin implements Plugin<Project> {
         });
 
         configureTestDataElementsVariants(project);
+    }
+
+    private String getDefaultTestType(JvmTestSuite testSuite) {
+        return DEFAULT_TEST_SUITE_NAME.equals(testSuite.getName()) ? TestType.UNIT_TEST : TextUtil.camelToKebabCase(testSuite.getName());
     }
 
     private void configureTestDataElementsVariants(Project project) {

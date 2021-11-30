@@ -165,7 +165,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
                 - org.gradle.docstype      = jacoco-coverage-bin
                 - org.gradle.targetname    = test
                 - org.gradle.testsuitename = test
-                - org.gradle.testsuitetype = unit-tests
+                - org.gradle.testsuitetype = unit-test
                 - org.gradle.usage         = verification
 
             Artifacts
@@ -180,7 +180,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
             testing {
                 suites {
                     integrationTest(JvmTestSuite) {
-                        testType = TestType.INTEGRATION_TESTS
+                        testType = TestType.INTEGRATION_TEST
 
                         dependencies {
                             implementation project
@@ -205,7 +205,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
                 - org.gradle.docstype      = jacoco-coverage-bin
                 - org.gradle.targetname    = integrationTest
                 - org.gradle.testsuitename = integrationTest
-                - org.gradle.testsuitetype = integration-tests
+                - org.gradle.testsuitetype = integration-test
                 - org.gradle.usage         = verification
 
             Artifacts
