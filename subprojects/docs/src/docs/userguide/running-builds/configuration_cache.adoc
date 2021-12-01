@@ -304,9 +304,11 @@ h| Utility
 a|
 [horizontal]
 link:{gradle-issues}13475[[.green]#✓#]:: <<checkstyle_plugin.adoc#checkstyle_plugin,Checkstyle>>
-link:{gradle-issues}13476[[.green]#✓#]:: <<pmd_plugin.adoc#pmd_plugin,PMD>>
-link:{gradle-issues}13477[[.green]#✓#]:: <<jacoco_plugin.adoc#jacoco_plugin,JaCoCo>>
 link:{gradle-issues}13478[[.green]#✓#]:: <<codenarc_plugin.adoc#codenarc_plugin,CodeNarc>>
+link:{gradle-issues}13477[[.green]#✓#]:: <<jacoco_plugin.adoc#jacoco_plugin,JaCoCo>>
+[.green]#✓#:: <<jacoco_report_aggregation_plugin#jacoco_report_aggregation_plugin,JaCoCo Report Aggregation>>
+link:{gradle-issues}13476[[.green]#✓#]:: <<pmd_plugin.adoc#pmd_plugin,PMD>>
+[.green]#✓#:: <<test_report_aggregation_plugin#test_report_aggregation_plugin,Test Report Aggregation>>
 
 a|
 [horizontal]

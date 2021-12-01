@@ -18,6 +18,7 @@ Include only their name, impactful features should be called out separately belo
 [Ned Twigg](https://github.com/nedtwigg),
 [Nikolas Grottendieck](https://github.com/Okeanos),
 [Lars Grefer](https://github.com/larsgrefer),
+[Patrick Pichler](https://github.com/patrickpichler),
 [Marcin Mielnicki](https://github.com/platan).
 
 ## Upgrade instructions
