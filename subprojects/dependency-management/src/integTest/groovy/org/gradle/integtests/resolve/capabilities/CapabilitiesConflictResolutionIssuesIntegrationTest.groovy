@@ -61,16 +61,6 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
                 }
             }
 
-            // All this might be better to be removed in favor of just expecting the (forthcoming) deprecation warning
-            class FeatureOneIsCompatible implements AttributeCompatibilityRule<String> {
-                void execute(CompatibilityCheckDetails<String> details) {
-                    if (details.getConsumerValue().startsWith('one')) {
-                        details.compatible()
-                    }
-                }
-            }
-            def feature = Attribute.of('org.gradle.feature', String)
-
             dependencies {
                 twoImplementation(project(':shared')) {
                     capabilities {
@@ -82,24 +72,10 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
                         requireCapability('g:one-preferred:v')
                     }
                 }
-                attributesSchema {
-                    attribute(feature) {
-                        compatibilityRules.add(FeatureOneIsCompatible)
-                    }
-                }
             }
         """
         file("p1/build.gradle") << """
             apply plugin: 'java'
-
-            class FeatureOneIsCompatible implements AttributeCompatibilityRule<String> {
-                void execute(CompatibilityCheckDetails<String> details) {
-                    if (details.getConsumerValue().startsWith('one')) {
-                        details.compatible()
-                    }
-                }
-            }
-            def feature = Attribute.of('org.gradle.feature', String)
 
             dependencies {
                 implementation project(':p2')
@@ -111,11 +87,6 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
                 implementation(project(':shared')) {
                     capabilities {
                         requireCapability('g:two-preferred:v')
-                    }
-                }
-                attributesSchema {
-                    attribute(feature) {
-                        compatibilityRules.add(FeatureOneIsCompatible)
                     }
                 }
             }
@@ -141,15 +112,6 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
         file("p2/build.gradle") << """
             apply plugin: 'java'
 
-            class FeatureOneIsCompatible implements AttributeCompatibilityRule<String> {
-                void execute(CompatibilityCheckDetails<String> details) {
-                    if (details.getConsumerValue().startsWith('one')) {
-                        details.compatible()
-                    }
-                }
-            }
-            def feature = Attribute.of('org.gradle.feature', String)
-
             dependencies {
                 implementation(project(':shared')) {
                     capabilities {
@@ -159,11 +121,6 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
                 implementation(project(':shared')) {
                     capabilities {
                         requireCapability('g:two:v')
-                    }
-                }
-                attributesSchema {
-                    attribute(feature) {
-                        compatibilityRules.add(FeatureOneIsCompatible)
                     }
                 }
             }
@@ -196,7 +153,6 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
                     variant('onePrefRuntimeElements', [
                         'org.gradle.category': 'library',
                         'org.gradle.dependency.bundling': 'external',
-                        'org.gradle.feature': 'onePreferred',
                         'org.gradle.jvm.version': "${JavaVersion.current().majorVersion}",
                         'org.gradle.libraryelements': 'jar',
                         'org.gradle.usage': 'java-runtime'])
@@ -209,7 +165,6 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
                     variant('twoPrefRuntimeElements', [
                         'org.gradle.category': 'library',
                         'org.gradle.dependency.bundling': 'external',
-                        'org.gradle.feature': 'twoPreferred',
                         'org.gradle.jvm.version': "${JavaVersion.current().majorVersion}",
                         'org.gradle.libraryelements': 'jar',
                         'org.gradle.usage': 'java-runtime'])

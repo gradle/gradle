@@ -17,7 +17,6 @@ package org.gradle.api.plugins.internal;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.InvalidUserCodeException;
-import org.gradle.api.attributes.Attribute;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.plugins.jvm.internal.JvmModelingServices;
 import org.gradle.api.plugins.jvm.internal.JvmVariantBuilderInternal;
@@ -100,8 +99,6 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
             for (Capability capability : capabilities) {
                 ((JvmVariantBuilderInternal)builder).capability(capability);
             }
-
-            builder.withAttribute(Attribute.of("org.gradle.feature", String.class), name);  // Perhaps move to new Attribute interface
         });
 
     }
