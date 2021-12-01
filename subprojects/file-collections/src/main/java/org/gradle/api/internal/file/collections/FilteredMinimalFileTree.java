@@ -74,7 +74,8 @@ public class FilteredMinimalFileTree implements MinimalFileTree, FileSystemMirro
 
             @Override
             public void visitCollection(FileCollectionInternal.Source source, Iterable<File> contents) {
-                visitor.visitGenericFileTree(owner, FilteredMinimalFileTree.this);
+                // No need to filter the contents here, since only `GeneratedSingletonFileTree` which uses the call provides an empty list here.
+                visitor.visitCollection(source, contents);
             }
 
             @Override
