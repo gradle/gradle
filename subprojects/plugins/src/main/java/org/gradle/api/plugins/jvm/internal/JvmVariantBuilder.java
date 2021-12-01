@@ -15,6 +15,7 @@
  */
 package org.gradle.api.plugins.jvm.internal;
 
+import org.gradle.api.attributes.Attribute;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.internal.HasInternalProtocol;
 
@@ -52,6 +53,11 @@ public interface JvmVariantBuilder {
      * Tells that this component should build a sources jar too
      */
     JvmVariantBuilder withSourcesJar();
+
+    /**
+     * Adds an additional attribute to all the configurations produced by this builder
+     */
+    <T> JvmVariantBuilder withAttribute(Attribute<T> attribute, T value);
 
     /**
      * Explicitly declares a capability provided by this component
