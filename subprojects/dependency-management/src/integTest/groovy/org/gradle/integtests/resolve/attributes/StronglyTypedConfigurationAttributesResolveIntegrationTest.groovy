@@ -15,6 +15,7 @@
  */
 
 package org.gradle.integtests.resolve.attributes
+
 /**
  * Variant of the configuration attributes resolution integration test which makes use of the strongly typed attributes notation.
  */
@@ -356,10 +357,10 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
                         attributes { $debug; attribute(flavor, objects.named(Flavor, "TWO")) }
                     }
                     foo2 {
-                        attributes { $debug; attribute(flavor, objects.named(Flavor, "ONE")); attribute Attribute.of('other', String), 'test2' }
+                        attributes { $debug; attribute(flavor, objects.named(Flavor, "ONE")) }
                     }
                     foo3 {
-                        attributes { $debug; attribute(flavor, objects.named(Flavor, "ONE")); attribute Attribute.of('other', String), 'test3' }
+                        attributes { $debug; attribute(flavor, objects.named(Flavor, "ONE")) }
                     }
                     bar {
                         attributes { $release; attribute(flavor, objects.named(Flavor, "ONE")) }
@@ -395,11 +396,7 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
   - foo3
 All of them match the consumer attributes:
   - Variant 'foo2' capability test:b:unspecified declares attribute 'buildType' with value 'debug', attribute 'flavor' with value 'ONE'
-      - Unmatched attribute:
-          - Provides other 'test2' but the consumer didn't ask for it
   - Variant 'foo3' capability test:b:unspecified declares attribute 'buildType' with value 'debug', attribute 'flavor' with value 'ONE'
-      - Unmatched attribute:
-          - Provides other 'test3' but the consumer didn't ask for it
 The following variants were also considered but didn't match the requested attributes:
   - Variant 'bar' capability test:b:unspecified declares attribute 'flavor' with value 'ONE':
       - Incompatible because this component declares attribute 'buildType' with value 'release' and the consumer needed attribute 'buildType' with value 'debug'"""
