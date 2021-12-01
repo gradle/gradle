@@ -16,6 +16,9 @@
 
 package org.gradle.configurationcache
 
+import groovy.test.NotYetImplemented
+import org.gradle.configurationcache.fixtures.BuildLogicChangeFixture
+import spock.lang.Issue
 
 import static org.gradle.initialization.IGradlePropertiesLoader.ENV_PROJECT_PROPERTIES_PREFIX
 import static org.gradle.initialization.IGradlePropertiesLoader.SYSTEM_PROJECT_PROPERTIES_PREFIX
@@ -145,5 +148,46 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
             'gradleProp',
             'ext.gradleProp'
         ]
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/19184")
+    @NotYetImplemented
+    def "system properties from included build properties file"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        def fixture = new BuildLogicChangeFixture(file('build-logic'))
+        fixture.setup()
+        settingsFile << """
+            pluginManagement {
+                includeBuild 'build-logic'
+            }
+        """
+        buildFile << """
+            plugins { id('$fixture.pluginId') }
+
+            println(providers.systemProperty('fromPropertiesFile').orNull + "!")
+        """
+        file('build-logic/gradle.properties') << 'systemProp.fromPropertiesFile=42'
+
+        when:
+        System.clearProperty('fromPropertiesFile')
+        configurationCacheRun fixture.task
+
+        then:
+        outputContains fixture.expectedOutputBeforeChange
+        outputContains '42!'
+        configurationCache.assertStateStored()
+
+        when:
+        System.clearProperty('fromPropertiesFile')
+        configurationCacheRun fixture.task
+
+        then:
+        outputDoesNotContain "because system property 'fromPropertiesFile' has changed"
+        outputContains fixture.expectedOutputBeforeChange
+        configurationCache.assertStateLoaded()
+
+        cleanup:
+        System.clearProperty('fromPropertiesFile')
     }
 }
