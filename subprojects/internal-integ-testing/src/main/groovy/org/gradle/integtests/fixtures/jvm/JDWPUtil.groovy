@@ -76,7 +76,7 @@ class JDWPUtil implements TestRule {
         vm
     }
 
-    def listen() {
+    def listen(boolean acceptAsync = true) {
         def vmm = bootstrapClass.virtualMachineManager()
         connection = vmm.listeningConnectors().find { it.name() == "com.sun.jdi.SocketListen" }
         connectionArgs = connection.defaultArguments()
@@ -84,8 +84,10 @@ class JDWPUtil implements TestRule {
         connectionArgs.get("timeout").setValue('3000')
         connection.startListening(connectionArgs)
 
-        Thread.start {
-            accept()
+        if (acceptAsync) {
+            Thread.start {
+                accept()
+            }
         }
     }
 

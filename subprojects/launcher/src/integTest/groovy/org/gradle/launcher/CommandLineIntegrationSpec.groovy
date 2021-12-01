@@ -122,7 +122,7 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
     def "can debug with org.gradle.debug.server=false"() {
         given:
         JDWPUtil jdwpClient = new JDWPUtil()
-        jdwpClient.listen()
+        jdwpClient.listen(false)
 
         when:
         def handle = executer.withArguments("-Dorg.gradle.debug=true", "-Dorg.gradle.debug.server=false", "-Dorg.gradle.debug.port=${jdwpClient.port}").withTasks("help").start()
@@ -145,7 +145,7 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
     def "can debug with org.gradle.debug.suspend=false"() {
         given:
         JDWPUtil jdwpClient = new JDWPUtil()
-        jdwpClient.listen()
+        jdwpClient.listen(false)
 
         when:
         def handle = executer.withArguments("-Dorg.gradle.debug=true", "-Dorg.gradle.debug.suspend=false", "-Dorg.gradle.debug.server=false", "-Dorg.gradle.debug.port=${jdwpClient.port}").withTasks("help").start()
