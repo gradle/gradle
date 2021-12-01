@@ -132,6 +132,7 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -1109,7 +1110,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
                 for (ConfigurationInternal other : potentialDuplicates) {
                     if (!other.getAttributes().isEmpty() && !getAttributes().isEmpty() && other.getAttributes().asMap().equals(getAttributes().asMap())) {
-                        throw new GradleException("Consumable configurations within a project must have unique attribute sets, but " + getDisplayName() + " and " + other.getDisplayName() + " contain identical attribute sets.");
+                        String attributes = getAttributes().asMap().entrySet().stream()
+                            .sorted(Comparator.comparing(e -> e.getKey().toString()))
+                            .map(e -> "  " + e.getKey() + " -> " + e.getValue() + '\n')
+                            .collect(Collectors.joining(""));
+                        throw new GradleException("Consumable configurations within a project must have unique attribute sets, but " + getDisplayName() + " and " + other.getDisplayName() + " contain identical attribute sets.\nAttributes:\n" + attributes);
                     }
                 }
             }
