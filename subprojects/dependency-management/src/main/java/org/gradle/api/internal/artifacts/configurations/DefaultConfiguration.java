@@ -24,7 +24,6 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.DomainObjectSet;
-import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ArtifactCollection;
@@ -132,7 +131,6 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -1100,25 +1098,33 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private void ensureUniqueAttributesOnConsumableConfigurations() {
         if (configurationsProvider != null) {
-            final Set<? extends ConfigurationInternal> all = configurationsProvider.getAll();
-            if (all != null) {
-                final Set<? extends ConfigurationInternal> potentialDuplicates = configurationsProvider.getAll().stream()
-                    .filter(c -> c != this)
-                    .filter(c -> !c.isMutable())
-                    .filter(c -> c.isCanBeConsumed())
-                    .collect(Collectors.toSet());
+            final Set<? extends ConfigurationInternal> potentialDuplicates = configurationsProvider.getAll().stream()
+                .filter(Configuration::isCanBeConsumed)
+                .filter(c -> !c.isMutable())
+                .filter(c -> c != this)
+                .collect(Collectors.toSet());
 
-                for (ConfigurationInternal other : potentialDuplicates) {
-                    if (!other.getAttributes().isEmpty() && !getAttributes().isEmpty() && other.getAttributes().asMap().equals(getAttributes().asMap())) {
-                        String attributes = getAttributes().asMap().entrySet().stream()
-                            .sorted(Comparator.comparing(e -> e.getKey().toString()))
-                            .map(e -> "  " + e.getKey() + " -> " + e.getValue() + '\n')
-                            .collect(Collectors.joining(""));
-                        throw new GradleException("Consumable configurations within a project must have unique attribute sets, but " + getDisplayName() + " and " + other.getDisplayName() + " contain identical attribute sets.\nAttributes:\n" + attributes);
-                    }
+            for (ConfigurationInternal other : potentialDuplicates) {
+                if (hasSameCapabilitiesAs(other) && hasSameAttributesAs(other)) {
+                    DeprecationLogger.deprecateBehaviour("Consumable configurations with identical capabilities within a project must have unique attributes, but " + getDisplayName() + " and " + other.getDisplayName() + " contain identical attribute sets.")
+                        .withAdvice("Consider adding an additional attribute to one of the configurations to disambiguate them.  Run the 'outgoingVariants' task for more details.")
+                        .willBecomeAnErrorInGradle8()
+                        .withUpgradeGuideSection(7, "unique_attribute_sets")
+                        .nagUser();
                 }
             }
         }
+    }
+
+    private boolean hasSameCapabilitiesAs(ConfigurationInternal other) {
+        final Collection<? extends Capability> capabilities = getOutgoing().getCapabilities();
+        final Collection<? extends Capability> otherCapabilities = other.getOutgoing().getCapabilities();
+        //noinspection SuspiciousMethodCalls
+        return !capabilities.isEmpty() && !otherCapabilities.isEmpty() && capabilities.size() == otherCapabilities.size() && capabilities.containsAll(otherCapabilities);
+    }
+
+    private boolean hasSameAttributesAs(ConfigurationInternal other) {
+        return !other.getAttributes().isEmpty() && !getAttributes().isEmpty() && other.getAttributes().asMap().equals(getAttributes().asMap());
     }
 
     @Override
