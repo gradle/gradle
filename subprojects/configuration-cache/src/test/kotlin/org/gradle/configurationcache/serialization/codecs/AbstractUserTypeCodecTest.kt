@@ -28,6 +28,9 @@ import org.gradle.configurationcache.serialization.DefaultWriteContext
 import org.gradle.configurationcache.serialization.IsolateOwner
 import org.gradle.configurationcache.serialization.MutableIsolateContext
 import org.gradle.configurationcache.serialization.beans.BeanConstructors
+import org.gradle.configurationcache.serialization.beans.BeanStateReaderLookup
+import org.gradle.configurationcache.serialization.beans.BeanStateWriterLookup
+import org.gradle.configurationcache.serialization.codecs.jos.JavaSerializationEncodingLookup
 import org.gradle.configurationcache.serialization.runReadOperation
 import org.gradle.configurationcache.serialization.runWriteOperation
 import org.gradle.configurationcache.serialization.withIsolate
@@ -129,6 +132,7 @@ abstract class AbstractUserTypeCodecTest {
             codec = codec,
             encoder = encoder,
             scopeLookup = mock(),
+            beanStateWriterLookup = BeanStateWriterLookup(),
             logger = mock(),
             tracer = null,
             problemsListener = problemHandler
@@ -139,16 +143,15 @@ abstract class AbstractUserTypeCodecTest {
         DefaultReadContext(
             codec = codec,
             decoder = KryoBackedDecoder(inputStream),
-            instantiatorFactory = TestUtil.instantiatorFactory(),
-            constructors = BeanConstructors(TestCrossBuildInMemoryCacheFactory()),
+            beanStateReaderLookup = BeanStateReaderLookup(BeanConstructors(TestCrossBuildInMemoryCacheFactory()), TestUtil.instantiatorFactory()),
             logger = mock(),
             problemsListener = mock()
         )
 
     private
-    fun userTypesCodec() = codecs().userTypesCodec
+    fun userTypesCodec() = codecs().userTypesCodec()
 
-    protected
+    internal
     fun codecs() = Codecs(
         directoryFileTreeFactory = mock(),
         fileCollectionFactory = mock(),
@@ -175,6 +178,7 @@ abstract class AbstractUserTypeCodecTest {
         fileFactory = mock(),
         includedTaskGraph = mock(),
         buildStateRegistry = mock(),
-        documentationRegistry = mock()
+        documentationRegistry = mock(),
+        javaSerializationEncodingLookup = JavaSerializationEncodingLookup()
     )
 }
