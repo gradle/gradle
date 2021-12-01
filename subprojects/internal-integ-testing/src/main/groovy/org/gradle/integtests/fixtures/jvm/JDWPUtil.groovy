@@ -83,6 +83,10 @@ class JDWPUtil implements TestRule {
         connectionArgs.get("port").setValue(port as String)
         connectionArgs.get("timeout").setValue('3000')
         connection.startListening(connectionArgs)
+
+        Thread.start {
+            accept()
+        }
     }
 
     def accept() {
