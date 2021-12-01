@@ -102,7 +102,6 @@ class IsolatedProjectsToolingApiPhasedBuildActionIntegrationTest extends Abstrac
         fixture.assertStateRecreated {
             fileChanged("build.gradle")
             projectConfigured(":buildSrc")
-            projectConfigured(":b")
             modelsCreated(":")
         }
         outputContains("creating model for root project 'root'")

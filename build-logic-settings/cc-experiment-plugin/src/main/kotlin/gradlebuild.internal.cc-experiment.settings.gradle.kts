@@ -89,9 +89,6 @@ if (isConfigurationCacheEnabled && isConfigurationCacheProblemsFail) {
             // JMH plugin
             task.name in listOf("jmh", "jmhJar", "jmhReport") -> true
 
-            // Spotless plugin
-            task.name.startsWith("spotless") -> true
-
             // Gradle Doctor plugin
             task.name in listOf(
                 "buildHealth",

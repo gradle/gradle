@@ -174,7 +174,7 @@ project(':app') {
         implementation project(':lib')
     }
 
-    def hasExtraAttribute = providers.gradleProperty('extraAttribute').forUseAtConfigurationTime().isPresent()
+    def hasExtraAttribute = providers.gradleProperty('extraAttribute').isPresent()
 
     dependencies {
         registerTransform(TestTransform) {

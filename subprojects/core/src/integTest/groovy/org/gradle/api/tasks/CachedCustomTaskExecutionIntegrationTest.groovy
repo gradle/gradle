@@ -207,7 +207,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
             task customTask {
                 outputs.cacheIf { true }
                 def fileList
-                if (providers.systemProperty("changedCardinality").forUseAtConfigurationTime().present) {
+                if (providers.systemProperty("changedCardinality").present) {
                     fileList = ["build/output1.txt"]
                 } else {
                     fileList = ["build/output1.txt", "build/output2.txt"]

@@ -907,6 +907,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
 
     private void relationships(Map options, TaskInternal task) {
         dependsOn(task, options.dependsOn ?: [])
+        task.lifecycleDependencies >> taskDependencyResolvingTo(task, options.dependsOn ?: [])
         mustRunAfter(task, options.mustRunAfter ?: [])
         shouldRunAfter(task, options.shouldRunAfter ?: [])
         finalizedBy(task, options.finalizedBy ?: [])

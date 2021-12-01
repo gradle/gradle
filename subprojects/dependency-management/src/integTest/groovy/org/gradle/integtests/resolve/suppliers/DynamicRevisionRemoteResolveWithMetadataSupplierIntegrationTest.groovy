@@ -145,7 +145,6 @@ abstract class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest e
 
     }
 
-    @ToBeFixedForConfigurationCache
     def "publishing new integration version incurs get status file of new integration version only"() {
         given:
         def supplierInteractions = withPerVersionStatusSupplier()
@@ -205,7 +204,6 @@ abstract class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest e
         checkResolve "group:projectA:1.+": ["group:projectA:1.2", "didn't match version 2.0"], "group:projectB:latest.release": ["group:projectB:1.1", "didn't match versions 2.3, 2.2"]
     }
 
-    @ToBeFixedForConfigurationCache
     def "publishing new release version incurs get status file of new release version only"() {
         given:
         def supplierInteractions = withPerVersionStatusSupplier()
@@ -474,7 +472,6 @@ abstract class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest e
         checkResolve "group:projectA:1.+": ["group:projectA:1.2", "didn't match version 2.0"], "group:projectB:latest.release": ["group:projectB:1.1", "didn't match version 2.2"]
     }
 
-    @ToBeFixedForConfigurationCache
     def "can inject configuration into metadata provider"() {
         given:
         buildFile << """

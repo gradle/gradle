@@ -3,6 +3,7 @@ function configurationCacheProblems() {
     return (
         {
             "cacheAction": "storing",
+            "requestedTasks": "clean build",
             "documentationLink": "https://docs.gradle.org/6.6-20200618155501+0000/userguide/configuration_cache.html",
             "totalProblemCount": 2,
             "diagnostics": [

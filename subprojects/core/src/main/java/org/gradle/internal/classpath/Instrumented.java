@@ -44,7 +44,7 @@ public class Instrumented {
     }
 
     public static void discardListener() {
-        LISTENER.set(NO_OP);
+        setListener(NO_OP);
     }
 
     // Called by generated code
@@ -82,72 +82,85 @@ public class Instrumented {
     // Called by generated code.
     public static String systemProperty(String key, @Nullable String defaultValue, String consumer) {
         String value = System.getProperty(key);
-        LISTENER.get().systemPropertyQueried(key, value, consumer);
-        if (value == null) {
-            return defaultValue;
-        }
-        return value;
+        systemPropertyQueried(key, value, consumer);
+        return value == null ? defaultValue : value;
     }
 
     // Called by generated code.
     public static Properties systemProperties(String consumer) {
         return new AccessTrackingProperties(System.getProperties(), (k, v) -> {
-            LISTENER.get().systemPropertyQueried(convertToString(k), convertToString(v), consumer);
+            systemPropertyQueried(convertToString(k), convertToString(v), consumer);
         });
     }
 
     // Called by generated code.
     public static Integer getInteger(String key, String consumer) {
-        LISTENER.get().systemPropertyQueried(key, System.getProperty(key), consumer);
+        systemPropertyQueried(key, consumer);
         return Integer.getInteger(key);
     }
 
     // Called by generated code.
     public static Integer getInteger(String key, int defaultValue, String consumer) {
-        LISTENER.get().systemPropertyQueried(key, System.getProperty(key), consumer);
+        systemPropertyQueried(key, consumer);
         return Integer.getInteger(key, defaultValue);
     }
 
     // Called by generated code.
     public static Integer getInteger(String key, Integer defaultValue, String consumer) {
-        LISTENER.get().systemPropertyQueried(key, System.getProperty(key), consumer);
+        systemPropertyQueried(key, consumer);
         return Integer.getInteger(key, defaultValue);
     }
 
     // Called by generated code.
     public static Long getLong(String key, String consumer) {
-        LISTENER.get().systemPropertyQueried(key, System.getProperty(key), consumer);
+        systemPropertyQueried(key, consumer);
         return Long.getLong(key);
     }
 
     // Called by generated code.
     public static Long getLong(String key, long defaultValue, String consumer) {
-        LISTENER.get().systemPropertyQueried(key, System.getProperty(key), consumer);
+        systemPropertyQueried(key, consumer);
         return Long.getLong(key, defaultValue);
     }
 
     // Called by generated code.
     public static Long getLong(String key, Long defaultValue, String consumer) {
-        LISTENER.get().systemPropertyQueried(key, System.getProperty(key), consumer);
+        systemPropertyQueried(key, consumer);
         return Long.getLong(key, defaultValue);
     }
 
     // Called by generated code.
     public static boolean getBoolean(String key, String consumer) {
-        LISTENER.get().systemPropertyQueried(key, System.getProperty(key), consumer);
+        systemPropertyQueried(key, consumer);
         return Boolean.getBoolean(key);
     }
 
     // Called by generated code.
     public static String getenv(String key, String consumer) {
         String value = System.getenv(key);
-        LISTENER.get().envVariableQueried(key, value, consumer);
+        envVariableQueried(key, value, consumer);
         return value;
     }
 
     // Called by generated code.
     public static Map<String, String> getenv(String consumer) {
-        return new AccessTrackingEnvMap((key, value) -> LISTENER.get().envVariableQueried(convertToString(key), value, consumer));
+        return new AccessTrackingEnvMap((key, value) -> envVariableQueried(convertToString(key), value, consumer));
+    }
+
+    private static void envVariableQueried(String key, String value, String consumer) {
+        listener().envVariableQueried(key, value, consumer);
+    }
+
+    private static void systemPropertyQueried(String key, String consumer) {
+        systemPropertyQueried(key, System.getProperty(key), consumer);
+    }
+
+    private static void systemPropertyQueried(String key, @Nullable String value, String consumer) {
+        listener().systemPropertyQueried(key, value, consumer);
+    }
+
+    private static Listener listener() {
+        return LISTENER.get();
     }
 
     private static Object unwrap(Object obj) {

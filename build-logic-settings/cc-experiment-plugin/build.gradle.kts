@@ -17,3 +17,4 @@
 plugins {
    `kotlin-dsl`
 }
+description = "Provides a plugin that fails the build if configuration caching is enabled with tasks that do not support configuration caching"

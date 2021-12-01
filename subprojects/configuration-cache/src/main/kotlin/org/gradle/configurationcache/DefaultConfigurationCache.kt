@@ -23,13 +23,16 @@ import org.gradle.api.internal.provider.DefaultConfigurationTimeBarrier
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logging
+import org.gradle.configurationcache.cacheentry.EntryDetails
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprintController
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
+import org.gradle.configurationcache.metadata.ProjectMetadataController
 import org.gradle.configurationcache.models.IntermediateModelController
 import org.gradle.configurationcache.problems.ConfigurationCacheProblems
 import org.gradle.configurationcache.serialization.DefaultWriteContext
 import org.gradle.configurationcache.serialization.IsolateOwner
+import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.withIsolate
 import org.gradle.initialization.GradlePropertiesController
 import org.gradle.internal.Factory
@@ -37,6 +40,7 @@ import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildtree.BuildActionModelRequirements
 import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.classpath.Instrumented
+import org.gradle.internal.component.local.model.LocalComponentMetadata
 import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.operations.BuildOperationExecutor
@@ -44,7 +48,6 @@ import org.gradle.internal.vfs.FileSystemAccess
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem
 import org.gradle.util.Path
 import java.io.File
-import java.io.InputStream
 import java.io.OutputStream
 
 
@@ -98,7 +101,10 @@ class DefaultConfigurationCache internal constructor(
     val store by lazy { cacheRepository.forKey(cacheKey.string) }
 
     private
-    val intermediateModels by lazy { IntermediateModelController(host, cacheIO, store, cacheFingerprintController) }
+    val intermediateModels = lazy { IntermediateModelController(host, cacheIO, store, cacheFingerprintController) }
+
+    private
+    val projectMetadata = lazy { ProjectMetadataController(host, cacheIO, store) }
 
     private
     val cacheIO: ConfigurationCacheIO
@@ -148,14 +154,21 @@ class DefaultConfigurationCache internal constructor(
     }
 
     override fun <T> loadOrCreateIntermediateModel(identityPath: Path?, modelName: String, creator: () -> T?): T? {
-        return intermediateModels.loadOrCreateIntermediateModel(identityPath, modelName, creator)
+        return intermediateModels.value.loadOrCreateIntermediateModel(identityPath, modelName, creator)
+    }
+
+    override fun loadOrCreateProjectMetadata(identityPath: Path, creator: () -> LocalComponentMetadata): LocalComponentMetadata {
+        return projectMetadata.value.loadOrCreateValue(identityPath, creator)
     }
 
     override fun finalizeCacheEntry() {
         if (hasSavedValues) {
             store.useForStore { layout ->
-                writeConfigurationCacheFingerprint(layout)
-                cacheIO.writeCacheEntryDetailsTo(buildStateRegistry, intermediateModels.models, layout.fileFor(StateType.Entry))
+                val reusedProjects = mutableSetOf<Path>()
+                intermediateModels.value.visitReusedProjects(reusedProjects::add)
+                projectMetadata.value.visitReusedProjects(reusedProjects::add)
+                writeConfigurationCacheFingerprint(layout, reusedProjects)
+                cacheIO.writeCacheEntryDetailsTo(buildStateRegistry, intermediateModels.value.values, projectMetadata.value.values, layout.fileFor(StateType.Entry))
             }
             hasSavedValues = false
         }
@@ -163,9 +176,6 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun canLoad(): Boolean = when {
-        !startParameter.isEnabled -> {
-            false
-        }
         startParameter.recreateCache -> {
             logBootstrapSummary("Recreating configuration cache")
             false
@@ -229,8 +239,15 @@ class DefaultConfigurationCache internal constructor(
     }
 
     override fun stop() {
-        Instrumented.discardListener()
-        CompositeStoppable.stoppable(intermediateModels, store).stop()
+        val stoppable = CompositeStoppable.stoppable()
+        if (intermediateModels.isInitialized()) {
+            stoppable.add(intermediateModels.value)
+        }
+        if (projectMetadata.isInitialized()) {
+            stoppable.add(projectMetadata.value)
+        }
+        stoppable.add(store)
+        stoppable.stop()
     }
 
     private
@@ -238,26 +255,23 @@ class DefaultConfigurationCache internal constructor(
         return store.useForStateLoad { layout ->
             val entryFile = layout.fileFor(StateType.Entry)
             val entryDetails = cacheIO.readCacheEntryDetailsFrom(entryFile)
-
-            // Register all included build root directories as watchable hierarchies
-            // so we can load the fingerprint for build scripts and other files from included builds
-            // without violating file system invariants.
-            registerWatchableBuildDirectories(entryDetails.rootDirs)
-
-            val result = checkFingerprint(layout.fileFor(StateType.Fingerprint))
-
-            if (result is CheckedFingerprint.ProjectsInvalid) {
-                intermediateModels.restoreFromCacheEntry(entryDetails, result)
+            if (entryDetails == null) {
+                // No entry file -> treat the entry as empty/missing/invalid
+                CheckedFingerprint.NotFound
+            } else {
+                checkFingerprint(entryDetails, layout)
             }
-
-            result
         }
     }
 
     private
     fun <T> runWorkThatContributesToCacheEntry(action: () -> T): T {
         prepareForWork()
-        return action()
+        try {
+            return action()
+        } finally {
+            doneWithWork()
+        }
     }
 
     private
@@ -265,6 +279,12 @@ class DefaultConfigurationCache internal constructor(
         prepareConfigurationTimeBarrier()
         startCollectingCacheFingerprint()
         Instrumented.setListener(instrumentedInputAccessListener)
+    }
+
+    private
+    fun doneWithWork() {
+        Instrumented.discardListener()
+        cacheFingerprintController.stopCollectingFingerprint()
     }
 
     private
@@ -307,7 +327,6 @@ class DefaultConfigurationCache internal constructor(
         }
 
         hasSavedValues = true
-        cacheFingerprintController.stopCollectingFingerprint()
     }
 
     private
@@ -359,14 +378,21 @@ class DefaultConfigurationCache internal constructor(
         )
 
     private
-    fun writeConfigurationCacheFingerprint(layout: ConfigurationCacheRepository.Layout) {
-        cacheFingerprintController.commitFingerprintTo(layout.fileFor(StateType.Fingerprint))
+    fun writeConfigurationCacheFingerprint(layout: ConfigurationCacheRepository.Layout, reusedProjects: Set<Path>) {
+        // Collect fingerprint entries for any projects whose state was reused from cache
+        if (reusedProjects.isNotEmpty()) {
+            readFingerprintFile(layout.fileForRead(StateType.ProjectFingerprint)) { host ->
+                cacheFingerprintController.run {
+                    collectFingerprintForReusedProjects(host, reusedProjects)
+                }
+            }
+        }
+        cacheFingerprintController.commitFingerprintTo(layout.fileFor(StateType.BuildFingerprint), layout.fileFor(StateType.ProjectFingerprint))
     }
 
     private
     fun startCollectingCacheFingerprint() {
-        val fingerprintFile = store.assignSpoolFile(StateType.Fingerprint)
-        cacheFingerprintController.maybeStartCollectingFingerprint(fingerprintFile) {
+        cacheFingerprintController.maybeStartCollectingFingerprint(store.assignSpoolFile(StateType.BuildFingerprint), store.assignSpoolFile(StateType.ProjectFingerprint)) {
             cacheFingerprintWriterContextFor(it)
         }
     }
@@ -380,27 +406,66 @@ class DefaultConfigurationCache internal constructor(
     }
 
     private
-    fun checkFingerprint(fingerprintFile: ConfigurationCacheStateFile): CheckedFingerprint {
+    fun checkFingerprint(entryDetails: EntryDetails, layout: ConfigurationCacheRepository.Layout): CheckedFingerprint {
+        // Register all included build root directories as watchable hierarchies,
+        // so we can load the fingerprint for build scripts and other files from included builds
+        // without violating file system invariants.
+        registerWatchableBuildDirectories(entryDetails.rootDirs)
+
         loadGradleProperties()
-        return checkConfigurationCacheFingerprintFile(fingerprintFile)
-    }
 
-    private
-    fun checkConfigurationCacheFingerprintFile(fingerprintFile: ConfigurationCacheStateFile): CheckedFingerprint {
-        if (!fingerprintFile.exists) {
-            return CheckedFingerprint.NotFound
-        }
-        return fingerprintFile.inputStream().use { fingerprintInputStream ->
-            checkFingerprint(fingerprintInputStream)
+        return checkFingerprintAgainstLoadedProperties(entryDetails, layout).also { result ->
+            if (result !== CheckedFingerprint.Valid) {
+                // Force Gradle properties to be reloaded so the Gradle properties files
+                // along with any Gradle property defining system properties and environment variables
+                // are added to the new fingerprint.
+                unloadGradleProperties()
+            }
         }
     }
 
     private
-    fun checkFingerprint(inputStream: InputStream): CheckedFingerprint =
-        cacheIO.withReadContextFor(inputStream) { codecs ->
-            withIsolate(IsolateOwner.OwnerHost(host), codecs.userTypesCodec) {
-                cacheFingerprintController.run {
-                    checkFingerprint(object : ConfigurationCacheFingerprintController.Host {
+    fun checkFingerprintAgainstLoadedProperties(entryDetails: EntryDetails, layout: ConfigurationCacheRepository.Layout): CheckedFingerprint {
+        val result = checkBuildScopedFingerprint(layout.fileFor(StateType.BuildFingerprint))
+        if (result !is CheckedFingerprint.Valid) {
+            return result
+        }
+
+        // Build inputs are up-to-date, check project specific inputs
+
+        val projectResult = checkProjectScopedFingerprint(layout.fileFor(StateType.ProjectFingerprint))
+        if (projectResult is CheckedFingerprint.ProjectsInvalid) {
+            intermediateModels.value.restoreFromCacheEntry(entryDetails.intermediateModels, projectResult)
+            projectMetadata.value.restoreFromCacheEntry(entryDetails.projectMetadata, projectResult)
+        }
+
+        return projectResult
+    }
+
+    private
+    fun checkBuildScopedFingerprint(fingerprintFile: ConfigurationCacheStateFile): CheckedFingerprint {
+        return readFingerprintFile(fingerprintFile) { host ->
+            cacheFingerprintController.run {
+                checkBuildScopedFingerprint(host)
+            }
+        }
+    }
+
+    private
+    fun checkProjectScopedFingerprint(fingerprintFile: ConfigurationCacheStateFile): CheckedFingerprint {
+        return readFingerprintFile(fingerprintFile) { host ->
+            cacheFingerprintController.run {
+                checkProjectScopedFingerprint(host)
+            }
+        }
+    }
+
+    private
+    fun <T> readFingerprintFile(fingerprintFile: ConfigurationCacheStateFile, action: suspend ReadContext.(ConfigurationCacheFingerprintController.Host) -> T): T =
+        fingerprintFile.inputStream().use { inputStream ->
+            cacheIO.withReadContextFor(inputStream) { codecs ->
+                withIsolate(IsolateOwner.OwnerHost(host), codecs.userTypesCodec) {
+                    action(object : ConfigurationCacheFingerprintController.Host {
                         override val valueSourceProviderFactory: ValueSourceProviderFactory
                             get() = host.service()
                         override val gradleProperties: GradleProperties
@@ -417,14 +482,17 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun loadGradleProperties() {
-        gradlePropertiesController.loadGradlePropertiesFrom(
-            startParameter.settingsDirectory
-        )
+        gradlePropertiesController.loadGradlePropertiesFrom(startParameter.settingsDirectory)
+    }
+
+    private
+    fun unloadGradleProperties() {
+        gradlePropertiesController.unloadGradleProperties()
     }
 
     private
     fun invalidateConfigurationCacheState(layout: ConfigurationCacheRepository.Layout) {
-        layout.fileFor(StateType.Fingerprint).delete()
+        layout.fileFor(StateType.Entry).delete()
     }
 
     private

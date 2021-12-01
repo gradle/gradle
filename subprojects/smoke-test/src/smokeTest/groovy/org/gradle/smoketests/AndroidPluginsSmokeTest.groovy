@@ -65,7 +65,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         ].combinations()
     }
 
-    @UnsupportedWithConfigurationCache(iterationMatchers = [AGP_4_0_ITERATION_MATCHER, AGP_4_1_ITERATION_MATCHER])
+    @UnsupportedWithConfigurationCache(iterationMatchers = AGP_NO_CC_ITERATION_MATCHER)
     def "android library and application APK assembly (agp=#agpVersion, ide=#ide)"() {
 
         given:
@@ -150,10 +150,8 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
     }
 
     private static BuildResult buildMaybeExpectingFileTreeDeprecations(SmokeTestGradleRunner runner, String agpVersion) {
-        return runner
-            .expectLegacyDeprecationWarningIf(agpVersion.startsWith("4."),
-                deprecationOfFileTreeForEmptySources("projectNativeLibs"))
-            .build()
+        expectAgpFileTreeDeprecations(agpVersion, runner)
+        return runner.build()
     }
 
     /**

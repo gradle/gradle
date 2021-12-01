@@ -32,7 +32,7 @@ val originalUrls: Map<String, String> = mapOf(
 )
 
 val mirrorUrls: Map<String, String> =
-    providers.environmentVariable("REPO_MIRROR_URLS").forUseAtConfigurationTime().orNull
+    providers.environmentVariable("REPO_MIRROR_URLS").orNull
         ?.ifBlank { null }
         ?.split(',')
         ?.associate { nameToUrl ->
@@ -41,9 +41,9 @@ val mirrorUrls: Map<String, String> =
         }
         ?: emptyMap()
 
-fun ignoreMirrors() = providers.environmentVariable("IGNORE_MIRROR").forUseAtConfigurationTime().orNull?.toBoolean() == true
+fun ignoreMirrors() = providers.environmentVariable("IGNORE_MIRROR").orNull?.toBoolean() == true
 
-fun isCI() = providers.environmentVariable("CI").forUseAtConfigurationTime().isPresent()
+fun isCI() = providers.environmentVariable("CI").isPresent()
 
 fun withMirrors(handler: RepositoryHandler) {
     if (!isCI()) {

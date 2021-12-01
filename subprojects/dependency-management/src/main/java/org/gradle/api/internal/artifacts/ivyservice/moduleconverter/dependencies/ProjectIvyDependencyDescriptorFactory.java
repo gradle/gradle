@@ -40,7 +40,6 @@ public class ProjectIvyDependencyDescriptorFactory extends AbstractIvyDependency
     @Override
     public LocalOriginDependencyMetadata createDependencyDescriptor(ComponentIdentifier componentId, @Nullable String clientConfiguration, AttributeContainer clientAttributes, ModuleDependency dependency) {
         ProjectDependencyInternal projectDependency = (ProjectDependencyInternal) dependency;
-        projectDependency.beforeResolved();
         ComponentSelector selector = DefaultProjectComponentSelector.newSelector(projectDependency.getDependencyProject(),
                 ((AttributeContainerInternal)projectDependency.getAttributes()).asImmutable(),
                 projectDependency.getRequestedCapabilities());

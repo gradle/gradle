@@ -19,10 +19,15 @@ package org.gradle.configurationcache
 import org.gradle.api.GradleException
 import org.gradle.api.internal.BuildType
 import org.gradle.api.internal.StartParameterInternal
+import org.gradle.configurationcache.initialization.ConfigurationCacheInjectedClasspathInstrumentationStrategy
+import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
+import org.gradle.configurationcache.initialization.VintageInjectedClasspathInstrumentationStrategy
+import org.gradle.configurationcache.problems.ConfigurationCacheProblems
 import org.gradle.internal.buildtree.BuildActionModelRequirements
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.buildtree.BuildTreeModelControllerServices
 import org.gradle.internal.buildtree.RunTasksRequirements
+import org.gradle.internal.service.ServiceRegistration
 import org.gradle.util.internal.IncubationLogger
 
 
@@ -62,8 +67,7 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         return BuildTreeModelControllerServices.Supplier { registration ->
             val buildType = if (requirements.isRunsTasks) BuildType.TASKS else BuildType.MODEL
             registration.add(BuildType::class.java, buildType)
-            registration.add(BuildModelParameters::class.java, modelParameters)
-            registration.add(BuildActionModelRequirements::class.java, requirements)
+            registerServices(registration, modelParameters, requirements)
         }
     }
 
@@ -71,8 +75,26 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         return BuildTreeModelControllerServices.Supplier { registration ->
             registration.add(BuildType::class.java, BuildType.TASKS)
             // Configuration cache is not supported for nested build trees
-            registration.add(BuildModelParameters::class.java, BuildModelParameters(startParameter.isConfigureOnDemand, false, false, true, false, false))
-            registration.add(RunTasksRequirements::class.java, RunTasksRequirements(startParameter))
+            val buildModelParameters = BuildModelParameters(startParameter.isConfigureOnDemand, false, false, true, false, false)
+            val requirements = RunTasksRequirements(startParameter)
+            registerServices(registration, buildModelParameters, requirements)
+        }
+    }
+
+    private
+    fun registerServices(registration: ServiceRegistration, modelParameters: BuildModelParameters, requirements: BuildActionModelRequirements) {
+        registration.add(BuildModelParameters::class.java, modelParameters)
+        registration.add(BuildActionModelRequirements::class.java, requirements)
+        if (modelParameters.isConfigurationCache) {
+            registration.add(ConfigurationCacheBuildTreeLifecycleControllerFactory::class.java)
+            registration.add(ConfigurationCacheStartParameter::class.java)
+            registration.add(ConfigurationCacheClassLoaderScopeRegistryListener::class.java)
+            registration.add(ConfigurationCacheInjectedClasspathInstrumentationStrategy::class.java)
+            registration.add(ConfigurationCacheProblems::class.java)
+            registration.add(DefaultConfigurationCache::class.java)
+        } else {
+            registration.add(VintageInjectedClasspathInstrumentationStrategy::class.java)
+            registration.add(VintageBuildTreeLifecycleControllerFactory::class.java)
         }
     }
 }

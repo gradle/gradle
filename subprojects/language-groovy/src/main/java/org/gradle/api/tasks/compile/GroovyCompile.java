@@ -194,7 +194,8 @@ public class GroovyCompile extends AbstractCompile implements HasCompileOptions 
      */
     @SkipWhenEmpty
     @IgnoreEmptyDirectories
-    @PathSensitive(PathSensitivity.RELATIVE) // Java source files are supported, too. Therefore we should care about the relative path.
+    // Java source files are supported, too. Therefore, we should care about the relative path.
+    @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
     protected FileCollection getStableSources() {
         return stableSources;

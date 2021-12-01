@@ -27,7 +27,6 @@ class SkipWhenEmptyIntegrationTest extends AbstractIntegrationSpec {
         emptyDirectory.zipTo(emptyZip)
         emptyDirectory.tarTo(emptyTar)
         buildFile << sourceTask
-        buildFile << getInputTarResource("emptyTar.tar")
         buildFile << """
             tasks.register("sourceTask", MySourceTask) {
                 sources.setFrom(${inputDeclaration})
@@ -46,8 +45,7 @@ class SkipWhenEmptyIntegrationTest extends AbstractIntegrationSpec {
         "empty directory as file tree"        | "fileTree(file('emptyDir'))"
         "empty zip tree"                      | "zipTree(file('emptyZip.zip'))"
         "empty tar tree"                      | "tarTree(file('emptyTar.tar'))"
-        "empty tar tree without backing file" | "tarTree(inputTarResource)"
-//        "empty directory" | "files('emptyDir')" <-- Doesn't skip, yet
+        "empty directory"                     | "files('emptyDir')"
     }
 
     def "SkipWhenEmpty does not skip for #description"() {
@@ -58,7 +56,6 @@ class SkipWhenEmptyIntegrationTest extends AbstractIntegrationSpec {
         inputDirectory.zipTo(inputZip)
         inputDirectory.tarTo(inputTar)
         buildFile << sourceTask
-        buildFile << inputTarResource
         buildFile << """
             tasks.register("sourceTask", MySourceTask) {
                 sources.setFrom(${inputDeclaration})
@@ -77,7 +74,6 @@ class SkipWhenEmptyIntegrationTest extends AbstractIntegrationSpec {
         "directory containing files as file tree"       | "fileTree(file('inputDir'))"
         "zip tree with files"                           | "zipTree(file('inputZip.zip'))"
         "tar tree with files"                           | "tarTree(file('inputTar.tar'))"
-        "tar tree without backing file with files"      | "tarTree(inputTarResource)"
     }
 
     def "emit a deprecation warning when file tree source does not ignore directories"() {
@@ -119,18 +115,6 @@ class SkipWhenEmptyIntegrationTest extends AbstractIntegrationSpec {
                     println("Running...")
                     outputFile.get().asFile.text = "executed"
                 }
-            }
-        """
-    }
-
-    private String getInputTarResource(String fileName = "inputTar.tar") {
-        """
-            def inputTarFile = file("${fileName}")
-            def inputTarResource = new ReadableResource() {
-                InputStream read() { Files.newInputStream(inputTarFile.toPath()) }
-                String displayName = "readable resource"
-                URI URI = uri("https://test.com")
-                String baseName = "base name"
             }
         """
     }

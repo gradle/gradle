@@ -70,6 +70,7 @@ class DefaultInputFingerprinterTest extends Specification {
         1 * valueSnapshotter.snapshot(input) >> inputSnapshot
         1 * snapshotter.snapshot(fileInput) >> fileInputSnapshotResult
         _ * fileInputSnapshotResult.fileTreeOnly >> false
+        _ * fileInputSnapshotResult.containsArchiveTrees() >> false
         1 * fileInputSnapshotResult.snapshot >> fileInputSnapshot
         1 * fingerprinter.fingerprint(fileInputSnapshot, null) >> fileInputFingerprint
         0 * _
@@ -77,6 +78,48 @@ class DefaultInputFingerprinterTest extends Specification {
         then:
         result.valueSnapshots as Map == ["input": inputSnapshot]
         result.fileFingerprints as Map == ["file": fileInputFingerprint]
+    }
+
+    def "marks archive trees as properties requiring empty check"() {
+        def archiveTreeInput = Mock(FileCollection)
+        def archiveTreeInputSnapshotResult = Mock(FileCollectionSnapshotter.Result)
+        def archiveTreeInputSnapshot = Mock(FileSystemSnapshot)
+        def archiveTreeInputFingerprint = Mock(CurrentFileCollectionFingerprint)
+
+        when:
+        def result = fingerprintInputProperties { visitor ->
+            visitor.visitInputFileProperty(
+                "file",
+                NON_INCREMENTAL,
+                new FileValueSupplier(fileInput, FileNormalizer, DirectorySensitivity.DEFAULT, LineEndingSensitivity.DEFAULT, { fileInput }))
+            visitor.visitInputFileProperty(
+                "archiveTree",
+                NON_INCREMENTAL,
+                new FileValueSupplier(fileInput, FileNormalizer, DirectorySensitivity.DEFAULT, LineEndingSensitivity.DEFAULT, { archiveTreeInput }))
+        }
+
+        then:
+        1 * snapshotter.snapshot(fileInput) >> fileInputSnapshotResult
+        _ * fileInputSnapshotResult.fileTreeOnly >> false
+        _ * fileInputSnapshotResult.containsArchiveTrees() >> false
+        1 * fileInputSnapshotResult.snapshot >> fileInputSnapshot
+        1 * fingerprinter.fingerprint(fileInputSnapshot, null) >> fileInputFingerprint
+
+        then:
+        1 * snapshotter.snapshot(archiveTreeInput) >> archiveTreeInputSnapshotResult
+        _ * archiveTreeInputSnapshotResult.fileTreeOnly >> false
+        _ * archiveTreeInputSnapshotResult.containsArchiveTrees() >> true
+        1 * archiveTreeInputSnapshotResult.snapshot >> archiveTreeInputSnapshot
+        1 * fingerprinter.fingerprint(archiveTreeInputSnapshot, null) >> archiveTreeInputFingerprint
+
+        0 * _
+
+        then:
+        result.fileFingerprints as Map == [
+            "file": fileInputFingerprint,
+            "archiveTree": archiveTreeInputFingerprint
+        ]
+        result.propertiesRequiringIsEmptyCheck == (["archiveTree"] as Set)
     }
 
     def "ignores already known properties"() {
@@ -155,7 +198,7 @@ class DefaultInputFingerprinterTest extends Specification {
 
         then:
         def ex = thrown InputFingerprinter.InputFileFingerprintingException
-        ex.message == "Cannot fingerprint input file property 'file'."
+        ex.message == "Cannot fingerprint input file property 'file': java.io.IOException: Error"
         ex.propertyName == "file"
         ex.cause == failure
     }

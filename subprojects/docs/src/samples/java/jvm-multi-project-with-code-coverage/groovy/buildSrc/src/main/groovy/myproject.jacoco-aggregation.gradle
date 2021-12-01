@@ -7,6 +7,19 @@ repositories {
     mavenCentral()
 }
 
+// Resolvable configuration to resolve the classes of all dependencies
+def classesPath = configurations.create("classesPath") {
+    visible = false
+    canBeResolved = true
+    canBeConsumed = false
+    extendsFrom(configurations.implementation)
+    attributes {
+        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
+        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.LIBRARY))
+        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.CLASSES))
+    }
+}
+
 // A resolvable configuration to collect source code
 def sourcesPath = configurations.create("sourcesPath") {
     visible = false
@@ -14,9 +27,8 @@ def sourcesPath = configurations.create("sourcesPath") {
     canBeConsumed = false
     extendsFrom(configurations.implementation)
     attributes {
-        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
-        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION))
-        attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType, 'source-folders'))
+        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.VERIFICATION))
+        attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objects.named(VerificationType, VerificationType.MAIN_SOURCES))
     }
 }
 
@@ -27,17 +39,16 @@ def coverageDataPath = configurations.create("coverageDataPath") {
     canBeConsumed = false
     extendsFrom(configurations.implementation)
     attributes {
-        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
-        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION))
-        attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType, 'jacoco-coverage-data'))
+        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.VERIFICATION))
+        attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objects.named(VerificationType.class, VerificationType.JACOCO_RESULTS))
     }
 }
 
 // Task to gather code coverage from multiple subprojects
 def codeCoverageReport = tasks.register('codeCoverageReport', JacocoReport) {
-    additionalClassDirs(configurations.runtimeClasspath)
-    additionalSourceDirs(sourcesPath.incoming.artifactView { lenient(true) }.files)
-    executionData(coverageDataPath.incoming.artifactView { lenient(true) }.files.filter { it.exists() })
+    classDirectories.from(classesPath.getIncoming().artifactView { lenient(true) }.getFiles())
+    sourceDirectories.from(sourcesPath.getIncoming().artifactView { lenient(true) }.getFiles())
+    executionData(coverageDataPath.getIncoming().artifactView { lenient(true) }.getFiles().filter { it.exists() })
 
     reports {
         // xml is usually used to integrate code coverage with

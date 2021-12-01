@@ -89,10 +89,10 @@ class ConfigurationCacheBuildSrcChangesIntegrationTest extends AbstractConfigura
             }
 
             val ciProvider = providers.of(IsCi::class.java) {
-                parameters.value.set(providers.systemProperty("test_is_ci").forUseAtConfigurationTime())
+                parameters.value.set(providers.systemProperty("test_is_ci"))
             }
 
-            val isCi = ${inputExpression}.forUseAtConfigurationTime()
+            val isCi = ${inputExpression}
             tasks {
                 if (isCi.isPresent) {
                     register("run") {

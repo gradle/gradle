@@ -1786,7 +1786,7 @@ Found the following transforms:
             task resolve(type: Copy) {
                 def artifacts = configurations.compile.incoming.artifactView {
                     attributes { it.attribute(artifactType, 'size') }
-                    lenient(providers.gradleProperty("lenient").forUseAtConfigurationTime().present)
+                    lenient(providers.gradleProperty("lenient").present)
                 }.artifacts
                 from artifacts.artifactFiles
                 into "\${buildDir}/libs"
@@ -2685,7 +2685,7 @@ Found the following transforms:
                 duplicatesStrategy = 'INCLUDE'
                 def artifacts = configurations.compile.incoming.artifactView {
                     attributes { it.attribute(artifactType, 'size') }
-                    lenient(providers.gradleProperty("lenient").forUseAtConfigurationTime().present)
+                    lenient(providers.gradleProperty("lenient").present)
                 }.artifacts
                 from artifacts.artifactFiles
                 into "\${buildDir}/libs"

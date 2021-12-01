@@ -113,13 +113,13 @@ class PathNormalizationStrategyTest extends Specification {
         expect:
         fingerprints[jarFile1]                      == jarFile1.name
         fingerprints[jarFile2]                      == jarFile2.name
-        fingerprints[resources]                     == rootDirectoryFingerprintFor(strategy.directorySensitivity)
+        fingerprints[resources]                     == null
         fingerprints[resources.file(fileInRoot)]    == fileInRoot
         fingerprints[resources.file(subDirA)]       == directoryFingerprintFor(subDirA, strategy.directorySensitivity)
         fingerprints[resources.file(fileInSubdirA)] == fileInSubdirA
         fingerprints[resources.file(subDirB)]       == directoryFingerprintFor(subDirB, strategy.directorySensitivity)
         fingerprints[resources.file(fileInSubdirB)] == fileInSubdirB
-        fingerprints[emptyRootDir]                  == rootDirectoryFingerprintFor(strategy.directorySensitivity)
+        fingerprints[emptyRootDir]                  == null
         fingerprints[missingFile]                   == missingFile.name
 
         where:

@@ -124,7 +124,7 @@ public abstract class CreateEmptyDirectory extends DefaultTask {
         buildFile << '''
             task customTask(type: CustomTask) {
                 outputFile = file("$buildDir/outputFile")
-                content = providers.gradleProperty('content').forUseAtConfigurationTime().getOrElse(null)
+                content = providers.gradleProperty('content').getOrElse(null)
             }
 
             class CustomTask extends DefaultTask {

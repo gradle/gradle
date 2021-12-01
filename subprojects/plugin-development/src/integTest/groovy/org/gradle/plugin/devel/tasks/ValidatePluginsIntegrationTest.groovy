@@ -154,7 +154,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
             dependencies {
                 implementation localGroovy()
             }
-            def strictProp = providers.gradleProperty("strict").forUseAtConfigurationTime()
+            def strictProp = providers.gradleProperty("strict")
             validatePlugins.enableStricterValidation = strictProp.present
         """
 
@@ -496,5 +496,23 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
             warning(notCacheableWithoutReason { type('MyTask').noReasonOnTask().includeLink() }),
             warning(notCacheableWithoutReason { type('MyTransformAction').noReasonOnArtifactTransform().includeLink() })
         ])
+    }
+
+    @ValidationTestFor(ValidationProblemId.NOT_CACHEABLE_WITHOUT_REASON)
+    def "untracked tasks don't need a disable caching by default reason"() {
+        javaTaskSource << """
+            import org.gradle.api.*;
+            import org.gradle.api.tasks.*;
+
+            @UntrackedTask(because = "untracked for validation test")
+            public abstract class MyTask extends DefaultTask {
+            }
+        """
+        buildFile << """
+            validatePlugins.enableStricterValidation = true
+        """
+
+        expect:
+        assertValidationSucceeds()
     }
 }

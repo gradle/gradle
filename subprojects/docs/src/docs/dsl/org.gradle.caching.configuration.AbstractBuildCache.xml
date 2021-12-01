@@ -23,12 +23,6 @@
                     <td>Name</td>
                 </tr>
             </thead>
-            <tr>
-                <td>push</td>
-            </tr>
-            <tr>
-                <td>enabled</td>
-            </tr>
         </table>
     </section>
     <section>

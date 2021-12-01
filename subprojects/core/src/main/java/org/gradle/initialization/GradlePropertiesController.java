@@ -45,4 +45,10 @@ public interface GradlePropertiesController {
      * @throws IllegalStateException if called with a different argument in the same build
      */
     void loadGradlePropertiesFrom(File settingsDir);
+
+    /**
+     * Unloads the properties so the next call to {@link #loadGradlePropertiesFrom(File)} would reload them and
+     * re-evaluate any property defining system properties and environment variables.
+     */
+    void unloadGradleProperties();
 }

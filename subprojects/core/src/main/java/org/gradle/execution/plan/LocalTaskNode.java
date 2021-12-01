@@ -43,6 +43,8 @@ public class LocalTaskNode extends TaskNode {
     private final TaskInternal task;
     private final WorkValidationContext validationContext;
     private ImmutableActionSet<Task> postAction = ImmutableActionSet.empty();
+    private Set<Node> lifecycleSuccessors;
+
     private boolean isolated;
     private List<? extends ResourceLock> resourceLocks;
     private TaskProperties taskProperties;
@@ -129,6 +131,9 @@ public class LocalTaskNode extends TaskNode {
             addDependencySuccessor(targetNode);
             processHardSuccessor.execute(targetNode);
         }
+
+        lifecycleSuccessors = dependencyResolver.resolveDependenciesFor(task, task.getLifecycleDependencies());
+
         for (Node targetNode : getFinalizedBy(dependencyResolver)) {
             if (!(targetNode instanceof TaskNode)) {
                 throw new IllegalStateException("Only tasks can be finalizers: " + targetNode);
@@ -228,5 +233,16 @@ public class LocalTaskNode extends TaskNode {
                 throw new IllegalStateException("Task " + taskNode + " has both local state and destroyables defined.  A task can define either local state or destroyables, but not both.");
             }
         }
+    }
+
+    /**
+     * Used to determine whether a {@link Node} consumes the <b>outcome</b> of a successor task vs. its output(s).
+     *
+     * @param dependency a non-successful successor node in the execution plan
+     * @return true if the successor node dependency was declared with an explicit dependsOn relationship, false otherwise (implying task output -> task input relationship)
+     */
+    @Override
+    protected boolean dependsOnOutcome(Node dependency) {
+        return lifecycleSuccessors.contains(dependency);
     }
 }

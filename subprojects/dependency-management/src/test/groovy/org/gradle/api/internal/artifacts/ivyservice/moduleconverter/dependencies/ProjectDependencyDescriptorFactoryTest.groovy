@@ -22,7 +22,6 @@ import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency
 import org.gradle.api.internal.attributes.ImmutableAttributes
-import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -86,6 +85,6 @@ class ProjectDependencyDescriptorFactoryTest extends AbstractDependencyDescripto
         if (dependencyConfiguration != null) {
             dependencyProject.configurations.create(dependencyConfiguration)
         }
-        return new DefaultProjectDependency(dependencyProject, dependencyConfiguration, {} as ProjectAccessListener, true)
+        return new DefaultProjectDependency(dependencyProject, dependencyConfiguration, true)
     }
 }

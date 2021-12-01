@@ -60,10 +60,11 @@ class CheckProject(
         }
         baseRule {
             artifacts(
-                days = 14, artifactPatterns = """
+                days = 14,
+                artifactPatterns = """
                 +:**/*
                 +:$failedTestArtifactDestination/**/*"
-            """.trimIndent()
+                """.trimIndent()
             )
         }
     }
