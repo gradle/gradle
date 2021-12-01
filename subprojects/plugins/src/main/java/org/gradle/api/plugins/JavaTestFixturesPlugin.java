@@ -20,6 +20,7 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.attributes.Attribute;
 import org.gradle.api.plugins.jvm.internal.JvmModelingServices;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.internal.component.external.model.ProjectTestFixtures;
@@ -57,6 +58,7 @@ public class JavaTestFixturesPlugin implements Plugin<Project> {
         project.getPluginManager().withPlugin("java", plugin -> {
             jvmEcosystemUtilities.createJvmVariant(TEST_FIXTURES_FEATURE_NAME, builder ->
                 builder
+                    .withAttribute(Attribute.of("org.gradle.test-fixtures", Boolean.class), true) // Perhaps move to new Attribute interface?
                     .exposesApi()
                     .published()
             );
