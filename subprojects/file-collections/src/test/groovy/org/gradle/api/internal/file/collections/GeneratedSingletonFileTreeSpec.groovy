@@ -120,7 +120,6 @@ class GeneratedSingletonFileTreeSpec extends Specification {
 
         then:
         1 * visitor.prepareForVisit(fileTree) >> FileCollectionStructureVisitor.VisitType.NoContents
-        1 * visitor.visitCollection(fileTree, [])
         0 * _
     }
 }
