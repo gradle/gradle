@@ -64,6 +64,7 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
     @IgnoreIf({ !CommandLineIntegrationSpec.debugPortIsFree() || GradleContextualExecuter.embedded })
     def "can debug with org.gradle.debug=true"() {
         given:
+        executer.requireDaemon().requireIsolatedDaemons()
         JDWPUtil jdwpClient = new JDWPUtil(5005)
 
         when:
@@ -81,6 +82,7 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
     @IgnoreIf({ GradleContextualExecuter.embedded })
     def "can debug on selected port with org.gradle.debug.port"() {
         given:
+        executer.requireDaemon().requireIsolatedDaemons()
         JDWPUtil jdwpClient = new JDWPUtil()
 
         when:
@@ -121,6 +123,7 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
     @Timeout(30)
     def "can debug with org.gradle.debug.server=false"() {
         given:
+        executer.requireDaemon().requireIsolatedDaemons()
         JDWPUtil jdwpClient = new JDWPUtil()
         jdwpClient.listen(false)
 
@@ -144,6 +147,7 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
     @Timeout(30)
     def "can debug with org.gradle.debug.suspend=false"() {
         given:
+        executer.requireDaemon().requireIsolatedDaemons()
         JDWPUtil jdwpClient = new JDWPUtil()
         jdwpClient.listen(false)
 
