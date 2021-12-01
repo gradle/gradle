@@ -201,7 +201,8 @@ Have a look at the <<variant_model.adoc#sec:variant-select-errors,dedicated sect
 == Resolving unsafe configuration resolution errors
 
 Resolving a configuration can have side effects on Gradle's project model, so Gradle needs manage access to each project's configurations.
-There are a number of ways a configuration might be resolved unsafely. Gradle will produce a deprecation warning for each unsafe access.
+There are a number of ways a configuration might be resolved unsafely.
+Gradle will produce a deprecation warning for each unsafe access.
 Each of these are bad practices and can cause strange and indeterminate errors.
 
 If your build has an unsafe access deprecation warning, it needs to be fixed.
