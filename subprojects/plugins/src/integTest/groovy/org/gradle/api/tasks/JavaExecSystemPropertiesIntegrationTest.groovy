@@ -121,7 +121,7 @@ package org.gradle.demo;
             }
 
             tasks.named('run') {
-                systemProperty('name', buildName.map { it.outputFile.asFile.get().text })
+                systemProperty('name', buildName.flatMap { it.outputFile }.map { it.asFile.text })
             }
         """
 
