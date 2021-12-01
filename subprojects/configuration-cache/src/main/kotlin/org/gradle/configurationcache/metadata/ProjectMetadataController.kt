@@ -96,6 +96,7 @@ class ProjectMetadataController(
     suspend fun WriteContext.writeDependencies(dependencies: List<LocalOriginDependencyMetadata>) {
         writeCollection(dependencies) {
             write(it.selector)
+            writeBoolean(it.isConstraint)
         }
     }
 
@@ -146,6 +147,7 @@ class ProjectMetadataController(
     suspend fun ReadContext.readDependenciesInto(metadata: DefaultLocalComponentMetadata, configuration: BuildableLocalConfigurationMetadata) {
         readCollection {
             val selector = readNonNull<ComponentSelector>()
+            val constraint = readBoolean()
             configuration.addDependency(
                 LocalComponentDependencyMetadata(
                     metadata.id,
@@ -159,7 +161,7 @@ class ProjectMetadataController(
                     false,
                     false,
                     true,
-                    false,
+                    constraint,
                     false,
                     null
                 )
