@@ -98,7 +98,7 @@ class CrossProjectMultipleVariantSelectionIntegrationTest extends AbstractDepend
         settingsFile << "include 'lib'"
 
         file("lib/build.gradle") << """
-            configurations {                
+            configurations {
                 testFixtures {
                     canBeResolved = false
                     canBeConsumed = true
@@ -108,6 +108,9 @@ class CrossProjectMultipleVariantSelectionIntegrationTest extends AbstractDepend
                         attribute(Category.CATEGORY_ATTRIBUTE, project.objects.named(Category, Category.LIBRARY))
                         attribute(Bundling.BUNDLING_ATTRIBUTE, project.objects.named(Bundling, Bundling.EXTERNAL))
                         attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, Integer.parseInt(JavaVersion.current().majorVersion))
+
+                        // Need to disambiguate testFixtures from apiElements
+                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, 'test'))
                     }
                     outgoing.capability('test:lib:1.0')
                     outgoing.capability('test:lib-fixtures:1.0')
