@@ -59,10 +59,10 @@ class DefaultGradlePropertiesLoaderTest extends Specification {
         _ * startParameter.projectProperties >> { projectPropertiesArgs }
         _ * startParameter.systemPropertiesArgs >> { systemPropertiesArgs }
         _ * environment.systemProperties >> Mock(Environment.Properties) {
-            _ * it.byNamePrefix(_) >> { prefixedSystemProperties }
+            _ * it.byNamePrefix(SYSTEM_PROJECT_PROPERTIES_PREFIX) >> { prefixedSystemProperties }
         }
         _ * environment.variables >> Mock(Environment.Properties) {
-            _ * it.byNamePrefix(_) >> { prefixedEnvironmentVariables }
+            _ * it.byNamePrefix(ENV_PROJECT_PROPERTIES_PREFIX) >> { prefixedEnvironmentVariables }
         }
     }
 
