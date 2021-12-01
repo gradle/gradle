@@ -1104,13 +1104,15 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 .filter(c -> c != this)
                 .collect(Collectors.toSet());
 
-            for (ConfigurationInternal other : potentialDuplicates) {
-                if (hasSameCapabilitiesAs(other) && hasSameAttributesAs(other)) {
-                    DeprecationLogger.deprecateBehaviour("Consumable configurations with identical capabilities within a project must have unique attributes, but " + getDisplayName() + " and " + other.getDisplayName() + " contain identical attribute sets.")
-                        .withAdvice("Consider adding an additional attribute to one of the configurations to disambiguate them.  Run the 'outgoingVariants' task for more details.")
-                        .willBecomeAnErrorInGradle8()
-                        .withUpgradeGuideSection(7, "unique_attribute_sets")
-                        .nagUser();
+            if (!getOutgoing().getCapabilities().isEmpty() && !getAttributes().isEmpty()) {
+                for (ConfigurationInternal other : potentialDuplicates) {
+                    if (hasSameCapabilitiesAs(other) && hasSameAttributesAs(other)) {
+                        DeprecationLogger.deprecateBehaviour("Consumable configurations with identical capabilities within a project must have unique attributes, but " + getDisplayName() + " and " + other.getDisplayName() + " contain identical attribute sets.")
+                            .withAdvice("Consider adding an additional attribute to one of the configurations to disambiguate them.  Run the 'outgoingVariants' task for more details.")
+                            .willBecomeAnErrorInGradle8()
+                            .withUpgradeGuideSection(7, "unique_attribute_sets")
+                            .nagUser();
+                    }
                 }
             }
         }
@@ -1120,11 +1122,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         final Collection<? extends Capability> capabilities = getOutgoing().getCapabilities();
         final Collection<? extends Capability> otherCapabilities = other.getOutgoing().getCapabilities();
         //noinspection SuspiciousMethodCalls
-        return !capabilities.isEmpty() && !otherCapabilities.isEmpty() && capabilities.size() == otherCapabilities.size() && capabilities.containsAll(otherCapabilities);
+        return capabilities.size() == otherCapabilities.size() && capabilities.containsAll(otherCapabilities);
     }
 
     private boolean hasSameAttributesAs(ConfigurationInternal other) {
-        return !other.getAttributes().isEmpty() && !getAttributes().isEmpty() && other.getAttributes().asMap().equals(getAttributes().asMap());
+        return other.getAttributes().asMap().equals(getAttributes().asMap());
     }
 
     @Override
