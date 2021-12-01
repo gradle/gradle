@@ -346,6 +346,8 @@ Sometimes a user wants to declare the value of an exposed task property on the c
 
 Exposing a new command line option for a task property is straightforward. You just have to annotate the corresponding setter method of a property with link:{javadocPath}/org/gradle/api/tasks/options/Option.html[Option]. An option requires a mandatory identifier. Additionally, you can provide an optional description. A task can expose as many command line options as properties available in the class.
 
+Options may be declared in superinterfaces of the task class as well. If multiple interfaces declare the same property, but with different option flags, they will both work to set the property.
+
 Let's have a look at an example to illustrate the functionality. The custom task `UrlVerify` verifies whether a given URL can be resolved by making a HTTP call and checking the response code. The URL to be verified is configurable through the property `url`. The setter method for the property is annotated with link:{javadocPath}/org/gradle/api/tasks/options/Option.html[@Option].
 
 === Example: Declaring a command line option

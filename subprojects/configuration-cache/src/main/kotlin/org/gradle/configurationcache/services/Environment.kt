@@ -16,11 +16,14 @@
 
 package org.gradle.configurationcache.services
 
+import org.gradle.configurationcache.extensions.filterKeysByPrefix
 import org.gradle.configurationcache.extensions.getBroadcaster
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.initialization.Environment
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.resource.local.FileResourceListener
+import org.gradle.internal.service.scopes.EventScope
+import org.gradle.internal.service.scopes.Scopes
 import org.gradle.util.internal.GUtil
 import java.io.File
 
@@ -32,12 +35,42 @@ class ConfigurationCacheEnvironment(
     private val listenerManager: ListenerManager
 ) : DefaultEnvironment() {
 
+    @EventScope(Scopes.Build::class)
+    interface Listener {
+        fun systemPropertiesPrefixedBy(prefix: String, snapshot: Map<String, String?>)
+        fun envVariablesPrefixedBy(prefix: String, snapshot: Map<String, String?>)
+    }
+
     private
     val fileResourceListener: FileResourceListener by lazy(listenerManager::getBroadcaster)
+
+    private
+    val listener: Listener by lazy(listenerManager::getBroadcaster)
 
     override fun propertiesFile(propertiesFile: File): Map<String, String>? {
         fileResourceListener.fileObserved(propertiesFile)
         return super.propertiesFile(propertiesFile)
+    }
+
+    override fun getSystemProperties(): Environment.Properties =
+        TrackingProperties(System.getProperties().uncheckedCast()) { prefix, snapshot ->
+            listener.systemPropertiesPrefixedBy(prefix, snapshot)
+        }
+
+    override fun getVariables(): Environment.Properties =
+        TrackingProperties(System.getenv()) { prefix, snapshot ->
+            listener.envVariablesPrefixedBy(prefix, snapshot)
+        }
+
+    private
+    class TrackingProperties(
+        map: Map<String, String>,
+        val onByNamePrefix: (String, Map<String, String?>) -> Unit
+    ) : DefaultProperties(map) {
+        override fun byNamePrefix(prefix: String): Map<String, String?> =
+            super.byNamePrefix(prefix).also { snapshot ->
+                onByNamePrefix(prefix, snapshot)
+            }
     }
 }
 
@@ -50,5 +83,17 @@ open class DefaultEnvironment : Environment {
     override fun propertiesFile(propertiesFile: File): Map<String, String>? = when {
         propertiesFile.isFile -> GUtil.loadProperties(propertiesFile).uncheckedCast()
         else -> null
+    }
+
+    override fun getSystemProperties(): Environment.Properties =
+        DefaultProperties(System.getProperties().uncheckedCast())
+
+    override fun getVariables(): Environment.Properties =
+        DefaultProperties(System.getenv())
+
+    internal
+    open class DefaultProperties(val map: Map<String, String>) : Environment.Properties {
+        override fun byNamePrefix(prefix: String): Map<String, String?> =
+            map.filterKeysByPrefix(prefix)
     }
 }

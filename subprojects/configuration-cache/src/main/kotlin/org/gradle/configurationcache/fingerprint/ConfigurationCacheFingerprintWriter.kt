@@ -52,6 +52,7 @@ import org.gradle.configurationcache.problems.PropertyProblem
 import org.gradle.configurationcache.problems.PropertyTrace
 import org.gradle.configurationcache.problems.StructuredMessage
 import org.gradle.configurationcache.serialization.DefaultWriteContext
+import org.gradle.configurationcache.services.ConfigurationCacheEnvironment
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.internal.hash.HashCode
@@ -75,7 +76,8 @@ class ConfigurationCacheFingerprintWriter(
     ChangingValueDependencyResolutionListener,
     ProjectDependencyObservedListener,
     CoupledProjectsListener,
-    FileResourceListener {
+    FileResourceListener,
+    ConfigurationCacheEnvironment.Listener {
 
     interface Host {
         val gradleUserHomeDir: File
@@ -185,6 +187,14 @@ class ConfigurationCacheFingerprintWriter(
         if (undeclaredEnvironmentVariables.add(key)) {
             reportEnvironmentVariableInput(key, consumer)
         }
+    }
+
+    override fun systemPropertiesPrefixedBy(prefix: String, snapshot: Map<String, String?>) {
+        buildScopedSink.write(ConfigurationCacheFingerprint.SystemPropertiesPrefixedBy(prefix, snapshot))
+    }
+
+    override fun envVariablesPrefixedBy(prefix: String, snapshot: Map<String, String?>) {
+        buildScopedSink.write(ConfigurationCacheFingerprint.EnvironmentVariablesPrefixedBy(prefix, snapshot))
     }
 
     override fun <T : Any, P : ValueSourceParameters> valueObtained(

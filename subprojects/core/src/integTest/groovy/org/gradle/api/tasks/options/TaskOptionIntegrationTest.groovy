@@ -16,6 +16,8 @@
 
 package org.gradle.api.tasks.options
 
+import spock.lang.Issue
+
 class TaskOptionIntegrationTest extends AbstractOptionIntegrationSpec {
 
     def "can evaluate option value of type #optionType when #description for Java task on command line"() {
@@ -248,4 +250,75 @@ Options
         """
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/18496")
+    def "consider options from interfaces"() {
+        given:
+        buildFile << '''
+            interface MyInterface {
+              @Option(
+                option = 'serial',
+                description = 'Target the device with given serial'
+              )
+              @Optional
+              @Input
+              Property<String> getSerial()
+            }
+
+            abstract class MyTask extends DefaultTask implements MyInterface{
+              @TaskAction
+              void action() {
+                println "Serial: ${serial.getOrElse('-')}"
+              }
+            }
+
+            tasks.register("myTask", MyTask.class)
+        '''
+
+        when:
+        succeeds('myTask', '--serial=1234')
+
+        then:
+        result.assertTaskExecuted(':myTask').assertOutputContains('Serial: 1234')
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/18496")
+    def "consider options from interfaces with same method defined twice should use last defined value"() {
+        given:
+        buildFile << '''
+            interface MyInterface {
+              @Option(
+                option = 'serial',
+                description = 'Target the device with given serial'
+              )
+              @Optional
+              @Input
+              Property<String> getSerial()
+            }
+
+            interface MyInterface1 {
+              @Option(
+                option = 'serialNumber',
+                description = 'Target the device with given serial'
+              )
+              @Optional
+              @Input
+              Property<String> getSerial()
+            }
+
+            abstract class MyTask extends DefaultTask implements MyInterface, MyInterface1{
+              @TaskAction
+              void action() {
+                println "Serial: ${serial.getOrElse('-')}"
+              }
+            }
+
+            tasks.register("myTask", MyTask.class)
+        '''
+
+        when:
+        succeeds('myTask', '--serial=1234', '--serialNumber=4321')
+
+        then:
+        result.assertTaskExecuted(':myTask').assertOutputContains('Serial: 4321')
+    }
 }

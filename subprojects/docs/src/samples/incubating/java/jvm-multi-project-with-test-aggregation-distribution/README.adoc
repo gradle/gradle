@@ -1,0 +1,33 @@
+NOTE: You can open this sample inside an IDE using the https://www.jetbrains.com/help/idea/gradle.html#gradle_import_project_start[IntelliJ native importer] or https://projects.eclipse.org/projects/tools.buildship[Eclipse Buildship].
+
+This sample shows how to aggregate test results across multiple Java subprojects.  The link:{userManualPath}/test_report_aggregation_plugin.html[test-report-aggregation plugin] provides this ability when applied to the distribution project, such as an Android application or WAR subproject.
+
+The project in this example contains three projects: `application`, `list` and `utilities`.  All three projects apply the `java` plugin, and `application` consumes both `list` and `utilities` on its implementation configuration.  The `application` subproject is the final distribution of this software project, and applies `test-report-aggregation` to perform the test result aggregation.
+
+====
+include::sample[dir="groovy",files="application/build.gradle[]"]
+include::sample[dir="kotlin",files="application/build.gradle.kts[]"]
+====
+
+The `application` project requires no additional configuration if the `jvm-test-suite` plugin is present.
+
+<1> Apply the `test-report-aggregation` plugin
+<2> Optional: make aggregate test report generation part of the 'check' lifecycle phase
+
+The aggregation logic does not automatically inspect all subprojects for test results.  Instead, the direct and transitive <<declaring_dependencies.adoc#sub:project_dependencies,project dependencies>> of the distribution project's runtime classpath are selected for potential aggregation.
+
+For the default test suite named 'test', no additional configuration is necessary.  The aggregated reports and their backing tasks of type `TestReport` are synthesized based on the test suites existing in the `application` project.  Test suites having identical `testType` properties will be aggregated.
+
+Running the tests and generate the report:
+
+[listing.terminal.sample-command]
+----
+$ ./gradlew testAggregateTestReport
+
+BUILD SUCCESSFUL
+24 actionable tasks: 24 executed
+----
+
+The aggregated HTML report can now be found under `application/build/reports/tests/unit-tests/aggregated-results`.
+
+For more information, see link:{userManualPath}/java_testing.html[Testing in Java project chapter].
