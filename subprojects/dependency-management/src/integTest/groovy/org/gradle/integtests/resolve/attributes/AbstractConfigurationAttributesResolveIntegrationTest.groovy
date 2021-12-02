@@ -265,30 +265,15 @@ include 'a', 'b'
                     compile
                     freeDebug {
                        extendsFrom compile
-                       attributes {
-                           $freeDebug
-
-                            // Need to ensure configs within project don't share identical attributes
-                            attribute Attribute.of('other', String), 'test1'
-                        }
+                       attributes { $freeDebug }
                     }
                     freeRelease {
                        extendsFrom compile
-                       attributes {
-                           $freeDebug
-
-                            // Need to ensure configs within project don't share identical attributes
-                            attribute Attribute.of('other', String), 'test2'
-                        }
+                       attributes { $freeDebug }
                     }
                     bar {
                        extendsFrom compile
-                       attributes {
-                           $freeDebug
-
-                            // Need to ensure configs within project don't share identical attributes
-                            attribute Attribute.of('other', String), 'test3'
-                        }
+                       attributes { $freeDebug }
                     }
                 }
                 task fooJar(type: Jar) {
@@ -933,8 +918,8 @@ All of them match the consumer attributes:
             }
             project(':b') {
                 configurations {
-                    foo.attributes { $debug; attribute Attribute.of('other', String), 'test1' }
-                    bar.attributes { $debug; attribute Attribute.of('other', String), 'test2' }
+                    foo.attributes { $debug; }
+                    bar.attributes { $debug; }
                 }
                 ${fooAndBarJars()}
             }
@@ -948,12 +933,8 @@ All of them match the consumer attributes:
   - bar
   - foo
 All of them match the consumer attributes:
-  - Variant 'bar' capability test:b:unspecified declares attribute 'buildType' with value 'debug':
-      - Unmatched attribute:
-          - Provides other 'test2' but the consumer didn't ask for it
-  - Variant 'foo' capability test:b:unspecified declares attribute 'buildType' with value 'debug':
-      - Unmatched attribute:
-          - Provides other 'test1' but the consumer didn't ask for it"""
+  - Variant 'bar' capability test:b:unspecified declares attribute 'buildType' with value 'debug'
+  - Variant 'foo' capability test:b:unspecified declares attribute 'buildType' with value 'debug'"""
     }
 
     def "fails when multiple configurations match but have more attributes than requested"() {

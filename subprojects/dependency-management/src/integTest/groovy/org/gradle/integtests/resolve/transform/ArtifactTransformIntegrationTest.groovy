@@ -961,17 +961,11 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
                 api1 {
                     attributes {
                         attribute usage, 'api'
-
-                        // Need to ensure compile, api1 and api2 don't share identical attributes
-                        attribute Attribute.of('other', String), 'test1'
                     }
                 }
                 api2 {
                     attributes {
                         attribute usage, 'api'
-
-                        // Need to ensure compile, api1 and api2 don't share identical attributes
-                        attribute Attribute.of('other', String), 'test2'
                     }
                 }
             }
