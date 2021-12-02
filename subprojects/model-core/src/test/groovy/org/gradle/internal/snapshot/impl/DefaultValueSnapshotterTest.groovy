@@ -17,25 +17,14 @@
 package org.gradle.internal.snapshot.impl
 
 import org.gradle.api.Named
-import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.model.NamedObjectInstantiator
-import org.gradle.api.internal.provider.DefaultMapProperty
-import org.gradle.api.internal.provider.ManagedFactories
-import org.gradle.api.internal.provider.PropertyHost
 import org.gradle.api.internal.provider.Providers
-import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
-import org.gradle.internal.classloader.ClasspathUtil
-import org.gradle.internal.classloader.FilteringClassLoader
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
-import org.gradle.internal.instantiation.ManagedTypeFactory
 import org.gradle.internal.snapshot.ValueSnapshot
 import org.gradle.internal.state.ManagedFactoryRegistry
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.TestUtil
 import spock.lang.Specification
-
-import static org.gradle.api.internal.file.collections.ManagedFactories.ConfigurableFileCollectionManagedFactory
 
 class DefaultValueSnapshotterTest extends Specification {
     def classLoaderHasher = Stub(ClassLoaderHierarchyHasher) {
