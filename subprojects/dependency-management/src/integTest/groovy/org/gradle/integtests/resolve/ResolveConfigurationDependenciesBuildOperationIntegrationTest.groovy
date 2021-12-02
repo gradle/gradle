@@ -637,14 +637,6 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
                     maven { url '${mavenHttpRepo.uri}' }
                 }
             }
-
-            configurations.archives {
-                attributes {
-                    // Need to disambiguate archives from default, now that they will have (the same) attributes
-                    attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, 'test'))
-                }
-            }
-
             dependencies {
                 testImplementation(testFixtures(project(':fixtures')))
             }
