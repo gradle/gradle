@@ -327,6 +327,15 @@ Create a https://gradle.com/build-scans[build scan] with fine-grained informatio
 `-Dorg.gradle.debug=true`::
 Debug Gradle client (non-Daemon) process. Gradle will wait for you to attach a debugger at `localhost:5005` by default.
 
+`-Dorg.gradle.debug.port=(port number)`::
+Specifies the port number to listen on when debug is enabled. _Default is `5005`._
+
+`-Dorg.gradle.debug.server=(true,false)`::
+If set to `true` and debugging is enabled, Gradle will run the build with the socket-attach mode of the debugger. Otherwise, the socket-listen mode is used. _Default is `true`._
+
+`-Dorg.gradle.debug.suspend=(true,false)`::
+When set to `true` and debugging is enabled, the JVM running Gradle will suspend until a debugger is attached. _Default is `true`._
+
 `-Dorg.gradle.daemon.debug=true`::
 Debug <<gradle_daemon.adoc#gradle_daemon, Gradle Daemon>> process.
 

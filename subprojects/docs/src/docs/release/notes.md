@@ -18,7 +18,8 @@ Include only their name, impactful features should be called out separately belo
 [Ned Twigg](https://github.com/nedtwigg),
 [Nikolas Grottendieck](https://github.com/Okeanos),
 [Lars Grefer](https://github.com/larsgrefer),
-[Patrick Pichler](https://github.com/patrickpichler).
+[Patrick Pichler](https://github.com/patrickpichler),
+[Marcin Mielnicki](https://github.com/platan).
 
 ## Upgrade instructions
 
@@ -126,6 +127,14 @@ With this release, the generation of the dependency verification file has been i
 This means that for the same inputs - build configuration and previous verification file - Gradle will always produce the same output.
 This allows you to leverage [the verification metadata bootstrapping feature](userguide/dependency_verification.html#sec:bootstrapping-verification) as an update strategy when dependencies change in your project.
 Have a look at [the documentation](userguide/dependency_verification.html#sec:verification-update) for more details.
+
+### Gradle Option Improvements
+
+#### Additional Daemon Debug Options
+
+Additional options were added for use with `-Dorg.gradle.debug=true`. These allow specification of the port, server mode, and suspend mode.
+
+See [the documentation](userguide/command_line_interface.html#sec:command_line_debugging) for details.
 
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
