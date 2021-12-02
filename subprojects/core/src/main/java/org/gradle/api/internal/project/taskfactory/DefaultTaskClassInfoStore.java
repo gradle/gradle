@@ -196,12 +196,6 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
             @SuppressWarnings("deprecation")
             Class<?> incrementalTaskInputsClass = org.gradle.api.tasks.incremental.IncrementalTaskInputs.class;
             if (parameterType.equals(incrementalTaskInputsClass)) {
-                DeprecationLogger.deprecate("IncrementalTaskInputs")
-                    .withContext("On method '" + declaringClass.getSimpleName() + "." + method.getName() + "'")
-                    .withAdvice("use 'org.gradle.work.InputChanges' instead.")
-                    .willBeRemovedInGradle8()
-                    .withUpgradeGuideSection(7, "incremental_task_inputs_deprecation")
-                    .nagUser();
                 taskActionFactory = new IncrementalTaskInputsTaskActionFactory(taskType, method);
             } else if (parameterType.equals(InputChanges.class)) {
                 taskActionFactory = new IncrementalInputsTaskActionFactory(taskType, method);
@@ -250,6 +244,13 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
 
         @Override
         protected Action<? super Task> doCreate(Instantiator instantiator, Class<? extends Task> taskType, Method method) {
+            Class<?> declaringClass = method.getDeclaringClass();
+            DeprecationLogger.deprecate("IncrementalTaskInputs")
+                .withContext("On method '" + declaringClass.getSimpleName() + "." + method.getName() + "'")
+                .withAdvice("use 'org.gradle.work.InputChanges' instead.")
+                .willBeRemovedInGradle8()
+                .withUpgradeGuideSection(7, "incremental_task_inputs_deprecation")
+                .nagUser();
             return new IncrementalTaskInputsTaskAction(instantiator, taskType, method);
         }
     }

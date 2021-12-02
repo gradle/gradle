@@ -105,10 +105,12 @@ class IncrementalTaskInputsIntegrationTest extends AbstractIncrementalTasksInteg
             }
         """
         String myTask = ':myTask'
+        executer.beforeExecute {
+            maybeExpectIncrementalTaskInputsDeprecationWarning('MyTask', 'doStuff')
+        }
 
         when:
         file("inputDir1/child") << "inputFile1"
-        maybeExpectIncrementalTaskInputsDeprecationWarning('MyTask', 'doStuff')
         run myTask, '-PinputDir=inputDir1'
         then:
         executedAndNotSkipped(myTask)
@@ -117,7 +119,6 @@ class IncrementalTaskInputsIntegrationTest extends AbstractIncrementalTasksInteg
         file("inputDir2/child") << "inputFile2"
         run myTask, '-PinputDir=inputDir2'
         then:
-        maybeExpectIncrementalTaskInputsDeprecationWarning('MyTask', 'doStuff')
         executedAndNotSkipped(myTask)
 
         where:

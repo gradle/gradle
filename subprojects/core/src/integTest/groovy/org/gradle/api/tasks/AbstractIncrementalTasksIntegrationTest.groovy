@@ -58,6 +58,9 @@ abstract class AbstractIncrementalTasksIntegrationTest extends AbstractIntegrati
         executer.beforeExecute {
             maybeExpectIncrementalTaskInputsDeprecationWarning()
         }
+        executer.afterExecute {
+            resetIncrementalTaskInputsDeprecationWarningEmittedFlag()
+        }
     }
 
     void setupTaskSources(String inputDirAnnotation = primaryInputAnnotation) {
