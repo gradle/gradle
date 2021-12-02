@@ -30,7 +30,12 @@ public class JavaSystemPropertiesHttpTimeoutSettings implements HttpTimeoutSetti
     public static final String IDLE_CONNECTION_TIMEOUT_SYSTEM_PROPERTY = "org.gradle.internal.http.idleConnectionTimeout";
     public static final int DEFAULT_CONNECTION_TIMEOUT = 30000;
     public static final int DEFAULT_SOCKET_TIMEOUT = 30000;
-    public static final int DEFAULT_IDLE_CONNECTION_TIMEOUT = (int) Duration.ofMinutes(5).toMillis();
+    /**
+     * The default time in milliseconds for an idle connection to remain open.
+     * <a href="https://azure.microsoft.com/en-us/blog/new-configurable-idle-timeout-for-azure-load-balancer/">Microsoft Azure closes idle connections after 4 min</a>,
+     * so we set our default to be just below that.
+     */
+    public static final int DEFAULT_IDLE_CONNECTION_TIMEOUT = (int) Duration.ofMinutes(3).plusSeconds(55).toMillis();
 
     private final int connectionTimeoutMs;
     private final int socketTimeoutMs;
