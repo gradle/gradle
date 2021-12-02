@@ -918,8 +918,8 @@ All of them match the consumer attributes:
             }
             project(':b') {
                 configurations {
-                    foo.attributes { $debug; }
-                    bar.attributes { $debug; }
+                    foo.attributes { $debug }
+                    bar.attributes { $debug }
                 }
                 ${fooAndBarJars()}
             }
