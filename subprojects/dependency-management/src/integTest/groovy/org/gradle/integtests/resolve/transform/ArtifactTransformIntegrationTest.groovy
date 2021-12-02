@@ -959,14 +959,10 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         buildFile("""
             configurations {
                 api1 {
-                    attributes {
-                        attribute usage, 'api'
-                    }
+                    attributes { attribute usage, 'api' }
                 }
                 api2 {
-                    attributes {
-                        attribute usage, 'api'
-                    }
+                    attributes { attribute usage, 'api' }
                 }
             }
 
