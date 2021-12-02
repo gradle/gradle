@@ -22,9 +22,12 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentIdentifierSerializer;
 import org.gradle.api.internal.artifacts.metadata.ComponentArtifactIdentifierSerializer;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ImmutableCapability;
+import org.gradle.internal.resolve.caching.DesugaringAttributeContainerSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.DefaultSerializerRegistry;
 import org.gradle.internal.serialize.Encoder;
@@ -50,9 +53,12 @@ public class DependencyManagementValueSnapshotterSerializerRegistry extends Defa
 
     @SuppressWarnings("rawtypes")
     public DependencyManagementValueSnapshotterSerializerRegistry(
-        ImmutableModuleIdentifierFactory moduleIdentifierFactory
+        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+        ImmutableAttributesFactory immutableAttributesFactory,
+        NamedObjectInstantiator namedObjectInstantiator
     ) {
         super(true);
+        // TODO extract to its own type
         register(Capability.class, new Serializer<Capability>() {
 
             @Override
@@ -74,6 +80,7 @@ public class DependencyManagementValueSnapshotterSerializerRegistry extends Defa
         register(ModuleVersionIdentifier.class, new ModuleVersionIdentifierSerializer(moduleIdentifierFactory));
         register(ComponentIdentifier.class, new ComponentIdentifierSerializer());
         register(DefaultModuleComponentArtifactIdentifier.class, new ComponentArtifactIdentifierSerializer());
+        register(AttributeContainer.class, new DesugaringAttributeContainerSerializer(immutableAttributesFactory, namedObjectInstantiator));
     }
 
     @Override

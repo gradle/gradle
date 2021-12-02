@@ -40,6 +40,7 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
             import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
             import org.gradle.internal.component.external.model.ImmutableCapability
             import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier
+            import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 
             abstract class TaskWithInput extends DefaultTask {
 
@@ -86,9 +87,11 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
         type                          | factory
         // For ResolvedArtifactResult
         "Attribute"                   | "Attribute.of(System.getProperty('n'), String)"
+        "AttributeContainer"          | "services.get(ImmutableAttributesFactory).of(Attribute.of('some', String.class), System.getProperty('n'))"
         "Capability"                  | "new ImmutableCapability('group', System.getProperty('n'), '1.0')"
         "ModuleComponentIdentifier"   | "new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId('group', System.getProperty('n')),'1.0')"
         "ComponentArtifactIdentifier" | "new DefaultModuleComponentArtifactIdentifier(new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId('group', System.getProperty('n')),'1.0'), System.getProperty('n') + '-1.0.jar', 'jar', null)"
+        // For ResolvedComponentResult
         "ModuleVersionIdentifier"     | "DefaultModuleVersionIdentifier.newId('group', System.getProperty('n'), '1.0')"
     }
 
