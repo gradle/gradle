@@ -76,14 +76,6 @@ class GradleMetadataJavaLibraryCrossVersionIntegrationTest extends CrossVersionI
                 }
             }
 
-            // Make sure attribute combinations on new hibernateSupport-related configurations are unique
-            def hibernateRelated = Attribute.of('hibernate-related', Boolean)
-            configurations.all {
-                if (name.startsWith('hibernateSupport')) {
-                    attributes.attribute(hibernateRelated, true)
-                }
-            }
-
             publishing {
                 repositories {
                     maven { url "\${rootProject.buildDir}/repo" }
