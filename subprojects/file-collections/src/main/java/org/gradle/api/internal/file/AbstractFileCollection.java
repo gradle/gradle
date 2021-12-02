@@ -39,6 +39,7 @@ import org.gradle.internal.MutableBoolean;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.util.internal.GUtil;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -192,15 +193,18 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
     public Provider<Set<FileSystemLocation>> getElements() {
         return new BuildableBackedSetProvider<FileCollection, FileSystemLocation>(
             this,
-            () -> {
-                // TODO - visit the contents of this collection instead.
-                // This is just a super simple implementation for now
-                Set<File> files = getFiles();
-                ImmutableSet.Builder<FileSystemLocation> builder = ImmutableSet.builderWithExpectedSize(files.size());
-                for (File file : files) {
-                    builder.add(new DefaultFileSystemLocation(file));
+            new Factory<Set<FileSystemLocation>>() {
+                @Override
+                public Set<FileSystemLocation> create() {
+                    // TODO - visit the contents of this collection instead.
+                    // This is just a super simple implementation for now
+                    Set<File> files = AbstractFileCollection.this.getFiles();
+                    ImmutableSet.Builder<FileSystemLocation> builder = ImmutableSet.builderWithExpectedSize(files.size());
+                    for (File file : files) {
+                        builder.add(new DefaultFileSystemLocation(file));
+                    }
+                    return builder.build();
                 }
-                return builder.build();
             }
         );
     }

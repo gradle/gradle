@@ -2074,7 +2074,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         @Override
         public Provider<Set<ResolvedArtifactResult>> getResolvedArtifacts() {
-            return new BuildableBackedSetProvider<>(getArtifactFiles(), this::getArtifacts);
+            return new BuildableBackedSetProvider<>(getArtifactFiles(), new Factory<Set<ResolvedArtifactResult>>() {
+                @Override
+                public Set<ResolvedArtifactResult> create() {
+                    return ConfigurationArtifactCollection.this.getArtifacts();
+                }
+            });
         }
 
         @Override
