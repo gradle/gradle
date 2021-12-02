@@ -92,8 +92,10 @@ import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
+import org.gradle.api.internal.provider.BuildableBackedSetProvider;
 import org.gradle.api.internal.tasks.FailureCollectingTaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
@@ -2068,6 +2070,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         public Set<ResolvedArtifactResult> getArtifacts() {
             ensureResolved();
             return result.get().artifactResults;
+        }
+
+        @Override
+        public Provider<Set<ResolvedArtifactResult>> getResolvedArtifacts() {
+            return new BuildableBackedSetProvider<>(getArtifactFiles(), this::getArtifacts);
         }
 
         @Override

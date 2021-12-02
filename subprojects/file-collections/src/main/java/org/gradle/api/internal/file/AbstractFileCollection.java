@@ -17,8 +17,6 @@ package org.gradle.api.internal.file;
 
 import com.google.common.collect.ImmutableSet;
 import groovy.lang.Closure;
-import org.gradle.api.Action;
-import org.gradle.api.Task;
 import org.gradle.api.file.DirectoryTree;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemLocation;
@@ -27,7 +25,7 @@ import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileBackedDirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
-import org.gradle.api.internal.provider.AbstractProviderWithValue;
+import org.gradle.api.internal.provider.BuildableBackedSetProvider;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Provider;
@@ -36,7 +34,6 @@ import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.PatternSets;
-import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.MutableBoolean;
 import org.gradle.internal.logging.text.TreeFormatter;
@@ -193,7 +190,19 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
 
     @Override
     public Provider<Set<FileSystemLocation>> getElements() {
-        return new ElementsProvider(this);
+        return new BuildableBackedSetProvider<FileCollection, FileSystemLocation>(
+            this,
+            () -> {
+                // TODO - visit the contents of this collection instead.
+                // This is just a super simple implementation for now
+                Set<File> files = getFiles();
+                ImmutableSet.Builder<FileSystemLocation> builder = ImmutableSet.builderWithExpectedSize(files.size());
+                for (File file : files) {
+                    builder.add(new DefaultFileSystemLocation(file));
+                }
+                return builder.build();
+            }
+        );
     }
 
     @Override
@@ -334,59 +343,4 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
     protected void visitContents(FileCollectionStructureVisitor visitor) {
         visitor.visitCollection(OTHER, this);
     }
-
-    private static class ElementsProvider extends AbstractProviderWithValue<Set<FileSystemLocation>> {
-        private final AbstractFileCollection collection;
-
-        public ElementsProvider(AbstractFileCollection collection) {
-            this.collection = collection;
-        }
-
-        @Override
-        public Class<Set<FileSystemLocation>> getType() {
-            return Cast.uncheckedCast(Set.class);
-        }
-
-        @Override
-        public ValueProducer getProducer() {
-            return new ValueProducer() {
-                @Override
-                public boolean isProducesDifferentValueOverTime() {
-                    return false;
-                }
-
-                @Override
-                public void visitProducerTasks(Action<? super Task> visitor) {
-                    for (Task dependency : collection.getBuildDependencies().getDependencies(null)) {
-                        visitor.execute(dependency);
-                    }
-                }
-            };
-        }
-
-        @Override
-        public ExecutionTimeValue<Set<FileSystemLocation>> calculateExecutionTimeValue() {
-            if (contentsAreBuiltByTask()) {
-                return ExecutionTimeValue.changingValue(this);
-            }
-            return ExecutionTimeValue.fixedValue(get());
-        }
-
-        private boolean contentsAreBuiltByTask() {
-            return !collection.getBuildDependencies().getDependencies(null).isEmpty();
-        }
-
-        @Override
-        protected Value<Set<FileSystemLocation>> calculateOwnValue(ValueConsumer consumer) {
-            // TODO - visit the contents of this collection instead.
-            // This is just a super simple implementation for now
-            Set<File> files = collection.getFiles();
-            ImmutableSet.Builder<FileSystemLocation> builder = ImmutableSet.builderWithExpectedSize(files.size());
-            for (File file : files) {
-                builder.add(new DefaultFileSystemLocation(file));
-            }
-            return Value.of(builder.build());
-        }
-    }
-
 }
