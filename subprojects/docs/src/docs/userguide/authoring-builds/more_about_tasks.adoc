@@ -1354,7 +1354,7 @@ include::{snippetsPath}/tasks/finalizers/tests/taskFinalizers.out[]
 ----
 ====
 
-Finalizer tasks will be executed even if the finalized task fails.
+Finalizer tasks will be executed even if the finalized task fails or if the finalized task is considered up to date.
 
 .Task finalizer for a failing task
 ====
@@ -1367,8 +1367,6 @@ include::sample[dir="snippets/tasks/finalizersWithFailure/kotlin",files="build.g
 include::{snippetsPath}/tasks/finalizersWithFailure/tests-groovy/taskFinalizersWithFailureGroovy.out[]
 ----
 ====
-
-On the other hand, finalizer tasks are not executed if the finalized task didn't do any work, for example if it is considered up to date or if a dependent task fails.
 
 Finalizer tasks are useful in situations where the build creates a resource that has to be cleaned up regardless of the build failing or succeeding. An example of such a resource is a web container that is started before an integration test task and which should be always shut down, even if some of the tests fail.
 
