@@ -60,7 +60,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
     final DefaultMavenArtifactRepository repository = new DefaultMavenArtifactRepository(
         resolver, transportFactory, locallyAvailableResourceFinder, TestUtil.instantiatorFactory(),
         artifactIdentifierFileStore, pomParser, metadataParser, authenticationContainer, externalResourceFileStore,
-        Mock(FileResourceRepository), mavenMetadataFactory, SnapshotTestUtil.valueSnapshotter(),
+        Mock(FileResourceRepository), mavenMetadataFactory, SnapshotTestUtil.isolatableFactory(),
         TestUtil.objectFactory(), urlArtifactRepositoryFactory, TestUtil.checksumService, providerFactory)
 
     def "creates local repository"() {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,16 +17,21 @@
 package org.gradle.internal.service.scopes;
 
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
-import org.gradle.internal.isolation.IsolatableFactory;
-import org.gradle.internal.snapshot.impl.DefaultIsolatableFactory;
-import org.gradle.internal.state.ManagedFactoryRegistry;
+import org.gradle.internal.snapshot.ValueSnapshotter;
+import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter;
+import org.gradle.internal.snapshot.impl.ValueSnapshotterSerializerRegistry;
 
-public class WorkerSharedUserHomeScopeServices {
+import java.util.List;
 
-    IsolatableFactory createIsolatableFactory(
-        ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
-        ManagedFactoryRegistry managedFactoryRegistry
+public class WorkerSharedBuildSessionScopeServices {
+
+    ValueSnapshotter createValueSnapshotter(
+        List<ValueSnapshotterSerializerRegistry> valueSnapshotterSerializerRegistryList,
+        ClassLoaderHierarchyHasher classLoaderHierarchyHasher
     ) {
-        return new DefaultIsolatableFactory(classLoaderHierarchyHasher, managedFactoryRegistry);
+        return new DefaultValueSnapshotter(
+            valueSnapshotterSerializerRegistryList,
+            classLoaderHierarchyHasher
+        );
     }
 }

@@ -26,7 +26,7 @@ import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceLookup
-import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter
+import org.gradle.internal.snapshot.impl.DefaultIsolatableFactory
 import org.gradle.internal.snapshot.impl.IsolatedImmutableManagedValue
 import org.gradle.internal.snapshot.impl.IsolatedManagedValue
 import org.gradle.internal.snapshot.impl.IsolatedJavaSerializedValueSnapshot
@@ -39,7 +39,7 @@ class IsolatableSerializerRegistryTest extends Specification {
     def classLoaderHasher = Stub(ClassLoaderHierarchyHasher) {
         getClassLoaderHash(_) >> HashCode.fromInt(123)
     }
-    IsolatableFactory isolatableFactory = new DefaultValueSnapshotter([], classLoaderHasher, managedFactoryRegistry)
+    IsolatableFactory isolatableFactory = new DefaultIsolatableFactory(classLoaderHasher, managedFactoryRegistry)
     InstantiatorFactory instantiatorFactory = TestUtil.instantiatorFactory()
     ServiceLookup services = new DefaultServiceRegistry().add(InstantiatorFactory, instantiatorFactory)
 

@@ -17,9 +17,19 @@ package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.internal.catalog.DependenciesAccessorsWorkspaceProvider;
 import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.snapshot.impl.ValueSnapshotterSerializerRegistry;
 
 public class DependencyManagementBuildSessionScopeServices {
+
     void configure(ServiceRegistration registration) {
         registration.add(DependenciesAccessorsWorkspaceProvider.class);
+    }
+
+    ValueSnapshotterSerializerRegistry createDependencyManagementValueSnapshotterSerializerRegistry(
+        ImmutableModuleIdentifierFactory moduleIdentifierFactory
+    ) {
+        return new DependencyManagementValueSnapshotterSerializerRegistry(
+            moduleIdentifierFactory
+        );
     }
 }
