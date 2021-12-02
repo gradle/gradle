@@ -18,6 +18,7 @@ package org.gradle.plugins.ide.eclipse.model.internal
 
 import org.gradle.api.file.DirectoryTree
 import org.gradle.api.file.SourceDirectorySet
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.plugins.ide.eclipse.model.SourceFolder
@@ -128,7 +129,7 @@ class SourceFoldersCreatorTest extends Specification {
         _ * resources.includes >> resourcesTree.patterns.includes
         _ * resources.srcDirTrees >> [resourcesTree]
         _ * allSource.getSrcDirTrees() >> [javaTree, resourcesTree]
-        return new SourceFoldersCreator().projectRelativeFolders([sourceSet], { File file -> file.path }, defaultOutputFolder)
+        return new SourceFoldersCreator().projectRelativeFolders([sourceSet], { File file -> file.path }, defaultOutputFolder, Mock(Property) { get() >> ".*test.*" })
     }
 
     private List<SourceFolder> externalSourceFolders(String... paths) {

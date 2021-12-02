@@ -161,10 +161,15 @@ public class EclipseClasspath {
 
     private final Property<Boolean> containsTestFixtures;
 
+    private final Property<String> testSourceSetNamePattern;
+    private final Property<String> testDependencyConfigurationNamePattern;
+
     @Inject
     public EclipseClasspath(org.gradle.api.Project project) {
         this.project = project;
         this.containsTestFixtures = project.getObjects().property(Boolean.class).convention(false);
+        this.testSourceSetNamePattern = project.getObjects().property(String.class).convention(".*[tT][eE][sS][tT].*");
+        this.testDependencyConfigurationNamePattern = project.getObjects().property(String.class).convention(".*[tT][eE][sS][tT].*");
     }
 
     /**
@@ -379,5 +384,35 @@ public class EclipseClasspath {
     @Incubating
     public Property<Boolean> getContainsTestFixtures() {
         return containsTestFixtures;
+    }
+
+    /**
+     * Returns the regular expression matching on test source sets.
+     * <p>
+     * If a source set name matches with the returned pattern then the contained source directories will be marked in Eclipse as it contains test sources
+     * (i.e. the test=true entry attribute will be present on the source directory classpath entry).
+     * <p>
+     * The default value is {@code .*test.*}
+     *
+     * @since 7.4
+     */
+    @Incubating
+    public Property<String> getTestSourceSetNamePattern() {
+        return testSourceSetNamePattern;
+    }
+
+    /**
+     * Returns the regular expression matching on test dependency configuration names.
+     * <p>
+     * If a dependency defined only in configurations that all match with the returned pattern then the dependency will be marked as test dependency on the eclipse classpath
+     * (i.e. the test=true entry attribute will be present on the library classpath entry).
+     * <p>
+     * The default value is {@code .*test.*}
+     *
+     * @since 7.4
+     */
+    @Incubating
+    public Property<String> getTestDependencyConfigurationNamePattern() {
+        return testDependencyConfigurationNamePattern;
     }
 }

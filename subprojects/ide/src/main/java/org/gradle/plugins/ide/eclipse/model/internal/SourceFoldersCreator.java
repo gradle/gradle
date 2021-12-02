@@ -27,6 +27,7 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import org.gradle.api.file.DirectoryTree;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.provider.Property;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.util.PatternSet;
@@ -46,6 +47,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 public class SourceFoldersCreator {
 
@@ -57,7 +59,7 @@ public class SourceFoldersCreator {
                 return classpath.getProject().relativePath(input);
             }
         };
-        List<SourceFolder> sourceFolders = projectRelativeFolders(classpath.getSourceSets(), provideRelativePath, classpath.getDefaultOutputDir());
+        List<SourceFolder> sourceFolders = projectRelativeFolders(classpath.getSourceSets(), provideRelativePath, classpath.getDefaultOutputDir(), classpath.getTestSourceSetNamePattern());
 
         return collectRegularAndExternalSourceFolders(sourceFolders, new Function<Pair<Collection<SourceFolder>, Collection<SourceFolder>>, List<SourceFolder>>() {
             @Override
@@ -107,7 +109,8 @@ public class SourceFoldersCreator {
         return collector.apply(Pair.of(regularSourceFolders, dedupedExternalSourceFolders));
     }
 
-    private List<SourceFolder> projectRelativeFolders(Iterable<SourceSet> sourceSets, Function<File, String> provideRelativePath, File defaultOutputDir) {
+    private List<SourceFolder> projectRelativeFolders(Iterable<SourceSet> sourceSets, Function<File, String> provideRelativePath, File defaultOutputDir, Property<String> testSourceSetNamePatternProperty) {
+        Pattern testSourceSetNamePattern = Pattern.compile(testSourceSetNamePatternProperty.get());
         String defaultOutputPath = PathUtil.normalizePath(provideRelativePath.apply(defaultOutputDir));
         ArrayList<SourceFolder> entries = Lists.newArrayList();
         List<SourceSet> sortedSourceSets = sortSourceSetsAsPerUsualConvention(sourceSets);
@@ -126,7 +129,7 @@ public class SourceFoldersCreator {
                     folder.setExcludes(getExcludesForTree(sourceSet, tree));
                     folder.setOutput(sourceSetOutputPaths.get(sourceSet));
                     addScopeAttributes(folder, sourceSet, sourceSetUsages);
-                    addSourceSetAttribute(sourceSet, folder);
+                    addSourceSetAttribute(sourceSet, folder, testSourceSetNamePattern);
                     entries.add(folder);
                 }
             }
@@ -217,13 +220,9 @@ public class SourceFoldersCreator {
         return true;
     }
 
-    private void addSourceSetAttribute(SourceSet sourceSet, SourceFolder folder) {
-        // Using the test sources feature introduced in Eclipse Photon
-        String name = sourceSet.getName();
-        if (!SourceSet.MAIN_SOURCE_SET_NAME.equals(name)) {
-            if (SourceSet.TEST_SOURCE_SET_NAME.equals(name) || folder.getPath().toLowerCase().contains("test")) {
-                folder.getEntryAttributes().put(EclipsePluginConstants.TEST_SOURCES_ATTRIBUTE_KEY, EclipsePluginConstants.TEST_SOURCES_ATTRIBUTE_VALUE);
-            }
+    private void addSourceSetAttribute(SourceSet sourceSet, SourceFolder folder, Pattern testSourceSetNamePattern) {
+        if (testSourceSetNamePattern.matcher(sourceSet.getName()).matches()) {
+            folder.getEntryAttributes().put(EclipsePluginConstants.TEST_SOURCES_ATTRIBUTE_KEY, EclipsePluginConstants.TEST_SOURCES_ATTRIBUTE_VALUE);
         }
     }
 

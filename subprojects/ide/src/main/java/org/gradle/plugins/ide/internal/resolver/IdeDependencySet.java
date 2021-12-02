@@ -52,6 +52,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory.ClassPathNotation.GRADLE_API;
 import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory.ClassPathNotation.GRADLE_TEST_KIT;
@@ -68,14 +69,20 @@ public class IdeDependencySet {
     private final Collection<Configuration> minusConfigurations;
     private final boolean inferModulePath;
     private final GradleApiSourcesResolver gradleApiSourcesResolver;
+    private final Pattern testConfigNamePattern;
 
-    public IdeDependencySet(DependencyHandler dependencyHandler, JavaModuleDetector javaModuleDetector, Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations,  boolean inferModulePath, GradleApiSourcesResolver gradleApiSourcesResolver) {
+    public IdeDependencySet(DependencyHandler dependencyHandler, JavaModuleDetector javaModuleDetector, Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations, boolean inferModulePath, GradleApiSourcesResolver gradleApiSourcesResolver) {
+        this(dependencyHandler, javaModuleDetector, plusConfigurations, minusConfigurations, inferModulePath, gradleApiSourcesResolver, ".*test.*");
+    }
+
+    public IdeDependencySet(DependencyHandler dependencyHandler, JavaModuleDetector javaModuleDetector, Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations, boolean inferModulePath, GradleApiSourcesResolver gradleApiSourcesResolver, String testConfigNamePattern) {
         this.dependencyHandler = dependencyHandler;
         this.javaModuleDetector = javaModuleDetector;
         this.plusConfigurations = plusConfigurations;
         this.minusConfigurations = minusConfigurations;
         this.inferModulePath = inferModulePath;
         this.gradleApiSourcesResolver = gradleApiSourcesResolver;
+        this.testConfigNamePattern = Pattern.compile(testConfigNamePattern);
     }
 
     public void visit(IdeDependencyVisitor visitor) {
@@ -262,7 +269,7 @@ public class IdeDependencySet {
 
         private boolean isTestConfiguration(Set<Configuration> configurations) {
             for (Configuration c : configurations) {
-                if (!c.getName().toLowerCase().contains("test")) {
+                if (!testConfigNamePattern.matcher(c.getName()).matches()) {
                     return false;
                 }
             }
