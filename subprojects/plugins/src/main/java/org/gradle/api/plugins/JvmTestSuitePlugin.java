@@ -28,6 +28,7 @@ import org.gradle.api.attributes.TestSuiteName;
 import org.gradle.api.attributes.TestSuiteTargetName;
 import org.gradle.api.attributes.TestSuiteType;
 import org.gradle.api.attributes.VerificationType;
+import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.jvm.JvmTestSuiteTarget;
@@ -37,6 +38,9 @@ import org.gradle.api.tasks.testing.AbstractTestTask;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.testing.base.TestSuite;
 import org.gradle.testing.base.TestingExtension;
+import org.gradle.util.internal.IncubationLogger;
+
+import javax.inject.Inject;
 
 /**
  * A {@link org.gradle.api.Plugin} that adds extensions for declaring, compiling and running {@link JvmTestSuite}s.
@@ -55,6 +59,13 @@ import org.gradle.testing.base.TestingExtension;
 public class JvmTestSuitePlugin implements Plugin<Project> {
     public static final String DEFAULT_TEST_SUITE_NAME = SourceSet.TEST_SOURCE_SET_NAME;
     private static final String TEST_RESULTS_ELEMENTS_VARIANT_PREFIX = "testResultsElementsFor";
+
+    private final FeaturePreviews featurePreviews;
+
+    @Inject
+    public JvmTestSuitePlugin(FeaturePreviews featurePreviews) {
+        this.featurePreviews = featurePreviews;
+    }
 
     @Override
     public void apply(Project project) {
@@ -86,7 +97,10 @@ public class JvmTestSuitePlugin implements Plugin<Project> {
             });
         });
 
-        configureTestDataElementsVariants(project);
+        if (featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.TEST_DATA_VARIANTS)) {
+            IncubationLogger.incubatingFeatureUsed("Provide additional test data variants");
+            configureTestDataElementsVariants(project);
+        }
     }
 
     private void configureTestDataElementsVariants(Project project) {

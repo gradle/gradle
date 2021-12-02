@@ -37,6 +37,7 @@ import org.gradle.api.attributes.VerificationType;
 import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.SoftwareComponentFactory;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.component.BuildableJavaComponent;
@@ -59,6 +60,7 @@ import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.internal.execution.BuildOutputCleanupRegistry;
 import org.gradle.language.jvm.tasks.ProcessResources;
 import org.gradle.testing.base.TestingExtension;
+import org.gradle.util.internal.IncubationLogger;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -259,14 +261,17 @@ public class JavaPlugin implements Plugin<Project> {
     private final ObjectFactory objectFactory;
     private final SoftwareComponentFactory softwareComponentFactory;
     private final JvmPluginServices jvmServices;
+    private final FeaturePreviews featurePreviews;
 
     @Inject
     public JavaPlugin(ObjectFactory objectFactory,
                       SoftwareComponentFactory softwareComponentFactory,
-                      JvmPluginServices jvmServices) {
+                      JvmPluginServices jvmServices,
+                      FeaturePreviews featurePreviews) {
         this.objectFactory = objectFactory;
         this.softwareComponentFactory = softwareComponentFactory;
         this.jvmServices = jvmServices;
+        this.featurePreviews = featurePreviews;
     }
 
     @Override
@@ -428,7 +433,10 @@ public class JavaPlugin implements Plugin<Project> {
         apiElementsConfiguration.deprecateForDeclaration(IMPLEMENTATION_CONFIGURATION_NAME, COMPILE_ONLY_CONFIGURATION_NAME);
         runtimeElementsConfiguration.deprecateForDeclaration(IMPLEMENTATION_CONFIGURATION_NAME, COMPILE_ONLY_CONFIGURATION_NAME, RUNTIME_ONLY_CONFIGURATION_NAME);
 
-        createSourcesVariant(project, extension, mainSourceSet);
+        if (featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.TEST_DATA_VARIANTS)) {
+            IncubationLogger.incubatingFeatureUsed("Provide additional test data variants");
+            createSourcesVariant(project, extension, mainSourceSet);
+        }
     }
 
     private Configuration createSourcesVariant(Project project, JavaPluginExtension java, SourceSet mainSourceSet) {

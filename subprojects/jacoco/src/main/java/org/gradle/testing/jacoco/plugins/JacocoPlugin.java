@@ -29,6 +29,7 @@ import org.gradle.api.attributes.TestSuiteType;
 import org.gradle.api.attributes.VerificationType;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
@@ -52,6 +53,7 @@ import org.gradle.testing.base.TestingExtension;
 import org.gradle.testing.jacoco.tasks.JacocoBase;
 import org.gradle.testing.jacoco.tasks.JacocoCoverageVerification;
 import org.gradle.testing.jacoco.tasks.JacocoReport;
+import org.gradle.util.internal.IncubationLogger;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -64,6 +66,7 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
  * @see <a href="https://docs.gradle.org/current/userguide/jacoco_plugin.html">JaCoCo plugin reference</a>
  */
 public class JacocoPlugin implements Plugin<Project> {
+    private final FeaturePreviews featurePreviews;
 
     /**
      * The jacoco version used if none is explicitly specified.
@@ -80,7 +83,8 @@ public class JacocoPlugin implements Plugin<Project> {
     private Project project;
 
     @Inject
-    public JacocoPlugin(Instantiator instantiator) {
+    public JacocoPlugin(FeaturePreviews featurePreviews, Instantiator instantiator) {
+        this.featurePreviews = featurePreviews;
         this.instantiator = instantiator;
     }
 
@@ -102,7 +106,11 @@ public class JacocoPlugin implements Plugin<Project> {
         configureDefaultOutputPathForJacocoMerge();
         configureJacocoReportsDefaults(extension);
         addDefaultReportAndCoverageVerificationTasks(extension);
-        configureCoverageDataElementsVariants(project);
+
+        if (featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.TEST_DATA_VARIANTS)) {
+            IncubationLogger.incubatingFeatureUsed("Provide additional test data variants");
+            configureCoverageDataElementsVariants(project);
+        }
     }
 
     private void configureCoverageDataElementsVariants(Project project) {

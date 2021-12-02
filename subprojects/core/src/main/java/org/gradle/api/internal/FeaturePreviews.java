@@ -30,7 +30,8 @@ public class FeaturePreviews {
         ONE_LOCKFILE_PER_PROJECT(false),
         VERSION_ORDERING_V2(false),
         VERSION_CATALOGS(true),
-        TYPESAFE_PROJECT_ACCESSORS(true);
+        TYPESAFE_PROJECT_ACCESSORS(true),
+        TEST_DATA_VARIANTS(true);
 
         public static Feature withName(String name) {
             try {
