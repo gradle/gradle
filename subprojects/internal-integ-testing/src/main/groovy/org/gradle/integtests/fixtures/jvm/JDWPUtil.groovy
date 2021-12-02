@@ -97,7 +97,6 @@ class JDWPUtil implements TestRule {
                 vm = connection.accept(connectionArgs)
                 connection = null
             } catch (Exception e) {
-                e.printStackTrace()
             }
         }
     }
