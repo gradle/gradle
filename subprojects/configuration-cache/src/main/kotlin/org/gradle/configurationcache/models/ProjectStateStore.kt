@@ -101,7 +101,11 @@ abstract class ProjectStateStore<K, V>(
     fun loadOrCreateValue(key: K, creator: () -> V): V {
         val addressOfCached = locateCachedValue(key)
         if (addressOfCached != null) {
-            return valuesStore.read(addressOfCached)
+            try {
+                return valuesStore.read(addressOfCached)
+            } catch (e: Exception) {
+                throw RuntimeException("Could not load $key", e)
+            }
         }
         val value = creator()
         val address = valuesStore.write(value)

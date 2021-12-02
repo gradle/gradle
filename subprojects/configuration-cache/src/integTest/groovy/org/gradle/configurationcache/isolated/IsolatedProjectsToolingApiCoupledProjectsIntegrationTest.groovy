@@ -272,4 +272,74 @@ class IsolatedProjectsToolingApiCoupledProjectsIntegrationTest extends AbstractI
             problem("Build file 'b/build.gradle': Cannot access project ':a' from project ':b'")
         }
     }
+
+    def "can ignore project couplings using internal system property"() {
+        given:
+        withSomeToolingModelBuilderPluginInBuildSrc()
+        settingsFile << """
+            include("a")
+            include("b")
+            include("c")
+        """
+        file("a/build.gradle") << """
+            plugins.apply(my.MyPlugin)
+            myExtension.message = "the message"
+        """
+        file("b/build.gradle") << """
+            plugins.apply(my.MyPlugin)
+            def otherProject = project(':a')
+            myExtension.message = otherProject.myExtension.message
+        """
+
+        when:
+        executer.withArguments(ENABLE_CLI, WARN_PROBLEMS_CLI_OPT)
+        def model = runBuildAction(new FetchCustomModelForEachProject())
+
+        then:
+        model.size() == 2
+        model[0].message == "the message"
+        model[1].message == "the message"
+
+        and:
+        fixture.assertStateStoredWithProblems {
+            projectConfigured(":buildSrc")
+            projectsConfigured(":", ":c")
+            buildModelCreated()
+            modelsCreated(":a", ":b")
+            problem("Build file 'b/build.gradle': Cannot access project ':a' from project ':b'")
+        }
+
+        when:
+        executer.withArguments(ENABLE_CLI)
+        def model2 = runBuildAction(new FetchCustomModelForEachProject())
+
+        then:
+        model2.size() == 2
+        model2[0].message == "the message"
+        model2[1].message == "the message"
+
+        and:
+        fixture.assertStateLoaded()
+
+        when:
+        file("b/build.gradle") << """
+            // some change
+        """
+        executer.withArguments(ENABLE_CLI, WARN_PROBLEMS_CLI_OPT, "-Dorg.gradle.internal.invalidate-coupled-projects=false")
+        def model3 = runBuildAction(new FetchCustomModelForEachProject())
+
+        then:
+        model3.size() == 2
+        model3[0].message == "the message"
+        model3[1].message == "the message"
+
+        and:
+        fixture.assertStateRecreatedWithProblems {
+            fileChanged("b/build.gradle")
+            projectConfigured(":buildSrc")
+            projectsConfigured(":", ":a") // :a and :b are coupled
+            modelsCreated(":b")
+            problem("Build file 'b/build.gradle': Cannot access project ':a' from project ':b'")
+        }
+    }
 }
