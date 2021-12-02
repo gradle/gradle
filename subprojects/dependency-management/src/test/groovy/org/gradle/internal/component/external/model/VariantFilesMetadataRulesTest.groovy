@@ -56,7 +56,7 @@ class VariantFilesMetadataRulesTest extends Specification {
     @Shared defaultVariant
 
     private DefaultAttributesSchema createSchema() {
-        def schema = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory(), SnapshotTestUtil.valueSnapshotter())
+        def schema = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
         DependencyManagementTestUtil.platformSupport().configureSchema(schema)
         GradlePluginVariantsSupport.configureSchema(schema)
         JavaEcosystemSupport.configureSchema(schema, TestUtil.objectFactory())

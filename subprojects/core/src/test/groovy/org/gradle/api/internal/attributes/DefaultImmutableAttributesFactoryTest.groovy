@@ -29,10 +29,10 @@ class DefaultImmutableAttributesFactoryTest extends Specification {
     private static final Attribute<Object> OTHER_BAR = Attribute.of(BAR.name, Object.class)
     private static final Attribute<String> BAZ = Attribute.of("baz", String)
 
-    def snapshotter = SnapshotTestUtil.valueSnapshotter()
+    def isolatableFactory = SnapshotTestUtil.isolatableFactory()
     def instantiator = TestUtil.objectInstantiator()
 
-    def factory = new DefaultImmutableAttributesFactory(snapshotter, instantiator)
+    def factory = new DefaultImmutableAttributesFactory(isolatableFactory, instantiator)
 
     def "can create empty set"() {
         when:
@@ -180,7 +180,7 @@ class DefaultImmutableAttributesFactoryTest extends Specification {
 
     def "can compare attribute sets created by two different factories"() {
         given:
-        def otherFactory = new DefaultImmutableAttributesFactory(snapshotter, instantiator)
+        def otherFactory = new DefaultImmutableAttributesFactory(isolatableFactory, instantiator)
 
         when:
         def set1 = factory.concat(factory.of(FOO, "foo"), BAR, "bar")
@@ -192,7 +192,7 @@ class DefaultImmutableAttributesFactoryTest extends Specification {
 
     def "can append to a set created with a different factory"() {
         given:
-        def otherFactory = new DefaultImmutableAttributesFactory(snapshotter, instantiator)
+        def otherFactory = new DefaultImmutableAttributesFactory(isolatableFactory, instantiator)
         def attributes = otherFactory.of(FOO, 'foo')
 
         when:

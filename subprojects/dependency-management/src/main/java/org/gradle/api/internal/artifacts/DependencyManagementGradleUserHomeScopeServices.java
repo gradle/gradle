@@ -37,7 +37,6 @@ import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.impl.DefaultExecutionHistoryStore;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
-import org.gradle.internal.snapshot.impl.ValueSnapshotterSerializerRegistry;
 
 public class DependencyManagementGradleUserHomeScopeServices {
 
@@ -107,14 +106,6 @@ public class DependencyManagementGradleUserHomeScopeServices {
             fileAccessTimeJournal,
             executionHistoryStore,
             crossBuildInMemoryCacheFactory.newCacheRetainingDataFromPreviousBuild(Try::isSuccessful)
-        );
-    }
-
-    ValueSnapshotterSerializerRegistry createDependencyManagementValueSnapshotterSerializerRegistry(
-        ImmutableModuleIdentifierFactory moduleIdentifierFactory
-    ) {
-        return new DependencyManagementValueSnapshotterSerializerRegistry(
-            moduleIdentifierFactory
         );
     }
 }

@@ -26,13 +26,13 @@ import org.gradle.api.services.BuildServiceParameters
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.resources.SharedResourceLeaseRegistry
 import org.gradle.internal.service.scopes.Scopes
-import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter
+import org.gradle.internal.snapshot.impl.DefaultIsolatableFactory
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class DefaultBuildServicesRegistryTest extends Specification {
     def listenerManager = new DefaultListenerManager(Scopes.Build)
-    def isolatableFactory = new DefaultValueSnapshotter([], null, TestUtil.managedFactoryRegistry())
+    def isolatableFactory = new DefaultIsolatableFactory(null, TestUtil.managedFactoryRegistry())
     def leaseRegistry = Stub(SharedResourceLeaseRegistry)
     def buildIdentifier = Mock(BuildIdentifier)
     def registry = new DefaultBuildServicesRegistry(buildIdentifier, TestUtil.domainObjectCollectionFactory(), TestUtil.instantiatorFactory(), TestUtil.services(), listenerManager, isolatableFactory, leaseRegistry)

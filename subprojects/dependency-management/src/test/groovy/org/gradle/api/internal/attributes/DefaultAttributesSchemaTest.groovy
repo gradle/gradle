@@ -29,7 +29,7 @@ import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class DefaultAttributesSchemaTest extends Specification {
-    def schema = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory(), SnapshotTestUtil.valueSnapshotter())
+    def schema = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
     def factory = AttributeTestUtil.attributesFactory()
 
     def "can create an attribute of scalar type #type"() {
@@ -288,7 +288,7 @@ class DefaultAttributesSchemaTest extends Specification {
     }
 
     def "merging creates schema with additional attributes defined by producer"() {
-        def producer = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory(), SnapshotTestUtil.valueSnapshotter())
+        def producer = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
 
         def attr1 = Attribute.of("a", String)
         def attr2 = Attribute.of("b", Integer)
@@ -307,7 +307,7 @@ class DefaultAttributesSchemaTest extends Specification {
     }
 
     def "uses the producers compatibility rules when the consumer does not express an opinion"() {
-        def producer = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory(), SnapshotTestUtil.valueSnapshotter())
+        def producer = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
 
         def attr = Attribute.of("a", Flavor)
 
@@ -320,7 +320,7 @@ class DefaultAttributesSchemaTest extends Specification {
     }
 
     def "uses the producers selection rules when the consumer does not express an opinion"() {
-        def producer = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory(), SnapshotTestUtil.valueSnapshotter())
+        def producer = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
 
         def attr = Attribute.of("a", Flavor)
 
