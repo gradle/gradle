@@ -72,23 +72,22 @@ public abstract class TestReportAggregationPlugin implements Plugin<Project> {
             testReportDir.set(javaPluginExtension.getTestReportDir());
         }
 
-        // iterate and configure each user-specified report, creating a <reportName>ExecutionData configuration for each
+        // iterate and configure each user-specified report, creating a <reportName>Results configuration for each
         reporting.getReports().withType(AggregateTestReport.class).configureEach(report -> {
+            // A resolvable configuration to collect test results; typically named "testResults"
+            Configuration testResultsConf = project.getConfigurations().create(report.getName() + "Results");
+            testResultsConf.extendsFrom(testAggregation);
+            testResultsConf.setDescription(String.format("Supplies test result data to the %s.  External library dependencies may appear as resolution failures, but this is expected behavior.", report.getName()));
+            testResultsConf.setVisible(false);
+            testResultsConf.setCanBeConsumed(false);
+            testResultsConf.setCanBeResolved(true);
+            testResultsConf.attributes(attributes -> {
+                attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.VERIFICATION));
+                attributes.attributeProvider(TestSuiteType.TEST_SUITE_TYPE_ATTRIBUTE, report.getTestType().map(tt -> objects.named(TestSuiteType.class, tt)));
+                attributes.attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objects.named(VerificationType.class, VerificationType.TEST_RESULTS));
+            });
+
             report.getReportTask().configure(task -> {
-
-                // A resolvable configuration to collect test results; typically named "testResults"
-                Configuration testResultsConf = project.getConfigurations().create(report.getName() + "Results");
-                testResultsConf.extendsFrom(testAggregation);
-                testResultsConf.setDescription(String.format("Supplies test result data to the %s.  External library dependencies may appear as resolution failures, but this is expected behavior.", report.getName()));
-                testResultsConf.setVisible(false);
-                testResultsConf.setCanBeConsumed(false);
-                testResultsConf.setCanBeResolved(true);
-                testResultsConf.attributes(attributes -> {
-                    attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.VERIFICATION));
-                    attributes.attributeProvider(TestSuiteType.TEST_SUITE_TYPE_ATTRIBUTE, report.getTestType().map(tt -> objects.named(TestSuiteType.class, tt)));
-                    attributes.attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objects.named(VerificationType.class, VerificationType.TEST_RESULTS));
-                });
-
                 Callable<FileCollection> testResults = () ->
                     testResultsConf.getIncoming().artifactView(view -> {
                         view.componentFilter(id -> id instanceof ProjectComponentIdentifier);

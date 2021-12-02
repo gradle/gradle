@@ -95,20 +95,20 @@ public abstract class JacocoReportAggregationPlugin implements Plugin<Project> {
 
         // iterate and configure each user-specified report, creating a <reportName>ExecutionData configuration for each
         reporting.getReports().withType(JacocoCoverageReport.class).configureEach(report -> {
-            report.getReportTask().configure(task -> {
-                // A resolvable configuration to collect JaCoCo coverage data; typically named "testCodeCoverageReportExecutionData"
-                Configuration executionDataConf = project.getConfigurations().create(report.getName() + "ExecutionData");
-                executionDataConf.extendsFrom(jacocoAggregation);
-                executionDataConf.setDescription(String.format("Supplies JaCoCo coverage data to the %s.  External library dependencies may appear as resolution failures, but this is expected behavior.", report.getName()));
-                executionDataConf.setVisible(false);
-                executionDataConf.setCanBeConsumed(false);
-                executionDataConf.setCanBeResolved(true);
-                executionDataConf.attributes(attributes -> {
-                    attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.VERIFICATION));
-                    attributes.attributeProvider(TestSuiteType.TEST_SUITE_TYPE_ATTRIBUTE, report.getTestType().map(tt -> objects.named(TestSuiteType.class, tt)));
-                    attributes.attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objects.named(VerificationType.class, VerificationType.JACOCO_RESULTS));
-                });
+            // A resolvable configuration to collect JaCoCo coverage data; typically named "testCodeCoverageReportExecutionData"
+            Configuration executionDataConf = project.getConfigurations().create(report.getName() + "ExecutionData");
+            executionDataConf.extendsFrom(jacocoAggregation);
+            executionDataConf.setDescription(String.format("Supplies JaCoCo coverage data to the %s.  External library dependencies may appear as resolution failures, but this is expected behavior.", report.getName()));
+            executionDataConf.setVisible(false);
+            executionDataConf.setCanBeConsumed(false);
+            executionDataConf.setCanBeResolved(true);
+            executionDataConf.attributes(attributes -> {
+                attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.VERIFICATION));
+                attributes.attributeProvider(TestSuiteType.TEST_SUITE_TYPE_ATTRIBUTE, report.getTestType().map(tt -> objects.named(TestSuiteType.class, tt)));
+                attributes.attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objects.named(VerificationType.class, VerificationType.JACOCO_RESULTS));
+            });
 
+            report.getReportTask().configure(task -> {
                 Callable<FileCollection> executionData = () ->
                     executionDataConf.getIncoming().artifactView(view -> {
                         view.componentFilter(id -> id instanceof ProjectComponentIdentifier);
