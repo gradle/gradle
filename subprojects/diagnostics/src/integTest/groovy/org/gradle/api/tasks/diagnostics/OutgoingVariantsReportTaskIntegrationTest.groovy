@@ -134,7 +134,7 @@ Attributes
     - org.gradle.category              = verification
     - org.gradle.testsuite.name        = test
     - org.gradle.testsuite.target.name = test
-    - org.gradle.testsuite.type        = unit-tests
+    - org.gradle.testsuite.type        = unit-test
     - org.gradle.verificationtype      = test-results
 
 Artifacts
@@ -290,7 +290,7 @@ Attributes
     - org.gradle.category              = verification
     - org.gradle.testsuite.name        = test
     - org.gradle.testsuite.target.name = test
-    - org.gradle.testsuite.type        = unit-tests
+    - org.gradle.testsuite.type        = unit-test
     - org.gradle.verificationtype      = test-results
 
 Artifacts
@@ -504,7 +504,7 @@ Attributes
     - org.gradle.category              = verification
     - org.gradle.testsuite.name        = test
     - org.gradle.testsuite.target.name = test
-    - org.gradle.testsuite.type        = unit-tests
+    - org.gradle.testsuite.type        = unit-test
     - org.gradle.verificationtype      = test-results
 
 Artifacts
