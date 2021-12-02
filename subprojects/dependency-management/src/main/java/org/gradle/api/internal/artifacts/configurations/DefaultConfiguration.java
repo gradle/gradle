@@ -138,6 +138,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -1073,7 +1074,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     @Override
-    public boolean isMutable() {
+    public boolean isCanBeMutated() {
         return canBeMutated;
     }
 
@@ -1090,36 +1091,33 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             outgoing.preventFromFurtherMutation();
             canBeMutated = false;
 
-            if (isCanBeConsumed()) {
-                ensureUniqueAttributesOnConsumableConfigurations();
+            // If capabilities or attributes are empty, duplicate attribute sets are allowed, else check
+            if (isCanBeConsumed() && !getOutgoing().getCapabilities().isEmpty() && !getAttributes().isEmpty()) {
+                ensureUniqueAttributes();
             }
         }
     }
 
-    private void ensureUniqueAttributesOnConsumableConfigurations() {
-        if (configurationsProvider != null) {
-            final Set<? extends ConfigurationInternal> all = configurationsProvider.getAll();
-            // IDEA flags this if as unnecessary, but org.gradle.api.internal.artifacts.configurations.DefaultConfigurationSpec fails without it
-            //noinspection ConstantConditions
-            if (all != null) {
-                final Set<? extends ConfigurationInternal> potentialDuplicates = all.stream()
-                    .filter(Configuration::isCanBeConsumed)
-                    .filter(c -> !c.isMutable())
-                    .filter(c -> c != this)
-                    .collect(Collectors.toSet());
-
-                if (!getOutgoing().getCapabilities().isEmpty() && !getAttributes().isEmpty()) {
-                    for (ConfigurationInternal other : potentialDuplicates) {
-                        if (hasSameCapabilitiesAs(other) && hasSameAttributesAs(other)) {
-                            DeprecationLogger.deprecateBehaviour("Consumable configurations with identical capabilities within a project must have unique attributes, but " + getDisplayName() + " and " + other.getDisplayName() + " contain identical attribute sets.")
-                                .withAdvice("Consider adding an additional attribute to one of the configurations to disambiguate them.  Run the 'outgoingVariants' task for more details.")
-                                .willBecomeAnErrorInGradle8()
-                                .withUpgradeGuideSection(7, "unique_attribute_sets")
-                                .nagUser();
-                        }
-                    }
+    private void ensureUniqueAttributes() {
+        final Set<? extends ConfigurationInternal> all = (configurationsProvider != null) ? configurationsProvider.getAll() : null;
+        if (all != null) {
+            final Consumer<ConfigurationInternal> warnIfDuplicate = otherConfiguration -> {
+                if (hasSameCapabilitiesAs(otherConfiguration) && hasSameAttributesAs(otherConfiguration)) {
+                    DeprecationLogger.deprecateBehaviour("Consumable configurations with identical capabilities within a project must have unique attributes, but " + getDisplayName() + " and " + otherConfiguration.getDisplayName() + " contain identical attribute sets.")
+                        .withAdvice("Consider adding an additional attribute to one of the configurations to disambiguate them.  Run the 'outgoingVariants' task for more details.")
+                        .willBecomeAnErrorInGradle8()
+                        .withUpgradeGuideSection(7, "unique_attribute_sets")
+                        .nagUser();
                 }
-            }
+            };
+
+            all.stream()
+                .filter(Configuration::isCanBeConsumed)
+                .filter(c -> !c.isCanBeMutated())
+                .filter(c -> c != this)
+                .filter(c -> !c.getOutgoing().getCapabilities().isEmpty())
+                .filter(c -> !c.getAttributes().isEmpty())
+                .forEach(warnIfDuplicate);
         }
     }
 

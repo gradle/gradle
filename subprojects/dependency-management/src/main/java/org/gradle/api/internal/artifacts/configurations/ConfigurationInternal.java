@@ -82,7 +82,7 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
      */
     void beforeLocking(Action<? super ConfigurationInternal> action);
 
-    boolean isMutable();
+    boolean isCanBeMutated();
 
     void preventFromFurtherMutation();
 
