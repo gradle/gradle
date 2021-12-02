@@ -80,9 +80,12 @@ In the future, other properties may be specified in the test suite which may inf
 The `Test` task associated with the target inherits its name from the suite.  Other properties of the `Test` task are configurable.
 
 ==== Test Suite Type ====
-Each test suite must be assigned a type.  Types can be used to group related test suites across multiple Gradle projects within a build.
+Each test suite must be assigned a type.
+Types can be used to group related test suites across multiple Gradle projects within a build.
 
-The type of a test suite can be configured using the suites's link:{groovyDslPath}/org.gradle.api.plugins.jvm.JvmTestSuite.html#getTestType[test type property].  The type *must be unique* across all test suites in the same Gradle project.  By convention, the type is set to the name of the test suite, converted to dash-case - with the exception of the built-in test suite, which uses the value link:{groovyDslPath}/org.gradle.api.attributes.TestSuiteType.html#UNIT_TEST['unit-test'].
+The type of a test suite can be configured using the suites's link:{groovyDslPath}/org.gradle.api.plugins.jvm.JvmTestSuite.html#getTestType[test type property].
+The type *must be unique* across all test suites in the same Gradle project.
+By convention, the type is set to the name of the test suite, converted to dash-case - with the exception of the built-in test suite, which uses the value link:{groovyDslPath}/org.gradle.api.attributes.TestSuiteType.html#UNIT_TEST['unit-test'].
 
 Common values are available as constants in link:{groovyDslPath}/org.gradle.api.attributes.TestSuiteType.html[TestSuiteType].
 
