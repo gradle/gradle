@@ -1098,20 +1098,25 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private void ensureUniqueAttributesOnConsumableConfigurations() {
         if (configurationsProvider != null) {
-            final Set<? extends ConfigurationInternal> potentialDuplicates = configurationsProvider.getAll().stream()
-                .filter(Configuration::isCanBeConsumed)
-                .filter(c -> !c.isMutable())
-                .filter(c -> c != this)
-                .collect(Collectors.toSet());
+            final Set<? extends ConfigurationInternal> all = configurationsProvider.getAll();
+            // IDEA flags this if as unnecessary, but org.gradle.api.internal.artifacts.configurations.DefaultConfigurationSpec fails without it
+            //noinspection ConstantConditions
+            if (all != null) {
+                final Set<? extends ConfigurationInternal> potentialDuplicates = all.stream()
+                    .filter(Configuration::isCanBeConsumed)
+                    .filter(c -> !c.isMutable())
+                    .filter(c -> c != this)
+                    .collect(Collectors.toSet());
 
-            if (!getOutgoing().getCapabilities().isEmpty() && !getAttributes().isEmpty()) {
-                for (ConfigurationInternal other : potentialDuplicates) {
-                    if (hasSameCapabilitiesAs(other) && hasSameAttributesAs(other)) {
-                        DeprecationLogger.deprecateBehaviour("Consumable configurations with identical capabilities within a project must have unique attributes, but " + getDisplayName() + " and " + other.getDisplayName() + " contain identical attribute sets.")
-                            .withAdvice("Consider adding an additional attribute to one of the configurations to disambiguate them.  Run the 'outgoingVariants' task for more details.")
-                            .willBecomeAnErrorInGradle8()
-                            .withUpgradeGuideSection(7, "unique_attribute_sets")
-                            .nagUser();
+                if (!getOutgoing().getCapabilities().isEmpty() && !getAttributes().isEmpty()) {
+                    for (ConfigurationInternal other : potentialDuplicates) {
+                        if (hasSameCapabilitiesAs(other) && hasSameAttributesAs(other)) {
+                            DeprecationLogger.deprecateBehaviour("Consumable configurations with identical capabilities within a project must have unique attributes, but " + getDisplayName() + " and " + other.getDisplayName() + " contain identical attribute sets.")
+                                .withAdvice("Consider adding an additional attribute to one of the configurations to disambiguate them.  Run the 'outgoingVariants' task for more details.")
+                                .willBecomeAnErrorInGradle8()
+                                .withUpgradeGuideSection(7, "unique_attribute_sets")
+                                .nagUser();
+                        }
                     }
                 }
             }
