@@ -20,14 +20,11 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.attributes.Attribute;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.plugins.JavaPlugin;
@@ -67,7 +64,6 @@ public class DefaultJvmVariantBuilder implements JvmVariantBuilderInternal {
     private boolean published;
     private boolean overrideDefaultCapability = true;
     private final List<Capability> capabilities = Lists.newArrayListWithExpectedSize(2);
-    private AttributeContainerInternal attributes;
 
     @Inject
     public DefaultJvmVariantBuilder(String name,
@@ -90,7 +86,6 @@ public class DefaultJvmVariantBuilder implements JvmVariantBuilderInternal {
         this.configurations = configurations;
         this.tasks = tasks;
         this.components = components;
-        this.attributes = project.getServices().get(ImmutableAttributesFactory.class).mutable();
         this.project = project;
         this.capabilities.add(defaultCapability);
     }
@@ -116,12 +111,6 @@ public class DefaultJvmVariantBuilder implements JvmVariantBuilderInternal {
     @Override
     public JvmVariantBuilder withSourcesJar() {
         sourcesJar = true;
-        return this;
-    }
-
-    @Override
-    public <T> JvmVariantBuilder withAttribute(Attribute<T> attribute, T value) {
-        attributes.attribute(attribute, value);
         return this;
     }
 
@@ -209,7 +198,6 @@ public class DefaultJvmVariantBuilder implements JvmVariantBuilderInternal {
                 .withClassDirectoryVariant()
                 .artifact(jarTask);
         }) : null;
-        addAdditionalAttributes(apiElements);
         if (exposeApi) {
             implementation.extendsFrom(api);
         }
@@ -222,7 +210,6 @@ public class DefaultJvmVariantBuilder implements JvmVariantBuilderInternal {
                 .withCapabilities(capabilities)
                 .artifact(jarTask);
         });
-        addAdditionalAttributes(runtimeElements);
         if (mainSourceSet) {
             // we need to wire the compile only and runtime only to the classpath configurations
             configurations.getByName(sourceSet.getCompileClasspathConfigurationName()).extendsFrom(implementation, compileOnly);
@@ -256,7 +243,6 @@ public class DefaultJvmVariantBuilder implements JvmVariantBuilderInternal {
         configuration.setVisible(false);
         configuration.setCanBeResolved(false);
         configuration.setCanBeConsumed(false);
-        addAdditionalAttributes(configuration);
         return configuration;
     }
 
@@ -282,7 +268,6 @@ public class DefaultJvmVariantBuilder implements JvmVariantBuilderInternal {
         jvmPluginServices.configureAttributes(variant, attributes -> attributes.documentation(docsType)
             .runtimeUsage()
             .withExternalDependencies());
-        addAdditionalAttributes(variant);
         capabilities.forEach(variant.getOutgoing()::capability);
 
         if (!tasks.getNames().contains(jarTaskName)) {
@@ -303,13 +288,6 @@ public class DefaultJvmVariantBuilder implements JvmVariantBuilderInternal {
         }
     }
 
-    private void addAdditionalAttributes(Configuration configuration) {
-        attributes.asMap().forEach((attribute, value) -> {
-            @SuppressWarnings("unchecked") Attribute<Object> typedAttribtue = (Attribute<Object>) attribute;
-            configuration.getAttributes().attribute(typedAttribtue, value);
-        });
-    }
-
     @Nullable
     public AdhocComponentWithVariants findJavaComponent() {
         SoftwareComponent component = components.findByName("java");
@@ -318,4 +296,5 @@ public class DefaultJvmVariantBuilder implements JvmVariantBuilderInternal {
         }
         return null;
     }
+
 }
