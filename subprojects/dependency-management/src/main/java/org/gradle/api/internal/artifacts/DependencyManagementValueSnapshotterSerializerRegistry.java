@@ -18,9 +18,12 @@ package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentIdentifierSerializer;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolvedVariantResultSerializer;
 import org.gradle.api.internal.artifacts.metadata.ComponentArtifactIdentifierSerializer;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
@@ -48,6 +51,7 @@ public class DependencyManagementValueSnapshotterSerializerRegistry extends Defa
         supportedTypes.add(ComponentIdentifier.class);
         supportedTypes.add(DefaultModuleComponentArtifactIdentifier.class);
         supportedTypes.add(AttributeContainer.class);
+        supportedTypes.add(ResolvedVariantResult.class);
         SUPPORTED_TYPES = supportedTypes;
     }
 
@@ -77,10 +81,13 @@ public class DependencyManagementValueSnapshotterSerializerRegistry extends Defa
                 encoder.writeNullableString(value.getVersion());
             }
         });
+        ComponentIdentifierSerializer componentIdentifierSerializer = new ComponentIdentifierSerializer();
+        AttributeContainerSerializer attributeContainerSerializer = new DesugaringAttributeContainerSerializer(immutableAttributesFactory, namedObjectInstantiator);
         register(ModuleVersionIdentifier.class, new ModuleVersionIdentifierSerializer(moduleIdentifierFactory));
-        register(ComponentIdentifier.class, new ComponentIdentifierSerializer());
+        register(ComponentIdentifier.class, componentIdentifierSerializer);
         register(DefaultModuleComponentArtifactIdentifier.class, new ComponentArtifactIdentifierSerializer());
-        register(AttributeContainer.class, new DesugaringAttributeContainerSerializer(immutableAttributesFactory, namedObjectInstantiator));
+        register(AttributeContainer.class, attributeContainerSerializer);
+        register(ResolvedVariantResult.class, new ResolvedVariantResultSerializer(componentIdentifierSerializer, attributeContainerSerializer));
     }
 
     @Override

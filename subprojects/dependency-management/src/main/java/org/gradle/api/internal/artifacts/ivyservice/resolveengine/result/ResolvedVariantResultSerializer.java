@@ -33,14 +33,14 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-class ResolvedVariantResultSerializer implements Serializer<ResolvedVariantResult> {
+public class ResolvedVariantResultSerializer implements Serializer<ResolvedVariantResult> {
     private final Map<ResolvedVariantResult, Integer> written = Maps.newHashMap();
     private final List<ResolvedVariantResult> read = Lists.newArrayList();
 
     private final ComponentIdentifierSerializer componentIdentifierSerializer;
     private final AttributeContainerSerializer attributeContainerSerializer;
 
-    ResolvedVariantResultSerializer(ComponentIdentifierSerializer componentIdentifierSerializer, AttributeContainerSerializer attributeContainerSerializer) {
+    public ResolvedVariantResultSerializer(ComponentIdentifierSerializer componentIdentifierSerializer, AttributeContainerSerializer attributeContainerSerializer) {
         this.componentIdentifierSerializer = componentIdentifierSerializer;
         this.attributeContainerSerializer = attributeContainerSerializer;
     }

@@ -28,7 +28,7 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
         """
         mavenRepo.module("org.external", "external-lib").publish()
         file('lib/file-lib.jar') << 'content'
-        // We need fresh daemons to load snapshots from disk in tests below
+        // We need fresh daemons to exercise loading snapshots from disk in tests below
         executer.requireIsolatedDaemons()
     }
 
@@ -41,6 +41,8 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
             import org.gradle.internal.component.external.model.ImmutableCapability
             import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier
             import org.gradle.api.internal.attributes.ImmutableAttributesFactory
+            import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult
+            import org.gradle.internal.Describables
 
             abstract class TaskWithInput extends DefaultTask {
 
@@ -91,6 +93,7 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
         "Capability"                  | "new ImmutableCapability('group', System.getProperty('n'), '1.0')"
         "ModuleComponentIdentifier"   | "new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId('group', System.getProperty('n')),'1.0')"
         "ComponentArtifactIdentifier" | "new DefaultModuleComponentArtifactIdentifier(new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId('group', System.getProperty('n')),'1.0'), System.getProperty('n') + '-1.0.jar', 'jar', null)"
+        "ResolvedVariantResult"       | "new DefaultResolvedVariantResult(new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId('group', System.getProperty('n')), '1.0'), Describables.of('variantName'), services.get(ImmutableAttributesFactory).of(Attribute.of('some', String.class), System.getProperty('n')), [new ImmutableCapability('group', System.getProperty('n'), '1.0')], null)"
         // For ResolvedComponentResult
         "ModuleVersionIdentifier"     | "DefaultModuleVersionIdentifier.newId('group', System.getProperty('n'), '1.0')"
     }
