@@ -56,6 +56,12 @@ class ArtifactCollectionResultProviderIntegrationTest extends AbstractHttpDepend
 
                 @OutputFile
                 abstract RegularFileProperty getOutputFile()
+
+                @TaskAction
+                void action() {
+                    println(artifactFiles.files)
+                    println(resolvedArtifacts.get())
+                }
             }
         """
     }
