@@ -2271,17 +2271,10 @@ Found the following transforms:
             }
             configurations {
                 compile1 {
-                    attributes {
-                        attribute usage, 'api'
-                        attribute Attribute.of('disambiguator', String), '1' // Ensure unique set of attributes
-                    }
+                    attributes { attribute usage, 'api' }
                 }
                 compile2 {
-
-                    attributes {
-                        attribute usage, 'api'
-                        attribute Attribute.of('disambiguator', String), '2' // Ensure unique set of attributes
-                    }
+                    attributes { attribute usage, 'api' }
                 }
             }
             dependencies {
