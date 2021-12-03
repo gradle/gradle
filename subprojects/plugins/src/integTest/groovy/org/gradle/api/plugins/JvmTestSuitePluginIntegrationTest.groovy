@@ -457,7 +457,11 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec implemen
     }
 
     def "Only one suite with a given test type allowed per project"() {
-        settingsFile << """rootProject.name = 'Test'"""
+        settingsFile << """
+            rootProject.name = 'Test'
+            enableFeaturePreview('TEST_DATA_VARIANTS')
+        """.stripIndent()
+
         buildFile << """plugins {
                 id 'java'
             }
@@ -481,7 +485,11 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec implemen
     }
 
     def "Only one suite with a given test type allowed per project (including the built-in test suite)"() {
-        settingsFile << """rootProject.name = 'Test'"""
+        settingsFile << """
+            rootProject.name = 'Test'
+            enableFeaturePreview('TEST_DATA_VARIANTS')
+        """.stripIndent()
+
         buildFile << """plugins {
                 id 'java'
             }
@@ -501,7 +509,11 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec implemen
     }
 
     def "Only one suite with a given test type allowed per project (using the default type of one suite and explicitly setting the other)"() {
-        settingsFile << """rootProject.name = 'Test'"""
+        settingsFile << """
+            rootProject.name = 'Test'
+            enableFeaturePreview('TEST_DATA_VARIANTS')
+        """.stripIndent()
+
         buildFile << """plugins {
                 id 'java'
             }
@@ -523,6 +535,10 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec implemen
     }
 
     def "Test suites in different projects can use same test type"() {
+        settingsFile << """
+            enableFeaturePreview('TEST_DATA_VARIANTS')
+        """.stripIndent()
+
         def subADir = createDir("subA")
         subADir.file("build.gradle") << """
             plugins {
@@ -576,6 +592,29 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec implemen
 
         expect:
         succeeds('allIntegrationTests')
+    }
+
+    def "Multiple suites allowed using the same test type if not enabling test data variants"() {
+        settingsFile << """rootProject.name = 'Test'"""
+        buildFile << """plugins {
+                id 'java'
+            }
+
+            testing {
+                suites {
+                    primaryIntTest(JvmTestSuite) {
+                        testType = TestSuiteType.INTEGRATION_TEST
+                    }
+
+                    secondaryIntTest(JvmTestSuite) {
+                        testType = TestSuiteType.INTEGRATION_TEST
+                    }
+                }
+            }
+            """.stripIndent()
+
+        expect:
+        succeeds('primaryIntTest', 'secondaryIntTest')
     }
 
     private String systemFilePath(String path) {
