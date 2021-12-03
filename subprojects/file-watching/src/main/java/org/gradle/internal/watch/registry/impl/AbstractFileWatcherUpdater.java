@@ -30,6 +30,7 @@ import org.gradle.internal.watch.vfs.WatchMode;
 import javax.annotation.CheckReturnValue;
 import java.io.File;
 import java.util.Collection;
+import java.util.List;
 import java.util.stream.Stream;
 
 public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
@@ -54,8 +55,8 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
     }
 
     @Override
-    public final SnapshotHierarchy updateVfsOnBuildStarted(SnapshotHierarchy root, WatchMode watchMode) {
-        SnapshotHierarchy newRoot = watchableHierarchies.removeUnwatchableContentOnBuildStart(root, createInvalidator(), watchMode);
+    public final SnapshotHierarchy updateVfsOnBuildStarted(SnapshotHierarchy root, WatchMode watchMode, List<File> unsupportedFileSystems) {
+        SnapshotHierarchy newRoot = watchableHierarchies.removeUnwatchableContentOnBuildStart(root, createInvalidator(), watchMode, unsupportedFileSystems);
         newRoot = doUpdateVfsOnBuildStarted(newRoot);
         if (root != newRoot) {
             update(newRoot);
@@ -77,12 +78,12 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
     protected abstract boolean handleVirtualFileSystemContentsChanged(Collection<FileSystemLocationSnapshot> removedSnapshots, Collection<FileSystemLocationSnapshot> addedSnapshots, SnapshotHierarchy root);
 
     @Override
-    public SnapshotHierarchy updateVfsOnBuildFinished(SnapshotHierarchy root, WatchMode watchMode, int maximumNumberOfWatchedHierarchies) {
+    public SnapshotHierarchy updateVfsOnBuildFinished(SnapshotHierarchy root, WatchMode watchMode, int maximumNumberOfWatchedHierarchies, List<File> unsupportedFileSystems) {
         SnapshotHierarchy newRoot = watchableHierarchies.removeUnwatchableContentOnBuildFinished(
             root,
-            watchMode,
             watchedFiles::contains,
             maximumNumberOfWatchedHierarchies,
+            unsupportedFileSystems,
             createInvalidator()
         );
 

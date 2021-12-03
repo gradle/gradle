@@ -209,8 +209,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             NativeCapabilities nativeCapabilities,
             ListenerManager listenerManager,
             FileSystem fileSystem,
-            GlobalCacheLocations globalCacheLocations,
-            WatchableFileSystemDetector watchableFileSystemDetector
+            GlobalCacheLocations globalCacheLocations
         ) {
             CaseSensitivity caseSensitivity = fileSystem.isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE;
             VfsRootReference rootReference = new VfsRootReference(DefaultSnapshotHierarchy.empty(caseSensitivity));
@@ -221,7 +220,6 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             BuildLifecycleAwareVirtualFileSystem virtualFileSystem = determineWatcherRegistryFactory(
                 OperatingSystem.current(),
                 nativeCapabilities,
-                watchableFileSystemDetector,
                 watchFilter)
                 .<BuildLifecycleAwareVirtualFileSystem>map(watcherRegistryFactory -> new WatchingVirtualFileSystem(
                     watcherRegistryFactory,
@@ -286,17 +284,16 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
         private Optional<FileWatcherRegistryFactory> determineWatcherRegistryFactory(
             OperatingSystem operatingSystem,
             NativeCapabilities nativeCapabilities,
-            WatchableFileSystemDetector watchableFileSystemDetector,
             Predicate<String> watchFilter
         ) {
             if (nativeCapabilities.useFileSystemWatching()) {
                 try {
                     if (operatingSystem.isMacOsX()) {
-                        return Optional.of(new DarwinFileWatcherRegistryFactory(watchableFileSystemDetector, watchFilter));
+                        return Optional.of(new DarwinFileWatcherRegistryFactory(watchFilter));
                     } else if (operatingSystem.isWindows()) {
-                        return Optional.of(new WindowsFileWatcherRegistryFactory(watchableFileSystemDetector, watchFilter));
+                        return Optional.of(new WindowsFileWatcherRegistryFactory(watchFilter));
                     } else if (operatingSystem.isLinux()) {
-                        return Optional.of(new LinuxFileWatcherRegistryFactory(watchableFileSystemDetector, watchFilter));
+                        return Optional.of(new LinuxFileWatcherRegistryFactory(watchFilter));
                     }
                 } catch (NativeIntegrationUnavailableException e) {
                     LOGGER.debug("Native file system watching is not available for this operating system.", e);

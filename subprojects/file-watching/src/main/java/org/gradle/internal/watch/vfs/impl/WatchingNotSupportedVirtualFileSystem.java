@@ -34,6 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.List;
 
 /**
  * A {@link VirtualFileSystem} which is not able to register any watches.
@@ -52,7 +53,13 @@ public class WatchingNotSupportedVirtualFileSystem extends AbstractVirtualFileSy
     }
 
     @Override
-    public boolean afterBuildStarted(WatchMode watchMode, VfsLogging vfsLogging, WatchLogging watchLogging, BuildOperationRunner buildOperationRunner) {
+    public boolean afterBuildStarted(
+        WatchMode watchMode,
+        VfsLogging vfsLogging,
+        WatchLogging watchLogging,
+        BuildOperationRunner buildOperationRunner,
+        List<File> unsupportedFileSystems
+    ) {
         if (watchMode == WatchMode.ENABLED) {
             LOGGER.warn("Watching the file system is not supported.");
         }
@@ -77,7 +84,14 @@ public class WatchingNotSupportedVirtualFileSystem extends AbstractVirtualFileSy
     }
 
     @Override
-    public void beforeBuildFinished(WatchMode watchMode, VfsLogging vfsLogging, WatchLogging watchLogging, BuildOperationRunner buildOperationRunner, int maximumNumberOfWatchedHierarchies) {
+    public void beforeBuildFinished(
+        WatchMode watchMode,
+        VfsLogging vfsLogging,
+        WatchLogging watchLogging,
+        BuildOperationRunner buildOperationRunner,
+        int maximumNumberOfWatchedHierarchies,
+        List<File> unsupportedFileSystems
+    ) {
         rootReference.update(vfsRoot -> buildOperationRunner.call(new CallableBuildOperation<SnapshotHierarchy>() {
             @Override
             public SnapshotHierarchy call(BuildOperationContext context) {

@@ -16,15 +16,13 @@
 
 package org.gradle.internal.watch.registry.impl
 
-
 import net.rubygrapefruit.platform.file.FileWatcher
 import org.gradle.internal.file.FileMetadata.AccessType
 import org.gradle.internal.snapshot.MissingFileSnapshot
 import org.gradle.internal.snapshot.SnapshotHierarchy
 import org.gradle.internal.watch.registry.FileWatcherUpdater
+import org.gradle.internal.watch.vfs.WatchMode
 import org.gradle.test.fixtures.file.TestFile
-
-import java.util.stream.Stream
 
 import static org.gradle.internal.watch.registry.impl.HierarchicalFileWatcherUpdater.FileSystemLocationToWatchValidator.NO_VALIDATION
 
@@ -357,7 +355,6 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         def watchableContent = watchableHierarchy.file("some/dir/file.txt").createFile()
         def unsupportedFileSystemMountPoint = watchableHierarchy.file("unsupported")
         def unwatchableContent = unsupportedFileSystemMountPoint.file("some/file.txt").createFile()
-        watchableFileSystemDetector.detectUnsupportedFileSystems() >> Stream.of(unsupportedFileSystemMountPoint)
 
         when:
         registerWatchableHierarchies([watchableHierarchy])
@@ -374,7 +371,7 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         0 * _
 
         when:
-        buildFinished()
+        buildFinished(Integer.MAX_VALUE, WatchMode.DEFAULT, [unsupportedFileSystemMountPoint])
         then:
         vfsHasSnapshotsAt(watchableContent)
         !vfsHasSnapshotsAt(unwatchableContent)

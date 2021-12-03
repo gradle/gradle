@@ -37,13 +37,13 @@ class WatchingNotSupportedVirtualFileSystemTest extends Specification {
 
     def "invalidates the virtual file system before and after the build (watch mode: #watchMode.description)"() {
         when:
-        watchingNotSupportedHandler.afterBuildStarted(watchMode, VfsLogging.NORMAL, WatchLogging.NORMAL, buildOperationRunner)
+        watchingNotSupportedHandler.afterBuildStarted(watchMode, VfsLogging.NORMAL, WatchLogging.NORMAL, buildOperationRunner, [])
         then:
         rootReference.getRoot() == emptySnapshotHierarchy
 
         when:
         rootReference.update { root -> nonEmptySnapshotHierarchy }
-        watchingNotSupportedHandler.beforeBuildFinished(watchMode, VfsLogging.NORMAL, WatchLogging.NORMAL, buildOperationRunner, Integer.MAX_VALUE)
+        watchingNotSupportedHandler.beforeBuildFinished(watchMode, VfsLogging.NORMAL, WatchLogging.NORMAL, buildOperationRunner, Integer.MAX_VALUE, [])
         then:
         rootReference.getRoot() == emptySnapshotHierarchy
 

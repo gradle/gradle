@@ -58,6 +58,7 @@ import org.gradle.internal.snapshot.impl.DirectorySnapshotterStatistics;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem;
+import org.gradle.internal.watch.vfs.WatchableFileSystemDetector;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.launcher.exec.BuildCompletionNotifyingBuildActionRunner;
 import org.gradle.launcher.exec.BuildExecuter;
@@ -206,6 +207,7 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
             BuildRequestMetaData buildRequestMetaData,
             GradleEnterprisePluginManager gradleEnterprisePluginManager,
             BuildLifecycleAwareVirtualFileSystem virtualFileSystem,
+            WatchableFileSystemDetector watchableFileSystemDetector,
             StatStatistics.Collector statStatisticsCollector,
             FileHasherStatistics.Collector fileHasherStatisticsCollector,
             DirectorySnapshotterStatistics.Collector directorySnapshotterStatisticsCollector,
@@ -221,6 +223,7 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                     new FileSystemWatchingBuildActionRunner(
                         eventEmitter,
                         virtualFileSystem,
+                        watchableFileSystemDetector,
                         statStatisticsCollector,
                         fileHasherStatisticsCollector,
                         directorySnapshotterStatisticsCollector,
