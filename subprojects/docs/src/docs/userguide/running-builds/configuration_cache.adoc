@@ -807,6 +807,41 @@ For example a `BuildListener` or a `TaskExecutionListener`.
 
 These should be replaced by <<build_services#build_services,build services>>, registered to receive information about <<build_services#operation_listener, task execution>> if needed.
 
+[[config_cache:requirements:external_processes]]
+=== Running external processes
+
+Plugin and build scripts should avoid running external processes at configuration time.
+In general, it is preferred to run external processes in tasks with properly declared inputs and outputs to avoid unnecessary work when the task is up-to-date.
+If necessary, only configuration-cache-compatible APIs should be used instead of Java and Groovy standard APIs or existing `ExecOperations`,
+`Project.exec`, `Project.javaexec`, and their likes in settings and init scripts.
+For simpler cases, when grabbing the output of the process is enough,
+link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#exec-org.gradle.api.Action-[providers.exec()] and
+link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#javaexec-org.gradle.api.Action-[providers.javaExec()] can be used:
+
+====
+include::sample[dir="snippets/valueProviders/externalProcessProvider/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/valueProviders/externalProcessProvider/kotlin",files="build.gradle.kts[]"]
+====
+
+For more complex cases a custom link:{javadocPath}/org/gradle/api/provider/ValueSource.html[ValueSource] implementation with injected `ExecOperations` can be used.
+This `ExecOperations` instance can be used at configuration time without restrictions.
+
+====
+include::sample[dir="snippets/valueProviders/externalProcessValueSource/groovy",files="build.gradle[tags=value-source]"]
+include::sample[dir="snippets/valueProviders/externalProcessValueSource/kotlin",files="build.gradle.kts[tags=value-source]"]
+====
+
+The `ValueSource` implementation can then be used to create a provider with link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#of-java.lang.Class-org.gradle.api.Action-[providers.of]:
+
+====
+include::sample[dir="snippets/valueProviders/externalProcessValueSource/groovy",files="build.gradle[tags=create-provider]"]
+include::sample[dir="snippets/valueProviders/externalProcessValueSource/kotlin",files="build.gradle.kts[tags=create-provider]"]
+====
+
+In both approaches, if the value of the provider is used at configuration time then it will become a build configuration input.
+The external process will be executed for every build to determine if the configuration cache is up-to-date, so it is recommended to only call fast-running processes at configuration time.
+If the value changes then the cache is invalidated and the process will be run again during this build as part of the configuration phase.
+
 [[config_cache:requirements:reading_sys_props_and_env_vars]]
 === Reading system properties and environment variables
 
