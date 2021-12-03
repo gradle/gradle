@@ -33,9 +33,9 @@ jobs:
         with:
           script: |
             if (context.payload.pull_request && context.payload.pull_request.head.repo.fork) {
-                core.setOutput('sys-prop-args', '-DagreePublicBuildScanTermOfService=yes -DcacheNode=us')
+                core.setOutput('sys-prop-args', '-DagreePublicBuildScanTermOfService=yes -DcacheNode=us -Dscan.tag.GitHubActions')
             } else {
-                core.setOutput('sys-prop-args', '-DcacheNode=us')
+                core.setOutput('sys-prop-args', '-DcacheNode=us -Dscan.tag.GitHubActions')
             }
       - name: assemble
         id: gradle
@@ -47,6 +47,10 @@ jobs:
               --no-configuration-cache
               -DdisableLocalCache=true
               ${{ steps.determine-sys-prop-args.outputs.sys-prop-args }}
+      - uses: actions/upload-artifact@v2
+        with:
+          name: build-receipt.properties
+          path: subprojects/base-services/build/generated-resources/build-receipt/org/gradle/build-receipt.properties
     outputs:
       matrix: ${{ steps.setup-matrix.outputs.matrix }}
       sys-prop-args: ${{ steps.determine-sys-prop-args.outputs.sys-prop-args }}
@@ -63,6 +67,10 @@ jobs:
         with:
           distribution: temurin
           java-version: 11
+      - uses: actions/download-artifact@v2
+        with:
+          name: build-receipt.properties
+          path: incoming-distributions/build-receipt.properties
       - name: ./gradlew sanityCheck
         id: gradle
         uses: gradle/gradle-build-action@v2
@@ -90,6 +98,10 @@ jobs:
         with:
           distribution: temurin
           java-version: 11
+      - uses: actions/download-artifact@v2
+        with:
+          name: build-receipt.properties
+          path: incoming-distributions/build-receipt.properties
       - name: ./gradlew test
         id: gradle
         uses: gradle/gradle-build-action@v2
