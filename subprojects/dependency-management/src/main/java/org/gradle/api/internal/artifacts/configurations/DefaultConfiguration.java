@@ -59,6 +59,7 @@ import org.gradle.api.internal.CompositeDomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
+import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.DefaultDependencyConstraintSet;
 import org.gradle.api.internal.artifacts.DefaultDependencySet;
@@ -236,6 +237,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private ConfigurationInternal consistentResolutionSource;
     private String consistentResolutionReason;
     private ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory;
+    private FeaturePreviews featurePreviews;
+
     private final DefaultConfigurationFactory defaultConfigurationFactory;
 
     /**
@@ -263,6 +266,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         WorkerThreadRegistry workerThreadRegistry,
         DomainObjectCollectionFactory domainObjectCollectionFactory,
         CalculatedValueContainerFactory calculatedValueContainerFactory,
+        FeaturePreviews featurePreviews,
         DefaultConfigurationFactory defaultConfigurationFactory
     ) {
         this.userCodeApplicationContext = userCodeApplicationContext;
@@ -307,6 +311,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.rootComponentMetadataBuilder = rootComponentMetadataBuilder;
         this.currentResolveState = domainObjectContext.getModel().newCalculatedValue(ResolveState.NOT_RESOLVED);
         this.path = domainObjectContext.projectPath(name);
+        this.featurePreviews = featurePreviews;
+
         this.defaultConfigurationFactory = defaultConfigurationFactory;
     }
 
@@ -1444,6 +1450,14 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         if (!canBeResolved) {
             throw new IllegalStateException("Resolving dependency configuration '" + name + "' is not allowed as it is defined as 'canBeResolved=false'.\nInstead, a resolvable ('canBeResolved=true') dependency configuration that extends '" + name + "' should be resolved.");
         }
+        if (containsIncubatingAttributes() && !featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.TEST_DATA_VARIANTS)) {
+            throw new IllegalStateException("Cannot resolve a configuration that contains the attribute '" + Category.CATEGORY_ATTRIBUTE.getName() + "' with a value of '" + Category.VERIFICATION + "' unless the '" + FeaturePreviews.Feature.TEST_DATA_VARIANTS.name() + "' feature preview is enabled.");
+        }
+    }
+
+    private boolean containsIncubatingAttributes() {
+        Category category = (Category) getAttributes().asMap().get(Category.CATEGORY_ATTRIBUTE);
+        return category != null && Category.VERIFICATION.equals(category.getName());
     }
 
     @Override

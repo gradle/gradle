@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.DependencyResolutionListener;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
+import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory;
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory;
@@ -64,6 +65,7 @@ public class DefaultConfigurationFactory {
     private final WorkerThreadRegistry workerThreadRegistry;
     private final DomainObjectCollectionFactory domainObjectCollectionFactory;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
+    private final FeaturePreviews featurePreviews;
 
     @Inject
     public DefaultConfigurationFactory(
@@ -81,7 +83,8 @@ public class DefaultConfigurationFactory {
         ProjectStateRegistry projectStateRegistry,
         WorkerThreadRegistry workerThreadRegistry,
         DomainObjectCollectionFactory domainObjectCollectionFactory,
-        CalculatedValueContainerFactory calculatedValueContainerFactory
+        CalculatedValueContainerFactory calculatedValueContainerFactory,
+        FeaturePreviews featurePreviews
     ) {
         this.instantiator = instantiator;
         this.resolver = resolver;
@@ -99,6 +102,7 @@ public class DefaultConfigurationFactory {
         this.workerThreadRegistry = workerThreadRegistry;
         this.domainObjectCollectionFactory = domainObjectCollectionFactory;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
+        this.featurePreviews = featurePreviews;
     }
 
     /**
@@ -135,6 +139,7 @@ public class DefaultConfigurationFactory {
             workerThreadRegistry,
             domainObjectCollectionFactory,
             calculatedValueContainerFactory,
+            featurePreviews,
             this
         );
     }

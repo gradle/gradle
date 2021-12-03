@@ -1770,22 +1770,22 @@ All Artifacts:
             Mock(TaskResolver)
         )
         def defaultConfigurationFactory = new DefaultConfigurationFactory(
-            DirectInstantiator.INSTANCE,
-            resolver,
-            listenerManager,
-            metaDataProvider,
-            domainObjectContext,
-            TestFiles.fileCollectionFactory(),
-            new TestBuildOperationExecutor(),
-            publishArtifactNotationParser,
-            immutableAttributesFactory,
-            Stub(DocumentationRegistry),
-            userCodeApplicationContext
-            ,
-            projectStateRegistry,
-            Stub(WorkerThreadRegistry),
-            TestUtil.domainObjectCollectionFactory(),
-            calculatedValueContainerFactory
+                DirectInstantiator.INSTANCE,
+                resolver,
+                listenerManager,
+                metaDataProvider,
+                domainObjectContext,
+                TestFiles.fileCollectionFactory(),
+                new TestBuildOperationExecutor(),
+                publishArtifactNotationParser,
+                immutableAttributesFactory,
+                Stub(DocumentationRegistry),
+                userCodeApplicationContext
+                ,
+                projectStateRegistry,
+                Stub(WorkerThreadRegistry),
+                TestUtil.domainObjectCollectionFactory(),
+                calculatedValueContainerFactory, featurePreviews
         )
         defaultConfigurationFactory.create(confName, configurationsProvider, Factories.constant(resolutionStrategy), rootComponentMetadataBuilder)
     }
