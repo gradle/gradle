@@ -311,7 +311,7 @@ Artifacts
     - $javadocJarPath (artifactType = jar)
 
 --------------------------------------------------
-Variant mainSourceElements
+Variant mainSourceElements (i)
 --------------------------------------------------
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -378,7 +378,7 @@ Artifacts
     - $sourcesJarPath (artifactType = jar)
 
 --------------------------------------------------
-Variant testResultsElementsForTest
+Variant testResultsElementsForTest (i)
 --------------------------------------------------
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -395,6 +395,7 @@ Artifacts
         and:
         doesNotHaveLegacyVariantsLegend()
         hasSecondaryVariantsLegend()
+        hasIncubatingVariantsLegend()
     }
 
     @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
@@ -649,7 +650,7 @@ Artifacts
     - $jarPath (artifactType = jar)
 
 --------------------------------------------------
-Variant mainSourceElements
+Variant mainSourceElements (i)
 --------------------------------------------------
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -700,7 +701,7 @@ Secondary variants (*)
           - $builtMainResourcesPath (artifactType = java-resources-directory)
 
 --------------------------------------------------
-Variant testResultsElementsForTest
+Variant testResultsElementsForTest (i)
 --------------------------------------------------
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -717,6 +718,7 @@ Artifacts
 
         and:
         hasLegacyVariantsLegend()
+        hasIncubatingVariantsLegend()
         hasSecondaryVariantsLegend()
     }
 
@@ -824,6 +826,10 @@ Secondary variants (*)
 
     private void hasLegacyVariantsLegend() {
         outputContains("(l) Legacy or deprecated configuration. Those are variants created for backwards compatibility which are both resolvable and consumable.")
+    }
+
+    private void hasIncubatingVariantsLegend() {
+        outputContains("(i) Configuration uses incubating attributes such as Category.VERIFICATION.")
     }
 
     private void doesNotHaveLegacyVariantsLegend() {

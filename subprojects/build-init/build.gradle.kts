@@ -45,6 +45,7 @@ dependencies {
 
     testFixturesImplementation(project(":base-services"))
     testFixturesImplementation(project(":platform-base"))
+    testFixturesImplementation(project(":core"))?.because("org.gradle.api.internal.FeaturePreviews needs to be accessible for Plugin classes, otherwise test fixtures compilation throws NoClassDefFoundError during canonicalization")
     testFixturesImplementation(project(":core-api"))
     testFixturesImplementation(project(":plugins"))
     testFixturesImplementation(project(":testing-base"))
