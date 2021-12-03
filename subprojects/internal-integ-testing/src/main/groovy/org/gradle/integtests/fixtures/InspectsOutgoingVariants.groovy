@@ -22,7 +22,7 @@ import groovy.transform.SelfType
  * Utility methods for tests which work with the outgoing variants task.
  */
 @SelfType(AbstractIntegrationSpec)
-trait OutgoingVariantsUtils {
+trait InspectsOutgoingVariants {
     void hasSecondaryVariantsLegend() {
         outputContains("(*) Secondary variants are variants created via the Configuration#getOutgoing(): ConfigurationPublications API which also participate in selection, in addition to the configuration itself.")
     }
