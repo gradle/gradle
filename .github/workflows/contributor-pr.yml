@@ -8,6 +8,13 @@ on:
     branches:
       - master
 
+concurrency:
+  # On master/release, we don't want any jobs cancelled so the sha is used to name the group
+  # On PR branches, we cancel the job if new commits are pushed
+  group: ${{ (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/release' ) && format('contributor-pr-base-{0}', github.sha) || format('contributor-pr-{0}', github.ref) }}
+  cancel-in-progress: true
+
+
 env:
   # Set the GRADLE_ENTERPRISE_ACCESS_KEY so that Gradle Build Scans are generated
   GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
@@ -33,9 +40,9 @@ jobs:
         with:
           script: |
             if (context.payload.pull_request && context.payload.pull_request.head.repo.fork) {
-                core.setOutput('sys-prop-args', '-DagreePublicBuildScanTermOfService=yes -DcacheNode=us -Dscan.tag.GitHubActions')
+                core.setOutput('sys-prop-args', '-DagreePublicBuildScanTermOfService=yes -DcacheNode=us')
             } else {
-                core.setOutput('sys-prop-args', '-DcacheNode=us -Dscan.tag.GitHubActions')
+                core.setOutput('sys-prop-args', '-DcacheNode=us')
             }
       - name: assemble
         id: gradle
