@@ -17,14 +17,11 @@
 package org.gradle.api.tasks.diagnostics
 
 import org.gradle.api.JavaVersion
-import org.gradle.api.attributes.Category
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.OutgoingVariantsUtils
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
-import static org.gradle.nativeplatform.MachineArchitecture.ARCHITECTURE_ATTRIBUTE
-import static org.gradle.nativeplatform.MachineArchitecture.X86
-
-class OutgoingVariantsReportTaskIntegrationTest extends AbstractIntegrationSpec {
+class OutgoingVariantsReportTaskIntegrationTest extends AbstractIntegrationSpec implements OutgoingVariantsUtils {
     def setup() {
         settingsFile << """
             rootProject.name = "myLib"
@@ -245,7 +242,7 @@ Artifacts
     def "reports outgoing variants of a Java Library with documentation including test data variants"() {
         settingsFile << """
             enableFeaturePreview('TEST_DATA_VARIANTS')
-         """
+         """.stripIndent()
 
         buildFile << """
             plugins { id 'java-library' }
@@ -255,7 +252,7 @@ Artifacts
             }
             group = 'org'
             version = '1.0'
-        """
+        """.stripIndent()
 
         when:
         run ':outgoingVariants'
@@ -583,19 +580,20 @@ Secondary variants (*)
         and:
         hasLegacyVariantsLegend()
         hasSecondaryVariantsLegend()
+        doesNotHaveIncubatingVariantsLegend()
     }
 
     @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
     def "can show all variants including test data variants"() {
         settingsFile << """
             enableFeaturePreview('TEST_DATA_VARIANTS')
-        """
+        """.stripIndent()
 
         buildFile << """
             plugins { id 'java-library' }
             group = 'org'
             version = '1.0'
-        """
+        """.stripIndent()
 
         when:
         executer.expectDeprecationWarning('(l) Legacy or deprecated configuration. Those are variants created for backwards compatibility which are both resolvable and consumable.')
@@ -925,25 +923,5 @@ Attributes
         doesNotHaveLegacyVariantsLegend()
         hasSecondaryVariantsLegend()
         hasIncubatingVariantsLegend()
-    }
-
-    private void hasSecondaryVariantsLegend() {
-        outputContains("(*) Secondary variants are variants created via the Configuration#getOutgoing(): ConfigurationPublications API which also participate in selection, in addition to the configuration itself.")
-    }
-
-    private void doesNotHaveSecondaryVariantsLegend() {
-        outputDoesNotContain("(*) Secondary variants are variants created via the Configuration#getOutgoing(): ConfigurationPublications API which also participate in selection, in addition to the configuration itself.")
-    }
-
-    private void hasLegacyVariantsLegend() {
-        outputContains("(l) Legacy or deprecated configuration. Those are variants created for backwards compatibility which are both resolvable and consumable.")
-    }
-
-    private void hasIncubatingVariantsLegend() {
-        outputContains("(i) Configuration uses incubating attributes such as Category.VERIFICATION.")
-    }
-
-    private void doesNotHaveLegacyVariantsLegend() {
-        outputDoesNotContain("(l) Legacy or deprecated configuration. Those are variants created for backwards compatibility which are both resolvable and consumable.")
     }
 }

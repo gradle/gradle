@@ -19,9 +19,10 @@ package org.gradle.api.plugins
 import org.gradle.api.internal.component.BuildableJavaComponent
 import org.gradle.api.internal.component.ComponentRegistry
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.OutgoingVariantsUtils
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
-class JavaPluginIntegrationTest extends AbstractIntegrationSpec {
+class JavaPluginIntegrationTest extends AbstractIntegrationSpec implements OutgoingVariantsUtils {
 
     def appliesBasePluginsAndAddsConventionObject() {
         given:
@@ -47,18 +48,22 @@ class JavaPluginIntegrationTest extends AbstractIntegrationSpec {
 
     @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
     def "Java plugin adds outgoing variant for main source set"() {
+        settingsFile << """
+            enableFeaturePreview('TEST_DATA_VARIANTS')
+        """.stripIndent()
+
         buildFile << """
             plugins {
                 id 'java'
             }
-            """
+            """.stripIndent()
 
         expect:
         succeeds "outgoingVariants"
 
         outputContains("""
             --------------------------------------------------
-            Variant mainSourceElements
+            Variant mainSourceElements (i)
             --------------------------------------------------
             Capabilities
                 - :${getTestDirectory().getName()}:unspecified (default capability)
@@ -71,17 +76,56 @@ class JavaPluginIntegrationTest extends AbstractIntegrationSpec {
                 - src${File.separator}main${File.separator}java (artifactType = directory)
                 - src${File.separator}main${File.separator}resources (artifactType = directory)
             """.stripIndent())
+
+        and:
+        hasIncubatingVariantsLegend()
+    }
+
+    @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
+    def "Java plugin does not add outgoing variant for main source set without feature flag set"() {
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+            """.stripIndent()
+
+        expect:
+        succeeds "outgoingVariants"
+
+        outputDoesNotContain("""
+            --------------------------------------------------
+            Variant mainSourceElements (i)
+            --------------------------------------------------
+            Capabilities
+                - :${getTestDirectory().getName()}:unspecified (default capability)
+            Attributes
+                - org.gradle.category            = verification
+                - org.gradle.dependency.bundling = external
+                - org.gradle.verificationtype    = main-sources
+
+            Artifacts
+                - src${File.separator}main${File.separator}java (artifactType = directory)
+                - src${File.separator}main${File.separator}resources (artifactType = directory)
+            """.stripIndent())
+
+        and:
+        doesNotHaveIncubatingVariantsLegend()
     }
 
     @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
     def "Java plugin adds outgoing variant for main source set containing additional directories"() {
+        settingsFile << """
+            enableFeaturePreview('TEST_DATA_VARIANTS')
+        """.stripIndent()
+
         buildFile << """
             plugins {
                 id 'java'
             }
 
             sourceSets.main.java.srcDir 'src/more/java'
-            """
+            """.stripIndent()
+
         file("src/more/java").createDir()
 
         expect:
@@ -89,7 +133,7 @@ class JavaPluginIntegrationTest extends AbstractIntegrationSpec {
 
         outputContains("""
             --------------------------------------------------
-            Variant mainSourceElements
+            Variant mainSourceElements (i)
             --------------------------------------------------
             Capabilities
                 - :${getTestDirectory().getName()}:unspecified (default capability)
@@ -103,9 +147,16 @@ class JavaPluginIntegrationTest extends AbstractIntegrationSpec {
                 - src${File.separator}more${File.separator}java (artifactType = directory)
                 - src${File.separator}main${File.separator}resources (artifactType = directory)
             """.stripIndent())
+
+        and:
+        hasIncubatingVariantsLegend()
     }
 
     def "mainSourceElements can be consumed by another task via Dependency Management"() {
+        settingsFile << """
+            enableFeaturePreview('TEST_DATA_VARIANTS')
+        """.stripIndent()
+
         buildFile << """
             plugins {
                 id 'java'
@@ -150,6 +201,10 @@ class JavaPluginIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "mainSourceElements can be consumed by another task in a different project via Dependency Management"() {
+        settingsFile << """
+            enableFeaturePreview('TEST_DATA_VARIANTS')
+        """.stripIndent()
+
         def subADir = createDir("subA")
         def buildFileA = subADir.file("build.gradle") << """
             plugins {

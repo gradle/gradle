@@ -19,12 +19,13 @@ package org.gradle.testing.jacoco.plugins
 import org.gradle.api.Project
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.OutgoingVariantsUtils
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testing.jacoco.plugins.fixtures.JacocoReportFixture
 import org.gradle.testing.jacoco.plugins.fixtures.JavaProjectUnderTest
 
-class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
+class JacocoPluginIntegrationTest extends AbstractIntegrationSpec implements OutgoingVariantsUtils{
 
     private final JavaProjectUnderTest javaProjectUnderTest = new JavaProjectUnderTest(testDirectory)
     private static final String REPORTING_BASE = "${Project.DEFAULT_BUILD_DIR_NAME}/${ReportingExtension.DEFAULT_REPORTS_DIR_NAME}"
@@ -147,16 +148,16 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
-    def "jacoco plugin adds outgoing variants for default test suite"() {
+    def "jacoco plugin does not add outgoing variants for default test suite without feature flag set"() {
         settingsFile << "rootProject.name = 'Test'"
 
         expect:
         succeeds "outgoingVariants"
 
         def resultsExecPath = new TestFile(getTestDirectory(), 'build/jacoco/test.exec').getRelativePathFromBase()
-        outputContains("""
+        outputDoesNotContain("""
             --------------------------------------------------
-            Variant coverageDataElementsForTest
+            Variant coverageDataElementsForTest (i)
             --------------------------------------------------
             Capabilities
                 - :Test:unspecified (default capability)
@@ -169,10 +170,49 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
 
             Artifacts
                 - $resultsExecPath (artifactType = binary)""".stripIndent())
+
+        and:
+        doesNotHaveIncubatingVariantsLegend()
+    }
+
+    @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
+    def "jacoco plugin adds outgoing variants for default test suite"() {
+        settingsFile << """
+            enableFeaturePreview('TEST_DATA_VARIANTS')
+        """.stripIndent()
+
+        settingsFile << "rootProject.name = 'Test'"
+
+        expect:
+        succeeds "outgoingVariants"
+
+        def resultsExecPath = new TestFile(getTestDirectory(), 'build/jacoco/test.exec').getRelativePathFromBase()
+        outputContains("""
+            --------------------------------------------------
+            Variant coverageDataElementsForTest (i)
+            --------------------------------------------------
+            Capabilities
+                - :Test:unspecified (default capability)
+            Attributes
+                - org.gradle.category              = verification
+                - org.gradle.testsuite.name        = test
+                - org.gradle.testsuite.target.name = test
+                - org.gradle.testsuite.type        = unit-tests
+                - org.gradle.verificationtype      = jacoco-coverage
+
+            Artifacts
+                - $resultsExecPath (artifactType = binary)""".stripIndent())
+
+        and:
+        hasIncubatingVariantsLegend()
     }
 
     @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
     def "jacoco plugin adds outgoing variants for custom test suite"() {
+        settingsFile << """
+            enableFeaturePreview('TEST_DATA_VARIANTS')
+        """.stripIndent()
+
         settingsFile << "rootProject.name = 'Test'"
 
         buildFile << """
@@ -195,7 +235,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         def resultsExecPath = new TestFile(getTestDirectory(), 'build/jacoco/integrationTest.exec').getRelativePathFromBase()
         outputContains("""
             --------------------------------------------------
-            Variant coverageDataElementsForIntegrationTest
+            Variant coverageDataElementsForIntegrationTest (i)
             --------------------------------------------------
             Capabilities
                 - :Test:unspecified (default capability)
@@ -208,9 +248,16 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
 
             Artifacts
                 - $resultsExecPath (artifactType = binary)""".stripIndent())
+
+        and:
+        hasIncubatingVariantsLegend()
     }
 
     def "Jacoco coverage data can be consumed by another task via Dependency Management"() {
+        settingsFile << """
+            enableFeaturePreview('TEST_DATA_VARIANTS')
+        """.stripIndent()
+
         buildFile << """
             test {
                 jacoco {
@@ -254,6 +301,10 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "Jacoco coverage data can be consumed by another task in a different project via Dependency Management"() {
+        settingsFile << """
+            enableFeaturePreview('TEST_DATA_VARIANTS')
+        """.stripIndent()
+
         def subADir = createDir("subA")
         final JavaProjectUnderTest subA = new JavaProjectUnderTest(subADir)
         subA.writeBuildScript()
@@ -318,6 +369,10 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "Jacoco coverage data can be consumed across transitive project dependencies via Dependency Management"() {
+        settingsFile << """
+            enableFeaturePreview('TEST_DATA_VARIANTS')
+        """.stripIndent()
+
         def directDir = createDir("direct")
         final JavaProjectUnderTest subDirect = new JavaProjectUnderTest(directDir)
         subDirect.writeBuildScript()

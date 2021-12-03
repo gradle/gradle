@@ -78,25 +78,25 @@ class DefaultConfigurationContainerTest extends Specification {
         create(_) >> Mock(DefaultRootComponentMetadataBuilder)
     }
     private DefaultConfigurationFactory configurationFactory = new DefaultConfigurationFactory(
-        instantiator,
-        resolver,
-        listenerManager,
-        metaDataProvider,
-        domainObjectContext,
-        TestFiles.fileCollectionFactory(),
-        buildOperationExecutor,
-        new PublishArtifactNotationParserFactory(
             instantiator,
+            resolver,
+            listenerManager,
             metaDataProvider,
-            taskResolver
-        ),
-        immutableAttributesFactory,
-        documentationRegistry,
-        userCodeApplicationContext,
-        projectStateRegistry,
-        Mock(WorkerThreadRegistry),
-        TestUtil.domainObjectCollectionFactory(),
-        calculatedValueContainerFactory
+            domainObjectContext,
+            TestFiles.fileCollectionFactory(),
+            buildOperationExecutor,
+            new PublishArtifactNotationParserFactory(
+                    instantiator,
+                    metaDataProvider,
+                    taskResolver
+            ),
+            immutableAttributesFactory,
+            documentationRegistry,
+            userCodeApplicationContext,
+            projectStateRegistry,
+            Mock(WorkerThreadRegistry),
+            TestUtil.domainObjectCollectionFactory(),
+            calculatedValueContainerFactory, featurePreviews
     )
     private DefaultConfigurationContainer configurationContainer = instantiator.newInstance(DefaultConfigurationContainer.class,
         instantiator,

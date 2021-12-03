@@ -17,14 +17,18 @@
 package org.gradle.api.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.OutgoingVariantsUtils
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 
-class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
+class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec implements OutgoingVariantsUtils {
 
     @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
     def "JVM Test Suites plugin adds outgoing variants for default test suite"() {
-        settingsFile << "rootProject.name = 'Test'"
+        settingsFile << """
+            rootProject.name = 'Test'
+            enableFeaturePreview('TEST_DATA_VARIANTS')
+        """.stripIndent()
 
         buildFile << """
             plugins {
@@ -47,7 +51,7 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
         def resultsPath = new TestFile(getTestDirectory(), 'build/test-results/test/binary').getRelativePathFromBase()
         outputContains("""
             --------------------------------------------------
-            Variant testResultsElementsForTest
+            Variant testResultsElementsForTest (i)
             --------------------------------------------------
             Capabilities
                 - :Test:unspecified (default capability)
@@ -61,11 +65,61 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
             Artifacts
                 - $resultsPath (artifactType = directory)
             """.stripIndent())
+
+        and:
+        hasIncubatingVariantsLegend()
+    }
+
+    @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
+    def "JVM Test Suites plugin does not add outgoing variants for default test suite without feature flag set"() {
+        settingsFile << "rootProject.name = 'Test'"
+
+        buildFile << """
+            plugins {
+                id 'jvm-test-suite'
+                id 'java'
+            }
+            """
+
+        file("src/test/java/SomeTest.java") << """
+            import org.junit.Test;
+
+            public class SomeTest {
+                @Test public void foo() {}
+            }
+            """.stripIndent()
+
+        expect:
+        succeeds "outgoingVariants"
+
+        def resultsPath = new TestFile(getTestDirectory(), 'build/test-results/test/binary').getRelativePathFromBase()
+        outputDoesNotContain("""
+            --------------------------------------------------
+            Variant testResultsElementsForTest (i)
+            --------------------------------------------------
+            Capabilities
+                - :Test:unspecified (default capability)
+            Attributes
+                - org.gradle.category              = verification
+                - org.gradle.testsuite.name        = test
+                - org.gradle.testsuite.target.name = test
+                - org.gradle.testsuite.type        = unit-tests
+                - org.gradle.verificationtype      = test-results
+
+            Artifacts
+                - $resultsPath (artifactType = directory)
+            """.stripIndent())
+
+        and:
+        doesNotHaveIncubatingVariantsLegend()
     }
 
     @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
     def "JVM Test Suites plugin adds outgoing variants for custom test suite"() {
-        settingsFile << "rootProject.name = 'Test'"
+        settingsFile << """
+            rootProject.name = 'Test'
+            enableFeaturePreview('TEST_DATA_VARIANTS')
+        """.stripIndent()
 
         buildFile << """
             plugins {
@@ -92,7 +146,7 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
         def resultsPath = new TestFile(getTestDirectory(), 'build/test-results/integrationTest/binary').getRelativePathFromBase()
         outputContains("""
             --------------------------------------------------
-            Variant testResultsElementsForIntegrationTest
+            Variant testResultsElementsForIntegrationTest (i)
             --------------------------------------------------
             Capabilities
                 - :Test:unspecified (default capability)
@@ -106,9 +160,16 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
             Artifacts
                 - $resultsPath (artifactType = directory)
             """.stripIndent())
+
+        and:
+        hasIncubatingVariantsLegend()
     }
 
     def "Test coverage data can be consumed by another task via Dependency Management"() {
+        settingsFile << """
+            enableFeaturePreview('TEST_DATA_VARIANTS')
+        """.stripIndent()
+
         buildFile << """
             plugins {
                 id 'jvm-test-suite'
@@ -173,6 +234,10 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "Test results data can be consumed by another task in a different project via Dependency Management"() {
+        settingsFile << """
+            enableFeaturePreview('TEST_DATA_VARIANTS')
+        """.stripIndent()
+
         def subADir = createDir("subA")
         subADir.file("build.gradle") << """
             plugins {
@@ -285,6 +350,10 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
 
     @ToBeFixedForConfigurationCache(because = "task references another task")
     def "Test results data can be consumed across transitive project dependencies via Dependency Management"() {
+        settingsFile << """
+            enableFeaturePreview('TEST_DATA_VARIANTS')
+        """.stripIndent()
+
         def subDirectDir = createDir("direct")
         subDirectDir.file("build.gradle") << """
             plugins {
