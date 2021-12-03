@@ -17,7 +17,6 @@
 package org.gradle.internal.watch.registry.impl;
 
 import net.rubygrapefruit.platform.NativeException;
-import net.rubygrapefruit.platform.file.FileSystemInfo;
 import org.gradle.internal.file.FileHierarchySet;
 import org.gradle.internal.file.FileMetadata;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
@@ -194,7 +193,7 @@ public class WatchableHierarchies {
             return watchableFileSystemDetector.detectUnsupportedFileSystems()
                 .reduce(
                     root,
-                    (updatedRoot, fileSystem) -> invalidator.invalidate(fileSystem.getMountPoint().getAbsolutePath(), updatedRoot),
+                    (updatedRoot, fileSystem) -> invalidator.invalidate(fileSystem.getAbsolutePath(), updatedRoot),
                     nonCombining()
                 );
         } catch (NativeException e) {
@@ -276,7 +275,6 @@ public class WatchableHierarchies {
     private FileHierarchySet detectUnsupportedHierarchies() {
         try {
             return watchableFileSystemDetector.detectUnsupportedFileSystems()
-                .map(FileSystemInfo::getMountPoint)
                 .reduce(FileHierarchySet.empty(), FileHierarchySet::plus, nonCombining());
         } catch (NativeException e) {
             LOGGER.warn("Unable to list file systems to check whether they can be watched. Assuming all file systems can be watched. Reason: {}", e.getMessage());

@@ -16,7 +16,6 @@
 
 package org.gradle.internal.watch.registry.impl
 
-import net.rubygrapefruit.platform.file.FileSystemInfo
 import net.rubygrapefruit.platform.file.FileWatcher
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
@@ -235,11 +234,7 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
     def "does not start watching unsupported file system for default watch mode"() {
         def unsupportedFileSystemMountPoint = file("unsupported").createDir()
         def unwatchableContent = unsupportedFileSystemMountPoint.file("file.txt").createFile()
-        def unsupportedFileSystem = Stub(FileSystemInfo) {
-            getMountPoint() >> unsupportedFileSystemMountPoint
-            getFileSystemType() >> "unsupported"
-        }
-        watchableFileSystemDetector.detectUnsupportedFileSystems() >> { it -> Stream.of(unsupportedFileSystem) }
+        watchableFileSystemDetector.detectUnsupportedFileSystems() >> { it -> Stream.of(unsupportedFileSystemMountPoint) }
 
         when:
         buildStarted(WatchMode.DEFAULT)
@@ -259,11 +254,7 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
     def "starts watching unsupported file system when watching is enabled"() {
         def unsupportedFileSystemMountPoint = file("unsupported").createDir()
         def unwatchableContent = unsupportedFileSystemMountPoint.file("file.txt").createFile()
-        def unsupportedFileSystem = Stub(FileSystemInfo) {
-            getMountPoint() >> unsupportedFileSystemMountPoint
-            getFileSystemType() >> "unsupported"
-        }
-        watchableFileSystemDetector.detectUnsupportedFileSystems() >> { it -> Stream.of(unsupportedFileSystem) }
+        watchableFileSystemDetector.detectUnsupportedFileSystems() >> { it -> Stream.of(unsupportedFileSystemMountPoint) }
 
         when:
         buildStarted(WatchMode.ENABLED)
@@ -285,11 +276,7 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
     def "stops watching unsupported file system"() {
         def unsupportedFileSystemMountPoint = file("unsupported").createDir()
         def unwatchableContent = unsupportedFileSystemMountPoint.file("file.txt").createFile()
-        def unsupportedFileSystem = Stub(FileSystemInfo) {
-            getMountPoint() >> unsupportedFileSystemMountPoint
-            getFileSystemType() >> "unsupported"
-        }
-        watchableFileSystemDetector.detectUnsupportedFileSystems() >> { it -> Stream.of(unsupportedFileSystem) }
+        watchableFileSystemDetector.detectUnsupportedFileSystems() >> { it -> Stream.of(unsupportedFileSystemMountPoint) }
 
         when:
         buildStarted(WatchMode.ENABLED)
@@ -327,11 +314,7 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
     def "starts watching unsupported file system when watching becomes enabled"() {
         def unsupportedFileSystemMountPoint = file("unsupported").createDir()
         def unwatchableContent = unsupportedFileSystemMountPoint.file("file.txt").createFile()
-        def unsupportedFileSystem = Stub(FileSystemInfo) {
-            getMountPoint() >> unsupportedFileSystemMountPoint
-            getFileSystemType() >> "unsupported"
-        }
-        watchableFileSystemDetector.detectUnsupportedFileSystems() >> { it -> Stream.of(unsupportedFileSystem) }
+        watchableFileSystemDetector.detectUnsupportedFileSystems() >> { it -> Stream.of(unsupportedFileSystemMountPoint) }
 
         when:
         buildStarted(WatchMode.DEFAULT)
