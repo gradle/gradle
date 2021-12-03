@@ -101,6 +101,7 @@ import java.io.File;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_INSENSITIVE;
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE;
@@ -199,8 +200,12 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             return locationsWrittenByCurrentBuild;
         }
 
-        WatchableFileSystemDetector createWatchableFileSystemDetector(FileSystems fileSystems) {
-            return new DefaultWatchableFileSystemDetector(fileSystems);
+        WatchableFileSystemDetector createWatchableFileSystemDetector(FileSystems fileSystems, NativeCapabilities nativeCapabilities) {
+            if (nativeCapabilities.useFileSystemWatching()) {
+                return new DefaultWatchableFileSystemDetector(fileSystems);
+            } else {
+                return Stream::empty;
+            }
         }
 
         BuildLifecycleAwareVirtualFileSystem createVirtualFileSystem(
