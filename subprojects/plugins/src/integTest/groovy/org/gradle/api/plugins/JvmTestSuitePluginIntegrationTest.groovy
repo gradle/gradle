@@ -32,7 +32,6 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec implemen
 
         buildFile << """
             plugins {
-                id 'jvm-test-suite'
                 id 'java'
             }
             """
@@ -59,7 +58,7 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec implemen
                 - org.gradle.category              = verification
                 - org.gradle.testsuite.name        = test
                 - org.gradle.testsuite.target.name = test
-                - org.gradle.testsuite.type        = unit-tests
+                - org.gradle.testsuite.type        = unit-test
                 - org.gradle.verificationtype      = test-results
 
             Artifacts
@@ -76,7 +75,6 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec implemen
 
         buildFile << """
             plugins {
-                id 'jvm-test-suite'
                 id 'java'
             }
             """
@@ -130,7 +128,7 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec implemen
             testing {
                 suites {
                     integrationTest(JvmTestSuite) {
-                        testType = TestSuiteType.INTEGRATION_TESTS
+                        testType = TestSuiteType.INTEGRATION_TEST
 
                         dependencies {
                             implementation project
@@ -154,7 +152,7 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec implemen
                 - org.gradle.category              = verification
                 - org.gradle.testsuite.name        = integrationTest
                 - org.gradle.testsuite.target.name = integrationTest
-                - org.gradle.testsuite.type        = integration-tests
+                - org.gradle.testsuite.type        = integration-test
                 - org.gradle.verificationtype      = test-results
 
             Artifacts
@@ -172,7 +170,6 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec implemen
 
         buildFile << """
             plugins {
-                id 'jvm-test-suite'
                 id 'java'
             }
 
@@ -241,7 +238,6 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec implemen
         def subADir = createDir("subA")
         subADir.file("build.gradle") << """
             plugins {
-                id 'jvm-test-suite'
                 id 'java'
             }
 
@@ -357,7 +353,6 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec implemen
         def subDirectDir = createDir("direct")
         subDirectDir.file("build.gradle") << """
             plugins {
-                id 'jvm-test-suite'
                 id 'java'
             }
 
@@ -392,7 +387,6 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec implemen
         def subTransitiveDir = createDir("transitive")
         subTransitiveDir.file("build.gradle") << """
             plugins {
-                id 'jvm-test-suite'
                 id 'java'
             }
 
@@ -460,6 +454,128 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec implemen
             """
         expect:
         succeeds('testResolve')
+    }
+
+    def "Only one suite with a given test type allowed per project"() {
+        settingsFile << """rootProject.name = 'Test'"""
+        buildFile << """plugins {
+                id 'java'
+            }
+
+            testing {
+                suites {
+                    primaryIntTest(JvmTestSuite) {
+                        testType = TestSuiteType.INTEGRATION_TEST
+                    }
+
+                    secondaryIntTest(JvmTestSuite) {
+                        testType = TestSuiteType.INTEGRATION_TEST
+                    }
+                }
+            }
+            """.stripIndent()
+
+        expect:
+        fails('primaryIntTest', 'secondaryIntTest')
+        result.assertHasErrorOutput("Could not configure suite: 'secondaryIntTest'. Another test suite: 'primaryIntTest' uses the type: 'integration-test' and has already been configured in project: 'Test'.")
+    }
+
+    def "Only one suite with a given test type allowed per project (including the built-in test suite)"() {
+        settingsFile << """rootProject.name = 'Test'"""
+        buildFile << """plugins {
+                id 'java'
+            }
+
+            testing {
+                suites {
+                    secondaryTest(JvmTestSuite) {
+                        testType = TestSuiteType.UNIT_TEST
+                    }
+                }
+            }
+            """.stripIndent()
+
+        expect:
+        fails('test', 'secondaryTest')
+        result.assertHasErrorOutput("Could not configure suite: 'test'. Another test suite: 'secondaryTest' uses the type: 'unit-test' and has already been configured in project: 'Test'.")
+    }
+
+    def "Only one suite with a given test type allowed per project (using the default type of one suite and explicitly setting the other)"() {
+        settingsFile << """rootProject.name = 'Test'"""
+        buildFile << """plugins {
+                id 'java'
+            }
+
+            testing {
+                suites {
+                    integrationTest(JvmTestSuite)
+
+                    secondaryIntegrationTest(JvmTestSuite) {
+                        testType = TestSuiteType.INTEGRATION_TEST
+                    }
+                }
+            }
+            """.stripIndent()
+
+        expect:
+        fails('integrationTest', 'secondaryIntegrationTest')
+        result.assertHasErrorOutput("Could not configure suite: 'secondaryIntegrationTest'. Another test suite: 'integrationTest' uses the type: 'integration-test' and has already been configured in project: 'Test'.")
+    }
+
+    def "Test suites in different projects can use same test type"() {
+        def subADir = createDir("subA")
+        subADir.file("build.gradle") << """
+            plugins {
+                id 'java'
+            }
+
+            repositories {
+                ${mavenCentralRepository()}
+            }
+
+            testing {
+                suites {
+                    integrationTest(JvmTestSuite) {
+                        testType = TestSuiteType.INTEGRATION_TEST
+                    }
+                }
+            }""".stripIndent()
+
+        def subBDir = createDir("subB")
+        subBDir.file("build.gradle") << """
+            plugins {
+                id 'java'
+            }
+
+            repositories {
+                ${mavenCentralRepository()}
+            }
+
+            testing {
+                suites {
+                    integrationTest(JvmTestSuite) {
+                        testType = TestSuiteType.INTEGRATION_TEST
+                    }
+                }
+            }""".stripIndent()
+
+        settingsFile << """
+            include ':subA'
+            include ':subB'
+            """.stripIndent()
+
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            tasks.register('allIntegrationTests') {
+                dependsOn(':subA:integrationTest', ':subB:integrationTest')
+            }
+            """.stripIndent()
+
+        expect:
+        succeeds('allIntegrationTests')
     }
 
     private String systemFilePath(String path) {

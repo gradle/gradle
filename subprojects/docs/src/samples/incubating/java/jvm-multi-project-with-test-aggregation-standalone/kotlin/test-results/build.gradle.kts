@@ -10,7 +10,7 @@ dependencies {
 reporting {
     reports {
         val testAggregateTestReport by creating(AggregateTestReport::class) { // <2>
-            testType.set(TestSuiteType.UNIT_TESTS)
+            testType.set(TestSuiteType.UNIT_TEST)
         }
     }
 }
