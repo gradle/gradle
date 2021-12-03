@@ -103,7 +103,7 @@ class IsolatedProjectsToolingApiParallelConfigurationIntegrationTest extends Abs
         model3[2].message == "this is project b"
 
         and:
-        fixture.assertStateRecreated {
+        fixture.assertStateUpdated {
             fileChanged("a/build.gradle")
             fileChanged("b/build.gradle")
             projectConfigured(":buildSrc")

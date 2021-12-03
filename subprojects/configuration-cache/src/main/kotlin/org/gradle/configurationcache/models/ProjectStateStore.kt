@@ -104,9 +104,10 @@ abstract class ProjectStateStore<K, V>(
             try {
                 return valuesStore.read(addressOfCached)
             } catch (e: Exception) {
-                throw RuntimeException("Could not load $key", e)
+                throw RuntimeException("Could not load entry for $key", e)
             }
         }
+        // TODO - should protect from concurrent creation
         val value = creator()
         val address = valuesStore.write(value)
         currentValues[key] = address

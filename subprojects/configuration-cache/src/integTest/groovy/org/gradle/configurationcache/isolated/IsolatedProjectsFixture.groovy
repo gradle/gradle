@@ -122,18 +122,7 @@ class IsolatedProjectsFixture {
      * and the appropriate console logging, reports and build operations are generated.
      */
     void assertStateRecreated(@DelegatesTo(StoreRecreatedDetails) Closure closure) {
-        def details = new StoreRecreatedDetails()
-        closure.delegate = details
-        closure()
-
-        assertHasRecreateReason(details)
-        spec.postBuildOutputContains("Configuration cache entry stored.")
-        assertHasWarningThatIncubatingFeatureUsed()
-
-        configurationCacheBuildOperations.assertStateStored()
-
-        assertProjectsConfigured(details)
-        assertModelsQueried(details)
+        doStateRecreated(closure, "stored")
     }
 
     /**
@@ -156,6 +145,31 @@ class IsolatedProjectsFixture {
         configurationCacheBuildOperations.assertStateStored()
 
         assertHasProblems(totalProblems, details.problems)
+
+        assertProjectsConfigured(details)
+        assertModelsQueried(details)
+    }
+
+    /**
+     * Asserts that the cache entry is updated with no problems.
+     *
+     * Also asserts that the expected set of projects is configured, the expected models are queried
+     * and the appropriate console logging, reports and build operations are generated.
+     */
+    void assertStateUpdated(@DelegatesTo(StoreRecreatedDetails) Closure closure) {
+        doStateRecreated(closure, "updated")
+    }
+
+    private void doStateRecreated(Closure closure, String action) {
+        def details = new StoreRecreatedDetails()
+        closure.delegate = details
+        closure()
+
+        assertHasRecreateReason(details)
+        spec.postBuildOutputContains("Configuration cache entry $action.")
+        assertHasWarningThatIncubatingFeatureUsed()
+
+        configurationCacheBuildOperations.assertStateStored()
 
         assertProjectsConfigured(details)
         assertModelsQueried(details)

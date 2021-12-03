@@ -20,6 +20,7 @@ import org.gradle.api.logging.Logging
 import org.gradle.configurationcache.ConfigurationCacheAction
 import org.gradle.configurationcache.ConfigurationCacheAction.LOAD
 import org.gradle.configurationcache.ConfigurationCacheAction.STORE
+import org.gradle.configurationcache.ConfigurationCacheAction.UPDATE
 import org.gradle.configurationcache.ConfigurationCacheKey
 import org.gradle.configurationcache.ConfigurationCacheProblemsException
 import org.gradle.configurationcache.TooManyConfigurationCacheProblemsException
@@ -34,6 +35,7 @@ import java.util.function.Consumer
 
 
 @ServiceScope(Scopes.BuildTree::class)
+internal
 class ConfigurationCacheProblems(
 
     private
@@ -63,7 +65,7 @@ class ConfigurationCacheProblems(
     var isFailingBuildDueToSerializationError = false
 
     private
-    var cacheAction: ConfigurationCacheAction? = null
+    lateinit var cacheAction: ConfigurationCacheAction
 
     private
     var invalidateStoredState: (() -> Unit)? = null
@@ -76,13 +78,9 @@ class ConfigurationCacheProblems(
         listenerManager.removeListener(postBuildHandler)
     }
 
-    fun storing(invalidateState: () -> Unit) {
-        cacheAction = STORE
+    fun action(action: ConfigurationCacheAction, invalidateState: () -> Unit) {
+        cacheAction = action
         invalidateStoredState = invalidateState
-    }
-
-    fun loading() {
-        cacheAction = LOAD
     }
 
     fun failingBuildDueToSerializationError() {
@@ -111,7 +109,7 @@ class ConfigurationCacheProblems(
         val hasFailedOnProblems = hasProblems && isFailOnProblems
         val hasTooManyProblems = problemCount > startParameter.maxProblems
         val failed = hasFailedOnProblems || hasTooManyProblems
-        if (cacheAction == STORE && failed) {
+        if (cacheAction != LOAD && failed) {
             // Invalidate stored state if problems fail the build
             requireNotNull(invalidateStoredState).invoke()
         }
@@ -150,11 +148,11 @@ class ConfigurationCacheProblems(
     }
 
     private
-    fun ConfigurationCacheAction?.summaryText() =
+    fun ConfigurationCacheAction.summaryText() =
         when (this) {
-            null -> "storing"
             LOAD -> "reusing"
             STORE -> "storing"
+            UPDATE -> "updating"
         }
 
     private
@@ -182,6 +180,8 @@ class ConfigurationCacheProblems(
                 cacheAction == STORE && hasTooManyProblems -> log("Configuration cache entry discarded with too many problems ({}).", problemCountString)
                 cacheAction == STORE && !hasProblems -> log("Configuration cache entry stored.")
                 cacheAction == STORE -> log("Configuration cache entry stored with {}.", problemCountString)
+                cacheAction == UPDATE && !hasProblems -> log("Configuration cache entry updated.")
+                cacheAction == UPDATE -> log("Configuration cache entry updated with {}.", problemCountString)
                 cacheAction == LOAD && !hasProblems -> log("Configuration cache entry reused.")
                 cacheAction == LOAD -> log("Configuration cache entry reused with {}.", problemCountString)
                 hasTooManyProblems -> log("Too many configuration cache problems found ({}).", problemCountString)

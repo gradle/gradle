@@ -84,18 +84,14 @@ class DefaultConfigurationCache internal constructor(
     }
 
     private
-    val canLoad by lazy { canLoad() }
-
-    private
-    var rootBuild: Host? = null
+    lateinit var cacheAction: ConfigurationCacheAction
 
     // Have one or more values been successfully written to the entry?
     private
     var hasSavedValues = false
 
     private
-    val host: Host
-        get() = rootBuild!!
+    lateinit var host: Host
 
     private
     val store by lazy { cacheRepository.forKey(cacheKey.string) }
@@ -114,15 +110,23 @@ class DefaultConfigurationCache internal constructor(
         get() = host.service()
 
     override val isLoaded: Boolean
-        get() = canLoad
+        get() = cacheAction == ConfigurationCacheAction.LOAD
+
+    override fun initializeCacheEntry() {
+        cacheAction = determineCacheAction()
+        problems.action(cacheAction) {
+            store.useForStore { layout ->
+                invalidateConfigurationCacheState(layout)
+            }
+        }
+    }
 
     override fun attachRootBuild(host: Host) {
-        require(rootBuild == null)
-        rootBuild = host
+        this.host = host
     }
 
     override fun loadOrScheduleRequestedTasks(graph: BuildTreeWorkGraph, scheduler: (BuildTreeWorkGraph) -> Unit) {
-        if (canLoad) {
+        if (isLoaded) {
             loadWorkGraph(graph)
         } else {
             runWorkThatContributesToCacheEntry {
@@ -133,7 +137,7 @@ class DefaultConfigurationCache internal constructor(
     }
 
     override fun maybePrepareModel(action: () -> Unit) {
-        if (canLoad) {
+        if (isLoaded) {
             return
         }
         runWorkThatContributesToCacheEntry {
@@ -142,7 +146,7 @@ class DefaultConfigurationCache internal constructor(
     }
 
     override fun <T : Any> loadOrCreateModel(creator: () -> T): T {
-        if (canLoad) {
+        if (isLoaded) {
             return loadModel().uncheckedCast()
         }
         return runWorkThatContributesToCacheEntry {
@@ -174,10 +178,10 @@ class DefaultConfigurationCache internal constructor(
     }
 
     private
-    fun canLoad(): Boolean = when {
+    fun determineCacheAction(): ConfigurationCacheAction = when {
         startParameter.recreateCache -> {
             logBootstrapSummary("Recreating configuration cache")
-            false
+            ConfigurationCacheAction.STORE
         }
         startParameter.isRefreshDependencies -> {
             logBootstrapSummary(
@@ -185,7 +189,7 @@ class DefaultConfigurationCache internal constructor(
                 buildActionModelRequirements.actionDisplayName.capitalizedDisplayName,
                 "--refresh-dependencies"
             )
-            false
+            ConfigurationCacheAction.STORE
         }
         startParameter.isWriteDependencyLocks -> {
             logBootstrapSummary(
@@ -193,7 +197,7 @@ class DefaultConfigurationCache internal constructor(
                 buildActionModelRequirements.actionDisplayName.capitalizedDisplayName,
                 "--write-locks"
             )
-            false
+            ConfigurationCacheAction.STORE
         }
         startParameter.isUpdateDependencyLocks -> {
             logBootstrapSummary(
@@ -201,7 +205,7 @@ class DefaultConfigurationCache internal constructor(
                 buildActionModelRequirements.actionDisplayName.capitalizedDisplayName,
                 "--update-locks"
             )
-            false
+            ConfigurationCacheAction.STORE
         }
         else -> {
             when (val checkedFingerprint = checkFingerprint()) {
@@ -211,7 +215,7 @@ class DefaultConfigurationCache internal constructor(
                         buildActionModelRequirements.actionDisplayName.capitalizedDisplayName,
                         buildActionModelRequirements.configurationCacheKeyDisplayName.displayName
                     )
-                    false
+                    ConfigurationCacheAction.STORE
                 }
                 is CheckedFingerprint.EntryInvalid -> {
                     logBootstrapSummary(
@@ -219,7 +223,7 @@ class DefaultConfigurationCache internal constructor(
                         buildActionModelRequirements.actionDisplayName.capitalizedDisplayName,
                         checkedFingerprint.reason
                     )
-                    false
+                    ConfigurationCacheAction.STORE
                 }
                 is CheckedFingerprint.ProjectsInvalid -> {
                     logBootstrapSummary(
@@ -227,11 +231,11 @@ class DefaultConfigurationCache internal constructor(
                         buildActionModelRequirements.actionDisplayName.capitalizedDisplayName,
                         checkedFingerprint.reason
                     )
-                    false
+                    ConfigurationCacheAction.UPDATE
                 }
                 is CheckedFingerprint.Valid -> {
                     logBootstrapSummary("Reusing configuration cache.")
-                    true
+                    ConfigurationCacheAction.LOAD
                 }
             }
         }
@@ -309,9 +313,6 @@ class DefaultConfigurationCache internal constructor(
 
         buildOperationExecutor.withStoreOperation {
             store.useForStore { layout ->
-                problems.storing {
-                    invalidateConfigurationCacheState(layout)
-                }
                 try {
                     action(layout.fileFor(stateType))
                 } catch (error: ConfigurationCacheError) {
@@ -345,7 +346,6 @@ class DefaultConfigurationCache internal constructor(
     private
     fun <T : Any> loadFromCache(stateType: StateType, action: (ConfigurationCacheStateFile) -> T): T {
         prepareConfigurationTimeBarrier()
-        problems.loading()
 
         // No need to record the `ClassLoaderScope` tree
         // when loading the task graph.

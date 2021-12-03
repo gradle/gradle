@@ -99,7 +99,7 @@ class IsolatedProjectsToolingApiPhasedBuildActionIntegrationTest extends Abstrac
         model3[1].message == "It works from project :a"
 
         and:
-        fixture.assertStateRecreated {
+        fixture.assertStateUpdated {
             fileChanged("build.gradle")
             projectConfigured(":buildSrc")
             modelsCreated(":")

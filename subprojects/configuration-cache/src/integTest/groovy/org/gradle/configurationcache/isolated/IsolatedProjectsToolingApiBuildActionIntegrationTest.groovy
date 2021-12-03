@@ -84,7 +84,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         model3[1].message == "It works from project :a"
 
         and:
-        fixture.assertStateRecreated {
+        fixture.assertStateUpdated {
             fileChanged("build.gradle")
             projectConfigured(":buildSrc")
             modelsCreated(":")
@@ -117,7 +117,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         model5[1].message == "this is project a"
 
         and:
-        fixture.assertStateRecreated {
+        fixture.assertStateUpdated {
             fileChanged("a/build.gradle")
             projectConfigured(":buildSrc")
             projectConfigured(":")
@@ -261,7 +261,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         model3[1].message == "It works from project :b"
 
         and:
-        fixture.assertStateRecreated {
+        fixture.assertStateUpdated {
             gradlePropertyChanged()
             buildModelQueries = 1 // TODO:configuration-cache ???
             projectConfigured(":buildSrc")
@@ -291,7 +291,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         model5[1].message == "It works from project :b"
 
         and:
-        fixture.assertStateRecreated {
+        fixture.assertStateUpdated {
             systemPropertyChanged("a-input")
             projectConfigured(":buildSrc")
             projectsConfigured(":")
@@ -320,7 +320,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         model7[1].message == "It works from project :b"
 
         and:
-        fixture.assertStateRecreated {
+        fixture.assertStateUpdated {
             systemPropertyChanged("b-input")
             projectConfigured(":buildSrc")
             projectsConfigured(":")
@@ -388,7 +388,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         model3[1].message == "It works from project :a"
 
         and:
-        fixture.assertStateRecreated {
+        fixture.assertStateUpdated {
             fileChanged("build.gradle")
             projectConfigured(":buildSrc")
             modelsCreated(":")
@@ -462,7 +462,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         model3.empty
 
         and:
-        fixture.assertStateRecreated {
+        fixture.assertStateUpdated {
             fileChanged("build.gradle")
             projectConfigured(":buildSrc")
             modelsCreated(":")
