@@ -192,20 +192,29 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
     public Provider<Set<FileSystemLocation>> getElements() {
         return new BuildableBackedSetProvider<FileCollection, FileSystemLocation>(
             this,
-            new Factory<Set<FileSystemLocation>>() {
-                @Override
-                public Set<FileSystemLocation> create() {
-                    // TODO - visit the contents of this collection instead.
-                    // This is just a super simple implementation for now
-                    Set<File> files = AbstractFileCollection.this.getFiles();
-                    ImmutableSet.Builder<FileSystemLocation> builder = ImmutableSet.builderWithExpectedSize(files.size());
-                    for (File file : files) {
-                        builder.add(new DefaultFileSystemLocation(file));
-                    }
-                    return builder.build();
-                }
-            }
+            new FileCollectionElementsFactory(this)
         );
+    }
+
+    private static class FileCollectionElementsFactory implements Factory<Set<FileSystemLocation>> {
+
+        private final FileCollection fileCollection;
+
+        private FileCollectionElementsFactory(FileCollection fileCollection) {
+            this.fileCollection = fileCollection;
+        }
+
+        @Override
+        public Set<FileSystemLocation> create() {
+            // TODO - visit the contents of this collection instead.
+            // This is just a super simple implementation for now
+            Set<File> files = fileCollection.getFiles();
+            ImmutableSet.Builder<FileSystemLocation> builder = ImmutableSet.builderWithExpectedSize(files.size());
+            for (File file : files) {
+                builder.add(new DefaultFileSystemLocation(file));
+            }
+            return builder.build();
+        }
     }
 
     @Override
