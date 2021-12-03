@@ -94,7 +94,8 @@ class DefaultConfigurationContainerSpec extends Specification {
         projectStateRegistry,
         Mock(WorkerThreadRegistry),
         TestUtil.domainObjectCollectionFactory(),
-        calculatedValueContainerFactory, featurePreviews
+        calculatedValueContainerFactory,
+        featurePreviews
     )
     private DefaultConfigurationContainer configurationContainer = new DefaultConfigurationContainer(
         instantiator,
