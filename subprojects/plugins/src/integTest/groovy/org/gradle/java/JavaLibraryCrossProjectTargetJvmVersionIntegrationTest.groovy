@@ -60,25 +60,10 @@ class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractInt
       - Incompatible because this component declares a component compatible with Java 7 and the consumer needed a component compatible with Java 6
       - Other compatible attribute:
           - Doesn't say anything about its target Java environment (preferred optimized for standard JVMs)
-  - Variant 'mainSourceElements' capability test:producer:unspecified declares a component, and its dependencies declared externally:
-      - Incompatible because this component declares a component of category 'verification' and the consumer needed a library
-      - Other compatible attributes:
-          - Doesn't say anything about its target Java environment (preferred optimized for standard JVMs)
-          - Doesn't say anything about its target Java version (required compatibility with Java 6)
-          - Doesn't say anything about its elements (required them preferably in the form of class files)
-          - Doesn't say anything about its usage (required an API)
   - Variant 'runtimeElements' capability test:producer:unspecified declares a runtime of a library, packaged as a jar, and its dependencies declared externally:
       - Incompatible because this component declares a component compatible with Java 7 and the consumer needed a component compatible with Java 6
       - Other compatible attribute:
-          - Doesn't say anything about its target Java environment (preferred optimized for standard JVMs)
-  - Variant 'testResultsElementsForTest' capability test:producer:unspecified:
-      - Incompatible because this component declares a component of category 'verification' and the consumer needed a library
-      - Other compatible attributes:
-          - Doesn't say anything about how its dependencies are found (required its dependencies declared externally)
-          - Doesn't say anything about its target Java environment (preferred optimized for standard JVMs)
-          - Doesn't say anything about its target Java version (required compatibility with Java 6)
-          - Doesn't say anything about its elements (required them preferably in the form of class files)
-          - Doesn't say anything about its usage (required an API)''')
+          - Doesn't say anything about its target Java environment (preferred optimized for standard JVMs)''')
     }
 
     def "can select the most appropriate producer variant (#expected) based on target compatibility (#requested)"() {
@@ -159,25 +144,10 @@ class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractInt
       - Incompatible because this component declares a component compatible with Java 7 and the consumer needed a component compatible with Java 6
       - Other compatible attribute:
           - Doesn't say anything about its target Java environment (preferred optimized for standard JVMs)
-  - Variant 'mainSourceElements' capability test:producer:unspecified declares a component, and its dependencies declared externally:
-      - Incompatible because this component declares a component of category 'verification' and the consumer needed a library
-      - Other compatible attributes:
-          - Doesn't say anything about its target Java environment (preferred optimized for standard JVMs)
-          - Doesn't say anything about its target Java version (required compatibility with Java 6)
-          - Doesn't say anything about its elements (required them preferably in the form of class files)
-          - Doesn't say anything about its usage (required an API)
   - Variant 'runtimeElements' capability test:producer:unspecified declares a runtime of a library, packaged as a jar, and its dependencies declared externally:
       - Incompatible because this component declares a component compatible with Java 7 and the consumer needed a component compatible with Java 6
       - Other compatible attribute:
-          - Doesn't say anything about its target Java environment (preferred optimized for standard JVMs)
-  - Variant 'testResultsElementsForTest' capability test:producer:unspecified:
-      - Incompatible because this component declares a component of category 'verification' and the consumer needed a library
-      - Other compatible attributes:
-          - Doesn't say anything about how its dependencies are found (required its dependencies declared externally)
-          - Doesn't say anything about its target Java environment (preferred optimized for standard JVMs)
-          - Doesn't say anything about its target Java version (required compatibility with Java 6)
-          - Doesn't say anything about its elements (required them preferably in the form of class files)
-          - Doesn't say anything about its usage (required an API)""")
+          - Doesn't say anything about its target Java environment (preferred optimized for standard JVMs)""")
 
         when:
         buildFile << """

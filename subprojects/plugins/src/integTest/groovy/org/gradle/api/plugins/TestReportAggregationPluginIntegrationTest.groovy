@@ -24,6 +24,10 @@ import static org.hamcrest.CoreMatchers.startsWith
 class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
+        settingsFile << """
+            enableFeaturePreview('TEST_DATA_VARIANTS')
+        """.stripIndent()
+
         multiProjectBuild("root", ["application", "direct", "transitive"]) {
             buildFile << """
                 allprojects {
