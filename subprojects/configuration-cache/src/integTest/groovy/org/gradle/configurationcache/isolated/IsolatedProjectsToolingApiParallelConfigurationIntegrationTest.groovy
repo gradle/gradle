@@ -109,6 +109,7 @@ class IsolatedProjectsToolingApiParallelConfigurationIntegrationTest extends Abs
             projectConfigured(":buildSrc")
             projectConfigured(":")
             modelsCreated(":a", ":b")
+            modelsReused(":")
         }
 
         when:

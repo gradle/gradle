@@ -88,6 +88,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
             fileChanged("build.gradle")
             projectConfigured(":buildSrc")
             modelsCreated(":")
+            modelsReused(":a", ":b")
         }
         outputContains("creating model for root project 'root'")
 
@@ -122,6 +123,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
             projectConfigured(":buildSrc")
             projectConfigured(":")
             modelsCreated(":a")
+            modelsReused(":", ":b")
         }
         outputContains("creating model for project ':a'")
     }
@@ -261,7 +263,8 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         model3[1].message == "It works from project :b"
 
         and:
-        fixture.assertStateUpdated {
+        // TODO - should not invalidate all cached state
+        fixture.assertStateRecreated {
             gradlePropertyChanged()
             buildModelQueries = 1 // TODO:configuration-cache ???
             projectConfigured(":buildSrc")
@@ -296,6 +299,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
             projectConfigured(":buildSrc")
             projectsConfigured(":")
             modelsCreated(":a")
+            modelsReused(":", ":b", ":c")
         }
 
         when:
@@ -325,6 +329,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
             projectConfigured(":buildSrc")
             projectsConfigured(":")
             modelsCreated(":b")
+            modelsReused(":", ":a", ":c")
         }
     }
 
@@ -392,6 +397,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
             fileChanged("build.gradle")
             projectConfigured(":buildSrc")
             modelsCreated(":")
+            modelsReused(":a", ":b")
         }
         outputContains("creating model for root project 'root'")
 
@@ -466,6 +472,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
             fileChanged("build.gradle")
             projectConfigured(":buildSrc")
             modelsCreated(":")
+            modelsReused(":a", ":b")
         }
         outputContains("creating model for root project 'root'")
 

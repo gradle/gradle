@@ -82,7 +82,7 @@ abstract class ProjectStateStore<K, V>(
         }
     }
 
-    fun visitReusedProjects(consumer: Consumer<Path>) {
+    fun visitProjects(reusedProjects: Consumer<Path>, updatedProjects: Consumer<Path>) {
         val currentProjects = currentValues.keys.mapNotNull { projectPathForKey(it) }
         val previousProjects = HashSet<Path>()
         for (key in previousValues.keys) {
@@ -93,7 +93,9 @@ abstract class ProjectStateStore<K, V>(
         }
         for (path in currentProjects) {
             if (previousProjects.contains(path)) {
-                consumer.accept(path)
+                reusedProjects.accept(path)
+            } else {
+                updatedProjects.accept(path)
             }
         }
     }

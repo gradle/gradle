@@ -94,11 +94,12 @@ class IsolatedProjectsToolingApiCoupledProjectsIntegrationTest extends AbstractI
         model3[2].message == "It works from project :c"
 
         and:
-        fixture.assertStateRecreatedWithProblems {
+        fixture.assertStateUpdatedWithProblems {
             fileChanged("build.gradle")
             projectConfigured(":buildSrc")
-            projectConfigured(":")
             modelsCreated(":a", ":b")
+            modelsQueriedAndNotPresent(":")
+            modelsReused(":c")
             problem("Build file 'build.gradle': Cannot access project ':a' from project ':'", 3)
             problem("Build file 'build.gradle': Cannot access project ':b' from project ':'")
         }
@@ -161,12 +162,11 @@ class IsolatedProjectsToolingApiCoupledProjectsIntegrationTest extends AbstractI
         model3[0].message == "It works from project :b"
 
         and:
-        fixture.assertStateRecreatedWithProblems {
+        fixture.assertStateUpdatedWithProblems {
             fileChanged("a/build.gradle")
             projectConfigured(":buildSrc")
-            projectsConfigured(":", ":a")
-            // TODO - should invalidate the model for root
-            modelsCreated()
+            modelsQueriedAndNotPresent(":", ":a")
+            modelsReused(":b")
             problem("Build file 'a/build.gradle': Cannot access project ':' from project ':a'", 2)
         }
     }
@@ -232,11 +232,12 @@ class IsolatedProjectsToolingApiCoupledProjectsIntegrationTest extends AbstractI
         model3[1].message == "the message"
 
         and:
-        fixture.assertStateRecreatedWithProblems {
+        fixture.assertStateUpdatedWithProblems {
             fileChanged("b/build.gradle")
             projectConfigured(":buildSrc")
             projectConfigured(":")
             modelsCreated(":a", ":b")
+            modelsReused(":", ":c")
             problem("Build file 'b/build.gradle': Cannot access project ':a' from project ':b'")
         }
 
@@ -264,11 +265,12 @@ class IsolatedProjectsToolingApiCoupledProjectsIntegrationTest extends AbstractI
         model5[1].message == "new message"
 
         and:
-        fixture.assertStateRecreatedWithProblems {
+        fixture.assertStateUpdatedWithProblems {
             fileChanged("a/build.gradle")
             projectConfigured(":buildSrc")
             projectConfigured(":")
             modelsCreated(":a", ":b")
+            modelsReused(":", ":c")
             problem("Build file 'b/build.gradle': Cannot access project ':a' from project ':b'")
         }
     }
@@ -334,11 +336,12 @@ class IsolatedProjectsToolingApiCoupledProjectsIntegrationTest extends AbstractI
         model3[1].message == "the message"
 
         and:
-        fixture.assertStateRecreatedWithProblems {
+        fixture.assertStateUpdatedWithProblems {
             fileChanged("b/build.gradle")
             projectConfigured(":buildSrc")
-            projectsConfigured(":", ":a") // :a and :b are coupled
+            projectsConfigured(":", ":a") // :a and :b are coupled, so configure a but reuse its model
             modelsCreated(":b")
+            modelsReused(":", ":a", ":c")
             problem("Build file 'b/build.gradle': Cannot access project ':a' from project ':b'")
         }
     }

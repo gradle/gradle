@@ -65,6 +65,12 @@ class ConfigurationCacheProblems(
     var isFailingBuildDueToSerializationError = false
 
     private
+    var reusedProjects = 0
+
+    private
+    var updatedProjects = 0
+
+    private
     lateinit var cacheAction: ConfigurationCacheAction
 
     private
@@ -86,6 +92,11 @@ class ConfigurationCacheProblems(
     fun failingBuildDueToSerializationError() {
         isFailingBuildDueToSerializationError = true
         isFailOnProblems = false
+    }
+
+    fun projectStateStats(reusedProjects: Int, updatedProjects: Int) {
+        this.reusedProjects = reusedProjects
+        this.updatedProjects = updatedProjects
     }
 
     override fun onProblem(problem: PropertyProblem) {
@@ -172,7 +183,9 @@ class ConfigurationCacheProblems(
             val problemCount = summarizer.get().problemCount
             val hasProblems = problemCount > 0
             val hasTooManyProblems = problemCount > startParameter.maxProblems
-            val problemCountString = if (problemCount == 1) "1 problem" else "$problemCount problems"
+            val problemCountString = problemCount.counter("problem")
+            val reusedProjectsString = reusedProjects.counter("project")
+            val updatedProjectsString = updatedProjects.counter("project")
             when {
                 isFailingBuildDueToSerializationError && !hasProblems -> log("Configuration cache entry discarded.")
                 isFailingBuildDueToSerializationError -> log("Configuration cache entry discarded with {}.", problemCountString)
@@ -180,8 +193,8 @@ class ConfigurationCacheProblems(
                 cacheAction == STORE && hasTooManyProblems -> log("Configuration cache entry discarded with too many problems ({}).", problemCountString)
                 cacheAction == STORE && !hasProblems -> log("Configuration cache entry stored.")
                 cacheAction == STORE -> log("Configuration cache entry stored with {}.", problemCountString)
-                cacheAction == UPDATE && !hasProblems -> log("Configuration cache entry updated.")
-                cacheAction == UPDATE -> log("Configuration cache entry updated with {}.", problemCountString)
+                cacheAction == UPDATE && !hasProblems -> log("Configuration cache entry updated for {}, {} up-to-date.", updatedProjectsString, reusedProjectsString)
+                cacheAction == UPDATE -> log("Configuration cache entry updated for {} with {}, {} up-to-date.", updatedProjectsString, problemCountString, reusedProjectsString)
                 cacheAction == LOAD && !hasProblems -> log("Configuration cache entry reused.")
                 cacheAction == LOAD -> log("Configuration cache entry reused with {}.", problemCountString)
                 hasTooManyProblems -> log("Too many configuration cache problems found ({}).", problemCountString)
@@ -198,4 +211,13 @@ class ConfigurationCacheProblems(
 
     private
     val logger = Logging.getLogger(ConfigurationCacheProblems::class.java)
+
+    private
+    fun Int.counter(singular: String, plural: String = "${singular}s"): String {
+        return when (this) {
+            0 -> "no $plural"
+            1 -> "1 $singular"
+            else -> "$this $plural"
+        }
+    }
 }

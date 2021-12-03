@@ -98,6 +98,7 @@ class IsolatedProjectToolingModelsWithDependencyResolutionIntegrationTest extend
             projectConfigured(":buildSrc")
             projectConfigured(":")
             modelsCreated(":a")
+            modelsReused(":", ":b", ":c", ":d")
         }
     }
 
@@ -173,6 +174,7 @@ class IsolatedProjectToolingModelsWithDependencyResolutionIntegrationTest extend
             projectConfigured(":")
             projectConfigured(":b") // has not been consumed by project dependency previously, but is now
             modelsCreated(":a")
+            modelsReused(":", ":b", ":c")
         }
 
         when:
@@ -207,6 +209,7 @@ class IsolatedProjectToolingModelsWithDependencyResolutionIntegrationTest extend
             projectConfigured(":buildSrc")
             projectConfigured(":")
             modelsCreated(":a")
+            modelsReused(":", ":b", ":c")
         }
     }
 
@@ -260,8 +263,7 @@ class IsolatedProjectToolingModelsWithDependencyResolutionIntegrationTest extend
         model2[2].message == "project :c classpath = 0"
 
         and:
-        fixture.assertStateLoaded {
-        }
+        fixture.assertStateLoaded()
 
         when:
         file("a/build.gradle") << """
@@ -285,6 +287,7 @@ class IsolatedProjectToolingModelsWithDependencyResolutionIntegrationTest extend
             projectConfigured(":")
             projectConfigured(":b") // has not been consumed by project dependency previously, but is now
             modelsCreated(":a")
+            modelsReused(":", ":b", ":c")
         }
 
         when:
@@ -319,6 +322,7 @@ class IsolatedProjectToolingModelsWithDependencyResolutionIntegrationTest extend
             projectConfigured(":buildSrc")
             projectConfigured(":")
             modelsCreated(":a")
+            modelsReused(":", ":b", ":c")
         }
     }
 
@@ -395,6 +399,7 @@ class IsolatedProjectToolingModelsWithDependencyResolutionIntegrationTest extend
             projectConfigured(":buildSrc")
             projectConfigured(":")
             modelsCreated(":a")
+            modelsReused(":", ":b", ":c")
         }
 
         when:
@@ -429,6 +434,7 @@ class IsolatedProjectToolingModelsWithDependencyResolutionIntegrationTest extend
             projectConfigured(":buildSrc")
             projectConfigured(":")
             modelsCreated(":a")
+            modelsReused(":", ":b", ":c")
         }
     }
 
@@ -506,6 +512,7 @@ class IsolatedProjectToolingModelsWithDependencyResolutionIntegrationTest extend
             projectConfigured(":buildSrc")
             projectConfigured(":")
             modelsCreated(":a", ":b", ":c")
+            modelsReused(":")
         }
 
         when:
@@ -540,6 +547,7 @@ class IsolatedProjectToolingModelsWithDependencyResolutionIntegrationTest extend
             projectConfigured(":buildSrc")
             projectConfigured(":")
             modelsCreated(":a", ":b")
+            modelsReused(":", ":c")
         }
     }
 
@@ -630,6 +638,7 @@ class IsolatedProjectToolingModelsWithDependencyResolutionIntegrationTest extend
             projectConfigured(":")
             projectConfigured(":d")
             modelsCreated(":a", ":b", ":c")
+            modelsReused(":", ":d")
         }
     }
 }

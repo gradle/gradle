@@ -166,13 +166,15 @@ class DefaultConfigurationCache internal constructor(
 
     override fun finalizeCacheEntry() {
         if (hasSavedValues) {
+            val reusedProjects = mutableSetOf<Path>()
+            val updatedProjects = mutableSetOf<Path>()
+            intermediateModels.value.visitProjects(reusedProjects::add, updatedProjects::add)
+            projectMetadata.value.visitProjects(reusedProjects::add, { })
             store.useForStore { layout ->
-                val reusedProjects = mutableSetOf<Path>()
-                intermediateModels.value.visitReusedProjects(reusedProjects::add)
-                projectMetadata.value.visitReusedProjects(reusedProjects::add)
                 writeConfigurationCacheFingerprint(layout, reusedProjects)
                 cacheIO.writeCacheEntryDetailsTo(buildStateRegistry, intermediateModels.value.values, projectMetadata.value.values, layout.fileFor(StateType.Entry))
             }
+            problems.projectStateStats(reusedProjects.size, updatedProjects.size)
             hasSavedValues = false
         }
     }
