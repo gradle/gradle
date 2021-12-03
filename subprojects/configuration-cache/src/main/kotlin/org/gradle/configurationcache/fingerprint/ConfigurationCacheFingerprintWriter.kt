@@ -346,7 +346,7 @@ class ConfigurationCacheFingerprintWriter(
 
     private
     fun reportExternalProcessOutputRead(executable: String) {
-        reportInput(consumer = null, documentationSection = null) {
+        reportInput(consumer = null, documentationSection = DocumentationSection.RequirementsExternalProcess) {
             text("output of the external process ")
             reference(executable)
         }
