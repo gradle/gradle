@@ -42,7 +42,7 @@ class UserTypesCodecTest : AbstractUserTypeCodecTest() {
     fun `internal types codec leaves not implemented trace for unsupported types`() {
 
         val unsupportedBean = 42 to "42"
-        val problems = serializationProblemsOf(unsupportedBean, codecs().internalTypesCodec)
+        val problems = serializationProblemsOf(unsupportedBean, codecs().internalTypesCodec())
         val problem = problems.single()
         assertInstanceOf<PropertyTrace.Gradle>(
             problem.trace

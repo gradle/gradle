@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks;
+package org.gradle.api.tasks
 
-import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.jvm.Jvm
@@ -64,13 +63,13 @@ class JavaExecToolchainIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         type           | jdk
-        'differentJdk' | AvailableJavaHomes.getJdk(JavaVersion.VERSION_1_8)
+        'differentJdk' | AvailableJavaHomes.differentJdk
         'current'      | Jvm.current()
     }
 
     @IgnoreIf({ AvailableJavaHomes.differentJdk == null })
     def "JavaExec task is configured using default toolchain"() {
-        def someJdk = AvailableJavaHomes.getDifferentJdk()
+        def someJdk = AvailableJavaHomes.differentJdk
         buildFile << """
             plugins {
                 id 'java'

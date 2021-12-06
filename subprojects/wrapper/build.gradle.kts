@@ -41,7 +41,7 @@ val executableJar by tasks.registering(Jar::class) {
     }
     from(sourceSets.main.get().output)
     from(configurations.runtimeClasspath.get().incoming.artifactView {
-        attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named<LibraryElements>(LibraryElements.CLASSES))
+        attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.CLASSES))
     }.files)
 }
 

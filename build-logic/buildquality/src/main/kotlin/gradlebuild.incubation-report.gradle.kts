@@ -51,9 +51,9 @@ fun consumableVariant(reportType: String, artifact: Provider<RegularFile>) = con
     isCanBeResolved = false
     isCanBeConsumed = true
     attributes {
-        attribute(Usage.USAGE_ATTRIBUTE, objects.named<Usage>(Usage.JAVA_RUNTIME))
-        attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>(Category.DOCUMENTATION))
-        attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named<DocsType>("incubation-report-$reportType"))
+        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
+        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.DOCUMENTATION))
+        attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named("incubation-report-$reportType"))
     }
     extendsFrom(configurations.implementation.get())
     outgoing.artifact(artifact)

@@ -315,7 +315,6 @@ task retrieve(type: Sync) {
         run 'retrieve'
     }
 
-    @ToBeFixedForConfigurationCache
     def "uses cached snapshots from a Maven HTTP repository until the snapshot timeout is reached"() {
         given:
         buildFile << """
@@ -600,7 +599,6 @@ tasks.getByPath(":a:retrieve").dependsOn ":b:retrieve"
     }
 
     @Issue("GRADLE-3017")
-    @ToBeFixedForConfigurationCache
     def "resolves changed metadata in snapshot dependency"() {
         given:
         def projectB1 = publishModule('group', 'projectB', '1.0')

@@ -21,13 +21,14 @@ import org.gradle.configurationcache.ConfigurationCacheStateStore
 import org.gradle.configurationcache.DefaultConfigurationCache
 import org.gradle.configurationcache.StateType
 import org.gradle.configurationcache.cacheentry.ModelKey
-import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprintController
 import org.gradle.configurationcache.serialization.IsolateOwner
+import org.gradle.configurationcache.serialization.readNonNull
 import org.gradle.configurationcache.serialization.runReadOperation
 import org.gradle.configurationcache.serialization.runWriteOperation
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
+import org.gradle.tooling.provider.model.UnknownModelException
 import org.gradle.util.Path
 
 
@@ -40,33 +41,38 @@ class IntermediateModelController(
     private val cacheIO: ConfigurationCacheIO,
     val store: ConfigurationCacheStateStore,
     private val cacheFingerprintController: ConfigurationCacheFingerprintController
-) : ProjectStateStore<ModelKey, Any?>(store, StateType.IntermediateModels) {
+) : ProjectStateStore<ModelKey, IntermediateModel>(store, StateType.IntermediateModels) {
     override fun projectPathForKey(key: ModelKey) = key.identityPath
 
-    override fun write(encoder: Encoder, value: Any?) {
+    override fun write(encoder: Encoder, value: IntermediateModel) {
         val (context, codecs) = cacheIO.writerContextFor(encoder)
-        context.push(IsolateOwner.OwnerHost(host), codecs.userTypesCodec)
+        context.push(IsolateOwner.OwnerHost(host), codecs.userTypesCodec())
         context.runWriteOperation {
             write(value)
         }
     }
 
-    override fun read(decoder: Decoder): Any? {
+    override fun read(decoder: Decoder): IntermediateModel {
         val (context, codecs) = cacheIO.readerContextFor(decoder)
-        context.push(IsolateOwner.OwnerHost(host), codecs.userTypesCodec)
+        context.push(IsolateOwner.OwnerHost(host), codecs.userTypesCodec())
         return context.runReadOperation {
-            read()
+            readNonNull()
         }
     }
 
     fun <T> loadOrCreateIntermediateModel(identityPath: Path?, modelName: String, creator: () -> T): T? {
         val key = ModelKey(identityPath, modelName)
         return loadOrCreateValue(key) {
-            if (identityPath != null) {
-                cacheFingerprintController.collectFingerprintForProject(identityPath, creator)
-            } else {
-                creator()
+            try {
+                val model = if (identityPath != null) {
+                    cacheFingerprintController.collectFingerprintForProject(identityPath, creator)
+                } else {
+                    creator()
+                }
+                if (model == null) IntermediateModel.NullModel else IntermediateModel.Model(model)
+            } catch (e: UnknownModelException) {
+                IntermediateModel.NoModel(e.message!!)
             }
-        }?.uncheckedCast()
+        }.result()
     }
 }

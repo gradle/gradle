@@ -28,6 +28,15 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     JDWPUtil debugClient = new JDWPUtil()
 
+    def setup() {
+        executer.beforeExecute {
+            // When waiting for debugger/target JVM, there might be:
+            // com.sun.jdi.connect.TransportTimeoutException: timeout waiting for connection
+            // it's fine to ignore them because we're waiting in a loop.
+            executer.withStackTraceChecksDisabled()
+        }
+    }
+
     @UnsupportedWithConfigurationCache(iterationMatchers = ".* :runProjectJavaExec")
     def "debug is disabled by default with task :#taskName"() {
         setup:

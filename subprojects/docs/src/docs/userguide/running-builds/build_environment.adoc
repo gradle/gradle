@@ -73,6 +73,18 @@ _Default is `10800000` (3 hours)._
 When set to `true`, Gradle will run the build with remote debugging enabled, listening on port 5005. Note that this is the equivalent of adding `-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005` to the JVM command line and will suspend the virtual machine until a debugger is attached.
 _Default is `false`._
 
+`org.gradle.debug.port=(port number)`::
+Specifies the port number to listen on when debug is enabled.
+_Default is `5005`._
+
+`org.gradle.debug.server=(true,false)`::
+If set to `true` and debugging is enabled, Gradle will run the build with the socket-attach mode of the debugger. Otherwise, the socket-listen mode is used.
+_Default is `true`._
+
+`org.gradle.debug.suspend=(true,false)`::
+When set to `true` and debugging is enabled, the JVM running Gradle will suspend until a debugger is attached.
+_Default is `true`._
+
 `org.gradle.java.home=(path to JDK home)`::
 Specifies the Java home for the Gradle build process. The value can be set to either a `jdk` or `jre` location, however, depending on what your build does, using a JDK is safer. This does not affect the version of Java used to launch the Gradle client VM (<<#sec:gradle_environment_variables, see Environment variables>>).
 _A reasonable default is derived from your environment (`JAVA_HOME` or the path to `java`) if the setting is unspecified._

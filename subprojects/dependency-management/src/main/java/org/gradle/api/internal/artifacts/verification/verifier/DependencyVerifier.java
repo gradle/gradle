@@ -21,7 +21,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.bouncycastle.openpgp.PGPPublicKey;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.ArtifactVerificationOperation;
 import org.gradle.api.internal.artifacts.verification.model.ArtifactVerificationMetadata;
 import org.gradle.api.internal.artifacts.verification.model.Checksum;
@@ -45,13 +45,16 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.google.common.collect.ImmutableMap.toImmutableMap;
+
 public class DependencyVerifier {
-    private final Map<ComponentIdentifier, ComponentVerificationMetadata> verificationMetadata;
+    private final Map<String, ComponentVerificationMetadata> verificationMetadata;
     private final DependencyVerificationConfiguration config;
     private final List<String> topLevelComments;
 
-    DependencyVerifier(Map<ComponentIdentifier, ComponentVerificationMetadata> verificationMetadata, DependencyVerificationConfiguration config, List<String> topLevelComments) {
-        this.verificationMetadata = ImmutableMap.copyOf(verificationMetadata);
+    DependencyVerifier(Map<ModuleComponentIdentifier, ComponentVerificationMetadata> verificationMetadata, DependencyVerificationConfiguration config, List<String> topLevelComments) {
+        this.verificationMetadata = verificationMetadata.entrySet().stream()
+            .collect(toImmutableMap(entry -> toStringKey(entry.getKey()), Map.Entry::getValue));
         this.config = config;
         this.topLevelComments = topLevelComments;
     }
@@ -96,7 +99,7 @@ public class DependencyVerifier {
 
     private void doVerifyArtifact(ModuleComponentArtifactIdentifier foundArtifact, ChecksumService checksumService, SignatureVerificationService signatureVerificationService, File file, File signature, ArtifactVerificationResultBuilder builder) {
         PublicKeyService publicKeyService = signatureVerificationService.getPublicKeyService();
-        ComponentVerificationMetadata componentVerification = verificationMetadata.get(foundArtifact.getComponentIdentifier());
+        ComponentVerificationMetadata componentVerification = verificationMetadata.get(toStringKey(foundArtifact.getComponentIdentifier()));
         if (componentVerification != null) {
             String foundArtifactFileName = foundArtifact.getFileName();
             List<ArtifactVerificationMetadata> verifications = componentVerification.getArtifactVerifications();
@@ -141,6 +144,10 @@ public class DependencyVerifier {
             }
         }
         builder.failWith(new MissingChecksums(file));
+    }
+
+    private String toStringKey(ModuleComponentIdentifier moduleComponentIdentifier) {
+        return moduleComponentIdentifier.getGroup() + ":" + moduleComponentIdentifier.getModule() + ":" + moduleComponentIdentifier.getVersion();
     }
 
     private Set<String> allTrustedKeys(ModuleComponentArtifactIdentifier id, Set<String> artifactSpecificKeys) {

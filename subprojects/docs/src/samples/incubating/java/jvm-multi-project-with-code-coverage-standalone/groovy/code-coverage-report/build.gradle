@@ -1,0 +1,24 @@
+plugins {
+    id 'base'
+    id 'jacoco-report-aggregation'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    jacocoAggregation project(':application') // <1>
+}
+
+reporting {
+    reports {
+        testCodeCoverageReport(JacocoCoverageReport) { // <2>
+            testType = TestSuiteType.UNIT_TEST
+        }
+    }
+}
+
+tasks.named("check") {
+    dependsOn tasks.named('testCodeCoverageReport', JacocoReport) // <3>
+}

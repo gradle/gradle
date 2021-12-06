@@ -84,7 +84,7 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
         and:
         failure.assertHasLineNumber 3
         failure.assertHasFileName("Build file '${buildFile}'")
-        failure.assertThatCause(containsString("only buildscript {} and other plugins {} script blocks are allowed before plugins {} blocks, no other statements are allowed"))
+        failure.assertThatCause(containsString("only buildscript {}, pluginManagement {} and other plugins {} script blocks are allowed before plugins {} blocks, no other statements are allowed"))
         includesLinkToUserguide()
     }
 
@@ -102,7 +102,7 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
         and:
         failure.assertHasLineNumber 4
         failure.assertHasFileName("Build file '${buildFile}'")
-        failure.assertThatCause(containsString("only buildscript {} and other plugins {} script blocks are allowed before plugins {} blocks, no other statements are allowed"))
+        failure.assertThatCause(containsString("only buildscript {}, pluginManagement {} and other plugins {} script blocks are allowed before plugins {} blocks, no other statements are allowed"))
         includesLinkToUserguide()
     }
 

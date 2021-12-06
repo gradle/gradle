@@ -49,37 +49,42 @@ class AccessTrackingProperties extends Properties {
 
     @Override
     public Enumeration<?> propertyNames() {
+        reportAggregatingAccess();
         return delegate.propertyNames();
     }
 
     @Override
     public Set<String> stringPropertyNames() {
-        return new AccessTrackingSet<>(delegate.stringPropertyNames(), this::getAndReport);
+        return new AccessTrackingSet<>(delegate.stringPropertyNames(), this::getAndReport, this::reportAggregatingAccess);
     }
 
     @Override
     public int size() {
+        reportAggregatingAccess();
         return delegate.size();
     }
 
     @Override
     public boolean isEmpty() {
+        reportAggregatingAccess();
         return delegate.isEmpty();
     }
 
     @Override
     public Enumeration<Object> keys() {
+        reportAggregatingAccess();
         return delegate.keys();
     }
 
     @Override
     public Enumeration<Object> elements() {
+        reportAggregatingAccess();
         return delegate.elements();
     }
 
     @Override
     public Set<Object> keySet() {
-        return new AccessTrackingSet<>(delegate.keySet(), this::getAndReport);
+        return new AccessTrackingSet<>(delegate.keySet(), this::getAndReport, this::reportAggregatingAccess);
     }
 
     @Override
@@ -89,9 +94,7 @@ class AccessTrackingProperties extends Properties {
 
     @Override
     public Set<Map.Entry<Object, Object>> entrySet() {
-        return new AccessTrackingSet<>(
-            delegate.entrySet(),
-            this::onAccessEntrySetElement);
+        return new AccessTrackingSet<>(delegate.entrySet(), this::onAccessEntrySetElement, this::reportAggregatingAccess);
     }
 
     private void onAccessEntrySetElement(@Nullable Object potentialEntry) {
@@ -103,14 +106,13 @@ class AccessTrackingProperties extends Properties {
 
     @Override
     public void forEach(BiConsumer<? super Object, ? super Object> action) {
-        delegate.forEach((k, v) -> {
-            reportKeyAndValue(k, v);
-            action.accept(k, v);
-        });
+        reportAggregatingAccess();
+        delegate.forEach(action);
     }
 
     @Override
     public void replaceAll(BiFunction<? super Object, ? super Object, ?> function) {
+        reportAggregatingAccess();
         delegate.replaceAll(function);
     }
 
@@ -233,16 +235,19 @@ class AccessTrackingProperties extends Properties {
     @Deprecated
     @SuppressWarnings("deprecation")
     public void save(OutputStream out, String comments) {
+        reportAggregatingAccess();
         delegate.save(out, comments);
     }
 
     @Override
     public void store(Writer writer, String comments) throws IOException {
+        reportAggregatingAccess();
         delegate.store(writer, comments);
     }
 
     @Override
     public void store(OutputStream out, @Nullable String comments) throws IOException {
+        reportAggregatingAccess();
         delegate.store(out, comments);
     }
 
@@ -253,21 +258,25 @@ class AccessTrackingProperties extends Properties {
 
     @Override
     public void storeToXML(OutputStream os, String comment) throws IOException {
+        reportAggregatingAccess();
         delegate.storeToXML(os, comment);
     }
 
     @Override
     public void storeToXML(OutputStream os, String comment, String encoding) throws IOException {
+        reportAggregatingAccess();
         delegate.storeToXML(os, comment, encoding);
     }
 
     @Override
     public void list(PrintStream out) {
+        reportAggregatingAccess();
         delegate.list(out);
     }
 
     @Override
     public void list(PrintWriter out) {
+        reportAggregatingAccess();
         delegate.list(out);
     }
 
@@ -279,11 +288,13 @@ class AccessTrackingProperties extends Properties {
     @Override
     @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
     public boolean equals(Object o) {
+        reportAggregatingAccess();
         return delegate.equals(o);
     }
 
     @Override
     public int hashCode() {
+        reportAggregatingAccess();
         return delegate.hashCode();
     }
 
@@ -297,5 +308,10 @@ class AccessTrackingProperties extends Properties {
         if (key instanceof String && (value == null || value instanceof String)) {
             onAccess.accept((String) key, (String) value);
         }
+    }
+
+    private void reportAggregatingAccess() {
+        // Mark all map contents as inputs if some aggregating access is used.
+        delegate.forEach(this::reportKeyAndValue);
     }
 }

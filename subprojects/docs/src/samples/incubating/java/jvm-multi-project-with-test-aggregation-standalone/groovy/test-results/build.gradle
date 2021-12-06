@@ -1,0 +1,20 @@
+plugins {
+    id 'base'
+    id 'test-report-aggregation'
+}
+
+dependencies {
+    testReportAggregation project(':application') // <1>
+}
+
+reporting {
+    reports {
+        testAggregateTestReport(AggregateTestReport) { // <2>
+            testType = TestSuiteType.UNIT_TEST
+        }
+    }
+}
+
+tasks.named("check") {
+    dependsOn tasks.named('testAggregateTestReport', TestReport) // <3>
+}

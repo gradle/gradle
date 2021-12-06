@@ -62,7 +62,7 @@ class AccessTrackingEnvMap extends ForwardingMap<String, String> {
 
     @Override
     public Set<String> keySet() {
-        return new AccessTrackingSet<>(super.keySet(), this::getAndReport);
+        return new AccessTrackingSet<>(super.keySet(), this::getAndReport, this::reportAggregatingAccess);
     }
 
     private String getAndReport(@Nullable Object key) {
@@ -74,7 +74,7 @@ class AccessTrackingEnvMap extends ForwardingMap<String, String> {
 
     @Override
     public Set<Entry<String, String>> entrySet() {
-        return new AccessTrackingSet<>(delegate.entrySet(), this::onAccessEntrySetElement);
+        return new AccessTrackingSet<>(delegate.entrySet(), this::onAccessEntrySetElement, this::reportAggregatingAccess);
     }
 
     private void onAccessEntrySetElement(@Nullable Object potentialEntry) {
@@ -86,15 +86,43 @@ class AccessTrackingEnvMap extends ForwardingMap<String, String> {
 
     @Override
     public void forEach(BiConsumer<? super String, ? super String> action) {
-        delegate.forEach((k, v) -> {
-            onAccess.accept(k, v);
-            action.accept(k, v);
-        });
+        reportAggregatingAccess();
+        delegate.forEach(action);
+    }
+
+    @Override
+    public int size() {
+        reportAggregatingAccess();
+        return delegate.size();
+    }
+
+    @Override
+    public boolean isEmpty() {
+        reportAggregatingAccess();
+        return delegate.isEmpty();
+    }
+
+    @Override
+    @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
+    public boolean equals(@Nullable Object object) {
+        reportAggregatingAccess();
+        return delegate.equals(object);
+    }
+
+    @Override
+    public int hashCode() {
+        reportAggregatingAccess();
+        return delegate.hashCode();
     }
 
     @Override
     protected Map<String, String> delegate() {
         return delegate;
+    }
+
+    private void reportAggregatingAccess() {
+        // Mark all map contents as inputs if some aggregating access is used.
+        delegate.forEach(onAccess);
     }
 }
 

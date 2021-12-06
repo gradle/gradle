@@ -75,7 +75,7 @@ public interface AttributeContainer extends HasAttributes {
      * @since 7.4
      */
     @Incubating
-    <T> AttributeContainer attribute(Attribute<T> key, Provider<? extends T> provider);
+    <T> AttributeContainer attributeProvider(Attribute<T> key, Provider<? extends T> provider);
 
     /**
      * Returns the value of an attribute found in this container, or <code>null</code> if

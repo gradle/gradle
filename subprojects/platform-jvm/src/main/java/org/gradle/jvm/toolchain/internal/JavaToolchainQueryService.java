@@ -73,14 +73,14 @@ public class JavaToolchainQueryService {
         if (filter instanceof SpecificInstallationToolchainSpec) {
             return asToolchain(((SpecificInstallationToolchainSpec) filter).getJavaHome(), filter).get();
         }
+
         return registry.listInstallations().stream()
             .map(InstallationLocation::getLocation)
             .map(javaHome -> asToolchain(javaHome, filter))
             .filter(Optional::isPresent)
             .map(Optional::get)
             .filter(new ToolchainMatcher(filter))
-            .sorted(new JavaToolchainComparator())
-            .findFirst()
+            .min(new JavaToolchainComparator())
             .orElseGet(() -> downloadToolchain(filter));
     }
 

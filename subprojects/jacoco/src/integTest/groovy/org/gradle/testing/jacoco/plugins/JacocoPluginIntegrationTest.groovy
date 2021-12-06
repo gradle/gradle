@@ -161,12 +161,11 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
             Capabilities
                 - :Test:unspecified (default capability)
             Attributes
-                - org.gradle.category      = documentation
-                - org.gradle.docstype      = jacoco-coverage-bin
-                - org.gradle.targetname    = test
-                - org.gradle.testsuitename = test
-                - org.gradle.testsuitetype = unit-tests
-                - org.gradle.usage         = verification
+                - org.gradle.category              = verification
+                - org.gradle.testsuite.name        = test
+                - org.gradle.testsuite.target.name = test
+                - org.gradle.testsuite.type        = unit-test
+                - org.gradle.verificationtype      = jacoco-coverage
 
             Artifacts
                 - $resultsExecPath (artifactType = binary)""".stripIndent())
@@ -180,7 +179,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
             testing {
                 suites {
                     integrationTest(JvmTestSuite) {
-                        testType = TestType.INTEGRATION_TESTS
+                        testType = TestSuiteType.INTEGRATION_TEST
 
                         dependencies {
                             implementation project
@@ -201,12 +200,11 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
             Capabilities
                 - :Test:unspecified (default capability)
             Attributes
-                - org.gradle.category      = documentation
-                - org.gradle.docstype      = jacoco-coverage-bin
-                - org.gradle.targetname    = integrationTest
-                - org.gradle.testsuitename = integrationTest
-                - org.gradle.testsuitetype = integration-tests
-                - org.gradle.usage         = verification
+                - org.gradle.category              = verification
+                - org.gradle.testsuite.name        = integrationTest
+                - org.gradle.testsuite.target.name = integrationTest
+                - org.gradle.testsuite.type        = integration-test
+                - org.gradle.verificationtype      = jacoco-coverage
 
             Artifacts
                 - $resultsExecPath (artifactType = binary)""".stripIndent())
@@ -228,9 +226,8 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
                 canBeResolved = true
                 canBeConsumed = false
                 attributes {
-                    attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.VERIFICATION))
-                    attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION))
-                    attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType, DocsType.JACOCO_COVERAGE))
+                    attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.VERIFICATION))
+                    attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objects.named(VerificationType.class, VerificationType.JACOCO_RESULTS))
                 }
             }
 
@@ -238,9 +235,16 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
                 coverageData project
             }
 
+            // Extract the artifact view for cc compatibility by providing it as an explicit task input
+            def artifactView = coverageDataConfig.incoming.artifactView { view ->
+                                   view.componentFilter { it in ProjectComponentIdentifier }
+                                   view.lenient = true
+                               }
+
             def testResolve = tasks.register('testResolve') {
+                inputs.files(artifactView.files)
                 doLast {
-                    assert coverageDataConfig.resolvedConfiguration.files*.name == [test.jacoco.destinationFile.name]
+                    assert inputs.files.singleFile.name == 'jacocoData.exec'
                 }
             }
             """.stripIndent()
@@ -290,15 +294,21 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
                 canBeConsumed = false
                 extendsFrom(configurations.implementation)
                 attributes {
-                    attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.VERIFICATION))
-                    attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION))
-                    attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType, DocsType.JACOCO_COVERAGE))
+                    attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.VERIFICATION))
+                    attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objects.named(VerificationType.class, VerificationType.JACOCO_RESULTS))
                 }
             }
 
+            // Extract the artifact view for cc compatibility by providing it as an explicit task input
+            def artifactView = coverageDataConfig.incoming.artifactView { view ->
+                                   view.componentFilter { it in ProjectComponentIdentifier }
+                                   view.lenient = true
+                               }
+
             def testResolve = tasks.register('testResolve') {
+                inputs.files(artifactView.files)
                 doLast {
-                    assert coverageDataConfig.getResolvedConfiguration().getFiles()*.getName() == ["subA.exec", "subB.exec"]
+                    assert inputs.files*.name == ["subA.exec", "subB.exec"]
                 }
             }
             """.stripIndent()
@@ -351,15 +361,22 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
                 canBeConsumed = false
                 extendsFrom(configurations.implementation)
                 attributes {
-                    attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.VERIFICATION))
-                    attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION))
-                    attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType, DocsType.JACOCO_COVERAGE))
+                    attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.VERIFICATION))
+                    attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objects.named(VerificationType.class, VerificationType.JACOCO_RESULTS))
                 }
             }
 
+
+            // Extract the artifact view for cc compatibility by providing it as an explicit task input
+            def artifactView = coverageDataConfig.incoming.artifactView { view ->
+                                   view.componentFilter { it in ProjectComponentIdentifier }
+                                   view.lenient = true
+                               }
+
             def testResolve = tasks.register('testResolve') {
+                inputs.files(artifactView.files)
                 doLast {
-                    assert coverageDataConfig.getResolvedConfiguration().getFiles()*.getName() == ["direct.exec", "transitive.exec"]
+                    assert inputs.files*.name == ["direct.exec", "transitive.exec"]
                 }
             }
             """.stripIndent()

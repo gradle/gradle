@@ -358,7 +358,7 @@ ${TextUtil.indent(configLines.join("\n"), "                    ")}
         run 'clean', 'build'
 
         then:
-        dsl.getBuildFile().text.contains("compileOnly 'junit:junit:4.10'") || dsl.getBuildFile().text.contains('compileOnly("junit:junit:4.10")')
+        dsl.getBuildFile().text.contains("compileOnly 'junit:junit:4.13.1'") || dsl.getBuildFile().text.contains('compileOnly("junit:junit:4.13.1")')
         targetDir.file("build/libs/myThing-0.0.1-SNAPSHOT.jar").exists()
     }
 
@@ -458,10 +458,11 @@ ${TextUtil.indent(configLines.join("\n"), "                    ")}
         when:
         libRequest(repo, "commons-lang", "commons-lang", 2.6)
         // Required for the 'webinar-impl' project's POM
-        libRequest(repo, "junit", "junit", 4.10)
+        libRequest(repo, "junit", "junit", "4.13.1")
         // Required for the 'webinar-war' project's POM
         libRequest(repo, "junit", "junit", "3.8.1")
-        libRequest(repo, "org.hamcrest", "hamcrest-core", 1.1)
+        libRequest(repo, "org.hamcrest", "hamcrest-core", 1.3)
+        libRequest(repo, "org.apache.commons", "commons-parent", 17)
 
         run 'clean', 'build'
 

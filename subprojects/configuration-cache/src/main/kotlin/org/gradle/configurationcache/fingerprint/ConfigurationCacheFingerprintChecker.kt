@@ -22,11 +22,14 @@ import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.provider.ValueSource
 import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.configurationcache.CheckedFingerprint
+import org.gradle.configurationcache.extensions.filterKeysByPrefix
+import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.util.NumberUtil.ordinal
 import org.gradle.util.Path
 import java.io.File
+import java.util.function.Consumer
 
 
 internal
@@ -39,6 +42,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
     interface Host {
         val gradleUserHomeDir: File
         val allInitScripts: List<File>
+        val startParameterProperties: Map<String, Any?>
         val buildStartTime: Long
         fun gradleProperty(propertyName: String): String?
         fun fingerprintOf(fileCollection: FileCollectionInternal): HashCode
@@ -68,7 +72,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
     suspend fun ReadContext.checkProjectScopedFingerprint(): CheckedFingerprint {
         // TODO: log some debug info
         var firstReason: InvalidationReason? = null
-        val projects = mutableMapOf<String, ProjectInvalidationState>()
+        val projects = mutableMapOf<Path, ProjectInvalidationState>()
         while (true) {
             when (val input = read()) {
                 null -> break
@@ -91,18 +95,44 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                     val target = projects.entryFor(input.targetProject)
                     target.consumedBy(consumer)
                 }
+                is ProjectSpecificFingerprint.CoupledProjects -> {
+                    val referrer = projects.entryFor(input.referringProject)
+                    val target = projects.entryFor(input.targetProject)
+                    target.consumedBy(referrer)
+                    referrer.consumedBy(target)
+                }
                 else -> throw IllegalStateException("Unexpected configuration cache fingerprint: $input")
             }
         }
         return if (firstReason == null) {
             CheckedFingerprint.Valid
         } else {
-            CheckedFingerprint.ProjectsInvalid(firstReason!!, projects.entries.filter { it.value.isInvalid }.map { Path.path(it.key) }.toSet())
+            CheckedFingerprint.ProjectsInvalid(firstReason!!, projects.entries.filter { it.value.isInvalid }.map { it.key }.toSet())
+        }
+    }
+
+    suspend fun ReadContext.visitEntriesForProjects(reusedProjects: Set<Path>, consumer: Consumer<ProjectSpecificFingerprint>) {
+        while (true) {
+            when (val input = read()) {
+                null -> break
+                is ProjectSpecificFingerprint.ProjectFingerprint ->
+                    if (reusedProjects.contains(input.projectPath)) {
+                        consumer.accept(input)
+                    }
+                is ProjectSpecificFingerprint.ProjectDependency ->
+                    if (reusedProjects.contains(input.consumingProject)) {
+                        consumer.accept(input)
+                    }
+                is ProjectSpecificFingerprint.CoupledProjects ->
+                    if (reusedProjects.contains(input.referringProject)) {
+                        consumer.accept(input)
+                    }
+            }
         }
     }
 
     private
-    fun MutableMap<String, ProjectInvalidationState>.entryFor(path: String) = getOrPut(path) { ProjectInvalidationState() }
+    fun MutableMap<Path, ProjectInvalidationState>.entryFor(path: Path) = getOrPut(path) { ProjectInvalidationState() }
 
     private
     fun check(input: ConfigurationCacheFingerprint): InvalidationReason? {
@@ -127,11 +157,6 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                 val reason = checkInitScriptsAreUpToDate(fingerprints, host.allInitScripts)
                 if (reason != null) return reason
             }
-            is ConfigurationCacheFingerprint.UndeclaredGradleProperty -> input.run {
-                if (host.gradleProperty(key) != value) {
-                    return "Gradle property '$key' has changed"
-                }
-            }
             is ConfigurationCacheFingerprint.UndeclaredSystemProperty -> input.run {
                 if (System.getProperty(key) != value) {
                     return "system property '$key' has changed"
@@ -153,6 +178,21 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                 }
                 if (jvmFingerprint() != jvm) {
                     return "JVM has changed"
+                }
+                if (host.startParameterProperties != startParameterProperties) {
+                    return "the set of Gradle properties has changed"
+                }
+            }
+            is ConfigurationCacheFingerprint.EnvironmentVariablesPrefixedBy -> input.run {
+                val current = System.getenv().filterKeysByPrefix(prefix)
+                if (current != snapshot) {
+                    return "the set of environment variables prefixed by '$prefix' has changed"
+                }
+            }
+            is ConfigurationCacheFingerprint.SystemPropertiesPrefixedBy -> input.run {
+                val current = System.getProperties().uncheckedCast<Map<String, Any>>().filterKeysByPrefix(prefix)
+                if (current != snapshot) {
+                    return "the set of system properties prefixed by '$prefix' has changed"
                 }
             }
         }

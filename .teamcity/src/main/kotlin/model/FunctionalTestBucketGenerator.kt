@@ -146,9 +146,14 @@ class FunctionalTestBucketGenerator(private val model: CIBuildModel, testTimeDat
     private val buckets: Map<TestCoverage, List<BuildTypeBucket>> = buildBuckets(testTimeDataJson, model)
 
     fun generate(jsonFile: File) {
-        jsonFile.writeText(JSON.toJSONString(buckets.map {
-            TestCoverageAndBucketSplits(it.key.uuid, it.value.map { it.toJsonBucket() })
-        }, SerializerFeature.PrettyFormat))
+        jsonFile.writeText(
+            JSON.toJSONString(
+                buckets.map {
+                    TestCoverageAndBucketSplits(it.key.uuid, it.value.map { it.toJsonBucket() })
+                },
+                SerializerFeature.PrettyFormat
+            )
+        )
     }
 
     private
@@ -217,7 +222,8 @@ class FunctionalTestBucketGenerator(private val model: CIBuildModel, testTimeDat
         val docs2 = LargeSubprojectSplitBucket(docs, 2, true, listOf(TestClassAndSourceSet("org.gradle.docs.samples.Bucket2SnippetsTest", "docsTest")))
         val docs3 = LargeSubprojectSplitBucket(docs, 3, true, listOf(TestClassAndSourceSet("org.gradle.docs.samples.Bucket3SnippetsTest", "docsTest")))
         val docs4 = LargeSubprojectSplitBucket(
-            docs, 4, false, listOf(
+            docs, 4, false,
+            listOf(
                 TestClassAndSourceSet("org.gradle.docs.samples.Bucket1SnippetsTest", "docsTest"),
                 TestClassAndSourceSet("org.gradle.docs.samples.Bucket2SnippetsTest", "docsTest"),
                 TestClassAndSourceSet("org.gradle.docs.samples.Bucket3SnippetsTest", "docsTest")

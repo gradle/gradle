@@ -100,10 +100,15 @@ import java.util.concurrent.Callable
 class ProblemReportingCrossProjectModelAccess(
     private val delegate: CrossProjectModelAccess,
     private val problems: ProblemsListener,
+    private val coupledProjectsListener: CoupledProjectsListener,
     private val userCodeContext: UserCodeApplicationContext
 ) : CrossProjectModelAccess {
     override fun findProject(referrer: ProjectInternal, relativeTo: ProjectInternal, path: String): ProjectInternal? {
         return delegate.findProject(referrer, relativeTo, path)?.wrap(referrer)
+    }
+
+    override fun access(referrer: ProjectInternal, project: ProjectInternal): ProjectInternal {
+        return project.wrap(referrer)
     }
 
     override fun getSubprojects(referrer: ProjectInternal, relativeTo: ProjectInternal): MutableSet<out ProjectInternal> {
@@ -119,7 +124,7 @@ class ProblemReportingCrossProjectModelAccess(
         return if (this == referrer) {
             this
         } else {
-            ProblemReportingProject(this, referrer, problems, userCodeContext)
+            ProblemReportingProject(this, referrer, problems, coupledProjectsListener, userCodeContext)
         }
     }
 
@@ -128,11 +133,27 @@ class ProblemReportingCrossProjectModelAccess(
         val delegate: ProjectInternal,
         val referrer: ProjectInternal,
         val problems: ProblemsListener,
+        val coupledProjectsListener: CoupledProjectsListener,
         val userCodeContext: UserCodeApplicationContext
     ) : ProjectInternal, GroovyObjectSupport() {
 
         override fun toString(): String {
             return delegate.toString()
+        }
+
+        override fun equals(other: Any?): Boolean {
+            if (other === this) {
+                return true
+            }
+            if (other == null || other.javaClass != javaClass) {
+                return false
+            }
+            val project = other as ProblemReportingProject
+            return delegate == project.delegate && referrer == project.referrer
+        }
+
+        override fun hashCode(): Int {
+            return delegate.hashCode()
         }
 
         override fun getProperty(propertyName: String): Any {
@@ -142,11 +163,10 @@ class ProblemReportingCrossProjectModelAccess(
             if (result.isFound) {
                 return result.value
             }
+            onAccess()
             val delegateBean = (delegate as DynamicObjectAware).asDynamicObject
             val delegateResult = delegateBean.tryGetProperty(propertyName)
             if (delegateResult.isFound) {
-                // Only report properties that exist
-                onAccess()
                 return delegateResult.value
             }
             throw thisBean.getMissingProperty(propertyName)
@@ -160,11 +180,10 @@ class ProblemReportingCrossProjectModelAccess(
             if (result.isFound) {
                 return result.value
             }
+            onAccess()
             val delegateBean = (delegate as DynamicObjectAware).asDynamicObject
             val delegateResult = delegateBean.tryInvokeMethod(name, *varargs)
             if (delegateResult.isFound) {
-                // Only report methods that exist
-                onAccess()
                 return delegateResult.value
             }
             throw thisBean.methodMissingException(name, args)
@@ -811,11 +830,19 @@ class ProblemReportingCrossProjectModelAccess(
         }
 
         override fun getParent(): ProjectInternal? {
-            return delegate.parent
+            return delegate.getParent(referrer)
+        }
+
+        override fun getParent(referrer: ProjectInternal): ProjectInternal? {
+            return delegate.getParent(referrer)
         }
 
         override fun getRootProject(): ProjectInternal {
-            return delegate.rootProject
+            return delegate.getRootProject(referrer)
+        }
+
+        override fun getRootProject(referrer: ProjectInternal): ProjectInternal {
+            return delegate.getRootProject(referrer)
         }
 
         override fun evaluate(): Project {
@@ -968,6 +995,11 @@ class ProblemReportingCrossProjectModelAccess(
             problems.onProblem(
                 PropertyProblem(location, message, exception, null)
             )
+            coupledProjectsListener.onProjectReference(referrer.owner, delegate.owner)
+            // Configure the target project, if it would normally be configured before the referring project
+            if (delegate.compareTo(referrer) < 0) {
+                delegate.owner.ensureConfigured()
+            }
         }
     }
 }
