@@ -16,6 +16,7 @@
 
 package org.gradle.internal.watch.vfs.impl;
 
+import net.rubygrapefruit.platform.NativeException;
 import net.rubygrapefruit.platform.internal.jni.InotifyInstanceLimitTooLowException;
 import net.rubygrapefruit.platform.internal.jni.InotifyWatchesLimitTooLowException;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -38,6 +39,7 @@ import org.gradle.internal.watch.vfs.FileSystemWatchingStatistics;
 import org.gradle.internal.watch.vfs.VfsLogging;
 import org.gradle.internal.watch.vfs.WatchLogging;
 import org.gradle.internal.watch.vfs.WatchMode;
+import org.gradle.internal.watch.vfs.WatchableFileSystemDetector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,6 +49,7 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -60,6 +63,8 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
     private final FileWatcherRegistryFactory watcherRegistryFactory;
     private final DaemonDocumentationIndex daemonDocumentationIndex;
     private final LocationsWrittenByCurrentBuild locationsWrittenByCurrentBuild;
+    private final WatchableFileSystemDetector watchableFileSystemDetector;
+    private final List<File> unsupportedFileSystems = new ArrayList<>();
     private Logger warningLogger = LOGGER;
 
     /**
@@ -75,12 +80,14 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
         FileWatcherRegistryFactory watcherRegistryFactory,
         VfsRootReference rootReference,
         DaemonDocumentationIndex daemonDocumentationIndex,
-        LocationsWrittenByCurrentBuild locationsWrittenByCurrentBuild
+        LocationsWrittenByCurrentBuild locationsWrittenByCurrentBuild,
+        WatchableFileSystemDetector watchableFileSystemDetector
     ) {
         super(rootReference);
         this.watcherRegistryFactory = watcherRegistryFactory;
         this.daemonDocumentationIndex = daemonDocumentationIndex;
         this.locationsWrittenByCurrentBuild = locationsWrittenByCurrentBuild;
+        this.watchableFileSystemDetector = watchableFileSystemDetector;
     }
 
     @Override
@@ -101,8 +108,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
         WatchMode watchMode,
         VfsLogging vfsLogging,
         WatchLogging watchLogging,
-        BuildOperationRunner buildOperationRunner,
-        List<File> unsupportedFileSystems
+        BuildOperationRunner buildOperationRunner
     ) {
         warningLogger = watchMode.loggerForWarnings(LOGGER);
         stateInvalidatedAtStartOfBuild = false;
@@ -112,14 +118,29 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
             public SnapshotHierarchy call(BuildOperationContext context) {
                 if (watchMode.isEnabled()) {
                     SnapshotHierarchy newRoot;
+                    boolean couldDetectUnsupportedFileSystems;
+                    try {
+                        unsupportedFileSystems.clear();
+                        if (watchMode == WatchMode.DEFAULT) {
+                            watchableFileSystemDetector.detectUnsupportedFileSystems().forEach(unsupportedFileSystems::add);
+                        }
+                        couldDetectUnsupportedFileSystems = true;
+                    } catch (NativeException e) {
+                        couldDetectUnsupportedFileSystems = false;
+                        LOGGER.info("Unable to list file systems to check whether they can be watched. Disabling watching. Reason: {}", e.getMessage());
+                    }
                     FileSystemWatchingStatistics statisticsSinceLastBuild;
                     if (watchRegistry == null) {
-                        context.setStatus("Starting file system watching");
-                        newRoot = startWatching(currentRoot, watchMode, unsupportedFileSystems);
+                        if (couldDetectUnsupportedFileSystems) {
+                            context.setStatus("Starting file system watching");
+                            newRoot = startWatching(currentRoot, watchMode, unsupportedFileSystems);
+                        } else {
+                            newRoot = currentRoot.empty();
+                        }
                         statisticsSinceLastBuild = null;
                     } else {
                         FileWatcherRegistry.FileWatchingStatistics statistics = watchRegistry.getAndResetStatistics();
-                        if (hasDroppedStateBecauseOfErrorsReceivedWhileWatching(statistics)) {
+                        if (hasDroppedStateBecauseOfErrorsReceivedWhileWatching(statistics) || !couldDetectUnsupportedFileSystems) {
                             newRoot = stopWatchingAndInvalidateHierarchyAfterError(currentRoot);
                         } else {
                             newRoot = watchRegistry.updateVfsOnBuildStarted(currentRoot, watchMode, unsupportedFileSystems);
@@ -196,8 +217,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
         VfsLogging vfsLogging,
         WatchLogging watchLogging,
         BuildOperationRunner buildOperationRunner,
-        int maximumNumberOfWatchedHierarchies,
-        List<File> unsupportedFileSystems
+        int maximumNumberOfWatchedHierarchies
     ) {
         rootReference.update(currentRoot -> buildOperationRunner.call(new CallableBuildOperation<SnapshotHierarchy>() {
             @Override

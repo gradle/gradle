@@ -30,7 +30,6 @@ import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem
 import org.gradle.internal.watch.vfs.VfsLogging
 import org.gradle.internal.watch.vfs.WatchLogging
 import org.gradle.internal.watch.vfs.WatchMode
-import org.gradle.internal.watch.vfs.WatchableFileSystemDetector
 import spock.lang.Specification
 
 class FileSystemWatchingBuildActionRunnerTest extends Specification {
@@ -42,12 +41,10 @@ class FileSystemWatchingBuildActionRunnerTest extends Specification {
     def delegate = Mock(BuildActionRunner)
     def buildAction = Stub(BuildAction)
     def buildOperationProgressEventEmitter = Mock(BuildOperationProgressEventEmitter)
-    def watchableFileSystemDetector = Mock(WatchableFileSystemDetector)
 
     def runner = new FileSystemWatchingBuildActionRunner(
         buildOperationProgressEventEmitter,
         watchingHandler,
-        watchableFileSystemDetector,
         Stub(StatStatistics.Collector),
         Stub(FileHasherStatistics.Collector),
         Stub(DirectorySnapshotterStatistics.Collector),
@@ -69,8 +66,7 @@ class FileSystemWatchingBuildActionRunnerTest extends Specification {
         runner.run(buildAction, buildController)
 
         then:
-        _ * watchableFileSystemDetector.detectUnsupportedFileSystems() >> [].stream()
-        1 * watchingHandler.afterBuildStarted(watchMode, vfsLogging, watchLogging, buildOperationRunner, []) >> actuallyEnabled
+        1 * watchingHandler.afterBuildStarted(watchMode, vfsLogging, watchLogging, buildOperationRunner) >> actuallyEnabled
 
         then:
         1 * buildOperationProgressEventEmitter.emitNowForCurrent({ FileSystemWatchingSettingsFinalizedProgressDetails details -> details.enabled == actuallyEnabled })
@@ -79,7 +75,7 @@ class FileSystemWatchingBuildActionRunnerTest extends Specification {
         1 * delegate.run(buildAction, buildController)
 
         then:
-        1 * watchingHandler.beforeBuildFinished(watchMode, vfsLogging, watchLogging, buildOperationRunner, _, _)
+        1 * watchingHandler.beforeBuildFinished(watchMode, vfsLogging, watchLogging, buildOperationRunner, _)
 
         then:
         0 * _
@@ -106,7 +102,7 @@ class FileSystemWatchingBuildActionRunnerTest extends Specification {
         runner.run(buildAction, buildController)
 
         then:
-        1 * watchingHandler.afterBuildStarted(WatchMode.DISABLED, _, _, buildOperationRunner, _)
+        1 * watchingHandler.afterBuildStarted(WatchMode.DISABLED, _, _, buildOperationRunner)
 
         then:
         1 * buildOperationProgressEventEmitter.emitNowForCurrent({ FileSystemWatchingSettingsFinalizedProgressDetails details -> !details.enabled })
@@ -115,7 +111,7 @@ class FileSystemWatchingBuildActionRunnerTest extends Specification {
         1 * delegate.run(buildAction, buildController)
 
         then:
-        1 * watchingHandler.beforeBuildFinished(WatchMode.DISABLED, _, _, buildOperationRunner, _, _)
+        1 * watchingHandler.beforeBuildFinished(WatchMode.DISABLED, _, _, buildOperationRunner, _)
 
         then:
         0 * _
@@ -131,29 +127,5 @@ class FileSystemWatchingBuildActionRunnerTest extends Specification {
         then:
         def ex = thrown IllegalStateException
         ex.message == "Enabling file system watching via --watch-fs (or via the org.gradle.vfs.watch property) with --project-cache-dir also specified is not supported; remove either option to fix this problem"
-    }
-
-    def "watching enabled by default is disabled when unable to detect unsupported file systems"() {
-        _ * startParameter.projectCacheDir >> null
-        _ * startParameter.watchFileSystemMode >> WatchMode.DEFAULT
-
-        when:
-        runner.run(buildAction, buildController)
-
-        then:
-        1 * watchableFileSystemDetector.detectUnsupportedFileSystems() >> { throw new RuntimeException("Unsupported operating system") }
-        1 * watchingHandler.afterBuildStarted(WatchMode.DISABLED, _, _, buildOperationRunner, _)
-
-        then:
-        1 * buildOperationProgressEventEmitter.emitNowForCurrent({ !it.enabled })
-
-        then:
-        1 * delegate.run(buildAction, buildController)
-
-        then:
-        1 * watchingHandler.beforeBuildFinished(WatchMode.DISABLED, _, _, buildOperationRunner, _, _)
-
-        then:
-        0 * _
     }
 }

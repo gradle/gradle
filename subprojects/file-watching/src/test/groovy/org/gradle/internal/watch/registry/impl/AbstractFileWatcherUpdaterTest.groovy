@@ -34,7 +34,6 @@ import org.gradle.internal.vfs.impl.DefaultSnapshotHierarchy
 import org.gradle.internal.watch.registry.FileWatcherProbeRegistry
 import org.gradle.internal.watch.registry.FileWatcherUpdater
 import org.gradle.internal.watch.vfs.WatchMode
-import org.gradle.internal.watch.vfs.WatchableFileSystemDetector
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -56,7 +55,6 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
     def watcher = Mock(FileWatcher)
     def ignoredForWatching = [] as Set<String>
     Predicate<String> watchFilter = { path -> !ignoredForWatching.contains(path) }
-    def watchableFileSystemDetector = Stub(WatchableFileSystemDetector)
     def probeLocationResolver = { hierarchy -> new File(hierarchy, ".gradle/file-watching.probe") } as Function<File, File>
     def probeRegistry = Stub(FileWatcherProbeRegistry)
     def watchableHierarchies = new WatchableHierarchies(probeRegistry, watchFilter)
