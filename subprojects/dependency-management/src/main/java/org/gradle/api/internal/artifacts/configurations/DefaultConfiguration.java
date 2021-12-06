@@ -26,6 +26,7 @@ import org.gradle.api.Describable;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Project;
 import org.gradle.api.artifacts.ArtifactCollection;
 import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
@@ -1125,12 +1126,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private Collection<? extends Capability> allCapabilitiesIncludingDefault(Configuration conf) {
         if (conf.getOutgoing().getCapabilities().isEmpty()) {
-            if (domainObjectContext instanceof ProjectInternal) {
-                ProjectInternal project = (ProjectInternal) this.domainObjectContext;
-                return Collections.singleton(new ProjectDerivedCapability(project));
-            } else {
-                throw new IllegalStateException("Unknown domainObjectContext.  Configurations should have a project available, configuration '" + conf.getName() + "' does not.");
+            Project project = domainObjectContext.getProject();
+            if (project == null) {
+                throw new IllegalStateException("Project is null for configuration '" + conf.getName() + "'.");
             }
+            return Collections.singleton(new ProjectDerivedCapability(project));
         } else {
             return conf.getOutgoing().getCapabilities();
         }
