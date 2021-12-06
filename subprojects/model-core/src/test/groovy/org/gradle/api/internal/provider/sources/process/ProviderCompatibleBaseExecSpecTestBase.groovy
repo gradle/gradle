@@ -16,11 +16,17 @@
 
 package org.gradle.api.internal.provider.sources.process
 
-
+import org.gradle.process.BaseExecSpec
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
+import org.junit.Rule
 import spock.lang.Specification
 
+import java.util.function.Consumer
+
 abstract class ProviderCompatibleBaseExecSpecTestBase extends Specification {
+    @Rule
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass());
 
     ProviderCompatibleBaseExecSpec specUnderTest
 
@@ -142,9 +148,43 @@ abstract class ProviderCompatibleBaseExecSpecTestBase extends Specification {
         thrown UnsupportedOperationException
     }
 
+    def "spec without working directory doesn't set it on parameters"() {
+        given:
+        def parameters = newParameters()
+
+        when:
+        specUnderTest.copyToParameters(parameters)
+
+        then:
+        !parameters.getWorkingDirectory().isPresent()
+    }
+
+    def "spec with working directory sets it on parameters"(Consumer<BaseExecSpec> configureAction) {
+        given:
+        def parameters = newParameters()
+
+        when:
+        configureAction.accept(specUnderTest)
+        specUnderTest.copyToParameters(parameters)
+
+        then:
+        parameters.getWorkingDirectory().isPresent()
+        parameters.getWorkingDirectory().get().asFile.absolutePath == tmpDir.file("foo/bar").absolutePath
+
+        where:
+        configureAction                                   | _
+        configure { it.workingDir("foo/bar") }            | _
+        configure { it.workingDir = "foo/bar" }           | _
+        configure { it.workingDir = new File("foo/bar") } | _
+    }
+
     protected abstract ProviderCompatibleBaseExecSpec createSpecUnderTest()
 
     static ProcessOutputValueSource.Parameters newParameters() {
         return TestUtil.objectFactory().newInstance(ProcessOutputValueSource.Parameters.class)
+    }
+
+    private static Consumer<BaseExecSpec> configure(Consumer<BaseExecSpec> configuration) {
+        return configuration
     }
 }
