@@ -600,6 +600,10 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec implemen
                 id 'java'
             }
 
+            repositories {
+                ${mavenCentralRepository()}
+            }
+
             testing {
                 suites {
                     primaryIntTest(JvmTestSuite) {
