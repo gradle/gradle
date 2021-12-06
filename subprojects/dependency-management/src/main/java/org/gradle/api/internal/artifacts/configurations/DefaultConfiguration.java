@@ -1093,8 +1093,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             outgoing.preventFromFurtherMutation();
             canBeMutated = false;
 
-            // We will only check unique attributes if this configuraion is consumable and has attributes itself
-            if (isCanBeConsumed() && !getAttributes().isEmpty()) {
+            // We will only check unique attributes if this configuration is consumable, not resolvable, and has attributes itself
+            if (isCanBeConsumed() && !isCanBeResolved() && !getAttributes().isEmpty()) {
                 ensureUniqueAttributes();
             }
         }
@@ -1117,6 +1117,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
             all.stream()
                 .filter(Configuration::isCanBeConsumed)
+                .filter(c -> !c.isCanBeResolved())
                 .filter(c -> !c.isCanBeMutated())
                 .filter(c -> c != this)
                 .filter(c -> !c.getAttributes().isEmpty())

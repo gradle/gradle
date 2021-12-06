@@ -35,11 +35,6 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
                         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
                         attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "custom"))
                     }
-
-                    outgoing {
-                        // Force identical capabilities by overriding the default
-                        capability('org.gradle:sample:1.0')
-                    }
                 }
 
                 sample2 {
@@ -49,11 +44,6 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
                         attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "custom"))
-                    }
-
-                    outgoing {
-                        // Force identical capabilities by overriding the default
-                        capability('org.gradle:sample:1.0')
                     }
                 }
             }""".stripIndent()
@@ -350,6 +340,72 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds("allOutgoingVariants")
+    }
+
+    def "attribute combinations and capabilities on resolvable configurations can match without a warning"() {
+        given:
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            configurations {
+                sample1 {
+                    canBeResolved = true
+
+                    attributes {
+                        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
+                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "custom"))
+                    }
+                }
+
+                sample2 {
+                    canBeResolved = true
+
+                    attributes {
+                        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
+                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "custom"))
+                    }
+                }
+            }""".stripIndent()
+
+        expect:
+        succeeds("outgoingVariants")
+    }
+
+    def "attribute combinations and capabilities on legacy resolvable configurations can match without a warning"() {
+        given:
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            configurations {
+                sample1 {
+                    // Configurations that are both resolvable and consumable are legacy and should not be used
+                    canBeResolved = true
+                    canBeConsumed = true
+
+                    attributes {
+                        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
+                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "custom"))
+                    }
+                }
+
+                sample2 {
+                    // Configurations that are both resolvable and consumable are legacy and should not be used
+                    canBeResolved = true
+                    canBeConsumed = true
+
+                    attributes {
+                        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
+                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "custom"))
+                    }
+                }
+            }""".stripIndent()
+
+        expect:
+        succeeds("outgoingVariants")
     }
 }
 
