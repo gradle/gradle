@@ -88,9 +88,8 @@ public class JvmTestSuitePlugin implements Plugin<Project> {
             // The test task may have already been created but the test sourceSet may not exist yet.
             // So defer looking up the java extension and sourceSet until the convention mapping is resolved.
             // See https://github.com/gradle/gradle/issues/18622
-            SourceSet testSourceSet = project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets().findByName(SourceSet.TEST_SOURCE_SET_NAME);
-            test.getConventionMapping().map("testClassesDirs", () ->  testSourceSet.getOutput().getClassesDirs());
-            test.getConventionMapping().map("classpath", () -> testSourceSet.getRuntimeClasspath());
+            test.getConventionMapping().map("testClassesDirs", () ->  project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets().findByName(SourceSet.TEST_SOURCE_SET_NAME).getOutput().getClassesDirs());
+            test.getConventionMapping().map("classpath", () -> project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets().findByName(SourceSet.TEST_SOURCE_SET_NAME).getRuntimeClasspath());
             test.getModularity().getInferModulePath().convention(java.getModularity().getInferModulePath());
         });
 
