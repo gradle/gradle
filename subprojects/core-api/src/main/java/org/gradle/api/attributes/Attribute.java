@@ -17,7 +17,6 @@
 package org.gradle.api.attributes;
 
 import org.apache.commons.lang.WordUtils;
-import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 
 /**
@@ -34,27 +33,9 @@ public class Attribute<T> implements Named {
     private final String name;
     private final Class<T> type;
     private final int hashCode;
-    private final boolean publishable;
 
     /**
-     * Creates a new attribute of the given name with the given type and ability to be published. There's no guarantee that subsequent
-     * calls to this method with the same attributes would either return the same instance or different instances
-     * of {@link Attribute}, so consumers are required to compare the attributes with the {@link #equals(Object)}
-     * method.
-     * @param name the name of the attribute
-     * @param type the class of the attribute
-     * @param publishable whether the attribute is publishable
-     * @param <T> the type of the attribute
-     * @return an attribute with the given name and type
-     * @since 7.4
-     */
-    @Incubating
-    public static <T> Attribute<T> of(String name, Class<T> type, boolean publishable) {
-        return new Attribute<>(name, type, publishable);
-    }
-
-    /**
-     * Creates a new, publishable attribute of the given name with the given type. There's no guarantee that subsequent
+     * Creates a new attribute of the given name with the given type. There's no guarantee that subsequent
      * calls to this method with the same attributes would either return the same instance or different instances
      * of {@link Attribute}, so consumers are required to compare the attributes with the {@link #equals(Object)}
      * method.
@@ -64,11 +45,11 @@ public class Attribute<T> implements Named {
      * @return an attribute with the given name and type
      */
     public static <T> Attribute<T> of(String name, Class<T> type) {
-        return new Attribute<>(name, type, true);
+        return new Attribute<T>(name, type);
     }
 
     /**
-     * Creates a new, publishable attribute of the given type, inferring the name of the attribute from the simple type name.
+     * Creates a new attribute of the given type, inferring the name of the attribute from the simple type name.
      * This method is useful when there's supposedly only one attribute of a specific type in a container, so there's
      * no need to distinguish by name (but the returned type doesn't enforce it_. There's no guarantee that subsequent
      * calls to this method with the same attributes would either return the same instance or different instances
@@ -82,13 +63,11 @@ public class Attribute<T> implements Named {
         return of(WordUtils.uncapitalize(type.getCanonicalName()), type);
     }
 
-    private Attribute(String name, Class<T> type, boolean publishable) {
+    private Attribute(String name, Class<T> type) {
         this.name = name;
         this.type = type;
-        this.publishable = publishable;
         int hashCode = name.hashCode();
         hashCode = 31 * hashCode + type.hashCode();
-        hashCode = 31 * hashCode + (publishable ? 1 : 0);
         this.hashCode = hashCode;
     }
 
@@ -109,16 +88,6 @@ public class Attribute<T> implements Named {
         return type;
     }
 
-    /**
-     * Determines if this attribute can be included on a published configuration.
-     * @return {@code true} if so; {@code false} otherwise
-     * @since 7.4
-     */
-    @Incubating
-    public boolean isPublishable() {
-        return publishable;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -131,9 +100,6 @@ public class Attribute<T> implements Named {
         Attribute<?> attribute = (Attribute<?>) o;
 
         if (!name.equals(attribute.name)) {
-            return false;
-        }
-        if (!publishable == attribute.publishable) {
             return false;
         }
         return type.equals(attribute.type);
@@ -149,4 +115,6 @@ public class Attribute<T> implements Named {
     public String toString() {
         return name;
     }
+
+
 }
