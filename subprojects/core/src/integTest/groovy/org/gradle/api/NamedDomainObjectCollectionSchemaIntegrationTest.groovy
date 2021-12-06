@@ -149,7 +149,7 @@ class NamedDomainObjectCollectionSchemaIntegrationTest extends AbstractIntegrati
                         'testCompileClasspath':'Configuration',
                         'testCompileOnly':'Configuration',
                         'testImplementation':'Configuration',
-                        'testResultsElementsForTest':'Configuration'
+                        'testResultsElementsForTest':'Configuration',
                         'testRuntimeClasspath':'Configuration',
                         'testRuntimeOnly':'Configuration'
                     )
