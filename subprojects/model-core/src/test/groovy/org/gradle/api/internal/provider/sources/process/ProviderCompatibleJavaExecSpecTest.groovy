@@ -35,7 +35,7 @@ class ProviderCompatibleJavaExecSpecTest extends ProviderCompatibleBaseExecSpecT
 
     @Override
     protected ProviderCompatibleJavaExecSpec createSpecUnderTest() {
-        def spec = new ProviderCompatibleJavaExecSpec(TestFiles.execActionFactory().newJavaExecAction())
+        def spec = new ProviderCompatibleJavaExecSpec(TestFiles.execFactory(tmpDir.testDirectory).newJavaExecAction())
         spec.mainClass.set("org.example.Main")  // This is mandatory to operate on the JavaExecSpec implementation
         return spec
     }

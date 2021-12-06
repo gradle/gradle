@@ -127,6 +127,32 @@ class ProcessOutputProviderIntegrationTest extends AbstractIntegrationSpec {
         outputContains("exit value = 1")
     }
 
+    def "providers.exec allows configuring working dir"() {
+        given:
+        def testScript = ShellScript.builder()
+            .printWorkingDir()
+            .writeTo(testDirectory, "script")
+
+        def workingDir = testDirectory.createDir("workdir")
+
+        buildFile """
+            def execProvider = providers.exec {
+                ${cmdToExecConfig(testScript.commandLine)}
+                workingDir("${TextUtil.escapeString(workingDir.path)}")
+            }
+
+            println(execProvider.standardOutput.asText.get())
+
+            task empty() {}
+        """
+
+        when:
+        run("-q", ":empty")
+
+        then:
+        outputContains("CWD=${workingDir.absolutePath}")
+    }
+
     def "providers.exec provider can be wired to the task"() {
         given:
         def testScript = ShellScript.builder()

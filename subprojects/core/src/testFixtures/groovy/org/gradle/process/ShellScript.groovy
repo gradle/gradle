@@ -41,7 +41,7 @@ abstract class ShellScript {
         }
 
         List<String> getCommandLineWithArguments(String... args) {
-            return [scriptFile.path] + args.toList()
+            return [scriptFile.absolutePath] + args.toList()
         }
     }
 
@@ -51,7 +51,7 @@ abstract class ShellScript {
         }
 
         List<String> getCommandLineWithArguments(String... args) {
-            return ["/bin/sh", scriptFile.path] + args.toList()
+            return ["/bin/sh", scriptFile.absolutePath] + args.toList()
         }
     }
 
@@ -65,6 +65,8 @@ abstract class ShellScript {
         abstract Builder printText(String text);
 
         abstract Builder printEnvironmentVariable(String variableName)
+
+        abstract Builder printWorkingDir()
 
         abstract Builder withExitValue(int exitValue)
 
@@ -106,6 +108,11 @@ abstract class ShellScript {
         }
 
         @Override
+        Builder printWorkingDir() {
+            return addLine("echo CWD=\$(pwd)")
+        }
+
+        @Override
         Builder withExitValue(int exitValue) {
             return addLine("exit $exitValue")
         }
@@ -134,6 +141,11 @@ abstract class ShellScript {
         @Override
         Builder printEnvironmentVariable(String variableName) {
             return addLine("echo $variableName=%$variableName%")
+        }
+
+        @Override
+        Builder printWorkingDir() {
+            return addLine("echo CWD=%CD%")
         }
 
         @Override

@@ -20,6 +20,7 @@ import org.gradle.process.BaseExecSpec;
 import org.gradle.process.ProcessForkOptions;
 
 import javax.annotation.Nullable;
+import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.HashMap;
@@ -29,6 +30,9 @@ abstract class ProviderCompatibleBaseExecSpec implements DelegatingBaseExecSpec 
     private final Map<String, Object> additionalEnvVars = new HashMap<>();
     @Nullable
     private Map<String, Object> fullEnvironment;
+
+    @Nullable
+    private File workingDirectory;
 
     @Override
     public BaseExecSpec setStandardInput(InputStream inputStream) {
@@ -95,6 +99,25 @@ abstract class ProviderCompatibleBaseExecSpec implements DelegatingBaseExecSpec 
     }
 
     @Override
+    public void setWorkingDir(File dir) {
+        DelegatingBaseExecSpec.super.setWorkingDir(dir);
+        workingDirectory = getWorkingDir();
+    }
+
+    @Override
+    public void setWorkingDir(Object dir) {
+        DelegatingBaseExecSpec.super.setWorkingDir(dir);
+        workingDirectory = getWorkingDir();
+    }
+
+    @Override
+    public ProcessForkOptions workingDir(Object dir) {
+        DelegatingBaseExecSpec.super.workingDir(dir);
+        workingDirectory = getWorkingDir();
+        return this;
+    }
+
+    @Override
     public ProcessForkOptions copyTo(ProcessForkOptions options) {
         return DelegatingBaseExecSpec.super.copyTo(options);
     }
@@ -103,6 +126,7 @@ abstract class ProviderCompatibleBaseExecSpec implements DelegatingBaseExecSpec 
         parameters.getCommandLine().set(getCommandLine());
         parameters.getFullEnvironment().set(fullEnvironment);
         parameters.getAdditionalEnvironmentVariables().set(additionalEnvVars.isEmpty() ? null : additionalEnvVars);
+        parameters.getWorkingDirectory().set(workingDirectory);
         parameters.getIgnoreExitValue().set(isIgnoreExitValue());
     }
 }

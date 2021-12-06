@@ -17,6 +17,7 @@
 package org.gradle.api.internal.provider.sources.process;
 
 import org.gradle.api.Describable;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
@@ -73,6 +74,13 @@ public abstract class ProcessOutputValueSource implements ValueSource<ProcessOut
         MapProperty<String, Object> getAdditionalEnvironmentVariables();
 
         /**
+         * The working directory of the process. The current directory is used if unset.
+         *
+         * @return the working directory property
+         */
+        DirectoryProperty getWorkingDirectory();
+
+        /**
          * Whether the exception should be thrown if the process has non-successful exit code.
          *
          * @return the property to ignore exit value
@@ -116,6 +124,9 @@ public abstract class ProcessOutputValueSource implements ValueSource<ProcessOut
             spec.commandLine(getParameters().getCommandLine().get());
             spec.setIgnoreExitValue(getParameters().getIgnoreExitValue().getOrElse(false));
 
+            if (getParameters().getWorkingDirectory().isPresent()) {
+                spec.setWorkingDir(getParameters().getWorkingDirectory().get().getAsFile());
+            }
             if (hasFullEnvironment()) {
                 spec.setEnvironment(getParameters().getFullEnvironment().get());
             } else if (hasAdditionalEnvVars()) {
