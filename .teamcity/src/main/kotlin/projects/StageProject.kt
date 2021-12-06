@@ -26,7 +26,13 @@ import model.StageNames
 import model.TestCoverage
 import model.TestType
 
-class StageProject(model: CIBuildModel, functionalTestBucketProvider: FunctionalTestBucketProvider, performanceTestBucketProvider: PerformanceTestBucketProvider, stage: Stage) : Project({
+class StageProject(
+    model: CIBuildModel,
+    functionalTestBucketProvider: FunctionalTestBucketProvider,
+    performanceTestBucketProvider: PerformanceTestBucketProvider,
+    stage: Stage,
+    previousPerformanceTestPasses: List<PerformanceTestsPass>
+) : Project({
     this.id("${model.projectId}_Stage_${stage.stageName.id}")
     this.name = stage.stageName.stageName
     this.description = stage.stageName.description
@@ -107,6 +113,18 @@ class StageProject(model: CIBuildModel, functionalTestBucketProvider: Functional
             if (performanceTests.size > 1) {
                 buildType(PartialTrigger("All Performance Tests for ${stage.stageName.stageName}", "Stage_${stage.stageName.id}_PerformanceTests", model, performanceTests))
             }
+        }
+
+        stage.performanceTestPartialTriggers.forEach { trigger ->
+            buildType(
+                PartialTrigger(
+                    trigger.triggerName, trigger.triggerId, model,
+                    trigger.dependencies.map { performanceTestCoverage ->
+                        val targetPerformanceTestPassBuildTypeId = "${performanceTestCoverage.asConfigurationId(model)}_Trigger"
+                        (performanceTests + previousPerformanceTestPasses).first { it.id.toString().endsWith(targetPerformanceTestPassBuildTypeId) }
+                    }
+                )
+            )
         }
     }
 

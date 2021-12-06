@@ -37,6 +37,12 @@ interface PerformanceTestProjectSpec {
     fun channel(): String
 }
 
+data class PerformanceTestPartialTrigger(
+    val triggerName: String,
+    val triggerId: String,
+    val dependencies: List<PerformanceTestCoverage>
+)
+
 data class PerformanceTestCoverage(
     private val uuid: Int,
     override val type: PerformanceTestType,
@@ -106,8 +112,10 @@ data class FlameGraphGeneration(
     ) : PerformanceTestBuildSpec {
         override
         val type: PerformanceTestType = PerformanceTestType.adHoc
+
         override
         val withoutDependencies: Boolean = true
+
         override
         fun asConfigurationId(model: CIBuildModel, bucket: String): String =
             "${this@FlameGraphGeneration.asConfigurationId(model)}$bucket"
