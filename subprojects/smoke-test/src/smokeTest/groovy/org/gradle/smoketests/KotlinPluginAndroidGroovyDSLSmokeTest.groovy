@@ -20,11 +20,8 @@ import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.android.AndroidHome
 import org.gradle.testkit.runner.GradleRunner
 
-import spock.lang.Ignore
-
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
-@Ignore("https://github.com/gradle/gradle-private/issues/3282")
 class KotlinPluginAndroidGroovyDSLSmokeTest extends AbstractSmokeTest {
 
     @UnsupportedWithConfigurationCache(iterationMatchers = [KGP_NO_CC_ITERATION_MATCHER, AGP_NO_CC_ITERATION_MATCHER])
