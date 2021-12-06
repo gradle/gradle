@@ -155,6 +155,12 @@ The following are the features that have been promoted in this Gradle release.
 
 ## Fixed issues
 
+### Idle Connection Timeout
+
+Some CI hosting providers like Azure automatically close idle connections after a certain period of time.
+This caused problems with connections to the Gradle Build Cache which could have an open connection for the entire execution of the build.
+This release of Gradle fixes this issue by automatically closing idle connections after 3 min by default.
+
 ## Known issues
 
 Known issues are problems that were discovered post release that are directly related to changes made in this release.
