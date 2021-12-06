@@ -104,6 +104,7 @@ import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.component.external.model.ProjectDerivedCapability;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.internal.deprecation.DeprecationLogger;
@@ -1091,8 +1092,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             outgoing.preventFromFurtherMutation();
             canBeMutated = false;
 
-            // If capabilities or attributes are empty, duplicate attribute sets are allowed, else check
-            if (isCanBeConsumed() && !getOutgoing().getCapabilities().isEmpty() && !getAttributes().isEmpty()) {
+            // We will only check unique attributes if this configuraion is consumable and has attributes itself
+            if (isCanBeConsumed() && !getAttributes().isEmpty()) {
                 ensureUniqueAttributes();
             }
         }
@@ -1101,8 +1102,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private void ensureUniqueAttributes() {
         final Set<? extends ConfigurationInternal> all = (configurationsProvider != null) ? configurationsProvider.getAll() : null;
         if (all != null) {
+            final Collection<? extends Capability> allCapabilities = allCapabilitiesIncludingDefault(this);
+
             final Consumer<ConfigurationInternal> warnIfDuplicate = otherConfiguration -> {
-                if (hasSameCapabilitiesAs(otherConfiguration) && hasSameAttributesAs(otherConfiguration)) {
+                if (hasSameCapabilitiesAs(allCapabilities, otherConfiguration) && hasSameAttributesAs(otherConfiguration)) {
                     DeprecationLogger.deprecateBehaviour("Consumable configurations with identical capabilities within a project must have unique attributes, but " + getDisplayName() + " and " + otherConfiguration.getDisplayName() + " contain identical attribute sets.")
                         .withAdvice("Consider adding an additional attribute to one of the configurations to disambiguate them.  Run the 'outgoingVariants' task for more details.")
                         .willBecomeAnErrorInGradle8()
@@ -1115,17 +1118,28 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 .filter(Configuration::isCanBeConsumed)
                 .filter(c -> !c.isCanBeMutated())
                 .filter(c -> c != this)
-                .filter(c -> !c.getOutgoing().getCapabilities().isEmpty())
                 .filter(c -> !c.getAttributes().isEmpty())
                 .forEach(warnIfDuplicate);
         }
     }
 
-    private boolean hasSameCapabilitiesAs(ConfigurationInternal other) {
-        final Collection<? extends Capability> capabilities = getOutgoing().getCapabilities();
-        final Collection<? extends Capability> otherCapabilities = other.getOutgoing().getCapabilities();
+    private Collection<? extends Capability> allCapabilitiesIncludingDefault(Configuration conf) {
+        if (conf.getOutgoing().getCapabilities().isEmpty()) {
+            if (domainObjectContext instanceof ProjectInternal) {
+                ProjectInternal project = (ProjectInternal) this.domainObjectContext;
+                return Collections.singleton(new ProjectDerivedCapability(project));
+            } else {
+                throw new IllegalStateException("Unknown domainObjectContext.  Configurations should have a project available, configuration '" + conf.getName() + "' does not.");
+            }
+        } else {
+            return conf.getOutgoing().getCapabilities();
+        }
+    }
+
+    private boolean hasSameCapabilitiesAs(final Collection<? extends Capability> allMyCapabilities, ConfigurationInternal other) {
+        final Collection<? extends Capability> allOtherCapabilities = allCapabilitiesIncludingDefault(other);
         //noinspection SuspiciousMethodCalls
-        return capabilities.size() == otherCapabilities.size() && capabilities.containsAll(otherCapabilities);
+        return allMyCapabilities.size() == allOtherCapabilities.size() && allMyCapabilities.containsAll(allOtherCapabilities);
     }
 
     private boolean hasSameAttributesAs(ConfigurationInternal other) {

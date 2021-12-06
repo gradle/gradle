@@ -19,7 +19,7 @@ package org.gradle.integtests.resolve.attributes
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
-    def "warns if attribute combinations are not unique"() {
+    def "matching attribute combinations and capabilities triggers a warning"() {
         given:
         buildFile << """
             plugins {
@@ -63,7 +63,46 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
         succeeds("outgoingVariants")
     }
 
-    def "the default capability never triggers warning, even if there is a match"() {
+    def "matching attribute combinations using the default capability, triggers a warning"() {
+        given:
+        settingsFile << "rootProject.name = 'sample'"
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            group = 'org.gradle'
+            version = '1.0'
+
+            configurations {
+                sample1 {
+                    canBeResolved = false
+                    canBeConsumed = true
+
+                    attributes {
+                        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
+                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "custom"))
+                    }
+                }
+
+                sample2 {
+                    canBeResolved = false
+                    canBeConsumed = true
+
+                    attributes {
+                        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
+                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "custom"))
+                    }
+                }
+            }""".stripIndent()
+
+        expect:
+        succeeds("outgoingVariants")
+        executer.expectDocumentedDeprecationWarning("Consumable configurations with identical capabilities within a project must have unique attributes, but configuration ':sample2' and configuration ':sample1' contain identical attribute sets.")
+        outputContains("org.gradle:sample:1.0 (default capability)")
+    }
+
+    def "matching attribute combinations, where one uses the default capability and one uses a matching explicit capability, triggers a warning"() {
         given:
         settingsFile << "rootProject.name = 'sample'"
         buildFile << """
@@ -103,10 +142,52 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds("outgoingVariants")
+        executer.expectDocumentedDeprecationWarning("Consumable configurations with identical capabilities within a project must have unique attributes, but configuration ':sample2' and configuration ':sample1' contain identical attribute sets.")
         outputContains("org.gradle:sample:1.0 (default capability)")
     }
 
-    def "attribute combinations can be repeated if capabilities differ"() {
+    def "attribute combinations can be repeated if capabilities differ without a warning"() {
+        given:
+        settingsFile << "rootProject.name = 'sample'"
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            group = 'org.gradle'
+            version = '1.0'
+
+            configurations {
+                sample1 {
+                    canBeResolved = false
+                    canBeConsumed = true
+
+                    attributes {
+                        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
+                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "custom"))
+                    }
+                }
+
+                sample2 {
+                    canBeResolved = false
+                    canBeConsumed = true
+
+                    attributes {
+                        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
+                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "custom"))
+                    }
+
+                    outgoing {
+                        capability('org.gradle:test:2.0')
+                    }
+                }
+            }""".stripIndent()
+
+        expect:
+        succeeds("outgoingVariants")
+    }
+
+    def "attribute combinations can be repeated if capabilities differ, including the default capability without a warning"() {
         given:
         buildFile << """
             plugins {
@@ -203,6 +284,67 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             tasks.register('allOutgoingVariants') {
                 dependsOn ':subA:outgoingVariants', ':subB:outgoingVariants'
+            }
+            """.stripIndent()
+
+        expect:
+        succeeds("allOutgoingVariants")
+    }
+
+    def "attribute and capability combinations, including the default capability, can be repeated across projects without a warning"() {
+        given:
+        def subADir = createDir("subA")
+        subADir.file("build.gradle") << """
+            plugins {
+                id 'java'
+            }
+
+            configurations {
+                sampleA {
+                    canBeResolved = false
+                    canBeConsumed = true
+
+                    attributes {
+                        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
+                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "custom"))
+                    }
+
+                    outgoing {
+                        // Force identical capabilities by overriding the default
+                        capability('org.gradle:sample:1.0')
+                    }
+                }
+            }""".stripIndent()
+
+        def subBDir = createDir("sample")
+        subBDir.file("build.gradle") << """
+            plugins {
+                id 'java'
+            }
+
+            group = 'org.gradle'
+            version = '1.0'
+
+            configurations {
+                sampleB {
+                    canBeResolved = false
+                    canBeConsumed = true
+
+                    attributes {
+                        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
+                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "custom"))
+                    }
+                }
+            }""".stripIndent()
+
+        settingsFile << """
+            include ':subA'
+            include ':sample'
+            """.stripIndent()
+
+        buildFile << """
+            tasks.register('allOutgoingVariants') {
+                dependsOn ':subA:outgoingVariants', ':sample:outgoingVariants'
             }
             """.stripIndent()
 
