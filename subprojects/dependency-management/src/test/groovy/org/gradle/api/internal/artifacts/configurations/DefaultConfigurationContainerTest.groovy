@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.UnknownConfigurationException
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.DomainObjectContext
+import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter
 import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
@@ -97,7 +98,7 @@ class DefaultConfigurationContainerTest extends Specification {
         Mock(WorkerThreadRegistry),
         TestUtil.domainObjectCollectionFactory(),
         calculatedValueContainerFactory,
-        featurePreviews
+        new FeaturePreviews()
     )
     private DefaultConfigurationContainer configurationContainer = instantiator.newInstance(DefaultConfigurationContainer.class,
         instantiator,

@@ -93,14 +93,63 @@ class NamedDomainObjectCollectionSchemaIntegrationTest extends AbstractIntegrati
                         'default':'Configuration',
                         'implementation':'Configuration',
                         'runtimeClasspath':'Configuration',
-                        'mainSourceElements':'Configuration',
                         'runtimeElements':'Configuration',
                         'runtimeOnly':'Configuration',
                         'testAnnotationProcessor':'Configuration',
                         'testCompileClasspath':'Configuration',
-                        'testResultsElementsForTest':'Configuration',
                         'testCompileOnly':'Configuration',
                         'testImplementation':'Configuration',
+                        'testRuntimeClasspath':'Configuration',
+                        'testRuntimeOnly':'Configuration'
+                    )
+                }
+            }
+        """
+        expect:
+        succeeds("assertSchema")
+    }
+
+    def "built-in container types presents public type in schema with new incubating configurations"() {
+        settingsFile << """
+                enableFeaturePreview('TEST_DATA_VARIANTS')
+             """.stripIndent()
+
+        buildFile """
+            apply plugin: 'java'
+
+            repositories {
+                maven {}
+                ivy {}
+            }
+
+            task assertSchema {
+                doLast {
+                    assertSchemaIs(sourceSets,
+                        "main": "SourceSet",
+                        "test": "SourceSet"
+                    )
+                    assertSchemaIs(repositories,
+                        // TODO: These should be more specific eventually
+                        "maven": "ArtifactRepository",
+                        "ivy": "ArtifactRepository"
+                    )
+                    assertSchemaIs(configurations,
+                        'annotationProcessor':'Configuration',
+                        'apiElements':'Configuration',
+                        'archives':'Configuration',
+                        'compileClasspath':'Configuration',
+                        'compileOnly':'Configuration',
+                        'default':'Configuration',
+                        'implementation':'Configuration',
+                        'mainSourceElements':'Configuration',
+                        'runtimeClasspath':'Configuration',
+                        'runtimeElements':'Configuration',
+                        'runtimeOnly':'Configuration',
+                        'testAnnotationProcessor':'Configuration',
+                        'testCompileClasspath':'Configuration',
+                        'testCompileOnly':'Configuration',
+                        'testImplementation':'Configuration',
+                        'testResultsElementsForTest':'Configuration'
                         'testRuntimeClasspath':'Configuration',
                         'testRuntimeOnly':'Configuration'
                     )

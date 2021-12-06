@@ -24,6 +24,10 @@ import static org.hamcrest.CoreMatchers.startsWith
 class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         multiProjectBuild("root", ["application", "direct", "transitive"]) {
+            settingsFile << """
+                enableFeaturePreview('TEST_DATA_VARIANTS')
+             """.stripIndent()
+
             buildFile << """
                 allprojects {
                     repositories {
@@ -149,6 +153,10 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
 
     def "can aggregate jacoco execution data from subprojects"() {
         given:
+        settingsFile << """
+            enableFeaturePreview('TEST_DATA_VARIANTS')
+         """.stripIndent()
+
         file("application/build.gradle") << """
             apply plugin: 'org.gradle.jacoco-report-aggregation'
         """
@@ -171,6 +179,10 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
 
     def "aggregated report does not contain external dependencies"() {
         given:
+        settingsFile << """
+            enableFeaturePreview('TEST_DATA_VARIANTS')
+         """.stripIndent()
+
         file("application/build.gradle") << """
             apply plugin: 'org.gradle.jacoco-report-aggregation'
         """
@@ -189,6 +201,10 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def 'multiple test suites create multiple aggregation tasks'() {
+        settingsFile << """
+            enableFeaturePreview('TEST_DATA_VARIANTS')
+         """.stripIndent()
+
         given:
         file("transitive/build.gradle") << """
             testing {
@@ -291,6 +307,10 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
 
     def "can aggregate jacoco reports from root project"() {
         given:
+        settingsFile << """
+            enableFeaturePreview('TEST_DATA_VARIANTS')
+         """.stripIndent()
+
         buildFile << """
             apply plugin: 'org.gradle.jacoco-report-aggregation'
 
@@ -338,6 +358,11 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
               attribute(Attribute.of('customAttribute', String), 'bar')
             }
         '''
+
+        settingsFile << """
+            enableFeaturePreview('TEST_DATA_VARIANTS')
+         """.stripIndent()
+
         buildFile << '''
             apply plugin: 'org.gradle.jacoco-report-aggregation'
 
@@ -384,6 +409,10 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
 
     def 'test verification failure prevents creation of aggregated report'() {
         given:
+        settingsFile << """
+            enableFeaturePreview('TEST_DATA_VARIANTS')
+         """.stripIndent()
+
         file("application/build.gradle") << """
             apply plugin: 'org.gradle.jacoco-report-aggregation'
         """
@@ -419,6 +448,10 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
 
     def 'test verification failure creates aggregated report with --continue flag'() {
         given:
+        settingsFile << """
+            enableFeaturePreview('TEST_DATA_VARIANTS')
+         """.stripIndent()
+
         file("application/build.gradle") << """
             apply plugin: 'org.gradle.jacoco-report-aggregation'
         """
@@ -460,6 +493,10 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
 
     def 'catastrophic failure of single test prevents creation of aggregated report'() {
         given:
+        settingsFile << """
+            enableFeaturePreview('TEST_DATA_VARIANTS')
+         """.stripIndent()
+
         file("application/build.gradle") << """
             apply plugin: 'org.gradle.jacoco-report-aggregation'
         """
@@ -498,6 +535,10 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
 
     def 'catastrophic failure of every test task prevents creation of aggregated report'() {
         given:
+        settingsFile << """
+            enableFeaturePreview('TEST_DATA_VARIANTS')
+         """.stripIndent()
+
         // prevent all test VMs from starting
         buildFile << '''
                 subprojects {
