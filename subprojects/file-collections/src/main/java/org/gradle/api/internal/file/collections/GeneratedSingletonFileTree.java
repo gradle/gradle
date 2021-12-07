@@ -100,7 +100,7 @@ public class GeneratedSingletonFileTree implements FileSystemMirroringFileTree, 
     }
 
     @Override
-    public void visitStructure(FileCollectionStructureVisitor visitor, FileTreeInternal owner) {
+    public void visitStructure(MinimalFileTreeStructureVisitor visitor, FileTreeInternal owner) {
         if (visitor.prepareForVisit(this) != FileCollectionStructureVisitor.VisitType.NoContents) {
             // TODO: Fail when using NoContents when we moved to using the new file system watching infrastructure for continuous build.
             visitor.visitFileTree(getFile(), new PatternSet(), owner);
