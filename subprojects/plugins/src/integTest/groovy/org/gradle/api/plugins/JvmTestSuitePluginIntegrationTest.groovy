@@ -17,10 +17,11 @@
 package org.gradle.api.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.InspectsOutgoingVariants
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 
-class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
+class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec implements InspectsOutgoingVariants {
 
     @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
     def "JVM Test Suites plugin adds outgoing variants for default test suite"() {
@@ -46,7 +47,7 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
         def resultsPath = new TestFile(getTestDirectory(), 'build/test-results/test/binary').getRelativePathFromBase()
         outputContains("""
             --------------------------------------------------
-            Variant testResultsElementsForTest
+            Variant testResultsElementsForTest (i)
             --------------------------------------------------
             Capabilities
                 - :Test:unspecified (default capability)
@@ -60,6 +61,9 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
             Artifacts
                 - $resultsPath (artifactType = directory)
             """.stripIndent())
+
+        and:
+        hasIncubatingVariantsLegend()
     }
 
     @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
@@ -90,7 +94,7 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
         def resultsPath = new TestFile(getTestDirectory(), 'build/test-results/integrationTest/binary').getRelativePathFromBase()
         outputContains("""
             --------------------------------------------------
-            Variant testResultsElementsForIntegrationTest
+            Variant testResultsElementsForIntegrationTest (i)
             --------------------------------------------------
             Capabilities
                 - :Test:unspecified (default capability)
@@ -104,6 +108,9 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
             Artifacts
                 - $resultsPath (artifactType = directory)
             """.stripIndent())
+
+        and:
+        hasIncubatingVariantsLegend()
     }
 
     def "Test coverage data can be consumed by another task via Dependency Management"() {
