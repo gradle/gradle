@@ -1304,7 +1304,6 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "can not publish variant with attribute specifying category = verification"() {
         given:
         createBuildScripts("""
@@ -1365,7 +1364,8 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         failure.assertHasCause("Cannot publish module metadata for component 'java' which would include a variant 'testConf' that contains a 'org.gradle.category' attribute with a value of 'verification'.  This attribute is reserved for test verification output and is not publishable.  See: ")
     }
 
-    def "can publish variants with attribute specifying category if not verification"() {
+    @ToBeFixedForConfigurationCache
+    def "can publish variants with attribute specifying category if value not verification"() {
         given:
         createBuildScripts("""
 
