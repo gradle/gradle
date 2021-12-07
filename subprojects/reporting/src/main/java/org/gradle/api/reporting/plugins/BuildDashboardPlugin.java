@@ -30,7 +30,7 @@ import org.gradle.api.tasks.TaskProvider;
 /**
  * Adds a task, "buildDashboard", that aggregates the output of all tasks that produce reports.
  *
- * @see <a href="https://docs.gradle.org/current/userguide/bNuild_dashboard_plugin.html">Build Dashboard plugin reference</a>
+ * @see <a href="https://docs.gradle.org/current/userguide/build_dashboard_plugin.html">Build Dashboard plugin reference</a>
  */
 public class BuildDashboardPlugin implements Plugin<Project> {
 

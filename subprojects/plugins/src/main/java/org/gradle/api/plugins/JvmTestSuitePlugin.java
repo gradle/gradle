@@ -55,7 +55,7 @@ import java.util.Map;
  * </ul>
  *
  * @since 7.3
- * @see <a href="https://docs.gradle.org/current/userguide/test_suite_plugin.html">Test Suite plugin reference</a>
+ * @see <a href="https://docs.gradle.org/current/userguide/jvm_test_suite_plugin.html">Test Suite plugin reference</a>
  */
 @Incubating
 public class JvmTestSuitePlugin implements Plugin<Project> {
