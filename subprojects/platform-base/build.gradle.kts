@@ -43,4 +43,4 @@ classycle {
 
 integTest.usesJavadocCodeSnippets.set(true)
 
-description = """Provides general purpose types for runtime and language support."""
+description = """Provides general purpose base types and interfaces for modeling projects, and provides runtime and language support."""
