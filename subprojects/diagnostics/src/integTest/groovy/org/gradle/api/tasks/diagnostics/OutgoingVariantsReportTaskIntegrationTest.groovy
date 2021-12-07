@@ -43,6 +43,9 @@ class OutgoingVariantsReportTaskIntegrationTest extends AbstractIntegrationSpec 
         def jarPath = file('build/libs/myLib-1.0.jar').getRelativePathFromBase()
         def builtMainClassesPath = file('build/classes/java/main').getRelativePathFromBase()
         def builtMainResourcesPath = file('build/resources/main').getRelativePathFromBase()
+        def sourceMainJavaPath = file('src/main/java').getRelativePathFromBase()
+        def sourceMainResourcePath = file('src/main/resources').getRelativePathFromBase()
+        def resultsBinPath = file('build/test-results/test/binary').getRelativePathFromBase()
         outputContains """> Task :outgoingVariants
 --------------------------------------------------
 Variant apiElements
@@ -71,6 +74,20 @@ Secondary variants (*)
           - org.gradle.usage               = java-api
        - Artifacts
           - $builtMainClassesPath (artifactType = java-classes-directory)
+
+--------------------------------------------------
+Variant mainSourceElements (i)
+--------------------------------------------------
+Capabilities
+    - org:myLib:1.0 (default capability)
+Attributes
+    - org.gradle.category            = verification
+    - org.gradle.dependency.bundling = external
+    - org.gradle.verificationtype    = main-sources
+
+Artifacts
+    - $sourceMainJavaPath (artifactType = directory)
+    - $sourceMainResourcePath (artifactType = directory)
 
 --------------------------------------------------
 Variant runtimeElements
@@ -108,9 +125,26 @@ Secondary variants (*)
           - org.gradle.usage               = java-runtime
        - Artifacts
           - $builtMainResourcesPath (artifactType = java-resources-directory)
+
+--------------------------------------------------
+Variant testResultsElementsForTest (i)
+--------------------------------------------------
+Capabilities
+    - org:myLib:1.0 (default capability)
+Attributes
+    - org.gradle.category              = verification
+    - org.gradle.testsuite.name        = test
+    - org.gradle.testsuite.target.name = test
+    - org.gradle.testsuite.type        = unit-test
+    - org.gradle.verificationtype      = test-results
+
+Artifacts
+    - $resultsBinPath (artifactType = directory)
+
 """
         and:
         doesNotHaveLegacyVariantsLegend()
+        hasIncubatingVariantsLegend()
         hasSecondaryVariantsLegend()
     }
 
@@ -135,6 +169,9 @@ Secondary variants (*)
         def sourcesJarPath = file('build/libs/myLib-1.0-sources.jar').getRelativePathFromBase()
         def builtMainClassesPath = file('build/classes/java/main').getRelativePathFromBase()
         def builtMainResourcesPath = file('build/resources/main').getRelativePathFromBase()
+        def sourceMainJavaPath = file('src/main/java').getRelativePathFromBase()
+        def sourceMainResourcePath = file('src/main/resources').getRelativePathFromBase()
+        def resultsBinPath = file('build/test-results/test/binary').getRelativePathFromBase()
         outputContains """> Task :outgoingVariants
 --------------------------------------------------
 Variant apiElements
@@ -179,6 +216,20 @@ Attributes
 
 Artifacts
     - $javadocJarPath (artifactType = jar)
+
+--------------------------------------------------
+Variant mainSourceElements (i)
+--------------------------------------------------
+Capabilities
+    - org:myLib:1.0 (default capability)
+Attributes
+    - org.gradle.category            = verification
+    - org.gradle.dependency.bundling = external
+    - org.gradle.verificationtype    = main-sources
+
+Artifacts
+    - $sourceMainJavaPath (artifactType = directory)
+    - $sourceMainResourcePath (artifactType = directory)
 
 --------------------------------------------------
 Variant runtimeElements
@@ -232,6 +283,21 @@ Attributes
 
 Artifacts
     - $sourcesJarPath (artifactType = jar)
+
+--------------------------------------------------
+Variant testResultsElementsForTest (i)
+--------------------------------------------------
+Capabilities
+    - org:myLib:1.0 (default capability)
+Attributes
+    - org.gradle.category              = verification
+    - org.gradle.testsuite.name        = test
+    - org.gradle.testsuite.target.name = test
+    - org.gradle.testsuite.type        = unit-test
+    - org.gradle.verificationtype      = test-results
+
+Artifacts
+    - $resultsBinPath (artifactType = directory)
 """
         and:
         doesNotHaveLegacyVariantsLegend()
@@ -240,10 +306,6 @@ Artifacts
 
     @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
     def "reports outgoing variants of a Java Library with documentation including test data variants"() {
-        settingsFile << """
-            enableFeaturePreview('TEST_DATA_VARIANTS')
-         """.stripIndent()
-
         buildFile << """
             plugins { id 'java-library' }
             java {
@@ -470,7 +532,7 @@ Secondary variants (*)
         then:
         outputContains("""> Task :outgoingVariants
 There is no variant named 'nope' defined on this project.
-Here are the available outgoing variants: apiElements, archives, default, runtimeElements
+Here are the available outgoing variants: apiElements, archives, default, mainSourceElements, runtimeElements, testResultsElementsForTest
 """)
         and:
         doesNotHaveLegacyVariantsLegend()
@@ -494,6 +556,10 @@ Here are the available outgoing variants: apiElements, archives, default, runtim
         def jarPath = file('build/libs/myLib-1.0.jar').getRelativePathFromBase()
         def builtMainClassesPath = file('build/classes/java/main').getRelativePathFromBase()
         def builtMainResourcesPath = file('build/resources/main').getRelativePathFromBase()
+        def sourceMainJavaPath = file('src/main/java').getRelativePathFromBase()
+        def sourceMainResourcePath = file( 'src/main/resources').getRelativePathFromBase()
+        def resultsBinPath = file('build/test-results/test/binary').getRelativePathFromBase()
+
         outputContains """> Task :outgoingVariants
 --------------------------------------------------
 Variant apiElements
@@ -540,6 +606,20 @@ Artifacts
     - $jarPath (artifactType = jar)
 
 --------------------------------------------------
+Variant mainSourceElements (i)
+--------------------------------------------------
+Capabilities
+    - org:myLib:1.0 (default capability)
+Attributes
+    - org.gradle.category            = verification
+    - org.gradle.dependency.bundling = external
+    - org.gradle.verificationtype    = main-sources
+
+Artifacts
+    - $sourceMainJavaPath (artifactType = directory)
+    - $sourceMainResourcePath (artifactType = directory)
+
+--------------------------------------------------
 Variant runtimeElements
 --------------------------------------------------
 Description = Elements of runtime for main.
@@ -575,20 +655,31 @@ Secondary variants (*)
           - org.gradle.usage               = java-runtime
        - Artifacts
           - $builtMainResourcesPath (artifactType = java-resources-directory)
+
+--------------------------------------------------
+Variant testResultsElementsForTest (i)
+--------------------------------------------------
+Capabilities
+    - org:myLib:1.0 (default capability)
+Attributes
+    - org.gradle.category              = verification
+    - org.gradle.testsuite.name        = test
+    - org.gradle.testsuite.target.name = test
+    - org.gradle.testsuite.type        = unit-test
+    - org.gradle.verificationtype      = test-results
+
+Artifacts
+    - $resultsBinPath (artifactType = directory)
 """
 
         and:
         hasLegacyVariantsLegend()
+        hasIncubatingVariantsLegend()
         hasSecondaryVariantsLegend()
-        doesNotHaveIncubatingVariantsLegend()
     }
 
     @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
     def "can show all variants including test data variants"() {
-        settingsFile << """
-            enableFeaturePreview('TEST_DATA_VARIANTS')
-        """.stripIndent()
-
         buildFile << """
             plugins { id 'java-library' }
             group = 'org'
@@ -844,6 +935,9 @@ Secondary variants (*)
         def jarPath = file('build/libs/myLib-1.0.jar').getRelativePathFromBase()
         def builtMainClassesPath = file('build/classes/java/main').getRelativePathFromBase()
         def builtMainResourcesPath = file('build/resources/main').getRelativePathFromBase()
+        def sourceMainJavaPath = file('src/main/java').getRelativePathFromBase()
+        def sourceMainResourcePath = file('src/main/resources').getRelativePathFromBase()
+        def resultsBinPath = file('build/test-results/test/binary').getRelativePathFromBase()
         outputContains """> Task :outgoingVariants
 --------------------------------------------------
 Variant apiElements
@@ -872,6 +966,20 @@ Secondary variants (*)
           - org.gradle.usage               = java-api
        - Artifacts
           - $builtMainClassesPath (artifactType = java-classes-directory)
+
+--------------------------------------------------
+Variant mainSourceElements (i)
+--------------------------------------------------
+Capabilities
+    - org:myLib:1.0 (default capability)
+Attributes
+    - org.gradle.category            = verification
+    - org.gradle.dependency.bundling = external
+    - org.gradle.verificationtype    = main-sources
+
+Artifacts
+    - $sourceMainJavaPath (artifactType = directory)
+    - $sourceMainResourcePath (artifactType = directory)
 
 --------------------------------------------------
 Variant runtimeElements
@@ -917,6 +1025,21 @@ Capabilities
     - org:myLib:1.0 (default capability)
 Attributes
     - org.gradle.category = verification
+
+--------------------------------------------------
+Variant testResultsElementsForTest (i)
+--------------------------------------------------
+Capabilities
+    - org:myLib:1.0 (default capability)
+Attributes
+    - org.gradle.category              = verification
+    - org.gradle.testsuite.name        = test
+    - org.gradle.testsuite.target.name = test
+    - org.gradle.testsuite.type        = unit-test
+    - org.gradle.verificationtype      = test-results
+
+Artifacts
+    - $resultsBinPath (artifactType = directory)
 """
 
         and:
