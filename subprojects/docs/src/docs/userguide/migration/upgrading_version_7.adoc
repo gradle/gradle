@@ -82,6 +82,13 @@ Instead, convert the resource to a file and use `project.tarTree()` on the file.
 To convert the resource to a file you can use a custom task or use dependency management to download the file via a URL.
 This way, Gradle is able to apply optimizations like up-to-date checks instead of re-running the logic to create the resource every time.
 
+[[unique_attribute_sets]]
+==== Unique attribute sets
+
+The set of link:{javadocPath}/org/gradle/api/attribute/Attribute.html[Attribute]s associated with a _consumable_ configuration within a project, must be unique across all other configurations within that project _which share the same set of link:{javadocPath}/org/gradle/api/capabilities/Capability.html[Capability]s.  This will be checked at the end of configuring variant configurations, as they are locked against further mutation.
+
+If the set of attributes is shared across configurations, consider adding an additional attribute to one of the variants for the sole purpose of disambiguation.
+
 [[changes_7.3]]
 == Upgrading from 7.2 and earlier
 
