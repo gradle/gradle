@@ -19,7 +19,6 @@ package org.gradle.integtests.resolve.platforms
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 
@@ -28,7 +27,6 @@ import static org.gradle.util.internal.TextUtil.escapeString
 @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value="true")
 @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value="maven")
 class NativeAlignmentWithJavaPlatformResolveIntegrationTest extends AbstractModuleDependencyResolveTest {
-    @ToBeFixedForConfigurationCache
     def "publishes a platform with native alignment"() {
         settingsFile << """
             rootProject.name = 'root'

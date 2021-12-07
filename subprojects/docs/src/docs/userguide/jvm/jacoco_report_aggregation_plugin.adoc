@@ -1,0 +1,30 @@
+// Copyright 2021 the original author or authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[jacoco_report_aggregation_plugin]]
+= The JaCoCo Report Aggregation Plugin
+
+The JaCoCo Report Aggregation plugin (plugin id: `jacoco-report-aggregation`) provides the ability to aggregate the results of multiple JaCoCo code coverage reports (potentially spanning multiple Gradle projects) into a single HTML report.  The binary data backing the coverage reports are produced by link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] task invocations; see more at the <<jacoco_plugin#jacoco_plugin,JaCoCo Plugin>> chapter.
+
+The plugin adds configurations and artifact views which collect variants exposed by the JaCoCo Plugin. More details TBD
+
+[[sec:test_report_aggregation_usage]]
+== Usage
+
+There are two ways to collect code coverage across multiple subprojects:
+
+1. From the distribution's project, such as an Android application or WAR subproject -> link:../samples/sample_jvm_multi_project_with_code_coverage_distribution.html[distribution sample]
+2. Using a standalone project to specify subprojects -> link:../samples/sample_jvm_multi_project_with_code_coverage_standalone.html[standalone sample]
+
+Details TBD

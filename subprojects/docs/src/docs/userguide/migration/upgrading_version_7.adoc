@@ -81,6 +81,23 @@ require it in the future.
 
 This also affects other internal APIs that use LazyPublishArtifact, which now also have deprecation warnings where needed.
 
+[[tar_tree_no_backing_file]]
+==== TAR trees from resources without backing files
+
+It is possible to create TAR trees from arbitrary resources.
+If the resource is not created via `project.resources`, then it may not have a backing file.
+Creating a TAR tree from a resource with no backing file has been deprecated.
+Instead, convert the resource to a file and use `project.tarTree()` on the file.
+To convert the resource to a file you can use a custom task or use dependency management to download the file via a URL.
+This way, Gradle is able to apply optimizations like up-to-date checks instead of re-running the logic to create the resource every time.
+
+[[unique_attribute_sets]]
+==== Unique attribute sets
+
+The set of link:{javadocPath}/org/gradle/api/attribute/Attribute.html[Attribute]s associated with a _consumable_ configuration within a project, must be unique across all other configurations within that project _which share the same set of link:{javadocPath}/org/gradle/api/capabilities/Capability.html[Capability]s.  This will be checked at the end of configuring variant configurations, as they are locked against further mutation.
+
+If the set of attributes is shared across configurations, consider adding an additional attribute to one of the variants for the sole purpose of disambiguation.
+
 [[changes_7.3]]
 == Upgrading from 7.2 and earlier
 
@@ -307,14 +324,14 @@ link:{groovyDslPath}/org.gradle.api.tasks.GradleBuild.html[GradleBuild] task as 
 <<authoring_maintainable_build_scripts#sec:avoiding_use_of_gradlebuild, Avoid using the GradleBuild task type>> section.
 
 Setting custom build layout using
-link:{groovyDslPath}/org.gradle.StartParameter.html[StartParameter] methods
-link:{groovyDslPath}/org.gradle.StartParameter.html#setBuildFile-java.io.File-[setBuildFile(File)]
+link:{javadocPath}/org/gradle/StartParameter.html[StartParameter] methods
+link:{javadocPath}/org/gradle/StartParameter.html#setBuildFile-java.io.File-[setBuildFile(File)]
 and
-link:{groovyDslPath}/org.gradle.StartParameter.html#setSettingsFile-java.io.File-[setSettingsFile(File)]
+link:{javadocPath}/org/gradle/StartParameter.html#setSettingsFile-java.io.File-[setSettingsFile(File)]
 as well as the counterpart getters
-link:{groovyDslPath}/org.gradle.StartParameter.html#getBuildFile--[getBuildFile()]
+link:{javadocPath}/org/gradle/StartParameter.html#getBuildFile--[getBuildFile()]
 and
-link:{groovyDslPath}/org.gradle.StartParameter.html#getSettingsFile--[getSettingsFile()]
+link:{javadocPath}/org/gradle/StartParameter.html#getSettingsFile--[getSettingsFile()]
 have been deprecated.
 
 Please use standard locations for settings and build files:
@@ -425,7 +442,7 @@ Now, it is officially annotated as deprecated and scheduled for removal in Gradl
 ==== Deprecated `java` plugin conventions
 
 The convention properties contributed by the `java` plugin have been deprecated and scheduled for removal in Gradle 8.0.
-They are replaced by the the properties of link:{groovyDslPath}/org.gradle.api.plugins.JavaPluginExtension.html[JavaPluginExtension] which can we configured in the `java {}` block.
+They are replaced by the the properties of link:{groovyDslPath}/org.gradle.api.plugins.JavaPluginExtension.html[JavaPluginExtension] which can be configured in the `java {}` block.
 
 [[plugin_configuration_consumption]]
 ==== Deprecated consumption of internal plugin configurations
@@ -513,6 +530,7 @@ The following source set interfaces are now deprecated and scheduled for removal
 - link:{javadocPath}/org/gradle/api/tasks/ScalaSourceSet.html[ScalaSourceSet]
 
 Clients should configure the sources with their plugin-specific configuration:
+
 - `groovy`: link:{javadocPath}/org/gradle/api/tasks/GroovySourceDirectorySet.html[GroovySourceDirectorySet]
 - `antlr`: link:{javadocPath}/org/gradle/api/plugins/antlr/AntlrSourceDirectorySet.html[AntlrSourceDirectorySet]
 - `scala`: link:{javadocPath}/org/gradle/api/tasks/ScalaSourceDirectorySet.html[ScalaSourceDirectorySet]

@@ -29,7 +29,7 @@ import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.LocalComponentMetadataBuilder
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultRootComponentMetadataBuilder
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.RootScriptDomainObjectContext
@@ -50,9 +50,10 @@ import spock.lang.Specification
 class DefaultConfigurationContainerTest extends Specification {
 
     private ConfigurationResolver resolver = Mock(ConfigurationResolver)
-    private ListenerManager listenerManager = Stub(ListenerManager.class)
+    private ListenerManager listenerManager = Stub(ListenerManager.class) {
+        _ * getBroadcaster(ProjectDependencyObservedListener.class) >> Stub(ProjectDependencyObservedListener)
+    }
     private DependencyMetaDataProvider metaDataProvider = Mock(DependencyMetaDataProvider.class)
-    private LocalComponentMetadataBuilder metaDataBuilder = Mock(LocalComponentMetadataBuilder)
     private ComponentIdentifierFactory componentIdentifierFactory = Mock(ComponentIdentifierFactory)
     private DependencySubstitutionRules globalSubstitutionRules = Mock(DependencySubstitutionRules)
     private VcsMappingsStore vcsMappingsInternal = Mock(VcsMappingsStore)
@@ -73,6 +74,9 @@ class DefaultConfigurationContainerTest extends Specification {
     }
     private ComponentSelectorConverter componentSelectorConverter = Mock()
     private DomainObjectContext domainObjectContext = new RootScriptDomainObjectContext()
+    private DefaultRootComponentMetadataBuilder.Factory rootComponentMetadataBuilderFactory = Mock(DefaultRootComponentMetadataBuilder.Factory) {
+        create(_) >> Mock(DefaultRootComponentMetadataBuilder)
+    }
     private DefaultConfigurationFactory configurationFactory = new DefaultConfigurationFactory(
         instantiator,
         resolver,
@@ -97,8 +101,6 @@ class DefaultConfigurationContainerTest extends Specification {
     )
     private DefaultConfigurationContainer configurationContainer = instantiator.newInstance(DefaultConfigurationContainer.class,
         instantiator,
-        metaDataProvider,
-        metaDataBuilder,
         globalSubstitutionRules,
         vcsMappingsInternal,
         componentIdentifierFactory,
@@ -106,10 +108,10 @@ class DefaultConfigurationContainerTest extends Specification {
         moduleIdentifierFactory,
         componentSelectorConverter,
         lockingProvider,
-        projectStateRegistry,
         callbackActionDecorator,
         Mock(NotationParser),
         TestUtil.objectFactory(),
+        rootComponentMetadataBuilderFactory,
         configurationFactory
     )
 

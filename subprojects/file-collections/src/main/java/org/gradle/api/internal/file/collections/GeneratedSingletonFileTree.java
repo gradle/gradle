@@ -144,6 +144,7 @@ public class GeneratedSingletonFileTree implements FileSystemMirroringFileTree, 
             if (file == null) {
                 file = createFileInstance(fileName);
                 if (!file.exists()) {
+                    fileGenerationListener.execute(file);
                     copyTo(file);
                 } else {
                     updateFileOnlyWhenGeneratedContentChanges();

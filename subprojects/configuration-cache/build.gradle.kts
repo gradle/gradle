@@ -118,5 +118,3 @@ dependencies {
 classycle {
     excludePatterns.add("org/gradle/configurationcache/**")
 }
-
-testFilesCleanup.reportOnly.set(true)

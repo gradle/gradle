@@ -61,7 +61,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomM
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.DependencyVerificationOverride;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.FileStoreAndIndexProvider;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.LocalComponentMetadataBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultRootComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalConfigurationMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorFactory;
@@ -200,6 +200,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         void configure(ServiceRegistration registration) {
             registration.add(DefaultTransformedVariantFactory.class);
             registration.add(DefaultConfigurationFactory.class);
+            registration.add(DefaultRootComponentMetadataBuilder.Factory.class);
         }
 
         AttributesSchemaInternal createConfigurationAttributesSchema(InstantiatorFactory instantiatorFactory, IsolatableFactory isolatableFactory, PlatformSupport platformSupport) {
@@ -329,8 +330,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
 
         ConfigurationContainerInternal createConfigurationContainer(
             Instantiator instantiator,
-            DependencyMetaDataProvider metaDataProvider,
-            LocalComponentMetadataBuilder metaDataBuilder,
             GlobalDependencyResolutionRules globalDependencyResolutionRules,
             VcsMappingsStore vcsMappingsStore,
             ComponentIdentifierFactory componentIdentifierFactory,
@@ -338,16 +337,14 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             ImmutableModuleIdentifierFactory moduleIdentifierFactory,
             ComponentSelectorConverter componentSelectorConverter,
             DependencyLockingProvider dependencyLockingProvider,
-            ProjectStateRegistry projectStateRegistry,
             CollectionCallbackActionDecorator callbackDecorator,
             NotationParser<Object, ComponentSelector> moduleSelectorNotationParser,
             ObjectFactory objectFactory,
+            DefaultRootComponentMetadataBuilder.Factory rootComponentMetadataBuilderFactory,
             DefaultConfigurationFactory defaultConfigurationFactory
         ) {
             return instantiator.newInstance(DefaultConfigurationContainer.class,
                 instantiator,
-                metaDataProvider,
-                metaDataBuilder,
                 globalDependencyResolutionRules.getDependencySubstitutionRules(),
                 vcsMappingsStore,
                 componentIdentifierFactory,
@@ -355,10 +352,10 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 moduleIdentifierFactory,
                 componentSelectorConverter,
                 dependencyLockingProvider,
-                projectStateRegistry,
                 callbackDecorator,
                 moduleSelectorNotationParser,
                 objectFactory,
+                rootComponentMetadataBuilderFactory,
                 defaultConfigurationFactory
             );
         }

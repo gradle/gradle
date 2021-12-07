@@ -140,9 +140,11 @@ fun determineScenariosFor(performanceTestSpec: PerformanceTestSpec, performanceT
     }
     return performanceTestConfigurations.flatMap { configuration ->
         configuration.groups
-            .filter { group -> performanceTestTypes.any { type ->
-                group.performanceTestTypes[type]?.contains(performanceTestSpec.os) == true
-            } }
+            .filter { group ->
+                performanceTestTypes.any { type ->
+                    group.performanceTestTypes[type]?.contains(performanceTestSpec.os) == true
+                }
+            }
             .map { PerformanceScenario(Scenario.fromTestId(configuration.testId), it.testProject) }
     }
 }
@@ -214,13 +216,13 @@ class SingleTestProjectBucket(val testProject: String, val scenarios: List<Scena
 class MultipleTestProjectBucket(private val projectDurations: List<TestProjectDuration>) : PerformanceTestBucket {
     override
     fun createPerformanceTestsFor(model: CIBuildModel, stage: Stage, performanceTestCoverage: PerformanceTestCoverage, bucketIndex: Int): PerformanceTest = createPerformanceTest(
-            model,
-            performanceTestCoverage,
-            stage,
-            bucketIndex,
-            "Performance tests for ${projectDurations.joinToString(", ") { it.testProject }}",
-            projectDurationsToScenariosPerTestProject(projectDurations)
-        )
+        model,
+        performanceTestCoverage,
+        stage,
+        bucketIndex,
+        "Performance tests for ${projectDurations.joinToString(", ") { it.testProject }}",
+        projectDurationsToScenariosPerTestProject(projectDurations)
+    )
 }
 
 private

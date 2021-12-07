@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.internal.provider
 
-
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.changedetection.state.FileHasherStatistics
 import org.gradle.internal.buildtree.BuildActionRunner
@@ -106,7 +105,7 @@ class FileSystemWatchingBuildActionRunnerTest extends Specification {
         1 * watchingHandler.afterBuildStarted(WatchMode.DISABLED, _, _, buildOperationRunner)
 
         then:
-        1 * buildOperationProgressEventEmitter.emitNowForCurrent(_)
+        1 * buildOperationProgressEventEmitter.emitNowForCurrent({ FileSystemWatchingSettingsFinalizedProgressDetails details -> !details.enabled })
 
         then:
         1 * delegate.run(buildAction, buildController)

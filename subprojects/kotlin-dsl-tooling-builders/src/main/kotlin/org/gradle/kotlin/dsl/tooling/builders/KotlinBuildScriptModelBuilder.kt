@@ -128,7 +128,7 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
             ?: return projectScriptModelBuilder(null, modelRequestProject)
 
         modelRequestProject.findProjectWithBuildFile(scriptFile)?.let { buildFileProject ->
-            return projectScriptModelBuilder(scriptFile, buildFileProject)
+            return projectScriptModelBuilder(scriptFile, buildFileProject as ProjectInternal)
         }
 
         modelRequestProject.enclosingSourceSetOf(scriptFile)?.let { enclosingSourceSet ->
@@ -242,7 +242,7 @@ fun hashOf(scriptFile: File) =
 private
 fun projectScriptModelBuilder(
     scriptFile: File?,
-    project: Project
+    project: ProjectInternal
 ) = KotlinScriptTargetModelBuilder(
     scriptFile = scriptFile,
     project = project,

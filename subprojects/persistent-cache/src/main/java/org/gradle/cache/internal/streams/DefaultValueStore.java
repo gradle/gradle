@@ -94,7 +94,7 @@ public class DefaultValueStore<T> implements ValueStore<T>, Closeable {
         try {
             Source<T> source = availableSources.remove(blockAddress.fileId);
             if (source == null) {
-                source = new Source<T>(file(blockAddress.fileId), reader);
+                source = new Source<>(file(blockAddress.fileId), reader);
             }
             try {
                 return source.read(blockAddress);
@@ -157,8 +157,12 @@ public class DefaultValueStore<T> implements ValueStore<T>, Closeable {
 
         @Override
         public long skip(long count) throws IOException {
-            file.seek(file.getFilePointer() + count);
-            return count;
+            int toSkip = (int) Math.min(count, remaining);
+            if (toSkip > 0) {
+                file.seek(file.getFilePointer() + toSkip);
+                remaining -= toSkip;
+            }
+            return toSkip;
         }
 
         @Override
@@ -168,13 +172,19 @@ public class DefaultValueStore<T> implements ValueStore<T>, Closeable {
 
         @Override
         public int read(byte[] buffer, int offset, int length) throws IOException {
-            int count = (int) Math.min(length, remaining);
-            if (count == 0) {
+            if (remaining == 0) {
                 return -1;
             }
-            int nread = file.read(buffer, offset, count);
-            remaining -= nread;
-            return nread;
+            int toRead = (int) Math.min(length, remaining);
+            if (toRead == 0) {
+                return 0;
+            }
+            int read = file.read(buffer, offset, toRead);
+            if (read < 0) {
+                throw new IllegalStateException("Unexpected file length.");
+            }
+            remaining -= read;
+            return read;
         }
     }
 

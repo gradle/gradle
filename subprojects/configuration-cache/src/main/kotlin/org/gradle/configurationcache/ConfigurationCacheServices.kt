@@ -20,11 +20,8 @@ import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprintCo
 import org.gradle.configurationcache.initialization.DefaultConfigurationCacheProblemsListener
 import org.gradle.configurationcache.problems.ConfigurationCacheReport
 import org.gradle.configurationcache.serialization.beans.BeanConstructors
-import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry
-import org.gradle.internal.service.scopes.Scopes
-import org.gradle.internal.service.scopes.ServiceScope
 
 
 class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
@@ -42,7 +39,6 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
 
     override fun registerBuildTreeServices(registration: ServiceRegistration) {
         registration.run {
-            add(BuildTreeListenerManager::class.java)
             add(ConfigurationCacheKey::class.java)
             add(ConfigurationCacheReport::class.java)
             add(DefaultConfigurationCacheProblemsListener::class.java)
@@ -67,9 +63,3 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
         }
     }
 }
-
-
-@ServiceScope(Scopes.BuildTree::class)
-class BuildTreeListenerManager(
-    val service: ListenerManager
-)

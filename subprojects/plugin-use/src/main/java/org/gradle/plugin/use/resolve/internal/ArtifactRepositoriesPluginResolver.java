@@ -22,12 +22,9 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
-import org.gradle.api.internal.artifacts.JavaEcosystemSupport;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal;
 import org.gradle.plugin.management.internal.InvalidPluginRequestException;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
@@ -45,21 +42,12 @@ public class ArtifactRepositoriesPluginResolver implements PluginResolver {
     @VisibleForTesting
     static final String SOURCE_NAME = "Plugin Repositories";
 
-    public static ArtifactRepositoriesPluginResolver createWithDefaults(DependencyResolutionServices dependencyResolutionServices, VersionSelectorScheme versionSelectorScheme) {
-        RepositoryHandler repositories = dependencyResolutionServices.getResolveRepositoryHandler();
-        if (repositories.isEmpty()) {
-            repositories.gradlePluginPortal();
-        }
-        return new ArtifactRepositoriesPluginResolver(dependencyResolutionServices, versionSelectorScheme);
-    }
-
     private final DependencyResolutionServices resolution;
-    private final VersionSelectorScheme versionSelectorScheme;
 
-    public ArtifactRepositoriesPluginResolver(DependencyResolutionServices dependencyResolutionServices, VersionSelectorScheme versionSelectorScheme) {
+    public ArtifactRepositoriesPluginResolver(DependencyResolutionServices dependencyResolutionServices, PluginRepositoriesProvider pluginRepositoriesProvider) {
+        // This should happen as part of settings finalization
+        pluginRepositoriesProvider.prepareForPluginResolution();
         this.resolution = dependencyResolutionServices;
-        this.versionSelectorScheme = versionSelectorScheme;
-        JavaEcosystemSupport.configureSchema(dependencyResolutionServices.getAttributesSchema(), dependencyResolutionServices.getObjectFactory());
     }
 
     @Override

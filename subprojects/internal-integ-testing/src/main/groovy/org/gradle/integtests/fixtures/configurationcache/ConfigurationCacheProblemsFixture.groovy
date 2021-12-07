@@ -603,7 +603,7 @@ class HasConfigurationCacheProblemsSpec {
 
     @PackageScope
     boolean hasProblems() {
-        return !uniqueProblems.isEmpty()
+        return !uniqueProblems.isEmpty() || totalProblemsCount > 0
     }
 
     HasConfigurationCacheProblemsSpec withUniqueProblems(String... uniqueProblems) {

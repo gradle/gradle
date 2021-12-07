@@ -61,11 +61,11 @@ class FixedValueReplacingProviderCodec(
     buildStateRegistry: BuildStateRegistry
 ) {
     private
-    val providerWithChangingValueCodec = BindingsBackedCodec {
+    val providerWithChangingValueCodec = Bindings.of {
         bind(ValueSourceProviderCodec(valueSourceProviderFactory))
         bind(BuildServiceProviderCodec(buildStateRegistry))
         bind(BeanCodec())
-    }
+    }.build()
 
     suspend fun WriteContext.encodeProvider(value: ProviderInternal<*>) {
         val state = try {

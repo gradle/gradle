@@ -26,7 +26,7 @@ In other words, the configuration cache saves the output of the configuration ph
 
 [IMPORTANT]
 ====
-This feature is currently *_highly experimental_* and not enabled by default.
+This feature is currently *_experimental_* and not enabled by default.
 
 Not all <<configuration_cache#config_cache:plugins:core, core Gradle plugins>> are supported.
 Your build and the plugins you depend on might require changes to fulfil the <<configuration_cache#config_cache:requirements, requirements>>.
@@ -62,6 +62,12 @@ Build configuration inputs include:
 - Init scripts, settings scripts, build scripts.
 - System properties, Gradle properties and configuration files used during the configuration phase, accessed using value suppliers such as providers for properties, environment variables etc...
 - `buildSrc` build configuration inputs and source files.
+
+Gradle uses its own optimized serialization mechanism and format to store the configuration cache entries.
+It automatically serializes the state of arbitrary object graphs.
+If your tasks hold references to objects with simple state or of supported types you don't have anything to do to support the serialization.
+
+As a fallback and to provide some aid in migrating existing tasks, some semantics of <<configuration_cache#config_cache:not_yet_implemented:java_serialization, Java Serialization>> are supported. But it is not recommended relying on it, mostly for performance reasons.
 
 [[config_cache:intro:performance_improvements]]
 === Performance improvements
@@ -298,9 +304,11 @@ h| Utility
 a|
 [horizontal]
 link:{gradle-issues}13475[[.green]#✓#]:: <<checkstyle_plugin.adoc#checkstyle_plugin,Checkstyle>>
-link:{gradle-issues}13476[[.green]#✓#]:: <<pmd_plugin.adoc#pmd_plugin,PMD>>
-link:{gradle-issues}13477[[.green]#✓#]:: <<jacoco_plugin.adoc#jacoco_plugin,JaCoCo>>
 link:{gradle-issues}13478[[.green]#✓#]:: <<codenarc_plugin.adoc#codenarc_plugin,CodeNarc>>
+link:{gradle-issues}13477[[.green]#✓#]:: <<jacoco_plugin.adoc#jacoco_plugin,JaCoCo>>
+[.green]#✓#:: <<jacoco_report_aggregation_plugin#jacoco_report_aggregation_plugin,JaCoCo Report Aggregation>>
+link:{gradle-issues}13476[[.green]#✓#]:: <<pmd_plugin.adoc#pmd_plugin,PMD>>
+[.green]#✓#:: <<test_report_aggregation_plugin#test_report_aggregation_plugin,Test Report Aggregation>>
 
 a|
 [horizontal]

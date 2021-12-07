@@ -602,6 +602,12 @@
             <tr>
                 <td>org.gradle.api.reporting.ReportingExtension</td>
             </tr>
+            <tr>
+                <td>org.gradle.api.tasks.testing.AggregateTestReport</td>
+            </tr>
+            <tr>
+                <td>org.gradle.testing.jacoco.plugins.JacocoCoverageReport</td>
+            </tr>
         </table>
     </section>
 

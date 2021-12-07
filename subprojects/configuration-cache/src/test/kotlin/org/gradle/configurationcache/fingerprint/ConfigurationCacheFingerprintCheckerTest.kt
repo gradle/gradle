@@ -232,7 +232,7 @@ class ConfigurationCacheFingerprintCheckerTest {
 
         val checkedFingerprint = readContext.runReadOperation {
             ConfigurationCacheFingerprintChecker(host).run {
-                checkFingerprint()
+                checkBuildScopedFingerprint()
             }
         }
         return when (checkedFingerprint) {

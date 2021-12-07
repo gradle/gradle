@@ -23,7 +23,7 @@ val triggerExcludes = """
         -:.github
         -:.teamcity
         -:subprojects/docs/src/docs/release
-    """.trimIndent()
+""".trimIndent()
 
 fun VersionedSettingsBranch.branchFilter() = """
     +:$branchName

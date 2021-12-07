@@ -2,6 +2,8 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
+description = "Adds support for generating parsers from Antlr grammars."
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":logging"))

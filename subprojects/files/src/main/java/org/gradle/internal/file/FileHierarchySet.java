@@ -205,6 +205,25 @@ public abstract class FileHierarchySet {
         }
 
         @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            PrefixFileSet that = (PrefixFileSet) o;
+
+            return rootNode.equals(that.rootNode);
+        }
+
+        @Override
+        public int hashCode() {
+            return rootNode.hashCode();
+        }
+
+        @Override
         public String toString() {
             final StringBuilder builder = new StringBuilder();
             rootNode.visitHierarchy(0, new NodeVisitor() {
@@ -334,6 +353,30 @@ public abstract class FileHierarchySet {
             for (Node child : children) {
                 child.visitHierarchy(depth + 1, visitor);
             }
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            Node node = (Node) o;
+
+            if (!prefix.equals(node.prefix)) {
+                return false;
+            }
+            return children.equals(node.children);
+        }
+
+        @Override
+        public int hashCode() {
+            int result = prefix.hashCode();
+            result = 31 * result + children.hashCode();
+            return result;
         }
 
         @Override

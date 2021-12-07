@@ -132,10 +132,11 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         ResolutionStrategyInternal resolutionStrategy = configuration.getResolutionStrategy();
         ResolutionFailureCollector failureCollector = new ResolutionFailureCollector(componentSelectorConverter);
         InMemoryResolutionResultBuilder resolutionResultBuilder = new InMemoryResolutionResultBuilder();
-        CompositeDependencyGraphVisitor graphVisitor = new CompositeDependencyGraphVisitor(failureCollector, resolutionResultBuilder);
+        ResolvedLocalComponentsResultGraphVisitor localComponentsVisitor = new ResolvedLocalComponentsResultGraphVisitor(currentBuild);
+        CompositeDependencyGraphVisitor graphVisitor = new CompositeDependencyGraphVisitor(failureCollector, resolutionResultBuilder, localComponentsVisitor);
         DefaultResolvedArtifactsBuilder artifactsVisitor = new DefaultResolvedArtifactsBuilder(buildProjectDependencies, resolutionStrategy.getSortOrder());
         resolver.resolve(configuration, ImmutableList.of(), metadataHandler, IS_LOCAL_EDGE, graphVisitor, artifactsVisitor, attributesSchema, artifactTypeRegistry, false);
-        result.graphResolved(resolutionResultBuilder.getResolutionResult(), new ResolvedLocalComponentsResultGraphVisitor(currentBuild), new BuildDependenciesOnlyVisitedArtifactSet(failureCollector.complete(Collections.emptySet()), artifactsVisitor.complete(), artifactTransforms, configuration.getDependenciesResolver()));
+        result.graphResolved(resolutionResultBuilder.getResolutionResult(), localComponentsVisitor, new BuildDependenciesOnlyVisitedArtifactSet(failureCollector.complete(Collections.emptySet()), artifactsVisitor.complete(), artifactTransforms, configuration.getDependenciesResolver()));
     }
 
     @Override
