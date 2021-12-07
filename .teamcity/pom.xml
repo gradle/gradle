@@ -148,6 +148,7 @@
             <groupId>org.jetbrains.teamcity</groupId>
             <artifactId>server-api</artifactId>
             <version>${teamcity.dsl.version}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.jetbrains.teamcity</groupId>
