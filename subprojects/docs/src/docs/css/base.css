@@ -481,10 +481,11 @@ h3.releaseinfo {
 }
 
 .site-header .site-header-version {
-    align-self: flex-end;
+    align-self: center;
     color: #1da2bd;
     font-size: 20px;
     padding-left: 1px;
+    margin-top: 22px;
 }
 
 .site-header__navigation {
@@ -746,6 +747,7 @@ h3.releaseinfo {
     background-size: 20px;
     vertical-align: middle !important;
     width: 100%;
+    padding-left: 10px;
 }
 
 .docs-navigation .search-input:focus {
@@ -763,7 +765,7 @@ h3.releaseinfo {
 }
 
 .docs-navigation .algolia-autocomplete .ds-dropdown-menu {
-    width: 100%;
+    width: 100px;
     min-width: 0 !important;
     max-width: none !important;
     padding: .75rem 0 !important;
@@ -771,12 +773,9 @@ h3.releaseinfo {
     background-clip: padding-box;
     border: 1px solid #e3e3e3 !important;
     box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .175) !important;
-}
-
-@media (min-width: 768px) {
-    .docs-navigation .algolia-autocomplete .ds-dropdown-menu {
-        width: 300%;
-    }
+    position: fixed !important;
+    top: 103px;
+    left: 25px;
 }
 
 .docs-navigation .algolia-autocomplete .ds-dropdown-menu [class^="ds-dataset-"] {
@@ -784,6 +783,9 @@ h3.releaseinfo {
     overflow: visible !important;
     background-color: transparent !important;
     border: 0 !important;
+    position: inherit !important;
+    top: 112px;
+    left: 25px;
 }
 
 .docs-navigation .algolia-autocomplete .ds-dropdown-menu .ds-suggestions {
@@ -1549,6 +1551,10 @@ div.example code.filename {
     .site-header  {
         margin-bottom: 0;
         z-index: 2;
+    }
+
+    .site-header__navigation-header {
+        margin-top: -7px;
     }
 
     .site-header__navigation-submenu-section:after {
