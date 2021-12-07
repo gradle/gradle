@@ -24,7 +24,6 @@ import net.rubygrapefruit.platform.internal.jni.WindowsFileEventFunctions.Window
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.watch.registry.FileWatcherProbeRegistry;
 import org.gradle.internal.watch.registry.FileWatcherUpdater;
-import org.gradle.internal.watch.vfs.WatchableFileSystemDetector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,10 +41,9 @@ public class WindowsFileWatcherRegistryFactory extends AbstractFileWatcherRegist
     private static final int BUFFER_SIZE = 64 * 1024;
 
     public WindowsFileWatcherRegistryFactory(
-        WatchableFileSystemDetector watchableFileSystemDetector,
         Predicate<String> watchFilter
     ) throws NativeIntegrationUnavailableException {
-        super(FileEvents.get(WindowsFileEventFunctions.class), watchableFileSystemDetector, watchFilter);
+        super(FileEvents.get(WindowsFileEventFunctions.class), watchFilter);
     }
 
     @Override

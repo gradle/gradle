@@ -100,7 +100,12 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
             }
         }
 
-        boolean actuallyWatching = virtualFileSystem.afterBuildStarted(watchFileSystemMode, verboseVfsLogging, debugWatchLogging, buildOperationRunner);
+        boolean actuallyWatching = virtualFileSystem.afterBuildStarted(
+            watchFileSystemMode,
+            verboseVfsLogging,
+            debugWatchLogging,
+            buildOperationRunner
+        );
         LOGGER.info("File system watching is {}", actuallyWatching ? "active" : "inactive");
         //noinspection Convert2Lambda
         eventEmitter.emitNowForCurrent(new FileSystemWatchingSettingsFinalizedProgressDetails() {
@@ -114,7 +119,13 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
             return delegate.run(action, buildController);
         } finally {
             int maximumNumberOfWatchedHierarchies = VirtualFileSystemServices.getMaximumNumberOfWatchedHierarchies(startParameter);
-            virtualFileSystem.beforeBuildFinished(watchFileSystemMode, verboseVfsLogging, debugWatchLogging, buildOperationRunner, maximumNumberOfWatchedHierarchies);
+            virtualFileSystem.beforeBuildFinished(
+                watchFileSystemMode,
+                verboseVfsLogging,
+                debugWatchLogging,
+                buildOperationRunner,
+                maximumNumberOfWatchedHierarchies
+            );
             if (verboseVfsLogging == VfsLogging.VERBOSE) {
                 logVfsStatistics("during current build", statStatisticsCollector, fileHasherStatisticsCollector, directorySnapshotterStatisticsCollector);
             }
