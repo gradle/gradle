@@ -1304,6 +1304,67 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         }
     }
 
+    @ToBeFixedForConfigurationCache
+    def "can not publish variant with attribute specifying category = verification"() {
+        given:
+        createBuildScripts("""
+
+            ${mavenCentralRepository()}
+
+            def testConf = configurations.create('testConf') {
+                canBeResolved = true
+                attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.VERIFICATION))
+            }
+
+            def javaComponent = components.findByName("java")
+            javaComponent.addVariantsFromConfiguration(testConf) {
+                mapToOptional()
+            }
+
+            publishing {
+                publications {
+                    ivy(IvyPublication) {
+                        from components.java
+                    }
+                }
+            }
+        """)
+
+        expect:
+        fails('publish')
+        failure.assertHasCause("Cannot publish module metadata for component 'java' which would include a variant 'testConf' that contains a 'org.gradle.category' attribute with a value of 'verification'.  This attribute is reserved for test verification output and is not publishable.  See: ")
+    }
+
+    @ToBeFixedForConfigurationCache
+    def "can publish variants with attribute specifying category if not verification"() {
+        given:
+        createBuildScripts("""
+
+            ${mavenCentralRepository()}
+
+            def testConf = configurations.create('testConf') {
+                canBeResolved = true
+                attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, 'not verification'))
+            }
+
+            def javaComponent = components.findByName("java")
+            javaComponent.addVariantsFromConfiguration(testConf) {
+                mapToOptional()
+            }
+
+            publishing {
+                publications {
+                    ivy(IvyPublication) {
+                        from components.java
+                    }
+                }
+            }
+        """)
+
+        expect:
+        succeeds('publish')
+    }
+
     private void createBuildScripts(def append) {
         settingsFile << "rootProject.name = 'publishTest' "
 

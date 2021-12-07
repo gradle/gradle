@@ -32,10 +32,13 @@ import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.artifacts.PublishException;
+import org.gradle.api.attributes.Category;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.CompositeDomainObjectSet;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
@@ -132,6 +135,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     private TaskProvider<? extends Task> moduleDescriptorGenerator;
     private SingleOutputTaskIvyArtifact gradleModuleDescriptorArtifact;
     private SoftwareComponentInternal component;
+    private DocumentationRegistry documentationRegistry;
     private boolean alias;
     private Set<IvyExcludeRule> globalExcludes = new LinkedHashSet<IvyExcludeRule>();
     private boolean populated;
@@ -145,7 +149,8 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         String name, Instantiator instantiator, ObjectFactory objectFactory, IvyPublicationIdentity publicationIdentity, NotationParser<Object, IvyArtifact> ivyArtifactNotationParser,
         ProjectDependencyPublicationResolver projectDependencyResolver, FileCollectionFactory fileCollectionFactory,
         ImmutableAttributesFactory immutableAttributesFactory,
-        CollectionCallbackActionDecorator collectionCallbackActionDecorator, VersionMappingStrategyInternal versionMappingStrategy, PlatformSupport platformSupport) {
+        CollectionCallbackActionDecorator collectionCallbackActionDecorator, VersionMappingStrategyInternal versionMappingStrategy, PlatformSupport platformSupport,
+        DocumentationRegistry documentationRegistry) {
         this.name = name;
         this.publicationIdentity = publicationIdentity;
         this.projectDependencyResolver = projectDependencyResolver;
@@ -159,6 +164,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         this.publishableArtifacts = new CompositePublicationArtifactSet<>(IvyArtifact.class, Cast.uncheckedCast(new PublicationArtifactSet<?>[]{mainArtifacts, metadataArtifacts, derivedArtifacts}));
         this.ivyDependencies = instantiator.newInstance(DefaultIvyDependencySet.class, collectionCallbackActionDecorator);
         this.descriptor = instantiator.newInstance(DefaultIvyModuleDescriptorSpec.class, this, instantiator, objectFactory);
+        this.documentationRegistry = documentationRegistry;
     }
 
     @Override
@@ -267,6 +273,8 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         if (component == null) {
             return;
         }
+        checkForUnpublishableAttributes();
+
         PublicationWarningsCollector publicationWarningsCollector = new PublicationWarningsCollector(LOG, UNSUPPORTED_FEATURE, "", PUBLICATION_WARNING_FOOTER, "suppressIvyMetadataWarningsFor");
         Set<? extends UsageContext> usageContexts = component.getUsages();
 
@@ -277,6 +285,15 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
 
         if (!silenceAllPublicationWarnings) {
             publicationWarningsCollector.complete(getDisplayName() + " ivy metadata", silencedVariants);
+        }
+    }
+
+    private void checkForUnpublishableAttributes() {
+        for (UsageContext usageContext : component.getUsages()) {
+            Category category = usageContext.getAttributes().getAttribute(Category.CATEGORY_ATTRIBUTE);
+            if (category != null && category.getName().equals(Category.VERIFICATION)) {
+                throw new PublishException("Cannot publish module metadata for component '" + component.getName() + "' which would include a variant '" + usageContext.getName() + "' that contains a '" + Category.CATEGORY_ATTRIBUTE.getName() + "' attribute with a value of '" + Category.VERIFICATION + "'.  This attribute is reserved for test verification output and is not publishable.  See: " + documentationRegistry.getDocumentationFor("variant_attributes.html", "sec:verification_category"));
+            }
         }
     }
 
