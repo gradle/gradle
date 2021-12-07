@@ -26,7 +26,6 @@ import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ExcludeRule;
@@ -36,7 +35,6 @@ import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.PublishException;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.attributes.Category;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
@@ -58,7 +56,6 @@ import org.gradle.api.internal.component.MavenPublishingAwareContext;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.internal.java.usagecontext.FeatureConfigurationUsageContext;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -298,7 +295,8 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         if (component == null) {
             return;
         }
-        checkForUnpublishableAttributes();
+        checkForUnpublishableAttributes(component, documentationRegistry);
+
         PublicationWarningsCollector publicationWarningsCollector = new PublicationWarningsCollector(LOG, UNSUPPORTED_FEATURE, INCOMPATIBLE_FEATURE, PUBLICATION_WARNING_FOOTER, "suppressPomMetadataWarningsFor");
         Set<ArtifactKey> seenArtifacts = Sets.newHashSet();
         Set<PublishedDependency> seenDependencies = Sets.newHashSet();
@@ -820,15 +818,6 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         }
 
         throw new PublishException("Cannot publish module metadata where component artifacts are modified.");
-    }
-
-    private void checkForUnpublishableAttributes() {
-        for (UsageContext usageContext : component.getUsages()) {
-            Category category = usageContext.getAttributes().getAttribute(Category.CATEGORY_ATTRIBUTE);
-            if (category != null && category.getName().equals(Category.VERIFICATION)) {
-                throw new PublishException("Cannot publish module metadata for component '" + component.getName() + "' which would include a variant '" + usageContext.getName() + "' that contains a '" + Category.CATEGORY_ATTRIBUTE.getName() + "' attribute with a value of '" + Category.VERIFICATION + "'.  This attribute is reserved for test verification output and is not publishable.  See: " + documentationRegistry.getDocumentationFor("variant_attributes.html", "sec:verification_category"));
-            }
-        }
     }
 
     private String getPublishedUrl(PublishArtifact source) {

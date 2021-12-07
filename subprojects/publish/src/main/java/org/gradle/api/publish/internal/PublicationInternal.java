@@ -18,8 +18,14 @@ package org.gradle.api.publish.internal;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.artifacts.PublishException;
+import org.gradle.api.attributes.Attribute;
+import org.gradle.api.attributes.Category;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectComponentPublication;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.component.SoftwareComponentInternal;
+import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.PublicationArtifact;
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
@@ -27,6 +33,7 @@ import org.gradle.internal.Factory;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.Optional;
 
 public interface PublicationInternal<T extends PublicationArtifact> extends Publication, ProjectComponentPublication {
     ModuleVersionIdentifier getCoordinates();
@@ -73,6 +80,21 @@ public interface PublicationInternal<T extends PublicationArtifact> extends Publ
     VersionMappingStrategyInternal getVersionMappingStrategy();
 
     boolean isPublishBuildId();
+
+    default void checkForUnpublishableAttributes(SoftwareComponentInternal component, DocumentationRegistry documentationRegistry) {
+        for (final UsageContext usageContext : component.getUsages()) {
+            Optional<Attribute<?>> category = usageContext.getAttributes().keySet().stream()
+                .filter(a -> Category.CATEGORY_ATTRIBUTE.getName().equals(a.getName()))
+                .findFirst();
+
+            category.ifPresent(c -> {
+                String value = usageContext.getAttributes().getAttribute(c).toString();
+                if (Category.VERIFICATION.equals(value)) {
+                    throw new PublishException("Cannot publish module metadata for component '" + component.getName() + "' which would include a variant '" + usageContext.getName() + "' that contains a '" + Category.CATEGORY_ATTRIBUTE.getName() + "' attribute with a value of '" + Category.VERIFICATION + "'.  This attribute is reserved for test verification output and is not publishable.  See: " + documentationRegistry.getDocumentationFor("variant_attributes.html", "sec:verification_category"));
+                }
+            });
+        }
+    }
 
     interface PublishedFile {
         String getName();

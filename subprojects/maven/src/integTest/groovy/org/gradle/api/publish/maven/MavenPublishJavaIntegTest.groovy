@@ -170,6 +170,36 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishJavaIntegTest {
         failure.assertHasCause("Cannot publish module metadata for component 'java' which would include a variant 'testConf' that contains a 'org.gradle.category' attribute with a value of 'verification'.  This attribute is reserved for test verification output and is not publishable.  See: ")
     }
 
+    def "can not publish variant with attribute specifying category = verification if defining new attribute with string"() {
+        given:
+        createBuildScripts("""
+
+            ${mavenCentralRepository()}
+
+            def testConf = configurations.create('testConf') {
+                canBeResolved = true
+                attributes.attribute(Attribute.of('org.gradle.category', String), 'verification')
+            }
+
+            def javaComponent = components.findByName("java")
+            javaComponent.addVariantsFromConfiguration(testConf) {
+                it.mapToMavenScope("runtime")
+            }
+
+            publishing {
+                publications {
+                    maven(MavenPublication) {
+                        from components.java
+                    }
+                }
+            }
+        """)
+
+        expect:
+        fails('publish')
+        failure.assertHasCause("Cannot publish module metadata for component 'java' which would include a variant 'testConf' that contains a 'org.gradle.category' attribute with a value of 'verification'.  This attribute is reserved for test verification output and is not publishable.  See: ")
+    }
+
     def "can publish variants with attribute specifying category if not verification"() {
         given:
         createBuildScripts("""

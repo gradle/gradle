@@ -32,8 +32,6 @@ import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.artifacts.PublishException;
-import org.gradle.api.attributes.Category;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
@@ -273,7 +271,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         if (component == null) {
             return;
         }
-        checkForUnpublishableAttributes();
+        checkForUnpublishableAttributes(component, documentationRegistry);
 
         PublicationWarningsCollector publicationWarningsCollector = new PublicationWarningsCollector(LOG, UNSUPPORTED_FEATURE, "", PUBLICATION_WARNING_FOOTER, "suppressIvyMetadataWarningsFor");
         Set<? extends UsageContext> usageContexts = component.getUsages();
@@ -285,15 +283,6 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
 
         if (!silenceAllPublicationWarnings) {
             publicationWarningsCollector.complete(getDisplayName() + " ivy metadata", silencedVariants);
-        }
-    }
-
-    private void checkForUnpublishableAttributes() {
-        for (UsageContext usageContext : component.getUsages()) {
-            Category category = usageContext.getAttributes().getAttribute(Category.CATEGORY_ATTRIBUTE);
-            if (category != null && category.getName().equals(Category.VERIFICATION)) {
-                throw new PublishException("Cannot publish module metadata for component '" + component.getName() + "' which would include a variant '" + usageContext.getName() + "' that contains a '" + Category.CATEGORY_ATTRIBUTE.getName() + "' attribute with a value of '" + Category.VERIFICATION + "'.  This attribute is reserved for test verification output and is not publishable.  See: " + documentationRegistry.getDocumentationFor("variant_attributes.html", "sec:verification_category"));
-            }
         }
     }
 
