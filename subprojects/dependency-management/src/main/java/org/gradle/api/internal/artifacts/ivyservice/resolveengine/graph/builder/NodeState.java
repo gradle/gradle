@@ -1233,9 +1233,12 @@ public class NodeState implements DependencyGraphNode {
     }
 
     void makePending(EdgeState edgeState) {
-        outgoingEdges.remove(edgeState);
-        edgeState.markUnused();
-        edgeState.getSelector().release();
+        if (!removingOutgoingEdges) {
+            // We can ignore if we are already removing edges anyway
+            outgoingEdges.remove(edgeState);
+            edgeState.markUnused();
+            edgeState.getSelector().release();
+        }
     }
 
     ImmutableAttributes desugar(ImmutableAttributes attributes) {
