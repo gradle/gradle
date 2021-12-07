@@ -22,7 +22,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
-import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.catalog.DependencyBundleValueSource;
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory;
 import org.gradle.api.model.ObjectFactory;
@@ -51,7 +51,7 @@ public class DefaultJvmComponentDependencies implements JvmComponentDependencies
     }
 
     @Inject
-    protected DependencyHandler getDependencyHandler() {
+    protected DependencyFactory getDependencyFactory() {
         throw new UnsupportedOperationException();
     }
 
@@ -137,7 +137,7 @@ public class DefaultJvmComponentDependencies implements JvmComponentDependencies
     }
 
     private Dependency create(Object dependency, @Nullable Action<? super Dependency> configuration) {
-        final Dependency created = getDependencyHandler().create(dependency);
+        final Dependency created = getDependencyFactory().createDependency(dependency);
         if (configuration != null) {
             configuration.execute(created);
         }

@@ -485,6 +485,37 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         result.assertTestClassesExecuted("SomeTest")
     }
 
+    def "can add a dependency to a test suite using map notation"() {
+        given:
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+            ${mavenCentralRepository()}
+
+            testing {
+                suites {
+                    test {
+                        dependencies {
+                            implementation(group: 'org.apache.commons', name: 'commons-lang3', version: '3.12.0')
+                        }
+                    }
+                }
+            }
+
+            task checkConfiguration {
+                doLast {
+                    // but test suite still adds JUnit4
+                    assert configurations.testRuntimeClasspath.files.size() == 1
+                    assert configurations.testRuntimeClasspath.files.any { it.name == "commons-lang3-3.12.0.jar" }
+                }
+            }
+        """
+
+        expect:
+        succeeds( "checkConfiguration")
+    }
+
     // This is not the behavior we want in the long term because this makes build configuration sensitive to the order
     // that tasks are realized.
     // useTestNG() is ignored here because we finalize the test framework on the task as soon as we configure options
