@@ -104,10 +104,6 @@ public class OutgoingVariantsReportTask extends DefaultTask {
         cnf.preventFromFurtherMutation();
         Formatter tree = new Formatter(output);
         String name = buildNameWithIndicators(cnf, legend);
-        if (cnf.isCanBeResolved()) {
-            name += " (l)";
-            legend.hasLegacyConfigurations = true;
-        }
         header("Variant " + name, output);
         String description = cnf.getDescription();
         if (description != null) {
