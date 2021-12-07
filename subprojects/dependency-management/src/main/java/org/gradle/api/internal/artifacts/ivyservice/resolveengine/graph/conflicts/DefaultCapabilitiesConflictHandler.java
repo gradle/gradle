@@ -52,7 +52,7 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
         Collection<NodeState> implicitCapabilityProviders = candidate.getImplicitCapabilityProviders();
         nodes.addAll(implicitCapabilityProviders);
         NodeState node = candidate.getNode();
-        if ((nodes.add(node) || implicitCapabilityProviders.contains(node)) && nodes.size() > 1) {
+        if (nodes.add(node) && nodes.size() > 1) {
             // The registered nodes may contain nodes which are no longer selected.
             // We don't remove them from the list in the first place because it proved to be
             // slower than filtering as needed.
