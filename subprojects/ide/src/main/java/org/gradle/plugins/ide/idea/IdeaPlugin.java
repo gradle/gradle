@@ -391,15 +391,6 @@ public class IdeaPlugin extends IdePlugin {
                 return sourceDirs;
             }
         });
-        Set<File> testSourceDirs = Sets.newLinkedHashSet();
-        convention.map("testSourceDirs", new Callable<Set<File>>() {
-            @Override
-            public Set<File> call() {
-                SourceSetContainer sourceSets = project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets();
-                testSourceDirs.addAll(sourceSets.getByName("test").getAllJava().getSrcDirs());
-                return testSourceDirs;
-            }
-        });
         Set<File> resourceDirs = Sets.newLinkedHashSet();
         convention.map("resourceDirs", new Callable<Set<File>>() {
             @Override
@@ -407,15 +398,6 @@ public class IdeaPlugin extends IdePlugin {
                 SourceSetContainer sourceSets = project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets();
                 resourceDirs.addAll(sourceSets.getByName("main").getResources().getSrcDirs());
                 return resourceDirs;
-            }
-        });
-        Set<File> testResourceDirs = Sets.newLinkedHashSet();
-        convention.map("testResourceDirs", new Callable<Set<File>>() {
-            @Override
-            public Set<File> call() {
-                SourceSetContainer sourceSets = project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets();
-                testResourceDirs.addAll(sourceSets.getByName("test").getResources().getSrcDirs());
-                return testResourceDirs;
             }
         });
 
@@ -476,8 +458,8 @@ public class IdeaPlugin extends IdePlugin {
         final TestingExtension testing = project.getExtensions().getByType(TestingExtension.class);
         final IdeaModule ideaModule = ideaModelFor(project).getModule();
         testing.getSuites().withType(JvmTestSuite.class).configureEach(suite -> {
-            ideaModule.getTestSources().from(project.provider(() -> suite.getSources().getAllJava().getSrcDirs()));
-            ideaModule.getTestResources().from(project.provider(() -> suite.getSources().getResources().getSrcDirs()));
+            ideaModule.getTestSources().from(suite.getSources().getAllJava().getSourceDirectories());
+            ideaModule.getTestResources().from(suite.getSources().getResources().getSourceDirectories());
         });
     }
 
