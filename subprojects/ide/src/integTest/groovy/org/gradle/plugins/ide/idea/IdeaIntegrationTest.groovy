@@ -98,8 +98,6 @@ class IdeaIntegrationTest extends AbstractIdeIntegrationTest {
     @Test
     @ToBeFixedForConfigurationCache
     void worksWithNonStandardLayout() {
-        executer.expectDocumentedDeprecationWarning("Subproject ':a_child' has location '${file("a child project").absolutePath}' which is outside of the project root. This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#deprecated_flat_project_structure")
-        executer.expectDocumentedDeprecationWarning("Subproject ':top-level' has location '${file().absolutePath}' which is outside of the project root. This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#deprecated_flat_project_structure")
         executer.inDirectory(testDirectory.file('root')).withTasks('idea').run()
 
         assertHasExpectedContents('root/root.ipr')

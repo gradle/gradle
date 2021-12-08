@@ -187,11 +187,13 @@ fun functionalTestExtraParameters(buildScanTag: String, os: Os, testJvmVersion: 
         "coverageJvmVendor" to testJvmVendor,
         "coverageJvmVersion" to "java$testJvmVersion"
     )
-    return (listOf(
-        "-PtestJavaVersion=$testJvmVersion",
-        "-PtestJavaVendor=$testJvmVendor") +
-        listOf(buildScanTag(buildScanTag)) +
-        buildScanValues.map { buildScanCustomValue(it.key, it.value) }
+    return (
+        listOf(
+            "-PtestJavaVersion=$testJvmVersion",
+            "-PtestJavaVendor=$testJvmVendor"
+        ) +
+            listOf(buildScanTag(buildScanTag)) +
+            buildScanValues.map { buildScanCustomValue(it.key, it.value) }
         ).filter { it.isNotBlank() }.joinToString(separator = " ")
 }
 
@@ -209,10 +211,8 @@ fun BuildType.killProcessStep(stepName: String, daemon: Boolean) {
             name = stepName
             executionMode = BuildStep.ExecutionMode.ALWAYS
             tasks = "killExistingProcessesStartedByGradle"
-            gradleParams = (
-                buildToolGradleParameters(daemon) +
-                    "-DpublishStrategy=publishOnFailure" // https://github.com/gradle/gradle-enterprise-conventions-plugin/pull/8
-                ).joinToString(separator = " ")
+            gradleParams =
+                buildToolGradleParameters(daemon).joinToString(separator = " ")
         }
     }
 }

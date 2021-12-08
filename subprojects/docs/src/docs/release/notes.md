@@ -16,7 +16,10 @@ Include only their name, impactful features should be called out separately belo
 [Róbert Papp](https://github.com/TWiStErRob),
 [Piyush Mor](https://github.com/piyushmor),
 [Ned Twigg](https://github.com/nedtwigg),
-[Nikolas Grottendieck](https://github.com/Okeanos).
+[Nikolas Grottendieck](https://github.com/Okeanos),
+[Lars Grefer](https://github.com/larsgrefer),
+[Patrick Pichler](https://github.com/patrickpichler),
+[Marcin Mielnicki](https://github.com/platan).
 
 ## Upgrade instructions
 
@@ -25,6 +28,9 @@ Switch your build to use Gradle @version@ by updating your wrapper:
 `./gradlew wrapper --gradle-version=@version@`
 
 See the [Gradle 7.x upgrade guide](userguide/upgrading_version_7.html#changes_@baseVersion@) to learn about deprecations, breaking changes and other considerations when upgrading to Gradle @version@. 
+
+NOTE: Gradle 7.3 has had *one* patch release, which fixes several issues from the original release.
+We recommend always using the latest patch release.
 
 For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).
 
@@ -122,6 +128,14 @@ This means that for the same inputs - build configuration and previous verificat
 This allows you to leverage [the verification metadata bootstrapping feature](userguide/dependency_verification.html#sec:bootstrapping-verification) as an update strategy when dependencies change in your project.
 Have a look at [the documentation](userguide/dependency_verification.html#sec:verification-update) for more details.
 
+### Gradle Option Improvements
+
+#### Additional Daemon Debug Options
+
+Additional options were added for use with `-Dorg.gradle.debug=true`. These allow specification of the port, server mode, and suspend mode.
+
+See [the documentation](userguide/command_line_interface.html#sec:command_line_debugging) for details.
+
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
@@ -140,6 +154,12 @@ The following are the features that have been promoted in this Gradle release.
 -->
 
 ## Fixed issues
+
+### Idle Connection Timeout
+
+Some CI hosting providers like Azure automatically close idle connections after a certain period of time.
+This caused problems with connections to the Gradle Build Cache which could have an open connection for the entire execution of the build.
+This release of Gradle fixes this issue by automatically closing idle connections after 3 min by default.
 
 ## Known issues
 

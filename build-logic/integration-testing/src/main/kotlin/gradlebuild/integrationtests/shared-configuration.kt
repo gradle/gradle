@@ -205,9 +205,9 @@ fun Project.bucket(name: String, description: String) = configurations.create(na
 private
 fun Project.resolver(name: String, libraryElements: String, extends: Configuration? = null) = configurations.create(name) {
     attributes {
-        attribute(Usage.USAGE_ATTRIBUTE, objects.named<Usage>(Usage.JAVA_RUNTIME))
-        attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>(Category.LIBRARY))
-        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named<LibraryElements>(libraryElements))
+        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
+        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
+        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(libraryElements))
     }
     isCanBeResolved = true
     isCanBeConsumed = false

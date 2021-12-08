@@ -39,7 +39,7 @@ abstract class PublishGradleDistribution(
         **/build/website-checkout/data/releases.xml
         **/build/git-checkout/build/reports/integTest/** => distribution-tests
         **/smoke-tests/build/reports/tests/** => post-smoke-tests
-    """.trimIndent()
+        """.trimIndent()
 
         steps {
             gradleWrapper {

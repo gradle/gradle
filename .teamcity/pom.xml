@@ -108,7 +108,7 @@
             <plugin>
                 <groupId>com.github.gantsign.maven</groupId>
                 <artifactId>ktlint-maven-plugin</artifactId>
-                <version>1.1.1</version>
+                <version>1.11.1</version>
                 <executions>
                     <execution>
                         <id>check</id>
@@ -148,6 +148,7 @@
             <groupId>org.jetbrains.teamcity</groupId>
             <artifactId>server-api</artifactId>
             <version>${teamcity.dsl.version}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.jetbrains.teamcity</groupId>

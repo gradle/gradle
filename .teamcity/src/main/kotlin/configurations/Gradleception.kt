@@ -40,12 +40,17 @@ class Gradleception(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(sta
     val buildScanTagForType = buildScanTag("Gradleception")
     val defaultParameters = (buildToolGradleParameters() + listOf(buildScanTagForType) + "-Porg.gradle.java.installations.auto-download=false").joinToString(separator = " ")
 
+    params {
+        // Override the default commit id so the build steps produce reproducible distribution
+        param("env.BUILD_COMMIT_ID", "HEAD")
+    }
+
     applyDefaults(
         model,
         this,
         ":distributions-full:install",
         notQuick = true,
-        extraParameters = "-Pgradle_installPath=dogfood-first-for-hash -PignoreIncomingBuildReceipt=true -PpromotionCommitId=HEAD -PbuildTimestamp=$dogfoodTimestamp1 $buildScanTagForType",
+        extraParameters = "-Pgradle_installPath=dogfood-first-for-hash -PignoreIncomingBuildReceipt=true -PbuildTimestamp=$dogfoodTimestamp1 $buildScanTagForType",
         extraSteps = {
             script {
                 name = "CALCULATE_MD5_VERSION_FOR_DOGFOODING_DISTRIBUTION"
@@ -66,7 +71,7 @@ class Gradleception(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(sta
                 name = "BUILD_WITH_BUILT_GRADLE"
                 tasks = "clean :distributions-full:install"
                 gradleHome = "%teamcity.build.checkoutDir%/dogfood-first"
-                gradleParams = "-Pgradle_installPath=dogfood-second -PignoreIncomingBuildReceipt=true -PpromotionCommitId=HEAD -PbuildTimestamp=$dogfoodTimestamp2 $defaultParameters"
+                gradleParams = "-Pgradle_installPath=dogfood-second -PignoreIncomingBuildReceipt=true -PbuildTimestamp=$dogfoodTimestamp2 $defaultParameters"
             }
 
             localGradle {
@@ -75,7 +80,8 @@ class Gradleception(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(sta
                 gradleHome = "%teamcity.build.checkoutDir%/dogfood-second"
                 gradleParams = defaultParameters
             }
-        })
+        }
+    )
 })
 
 fun BuildSteps.localGradle(init: GradleBuildStep.() -> Unit): GradleBuildStep =

@@ -98,7 +98,7 @@ Many tips are also covered in the Android Studio user guide link:https://develop
 
 === Attaching a debugger to your build
 
-You can set breakpoints and debug <<custom_plugins.adoc#sec:packaging_a_plugin,buildSrc and standalone plugins>> in your Gradle build itself by setting the `org.gradle.debug` property to “true” and then attaching a remote debugger to port 5005.
+You can set breakpoints and debug <<custom_plugins.adoc#sec:packaging_a_plugin,buildSrc and standalone plugins>> in your Gradle build itself by setting the `org.gradle.debug` property to “true” and then attaching a remote debugger to port 5005. You can change the port number by setting the `org.gradle.debug.port` property to the desired port number.
 
 ----
 ❯ gradle help -Dorg.gradle.debug=true
@@ -170,7 +170,7 @@ A new daemon was started but could not be connected to: pid=DaemonInfo{pid=55913
 
 We have observed this can occur when network address translation (NAT) masquerade is used. When NAT masquerade is enabled, connections that should be considered local to the machine are masked to appear from external IP addresses. Gradle refuses to connect to any external IP address as a security precaution.
 
-The solution to this problem is to adjust your network configuration such that local connections are not modified to appear as from external addresses. 
+The solution to this problem is to adjust your network configuration such that local connections are not modified to appear as from external addresses.
 
 You can monitor the detected network setup and the connection requests in the daemon log file (`<GRADLE_USER_HOME>/daemon/<Gradle version>/daemon-<PID>.out.log`).
 

@@ -62,7 +62,7 @@ class ProjectMetadataController(
 
     override fun write(encoder: Encoder, value: LocalComponentMetadata) {
         val (context, codecs) = cacheIO.writerContextFor(encoder)
-        context.push(IsolateOwner.OwnerHost(host), codecs.userTypesCodec)
+        context.push(IsolateOwner.OwnerHost(host), codecs.userTypesCodec())
         context.runWriteOperation {
             write(value.id)
             write(value.moduleVersionId)
@@ -96,6 +96,7 @@ class ProjectMetadataController(
     suspend fun WriteContext.writeDependencies(dependencies: List<LocalOriginDependencyMetadata>) {
         writeCollection(dependencies) {
             write(it.selector)
+            writeBoolean(it.isConstraint)
         }
     }
 
@@ -116,7 +117,7 @@ class ProjectMetadataController(
 
     override fun read(decoder: Decoder): LocalComponentMetadata {
         val (context, codecs) = cacheIO.readerContextFor(decoder)
-        context.push(IsolateOwner.OwnerHost(host), codecs.userTypesCodec)
+        context.push(IsolateOwner.OwnerHost(host), codecs.userTypesCodec())
         return context.runReadOperation {
             val id = readNonNull<ComponentIdentifier>()
             val moduleVersionId = readNonNull<ModuleVersionIdentifier>()
@@ -146,6 +147,7 @@ class ProjectMetadataController(
     suspend fun ReadContext.readDependenciesInto(metadata: DefaultLocalComponentMetadata, configuration: BuildableLocalConfigurationMetadata) {
         readCollection {
             val selector = readNonNull<ComponentSelector>()
+            val constraint = readBoolean()
             configuration.addDependency(
                 LocalComponentDependencyMetadata(
                     metadata.id,
@@ -159,7 +161,7 @@ class ProjectMetadataController(
                     false,
                     false,
                     true,
-                    false,
+                    constraint,
                     false,
                     null
                 )
@@ -182,11 +184,6 @@ class ProjectMetadataController(
         // TODO - don't unpack the artifacts
         val artifacts = readList {
             readNonNull<PublishArtifactLocalArtifactMetadata>().publishArtifact
-//            when (val artifact = readNonNull<LocalComponentArtifactMetadata>()) {
-//                is PublishArtifactLocalArtifactMetadata -> artifact.publishArtifact
-//                is CompositeProjectComponentArtifactMetadata -> (artifact.delegate as PublishArtifactLocalArtifactMetadata).publishArtifact
-//                else -> throw IllegalArgumentException()
-//            }
         }
         metadata.addVariant(configurationName, variantName, identifier, Describables.of(variantName), attributes, ImmutableCapabilities.EMPTY, artifacts)
     }

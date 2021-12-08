@@ -82,6 +82,13 @@ Instead, convert the resource to a file and use `project.tarTree()` on the file.
 To convert the resource to a file you can use a custom task or use dependency management to download the file via a URL.
 This way, Gradle is able to apply optimizations like up-to-date checks instead of re-running the logic to create the resource every time.
 
+[[unique_attribute_sets]]
+==== Unique attribute sets
+
+The set of link:{javadocPath}/org/gradle/api/attribute/Attribute.html[Attribute]s associated with a _consumable_ configuration within a project, must be unique across all other configurations within that project _which share the same set of link:{javadocPath}/org/gradle/api/capabilities/Capability.html[Capability]s.  This will be checked at the end of configuring variant configurations, as they are locked against further mutation.
+
+If the set of attributes is shared across configurations, consider adding an additional attribute to one of the variants for the sole purpose of disambiguation.
+
 [[changes_7.3]]
 == Upgrading from 7.2 and earlier
 
@@ -308,14 +315,14 @@ link:{groovyDslPath}/org.gradle.api.tasks.GradleBuild.html[GradleBuild] task as 
 <<authoring_maintainable_build_scripts#sec:avoiding_use_of_gradlebuild, Avoid using the GradleBuild task type>> section.
 
 Setting custom build layout using
-link:{groovyDslPath}/org.gradle.StartParameter.html[StartParameter] methods
-link:{groovyDslPath}/org.gradle.StartParameter.html#setBuildFile-java.io.File-[setBuildFile(File)]
+link:{javadocPath}/org/gradle/StartParameter.html[StartParameter] methods
+link:{javadocPath}/org/gradle/StartParameter.html#setBuildFile-java.io.File-[setBuildFile(File)]
 and
-link:{groovyDslPath}/org.gradle.StartParameter.html#setSettingsFile-java.io.File-[setSettingsFile(File)]
+link:{javadocPath}/org/gradle/StartParameter.html#setSettingsFile-java.io.File-[setSettingsFile(File)]
 as well as the counterpart getters
-link:{groovyDslPath}/org.gradle.StartParameter.html#getBuildFile--[getBuildFile()]
+link:{javadocPath}/org/gradle/StartParameter.html#getBuildFile--[getBuildFile()]
 and
-link:{groovyDslPath}/org.gradle.StartParameter.html#getSettingsFile--[getSettingsFile()]
+link:{javadocPath}/org/gradle/StartParameter.html#getSettingsFile--[getSettingsFile()]
 have been deprecated.
 
 Please use standard locations for settings and build files:
@@ -368,14 +375,12 @@ property has been deprecated.
 Use the link:{groovyDslPath}/org.gradle.api.tasks.scala.ScalaCompile.html#org.gradle.api.tasks.scala.ScalaCompile:destinationDirectory[ScalaCompile.destinationDirectory]
 property instead.
 
-[[deprecated_flat_project_structure]]
-==== Deprecated flat project structure
+[[non_hierarchical_project_structures]]
+==== Non-hierarchical project layouts
 
-There are several disadvantages of using a flat project structure. One example being that Gradle link:https://github.com/gradle/gradle/issues/13891[file-system watching cannot be efficiently used].
-Because of this, Gradle 7.1 deprecates all layouts that define subprojects outside of a root project directory.
-
-To make this change more visible for plugin author, Gradle 7.1 also deprecates the
-link:{groovyDslPath}/org.gradle.api.initialization.Settings.html#org.gradle.api.initialization.Settings:includeFlat(java.lang.String&#91;&#93;)[Settings.includeFlat()] method.
+Gradle 7.1 deprecated project layouts where subprojects were located outside of the project root.
+However, based on link:https://github.com/gradle/gradle/issues/18644[community feedback] we decided to roll back in Gradle 7.4 and removed the deprecation.
+As a consequence, the link:{groovyDslPath}/org.gradle.api.initialization.Settings.html#org.gradle.api.initialization.Settings:includeFlat(java.lang.String&#91;&#93;)[Settings.includeFlat()] method is deprecated in Gradle 7.1, 7.2, and 7.3 only.
 
 [[upload_task_deprecation]]
 ==== Deprecated `Upload` task
@@ -534,3 +539,16 @@ Gradle 5.3 introduced the interface `TransformAction` for implementing artifact 
 Using the registration method link:{groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyHandler.html#org.gradle.api.artifacts.dsl.DependencyHandler:registerTransform(org.gradle.api.Action)[DependencyHandler.registerTransform(Action)] for `ArtifactTransform` has been deprecated.
 Migrate your artifact transform to use `TransformAction` and use link:{groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyHandler.html#org.gradle.api.artifacts.dsl.DependencyHandler:registerTransform(java.lang.Class,%20org.gradle.api.Action)[DependencyHandler.registerTransform(Class, Action)] instead.
 See the <<artifact_transforms#sec:abm_artifact_transforms,user manual>> for more information on implementing `TransformAction`.
+
+[[for_use_at_configuration_time_deprecation]]
+=== Deprecated `Provider#forUseAtConfigurationTime`
+
+link:{javadocPath}/org/gradle/api/provider/Provider.html#forUseAtConfigurationTime--[Provider#forUseAtConfigurationTime] is now deprecated and scheduled for removal in Gradle 9.0. Clients should simply remove the call.
+
+The call was mandatory on providers of external values such as link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#systemProperty-java.lang.String-[system properties], link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#environmentVariable-java.lang.String-[environment variables], link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#gradleProperty-java.lang.String-[Gradle properties] and link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#fileContents-org.gradle.api.file.RegularFile-[file contents] meant to be used at configuration time together with the configuration cache feature.
+
+Starting with version 7.4 Gradle will implicitly treat an external value used at configuration time as a configuration cache input.
+
+Clients are also free to use standard Java APIs such as `System#getenv` to read environment variables, `System#getProperty` to read system properties as well as Gradle APIs such as link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#systemProperty-java.lang.String-[`Project#property(String)`] and link:{javadocPath}/org/gradle/api/Project.html#findProperty-java.lang.String-[`Project#findProperty(String)`] to read Gradle properties at configuration time. The `Provider` based APIs are still the recommended way to connect external values to task inputs for maximum configuration cache reuse.
+
+

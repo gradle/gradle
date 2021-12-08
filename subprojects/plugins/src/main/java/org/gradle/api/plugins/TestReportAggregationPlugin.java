@@ -23,9 +23,8 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.attributes.Category;
-import org.gradle.api.attributes.DocsType;
-import org.gradle.api.attributes.TestType;
-import org.gradle.api.attributes.Usage;
+import org.gradle.api.attributes.TestSuiteType;
+import org.gradle.api.attributes.VerificationType;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.tasks.testing.DefaultAggregateTestReport;
@@ -73,24 +72,22 @@ public abstract class TestReportAggregationPlugin implements Plugin<Project> {
             testReportDir.set(javaPluginExtension.getTestReportDir());
         }
 
-        // iterate and configure each user-specified report, creating a <reportName>ExecutionData configuration for each
+        // iterate and configure each user-specified report, creating a <reportName>Results configuration for each
         reporting.getReports().withType(AggregateTestReport.class).configureEach(report -> {
+            // A resolvable configuration to collect test results; typically named "testResults"
+            Configuration testResultsConf = project.getConfigurations().create(report.getName() + "Results");
+            testResultsConf.extendsFrom(testAggregation);
+            testResultsConf.setDescription(String.format("Supplies test result data to the %s.  External library dependencies may appear as resolution failures, but this is expected behavior.", report.getName()));
+            testResultsConf.setVisible(false);
+            testResultsConf.setCanBeConsumed(false);
+            testResultsConf.setCanBeResolved(true);
+            testResultsConf.attributes(attributes -> {
+                attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.VERIFICATION));
+                attributes.attributeProvider(TestSuiteType.TEST_SUITE_TYPE_ATTRIBUTE, report.getTestType().map(tt -> objects.named(TestSuiteType.class, tt)));
+                attributes.attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objects.named(VerificationType.class, VerificationType.TEST_RESULTS));
+            });
+
             report.getReportTask().configure(task -> {
-
-                // A resolvable configuration to collect test results; typically named "testResults"
-                Configuration testResultsConf = project.getConfigurations().create(report.getName() + "Results");
-                testResultsConf.extendsFrom(testAggregation);
-                testResultsConf.setDescription(String.format("Supplies test result data to the %s.  External library dependencies may appear as resolution failures, but this is expected behavior.", report.getName()));
-                testResultsConf.setVisible(false);
-                testResultsConf.setCanBeConsumed(false);
-                testResultsConf.setCanBeResolved(true);
-                testResultsConf.attributes(attributes -> {
-                    attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.DOCUMENTATION));
-                    attributes.attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType.class, DocsType.TEST_RESULTS));
-                    attributes.attributeProvider(TestType.TEST_TYPE_ATTRIBUTE, report.getTestType().map(tt -> objects.named(TestType.class, tt)));
-                    attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.VERIFICATION));
-                });
-
                 Callable<FileCollection> testResults = () ->
                     testResultsConf.getIncoming().artifactView(view -> {
                         view.componentFilter(id -> id instanceof ProjectComponentIdentifier);
@@ -117,5 +114,4 @@ public abstract class TestReportAggregationPlugin implements Plugin<Project> {
             });
         });
     }
-
 }

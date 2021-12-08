@@ -156,6 +156,10 @@ class AbstractIntegrationSpec extends Specification {
         buildFile << script
     }
 
+    void settingsFile(@GroovyBuildScriptLanguage String script) {
+        settingsFile << script
+    }
+
     TestFile getBuildKotlinFile() {
         testDirectory.file(getDefaultBuildKotlinFileName())
     }

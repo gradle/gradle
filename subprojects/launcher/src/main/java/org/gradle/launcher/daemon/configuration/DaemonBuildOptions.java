@@ -47,6 +47,9 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
         options.add(new JvmArgsOption());
         options.add(new JavaHomeOption());
         options.add(new DebugOption());
+        options.add(new DebugPortOption());
+        options.add(new DebugServerOption());
+        options.add(new DebugSuspendOption());
         options.add(new DaemonOption());
         options.add(new ForegroundOption());
         options.add(new StopOption());
@@ -157,6 +160,56 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
         @Override
         public void applyTo(boolean value, DaemonParameters settings, Origin origin) {
             settings.setDebug(value);
+        }
+    }
+
+    public static class DebugPortOption extends StringBuildOption<DaemonParameters> {
+        public static final String GRADLE_PROPERTY = "org.gradle.debug.port";
+
+        public DebugPortOption() {
+            super(GRADLE_PROPERTY);
+        }
+
+        @Override
+        public void applyTo(String value, DaemonParameters settings, Origin origin) {
+            String hint = "must be a number between 1 and 65535";
+            int port = 0;
+            try {
+                port = Integer.parseInt(value);
+            } catch (NumberFormatException e) {
+                origin.handleInvalidValue(value, hint);
+            }
+            if (port < 1 || port > 65535) {
+                origin.handleInvalidValue(value, hint);
+            } else {
+                settings.setDebugPort(port);
+            }
+        }
+    }
+
+    public static class DebugSuspendOption extends BooleanBuildOption<DaemonParameters> {
+        public static final String GRADLE_PROPERTY = "org.gradle.debug.suspend";
+
+        public DebugSuspendOption() {
+            super(GRADLE_PROPERTY);
+        }
+
+        @Override
+        public void applyTo(boolean value, DaemonParameters settings, Origin origin) {
+            settings.setDebugSuspend(value);
+        }
+    }
+
+    public static class DebugServerOption extends BooleanBuildOption<DaemonParameters> {
+        public static final String GRADLE_PROPERTY = "org.gradle.debug.server";
+
+        public DebugServerOption() {
+            super(GRADLE_PROPERTY);
+        }
+
+        @Override
+        public void applyTo(boolean value, DaemonParameters settings, Origin origin) {
+            settings.setDebugServer(value);
         }
     }
 

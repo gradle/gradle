@@ -110,7 +110,10 @@ fun Task.isCompileCacheMiss() = isMonitoredCompileTask() && !isExpectedCompileCa
 
 fun isAsciidoctorCacheMiss() = isMonitoredAsciidoctorTask() && !isExpectedAsciidoctorCacheMiss()
 
-fun Task.isMonitoredCompileTask() = this is AbstractCompile || this is ClasspathManifest
+fun Task.isMonitoredCompileTask() = (this is AbstractCompile || this is ClasspathManifest) && !this.isKotlinJsIrLink()
+
+// https://youtrack.jetbrains.com/issue/KT-49915
+fun Task.isKotlinJsIrLink() = this.javaClass.name.startsWith("KotlinJsIrLink")
 
 fun isMonitoredAsciidoctorTask() = false // No asciidoctor tasks are cacheable for now
 

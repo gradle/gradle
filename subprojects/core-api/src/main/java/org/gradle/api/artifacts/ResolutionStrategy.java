@@ -17,6 +17,8 @@
 package org.gradle.api.artifacts;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
+import org.gradle.api.provider.Property;
 
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -365,6 +367,21 @@ public interface ResolutionStrategy {
      * @since 2.5
      */
     ResolutionStrategy dependencySubstitution(Action<? super DependencySubstitutions> action);
+
+    /**
+     * Gradle implicitly registers dependency substitution rules for all configurations in the whole build
+     * tree to find projects in other included builds. These rules are always active by default.
+     *
+     * There are however cases, where a certain configuration should not apply these rules when resolving.
+     * For example, if a binary version of a module should be discovered that is also represented by
+     * a project in another build.
+     *
+     * This property may be used to deactivate these global substitution rules.
+     *
+     * @since 7.4
+     */
+    @Incubating
+    Property<Boolean> getUseGlobalDependencySubstitutionRules();
 
     /**
      * Specifies the ordering for resolved artifacts. Options are:
