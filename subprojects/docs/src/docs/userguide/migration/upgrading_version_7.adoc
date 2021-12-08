@@ -375,14 +375,12 @@ property has been deprecated.
 Use the link:{groovyDslPath}/org.gradle.api.tasks.scala.ScalaCompile.html#org.gradle.api.tasks.scala.ScalaCompile:destinationDirectory[ScalaCompile.destinationDirectory]
 property instead.
 
-[[deprecated_flat_project_structure]]
-==== Deprecated flat project structure
+[[non_hierarchical_project_structures]]
+==== Non-hierarchical project layouts
 
-There are several disadvantages of using a flat project structure. One example being that Gradle link:https://github.com/gradle/gradle/issues/13891[file-system watching cannot be efficiently used].
-Because of this, Gradle 7.1 deprecates all layouts that define subprojects outside of a root project directory.
-
-To make this change more visible for plugin author, Gradle 7.1 also deprecates the
-link:{groovyDslPath}/org.gradle.api.initialization.Settings.html#org.gradle.api.initialization.Settings:includeFlat(java.lang.String&#91;&#93;)[Settings.includeFlat()] method.
+Gradle 7.1 deprecated project layouts where subprojects were located outside of the project root.
+However, based on link:https://github.com/gradle/gradle/issues/18644[community feedback] we decided to roll back in Gradle 7.4 and removed the deprecation.
+As a consequence, the link:{groovyDslPath}/org.gradle.api.initialization.Settings.html#org.gradle.api.initialization.Settings:includeFlat(java.lang.String&#91;&#93;)[Settings.includeFlat()] method is deprecated in Gradle 7.1, 7.2, and 7.3 only.
 
 [[upload_task_deprecation]]
 ==== Deprecated `Upload` task
