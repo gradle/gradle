@@ -55,7 +55,6 @@ fun createQuickFeedbackTasks() {
 
             // We should always be using JUnitPlatform at this point, so don't call useJUnitPlatform(), else this will
             // discard existing options configuration and add a deprecation warning.  Just set the existing options.
-            assert(JUnitPlatformTestFramework::class.java == this.testFramework.javaClass)
             (this.testFramework.options as JUnitPlatformOptions).includeEngines("cross-version-test-engine")
         }
         if (executer == defaultExecuter) {
