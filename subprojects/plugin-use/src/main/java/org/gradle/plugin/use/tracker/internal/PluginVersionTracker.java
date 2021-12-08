@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.use.internal;
+package org.gradle.plugin.use.tracker.internal;
 
 import org.gradle.api.internal.initialization.ClassLoaderScopeData;
 

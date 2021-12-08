@@ -24,7 +24,7 @@ import org.gradle.plugin.management.internal.InvalidPluginRequestException;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin;
 import org.gradle.plugin.use.PluginId;
-import org.gradle.plugin.use.internal.PluginVersionTracker;
+import org.gradle.plugin.use.tracker.internal.PluginVersionTracker;
 
 public class AlreadyOnClasspathPluginResolver implements PluginResolver {
     private final PluginResolver delegate;

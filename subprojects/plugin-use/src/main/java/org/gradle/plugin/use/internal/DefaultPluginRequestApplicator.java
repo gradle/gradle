@@ -43,6 +43,7 @@ import org.gradle.plugin.use.resolve.internal.PluginResolution;
 import org.gradle.plugin.use.resolve.internal.PluginResolutionResult;
 import org.gradle.plugin.use.resolve.internal.PluginResolveContext;
 import org.gradle.plugin.use.resolve.internal.PluginResolver;
+import org.gradle.plugin.use.tracker.internal.PluginVersionTracker;
 import org.gradle.util.internal.TextUtil;
 
 import javax.annotation.Nullable;
