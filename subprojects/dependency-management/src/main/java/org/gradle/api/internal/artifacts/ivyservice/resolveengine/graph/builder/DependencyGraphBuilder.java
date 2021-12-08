@@ -284,8 +284,10 @@ public class DependencyGraphBuilder {
                 // Have an unprocessed/new selector for this module. Need to re-select the target version (if there are any selectors that can be used).
                 performSelection(resolveState, module);
             }
-
-            module.addUnattachedDependency(dependency);
+            if (dependency.isUsed()) {
+                // Some corner case result in the edge being removed, in that case it needs to be "removed"
+                module.addUnattachedDependency(dependency);
+            }
             processed = true;
         }
         return processed;
