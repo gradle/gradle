@@ -22,6 +22,7 @@ import org.gradle.api.Buildable;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.provider.HasConfigurableValueInternal;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.properties.BeanPropertyContext;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
@@ -114,13 +115,7 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
                     Object dependency = valueSupplier.get();
                     if (dependency instanceof Map) {
                         Map<Object, Object> map = (Map<Object, Object>) dependency;
-                        if (!map.isEmpty()) {
-                            for (Object value : map.values()) {
-                                if (value instanceof TaskDependencyContainer) {
-                                    context.add(value);
-                                }
-                            }
-                        }
+                        addCollectionDependencies(map.values(), context);
                     }
                 };
             }
@@ -128,18 +123,21 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
                 return context -> {
                     Object dependency = valueSupplier.get();
                     if (dependency instanceof Collection) {
-                        Collection<Object> c = (Collection<Object>) dependency;
-                        if (!c.isEmpty()) {
-                            for (Object value : c) {
-                                if (value instanceof TaskDependencyContainer) {
-                                    context.add(value);
-                                }
-                            }
-                        }
+                        addCollectionDependencies((Collection<Object>) dependency, context);
                     }
                 };
             }
             return TaskDependencyContainer.EMPTY;
+        }
+
+        private static <T> void addCollectionDependencies(Collection<T> collection, TaskDependencyResolveContext context) {
+            if (!collection.isEmpty()) {
+                for (T element : collection) {
+                    if (element instanceof TaskDependencyContainer) {
+                        context.add(element);
+                    }
+                }
+            }
         }
 
         @Override

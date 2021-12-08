@@ -25,9 +25,7 @@ import org.gradle.util.GradleVersion
 import org.gradle.util.TestPrecondition
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.IgnoreIf
-import spock.lang.IgnoreRest
 import spock.lang.Issue
-
 // Restrict the number of combinations because that's not really what we want to test
 @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
 @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
@@ -543,7 +541,6 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
      * the `buildSrc` directory behaves like an included build. As such, it may have its own settings,
      * so repositories declared in the main build shouldn't be visible to buildSrc.
      */
-    @IgnoreRest
     def "repositories declared in settings shouldn't be used to resolve dependencies in buildSrc"() {
         repository {
             'org:module:1.0'()
