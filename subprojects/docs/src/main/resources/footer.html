@@ -116,9 +116,7 @@
         return currentChapterFileName;
     }
 
-    var currentLink = undefined;
-    var currentChapterFileName = getCurrentChapterFileName(window.location.pathname);
-    [].forEach.call(document.querySelectorAll(".docs-navigation a[href$='/" + currentChapterFileName + "']"), function (link) {
+    [].forEach.call(document.querySelectorAll(".docs-navigation a[href$='/" + getCurrentChapterFileName(window.location.pathname) + "']"), function (link) {
         // Add "active" to all links same as current URL
         link.classList.add("active");
 
@@ -132,75 +130,15 @@
             parentListEl = parentListEl.parentNode.closest("li");
         }
 
-        currentLink = link;
+        // Scroll to center of the page
+        link.scrollIntoView({ behavior: 'auto', block: 'center', inline: 'center' })
     });
-
-    // Load side navigation position as it was previously
-    var expandedItems = [];
-    function loadNavigationPosition() {
-        // Expand previously expanded items
-        var previousExpandedItems = sessionStorage.getItem("expanded-items") ? sessionStorage.getItem("expanded-items") : [];
-        [].forEach.call(document.querySelectorAll(".docs-navigation a.nav-dropdown"), function(el) {
-            if (previousExpandedItems.indexOf(el.getAttribute("href")) > -1) {
-                el.classList.add("expanded");
-            }
-        });
-
-        [].forEach.call(document.querySelectorAll(".docs-navigation a.expanded"), function(el) {
-            if (el.getAttribute("href")) {
-                expandedItems.push(el.getAttribute("href"));
-            }
-        });
-        sessionStorage.setItem("expanded-items", expandedItems);
-
-        // Load sidebar position
-        var isEqualToPreviousClicked = sessionStorage.getItem("previous-clicked-chapter") === currentChapterFileName;
-        var sidebar = document.querySelector(".docs-navigation");
-        var sidebarTop = sessionStorage.getItem("sidebar-scroll");
-        if (isEqualToPreviousClicked && sidebarTop !== null) {
-            sidebar.scrollTop = parseInt(sidebarTop, 10);
-        } else if (currentLink) {
-            // Scroll to center of the page if deep link
-            currentLink.scrollIntoView({ behavior: 'auto', block: 'center', inline: 'center' })
-        }
-
-        [].forEach.call(document.querySelectorAll(".docs-navigation a"), function(el) {
-            el.addEventListener("click", function(event) {
-                sessionStorage.setItem("sidebar-scroll", sidebar.scrollTop);
-                var elHref = el.getAttribute("href");
-                if (elHref) {
-                    sessionStorage.setItem("previous-clicked-chapter", getCurrentChapterFileName(elHref));
-                }
-                if (elHref && elHref.lastIndexOf("../userguide/", 0) !== 0
-                        && elHref.lastIndexOf("../samples/", 0) !== 0
-                        && elHref.lastIndexOf("#", 0) !== 0) {
-                    // Clear storage if we will move out of user guide docs (e.g. to the release notes or dsl),
-                    // we recognize such links since they don't start with "../userguide/" or "../samples/" or "#"
-                    sessionStorage.removeItem("sidebar-scroll");
-                    sessionStorage.removeItem("expanded-items");
-                }
-            }, false);
-        });
-    }
-    loadNavigationPosition();
 
     // Expand/contract multi-level side navigation
     [].forEach.call(document.querySelectorAll(".docs-navigation .nav-dropdown"), function registerSideNavActions(collapsibleElement) {
         collapsibleElement.addEventListener("click", function toggleExpandedSideNav(evt) {
-            function removeFromList(list, value) {
-                var index = list.indexOf(value);
-                if (index > -1) {
-                    list.splice(index, 1);
-                }
-            }
-
             evt.preventDefault();
-            var targetHref = evt.target.getAttribute("href");
-            removeFromList(expandedItems, targetHref);
-            if (evt.target.classList.toggle("expanded")) {
-                expandedItems.push(targetHref)
-            }
-            sessionStorage.setItem("expanded-items", expandedItems);
+            evt.target.classList.toggle("expanded");
             evt.target.setAttribute("aria-expanded", evt.target.classList.contains("expanded").toString());
             return false;
         }, false);

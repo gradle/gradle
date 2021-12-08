@@ -107,32 +107,6 @@
                         </div>
                     </div>
                 </div>
-                <script type="text/javascript">
-                    // Load sidebar position
-                    var currentChapterFileName = window.location.pathname.substr(window.location.pathname.lastIndexOf("/") + 1);
-                    if (currentChapterFileName &amp;&amp; currentChapterFileName.indexOf("#") &gt; -1) {
-                        currentChapterFileName = currentChapterFileName.substr(window.location.pathname.lastIndexOf("#") + 1)
-                    }
-                    [].forEach.call(document.querySelectorAll(".docs-navigation a[href$='" + currentChapterFileName + "']"), function (link) {
-                        // Add "active" to all links same as current URL
-                        link.classList.add("active");
-                        // Scroll to center of the page if deep link
-                        link.scrollIntoView({ behavior: 'auto', block: 'center', inline: 'center' });
-                    })
-
-                    var sidebar = document.querySelector(".docs-navigation");
-                    var sidebarTop = sessionStorage.getItem("sidebar-scroll-dsl");
-                    if (sidebarTop !== null) {
-                        sidebar.scrollTop = parseInt(sidebarTop, 10);
-                    } else {
-
-                    }
-                    [].forEach.call(document.querySelectorAll(".docs-navigation a"), function(el) {
-                        el.addEventListener("click", function() {
-                            sessionStorage.setItem("sidebar-scroll-dsl", sidebar.scrollTop);
-                        }, false);
-                    });
-                </script>
             </body>
         </html>
         <xsl:value-of select="$chunk.append"/>
