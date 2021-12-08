@@ -96,6 +96,7 @@ public class DependencyGraphBuilder {
     private final VersionSelectorScheme versionSelectorScheme;
     private final Comparator<Version> versionComparator;
     private final VersionParser versionParser;
+    private final ResolutionConflictTracker conflictTracker;
 
     final static Spec<EdgeState> ENDORSE_STRICT_VERSIONS_DEPENDENCY_SPEC = dependencyState -> dependencyState.getDependencyState().getDependency().isEndorsingStrictVersions();
     final static Spec<EdgeState> NOT_ENDORSE_STRICT_VERSIONS_DEPENDENCY_SPEC = dependencyState -> !dependencyState.getDependencyState().getDependency().isEndorsingStrictVersions();
@@ -130,6 +131,7 @@ public class DependencyGraphBuilder {
         this.versionSelectorScheme = versionSelectorScheme;
         this.versionComparator = versionComparator;
         this.versionParser = versionParser;
+        this.conflictTracker = new ResolutionConflictTracker(moduleConflictHandler, capabilitiesConflictHandler);
     }
 
     public void resolve(final ResolveContext resolveContext, final DependencyGraphVisitor modelVisitor, boolean includeSyntheticDependencies) {
@@ -143,7 +145,7 @@ public class DependencyGraphBuilder {
 
         List<? extends DependencyMetadata> syntheticDependencies = includeSyntheticDependencies ? syntheticDependenciesOf(rootModule, resolveContext.getName()) : Collections.emptyList();
 
-        final ResolveState resolveState = new ResolveState(idGenerator, rootModule, resolveContext.getName(), idResolver, metaDataResolver, edgeFilter, attributesSchema, moduleExclusions, componentSelectorConverter, attributesFactory, dependencySubstitutionApplicator, versionSelectorScheme, versionComparator, versionParser, moduleConflictHandler.getResolver(), graphSize, resolveContext.getResolutionStrategy().getConflictResolution(), syntheticDependencies);
+        final ResolveState resolveState = new ResolveState(idGenerator, rootModule, resolveContext.getName(), idResolver, metaDataResolver, edgeFilter, attributesSchema, moduleExclusions, componentSelectorConverter, attributesFactory, dependencySubstitutionApplicator, versionSelectorScheme, versionComparator, versionParser, moduleConflictHandler.getResolver(), graphSize, resolveContext.getResolutionStrategy().getConflictResolution(), syntheticDependencies, conflictTracker);
 
         Map<ModuleVersionIdentifier, ComponentIdentifier> componentIdentifierCache = Maps.newHashMapWithExpectedSize(graphSize / 2);
         traverseGraph(resolveState, componentIdentifierCache);
@@ -299,7 +301,7 @@ public class DependencyGraphBuilder {
         ComponentState currentSelection = module.getSelected();
 
         try {
-            module.maybeUpdateSelection();
+            module.maybeUpdateSelection(conflictTracker);
         } catch (ModuleVersionResolveException e) {
             // Ignore: All selectors failed, and will have failures recorded
             return;

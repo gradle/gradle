@@ -23,6 +23,7 @@ import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ComponentState;
@@ -133,6 +134,14 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
     @Override
     public boolean hasSeenCapability(Capability capability) {
         return capabilityWithoutVersionToNodes.containsKey(((CapabilityInternal) capability).getCapabilityId());
+    }
+
+    @Override
+    public boolean hasKnownConflictFor(ModuleVersionIdentifier id) {
+        if (conflicts.isEmpty()) {
+            return false;
+        }
+        return conflicts.stream().flatMap(capability -> capability.nodes.stream()).anyMatch(node -> node.getComponent().getId().equals(id));
     }
 
     public static CapabilitiesConflictHandler.Candidate candidate(NodeState node, Capability capability, Collection<NodeState> implicitCapabilityProviders) {
