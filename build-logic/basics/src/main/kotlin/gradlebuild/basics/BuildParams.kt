@@ -17,6 +17,7 @@
 package gradlebuild.basics
 
 import gradlebuild.basics.BuildParams.BUILD_BRANCH
+import gradlebuild.basics.BuildParams.BUILD_COMMIT_DISTRIBUTION
 import gradlebuild.basics.BuildParams.BUILD_COMMIT_ID
 import gradlebuild.basics.BuildParams.BUILD_CONFIGURATION_ID
 import gradlebuild.basics.BuildParams.BUILD_FINAL_RELEASE
@@ -59,6 +60,7 @@ import org.gradle.api.provider.Provider
 object BuildParams {
     const val BUILD_BRANCH = "BUILD_BRANCH"
     const val BUILD_COMMIT_ID = "BUILD_COMMIT_ID"
+    const val BUILD_COMMIT_DISTRIBUTION = "buildCommitDistribution"
     const val BUILD_CONFIGURATION_ID = "BUILD_TYPE_ID"
     const val BUILD_FINAL_RELEASE = "finalRelease"
     const val BUILD_ID = "BUILD_ID"
@@ -144,6 +146,10 @@ val Project.buildCommitId: Provider<String>
         .orElse(gradleProperty(BUILD_PROMOTION_COMMIT_ID))
         .orElse(environmentVariable(BUILD_VCS_NUMBER))
         .orElse(currentGitCommit())
+
+
+val Project.isBuildCommitDistribution: Boolean
+    get() = gradleProperty(BUILD_COMMIT_DISTRIBUTION).map { it.toBoolean() }.orElse(false).get()
 
 
 val Project.buildConfigurationId: Provider<String>
