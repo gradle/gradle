@@ -19,7 +19,6 @@ import gradlebuild.integrationtests.addDependenciesAndConfigurations
 import gradlebuild.integrationtests.addSourceSet
 import gradlebuild.integrationtests.configureIde
 import gradlebuild.integrationtests.createTestTask
-import org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestFramework
 
 plugins {
     java
