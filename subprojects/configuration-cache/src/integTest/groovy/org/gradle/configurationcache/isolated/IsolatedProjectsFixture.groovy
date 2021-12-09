@@ -18,9 +18,9 @@ package org.gradle.configurationcache.isolated
 
 import org.gradle.configuration.ApplyScriptPluginBuildOperationType
 import org.gradle.configuration.project.ConfigureProjectBuildOperationType
-import org.gradle.configurationcache.fixtures.AbstractOptInFeatureIntegrationTest
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheBuildOperationsFixture
+import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
 import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.tooling.provider.model.internal.QueryToolingModelBuildOperationType
 
@@ -28,11 +28,13 @@ class IsolatedProjectsFixture {
     private final AbstractIsolatedProjectsIntegrationTest spec
     private final BuildOperationsFixture buildOperations
     private final ConfigurationCacheBuildOperationsFixture configurationCacheBuildOperations
+    private final ConfigurationCacheFixture fixture
 
     IsolatedProjectsFixture(AbstractIsolatedProjectsIntegrationTest spec) {
         this.spec = spec
         this.buildOperations = new BuildOperationsFixture(spec.executer, spec.temporaryFolder)
         this.configurationCacheBuildOperations = new ConfigurationCacheBuildOperationsFixture(buildOperations)
+        this.fixture = new ConfigurationCacheFixture(spec)
     }
 
     /**
@@ -87,30 +89,14 @@ class IsolatedProjectsFixture {
      * Also asserts that the expected set of projects is configured, the expected models are queried
      * and the appropriate console logging, reports and build operations are generated.
      */
-    void assertStateStoreFailed(@DelegatesTo(StoreWithProblemsDetails) Closure closure) {
+    void assertStateStoredAndDiscarded(@DelegatesTo(StoreWithProblemsDetails) Closure closure) {
         def details = new StoreWithProblemsDetails()
         closure.delegate = details
         closure()
 
-        def totalProblems = details.problems.inject(0) { a, b -> a + b.count }
+        fixture.assertStateStoredAndDiscarded(details, details)
 
-        assertHasStoreReason(details)
-        if (totalProblems == 1) {
-            spec.outputContains("Configuration cache entry discarded with 1 problem.")
-        } else {
-            spec.outputContains("Configuration cache entry discarded with ${totalProblems} problems.")
-        }
         assertHasWarningThatIncubatingFeatureUsed()
-
-        configurationCacheBuildOperations.assertStateStored()
-
-        spec.problems.assertFailureHasProblems(spec.failure) {
-            withTotalProblemsCount(totalProblems)
-            withUniqueProblems(details.problems.collect {
-                it.message.replace('/', File.separator)
-            })
-        }
-
         assertProjectsConfigured(details)
         assertModelsQueried(details)
     }
@@ -182,7 +168,7 @@ class IsolatedProjectsFixture {
         assertModelsQueried(details)
     }
 
-    private void doStoreWithProblems(StoreInvalidationDetails details, HasProblems problems, String storeAction) {
+    private void doStoreWithProblems(StoreInvalidationDetails details, ConfigurationCacheFixture.HasProblems problems, String storeAction) {
         def totalProblems = problems.totalProblems
 
         assertHasRecreateReason(details)
@@ -254,7 +240,7 @@ class IsolatedProjectsFixture {
     }
 
 
-    private assertHasProblems(int totalProblems, List<ProblemDetails> problems) {
+    private assertHasProblems(int totalProblems, List<ConfigurationCacheFixture.ProblemDetails> problems) {
         spec.problems.assertResultHasProblems(spec.result) {
             withTotalProblemsCount(totalProblems)
             withUniqueProblems(problems.collect {
@@ -300,9 +286,9 @@ class IsolatedProjectsFixture {
     }
 
     private void assertHasWarningThatIncubatingFeatureUsed() {
-        spec.outputContains(AbstractOptInFeatureIntegrationTest.ISOLATED_PROJECTS_MESSAGE)
-        spec.outputDoesNotContain(AbstractOptInFeatureIntegrationTest.CONFIGURATION_CACHE_MESSAGE)
-        spec.outputDoesNotContain(AbstractOptInFeatureIntegrationTest.CONFIGURE_ON_DEMAND_MESSAGE)
+        spec.outputContains(ConfigurationCacheFixture.ISOLATED_PROJECTS_MESSAGE)
+        spec.outputDoesNotContain(ConfigurationCacheFixture.CONFIGURATION_CACHE_MESSAGE)
+        spec.outputDoesNotContain(ConfigurationCacheFixture.CONFIGURE_ON_DEMAND_MESSAGE)
     }
 
     private String fullPath(BuildOperationRecord operationRecord) {
@@ -326,11 +312,10 @@ class IsolatedProjectsFixture {
         return result
     }
 
-    static class StoreDetails {
+    static class StoreDetails implements ConfigurationCacheFixture.HasBuildActions {
         final projects = new HashSet<String>()
         final List<ModelDetails> models = []
         int buildModelQueries
-        boolean runsTasks = true
 
         void projectConfigured(String path) {
             projects.add(path)
@@ -373,24 +358,7 @@ class IsolatedProjectsFixture {
         }
     }
 
-    trait HasProblems {
-        final List<ProblemDetails> problems = []
-
-        void problem(String message, int count = 1) {
-            problems.add(new ProblemDetails(message, count))
-        }
-
-        int getTotalProblems() {
-            return problems.inject(0) { a, b -> a + b.count }
-        }
-
-        String getProblemsString() {
-            def count = totalProblems
-            return count == 1 ? "1 problem" : "$count problems"
-        }
-    }
-
-    static class StoreWithProblemsDetails extends StoreDetails implements HasProblems {
+    static class StoreWithProblemsDetails extends StoreDetails implements ConfigurationCacheFixture.HasProblems {
     }
 
     static class StoreInvalidationDetails extends StoreDetails {
@@ -419,7 +387,7 @@ class IsolatedProjectsFixture {
     static class StoreRecreatedDetails extends StoreInvalidationDetails {
     }
 
-    static class StoreRecreatedWithProblemsDetails extends StoreRecreatedDetails implements HasProblems {
+    static class StoreRecreatedWithProblemsDetails extends StoreRecreatedDetails implements ConfigurationCacheFixture.HasProblems {
     }
 
     static class StoreUpdateDetails extends StoreInvalidationDetails {
@@ -447,20 +415,10 @@ class IsolatedProjectsFixture {
         }
     }
 
-    static class StoreUpdatedWithProblemsDetails extends StoreUpdateDetails implements HasProblems {
+    static class StoreUpdatedWithProblemsDetails extends StoreUpdateDetails implements ConfigurationCacheFixture.HasProblems {
     }
 
     static class LoadDetails {
-    }
-
-    static class ProblemDetails {
-        final String message
-        final int count
-
-        ProblemDetails(String message, int count) {
-            this.message = message
-            this.count = count
-        }
     }
 
     static class ModelDetails {

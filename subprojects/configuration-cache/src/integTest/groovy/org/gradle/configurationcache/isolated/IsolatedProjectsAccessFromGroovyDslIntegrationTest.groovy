@@ -32,7 +32,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         configurationCacheFails("assemble")
 
         then:
-        fixture.assertStateStoreFailed {
+        fixture.assertStateStoredAndDiscarded {
             projectsConfigured(":", ":a", ":b")
             problem("Build file 'build.gradle': Cannot access project ':a' from project ':'")
             problem("Build file 'build.gradle': Cannot access project ':b' from project ':'")
@@ -61,7 +61,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         configurationCacheFails("assemble")
 
         then:
-        fixture.assertStateStoreFailed {
+        fixture.assertStateStoredAndDiscarded {
             projectsConfigured(":", ":a", ":b")
             problem("Build file 'build.gradle': Cannot access project ':a' from project ':'", 3)
             problem("Build file 'build.gradle': Cannot access project ':b' from project ':'", 3)
@@ -88,7 +88,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         configurationCacheFails("assemble")
 
         then:
-        fixture.assertStateStoreFailed {
+        fixture.assertStateStoredAndDiscarded {
             projectsConfigured(":", ":a", ":b")
             problem("Build file 'build.gradle': Cannot access project ':a' from project ':'")
             problem("Build file 'build.gradle': Cannot access project ':b' from project ':'")
@@ -115,7 +115,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         configurationCacheFails("assemble")
 
         then:
-        fixture.assertStateStoreFailed {
+        fixture.assertStateStoredAndDiscarded {
             projectsConfigured(":", ":a", ":b")
             problem("Build file 'build.gradle': Cannot access project ':a' from project ':'")
         }
@@ -134,7 +134,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         configurationCacheFails("assemble")
 
         then:
-        fixture.assertStateStoreFailed {
+        fixture.assertStateStoredAndDiscarded {
             projectsConfigured(":", ":a", ":b")
             problem("Build file 'build.gradle': Cannot access project ':a' from project ':'")
         }
@@ -158,7 +158,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         configurationCacheFails("assemble")
 
         then:
-        fixture.assertStateStoreFailed {
+        fixture.assertStateStoredAndDiscarded {
             projectsConfigured(":", ":a", ":b")
             problem("Build file 'a/build.gradle': Cannot access project '$target' from project ':a'")
         }
@@ -184,7 +184,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         configurationCacheFails("assemble")
 
         then:
-        fixture.assertStateStoreFailed {
+        fixture.assertStateStoredAndDiscarded {
             projectsConfigured(":", ":a", ":b")
             problem("Build file 'build.gradle': Cannot access project ':a' from project ':'")
             problem("Build file 'build.gradle': Cannot access project ':b' from project ':'")
@@ -216,7 +216,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         configurationCacheFails("assemble")
 
         then:
-        fixture.assertStateStoreFailed {
+        fixture.assertStateStoredAndDiscarded {
             projectsConfigured(":", ":a", ":b")
             problem("Build file 'a/build.gradle': Cannot access project ':b' from project ':a'")
         }
@@ -246,7 +246,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         configurationCacheFails("assemble")
 
         then:
-        fixture.assertStateStoreFailed {
+        fixture.assertStateStoredAndDiscarded {
             projectsConfigured(":", ":a", ":b")
             problem("Build file 'a/build.gradle': Cannot access project ':' from project ':a'")
             problem("Build file 'a/build.gradle': Cannot access project ':b' from project ':a'")
