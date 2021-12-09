@@ -49,6 +49,8 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec implemen
             --------------------------------------------------
             Variant testResultsElementsForTest (i)
             --------------------------------------------------
+            Description = Directory containing binary results of running tests for the test Test Suite's test target.
+
             Capabilities
                 - :Test:unspecified (default capability)
             Attributes
@@ -96,6 +98,8 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec implemen
             --------------------------------------------------
             Variant testResultsElementsForIntegrationTest (i)
             --------------------------------------------------
+            Description = Directory containing binary results of running tests for the integrationTest Test Suite's integrationTest target.
+
             Capabilities
                 - :Test:unspecified (default capability)
             Attributes

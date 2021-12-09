@@ -78,6 +78,8 @@ Secondary variants (*)
 --------------------------------------------------
 Variant mainSourceElements (i)
 --------------------------------------------------
+Description = List of source directories contained in the Main SourceSet.
+
 Capabilities
     - org:myLib:1.0 (default capability)
 Attributes
@@ -129,6 +131,8 @@ Secondary variants (*)
 --------------------------------------------------
 Variant testResultsElementsForTest (i)
 --------------------------------------------------
+Description = Directory containing binary results of running tests for the test Test Suite's test target.
+
 Capabilities
     - org:myLib:1.0 (default capability)
 Attributes
@@ -220,6 +224,8 @@ Artifacts
 --------------------------------------------------
 Variant mainSourceElements (i)
 --------------------------------------------------
+Description = List of source directories contained in the Main SourceSet.
+
 Capabilities
     - org:myLib:1.0 (default capability)
 Attributes
@@ -287,6 +293,8 @@ Artifacts
 --------------------------------------------------
 Variant testResultsElementsForTest (i)
 --------------------------------------------------
+Description = Directory containing binary results of running tests for the test Test Suite's test target.
+
 Capabilities
     - org:myLib:1.0 (default capability)
 Attributes
@@ -376,6 +384,8 @@ Artifacts
 --------------------------------------------------
 Variant mainSourceElements (i)
 --------------------------------------------------
+Description = List of source directories contained in the Main SourceSet.
+
 Capabilities
     - org:myLib:1.0 (default capability)
 Attributes
@@ -443,6 +453,8 @@ Artifacts
 --------------------------------------------------
 Variant testResultsElementsForTest (i)
 --------------------------------------------------
+Description = Directory containing binary results of running tests for the test Test Suite's test target.
+
 Capabilities
     - org:myLib:1.0 (default capability)
 Attributes
@@ -608,6 +620,8 @@ Artifacts
 --------------------------------------------------
 Variant mainSourceElements (i)
 --------------------------------------------------
+Description = List of source directories contained in the Main SourceSet.
+
 Capabilities
     - org:myLib:1.0 (default capability)
 Attributes
@@ -659,6 +673,8 @@ Secondary variants (*)
 --------------------------------------------------
 Variant testResultsElementsForTest (i)
 --------------------------------------------------
+Description = Directory containing binary results of running tests for the test Test Suite's test target.
+
 Capabilities
     - org:myLib:1.0 (default capability)
 Attributes
@@ -745,6 +761,8 @@ Artifacts
 --------------------------------------------------
 Variant mainSourceElements (i)
 --------------------------------------------------
+Description = List of source directories contained in the Main SourceSet.
+
 Capabilities
     - org:myLib:1.0 (default capability)
 Attributes
@@ -796,6 +814,8 @@ Secondary variants (*)
 --------------------------------------------------
 Variant testResultsElementsForTest (i)
 --------------------------------------------------
+Description = Directory containing binary results of running tests for the test Test Suite's test target.
+
 Capabilities
     - org:myLib:1.0 (default capability)
 Attributes
@@ -970,6 +990,8 @@ Secondary variants (*)
 --------------------------------------------------
 Variant mainSourceElements (i)
 --------------------------------------------------
+Description = List of source directories contained in the Main SourceSet.
+
 Capabilities
     - org:myLib:1.0 (default capability)
 Attributes
@@ -1029,6 +1051,8 @@ Attributes
 --------------------------------------------------
 Variant testResultsElementsForTest (i)
 --------------------------------------------------
+Description = Directory containing binary results of running tests for the test Test Suite's test target.
+
 Capabilities
     - org:myLib:1.0 (default capability)
 Attributes
