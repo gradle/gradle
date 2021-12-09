@@ -56,6 +56,7 @@ import org.gradle.api.publish.internal.CompositePublicationArtifactSet;
 import org.gradle.api.publish.internal.DefaultPublicationArtifactSet;
 import org.gradle.api.publish.internal.PublicationArtifactInternal;
 import org.gradle.api.publish.internal.PublicationArtifactSet;
+import org.gradle.api.publish.internal.validation.PublicationErrorChecker;
 import org.gradle.api.publish.internal.validation.PublicationWarningsCollector;
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
 import org.gradle.api.publish.ivy.InvalidIvyPublicationException;
@@ -133,7 +134,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     private TaskProvider<? extends Task> moduleDescriptorGenerator;
     private SingleOutputTaskIvyArtifact gradleModuleDescriptorArtifact;
     private SoftwareComponentInternal component;
-    private DocumentationRegistry documentationRegistry;
+    private final DocumentationRegistry documentationRegistry;
     private boolean alias;
     private Set<IvyExcludeRule> globalExcludes = new LinkedHashSet<IvyExcludeRule>();
     private boolean populated;
@@ -271,7 +272,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         if (component == null) {
             return;
         }
-        checkForUnpublishableAttributes(component, documentationRegistry);
+        PublicationErrorChecker.checkForUnpublishableAttributes(component, documentationRegistry);
 
         PublicationWarningsCollector publicationWarningsCollector = new PublicationWarningsCollector(LOG, UNSUPPORTED_FEATURE, "", PUBLICATION_WARNING_FOOTER, "suppressIvyMetadataWarningsFor");
         Set<? extends UsageContext> usageContexts = component.getUsages();
