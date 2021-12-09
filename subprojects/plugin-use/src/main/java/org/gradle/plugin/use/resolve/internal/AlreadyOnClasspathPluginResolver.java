@@ -32,13 +32,22 @@ public class AlreadyOnClasspathPluginResolver implements PluginResolver {
     private final PluginDescriptorLocator pluginDescriptorLocator;
     private final ClassLoaderScope parentLoaderScope;
     private final PluginInspector pluginInspector;
+    private final PluginVersionTracker pluginVersionTracker;
 
-    public AlreadyOnClasspathPluginResolver(PluginResolver delegate, PluginRegistry corePluginRegistry, ClassLoaderScope parentLoaderScope, PluginDescriptorLocator pluginDescriptorLocator, PluginInspector pluginInspector) {
+    public AlreadyOnClasspathPluginResolver(
+        PluginResolver delegate,
+        PluginRegistry corePluginRegistry,
+        ClassLoaderScope parentLoaderScope,
+        PluginDescriptorLocator pluginDescriptorLocator,
+        PluginInspector pluginInspector,
+        PluginVersionTracker pluginVersionTracker
+    ) {
         this.delegate = delegate;
         this.corePluginRegistry = corePluginRegistry;
         this.pluginDescriptorLocator = pluginDescriptorLocator;
         this.parentLoaderScope = parentLoaderScope;
         this.pluginInspector = pluginInspector;
+        this.pluginVersionTracker = pluginVersionTracker;
     }
 
     @Override
@@ -60,8 +69,7 @@ public class AlreadyOnClasspathPluginResolver implements PluginResolver {
                     );
                 }
             }
-            PluginVersionTracker tracker = parentLoaderScope.getData(PluginVersionTracker.class);
-            String existingVersion = tracker == null ? null : tracker.getPluginVersion(pluginId.getId());
+            String existingVersion = pluginVersionTracker.findPluginVersionAt(parentLoaderScope, pluginId.getId());
             if (existingVersion != null) {
                 if (existingVersion.equals(pluginRequest.getOriginalRequest().getVersion())) {
                     resolveAlreadyOnClasspath(pluginId, existingVersion, result);
