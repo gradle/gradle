@@ -16,42 +16,46 @@
 
 package org.gradle.plugin.use.tracker.internal;
 
-import org.gradle.api.internal.initialization.ClassLoaderScopeData;
+import org.gradle.api.internal.initialization.ClassLoaderScope;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nullable;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
-public class PluginVersionTracker implements ClassLoaderScopeData {
-    private final PluginVersionTracker parent;
-    private final Map<String, String> pluginVersions = new HashMap<>();
+import static java.util.Collections.emptyMap;
 
-    public PluginVersionTracker(@Nullable PluginVersionTracker parent) {
-        this.parent = parent;
-    }
+/**
+ * Tracks plugin versions available at different {@link org.gradle.api.internal.initialization.ClassLoaderScope scopes}.
+ */
+@ServiceScope(Scopes.Build.class)
+public class PluginVersionTracker {
 
-    public void setPluginVersion(String id, String version) {
-        if (pluginVersions.containsKey(id)) {
-            throw new IllegalStateException("Plugin version already set for " + id);
+    final Map<ClassLoaderScope, Map<String, String>> pluginVersionsPerScope = new ConcurrentHashMap<>();
+
+    public void setPluginVersionAt(ClassLoaderScope scope, String pluginId, String pluginVersion) {
+        Map<String, String> pluginVersions = pluginVersionsPerScope.computeIfAbsent(scope, ignored -> new ConcurrentHashMap<>());
+        if (pluginVersions.containsKey(pluginId)) {
+            throw new IllegalStateException("Plugin version already set for " + pluginId);
         }
-        pluginVersions.put(id, version);
+        pluginVersions.put(pluginId, pluginVersion);
     }
 
     @Nullable
-    public String getPluginVersion(String id) {
-        String version = pluginVersions.get(id);
-        if (version != null) {
-            return version;
-        }
-        if (parent != null) {
-            return parent.getPluginVersion(id);
+    public String findPluginVersionAt(ClassLoaderScope scope, String pluginId) {
+        while (scope != null) {
+            String pluginVersion = pluginVersionsPerScope.getOrDefault(scope, emptyMap()).get(pluginId);
+            if (pluginVersion != null) {
+                return pluginVersion;
+            }
+            ClassLoaderScope parent = scope.getParent();
+            if (scope == parent) {
+                // See RootClassLoaderScope#getParent()
+                break;
+            }
+            scope = parent;
         }
         return null;
-    }
-
-    @Nullable
-    @Override
-    public ClassLoaderScopeData createChild() {
-        return new PluginVersionTracker(this);
     }
 }
