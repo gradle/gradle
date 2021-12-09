@@ -50,10 +50,9 @@ class DefaultWriteContext(
 
     override val tracer: Tracer?,
 
-    private
-    val problemsListener: ProblemsListener
+    problemsListener: ProblemsListener
 
-) : AbstractIsolateContext<WriteIsolate>(codec), WriteContext, Encoder by encoder, AutoCloseable {
+) : AbstractIsolateContext<WriteIsolate>(codec, problemsListener), WriteContext, Encoder by encoder, AutoCloseable {
 
     override val sharedIdentities = WriteIdentities()
 
@@ -138,10 +137,6 @@ class DefaultWriteContext(
 
     override fun newIsolate(owner: IsolateOwner): WriteIsolate =
         DefaultWriteIsolate(owner)
-
-    override fun onProblem(problem: PropertyProblem) {
-        problemsListener.onProblem(problem)
-    }
 }
 
 
@@ -205,10 +200,9 @@ class DefaultReadContext(
 
     override val logger: Logger,
 
-    private
-    val problemsListener: ProblemsListener
+    problemsListener: ProblemsListener
 
-) : AbstractIsolateContext<ReadIsolate>(codec), ReadContext, Decoder by decoder, AutoCloseable {
+) : AbstractIsolateContext<ReadIsolate>(codec, problemsListener), ReadContext, Decoder by decoder, AutoCloseable {
 
     override val sharedIdentities = ReadIdentities()
 
@@ -312,10 +306,6 @@ class DefaultReadContext(
 
     override fun newIsolate(owner: IsolateOwner): ReadIsolate =
         DefaultReadIsolate(owner)
-
-    override fun onProblem(problem: PropertyProblem) {
-        problemsListener.onProblem(problem)
-    }
 }
 
 
@@ -329,7 +319,12 @@ typealias ProjectProvider = (String) -> ProjectInternal
 
 
 internal
-abstract class AbstractIsolateContext<T>(codec: Codec<Any?>) : MutableIsolateContext {
+abstract class AbstractIsolateContext<T>(
+    codec: Codec<Any?>,
+    problemsListener: ProblemsListener
+) : MutableIsolateContext {
+    private
+    var currentProblemsListener: ProblemsListener = problemsListener
 
     private
     var currentIsolate: T? = null
@@ -337,6 +332,7 @@ abstract class AbstractIsolateContext<T>(codec: Codec<Any?>) : MutableIsolateCon
     private
     var currentCodec = codec
 
+    override
     var trace: PropertyTrace = PropertyTrace.Gradle
 
     protected
@@ -371,6 +367,20 @@ abstract class AbstractIsolateContext<T>(codec: Codec<Any?>) : MutableIsolateCon
         val previousValues = contexts.removeAt(0)
         currentIsolate = previousValues.first
         currentCodec = previousValues.second
+    }
+
+    override fun onProblem(problem: PropertyProblem) {
+        currentProblemsListener.onProblem(problem)
+    }
+
+    override suspend fun forIncompatibleType(action: suspend () -> Unit) {
+        val previousListener = currentProblemsListener
+        currentProblemsListener = previousListener.forIncompatibleType()
+        try {
+            action()
+        } finally {
+            currentProblemsListener = previousListener
+        }
     }
 }
 
