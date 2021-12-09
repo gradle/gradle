@@ -1806,31 +1806,6 @@ div.screenshot {
     position: relative;
 }
 
-.docs-navigation .pdf-link-container {
-    display: inline-block;
-    position: absolute;
-    top: -1.3em;
-    right: 0;
-    background: #02303a;
-    padding: 2px 4px;
-    color: white;
-    border-radius: 3px;
-}
-
-.docs-navigation .pdf-link-container a {
-    color: #fff;
-    font-size: 12px;
-    padding: 0;
-}
-
-.docs-navigation .pdf-link-container svg {
-    fill: #fff;
-    height: 9px;
-    vertical-align: baseline;
-    position: relative;
-    top: 1px;
-}
-
 @media screen and (min-width: 45rem) {
     .main-content {
         display: flex;
