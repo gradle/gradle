@@ -204,7 +204,7 @@ They are deleted if they haven't been used for 7 days.
 If you enable and configure the configuration cache from your `gradle.properties` file, then the configuration cache will be enabled when your IDE delegates to Gradle.
 There's nothing more to do.
 
-`gradle.properties` is usually checked in source control.
+`gradle.properties` is usually checked in to source control.
 If you don't want to enable the configuration cache for your whole team yet you can also enable the configuration cache from your IDE only as explained below.
 
 Note that syncing a build from an IDE doesn't benefit from the configuration cache, only running tasks does.
@@ -406,7 +406,7 @@ The second problem about using `Project` at execution time is reported in both w
 Both builds did execute the task.
 
 With the help of the links present in the console problem summary and in the HTML report we can fix our problems.
-Here's some fixed version of the build script:
+Here's a fixed version of the build script:
 
 ====
 include::sample[dir="snippets/configurationCache/problemsFixed/groovy",files="build.gradle[tags=fixed]"]
@@ -415,9 +415,9 @@ include::sample[dir="snippets/configurationCache/problemsFixed/kotlin",files="bu
 <1> We turned our ad-hoc task into a proper task class,
 <2> with inputs and outputs declaration,
 <3> and injected with the `FileSystemOperations` service, a supported replacement for <<configuration_cache#config_cache:requirements:use_project_during_execution, `project.copy {}`>>.
-<4> Finally, we declared the <<configuration_cache#config_cache:requirements:undeclared_sys_prop_read, system property used at configuration time>> as a build configuration input, and wire it to our task input.
+<4> Finally, we declared the <<configuration_cache#config_cache:requirements:undeclared_sys_prop_read, system property used at configuration time>> as a build configuration input, and wired it to our task input.
 
-Running the task twice now succeeds without reporting any problem and reusing the configuration cache on the second run:
+Running the task twice now succeeds without reporting any problem and reuses the configuration cache on the second run:
 
 ----
 ❯ gradle --configuration-cache someTask -DsomeDestination=dest
