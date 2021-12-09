@@ -122,6 +122,9 @@ fun Project.buildTimestamp(): Provider<String> =
             runningInstallTask.set(
                 provider { isRunningInstallTask() }
             )
+            runningDocsTestTask.set(
+                provider { isRunningDocsTestTask() }
+            )
         }
     }
 
@@ -146,4 +149,7 @@ fun isRunningInstallTask() =
         .flatMap { listOf(":distributions-full:$it", "distributions-full:$it", it) }
         .any(gradle.startParameter.taskNames::contains)
 
+fun isRunningDocsTestTask() =
+    setOf(":docs:docsTest", "docs:docsTest")
+        .any(gradle.startParameter.taskNames::contains)
 
