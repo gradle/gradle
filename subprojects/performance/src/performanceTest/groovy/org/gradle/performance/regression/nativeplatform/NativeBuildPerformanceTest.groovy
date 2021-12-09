@@ -20,7 +20,6 @@ import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
 import org.gradle.profiler.mutations.ApplyChangeToNativeSourceFileMutator
-import spock.lang.Unroll
 
 import static org.gradle.performance.annotations.ScenarioType.PER_COMMIT
 import static org.gradle.performance.annotations.ScenarioType.PER_DAY
@@ -33,7 +32,7 @@ import static org.gradle.performance.results.OperatingSystem.LINUX
 class NativeBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
     def setup() {
         runner.minimumBaseVersion = '4.1' // minimum version that contains new C++ plugins
-        runner.targetVersions = ["7.3-20211022000247+0000"]
+        runner.targetVersions = ["7.4-20211118231651+0000"]
     }
 
     def "up-to-date assemble (native)"() {
@@ -47,7 +46,6 @@ class NativeBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
         result.assertCurrentVersionHasNotRegressed()
     }
 
-    @Unroll
     def "assemble with #changeType file change"() {
         given:
         runner.tasksToRun = ["assemble"]

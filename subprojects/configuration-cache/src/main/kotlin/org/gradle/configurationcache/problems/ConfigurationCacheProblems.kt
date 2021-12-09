@@ -20,6 +20,7 @@ import org.gradle.api.logging.Logging
 import org.gradle.configurationcache.ConfigurationCacheAction
 import org.gradle.configurationcache.ConfigurationCacheAction.LOAD
 import org.gradle.configurationcache.ConfigurationCacheAction.STORE
+import org.gradle.configurationcache.ConfigurationCacheAction.UPDATE
 import org.gradle.configurationcache.ConfigurationCacheKey
 import org.gradle.configurationcache.ConfigurationCacheProblemsException
 import org.gradle.configurationcache.TooManyConfigurationCacheProblemsException
@@ -34,6 +35,7 @@ import java.util.function.Consumer
 
 
 @ServiceScope(Scopes.BuildTree::class)
+internal
 class ConfigurationCacheProblems(
 
     private
@@ -63,7 +65,13 @@ class ConfigurationCacheProblems(
     var isFailingBuildDueToSerializationError = false
 
     private
-    var cacheAction: ConfigurationCacheAction? = null
+    var reusedProjects = 0
+
+    private
+    var updatedProjects = 0
+
+    private
+    lateinit var cacheAction: ConfigurationCacheAction
 
     private
     var invalidateStoredState: (() -> Unit)? = null
@@ -76,18 +84,19 @@ class ConfigurationCacheProblems(
         listenerManager.removeListener(postBuildHandler)
     }
 
-    fun storing(invalidateState: () -> Unit) {
-        cacheAction = STORE
+    fun action(action: ConfigurationCacheAction, invalidateState: () -> Unit) {
+        cacheAction = action
         invalidateStoredState = invalidateState
-    }
-
-    fun loading() {
-        cacheAction = LOAD
     }
 
     fun failingBuildDueToSerializationError() {
         isFailingBuildDueToSerializationError = true
         isFailOnProblems = false
+    }
+
+    fun projectStateStats(reusedProjects: Int, updatedProjects: Int) {
+        this.reusedProjects = reusedProjects
+        this.updatedProjects = updatedProjects
     }
 
     override fun onProblem(problem: PropertyProblem) {
@@ -111,14 +120,15 @@ class ConfigurationCacheProblems(
         val hasFailedOnProblems = hasProblems && isFailOnProblems
         val hasTooManyProblems = problemCount > startParameter.maxProblems
         val failed = hasFailedOnProblems || hasTooManyProblems
-        if (cacheAction == STORE && failed) {
+        if (cacheAction != LOAD && failed) {
             // Invalidate stored state if problems fail the build
             requireNotNull(invalidateStoredState).invoke()
         }
 
         val outputDirectory = outputDirectoryFor(reportDir)
         val cacheActionText = cacheAction.summaryText()
-        val htmlReportFile = report.writeReportFileTo(outputDirectory, cacheActionText, problemCount)
+        val requestedTasks = startParameter.requestedTasksOrDefault()
+        val htmlReportFile = report.writeReportFileTo(outputDirectory, cacheActionText, requestedTasks, problemCount)
         if (htmlReportFile == null) {
             // there was nothing to report
             require(!failed)
@@ -149,12 +159,16 @@ class ConfigurationCacheProblems(
     }
 
     private
-    fun ConfigurationCacheAction?.summaryText() =
+    fun ConfigurationCacheAction.summaryText() =
         when (this) {
-            null -> "storing"
             LOAD -> "reusing"
             STORE -> "storing"
+            UPDATE -> "updating"
         }
+
+    private
+    fun ConfigurationCacheStartParameter.requestedTasksOrDefault() =
+        requestedTaskNames.takeIf { it.isNotEmpty() }?.joinToString(" ") ?: "default tasks"
 
     private
     fun outputDirectoryFor(buildDir: File): File =
@@ -169,7 +183,9 @@ class ConfigurationCacheProblems(
             val problemCount = summarizer.get().problemCount
             val hasProblems = problemCount > 0
             val hasTooManyProblems = problemCount > startParameter.maxProblems
-            val problemCountString = if (problemCount == 1) "1 problem" else "$problemCount problems"
+            val problemCountString = problemCount.counter("problem")
+            val reusedProjectsString = reusedProjects.counter("project")
+            val updatedProjectsString = updatedProjects.counter("project")
             when {
                 isFailingBuildDueToSerializationError && !hasProblems -> log("Configuration cache entry discarded.")
                 isFailingBuildDueToSerializationError -> log("Configuration cache entry discarded with {}.", problemCountString)
@@ -177,6 +193,8 @@ class ConfigurationCacheProblems(
                 cacheAction == STORE && hasTooManyProblems -> log("Configuration cache entry discarded with too many problems ({}).", problemCountString)
                 cacheAction == STORE && !hasProblems -> log("Configuration cache entry stored.")
                 cacheAction == STORE -> log("Configuration cache entry stored with {}.", problemCountString)
+                cacheAction == UPDATE && !hasProblems -> log("Configuration cache entry updated for {}, {} up-to-date.", updatedProjectsString, reusedProjectsString)
+                cacheAction == UPDATE -> log("Configuration cache entry updated for {} with {}, {} up-to-date.", updatedProjectsString, problemCountString, reusedProjectsString)
                 cacheAction == LOAD && !hasProblems -> log("Configuration cache entry reused.")
                 cacheAction == LOAD -> log("Configuration cache entry reused with {}.", problemCountString)
                 hasTooManyProblems -> log("Too many configuration cache problems found ({}).", problemCountString)
@@ -193,4 +211,13 @@ class ConfigurationCacheProblems(
 
     private
     val logger = Logging.getLogger(ConfigurationCacheProblems::class.java)
+
+    private
+    fun Int.counter(singular: String, plural: String = "${singular}s"): String {
+        return when (this) {
+            0 -> "no $plural"
+            1 -> "1 $singular"
+            else -> "$this $plural"
+        }
+    }
 }

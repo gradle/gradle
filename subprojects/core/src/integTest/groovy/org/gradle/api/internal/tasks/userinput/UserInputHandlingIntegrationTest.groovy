@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.userinput
 
 
 import org.gradle.util.internal.TextUtil
-import spock.lang.Unroll
 
 import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.EOF
 import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.NO
@@ -67,7 +66,6 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
         settingsFile << ''
     }
 
-    @Unroll
     def "can ask yes/no question in interactive build [rich console: #richConsole]"() {
         given:
         interactiveExecution()
@@ -86,7 +84,6 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
         richConsole << VALID_BOOLEAN_CHOICES
     }
 
-    @Unroll
     def "use of ctrl-d when asking yes/no question returns null [rich console: #richConsole]"() {
         given:
         interactiveExecution()
@@ -105,7 +102,6 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
         richConsole << VALID_BOOLEAN_CHOICES
     }
 
-    @Unroll
     def "can ask yes/no and handle valid input '#input' in interactive build"() {
         given:
         interactiveExecution()
@@ -125,7 +121,6 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
         NO    | "no"  | false
     }
 
-    @Unroll
     def "can ask yes/no and handle invalid input in interactive build"() {
         given:
         interactiveExecution()
@@ -188,7 +183,6 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
         gradleHandle.standardOutput.contains("result = null")
     }
 
-    @Unroll
     def "can ask yes/no with default and handle valid input '#stdin' in interactive build"() {
         given:
         interactiveExecution()
@@ -209,7 +203,6 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
         ""    | true
     }
 
-    @Unroll
     def "can ask yes/no with default and handle invalid input in interactive build"() {
         given:
         interactiveExecution()
@@ -246,7 +239,6 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
         gradleHandle.standardOutput.contains("result = true")
     }
 
-    @Unroll
     def "can select option in interactive build [rich console: #richConsole]"() {
         given:
         interactiveExecution()
@@ -269,7 +261,6 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
         richConsole << VALID_BOOLEAN_CHOICES
     }
 
-    @Unroll
     def "use of ctrl-d when selection option returns default option [rich console: #richConsole]"() {
         given:
         interactiveExecution()
@@ -287,7 +278,6 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
         richConsole << VALID_BOOLEAN_CHOICES
     }
 
-    @Unroll
     def "can select option and handle valid input '#input' in interactive build"() {
         given:
         interactiveExecution()
@@ -307,7 +297,6 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
         ""    | "b"
     }
 
-    @Unroll
     def "can select option and handle invalid input in interactive build"() {
         given:
         interactiveExecution()
@@ -347,7 +336,6 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
         gradleHandle.standardOutput.contains("result = b")
     }
 
-    @Unroll
     def "can answer text question in interactive build [rich console: #richConsole]"() {
         given:
         interactiveExecution()
@@ -366,7 +354,6 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
         richConsole << VALID_BOOLEAN_CHOICES
     }
 
-    @Unroll
     def "use of ctrl-d when asking text question returns default value [rich console: #richConsole]"() {
         given:
         interactiveExecution()
@@ -384,7 +371,6 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
         richConsole << VALID_BOOLEAN_CHOICES
     }
 
-    @Unroll
     def "can ask text question and handle valid input '#input' in interactive build"() {
         given:
         interactiveExecution()

@@ -21,20 +21,13 @@ import org.gradle.integtests.fixtures.android.AndroidHome
 import org.gradle.testkit.runner.GradleRunner
 
 import spock.lang.Ignore
-import spock.lang.Unroll
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 @Ignore("https://github.com/gradle/gradle-private/issues/3282")
 class KotlinPluginAndroidKotlinDSLSmokeTest extends AbstractSmokeTest {
-    // TODO:configuration-cache remove once fixed upstream
-    @Override
-    protected int maxConfigurationCacheProblems() {
-        return 200
-    }
 
-    @Unroll
-    @UnsupportedWithConfigurationCache(iterationMatchers = [KotlinPluginSmokeTest.NO_CONFIGURATION_CACHE_ITERATION_MATCHER, AGP_4_0_ITERATION_MATCHER])
+    @UnsupportedWithConfigurationCache(iterationMatchers = [KGP_NO_CC_ITERATION_MATCHER, AGP_NO_CC_ITERATION_MATCHER])
     def "kotlin android on android-kotlin-example-kotlin-dsl (kotlin=#kotlinPluginVersion, agp=#androidPluginVersion, workers=#workers)"(String kotlinPluginVersion, String androidPluginVersion, boolean workers) {
         given:
         AndroidHome.assertIsSet()

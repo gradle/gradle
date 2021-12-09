@@ -21,7 +21,6 @@ import org.gradle.api.internal.StartParameterInternal
 import org.gradle.configurationcache.extensions.unsafeLazy
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption
 import org.gradle.initialization.layout.BuildLayout
-import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
 import java.io.File
@@ -30,15 +29,14 @@ import java.io.File
 @ServiceScope(Scopes.BuildTree::class)
 class ConfigurationCacheStartParameter(
     private val buildLayout: BuildLayout,
-    private val buildModelParameters: BuildModelParameters,
     startParameter: StartParameter
 ) {
 
     private
     val startParameter = startParameter as StartParameterInternal
 
-    val isEnabled: Boolean
-        get() = buildModelParameters.isConfigurationCache
+    val gradleProperties: Map<String, Any?>
+        get() = startParameter.projectProperties
 
     val isQuiet: Boolean
         get() = startParameter.isConfigurationCacheQuiet

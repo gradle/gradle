@@ -63,6 +63,8 @@ public interface TaskInputs {
      * Registers an input directory hierarchy. All files found under the given directory are treated as input files for
      * this task.
      *
+     * <p>An input directory hierarchy ignores empty directories by default. See {@link TaskInputFilePropertyBuilder#ignoreEmptyDirectories()}.</p>
+     *
      * @param dirPath The directory. The path is evaluated as per {@link org.gradle.api.Project#file(Object)}.
      * @return a property builder to further configure the property.
      */

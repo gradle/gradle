@@ -65,7 +65,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         ].combinations()
     }
 
-    @UnsupportedWithConfigurationCache(iterationMatchers = [AGP_4_0_ITERATION_MATCHER, AGP_4_1_ITERATION_MATCHER])
+    @UnsupportedWithConfigurationCache(iterationMatchers = AGP_NO_CC_ITERATION_MATCHER)
     def "android library and application APK assembly (agp=#agpVersion, ide=#ide)"() {
 
         given:
@@ -97,7 +97,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         assertConfigurationCacheStateStored()
 
         when: 'up-to-date build'
-        result = runner.build()
+        result = buildMaybeExpectingFileTreeDeprecations(runner, agpVersion)
 
         then:
         result.task(':app:compileDebugJavaWithJavac').outcome == TaskOutcome.UP_TO_DATE
@@ -141,12 +141,17 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
     }
 
     private static BuildResult buildMaybeExpectingWorkerExecutorDeprecation(SmokeTestGradleRunner runner, String agpVersion) {
-        return runner
-            .expectLegacyDeprecationWarningIf(agpVersion.startsWith('4.1'),
+        return buildMaybeExpectingFileTreeDeprecations(
+            runner.expectLegacyDeprecationWarningIf(agpVersion.startsWith('4.1'),
                 "The WorkerExecutor.submit() method has been deprecated. " +
                     "This is scheduled to be removed in Gradle 8.0. Please use the noIsolation(), classLoaderIsolation() or processIsolation() method instead. " +
                     "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_5.html#method_workerexecutor_submit_is_deprecated for more details.")
-            .build()
+            , agpVersion)
+    }
+
+    private static BuildResult buildMaybeExpectingFileTreeDeprecations(SmokeTestGradleRunner runner, String agpVersion) {
+        expectAgpFileTreeDeprecations(agpVersion, runner)
+        return runner.build()
     }
 
     /**

@@ -62,9 +62,11 @@ class CIConfigIntegrationTests {
         val macOS = readyForRelease.subProjects.find { it.name.contains("Macos") }!!
 
         macOS.buildTypes.forEach { buildType ->
-            assertFalse(Os.MACOS.ignoredSubprojects.any { subProject ->
-                buildType.name.endsWith("($subProject)")
-            })
+            assertFalse(
+                Os.MACOS.ignoredSubprojects.any { subProject ->
+                    buildType.name.endsWith("($subProject)")
+                }
+            )
         }
     }
 
@@ -153,9 +155,11 @@ class CIConfigIntegrationTests {
             buckets.forEachIndexed { index: Int, startEndVersion: List<String> ->
                 assertTrue(functionalTests[index].name.contains("(${startEndVersion[0]} <= gradle <${startEndVersion[1]})"))
                 assertEquals("clean ${testType}Test", functionalTests[index].getGradleTasks())
-                assertTrue(functionalTests[index].getGradleParams().apply {
-                    println(this)
-                }.contains("-PonlyTestGradleVersion=${startEndVersion[0]}-${startEndVersion[1]}"))
+                assertTrue(
+                    functionalTests[index].getGradleParams().apply {
+                        println(this)
+                    }.contains("-PonlyTestGradleVersion=${startEndVersion[0]}-${startEndVersion[1]}")
+                )
             }
         }
 

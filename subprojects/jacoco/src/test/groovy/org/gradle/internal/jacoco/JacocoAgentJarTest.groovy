@@ -20,13 +20,11 @@ import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class JacocoAgentJarTest extends Specification {
     def project = ProjectBuilder.builder().build()
     def jacocoAgentJar = new JacocoAgentJar(project.services.get(FileOperations))
 
-    @Unroll
     def "versions >= 0.6.2 support jmx #version -> #jmxSupport"() {
         given:
         def agentJarName = "org.jacoco.agent-${version}.jar"
@@ -48,7 +46,6 @@ class JacocoAgentJarTest extends Specification {
         '0.8.7'               | true
     }
 
-    @Unroll
     def "versions >= 0.7.6 support include no location classes #version -> #incNoLocationClassesSupport"() {
         given:
         def agentJarName = "org.jacoco.agent-${version}.jar"

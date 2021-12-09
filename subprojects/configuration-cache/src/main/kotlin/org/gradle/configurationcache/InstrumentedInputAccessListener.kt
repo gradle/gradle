@@ -74,6 +74,9 @@ class InstrumentedInputAccessListener(
     }
 
     override fun envVariableQueried(key: String, value: String?, consumer: String) {
+        if (Workarounds.canReadEnvironmentVariable(consumer)) {
+            return
+        }
         broadcast.envVariableRead(key, value, consumer)
     }
 }

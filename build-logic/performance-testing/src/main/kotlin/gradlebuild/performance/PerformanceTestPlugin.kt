@@ -18,8 +18,12 @@ package gradlebuild.performance
 
 import com.google.common.annotations.VisibleForTesting
 import gradlebuild.basics.accessors.groovy
-import gradlebuild.basics.kotlindsl.selectStringProperties
-import gradlebuild.basics.kotlindsl.stringPropertyOrNull
+import gradlebuild.basics.includePerformanceTestScenarios
+import gradlebuild.basics.performanceBaselines
+import gradlebuild.basics.performanceDependencyBuildIds
+import gradlebuild.basics.performanceGeneratorMaxProjects
+import gradlebuild.basics.performanceTestVerbose
+import gradlebuild.basics.propertiesForPerformanceDb
 import gradlebuild.basics.repoRoot
 import gradlebuild.identity.extension.ModuleIdentityExtension
 import gradlebuild.integrationtests.addDependenciesAndConfigurations
@@ -62,29 +66,11 @@ import java.time.format.DateTimeFormatter.ofPattern
 import javax.xml.parsers.DocumentBuilderFactory
 
 
-object PropertyNames {
-    const val dbUrl = "org.gradle.performance.db.url"
-    const val dbUsername = "org.gradle.performance.db.username"
-    const val dbPassword = "org.gradle.performance.db.password"
-    const val dbPasswordEnv = "PERFORMANCE_DB_PASSWORD_TCAGENT"
-
-    const val performanceTestVerbose = "performanceTest.verbose"
-
-    const val baselines = "performanceBaselines"
-    const val dependencyBuildIds = "org.gradle.performance.dependencyBuildIds"
-}
-
-
 object Config {
-
     const val performanceTestScenarioListFileName = "performance-tests/scenario-list.csv"
-
     const val performanceTestReportsDir = "performance-tests/report"
-
     const val performanceTestResultsJsonName = "perf-results.json"
     const val performanceTestResultsJson = "performance-tests/$performanceTestResultsJsonName"
-
-    const val teamCityUrl = "https://builds.gradle.org/"
 }
 
 
@@ -107,7 +93,7 @@ class PerformanceTestPlugin : Plugin<Project> {
     fun Project.createExtension(performanceTestSourceSet: SourceSet, cleanTestProjectsTask: TaskProvider<Delete>): PerformanceTestExtension {
         val buildService = registerBuildService()
         val performanceTestExtension = extensions.create<PerformanceTestExtension>("performanceTest", this, performanceTestSourceSet, cleanTestProjectsTask, buildService)
-        performanceTestExtension.baselines.set(stringPropertyOrNull(PropertyNames.baselines))
+        performanceTestExtension.baselines.set(project.performanceBaselines)
         return performanceTestExtension
     }
 
@@ -148,7 +134,7 @@ class PerformanceTestPlugin : Plugin<Project> {
         }
 
         tasks.withType<AbstractProjectGeneratorTask>().configureEach {
-            (project.findProperty("maxProjects") as? Int)?.let { maxProjects ->
+            project.performanceGeneratorMaxProjects?.let { maxProjects ->
                 setProjects(maxProjects)
             }
         }
@@ -175,7 +161,7 @@ class PerformanceTestPlugin : Plugin<Project> {
             classpath.from(performanceSourceSet.runtimeClasspath)
             performanceResultsDirectory.set(repoRoot().dir("perf-results"))
             reportDir.set(project.layout.buildDirectory.dir(this@configureEach.name))
-            databaseParameters.set(project.propertiesForPerformanceDb())
+            databaseParameters.set(project.propertiesForPerformanceDb)
             val moduleIdentity = project.the<ModuleIdentityExtension>()
             branchName.set(moduleIdentity.gradleBuildBranch)
             channel.convention(branchName.map { "commits-$it" })
@@ -186,10 +172,9 @@ class PerformanceTestPlugin : Plugin<Project> {
         tasks.register<JavaExec>("writePerformanceTimes") {
             classpath(performanceSourceSet.runtimeClasspath)
             mainClass.set("org.gradle.performance.results.PerformanceTestRuntimesGenerator")
-            systemProperties(project.propertiesForPerformanceDb())
+            systemProperties(project.propertiesForPerformanceDb)
             args(repoRoot().file(".teamcity/performance-test-durations.json").asFile.absolutePath)
-            // Never up-to-date since it reads data from the database.
-            outputs.upToDateWhen { false }
+            doNotTrackState("Reads data from the database")
         }
 
         val performanceScenarioJson = repoRoot().file(".teamcity/performance-tests-ci.json").asFile
@@ -224,7 +209,7 @@ class PerformanceTestPlugin : Plugin<Project> {
     fun Project.createPerformanceTestReportTask(name: String, reportGeneratorClass: String): TaskProvider<PerformanceTestReport> {
         val performanceTestReport = tasks.register<PerformanceTestReport>(name) {
             this.reportGeneratorClass.set(reportGeneratorClass)
-            this.dependencyBuildIds.set(providers.gradleProperty(PropertyNames.dependencyBuildIds).orElse(""))
+            this.dependencyBuildIds.set(project.performanceDependencyBuildIds)
         }
         val performanceTestReportZipTask = performanceReportZipTaskFor(performanceTestReport)
         performanceTestReport {
@@ -299,24 +284,6 @@ class PerformanceTestPlugin : Plugin<Project> {
 
 
 private
-fun Project.propertiesForPerformanceDb(): Map<String, String> {
-    val password = providers.environmentVariable(PropertyNames.dbPasswordEnv).forUseAtConfigurationTime()
-    return if (password.isPresent) {
-        selectStringProperties(
-            PropertyNames.dbUrl,
-            PropertyNames.dbUsername
-        ) + (PropertyNames.dbPassword to password.get())
-    } else {
-        selectStringProperties(
-            PropertyNames.dbUrl,
-            PropertyNames.dbUsername,
-            PropertyNames.dbPassword
-        )
-    }
-}
-
-
-private
 fun Project.performanceReportZipTaskFor(performanceReport: TaskProvider<out PerformanceTestReport>): TaskProvider<Zip> =
     tasks.register("${performanceReport.name}ResultsZip", Zip::class) {
         from(performanceReport.get().reportDir.locationOnly) {
@@ -342,11 +309,6 @@ class PerformanceTestExtension(
 
     private
     val registeredTestProjects: MutableList<TaskProvider<out Task>> = mutableListOf()
-
-    private
-    val shouldLoadScenariosFromFile = project.providers.gradleProperty("includePerformanceTestScenarios")
-        .forUseAtConfigurationTime()
-        .getOrElse("false") == "true"
 
     abstract
     val baselines: Property<String>
@@ -387,7 +349,7 @@ class PerformanceTestExtension(
                     maxRetries.set(1)
                 }
 
-                if (shouldLoadScenariosFromFile) {
+                if (project.includePerformanceTestScenarios) {
                     val scenariosFromFile = project.loadScenariosFromFile(testProject)
                     if (scenariosFromFile.isNotEmpty()) {
                         setTestNameIncludePatterns(scenariosFromFile)
@@ -410,10 +372,11 @@ class PerformanceTestExtension(
             buildId = System.getenv("BUILD_ID") ?: "localBuild-${ofPattern("yyyyMMddHHmmss").withZone(systemDefault()).format(now())}"
             reportDir = project.layout.buildDirectory.file("${this.name}/${Config.performanceTestReportsDir}").get().asFile
             resultsJson = project.layout.buildDirectory.file("${this.name}/${Config.performanceTestResultsJson}").get().asFile
-            addDatabaseParameters(project.propertiesForPerformanceDb())
+            addDatabaseParameters(project.propertiesForPerformanceDb)
             testClassesDirs = performanceSourceSet.output.classesDirs
             classpath = performanceSourceSet.runtimeClasspath
 
+            usesService(buildService)
             performanceTestService.set(buildService)
 
             testProjectName.set(generatorTask.name)
@@ -431,7 +394,7 @@ class PerformanceTestExtension(
             // We need 5G of heap to parse large JFR recordings when generating flamegraphs.
             // If we drop JFR as profiler and switch to something else, we can reduce the memory.
             jvmArgs("-Xmx5g", "-XX:+HeapDumpOnOutOfMemoryError")
-            if (project.hasProperty(PropertyNames.performanceTestVerbose)) {
+            if (project.performanceTestVerbose.isPresent) {
                 testLogging.showStandardStreams = true
             }
         }

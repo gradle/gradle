@@ -327,6 +327,15 @@ Create a https://gradle.com/build-scans[build scan] with fine-grained informatio
 `-Dorg.gradle.debug=true`::
 Debug Gradle client (non-Daemon) process. Gradle will wait for you to attach a debugger at `localhost:5005` by default.
 
+`-Dorg.gradle.debug.port=(port number)`::
+Specifies the port number to listen on when debug is enabled. _Default is `5005`._
+
+`-Dorg.gradle.debug.server=(true,false)`::
+If set to `true` and debugging is enabled, Gradle will run the build with the socket-attach mode of the debugger. Otherwise, the socket-listen mode is used. _Default is `true`._
+
+`-Dorg.gradle.debug.suspend=(true,false)`::
+When set to `true` and debugging is enabled, the JVM running Gradle will suspend until a debugger is attached. _Default is `true`._
+
 `-Dorg.gradle.daemon.debug=true`::
 Debug <<gradle_daemon.adoc#gradle_daemon, Gradle Daemon>> process.
 
@@ -338,6 +347,16 @@ Many of these options can be specified in `gradle.properties` so command-line fl
 
 `--build-cache`, `--no-build-cache`::
 Toggles the <<build_cache.adoc#build_cache, Gradle build cache>>. Gradle will try to reuse outputs from previous builds. _Default is off_.
+
+`--configuration-cache`, `--no-configuration-cache`::
+Toggles the <<configuration_cache.adoc#config_cache,Configuration Cache>>. Gradle will try to reuse the build configuration from previous builds. _Default is off_.
+
+`--configuration-cache-problems=(fail,warn)`::
+Configures how the configuration cache handles problems. Default is `fail`.
++
+Set to `warn` to report problems without failing the build.
++
+Set to `fail` to report problems and fail the build if there are any problems.
 
 `--configure-on-demand`, `--no-configure-on-demand`::
 Toggles <<multi_project_configuration_and_execution.adoc#sec:configuration_on_demand, Configure-on-demand>>. Only relevant projects are configured in this build run. _Default is off_.
@@ -473,8 +492,11 @@ Specifies that the build should operate without accessing network resources. Lea
 `--refresh-dependencies`::
 Refresh the state of dependencies. Learn more about how to use this in the <<dynamic_versions.adoc#sec:controlling_dependency_caching_command_line,dependency management docs>>.
 
-`--dry-run`::
+`-m`, `--dry-run`::
 Run Gradle with all task actions disabled. Use this to show which task would have executed.
+
+`-t`, `--continuous`::
+Enables continuous build. Gradle does not exit and will re-execute tasks when task file inputs change. See <<#sec:continuous_build, Continuous Build>> for more details.
 
 `--write-locks`::
 Indicates that all resolved configurations that are _lockable_ should have their lock state persisted.
@@ -485,9 +507,25 @@ Indicates that versions for the specified modules have to be updated in the lock
 This flag also implies `--write-locks`.
 Learn more about this in <<dependency_locking.adoc#dependency-locking,dependency locking>>.
 
-`--no-rebuild`::
+`-a`, `--no-rebuild`::
 Do not rebuild project dependencies.
 Useful for <<organizing_gradle_projects.adoc#sec:build_sources, debugging and fine-tuning `buildSrc`>>, but can lead to wrong results. Use with caution!
+
+[[sec:dependency_verification_options]]
+== Dependency verification options
+Learn more about this in <<dependency_verification.adoc#verifying-dependencies,dependency verification>>.
+
+`-F=(strict,lenient,off)`, `--dependency-verification=(strict,lenient,off)`::
+Configures the dependency verification mode, see <<dependency_verification.adoc#sec:disabling-verification,what the options mean here>>. The default mode is `strict`.
+
+`-M`, `--write-verification-metadata`::
+Generates checksums for dependencies used in the project (comma-separated list) for dependency verification. See <<dependency_verification.adoc#sec:bootstrapping-verification,how to bootstrap dependency verification>>.
+
+`--refresh-keys`::
+Refresh the public keys used for dependency verification.
+
+`--export-keys`::
+Exports the public keys used for dependency verification.
 
 [[sec:environment_options]]
 == Environment options
@@ -551,7 +589,7 @@ You can also specify `--distribution-type=(bin|all)`, `--gradle-distribution-url
 [[sec:continuous_build]]
 == Continuous Build
 
-Continuous Build allows you to automatically re-execute the requested tasks when task inputs change.
+Continuous Build allows you to automatically re-execute the requested tasks when task inputs change. You can execute the build in this mode using the `-t` or `--continuous` command-line option.
 
 For example, you can continuously run the `test` task and all dependent tasks by running:
 

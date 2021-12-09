@@ -16,11 +16,11 @@
 
 package org.gradle.configurationcache.fixtures
 
-
 import groovy.transform.SelfType
 import org.apache.tools.ant.util.TeeOutputStream
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.attributes.Attribute
 import org.gradle.api.provider.Property
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionFailure
@@ -40,35 +40,76 @@ trait ToolingApiSpec {
         return (ToolingApiBackedGradleExecuter) getExecuter()
     }
 
-    void withSomeToolingModelBuilderPluginInBuildSrc(String content = "") {
-        withSomeToolingModelBuilderPluginInChildBuild("buildSrc", content)
+    void withSomeToolingModelBuilderPluginInBuildSrc(String builderContent = "") {
+        withSomeToolingModelBuilderPluginInChildBuild("buildSrc", builderContent)
     }
 
-    void withSomeToolingModelBuilderPluginInChildBuild(String childBuildName, String content = "") {
-        file("$childBuildName/build.gradle") << """
-            plugins {
-                id("groovy-gradle-plugin")
-            }
-            gradlePlugin {
-                plugins {
-                    test {
-                        id = "my.plugin"
-                        implementationClass = "my.MyPlugin"
-                    }
-                }
+    void withSomeToolingModelBuilderPluginInChildBuild(String childBuildName, String builderContent = "") {
+        addPluginBuildScript(childBuildName)
+        addModelImplementation(childBuildName)
+
+        addModelBuilderImplementation(childBuildName, """
+            $builderContent
+            def message = project.myExtension.message.get()
+            return new MyModel(message)
+        """)
+
+        file("$childBuildName/src/main/groovy/my/MyExtension.groovy") << """
+            import ${Property.name}
+
+            interface MyExtension {
+                Property<String> getMessage()
             }
         """
-        file("$childBuildName/src/main/groovy/my/MyModel.groovy") << """
+
+        addPluginImplementation(childBuildName, """
+            def model = project.extensions.create("myExtension", MyExtension)
+            model.message = "It works from project \${project.identityPath}"
+        """)
+    }
+
+    void withSomeToolingModelBuilderPluginThatPerformsDependencyResolutionInBuildSrc() {
+        addPluginBuildScript("buildSrc")
+        addModelImplementation("buildSrc")
+
+        addModelBuilderImplementation("buildSrc", """
+            def message = "project \${project.path} classpath = \${project.configurations.implementation.files.size()}"
+            return new MyModel(message)
+        """)
+
+        addPluginImplementation("buildSrc", """
+            def implementation = project.configurations.create("implementation")
+            implementation.attributes.attribute(${Attribute.name}.of("thing", String), "custom")
+            def artifact = project.layout.buildDirectory.file("out.txt")
+            implementation.outgoing.artifact(artifact)
+        """)
+    }
+
+    void withSomeNullableToolingModelBuilderPluginInBuildSrc() {
+        addPluginBuildScript("buildSrc")
+
+        addModelBuilderImplementation("buildSrc", """
+            return null
+        """)
+
+        addPluginImplementation("buildSrc")
+    }
+
+    private void addModelImplementation(String targetBuildName) {
+        file("$targetBuildName/src/main/groovy/my/MyModel.groovy") << """
             package my
 
             class MyModel implements java.io.Serializable {
                 private final String message
                 MyModel(String message) { this.message = message }
                 String getMessage() { message }
+                String toString() { message }
             }
         """.stripIndent()
+    }
 
-        file("$childBuildName/src/main/groovy/my/MyModelBuilder.groovy") << """
+    private void addModelBuilderImplementation(String targetBuildName, String content) {
+        file("$targetBuildName/src/main/groovy/my/MyModelBuilder.groovy") << """
             package my
 
             import ${ToolingModelBuilder.name}
@@ -81,21 +122,13 @@ trait ToolingApiSpec {
                 Object buildAll(String modelName, Project project) {
                     println("creating model for \$project")
                     $content
-                    def message = project.myExtension.message.get()
-                    return new MyModel(message)
                 }
             }
         """.stripIndent()
+    }
 
-        file("$childBuildName/src/main/groovy/my/MyExtension.groovy") << """
-            import ${Property.name}
-
-            interface MyExtension {
-                Property<String> getMessage()
-            }
-        """
-
-        file("$childBuildName/src/main/groovy/my/MyPlugin.groovy") << """
+    private void addPluginImplementation(String targetBuildName, String content = "") {
+        file("$targetBuildName/src/main/groovy/my/MyPlugin.groovy") << """
             package my
 
             import ${Project.name}
@@ -105,8 +138,7 @@ trait ToolingApiSpec {
 
             abstract class MyPlugin implements Plugin<Project> {
                 void apply(Project project) {
-                    def model = project.extensions.create("myExtension", MyExtension)
-                    model.message = "It works from project \${project.path}"
+                    $content
                     registry.register(new my.MyModelBuilder())
                 }
 
@@ -114,6 +146,22 @@ trait ToolingApiSpec {
                 abstract ToolingModelBuilderRegistry getRegistry()
             }
         """.stripIndent()
+    }
+
+    private void addPluginBuildScript(String targetBuildName) {
+        file("$targetBuildName/build.gradle") << """
+            plugins {
+                id("groovy-gradle-plugin")
+            }
+            gradlePlugin {
+                plugins {
+                    test {
+                        id = "my.plugin"
+                        implementationClass = "my.MyPlugin"
+                    }
+                }
+            }
+        """
     }
 
     def <T> T fetchModel(Class<T> type = SomeToolingModel.class) {

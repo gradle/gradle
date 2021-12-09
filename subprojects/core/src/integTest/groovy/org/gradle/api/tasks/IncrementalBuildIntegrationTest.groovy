@@ -575,7 +575,6 @@ task b(type: DirTransformerTask, dependsOn: a) {
         }
     }
 
-    @ToBeFixedForConfigurationCache(because = "task wrongly up-to-date")
     def "skips tasks when input properties have not changed"() {
         buildFile << '''
 public class GeneratorTask extends DefaultTask {
@@ -1154,7 +1153,7 @@ task b(dependsOn: a)
                 ${customTaskImplementation("CustomTaskFromUnknownClassloader")}
             '''
 
-            def customTaskClass = providers.gradleProperty("unknownClassloader").forUseAtConfigurationTime().isPresent()
+            def customTaskClass = providers.gradleProperty("unknownClassloader").isPresent()
                     ? CustomTaskFromUnknownClassloader
                     : CustomTaskFromBuildFile
 

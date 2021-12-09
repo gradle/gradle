@@ -23,7 +23,6 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ResultHandler
 import org.gradle.tooling.UnsupportedVersionException
-import spock.lang.Unroll
 
 import java.util.regex.Pattern
 
@@ -71,7 +70,6 @@ class RunTasksBeforeRunActionCrossVersion extends ToolingApiSpecification {
         assert result == "Action result"
     }
 
-    @Unroll
     def "does not run any tasks when none specified and #description"() {
         file('build.gradle') << """
             $configuration

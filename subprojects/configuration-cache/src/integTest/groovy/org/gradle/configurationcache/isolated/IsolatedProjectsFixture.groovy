@@ -41,7 +41,7 @@ class IsolatedProjectsFixture {
      * Also asserts that the expected set of projects is configured, the expected models are queried
      * and the appropriate console logging, reports and build operations are generated.
      */
-    void assertStateStored(@DelegatesTo(StoreDetails) Closure closure = {}) {
+    void assertStateStored(@DelegatesTo(StoreDetails) Closure closure) {
         def details = new StoreDetails()
         closure.delegate = details
         closure()
@@ -62,27 +62,20 @@ class IsolatedProjectsFixture {
      * Also asserts that the expected set of projects is configured, the expected models are queried
      * and the appropriate console logging, reports and build operations are generated.
      */
-    void assertStateStoredWithProblems(@DelegatesTo(StoreWithProblemsDetails) Closure closure = {}) {
+    void assertStateStoredWithProblems(@DelegatesTo(StoreWithProblemsDetails) Closure closure) {
         def details = new StoreWithProblemsDetails()
         closure.delegate = details
         closure()
 
-        def totalProblems = details.problems.inject(0) { a, b -> a + b.count }
+        def totalProblems = details.totalProblems
 
         assertHasStoreReason(details)
-        if (totalProblems == 1) {
-            spec.result.assertHasPostBuildOutput("Configuration cache entry stored with 1 problem.")
-        } else {
-            spec.result.assertHasPostBuildOutput("Configuration cache entry stored with ${totalProblems} problems.")
-        }
+        spec.result.assertHasPostBuildOutput("Configuration cache entry stored with ${details.problemsString}.")
         assertHasWarningThatIncubatingFeatureUsed()
 
         configurationCacheBuildOperations.assertStateStored()
 
-        spec.problems.assertResultHasProblems(spec.result) {
-            withTotalProblemsCount(totalProblems)
-            withUniqueProblems(details.problems.collect { it.message })
-        }
+        assertHasProblems(totalProblems, details.problems)
 
         assertProjectsConfigured(details)
         assertModelsQueried(details)
@@ -94,7 +87,7 @@ class IsolatedProjectsFixture {
      * Also asserts that the expected set of projects is configured, the expected models are queried
      * and the appropriate console logging, reports and build operations are generated.
      */
-    void assertStateStoreFailed(@DelegatesTo(StoreWithProblemsDetails) Closure closure = {}) {
+    void assertStateStoreFailed(@DelegatesTo(StoreWithProblemsDetails) Closure closure) {
         def details = new StoreWithProblemsDetails()
         closure.delegate = details
         closure()
@@ -113,7 +106,9 @@ class IsolatedProjectsFixture {
 
         spec.problems.assertFailureHasProblems(spec.failure) {
             withTotalProblemsCount(totalProblems)
-            withUniqueProblems(details.problems.collect { it.message })
+            withUniqueProblems(details.problems.collect {
+                it.message.replace('/', File.separator)
+            })
         }
 
         assertProjectsConfigured(details)
@@ -126,22 +121,100 @@ class IsolatedProjectsFixture {
      * Also asserts that the expected set of projects is configured, the expected models are queried
      * and the appropriate console logging, reports and build operations are generated.
      */
-    void assertStateRecreated(@DelegatesTo(StoreRecreatedDetails) Closure closure = {}) {
+    void assertStateRecreated(@DelegatesTo(StoreRecreatedDetails) Closure closure) {
         def details = new StoreRecreatedDetails()
         closure.delegate = details
         closure()
 
+        doStateStored(details, "stored")
+    }
+
+    /**
+     * Asserts that the cache entry is discarded and stored with the expected problems.
+     *
+     * Also asserts that the expected set of projects is configured, the expected models are queried
+     * and the appropriate console logging, reports and build operations are generated.
+     */
+    void assertStateRecreatedWithProblems(@DelegatesTo(StoreRecreatedWithProblemsDetails) Closure closure) {
+        def details = new StoreRecreatedWithProblemsDetails()
+        closure.delegate = details
+        closure()
+
+        doStoreWithProblems(details, details, "stored with $details.problemsString")
+    }
+
+    /**
+     * Asserts that the cache entry is updated with no problems.
+     *
+     * Also asserts that the expected set of projects is configured, the expected models are queried
+     * and the appropriate console logging, reports and build operations are generated.
+     */
+    void assertStateUpdated(@DelegatesTo(StoreUpdateDetails) Closure closure) {
+        def details = new StoreUpdateDetails()
+        closure.delegate = details
+        closure()
+
+        doStateStored(details, "updated for ${details.updatedProjectsString}, ${details.reusedProjectsString} up-to-date")
+    }
+
+    /**
+     * Asserts that the cache entry is updated with the given problems.
+     *
+     * Also asserts that the expected set of projects is configured, the expected models are queried
+     * and the appropriate console logging, reports and build operations are generated.
+     */
+    void assertStateUpdatedWithProblems(@DelegatesTo(StoreUpdatedWithProblemsDetails) Closure closure) {
+        def details = new StoreUpdatedWithProblemsDetails()
+        closure.delegate = details
+        closure()
+
+        doStoreWithProblems(details, details, "updated for ${details.updatedProjectsString} with $details.problemsString, ${details.reusedProjectsString} up-to-date")
+    }
+
+    private void doStateStored(StoreInvalidationDetails details, String storeAction) {
+        assertHasRecreateReason(details)
+        spec.postBuildOutputContains("Configuration cache entry $storeAction.")
+        assertHasWarningThatIncubatingFeatureUsed()
+
+        configurationCacheBuildOperations.assertStateStored()
+
+        assertProjectsConfigured(details)
+        assertModelsQueried(details)
+    }
+
+    private void doStoreWithProblems(StoreInvalidationDetails details, HasProblems problems, String storeAction) {
+        def totalProblems = problems.totalProblems
+
+        assertHasRecreateReason(details)
+        spec.result.assertHasPostBuildOutput("Configuration cache entry $storeAction.")
+        assertHasWarningThatIncubatingFeatureUsed()
+
+        configurationCacheBuildOperations.assertStateStored()
+
+        assertHasProblems(totalProblems, problems.problems)
+
+        assertProjectsConfigured(details)
+        assertModelsQueried(details)
+    }
+
+    private void assertHasRecreateReason(StoreInvalidationDetails details) {
         // Inputs can be discovered in parallel, so required that any one of the changed inputs is reported
         def reasons = []
         details.changedFiles.each { file ->
             reasons.add("file '${file.replace('/', File.separator)}'")
         }
-        if (details.changedGradleProperty != null) {
-            reasons.add("Gradle property '$details.changedGradleProperty'")
+        if (details.changedGradleProperty) {
+            reasons.add("the set of Gradle properties")
+        }
+        if (details.changedSystemProperty != null) {
+            reasons.add("system property '$details.changedSystemProperty'")
+        }
+        if (details.changedTask != null) {
+            reasons.add("an input to task '${details.changedTask}'")
         }
 
         def messages = reasons.collect { reason ->
-            if (details.models.isEmpty()) {
+            if (details.runsTasks) {
                 "Creating task graph as configuration cache cannot be reused because $reason has changed."
             } else {
                 "Creating tooling model as configuration cache cannot be reused because $reason has changed."
@@ -150,13 +223,6 @@ class IsolatedProjectsFixture {
 
         def found = messages.any { message -> spec.output.contains(message) }
         assert found: "could not find expected invalidation reason in output. expected: ${messages}"
-        spec.postBuildOutputContains("Configuration cache entry stored.")
-        assertHasWarningThatIncubatingFeatureUsed()
-
-        configurationCacheBuildOperations.assertStateStored()
-
-        assertProjectsConfigured(details)
-        assertModelsQueried(details)
     }
 
     /**
@@ -180,10 +246,20 @@ class IsolatedProjectsFixture {
     }
 
     private void assertHasStoreReason(StoreDetails details) {
-        if (details.models.isEmpty() && details.buildModelQueries == 0) {
+        if (details.runsTasks) {
             spec.outputContains("Calculating task graph as no configuration cache is available for tasks:")
         } else {
             spec.outputContains("Creating tooling model as no configuration cache is available for the requested model")
+        }
+    }
+
+
+    private assertHasProblems(int totalProblems, List<ProblemDetails> problems) {
+        spec.problems.assertResultHasProblems(spec.result) {
+            withTotalProblemsCount(totalProblems)
+            withUniqueProblems(problems.collect {
+                it.message.replace('/', File.separator)
+            })
         }
     }
 
@@ -218,7 +294,9 @@ class IsolatedProjectsFixture {
         def expectedProjectModels = details.models.collect { [it.path] * it.count }.flatten()
         assert models.size() == expectedProjectModels.size() + details.buildModelQueries
         models.removeAll { it.details.projectPath == null }
-        assert models.collect { fullPath(it) }.sort() == expectedProjectModels.sort()
+        def sortedProjectModels = models.collect { fullPath(it) }.sort()
+        def sortedExpectedProjectModels = expectedProjectModels.sort()
+        assert sortedProjectModels == sortedExpectedProjectModels
     }
 
     private void assertHasWarningThatIncubatingFeatureUsed() {
@@ -227,13 +305,13 @@ class IsolatedProjectsFixture {
         spec.outputDoesNotContain(AbstractOptInFeatureIntegrationTest.CONFIGURE_ON_DEMAND_MESSAGE)
     }
 
-    private String fullPath(BuildOperationRecord record) {
-        if (record.details.buildPath == ':') {
-            return record.details.projectPath
-        } else if (record.details.projectPath == ':') {
-            return record.details.buildPath
+    private String fullPath(BuildOperationRecord operationRecord) {
+        if (operationRecord.details.buildPath == ':') {
+            return operationRecord.details.projectPath
+        } else if (operationRecord.details.projectPath == ':') {
+            return operationRecord.details.buildPath
         } else {
-            return record.details.buildPath + record.details.projectPath
+            return operationRecord.details.buildPath + operationRecord.details.projectPath
         }
     }
 
@@ -252,6 +330,7 @@ class IsolatedProjectsFixture {
         final projects = new HashSet<String>()
         final List<ModelDetails> models = []
         int buildModelQueries
+        boolean runsTasks = true
 
         void projectConfigured(String path) {
             projects.add(path)
@@ -265,6 +344,7 @@ class IsolatedProjectsFixture {
          * The given number of build scoped models are created.
          */
         void buildModelCreated(int count = 1) {
+            runsTasks = false
             buildModelQueries += count
         }
 
@@ -273,6 +353,7 @@ class IsolatedProjectsFixture {
          */
         void modelsCreated(String... paths) {
             projectsConfigured(paths)
+            runsTasks = false
             models.addAll(paths.collect { new ModelDetails(it, 1) })
         }
 
@@ -281,29 +362,92 @@ class IsolatedProjectsFixture {
          */
         void modelsCreated(String path, int count) {
             projectsConfigured(path)
+            runsTasks = false
             models.add(new ModelDetails(path, count))
+        }
+
+        void modelsQueriedAndNotPresent(String... paths) {
+            for (path in paths) {
+                modelsCreated(path, 0)
+            }
         }
     }
 
-    static class StoreWithProblemsDetails extends StoreDetails {
+    trait HasProblems {
         final List<ProblemDetails> problems = []
 
         void problem(String message, int count = 1) {
             problems.add(new ProblemDetails(message, count))
         }
+
+        int getTotalProblems() {
+            return problems.inject(0) { a, b -> a + b.count }
+        }
+
+        String getProblemsString() {
+            def count = totalProblems
+            return count == 1 ? "1 problem" : "$count problems"
+        }
     }
 
-    static class StoreRecreatedDetails extends StoreDetails {
+    static class StoreWithProblemsDetails extends StoreDetails implements HasProblems {
+    }
+
+    static class StoreInvalidationDetails extends StoreDetails {
         List<String> changedFiles = []
-        String changedGradleProperty
+        boolean changedGradleProperty
+        String changedSystemProperty
+        String changedTask
 
         void fileChanged(String name) {
             changedFiles.add(name)
         }
 
-        void gradlePropertyChanged(String name) {
-            changedGradleProperty = name
+        void taskInputChanged(String name) {
+            changedTask = name
         }
+
+        void gradlePropertyChanged() {
+            changedGradleProperty = true
+        }
+
+        void systemPropertyChanged(String name) {
+            changedSystemProperty = name
+        }
+    }
+
+    static class StoreRecreatedDetails extends StoreInvalidationDetails {
+    }
+
+    static class StoreRecreatedWithProblemsDetails extends StoreRecreatedDetails implements HasProblems {
+    }
+
+    static class StoreUpdateDetails extends StoreInvalidationDetails {
+        Set<String> projectsReused = new HashSet<>()
+
+        void modelsReused(String... paths) {
+            projectsReused.addAll(paths.toList())
+        }
+
+        String getUpdatedProjectsString() {
+            def updatedProjects = models.size()
+            return updatedProjects == 1 ? "1 project" : "$updatedProjects projects"
+        }
+
+        String getReusedProjectsString() {
+            def reusedProjects = projectsReused.size()
+            switch (reusedProjects) {
+                case 0:
+                    return "no projects"
+                case 1:
+                    return "1 project"
+                default:
+                    return "${reusedProjects} projects"
+            }
+        }
+    }
+
+    static class StoreUpdatedWithProblemsDetails extends StoreUpdateDetails implements HasProblems {
     }
 
     static class LoadDetails {

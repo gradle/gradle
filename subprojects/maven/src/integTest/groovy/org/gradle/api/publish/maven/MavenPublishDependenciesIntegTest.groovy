@@ -19,7 +19,6 @@ package org.gradle.api.publish.maven
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import spock.lang.Issue
-import spock.lang.Unroll
 
 class MavenPublishDependenciesIntegTest extends AbstractMavenPublishIntegTest {
     def repoModule = javaLibrary(mavenRepo.module('group', 'root', '1.0'))
@@ -69,7 +68,6 @@ class MavenPublishDependenciesIntegTest extends AbstractMavenPublishIntegTest {
     }
 
     @Issue("GRADLE-3233")
-    @Unroll
     @ToBeFixedForConfigurationCache
     def "publishes POM dependency with #versionType version for Gradle dependency with null version"() {
         given:

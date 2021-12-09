@@ -21,12 +21,10 @@ import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.internal.TextUtil
 import spock.lang.Issue
-import spock.lang.Unroll
 
 import java.util.jar.Attributes
 import java.util.jar.Manifest
 
-@Unroll
 class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractIntegrationSpec {
     def "can ignore files on runtime classpath in #tree (using runtime API: #api)"() {
         def project = new ProjectWithRuntimeClasspathNormalization(api).withFilesIgnored()
@@ -82,7 +80,6 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         'nested in dir jars' | 'ignoredResourceInNestedInDirJar' | 'notIgnoredResourceInNestedInDirJar' | Api.ANNOTATION
     }
 
-    @Unroll
     def "can ignore manifest attributes in #tree on runtime classpath"() {
         def project = new ProjectWithRuntimeClasspathNormalization(Api.RUNTIME).withManifestAttributesIgnored()
         def manifestResource = project[resourceName]
@@ -109,7 +106,6 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         'directory' | 'manifestInDirectory'
     }
 
-    @Unroll
     def "can ignore entire manifest in #tree on runtime classpath"() {
         def project = new ProjectWithRuntimeClasspathNormalization(Api.RUNTIME).withManifestIgnored()
         def manifestResource = project[resourceName]
@@ -136,7 +132,6 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         'directory' | 'manifestInDirectory'
     }
 
-    @Unroll
     def "can ignore all meta-inf files in #tree on runtime classpath"() {
         def project = new ProjectWithRuntimeClasspathNormalization(Api.RUNTIME).withAllMetaInfIgnored()
         def manifestResource = project[resourceName]
@@ -470,7 +465,7 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         project.buildFile << """
             normalization {
                 runtimeClasspath {
-                    if (providers.gradleProperty('${enableFilterFlag}').forUseAtConfigurationTime().present) {
+                    if (providers.gradleProperty('${enableFilterFlag}').present) {
                         ${normalizationRule}
                     }
                 }

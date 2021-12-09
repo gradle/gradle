@@ -19,12 +19,10 @@ package org.gradle.workers.internal
 import org.gradle.api.Project
 import org.gradle.api.file.ProjectLayout
 import org.gradle.internal.reflect.Instantiator
-import spock.lang.Unroll
 
 import static org.gradle.workers.fixtures.WorkerExecutorFixture.ISOLATION_MODES
 
 class WorkerExecutorServicesIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
-    @Unroll
     def "workers cannot inject internal services using #isolationMode isolation"() {
         fixture.workActionThatCreatesFiles.constructorArgs = "org.gradle.api.internal.file.FileOperations fileOperations"
         fixture.withWorkActionClassInBuildSrc()
@@ -45,7 +43,6 @@ class WorkerExecutorServicesIntegrationTest extends AbstractWorkerExecutorIntegr
         isolationMode << ISOLATION_MODES
     }
 
-    @Unroll
     def "workers can inject FileSystemOperations service using #isolationMode isolation"() {
         fixture.workActionThatCreatesFiles.extraFields += """
             org.gradle.api.file.FileSystemOperations fileOperations
@@ -89,7 +86,6 @@ class WorkerExecutorServicesIntegrationTest extends AbstractWorkerExecutorIntegr
         isolationMode << ISOLATION_MODES
     }
 
-    @Unroll
     def "workers with injected FileSystemOperations service always resolve files from the project directory using #isolationMode isolation"() {
         fixture.workActionThatCreatesFiles.extraFields += """
             org.gradle.api.file.FileSystemOperations fileOperations
@@ -145,7 +141,6 @@ class WorkerExecutorServicesIntegrationTest extends AbstractWorkerExecutorIntegr
         isolationMode << ISOLATION_MODES
     }
 
-    @Unroll
     def "workers can inject ObjectFactory service using #isolationMode isolation"() {
         fixture.workActionThatCreatesFiles.extraFields += """
             org.gradle.api.model.ObjectFactory objectFactory
@@ -187,7 +182,6 @@ class WorkerExecutorServicesIntegrationTest extends AbstractWorkerExecutorIntegr
         isolationMode << ISOLATION_MODES
     }
 
-    @Unroll
     def "workers can inject ProviderFactory service using #isolationMode isolation"() {
         fixture.workActionThatCreatesFiles.extraFields += """
             org.gradle.api.provider.ProviderFactory providerFactory
@@ -215,7 +209,6 @@ class WorkerExecutorServicesIntegrationTest extends AbstractWorkerExecutorIntegr
         isolationMode << ISOLATION_MODES
     }
 
-    @Unroll
     def "workers can inject ExecOperations service and use exec with #isolationMode isolation"() {
         withTestMainParametersAndServices()
 
@@ -255,7 +248,6 @@ class WorkerExecutorServicesIntegrationTest extends AbstractWorkerExecutorIntegr
         isolationMode << ISOLATION_MODES
     }
 
-    @Unroll
     def "workers can inject ExecOperations service and use javaexec with #isolationMode isolation"() {
         withTestMainParametersAndServices()
 
@@ -297,7 +289,6 @@ class WorkerExecutorServicesIntegrationTest extends AbstractWorkerExecutorIntegr
         isolationMode << ISOLATION_MODES
     }
 
-    @Unroll
     def "workers cannot inject #forbiddenType with #isolationMode"() {
         fixture.workActionThatCreatesFiles.constructorArgs = "${forbiddenType.name} service"
         fixture.workActionThatCreatesFiles.action += """

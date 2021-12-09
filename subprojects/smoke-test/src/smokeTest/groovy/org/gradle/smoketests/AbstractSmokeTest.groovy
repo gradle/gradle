@@ -17,6 +17,7 @@
 package org.gradle.smoketests
 
 import org.apache.commons.io.FileUtils
+import org.gradle.api.JavaVersion
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheMaxProblemsOption
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption
@@ -34,6 +35,7 @@ import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
+import org.gradle.util.GradleVersion
 import spock.lang.Specification
 import spock.lang.TempDir
 
@@ -45,11 +47,10 @@ import static org.gradle.test.fixtures.server.http.MavenHttpPluginRepository.PLU
 abstract class AbstractSmokeTest extends Specification {
 
     protected static final AndroidGradlePluginVersions AGP_VERSIONS = new AndroidGradlePluginVersions()
+    protected static final String AGP_NO_CC_ITERATION_MATCHER = ".*agp=4\\..*"
+
     protected static final KotlinGradlePluginVersions KOTLIN_VERSIONS = new KotlinGradlePluginVersions()
-    protected static final String AGP_4_0_ITERATION_MATCHER = ".*agp=4\\.0\\..*"
-    protected static final String AGP_4_1_ITERATION_MATCHER = ".*agp=4\\.1\\..*"
-    protected static final String AGP_4_2_ITERATION_MATCHER = ".*agp=4\\.2\\..*"
-    protected static final String AGP_7_ITERATION_MATCHER = ".*agp=7\\..*"
+    protected static final String KGP_NO_CC_ITERATION_MATCHER = ".*(kotlin=1\\.3\\.|kotlin=1\\.4\\.[01]).*"
 
     static class TestedVersions {
         /**
@@ -110,7 +111,10 @@ abstract class AbstractSmokeTest extends Specification {
         })
 
         // https://plugins.gradle.org/plugin/org.gretty
-        static gretty = "3.0.6"
+        static gretty = [
+            [version: "3.0.7", servletContainer: "jetty9.4", javaMinVersion: JavaVersion.VERSION_1_8],
+            [version: "4.0.0", servletContainer: "jetty11", javaMinVersion: JavaVersion.VERSION_11]
+        ]
 
         // https://plugins.gradle.org/plugin/org.ajoberstar.grgit
         static grgit = "4.1.0"
@@ -125,7 +129,7 @@ abstract class AbstractSmokeTest extends Specification {
         static errorProne = "2.0.2"
 
         // https://plugins.gradle.org/plugin/com.google.protobuf
-        static protobufPlugin = "0.8.17"
+        static protobufPlugin = "0.8.18"
         static protobufTools = "3.17.1"
 
         // https://plugins.gradle.org/plugin/org.gradle.test-retry
@@ -157,7 +161,7 @@ abstract class AbstractSmokeTest extends Specification {
         static detekt = Versions.of("1.18.1")
 
         // https://plugins.gradle.org/plugin/com.diffplug.spotless
-        static spotless = Versions.of("5.16.0")
+        static spotless = Versions.of("6.0.0")
 
         // https://plugins.gradle.org/plugin/com.google.cloud.tools.jib
         static jib = Versions.of("3.1.4")
@@ -167,7 +171,7 @@ abstract class AbstractSmokeTest extends Specification {
 
         // https://plugins.gradle.org/plugin/org.jetbrains.kotlin.plugin.allopen
         // https://plugins.gradle.org/plugin/org.jetbrains.kotlin.plugin.spring
-        static kotlinPlugins = Versions.of("1.4.21-2", "1.4.31", "1.5.31", "1.6.0-RC")
+        static kotlinPlugins = Versions.of("1.4.21-2", "1.4.31", "1.5.31", "1.6.0", "1.6.10-RC")
 
         // https://plugins.gradle.org/plugin/com.moowork.grunt
         // https://plugins.gradle.org/plugin/com.moowork.gulp
@@ -320,7 +324,61 @@ abstract class AbstractSmokeTest extends Specification {
             def init = AGP_VERSIONS.createAgpNightlyRepositoryInitScript()
             extraArgs += ["-I", init.canonicalPath]
         }
+        if (agpVersion.startsWith("7.2") && JavaVersion.current().java9Compatible) {
+            runner = runner.withJvmArguments('--add-opens', 'java.logging/java.util.logging=ALL-UNNAMED')
+        }
         return runner.withArguments([runner.arguments, extraArgs].flatten())
+    }
+
+    protected static String deprecationOfFileTreeForEmptySources(String propertyName) {
+        return "Relying on FileTrees for ignoring empty directories when using @SkipWhenEmpty has been deprecated. " +
+            "This is scheduled to be removed in Gradle 8.0. " +
+            "Annotate the property ${propertyName} with @IgnoreEmptyDirectories or remove @SkipWhenEmpty. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#empty_directories_file_tree"
+    }
+
+    protected static SmokeTestGradleRunner expectAgpFileTreeDeprecations(String agpVersion, SmokeTestGradleRunner runner) {
+        if (agpVersion.startsWith("4.") || agpVersion.startsWith("7.0.") || agpVersion.startsWith("7.1.")) {
+            expectAgpFileTreeDeprecationWarnings(runner, "compileDebugAidl", "compileDebugRenderscript", "stripDebugDebugSymbols", "bundleLibResDebug")
+        }
+        if (agpVersion.startsWith("4.")) {
+            expectAgpFileTreeDeprecationWarnings(runner, "mergeDebugNativeLibs")
+        }
+        return runner
+    }
+
+    protected static void expectAgpFileTreeDeprecationWarnings(SmokeTestGradleRunner runner, String... tasks) {
+        tasks.each {
+            TASK_TO_FILE_TREE_PROPERTY_WARNING[it].addToRunner(runner)
+        }
+    }
+
+    private static final Map<String, FileTreeDeprecation> TASK_TO_FILE_TREE_PROPERTY_WARNING = [
+        "compileDebugAidl": fileTreeDeprecation("sourceFiles", "https://issuetracker.google.com/issues/205285261"),
+        "compileDebugRenderscript": fileTreeDeprecation("sourceDirs", "https://issuetracker.google.com/issues/205285261"),
+        "stripDebugDebugSymbols": fileTreeDeprecation("inputFiles", "https://issuetracker.google.com/issues/205285261"),
+        "bundleLibResDebug": fileTreeDeprecation("resources", "https://issuetracker.google.com/issues/204425803"),
+        "mergeDebugNativeLibs": legacyFileTreeDeprecation("projectNativeLibs"),
+    ]
+
+    static interface FileTreeDeprecation {
+        void addToRunner(SmokeTestGradleRunner runner)
+    }
+
+    private static FileTreeDeprecation legacyFileTreeDeprecation(String propertyName) {
+        return new FileTreeDeprecation() {
+            void addToRunner(SmokeTestGradleRunner runner) {
+                runner.expectLegacyDeprecationWarning(deprecationOfFileTreeForEmptySources(propertyName))
+            }
+        }
+    }
+
+    private static FileTreeDeprecation fileTreeDeprecation(String propertyName, String followup) {
+        return new FileTreeDeprecation() {
+            void addToRunner(SmokeTestGradleRunner runner) {
+                runner.expectDeprecationWarning(deprecationOfFileTreeForEmptySources(propertyName), followup)
+            }
+        }
     }
 
     protected void replaceVariablesInBuildFile(Map binding) {

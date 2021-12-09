@@ -19,12 +19,10 @@ package org.gradle.cache.internal
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class SingleDepthFilesFinderTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
-    @Unroll
     def "finds files for depth #depth"() {
         given:
         tmpDir.file("a/aa/aaa").createFile("1")

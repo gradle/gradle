@@ -19,7 +19,6 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.junit.Assume
-import spock.lang.Unroll
 
 abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationSpec {
     def setup() {
@@ -234,7 +233,6 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
         JavaVersion.VERSION_1_8 | "6.0"
     }
 
-    @Unroll
     def "tapi client can run build action with Gradle and Java combination"(JavaVersion gradleDaemonJdkVersion, String gradleVersion) {
         setup:
         def gradleDaemonJdk = AvailableJavaHomes.getJdk(gradleDaemonJdkVersion)

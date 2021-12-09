@@ -23,13 +23,11 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
 import spock.lang.IgnoreIf
-import spock.lang.Unroll
 
 class SamplesCustomExternalTaskIntegrationTest extends AbstractSampleIntegrationTest {
     @Rule
     public final Sample sample = new Sample(temporaryFolder)
 
-    @Unroll
     @IgnoreIf({ GradleContextualExecuter.embedded }) // Requires a Gradle distribution on the test-under-test classpath, but gradleApi() does not offer the full distribution
     @UsesSample("base/customExternalTask")
     def "can test task implementation with #dsl dsl"() {
@@ -45,7 +43,6 @@ class SamplesCustomExternalTaskIntegrationTest extends AbstractSampleIntegration
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
     @UsesSample("base/customExternalTask")
     def "can publish and use task implementations for #dsl dsl"() {
         given:

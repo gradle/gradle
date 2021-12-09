@@ -18,7 +18,6 @@ package org.gradle.integtests.resolve.rules
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
-import spock.lang.Unroll
 
 class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyResolveTest {
     @Override
@@ -356,7 +355,6 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
         }
     }
 
-    @Unroll
     def "can disambiguate variants to select #selectedVariant"() {
         given:
         withDefaultVariantToTest()

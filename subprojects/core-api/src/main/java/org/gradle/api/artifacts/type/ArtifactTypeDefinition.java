@@ -74,6 +74,14 @@ public interface ArtifactTypeDefinition extends HasAttributes, Named {
     String DIRECTORY_TYPE = "directory";
 
     /**
+     * Represents a binary file
+     *
+     * @since 7.4
+     */
+    @Incubating
+    String BINARY_DATA_TYPE = "binary";
+
+    /**
      * Returns the set of file name extensions that should be mapped to this artifact type. Defaults to the name of this type.
      */
     Set<String> getFileNameExtensions();

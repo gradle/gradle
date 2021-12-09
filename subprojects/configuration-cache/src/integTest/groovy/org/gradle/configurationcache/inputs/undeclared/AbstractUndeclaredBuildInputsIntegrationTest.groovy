@@ -17,14 +17,12 @@
 package org.gradle.configurationcache.inputs.undeclared
 
 import org.gradle.configurationcache.AbstractConfigurationCacheIntegrationTest
-import spock.lang.Unroll
 
 abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
     abstract void buildLogicApplication(BuildInputRead read)
 
     abstract String getLocation()
 
-    @Unroll
     def "reports undeclared system property read using #propertyRead.groovyExpression prior to task execution from plugin"() {
         buildLogicApplication(propertyRead)
         def configurationCache = newConfigurationCacheFixture()
@@ -76,7 +74,6 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractConf
         SystemPropertyRead.booleanGetBoolean("CI")                                    | "true" | "false"
     }
 
-    @Unroll
     def "reports undeclared system property read using when iterating over system properties"() {
         buildLogicApplication(propertyRead)
         def configurationCache = newConfigurationCacheFixture()
@@ -98,7 +95,6 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractConf
         SystemPropertyRead.systemGetPropertiesFilterEntries("CI") | "true" | "false"
     }
 
-    @Unroll
     def "reports undeclared environment variable read using #envVarRead.groovyExpression prior to task execution from plugin"() {
         buildLogicApplication(envVarRead)
         def configurationCache = newConfigurationCacheFixture()

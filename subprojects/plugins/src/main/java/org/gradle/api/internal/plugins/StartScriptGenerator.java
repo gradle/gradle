@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.plugins;
 
+import com.google.common.base.Charsets;
 import org.apache.tools.ant.taskdefs.Chmod;
 import org.gradle.api.Action;
 import org.gradle.internal.IoActions;
@@ -108,12 +109,12 @@ public class StartScriptGenerator {
     }
 
     public void generateUnixScript(final File unixScript) {
-        IoActions.writeTextFile(unixScript, new Generate(createStartScriptGenerationDetails(), unixStartScriptGenerator));
+        IoActions.writeTextFile(unixScript, Charsets.UTF_8.name(), new Generate(createStartScriptGenerationDetails(), unixStartScriptGenerator));
         unixFileOperation.createExecutablePermission(unixScript);
     }
 
     public void generateWindowsScript(File windowsScript) {
-        IoActions.writeTextFile(windowsScript, new Generate(createStartScriptGenerationDetails(), windowsStartScriptGenerator));
+        IoActions.writeTextFile(windowsScript, Charsets.UTF_8.name(), new Generate(createStartScriptGenerationDetails(), windowsStartScriptGenerator));
     }
 
     interface UnixFileOperation {

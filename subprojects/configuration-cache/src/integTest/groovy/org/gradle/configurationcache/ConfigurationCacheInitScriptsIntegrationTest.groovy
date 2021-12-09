@@ -37,7 +37,7 @@ class ConfigurationCacheInitScriptsIntegrationTest extends AbstractConfiguration
                 def providers = gradle.services.get(ProviderFactory)
                 def fileFactory = gradle.services.get(org.gradle.api.internal.file.FileFactory)
                 def inputFile = fileFactory.file(file('${normaliseFileSeparators(buildLogicInput.absolutePath)}'))
-                def text = providers.fileContents(inputFile).asText.forUseAtConfigurationTime().get()
+                def text = providers.fileContents(inputFile).asText.get()
                 println text
             """
         }
@@ -48,6 +48,9 @@ class ConfigurationCacheInitScriptsIntegrationTest extends AbstractConfiguration
         then:
         outputContains 'foo!'
         configurationCache.assertStateStored()
+        problems.assertResultHasProblems(result) {
+            withInput("Initialization script 'initscript.gradle': file 'input.txt'")
+        }
 
         when:
         buildLogicInput.text = 'bar!'

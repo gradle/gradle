@@ -20,14 +20,12 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Ignore
 import spock.lang.Issue
-import spock.lang.Unroll
 
 import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.any
 import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.exact
 
 class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
 
-    @Unroll
     void 'finalizer tasks are scheduled as expected (#requestedTasks)'() {
         given:
         setupProject()
@@ -42,7 +40,6 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         requestedTasks << [['a'], ['a', 'b'], ['d', 'a']]
     }
 
-    @Unroll
     void 'finalizer tasks work with task excluding (#excludedTask)'() {
         setupProject()
         executer.beforeExecute {
@@ -73,7 +70,6 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         tasksNotInGraph = [':a', ':b', ':c', ':d'] - expectedExecutedTasks
     }
 
-    @Unroll
     void 'finalizer tasks work with --continue (#requestedTasks, #failingTask)'() {
         setupProject()
         executer.beforeExecute {
@@ -98,7 +94,6 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Ignore
-    @Unroll
     void 'finalizer tasks work with task disabling (#taskDisablingStatement)'() {
         setupProject()
         buildFile << """

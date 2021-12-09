@@ -18,7 +18,6 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import spock.lang.Unroll
 
 class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def setup() {
@@ -84,7 +83,6 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
         "filteredTree"         | _
     }
 
-    @Unroll
     def "builds correct artifacts when there is a project cycle in dependency graph - fluid: #fluid"() {
         makeFluid(fluid)
 
@@ -121,7 +119,6 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
         fluid << [true, false]
     }
 
-    @Unroll
     def "builds correct artifacts when there is a cycle in dependency graph - fluid: #fluid"() {
         makeFluid(fluid)
 
@@ -158,7 +155,6 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
         fluid << [true, false]
     }
 
-    @Unroll
     def "reports failure to calculate build dependencies when artifact build dependencies cannot be queried - fluid: #fluid"() {
         makeFluid(fluid)
         buildFile << """
@@ -186,7 +182,6 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
         fluid << [true, false]
     }
 
-    @Unroll
     def "reports failure to calculate build dependencies when file dependency cannot be resolved - fluid: #fluid"() {
         makeFluid(fluid)
         buildFile << """
@@ -214,7 +209,6 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
         fluid << [true, false]
     }
 
-    @Unroll
     def "reports failure to calculate build dependencies when local configuration cannot be selected - fluid: #fluid"() {
         makeFluid(fluid)
         buildFile << """
@@ -242,7 +236,6 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
         fluid << [true, false]
     }
 
-    @Unroll
     def "reports failure to calculate build dependencies when local variant cannot be selected - fluid: #fluid"() {
         makeFluid(fluid)
         buildFile << """

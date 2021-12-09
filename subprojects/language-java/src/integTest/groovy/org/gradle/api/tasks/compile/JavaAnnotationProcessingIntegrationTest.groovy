@@ -24,7 +24,6 @@ import org.gradle.language.fixtures.CompileJavaBuildOperationsFixture
 import org.gradle.language.fixtures.HelperProcessorFixture
 import org.gradle.util.internal.TextUtil
 import spock.lang.Issue
-import spock.lang.Unroll
 
 import static org.gradle.api.internal.tasks.compile.CompileJavaBuildOperationType.Result.AnnotationProcessorDetails.Type.ISOLATING
 import static org.gradle.api.tasks.compile.JavaAnnotationProcessingIntegrationTest.CompileMode.COMMAND_LINE
@@ -314,7 +313,6 @@ class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
         succeeds "compileJava"
     }
 
-    @Unroll
     def "wraps processing in build operation (#mode)"() {
         given:
         buildFile << """

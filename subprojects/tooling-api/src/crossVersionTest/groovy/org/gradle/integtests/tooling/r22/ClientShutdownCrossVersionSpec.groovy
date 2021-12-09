@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.tooling.model.gradle.GradleBuild
+import org.gradle.test.fixtures.Flaky
 import org.junit.Rule
 
 class ClientShutdownCrossVersionSpec extends ToolingApiSpecification {
@@ -48,6 +49,7 @@ class ClientShutdownCrossVersionSpec extends ToolingApiSpecification {
         thrown(IllegalStateException)
     }
 
+    @Flaky(because = 'https://github.com/gradle/gradle-private/issues/3477')
     def "cleans up idle daemons when tooling API session is shutdown"() {
         withConnection { connection ->
             connection.model(GradleBuild).setJvmArguments(buildJvmArguments).get()

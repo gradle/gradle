@@ -16,25 +16,193 @@
 
 package org.gradle.internal.classpath
 
-import com.google.common.collect.ImmutableSet
 import spock.lang.Specification
 
 import java.util.function.Consumer
 
 class AccessTrackingSetTest extends Specification {
-    def "reading set contents is tracked"() {
-        given:
-        Set<String> someStrings = ImmutableSet.of('hello', 'world')
-        Consumer<String> consumer = Mock()
-        AccessTrackingSet<String> set = new AccessTrackingSet<>(someStrings, consumer)
+    private final Consumer<Object> consumer = Mock()
+    private final Runnable aggregatingAccess = Mock()
+    private final Set<String> inner = new HashSet<>(Arrays.asList('existing', 'other'))
+    private final AccessTrackingSet<String> set = new AccessTrackingSet<>(inner, consumer, aggregatingAccess)
 
+    def "contains of existing element is tracked"() {
         when:
-        for (String v : set) {
-            // do nothing, just iterate
-        }
+        def result = set.contains('existing')
 
         then:
-        1 * consumer.accept('hello')
-        1 * consumer.accept('world')
+        result
+        1 * consumer.accept('existing')
+        0 * consumer._
+        0 * aggregatingAccess._
+    }
+
+    def "contains of null is tracked"() {
+        when:
+        def result = set.contains(null)
+
+        then:
+        !result
+        1 * consumer.accept(null)
+        0 * consumer._
+        0 * aggregatingAccess._
+    }
+
+    def "contains of missing element is tracked"() {
+        when:
+        def result = set.contains('missing')
+
+        then:
+        !result
+        1 * consumer.accept('missing')
+        0 * consumer._
+        0 * aggregatingAccess._
+    }
+
+    def "contains of inconvertible element is tracked"() {
+        when:
+        def result = set.contains(123)
+
+        then:
+        !result
+        1 * consumer.accept(123)
+        0 * consumer._
+        0 * aggregatingAccess._
+    }
+
+    def "containsAll of existing elements is tracked"() {
+        when:
+        def result = set.containsAll(Arrays.asList('existing', 'other'))
+
+        then:
+        result
+        1 * consumer.accept('existing')
+        1 * consumer.accept('other')
+        0 * consumer._
+        0 * aggregatingAccess._
+    }
+
+    def "containsAll of missing elements is tracked"() {
+        when:
+        def result = set.containsAll(Arrays.asList('missing', 'alsoMissing'))
+
+        then:
+        !result
+        1 * consumer.accept('missing')
+        1 * consumer.accept('alsoMissing')
+        0 * consumer._
+        0 * aggregatingAccess._
+    }
+
+    def "containsAll of missing and existing elements is tracked"() {
+        when:
+        def result = set.containsAll(Arrays.asList('missing', 'existing'))
+
+        then:
+        !result
+        1 * consumer.accept('missing')
+        1 * consumer.accept('existing')
+        0 * consumer._
+        0 * aggregatingAccess._
+    }
+
+    def "remove of existing element is tracked"() {
+        when:
+        def result = set.remove('existing')
+
+        then:
+        result
+        1 * consumer.accept('existing')
+        0 * consumer._
+        0 * aggregatingAccess._
+    }
+
+    def "remove of missing element is tracked"() {
+        when:
+        def result = set.remove('missing')
+
+        then:
+        !result
+        1 * consumer.accept('missing')
+        0 * consumer._
+        0 * aggregatingAccess._
+    }
+
+    def "removeAll of existing elements is tracked"() {
+        when:
+        def result = set.removeAll('existing', 'other')
+
+        then:
+        result
+        1 * consumer.accept('existing')
+        1 * consumer.accept('other')
+        0 * consumer._
+        0 * aggregatingAccess._
+    }
+
+    def "removeAll of missing elements is tracked"() {
+        when:
+        def result = set.removeAll('missing', 'alsoMissing')
+
+        then:
+        !result
+        1 * consumer.accept('missing')
+        1 * consumer.accept('alsoMissing')
+        0 * consumer._
+        0 * aggregatingAccess._
+    }
+
+    def "removeAll of existing and missing elements is tracked"() {
+        when:
+        def result = set.removeAll('existing', 'missing')
+
+        then:
+        result
+        1 * consumer.accept('existing')
+        1 * consumer.accept('missing')
+        0 * consumer._
+        0 * aggregatingAccess._
+    }
+
+    def "method #methodName is reported as aggregating"() {
+        when:
+        operation.accept(set)
+
+        then:
+        0 * consumer._
+        (1.._) * aggregatingAccess.run()
+
+        where:
+        methodName            | operation
+        "iterator()"          | call(s -> s.iterator())
+        "toArray()"           | call(s -> s.toArray())
+        "toArray()"           | call(s -> s.toArray())
+        "toArray(T[])"        | call(s -> s.toArray(new String[0]))
+        "forEach()"           | call(s -> s.forEach(e -> { }))
+        "size()"              | call(s -> s.size())
+        "isEmpty()"           | call(s -> s.isEmpty())
+        "hashCode()"          | call(s -> s.hashCode())
+        "equals(Object)"      | call(s -> Objects.equals(s, Collections.emptySet()))  // Ensure that a real equals is invoked and not a Groovy helper
+        "removeIf(Predicate)" | call(s -> s.removeIf(e -> false))
+    }
+
+    def "method #methodName is not reported as aggregating"() {
+        when:
+        operation.accept(set)
+
+        then:
+        0 * consumer._
+        0 * aggregatingAccess.run()
+
+        where:
+        methodName    | operation
+        "retainAll()" | call(s -> s.retainAll(Collections.emptySet()))
+        "clear()"     | call(s -> s.clear())
+        "toString()"  | call(s -> s.toString())
+    }
+
+    // Shortcut to have a typed lambda expression in where: block
+    static Consumer<Set<String>> call(Consumer<Set<String>> consumer) {
+        return consumer
     }
 }

@@ -17,13 +17,11 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.api.JavaVersion
-import org.gradle.integtests.fixtures.AbstractPluginIntegrationTest
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
-import spock.lang.Unroll
 
-class PluginVariantResolveIntegrationTest extends AbstractPluginIntegrationTest {
+class PluginVariantResolveIntegrationTest extends AbstractIntegrationSpec {
 
-    @Unroll
     @Issue("https://github.com/gradle/gradle/issues/13659")
     def "should report an incompatible Java version of a plugin properly (#id)"() {
         withDummyPlugin(true)
@@ -73,7 +71,6 @@ class PluginVariantResolveIntegrationTest extends AbstractPluginIntegrationTest 
             """
     }
 
-    @Unroll
     @Issue("https://github.com/gradle/gradle/issues/13659")
     def "should report an incompatible Java version of a plugin properly (#id) using composite builds"() {
         settingsFile << """

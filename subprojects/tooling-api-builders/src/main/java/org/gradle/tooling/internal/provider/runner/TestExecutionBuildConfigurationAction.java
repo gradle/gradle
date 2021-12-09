@@ -17,10 +17,10 @@
 package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.api.Action;
-import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.TestExecutionException;
@@ -165,16 +165,19 @@ class TestExecutionBuildConfigurationAction implements BuildConfigurationAction 
 
         List<Test> tasksToExecute = new ArrayList<Test>();
 
-        final Set<Project> allprojects = gradle.getRootProject().getAllprojects();
-        for (Project project : allprojects) {
-            final Collection<Test> testTasks = project.getTasks().withType(Test.class);
-            for (Test testTask : testTasks) {
-                for (InternalJvmTestRequest jvmTestRequest : internalJvmTestRequests) {
-                    final TestFilter filter = testTask.getFilter();
-                    filter.includeTest(jvmTestRequest.getClassName(), jvmTestRequest.getMethodName());
+        gradle.getOwner().ensureProjectsConfigured();
+        for (ProjectState projectState : gradle.getOwner().getProjects().getAllProjects()) {
+            projectState.ensureConfigured();
+            projectState.applyToMutableState(project -> {
+                final Collection<Test> testTasks = project.getTasks().withType(Test.class);
+                for (Test testTask : testTasks) {
+                    for (InternalJvmTestRequest jvmTestRequest : internalJvmTestRequests) {
+                        final TestFilter filter = testTask.getFilter();
+                        filter.includeTest(jvmTestRequest.getClassName(), jvmTestRequest.getMethodName());
+                    }
                 }
-            }
-            tasksToExecute.addAll(testTasks);
+                tasksToExecute.addAll(testTasks);
+            });
         }
         return tasksToExecute;
     }

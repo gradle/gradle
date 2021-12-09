@@ -19,11 +19,9 @@ package org.gradle.api.internal.changedetection.state
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import spock.lang.Issue
-import spock.lang.Unroll
 
 import java.nio.file.Files
 
-@Unroll
 class UpToDateIntegTest extends AbstractIntegrationSpec {
 
     def "empty output directories created automatically are part of up-to-date checking"() {
@@ -126,7 +124,7 @@ public abstract class CreateEmptyDirectory extends DefaultTask {
         buildFile << '''
             task customTask(type: CustomTask) {
                 outputFile = file("$buildDir/outputFile")
-                content = providers.gradleProperty('content').forUseAtConfigurationTime().getOrElse(null)
+                content = providers.gradleProperty('content').getOrElse(null)
             }
 
             class CustomTask extends DefaultTask {

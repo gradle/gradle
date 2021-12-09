@@ -17,7 +17,6 @@
 package org.gradle.api.provider
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Unroll
 
 class MapPropertyIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
@@ -65,7 +64,6 @@ class MapPropertyIntegrationTest extends AbstractIntegrationSpec {
             '''
     }
 
-    @Unroll
     def "can define task with abstract MapProperty<#keyType, #valueType> getter"() {
         given:
         buildFile << """
@@ -244,7 +242,6 @@ task thing {
         output.contains("prop = null")
     }
 
-    @Unroll
     def "can set value for map property from DSL"() {
         given:
         buildFile << """
@@ -294,7 +291,6 @@ task thing {
         succeeds('verifyInt')
     }
 
-    @Unroll
     def "can set value for string map property using GString keys and values"() {
         given:
         buildFile << """
@@ -345,7 +341,6 @@ task thing {
         succeeds('verify')
     }
 
-    @Unroll
     def "can add entry to string map property using GString key and value"() {
         given:
         buildFile << """
@@ -366,7 +361,6 @@ task thing {
         'providers.provider { [ "${str.toLowerCase().substring(1, 2)}": "${str.substring(2, 3)}" ] }' | _
     }
 
-    @Unroll
     def "can add entries to string map property using GString values"() {
         given:
         buildFile << """

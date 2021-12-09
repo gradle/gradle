@@ -24,6 +24,9 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * Iterates the test with and without the configuration cache enabled.
+ */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 @ExtensionAnnotation(ConfigurationCacheTestExtension.class)

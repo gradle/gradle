@@ -19,7 +19,6 @@ import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.resolve.JvmLibraryArtifactResolveTestFixture
 import org.gradle.test.fixtures.ivy.IvyRepository
-import spock.lang.Unroll
 
 class IvyJvmLibraryArtifactResolutionIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def fileRepo = ivyRepo
@@ -130,7 +129,6 @@ repositories {
         checkArtifactsResolvedAndCached()
     }
 
-    @Unroll
     @ToBeFixedForConfigurationCache
     def "fetches missing artifacts for module #condition"() {
         fixture.requestingSource()
@@ -200,7 +198,6 @@ Searched in the following locations:
         "when ivy descriptor changes" | "-Pnocache"
     }
 
-    @Unroll
     @ToBeFixedForConfigurationCache
     def "updates artifacts for module #condition"() {
         buildFile << """

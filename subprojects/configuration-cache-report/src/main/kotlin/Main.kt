@@ -41,6 +41,7 @@ external val configurationCacheProblems: () -> JsModel
 private
 external interface JsModel {
     val cacheAction: String
+    val requestedTasks: String
     val documentationLink: String
     val totalProblemCount: Int
     val diagnostics: Array<JsDiagnostic>
@@ -123,6 +124,7 @@ fun reportPageModelFromJsModel(jsModel: JsModel): ConfigurationCacheReportPage.M
     val diagnostics = importDiagnostics(jsModel.diagnostics)
     return ConfigurationCacheReportPage.Model(
         cacheAction = jsModel.cacheAction,
+        requestedTasks = jsModel.requestedTasks,
         documentationLink = jsModel.documentationLink,
         totalProblems = jsModel.totalProblemCount,
         reportedProblems = diagnostics.problems.size,

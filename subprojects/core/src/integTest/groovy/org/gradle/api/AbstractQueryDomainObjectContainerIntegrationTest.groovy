@@ -16,10 +16,7 @@
 
 package org.gradle.api
 
-import spock.lang.Unroll
-
 abstract class AbstractQueryDomainObjectContainerIntegrationTest extends AbstractDomainObjectContainerIntegrationTest {
-    @Unroll
     def "can execute query method #queryMethod.key from configureEach"() {
         buildFile << """
             testContainer.configureEach {
@@ -35,7 +32,6 @@ abstract class AbstractQueryDomainObjectContainerIntegrationTest extends Abstrac
         queryMethod << getQueryMethods()
     }
 
-    @Unroll
     def "can execute query method #queryMethod.key from withType.configureEach"() {
         buildFile << """
             testContainer.withType(testContainer.type).configureEach {
@@ -51,7 +47,6 @@ abstract class AbstractQueryDomainObjectContainerIntegrationTest extends Abstrac
         queryMethod << getQueryMethods()
     }
 
-    @Unroll
     def "can execute query method #queryMethod.key from matching.configureEach"() {
         buildFile << """
             testContainer.matching({ it in testContainer.type }).configureEach {
@@ -67,7 +62,6 @@ abstract class AbstractQueryDomainObjectContainerIntegrationTest extends Abstrac
         queryMethod << getQueryMethods()
     }
 
-    @Unroll
     def "can execute query method #queryMethod.key from Provider.configure"() {
         buildFile << """
             toBeRealized.configure {
@@ -83,7 +77,6 @@ abstract class AbstractQueryDomainObjectContainerIntegrationTest extends Abstrac
         queryMethod << getQueryMethods()
     }
 
-    @Unroll
     def "can execute query method #queryMethod.key from Provider.configure (realized)"() {
         buildFile << """
             realized.configure {

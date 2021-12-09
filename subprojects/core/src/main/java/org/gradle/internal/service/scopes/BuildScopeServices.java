@@ -49,7 +49,6 @@ import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.plugins.DefaultPluginRegistry;
 import org.gradle.api.internal.plugins.PluginInspector;
 import org.gradle.api.internal.plugins.PluginRegistry;
-import org.gradle.api.internal.project.ConfigurationOnDemandProjectAccessListener;
 import org.gradle.api.internal.project.DefaultProjectRegistry;
 import org.gradle.api.internal.project.DefaultProjectTaskLister;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
@@ -125,6 +124,7 @@ import org.gradle.initialization.DefaultGradlePropertiesLoader;
 import org.gradle.initialization.DefaultProjectDescriptorRegistry;
 import org.gradle.initialization.DefaultSettingsLoaderFactory;
 import org.gradle.initialization.DefaultSettingsPreparer;
+import org.gradle.initialization.Environment;
 import org.gradle.initialization.GradlePropertiesController;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.initialization.IGradlePropertiesLoader;
@@ -132,8 +132,6 @@ import org.gradle.initialization.InitScriptHandler;
 import org.gradle.initialization.InstantiatingBuildLoader;
 import org.gradle.initialization.ModelConfigurationListener;
 import org.gradle.initialization.NotifyingBuildLoader;
-import org.gradle.initialization.ProjectAccessHandler;
-import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.initialization.ProjectDescriptorRegistry;
 import org.gradle.initialization.ProjectPropertySettingBuildLoader;
 import org.gradle.initialization.RootBuildCacheControllerSettingsProcessor;
@@ -189,6 +187,7 @@ import org.gradle.internal.operations.logging.DefaultBuildOperationLoggerFactory
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.DefaultTextFileResourceLoader;
 import org.gradle.internal.resource.TextFileResourceLoader;
+import org.gradle.internal.resource.local.FileResourceListener;
 import org.gradle.internal.scripts.ScriptExecutionListener;
 import org.gradle.internal.service.CachingServiceLocator;
 import org.gradle.internal.service.DefaultServiceRegistry;
@@ -251,18 +250,6 @@ public class BuildScopeServices extends DefaultServiceRegistry {
 
     ExecutionNodeAccessHierarchies createExecutionNodeAccessHierarchies(FileSystem fileSystem, Stat stat) {
         return new ExecutionNodeAccessHierarchies(fileSystem.isCaseSensitive() ? CaseSensitivity.CASE_SENSITIVE : CaseSensitivity.CASE_INSENSITIVE, stat);
-    }
-
-    protected ProjectAccessListener createProjectAccessListener(List<ProjectAccessHandler> handlers) {
-        // Cannot use the listener infrastructure here because these events can be nested (that is, handling an event may trigger further events)
-        return new ProjectAccessListener() {
-            @Override
-            public void beforeResolvingProjectDependency(ProjectInternal dependencyProject) {
-                for (ProjectAccessHandler handler : handlers) {
-                    handler.beforeResolvingProjectDependency(dependencyProject);
-                }
-            }
-        };
     }
 
     protected BuildScopedCache createBuildScopedCache(
@@ -343,8 +330,13 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new DefaultGradlePropertiesController(propertiesLoader);
     }
 
-    protected IGradlePropertiesLoader createGradlePropertiesLoader() {
-        return new DefaultGradlePropertiesLoader((StartParameterInternal) get(StartParameter.class));
+    protected IGradlePropertiesLoader createGradlePropertiesLoader(
+        Environment environment
+    ) {
+        return new DefaultGradlePropertiesLoader(
+            (StartParameterInternal) get(StartParameter.class),
+            environment
+        );
     }
 
     protected ValueSourceProviderFactory createValueSourceProviderFactory(
@@ -375,11 +367,16 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new DefaultActorFactory(get(ExecutorFactory.class));
     }
 
-    protected BuildLoader createBuildLoader(GradleProperties gradleProperties, BuildOperationExecutor buildOperationExecutor) {
+    protected BuildLoader createBuildLoader(
+        GradleProperties gradleProperties,
+        BuildOperationExecutor buildOperationExecutor,
+        ListenerManager listenerManager
+    ) {
         return new NotifyingBuildLoader(
             new ProjectPropertySettingBuildLoader(
                 gradleProperties,
-                new InstantiatingBuildLoader()
+                new InstantiatingBuildLoader(),
+                listenerManager.getBroadcaster(FileResourceListener.class)
             ),
             buildOperationExecutor
         );
@@ -539,10 +536,6 @@ public class BuildScopeServices extends DefaultServiceRegistry {
 
     protected TaskSelector createTaskSelector(GradleInternal gradle, BuildStateRegistry buildStateRegistry, ProjectConfigurer projectConfigurer) {
         return new CompositeAwareTaskSelector(gradle, buildStateRegistry, projectConfigurer, new TaskNameResolver());
-    }
-
-    protected ProjectAccessHandler createProjectAccessHandler() {
-        return new ConfigurationOnDemandProjectAccessListener();
     }
 
     protected PluginRegistry createPluginRegistry(ClassLoaderScopeRegistry scopeRegistry, PluginInspector pluginInspector) {

@@ -16,10 +16,8 @@
 
 package org.gradle.api.tasks
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.execution.history.changes.ChangeTypeInternal
 import spock.lang.Issue
-import spock.lang.Unroll
 
 class IncrementalTaskInputsIntegrationTest extends AbstractIncrementalTasksIntegrationTest {
 
@@ -77,9 +75,7 @@ class IncrementalTaskInputsIntegrationTest extends AbstractIncrementalTasksInteg
         executesNonIncrementally(preexistingInputs + ['new-input.txt'])
     }
 
-    @Unroll
     @Issue("https://github.com/gradle/gradle/issues/4166")
-    @ToBeFixedForConfigurationCache(because = "task wrongly up-to-date")
     def "file in input dir appears in task inputs for #inputAnnotation"() {
         buildFile << """
             class MyTask extends DefaultTask {

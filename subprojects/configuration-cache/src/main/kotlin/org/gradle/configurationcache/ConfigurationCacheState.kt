@@ -16,11 +16,11 @@
 
 package org.gradle.configurationcache
 
-import org.gradle.api.Project
 import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.provider.Provider
 import org.gradle.api.services.internal.BuildServiceProvider
 import org.gradle.api.services.internal.BuildServiceRegistryInternal
@@ -82,7 +82,7 @@ import kotlin.contracts.contract
 
 internal
 enum class StateType {
-    Work, Model, Entry, Fingerprint, ProjectModels
+    Work, Model, Entry, BuildFingerprint, ProjectFingerprint, IntermediateModels, ProjectMetadata
 }
 
 
@@ -92,6 +92,7 @@ interface ConfigurationCacheStateFile {
     fun outputStream(): OutputStream
     fun inputStream(): InputStream
     fun delete()
+
     // Replace the contents of this state file, by moving the given file to the location of this state file
     fun moveFrom(file: File)
     fun stateFileForIncludedBuild(build: BuildDefinition): ConfigurationCacheStateFile
@@ -275,11 +276,11 @@ class ConfigurationCacheState(
     }
 
     private
-    suspend fun DefaultWriteContext.writeProjectStates(gradle: GradleInternal, relevantProjects: List<Project>) {
+    suspend fun DefaultWriteContext.writeProjectStates(gradle: GradleInternal, relevantProjects: List<ProjectState>) {
         withGradleIsolate(gradle, userTypesCodec) {
             // Do not serialize trivial states to speed up deserialization.
             val nonTrivialProjectStates = relevantProjects.asSequence()
-                .map { project -> project.computeCachedState() }
+                .map { project -> project.mutableModel.computeCachedState() }
                 .filterNotNull()
                 .toList()
 
@@ -571,16 +572,17 @@ class ConfigurationCacheState(
     }
 
     private
-    fun getRelevantProjectsFor(nodes: List<Node>, relevantProjectsRegistry: RelevantProjectsRegistry): List<Project> {
+    fun getRelevantProjectsFor(nodes: List<Node>, relevantProjectsRegistry: RelevantProjectsRegistry): List<ProjectState> {
         return fillTheGapsOf(relevantProjectsRegistry.relevantProjects(nodes))
     }
 
     private
-    fun Encoder.writeRelevantProjects(relevantProjects: List<Project>) {
+    fun Encoder.writeRelevantProjects(relevantProjects: List<ProjectState>) {
         writeCollection(relevantProjects) { project ->
-            writeString(project.path)
-            writeFile(project.projectDir)
-            writeFile(project.buildDir)
+            val mutableModel = project.mutableModel
+            writeString(mutableModel.path)
+            writeFile(mutableModel.projectDir)
+            writeFile(mutableModel.buildDir)
         }
     }
 
@@ -600,11 +602,11 @@ class ConfigurationCacheState(
 
     private
     val internalTypesCodec
-        get() = codecs.internalTypesCodec
+        get() = codecs.internalTypesCodec()
 
     private
     val userTypesCodec
-        get() = codecs.userTypesCodec
+        get() = codecs.userTypesCodec()
 
     private
     fun storedBuilds() = object : StoredBuilds {
@@ -702,8 +704,8 @@ interface StoredBuilds {
 
 
 internal
-fun fillTheGapsOf(projects: Collection<Project>): List<Project> {
-    val projectsWithoutGaps = ArrayList<Project>(projects.size)
+fun fillTheGapsOf(projects: Collection<ProjectState>): List<ProjectState> {
+    val projectsWithoutGaps = ArrayList<ProjectState>(projects.size)
     var index = 0
     projects.forEach { project ->
         var parent = project.parent

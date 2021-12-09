@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.transform.InputArtifactDependencies
 import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.test.fixtures.file.TestFile
-import spock.lang.Unroll
 
 import static org.hamcrest.Matchers.containsString
 
@@ -109,7 +108,6 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
     @ValidationTestFor(
         ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT
     )
-    @Unroll
     def "task cannot have property with annotation @#ann.simpleName"() {
         javaTaskSource << """
             import org.gradle.api.*;
@@ -156,7 +154,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
             dependencies {
                 implementation localGroovy()
             }
-            def strictProp = providers.gradleProperty("strict").forUseAtConfigurationTime()
+            def strictProp = providers.gradleProperty("strict")
             validatePlugins.enableStricterValidation = strictProp.present
         """
 
@@ -498,5 +496,23 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
             warning(notCacheableWithoutReason { type('MyTask').noReasonOnTask().includeLink() }),
             warning(notCacheableWithoutReason { type('MyTransformAction').noReasonOnArtifactTransform().includeLink() })
         ])
+    }
+
+    @ValidationTestFor(ValidationProblemId.NOT_CACHEABLE_WITHOUT_REASON)
+    def "untracked tasks don't need a disable caching by default reason"() {
+        javaTaskSource << """
+            import org.gradle.api.*;
+            import org.gradle.api.tasks.*;
+
+            @UntrackedTask(because = "untracked for validation test")
+            public abstract class MyTask extends DefaultTask {
+            }
+        """
+        buildFile << """
+            validatePlugins.enableStricterValidation = true
+        """
+
+        expect:
+        assertValidationSucceeds()
     }
 }

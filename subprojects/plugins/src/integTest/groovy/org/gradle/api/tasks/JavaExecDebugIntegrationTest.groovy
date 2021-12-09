@@ -22,14 +22,21 @@ import org.gradle.integtests.fixtures.jvm.JDWPUtil
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.junit.Rule
 import spock.lang.Ignore
-import spock.lang.Unroll
 
 class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
     JDWPUtil debugClient = new JDWPUtil()
 
-    @Unroll
+    def setup() {
+        executer.beforeExecute {
+            // When waiting for debugger/target JVM, there might be:
+            // com.sun.jdi.connect.TransportTimeoutException: timeout waiting for connection
+            // it's fine to ignore them because we're waiting in a loop.
+            executer.withStackTraceChecksDisabled()
+        }
+    }
+
     @UnsupportedWithConfigurationCache(iterationMatchers = ".* :runProjectJavaExec")
     def "debug is disabled by default with task :#taskName"() {
         setup:
@@ -45,7 +52,6 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
         taskName << ['runJavaExec', 'runProjectJavaExec', 'runExecOperationsJavaExec', 'test']
     }
 
-    @Unroll
     @UnsupportedWithConfigurationCache(iterationMatchers = ".* :runProjectJavaExec")
     def "debug session fails without debugger with task :#taskName"() {
         setup:
@@ -64,7 +70,6 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
         taskName << ['runJavaExec', 'runProjectJavaExec', 'runExecOperationsJavaExec', 'test']
     }
 
-    @Unroll
     @UnsupportedWithConfigurationCache(iterationMatchers = ".* :runProjectJavaExec")
     def "can debug Java exec with socket listen type debugger (server = false) with task :#taskName"() {
         setup:
@@ -86,7 +91,6 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Ignore
-    @Unroll
     @UnsupportedWithConfigurationCache(iterationMatchers = ".* :runProjectJavaExec")
     def "can debug Java exec with socket attach type debugger (server = true) with task :#taskName"() {
         setup:
@@ -115,7 +119,6 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
         taskName << ['runJavaExec', 'runProjectJavaExec', 'runExecOperationsJavaExec', 'test']
     }
 
-    @Unroll
     @UnsupportedWithConfigurationCache(iterationMatchers = ".* :runProjectJavaExec")
     def "debug options overrides debug property with task :#taskName"() {
         setup:
@@ -135,7 +138,6 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
         taskName << ['runJavaExec', 'runProjectJavaExec', 'runExecOperationsJavaExec', 'test']
     }
 
-    @Unroll
     @UnsupportedWithConfigurationCache(iterationMatchers = ".* :runProjectJavaExec")
     def "if custom debug argument is passed to the build then debug options is ignored with task :#taskName"() {
         setup:

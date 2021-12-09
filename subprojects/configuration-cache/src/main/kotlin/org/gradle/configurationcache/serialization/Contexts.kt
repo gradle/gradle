@@ -23,16 +23,14 @@ import org.gradle.configurationcache.ClassLoaderScopeSpec
 import org.gradle.configurationcache.problems.ProblemsListener
 import org.gradle.configurationcache.problems.PropertyProblem
 import org.gradle.configurationcache.problems.PropertyTrace
-import org.gradle.configurationcache.serialization.beans.BeanConstructors
-import org.gradle.configurationcache.serialization.beans.BeanPropertyReader
-import org.gradle.configurationcache.serialization.beans.BeanPropertyWriter
 import org.gradle.configurationcache.serialization.beans.BeanStateReader
+import org.gradle.configurationcache.serialization.beans.BeanStateReaderLookup
 import org.gradle.configurationcache.serialization.beans.BeanStateWriter
+import org.gradle.configurationcache.serialization.beans.BeanStateWriterLookup
 import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.internal.hash.HashCode
-import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.serialize.Decoder
-import org.gradle.internal.serialize.FlushableEncoder
+import org.gradle.internal.serialize.Encoder
 
 
 internal
@@ -40,10 +38,13 @@ class DefaultWriteContext(
     codec: Codec<Any?>,
 
     private
-    val encoder: FlushableEncoder,
+    val encoder: Encoder,
 
     private
     val scopeLookup: ScopeLookup,
+
+    private
+    val beanStateWriterLookup: BeanStateWriterLookup,
 
     override val logger: Logger,
 
@@ -52,12 +53,9 @@ class DefaultWriteContext(
     private
     val problemsListener: ProblemsListener
 
-) : AbstractIsolateContext<WriteIsolate>(codec), WriteContext, FlushableEncoder by encoder, AutoCloseable {
+) : AbstractIsolateContext<WriteIsolate>(codec), WriteContext, Encoder by encoder, AutoCloseable {
 
     override val sharedIdentities = WriteIdentities()
-
-    private
-    val beanPropertyWriters = hashMapOf<Class<*>, BeanStateWriter>()
 
     private
     val classes = WriteIdentities()
@@ -73,7 +71,7 @@ class DefaultWriteContext(
     }
 
     override fun beanStateWriterFor(beanType: Class<*>): BeanStateWriter =
-        beanPropertyWriters.computeIfAbsent(beanType, ::BeanPropertyWriter)
+        beanStateWriterLookup.beanStateWriterFor(beanType)
 
     override val isolate: WriteIsolate
         get() = getIsolate()
@@ -203,10 +201,7 @@ class DefaultReadContext(
     val decoder: Decoder,
 
     private
-    val instantiatorFactory: InstantiatorFactory,
-
-    private
-    val constructors: BeanConstructors,
+    val beanStateReaderLookup: BeanStateReaderLookup,
 
     override val logger: Logger,
 
@@ -216,9 +211,6 @@ class DefaultReadContext(
 ) : AbstractIsolateContext<ReadIsolate>(codec), ReadContext, Decoder by decoder, AutoCloseable {
 
     override val sharedIdentities = ReadIdentities()
-
-    private
-    val beanStateReaders = hashMapOf<Class<*>, BeanStateReader>()
 
     private
     val classes = ReadIdentities()
@@ -255,7 +247,7 @@ class DefaultReadContext(
         get() = getIsolate()
 
     override fun beanStateReaderFor(beanType: Class<*>): BeanStateReader =
-        beanStateReaders.computeIfAbsent(beanType) { type -> BeanPropertyReader(type, constructors, instantiatorFactory) }
+        beanStateReaderLookup.beanStateReaderFor(beanType)
 
     override fun readClass(): Class<*> {
         val id = readSmallInt()

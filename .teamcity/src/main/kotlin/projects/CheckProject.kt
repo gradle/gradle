@@ -2,6 +2,7 @@ package projects
 
 import common.failedTestArtifactDestination
 import configurations.StagePasses
+import jetbrains.buildServer.configs.kotlin.v2019_2.ParameterDisplay
 import jetbrains.buildServer.configs.kotlin.v2019_2.Project
 import model.CIBuildModel
 import model.FunctionalTestBucketProvider
@@ -24,8 +25,21 @@ class CheckProject(
         // Avoid rebuilding same revision if it's already built on another branch (pre-tested commit)
         param("teamcity.vcsTrigger.runBuildOnSameRevisionInEveryBranch", "false")
         param("env.GRADLE_ENTERPRISE_ACCESS_KEY", "%ge.gradle.org.access.key%;%ge-td-dogfooding.grdev.net.access.key%")
-        param("additional.gradle.parameters", "")
-        param("reverse.dep.*.additional.gradle.parameters", "")
+
+        text(
+            "additional.gradle.parameters",
+            "",
+            display = ParameterDisplay.NORMAL,
+            allowEmpty = true,
+            description = "The extra gradle parameters you want to pass to this build, e.g. `-PrerunAllTests` or `--no-build-cache`"
+        )
+        text(
+            "reverse.dep.*.additional.gradle.parameters",
+            "",
+            display = ParameterDisplay.NORMAL,
+            allowEmpty = true,
+            description = "The extra gradle parameters you want to pass to all dependencies of this build, e.g. `-PrerunAllTests` or `--no-build-cache`"
+        )
     }
 
     var prevStage: Stage? = null
@@ -46,10 +60,11 @@ class CheckProject(
         }
         baseRule {
             artifacts(
-                days = 14, artifactPatterns = """
+                days = 14,
+                artifactPatterns = """
                 +:**/*
                 +:$failedTestArtifactDestination/**/*"
-            """.trimIndent()
+                """.trimIndent()
             )
         }
     }

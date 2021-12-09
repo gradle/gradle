@@ -23,7 +23,6 @@ import org.gradle.performance.annotations.Scenario
 import org.gradle.performance.fixture.AndroidTestProject
 import org.gradle.profiler.mutations.AbstractCleanupMutator
 import org.gradle.profiler.mutations.ClearArtifactTransformCacheMutator
-import spock.lang.Unroll
 
 import static org.gradle.performance.annotations.ScenarioType.PER_COMMIT
 import static org.gradle.performance.annotations.ScenarioType.PER_DAY
@@ -34,14 +33,13 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
 
     def setup() {
         runner.args = [AndroidGradlePluginVersions.OVERRIDE_VERSION_CHECK]
-        runner.targetVersions = ["7.3-20211022000247+0000"]
+        runner.targetVersions = ["7.4-20211118231651+0000"]
         AndroidTestProject.useStableAgpVersion(runner)
         // AGP 4.1 requires 6.5+
         // forUseAtConfigurationTime API used in this scenario
         runner.minimumBaseVersion = "6.5"
     }
 
-    @Unroll
     @RunFor([
         @Scenario(type = PER_COMMIT, operatingSystems = LINUX, testProjects = "largeAndroidBuild", iterationMatcher = "run help"),
         @Scenario(type = PER_COMMIT, operatingSystems = LINUX, testProjects = ["largeAndroidBuild", "santaTrackerAndroidBuild"], iterationMatcher = "run assembleDebug"),
@@ -74,7 +72,6 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
         @Scenario(type = PER_DAY, operatingSystems = LINUX, testProjects = ["largeAndroidBuild", "santaTrackerAndroidBuild"], iterationMatcher = "clean assemble.*"),
         @Scenario(type = PER_DAY, operatingSystems = LINUX, testProjects = "largeAndroidBuild", iterationMatcher = "clean phthalic.*")
     ])
-    @Unroll
     def "clean #tasks with clean transforms cache"() {
         given:
         def testProject = androidTestProject

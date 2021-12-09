@@ -16,6 +16,7 @@
 
 package org.gradle.smoketests
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
@@ -25,13 +26,13 @@ import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 )
 class GrettySmokeTest extends AbstractPluginValidatingSmokeTest {
 
-    def 'run with jetty'() {
+    def 'run Jetty with Gretty #grettyConfig.version'() {
         given:
         useSample('gretty-example')
         buildFile << """
             plugins {
                 id "war"
-                id "org.gretty" version "${TestedVersions.gretty}"
+                id "org.gretty" version "${grettyConfig.version}"
             }
 
             ${jcenterRepository()}
@@ -45,7 +46,7 @@ class GrettySmokeTest extends AbstractPluginValidatingSmokeTest {
 
                 httpPort = new ServerSocket(0).withCloseable { socket -> socket.getLocalPort() }
                 integrationTestTask = 'checkContainerUp'
-                servletContainer = 'jetty9.4'
+                servletContainer = '${grettyConfig.servletContainer}'
             }
 
             task checkContainerUp {
@@ -61,12 +62,19 @@ class GrettySmokeTest extends AbstractPluginValidatingSmokeTest {
 
         then:
         result.task(':checkContainerUp').outcome == SUCCESS
+
+        where:
+        grettyConfig << grettyConfigForCurrentJavaVersion()
     }
 
     @Override
     Map<String, Versions> getPluginsToValidate() {
         [
-            'org.gretty': Versions.of(TestedVersions.gretty)
+            'org.gretty': Versions.of(grettyConfigForCurrentJavaVersion().collect { it.version } as String[])
         ]
+    }
+
+    static def grettyConfigForCurrentJavaVersion() {
+        TestedVersions.gretty.findAll { JavaVersion.current().isCompatibleWith(it.javaMinVersion as JavaVersion) }
     }
 }

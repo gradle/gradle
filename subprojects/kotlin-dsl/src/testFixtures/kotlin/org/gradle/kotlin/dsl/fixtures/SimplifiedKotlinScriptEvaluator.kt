@@ -18,9 +18,9 @@ package org.gradle.kotlin.dsl.fixtures
 
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
-import org.gradle.api.Project
 import org.gradle.api.internal.file.temp.GradleUserHomeTemporaryFileProvider
 import org.gradle.api.internal.initialization.ClassLoaderScope
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.configuration.DefaultImportsReader
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.Describables
@@ -183,7 +183,7 @@ class SimplifiedKotlinScriptEvaluator(
 
         override fun applyPluginsTo(scriptHost: KotlinScriptHost<*>, pluginRequests: PluginRequests) = Unit
 
-        override fun applyBasePluginsTo(project: Project) = Unit
+        override fun applyBasePluginsTo(project: ProjectInternal) = Unit
 
         override fun setupEmbeddedKotlinFor(scriptHost: KotlinScriptHost<*>) = Unit
 

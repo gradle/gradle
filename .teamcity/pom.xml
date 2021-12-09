@@ -3,11 +3,11 @@
     <modelVersion>4.0.0</modelVersion>
     <name>Gradle_Check Config DSL Script</name>
     <properties>
-        <kotlin.version>1.4.32</kotlin.version>
-        <teamcity.dsl.version>2021.1</teamcity.dsl.version>
+        <kotlin.version>1.5.31</kotlin.version>
+        <teamcity.dsl.version>2021.2</teamcity.dsl.version>
         <mockk.version>1.9</mockk.version>
         <bytebuddy.version>1.10.6</bytebuddy.version>
-        <junit.version>5.7.0</junit.version>
+        <junit.version>5.8.1</junit.version>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -108,7 +108,7 @@
             <plugin>
                 <groupId>com.github.gantsign.maven</groupId>
                 <artifactId>ktlint-maven-plugin</artifactId>
-                <version>1.1.1</version>
+                <version>1.11.1</version>
                 <executions>
                     <execution>
                         <id>check</id>
@@ -143,6 +143,12 @@
             <groupId>com.alibaba</groupId>
             <artifactId>fastjson</artifactId>
             <version>1.2.76</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jetbrains.teamcity</groupId>
+            <artifactId>server-api</artifactId>
+            <version>${teamcity.dsl.version}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.jetbrains.teamcity</groupId>

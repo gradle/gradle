@@ -287,6 +287,7 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
         JavaModuleDetector javaModuleDetector = getJavaModuleDetector();
         boolean isModule = JavaModuleDetector.isModuleSource(modularity.getInferModulePath().get(), sourcesRoots);
         boolean toolchainCompatibleWithJava8 = isToolchainCompatibleWithJava8();
+        boolean isSourcepathUserDefined = compileOptions.getSourcepath() != null && !compileOptions.getSourcepath().isEmpty();
 
         final DefaultJavaCompileSpec spec = createBaseSpec();
 
@@ -295,7 +296,7 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
         spec.setTempDir(getTemporaryDir());
         spec.setCompileClasspath(ImmutableList.copyOf(javaModuleDetector.inferClasspath(isModule, getClasspath())));
         spec.setModulePath(ImmutableList.copyOf(javaModuleDetector.inferModulePath(isModule, getClasspath())));
-        if (isModule) {
+        if (isModule && !isSourcepathUserDefined) {
             compileOptions.setSourcepath(getProjectLayout().files(sourcesRoots));
         }
         spec.setAnnotationProcessorPath(compileOptions.getAnnotationProcessorPath() == null ? ImmutableList.of() : ImmutableList.copyOf(compileOptions.getAnnotationProcessorPath()));

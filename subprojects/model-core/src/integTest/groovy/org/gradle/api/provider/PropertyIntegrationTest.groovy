@@ -22,7 +22,6 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.IgnoreIf
 import spock.lang.Issue
-import spock.lang.Unroll
 
 class PropertyIntegrationTest extends AbstractIntegrationSpec {
     def "can use property as task input"() {
@@ -66,7 +65,6 @@ task thing(type: SomeTask) {
         skipped(":thing")
     }
 
-    @Unroll
     def "can define task with abstract Property<#type> getter"() {
         given:
         buildFile << """

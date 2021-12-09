@@ -22,7 +22,6 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.VersionNumber
-import spock.lang.Unroll
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
@@ -35,7 +34,6 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
             .forwardOutput()
     }
 
-    public static final String NO_CONFIGURATION_CACHE_ITERATION_MATCHER = ".*kotlin=1\\.3\\.[2-6].*"
     private static final VersionNumber KOTLIN_VERSION_USING_NEW_TRANSFORMS_API = VersionNumber.parse('1.4.20')
     private static final VersionNumber KOTLIN_VERSION_USING_NEW_WORKERS_API = VersionNumber.parse('1.5.0')
     private static final String ARTIFACT_TRANSFORM_DEPRECATION_WARNING =
@@ -46,15 +44,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
         "This is scheduled to be removed in Gradle 8.0. Please use the archiveFileName property instead. " +
         "See https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.api.tasks.bundling.AbstractArchiveTask.html#org.gradle.api.tasks.bundling.AbstractArchiveTask:archiveName for more details."
 
-
-    // TODO:configuration-cache remove once fixed upstream
-    @Override
-    protected int maxConfigurationCacheProblems() {
-        return 200
-    }
-
-    @Unroll
-    @UnsupportedWithConfigurationCache(iterationMatchers = NO_CONFIGURATION_CACHE_ITERATION_MATCHER)
+    @UnsupportedWithConfigurationCache(iterationMatchers = KGP_NO_CC_ITERATION_MATCHER)
     def 'kotlin jvm (kotlin=#version, workers=#workers)'() {
         given:
         useSample("kotlin-example")
@@ -97,8 +87,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
         ].combinations()
     }
 
-    @Unroll
-    @UnsupportedWithConfigurationCache(iterationMatchers = NO_CONFIGURATION_CACHE_ITERATION_MATCHER)
+    @UnsupportedWithConfigurationCache(iterationMatchers = KGP_NO_CC_ITERATION_MATCHER)
     def 'kotlin javascript (kotlin=#version, workers=#workers)'() {
         given:
         useSample("kotlin-js-sample")
@@ -138,8 +127,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
         ].combinations()
     }
 
-    @Unroll
-    @UnsupportedWithConfigurationCache(iterationMatchers = NO_CONFIGURATION_CACHE_ITERATION_MATCHER)
+    @UnsupportedWithConfigurationCache(iterationMatchers = KGP_NO_CC_ITERATION_MATCHER)
     def 'kotlin jvm and groovy plugins combined (kotlin=#kotlinVersion)'() {
         given:
         buildFile << """
@@ -184,8 +172,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
         kotlinVersion << TestedVersions.kotlin.versions
     }
 
-    @Unroll
-    @UnsupportedWithConfigurationCache(iterationMatchers = NO_CONFIGURATION_CACHE_ITERATION_MATCHER)
+    @UnsupportedWithConfigurationCache(iterationMatchers = KGP_NO_CC_ITERATION_MATCHER)
     def 'kotlin jvm and java-gradle-plugin plugins combined (kotlin=#kotlinVersion)'() {
 
         assumeTrue(kotlinVersion != '1.3.72')

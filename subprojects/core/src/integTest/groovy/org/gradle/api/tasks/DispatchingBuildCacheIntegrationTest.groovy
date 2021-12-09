@@ -19,9 +19,7 @@ package org.gradle.api.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestBuildCache
 import org.gradle.test.fixtures.file.TestFile
-import spock.lang.Unroll
 
-@Unroll
 class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec {
 
     private TestBuildCache localCache = new TestBuildCache(file('local-cache'))

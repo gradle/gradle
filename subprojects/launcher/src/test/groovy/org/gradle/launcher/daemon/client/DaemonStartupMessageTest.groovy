@@ -17,10 +17,8 @@
 package org.gradle.launcher.daemon.client
 
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class DaemonStartupMessageTest extends Specification {
-    @Unroll
     def "starting message contains number of busy and incompatible daemons (#numBusy busy, #numIncompatible incompatible, #numStopped stopped)"() {
         given:
         def message = DaemonStartupMessage.generate(numBusy, numIncompatible, numStopped)

@@ -17,7 +17,7 @@
 package org.gradle.api.tasks.compile
 
 import groovy.test.NotYetImplemented
-import org.gradle.integtests.fixtures.AbstractPluginIntegrationTest
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -25,9 +25,8 @@ import org.gradle.util.internal.Resources
 import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 import spock.lang.Issue
-import spock.lang.Unroll
 
-class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
+class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
     Resources resources = new Resources()
@@ -396,7 +395,6 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
         noExceptionThrown()
     }
 
-    @Unroll
     def "can depend on #scenario without building the jar"() {
         given:
         settingsFile << "include 'a', 'b'"
@@ -877,9 +875,9 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
             apply plugin: 'java'
 
             compileJava {
-                if (providers.gradleProperty("java7").forUseAtConfigurationTime().isPresent()) {
+                if (providers.gradleProperty("java7").isPresent()) {
                     options.bootstrapClasspath = files("$jdk7bootClasspath")
-                } else if (providers.gradleProperty("java8").forUseAtConfigurationTime().isPresent()) {
+                } else if (providers.gradleProperty("java8").isPresent()) {
                     options.bootstrapClasspath = files("$jdk8bootClasspath")
                 }
                 options.fork = true
@@ -1070,5 +1068,37 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
 
         then:
         succeeds("compileJava")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/18262")
+    @Requires(TestPrecondition.JDK9_OR_LATER)
+    def "should compile sources from source with -sourcepath option for modules"() {
+        given:
+        buildFile << """
+            apply plugin: 'java'
+
+            tasks.register("compileCustomJava", JavaCompile) {
+                destinationDirectory.set(new File(buildDir, "classes/java-custom-path/main"))
+                source = files("src/main/java-custom-path").asFileTree
+                options.sourcepath = files("src/main/java") + files("src/main/java-custom-path")
+                classpath = files()
+            }
+        """
+        file("src/main/java/com/example/SourcePathTest.java") << """
+            package com.example;
+
+            public class SourcePathTest {}
+        """
+        file("src/main/java-custom-path/module-info.java") << """
+            module com.example {
+                exports com.example;
+            }
+        """
+
+        expect:
+        succeeds("compileCustomJava")
+        file("build/classes/java-custom-path/main/module-info.class").exists()
+        // We compile only classes defined in `source`
+        !file("build/classes/java-custom-path/main/com/example/SourcePathTest.class").exists()
     }
 }

@@ -79,7 +79,6 @@ import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.TwoStageModuleVersionsCache;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.LocalComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultLocalComponentRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectLocalComponentProvider;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectPublicationRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentProvider;
@@ -124,7 +123,6 @@ import org.gradle.api.internal.notations.ClientModuleNotationParserFactory;
 import org.gradle.api.internal.notations.DependencyConstraintNotationParser;
 import org.gradle.api.internal.notations.DependencyNotationParser;
 import org.gradle.api.internal.notations.ProjectDependencyFactory;
-import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.api.internal.resources.ApiTextResourceAdapter;
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
@@ -139,7 +137,6 @@ import org.gradle.cache.scopes.GlobalScopedCache;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.initialization.DependenciesAccessors;
-import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.initialization.internal.InternalBuildFinishedListener;
 import org.gradle.internal.Try;
 import org.gradle.internal.build.BuildState;
@@ -291,11 +288,9 @@ class DependencyManagementBuildScopeServices {
     DefaultProjectDependencyFactory createProjectDependencyFactory(
         Instantiator instantiator,
         StartParameter startParameter,
-        ProjectAccessListener projectAccessListener,
         ImmutableAttributesFactory attributesFactory) {
         NotationParser<Object, Capability> capabilityNotationParser = new CapabilityNotationParserFactory(false).create();
-        return new DefaultProjectDependencyFactory(
-            projectAccessListener, instantiator, startParameter.isBuildProjectDependencies(), capabilityNotationParser, attributesFactory);
+        return new DefaultProjectDependencyFactory(instantiator, startParameter.isBuildProjectDependencies(), capabilityNotationParser, attributesFactory);
     }
 
     DependencyFactory createDependencyFactory(
@@ -625,16 +620,11 @@ class DependencyManagementBuildScopeServices {
         return new DefaultProjectPublicationRegistry();
     }
 
-    LocalComponentProvider createProjectComponentProvider(ProjectStateRegistry projectStateRegistry,
-                                                          LocalComponentMetadataBuilder metaDataBuilder,
-                                                          ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-                                                          BuildState currentBuild,
-                                                          CalculatedValueContainerFactory calculatedValueContainerFactory) {
-        return new DefaultProjectLocalComponentProvider(projectStateRegistry, metaDataBuilder, moduleIdentifierFactory, currentBuild.getBuildIdentifier(), calculatedValueContainerFactory);
-    }
-
-    LocalComponentRegistry createLocalComponentRegistry(List<LocalComponentProvider> providers) {
-        return new DefaultLocalComponentRegistry(providers);
+    LocalComponentProvider createProjectComponentProvider(
+        LocalComponentMetadataBuilder metaDataBuilder,
+        ImmutableModuleIdentifierFactory moduleIdentifierFactory
+    ) {
+        return new DefaultProjectLocalComponentProvider(metaDataBuilder, moduleIdentifierFactory);
     }
 
     ComponentSelectorConverter createModuleVersionSelectorFactory(ComponentIdentifierFactory componentIdentifierFactory, LocalComponentRegistry localComponentRegistry) {

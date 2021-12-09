@@ -22,7 +22,6 @@ import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.TestBuildCache
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import spock.lang.Issue
-import spock.lang.Unroll
 
 import static org.gradle.integtests.fixtures.executer.GradleContextualExecuter.isConfigCache
 import static org.gradle.integtests.fixtures.executer.GradleContextualExecuter.isNotConfigCache
@@ -39,7 +38,6 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
         PROGRAMMATIC
     }
 
-    @Unroll
     @ToBeFixedForConfigurationCache(
         because = "startParameter.buildCacheEnabled is not restored",
         iterationMatchers = ['^.+PROGRAMMATIC$']

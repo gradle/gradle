@@ -24,6 +24,7 @@ import org.gradle.api.provider.Provider
 import org.gradle.api.provider.SetProperty
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestBuildCache
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.Actions
 import org.gradle.internal.reflect.problems.ValidationProblemId
@@ -31,7 +32,6 @@ import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.reflect.validation.ValidationTestFor
 import spock.lang.Issue
 import spock.lang.Requires
-import spock.lang.Unroll
 
 class TaskParametersIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
 
@@ -328,7 +328,6 @@ task someTask {
         skipped(":someTask")
     }
 
-    @Unroll
     def "task is out of date when property type changes #oldValue -> #newValue"() {
         buildFile << """
 task someTask {
@@ -458,7 +457,6 @@ task someTask {
         ValidationProblemId.MUTABLE_TYPE_WITH_SETTER,
         ValidationProblemId.INCORRECT_USE_OF_INPUT_ANNOTATION
     ])
-    @Unroll
     def "task can use input property of type #type"() {
         file("buildSrc/src/main/java/SomeTask.java") << """
 import org.gradle.api.DefaultTask;
@@ -587,7 +585,6 @@ task someTask(type: SomeTask) {
     @ValidationTestFor(
         ValidationProblemId.VALUE_NOT_SET
     )
-    @Unroll
     def "null input files registered via TaskInputs.#method are not allowed"() {
         expectReindentedValidationMessage()
         buildFile << """
@@ -605,7 +602,6 @@ task someTask(type: SomeTask) {
         method << ["file", "files", "dir"]
     }
 
-    @Unroll
     def "optional null input files registered via TaskInputs.#method are allowed"() {
         buildFile << """
             task test {
@@ -623,7 +619,6 @@ task someTask(type: SomeTask) {
     @ValidationTestFor(
         ValidationProblemId.VALUE_NOT_SET
     )
-    @Unroll
     def "null output files registered via TaskOutputs.#method are not allowed"() {
         expectReindentedValidationMessage()
         buildFile << """
@@ -641,7 +636,6 @@ task someTask(type: SomeTask) {
         method << ["file", "files", "dir", "dirs"]
     }
 
-    @Unroll
     def "optional null output files registered via TaskOutputs.#method are allowed"() {
         buildFile << """
             task test {
@@ -659,7 +653,6 @@ task someTask(type: SomeTask) {
     @ValidationTestFor(
         ValidationProblemId.INPUT_FILE_DOES_NOT_EXIST
     )
-    @Unroll
     def "missing input files registered via TaskInputs.#method are not allowed"() {
         expectReindentedValidationMessage()
         buildFile << """
@@ -689,7 +682,6 @@ task someTask(type: SomeTask) {
     @ValidationTestFor(
         ValidationProblemId.UNEXPECTED_INPUT_FILE_TYPE
     )
-    @Unroll
     def "wrong input file type registered via TaskInputs.#method is not allowed"() {
         expectReindentedValidationMessage()
         file("input-file.txt").touch()
@@ -721,7 +713,6 @@ task someTask(type: SomeTask) {
     @ValidationTestFor(
         ValidationProblemId.CANNOT_WRITE_OUTPUT
     )
-    @Unroll
     def "wrong output file type registered via TaskOutputs.#method is not allowed (files)"() {
         expectReindentedValidationMessage()
         def outputDir = file("output-dir")
@@ -751,7 +742,6 @@ task someTask(type: SomeTask) {
     @ValidationTestFor(
         ValidationProblemId.CANNOT_WRITE_OUTPUT
     )
-    @Unroll
     def "wrong output file type registered via TaskOutputs.#method is not allowed (directories)"() {
         expectReindentedValidationMessage()
         def outputFile = file("output-file.txt")
@@ -871,6 +861,7 @@ task someTask(type: SomeTask) {
         }
     }
 
+    @ToBeFixedForConfigurationCache
     def "input and output properties are not evaluated too often"() {
         buildFile << """
             import org.gradle.api.services.BuildServiceParameters
@@ -974,7 +965,9 @@ task someTask(type: SomeTask) {
                 def gradleProperties = propertyNames.collectEntries { [(it) : providers.gradleProperty(it)]}
                 doLast {
                     ['outputFileCount', 'inputFileCount', 'inputValueCount', 'nestedInputCount', 'nestedInputValueCount'].each { name ->
-                        assert evaluationCount.get()."\$name" == gradleProperties[name].get() as Integer
+                        def actualCount = evaluationCount.get()."\$name"
+                        def expectedCount = gradleProperties[name].get() as Integer
+                        assert actualCount == expectedCount : name
                     }
                 }
             }
@@ -982,12 +975,8 @@ task someTask(type: SomeTask) {
         def inputFile = file('input.txt')
         inputFile.text = "input"
         def expectedCounts = [inputFile: 3, outputFile: 2, nestedInput: 2, inputValue: 1, nestedInputValue: 1]
-        def expectedIncrementalCounts = GradleContextualExecuter.configCache ?
-            [inputFile: 2, outputFile: 2, nestedInput: 1, inputValue: 1, nestedInputValue: 1]
-            : expectedCounts
-        def expectedUpToDateCounts = GradleContextualExecuter.configCache ?
-            [inputFile: 1, outputFile: 1, nestedInput: 1, inputValue: 1, nestedInputValue: 1]
-            : [inputFile: 2, outputFile: 1, nestedInput: 2, inputValue: 1, nestedInputValue: 1]
+        def expectedIncrementalCounts = expectedCounts
+        def expectedUpToDateCounts = [inputFile: 2, outputFile: 1, nestedInput: 2, inputValue: 1, nestedInputValue: 1]
         def arguments = ["assertInputCounts"] + expectedCounts.collect { name, count -> "-P${name}Count=${count}" }
         def incrementalBuildArguments = ["assertInputCounts"] + expectedIncrementalCounts.collect { name, count -> "-P${name}Count=${count}" }
         def upToDateArguments = ["assertInputCounts"] + expectedUpToDateCounts.collect { name, count -> "-P${name}Count=${count}" }

@@ -2,6 +2,8 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
+description = "Base plugin for the maven and ivy publish plugins. Defines the publishing extension."
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":functional"))

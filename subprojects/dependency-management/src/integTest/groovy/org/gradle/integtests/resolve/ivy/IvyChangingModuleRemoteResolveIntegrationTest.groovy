@@ -82,7 +82,7 @@ task retrieve(type: Copy) {
     def "can mark a module as changing after first retrieval"() {
         given:
         buildFile << """
-def isChanging = providers.gradleProperty('isChanging').forUseAtConfigurationTime().isPresent()
+def isChanging = providers.gradleProperty('isChanging').isPresent()
 repositories {
     ivy { url "${ivyHttpRepo.uri}" }
 }
@@ -194,7 +194,7 @@ repositories {
 configurations { compile }
 
 
-if (providers.gradleProperty('doNotCacheChangingModules').forUseAtConfigurationTime().isPresent()) {
+if (providers.gradleProperty('doNotCacheChangingModules').isPresent()) {
     configurations.all {
         resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
     }

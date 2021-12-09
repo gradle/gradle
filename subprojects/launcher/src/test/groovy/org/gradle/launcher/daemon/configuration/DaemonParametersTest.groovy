@@ -115,6 +115,54 @@ class DaemonParametersTest extends Specification {
         jvmDefault << [JavaVersion.VERSION_1_8, JavaVersion.VERSION_1_9]
     }
 
+    def "can configure debug port"() {
+        given:
+        parameters.setDebug(true)
+
+        when:
+        parameters.setDebugPort(port)
+
+        then:
+        parameters.effectiveJvmArgs.contains(debugArgument)
+
+        where:
+        port || debugArgument
+        5005 || "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005"
+        5006 || "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5006"
+    }
+
+    def "can configure debug suspend"() {
+        given:
+        parameters.setDebug(true)
+
+        when:
+        parameters.setDebugSuspend(suspend)
+
+        then:
+        parameters.effectiveJvmArgs.contains(debugArgument)
+
+        where:
+        suspend || debugArgument
+        true    || "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005"
+        false   || "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005"
+    }
+
+    def "can configure debug server"() {
+        given:
+        parameters.setDebug(true)
+
+        when:
+        parameters.setDebugServer(server)
+
+        then:
+        parameters.effectiveJvmArgs.contains(debugArgument)
+
+        where:
+        server || debugArgument
+        true   || "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005"
+        false  || "-agentlib:jdwp=transport=dt_socket,server=n,suspend=y,address=5005"
+    }
+
     def "can enable the daemon"() {
         when:
         parameters.setEnabled(true)

@@ -29,31 +29,26 @@ import java.util.function.BiConsumer;
  */
 class AccessTrackingEnvMap extends ForwardingMap<String, String> {
     private final Map<String, String> delegate;
-    private final BiConsumer<String, String> onAccess;
+    private final BiConsumer<? super String, ? super String> onAccess;
 
     public AccessTrackingEnvMap(BiConsumer<String, String> onAccess) {
         this(System.getenv(), onAccess);
     }
 
     @VisibleForTesting
-    AccessTrackingEnvMap(Map<String, String> delegate, BiConsumer<String, String> onAccess) {
+    AccessTrackingEnvMap(Map<String, String> delegate, BiConsumer<? super String, ? super String> onAccess) {
         this.delegate = delegate;
         this.onAccess = onAccess;
     }
 
     @Override
     public String get(@Nullable Object key) {
-        String value = delegate.get(key);
-        // delegate will throw if something that isn't string is used there.
-        onAccess.accept((String) key, value);
-        return value;
+        return getAndReport(key);
     }
 
     @Override
     public String getOrDefault(@Nullable Object key, String defaultValue) {
-        String value = delegate.get(key);
-        // delegate will throw if something that isn't string is used there.
-        onAccess.accept((String) key, value);
+        String value = getAndReport(key);
         if (value == null && !delegate.containsKey(key)) {
             return defaultValue;
         }
@@ -61,16 +56,63 @@ class AccessTrackingEnvMap extends ForwardingMap<String, String> {
     }
 
     @Override
+    public boolean containsKey(@Nullable Object key) {
+        return getAndReport(key) != null;
+    }
+
+    @Override
+    public Set<String> keySet() {
+        return new AccessTrackingSet<>(super.keySet(), this::getAndReport, this::reportAggregatingAccess);
+    }
+
+    private String getAndReport(@Nullable Object key) {
+        String result = delegate.get(key);
+        // The delegate will throw if something that isn't a string is used there. Do call delegate.get() first so the exception is thrown form the JDK code to avoid extra blame.
+        onAccess.accept((String) key, result);
+        return result;
+    }
+
+    @Override
     public Set<Entry<String, String>> entrySet() {
-        return new AccessTrackingSet<>(delegate.entrySet(), e -> onAccess.accept(e.getKey(), e.getValue()));
+        return new AccessTrackingSet<>(delegate.entrySet(), this::onAccessEntrySetElement, this::reportAggregatingAccess);
+    }
+
+    private void onAccessEntrySetElement(@Nullable Object potentialEntry) {
+        Map.Entry<String, String> entry = AccessTrackingUtils.tryConvertingToTrackableEntry(potentialEntry);
+        if (entry != null) {
+            getAndReport(entry.getKey());
+        }
     }
 
     @Override
     public void forEach(BiConsumer<? super String, ? super String> action) {
-        delegate.forEach((k, v) -> {
-            onAccess.accept(k, v);
-            action.accept(k, v);
-        });
+        reportAggregatingAccess();
+        delegate.forEach(action);
+    }
+
+    @Override
+    public int size() {
+        reportAggregatingAccess();
+        return delegate.size();
+    }
+
+    @Override
+    public boolean isEmpty() {
+        reportAggregatingAccess();
+        return delegate.isEmpty();
+    }
+
+    @Override
+    @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
+    public boolean equals(@Nullable Object object) {
+        reportAggregatingAccess();
+        return delegate.equals(object);
+    }
+
+    @Override
+    public int hashCode() {
+        reportAggregatingAccess();
+        return delegate.hashCode();
     }
 
     @Override
@@ -78,5 +120,9 @@ class AccessTrackingEnvMap extends ForwardingMap<String, String> {
         return delegate;
     }
 
+    private void reportAggregatingAccess() {
+        // Mark all map contents as inputs if some aggregating access is used.
+        delegate.forEach(onAccess);
+    }
 }
 

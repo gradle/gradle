@@ -19,11 +19,3 @@ apply plugin: "java"
 repositories {
     mavenCentral()
 }
-
-testing {
-    suites {
-        test {
-            useJUnit()
-        }
-    }
-}

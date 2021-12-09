@@ -40,46 +40,51 @@ import java.util.function.Function;
 class AccessTrackingProperties extends Properties {
     // TODO(https://github.com/gradle/configuration-cache/issues/337) Only a limited subset of method is tracked currently.
     private final Properties delegate;
-    private final BiConsumer<String, Object> onAccess;
+    private final BiConsumer<? super String, ? super String> onAccess;
 
-    public AccessTrackingProperties(Properties delegate, BiConsumer<String, Object> onAccess) {
+    public AccessTrackingProperties(Properties delegate, BiConsumer<? super String, ? super String> onAccess) {
         this.delegate = delegate;
         this.onAccess = onAccess;
     }
 
     @Override
     public Enumeration<?> propertyNames() {
+        reportAggregatingAccess();
         return delegate.propertyNames();
     }
 
     @Override
     public Set<String> stringPropertyNames() {
-        return delegate.stringPropertyNames();
+        return new AccessTrackingSet<>(delegate.stringPropertyNames(), this::getAndReport, this::reportAggregatingAccess);
     }
 
     @Override
     public int size() {
+        reportAggregatingAccess();
         return delegate.size();
     }
 
     @Override
     public boolean isEmpty() {
+        reportAggregatingAccess();
         return delegate.isEmpty();
     }
 
     @Override
     public Enumeration<Object> keys() {
+        reportAggregatingAccess();
         return delegate.keys();
     }
 
     @Override
     public Enumeration<Object> elements() {
+        reportAggregatingAccess();
         return delegate.elements();
     }
 
     @Override
     public Set<Object> keySet() {
-        return delegate.keySet();
+        return new AccessTrackingSet<>(delegate.keySet(), this::getAndReport, this::reportAggregatingAccess);
     }
 
     @Override
@@ -89,19 +94,25 @@ class AccessTrackingProperties extends Properties {
 
     @Override
     public Set<Map.Entry<Object, Object>> entrySet() {
-        return new AccessTrackingSet<>(delegate.entrySet(), e -> onAccess.accept((String) e.getKey(), e.getValue()));
+        return new AccessTrackingSet<>(delegate.entrySet(), this::onAccessEntrySetElement, this::reportAggregatingAccess);
+    }
+
+    private void onAccessEntrySetElement(@Nullable Object potentialEntry) {
+        Map.Entry<String, String> entry = AccessTrackingUtils.tryConvertingToTrackableEntry(potentialEntry);
+        if (entry != null) {
+            getAndReport(entry.getKey());
+        }
     }
 
     @Override
     public void forEach(BiConsumer<? super Object, ? super Object> action) {
-        delegate.forEach((k, v) -> {
-            onAccess.accept((String) k, v);
-            action.accept(k, v);
-        });
+        reportAggregatingAccess();
+        delegate.forEach(action);
     }
 
     @Override
     public void replaceAll(BiFunction<? super Object, ? super Object, ?> function) {
+        reportAggregatingAccess();
         delegate.replaceAll(function);
     }
 
@@ -157,7 +168,7 @@ class AccessTrackingProperties extends Properties {
 
     @Override
     public boolean containsKey(Object key) {
-        return delegate.containsKey(key);
+        return getAndReport(key) != null;
     }
 
     @Override
@@ -172,7 +183,9 @@ class AccessTrackingProperties extends Properties {
 
     @Override
     public Object remove(Object key) {
-        return delegate.remove(key);
+        Object result = delegate.remove(key);
+        reportKeyAndValue(key, result);
+        return result;
     }
 
     @Override
@@ -192,19 +205,20 @@ class AccessTrackingProperties extends Properties {
 
     @Override
     public String getProperty(String key, String defaultValue) {
-        String value = delegate.getProperty(key);
-        onAccess.accept(key, value);
+        Object oValue = getAndReport(key);
+        String value = oValue instanceof String ? (String) oValue : null;
         return value != null ? value : defaultValue;
     }
 
     @Override
     public Object getOrDefault(Object key, Object defaultValue) {
-        return getProperty((String) key, (String) defaultValue);
+        Object value = getAndReport(key);
+        return value != null ? value : defaultValue;
     }
 
     @Override
     public Object get(Object key) {
-        return getProperty((String) key);
+        return getAndReport(key);
     }
 
     @Override
@@ -221,16 +235,19 @@ class AccessTrackingProperties extends Properties {
     @Deprecated
     @SuppressWarnings("deprecation")
     public void save(OutputStream out, String comments) {
+        reportAggregatingAccess();
         delegate.save(out, comments);
     }
 
     @Override
     public void store(Writer writer, String comments) throws IOException {
+        reportAggregatingAccess();
         delegate.store(writer, comments);
     }
 
     @Override
     public void store(OutputStream out, @Nullable String comments) throws IOException {
+        reportAggregatingAccess();
         delegate.store(out, comments);
     }
 
@@ -241,21 +258,25 @@ class AccessTrackingProperties extends Properties {
 
     @Override
     public void storeToXML(OutputStream os, String comment) throws IOException {
+        reportAggregatingAccess();
         delegate.storeToXML(os, comment);
     }
 
     @Override
     public void storeToXML(OutputStream os, String comment, String encoding) throws IOException {
+        reportAggregatingAccess();
         delegate.storeToXML(os, comment, encoding);
     }
 
     @Override
     public void list(PrintStream out) {
+        reportAggregatingAccess();
         delegate.list(out);
     }
 
     @Override
     public void list(PrintWriter out) {
+        reportAggregatingAccess();
         delegate.list(out);
     }
 
@@ -267,11 +288,30 @@ class AccessTrackingProperties extends Properties {
     @Override
     @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
     public boolean equals(Object o) {
+        reportAggregatingAccess();
         return delegate.equals(o);
     }
 
     @Override
     public int hashCode() {
+        reportAggregatingAccess();
         return delegate.hashCode();
+    }
+
+    private Object getAndReport(Object key) {
+        Object value = delegate.get(key);
+        reportKeyAndValue(key, value);
+        return value;
+    }
+
+    private void reportKeyAndValue(Object key, Object value) {
+        if (key instanceof String && (value == null || value instanceof String)) {
+            onAccess.accept((String) key, (String) value);
+        }
+    }
+
+    private void reportAggregatingAccess() {
+        // Mark all map contents as inputs if some aggregating access is used.
+        delegate.forEach(this::reportKeyAndValue);
     }
 }

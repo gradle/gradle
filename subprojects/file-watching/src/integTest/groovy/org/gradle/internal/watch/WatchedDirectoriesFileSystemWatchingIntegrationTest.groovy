@@ -30,9 +30,7 @@ import org.gradle.util.TestPrecondition
 import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 import spock.lang.Issue
-import spock.lang.Unroll
 
-@Unroll
 class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSystemWatchingIntegrationTest {
     @Rule
     public final RepositoryHttpServer server = new RepositoryHttpServer(temporaryFolder)
@@ -111,7 +109,7 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
         then:
         skipped(":includedBuild:jar")
         // configuration cache registers all build directories at startup so the cache fingerprint can be checked
-        def expectedWatchableCount = GradleContextualExecuter.isConfigCache() ? 3 : 2
+        def expectedWatchableCount = GradleContextualExecuter.isConfigCache() ? 4 : 2
         assertWatchableHierarchies([ImmutableSet.of(consumer, includedBuild)] * expectedWatchableCount)
         when:
         includedBuild.file("src/main/java/NewClass.java")  << "public class NewClass {}"
@@ -152,7 +150,9 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
         when:
         withWatchFs().run "buildInBuild", "--info"
         then:
-        assertWatchableHierarchies(expectedWatchableHierarchies)
+        // configuration cache registers all build directories at startup so the cache fingerprint can be checked
+        def expectedWatchableCount = GradleContextualExecuter.isConfigCache() ? 2 : 1
+        assertWatchableHierarchies([ImmutableSet.of(consumer)] * expectedWatchableCount + [ImmutableSet.of(consumer, buildInBuild)])
     }
 
     def "gracefully handle the root project directory not being available"() {
@@ -178,7 +178,6 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
 
         when:
         inDirectory(settingsDir)
-        executer.expectDocumentedDeprecationWarning("Subproject ':sub' has location '${file("sub").absolutePath}' which is outside of the project root. This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#deprecated_flat_project_structure")
         withWatchFs().run("thing")
         then:
         executed ":sub:thing"
