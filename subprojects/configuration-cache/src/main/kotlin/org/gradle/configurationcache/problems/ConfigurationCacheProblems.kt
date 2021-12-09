@@ -52,9 +52,6 @@ class ConfigurationCacheProblems(
 
 ) : ProblemsListener, ProblemReporter, AutoCloseable {
     private
-    var hasWarnings = false
-
-    private
     val summarizer = ConfigurationCacheProblemsSummary()
 
     private
@@ -104,7 +101,7 @@ class ConfigurationCacheProblems(
     override fun forIncompatibleType(): ProblemsListener {
         return object : ProblemsListener {
             override fun onProblem(problem: PropertyProblem) {
-                hasWarnings = true
+                onProblem(problem, ProblemSeverity.Warn)
             }
 
             override fun forIncompatibleType() = this
@@ -112,7 +109,12 @@ class ConfigurationCacheProblems(
     }
 
     override fun onProblem(problem: PropertyProblem) {
-        if (summarizer.onProblem(problem)) {
+        onProblem(problem, ProblemSeverity.Failure)
+    }
+
+    private
+    fun onProblem(problem: PropertyProblem, severity: ProblemSeverity) {
+        if (summarizer.onProblem(problem, severity)) {
             report.onProblem(problem)
         }
     }
@@ -127,11 +129,10 @@ class ConfigurationCacheProblems(
      */
     override fun report(reportDir: File, validationFailures: Consumer<in Throwable>) {
         val summary = summarizer.get()
-        val problemCount = summary.problemCount
-        val hasProblems = problemCount > 0
-        val hasFailedOnProblems = hasProblems && isFailOnProblems
-        val hasTooManyProblems = problemCount > startParameter.maxProblems
-        val discardState = hasFailedOnProblems || hasTooManyProblems || hasWarnings
+        val failDueToProblems = summary.failureCount > 0 && isFailOnProblems
+        val discardStateDueToProblems = summary.problemCount > 0 && isFailOnProblems
+        val hasTooManyProblems = summary.problemCount > startParameter.maxProblems
+        val discardState = discardStateDueToProblems || hasTooManyProblems
         if (cacheAction != LOAD && discardState) {
             // Invalidate stored state if problems fail the build
             requireNotNull(invalidateStoredState).invoke()
@@ -140,15 +141,15 @@ class ConfigurationCacheProblems(
         val outputDirectory = outputDirectoryFor(reportDir)
         val cacheActionText = cacheAction.summaryText()
         val requestedTasks = startParameter.requestedTasksOrDefault()
-        val htmlReportFile = report.writeReportFileTo(outputDirectory, cacheActionText, requestedTasks, problemCount)
+        val htmlReportFile = report.writeReportFileTo(outputDirectory, cacheActionText, requestedTasks, summary.problemCount)
         if (htmlReportFile == null) {
             // there was nothing to report
-            require(problemCount == 0)
+            require(summary.problemCount == 0)
             return
         }
 
         when {
-            hasFailedOnProblems -> {
+            failDueToProblems -> {
                 // TODO - always include this as a build failure;
                 //  currently it is disabled when a serialization problem happens
                 validationFailures.accept(

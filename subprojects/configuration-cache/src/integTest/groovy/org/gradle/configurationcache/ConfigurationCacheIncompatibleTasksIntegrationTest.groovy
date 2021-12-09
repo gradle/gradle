@@ -19,34 +19,62 @@ package org.gradle.configurationcache
 class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
     def "reports incompatible task serialization and execution problems and discards cache entry when task is scheduled"() {
         addTasksWithProblems()
+        def configurationCache = newConfigurationCacheFixture()
 
         when:
         configurationCacheRun("declared")
 
         then:
         result.assertTasksExecuted(":declared")
+        configurationCache.assertStateStored()
+        problems.assertResultHasProblems(result) {
+            withProblem("Task `:declared` of type `Broken`: cannot serialize object of type 'org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer', a subtype of 'org.gradle.api.artifacts.ConfigurationContainer', as these are not supported with the configuration cache.")
+            problemsWithStackTraceCount = 0
+        }
+        result.assertHasPostBuildOutput("Configuration cache entry discarded with 1 problem.")
 
         when:
         configurationCacheRun("declared")
 
         then:
         result.assertTasksExecuted(":declared")
+        configurationCache.assertStateStored()
+        problems.assertResultHasProblems(result) {
+            withProblem("Task `:declared` of type `Broken`: cannot serialize object of type 'org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer', a subtype of 'org.gradle.api.artifacts.ConfigurationContainer', as these are not supported with the configuration cache.")
+            problemsWithStackTraceCount = 0
+        }
+        result.assertHasPostBuildOutput("Configuration cache entry discarded with 1 problem.")
     }
 
     def "problems in tasks that are not marked incompatible are treated as failures when incompatible tasks are also scheduled"() {
         addTasksWithProblems()
+        def configurationCache = newConfigurationCacheFixture()
 
         when:
         configurationCacheFails("declared", "notDeclared")
 
         then:
         result.assertTasksExecuted(":declared", ":notDeclared")
+        configurationCache.assertStateStored()
+        problems.assertFailureHasProblems(failure) {
+            withProblem("Task `:declared` of type `Broken`: cannot serialize object of type 'org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer', a subtype of 'org.gradle.api.artifacts.ConfigurationContainer', as these are not supported with the configuration cache.")
+            withProblem("Task `:notDeclared` of type `Broken`: cannot serialize object of type 'org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer', a subtype of 'org.gradle.api.artifacts.ConfigurationContainer', as these are not supported with the configuration cache.")
+            problemsWithStackTraceCount = 0
+        }
+        outputContains("Configuration cache entry discarded with 2 problems.")
 
         when:
         configurationCacheFails("declared", "notDeclared")
 
         then:
         result.assertTasksExecuted(":declared", ":notDeclared")
+        configurationCache.assertStateStored()
+        problems.assertFailureHasProblems(failure) {
+            withProblem("Task `:declared` of type `Broken`: cannot serialize object of type 'org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer', a subtype of 'org.gradle.api.artifacts.ConfigurationContainer', as these are not supported with the configuration cache.")
+            withProblem("Task `:notDeclared` of type `Broken`: cannot serialize object of type 'org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer', a subtype of 'org.gradle.api.artifacts.ConfigurationContainer', as these are not supported with the configuration cache.")
+            problemsWithStackTraceCount = 0
+        }
+        outputContains("Configuration cache entry discarded with 2 problems.")
     }
 
     private addTasksWithProblems() {
