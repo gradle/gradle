@@ -39,7 +39,6 @@ import org.gradle.configurationcache.serialization.withGradleIsolate
 import org.gradle.configurationcache.serialization.writeCollection
 import org.gradle.configurationcache.serialization.writeFile
 import org.gradle.internal.build.BuildStateRegistry
-import org.gradle.internal.build.RootBuildState
 import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
@@ -116,9 +115,7 @@ class ConfigurationCacheIO internal constructor(
     fun collectRootDirs(buildStateRegistry: BuildStateRegistry): MutableSet<File> {
         val rootDirs = mutableSetOf<File>()
         buildStateRegistry.visitBuilds { build ->
-            if (build !is RootBuildState) {
-                rootDirs.add(build.buildRootDir)
-            }
+            rootDirs.add(build.buildRootDir)
         }
         return rootDirs
     }

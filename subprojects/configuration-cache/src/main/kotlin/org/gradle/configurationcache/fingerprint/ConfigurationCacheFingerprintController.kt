@@ -316,6 +316,9 @@ class ConfigurationCacheFingerprintController internal constructor(
         override val buildStartTime: Long
             get() = buildCommencedTimeProvider.currentTime
 
+        override val invalidateCoupledProjects: Boolean
+            get() = modelParameters.isInvalidateCoupledProjects
+
         override fun gradleProperty(propertyName: String): String? =
             gradleProperties.find(propertyName)?.uncheckedCast()
 

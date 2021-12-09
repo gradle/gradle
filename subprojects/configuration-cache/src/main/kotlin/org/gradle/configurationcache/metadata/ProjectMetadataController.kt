@@ -58,6 +58,7 @@ class ProjectMetadataController(
     private val cacheIO: ConfigurationCacheIO,
     store: ConfigurationCacheStateStore
 ) : ProjectStateStore<Path, LocalComponentMetadata>(store, StateType.ProjectMetadata) {
+
     override fun projectPathForKey(key: Path) = key
 
     override fun write(encoder: Encoder, value: LocalComponentMetadata) {

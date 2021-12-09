@@ -26,6 +26,11 @@ import org.gradle.util.Path
 @ServiceScope(Scopes.BuildTree::class)
 interface BuildTreeConfigurationCache {
     /**
+     * Determines whether the cache entry can be loaded or needs to be stored or updated.
+     */
+    fun initializeCacheEntry()
+
+    /**
      * Loads the scheduled tasks from cache, if available, or else runs the given function to schedule the tasks and then
      * writes the result to the cache.
      */
