@@ -310,6 +310,9 @@ class ConfigurationCacheFingerprintCheckerTest {
         override fun pop(): Unit =
             undefined()
 
+        override suspend fun forIncompatibleType(action: suspend () -> Unit) =
+            undefined()
+
         override fun writeNullableString(value: CharSequence?): Unit =
             undefined()
 
@@ -405,6 +408,9 @@ class ConfigurationCacheFingerprintCheckerTest {
             undefined()
 
         override fun pop(): Unit =
+            undefined()
+
+        override suspend fun forIncompatibleType(action: suspend () -> Unit) =
             undefined()
 
         override fun readInt(): Int =

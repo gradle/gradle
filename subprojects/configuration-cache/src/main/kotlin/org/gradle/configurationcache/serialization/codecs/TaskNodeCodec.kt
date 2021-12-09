@@ -216,15 +216,19 @@ class TaskNodeCodec(
 
 
 private
-inline fun <T> T.withTaskOf(
+suspend fun <T> T.withTaskOf(
     taskType: Class<*>,
-    task: Task,
+    task: TaskInternal,
     codec: Codec<Any?>,
-    action: () -> Unit
+    action: suspend () -> Unit
 ) where T : IsolateContext, T : MutableIsolateContext {
     withIsolate(IsolateOwner.OwnerTask(task), codec) {
         withPropertyTrace(PropertyTrace.Task(taskType, task.path)) {
-            action()
+            if (!task.isCompatibleWithConfigurationCache) {
+                forIncompatibleType(action)
+            } else {
+                action()
+            }
         }
     }
 }

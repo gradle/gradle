@@ -51,6 +51,8 @@ class ConfigurationCacheProblems(
     val listenerManager: ListenerManager
 
 ) : ProblemsListener, ProblemReporter, AutoCloseable {
+    private
+    var hasWarnings = false
 
     private
     val summarizer = ConfigurationCacheProblemsSummary()
@@ -99,6 +101,16 @@ class ConfigurationCacheProblems(
         this.updatedProjects = updatedProjects
     }
 
+    override fun forIncompatibleType(): ProblemsListener {
+        return object : ProblemsListener {
+            override fun onProblem(problem: PropertyProblem) {
+                hasWarnings = true
+            }
+
+            override fun forIncompatibleType() = this
+        }
+    }
+
     override fun onProblem(problem: PropertyProblem) {
         if (summarizer.onProblem(problem)) {
             report.onProblem(problem)
@@ -119,8 +131,8 @@ class ConfigurationCacheProblems(
         val hasProblems = problemCount > 0
         val hasFailedOnProblems = hasProblems && isFailOnProblems
         val hasTooManyProblems = problemCount > startParameter.maxProblems
-        val failed = hasFailedOnProblems || hasTooManyProblems
-        if (cacheAction != LOAD && failed) {
+        val discardState = hasFailedOnProblems || hasTooManyProblems || hasWarnings
+        if (cacheAction != LOAD && discardState) {
             // Invalidate stored state if problems fail the build
             requireNotNull(invalidateStoredState).invoke()
         }
@@ -131,7 +143,7 @@ class ConfigurationCacheProblems(
         val htmlReportFile = report.writeReportFileTo(outputDirectory, cacheActionText, requestedTasks, problemCount)
         if (htmlReportFile == null) {
             // there was nothing to report
-            require(!failed)
+            require(problemCount == 0)
             return
         }
 
