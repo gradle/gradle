@@ -39,6 +39,22 @@
             "changes": [
                 "METHOD_ABSTRACT_NOW_DEFAULT"
             ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ScriptHandlerScope",
+            "member": "Method org.gradle.kotlin.dsl.ScriptHandlerScope.classpath(org.gradle.api.artifacts.dsl.DependencyHandler,org.gradle.api.provider.Provider,kotlin.jvm.functions.Function1)",
+            "acceptation": "Adding new classpath DSL for Provider",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ScriptHandlerScope",
+            "member": "Method org.gradle.kotlin.dsl.ScriptHandlerScope.classpath(org.gradle.api.artifacts.dsl.DependencyHandler,org.gradle.api.provider.ProviderConvertible,kotlin.jvm.functions.Function1)",
+            "acceptation": "Adding new classpath DSL for ProviderConvertible",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
         }
     ]
 }

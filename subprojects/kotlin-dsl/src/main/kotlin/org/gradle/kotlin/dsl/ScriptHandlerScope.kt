@@ -91,6 +91,7 @@ private constructor(
      * @return The dependency.
      *
      * @see [DependencyHandler.add]
+     * @since 7.4
      */
     fun DependencyHandler.classpath(
         dependencyNotation: Provider<MinimalExternalModuleDependency>,
@@ -107,6 +108,7 @@ private constructor(
      * @return The dependency.
      *
      * @see [DependencyHandler.add]
+     * @since 7.4
      */
     fun DependencyHandler.classpath(
         dependencyNotation: ProviderConvertible<MinimalExternalModuleDependency>,
