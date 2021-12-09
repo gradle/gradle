@@ -64,7 +64,8 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
 
     private
     fun onTaskExecutionAccessProblem(invocationDescription: String, task: TaskInternal) {
-        problems.onProblem(
+        val listener = if (task.isCompatibleWithConfigurationCache) problems else problems.forIncompatibleType()
+        listener.onProblem(
             PropertyProblem(
                 propertyTraceForTask(task),
                 StructuredMessage.build {
