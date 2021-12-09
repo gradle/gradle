@@ -4,6 +4,8 @@ plugins {
     id("gradlebuild.distribution.implementation-java")
 }
 
+description = "A library that aids in testing Gradle plugins and build logic in general"
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":core-api"))
