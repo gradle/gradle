@@ -2,7 +2,7 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
-description = "Source for JavaCompile, JavaExec and Javadoc tasks. It also contains logic for incremental Java compilation."
+description = "Source for JavaCompile, JavaExec and Javadoc tasks, it also contains logic for incremental Java compilation"
 
 dependencies {
     implementation(project(":base-services"))
