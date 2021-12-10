@@ -97,7 +97,7 @@ public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdate
     }
 
     @Override
-    protected void updateWatchesOnChangedWatchedFiles(FileHierarchySet oldWatchedFiles, FileHierarchySet newWatchedFiles) {
+    protected void updateWatchesOnChangedWatchedFiles(FileHierarchySet newWatchedFiles) {
         // Most of the changes already happened in `handleVirtualFileSystemContentsChanged`.
         // Here we only need to update watches for the roots of the hierarchies.
         Map<String, Integer> changedWatchDirectories = new HashMap<>();

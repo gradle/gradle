@@ -97,7 +97,7 @@ public class HierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdater {
     }
 
     @Override
-    protected void updateWatchesOnChangedWatchedFiles(FileHierarchySet oldWatchedFiles, FileHierarchySet newWatchedFiles) {
+    protected void updateWatchesOnChangedWatchedFiles(FileHierarchySet newWatchedFiles) {
         ImmutableSet<File> oldWatchedHierarchies = watchedHierarchies;
         ImmutableSet.Builder<File> watchedHierarchiesBuilder = ImmutableSet.builder();
         newWatchedFiles.visitRoots(absolutePath -> watchedHierarchiesBuilder.add(new File(absolutePath)));

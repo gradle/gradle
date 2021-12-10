@@ -109,7 +109,7 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
         FileHierarchySet oldWatchedFiles = watchedFiles;
         watchedFiles = resolveWatchedFiles(watchableHierarchies, root);
         if (!watchedFiles.equals(oldWatchedFiles)) {
-            updateWatchesOnChangedWatchedFiles(oldWatchedFiles, watchedFiles);
+            updateWatchesOnChangedWatchedFiles(watchedFiles);
         }
 
         // Probe every hierarchy that is watched, even ones nested inside others
@@ -142,7 +142,7 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
             });
     }
 
-    protected abstract void updateWatchesOnChangedWatchedFiles(FileHierarchySet oldWatchedFiles, FileHierarchySet newWatchedFiles);
+    protected abstract void updateWatchesOnChangedWatchedFiles(FileHierarchySet newWatchedFiles);
 
     protected abstract void startWatchingProbeDirectory(File probeDirectory);
 
