@@ -433,6 +433,7 @@ public class JavaPlugin implements Plugin<Project> {
 
     private Configuration createSourcesVariant(Project project, JavaPluginExtension java, SourceSet mainSourceSet) {
         final Configuration variant = project.getConfigurations().create(SOURCE_ELEMENTS_VARIANT_NAME);
+        variant.setDescription("List of source directories contained in the Main SourceSet.");
         variant.setVisible(false);
         variant.setCanBeResolved(false);
         variant.setCanBeConsumed(true);

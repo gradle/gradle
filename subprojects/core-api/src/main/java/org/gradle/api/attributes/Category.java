@@ -63,7 +63,9 @@ public interface Category extends Named {
     String DOCUMENTATION = "documentation";
 
     /**
-     * The verification category, for variants which contain the results of running verification tasks (e.g. Test, Jacoco)
+     * The verification category, for variants which contain the results of running verification tasks (e.g. Test, Jacoco).
+     * <p>
+     * Note that this category <strong>can not be published</strong>, and an error will result if any attempt is made to publish a configuration containing 'org.gradle.category=verification'.
      *
      * @since 7.4
      */

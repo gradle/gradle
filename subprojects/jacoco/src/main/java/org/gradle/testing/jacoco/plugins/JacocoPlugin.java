@@ -120,6 +120,7 @@ public class JacocoPlugin implements Plugin<Project> {
 
     private Configuration createCoverageDataVariant(Project project, JvmTestSuite suite, JvmTestSuiteTarget target) {
         final Configuration variant = project.getConfigurations().create(COVERAGE_DATA_ELEMENTS_VARIANT_PREFIX + StringUtils.capitalize(target.getName()));
+        variant.setDescription("Binary data file containing results of Jacoco test coverage reporting for the " + suite.getName() + " Test Suite's " + target.getName() + " target.");
         variant.setVisible(false);
         variant.setCanBeResolved(false);
         variant.setCanBeConsumed(true);
