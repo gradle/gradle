@@ -46,6 +46,7 @@ class NonHierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTe
         then:
         1 * watcher.startWatching({ equalIgnoringOrder(it, [probeRegistry.getProbeDirectory(file("first"))]) })
         1 * watcher.startWatching({ equalIgnoringOrder(it, [fileInWatchableHierarchies.parentFile]) })
+        1 * watcher.startWatching({ equalIgnoringOrder(it, [watchableHierarchies[0]]) })
         0 * _
 
         when:
@@ -101,15 +102,16 @@ class NonHierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTe
         addSnapshot(snapshotRegularFile(watchableContent))
         then:
         vfsHasSnapshotsAt(watchableContent)
-        1 * watcher.startWatching({ it as List == [probeRegistry.getProbeDirectory(watchableHierarchy)] })
-        1 * watcher.startWatching({ it as List == [watchableContent.parentFile] })
+        1 * watcher.startWatching({ equalIgnoringOrder(it, [probeRegistry.getProbeDirectory(watchableHierarchy)]) })
+        1 * watcher.startWatching({ equalIgnoringOrder(it, [watchableContent.parentFile]) })
+        1 * watcher.startWatching({ equalIgnoringOrder(it, [watchableHierarchy]) })
         0 * _
 
         when:
         addSnapshot(snapshotRegularFile(unwatchableContent))
         then:
         vfsHasSnapshotsAt(unwatchableContent)
-        1 * watcher.startWatching({ it as List == [unwatchableContent.parentFile] })
+        1 * watcher.startWatching({ equalIgnoringOrder(it, [unwatchableContent.parentFile]) })
         0 * _
 
         when:
@@ -117,7 +119,7 @@ class NonHierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTe
         then:
         vfsHasSnapshotsAt(watchableContent)
         !vfsHasSnapshotsAt(unwatchableContent)
-        1 * watcher.stopWatching({ it as List == [unwatchableContent.parentFile] })
+        1 * watcher.stopWatching({ equalIgnoringOrder(it, [unwatchableContent.parentFile]) })
         0 * _
     }
 }

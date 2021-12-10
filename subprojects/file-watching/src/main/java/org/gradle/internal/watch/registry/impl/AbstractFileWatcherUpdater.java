@@ -106,8 +106,11 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
     protected abstract WatchableHierarchies.Invalidator createInvalidator();
 
     private void update(SnapshotHierarchy root) {
+        FileHierarchySet oldWatchedFiles = watchedFiles;
         watchedFiles = resolveWatchedFiles(watchableHierarchies, root);
-        updateWatchesOnChangedWatchedFiles(watchedFiles);
+        if (!watchedFiles.equals(oldWatchedFiles)) {
+            updateWatchesOnChangedWatchedFiles(watchedFiles);
+        }
 
         // Probe every hierarchy that is watched, even ones nested inside others
         ImmutableSet<File> oldProbedHierarchies = probedHierarchies;
@@ -139,7 +142,7 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
             });
     }
 
-    protected abstract void updateWatchesOnChangedWatchedFiles(FileHierarchySet watchedFiles);
+    protected abstract void updateWatchesOnChangedWatchedFiles(FileHierarchySet newWatchedFiles);
 
     protected abstract void startWatchingProbeDirectory(File probeDirectory);
 
