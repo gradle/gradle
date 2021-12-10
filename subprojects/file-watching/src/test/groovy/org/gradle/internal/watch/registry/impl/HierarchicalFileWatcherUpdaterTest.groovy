@@ -28,7 +28,7 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
 
     @Override
     FileWatcherUpdater createUpdater(FileWatcher watcher, WatchableHierarchies watchableHierarchies) {
-        new HierarchicalFileWatcherUpdater(watcher, NO_VALIDATION, probeRegistry, watchableHierarchies, movedHierarchyHandler)
+        new HierarchicalFileWatcherUpdater(watcher, NO_VALIDATION, probeRegistry, watchableHierarchies, movedWatchedDirectoriesSupplier)
     }
 
     @Override

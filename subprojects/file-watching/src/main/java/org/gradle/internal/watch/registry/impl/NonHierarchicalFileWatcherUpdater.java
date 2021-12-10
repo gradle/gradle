@@ -54,9 +54,9 @@ public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdate
         FileWatcher fileWatcher,
         FileWatcherProbeRegistry probeRegistry,
         WatchableHierarchies watchableHierarchies,
-        MovedHierarchyHandler movedHierarchyHandler
+        MovedWatchedDirectoriesSupplier movedWatchedDirectoriesSupplier
     ) {
-        super(probeRegistry, watchableHierarchies, movedHierarchyHandler);
+        super(probeRegistry, watchableHierarchies, movedWatchedDirectoriesSupplier);
         this.fileWatcher = fileWatcher;
     }
 

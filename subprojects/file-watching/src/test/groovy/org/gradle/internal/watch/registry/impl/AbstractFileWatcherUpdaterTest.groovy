@@ -73,12 +73,7 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
     }
 
     List<File> movedPaths = []
-    HierarchicalFileWatcherUpdater.MovedHierarchyHandler movedHierarchyHandler = { SnapshotHierarchy root, WatchableHierarchies.Invalidator invalidator ->
-        movedPaths.forEach { movedPath ->
-            root = invalidator.invalidate(movedPath.getAbsolutePath(), root)
-        }
-        return root
-    }
+    AbstractFileWatcherUpdater.MovedWatchedDirectoriesSupplier movedWatchedDirectoriesSupplier = { -> movedPaths }
 
     def setup() {
         updater = createUpdater(watcher, watchableHierarchies)

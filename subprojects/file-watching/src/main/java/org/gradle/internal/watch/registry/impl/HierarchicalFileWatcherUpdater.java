@@ -66,9 +66,9 @@ public class HierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdater {
         FileWatcher fileWatcher,
         FileSystemLocationToWatchValidator locationToWatchValidator,
         FileWatcherProbeRegistry probeRegistry, WatchableHierarchies watchableHierarchies,
-        MovedHierarchyHandler movedHierarchyHandler
+        MovedWatchedDirectoriesSupplier movedWatchedDirectoriesSupplier
     ) {
-        super(probeRegistry, watchableHierarchies, movedHierarchyHandler);
+        super(probeRegistry, watchableHierarchies, movedWatchedDirectoriesSupplier);
         this.fileWatcher = fileWatcher;
         this.locationToWatchValidator = locationToWatchValidator;
     }

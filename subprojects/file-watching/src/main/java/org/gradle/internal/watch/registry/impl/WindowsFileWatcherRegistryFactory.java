@@ -21,13 +21,11 @@ import net.rubygrapefruit.platform.file.FileEvents;
 import net.rubygrapefruit.platform.file.FileWatchEvent;
 import net.rubygrapefruit.platform.internal.jni.WindowsFileEventFunctions;
 import net.rubygrapefruit.platform.internal.jni.WindowsFileEventFunctions.WindowsFileWatcher;
-import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.watch.registry.FileWatcherProbeRegistry;
 import org.gradle.internal.watch.registry.FileWatcherUpdater;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.util.concurrent.BlockingQueue;
 import java.util.function.Predicate;
 
@@ -59,14 +57,6 @@ public class WindowsFileWatcherRegistryFactory extends AbstractFileWatcherRegist
         FileWatcherProbeRegistry probeRegistry,
         WatchableHierarchies watchableHierarchies
     ) {
-        return new HierarchicalFileWatcherUpdater(watcher, NO_VALIDATION, probeRegistry, watchableHierarchies, (root, invalidator) -> invalidateMovedPaths(watcher, root));
-    }
-
-    private static SnapshotHierarchy invalidateMovedPaths(WindowsFileWatcher watcher, SnapshotHierarchy root) {
-        for (File movedPath : watcher.stopWatchingMovedPaths()) {
-            LOGGER.info("Dropping VFS state for moved path {}", movedPath.getAbsolutePath());
-            root = root.invalidate(movedPath.getAbsolutePath(), SnapshotHierarchy.NodeDiffListener.NOOP);
-        }
-        return root;
+        return new HierarchicalFileWatcherUpdater(watcher, NO_VALIDATION, probeRegistry, watchableHierarchies, watcher::stopWatchingMovedPaths);
     }
 }
