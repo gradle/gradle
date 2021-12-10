@@ -341,7 +341,7 @@ class ConfigurationCacheFingerprintWriter(
 
     private
     fun reportSystemPropertyInput(key: String, consumer: String?) {
-        reportInput(consumer, DocumentationSection.RequirementsUndeclaredSysPropRead) {
+        reportInput(consumer, DocumentationSection.RequirementsSysPropEnvVarRead) {
             text("system property ")
             reference(key)
         }
@@ -349,7 +349,7 @@ class ConfigurationCacheFingerprintWriter(
 
     private
     fun reportEnvironmentVariableInput(key: String, consumer: String?) {
-        reportInput(consumer, DocumentationSection.RequirementsUndeclaredEnvVarRead) {
+        reportInput(consumer, DocumentationSection.RequirementsSysPropEnvVarRead) {
             text("environment variable ")
             reference(key)
         }
