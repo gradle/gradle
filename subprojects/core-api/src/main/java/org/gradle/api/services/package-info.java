@@ -19,7 +19,4 @@
  *
  * @since 6.1
  */
-@Incubating
 package org.gradle.api.services;
-
-import org.gradle.api.Incubating;
