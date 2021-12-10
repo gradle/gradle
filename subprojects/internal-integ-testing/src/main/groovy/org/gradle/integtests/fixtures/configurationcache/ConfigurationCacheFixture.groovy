@@ -21,6 +21,7 @@ import org.gradle.configuration.project.ConfigureProjectBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 
 class ConfigurationCacheFixture {
     static final String CONFIGURATION_CACHE_MESSAGE = "Configuration cache is an incubating feature."
@@ -28,9 +29,9 @@ class ConfigurationCacheFixture {
     static final String CONFIGURE_ON_DEMAND_MESSAGE = "Configuration on demand is an incubating feature."
 
     private final AbstractIntegrationSpec spec
-    private final BuildOperationsFixture buildOperations
-    private final ConfigurationCacheBuildOperationsFixture configurationCacheBuildOperations
-    private final ConfigurationCacheProblemsFixture problems
+    final BuildOperationsFixture buildOperations
+    final ConfigurationCacheBuildOperationsFixture configurationCacheBuildOperations
+    final ConfigurationCacheProblemsFixture problems
 
     ConfigurationCacheFixture(AbstractIntegrationSpec spec) {
         this.spec = spec
@@ -40,33 +41,69 @@ class ConfigurationCacheFixture {
     }
 
     /**
-     * Asserts that the cache entry is stored with the given problems.
+     * Asserts that the configuration cache was not enabled.
      */
-    void assertStateStoredWithProblems(@DelegatesTo(StoreWithProblemsDetails) Closure closure) {
-        def details = new StoreWithProblemsDetails()
+    void assertNotEnabled() {
+        spec.outputDoesNotContain(CONFIGURATION_CACHE_MESSAGE)
+        spec.outputDoesNotContain(ISOLATED_PROJECTS_MESSAGE)
+        spec.outputDoesNotContain(CONFIGURE_ON_DEMAND_MESSAGE)
+        configurationCacheBuildOperations.assertNoConfigurationCache()
+        assertHasNoProblems()
+    }
+
+    /**
+     * Asserts that the cache entry was written with no problems.
+     *
+     * Also asserts that the appropriate console logging, reports and build operations are generated.
+     */
+    void assertStateStored(@DelegatesTo(StateStoreDetails) Closure closure = {}) {
+        def details = new StateStoreDetails()
+        closure.delegate = details
+        closure()
+
+        assertStateStored(details)
+        assertHasWarningThatIncubatingFeatureUsed()
+    }
+
+    void assertStateStored(HasBuildActions details) {
+        assertHasStoreReason(details)
+        configurationCacheBuildOperations.assertStateStored()
+
+        spec.postBuildOutputContains("Configuration cache entry ${details.storeAction}.")
+
+        assertHasNoProblems()
+    }
+
+    /**
+     * Asserts that the cache entry was stored with the given problems.
+     *
+     * Also asserts that the appropriate console logging, reports and build operations are generated.
+     */
+    void assertStateStoredWithProblems(@DelegatesTo(StateStoreWithProblemsDetails) Closure closure) {
+        def details = new StateStoreWithProblemsDetails()
         closure.delegate = details
         closure()
 
         assertStateStoredWithProblems(details, details)
+        assertHasWarningThatIncubatingFeatureUsed()
     }
 
-    /**
-     * Asserts that the cache entry is stored but discarded with the given problems.
-     */
     void assertStateStoredWithProblems(HasBuildActions details, HasProblems problemDetails) {
         assertHasStoreReason(details)
         configurationCacheBuildOperations.assertStateStored()
 
-        spec.result.assertHasPostBuildOutput("Configuration cache entry stored with ${details.problemsString}.")
+        spec.result.assertHasPostBuildOutput("Configuration cache entry ${details.storeAction}.")
 
         assertHasProblems(problemDetails)
     }
 
     /**
-     * Asserts that the cache entry is stored but discarded with the given problems.
+     * Asserts that the cache entry was stored but discarded with the given problems.
+     *
+     * Also asserts that the appropriate console logging, reports and build operations are generated.
      */
-    void assertStateStoredAndDiscarded(@DelegatesTo(StoreWithProblemsDetails) Closure closure) {
-        def details = new StoreWithProblemsDetails()
+    void assertStateStoredAndDiscarded(@DelegatesTo(StateDiscardedWithProblemsDetails) Closure closure) {
+        def details = new StateDiscardedWithProblemsDetails()
         closure.delegate = details
         closure()
 
@@ -74,20 +111,11 @@ class ConfigurationCacheFixture {
         assertHasWarningThatIncubatingFeatureUsed()
     }
 
-    /**
-     * Asserts that the cache entry is stored but discarded with the given problems.
-     */
     void assertStateStoredAndDiscarded(HasBuildActions details, HasProblems problemDetails) {
         assertHasStoreReason(details)
         configurationCacheBuildOperations.assertStateStored()
 
-        def totalProblems = problemDetails.totalProblems
-        def message
-        if (totalProblems == 1) {
-            message = "Configuration cache entry discarded with 1 problem."
-        } else {
-            message = "Configuration cache entry discarded with ${totalProblems} problems."
-        }
+        def message = "Configuration cache entry ${details.storeAction}."
         boolean isFailure = spec.result instanceof ExecutionFailure
         if (isFailure) {
             spec.outputContains(message)
@@ -99,30 +127,72 @@ class ConfigurationCacheFixture {
     }
 
     /**
-     * Asserts that the cache entry is loaded and used with no problems.
+     * Asserts that the cache entry was discarded due to some input change and stored again with no problems.
+     *
+     * Also asserts that the appropriate console logging, reports and build operations are generated.
      */
-    void assertStateLoaded() {
+    void assertStateRecreated(@DelegatesTo(StateRecreateDetails) Closure closure) {
+        def details = new StateRecreateDetails()
+        closure.delegate = details
+        closure()
+
+        assertStateRecreated(details, details)
         assertHasWarningThatIncubatingFeatureUsed()
-        assertStateLoaded(new LoadDetails())
+    }
+
+    void assertStateRecreated(HasBuildActions details, HasInvalidationReason invalidationDetails) {
+        assertHasRecreateReason(details, invalidationDetails)
+        configurationCacheBuildOperations.assertStateStored()
+        spec.postBuildOutputContains("Configuration cache entry ${details.storeAction}.")
+        assertHasNoProblems()
     }
 
     /**
-     * Asserts that the cache entry is loaded and used with no problems.
+     * Asserts that the cache entry was discarded due to some input change and stored again with the given problems.
+     *
+     * Also asserts that the appropriate console logging, reports and build operations are generated.
      */
+    void assertStateRecreatedWithProblems(@DelegatesTo(StateRecreateWithProblemsDetails) Closure closure) {
+        def details = new StateRecreateWithProblemsDetails()
+        closure.delegate = details
+        closure()
+
+        assertStateRecreatedWithProblems(details, details, details)
+        assertHasWarningThatIncubatingFeatureUsed()
+    }
+
+    void assertStateRecreatedWithProblems(HasBuildActions details, HasInvalidationReason invalidationDetails, HasProblems problemDetails) {
+        assertHasRecreateReason(details, invalidationDetails)
+        configurationCacheBuildOperations.assertStateStored()
+        spec.postBuildOutputContains("Configuration cache entry ${details.storeAction}.")
+        assertHasProblems(problemDetails)
+    }
+
+    /**
+     * Asserts that the cache entry was loaded and used with no problems.
+     *
+     * Also asserts that the appropriate console logging, reports and build operations are generated.
+     */
+    void assertStateLoaded() {
+        assertStateLoaded(new LoadDetails())
+        assertHasWarningThatIncubatingFeatureUsed()
+    }
+
     void assertStateLoaded(LoadDetails details) {
-        spec.outputContains("Reusing configuration cache.")
-        spec.postBuildOutputContains("Configuration cache entry reused.")
+        assertLoadLogged()
+        spec.postBuildOutputContains("Configuration cache entry ${details.storeAction}.")
 
         configurationCacheBuildOperations.assertStateLoaded()
 
         assertNothingConfigured()
 
-        problems.assertResultHasProblems(spec.result) {
-        }
+        assertHasNoProblems()
     }
 
     /**
-     * Asserts that the cache entry is loaded and used with the given problems.
+     * Asserts that the cache entry was loaded and used with the given problems.
+     *
+     * Also asserts that the appropriate console logging, reports and build operations are generated.
      */
     void assertStateLoadedWithProblems(@DelegatesTo(LoadWithProblemsDetails) Closure closure) {
         def details = new LoadWithProblemsDetails()
@@ -130,8 +200,8 @@ class ConfigurationCacheFixture {
         closure()
 
         assertHasWarningThatIncubatingFeatureUsed()
-        spec.outputContains("Reusing configuration cache.")
-        spec.postBuildOutputContains("Configuration cache entry reused with ${details.problemsString}.")
+        assertLoadLogged()
+        spec.postBuildOutputContains("Configuration cache entry ${details.storeAction}.")
 
         configurationCacheBuildOperations.assertStateLoaded()
 
@@ -161,18 +231,72 @@ class ConfigurationCacheFixture {
         })
     }
 
+    private assertHasNoProblems() {
+        problems.assertResultHasProblems(spec.result) {
+        }
+    }
+
     private void assertHasWarningThatIncubatingFeatureUsed() {
+        if (quietLogging) {
+            // Runs in quiet mode, and does not log anything
+            return
+        }
         spec.outputContains(CONFIGURATION_CACHE_MESSAGE)
         spec.outputDoesNotContain(ISOLATED_PROJECTS_MESSAGE)
         spec.outputDoesNotContain(CONFIGURE_ON_DEMAND_MESSAGE)
     }
 
+    private assertLoadLogged() {
+        if (quietLogging) {
+            // Runs in quiet mode, and does not log anything
+            return
+        }
+        spec.outputContains("Reusing configuration cache.")
+    }
+
     private void assertHasStoreReason(HasBuildActions details) {
+        if (quietLogging) {
+            // Runs in quiet mode, and does not log anything
+            return
+        }
         if (details.runsTasks) {
             spec.outputContains("Calculating task graph as no configuration cache is available for tasks:")
         } else {
             spec.outputContains("Creating tooling model as no configuration cache is available for the requested model")
         }
+    }
+
+    private boolean isQuietLogging() {
+        spec.executer instanceof GradleContextualExecuter && GradleContextualExecuter.configCache
+    }
+
+    private void assertHasRecreateReason(HasBuildActions details, HasInvalidationReason invalidationDetails) {
+        // Inputs can be discovered in parallel, so require that any one of the changed inputs is reported
+
+        def reasons = []
+        invalidationDetails.changedFiles.each { file ->
+            reasons.add("file '${file.replace('/', File.separator)}'")
+        }
+        if (invalidationDetails.changedGradleProperty) {
+            reasons.add("the set of Gradle properties")
+        }
+        if (invalidationDetails.changedSystemProperty != null) {
+            reasons.add("system property '$invalidationDetails.changedSystemProperty'")
+        }
+        if (invalidationDetails.changedTask != null) {
+            reasons.add("an input to task '${invalidationDetails.changedTask}'")
+        }
+
+        def messages = reasons.collect { reason ->
+            if (details.runsTasks) {
+                "Calculating task graph as configuration cache cannot be reused because $reason has changed."
+            } else {
+                "Creating tooling model as configuration cache cannot be reused because $reason has changed."
+            }
+        }
+
+        def found = messages.any { message -> spec.output.contains(message) }
+        assert found: "could not find expected invalidation reason in output. expected: ${messages}"
     }
 
     private void assertNothingConfigured() {
@@ -223,17 +347,71 @@ class ConfigurationCacheFixture {
 
     trait HasBuildActions {
         boolean runsTasks = true
+
+        abstract String getStoreAction()
     }
 
-    static class StoreDetails implements HasBuildActions {
+    trait HasInvalidationReason {
+        List<String> changedFiles = []
+        boolean changedGradleProperty
+        String changedSystemProperty
+        String changedTask
+
+        void fileChanged(String name) {
+            changedFiles.add(name)
+        }
+
+        void taskInputChanged(String name) {
+            changedTask = name
+        }
+
+        void gradlePropertyChanged() {
+            changedGradleProperty = true
+        }
+
+        void systemPropertyChanged(String name) {
+            changedSystemProperty = name
+        }
     }
 
-    static class StoreWithProblemsDetails extends StoreDetails implements HasProblems {
+    static class StateStoreDetails implements HasBuildActions {
+        @Override
+        String getStoreAction() {
+            return "stored"
+        }
     }
 
-    static class LoadDetails {
+    static class StateStoreWithProblemsDetails implements HasBuildActions, HasProblems {
+        @Override
+        String getStoreAction() {
+            return "stored with ${problemsString}"
+        }
     }
 
-    static class LoadWithProblemsDetails extends LoadDetails implements HasProblems {
+    static class StateDiscardedWithProblemsDetails implements HasBuildActions, HasProblems {
+        @Override
+        String getStoreAction() {
+            return "discarded with ${problemsString}"
+        }
+    }
+
+    static class StateRecreateDetails extends StateStoreDetails implements HasInvalidationReason {
+    }
+
+    static class StateRecreateWithProblemsDetails extends StateStoreWithProblemsDetails implements HasInvalidationReason {
+    }
+
+    static class LoadDetails implements HasBuildActions {
+        @Override
+        String getStoreAction() {
+            return "reused"
+        }
+    }
+
+    static class LoadWithProblemsDetails implements HasBuildActions, HasProblems {
+        @Override
+        String getStoreAction() {
+            return "reused with ${problemsString}"
+        }
     }
 }

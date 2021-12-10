@@ -21,24 +21,26 @@ import org.gradle.configuration.project.ConfigureProjectBuildOperationType
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheBuildOperationsFixture
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
+import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture.HasBuildActions
+import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture.HasInvalidationReason
 import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.tooling.provider.model.internal.QueryToolingModelBuildOperationType
 
 class IsolatedProjectsFixture {
     private final AbstractIsolatedProjectsIntegrationTest spec
+    private final ConfigurationCacheFixture fixture
     private final BuildOperationsFixture buildOperations
     private final ConfigurationCacheBuildOperationsFixture configurationCacheBuildOperations
-    private final ConfigurationCacheFixture fixture
 
     IsolatedProjectsFixture(AbstractIsolatedProjectsIntegrationTest spec) {
         this.spec = spec
-        this.buildOperations = new BuildOperationsFixture(spec.executer, spec.temporaryFolder)
-        this.configurationCacheBuildOperations = new ConfigurationCacheBuildOperationsFixture(buildOperations)
         this.fixture = new ConfigurationCacheFixture(spec)
+        this.buildOperations = fixture.buildOperations
+        this.configurationCacheBuildOperations = fixture.configurationCacheBuildOperations
     }
 
     /**
-     * Asserts that the cache entry is written with no problems.
+     * Asserts that the cache entry was written with no problems.
      *
      * Also asserts that the expected set of projects is configured, the expected models are queried
      * and the appropriate console logging, reports and build operations are generated.
@@ -48,24 +50,21 @@ class IsolatedProjectsFixture {
         closure.delegate = details
         closure()
 
-        assertHasStoreReason(details)
-        spec.postBuildOutputContains("Configuration cache entry stored.")
+        fixture.assertStateStored(details)
+
         assertHasWarningThatIncubatingFeatureUsed()
-
-        configurationCacheBuildOperations.assertStateStored()
-
         assertProjectsConfigured(details)
         assertModelsQueried(details)
     }
 
     /**
-     * Asserts that the cache entry is written with some problems.
+     * Asserts that the cache entry was written with some problems.
      *
      * Also asserts that the expected set of projects is configured, the expected models are queried
      * and the appropriate console logging, reports and build operations are generated.
      */
-    void assertStateStoredWithProblems(@DelegatesTo(StoreWithProblemsDetails) Closure closure) {
-        def details = new StoreWithProblemsDetails()
+    void assertStateStoredWithProblems(@DelegatesTo(StateStoreWithProblemsDetails) Closure closure) {
+        def details = new StateStoreWithProblemsDetails()
         closure.delegate = details
         closure()
 
@@ -77,13 +76,13 @@ class IsolatedProjectsFixture {
     }
 
     /**
-     * Asserts that the cache entry is not written due to some problems.
+     * Asserts that the cache entry was written but discarded due to some problems.
      *
      * Also asserts that the expected set of projects is configured, the expected models are queried
      * and the appropriate console logging, reports and build operations are generated.
      */
-    void assertStateStoredAndDiscarded(@DelegatesTo(StoreWithProblemsDetails) Closure closure) {
-        def details = new StoreWithProblemsDetails()
+    void assertStateStoredAndDiscarded(@DelegatesTo(StateDiscardedWithProblemsDetails) Closure closure) {
+        def details = new StateDiscardedWithProblemsDetails()
         closure.delegate = details
         closure()
 
@@ -95,21 +94,21 @@ class IsolatedProjectsFixture {
     }
 
     /**
-     * Asserts that the cache entry is discarded and stored with no problems.
+     * Asserts that the cache entry was discarded and stored again with no problems.
      *
      * Also asserts that the expected set of projects is configured, the expected models are queried
      * and the appropriate console logging, reports and build operations are generated.
      */
-    void assertStateRecreated(@DelegatesTo(StoreRecreatedDetails) Closure closure) {
-        def details = new StoreRecreatedDetails()
+    void assertStateRecreated(@DelegatesTo(StoreRecreateDetails) Closure closure) {
+        def details = new StoreRecreateDetails()
         closure.delegate = details
         closure()
 
-        doStateStored(details, "stored")
+        doStateStored(details, details, details)
     }
 
     /**
-     * Asserts that the cache entry is updated with no problems.
+     * Asserts that the cache entry was updated with no problems.
      *
      * Also asserts that the expected set of projects is configured, the expected models are queried
      * and the appropriate console logging, reports and build operations are generated.
@@ -119,11 +118,11 @@ class IsolatedProjectsFixture {
         closure.delegate = details
         closure()
 
-        doStateStored(details, "updated for ${details.updatedProjectsString}, ${details.reusedProjectsString} up-to-date")
+        doStateStored(details, details, details)
     }
 
     /**
-     * Asserts that the cache entry is updated with the given problems.
+     * Asserts that the cache entry was updated with the given problems.
      *
      * Also asserts that the expected set of projects is configured, the expected models are queried
      * and the appropriate console logging, reports and build operations are generated.
@@ -133,65 +132,27 @@ class IsolatedProjectsFixture {
         closure.delegate = details
         closure()
 
-        doStoreWithProblems(details, details, "updated for ${details.updatedProjectsString} with $details.problemsString, ${details.reusedProjectsString} up-to-date")
+        doStoreWithProblems(details, details, details, details)
     }
 
-    private void doStateStored(StoreInvalidationDetails details, String storeAction) {
-        assertHasRecreateReason(details)
-        spec.postBuildOutputContains("Configuration cache entry $storeAction.")
+    private void doStateStored(HasBuildActions details, HasInvalidationReason invalidationDetails, HasIntermediateDetails intermediateDetails) {
+        fixture.assertStateRecreated(details, invalidationDetails)
+
         assertHasWarningThatIncubatingFeatureUsed()
-
-        configurationCacheBuildOperations.assertStateStored()
-
-        assertProjectsConfigured(details)
-        assertModelsQueried(details)
+        assertProjectsConfigured(intermediateDetails)
+        assertModelsQueried(intermediateDetails)
     }
 
-    private void doStoreWithProblems(StoreInvalidationDetails details, ConfigurationCacheFixture.HasProblems problems, String storeAction) {
-        def totalProblems = problems.totalProblems
+    private void doStoreWithProblems(HasBuildActions details, HasInvalidationReason invalidationDetails, HasIntermediateDetails intermediateDetails, ConfigurationCacheFixture.HasProblems problems) {
+        fixture.assertStateRecreatedWithProblems(details, invalidationDetails, problems)
 
-        assertHasRecreateReason(details)
-        spec.result.assertHasPostBuildOutput("Configuration cache entry $storeAction.")
         assertHasWarningThatIncubatingFeatureUsed()
-
-        configurationCacheBuildOperations.assertStateStored()
-
-        assertHasProblems(totalProblems, problems.problems)
-
-        assertProjectsConfigured(details)
-        assertModelsQueried(details)
-    }
-
-    private void assertHasRecreateReason(StoreInvalidationDetails details) {
-        // Inputs can be discovered in parallel, so required that any one of the changed inputs is reported
-        def reasons = []
-        details.changedFiles.each { file ->
-            reasons.add("file '${file.replace('/', File.separator)}'")
-        }
-        if (details.changedGradleProperty) {
-            reasons.add("the set of Gradle properties")
-        }
-        if (details.changedSystemProperty != null) {
-            reasons.add("system property '$details.changedSystemProperty'")
-        }
-        if (details.changedTask != null) {
-            reasons.add("an input to task '${details.changedTask}'")
-        }
-
-        def messages = reasons.collect { reason ->
-            if (details.runsTasks) {
-                "Creating task graph as configuration cache cannot be reused because $reason has changed."
-            } else {
-                "Creating tooling model as configuration cache cannot be reused because $reason has changed."
-            }
-        }
-
-        def found = messages.any { message -> spec.output.contains(message) }
-        assert found: "could not find expected invalidation reason in output. expected: ${messages}"
+        assertProjectsConfigured(intermediateDetails)
+        assertModelsQueried(intermediateDetails)
     }
 
     /**
-     * Asserts that the cache entry is loaded and no projects are configured.
+     * Asserts that the cache entry was loaded and no projects are configured.
      *
      * Also asserts that the appropriate console logging, reports and build operations are generated.
      */
@@ -202,24 +163,7 @@ class IsolatedProjectsFixture {
         assertNoModelsQueried()
     }
 
-    private void assertHasStoreReason(StoreDetails details) {
-        if (details.runsTasks) {
-            spec.outputContains("Calculating task graph as no configuration cache is available for tasks:")
-        } else {
-            spec.outputContains("Creating tooling model as no configuration cache is available for the requested model")
-        }
-    }
-
-    private assertHasProblems(int totalProblems, List<ConfigurationCacheFixture.ProblemDetails> problems) {
-        spec.problems.assertResultHasProblems(spec.result) {
-            withTotalProblemsCount(totalProblems)
-            withUniqueProblems(problems.collect {
-                it.message.replace('/', File.separator)
-            })
-        }
-    }
-
-    private void assertProjectsConfigured(StoreDetails details) {
+    private void assertProjectsConfigured(HasIntermediateDetails details) {
         def configuredProjects = buildOperations.all(ConfigureProjectBuildOperationType)
         assert configuredProjects.collect { fullPath(it) }.toSet() == details.projects
 
@@ -236,7 +180,7 @@ class IsolatedProjectsFixture {
         assert models.empty
     }
 
-    private void assertModelsQueried(StoreDetails details) {
+    private void assertModelsQueried(HasIntermediateDetails details) {
         def models = buildOperations.all(QueryToolingModelBuildOperationType)
         def expectedProjectModels = details.models.collect { [it.path] * it.count }.flatten()
         assert models.size() == expectedProjectModels.size() + details.buildModelQueries
@@ -273,7 +217,7 @@ class IsolatedProjectsFixture {
         return result
     }
 
-    static class StoreDetails implements ConfigurationCacheFixture.HasBuildActions {
+    trait HasIntermediateDetails {
         final projects = new HashSet<String>()
         final List<ModelDetails> models = []
         int buildModelQueries
@@ -319,36 +263,19 @@ class IsolatedProjectsFixture {
         }
     }
 
-    static class StoreWithProblemsDetails extends StoreDetails implements ConfigurationCacheFixture.HasProblems {
+    static class StoreDetails extends ConfigurationCacheFixture.StateStoreDetails implements HasIntermediateDetails {
     }
 
-    static class StoreInvalidationDetails extends StoreDetails {
-        List<String> changedFiles = []
-        boolean changedGradleProperty
-        String changedSystemProperty
-        String changedTask
-
-        void fileChanged(String name) {
-            changedFiles.add(name)
-        }
-
-        void taskInputChanged(String name) {
-            changedTask = name
-        }
-
-        void gradlePropertyChanged() {
-            changedGradleProperty = true
-        }
-
-        void systemPropertyChanged(String name) {
-            changedSystemProperty = name
-        }
+    static class StateStoreWithProblemsDetails extends ConfigurationCacheFixture.StateStoreWithProblemsDetails implements HasIntermediateDetails {
     }
 
-    static class StoreRecreatedDetails extends StoreInvalidationDetails {
+    static class StateDiscardedWithProblemsDetails extends ConfigurationCacheFixture.StateDiscardedWithProblemsDetails implements HasIntermediateDetails {
     }
 
-    static class StoreUpdateDetails extends StoreInvalidationDetails {
+    static class StoreRecreateDetails extends ConfigurationCacheFixture.StateRecreateDetails implements HasIntermediateDetails {
+    }
+
+    static class StoreUpdateDetails extends ConfigurationCacheFixture.StateRecreateDetails implements HasIntermediateDetails {
         Set<String> projectsReused = new HashSet<>()
 
         void modelsReused(String... paths) {
@@ -371,9 +298,18 @@ class IsolatedProjectsFixture {
                     return "${reusedProjects} projects"
             }
         }
+
+        @Override
+        String getStoreAction() {
+            return "updated for ${updatedProjectsString}, ${reusedProjectsString} up-to-date"
+        }
     }
 
     static class StoreUpdatedWithProblemsDetails extends StoreUpdateDetails implements ConfigurationCacheFixture.HasProblems {
+        @Override
+        String getStoreAction() {
+            return "updated for ${updatedProjectsString} with $problemsString, ${reusedProjectsString} up-to-date"
+        }
     }
 
     static class ModelDetails {
