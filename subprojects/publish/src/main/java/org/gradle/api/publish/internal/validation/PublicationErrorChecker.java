@@ -44,7 +44,7 @@ public abstract class PublicationErrorChecker {
 
             category.ifPresent(c -> {
                 Object value = usageContext.getAttributes().getAttribute(c);
-                if (Category.VERIFICATION.equals(value)) {
+                if (value != null && Category.VERIFICATION.equals(value.toString())) {
                     throw new PublishException("Cannot publish module metadata for component '" + component.getName() + "' which would include a variant '" + usageContext.getName() + "' that contains a '" + Category.CATEGORY_ATTRIBUTE.getName() + "' attribute with a value of '" + Category.VERIFICATION + "'.  This attribute is reserved for test verification output and is not publishable.  See: " + documentationRegistry.getDocumentationFor("variant_attributes.html", "sec:verification_category"));
                 }
             });
