@@ -493,6 +493,7 @@ sourceSets {
         failureCauseContains('Compilation failed')
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/19257")
     def "recompiles classes with \$ in class name after rename"() {
         def firstSource = source "class Class\$Name {}"
         source "class Main { public static void main(String[] args) { new Class\$Name(); } }"
