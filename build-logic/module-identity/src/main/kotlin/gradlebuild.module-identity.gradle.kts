@@ -152,4 +152,3 @@ fun isRunningInstallTask() =
 fun isRunningDocsTestTask() =
     setOf(":docs:docsTest", "docs:docsTest")
         .any(gradle.startParameter.taskNames::contains)
-
