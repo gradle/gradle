@@ -69,16 +69,9 @@ class IsolatedProjectsFixture {
         closure.delegate = details
         closure()
 
-        def totalProblems = details.totalProblems
+        fixture.assertStateStoredWithProblems(details, details)
 
-        assertHasStoreReason(details)
-        spec.result.assertHasPostBuildOutput("Configuration cache entry stored with ${details.problemsString}.")
         assertHasWarningThatIncubatingFeatureUsed()
-
-        configurationCacheBuildOperations.assertStateStored()
-
-        assertHasProblems(totalProblems, details.problems)
-
         assertProjectsConfigured(details)
         assertModelsQueried(details)
     }
@@ -113,20 +106,6 @@ class IsolatedProjectsFixture {
         closure()
 
         doStateStored(details, "stored")
-    }
-
-    /**
-     * Asserts that the cache entry is discarded and stored with the expected problems.
-     *
-     * Also asserts that the expected set of projects is configured, the expected models are queried
-     * and the appropriate console logging, reports and build operations are generated.
-     */
-    void assertStateRecreatedWithProblems(@DelegatesTo(StoreRecreatedWithProblemsDetails) Closure closure) {
-        def details = new StoreRecreatedWithProblemsDetails()
-        closure.delegate = details
-        closure()
-
-        doStoreWithProblems(details, details, "stored with $details.problemsString")
     }
 
     /**
@@ -216,18 +195,10 @@ class IsolatedProjectsFixture {
      *
      * Also asserts that the appropriate console logging, reports and build operations are generated.
      */
-    void assertStateLoaded(@DelegatesTo(LoadDetails) Closure closure = {}) {
-        def details = new LoadDetails()
-        closure.delegate = details
-        closure()
+    void assertStateLoaded() {
+        fixture.assertStateLoaded(new ConfigurationCacheFixture.LoadDetails())
 
-        spec.outputContains("Reusing configuration cache.")
-        spec.postBuildOutputContains("Configuration cache entry reused.")
         assertHasWarningThatIncubatingFeatureUsed()
-
-        configurationCacheBuildOperations.assertStateLoaded()
-
-        assertNothingConfigured()
         assertNoModelsQueried()
     }
 
@@ -239,7 +210,6 @@ class IsolatedProjectsFixture {
         }
     }
 
-
     private assertHasProblems(int totalProblems, List<ConfigurationCacheFixture.ProblemDetails> problems) {
         spec.problems.assertResultHasProblems(spec.result) {
             withTotalProblemsCount(totalProblems)
@@ -247,15 +217,6 @@ class IsolatedProjectsFixture {
                 it.message.replace('/', File.separator)
             })
         }
-    }
-
-    private void assertNothingConfigured() {
-        def configuredProjects = buildOperations.all(ConfigureProjectBuildOperationType)
-        // A synthetic "project configured" operation is fired for each root project for build scans
-        assert configuredProjects.every { it.details.projectPath == ':' }
-
-        def scripts = buildOperations.all(ApplyScriptPluginBuildOperationType)
-        assert scripts.empty
     }
 
     private void assertProjectsConfigured(StoreDetails details) {
@@ -387,9 +348,6 @@ class IsolatedProjectsFixture {
     static class StoreRecreatedDetails extends StoreInvalidationDetails {
     }
 
-    static class StoreRecreatedWithProblemsDetails extends StoreRecreatedDetails implements ConfigurationCacheFixture.HasProblems {
-    }
-
     static class StoreUpdateDetails extends StoreInvalidationDetails {
         Set<String> projectsReused = new HashSet<>()
 
@@ -416,9 +374,6 @@ class IsolatedProjectsFixture {
     }
 
     static class StoreUpdatedWithProblemsDetails extends StoreUpdateDetails implements ConfigurationCacheFixture.HasProblems {
-    }
-
-    static class LoadDetails {
     }
 
     static class ModelDetails {

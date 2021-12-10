@@ -144,7 +144,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private String reasonNotToTrackState;
 
-    private boolean compatibleWithConfigurationCache = true;
+    private String reasonIncompatibleWithConfigurationCache;
 
     private final ServiceRegistry services;
 
@@ -392,13 +392,18 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Override
     public void notCompatibleWithConfigurationCache(String reason) {
         taskMutator.mutate("Task.notCompatibleWithConfigurationCache(String)", () -> {
-            compatibleWithConfigurationCache = false;
+            reasonIncompatibleWithConfigurationCache = reason;
         });
     }
 
     @Override
     public boolean isCompatibleWithConfigurationCache() {
-        return compatibleWithConfigurationCache;
+        return reasonIncompatibleWithConfigurationCache == null;
+    }
+
+    @Override
+    public Optional<String> getReasonTaskIsIncompatibleWithConfigurationCache() {
+        return Optional.ofNullable(reasonIncompatibleWithConfigurationCache);
     }
 
     @Internal

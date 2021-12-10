@@ -16,6 +16,8 @@
 
 package org.gradle.integtests.fixtures.configurationcache
 
+import org.gradle.configuration.ApplyScriptPluginBuildOperationType
+import org.gradle.configuration.project.ConfigureProjectBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
@@ -38,6 +40,29 @@ class ConfigurationCacheFixture {
     }
 
     /**
+     * Asserts that the cache entry is stored with the given problems.
+     */
+    void assertStateStoredWithProblems(@DelegatesTo(StoreWithProblemsDetails) Closure closure) {
+        def details = new StoreWithProblemsDetails()
+        closure.delegate = details
+        closure()
+
+        assertStateStoredWithProblems(details, details)
+    }
+
+    /**
+     * Asserts that the cache entry is stored but discarded with the given problems.
+     */
+    void assertStateStoredWithProblems(HasBuildActions details, HasProblems problemDetails) {
+        assertHasStoreReason(details)
+        configurationCacheBuildOperations.assertStateStored()
+
+        spec.result.assertHasPostBuildOutput("Configuration cache entry stored with ${details.problemsString}.")
+
+        assertHasProblems(problemDetails)
+    }
+
+    /**
      * Asserts that the cache entry is stored but discarded with the given problems.
      */
     void assertStateStoredAndDiscarded(@DelegatesTo(StoreWithProblemsDetails) Closure closure) {
@@ -53,11 +78,8 @@ class ConfigurationCacheFixture {
      * Asserts that the cache entry is stored but discarded with the given problems.
      */
     void assertStateStoredAndDiscarded(HasBuildActions details, HasProblems problemDetails) {
-
         assertHasStoreReason(details)
         configurationCacheBuildOperations.assertStateStored()
-
-        boolean isFailure = spec.result instanceof ExecutionFailure
 
         def totalProblems = problemDetails.totalProblems
         def message
@@ -66,12 +88,60 @@ class ConfigurationCacheFixture {
         } else {
             message = "Configuration cache entry discarded with ${totalProblems} problems."
         }
+        boolean isFailure = spec.result instanceof ExecutionFailure
         if (isFailure) {
             spec.outputContains(message)
         } else {
             spec.postBuildOutputContains(message)
         }
 
+        assertHasProblems(problemDetails)
+    }
+
+    /**
+     * Asserts that the cache entry is loaded and used with no problems.
+     */
+    void assertStateLoaded() {
+        assertHasWarningThatIncubatingFeatureUsed()
+        assertStateLoaded(new LoadDetails())
+    }
+
+    /**
+     * Asserts that the cache entry is loaded and used with no problems.
+     */
+    void assertStateLoaded(LoadDetails details) {
+        spec.outputContains("Reusing configuration cache.")
+        spec.postBuildOutputContains("Configuration cache entry reused.")
+
+        configurationCacheBuildOperations.assertStateLoaded()
+
+        assertNothingConfigured()
+
+        problems.assertResultHasProblems(spec.result) {
+        }
+    }
+
+    /**
+     * Asserts that the cache entry is loaded and used with the given problems.
+     */
+    void assertStateLoadedWithProblems(@DelegatesTo(LoadWithProblemsDetails) Closure closure) {
+        def details = new LoadWithProblemsDetails()
+        closure.delegate = details
+        closure()
+
+        assertHasWarningThatIncubatingFeatureUsed()
+        spec.outputContains("Reusing configuration cache.")
+        spec.postBuildOutputContains("Configuration cache entry reused with ${details.problemsString}.")
+
+        configurationCacheBuildOperations.assertStateLoaded()
+
+        assertNothingConfigured()
+
+        assertHasProblems(details)
+    }
+
+    private void assertHasProblems(HasProblems problemDetails) {
+        boolean isFailure = spec.result instanceof ExecutionFailure
         if (isFailure) {
             problems.assertFailureHasProblems(spec.failure) {
                 applyProblemsTo(problemDetails, delegate)
@@ -103,6 +173,15 @@ class ConfigurationCacheFixture {
         } else {
             spec.outputContains("Creating tooling model as no configuration cache is available for the requested model")
         }
+    }
+
+    private void assertNothingConfigured() {
+        def configuredProjects = buildOperations.all(ConfigureProjectBuildOperationType)
+        // A synthetic "project configured" operation is fired for each root project for build scans
+        assert configuredProjects.every { it.details.projectPath == ':' }
+
+        def scripts = buildOperations.all(ApplyScriptPluginBuildOperationType)
+        assert scripts.empty
     }
 
     static class ProblemDetails {
@@ -150,5 +229,11 @@ class ConfigurationCacheFixture {
     }
 
     static class StoreWithProblemsDetails extends StoreDetails implements HasProblems {
+    }
+
+    static class LoadDetails {
+    }
+
+    static class LoadWithProblemsDetails extends LoadDetails implements HasProblems {
     }
 }
