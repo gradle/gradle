@@ -171,16 +171,20 @@ public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdate
     }
 
     private static void decrement(String path, Map<String, Integer> changedWatchedDirectories) {
-        changedWatchedDirectories.compute(path, (key, value) -> zeroToNull(value == null ? -1 : value - 1));
+        changedWatchedDirectories.compute(path, (key, value) -> zeroToNull(nullToZero(value) - 1));
     }
 
     private static void increment(String path, Map<String, Integer> changedWatchedDirectories) {
-        changedWatchedDirectories.compute(path, (key, value) -> zeroToNull(value == null ? 1 : value + 1));
+        changedWatchedDirectories.compute(path, (key, value) -> zeroToNull(nullToZero(value) + 1));
     }
 
     @Nullable
     private static Integer zeroToNull(int value) {
         return value == 0 ? null : value;
+    }
+
+    private static int nullToZero(@Nullable Integer value) {
+        return value == null ? 0 : value;
     }
 
     private class SubdirectoriesToWatchVisitor extends RootTrackingFileSystemSnapshotHierarchyVisitor {
