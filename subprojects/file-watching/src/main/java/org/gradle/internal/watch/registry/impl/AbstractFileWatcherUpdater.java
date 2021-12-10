@@ -36,15 +36,18 @@ import java.util.stream.Stream;
 public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
     protected final FileWatcherProbeRegistry probeRegistry;
     protected final WatchableHierarchies watchableHierarchies;
+    private final HierarchicalFileWatcherUpdater.MovedHierarchyHandler movedHierarchyHandler;
     protected FileHierarchySet watchedFiles = FileHierarchySet.empty();
     private ImmutableSet<File> probedHierarchies = ImmutableSet.of();
 
     public AbstractFileWatcherUpdater(
         FileWatcherProbeRegistry probeRegistry,
-        WatchableHierarchies watchableHierarchies
+        WatchableHierarchies watchableHierarchies,
+        HierarchicalFileWatcherUpdater.MovedHierarchyHandler movedHierarchyHandler
     ) {
         this.probeRegistry = probeRegistry;
         this.watchableHierarchies = watchableHierarchies;
+        this.movedHierarchyHandler = movedHierarchyHandler;
     }
 
     @Override
@@ -65,7 +68,9 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
     }
 
     @CheckReturnValue
-    protected abstract SnapshotHierarchy doUpdateVfsOnBuildStarted(SnapshotHierarchy root);
+    private SnapshotHierarchy doUpdateVfsOnBuildStarted(SnapshotHierarchy root) {
+        return movedHierarchyHandler.handleMovedHierarchies(root, createInvalidator());
+    }
 
     @Override
     public void virtualFileSystemContentsChanged(Collection<FileSystemLocationSnapshot> removedSnapshots, Collection<FileSystemLocationSnapshot> addedSnapshots, SnapshotHierarchy root) {

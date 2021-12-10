@@ -60,7 +60,6 @@ public class HierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdater {
 
     private final FileWatcher fileWatcher;
     private final FileSystemLocationToWatchValidator locationToWatchValidator;
-    private final MovedHierarchyHandler movedHierarchyHandler;
     private ImmutableSet<File> watchedHierarchies = ImmutableSet.of();
 
     public HierarchicalFileWatcherUpdater(
@@ -69,10 +68,9 @@ public class HierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdater {
         FileWatcherProbeRegistry probeRegistry, WatchableHierarchies watchableHierarchies,
         MovedHierarchyHandler movedHierarchyHandler
     ) {
-        super(probeRegistry, watchableHierarchies);
+        super(probeRegistry, watchableHierarchies, movedHierarchyHandler);
         this.fileWatcher = fileWatcher;
         this.locationToWatchValidator = locationToWatchValidator;
-        this.movedHierarchyHandler = movedHierarchyHandler;
     }
 
     @Override
@@ -130,11 +128,6 @@ public class HierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdater {
     }
 
     @Override
-    protected SnapshotHierarchy doUpdateVfsOnBuildStarted(SnapshotHierarchy root) {
-        return movedHierarchyHandler.handleMovedHierarchies(root);
-    }
-
-    @Override
     protected void startWatchingProbeDirectory(File probeDirectory) {
         // We already started watching the hierarchy.
     }
@@ -155,7 +148,7 @@ public class HierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdater {
          * even though the VFS should be updated. Our best bet here is to cull any moved watch
          * roots from the VFS at the start of every build.
          */
-        SnapshotHierarchy handleMovedHierarchies(SnapshotHierarchy root);
+        SnapshotHierarchy handleMovedHierarchies(SnapshotHierarchy root, WatchableHierarchies.Invalidator invalidator);
     }
 
     public interface FileSystemLocationToWatchValidator {

@@ -24,7 +24,7 @@ class NonHierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTe
 
     @Override
     FileWatcherUpdater createUpdater(FileWatcher watcher, WatchableHierarchies watchableHierarchies) {
-        new NonHierarchicalFileWatcherUpdater(watcher, probeRegistry, watchableHierarchies)
+        new NonHierarchicalFileWatcherUpdater(watcher, probeRegistry, watchableHierarchies, movedHierarchyHandler)
     }
 
     @Override

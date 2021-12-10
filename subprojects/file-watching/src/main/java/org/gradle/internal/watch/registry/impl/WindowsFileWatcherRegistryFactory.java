@@ -59,7 +59,7 @@ public class WindowsFileWatcherRegistryFactory extends AbstractFileWatcherRegist
         FileWatcherProbeRegistry probeRegistry,
         WatchableHierarchies watchableHierarchies
     ) {
-        return new HierarchicalFileWatcherUpdater(watcher, NO_VALIDATION, probeRegistry, watchableHierarchies, root -> invalidateMovedPaths(watcher, root));
+        return new HierarchicalFileWatcherUpdater(watcher, NO_VALIDATION, probeRegistry, watchableHierarchies, (root, invalidator) -> invalidateMovedPaths(watcher, root));
     }
 
     private static SnapshotHierarchy invalidateMovedPaths(WindowsFileWatcher watcher, SnapshotHierarchy root) {

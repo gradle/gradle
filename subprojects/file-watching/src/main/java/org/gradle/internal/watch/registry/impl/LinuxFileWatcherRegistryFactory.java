@@ -41,6 +41,7 @@ public class LinuxFileWatcherRegistryFactory extends AbstractFileWatcherRegistry
 
     @Override
     protected FileWatcherUpdater createFileWatcherUpdater(LinuxFileWatcher watcher, FileWatcherProbeRegistry probeRegistry, WatchableHierarchies watchableHierarchies) {
-        return new NonHierarchicalFileWatcherUpdater(watcher, probeRegistry, watchableHierarchies);
+        // TODO: Actually handle moved hierarchies here as well.
+        return new NonHierarchicalFileWatcherUpdater(watcher, probeRegistry, watchableHierarchies, (root, invalidator) -> root);
     }
 }
