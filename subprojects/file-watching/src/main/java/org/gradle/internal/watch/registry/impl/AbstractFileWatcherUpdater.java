@@ -36,14 +36,14 @@ import java.util.stream.Stream;
 public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
     protected final FileWatcherProbeRegistry probeRegistry;
     protected final WatchableHierarchies watchableHierarchies;
-    private final HierarchicalFileWatcherUpdater.MovedHierarchyHandler movedHierarchyHandler;
+    private final MovedHierarchyHandler movedHierarchyHandler;
     protected FileHierarchySet watchedFiles = FileHierarchySet.empty();
     private ImmutableSet<File> probedHierarchies = ImmutableSet.of();
 
     public AbstractFileWatcherUpdater(
         FileWatcherProbeRegistry probeRegistry,
         WatchableHierarchies watchableHierarchies,
-        HierarchicalFileWatcherUpdater.MovedHierarchyHandler movedHierarchyHandler
+        MovedHierarchyHandler movedHierarchyHandler
     ) {
         this.probeRegistry = probeRegistry;
         this.watchableHierarchies = watchableHierarchies;
@@ -166,5 +166,14 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
     private static boolean isMissing(FileSystemLocationSnapshot snapshot) {
         // Missing accessed indirectly means we have a dangling symlink in the directory, and that's content we cannot ignore
         return snapshot.getType() == FileType.Missing && snapshot.getAccessType() == FileMetadata.AccessType.DIRECT;
+    }
+
+    public interface MovedHierarchyHandler {
+        /**
+         * On Windows when watched hierarchies are moved, the OS does not send a notification,
+         * even though the VFS should be updated. Our best bet here is to cull any moved watch
+         * roots from the VFS at the start of every build.
+         */
+        SnapshotHierarchy handleMovedHierarchies(SnapshotHierarchy root, WatchableHierarchies.Invalidator invalidator);
     }
 }

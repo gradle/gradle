@@ -142,15 +142,6 @@ public class HierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdater {
         return (location, currentRoot) -> currentRoot.invalidate(location, SnapshotHierarchy.NodeDiffListener.NOOP);
     }
 
-    public interface MovedHierarchyHandler {
-        /**
-         * On Windows when watched hierarchies are moved, the OS does not send a notification,
-         * even though the VFS should be updated. Our best bet here is to cull any moved watch
-         * roots from the VFS at the start of every build.
-         */
-        SnapshotHierarchy handleMovedHierarchies(SnapshotHierarchy root, WatchableHierarchies.Invalidator invalidator);
-    }
-
     public interface FileSystemLocationToWatchValidator {
         FileSystemLocationToWatchValidator NO_VALIDATION = location -> {
         };
