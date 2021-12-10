@@ -1,3 +1,4 @@
+// tag::all[]
 plugins {
     base
     id("test-report-aggregation")
@@ -20,3 +21,4 @@ reporting {
 tasks.check {
     dependsOn(tasks.named<TestReport>("testAggregateTestReport")) // <.>
 }
+// end::all[]
