@@ -31,6 +31,8 @@ class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionT
 
     String getAuthConfig() { '' }
 
+    // TODO make similar test but using ARQ instead of resolving configurations.compile
+
     def "downloads artifacts in parallel from a Maven repo - #expression"() {
         def m1 = mavenRepo.module('test', 'test1', '1.0').publish()
         def m2 = mavenRepo.module('test', 'test2', '1.0').publish()

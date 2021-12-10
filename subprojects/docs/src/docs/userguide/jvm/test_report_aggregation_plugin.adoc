@@ -27,4 +27,43 @@ There are two ways to collect test results across multiple subprojects:
 1. From the distribution's project, such as an Android application or WAR subproject -> link:../samples/sample_jvm_multi_project_with_test_aggregation_distribution.html[distribution sample]
 2. Using a standalone project to specify subprojects -> link:../samples/sample_jvm_multi_project_with_test_aggregation_standalone.html[standalone sample]
 
+Example 2 could also be used to aggregate results via the root project.
+
+The `test-report-aggregation` resolves specific variants
 Details TBD
+
+[[sec:test_report_aggregatin_tasks]]
+== Tasks
+
+If the aggregation project applies the `jvm-test-suite` plugin, this plugin adds the following task or each test suite:
+
+
+`__testSuite__AggregateTestReport` — link:{groovyDslPath}/org.gradle.api.tasks.testing.TestReport.html[TestReport]::
+_Depends on_: Artifacts of variants matching the below attributes
++
+Collects variants of direct and transitive project dependencies via the `testReportAggregation` configuration. The following Attributes will be matched:
+
+[source]
+----
+TODO list variant/attributes filter
+----
+
+TODO link to variant-aware resolution chapter
+
+TODO declaring a report
+
+[[sec:checkstyle_dependency_management]]
+== Dependency management
+TODO dependency management section
+
+The Checkstyle plugin adds the following dependency configurations:
+
+.Checkstyle plugin - dependency configurations
+[cols="a,a", options="header"]
+|===
+| Name
+| Meaning
+
+| `checkstyle`
+| The Checkstyle libraries to use
+|===

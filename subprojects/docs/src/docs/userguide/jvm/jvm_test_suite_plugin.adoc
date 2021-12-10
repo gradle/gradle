@@ -175,7 +175,7 @@ include::sample[dir="snippets/testing/test-suite-configure-source-dir/kotlin",fi
 
 == Differences between similar methods on link:{groovyDslPath}/org.gradle.api.plugins.jvm.JvmTestSuite.html[JvmTestSuite] and link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] task types
 
-Instances of JvmTestSuite have methods link:{javadocPath}org/gradle/api/plugins/jvm/JvmTestSuite.html#useJUnit[useJUnit()] and link:{javadocPath}org/gradle/api/plugins/jvm/JvmTestSuite.html#useJUnitJupiter[useJUnitJupiter()], which are similar in name to methods on the link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] task type:  link:{javadocPath}/org/gradle/api/tasks/testing/Test.html#useJUnit[useJUnit()] and link:{javadocPath}/org/gradle/api/tasks/testing/Test.html#useJUnitPlatform[useJUnitPlatform()].  However, there are important differences.
+Instances of JvmTestSuite have methods link:{javadocPath}org/gradle/api/plugins/jvm/JvmTestSuite.html#useJUnit--[useJUnit()] and link:{javadocPath}org/gradle/api/plugins/jvm/JvmTestSuite.html#useJUnitJupiter[useJUnitJupiter()], which are similar in name to methods on the link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] task type:  link:{javadocPath}/org/gradle/api/tasks/testing/Test.html#useJUnit[useJUnit()] and link:{javadocPath}/org/gradle/api/tasks/testing/Test.html#useJUnitPlatform[useJUnitPlatform()].  However, there are important differences.
 
 Unlike the methods on the link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] task, link:{groovyDslPath}/org.gradle.api.plugins.jvm.JvmTestSuite.html[JvmTestSuite] methods perform two additional pieces of configuration:
 
@@ -185,3 +185,33 @@ Unlike the methods on the link:{groovyDslPath}/org.gradle.api.tasks.testing.Test
 An example of this behavior is shown in the first configuration example above, <<#sec:configuring_the_built_in_test_suite,Configuring the built-in `test` suite>>.
 
 Note that unlike the link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] task, the aforementioned methods on link:{groovyDslPath}/org.gradle.api.plugins.jvm.JvmTestSuite.html[JvmTestSuite] do not accept a closure or action for configuring the framework.  These framework configuration options can be set on the individual targets.
+
+== Outgoing Variants
+Each test suite creates an outgoing variant containing its test execution results.  These variants are designed for consumption by the <<test_report_aggregation_plugin#test_report_aggregation_plugin, Test Report Aggregation Plugin>>.
+
+The attributes will resemble the following.  User-configurable attributes are highlighted below the sample.
+
+.outgoingVariants task output
+[source,text]
+----
+--------------------------------------------------
+Variant testResultsElementsForTest
+--------------------------------------------------
+Capabilities
+    - org.gradle.sample:list:1.0.2 (default capability)
+Attributes
+    - org.gradle.category              = verification
+    - org.gradle.testsuite.name        = test           // <1>
+    - org.gradle.testsuite.target.name = test           // <2>
+    - org.gradle.testsuite.type        = unit-test      // <3>
+    - org.gradle.verificationtype      = test-results
+
+Artifacts
+    - build/test-results/test/binary (artifactType = directory)
+----
+<1> TestSuiteName attribute; value is derived from link:{javadocPath}/org/gradle/api/plugins/jvm/JvmTestSuite.html#getName--[JvmTestSuite#getName()].
+<2> TestSuiteTargetName attribute; value is derived from link:{javadocPath}/org/gradle/api/plugins/jvm/JvmTestSuiteTarget.html#getName--[JvmTestSuiteTarget#getName()].
+<3> TestSuiteType attribute; value is derived from link:{javadocPath}/org/gradle/api/plugins/jvm/JvmTestSuite.html#getTestType--[JvmTestSuite#getTestType()].
+// TODO link:{groovyDslPath}/org.gradle.api.attributes.TestSuiteName.html[TestSuiteName]
+// TODO link:{groovyDslPath}/org.gradle.api.attributes.TestSuiteTargetName.html[TestSuiteTargetName]
+// TODO link:{groovyDslPath}/org.gradle.api.attributes.TestSuiteType.html[TestSuiteType]
