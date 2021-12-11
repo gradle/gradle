@@ -35,7 +35,7 @@ plugins {
 }
 ----
 
-Note that this plugin takes no action unless applied in concert with the <<jvm_test_suite_plugin#jvm_test_suite_plugin,JVM Test Suite Plugin>>.
+Note that this plugin takes no action unless applied in concert with the <<jvm_test_suite_plugin#jvm_test_suite_plugin,JVM Test Suite Plugin>>.  The <<java_plugin#java_plugin, Java Plugin>> automatically applies the JVM Test Suite Plugin.
 
 There are now two ways to collect test results across multiple subprojects:
 
