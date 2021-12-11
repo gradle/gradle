@@ -195,8 +195,10 @@ The attributes will resemble the following.  User-configurable attributes are hi
 [source,text]
 ----
 --------------------------------------------------
-Variant testResultsElementsForTest
+Variant testResultsElementsForTest (i)
 --------------------------------------------------
+Description = Directory containing binary results of running tests for the test Test Suite's test target.
+
 Capabilities
     - org.gradle.sample:list:1.0.2 (default capability)
 Attributes
