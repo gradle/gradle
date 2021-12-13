@@ -413,7 +413,7 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
         }
         then:
         watchableHierarchies.each { watchableHierarchy ->
-            ifHierarchical * watcher.startWatching({ equalIgnoringOrder(it, [watchableHierarchy]) })
+            1 * watcher.startWatching({ equalIgnoringOrder(it, [watchableHierarchy]) })
             ifNonHierarchical * watcher.startWatching({ equalIgnoringOrder(it, [directoryContainingSnapshot(watchableHierarchy)]) })
             ifNonHierarchical * watcher.startWatching({ equalIgnoringOrder(it, [probeRegistry.getProbeDirectory(watchableHierarchy)]) })
         }
@@ -434,7 +434,7 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
         !vfsHasSnapshotsAt(sourceDir)
         !vfsHasSnapshotsAt(targetDir)
         vfsHasSnapshotsAt(notMovedDir)
-        ifHierarchical * watcher.stopWatching({ equalIgnoringOrder(it, [sourceDir]) })
+        1 * watcher.stopWatching({ equalIgnoringOrder(it, [sourceDir]) })
         ifNonHierarchical * watcher.stopWatching({ equalIgnoringOrder(it, [directoryContainingSnapshot(sourceDir)]) })
         ifNonHierarchical * watcher.stopWatching({ equalIgnoringOrder(it, [probeRegistry.getProbeDirectory(sourceDir)]) })
         0 * _
