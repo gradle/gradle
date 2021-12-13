@@ -79,8 +79,22 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
         updater = createUpdater(watcher, watchableHierarchies)
     }
 
+    /**
+     * Returns 1 for non-hierarchical watchers, and 0 for hierarchical watchers.
+     *
+     * For use in interaction tests, when an interaction only happens for non-hierarchical watchers.
+     * E.g.:
+     * ifNonHierarchical * watcher.startWatching(_)
+     */
     abstract int getIfNonHierarchical()
 
+    /**
+     * Returns 1 for hierarchical watchers, and 1 for non-hierarchical watchers.
+     *
+     * For use in interaction tests, when an interaction only happens for hierarchical watchers.
+     * E.g.:
+     * ifHierarchical * watcher.startWatching(_)
+     */
     int getIfHierarchical() {
         return 1 - getIfNonHierarchical()
     }
