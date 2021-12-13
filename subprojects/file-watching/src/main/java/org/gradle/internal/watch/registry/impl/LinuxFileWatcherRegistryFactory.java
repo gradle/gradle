@@ -62,8 +62,20 @@ public class LinuxFileWatcherRegistryFactory extends AbstractFileWatcherRegistry
         public Collection<File> stopWatchingMovedPaths(SnapshotHierarchy vfsRoot) {
             List<File> pathsToCheck = new ArrayList<>();
             vfsRoot.rootSnapshots().forEach(snapshot -> {
-                if (watchableHierarchies.isInWatchableHierarchy(snapshot.getAbsolutePath())) {
-                    pathsToCheck.add(new File(snapshot.getAbsolutePath()));
+                if (watchableHierarchies.shouldWatch(snapshot)) {
+                    switch (snapshot.getType()) {
+                        case RegularFile:
+                            pathsToCheck.add(new File(snapshot.getAbsolutePath()).getParentFile());
+                            break;
+                        case Directory:
+                            pathsToCheck.add(new File(snapshot.getAbsolutePath()));
+                            break;
+                        case Missing:
+                            // Ignore
+                            break;
+                        default:
+                            throw new IllegalArgumentException("Unexpected file type:" + snapshot.getType());
+                    }
                 }
             });
             return watcher.stopWatchingMovedPaths(pathsToCheck);
