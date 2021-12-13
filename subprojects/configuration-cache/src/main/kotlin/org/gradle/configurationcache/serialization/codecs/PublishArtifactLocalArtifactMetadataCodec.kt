@@ -23,10 +23,7 @@ import org.gradle.api.tasks.TaskDependency
 import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
-import org.gradle.configurationcache.serialization.readFile
-import org.gradle.configurationcache.serialization.writeFile
 import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetadata
-import org.gradle.internal.component.model.IvyArtifactName
 import java.io.File
 import java.util.Date
 
@@ -43,15 +40,15 @@ import java.util.Date
 object PublishArtifactLocalArtifactMetadataCodec : Codec<PublishArtifactLocalArtifactMetadata> {
     override suspend fun WriteContext.encode(value: PublishArtifactLocalArtifactMetadata) {
         write(value.componentIdentifier)
-        write(value.name)
-        writeFile(value.file)
+        value.publishArtifact.run {
+            write(ImmutablePublishArtifact(name, extension, type, classifier, file))
+        }
     }
 
     override suspend fun ReadContext.decode(): PublishArtifactLocalArtifactMetadata {
         val componentId = read() as ComponentIdentifier
-        val ivyName = read() as IvyArtifactName
-        val file = readFile()
-        return PublishArtifactLocalArtifactMetadata(componentId, ImmutablePublishArtifact(ivyName.name, ivyName.extension!!, ivyName.type, ivyName.classifier, file))
+        val publishArtifact = read() as ImmutablePublishArtifact
+        return PublishArtifactLocalArtifactMetadata(componentId, publishArtifact)
     }
 }
 
