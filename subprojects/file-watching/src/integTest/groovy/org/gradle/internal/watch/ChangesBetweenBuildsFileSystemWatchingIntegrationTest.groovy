@@ -19,7 +19,6 @@ package org.gradle.internal.watch
 import org.gradle.integtests.fixtures.TestBuildCache
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.internal.watch.registry.impl.WatchableHierarchies
-import spock.lang.IgnoreRest
 import spock.lang.Issue
 
 class ChangesBetweenBuildsFileSystemWatchingIntegrationTest extends AbstractFileSystemWatchingIntegrationTest {
@@ -173,7 +172,6 @@ class ChangesBetweenBuildsFileSystemWatchingIntegrationTest extends AbstractFile
         executedAndNotSkipped ":compileJava", ":classes", ":run"
     }
 
-    @IgnoreRest
     @Issue("https://github.com/gradle/gradle/issues/17865")
     def "#description directory moved is handled properly"() {
         def buildCache = new TestBuildCache(temporaryFolder.file("cache-dir").deleteDir().createDir())
