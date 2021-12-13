@@ -20,7 +20,9 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.junit.Rule
+import spock.lang.Ignore
 
+@Ignore("Ignored as repository used in test has expired certificate")
 class SamplesDeclaringRepositoriesIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
