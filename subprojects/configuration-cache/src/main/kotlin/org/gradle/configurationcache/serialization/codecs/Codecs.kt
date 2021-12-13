@@ -208,7 +208,6 @@ class Codecs(
         providerTypes(propertyFactory, filePropertyFactory, valueSourceProviderFactory, buildStateRegistry)
         fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory, artifactSetConverter, fileOperations, fileFactory, patternSetFactory)
 
-        bind(BuildIdentifierSerializer())
         bind(TaskInAnotherBuildCodec(includedTaskGraph))
 
         bind(DefaultResolvableArtifactCodec(calculatedValueContainerFactory))
@@ -312,5 +311,7 @@ class Codecs(
         bind(UrlCodec)
 
         javaTimeTypes()
+
+        bind(BuildIdentifierSerializer())
     }
 }
