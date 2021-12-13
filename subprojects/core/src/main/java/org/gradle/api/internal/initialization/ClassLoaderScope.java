@@ -61,24 +61,6 @@ public interface ClassLoaderScope {
     boolean defines(Class<?> clazz);
 
     /**
-     * Add a data object to this scope.
-     *
-     * @param key the key
-     * @param data the data object
-     * @param <T> the type of the key and data object
-     */
-    <T extends ClassLoaderScopeData> void setData(Class<T> key, T data);
-
-    /**
-     * Returns the data object for the given key, if it exists.
-     *
-     * @param key the key
-     * @return the data, if known
-     */
-    @Nullable
-    <T extends ClassLoaderScopeData> T getData(Class<T> key);
-
-    /**
      * Makes the provided classes visible to this scope, but not to children. The classes are loaded in their own ClassLoader whose parent is the export
      * ClassLoader of the parent scope.
      *

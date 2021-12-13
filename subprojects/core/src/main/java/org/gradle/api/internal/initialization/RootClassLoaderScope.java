@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.initialization;
 
-import com.google.common.collect.ImmutableClassToInstanceMap;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.initialization.ClassLoaderScopeRegistryListener;
 import org.gradle.internal.classloader.CachingClassLoader;
@@ -29,7 +28,7 @@ public class RootClassLoaderScope extends AbstractClassLoaderScope {
     private final CachingClassLoader cachingExportClassLoader;
 
     public RootClassLoaderScope(String name, ClassLoader localClassLoader, ClassLoader exportClassLoader, ClassLoaderCache classLoaderCache, ClassLoaderScopeRegistryListener listener) {
-        super(new ClassLoaderScopeIdentifier(null, name), classLoaderCache, listener, ImmutableClassToInstanceMap.of());
+        super(new ClassLoaderScopeIdentifier(null, name), classLoaderCache, listener);
         this.localClassLoader = localClassLoader;
         this.cachingLocalClassLoader = new CachingClassLoader(localClassLoader);
         this.exportClassLoader = exportClassLoader;

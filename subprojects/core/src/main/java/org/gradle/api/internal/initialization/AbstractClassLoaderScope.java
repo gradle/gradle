@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.initialization;
 
-import com.google.common.collect.ClassToInstanceMap;
-import com.google.common.collect.ImmutableClassToInstanceMap;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.initialization.ClassLoaderScopeId;
 import org.gradle.initialization.ClassLoaderScopeRegistryListener;
@@ -25,8 +23,6 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.hash.HashCode;
 
 import javax.annotation.Nullable;
-import java.util.Collections;
-import java.util.Map;
 import java.util.function.Function;
 
 /**
@@ -37,13 +33,11 @@ public abstract class AbstractClassLoaderScope implements ClassLoaderScope {
     protected final ClassLoaderScopeIdentifier id;
     protected final ClassLoaderCache classLoaderCache;
     protected final ClassLoaderScopeRegistryListener listener;
-    protected final ClassToInstanceMap<ClassLoaderScopeData> dataMap;
 
-    protected AbstractClassLoaderScope(ClassLoaderScopeIdentifier id, ClassLoaderCache classLoaderCache, ClassLoaderScopeRegistryListener listener, ClassToInstanceMap<ClassLoaderScopeData> dataMap) {
+    protected AbstractClassLoaderScope(ClassLoaderScopeIdentifier id, ClassLoaderCache classLoaderCache, ClassLoaderScopeRegistryListener listener) {
         this.id = id;
         this.classLoaderCache = classLoaderCache;
         this.listener = listener;
-        this.dataMap = dataMap;
     }
 
     /**
@@ -58,17 +52,6 @@ public abstract class AbstractClassLoaderScope implements ClassLoaderScope {
      */
     public String getPath() {
         return id.getPath();
-    }
-
-    @Override
-    public <T extends ClassLoaderScopeData> void setData(Class<T> key, T data) {
-        immutable();
-    }
-
-    @Nullable
-    @Override
-    public <T extends ClassLoaderScopeData> T getData(Class<T> key) {
-        return dataMap.getInstance(key);
     }
 
     @Override
@@ -90,24 +73,13 @@ public abstract class AbstractClassLoaderScope implements ClassLoaderScope {
         throw new UnsupportedOperationException(String.format("Class loader scope %s is immutable", id));
     }
 
-    private ImmutableClassToInstanceMap<ClassLoaderScopeData> prepareDataMapForChild() {
-        ImmutableClassToInstanceMap.Builder<ClassLoaderScopeData> builder = ImmutableClassToInstanceMap.builder();
-        for (Map.Entry<Class<? extends ClassLoaderScopeData>, ClassLoaderScopeData> entry : dataMap.entrySet()) {
-            ClassLoaderScopeData child = entry.getValue().createChild();
-            if (child != null) {
-                builder.putAll(Collections.singletonMap(entry.getKey(), child));
-            }
-        }
-        return builder.build();
-    }
-
     @Override
     public ClassLoaderScope createChild(String name) {
-        return new DefaultClassLoaderScope(id.child(name), this, classLoaderCache, listener, prepareDataMapForChild());
+        return new DefaultClassLoaderScope(id.child(name), this, classLoaderCache, listener);
     }
 
     @Override
     public ClassLoaderScope createLockedChild(String name, ClassPath localClasspath, @Nullable HashCode classpathImplementationHash, Function<ClassLoader, ClassLoader> localClassLoaderFactory) {
-        return new ImmutableClassLoaderScope(id.child(name), this, localClasspath, classpathImplementationHash, localClassLoaderFactory, classLoaderCache, listener, prepareDataMapForChild());
+        return new ImmutableClassLoaderScope(id.child(name), this, localClasspath, classpathImplementationHash, localClassLoaderFactory, classLoaderCache, listener);
     }
 }
