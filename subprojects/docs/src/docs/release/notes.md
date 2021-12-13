@@ -144,7 +144,8 @@ The [plugins DSL](userguide/plugins.html#sec:plugins_block) provides a succinct 
 Previously, it was not possible to declare a plugin with a version in a subproject when the parent project also declared the same
 plugin. Now, this is allowed when Gradle can track the version of the plugin (currently when using included build plugins or externally resolved plugins), and the version of the plugin in both applications matches.
 
-This allows you to use `alias` in a parent project and subproject `plugins {}` without needing to remove the version in some way.
+This allows you to use [`alias`](userguide/platforms.html#sec:plugins) in both a parent and subproject's `plugins {}` without 
+needing to remove the version in some way.
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
