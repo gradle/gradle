@@ -60,4 +60,33 @@ task check {
         expect:
         succeeds "check"
     }
+
+    def 'carries implicit constraint for log4j-core'() {
+        given:
+        mavenRepo().module('org.apache.logging.log4j', 'log4j-core', '2.15.0').publish()
+
+        and:
+        settingsFile << """
+            buildscript {
+                repositories { maven { url "${mavenRepo().uri}" } }
+                dependencies {
+                    classpath "org.apache.logging.log4j:log4j-core"
+                }
+            }
+
+            rootProject.name = 'testproject'
+        """
+
+        buildFile << """
+            buildscript {
+                repositories { maven { url "${mavenRepo().uri}" } }
+                dependencies {
+                    classpath "org.apache.logging.log4j:log4j-core"
+                }
+            }
+        """
+
+        expect:
+        succeeds 'help'
+    }
 }

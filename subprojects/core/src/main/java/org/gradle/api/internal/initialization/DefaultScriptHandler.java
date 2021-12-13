@@ -37,6 +37,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.logging.util.Log4jBannedVersion;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.resource.ResourceLocation;
@@ -91,9 +92,6 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
     @Override
     public DependencyHandler getDependencies() {
         defineConfiguration();
-        if (dependencyHandler == null) {
-            dependencyHandler = dependencyResolutionServices.getDependencyHandler();
-        }
         return dependencyHandler;
     }
 
@@ -121,6 +119,9 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
         if (configContainer == null) {
             configContainer = dependencyResolutionServices.getConfigurationContainer();
         }
+        if (dependencyHandler == null) {
+            dependencyHandler = dependencyResolutionServices.getDependencyHandler();
+        }
         if (classpathConfiguration == null) {
             classpathConfiguration = configContainer.create(CLASSPATH_CONFIGURATION);
             // should ideally reuse the `JvmEcosystemUtilities` but this code is too low level
@@ -130,7 +131,12 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
             attributes.attribute(Category.CATEGORY_ATTRIBUTE, instantiator.named(Category.class, Category.LIBRARY));
             attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, instantiator.named(LibraryElements.class, LibraryElements.JAR));
             attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, instantiator.named(Bundling.class, Bundling.EXTERNAL));
-            attributes.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, Integer.valueOf(JavaVersion.current().getMajorVersion()));
+            attributes.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, Integer.parseInt(JavaVersion.current().getMajorVersion()));
+
+            classpathConfiguration.getDependencyConstraints().add(dependencyHandler.getConstraints().create(Log4jBannedVersion.LOG4J2_CORE_COORDINATES, constraint -> constraint.version(version -> {
+                version.strictly(Log4jBannedVersion.LOG4J2_CORE_STRICT_VERSION_RANGE);
+                version.prefer(Log4jBannedVersion.LOG4J2_CORE_PREFERRED_VERSION);
+            })));
         }
     }
 
