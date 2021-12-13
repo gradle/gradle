@@ -20,6 +20,10 @@ import org.gradle.api.Named
 import org.gradle.api.internal.provider.Providers
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.serialize.Decoder
+import org.gradle.internal.serialize.DefaultSerializerRegistry
+import org.gradle.internal.serialize.Encoder
+import org.gradle.internal.serialize.Serializer
 import org.gradle.internal.snapshot.ValueSnapshot
 import org.gradle.internal.state.ManagedFactoryRegistry
 import org.gradle.test.fixtures.file.TestFile
@@ -31,7 +35,10 @@ class DefaultValueSnapshotterTest extends Specification {
         getClassLoaderHash(_) >> HashCode.fromInt(123)
     }
     def managedFactoryRegistry = Mock(ManagedFactoryRegistry)
-    def snapshotter = new DefaultValueSnapshotter([], classLoaderHasher)
+    def valueSnapshotSerializerRegistry = new TestValueSnapshotSerializerRegistry().tap {
+        register(GradleBean, new GradleBeanSerializer())
+    }
+    def snapshotter = new DefaultValueSnapshotter([valueSnapshotSerializerRegistry], classLoaderHasher)
     def isolatableFactory = new DefaultIsolatableFactory(classLoaderHasher, managedFactoryRegistry)
 
     def "creates snapshot for string"() {
@@ -695,6 +702,38 @@ class DefaultValueSnapshotterTest extends Specification {
 
         snapshotter.snapshot(new Bean(), snapshot) != snapshot
         snapshotter.snapshot(new Bean(), snapshot) == snapshotter.snapshot(new Bean())
+
+        snapshotter.snapshot("other", snapshot) != snapshot
+        snapshotter.snapshot("other", snapshot) == snapshotter.snapshot("other")
+    }
+
+    class GradleBean {
+        String prop
+    }
+
+    class GradleBeanSerializer implements Serializer<GradleBean> {
+
+        @Override
+        GradleBean read(Decoder decoder) throws EOFException, Exception {
+            return new GradleBean(prop: decoder.readNullableString())
+        }
+
+        @Override
+        void write(Encoder encoder, GradleBean value) throws Exception {
+            encoder.writeNullableString(value.prop)
+        }
+    }
+
+    class TestValueSnapshotSerializerRegistry extends DefaultSerializerRegistry implements ValueSnapshotterSerializerRegistry {
+    }
+
+    def "creates snapshot for gradle serialized type"() {
+        expect:
+        def snapshot = snapshotter.snapshot(new GradleBean(prop: "value"))
+        snapshotter.snapshot(new GradleBean(prop: "value"), snapshot).is(snapshot)
+
+        snapshotter.snapshot(new GradleBean(), snapshot) != snapshot
+        snapshotter.snapshot(new GradleBean(), snapshot) == snapshotter.snapshot(new GradleBean())
 
         snapshotter.snapshot("other", snapshot) != snapshot
         snapshotter.snapshot("other", snapshot) == snapshotter.snapshot("other")
