@@ -9,14 +9,15 @@ import common.functionalTestExtraParameters
 import common.functionalTestParameters
 import common.gradleWrapper
 import common.killProcessStep
+import common.toCapitalized
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildStep
 import model.CIBuildModel
 import model.Stage
 import model.StageNames
 
 class FlakyTestQuarantine(model: CIBuildModel, stage: Stage, os: Os) : BaseGradleBuildType(stage = stage, init = {
-    id("${model.projectId}_FlakyQuarantine_${os.name.lowercase().capitalize()}")
-    name = "Flaky Test Quarantine - ${os.name.lowercase().capitalize()}"
+    id("${model.projectId}_FlakyQuarantine_${os.name.lowercase().toCapitalized()}")
+    name = "Flaky Test Quarantine - ${os.name.lowercase().toCapitalized()}"
     description = "Run all flaky tests skipped multiple times"
 
     applyDefaultSettings(os, BuildToolBuildJvm, 60)

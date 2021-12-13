@@ -66,7 +66,7 @@ data class PerformanceTestCoverage(
 
     override
     fun channel() =
-        "${type.channel}${if (os == Os.LINUX) "" else "-${os.name.toLowerCase(Locale.US)}"}-%teamcity.build.branch%"
+        "${type.channel}${if (os == Os.LINUX) "" else "-${os.name.lowercase(Locale.US)}"}-%teamcity.build.branch%"
 }
 
 data class FlameGraphGeneration(

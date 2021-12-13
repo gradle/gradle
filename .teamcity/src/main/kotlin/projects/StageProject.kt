@@ -103,7 +103,7 @@ class StageProject(
             }
 
             // in gradleBuildSmokeTest, most of the tests are for using the configuration cache on gradle/gradle
-            val configCacheTests = (functionalTests + specificBuildTypes).filter { it.name.toLowerCase().contains("configcache") || it.name.contains(GRADLE_BUILD_SMOKE_TEST_NAME) }
+            val configCacheTests = (functionalTests + specificBuildTypes).filter { it.name.lowercase().contains("configcache") || it.name.contains(GRADLE_BUILD_SMOKE_TEST_NAME) }
             if (configCacheTests.size > 1) {
                 buildType(PartialTrigger("All ConfigCache Tests for ${stage.stageName.stageName}", "Stage_${stage.stageName.id}_ConfigCacheTests", model, configCacheTests))
             }
