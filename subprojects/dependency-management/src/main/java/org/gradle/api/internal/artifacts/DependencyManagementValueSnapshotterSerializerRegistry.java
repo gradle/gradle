@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.attributes.AttributeContainer;
@@ -25,11 +26,15 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Attribu
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentIdentifierSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolvedVariantResultSerializer;
 import org.gradle.api.internal.artifacts.metadata.ComponentArtifactIdentifierSerializer;
+import org.gradle.api.internal.artifacts.publish.ImmutablePublishArtifact;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier;
+import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.ImmutableCapability;
+import org.gradle.internal.component.local.model.OpaqueComponentArtifactIdentifier;
+import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetadata;
 import org.gradle.internal.resolve.caching.DesugaringAttributeContainerSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.DefaultSerializerRegistry;
@@ -37,6 +42,7 @@ import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.snapshot.impl.ValueSnapshotterSerializerRegistry;
 
+import java.io.File;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -48,8 +54,10 @@ public class DependencyManagementValueSnapshotterSerializerRegistry extends Defa
         Set<Class<?>> supportedTypes = new LinkedHashSet<>();
         supportedTypes.add(Capability.class);
         supportedTypes.add(ModuleVersionIdentifier.class);
-        supportedTypes.add(ComponentIdentifier.class);
+        supportedTypes.add(PublishArtifactLocalArtifactMetadata.class);
+        supportedTypes.add(OpaqueComponentArtifactIdentifier.class);
         supportedTypes.add(DefaultModuleComponentArtifactIdentifier.class);
+        supportedTypes.add(ComponentIdentifier.class);
         supportedTypes.add(AttributeContainer.class);
         supportedTypes.add(ResolvedVariantResult.class);
         SUPPORTED_TYPES = supportedTypes;
@@ -62,30 +70,16 @@ public class DependencyManagementValueSnapshotterSerializerRegistry extends Defa
         NamedObjectInstantiator namedObjectInstantiator
     ) {
         super(true);
-        // TODO extract to its own type
-        register(Capability.class, new Serializer<Capability>() {
 
-            @Override
-            public Capability read(Decoder decoder) throws Exception {
-                return new ImmutableCapability(
-                    decoder.readString(),
-                    decoder.readString(),
-                    decoder.readNullableString()
-                );
-            }
-
-            @Override
-            public void write(Encoder encoder, Capability value) throws Exception {
-                encoder.writeString(value.getGroup());
-                encoder.writeString(value.getName());
-                encoder.writeNullableString(value.getVersion());
-            }
-        });
         ComponentIdentifierSerializer componentIdentifierSerializer = new ComponentIdentifierSerializer();
         AttributeContainerSerializer attributeContainerSerializer = new DesugaringAttributeContainerSerializer(immutableAttributesFactory, namedObjectInstantiator);
+
+        register(Capability.class, new CapabilitySerializer());
         register(ModuleVersionIdentifier.class, new ModuleVersionIdentifierSerializer(moduleIdentifierFactory));
-        register(ComponentIdentifier.class, componentIdentifierSerializer);
+        register(PublishArtifactLocalArtifactMetadata.class, new PublishArtifactLocalArtifactMetadataSerializer(componentIdentifierSerializer));
+        register(OpaqueComponentArtifactIdentifier.class, new OpaqueComponentArtifactIdentifierSerializer());
         register(DefaultModuleComponentArtifactIdentifier.class, new ComponentArtifactIdentifierSerializer());
+        register(DefaultModuleComponentIdentifier.class, Cast.uncheckedCast(componentIdentifierSerializer));
         register(AttributeContainer.class, attributeContainerSerializer);
         register(ResolvedVariantResult.class, new ResolvedVariantResultSerializer(componentIdentifierSerializer, attributeContainerSerializer));
     }
@@ -107,5 +101,70 @@ public class DependencyManagementValueSnapshotterSerializerRegistry extends Defa
             }
         }
         return type;
+    }
+
+    private static class CapabilitySerializer implements Serializer<Capability> {
+
+        @Override
+        public Capability read(Decoder decoder) throws Exception {
+            return new ImmutableCapability(
+                decoder.readString(),
+                decoder.readString(),
+                decoder.readNullableString()
+            );
+        }
+
+        @Override
+        public void write(Encoder encoder, Capability value) throws Exception {
+            encoder.writeString(value.getGroup());
+            encoder.writeString(value.getName());
+            encoder.writeNullableString(value.getVersion());
+        }
+    }
+
+    private static class PublishArtifactLocalArtifactMetadataSerializer implements Serializer<PublishArtifactLocalArtifactMetadata> {
+
+        private final ComponentIdentifierSerializer componentIdentifierSerializer;
+
+        public PublishArtifactLocalArtifactMetadataSerializer(ComponentIdentifierSerializer componentIdentifierSerializer) {
+            this.componentIdentifierSerializer = componentIdentifierSerializer;
+        }
+
+        @Override
+        public PublishArtifactLocalArtifactMetadata read(Decoder decoder) throws Exception {
+            ComponentIdentifier identifier = componentIdentifierSerializer.read(decoder);
+            PublishArtifact publishArtifact = new ImmutablePublishArtifact(
+                decoder.readString(),
+                decoder.readString(),
+                decoder.readString(),
+                decoder.readNullableString(),
+                new File(decoder.readString())
+            );
+            return new PublishArtifactLocalArtifactMetadata(identifier, publishArtifact);
+        }
+
+        @Override
+        public void write(Encoder encoder, PublishArtifactLocalArtifactMetadata value) throws Exception {
+            componentIdentifierSerializer.write(encoder, value.getComponentIdentifier());
+            PublishArtifact publishArtifact = value.getPublishArtifact();
+            encoder.writeString(publishArtifact.getName());
+            encoder.writeString(publishArtifact.getType());
+            encoder.writeString(publishArtifact.getExtension());
+            encoder.writeNullableString(publishArtifact.getClassifier());
+            encoder.writeString(publishArtifact.getFile().getCanonicalPath());
+        }
+    }
+
+    private static class OpaqueComponentArtifactIdentifierSerializer implements Serializer<OpaqueComponentArtifactIdentifier> {
+
+        @Override
+        public OpaqueComponentArtifactIdentifier read(Decoder decoder) throws Exception {
+            return new OpaqueComponentArtifactIdentifier(new File(decoder.readString()));
+        }
+
+        @Override
+        public void write(Encoder encoder, OpaqueComponentArtifactIdentifier value) throws Exception {
+            encoder.writeString(value.getFile().getCanonicalPath());
+        }
     }
 }

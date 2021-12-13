@@ -16,8 +16,16 @@
 
 package org.gradle.integtests.resolve
 
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
+import org.gradle.internal.Describables
+import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier
+import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
+import org.gradle.internal.component.external.model.ImmutableCapability
 
 class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
@@ -35,14 +43,14 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
     def "can use #type as task input"() {
         given:
         buildFile << """
-            import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
-            import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
-            import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
-            import org.gradle.internal.component.external.model.ImmutableCapability
-            import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier
-            import org.gradle.api.internal.attributes.ImmutableAttributesFactory
-            import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult
-            import org.gradle.internal.Describables
+            import ${DefaultModuleIdentifier.name}
+            import ${DefaultModuleVersionIdentifier.name}
+            import ${DefaultModuleComponentIdentifier.name}
+            import ${ImmutableCapability.name}
+            import ${DefaultModuleComponentArtifactIdentifier.name}
+            import ${ImmutableAttributesFactory.name}
+            import ${DefaultResolvedVariantResult.name}
+            import ${Describables.name}
 
             abstract class TaskWithInput extends DefaultTask {
 
@@ -75,8 +83,6 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
         succeeds("verify", "-Dn=foo")
 
         then:
-
-        then:
         skipped(":verify")
 
         when:
@@ -96,6 +102,11 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
         "ResolvedVariantResult"       | "new DefaultResolvedVariantResult(new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId('group', System.getProperty('n')), '1.0'), Describables.of('variantName'), services.get(ImmutableAttributesFactory).of(Attribute.of('some', String.class), System.getProperty('n')), [new ImmutableCapability('group', System.getProperty('n'), '1.0')], null)"
         // For ResolvedComponentResult
         "ModuleVersionIdentifier"     | "DefaultModuleVersionIdentifier.newId('group', System.getProperty('n'), '1.0')"
+//        "ResolvedComponentResult"      | "null"
+//        "DependencyResult"             | "null"
+//        "ComponentSelector"            | "null"
+//        "ComponentSelectionReason"     | "null"
+//        "ComponentSelectionDescriptor" | "null"
     }
 
     def "can use files from ResolvedArtifactResult as task input"() {
@@ -165,7 +176,7 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
         executedAndNotSkipped ":project-lib:jar", ":verify"
     }
 
-    def "can combine files and metadata from ResolvedArtifactResult as task input"() {
+    def "can combine files and metadata from ResolvedArtifactResult as direct task inputs"() {
         given:
         buildFile << """
             project(':project-lib') {
@@ -183,23 +194,19 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
                 compile files('lib/file-lib.jar')
             }
 
-            interface FilesAndMetadata {
-
-                @InputFiles
-                ConfigurableFileCollection getInputFiles()
-
-                @Input
-                SetProperty<Attribute<?>> getMetadata()
-            }
-
             abstract class TaskWithFilesAndMetadataInput extends DefaultTask {
 
-                private final FilesAndMetadata filesAndMetadata = project.objects.newInstance(FilesAndMetadata)
+                @InputFiles
+                abstract ConfigurableFileCollection getFiles()
 
-                @Nested
-                FilesAndMetadata getFilesAndMetadata() {
-                    return filesAndMetadata
-                }
+                @Input
+                abstract ListProperty<ComponentArtifactIdentifier> getIds()
+
+                @Input
+                abstract ListProperty<Class<? extends Artifact>> getTypes()
+
+                @Input
+                abstract ListProperty<ResolvedVariantResult> getVariants()
 
                 @OutputFile
                 abstract RegularFileProperty getOutputFile()
@@ -207,12 +214,16 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
 
             tasks.register('verify', TaskWithFilesAndMetadataInput) {
                 def resolvedArtifacts = configurations.compile.incoming.artifacts.resolvedArtifacts
-                filesAndMetadata.inputFiles.from(resolvedArtifacts.map { it.collect { it.file } })
-                filesAndMetadata.metadata.addAll(resolvedArtifacts.map { it.variant.collectMany { it.attributes.keySet() } })
+                files.from(resolvedArtifacts.map { it.collect { it.file } })
+                ids.set(resolvedArtifacts.map { it.collect { it.id } })
+                types.set(resolvedArtifacts.map { it.collect { it.type } })
+                variants.set(resolvedArtifacts.map { it.collect { it.variant } })
                 outputFile.set(layout.buildDirectory.file('output.txt'))
                 doLast {
-                    println(filesAndMetadata.inputFiles.files)
-                    println(filesAndMetadata.metadata.get())
+                    println(files.files)
+                    println(ids.get())
+                    println(types.get())
+                    println(variants.get())
                 }
             }
         """
@@ -231,7 +242,7 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
 
         when:
         killDaemons()
-        succeeds "verify"
+        succeeds "verify", "-i"
 
         then:
         skipped ":project-lib:jar", ":verify"
@@ -249,6 +260,7 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
     }
 
     private void killDaemons() {
+        // In order to exercise loading previous execution snapshots from the on-disk cache
         new DaemonLogsAnalyzer(executer.daemonBaseDir).killAll()
     }
 }
