@@ -35,10 +35,8 @@ public class ImmutableClassLoaderScope extends AbstractClassLoaderScope {
     private final HashCode classpathImplementationHash;
     private final ClassLoader localClassLoader;
 
-    public ImmutableClassLoaderScope(
-        ClassLoaderScopeIdentifier id, ClassLoaderScope parent, ClassPath classPath, @Nullable HashCode classpathImplementationHash,
-        @Nullable Function<ClassLoader, ClassLoader> localClassLoaderFactory, ClassLoaderCache classLoaderCache, ClassLoaderScopeRegistryListener listener
-    ) {
+    public ImmutableClassLoaderScope(ClassLoaderScopeIdentifier id, ClassLoaderScope parent, ClassPath classPath, @Nullable HashCode classpathImplementationHash,
+                                     @Nullable Function<ClassLoader, ClassLoader> localClassLoaderFactory, ClassLoaderCache classLoaderCache, ClassLoaderScopeRegistryListener listener) {
         super(id, classLoaderCache, listener);
         this.parent = parent;
         this.classPath = classPath;
