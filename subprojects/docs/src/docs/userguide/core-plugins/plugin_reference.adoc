@@ -98,6 +98,9 @@ Performs quality checks on your project’s Java source files using http://pmd.g
 <<jacoco_plugin.adoc#jacoco_plugin,JaCoCo>>::
 Provides code coverage metrics for your Java project using http://www.eclemma.org/jacoco/[JaCoCo].
 
+<<jacoco_report_aggregation_plugin.adoc#jacoco_report_aggregation_plugin,JaCoCo Report Aggregation>>::
+Aggregates the results of multiple JaCoCo code coverage reports (potentially spanning multiple Gradle projects) into a single HTML report.
+
 <<codenarc_plugin.adoc#codenarc_plugin,CodeNarc>>::
 Performs quality checks on your Groovy source files using http://codenarc.sourceforge.net/index.html[CodeNarc] and generates associated reports.
 
