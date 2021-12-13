@@ -27,11 +27,13 @@ import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenUniqueSnapshotComponentIdentifier;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier;
+import org.gradle.internal.component.local.model.OpaqueComponentArtifactIdentifier;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.util.Path;
 
+import java.io.File;
 import java.io.IOException;
 
 public class ComponentIdentifierSerializer extends AbstractSerializer<ComponentIdentifier> {
@@ -64,6 +66,8 @@ public class ComponentIdentifierSerializer extends AbstractSerializer<ComponentI
             return new MavenUniqueSnapshotComponentIdentifier(DefaultModuleIdentifier.newId(decoder.readString(), decoder.readString()), decoder.readString(), decoder.readString());
         } else if (Implementation.LIBRARY.getId() == id) {
             return new DefaultLibraryBinaryIdentifier(decoder.readString(), decoder.readString(), decoder.readString());
+        } else if (Implementation.OPAQUE.getId() == id) {
+            return new OpaqueComponentArtifactIdentifier(new File(decoder.readString()));
         }
 
         throw new IllegalArgumentException("Unable to find component identifier type with id: " + id);
@@ -116,6 +120,9 @@ public class ComponentIdentifierSerializer extends AbstractSerializer<ComponentI
             encoder.writeString(libraryIdentifier.getProjectPath());
             encoder.writeString(libraryIdentifier.getLibraryName());
             encoder.writeString(libraryIdentifier.getVariant());
+        } else if (implementation == Implementation.OPAQUE) {
+            OpaqueComponentArtifactIdentifier opaqueComponentIdentifier = (OpaqueComponentArtifactIdentifier) value;
+            encoder.writeString(opaqueComponentIdentifier.getFile().getPath());
         } else {
             throw new IllegalStateException("Unsupported implementation type: " + implementation);
         }
@@ -157,13 +164,15 @@ public class ComponentIdentifierSerializer extends AbstractSerializer<ComponentI
             return Implementation.OTHER_BUILD_PROJECT;
         } else if (value instanceof LibraryBinaryIdentifier) {
             return Implementation.LIBRARY;
+        } else if (value instanceof OpaqueComponentArtifactIdentifier) {
+            return Implementation.OPAQUE;
         } else {
             throw new IllegalArgumentException("Unsupported component identifier class: " + value.getClass());
         }
     }
 
     private enum Implementation {
-        MODULE(1), ROOT_PROJECT(2), ROOT_BUILD_PROJECT(3), OTHER_BUILD_ROOT_PROJECT(4), OTHER_BUILD_PROJECT(5), LIBRARY(6), SNAPSHOT(7);
+        MODULE(1), ROOT_PROJECT(2), ROOT_BUILD_PROJECT(3), OTHER_BUILD_ROOT_PROJECT(4), OTHER_BUILD_PROJECT(5), LIBRARY(6), SNAPSHOT(7), OPAQUE(8);
 
         private final byte id;
 
