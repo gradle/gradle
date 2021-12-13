@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.CapabilitySerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentIdentifierSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolvedVariantResultSerializer;
 import org.gradle.api.internal.artifacts.metadata.ComponentArtifactIdentifierSerializer;
@@ -32,7 +33,6 @@ import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
-import org.gradle.internal.component.external.model.ImmutableCapability;
 import org.gradle.internal.component.local.model.OpaqueComponentArtifactIdentifier;
 import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetadata;
 import org.gradle.internal.resolve.caching.DesugaringAttributeContainerSerializer;
@@ -101,25 +101,6 @@ public class DependencyManagementValueSnapshotterSerializerRegistry extends Defa
             }
         }
         return type;
-    }
-
-    private static class CapabilitySerializer implements Serializer<Capability> {
-
-        @Override
-        public Capability read(Decoder decoder) throws Exception {
-            return new ImmutableCapability(
-                decoder.readString(),
-                decoder.readString(),
-                decoder.readNullableString()
-            );
-        }
-
-        @Override
-        public void write(Encoder encoder, Capability value) throws Exception {
-            encoder.writeString(value.getGroup());
-            encoder.writeString(value.getName());
-            encoder.writeNullableString(value.getVersion());
-        }
     }
 
     private static class PublishArtifactLocalArtifactMetadataSerializer implements Serializer<PublishArtifactLocalArtifactMetadata> {

@@ -24,7 +24,6 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult;
 import org.gradle.internal.Describables;
-import org.gradle.internal.component.external.model.ImmutableCapability;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
@@ -39,10 +38,12 @@ public class ResolvedVariantResultSerializer implements Serializer<ResolvedVaria
 
     private final ComponentIdentifierSerializer componentIdentifierSerializer;
     private final AttributeContainerSerializer attributeContainerSerializer;
+    private final CapabilitySerializer capabilitySerializer;
 
     public ResolvedVariantResultSerializer(ComponentIdentifierSerializer componentIdentifierSerializer, AttributeContainerSerializer attributeContainerSerializer) {
         this.componentIdentifierSerializer = componentIdentifierSerializer;
         this.attributeContainerSerializer = attributeContainerSerializer;
+        this.capabilitySerializer = new CapabilitySerializer();
     }
 
     @Override
@@ -72,10 +73,7 @@ public class ResolvedVariantResultSerializer implements Serializer<ResolvedVaria
         }
         ImmutableList.Builder<Capability> capabilities = ImmutableList.builderWithExpectedSize(size);
         for (int i = 0; i < size; i++) {
-            String group = decoder.readString();
-            String name = decoder.readString();
-            String version = decoder.readNullableString();
-            capabilities.add(new ImmutableCapability(group, name, version));
+            capabilities.add(capabilitySerializer.read(decoder));
         }
         return capabilities.build();
     }
@@ -104,9 +102,7 @@ public class ResolvedVariantResultSerializer implements Serializer<ResolvedVaria
     private void writeCapabilities(Encoder encoder, List<Capability> capabilities) throws IOException {
         encoder.writeSmallInt(capabilities.size());
         for (Capability capability : capabilities) {
-            encoder.writeString(capability.getGroup());
-            encoder.writeString(capability.getName());
-            encoder.writeNullableString(capability.getVersion());
+            capabilitySerializer.write(encoder, capability);
         }
     }
 
