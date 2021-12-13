@@ -108,7 +108,7 @@ class SubprojectTestClassTime(
     val subProject: GradleSubproject,
     val testClassTimes: List<TestClassTime> = emptyList()
 ) {
-    val totalTime: Int = testClassTimes.sumBy { it.buildTimeMs }
+    val totalTime: Int = testClassTimes.sumOf { it.buildTimeMs }
 
     fun split(expectedBucketNumber: Int, enableTestDistribution: Boolean = false): List<BuildTypeBucket> {
         return if (expectedBucketNumber == 1) {

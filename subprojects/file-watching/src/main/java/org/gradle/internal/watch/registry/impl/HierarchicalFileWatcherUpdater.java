@@ -101,30 +101,28 @@ public class HierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdater {
         newWatchedFiles.visitRoots(absolutePath -> watchedHierarchiesBuilder.add(new File(absolutePath)));
         watchedHierarchies = watchedHierarchiesBuilder.build();
 
-        if (!oldWatchedHierarchies.equals(watchedHierarchies)) {
-            if (watchedHierarchies.isEmpty()) {
-                LOGGER.info("Not watching anything anymore");
-            }
-
-            List<File> hierarchiesToStopWatching = oldWatchedHierarchies.stream()
-                .filter(oldWatchedHierarchy -> !watchedHierarchies.contains(oldWatchedHierarchy))
-                .collect(ImmutableList.toImmutableList());
-            if (!hierarchiesToStopWatching.isEmpty()) {
-                if (!fileWatcher.stopWatching(hierarchiesToStopWatching)) {
-                    LOGGER.debug("Couldn't stop watching directories: {}", hierarchiesToStopWatching);
-                }
-            }
-
-            List<File> hierarchiesToStartWatching = watchedHierarchies.stream()
-                .filter(newWatchedHierarchy -> !oldWatchedHierarchies.contains(newWatchedHierarchy))
-                .collect(ImmutableList.toImmutableList());
-            if (!hierarchiesToStartWatching.isEmpty()) {
-                hierarchiesToStartWatching.forEach(locationToWatchValidator::validateLocationToWatch);
-                fileWatcher.startWatching(hierarchiesToStartWatching);
-            }
-
-            LOGGER.info("Watching {} directory hierarchies to track changes", watchedHierarchies.size());
+        if (watchedHierarchies.isEmpty()) {
+            LOGGER.info("Not watching anything anymore");
         }
+
+        List<File> hierarchiesToStopWatching = oldWatchedHierarchies.stream()
+            .filter(oldWatchedHierarchy -> !watchedHierarchies.contains(oldWatchedHierarchy))
+            .collect(ImmutableList.toImmutableList());
+        if (!hierarchiesToStopWatching.isEmpty()) {
+            if (!fileWatcher.stopWatching(hierarchiesToStopWatching)) {
+                LOGGER.debug("Couldn't stop watching directories: {}", hierarchiesToStopWatching);
+            }
+        }
+
+        List<File> hierarchiesToStartWatching = watchedHierarchies.stream()
+            .filter(newWatchedHierarchy -> !oldWatchedHierarchies.contains(newWatchedHierarchy))
+            .collect(ImmutableList.toImmutableList());
+        if (!hierarchiesToStartWatching.isEmpty()) {
+            hierarchiesToStartWatching.forEach(locationToWatchValidator::validateLocationToWatch);
+            fileWatcher.startWatching(hierarchiesToStartWatching);
+        }
+
+        LOGGER.info("Watching {} directory hierarchies to track changes", watchedHierarchies.size());
     }
 
     @Override
