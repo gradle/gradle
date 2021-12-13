@@ -75,7 +75,7 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
     private SnapshotHierarchy invalidateMovedHierarchiesOnBuildStarted(SnapshotHierarchy root) {
         SnapshotHierarchy newRoot = root;
         WatchableHierarchies.Invalidator invalidator = createInvalidator();
-        for (File movedPath : movedWatchedDirectoriesSupplier.stopWatchingMovedPaths()) {
+        for (File movedPath : movedWatchedDirectoriesSupplier.stopWatchingMovedPaths(root)) {
             LOGGER.info("Dropping VFS state for moved path {}", movedPath.getAbsolutePath());
             newRoot = invalidator.invalidate(movedPath.getAbsolutePath(), newRoot);
         }
@@ -194,6 +194,6 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
          *
          * Our best bet here is to cull any moved watched directories from the VFS at the start of every build.
          */
-        Collection<File> stopWatchingMovedPaths();
+        Collection<File> stopWatchingMovedPaths(SnapshotHierarchy vfsRoot);
     }
 }

@@ -73,7 +73,7 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
     }
 
     List<File> movedPaths = []
-    AbstractFileWatcherUpdater.MovedWatchedDirectoriesSupplier movedWatchedDirectoriesSupplier = { -> movedPaths }
+    AbstractFileWatcherUpdater.MovedWatchedDirectoriesSupplier movedWatchedDirectoriesSupplier = { SnapshotHierarchy vfsRoot -> movedPaths }
 
     def setup() {
         updater = createUpdater(watcher, watchableHierarchies)

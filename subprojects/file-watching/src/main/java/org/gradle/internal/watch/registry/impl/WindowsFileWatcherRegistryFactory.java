@@ -21,6 +21,7 @@ import net.rubygrapefruit.platform.file.FileEvents;
 import net.rubygrapefruit.platform.file.FileWatchEvent;
 import net.rubygrapefruit.platform.internal.jni.WindowsFileEventFunctions;
 import net.rubygrapefruit.platform.internal.jni.WindowsFileEventFunctions.WindowsFileWatcher;
+import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.watch.registry.FileWatcherProbeRegistry;
 import org.gradle.internal.watch.registry.FileWatcherUpdater;
 import org.slf4j.Logger;
@@ -57,6 +58,6 @@ public class WindowsFileWatcherRegistryFactory extends AbstractFileWatcherRegist
         FileWatcherProbeRegistry probeRegistry,
         WatchableHierarchies watchableHierarchies
     ) {
-        return new HierarchicalFileWatcherUpdater(watcher, NO_VALIDATION, probeRegistry, watchableHierarchies, watcher::stopWatchingMovedPaths);
+        return new HierarchicalFileWatcherUpdater(watcher, NO_VALIDATION, probeRegistry, watchableHierarchies, (SnapshotHierarchy root) -> watcher.stopWatchingMovedPaths());
     }
 }

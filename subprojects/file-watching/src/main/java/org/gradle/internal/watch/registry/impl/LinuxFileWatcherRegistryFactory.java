@@ -21,9 +21,14 @@ import net.rubygrapefruit.platform.file.FileEvents;
 import net.rubygrapefruit.platform.file.FileWatchEvent;
 import net.rubygrapefruit.platform.internal.jni.LinuxFileEventFunctions;
 import net.rubygrapefruit.platform.internal.jni.LinuxFileEventFunctions.LinuxFileWatcher;
+import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.watch.registry.FileWatcherProbeRegistry;
 import org.gradle.internal.watch.registry.FileWatcherUpdater;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.function.Predicate;
 
@@ -41,6 +46,27 @@ public class LinuxFileWatcherRegistryFactory extends AbstractFileWatcherRegistry
 
     @Override
     protected FileWatcherUpdater createFileWatcherUpdater(LinuxFileWatcher watcher, FileWatcherProbeRegistry probeRegistry, WatchableHierarchies watchableHierarchies) {
-        return new NonHierarchicalFileWatcherUpdater(watcher, probeRegistry, watchableHierarchies, watcher::stopWatchingMovedPaths);
+        return new NonHierarchicalFileWatcherUpdater(watcher, probeRegistry, watchableHierarchies, new LinuxMovedWatchedDirectoriesSupplier(watcher, watchableHierarchies));
+    }
+
+    private static class LinuxMovedWatchedDirectoriesSupplier implements AbstractFileWatcherUpdater.MovedWatchedDirectoriesSupplier {
+        private final LinuxFileWatcher watcher;
+        private final WatchableHierarchies watchableHierarchies;
+
+        public LinuxMovedWatchedDirectoriesSupplier(LinuxFileWatcher watcher, WatchableHierarchies watchableHierarchies) {
+            this.watcher = watcher;
+            this.watchableHierarchies = watchableHierarchies;
+        }
+
+        @Override
+        public Collection<File> stopWatchingMovedPaths(SnapshotHierarchy vfsRoot) {
+            List<File> pathsToCheck = new ArrayList<>();
+            vfsRoot.rootSnapshots().forEach(snapshot -> {
+                if (watchableHierarchies.isInWatchableHierarchy(snapshot.getAbsolutePath())) {
+                    pathsToCheck.add(new File(snapshot.getAbsolutePath()));
+                }
+            });
+            return watcher.stopWatchingMovedPaths(pathsToCheck);
+        }
     }
 }
