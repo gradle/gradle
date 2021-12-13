@@ -24,7 +24,6 @@ import net.rubygrapefruit.platform.internal.jni.LinuxFileEventFunctions.LinuxFil
 import org.gradle.internal.watch.registry.FileWatcherProbeRegistry;
 import org.gradle.internal.watch.registry.FileWatcherUpdater;
 
-import java.util.Collections;
 import java.util.concurrent.BlockingQueue;
 import java.util.function.Predicate;
 
@@ -42,7 +41,6 @@ public class LinuxFileWatcherRegistryFactory extends AbstractFileWatcherRegistry
 
     @Override
     protected FileWatcherUpdater createFileWatcherUpdater(LinuxFileWatcher watcher, FileWatcherProbeRegistry probeRegistry, WatchableHierarchies watchableHierarchies) {
-        // TODO: Actually handle moved hierarchies here as well.
-        return new NonHierarchicalFileWatcherUpdater(watcher, probeRegistry, watchableHierarchies, Collections::emptyList);
+        return new NonHierarchicalFileWatcherUpdater(watcher, probeRegistry, watchableHierarchies, watcher::stopWatchingMovedPaths);
     }
 }
