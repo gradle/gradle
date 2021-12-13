@@ -186,6 +186,7 @@ An example of this behavior is shown in the first configuration example above, <
 
 Note that unlike the link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] task, the aforementioned methods on link:{groovyDslPath}/org.gradle.api.plugins.jvm.JvmTestSuite.html[JvmTestSuite] do not accept a closure or action for configuring the framework.  These framework configuration options can be set on the individual targets.
 
+[[sec:outgoing_variants]]
 == Outgoing Variants
 Each test suite creates an outgoing variant containing its test execution results.  These variants are designed for consumption by the <<test_report_aggregation_plugin#test_report_aggregation_plugin, Test Report Aggregation Plugin>>.
 
@@ -214,6 +215,3 @@ Artifacts
 <1> TestSuiteName attribute; value is derived from link:{javadocPath}/org/gradle/api/plugins/jvm/JvmTestSuite.html#getName--[JvmTestSuite#getName()].
 <2> TestSuiteTargetName attribute; value is derived from link:{javadocPath}/org/gradle/api/plugins/jvm/JvmTestSuiteTarget.html#getName--[JvmTestSuiteTarget#getName()].
 <3> TestSuiteType attribute; value is derived from link:{javadocPath}/org/gradle/api/plugins/jvm/JvmTestSuite.html#getTestType--[JvmTestSuite#getTestType()].
-// TODO link:{groovyDslPath}/org.gradle.api.attributes.TestSuiteName.html[TestSuiteName]
-// TODO link:{groovyDslPath}/org.gradle.api.attributes.TestSuiteTargetName.html[TestSuiteTargetName]
-// TODO link:{groovyDslPath}/org.gradle.api.attributes.TestSuiteType.html[TestSuiteType]
