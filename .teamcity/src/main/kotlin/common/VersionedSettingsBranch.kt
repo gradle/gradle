@@ -23,7 +23,7 @@ data class VersionedSettingsBranch(val branchName: String, val enableTriggers: B
             if (branch.contains("placeholder-1")) {
                 return VersionedSettingsBranch(MASTER_BRANCH, true)
             }
-            return VersionedSettingsBranch(branch.lowercase(), mainBranches.contains(branch.toLowerCase()))
+            return VersionedSettingsBranch(branch.lowercase(), mainBranches.contains(branch.lowercase()))
         }
     }
 
