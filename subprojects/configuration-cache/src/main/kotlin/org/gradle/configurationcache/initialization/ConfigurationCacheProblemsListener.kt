@@ -34,6 +34,7 @@ import org.gradle.configurationcache.problems.PropertyProblem
 import org.gradle.configurationcache.problems.PropertyTrace
 import org.gradle.configurationcache.problems.StructuredMessage
 import org.gradle.configurationcache.problems.location
+import org.gradle.internal.execution.TaskExecutionTracker
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
 
@@ -45,7 +46,8 @@ interface ConfigurationCacheProblemsListener : TaskExecutionAccessListener, Buil
 class DefaultConfigurationCacheProblemsListener internal constructor(
     private val problems: ProblemsListener,
     private val userCodeApplicationContext: UserCodeApplicationContext,
-    private val configurationTimeBarrier: ConfigurationTimeBarrier
+    private val configurationTimeBarrier: ConfigurationTimeBarrier,
+    private val taskExecutionTracker: TaskExecutionTracker,
 ) : ConfigurationCacheProblemsListener {
 
     override fun onProjectAccess(invocationDescription: String, task: TaskInternal) {
@@ -63,7 +65,7 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
     }
 
     override fun onExternalProcessStarted(command: String) {
-        if (!atConfigurationTime()) {
+        if (!atConfigurationTime() || taskExecutionTracker.currentTask.isPresent) {
             return
         }
         problems.onProblem(
