@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.resolve
 
+import groovy.test.NotYetImplemented
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult
@@ -26,6 +27,7 @@ import org.gradle.internal.Describables
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.ImmutableCapability
+import spock.lang.Issue
 
 class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
@@ -224,6 +226,89 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
         when:
         killDaemons()
         succeeds "verify", "-i"
+
+        then:
+        skipped ":project-lib:jar", ":verify"
+
+        when:
+        sourceFile.text = """
+            class Main {
+                public static void main(String[] args) {}
+            }
+        """.stripIndent()
+        succeeds "verify"
+
+        then:
+        executedAndNotSkipped ":project-lib:jar", ":verify"
+    }
+
+    @NotYetImplemented
+    @Issue("https://github.com/gradle/gradle/issues/13590")
+    def "can combine files and metadata from ResolvedArtifactResult as nested task inputs"() {
+        given:
+        buildFile << """
+            class ResolvedArtifactBean {
+
+                @InputFile
+                File file
+
+                @Input
+                ComponentArtifactIdentifier id
+
+                @Input
+                Class<? extends Artifact> type
+
+                @Input
+                ResolvedVariantResult variant
+            }
+
+            abstract class TaskWithFilesAndMetadataInput extends DefaultTask {
+
+                @Nested
+                abstract SetProperty<ResolvedArtifactBean>> getResArtifacts()
+
+                @OutputFile
+                abstract RegularFileProperty getOutputFile()
+            }
+
+            tasks.register('verify', TaskWithFilesAndMetadataInput) {
+                def resolvedArtifacts = configurations.compile.incoming.artifacts.resolvedArtifacts
+                resArtifacts.set(
+                    resolvedArtifacts.map { arts ->
+                        arts.collect { art ->
+                            objects.newInstance(ResolvedArtifactBean).tap { bean ->
+                                bean.file = art.file
+                                bean.id = art.id
+                                bean.type = art.type
+                                bean.variant = art.variant
+                            }
+                        }
+                    }
+                )
+                outputFile.set(layout.buildDirectory.file('output.txt'))
+                doLast {
+                    resArtifacts.get().each { art ->
+                        println("\${art.file} - \${art.id} - \${art.type} - \${art.variant}")
+                    }
+                }
+            }
+        """
+
+        def sourceFile = file("project-lib/src/main/java/Main.java")
+        sourceFile << """
+            class Main {}
+        """.stripIndent()
+        sourceFile.makeOlder()
+
+        when:
+        succeeds "verify"
+
+        then:
+        executedAndNotSkipped ":project-lib:jar", ":verify"
+
+        when:
+        killDaemons()
+        succeeds "verify"
 
         then:
         skipped ":project-lib:jar", ":verify"
