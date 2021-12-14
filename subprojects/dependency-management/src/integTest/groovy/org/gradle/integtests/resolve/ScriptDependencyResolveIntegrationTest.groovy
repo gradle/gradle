@@ -120,7 +120,7 @@ rootProject.name = 'testproject'
 
         expect:
         succeeds 'buildEnvironment'
-        outputContains('org.apache.logging.log4j:log4j-core:{require 2.16.0; reject [2.0, 2.15[} -> 2.16.0 (c)')
+        outputContains('org.apache.logging.log4j:log4j-core:{require 2.16.0; reject [2.0, 2.16)} -> 2.16.0 (c)')
     }
 
     @Issue("gradle/gradle#19300")
@@ -160,6 +160,6 @@ rootProject.name = 'testproject'
 
         expect:
         succeeds 'buildEnvironment'
-        outputContains('org.apache.logging.log4j:log4j-core:{require 2.16.0; reject [2.0, 2.15[} -> 3.1.0 (c)')
+        outputContains('org.apache.logging.log4j:log4j-core:{require 2.16.0; reject [2.0, 2.16)} -> 3.1.0 (c)')
     }
 }

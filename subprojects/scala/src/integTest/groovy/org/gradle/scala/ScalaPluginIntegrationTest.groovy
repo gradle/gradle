@@ -256,7 +256,7 @@ task someTask
         def versionPattern = ~/.*-> 2\.(\d+).*/
         expect:
         succeeds('dependencies', '--configuration', 'zinc')
-        def log4jOutput = result.getOutputLineThatContains("log4j-core:{require 2.16.0; reject [2.0, 2.15[}")
+        def log4jOutput = result.getOutputLineThatContains("log4j-core:{require 2.16.0; reject [2.0, 2.16)}")
         def matcher = log4jOutput =~ versionPattern
         matcher.find()
         Integer.valueOf(matcher.group(1)) >= 16
