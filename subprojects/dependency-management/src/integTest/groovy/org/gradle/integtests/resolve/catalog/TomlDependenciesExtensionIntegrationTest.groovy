@@ -20,6 +20,7 @@ import org.gradle.api.internal.catalog.problems.VersionCatalogErrorMessages
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemTestFor
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.resolve.PluginDslSupport
@@ -498,7 +499,7 @@ my-lib = {group = "org.gradle.test", name="lib", version.require="1.1"}
     @IgnoreIf({ GradleContextualExecuter.configCache })
     // This test explicitly checks the configuration cache behavior
     def "changing the TOML file invalidates the configuration cache"() {
-        def cc = newConfigurationCacheFixture()
+        def cc = new ConfigurationCacheFixture(this)
         tomlFile << """[libraries]
 my-lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
 """
@@ -553,8 +554,9 @@ my-other-lib = {group = "org.gradle.test", name="lib2", version="1.0"}
         succeeds ':checkDeps'
 
         then:
-        cc.assertStateStored()
-        outputContains "Calculating task graph as configuration cache cannot be reused because file 'gradle${File.separatorChar}libs.versions.toml' has changed."
+        cc.assertStateRecreated {
+            fileChanged("gradle/libs.versions.toml")
+        }
     }
 
     def "can change the default extension name"() {

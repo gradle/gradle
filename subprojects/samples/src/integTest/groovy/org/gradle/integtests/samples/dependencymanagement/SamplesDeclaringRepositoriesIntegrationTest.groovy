@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.UsesSample
 import org.junit.Rule
 import spock.lang.Ignore
 
-@Ignore("FIXME: Temporarily ignored")
+@Ignore("Ignored as repository used in test has expired certificate")
 class SamplesDeclaringRepositoriesIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
