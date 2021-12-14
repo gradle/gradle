@@ -244,7 +244,8 @@ task someTask
     }
 
     @ToBeFixedForConfigurationCache(because = ":dependencies")
-    def 'show that log4j-core, if present, is 2_15_0 at the minimum'() {
+    @Issue("gradle/gradle#19300")
+    def 'show that log4j-core, if present, is 2_16_0 at the minimum'() {
         given:
         file('build.gradle') << """
             apply plugin: 'scala'
@@ -255,9 +256,9 @@ task someTask
         def versionPattern = ~/.*-> 2\.(\d+).*/
         expect:
         succeeds('dependencies', '--configuration', 'zinc')
-        def log4jOutput = result.getOutputLineThatContains("log4j-core:{strictly [2.15, 3[; prefer 2.15.0}")
+        def log4jOutput = result.getOutputLineThatContains("log4j-core:{require 2.16.0; reject [2.0, 2.16)}")
         def matcher = log4jOutput =~ versionPattern
         matcher.find()
-        Integer.valueOf(matcher.group(1)) >= 15
+        Integer.valueOf(matcher.group(1)) >= 16
     }
 }
