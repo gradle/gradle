@@ -44,6 +44,7 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
             group = 'composite-lib'
         """
         mavenRepo.module("org.external", "external-lib").publish()
+        mavenRepo.module("org.external", "external-tool").publish()
         file('lib/file-lib.jar') << 'content'
         buildFile << """
             project(':project-lib') { apply plugin: 'java' }
@@ -126,7 +127,7 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
         "ModuleVersionIdentifier"     | "DefaultModuleVersionIdentifier.newId('group', System.getProperty('n'), '1.0')"
     }
 
-    def "can use files from ResolvedArtifactResult as task input"() {
+    def "can map ResolvedArtifactResult file as task input"() {
         given:
         buildFile << """
             abstract class TaskWithFilesInput extends DefaultTask {
@@ -179,42 +180,36 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
 
         then:
         executedAndNotSkipped ":composite-lib:jar", ":verify"
+
+        when:
+        withNewExternalDependency()
+        succeeds ":verify"
+
+        then:
+        skipped ":project-lib:jar", ":composite-lib:jar"
+        executedAndNotSkipped ":verify"
     }
 
-    def "can combine files and metadata from ResolvedArtifactResult as direct task inputs"() {
+    def "can map ResolvedArtifactResult #inputProperty as task input"() {
         given:
         buildFile << """
-            abstract class TaskWithFilesAndMetadataInput extends DefaultTask {
-
-                @InputFiles
-                abstract ConfigurableFileCollection getFiles()
+            abstract class TaskWithResultInput extends DefaultTask {
 
                 @Input
-                abstract ListProperty<ComponentArtifactIdentifier> getIds()
-
-                @Input
-                abstract ListProperty<Class<? extends Artifact>> getTypes()
-
-                @Input
-                abstract ListProperty<ResolvedVariantResult> getVariants()
+                abstract ListProperty<${inputType}> getInput()
 
                 @OutputFile
                 abstract RegularFileProperty getOutputFile()
+
+                @TaskAction void action() {
+                    println(input.get())
+                }
             }
 
-            tasks.register('verify', TaskWithFilesAndMetadataInput) {
+            tasks.register("verify", TaskWithResultInput) {
                 def resolvedArtifacts = configurations.compile.incoming.artifacts.resolvedArtifacts
-                files.from(resolvedArtifacts.map { it.collect { it.file } })
-                ids.set(resolvedArtifacts.map { it.collect { it.id } })
-                types.set(resolvedArtifacts.map { it.collect { it.type } })
-                variants.set(resolvedArtifacts.map { it.collect { it.variant } })
+                input.set(resolvedArtifacts.map { it.collect { it.${inputProperty} } })
                 outputFile.set(layout.buildDirectory.file('output.txt'))
-                doLast {
-                    println(files.files)
-                    println(ids.get())
-                    println(types.get())
-                    println(variants.get())
-                }
             }
         """
 
@@ -236,7 +231,8 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
         succeeds "verify"
 
         then:
-        executedAndNotSkipped ":project-lib:jar", ":verify"
+        executedAndNotSkipped ":project-lib:jar"
+        skipped ":verify"
 
         when:
         succeeds "verify"
@@ -249,7 +245,22 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
         succeeds "verify"
 
         then:
-        executedAndNotSkipped ":composite-lib:jar", ":verify"
+        executedAndNotSkipped ":composite-lib:jar"
+        skipped ":verify"
+
+        when:
+        withNewExternalDependency()
+        succeeds ":verify"
+
+        then:
+        skipped ":project-lib:jar", ":composite-lib:jar"
+        executedAndNotSkipped ":verify"
+
+        where:
+        inputProperty | inputType
+        "id"          | "ComponentArtifactIdentifier"
+        "type"        | "Class<? extends Artifact>"
+        "variant"     | "ResolvedVariantResult"
     }
 
     @NotYetImplemented
@@ -336,6 +347,14 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
 
         then:
         executedAndNotSkipped ":composite-lib:jar", ":verify"
+
+        when:
+        withNewExternalDependency()
+        succeeds "verify"
+
+        then:
+        skipped ":project-lib:jar", ":composite-lib:jar"
+        executedAndNotSkipped ":verify"
     }
 
     private void withOriginalSourceIn(String basePath) {
@@ -357,6 +376,12 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
 
     private TestFile sourceFileIn(String basePath) {
         return file("$basePath/src/main/java/Main.java")
+    }
+
+    private void withNewExternalDependency() {
+        buildFile << """
+            dependencies { compile 'org.external:external-tool:1.0' }
+        """
     }
 
     private void killDaemons() {
