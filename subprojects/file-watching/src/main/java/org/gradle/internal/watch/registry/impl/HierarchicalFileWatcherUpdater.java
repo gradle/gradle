@@ -60,19 +60,17 @@ public class HierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdater {
 
     private final FileWatcher fileWatcher;
     private final FileSystemLocationToWatchValidator locationToWatchValidator;
-    private final MovedHierarchyHandler movedHierarchyHandler;
     private ImmutableSet<File> watchedHierarchies = ImmutableSet.of();
 
     public HierarchicalFileWatcherUpdater(
         FileWatcher fileWatcher,
         FileSystemLocationToWatchValidator locationToWatchValidator,
         FileWatcherProbeRegistry probeRegistry, WatchableHierarchies watchableHierarchies,
-        MovedHierarchyHandler movedHierarchyHandler
+        MovedDirectoryHandler movedDirectoryHandler
     ) {
-        super(probeRegistry, watchableHierarchies);
+        super(probeRegistry, watchableHierarchies, movedDirectoryHandler);
         this.fileWatcher = fileWatcher;
         this.locationToWatchValidator = locationToWatchValidator;
-        this.movedHierarchyHandler = movedHierarchyHandler;
     }
 
     @Override
@@ -128,11 +126,6 @@ public class HierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdater {
     }
 
     @Override
-    protected SnapshotHierarchy doUpdateVfsOnBuildStarted(SnapshotHierarchy root) {
-        return movedHierarchyHandler.handleMovedHierarchies(root);
-    }
-
-    @Override
     protected void startWatchingProbeDirectory(File probeDirectory) {
         // We already started watching the hierarchy.
     }
@@ -145,15 +138,6 @@ public class HierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdater {
     @Override
     protected WatchableHierarchies.Invalidator createInvalidator() {
         return (location, currentRoot) -> currentRoot.invalidate(location, SnapshotHierarchy.NodeDiffListener.NOOP);
-    }
-
-    public interface MovedHierarchyHandler {
-        /**
-         * On Windows when watched hierarchies are moved, the OS does not send a notification,
-         * even though the VFS should be updated. Our best bet here is to cull any moved watch
-         * roots from the VFS at the start of every build.
-         */
-        SnapshotHierarchy handleMovedHierarchies(SnapshotHierarchy root);
     }
 
     public interface FileSystemLocationToWatchValidator {
