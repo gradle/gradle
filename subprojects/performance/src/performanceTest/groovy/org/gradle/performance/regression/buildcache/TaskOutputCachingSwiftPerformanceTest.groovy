@@ -28,7 +28,7 @@ import static org.gradle.performance.results.OperatingSystem.LINUX
 class TaskOutputCachingSwiftPerformanceTest extends AbstractTaskOutputCachingPerformanceTest {
     def setup() {
         runner.minimumBaseVersion = "4.5"
-        runner.targetVersions = ["7.4-20211118231651+0000"]
+        runner.targetVersions = ["7.4-branch-moved_dirs-20211214170925+0000"]
     }
 
     def "clean assemble with local cache (swift)"() {
