@@ -79,7 +79,7 @@ class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
 
         def module = project.ideaModule.module // Mock(IdeaModule)
         project.configurations.create('excluded')
-        module.offline = true
+        module.offline = false
 
         when:
         project.dependencies.add('testRuntimeOnly', project.layout.files('lib/guava.jar'))
@@ -120,7 +120,7 @@ class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
         def module = project.ideaModule.module
         def extraDependency = project.dependencies.create(project.layout.files('lib/guava.jar'))
         def detachedCfg = project.configurations.detachedConfiguration(extraDependency)
-        module.offline = true
+        module.offline = false
 
         when:
         module.scopes.RUNTIME.plus << detachedCfg
@@ -236,6 +236,32 @@ class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
         extraConfiguration.state == Configuration.State.UNRESOLVED
         result.size() == 1
         result.findAll { it.scope == 'TEST' }.size() == 1
+    }
+
+    def "force ARQ in IDS"() {
+        applyPluginToProjects()
+        project.apply(plugin: 'java')
+
+        project.repositories {
+            maven {
+                url = "https://repo1.maven.org/maven2"
+            }
+        }
+
+        def module = project.ideaModule.module
+        project.configurations.create('extra')
+        module.offline = false
+
+        when:
+        project.dependencies.add('testRuntimeOnly', "com.google.guava:guava:17.0")
+        project.dependencies.add('testRuntimeOnly', "org.mockito:mockito-core:3.8.0")
+        project.dependencies.add('testRuntimeOnly', "org.apache.commons:commons-collections4:4.4")
+        project.dependencies.add('extra', "org.slf4j:slf4j-api:2.7")
+        module.scopes.TEST.plus << project.configurations.getByName('extra')
+        def result = dependenciesProvider.provide(module)
+
+        then:
+        result.size() == 7
     }
 
     private applyPluginToProjects() {

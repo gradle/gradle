@@ -89,7 +89,7 @@ public class WtpComponentFactory {
 
     private List<WbDependentModule> getEntriesFromConfigurations(Project project, Set<Configuration> plusConfigurations, Set<Configuration> minusConfigurations, EclipseWtpComponent wtp, String deployPath) {
         WtpDependenciesVisitor visitor = new WtpDependenciesVisitor(project, wtp, deployPath);
-        new IdeDependencySet(project.getDependencies(), ((ProjectInternal) project).getServices().get(JavaModuleDetector.class),
+        new IdeDependencySet((ProjectInternal) project, project.getDependencies(), ((ProjectInternal) project).getServices().get(JavaModuleDetector.class),
             plusConfigurations, minusConfigurations, false, NullGradleApiSourcesResolver.INSTANCE).visit(visitor);
         return visitor.getEntries();
     }

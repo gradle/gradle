@@ -34,11 +34,10 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.result.ArtifactResolutionResult;
-import org.gradle.api.artifacts.result.ArtifactResult;
-import org.gradle.api.artifacts.result.ComponentArtifactsResult;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 import org.gradle.api.component.Artifact;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.jvm.JavaModuleDetector;
@@ -62,6 +61,7 @@ import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFacto
  * Allows adding and subtracting {@link Configuration}s, working in offline mode and downloading sources/javadoc.
  */
 public class IdeDependencySet {
+    private final ProjectInternal project;
     private final DependencyHandler dependencyHandler;
     private final JavaModuleDetector javaModuleDetector;
     private final Collection<Configuration> plusConfigurations;
@@ -69,7 +69,8 @@ public class IdeDependencySet {
     private final boolean inferModulePath;
     private final GradleApiSourcesResolver gradleApiSourcesResolver;
 
-    public IdeDependencySet(DependencyHandler dependencyHandler, JavaModuleDetector javaModuleDetector, Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations,  boolean inferModulePath, GradleApiSourcesResolver gradleApiSourcesResolver) {
+    public IdeDependencySet(ProjectInternal project, DependencyHandler dependencyHandler, JavaModuleDetector javaModuleDetector, Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations,  boolean inferModulePath, GradleApiSourcesResolver gradleApiSourcesResolver) {
+        this.project = project;
         this.dependencyHandler = dependencyHandler;
         this.javaModuleDetector = javaModuleDetector;
         this.plusConfigurations = plusConfigurations;
@@ -180,18 +181,38 @@ public class IdeDependencySet {
                 .withArtifacts(JvmLibrary.class, types)
                 .execute();
 
-            for (ComponentArtifactsResult artifactsResult : result.getResolvedComponents()) {
-                for (Class<? extends Artifact> type : types) {
-                    Set<ResolvedArtifactResult> resolvedArtifactResults = Sets.newLinkedHashSet();
+            addAuxiliarySources(result);
+            addAuxiliaryJavadoc(result);
+        }
 
-                    for (ArtifactResult artifactResult : artifactsResult.getArtifacts(type)) {
-                        if (artifactResult instanceof ResolvedArtifactResult) {
-                            resolvedArtifactResults.add((ResolvedArtifactResult) artifactResult);
-                        }
-                    }
-                    auxiliaryArtifacts.put((ModuleComponentIdentifier) artifactsResult.getId(), type, resolvedArtifactResults);
+        private void addAuxiliaryJavadoc(ArtifactResolutionResult resolutionResult) {
+            addAuxiliaryResources(resolutionResult, "javadocConf", "javadoc", JavadocArtifact.class);
+        }
+
+        private void addAuxiliarySources(ArtifactResolutionResult resolutionResult) {
+            addAuxiliaryResources(resolutionResult, "sourcesConf", "sources", SourcesArtifact.class);
+        }
+
+        private void addAuxiliaryResources(ArtifactResolutionResult resolutionResult, String confName, String classifier, Class<? extends Artifact> artifactType) {
+            Configuration extraConf = project.getConfigurations().create(confName);
+            resolutionResult.getResolvedComponents().forEach(component -> {
+                String gav = component.getId().toString() + ":" + classifier;
+                dependencyHandler.add(confName, gav);
+            });
+
+            final ArtifactCollection sourceArtifacts = extraConf.getIncoming().getArtifacts();
+            final Map<ModuleComponentIdentifier, Set<ResolvedArtifactResult>> resolvedArtifactResults = Maps.newHashMap();
+
+            sourceArtifacts.forEach(artifactResult -> {
+                if (artifactResult.getId().getComponentIdentifier() instanceof ModuleComponentIdentifier) {
+                    ModuleComponentIdentifier componentId = (ModuleComponentIdentifier) artifactResult.getId().getComponentIdentifier();
+                    resolvedArtifactResults.computeIfAbsent(componentId, s -> Sets.newHashSet(artifactResult));
                 }
-            }
+            });
+
+            resolvedArtifactResults.forEach((id, resultsSet) -> {
+                auxiliaryArtifacts.put(id, artifactType, resultsSet);
+            });
         }
 
         private Set<ModuleComponentIdentifier> getModuleComponentIdentifiers() {
