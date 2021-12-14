@@ -51,7 +51,7 @@ public class BuildableBackedSetProvider<T extends Buildable, V> extends Abstract
 
             @Override
             public void visitProducerTasks(Action<? super Task> visitor) {
-                for (Task dependency : buildable.getBuildDependencies().getDependencies(null)) {
+                for (Task dependency : buildableDependencies()) {
                     visitor.execute(dependency);
                 }
             }
@@ -67,7 +67,11 @@ public class BuildableBackedSetProvider<T extends Buildable, V> extends Abstract
     }
 
     private boolean contentsAreBuiltByTask() {
-        return !buildable.getBuildDependencies().getDependencies(null).isEmpty();
+        return !buildableDependencies().isEmpty();
+    }
+
+    private Set<? extends Task> buildableDependencies() {
+        return buildable.getBuildDependencies().getDependencies(null);
     }
 
     @Override
