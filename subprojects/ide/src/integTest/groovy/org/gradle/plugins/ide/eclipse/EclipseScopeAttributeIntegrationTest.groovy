@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 
-class EclipseSourceSetIntegrationSpec extends AbstractEclipseIntegrationSpec {
+class EclipseScopeAttributeIntegrationTest extends AbstractEclipseIntegrationSpec {
 
     @Rule
     public final TestResources testResources = new TestResources(testDirectoryProvider)
