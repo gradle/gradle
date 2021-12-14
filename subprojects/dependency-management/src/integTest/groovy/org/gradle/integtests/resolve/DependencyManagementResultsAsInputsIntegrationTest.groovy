@@ -33,8 +33,14 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
 
     def setup() {
         settingsFile << """
+            includeBuild 'composite-lib'
             rootProject.name = 'root'
             include 'project-lib'
+        """
+        file('composite-lib/settings.gradle') << ""
+        file('composite-lib/build.gradle') << """
+            plugins { id 'java' }
+            group = 'composite-lib'
         """
         mavenRepo.module("org.external", "external-lib").publish()
         file('lib/file-lib.jar') << 'content'
@@ -52,6 +58,7 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
                 compile 'org.external:external-lib:1.0'
                 compile project('project-lib')
                 compile files('lib/file-lib.jar')
+                compile 'composite-lib:composite-lib'
             }
         """
         // We need fresh daemons to exercise loading snapshots from disk in tests below
