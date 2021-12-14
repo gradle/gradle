@@ -183,7 +183,7 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
 
     public interface MovedWatchedDirectoriesSupplier {
         /**
-         * Stop watching the moved locations which have been moved without any notifications.
+         * Stop watching the moved locations that have been moved without any notifications.
          *
          * When a hierarchy is moved, then under some circumstances there won't be any notifications.
          *
