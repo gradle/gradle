@@ -27,6 +27,7 @@ import org.gradle.internal.Describables
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.ImmutableCapability
+import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
 
 class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -45,15 +46,9 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
         mavenRepo.module("org.external", "external-lib").publish()
         file('lib/file-lib.jar') << 'content'
         buildFile << """
-            project(':project-lib') {
-                apply plugin: 'java'
-            }
-            configurations {
-                compile
-            }
-            repositories {
-                maven { url "${mavenRepo.uri}" }
-            }
+            project(':project-lib') { apply plugin: 'java' }
+            configurations { compile }
+            repositories { maven { url "${mavenRepo.uri}" } }
             dependencies {
                 compile 'org.external:external-lib:1.0'
                 compile project('project-lib')
@@ -150,11 +145,8 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
             }
         """
 
-        def sourceFile = file("project-lib/src/main/java/Main.java")
-        sourceFile << """
-            class Main {}
-        """.stripIndent()
-        sourceFile.makeOlder()
+        and:
+        withOriginalSourceIn("project-lib")
 
         when:
         succeeds "verify"
@@ -170,11 +162,7 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
         skipped ":project-lib:jar", ":verify"
 
         when:
-        sourceFile.text = """
-            class Main {
-                public static void main(String[] args) {}
-            }
-        """.stripIndent()
+        withChangedSourceIn("project-lib")
         succeeds "verify"
 
         then:
@@ -218,11 +206,8 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
             }
         """
 
-        def sourceFile = file("project-lib/src/main/java/Main.java")
-        sourceFile << """
-            class Main {}
-        """.stripIndent()
-        sourceFile.makeOlder()
+        and:
+        withOriginalSourceIn("project-lib")
 
         when:
         succeeds "verify"
@@ -238,11 +223,7 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
         skipped ":project-lib:jar", ":verify"
 
         when:
-        sourceFile.text = """
-            class Main {
-                public static void main(String[] args) {}
-            }
-        """.stripIndent()
+        withChangedSourceIn("project-lib")
         succeeds "verify"
 
         then:
@@ -301,11 +282,8 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
             }
         """
 
-        def sourceFile = file("project-lib/src/main/java/Main.java")
-        sourceFile << """
-            class Main {}
-        """.stripIndent()
-        sourceFile.makeOlder()
+        and:
+        withOriginalSourceIn("project-lib")
 
         when:
         succeeds "verify"
@@ -321,15 +299,32 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
         skipped ":project-lib:jar", ":verify"
 
         when:
-        sourceFile.text = """
-            class Main {
-                public static void main(String[] args) {}
-            }
-        """.stripIndent()
+        withChangedSourceIn("project-lib")
         succeeds "verify"
 
         then:
         executedAndNotSkipped ":project-lib:jar", ":verify"
+    }
+
+    private void withOriginalSourceIn(String basePath) {
+        sourceFileIn(basePath).tap {
+            text = """
+                class Main {}
+            """.stripIndent()
+            makeOlder()
+        }
+    }
+
+    private void withChangedSourceIn(String basePath) {
+        sourceFileIn(basePath).text = """
+            class Main {
+                public static void main(String[] args) {}
+            }
+        """.stripIndent()
+    }
+
+    private TestFile sourceFileIn(String basePath) {
+        return file("$basePath/src/main/java/Main.java")
     }
 
     private void killDaemons() {
