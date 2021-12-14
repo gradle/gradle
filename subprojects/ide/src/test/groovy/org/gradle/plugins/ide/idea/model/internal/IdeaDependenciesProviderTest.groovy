@@ -24,9 +24,14 @@ import org.gradle.plugins.ide.idea.model.SingleEntryModuleLibrary
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry
 import org.gradle.plugins.ide.internal.resolver.NullGradleApiSourcesResolver
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
+import org.gradle.test.fixtures.ModuleArtifact
+import org.gradle.test.fixtures.maven.MavenFileRepository
+import org.gradle.test.fixtures.maven.MavenModule
+import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.util.TestUtil
 
 class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
+    public final MavenFileRepository mavenRepo = new MavenFileRepository(temporaryFolder.testDirectory.file("maven-repo"))
     private ProjectInternal childProject
     private IdeArtifactRegistry artifactRegistry
     private IdeaDependenciesProvider dependenciesProvider
@@ -239,12 +244,41 @@ class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
     }
 
     def "force ARQ in IDS"() {
+        BlockingHttpServer blockingServer = new BlockingHttpServer()
+        blockingServer.start()
+
+        def m1 = mavenRepo.module('test', 'test1', '1.0')
+            .withJavadoc()
+            .withSources()
+            .publish()
+        def m2 = mavenRepo.module('test', 'test2', '1.0')
+            .withJavadoc()
+            .withSources()
+            .publish()
+        def m3 = mavenRepo.module('test', 'test3', '1.0')
+            .withJavadoc()
+            .withSources()
+            .publish()
+        def m4 = mavenRepo.module('test', 'test4', '1.0')
+            .withJavadoc()
+            .withSources()
+            .publish()
+
+        def m1javadoc = getJavadocArtifact(m1)
+        def m1sources = getSourcesArtifact(m1)
+        def m2javadoc = getJavadocArtifact(m2)
+        def m2sources = getSourcesArtifact(m2)
+        def m3javadoc = getJavadocArtifact(m3)
+        def m3sources = getSourcesArtifact(m3)
+        def m4javadoc = getJavadocArtifact(m4)
+        def m4sources = getSourcesArtifact(m4)
+
         applyPluginToProjects()
         project.apply(plugin: 'java')
 
         project.repositories {
             maven {
-                url = "https://repo1.maven.org/maven2"
+                url = blockingServer.uri
             }
         }
 
@@ -252,16 +286,22 @@ class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
         project.configurations.create('extra')
         module.offline = false
 
+        blockingServer.expectConcurrent(
+            blockingServer.get(m1.pom.path).sendFile(m1.pom.file),
+            blockingServer.get(m2.pom.path).sendFile(m2.pom.file),
+            blockingServer.get(m3.pom.path).sendFile(m3.pom.file),
+            blockingServer.get(m4.pom.path).sendFile(m4.pom.file))
+
         when:
-        project.dependencies.add('testRuntimeOnly', "com.google.guava:guava:17.0")
-        project.dependencies.add('testRuntimeOnly', "org.mockito:mockito-core:3.8.0")
-        project.dependencies.add('testRuntimeOnly', "org.apache.commons:commons-collections4:4.4")
-        project.dependencies.add('extra', "org.slf4j:slf4j-api:2.7")
+        project.dependencies.add('testRuntimeOnly', "test:test1:1.0")
+        project.dependencies.add('testRuntimeOnly', "test:test2:1.0")
+        project.dependencies.add('testRuntimeOnly', "test:test3:1.0")
+        project.dependencies.add('extra', "test:test4:1.0")
         module.scopes.TEST.plus << project.configurations.getByName('extra')
         def result = dependenciesProvider.provide(module)
 
         then:
-        result.size() == 7
+        result.size() == 4
     }
 
     private applyPluginToProjects() {
@@ -275,4 +315,17 @@ class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
         }.size()
         assert size == 1: "Expected single entry for artifact $artifactName in scope $scope but found $size"
     }
+
+    private ModuleArtifact getJavadocArtifact(MavenModule module) {
+        return getArtifactByClassifier(module, 'javadoc')
+    }
+
+    private ModuleArtifact getSourcesArtifact(MavenModule module) {
+        return getArtifactByClassifier(module, 'sources')
+    }
+
+    private ModuleArtifact getArtifactByClassifier(MavenModule module, String classifier) {
+        return module.getArtifact(type: 'jar', classifier: classifier)
+    }
+
 }

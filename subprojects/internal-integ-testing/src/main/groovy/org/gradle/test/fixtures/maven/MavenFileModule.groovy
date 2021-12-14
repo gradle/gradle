@@ -43,6 +43,14 @@ class MavenFileModule extends AbstractMavenModule {
         super.artifact(options)
         return this
     }
+    MavenFileModule withJavadoc() {
+        return artifact(type: 'jar', classifier: 'javadoc')
+    }
+
+    MavenFileModule withSources() {
+        return artifact(type: 'jar', classifier: 'sources')
+    }
+
 
     @Override
     boolean getUniqueSnapshots() {

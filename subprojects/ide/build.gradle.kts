@@ -45,6 +45,7 @@ dependencies {
     testImplementation(libs.equalsverifier)
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":dependency-management")))
+    testImplementation(project(":internal-integ-testing"))
 
     testRuntimeOnly(project(":distributions-core")) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
