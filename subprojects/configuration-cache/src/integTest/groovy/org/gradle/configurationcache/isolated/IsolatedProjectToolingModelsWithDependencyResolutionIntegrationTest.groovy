@@ -149,8 +149,7 @@ class IsolatedProjectToolingModelsWithDependencyResolutionIntegrationTest extend
         model2[2].message == "project :c classpath = 0"
 
         and:
-        fixture.assertStateLoaded {
-        }
+        fixture.assertStateLoaded()
 
         when:
         file("a/build.gradle") << """
