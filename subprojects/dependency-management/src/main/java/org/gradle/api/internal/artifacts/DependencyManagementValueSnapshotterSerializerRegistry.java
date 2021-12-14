@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
@@ -42,25 +43,20 @@ import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.snapshot.impl.ValueSnapshotterSerializerRegistry;
 
 import java.io.File;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.List;
 
 public class DependencyManagementValueSnapshotterSerializerRegistry extends DefaultSerializerRegistry implements ValueSnapshotterSerializerRegistry {
 
-    private static final Set<Class<?>> SUPPORTED_TYPES;
-
-    static {
-        Set<Class<?>> supportedTypes = new LinkedHashSet<>();
-        supportedTypes.add(Capability.class);
-        supportedTypes.add(ModuleVersionIdentifier.class);
-        supportedTypes.add(PublishArtifactLocalArtifactMetadata.class);
-        supportedTypes.add(OpaqueComponentArtifactIdentifier.class);
-        supportedTypes.add(DefaultModuleComponentArtifactIdentifier.class);
-        supportedTypes.add(ComponentIdentifier.class);
-        supportedTypes.add(AttributeContainer.class);
-        supportedTypes.add(ResolvedVariantResult.class);
-        SUPPORTED_TYPES = supportedTypes;
-    }
+    private static final List<Class<?>> SUPPORTED_TYPES = ImmutableList.of(
+        Capability.class,
+        ModuleVersionIdentifier.class,
+        PublishArtifactLocalArtifactMetadata.class,
+        OpaqueComponentArtifactIdentifier.class,
+        DefaultModuleComponentArtifactIdentifier.class,
+        ComponentIdentifier.class,
+        AttributeContainer.class,
+        ResolvedVariantResult.class
+    );
 
     @SuppressWarnings("rawtypes")
     public DependencyManagementValueSnapshotterSerializerRegistry(
