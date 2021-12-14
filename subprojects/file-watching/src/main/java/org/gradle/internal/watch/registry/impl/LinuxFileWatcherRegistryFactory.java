@@ -46,21 +46,21 @@ public class LinuxFileWatcherRegistryFactory extends AbstractFileWatcherRegistry
 
     @Override
     protected FileWatcherUpdater createFileWatcherUpdater(LinuxFileWatcher watcher, FileWatcherProbeRegistry probeRegistry, WatchableHierarchies watchableHierarchies) {
-        return new NonHierarchicalFileWatcherUpdater(watcher, probeRegistry, watchableHierarchies, new LinuxMovedWatchedDirectoriesSupplier(watcher, watchableHierarchies));
+        return new NonHierarchicalFileWatcherUpdater(watcher, probeRegistry, watchableHierarchies, new LinuxMovedDirectoryHandler(watcher, watchableHierarchies));
     }
 
-    private static class LinuxMovedWatchedDirectoriesSupplier implements AbstractFileWatcherUpdater.MovedWatchedDirectoriesSupplier {
+    private static class LinuxMovedDirectoryHandler implements AbstractFileWatcherUpdater.MovedDirectoryHandler {
         private final LinuxFileWatcher watcher;
         private final WatchableHierarchies watchableHierarchies;
 
-        public LinuxMovedWatchedDirectoriesSupplier(LinuxFileWatcher watcher, WatchableHierarchies watchableHierarchies) {
+        public LinuxMovedDirectoryHandler(LinuxFileWatcher watcher, WatchableHierarchies watchableHierarchies) {
             this.watcher = watcher;
             this.watchableHierarchies = watchableHierarchies;
         }
 
         @Override
-        public Collection<File> stopWatchingMovedPaths(SnapshotHierarchy vfsRoot) {
-            Collection<File> pathsToCheck = vfsRoot.rootSnapshots()
+        public Collection<File> stopWatchingMovedDirectories(SnapshotHierarchy vfsRoot) {
+            Collection<File> directoriesToCheck = vfsRoot.rootSnapshots()
                 .filter(snapshot -> snapshot.getType() != FileType.Missing)
                 .filter(watchableHierarchies::shouldWatch)
                 .map(snapshot -> {
@@ -74,7 +74,7 @@ public class LinuxFileWatcherRegistryFactory extends AbstractFileWatcherRegistry
                     }
                 })
                 .collect(Collectors.toList());
-            return watcher.stopWatchingMovedPaths(pathsToCheck);
+            return watcher.stopWatchingMovedPaths(directoriesToCheck);
         }
     }
 }

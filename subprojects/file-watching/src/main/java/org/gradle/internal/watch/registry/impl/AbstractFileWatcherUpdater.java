@@ -40,18 +40,18 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
 
     protected final FileWatcherProbeRegistry probeRegistry;
     protected final WatchableHierarchies watchableHierarchies;
-    private final MovedWatchedDirectoriesSupplier movedWatchedDirectoriesSupplier;
+    private final MovedDirectoryHandler movedDirectoryHandler;
     protected FileHierarchySet watchedFiles = FileHierarchySet.empty();
     private ImmutableSet<File> probedHierarchies = ImmutableSet.of();
 
     public AbstractFileWatcherUpdater(
         FileWatcherProbeRegistry probeRegistry,
         WatchableHierarchies watchableHierarchies,
-        MovedWatchedDirectoriesSupplier movedWatchedDirectoriesSupplier
+        MovedDirectoryHandler movedDirectoryHandler
     ) {
         this.probeRegistry = probeRegistry;
         this.watchableHierarchies = watchableHierarchies;
-        this.movedWatchedDirectoriesSupplier = movedWatchedDirectoriesSupplier;
+        this.movedDirectoryHandler = movedDirectoryHandler;
     }
 
     @Override
@@ -75,9 +75,9 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
     private SnapshotHierarchy invalidateMovedHierarchiesOnBuildStarted(SnapshotHierarchy root) {
         SnapshotHierarchy newRoot = root;
         WatchableHierarchies.Invalidator invalidator = createInvalidator();
-        for (File movedPath : movedWatchedDirectoriesSupplier.stopWatchingMovedPaths(root)) {
-            LOGGER.info("Dropping VFS state for moved path {}", movedPath.getAbsolutePath());
-            newRoot = invalidator.invalidate(movedPath.getAbsolutePath(), newRoot);
+        for (File movedDirectory : movedDirectoryHandler.stopWatchingMovedDirectories(root)) {
+            LOGGER.info("Dropping VFS state for moved directory {}", movedDirectory.getAbsolutePath());
+            newRoot = invalidator.invalidate(movedDirectory.getAbsolutePath(), newRoot);
         }
         return newRoot;
     }
@@ -181,19 +181,19 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
         return snapshot.getType() == FileType.Missing && snapshot.getAccessType() == FileMetadata.AccessType.DIRECT;
     }
 
-    public interface MovedWatchedDirectoriesSupplier {
+    public interface MovedDirectoryHandler {
         /**
-         * Stop watching the moved locations that have been moved without any notifications.
+         * Stop watching the moved directories that have been moved without any notifications.
          *
-         * When a hierarchy is moved, then under some circumstances there won't be any notifications.
+         * When a directory is moved, then under some circumstances there won't be any notifications.
          *
-         * On Windows when watched hierarchies are moved, the OS does not send a notification,
+         * On Windows when watched directories are moved, the OS does not send a notification,
          * even though the VFS should be updated.
          *
          * On Linux, when you move the parent directory of a watched directory, then there isn't a notification.
          *
          * Our best bet here is to cull any moved watched directories from the VFS at the start of every build.
          */
-        Collection<File> stopWatchingMovedPaths(SnapshotHierarchy vfsRoot);
+        Collection<File> stopWatchingMovedDirectories(SnapshotHierarchy vfsRoot);
     }
 }
