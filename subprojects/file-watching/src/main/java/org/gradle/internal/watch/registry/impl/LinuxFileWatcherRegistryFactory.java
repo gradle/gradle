@@ -21,16 +21,16 @@ import net.rubygrapefruit.platform.file.FileEvents;
 import net.rubygrapefruit.platform.file.FileWatchEvent;
 import net.rubygrapefruit.platform.internal.jni.LinuxFileEventFunctions;
 import net.rubygrapefruit.platform.internal.jni.LinuxFileEventFunctions.LinuxFileWatcher;
+import org.gradle.internal.file.FileType;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.watch.registry.FileWatcherProbeRegistry;
 import org.gradle.internal.watch.registry.FileWatcherUpdater;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public class LinuxFileWatcherRegistryFactory extends AbstractFileWatcherRegistryFactory<LinuxFileEventFunctions, LinuxFileWatcher> {
 
@@ -60,24 +60,20 @@ public class LinuxFileWatcherRegistryFactory extends AbstractFileWatcherRegistry
 
         @Override
         public Collection<File> stopWatchingMovedPaths(SnapshotHierarchy vfsRoot) {
-            List<File> pathsToCheck = new ArrayList<>();
-            vfsRoot.rootSnapshots().forEach(snapshot -> {
-                if (watchableHierarchies.shouldWatch(snapshot)) {
+            Collection<File> pathsToCheck = vfsRoot.rootSnapshots()
+                .filter(snapshot -> snapshot.getType() != FileType.Missing)
+                .filter(watchableHierarchies::shouldWatch)
+                .map(snapshot -> {
                     switch (snapshot.getType()) {
                         case RegularFile:
-                            pathsToCheck.add(new File(snapshot.getAbsolutePath()).getParentFile());
-                            break;
+                            return new File(snapshot.getAbsolutePath()).getParentFile();
                         case Directory:
-                            pathsToCheck.add(new File(snapshot.getAbsolutePath()));
-                            break;
-                        case Missing:
-                            // Ignore
-                            break;
+                            return new File(snapshot.getAbsolutePath());
                         default:
                             throw new IllegalArgumentException("Unexpected file type:" + snapshot.getType());
                     }
-                }
-            });
+                })
+                .collect(Collectors.toList());
             return watcher.stopWatchingMovedPaths(pathsToCheck);
         }
     }
