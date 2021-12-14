@@ -36,6 +36,22 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
         """
         mavenRepo.module("org.external", "external-lib").publish()
         file('lib/file-lib.jar') << 'content'
+        buildFile << """
+            project(':project-lib') {
+                apply plugin: 'java'
+            }
+            configurations {
+                compile
+            }
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            dependencies {
+                compile 'org.external:external-lib:1.0'
+                compile project('project-lib')
+                compile files('lib/file-lib.jar')
+            }
+        """
         // We need fresh daemons to exercise loading snapshots from disk in tests below
         executer.requireIsolatedDaemons()
     }
@@ -102,31 +118,11 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
         "ResolvedVariantResult"       | "new DefaultResolvedVariantResult(new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId('group', System.getProperty('n')), '1.0'), Describables.of('variantName'), services.get(ImmutableAttributesFactory).of(Attribute.of('some', String.class), System.getProperty('n')), [new ImmutableCapability('group', System.getProperty('n'), '1.0')], null)"
         // For ResolvedComponentResult
         "ModuleVersionIdentifier"     | "DefaultModuleVersionIdentifier.newId('group', System.getProperty('n'), '1.0')"
-//        "ResolvedComponentResult"      | "null"
-//        "DependencyResult"             | "null"
-//        "ComponentSelector"            | "null"
-//        "ComponentSelectionReason"     | "null"
-//        "ComponentSelectionDescriptor" | "null"
     }
 
     def "can use files from ResolvedArtifactResult as task input"() {
         given:
         buildFile << """
-            project(':project-lib') {
-                apply plugin: 'java'
-            }
-            configurations {
-                compile
-            }
-            repositories {
-                maven { url "${mavenRepo.uri}" }
-            }
-            dependencies {
-                compile 'org.external:external-lib:1.0'
-                compile project('project-lib')
-                compile files('lib/file-lib.jar')
-            }
-
             abstract class TaskWithFilesInput extends DefaultTask {
 
                 @InputFiles
@@ -179,21 +175,6 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
     def "can combine files and metadata from ResolvedArtifactResult as direct task inputs"() {
         given:
         buildFile << """
-            project(':project-lib') {
-                apply plugin: 'java'
-            }
-            configurations {
-                compile
-            }
-            repositories {
-                maven { url "${mavenRepo.uri}" }
-            }
-            dependencies {
-                compile 'org.external:external-lib:1.0'
-                compile project('project-lib')
-                compile files('lib/file-lib.jar')
-            }
-
             abstract class TaskWithFilesAndMetadataInput extends DefaultTask {
 
                 @InputFiles
