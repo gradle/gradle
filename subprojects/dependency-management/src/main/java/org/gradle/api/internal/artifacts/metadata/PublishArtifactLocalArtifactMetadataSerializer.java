@@ -38,14 +38,15 @@ public class PublishArtifactLocalArtifactMetadataSerializer implements Serialize
     @Override
     public PublishArtifactLocalArtifactMetadata read(Decoder decoder) throws Exception {
         ComponentIdentifier identifier = componentIdentifierSerializer.read(decoder);
-        PublishArtifact publishArtifact = new ImmutablePublishArtifact(
-            decoder.readString(),
-            decoder.readString(),
-            decoder.readString(),
-            decoder.readNullableString(),
-            new File(decoder.readString())
+        String artifactName = decoder.readString();
+        String artifactExtension = decoder.readString();
+        String artifactType = decoder.readString();
+        String artifactClassifier = decoder.readNullableString();
+        File artifactFile = new File(decoder.readString());
+        return new PublishArtifactLocalArtifactMetadata(
+            identifier,
+            new ImmutablePublishArtifact(artifactName, artifactExtension, artifactType, artifactClassifier, artifactFile)
         );
-        return new PublishArtifactLocalArtifactMetadata(identifier, publishArtifact);
     }
 
     @Override

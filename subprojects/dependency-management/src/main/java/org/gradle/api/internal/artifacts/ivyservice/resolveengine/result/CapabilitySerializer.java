@@ -28,11 +28,10 @@ public class CapabilitySerializer implements Serializer<Capability> {
 
     @Override
     public Capability read(Decoder decoder) throws IOException {
-        return new ImmutableCapability(
-            decoder.readString(),
-            decoder.readString(),
-            decoder.readNullableString()
-        );
+        String group = decoder.readString();
+        String name = decoder.readString();
+        String version = decoder.readNullableString();
+        return new ImmutableCapability(group, name, version);
     }
 
     @Override

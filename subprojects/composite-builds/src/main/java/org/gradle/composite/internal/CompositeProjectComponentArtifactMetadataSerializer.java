@@ -33,11 +33,10 @@ public class CompositeProjectComponentArtifactMetadataSerializer implements Seri
 
     @Override
     public CompositeProjectComponentArtifactMetadata read(Decoder decoder) throws Exception {
-        return new CompositeProjectComponentArtifactMetadata(
-            (ProjectComponentIdentifier) componentIdentifierSerializer.read(decoder),
-            publishArtifactLocalArtifactMetadataSerializer.read(decoder),
-            new File(decoder.readString())
-        );
+        ProjectComponentIdentifier componentIdentifier = (ProjectComponentIdentifier) componentIdentifierSerializer.read(decoder);
+        PublishArtifactLocalArtifactMetadata delegate = publishArtifactLocalArtifactMetadataSerializer.read(decoder);
+        File file = new File(decoder.readString());
+        return new CompositeProjectComponentArtifactMetadata(componentIdentifier, delegate, file);
     }
 
     @Override
