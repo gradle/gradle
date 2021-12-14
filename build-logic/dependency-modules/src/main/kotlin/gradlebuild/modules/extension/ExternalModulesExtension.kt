@@ -122,6 +122,7 @@ abstract class ExternalModulesExtension {
     val testng = "org.testng:testng"
     val tomlj = "org.tomlj:tomlj"
     val trove4j = "org.jetbrains.intellij.deps:trove4j"
+    val jna = "net.java.dev.jna:jna"
     val agp = "com.android.tools.build:gradle"
     val xbeanReflect = "org.apache.xbean:xbean-reflect"
     val xerces = "xerces:xercesImpl"
