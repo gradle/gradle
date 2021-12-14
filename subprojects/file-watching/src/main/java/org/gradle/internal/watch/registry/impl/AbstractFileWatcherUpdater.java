@@ -64,7 +64,7 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
     @Override
     public final SnapshotHierarchy updateVfsOnBuildStarted(SnapshotHierarchy root, WatchMode watchMode, List<File> unsupportedFileSystems) {
         SnapshotHierarchy newRoot = watchableHierarchies.removeUnwatchableContentOnBuildStart(root, createInvalidator(), watchMode, unsupportedFileSystems);
-        newRoot = invalidateMovedHierarchiesOnBuildStarted(newRoot);
+        newRoot = invalidateMovedDirectoriesOnBuildStarted(newRoot);
         if (root != newRoot) {
             update(newRoot);
         }
@@ -72,7 +72,7 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
     }
 
     @CheckReturnValue
-    private SnapshotHierarchy invalidateMovedHierarchiesOnBuildStarted(SnapshotHierarchy root) {
+    private SnapshotHierarchy invalidateMovedDirectoriesOnBuildStarted(SnapshotHierarchy root) {
         SnapshotHierarchy newRoot = root;
         WatchableHierarchies.Invalidator invalidator = createInvalidator();
         for (File movedDirectory : movedDirectoryHandler.stopWatchingMovedDirectories(root)) {
