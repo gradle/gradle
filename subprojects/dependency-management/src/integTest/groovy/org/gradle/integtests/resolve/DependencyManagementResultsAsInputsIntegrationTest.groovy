@@ -147,6 +147,7 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
 
         and:
         withOriginalSourceIn("project-lib")
+        withOriginalSourceIn("composite-lib")
 
         when:
         succeeds "verify"
@@ -167,6 +168,19 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
 
         then:
         executedAndNotSkipped ":project-lib:jar", ":verify"
+
+        when:
+        succeeds "verify"
+
+        then:
+        skipped ":project-lib:jar", ":verify"
+
+        when:
+        withChangedSourceIn("composite-lib")
+        succeeds "verify"
+
+        then:
+        executedAndNotSkipped ":composite-lib:jar", ":verify"
     }
 
     def "can combine files and metadata from ResolvedArtifactResult as direct task inputs"() {
@@ -208,6 +222,7 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
 
         and:
         withOriginalSourceIn("project-lib")
+        withOriginalSourceIn("composite-lib")
 
         when:
         succeeds "verify"
@@ -228,6 +243,19 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
 
         then:
         executedAndNotSkipped ":project-lib:jar", ":verify"
+
+        when:
+        succeeds "verify"
+
+        then:
+        skipped ":project-lib:jar", ":verify"
+
+        when:
+        withChangedSourceIn("composite-lib")
+        succeeds "verify"
+
+        then:
+        executedAndNotSkipped ":composite-lib:jar", ":verify"
     }
 
     @NotYetImplemented
@@ -284,6 +312,7 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
 
         and:
         withOriginalSourceIn("project-lib")
+        withOriginalSourceIn("composite-lib")
 
         when:
         succeeds "verify"
@@ -304,6 +333,19 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
 
         then:
         executedAndNotSkipped ":project-lib:jar", ":verify"
+
+        when:
+        succeeds "verify"
+
+        then:
+        skipped ":project-lib:jar", ":verify"
+
+        when:
+        withChangedSourceIn("composite-lib")
+        succeeds "verify"
+
+        then:
+        executedAndNotSkipped ":composite-lib:jar", ":verify"
     }
 
     private void withOriginalSourceIn(String basePath) {
