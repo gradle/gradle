@@ -259,10 +259,6 @@ class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
             .withJavadoc()
             .withSources()
             .publish()
-        def m4 = mavenRepo.module('test', 'test4', '1.0')
-            .withJavadoc()
-            .withSources()
-            .publish()
 
         def m1javadoc = getJavadocArtifact(m1)
         def m1sources = getSourcesArtifact(m1)
@@ -270,8 +266,6 @@ class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
         def m2sources = getSourcesArtifact(m2)
         def m3javadoc = getJavadocArtifact(m3)
         def m3sources = getSourcesArtifact(m3)
-        def m4javadoc = getJavadocArtifact(m4)
-        def m4sources = getSourcesArtifact(m4)
 
         applyPluginToProjects()
         project.apply(plugin: 'java')
@@ -283,25 +277,42 @@ class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
         }
 
         def module = project.ideaModule.module
-        project.configurations.create('extra')
         module.offline = false
+        module.downloadSources = true
+        module.downloadJavadoc = true
 
         blockingServer.expectConcurrent(
             blockingServer.get(m1.pom.path).sendFile(m1.pom.file),
             blockingServer.get(m2.pom.path).sendFile(m2.pom.file),
-            blockingServer.get(m3.pom.path).sendFile(m3.pom.file),
-            blockingServer.get(m4.pom.path).sendFile(m4.pom.file))
+            blockingServer.get(m3.pom.path).sendFile(m3.pom.file))
+
+        blockingServer.expectConcurrent(
+            blockingServer.get(m1.artifact.path).sendFile(m1.artifact.file),
+            blockingServer.get(m2.artifact.path).sendFile(m2.artifact.file),
+            blockingServer.get(m3.artifact.path).sendFile(m3.artifact.file))
+
+        blockingServer.expectConcurrent(
+            blockingServer.get(m1sources.path).sendFile(m1sources.file),
+            blockingServer.get(m2sources.path).sendFile(m2sources.file),
+            blockingServer.get(m3sources.path).sendFile(m3sources.file))
+
+        blockingServer.expectConcurrent(
+            blockingServer.get(m1javadoc.path).sendFile(m1javadoc.file),
+            blockingServer.get(m2javadoc.path).sendFile(m2javadoc.file),
+            blockingServer.get(m3javadoc.path).sendFile(m3javadoc.file))
 
         when:
         project.dependencies.add('testRuntimeOnly', "test:test1:1.0")
         project.dependencies.add('testRuntimeOnly', "test:test2:1.0")
         project.dependencies.add('testRuntimeOnly', "test:test3:1.0")
-        project.dependencies.add('extra', "test:test4:1.0")
-        module.scopes.TEST.plus << project.configurations.getByName('extra')
+
+        def testRuntime = project.configurations.getByName("testRuntimeClasspath")
+        testRuntime.getResolutionStrategy().disableDependencyVerification()
+
         def result = dependenciesProvider.provide(module)
 
         then:
-        result.size() == 4
+        result.size() == 3
     }
 
     private applyPluginToProjects() {
@@ -314,6 +325,10 @@ class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
             module.scope == scope && module.libraryFile.path.endsWith(artifactName)
         }.size()
         assert size == 1: "Expected single entry for artifact $artifactName in scope $scope but found $size"
+    }
+
+    private ModuleArtifact getJarArtifact(MavenModule module) {
+        return getArtifactByClassifier(module, 'jar')
     }
 
     private ModuleArtifact getJavadocArtifact(MavenModule module) {

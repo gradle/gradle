@@ -181,8 +181,12 @@ public class IdeDependencySet {
                 .withArtifacts(JvmLibrary.class, types)
                 .execute();
 
-            addAuxiliarySources(result);
-            addAuxiliaryJavadoc(result);
+            if (visitor.downloadSources()) {
+                addAuxiliarySources(result);
+            }
+            if (visitor.downloadJavaDoc()) {
+                addAuxiliaryJavadoc(result);
+            }
         }
 
         private void addAuxiliaryJavadoc(ArtifactResolutionResult resolutionResult) {
