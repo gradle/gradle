@@ -157,7 +157,7 @@ public class ScalaBasePlugin implements Plugin<Project> {
 
         zinc.getDependencyConstraints().add(dependencyHandler.getConstraints().create(Log4jBannedVersion.LOG4J2_CORE_COORDINATES, constraint -> constraint.version(version -> {
             version.strictly(Log4jBannedVersion.LOG4J2_CORE_STRICT_VERSION_RANGE);
-            version.prefer(Log4jBannedVersion.LOG4J2_CORE_PREFERRED_VERSION);
+            version.prefer(Log4jBannedVersion.LOG4J2_CORE_REQUIRED_VERSION);
         })));
 
         final Configuration incrementalAnalysisElements = project.getConfigurations().create("incrementalScalaAnalysisElements");

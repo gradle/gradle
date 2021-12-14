@@ -23,5 +23,6 @@ package org.gradle.internal.logging.util;
 public class Log4jBannedVersion {
     public static final String LOG4J2_CORE_COORDINATES = "org.apache.logging.log4j:log4j-core";
     public static final String LOG4J2_CORE_STRICT_VERSION_RANGE = "[2.15, 3[";
-    public static final String LOG4J2_CORE_PREFERRED_VERSION = "2.15.0";
+    public static final String LOG4J2_CORE_VULNERABLE_VERSION_RANGE = "[2.0, 2.15[";
+    public static final String LOG4J2_CORE_REQUIRED_VERSION = "2.16.0";
 }

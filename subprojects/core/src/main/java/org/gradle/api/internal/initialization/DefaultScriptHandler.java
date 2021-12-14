@@ -142,8 +142,8 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
             attributes.attribute(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE, instantiator.named(GradlePluginApiVersion.class, GradleVersion.current().getVersion()));
 
             classpathConfiguration.getDependencyConstraints().add(dependencyHandler.getConstraints().create(Log4jBannedVersion.LOG4J2_CORE_COORDINATES, constraint -> constraint.version(version -> {
-                version.strictly(Log4jBannedVersion.LOG4J2_CORE_STRICT_VERSION_RANGE);
-                version.prefer(Log4jBannedVersion.LOG4J2_CORE_PREFERRED_VERSION);
+                version.require(Log4jBannedVersion.LOG4J2_CORE_REQUIRED_VERSION);
+                version.reject(Log4jBannedVersion.LOG4J2_CORE_VULNERABLE_VERSION_RANGE);
             })));
         }
     }
