@@ -27,6 +27,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Capabil
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentIdentifierSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolvedVariantResultSerializer;
 import org.gradle.api.internal.artifacts.metadata.ComponentArtifactIdentifierSerializer;
+import org.gradle.api.internal.artifacts.metadata.PublishArtifactLocalArtifactMetadataSerializer;
 import org.gradle.api.internal.artifacts.publish.ImmutablePublishArtifact;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
@@ -101,39 +102,6 @@ public class DependencyManagementValueSnapshotterSerializerRegistry extends Defa
             }
         }
         return type;
-    }
-
-    private static class PublishArtifactLocalArtifactMetadataSerializer implements Serializer<PublishArtifactLocalArtifactMetadata> {
-
-        private final ComponentIdentifierSerializer componentIdentifierSerializer;
-
-        public PublishArtifactLocalArtifactMetadataSerializer(ComponentIdentifierSerializer componentIdentifierSerializer) {
-            this.componentIdentifierSerializer = componentIdentifierSerializer;
-        }
-
-        @Override
-        public PublishArtifactLocalArtifactMetadata read(Decoder decoder) throws Exception {
-            ComponentIdentifier identifier = componentIdentifierSerializer.read(decoder);
-            PublishArtifact publishArtifact = new ImmutablePublishArtifact(
-                decoder.readString(),
-                decoder.readString(),
-                decoder.readString(),
-                decoder.readNullableString(),
-                new File(decoder.readString())
-            );
-            return new PublishArtifactLocalArtifactMetadata(identifier, publishArtifact);
-        }
-
-        @Override
-        public void write(Encoder encoder, PublishArtifactLocalArtifactMetadata value) throws Exception {
-            componentIdentifierSerializer.write(encoder, value.getComponentIdentifier());
-            PublishArtifact publishArtifact = value.getPublishArtifact();
-            encoder.writeString(publishArtifact.getName());
-            encoder.writeString(publishArtifact.getType());
-            encoder.writeString(publishArtifact.getExtension());
-            encoder.writeNullableString(publishArtifact.getClassifier());
-            encoder.writeString(publishArtifact.getFile().getCanonicalPath());
-        }
     }
 
     private static class OpaqueComponentArtifactIdentifierSerializer implements Serializer<OpaqueComponentArtifactIdentifier> {
