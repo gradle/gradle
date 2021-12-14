@@ -129,7 +129,7 @@ class ComponentIdentifierSerializerTest extends SerializerSpec {
         def result = serialize(identifier, serializer)
 
         then:
-        result.displayName == "example-1.0.jar"
+        result.displayName == file.name
         result.file == file
         result.componentIdentifier == identifier
         result == identifier
