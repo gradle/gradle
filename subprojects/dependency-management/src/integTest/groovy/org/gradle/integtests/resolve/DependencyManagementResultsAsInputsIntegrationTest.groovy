@@ -56,6 +56,8 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
                 compile 'composite-lib:composite-lib'
             }
         """
+        withOriginalSourceIn("project-lib")
+        withOriginalSourceIn("composite-lib")
         // We need fresh daemons to exercise loading snapshots from disk in tests below
         executer.requireIsolatedDaemons()
     }
@@ -145,10 +147,6 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
             }
         """
 
-        and:
-        withOriginalSourceIn("project-lib")
-        withOriginalSourceIn("composite-lib")
-
         when:
         succeeds "verify"
 
@@ -219,10 +217,6 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
                 }
             }
         """
-
-        and:
-        withOriginalSourceIn("project-lib")
-        withOriginalSourceIn("composite-lib")
 
         when:
         succeeds "verify"
@@ -309,10 +303,6 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
                 }
             }
         """
-
-        and:
-        withOriginalSourceIn("project-lib")
-        withOriginalSourceIn("composite-lib")
 
         when:
         succeeds "verify"
