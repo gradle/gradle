@@ -21,7 +21,6 @@ import net.rubygrapefruit.platform.file.FileEvents;
 import net.rubygrapefruit.platform.file.FileWatchEvent;
 import net.rubygrapefruit.platform.internal.jni.OsxFileEventFunctions;
 import net.rubygrapefruit.platform.internal.jni.OsxFileEventFunctions.OsxFileWatcher;
-import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.watch.WatchingNotSupportedException;
 import org.gradle.internal.watch.registry.FileWatcherProbeRegistry;
 import org.gradle.internal.watch.registry.FileWatcherUpdater;
@@ -53,7 +52,7 @@ public class DarwinFileWatcherRegistryFactory extends AbstractFileWatcherRegistr
         FileWatcherProbeRegistry probeRegistry,
         WatchableHierarchies watchableHierarchies
     ) {
-        return new HierarchicalFileWatcherUpdater(watcher, DarwinFileWatcherRegistryFactory::validateLocationToWatch, probeRegistry, watchableHierarchies, (SnapshotHierarchy root) -> Collections.emptyList());
+        return new HierarchicalFileWatcherUpdater(watcher, DarwinFileWatcherRegistryFactory::validateLocationToWatch, probeRegistry, watchableHierarchies, root -> Collections.emptyList());
     }
 
     /**
