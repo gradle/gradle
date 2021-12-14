@@ -17,7 +17,9 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.LeaksFileHandles
+import spock.lang.Issue
 
 class ScriptDependencyResolveIntegrationTest extends AbstractDependencyResolutionTest {
     @LeaksFileHandles("Puts gradle user home in integration test dir")
@@ -61,9 +63,11 @@ task check {
         succeeds "check"
     }
 
+    @ToBeFixedForConfigurationCache(because = ":buildEnvironment")
+    @Issue("gradle/gradle#19328")
     def 'carries implicit constraint for log4j-core'() {
         given:
-        mavenRepo().module('org.apache.logging.log4j', 'log4j-core', '2.15.0').publish()
+        mavenRepo().module('org.apache.logging.log4j', 'log4j-core', '2.16.0').publish()
 
         and:
         settingsFile << """
@@ -87,6 +91,47 @@ task check {
         """
 
         expect:
-        succeeds 'help'
+        succeeds 'buildEnvironment'
+        outputContains('org.apache.logging.log4j:log4j-core:{require 2.16.0; reject [2.0, 2.15[} -> 2.16.0 (c)')
+    }
+
+    @Issue("gradle/gradle#19328")
+    def 'fails if build attempts to force vulnerable log4j-core'() {
+        given:
+        settingsFile << """
+            rootProject.name = 'testproject'
+        """
+
+        buildFile << """
+            buildscript {
+                repositories { maven { url "${mavenRepo().uri}" } }
+                dependencies {
+                    classpath "org.apache.logging.log4j:log4j-core:2.14.1!!"
+                }
+            }
+        """
+
+        expect:
+        fails 'help'
+        failureCauseContains('Cannot find a version of \'org.apache.logging.log4j:log4j-core\' that satisfies the version constraints')
+    }
+
+    @ToBeFixedForConfigurationCache(because = ":buildEnvironment")
+    @Issue("gradle/gradle#19328")
+    def 'allows to upgrade log4j to 3.x one day'() {
+        given:
+        mavenRepo().module('org.apache.logging.log4j', 'log4j-core', '3.1.0').publish()
+        buildFile << """
+            buildscript {
+                repositories { maven { url "${mavenRepo().uri}" } }
+                dependencies {
+                    classpath "org.apache.logging.log4j:log4j-core:3.1.0"
+                }
+            }
+        """
+
+        expect:
+        succeeds 'buildEnvironment'
+        outputContains('org.apache.logging.log4j:log4j-core:{require 2.16.0; reject [2.0, 2.15[} -> 3.1.0 (c)')
     }
 }
