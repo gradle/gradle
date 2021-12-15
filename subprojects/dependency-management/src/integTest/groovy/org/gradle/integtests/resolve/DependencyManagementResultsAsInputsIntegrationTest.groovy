@@ -71,6 +71,25 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
                 implementation files('lib/file-lib.jar')
                 implementation 'composite-lib:composite-lib'
             }
+
+            @CacheableRule
+            abstract class ChangingAttributeRule implements ComponentMetadataRule {
+                final String attrValue
+                @Inject ChangingAttributeRule(String attrValue) { this.attrValue = attrValue }
+                void execute(ComponentMetadataContext context) {
+                    context.details.allVariants {
+                        attributes.attribute(Attribute.of("my.attribute.name", String), attrValue)
+                    }
+                }
+            }
+
+            dependencies {
+                components {
+                    withModule('org.external:external-lib', ChangingAttributeRule) {
+                        params(System.getProperty('externalLibAttrValue', 'default-value'))
+                    }
+                }
+            }
         """
         withOriginalSourceIn("project-lib")
         withOriginalSourceIn("composite-lib")
@@ -284,6 +303,17 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
 
         when: "changing included library variant metadata"
         succeeds "verify", "-DcompositeLibAttrValue=new-value"
+
+        then:
+        if (inputProperty == "variant") {
+            skipped ":project-lib:jar", ":composite-lib:jar"
+            executedAndNotSkipped ":verify"
+        } else {
+            skipped ":project-lib:jar", ":composite-lib:jar", ":verify"
+        }
+
+        when: "changing external library variant metadata"
+        succeeds "verify", "-DexternalLibAttrValue=new-value"
 
         then:
         if (inputProperty == "variant") {
