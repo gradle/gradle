@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.fixtures.versions
+package org.gradle.internal.logging.util;
 
 /**
- * Kotlin Gradle Plugin Versions.
+ * This class contains references to log4j-core which had a critical vulnerability,
+ * see <a url="https://nvd.nist.gov/vuln/detail/CVE-2021-44228">CVE-2021-44228</a>.
  */
-class KotlinGradlePluginVersions {
-
-    // https://search.maven.org/search?q=g:org.jetbrains.kotlin%20AND%20a:kotlin-project&core=gav
-    private static final List<String> LATEST_VERSIONS = [
-        '1.3.72',
-        '1.4.0', '1.4.10', '1.4.21', '1.4.31',
-        '1.5.0', '1.5.31',
-        '1.6.0', '1.6.10',
-    ]
-
-    List<String> getLatests() {
-        return LATEST_VERSIONS
-    }
+public class Log4jBannedVersion {
+    public static final String LOG4J2_CORE_COORDINATES = "org.apache.logging.log4j:log4j-core";
+    public static final String LOG4J2_CORE_VULNERABLE_VERSION_RANGE = "[2.0, 2.16)";
+    public static final String LOG4J2_CORE_REQUIRED_VERSION = "2.16.0";
 }

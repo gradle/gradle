@@ -55,9 +55,10 @@ public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdate
     public NonHierarchicalFileWatcherUpdater(
         FileWatcher fileWatcher,
         FileWatcherProbeRegistry probeRegistry,
-        WatchableHierarchies watchableHierarchies
+        WatchableHierarchies watchableHierarchies,
+        MovedDirectoryHandler movedDirectoryHandler
     ) {
-        super(probeRegistry, watchableHierarchies);
+        super(probeRegistry, watchableHierarchies, movedDirectoryHandler);
         this.fileWatcher = fileWatcher;
     }
 
@@ -89,11 +90,6 @@ public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdate
         }
         updateWatchedDirectories(changedWatchedDirectories);
         return true;
-    }
-
-    @Override
-    protected SnapshotHierarchy doUpdateVfsOnBuildStarted(SnapshotHierarchy root) {
-        return root;
     }
 
     @Override
