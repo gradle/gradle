@@ -94,12 +94,14 @@ public class ExecutionGradleServices {
     ExecutionHistoryStore createExecutionHistoryStore(
         ExecutionHistoryCacheAccess executionHistoryCacheAccess,
         InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,
-        StringInterner stringInterner
+        StringInterner stringInterner,
+        ClassLoaderHierarchyHasher classLoaderHasher
     ) {
         return new DefaultExecutionHistoryStore(
             executionHistoryCacheAccess,
             inMemoryCacheDecoratorFactory,
-            stringInterner
+            stringInterner,
+            classLoaderHasher
         );
     }
 

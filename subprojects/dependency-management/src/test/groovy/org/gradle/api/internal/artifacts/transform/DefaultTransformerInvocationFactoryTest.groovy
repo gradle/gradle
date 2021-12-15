@@ -82,7 +82,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
     def classloaderHasher = Stub(ClassLoaderHierarchyHasher) {
         getClassLoaderHash(_ as ClassLoader) >> HashCode.fromInt(1234)
     }
-    def valueSnapshotter = new DefaultValueSnapshotter(classloaderHasher, null)
+    def valueSnapshotter = new DefaultValueSnapshotter([], classloaderHasher)
 
     def executionHistoryStore = new TestExecutionHistoryStore()
     def virtualFileSystem = TestFiles.virtualFileSystem()

@@ -23,7 +23,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 
 class AttributeTestUtil {
     static ImmutableAttributesFactory attributesFactory() {
-        return new DefaultImmutableAttributesFactory(SnapshotTestUtil.valueSnapshotter(), TestUtil.objectInstantiator())
+        return new DefaultImmutableAttributesFactory(SnapshotTestUtil.isolatableFactory(), TestUtil.objectInstantiator())
     }
 
     static ImmutableAttributes attributes(Map<String, ?> values) {

@@ -78,6 +78,7 @@ import org.gradle.internal.scopeids.id.WorkspaceScopeId;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.WorkerSharedBuildSessionScopeServices;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.DefaultAsyncWorkTracker;
 import org.gradle.plugin.use.internal.InjectedPluginClasspath;
@@ -90,7 +91,7 @@ import java.util.List;
 /**
  * Contains the services for a single build session, which could be a single build or multiple builds when in continuous mode.
  */
-public class BuildSessionScopeServices {
+public class BuildSessionScopeServices extends WorkerSharedBuildSessionScopeServices {
 
     private final StartParameterInternal startParameter;
     private final BuildRequestMetaData buildRequestMetaData;

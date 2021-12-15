@@ -45,7 +45,7 @@ class InstantiatingActionTest extends Specification {
                     void execute(ActionConfiguration actionConfiguration) {
                         actionConfiguration.params(123, "test string")
                     }
-                }, SnapshotTestUtil.valueSnapshotter())),
+                }, SnapshotTestUtil.isolatableFactory())),
             TestUtil.instantiatorFactory().decorateLenient(),
             shouldNotFail
         )
@@ -102,7 +102,7 @@ class InstantiatingActionTest extends Specification {
                     void execute(ActionConfiguration actionConfiguration) {
                         actionConfiguration.params(456)
                     }
-                }, SnapshotTestUtil.valueSnapshotter())),
+                }, SnapshotTestUtil.isolatableFactory())),
             TestUtil.instantiatorFactory().inject(registry),
             shouldNotFail
         )
