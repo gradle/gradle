@@ -90,7 +90,6 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublica
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.DefaultArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.CachingComponentSelectionDescriptorFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DesugaredAttributeContainerSerializer;
 import org.gradle.api.internal.artifacts.mvnsettings.DefaultLocalMavenRepositoryLocator;
@@ -575,10 +574,6 @@ class DependencyManagementBuildScopeServices {
             versionParser,
             listenerManager.getBroadcaster(ChangingValueDependencyResolutionListener.class),
             calculatedValueContainerFactory);
-    }
-
-    ComponentSelectionDescriptorFactory createComponentSelectionDescriptorFactory() {
-        return new CachingComponentSelectionDescriptorFactory();
     }
 
     ArtifactDependencyResolver createArtifactDependencyResolver(ResolveIvyFactory resolveIvyFactory,
