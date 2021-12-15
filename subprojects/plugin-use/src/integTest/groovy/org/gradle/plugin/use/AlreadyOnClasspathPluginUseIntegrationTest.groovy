@@ -359,7 +359,7 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
             false,
             """
                 Assert.assertTrue(result.output.contains("Error resolving plugin [id: 'my-plugin', version: '1.0']"))
-                Assert.assertTrue(result.output.contains("Plugin request for plugin already on the classpath must not include a version"))
+                Assert.assertTrue(result.output.contains("The request for this plugin could not be satisfied because the plugin is already on the classpath with an unknown version, so compatibility cannot be checked."))
             """.stripIndent()))
 
         expect:
