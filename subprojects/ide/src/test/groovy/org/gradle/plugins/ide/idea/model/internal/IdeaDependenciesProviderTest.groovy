@@ -254,6 +254,11 @@ class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
     }
 
     def "serial IDS - the old way - fails"() {
+        project.gradle.startParameter.dependencyVerificationMode = org.gradle.api.artifacts.verification.DependencyVerificationMode.OFF
+        project.configurations.configureEach() { conf ->
+            conf.getResolutionStrategy().disableDependencyVerification()
+        }
+
         def m1 = mavenRepo.module('test', 'test1', '1.0')
             .withJavadoc()
             .withSources()
@@ -314,19 +319,19 @@ class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
         project.dependencies.add('testRuntimeOnly', "test:test3:1.0")
 
         def testRuntime = project.configurations.getByName("testRuntimeClasspath")
-        testRuntime.getResolutionStrategy().disableDependencyVerification()
 
         def result = dependenciesProvider.provide(module)
 
         then:
         result.size() == 3
-        Set<Set<Path>> sources = result.stream().map(it -> (ModuleLibrary)it).map(ModuleLibrary::getSources).collect(Collectors.toSet())
-        sources.size() == 3
-        Set<Set<Path>> javadocs = result.stream().map(it -> (ModuleLibrary)it).map(ModuleLibrary::getJavadoc()).collect(Collectors.toSet())
-        javadocs.size() == 3
     }
 
     def "parallel IDS - the new way - succeeds"() {
+        project.gradle.startParameter.dependencyVerificationMode = org.gradle.api.artifacts.verification.DependencyVerificationMode.OFF
+        project.configurations.configureEach() { conf ->
+            conf.getResolutionStrategy().disableDependencyVerification()
+        }
+
         def m1 = mavenRepo.module('test', 'test1', '1.0')
             .withJavadoc()
             .withSources()
@@ -386,16 +391,13 @@ class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
         project.dependencies.add('testRuntimeOnly', "test:test2:1.0")
         project.dependencies.add('testRuntimeOnly', "test:test3:1.0")
 
-        def testRuntime = project.configurations.getByName("testRuntimeClasspath")
-        testRuntime.getResolutionStrategy().disableDependencyVerification()
-
         def result = dependenciesProvider.provide(module, true)
 
         then:
         result.size() == 3
-        Set<Set<Path>> sources = result.stream().map(it -> (ModuleLibrary)it).map(ModuleLibrary::getSources).collect(Collectors.toSet())
+        Set<Set<Path>> sources = result.stream().map(it -> (ModuleLibrary)it).map(it -> it.getSources()).collect(Collectors.toSet())
         sources.size() == 3
-        Set<Set<Path>> javadocs = result.stream().map(it -> (ModuleLibrary)it).map(ModuleLibrary::getJavadoc()).collect(Collectors.toSet())
+        Set<Set<Path>> javadocs = result.stream().map(it -> (ModuleLibrary)it).map(it -> it.getJavadoc()).collect(Collectors.toSet())
         javadocs.size() == 3
     }
 

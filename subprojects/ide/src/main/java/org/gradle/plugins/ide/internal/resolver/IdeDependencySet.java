@@ -226,10 +226,10 @@ public class IdeDependencySet {
                 extraConf.getDependencies().add(dependencyHandler.create(gav));
             });
 
+            extraConf.getResolutionStrategy().disableDependencyVerification();
             final ArtifactCollection sourceArtifacts = extraConf.getIncoming().getArtifacts();
             final Map<ModuleComponentIdentifier, Set<ResolvedArtifactResult>> resolvedArtifactResults = Maps.newHashMap();
 
-            extraConf.getResolutionStrategy().disableDependencyVerification();
             sourceArtifacts.forEach(artifactResult -> {
                 if (artifactResult.getId().getComponentIdentifier() instanceof ModuleComponentIdentifier) {
                     ModuleComponentIdentifier componentId = (ModuleComponentIdentifier) artifactResult.getId().getComponentIdentifier();
