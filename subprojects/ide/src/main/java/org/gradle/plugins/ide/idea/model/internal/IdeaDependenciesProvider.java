@@ -64,9 +64,13 @@ public class IdeaDependenciesProvider {
     }
 
     public Set<Dependency> provide(final IdeaModule ideaModule) {
+        return provide(ideaModule, false);
+    }
+
+    public Set<Dependency> provide(final IdeaModule ideaModule, boolean parallel) {
         Set<Dependency> result = Sets.newLinkedHashSet();
         result.addAll(getOutputLocations(ideaModule));
-        result.addAll(getDependencies(ideaModule));
+        result.addAll(getDependencies(ideaModule, parallel));
         return result;
     }
 
@@ -87,10 +91,14 @@ public class IdeaDependenciesProvider {
     }
 
     private Set<Dependency> getDependencies(IdeaModule ideaModule) {
+        return getDependencies(ideaModule, false);
+    }
+
+    private Set<Dependency> getDependencies(IdeaModule ideaModule, boolean parallel) {
         Set<Dependency> dependencies = Sets.newLinkedHashSet();
         Map<ComponentSelector, UnresolvedDependencyResult> unresolvedDependencies = Maps.newLinkedHashMap();
         for (GeneratedIdeaScope scope : GeneratedIdeaScope.values()) {
-            IdeaDependenciesVisitor visitor = visitDependencies(ideaModule, scope);
+            IdeaDependenciesVisitor visitor = visitDependencies(ideaModule, scope, parallel);
             dependencies.addAll(visitor.getDependencies());
             unresolvedDependencies.putAll(visitor.getUnresolvedDependencies());
         }
@@ -100,6 +108,10 @@ public class IdeaDependenciesProvider {
     }
 
     private IdeaDependenciesVisitor visitDependencies(IdeaModule ideaModule, GeneratedIdeaScope scope) {
+        return visitDependencies(ideaModule, scope, false);
+    }
+
+    private IdeaDependenciesVisitor visitDependencies(IdeaModule ideaModule, GeneratedIdeaScope scope, boolean parallel) {
         ProjectInternal projectInternal = (ProjectInternal) ideaModule.getProject();
         final DependencyHandler handler = projectInternal.getDependencies();
         final Collection<Configuration> plusConfigurations = getPlusConfigurations(ideaModule, scope);
@@ -108,7 +120,7 @@ public class IdeaDependenciesProvider {
 
         final IdeaDependenciesVisitor visitor = new IdeaDependenciesVisitor(ideaModule, scope.name());
         return projectInternal.getOwner().fromMutableState(p -> {
-            new IdeDependencySet(projectInternal, handler, javaModuleDetector, plusConfigurations, minusConfigurations, false, gradleApiSourcesResolver).visit(visitor);
+            new IdeDependencySet(projectInternal, handler, javaModuleDetector, plusConfigurations, minusConfigurations, false, gradleApiSourcesResolver).visit(visitor, parallel);
             return visitor;
         });
     }

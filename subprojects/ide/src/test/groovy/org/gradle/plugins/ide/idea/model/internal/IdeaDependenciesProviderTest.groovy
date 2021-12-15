@@ -20,6 +20,8 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.idea.model.Dependency
+import org.gradle.plugins.ide.idea.model.ModuleLibrary
+import org.gradle.plugins.ide.idea.model.Path
 import org.gradle.plugins.ide.idea.model.SingleEntryModuleLibrary
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry
 import org.gradle.plugins.ide.internal.resolver.NullGradleApiSourcesResolver
@@ -29,8 +31,14 @@ import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.maven.MavenModule
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.util.TestUtil
+import org.junit.Rule
+
+import java.util.stream.Collectors
 
 class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
+    @Rule
+    public BlockingHttpServer blockingServer = new BlockingHttpServer()
+
     public final MavenFileRepository mavenRepo = new MavenFileRepository(temporaryFolder.testDirectory.file("maven-repo"))
     private ProjectInternal childProject
     private IdeArtifactRegistry artifactRegistry
@@ -44,6 +52,8 @@ class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
         _ * artifactRegistry.getIdeProject(_, _) >> { Class c, def m ->
             return Stub(c)
         }
+
+        blockingServer.start()
     }
 
     def "no dependencies test"() {
@@ -243,10 +253,7 @@ class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
         result.findAll { it.scope == 'TEST' }.size() == 1
     }
 
-    def "force ARQ in IDS"() {
-        BlockingHttpServer blockingServer = new BlockingHttpServer()
-        blockingServer.start()
-
+    def "serial IDS - the old way - fails"() {
         def m1 = mavenRepo.module('test', 'test1', '1.0')
             .withJavadoc()
             .withSources()
@@ -313,6 +320,83 @@ class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
 
         then:
         result.size() == 3
+        Set<Set<Path>> sources = result.stream().map(it -> (ModuleLibrary)it).map(ModuleLibrary::getSources).collect(Collectors.toSet())
+        sources.size() == 3
+        Set<Set<Path>> javadocs = result.stream().map(it -> (ModuleLibrary)it).map(ModuleLibrary::getJavadoc()).collect(Collectors.toSet())
+        javadocs.size() == 3
+    }
+
+    def "parallel IDS - the new way - succeeds"() {
+        def m1 = mavenRepo.module('test', 'test1', '1.0')
+            .withJavadoc()
+            .withSources()
+            .publish()
+        def m2 = mavenRepo.module('test', 'test2', '1.0')
+            .withJavadoc()
+            .withSources()
+            .publish()
+        def m3 = mavenRepo.module('test', 'test3', '1.0')
+            .withJavadoc()
+            .withSources()
+            .publish()
+
+        def m1javadoc = getJavadocArtifact(m1)
+        def m1sources = getSourcesArtifact(m1)
+        def m2javadoc = getJavadocArtifact(m2)
+        def m2sources = getSourcesArtifact(m2)
+        def m3javadoc = getJavadocArtifact(m3)
+        def m3sources = getSourcesArtifact(m3)
+
+        applyPluginToProjects()
+        project.apply(plugin: 'java')
+
+        project.repositories {
+            maven {
+                url = blockingServer.uri
+            }
+        }
+
+        def module = project.ideaModule.module
+        module.offline = false
+        module.downloadSources = true
+        module.downloadJavadoc = true
+
+        blockingServer.expectConcurrent(
+            blockingServer.get(m1.pom.path).sendFile(m1.pom.file),
+            blockingServer.get(m2.pom.path).sendFile(m2.pom.file),
+            blockingServer.get(m3.pom.path).sendFile(m3.pom.file))
+
+        blockingServer.expectConcurrent(
+            blockingServer.get(m1.artifact.path).sendFile(m1.artifact.file),
+            blockingServer.get(m2.artifact.path).sendFile(m2.artifact.file),
+            blockingServer.get(m3.artifact.path).sendFile(m3.artifact.file))
+
+        blockingServer.expectConcurrent(
+            blockingServer.get(m1sources.path).sendFile(m1sources.file),
+            blockingServer.get(m2sources.path).sendFile(m2sources.file),
+            blockingServer.get(m3sources.path).sendFile(m3sources.file))
+
+        blockingServer.expectConcurrent(
+            blockingServer.get(m1javadoc.path).sendFile(m1javadoc.file),
+            blockingServer.get(m2javadoc.path).sendFile(m2javadoc.file),
+            blockingServer.get(m3javadoc.path).sendFile(m3javadoc.file))
+
+        when:
+        project.dependencies.add('testRuntimeOnly', "test:test1:1.0")
+        project.dependencies.add('testRuntimeOnly', "test:test2:1.0")
+        project.dependencies.add('testRuntimeOnly', "test:test3:1.0")
+
+        def testRuntime = project.configurations.getByName("testRuntimeClasspath")
+        testRuntime.getResolutionStrategy().disableDependencyVerification()
+
+        def result = dependenciesProvider.provide(module, true)
+
+        then:
+        result.size() == 3
+        Set<Set<Path>> sources = result.stream().map(it -> (ModuleLibrary)it).map(ModuleLibrary::getSources).collect(Collectors.toSet())
+        sources.size() == 3
+        Set<Set<Path>> javadocs = result.stream().map(it -> (ModuleLibrary)it).map(ModuleLibrary::getJavadoc()).collect(Collectors.toSet())
+        javadocs.size() == 3
     }
 
     private applyPluginToProjects() {

@@ -34,6 +34,8 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.result.ArtifactResolutionResult;
+import org.gradle.api.artifacts.result.ArtifactResult;
+import org.gradle.api.artifacts.result.ComponentArtifactsResult;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 import org.gradle.api.component.Artifact;
@@ -80,10 +82,14 @@ public class IdeDependencySet {
     }
 
     public void visit(IdeDependencyVisitor visitor) {
+        visit(visitor, false);
+    }
+
+    public void visit(IdeDependencyVisitor visitor, boolean parallel) {
         if (plusConfigurations.isEmpty()) {
             return;
         }
-        new IdeDependencyResult().visit(visitor);
+        new IdeDependencyResult().visit(visitor, parallel);
     }
 
     /*
@@ -100,10 +106,10 @@ public class IdeDependencySet {
         private final Map<ComponentSelector, UnresolvedDependencyResult> unresolvedDependencies = Maps.newLinkedHashMap();
         private final Table<ModuleComponentIdentifier, Class<? extends Artifact>, Set<ResolvedArtifactResult>> auxiliaryArtifacts = HashBasedTable.create();
 
-        public void visit(IdeDependencyVisitor visitor) {
+        public void visit(IdeDependencyVisitor visitor, boolean parallel) {
             resolvePlusConfigurations(visitor);
             resolveMinusConfigurations(visitor);
-            resolveAuxiliaryArtifacts(visitor);
+            resolveAuxiliaryArtifacts(visitor, parallel);
             visitArtifacts(visitor);
             visitUnresolvedDependencies(visitor);
         }
@@ -161,7 +167,7 @@ public class IdeDependencySet {
             return Iterables.filter(configuration.getIncoming().getResolutionResult().getRoot().getDependencies(), UnresolvedDependencyResult.class);
         }
 
-        private void resolveAuxiliaryArtifacts(IdeDependencyVisitor visitor) {
+        private void resolveAuxiliaryArtifacts(IdeDependencyVisitor visitor, boolean parallel) {
             if (visitor.isOffline()) {
                 return;
             }
@@ -178,14 +184,29 @@ public class IdeDependencySet {
 
             ArtifactResolutionResult result = dependencyHandler.createArtifactResolutionQuery()
                 .forComponents(componentIdentifiers)
-                .withArtifacts(JvmLibrary.class, types)
+                .withArtifacts(JvmLibrary.class, parallel ? Collections.emptyList() : types)
                 .execute();
 
-            if (visitor.downloadSources()) {
-                addAuxiliarySources(result);
-            }
-            if (visitor.downloadJavaDoc()) {
-                addAuxiliaryJavadoc(result);
+            if (!parallel) {
+                for (ComponentArtifactsResult artifactsResult : result.getResolvedComponents()) {
+                    for (Class<? extends Artifact> type : types) {
+                        Set<ResolvedArtifactResult> resolvedArtifactResults = Sets.newLinkedHashSet();
+                        for (ArtifactResult artifactResult : artifactsResult.getArtifacts(type)) {
+                            if (artifactResult instanceof ResolvedArtifactResult) {
+                                resolvedArtifactResults.add((ResolvedArtifactResult) artifactResult);
+                            }
+                        }
+                        auxiliaryArtifacts.put((ModuleComponentIdentifier) artifactsResult.getId(), type, resolvedArtifactResults);
+
+                    }
+                }
+            } else {
+                if (visitor.downloadSources()) {
+                    addAuxiliarySources(result);
+                }
+                if (visitor.downloadJavaDoc()) {
+                    addAuxiliaryJavadoc(result);
+                }
             }
         }
 
@@ -199,14 +220,16 @@ public class IdeDependencySet {
 
         private void addAuxiliaryResources(ArtifactResolutionResult resolutionResult, String confName, String classifier, Class<? extends Artifact> artifactType) {
             Configuration extraConf = project.getConfigurations().create(confName);
+
             resolutionResult.getResolvedComponents().forEach(component -> {
                 String gav = component.getId().toString() + ":" + classifier;
-                dependencyHandler.add(confName, gav);
+                extraConf.getDependencies().add(dependencyHandler.create(gav));
             });
 
             final ArtifactCollection sourceArtifacts = extraConf.getIncoming().getArtifacts();
             final Map<ModuleComponentIdentifier, Set<ResolvedArtifactResult>> resolvedArtifactResults = Maps.newHashMap();
 
+            extraConf.getResolutionStrategy().disableDependencyVerification();
             sourceArtifacts.forEach(artifactResult -> {
                 if (artifactResult.getId().getComponentIdentifier() instanceof ModuleComponentIdentifier) {
                     ModuleComponentIdentifier componentId = (ModuleComponentIdentifier) artifactResult.getId().getComponentIdentifier();
