@@ -152,7 +152,6 @@ import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.actor.internal.DefaultActorFactory;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.authentication.DefaultAuthenticationSchemeRegistry;
-import org.gradle.internal.build.BuildIncluder;
 import org.gradle.internal.build.BuildModelControllerServices;
 import org.gradle.internal.build.BuildOperationFiringBuildWorkPreparer;
 import org.gradle.internal.build.BuildState;
@@ -163,6 +162,7 @@ import org.gradle.internal.build.DefaultBuildWorkPreparer;
 import org.gradle.internal.build.DefaultPublicBuildPath;
 import org.gradle.internal.build.PublicBuildPath;
 import org.gradle.internal.buildevents.BuildStartedTime;
+import org.gradle.internal.buildtree.BuildInclusionCoordinator;
 import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
@@ -225,6 +225,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             registration.add(WorkNodeDependencyResolver.class);
             registration.add(TaskDependencyResolver.class);
             registration.add(DefaultBuildWorkGraphController.class);
+            registration.add(DefaultBuildIncluder.class);
             supplier.applyServicesTo(registration, this);
             for (PluginServiceRegistry pluginServiceRegistry : parent.getAll(PluginServiceRegistry.class)) {
                 pluginServiceRegistry.registerBuildServices(registration);
@@ -510,7 +511,16 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             instantiator);
     }
 
-    protected ProjectsPreparer createBuildConfigurer(ProjectConfigurer projectConfigurer, BuildSourceBuilder buildSourceBuilder, BuildStateRegistry buildStateRegistry, BuildLoader buildLoader, ListenerManager listenerManager, BuildOperationExecutor buildOperationExecutor, BuildModelParameters buildModelParameters) {
+    protected ProjectsPreparer createBuildConfigurer(
+        ProjectConfigurer projectConfigurer,
+        BuildSourceBuilder buildSourceBuilder,
+        BuildStateRegistry buildStateRegistry,
+        BuildInclusionCoordinator inclusionCoordinator,
+        BuildLoader buildLoader,
+        ListenerManager listenerManager,
+        BuildOperationExecutor buildOperationExecutor,
+        BuildModelParameters buildModelParameters
+    ) {
         ModelConfigurationListener modelConfigurationListener = listenerManager.getBroadcaster(ModelConfigurationListener.class);
         return new BuildOperationFiringProjectsPreparer(
             new BuildTreePreparingProjectsPreparer(
@@ -521,7 +531,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                     buildOperationExecutor,
                     buildStateRegistry),
                 buildLoader,
-                buildStateRegistry,
+                inclusionCoordinator,
                 buildSourceBuilder),
             buildOperationExecutor);
     }
@@ -616,9 +626,4 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             instantiatorFactory.inject()
         );
     }
-
-    protected BuildIncluder createBuildIncluder(BuildStateRegistry buildRegistry, PublicBuildPath publicBuildPath, Instantiator instantiator) {
-        return new DefaultBuildIncluder(buildRegistry, publicBuildPath, instantiator);
-    }
-
 }
