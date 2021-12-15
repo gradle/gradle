@@ -64,9 +64,9 @@ public class EventFiringTaskExecuter implements TaskExecuter {
                 try {
                     taskListener.beforeExecute(task.getTaskIdentity());
                     taskExecutionListener.beforeExecute(task);
-                    BuildOperationRef currentOperation = buildOperationExecutor.getCurrentOperation();
                     if (logger instanceof ContextAwareTaskLogger) {
                         contextAwareTaskLogger = (ContextAwareTaskLogger) logger;
+                        BuildOperationRef currentOperation = buildOperationExecutor.getCurrentOperation();
                         contextAwareTaskLogger.setFallbackBuildOperationId(currentOperation.getId());
                     }
                 } catch (Throwable t) {
