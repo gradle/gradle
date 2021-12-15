@@ -50,13 +50,6 @@ class SpringBootPluginSmokeTest extends AbstractPluginValidatingSmokeTest implem
 
         when:
         def buildResult = runner('assembleBootDist', 'check')
-            .expectDeprecationWarning(
-                "Internal API constructor LazyPublishArtifact(Provider<?>) has been deprecated." +
-                    " This is scheduled to be removed in Gradle 8.0." +
-                    " Please use constructor LazyPublishArtifact(Provider<?>, FileResolver) instead." +
-                    " Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#lazypublishartifact_fileresolver",
-                ""
-            )
             .build()
 
         then:
@@ -65,13 +58,6 @@ class SpringBootPluginSmokeTest extends AbstractPluginValidatingSmokeTest implem
 
         when:
         def runResult = runner('bootRun')
-            .expectDeprecationWarning(
-                "Internal API constructor LazyPublishArtifact(Provider<?>) has been deprecated." +
-                    " This is scheduled to be removed in Gradle 8.0." +
-                    " Please use constructor LazyPublishArtifact(Provider<?>, FileResolver) instead." +
-                    " Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#lazypublishartifact_fileresolver",
-                ""
-            )
             .build()
 
         then:

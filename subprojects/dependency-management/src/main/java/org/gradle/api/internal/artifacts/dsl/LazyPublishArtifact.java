@@ -46,11 +46,13 @@ public class LazyPublishArtifact implements PublishArtifactInternal {
      */
     @Deprecated
     public LazyPublishArtifact(Provider<?> provider) {
-        DeprecationLogger.deprecateInternalApi("constructor LazyPublishArtifact(Provider<?>)")
-            .replaceWith("constructor LazyPublishArtifact(Provider<?>, FileResolver)")
-            .willBeRemovedInGradle8()
-            .withUpgradeGuideSection(7, "lazypublishartifact_fileresolver")
-            .nagUser();
+        // TODO after Spring Boot resolves their usage of this constructor, uncomment this nag
+        // https://github.com/spring-projects/spring-boot/issues/29074
+        //        DeprecationLogger.deprecateInternalApi("constructor LazyPublishArtifact(Provider<?>)")
+        //            .replaceWith("constructor LazyPublishArtifact(Provider<?>, FileResolver)")
+        //            .willBeRemovedInGradle8()
+        //            .withUpgradeGuideSection(7, "lazypublishartifact_fileresolver")
+        //            .nagUser();
         this.provider = Providers.internal(provider);
         this.version = null;
         this.fileResolver = null;
@@ -113,8 +115,6 @@ public class LazyPublishArtifact implements PublishArtifactInternal {
             } else if (fileResolver != null) {
                 delegate = fromFile(fileResolver.resolve(value));
             } else {
-                // This case can be removed once the deprecated constructors are removed,
-                // because the file resolver will always be present.
                 throw new InvalidUserDataException(String.format("Cannot convert provided value (%s) to a file.", value));
             }
         }
