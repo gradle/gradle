@@ -38,23 +38,38 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
             rootProject.name = 'root'
             include 'project-lib'
         """
+        def variantDeclaration = { sysPropName ->
+            """
+                def myAttribute = Attribute.of("my.attribute.name", String)
+                dependencies.attributesSchema { attribute(myAttribute) }
+                configurations {
+                    runtimeElements {
+                        attributes { attribute(myAttribute, System.getProperty('$sysPropName', 'default-value')) }
+                    }
+                }
+            """
+        }
         file('composite-lib/settings.gradle') << ""
         file('composite-lib/build.gradle') << """
-            plugins { id 'java' }
+            plugins { id 'java-library' }
             group = 'composite-lib'
+            ${variantDeclaration('compositeLibAttrValue')}
         """
         mavenRepo.module("org.external", "external-lib").publish()
         mavenRepo.module("org.external", "external-tool").publish()
         file('lib/file-lib.jar') << 'content'
         buildFile << """
-            project(':project-lib') { apply plugin: 'java' }
-            configurations { compile }
+            project(':project-lib') {
+                apply plugin: 'java-library'
+                ${variantDeclaration('projectLibAttrValue')}
+            }
+            apply plugin: 'java-library'
             repositories { maven { url "${mavenRepo.uri}" } }
             dependencies {
-                compile 'org.external:external-lib:1.0'
-                compile project('project-lib')
-                compile files('lib/file-lib.jar')
-                compile 'composite-lib:composite-lib'
+                implementation 'org.external:external-lib:1.0'
+                implementation project('project-lib')
+                implementation files('lib/file-lib.jar')
+                implementation 'composite-lib:composite-lib'
             }
         """
         withOriginalSourceIn("project-lib")
@@ -140,7 +155,7 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
             }
 
             tasks.register('verify', TaskWithFilesInput) {
-                inputFiles.from(configurations.compile.incoming.artifacts.resolvedArtifacts.map { it.collect { it.file } })
+                inputFiles.from(configurations.runtimeClasspath.incoming.artifacts.resolvedArtifacts.map { it.collect { it.file } })
                 outputFile.set(layout.buildDirectory.file('output.txt'))
                 doLast {
                     println(inputFiles.files)
@@ -207,7 +222,7 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
             }
 
             tasks.register("verify", TaskWithResultInput) {
-                def resolvedArtifacts = configurations.compile.incoming.artifacts.resolvedArtifacts
+                def resolvedArtifacts = configurations.runtimeClasspath.incoming.artifacts.resolvedArtifacts
                 input.set(resolvedArtifacts.map { it.collect { it.${inputProperty} } })
                 outputFile.set(layout.buildDirectory.file('output.txt'))
             }
@@ -226,7 +241,7 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
         then:
         skipped ":project-lib:jar", ":verify"
 
-        when:
+        when: "changing project library source code"
         withChangedSourceIn("project-lib")
         succeeds "verify"
 
@@ -240,7 +255,7 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
         then:
         skipped ":project-lib:jar", ":verify"
 
-        when:
+        when: "changing composite library source code"
         withChangedSourceIn("composite-lib")
         succeeds "verify"
 
@@ -248,13 +263,35 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
         executedAndNotSkipped ":composite-lib:jar"
         skipped ":verify"
 
-        when:
+        when: "adding a new external dependency"
         withNewExternalDependency()
         succeeds ":verify"
 
         then:
         skipped ":project-lib:jar", ":composite-lib:jar"
         executedAndNotSkipped ":verify"
+
+        when: "changing project library variant metadata"
+        succeeds "verify", "-DprojectLibAttrValue=new-value"
+
+        then:
+        if (inputProperty == "variant") {
+            skipped ":project-lib:jar", ":composite-lib:jar"
+            executedAndNotSkipped ":verify"
+        } else {
+            skipped ":project-lib:jar", ":composite-lib:jar", ":verify"
+        }
+
+        when: "changing included library variant metadata"
+        succeeds "verify", "-DcompositeLibAttrValue=new-value"
+
+        then:
+        if (inputProperty == "variant") {
+            skipped ":project-lib:jar", ":composite-lib:jar"
+            executedAndNotSkipped ":verify"
+        } else {
+            skipped ":project-lib:jar", ":composite-lib:jar", ":verify"
+        }
 
         where:
         inputProperty | inputType
@@ -293,7 +330,7 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
             }
 
             tasks.register('verify', TaskWithFilesAndMetadataInput) {
-                def resolvedArtifacts = configurations.compile.incoming.artifacts.resolvedArtifacts
+                def resolvedArtifacts = configurations.runtimeClasspath.incoming.artifacts.resolvedArtifacts
                 resArtifacts.set(
                     resolvedArtifacts.map { arts ->
                         arts.collect { art ->
@@ -380,7 +417,7 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
 
     private void withNewExternalDependency() {
         buildFile << """
-            dependencies { compile 'org.external:external-tool:1.0' }
+            dependencies { implementation 'org.external:external-tool:1.0' }
         """
     }
 
