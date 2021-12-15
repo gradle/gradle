@@ -20,9 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.junit.Rule
-import spock.lang.Ignore
 
-@Ignore("Ignored as repository used in test has expired certificate")
 class SamplesDeclaringRepositoriesIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
@@ -40,9 +38,9 @@ class SamplesDeclaringRepositoriesIntegrationTest extends AbstractIntegrationSpe
         succeeds('copyLibs')
 
         then:
-        sample.dir.file("$dsl/build/libs/commons-2.0.0.jar").isFile()
+        sample.dir.file("$dsl/build/libs/jboss-system-4.2.2.GA.jar").isFile()
 
         where:
-        dsl << ['groovy']
+        dsl << ['groovy', 'kotlin']
     }
 }
