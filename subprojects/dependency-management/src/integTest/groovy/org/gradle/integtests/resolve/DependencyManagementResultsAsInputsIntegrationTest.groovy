@@ -94,6 +94,35 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
         withOriginalSourceIn("composite-lib")
     }
 
+    def "can not use ResolvedArtifactResult as task input"() {
+        given:
+        buildFile << """
+            abstract class TaskWithInput extends DefaultTask {
+
+                @Input
+                abstract SetProperty<ResolvedArtifactResult> getInput();
+
+                @OutputFile
+                abstract RegularFileProperty getOutputFile()
+            }
+
+            tasks.register('verify', TaskWithInput) {
+                input.set(configurations.runtimeClasspath.incoming.artifacts.resolvedArtifacts)
+                outputFile.set(layout.buildDirectory.file('output.txt'))
+                doLast {
+                    println(input.get())
+                }
+            }
+        """
+
+        when:
+        fails "verify"
+
+        then:
+        failureDescriptionStartsWith("Execution failed for task ':verify'.")
+        failureHasCause("Cannot fingerprint input property 'input'")
+    }
+
     def "can use #type as task input"() {
         given:
         buildFile << """
