@@ -43,6 +43,7 @@ import org.gradle.plugin.use.resolve.internal.PluginResolution;
 import org.gradle.plugin.use.resolve.internal.PluginResolutionResult;
 import org.gradle.plugin.use.resolve.internal.PluginResolveContext;
 import org.gradle.plugin.use.resolve.internal.PluginResolver;
+import org.gradle.plugin.use.tracker.internal.PluginVersionTracker;
 import org.gradle.util.internal.TextUtil;
 
 import javax.annotation.Nullable;
@@ -65,14 +66,23 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
     private final PluginResolutionStrategyInternal pluginResolutionStrategy;
     private final PluginInspector pluginInspector;
     private final CachedClasspathTransformer cachedClasspathTransformer;
+    private final PluginVersionTracker pluginVersionTracker;
 
-    public DefaultPluginRequestApplicator(PluginRegistry pluginRegistry, PluginResolverFactory pluginResolver, PluginRepositoriesProvider pluginRepositoriesProvider, PluginResolutionStrategyInternal pluginResolutionStrategy, PluginInspector pluginInspector, CachedClasspathTransformer cachedClasspathTransformer) {
+    public DefaultPluginRequestApplicator(
+        PluginRegistry pluginRegistry, PluginResolverFactory pluginResolver,
+        PluginRepositoriesProvider pluginRepositoriesProvider,
+        PluginResolutionStrategyInternal pluginResolutionStrategy,
+        PluginInspector pluginInspector,
+        CachedClasspathTransformer cachedClasspathTransformer,
+        PluginVersionTracker pluginVersionTracker
+    ) {
         this.pluginRegistry = pluginRegistry;
         this.pluginResolverFactory = pluginResolver;
         this.pluginRepositoriesProvider = pluginRepositoriesProvider;
         this.pluginResolutionStrategy = pluginResolutionStrategy;
         this.pluginInspector = pluginInspector;
         this.cachedClasspathTransformer = cachedClasspathTransformer;
+        this.pluginVersionTracker = pluginVersionTracker;
     }
 
     @Override
@@ -117,6 +127,14 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
                                 pluginImplsFromOtherLoaders.put(result, plugin);
                             }
                         });
+                        String pluginVersion = result.found.getPluginVersion();
+                        if (pluginVersion != null) {
+                            pluginVersionTracker.setPluginVersionAt(
+                                classLoaderScope,
+                                result.found.getPluginId().getId(),
+                                pluginVersion
+                            );
+                        }
                     }
                 });
             }
@@ -179,7 +197,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         ClassLoaderScope parentLoaderScope = classLoaderScope.getParent();
         PluginDescriptorLocator scriptClasspathPluginDescriptorLocator = new ClassloaderBackedPluginDescriptorLocator(parentLoaderScope.getExportClassLoader());
         PluginResolver pluginResolver = pluginResolverFactory.create();
-        return new AlreadyOnClasspathPluginResolver(pluginResolver, pluginRegistry, parentLoaderScope, scriptClasspathPluginDescriptorLocator, pluginInspector);
+        return new AlreadyOnClasspathPluginResolver(pluginResolver, pluginRegistry, parentLoaderScope, scriptClasspathPluginDescriptorLocator, pluginInspector, pluginVersionTracker);
     }
 
     private void applyPlugin(PluginRequestInternal request, PluginId id, Runnable applicator) {

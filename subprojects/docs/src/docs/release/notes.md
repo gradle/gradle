@@ -136,6 +136,16 @@ Additional options were added for use with `-Dorg.gradle.debug=true`. These allo
 
 See [the documentation](userguide/command_line_interface.html#sec:command_line_debugging) for details.
 
+### Plugins DSL improvements
+
+The [plugins DSL](userguide/plugins.html#sec:plugins_block) provides a succinct and convenient way to declare plugin dependencies.
+
+#### Plugins can be declared with a version in a subproject in more cases
+Previously, it was not possible to declare a plugin with a version in a subproject when the parent project also declared the same
+plugin. Now, this is allowed when Gradle can track the version of the plugin (currently when using included build plugins or externally resolved plugins), and the version of the plugin in both applications matches.
+
+This allows you to use [`alias`](userguide/platforms.html#sec:plugins) in both a parent and subproject's `plugins {}` without 
+needing to remove the version in some way.
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE

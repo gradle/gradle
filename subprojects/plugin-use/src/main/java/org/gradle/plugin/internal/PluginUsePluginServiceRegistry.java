@@ -51,6 +51,7 @@ import org.gradle.plugin.use.internal.PluginResolverFactory;
 import org.gradle.plugin.use.resolve.service.internal.ClientInjectedClasspathPluginResolver;
 import org.gradle.plugin.use.resolve.service.internal.DefaultInjectedClasspathPluginResolver;
 import org.gradle.plugin.use.resolve.service.internal.InjectedClasspathInstrumentationStrategy;
+import org.gradle.plugin.use.tracker.internal.PluginVersionTracker;
 
 public class PluginUsePluginServiceRegistry extends AbstractPluginServiceRegistry {
 
@@ -77,6 +78,7 @@ public class PluginUsePluginServiceRegistry extends AbstractPluginServiceRegistr
         void configure(ServiceRegistration registration) {
             registration.add(PluginResolverFactory.class);
             registration.add(DefaultPluginRequestApplicator.class);
+            registration.add(PluginVersionTracker.class);
         }
 
         PluginRepositoriesProvider createPluginResolverFactory(PluginDependencyResolutionServices dependencyResolutionServices) {
