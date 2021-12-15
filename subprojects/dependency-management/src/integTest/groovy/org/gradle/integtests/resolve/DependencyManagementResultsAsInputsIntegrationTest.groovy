@@ -22,7 +22,6 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.internal.Describables
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
@@ -93,8 +92,6 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
         """
         withOriginalSourceIn("project-lib")
         withOriginalSourceIn("composite-lib")
-        // We need fresh daemons to exercise loading snapshots from disk in tests below
-        executer.requireIsolatedDaemons()
     }
 
     def "can use #type as task input"() {
@@ -136,7 +133,6 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
         executedAndNotSkipped(":verify")
 
         when:
-        killDaemons()
         succeeds("verify", "-Dn=foo")
 
         then:
@@ -189,7 +185,6 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
         executedAndNotSkipped ":project-lib:jar", ":verify"
 
         when:
-        killDaemons()
         succeeds "verify"
 
         then:
@@ -254,7 +249,6 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
         executedAndNotSkipped ":project-lib:jar", ":verify"
 
         when:
-        killDaemons()
         succeeds "verify", "-i"
 
         then:
@@ -389,7 +383,6 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
         executedAndNotSkipped ":project-lib:jar", ":verify"
 
         when:
-        killDaemons()
         succeeds "verify"
 
         then:
@@ -449,10 +442,5 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
         buildFile << """
             dependencies { implementation 'org.external:external-tool:1.0' }
         """
-    }
-
-    private void killDaemons() {
-        // In order to exercise loading previous execution snapshots from the on-disk cache
-        new DaemonLogsAnalyzer(executer.daemonBaseDir).killAll()
     }
 }
