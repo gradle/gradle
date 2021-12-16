@@ -282,7 +282,7 @@ public class DefaultJvmVariantBuilder implements JvmVariantBuilderInternal {
             }
         }
         TaskProvider<Task> jar = tasks.named(jarTaskName);
-        variant.getOutgoing().artifact(new LazyPublishArtifact(jar));
+        variant.getOutgoing().artifact(new LazyPublishArtifact(jar, project.getFileResolver()));
         if (published && component != null) {
             component.addVariantsFromConfiguration(variant, new JavaConfigurationVariantMapping("runtime", true));
         }
