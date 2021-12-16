@@ -65,7 +65,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
     final DefaultIvyArtifactRepository repository = instantiator.newInstance(DefaultIvyArtifactRepository.class, fileResolver, transportFactory, locallyAvailableResourceFinder,
         artifactIdentifierFileStore, externalResourceFileStore, authenticationContainer, ivyContextManager,
         moduleIdentifierFactory, TestUtil.instantiatorFactory(), Mock(FileResourceRepository), moduleMetadataParser,
-        metadataFactory, SnapshotTestUtil.valueSnapshotter(), TestUtil.objectFactory(), urlArtifactRepositoryFactory,
+        metadataFactory, SnapshotTestUtil.isolatableFactory(), TestUtil.objectFactory(), urlArtifactRepositoryFactory,
         TestUtil.checksumService, providerFactory
     )
 

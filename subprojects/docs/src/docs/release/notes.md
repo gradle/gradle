@@ -29,7 +29,7 @@ Switch your build to use Gradle @version@ by updating your wrapper:
 
 See the [Gradle 7.x upgrade guide](userguide/upgrading_version_7.html#changes_@baseVersion@) to learn about deprecations, breaking changes and other considerations when upgrading to Gradle @version@. 
 
-NOTE: Gradle 7.3 has had *one* patch release, which fixes several issues from the original release.
+NOTE: Gradle 7.3 has had *two* patch releases, which fixes several issues from the original release.
 We recommend always using the latest patch release.
 
 For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).
@@ -142,6 +142,16 @@ See [the documentation](userguide/command_line_interface.html#sec:command_line_d
 
 The [IntelliJ IDEA Plugin](userguide/idea_plugin.html) plugin will now automatically mark any [SourceSets](https://docs.gradle.org/current/dsl/org.gradle.api.tasks.SourceSet.html) created by adding additional Test Suites via the [Test Suite Plugin](userguide/jvm_test_suite_plugin.html) as test source directories within the IDE.
 
+### Plugins DSL improvements
+
+The [plugins DSL](userguide/plugins.html#sec:plugins_block) provides a succinct and convenient way to declare plugin dependencies.
+
+#### Plugins can be declared with a version in a subproject in more cases
+Previously, it was not possible to declare a plugin with a version in a subproject when the parent project also declared the same
+plugin. Now, this is allowed when Gradle can track the version of the plugin (currently when using included build plugins or externally resolved plugins), and the version of the plugin in both applications matches.
+
+This allows you to use [`alias`](userguide/platforms.html#sec:plugins) in both a parent and subproject's `plugins {}` without 
+needing to remove the version in some way.
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE

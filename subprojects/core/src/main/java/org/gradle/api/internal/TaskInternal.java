@@ -68,6 +68,9 @@ public interface TaskInternal extends Task, Configurable<Task> {
     boolean isCompatibleWithConfigurationCache();
 
     @Internal
+    Optional<String> getReasonTaskIsIncompatibleWithConfigurationCache();
+
+    @Internal
     StandardOutputCapture getStandardOutputCapture();
 
     @Override

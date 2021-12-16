@@ -32,11 +32,11 @@ import java.util.Arrays;
 /**
  * An immutable snapshot of the state of some value.
  */
-public class SerializedValueSnapshot implements ValueSnapshot {
+public class JavaSerializedValueSnapshot implements ValueSnapshot {
     private final HashCode implementationHash;
     private final byte[] serializedValue;
 
-    public SerializedValueSnapshot(@Nullable HashCode implementationHash, byte[] serializedValue) {
+    public JavaSerializedValueSnapshot(@Nullable HashCode implementationHash, byte[] serializedValue) {
         this.implementationHash = implementationHash;
         this.serializedValue = serializedValue;
     }
@@ -60,8 +60,8 @@ public class SerializedValueSnapshot implements ValueSnapshot {
     }
 
     private boolean hasSameSerializedValue(Object value, ValueSnapshot snapshot) {
-        if (snapshot instanceof SerializedValueSnapshot) {
-            SerializedValueSnapshot newSnapshot = (SerializedValueSnapshot) snapshot;
+        if (snapshot instanceof JavaSerializedValueSnapshot) {
+            JavaSerializedValueSnapshot newSnapshot = (JavaSerializedValueSnapshot) snapshot;
             if (!Objects.equal(implementationHash, newSnapshot.implementationHash)) {
                 // Different implementation - assume value has changed
                 return false;
@@ -105,18 +105,16 @@ public class SerializedValueSnapshot implements ValueSnapshot {
         if (obj == null || obj.getClass() != getClass()) {
             return false;
         }
-        SerializedValueSnapshot other = (SerializedValueSnapshot) obj;
+        JavaSerializedValueSnapshot other = (JavaSerializedValueSnapshot) obj;
         return Objects.equal(implementationHash, other.implementationHash) && Arrays.equals(serializedValue, other.serializedValue);
     }
 
     protected Object populateClass(Class<?> originalClass) {
-        Object populated;
         try {
-            populated = new ClassLoaderObjectInputStream(new ByteArrayInputStream(serializedValue), originalClass.getClassLoader()).readObject();
+            return new ClassLoaderObjectInputStream(new ByteArrayInputStream(serializedValue), originalClass.getClassLoader()).readObject();
         } catch (Exception e) {
             throw new ValueSnapshottingException("Couldn't populate class " + originalClass.getName(), e);
         }
-        return populated;
     }
 
     @Override

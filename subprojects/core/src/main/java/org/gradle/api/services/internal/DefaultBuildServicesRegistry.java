@@ -28,7 +28,6 @@ import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceParameters;
 import org.gradle.api.services.BuildServiceRegistration;
 import org.gradle.api.services.BuildServiceSpec;
-import org.gradle.internal.Cast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolated.IsolationScheme;
@@ -42,6 +41,9 @@ import org.gradle.internal.service.ServiceRegistry;
 import javax.annotation.Nullable;
 import java.util.function.Supplier;
 
+import static org.gradle.internal.Cast.uncheckedCast;
+import static org.gradle.internal.Cast.uncheckedNonnullCast;
+
 public class DefaultBuildServicesRegistry implements BuildServiceRegistryInternal {
     private final BuildIdentifier buildIdentifier;
     private final NamedDomainObjectSet<BuildServiceRegistration<?, ?>> registrations;
@@ -54,9 +56,17 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
     private final Instantiator paramsInstantiator;
     private final Instantiator specInstantiator;
 
-    public DefaultBuildServicesRegistry(BuildIdentifier buildIdentifier, DomainObjectCollectionFactory factory, InstantiatorFactory instantiatorFactory, ServiceRegistry services, ListenerManager listenerManager, IsolatableFactory isolatableFactory, SharedResourceLeaseRegistry leaseRegistry) {
+    public DefaultBuildServicesRegistry(
+        BuildIdentifier buildIdentifier,
+        DomainObjectCollectionFactory factory,
+        InstantiatorFactory instantiatorFactory,
+        ServiceRegistry services,
+        ListenerManager listenerManager,
+        IsolatableFactory isolatableFactory,
+        SharedResourceLeaseRegistry leaseRegistry
+    ) {
         this.buildIdentifier = buildIdentifier;
-        this.registrations = Cast.uncheckedCast(factory.newNamedDomainObjectSet(BuildServiceRegistration.class));
+        this.registrations = uncheckedCast(factory.newNamedDomainObjectSet(BuildServiceRegistration.class));
         this.instantiatorFactory = instantiatorFactory;
         this.services = services;
         this.listenerManager = listenerManager;
@@ -96,22 +106,15 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
         if (existing != null) {
             // TODO - assert same type
             // TODO - assert same parameters
-            return Cast.uncheckedCast(existing.getService());
+            return uncheckedNonnullCast(existing.getService());
         }
 
-        // TODO - extract some shared infrastructure to take care of parameter instantation (eg strict vs lenient, which services are visible)
-        Class<P> parameterType = isolationScheme.parameterTypeFor(implementationType);
-        P parameters;
-        if (parameterType != null) {
-            parameters = paramsInstantiator.newInstance(parameterType);
-        } else {
-            // TODO - should either provider a non-null empty parameters in this case or fail whenever the parameters are queried in the service, the spec and the registration
-            parameters = null;
-        }
+        // TODO - extract some shared infrastructure to take care of parameter instantiation (eg strict vs lenient, which services are visible)
+        P parameters = instantiateParametersOf(implementationType);
 
         // TODO - should defer execution of the action, to match behaviour for other container `register()` methods.
 
-        DefaultServiceSpec<P> spec = Cast.uncheckedNonnullCast(specInstantiator.newInstance(DefaultServiceSpec.class, parameters));
+        DefaultServiceSpec<P> spec = uncheckedNonnullCast(specInstantiator.newInstance(DefaultServiceSpec.class, parameters));
         configureAction.execute(spec);
         Integer maxParallelUsages = spec.getMaxParallelUsages().getOrNull();
 
@@ -120,18 +123,26 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
         return doRegister(name, implementationType, parameters, maxParallelUsages);
     }
 
+    @Nullable
+    private <T extends BuildService<P>, P extends BuildServiceParameters> P instantiateParametersOf(Class<T> implementationType) {
+        Class<P> parameterType = isolationScheme.parameterTypeFor(implementationType);
+        return parameterType != null
+            ? paramsInstantiator.newInstance(parameterType)
+            : null;
+    }
+
     @Override
-    public BuildServiceProvider<?, ?> register(String name, Class<? extends BuildService> implementationType, BuildServiceParameters parameters, int maxUsages) {
+    public BuildServiceProvider<?, ?> register(String name, Class<? extends BuildService<?>> implementationType, BuildServiceParameters parameters, int maxUsages) {
         if (registrations.findByName(name) != null) {
             throw new IllegalArgumentException(String.format("Service '%s' has already been registered.", name));
         }
-        return doRegister(name, Cast.uncheckedNonnullCast(implementationType), parameters, maxUsages <= 0 ? null : maxUsages);
+        return doRegister(name, uncheckedNonnullCast(implementationType), parameters, maxUsages <= 0 ? null : maxUsages);
     }
 
     private <T extends BuildService<P>, P extends BuildServiceParameters> BuildServiceProvider<T, P> doRegister(
         String name,
         Class<T> implementationType,
-        P parameters,
+        @Nullable P parameters,
         @Nullable Integer maxParallelUsages
     ) {
         BuildServiceProvider<T, P> provider = new BuildServiceProvider<>(
@@ -145,7 +156,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
             services
         );
 
-        DefaultServiceRegistration<T, P> registration = Cast.uncheckedNonnullCast(specInstantiator.newInstance(DefaultServiceRegistration.class, name, parameters, provider));
+        DefaultServiceRegistration<T, P> registration = uncheckedNonnullCast(specInstantiator.newInstance(DefaultServiceRegistration.class, name, parameters, provider));
         registration.getMaxParallelUsages().set(maxParallelUsages);
         registrations.add(registration);
 

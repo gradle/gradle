@@ -27,6 +27,7 @@ import org.gradle.internal.watch.registry.FileWatcherUpdater;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
@@ -51,7 +52,7 @@ public class DarwinFileWatcherRegistryFactory extends AbstractFileWatcherRegistr
         FileWatcherProbeRegistry probeRegistry,
         WatchableHierarchies watchableHierarchies
     ) {
-        return new HierarchicalFileWatcherUpdater(watcher, DarwinFileWatcherRegistryFactory::validateLocationToWatch, probeRegistry, watchableHierarchies, root -> root);
+        return new HierarchicalFileWatcherUpdater(watcher, DarwinFileWatcherRegistryFactory::validateLocationToWatch, probeRegistry, watchableHierarchies, root -> Collections.emptyList());
     }
 
     /**

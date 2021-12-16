@@ -92,8 +92,10 @@ import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
+import org.gradle.api.internal.provider.BuildableBackedSetProvider;
 import org.gradle.api.internal.tasks.FailureCollectingTaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
@@ -2071,6 +2073,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         @Override
+        public Provider<Set<ResolvedArtifactResult>> getResolvedArtifacts() {
+            return new BuildableBackedSetProvider<>(getArtifactFiles(), new ArtifactCollectionResolvedArtifactsFactory(this));
+        }
+
+        @Override
         public Iterator<ResolvedArtifactResult> iterator() {
             ensureResolved();
             return result.get().artifactResults.iterator();
@@ -2090,6 +2097,20 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         private void ensureResolved() {
             result.finalizeIfNotAlready();
+        }
+    }
+
+    private static class ArtifactCollectionResolvedArtifactsFactory implements Factory<Set<ResolvedArtifactResult>> {
+
+        private final ArtifactCollection artifactCollection;
+
+        private ArtifactCollectionResolvedArtifactsFactory(ArtifactCollection artifactCollection) {
+            this.artifactCollection = artifactCollection;
+        }
+
+        @Override
+        public Set<ResolvedArtifactResult> create() {
+            return artifactCollection.getArtifacts();
         }
     }
 

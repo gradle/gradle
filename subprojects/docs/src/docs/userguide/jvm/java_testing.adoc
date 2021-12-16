@@ -207,6 +207,8 @@ The `Test` task generates the following results by default:
 
 In most cases, you'll work with the standard HTML report, which automatically includes the results from _all_ your `Test` tasks, even the ones you explicitly add to the build yourself. For example, if you add a `Test` task for integration tests, the report will include the results of both the unit tests and the integration tests if both tasks are run.
 
+To aggregate test results across multiple subprojects, see the <<test_report_aggregation_plugin#test_report_aggregation_plugin,Test Report Aggregation Plugin>>.
+
 Unlike with many of the testing configuration options, there are several project-level <<java_plugin.adoc#sec:java_convention_properties,convention properties that affect the test reports>>. For example, you can change the destination of the test results and reports like so:
 
 .Changing the default test report and results directories

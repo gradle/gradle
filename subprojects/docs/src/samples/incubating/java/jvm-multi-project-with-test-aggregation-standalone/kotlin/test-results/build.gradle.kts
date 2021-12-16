@@ -4,17 +4,19 @@ plugins {
 }
 
 dependencies {
-    testReportAggregation(project(":application")) // <1>
+    testReportAggregation(project(":application")) // <.>
 }
 
+// tag::create_report[]
 reporting {
     reports {
-        val testAggregateTestReport by creating(AggregateTestReport::class) { // <2>
+        val testAggregateTestReport by creating(AggregateTestReport::class) { // <.>
             testType.set(TestSuiteType.UNIT_TEST)
         }
     }
 }
+// end::create_report[]
 
 tasks.check {
-    dependsOn(tasks.named<TestReport>("testAggregateTestReport")) // <3>
+    dependsOn(tasks.named<TestReport>("testAggregateTestReport")) // <.>
 }

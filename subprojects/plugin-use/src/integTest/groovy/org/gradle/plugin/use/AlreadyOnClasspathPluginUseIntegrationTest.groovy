@@ -189,7 +189,7 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         succeeds "test"
     }
 
-    def "cannot request plugin version of plugin already requested on parent project"() {
+    def "can request plugin version of plugin already requested on parent project if it's the same"() {
 
         given:
         withBinaryPluginPublishedLocally()
@@ -210,10 +210,123 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         file("a/build.gradle") << requestPlugin("my-plugin", "1.0")
 
         when:
+        succeeds "help"
+
+        then:
+        operations.hasOperation("Apply plugin my-plugin to root project 'root'")
+        operations.hasOperation("Apply plugin my-plugin to project ':a'")
+    }
+
+    def "cannot request plugin version of plugin already requested on parent project if the version differs"() {
+
+        given:
+        withBinaryPluginPublishedLocally()
+
+        and:
+        withSettings """
+
+            pluginManagement {
+                ${withLocalPluginRepository()}
+            }
+
+            include("a")
+
+        """
+
+        and:
+        buildFile << requestPlugin("my-plugin", "1.0")
+        file("a/build.gradle") << requestPlugin("my-plugin", "1.0.1")
+
+        when:
         fails "help"
 
         then:
-        failureHasCause("Plugin request for plugin already on the classpath must not include a version")
+        failureDescriptionStartsWith("Error resolving plugin [id: 'my-plugin', version: '1.0.1']")
+        failureHasCause("The request for this plugin could not be satisfied because the plugin is already on the classpath with a different version (1.0).")
+
+        and:
+        operations.hasOperation("Apply plugin my-plugin to root project 'root'")
+        !operations.hasOperation("Apply plugin my-plugin to project ':a'")
+    }
+
+    def "can request plugin version of plugin already requested on settings if it's the same"() {
+        given:
+        withBinaryPluginPublishedLocally()
+
+        and:
+        withSettings """
+            pluginManagement {
+                ${withLocalPluginRepository()}
+                ${requestPlugin("my-plugin", "1.0")}
+            }
+
+            include("a")
+        """
+
+        and:
+        buildFile << requestPlugin("my-plugin", "1.0")
+        file("a/build.gradle") << requestPlugin("my-plugin", "1.0")
+
+        when:
+        succeeds "help"
+
+        then:
+        operations.hasOperation("Apply plugin my-plugin to root project 'root'")
+        operations.hasOperation("Apply plugin my-plugin to project ':a'")
+    }
+
+    // This is legal because settings only defines a _default_ version, and does not actually contribute to the classpath.
+    def "can request plugin version of plugin already requested on settings if the version differs"() {
+        given:
+        withBinaryPluginPublishedLocally()
+        withBinaryPluginPublishedLocally("my-other-local-plugins", "1.0.1")
+
+        and:
+        withSettings """
+            pluginManagement {
+                ${withLocalPluginRepository()}
+                ${requestPlugin("my-plugin", "1.0")}
+            }
+
+            include("a")
+        """
+
+        and:
+        buildFile << requestPlugin("my-plugin", "1.0.1")
+
+        when:
+        succeeds "help"
+
+        then:
+        operations.hasOperation("Apply plugin my-plugin to root project 'root'")
+    }
+
+    def "cannot request plugin version of plugin already requested on parent project if the version differs (using settings)"() {
+        given:
+        withBinaryPluginPublishedLocally()
+
+        and:
+        withSettings """
+
+            pluginManagement {
+                ${withLocalPluginRepository()}
+                ${requestPlugin("my-plugin", "1.0")}
+            }
+
+            include("a")
+
+        """
+
+        and:
+        buildFile << requestPlugin("my-plugin")
+        file("a/build.gradle") << requestPlugin("my-plugin", "1.0.1")
+
+        when:
+        fails "help"
+
+        then:
+        failureDescriptionStartsWith("Error resolving plugin [id: 'my-plugin', version: '1.0.1']")
+        failureHasCause("The request for this plugin could not be satisfied because the plugin is already on the classpath with a different version (1.0).")
 
         and:
         operations.hasOperation("Apply plugin my-plugin to root project 'root'")
@@ -233,7 +346,7 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
 
         then:
         failureDescriptionStartsWith("Error resolving plugin [id: 'my-plugin', version: '1.0']")
-        failureHasCause("Plugin request for plugin already on the classpath must not include a version")
+        failureHasCause("The request for this plugin could not be satisfied because the plugin is already on the classpath with an unknown version, so compatibility cannot be checked.")
     }
 
     @IgnoreIf({ GradleContextualExecuter.embedded }) // TestKit usage inside of the test requires distribution
@@ -246,7 +359,7 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
             false,
             """
                 Assert.assertTrue(result.output.contains("Error resolving plugin [id: 'my-plugin', version: '1.0']"))
-                Assert.assertTrue(result.output.contains("Plugin request for plugin already on the classpath must not include a version"))
+                Assert.assertTrue(result.output.contains("The request for this plugin could not be satisfied because the plugin is already on the classpath with an unknown version, so compatibility cannot be checked."))
             """.stripIndent()))
 
         expect:
@@ -275,7 +388,7 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         }
     }
 
-    private void withBinaryPluginBuild(String projectPath = ".", TestKitSpec testKitSpec = null) {
+    private void withBinaryPluginBuild(String projectPath = ".", TestKitSpec testKitSpec = null, String version = "1.0") {
         file("$projectPath/src/main/groovy/my/MyPlugin.groovy") << """
 
             package my
@@ -302,7 +415,7 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
             }
 
             group = "com.acme"
-            version = "1.0"
+            version = "$version"
 
             gradlePlugin {
                 plugins {
@@ -386,9 +499,8 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         """.stripIndent()
     }
 
-    private void withBinaryPluginPublishedLocally() {
-        def pluginBundleName = "my-local-plugins"
-        withBinaryPluginBuild(pluginBundleName)
+    private void withBinaryPluginPublishedLocally(String pluginBundleName = "my-local-plugins", String version = "1.0") {
+        withBinaryPluginBuild(pluginBundleName, null, version)
         file("$pluginBundleName/settings.gradle").createFile()
         file("$pluginBundleName/build.gradle") << """
             apply plugin: "maven-publish"
@@ -397,7 +509,7 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
 
         executer.inDirectory(file(pluginBundleName)).withTasks("publish").run()
 
-        file("$localPluginRepoPath/com/acme/$pluginBundleName/1.0/$pluginBundleName-1.0.jar").assertExists()
-        file("$localPluginRepoPath/my-plugin/my-plugin.gradle.plugin/1.0/my-plugin.gradle.plugin-1.0.pom").assertExists()
+        file("$localPluginRepoPath/com/acme/$pluginBundleName/$version/$pluginBundleName-${version}.jar").assertExists()
+        file("$localPluginRepoPath/my-plugin/my-plugin.gradle.plugin/$version/my-plugin.gradle.plugin-${version}.pom").assertExists()
     }
 }
