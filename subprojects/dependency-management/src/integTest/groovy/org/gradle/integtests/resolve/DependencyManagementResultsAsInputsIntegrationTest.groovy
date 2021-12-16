@@ -457,6 +457,48 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
         executedAndNotSkipped ":verify"
     }
 
+    def "can use ResolvedComponentResult result as task input"() {
+        given:
+        buildFile << """
+            abstract class TaskWithGraphInput extends DefaultTask {
+
+                @Input
+                abstract Property<ResolvedComponentResult> getDepGraphRoot()
+
+                @OutputFile
+                abstract RegularFileProperty getOutputFile()
+            }
+
+            tasks.register('verify', TaskWithGraphInput) {
+                depGraphRoot.set(configurations.runtimeClasspath.incoming.resolutionResult.rootComponent)
+                outputFile.set(layout.buildDirectory.file('output.txt'))
+                doLast {
+                    println(depGraphRoot.get())
+                }
+            }
+        """
+
+        when:
+        succeeds "verify"
+
+        then:
+        executedAndNotSkipped ":project-lib:jar", ":composite-lib:jar", ":verify"
+
+        when:
+        succeeds "verify"
+
+        then:
+        skipped ":project-lib:jar", ":composite-lib:jar", ":verify"
+
+        when:
+        withChangedSourceIn("project-lib")
+        succeeds "verify"
+
+        then:
+        skipped ":composite-lib:jar"
+        executedAndNotSkipped ":project-lib:jar", ":verify"
+    }
+
     private void withOriginalSourceIn(String basePath) {
         sourceFileIn(basePath).tap {
             text = """
