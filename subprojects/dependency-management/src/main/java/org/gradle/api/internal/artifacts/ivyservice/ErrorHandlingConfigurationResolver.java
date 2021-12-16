@@ -39,6 +39,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Visit
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 
 import java.io.File;
@@ -211,6 +212,13 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
             } catch (Exception e) {
                 throw wrapException(e, resolveContext);
             }
+        }
+
+        @Override
+        public Provider<ResolvedComponentResult> getRootComponent() {
+            // TODO:configuration-cache how to wrap provider code in error handling without breaking task dependencies?
+            // Maybe a provider that inherits dependencies from the original provider and wraps the result in error handling?
+            return resolutionResult.getRootComponent();
         }
 
         @Override

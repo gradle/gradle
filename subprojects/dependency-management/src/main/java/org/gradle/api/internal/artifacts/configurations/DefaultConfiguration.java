@@ -1893,6 +1893,13 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             }
 
             @Override
+            public Provider<ResolvedComponentResult> getRootComponent() {
+                // TODO:configuration-cache how to wrap provider code to defer "eager" lenient resolution?
+                resolve();
+                return delegate.getRootComponent();
+            }
+
+            @Override
             public Set<? extends DependencyResult> getAllDependencies() {
                 resolve();
                 return delegate.getAllDependencies();

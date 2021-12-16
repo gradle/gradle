@@ -23,6 +23,9 @@ import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.provider.BuildableBackedProvider;
+import org.gradle.api.internal.tasks.TaskDependencyInternal;
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Factory;
 import org.gradle.util.internal.ConfigureUtil;
@@ -49,6 +52,16 @@ public class DefaultResolutionResult implements ResolutionResult {
     }
 
     @Override
+    public Provider<ResolvedComponentResult> getRootComponent() {
+        // TODO:configuration-cache task dependencies from resolved results (selected artifacts?)
+        return new BuildableBackedProvider<>(
+            () -> TaskDependencyInternal.EMPTY,
+            ResolvedComponentResult.class,
+            rootSource
+        );
+    }
+
+    @Override
     public Set<? extends DependencyResult> getAllDependencies() {
         final Set<DependencyResult> out = new LinkedHashSet<>();
         allDependencies(out::add);
@@ -65,9 +78,11 @@ public class DefaultResolutionResult implements ResolutionResult {
         allDependencies(ConfigureUtil.configureUsing(closure));
     }
 
-    private void eachElement(ResolvedComponentResult node,
-                             Action<? super ResolvedComponentResult> moduleAction, Action<? super DependencyResult> dependencyAction,
-                             Set<ResolvedComponentResult> visited) {
+    private void eachElement(
+        ResolvedComponentResult node,
+        Action<? super ResolvedComponentResult> moduleAction, Action<? super DependencyResult> dependencyAction,
+        Set<ResolvedComponentResult> visited
+    ) {
         if (!visited.add(node)) {
             return;
         }
