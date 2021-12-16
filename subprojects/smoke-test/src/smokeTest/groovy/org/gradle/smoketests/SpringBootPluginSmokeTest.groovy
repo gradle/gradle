@@ -17,7 +17,6 @@
 package org.gradle.smoketests
 
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
-import org.gradle.util.GradleVersion
 import spock.lang.Issue
 
 import static org.gradle.internal.reflect.validation.Severity.ERROR
