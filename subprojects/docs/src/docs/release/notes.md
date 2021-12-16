@@ -136,6 +136,14 @@ Additional options were added for use with `-Dorg.gradle.debug=true`. These allo
 
 See [the documentation](userguide/command_line_interface.html#sec:command_line_debugging) for details.
 
+### Mark additional test source directories as tests in IntelliJ IDEA 
+
+The [IntelliJ IDEA Plugin](userguide/idea_plugin.html) plugin will now automatically mark all source directories used by a [JVM Test Suite](userguide/jvm_test_suite_plugin.html#declare_an_additional_test_suite) as test source directories within the IDE. 
+
+The [JVM Test Suite Plugin](userguide/jvm_test_suite_plugin.html) is an incubating plugin that makes it easier to create additional sets of tests in a Java project.
+
+The Eclipse plugin will be updated in a future version of Gradle.
+
 ### Plugins DSL improvements
 
 The [plugins DSL](userguide/plugins.html#sec:plugins_block) provides a succinct and convenient way to declare plugin dependencies.
