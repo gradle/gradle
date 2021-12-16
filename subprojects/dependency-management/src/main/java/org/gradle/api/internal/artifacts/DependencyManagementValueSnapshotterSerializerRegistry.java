@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
+import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
@@ -32,6 +33,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Compone
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectorSerializer;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolvedComponentResultSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolvedVariantResultSerializer;
 import org.gradle.api.internal.artifacts.metadata.ComponentArtifactIdentifierSerializer;
 import org.gradle.api.internal.artifacts.metadata.PublishArtifactLocalArtifactMetadataSerializer;
@@ -65,7 +67,8 @@ public class DependencyManagementValueSnapshotterSerializerRegistry extends Defa
         ResolvedVariantResult.class,
         ComponentSelectionDescriptor.class,
         ComponentSelectionReason.class,
-        ComponentSelector.class
+        ComponentSelector.class,
+        ResolvedComponentResult.class
     );
 
     @SuppressWarnings("rawtypes")
@@ -91,6 +94,7 @@ public class DependencyManagementValueSnapshotterSerializerRegistry extends Defa
         register(ComponentSelectionDescriptor.class, new ComponentSelectionDescriptorSerializer(componentSelectionDescriptorFactory));
         register(ComponentSelectionReason.class, new ComponentSelectionReasonSerializer(componentSelectionDescriptorFactory));
         register(ComponentSelector.class, new ComponentSelectorSerializer(attributeContainerSerializer));
+        register(ResolvedComponentResult.class, new ResolvedComponentResultSerializer());
     }
 
     @Override
