@@ -136,6 +136,12 @@ Additional options were added for use with `-Dorg.gradle.debug=true`. These allo
 
 See [the documentation](userguide/command_line_interface.html#sec:command_line_debugging) for details.
 
+### Test Suites ###
+
+#### Detect Additional Test Suite Sources in IntelliJ IDEA ####
+
+The [IntelliJ IDEA Plugin](userguide/idea_plugin.html) plugin will now automatically mark any [SourceSets](https://docs.gradle.org/current/dsl/org.gradle.api.tasks.SourceSet.html) created by adding additional Test Suites via the [Test Suite Plugin](userguide/jvm_test_suite_plugin.html) as test source directories within the IDE.
+
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
