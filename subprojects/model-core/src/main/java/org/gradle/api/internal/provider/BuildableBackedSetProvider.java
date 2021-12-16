@@ -16,66 +16,15 @@
 
 package org.gradle.api.internal.provider;
 
-import org.gradle.api.Action;
 import org.gradle.api.Buildable;
-import org.gradle.api.Task;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Set;
 
-public class BuildableBackedSetProvider<T extends Buildable, V> extends AbstractProviderWithValue<Set<V>> {
-
-    private final T buildable;
-    private final Factory<Set<V>> valueFactory;
+public class BuildableBackedSetProvider<T extends Buildable, V> extends BuildableBackedProvider<Set<V>> {
 
     public BuildableBackedSetProvider(T buildable, Factory<Set<V>> valueFactory) {
-        this.buildable = buildable;
-        this.valueFactory = valueFactory;
-    }
-
-    @Nullable
-    @Override
-    public Class<Set<V>> getType() {
-        return Cast.uncheckedCast(Set.class);
-    }
-
-    @Override
-    public ValueProducer getProducer() {
-        return new ValueProducer() {
-            @Override
-            public boolean isProducesDifferentValueOverTime() {
-                return false;
-            }
-
-            @Override
-            public void visitProducerTasks(Action<? super Task> visitor) {
-                for (Task dependency : buildableDependencies()) {
-                    visitor.execute(dependency);
-                }
-            }
-        };
-    }
-
-    @Override
-    public ExecutionTimeValue<? extends Set<V>> calculateExecutionTimeValue() {
-        if (contentsAreBuiltByTask()) {
-            return ExecutionTimeValue.changingValue(this);
-        }
-        return ExecutionTimeValue.fixedValue(get());
-    }
-
-    private boolean contentsAreBuiltByTask() {
-        return !buildableDependencies().isEmpty();
-    }
-
-    private Set<? extends Task> buildableDependencies() {
-        return buildable.getBuildDependencies().getDependencies(null);
-    }
-
-    @Override
-    protected Value<? extends Set<V>> calculateOwnValue(ValueConsumer consumer) {
-        return Value.ofNullable(valueFactory.create());
+        super(buildable, Cast.uncheckedCast(Set.class), valueFactory);
     }
 }
