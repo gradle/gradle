@@ -92,6 +92,7 @@ import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
+import org.gradle.api.internal.provider.BuildableBackedProvider;
 import org.gradle.api.internal.provider.BuildableBackedSetProvider;
 import org.gradle.api.internal.tasks.FailureCollectingTaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
@@ -1894,9 +1895,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
             @Override
             public Provider<ResolvedComponentResult> getRootComponent() {
-                // TODO:configuration-cache how to wrap provider code to defer "eager" lenient resolution?
-                resolve();
-                return delegate.getRootComponent();
+                return new BuildableBackedProvider<>(
+                    getIncoming().getArtifacts().getArtifactFiles(), // TODO:configuration-cache this is a bit of a stretch, should probably visit selected artifacts instead
+                    ResolvedComponentResult.class,
+                    this::getRoot // TODO:configuration-cache not compatible with the configuration cache
+                );
             }
 
             @Override

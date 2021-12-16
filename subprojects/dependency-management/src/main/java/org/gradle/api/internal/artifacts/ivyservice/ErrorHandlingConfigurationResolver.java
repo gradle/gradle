@@ -217,7 +217,6 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
         @Override
         public Provider<ResolvedComponentResult> getRootComponent() {
             // TODO:configuration-cache how to wrap provider code in error handling without breaking task dependencies?
-            // Maybe a provider that inherits dependencies from the original provider and wraps the result in error handling?
             return resolutionResult.getRootComponent();
         }
 
