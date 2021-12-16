@@ -190,7 +190,7 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
 
     @Override
     public Provider<Set<FileSystemLocation>> getElements() {
-        return new BuildableBackedSetProvider<FileCollection, FileSystemLocation>(
+        return new BuildableBackedSetProvider<>(
             this,
             new FileCollectionElementsFactory(this)
         );
