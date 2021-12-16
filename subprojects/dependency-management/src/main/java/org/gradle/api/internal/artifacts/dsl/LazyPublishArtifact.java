@@ -30,7 +30,6 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
-import org.gradle.internal.deprecation.DeprecationLogger;
 
 import java.io.File;
 import java.util.Date;
@@ -46,6 +45,7 @@ public class LazyPublishArtifact implements PublishArtifactInternal {
      */
     @Deprecated
     public LazyPublishArtifact(Provider<?> provider) {
+        this(provider, null);
         // TODO after Spring Boot resolves their usage of this constructor, uncomment this nag
         // https://github.com/spring-projects/spring-boot/issues/29074
         //        DeprecationLogger.deprecateInternalApi("constructor LazyPublishArtifact(Provider<?>)")
@@ -53,18 +53,21 @@ public class LazyPublishArtifact implements PublishArtifactInternal {
         //            .willBeRemovedInGradle8()
         //            .withUpgradeGuideSection(7, "lazypublishartifact_fileresolver")
         //            .nagUser();
-        this.provider = Providers.internal(provider);
-        this.version = null;
-        this.fileResolver = null;
     }
 
     public LazyPublishArtifact(Provider<?> provider, FileResolver fileResolver) {
-        this.provider = Providers.internal(provider);
-        this.version = null;
-        this.fileResolver = fileResolver;
+        this(provider, null, fileResolver);
     }
 
     public LazyPublishArtifact(Provider<?> provider, String version, FileResolver fileResolver) {
+        // TODO after Spring Boot resolves their usage of this constructor, uncomment this nag
+        // https://github.com/spring-projects/spring-boot/issues/29074
+        //        DeprecationLogger.deprecateInternalApi("constructor LazyPublishArtifact(Provider<?>, FileResolver) or constructor LazyPublishArtifact(Provider<?>, String, FileResolver)"
+        //        + " with a null FileResolver")
+        //            .replaceWith("a non-null FileResolver")
+        //            .willBeRemovedInGradle8()
+        //            .withUpgradeGuideSection(7, "lazypublishartifact_fileresolver")
+        //            .nagUser();
         this.provider = Providers.internal(provider);
         this.version = version;
         this.fileResolver = fileResolver;
