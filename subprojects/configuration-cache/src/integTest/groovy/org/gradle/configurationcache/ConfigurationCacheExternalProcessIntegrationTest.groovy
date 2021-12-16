@@ -49,7 +49,7 @@ class ConfigurationCacheExternalProcessIntegrationTest extends AbstractConfigura
         then:
         failure.assertOutputContains("Hello")
         problems.assertFailureHasProblems(failure) {
-            withProblem("$location '$file': external process started")
+            withProblem("$location '${relativePath(file)}': external process started")
         }
 
         where:
@@ -89,7 +89,7 @@ class ConfigurationCacheExternalProcessIntegrationTest extends AbstractConfigura
         then:
         failure.assertOutputContains("Hello")
         problems.assertFailureHasProblems(failure) {
-            withProblem("Initialization script '$file': external process started")
+            withProblem("Initialization script '${relativePath(file)}': external process started")
         }
 
         where:
@@ -123,7 +123,7 @@ class ConfigurationCacheExternalProcessIntegrationTest extends AbstractConfigura
         then:
         failure.assertOutputContains("Hello")
         problems.assertFailureHasProblems(failure) {
-            withProblem("Settings file '$file': external process started")
+            withProblem("Settings file '${relativePath(file)}': external process started")
         }
 
         where:
@@ -169,7 +169,7 @@ class ConfigurationCacheExternalProcessIntegrationTest extends AbstractConfigura
         then:
         failure.assertOutputContains("Hello")
         problems.assertFailureHasProblems(failure) {
-            withProblem("Build file '$file': external process started")
+            withProblem("Build file '${relativePath(file)}': external process started")
         }
 
         where:
