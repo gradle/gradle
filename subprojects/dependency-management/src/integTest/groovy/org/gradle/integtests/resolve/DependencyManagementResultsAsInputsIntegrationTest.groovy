@@ -497,6 +497,22 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
         then:
         skipped ":composite-lib:jar"
         executedAndNotSkipped ":project-lib:jar", ":verify"
+
+        when:
+        withChangedSourceIn("composite-lib")
+        succeeds "verify"
+
+        then:
+        skipped ":project-lib:jar"
+        executedAndNotSkipped ":composite-lib:jar", ":verify"
+
+        when:
+        withNewExternalDependency()
+        succeeds "verify"
+
+        then:
+        skipped ":project-lib:jar", ":composite-lib:jar"
+        executedAndNotSkipped ":verify"
     }
 
     private void withOriginalSourceIn(String basePath) {
