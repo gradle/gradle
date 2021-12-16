@@ -19,12 +19,19 @@ package org.gradle.api.internal.artifacts;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.component.ComponentSelector;
+import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
+import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.CapabilitySerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentIdentifierSerializer;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorFactory;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorSerializer;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonSerializer;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectorSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolvedVariantResultSerializer;
 import org.gradle.api.internal.artifacts.metadata.ComponentArtifactIdentifierSerializer;
 import org.gradle.api.internal.artifacts.metadata.PublishArtifactLocalArtifactMetadataSerializer;
@@ -55,14 +62,18 @@ public class DependencyManagementValueSnapshotterSerializerRegistry extends Defa
         DefaultModuleComponentArtifactIdentifier.class,
         ComponentIdentifier.class,
         AttributeContainer.class,
-        ResolvedVariantResult.class
+        ResolvedVariantResult.class,
+        ComponentSelectionDescriptor.class,
+        ComponentSelectionReason.class,
+        ComponentSelector.class
     );
 
     @SuppressWarnings("rawtypes")
     public DependencyManagementValueSnapshotterSerializerRegistry(
         ImmutableModuleIdentifierFactory moduleIdentifierFactory,
         ImmutableAttributesFactory immutableAttributesFactory,
-        NamedObjectInstantiator namedObjectInstantiator
+        NamedObjectInstantiator namedObjectInstantiator,
+        ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory
     ) {
         super(true);
 
@@ -77,6 +88,9 @@ public class DependencyManagementValueSnapshotterSerializerRegistry extends Defa
         register(DefaultModuleComponentIdentifier.class, Cast.uncheckedCast(componentIdentifierSerializer));
         register(AttributeContainer.class, attributeContainerSerializer);
         register(ResolvedVariantResult.class, new ResolvedVariantResultSerializer(componentIdentifierSerializer, attributeContainerSerializer));
+        register(ComponentSelectionDescriptor.class, new ComponentSelectionDescriptorSerializer(componentSelectionDescriptorFactory));
+        register(ComponentSelectionReason.class, new ComponentSelectionReasonSerializer(componentSelectionDescriptorFactory));
+        register(ComponentSelector.class, new ComponentSelectorSerializer(attributeContainerSerializer));
     }
 
     @Override

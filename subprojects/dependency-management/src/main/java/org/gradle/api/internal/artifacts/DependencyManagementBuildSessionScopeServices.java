@@ -36,12 +36,14 @@ public class DependencyManagementBuildSessionScopeServices {
     ValueSnapshotterSerializerRegistry createDependencyManagementValueSnapshotterSerializerRegistry(
         ImmutableModuleIdentifierFactory moduleIdentifierFactory,
         ImmutableAttributesFactory immutableAttributesFactory,
-        NamedObjectInstantiator namedObjectInstantiator
+        NamedObjectInstantiator namedObjectInstantiator,
+        ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory
     ) {
         return new DependencyManagementValueSnapshotterSerializerRegistry(
             moduleIdentifierFactory,
             immutableAttributesFactory,
-            namedObjectInstantiator
+            namedObjectInstantiator,
+            componentSelectionDescriptorFactory
         );
     }
 }

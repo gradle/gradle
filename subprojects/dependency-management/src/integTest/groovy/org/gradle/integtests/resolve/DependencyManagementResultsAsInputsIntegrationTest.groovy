@@ -19,6 +19,8 @@ package org.gradle.integtests.resolve
 import groovy.test.NotYetImplemented
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DefaultComponentSelectionDescriptor
 import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
@@ -26,6 +28,7 @@ import org.gradle.internal.Describables
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.ImmutableCapability
+import org.gradle.internal.component.local.model.DefaultLibraryComponentSelector
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
 
@@ -134,6 +137,9 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
             import ${ImmutableAttributesFactory.name}
             import ${DefaultResolvedVariantResult.name}
             import ${Describables.name}
+            import ${DefaultComponentSelectionDescriptor.name}
+            import ${ComponentSelectionReasons.name}
+            import ${DefaultLibraryComponentSelector.name}
 
             abstract class TaskWithInput extends DefaultTask {
 
@@ -174,16 +180,21 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
         executedAndNotSkipped(":verify")
 
         where:
-        type                          | factory
+        type                           | factory
         // For ResolvedArtifactResult
-        "Attribute"                   | "Attribute.of(System.getProperty('n'), String)"
-        "AttributeContainer"          | "services.get(ImmutableAttributesFactory).of(Attribute.of('some', String.class), System.getProperty('n'))"
-        "Capability"                  | "new ImmutableCapability('group', System.getProperty('n'), '1.0')"
-        "ModuleComponentIdentifier"   | "new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId('group', System.getProperty('n')),'1.0')"
-        "ComponentArtifactIdentifier" | "new DefaultModuleComponentArtifactIdentifier(new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId('group', System.getProperty('n')),'1.0'), System.getProperty('n') + '-1.0.jar', 'jar', null)"
-        "ResolvedVariantResult"       | "new DefaultResolvedVariantResult(new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId('group', System.getProperty('n')), '1.0'), Describables.of('variantName'), services.get(ImmutableAttributesFactory).of(Attribute.of('some', String.class), System.getProperty('n')), [new ImmutableCapability('group', System.getProperty('n'), '1.0')], null)"
+        "Attribute"                    | "Attribute.of(System.getProperty('n'), String)"
+        "AttributeContainer"           | "services.get(ImmutableAttributesFactory).of(Attribute.of('some', String.class), System.getProperty('n'))"
+        "Capability"                   | "new ImmutableCapability('group', System.getProperty('n'), '1.0')"
+        "ModuleComponentIdentifier"    | "new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId('group', System.getProperty('n')),'1.0')"
+        "ComponentArtifactIdentifier"  | "new DefaultModuleComponentArtifactIdentifier(new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId('group', System.getProperty('n')),'1.0'), System.getProperty('n') + '-1.0.jar', 'jar', null)"
+        "ResolvedVariantResult"        | "new DefaultResolvedVariantResult(new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId('group', System.getProperty('n')), '1.0'), Describables.of('variantName'), services.get(ImmutableAttributesFactory).of(Attribute.of('some', String.class), System.getProperty('n')), [new ImmutableCapability('group', System.getProperty('n'), '1.0')], null)"
         // For ResolvedComponentResult
-        "ModuleVersionIdentifier"     | "DefaultModuleVersionIdentifier.newId('group', System.getProperty('n'), '1.0')"
+        "ModuleVersionIdentifier"      | "DefaultModuleVersionIdentifier.newId('group', System.getProperty('n'), '1.0')"
+//        "ResolvedComponentResult"      | "null"
+//        "DependencyResult"             | "null"
+        "ComponentSelector"            | "new DefaultLibraryComponentSelector(':sub', System.getProperty('n'))"
+        "ComponentSelectionReason"     | "ComponentSelectionReasons.of(ComponentSelectionReasons.REQUESTED.withDescription(Describables.of('csd-' + System.getProperty('n'))))"
+        "ComponentSelectionDescriptor" | "new DefaultComponentSelectionDescriptor(ComponentSelectionCause.REQUESTED, Describables.of('csd-' + System.getProperty('n')))"
     }
 
     def "can map ResolvedArtifactResult file as task input"() {
