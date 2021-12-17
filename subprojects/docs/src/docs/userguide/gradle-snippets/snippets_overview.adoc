@@ -12,9 +12,9 @@ Coming soon
 
 - I want to read and write files.
 - I want to run an arbitrary command on the shell.
-- I want to add a "Hello World" Gradle conventions plugin.
+- I want to add the simplest possible Gradle conventions plugin to my build.
 - I want to create a custom test task which has a separate directory for its sources (i.e. using a different `SourceSet`).
 - I want to replace an `allprojects` or `subprojects` block, with a convention plugin.
 - I want to build my JVM application JAR so that it can be run without specifying the classpath at runtime i.e. this should work: `java -jar mything.jar`.
-- I want to write the most basic possible test for my build logic, using testKit.
+- I want to write the most basic possible test for my build logic, using Gradle TestKit.
 - I want to make sure that a certain vulnerable version of a dependency is never on the classpath for my Java project.
