@@ -1448,21 +1448,21 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
                     def libs = catalogs.named("libs")
                     def other = catalogs.find("other").get()
                     assert !catalogs.find("missing").present
-                    def lib = libs.findDependency('lib')
+                    def lib = libs.findLibrary('lib')
                     assert lib.present
                     assert lib.get() instanceof Provider
-                    assert !libs.findDependency('missing').present
+                    assert !libs.findLibrary('missing').present
                     assert libs.findPlugin('plug').present
                     assert libs.findBundle('all').present
                     assert !libs.findBundle('missing').present
                     assert other.findVersion('ver').present
                     assert !other.findVersion('missing').present
 
-                    assert libs.dependencyAliases == ['lib', 'lib2']
+                    assert libs.libraryAliases == ['lib', 'lib2']
                     assert libs.bundleAliases == ['all']
                     assert libs.versionAliases == []
 
-                    assert other.dependencyAliases == ['lib']
+                    assert other.libraryAliases == ['lib']
                     assert other.bundleAliases == []
                     assert other.versionAliases == ['ver']
 
@@ -1500,9 +1500,9 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
                     assert libs.findVersion('my_ver').present
                     assert libs.findVersion('my.ver').present
 
-                    assert libs.findDependency('my-lib').present
-                    assert libs.findDependency('my_lib').present
-                    assert libs.findDependency('my.lib').present
+                    assert libs.findLibrary('my-lib').present
+                    assert libs.findLibrary('my_lib').present
+                    assert libs.findLibrary('my.lib').present
 
                     assert libs.findBundle('my-all').present
                     assert libs.findBundle('my_all').present
@@ -1542,7 +1542,7 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
             class MyPlugin implements Plugin<Project> {
                 void apply(Project p) {
                     def libs = p.extensions.getByType(VersionCatalogsExtension).named('libs')
-                    p.dependencies.addProvider("implementation", libs.findDependency('lib').get())
+                    p.dependencies.addProvider("implementation", libs.findLibrary('lib').get())
                 }
             }
         """
@@ -1587,7 +1587,7 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
         file("buildSrc/src/main/groovy/my.plugin.gradle") << """
             pluginManager.withPlugin('java') {
                 def libs = extensions.getByType(VersionCatalogsExtension).named('libs')
-                dependencies.addProvider("implementation", libs.findDependency('lib').get())
+                dependencies.addProvider("implementation", libs.findLibrary('lib').get())
             }
         """
 
@@ -1925,8 +1925,10 @@ Second: 1.1"""
             "versionAliases",
             "pluginAliases",
             "dependencyAliases",
+            "libraryAliases",
             "findPlugin",
             "findDependency",
+            "findLibrary",
             "findVersion",
             "findBundle"
         ]
@@ -2040,13 +2042,13 @@ Second: 1.1"""
                     catalog.findVersion("ver").ifPresent {
                         println("Found version: '\${it.toString()}'.")
                     }
-                    catalog.findDependency("lib").ifPresent {
+                    catalog.findLibrary("lib").ifPresent {
                         println("Found dependency: '\${it.get().toString()}'.")
                     }
-                    catalog.findDependency("lib2").ifPresent {
+                    catalog.findLibrary("lib2").ifPresent {
                         println("Found dependency: '\${it.get().toString()}'.")
                     }
-                    catalog.findDependency("lib3").ifPresent {
+                    catalog.findLibrary("lib3").ifPresent {
                         println("Found dependency: '\${it.get().toString()}'.")
                     }
                     catalog.findBundle("all").ifPresent {

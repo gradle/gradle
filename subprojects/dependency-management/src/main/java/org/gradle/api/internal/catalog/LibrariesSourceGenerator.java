@@ -79,7 +79,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         for (String descLine : Splitter.on('\n').split(description)) {
             writeLn(" * " + descLine);
         }
-        List<String> libraries = config.getDependencyAliases();
+        List<String> libraries = config.getLibraryAliases();
         List<String> bundles = config.getBundleAliases();
         List<String> versions = config.getVersionAliases();
         List<String> plugins = config.getPluginAliases();

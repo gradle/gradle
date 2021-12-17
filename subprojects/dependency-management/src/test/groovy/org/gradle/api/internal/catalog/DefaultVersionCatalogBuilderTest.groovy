@@ -244,7 +244,7 @@ class DefaultVersionCatalogBuilderTest extends Specification implements VersionC
         model.bundleAliases == ["groovy"]
         model.getBundle("groovy").components == ["groovy", "groovy.json"]
 
-        model.dependencyAliases == ["groovy", "groovy.json", "guava"]
+        model.libraryAliases == ["groovy", "groovy.json", "guava"]
         model.getDependencyData("guava").version.requiredVersion == '17.0'
         model.getDependencyData("groovy").version.strictVersion == '3.0.5'
         model.getDependencyData("groovy-json").version.strictVersion == ''
@@ -268,7 +268,7 @@ class DefaultVersionCatalogBuilderTest extends Specification implements VersionC
         def model = builder.build()
 
         then:
-        model.dependencyAliases == ["foo.bar", "foo.baz", "foo.qux"]
+        model.libraryAliases == ["foo.bar", "foo.baz", "foo.qux"]
         model.bundleAliases == ["a.b", "a.c", "a.d", "my"]
         model.getBundle("my").components == ["foo.bar", "foo.baz", "foo.qux"]
 
@@ -304,7 +304,7 @@ class DefaultVersionCatalogBuilderTest extends Specification implements VersionC
         def model = builder.build()
 
         then:
-        model.dependencyAliases == ["alias", "dummy"]
+        model.libraryAliases == ["alias", "dummy"]
         model.getDependencyData("dummy").version.strictVersion == '1.5'
         model.getDependencyData("alias").version.strictVersion == '[1.0,2.0['
         model.getDependencyData("alias").version.preferredVersion == '1.7'
@@ -321,7 +321,7 @@ class DefaultVersionCatalogBuilderTest extends Specification implements VersionC
         def model = builder.build()
 
         then:
-        def bazKey = model.dependencyAliases.find { it == 'baz' }
+        def bazKey = model.libraryAliases.find { it == 'baz' }
         model.getDependencyData("foo").group.is(model.getDependencyData("baz").name)
         model.getDependencyData("foo").name.is(bazKey)
         model.getDependencyData("foo").version.requiredVersion.is(model.getDependencyData("baz").version.preferredVersion)

@@ -80,7 +80,7 @@ public class DependenciesAwareVersionCatalogBuilder extends DefaultVersionCatalo
 
     void tryGenericAlias(String group, String name, Action<? super MutableVersionConstraint> versionSpec) {
         String alias = normalizeName(name);
-        if (containsDependencyAlias(alias)) {
+        if (containsLibraryAlias(alias)) {
             throw new InvalidUserDataException("A dependency with alias '" + alias + "' already exists for module '" + group + ":" + name + "'. Please configure an explicit alias for this dependency.");
         }
         if (!ALIAS_PATTERN.matcher(alias).matches()) {

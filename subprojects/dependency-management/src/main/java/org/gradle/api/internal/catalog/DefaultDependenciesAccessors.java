@@ -347,7 +347,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
 
         @Override
         public void visitIdentityInputs(InputVisitor visitor) {
-            visitor.visitInputProperty(IN_DEPENDENCY_ALIASES, model::getDependencyAliases);
+            visitor.visitInputProperty(IN_DEPENDENCY_ALIASES, model::getLibraryAliases);
             visitor.visitInputProperty(IN_BUNDLES, model::getBundleAliases);
             visitor.visitInputProperty(IN_VERSIONS, model::getVersionAliases);
             visitor.visitInputProperty(IN_PLUGINS, model::getPluginAliases);

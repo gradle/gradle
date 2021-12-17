@@ -84,7 +84,7 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
     private final ProviderFactory providers;
     private final String name;
     private final Map<String, VersionModel> versionConstraints = Maps.newLinkedHashMap();
-    private final Map<String, Supplier<DependencyModel>> dependencies = Maps.newLinkedHashMap();
+    private final Map<String, Supplier<DependencyModel>> libraries = Maps.newLinkedHashMap();
     /**
      * Aliases that are being constructed, used to detect unfinished builders.
      */
@@ -156,7 +156,7 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
             String bundleName = entry.getKey();
             List<String> aliases = entry.getValue().getComponents();
             for (String alias : aliases) {
-                if (!dependencies.containsKey(alias)) {
+                if (!libraries.containsKey(alias)) {
                     return throwVersionCatalogProblem(VersionCatalogProblemId.UNDEFINED_ALIAS_REFERENCE, spec ->
                         spec.withShortDescription(() -> "A bundle with name '" + bundleName + "' declares a dependency on '" + alias + "' which doesn't exist")
                             .happensBecause("Bundles can only contain references to existing library aliases")
@@ -167,15 +167,15 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
                 }
             }
         }
-        ImmutableMap.Builder<String, DependencyModel> realizedDeps = ImmutableMap.builderWithExpectedSize(dependencies.size());
-        for (Map.Entry<String, Supplier<DependencyModel>> entry : dependencies.entrySet()) {
-            realizedDeps.put(entry.getKey(), entry.getValue().get());
+        ImmutableMap.Builder<String, DependencyModel> realizedLibs = ImmutableMap.builderWithExpectedSize(libraries.size());
+        for (Map.Entry<String, Supplier<DependencyModel>> entry : libraries.entrySet()) {
+            realizedLibs.put(entry.getKey(), entry.getValue().get());
         }
         ImmutableMap.Builder<String, PluginModel> realizedPlugins = ImmutableMap.builderWithExpectedSize(plugins.size());
         for (Map.Entry<String, Supplier<PluginModel>> entry : plugins.entrySet()) {
             realizedPlugins.put(entry.getKey(), entry.getValue().get());
         }
-        return new DefaultVersionCatalog(name, description.getOrElse(""), realizedDeps.build(), ImmutableMap.copyOf(bundles), ImmutableMap.copyOf(versionConstraints), realizedPlugins.build());
+        return new DefaultVersionCatalog(name, description.getOrElse(""), realizedLibs.build(), ImmutableMap.copyOf(bundles), ImmutableMap.copyOf(versionConstraints), realizedPlugins.build());
     }
 
     private void maybeImportCatalogs() {
@@ -332,8 +332,8 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
         return strings.intern(value);
     }
 
-    public boolean containsDependencyAlias(String name) {
-        return dependencies.containsKey(name);
+    public boolean containsLibraryAlias(String name) {
+        return libraries.containsKey(name);
     }
 
     @Override
@@ -491,7 +491,7 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
             owner.aliasesInProgress.remove(alias);
             ImmutableVersionConstraint version = owner.versionConstraintInterner.intern(DefaultImmutableVersionConstraint.of(versionBuilder));
             DependencyModel model = new DependencyModel(owner.intern(group), owner.intern(name), null, version, owner.currentContext);
-            Supplier<DependencyModel> previous = owner.dependencies.put(owner.intern(alias), () -> model);
+            Supplier<DependencyModel> previous = owner.libraries.put(owner.intern(alias), () -> model);
             if (previous != null) {
                 LOGGER.warn("Duplicate entry for alias '{}': {} is replaced with {}", alias, previous.get(), model);
             }
@@ -575,7 +575,7 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
     }
 
     private void createAliasWithVersionRef(String alias, String group, String name, String versionRef) {
-        Supplier<DependencyModel> previous = dependencies.put(intern(normalize(alias)), new VersionReferencingDependencyModel(group, name, normalize(versionRef)));
+        Supplier<DependencyModel> previous = libraries.put(intern(normalize(alias)), new VersionReferencingDependencyModel(group, name, normalize(versionRef)));
         if (previous != null) {
             LOGGER.warn("Duplicate entry for alias '{}': {} is replaced with {}", alias, previous.get(), model);
         }
