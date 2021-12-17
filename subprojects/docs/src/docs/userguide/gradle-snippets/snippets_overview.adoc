@@ -1,0 +1,20 @@
+[[gradle_snippets_overview]]
+= Gradle snippets overview
+
+Sometimes when you arrive at documentation, you are wanting a solution to a specific problem that you're presently facing, perhaps a problem you think should be routine and perhaps even trivial. This section
+of the documentation is here to provide idiomatic solutions to common problems faced by Gradle build authors.
+
+If what you were looking for isn't here yet, please send an email about what you were looking for to snippet-suggestions@gradle.org so we can (a) help you (b) write documentation that would have helped you solve your problem without having to email us. You could also https://github.com/gradle/gradle/blob/master/CONTRIBUTING.md[contribute a pull request to the Gradle build tool repository on GitHub].
+
+- <<sharing_task_outputs_between_projects.adoc#sharing_task_outputs_between_projects,I want to share a file produced by a task in one project, with a task in another project.>>
+
+Coming soon
+
+- I want to read and write files.
+- I want to run an arbitrary command on the shell.
+- I want to add a hello-world Gradle conventions plugin.
+- I want to create a custom test task which has a separate directory for its sources (i.e. using a different `SourceSet`).
+- I want to replace an `allprojects` or `subprojects` block, with a convention plugin.
+- I want to build my JVM application JAR so that it can be run without specifying the classpath at runtime i.e. this should work: `java -jar mything.jar`.
+- I want to write the most basic possible test for my build logic, using testKit.
+- I want to make sure that a certain vulnerable version of a dependency is not on the classpath for my Java project.

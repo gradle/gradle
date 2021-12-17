@@ -1,0 +1,18 @@
+configurations {
+    sharedConfiguration {
+        canBeConsumed = false
+        canBeResolved = true
+    }
+}
+
+dependencies {
+    sharedConfiguration(project("path": ":producer", "configuration": "sharedConfiguration"))
+}
+
+tasks.register("showFile") {
+    def sharedConfiguration = configurations.getByName("sharedConfiguration")
+    it.inputs.files(sharedConfiguration)
+    it.doFirst {
+        logger.lifecycle("File is at {}", sharedConfiguration.singleFile.absolutePath)
+    }
+}

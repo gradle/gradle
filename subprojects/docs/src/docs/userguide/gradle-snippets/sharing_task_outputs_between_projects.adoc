@@ -1,0 +1,49 @@
+[[sharing_task_outputs_between_projects]]
+= Sharing outputs between projects
+
+You want to share a file made by a task in one project with a task in another project.
+For example one task makes a file, and the other task uses the file.
+
+== Example
+
+.Settings
+====
+include::sample[dir="snippets/gradle-snippets/sharing-task-outputs-between-projects/groovy",files="settings.gradle[]"]
+include::sample[dir="snippets/gradle-snippets/sharing-task-outputs-between-projects/kotlin",files="settings.gradle.kts[]"]
+====
+
+.Producer's build
+====
+include::sample[dir="snippets/gradle-snippets/sharing-task-outputs-between-projects/groovy",files="producer/build.gradle[]"]
+include::sample[dir="snippets/gradle-snippets/sharing-task-outputs-between-projects/kotlin",files="producer/build.gradle.kts[]"]
+====
+
+.Consumer's build
+====
+include::sample[dir="snippets/gradle-snippets/sharing-task-outputs-between-projects/groovy",files="consumer/build.gradle[]"]
+include::sample[dir="snippets/gradle-snippets/sharing-task-outputs-between-projects/kotlin",files="consumer/build.gradle.kts[]"]
+====
+
+See also:
+
+- <<cross_project_publications.adoc#cross_project_publications, Sharing outputs between projects>>
+- https://github.com/robmoore-i/gradle-share-outputs-between-projects/tree/groovy[A minimal example Gradle project demonstrating this feature, provided from the community]
+
+== Anti-patterns:
+
+[WARNING]
+.Don't reference other project tasks directly
+====
+A frequent anti-pattern to declare cross-project dependencies is:
+
+[source,groovy]
+----
+dependencies {
+   // this is unsafe!
+   implementation project(":other").tasks.someOtherJar
+}
+----
+
+This publication model is _unsafe_ and can lead to non-reproducible and hard to parallelize builds.
+(WHY?)
+====
