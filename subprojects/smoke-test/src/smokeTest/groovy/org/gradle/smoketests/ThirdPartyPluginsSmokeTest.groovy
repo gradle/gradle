@@ -25,6 +25,7 @@ import org.gradle.util.TestPrecondition
 import org.gradle.util.VersionNumber
 import org.gradle.util.ports.ReleasingPortAllocator
 import org.gradle.vcs.fixtures.GitFileRepository
+
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -353,6 +354,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
 
     @Issue('https://plugins.gradle.org/plugin/org.ajoberstar.grgit')
     @ToBeFixedForConfigurationCache(because = "Gradle.buildFinished")
+    @Requires(TestPrecondition.JDK11_OR_LATER)
     def 'org.ajoberstar.grgit plugin'() {
         given:
         GitFileRepository.init(testProjectDir.root)
