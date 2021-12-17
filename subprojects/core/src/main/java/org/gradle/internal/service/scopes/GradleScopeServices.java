@@ -74,6 +74,7 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.BuildOutputCleanupRegistry;
+import org.gradle.internal.execution.TaskExecutionTracker;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.IsolatableFactory;
@@ -241,8 +242,10 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         ServiceRegistry services,
         ListenerManager listenerManager,
         IsolatableFactory isolatableFactory,
-        SharedResourceLeaseRegistry sharedResourceLeaseRegistry
+        SharedResourceLeaseRegistry sharedResourceLeaseRegistry,
+        TaskExecutionTracker taskExecutionTracker
     ) {
+        // Instantiate via `instantiator` for the DSL decorations to the `BuildServiceRegistry` API
         return instantiator.newInstance(
             DefaultBuildServicesRegistry.class,
             buildState.getBuildIdentifier(),
@@ -251,7 +254,8 @@ public class GradleScopeServices extends DefaultServiceRegistry {
             services,
             listenerManager,
             isolatableFactory,
-            sharedResourceLeaseRegistry
+            sharedResourceLeaseRegistry,
+            taskExecutionTracker
         );
     }
 

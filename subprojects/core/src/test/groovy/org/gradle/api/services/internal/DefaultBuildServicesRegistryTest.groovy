@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
 import org.gradle.internal.event.DefaultListenerManager
+import org.gradle.internal.execution.TaskExecutionTracker
 import org.gradle.internal.resources.SharedResourceLeaseRegistry
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.snapshot.impl.DefaultIsolatableFactory
@@ -35,7 +36,8 @@ class DefaultBuildServicesRegistryTest extends Specification {
     def isolatableFactory = new DefaultIsolatableFactory(null, TestUtil.managedFactoryRegistry())
     def leaseRegistry = Stub(SharedResourceLeaseRegistry)
     def buildIdentifier = Mock(BuildIdentifier)
-    def registry = new DefaultBuildServicesRegistry(buildIdentifier, TestUtil.domainObjectCollectionFactory(), TestUtil.instantiatorFactory(), TestUtil.services(), listenerManager, isolatableFactory, leaseRegistry)
+    def taskExecutionTracker = Mock(TaskExecutionTracker)
+    def registry = new DefaultBuildServicesRegistry(buildIdentifier, TestUtil.domainObjectCollectionFactory(), TestUtil.instantiatorFactory(), TestUtil.services(), listenerManager, isolatableFactory, leaseRegistry, taskExecutionTracker)
 
     def setup() {
         ServiceImpl.reset()

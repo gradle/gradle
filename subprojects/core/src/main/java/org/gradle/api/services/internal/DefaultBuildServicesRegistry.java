@@ -21,7 +21,9 @@ import org.gradle.BuildResult;
 import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.NonExtensible;
+import org.gradle.api.Task;
 import org.gradle.api.artifacts.component.BuildIdentifier;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.services.BuildService;
@@ -29,6 +31,7 @@ import org.gradle.api.services.BuildServiceParameters;
 import org.gradle.api.services.BuildServiceRegistration;
 import org.gradle.api.services.BuildServiceSpec;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.execution.TaskExecutionTracker;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolated.IsolationScheme;
 import org.gradle.internal.isolation.IsolatableFactory;
@@ -43,6 +46,7 @@ import java.util.function.Supplier;
 
 import static org.gradle.internal.Cast.uncheckedCast;
 import static org.gradle.internal.Cast.uncheckedNonnullCast;
+import static org.gradle.internal.deprecation.DeprecationLogger.deprecateBehaviour;
 
 public class DefaultBuildServicesRegistry implements BuildServiceRegistryInternal {
     private final BuildIdentifier buildIdentifier;
@@ -52,6 +56,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
     private final ListenerManager listenerManager;
     private final IsolatableFactory isolatableFactory;
     private final SharedResourceLeaseRegistry leaseRegistry;
+    private final TaskExecutionTracker taskExecutionTracker;
     private final IsolationScheme<BuildService, BuildServiceParameters> isolationScheme = new IsolationScheme<>(BuildService.class, BuildServiceParameters.class, BuildServiceParameters.None.class);
     private final Instantiator paramsInstantiator;
     private final Instantiator specInstantiator;
@@ -63,7 +68,8 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
         ServiceRegistry services,
         ListenerManager listenerManager,
         IsolatableFactory isolatableFactory,
-        SharedResourceLeaseRegistry leaseRegistry
+        SharedResourceLeaseRegistry leaseRegistry,
+        TaskExecutionTracker taskExecutionTracker
     ) {
         this.buildIdentifier = buildIdentifier;
         this.registrations = uncheckedCast(factory.newNamedDomainObjectSet(BuildServiceRegistration.class));
@@ -72,6 +78,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
         this.listenerManager = listenerManager;
         this.isolatableFactory = isolatableFactory;
         this.leaseRegistry = leaseRegistry;
+        this.taskExecutionTracker = taskExecutionTracker;
         this.paramsInstantiator = instantiatorFactory.decorateScheme().withServices(services).instantiator();
         this.specInstantiator = instantiatorFactory.decorateLenientScheme().withServices(services).instantiator();
     }
@@ -153,7 +160,8 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
             isolationScheme,
             instantiatorFactory.injectScheme(),
             isolatableFactory,
-            services
+            services,
+            this::validateAccess
         );
 
         DefaultServiceRegistration<T, P> registration = uncheckedNonnullCast(specInstantiator.newInstance(DefaultServiceRegistration.class, name, parameters, provider));
@@ -164,6 +172,30 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
         // TODO - should reuse service across build invocations, until the parameters change (which contradicts the previous item)
         listenerManager.addListener(new ServiceCleanupListener(provider));
         return provider;
+    }
+
+    private <T extends BuildService<P>, P extends BuildServiceParameters> void validateAccess(BuildServiceProvider<T, P> serviceProvider) {
+        taskExecutionTracker.getCurrentTask().ifPresent(task -> {
+            if (!task.getRequiredServices().contains(serviceProvider)) {
+                nagAboutUndeclaredBuildServiceUsage(serviceProvider, task);
+            }
+            // TODO:configuration-cache assert build service is from the same build as the task in `Task.usesService`
+        });
+    }
+
+    private static void nagAboutUndeclaredBuildServiceUsage(BuildServiceProvider<?, ?> serviceProvider, TaskInternal task) {
+        deprecateBehaviour(undeclaredBuildServiceUsage(serviceProvider, task))
+            .withAdvice("Declare the task uses the build service via 'Task#usesService'.")
+            .withContext("Max parallel usages constraint on the build service can't be honored.")
+            .willBecomeAnErrorInGradle8()
+            .withDslReference(Task.class, "usesService(org.gradle.api.provider.Provider)")
+            .nagUser();
+    }
+
+    private static String undeclaredBuildServiceUsage(BuildServiceProvider<?, ?> serviceProvider, TaskInternal task) {
+        return "Build service '" + serviceProvider.getName() + "'" +
+            " is being used by task '" + task.getIdentityPath() + "'" +
+            " without the corresponding declaration via 'Task#usesService'.";
     }
 
     private static class ServiceBackedSharedResource implements SharedResource {
