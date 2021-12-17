@@ -19,7 +19,9 @@ package org.gradle.internal.buildevents
 import org.gradle.BuildResult
 import org.gradle.StartParameter
 import org.gradle.api.GradleException
-import org.gradle.api.invocation.Gradle
+import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.SettingsInternal
+import org.gradle.api.internal.plugins.PluginManagerInternal
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.configuration.LoggingConfiguration
 import org.gradle.api.logging.configuration.ShowStacktrace
@@ -31,6 +33,7 @@ import org.gradle.internal.exceptions.LocationAwareException
 import org.gradle.internal.logging.DefaultLoggingConfiguration
 import org.gradle.internal.logging.text.StyledTextOutputFactory
 import org.gradle.internal.logging.text.TestStyledTextOutput
+import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin
 import spock.lang.Specification
 
 class BuildExceptionReporterTest extends Specification {
@@ -71,14 +74,19 @@ class BuildExceptionReporterTest extends Specification {
 '''
     }
 
-    def "suggests to use --scan even if option was on command line"() {
+    def "does not suggest to use --scan if option was on command line"() {
         GradleException exception = new GradleException("<message>");
 
         def result = result(exception)
-        result.gradle >> Mock(Gradle) {
+        result.gradle >> Mock(GradleInternal) {
             getStartParameter() >> Mock(StartParameter) {
                 isBuildScan() >> true
                 isNoBuildScan() >> false
+            }
+            getSettings() >> Mock(SettingsInternal) {
+                getPluginManager() >> Mock(PluginManagerInternal) {
+                    hasPlugin(AutoAppliedGradleEnterprisePlugin.ID.getId()) >> true
+                }
             }
         }
 
@@ -93,20 +101,24 @@ class BuildExceptionReporterTest extends Specification {
 * Try:
 {info}> {normal}Run with {userinput}--stacktrace{normal} option to get the stack trace.
 {info}> {normal}Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output.
-{info}> {normal}Run with {userinput}--scan{normal} to get full insights.
 
 * Get more help at {userinput}https://help.gradle.org{normal}
 '''
     }
 
-    def "suggests to use --scan if --no-scan is on command line"() {
+    def "does not suggest to use --scan if --no-scan is on command line"() {
         GradleException exception = new GradleException("<message>");
 
         def result = result(exception)
-        result.gradle >> Mock(Gradle) {
+        result.gradle >> Mock(GradleInternal) {
             getStartParameter() >> Mock(StartParameter) {
                 isBuildScan() >> false
                 isNoBuildScan() >> true
+            }
+            getSettings() >> Mock(SettingsInternal) {
+                getPluginManager() >> Mock(PluginManagerInternal) {
+                    hasPlugin(AutoAppliedGradleEnterprisePlugin.ID.getId()) >> true
+                }
             }
         }
 
@@ -121,7 +133,6 @@ class BuildExceptionReporterTest extends Specification {
 * Try:
 {info}> {normal}Run with {userinput}--stacktrace{normal} option to get the stack trace.
 {info}> {normal}Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output.
-{info}> {normal}Run with {userinput}--scan{normal} to get full insights.
 
 * Get more help at {userinput}https://help.gradle.org{normal}
 '''

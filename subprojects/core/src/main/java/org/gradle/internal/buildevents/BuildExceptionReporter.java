@@ -17,6 +17,7 @@ package org.gradle.internal.buildevents;
 
 import org.gradle.BuildResult;
 import org.gradle.api.Action;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
@@ -32,6 +33,7 @@ import org.gradle.internal.logging.text.BufferingStyledTextOutput;
 import org.gradle.internal.logging.text.LinePrefixingStyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
+import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin;
 import org.gradle.util.internal.GUtil;
 
 import java.util.List;
@@ -66,21 +68,30 @@ public class BuildExceptionReporter implements Action<Throwable> {
             return;
         }
 
-        execute(failure);
+        execute(failure, isGradleEnterprisePluginApplied(result));
     }
 
     @Override
     public void execute(Throwable failure) {
+        execute(failure, false);
+    }
+
+    private void execute(Throwable failure, boolean gradleEnterprisePluginApplied) {
         if (failure instanceof MultipleBuildFailures) {
             List<? extends Throwable> flattenedFailures = ((MultipleBuildFailures) failure).getCauses();
-            renderMultipleBuildExceptions(failure.getMessage(), flattenedFailures);
+            renderMultipleBuildExceptions(failure.getMessage(), flattenedFailures, gradleEnterprisePluginApplied);
             return;
         }
 
-        renderSingleBuildException(failure);
+        renderSingleBuildException(failure, gradleEnterprisePluginApplied);
     }
 
-    private void renderMultipleBuildExceptions(String message, List<? extends Throwable> flattenedFailures) {
+    private boolean isGradleEnterprisePluginApplied(BuildResult result) {
+        GradleInternal gradle = (GradleInternal) result.getGradle();
+        return gradle != null && gradle.getSettings().getPluginManager().hasPlugin(AutoAppliedGradleEnterprisePlugin.ID.getId());
+    }
+
+    private void renderMultipleBuildExceptions(String message, List<? extends Throwable> flattenedFailures, boolean gradleEnterprisePluginApplied) {
         StyledTextOutput output = textOutputFactory.create(BuildExceptionReporter.class, LogLevel.ERROR);
         output.println();
         output.withStyle(Failure).format("FAILURE: %s", message);
@@ -88,7 +99,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
 
         for (int i = 0; i < flattenedFailures.size(); i++) {
             Throwable cause = flattenedFailures.get(i);
-            FailureDetails details = constructFailureDetails("Task", cause);
+            FailureDetails details = constructFailureDetails("Task", cause, gradleEnterprisePluginApplied);
 
             output.println();
             output.withStyle(Failure).format("%s: ", i + 1);
@@ -103,9 +114,9 @@ public class BuildExceptionReporter implements Action<Throwable> {
         writeGeneralTips(output);
     }
 
-    private void renderSingleBuildException(Throwable failure) {
+    private void renderSingleBuildException(Throwable failure, boolean gradleEnterprisePluginApplied) {
         StyledTextOutput output = textOutputFactory.create(BuildExceptionReporter.class, LogLevel.ERROR);
-        FailureDetails details = constructFailureDetails("Build", failure);
+        FailureDetails details = constructFailureDetails("Build", failure, gradleEnterprisePluginApplied);
 
         output.println();
         output.withStyle(Failure).text("FAILURE: ");
@@ -125,11 +136,11 @@ public class BuildExceptionReporter implements Action<Throwable> {
         }
     }
 
-    private FailureDetails constructFailureDetails(String granularity, Throwable failure) {
+    private FailureDetails constructFailureDetails(String granularity, Throwable failure, boolean gradleEnterprisePluginApplied) {
         FailureDetails details = new FailureDetails(failure, getShowStackTraceOption());
         details.summary.format("%s failed with an exception.", granularity);
 
-        fillInFailureResolution(details);
+        fillInFailureResolution(details, gradleEnterprisePluginApplied);
 
         if (failure instanceof ContextAwareException) {
             ((ContextAwareException) failure).accept(new ExceptionFormattingVisitor(details));
@@ -190,7 +201,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
         }
     }
 
-    private void fillInFailureResolution(FailureDetails details) {
+    private void fillInFailureResolution(FailureDetails details, boolean gradleEnterprisePluginApplied) {
         BufferingStyledTextOutput resolution = details.resolution;
         ContextImpl context = new ContextImpl(resolution);
         if (details.failure instanceof FailureResolutionAware) {
@@ -215,7 +226,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
             });
         }
 
-        if (!context.missingBuild) {
+        if (!context.missingBuild && !gradleEnterprisePluginApplied) {
             addBuildScanMessage(context);
         }
     }
