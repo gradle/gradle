@@ -27,7 +27,6 @@ import org.gradle.api.attributes.TestSuiteName;
 import org.gradle.api.attributes.TestSuiteTargetName;
 import org.gradle.api.attributes.TestSuiteType;
 import org.gradle.api.attributes.VerificationType;
-import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -38,8 +37,10 @@ import org.gradle.api.plugins.ReportingBasePlugin;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.jvm.JvmTestSuiteTarget;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.reporting.Report;
 import org.gradle.api.reporting.ReportingExtension;
+import org.gradle.api.reporting.SingleFileReport;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.testing.Test;
@@ -94,7 +95,7 @@ public class JacocoPlugin implements Plugin<Project> {
         JacocoPluginExtension extension = project.getExtensions().create(PLUGIN_EXTENSION_NAME, JacocoPluginExtension.class, project, agent);
         extension.setToolVersion(DEFAULT_JACOCO_VERSION);
         final ReportingExtension reportingExtension = (ReportingExtension) project.getExtensions().getByName(ReportingExtension.NAME);
-        extension.getReportsDirectory().set(project.getLayout().dir(project.provider(() -> reportingExtension.file("jacoco"))));
+        extension.getReportsDirectory().convention(project.getLayout().dir(project.provider(() -> reportingExtension.file("jacoco"))));
 
         configureAgentDependencies(agent, extension);
         configureTaskClasspathDefaults(extension);
@@ -118,7 +119,7 @@ public class JacocoPlugin implements Plugin<Project> {
         });
     }
 
-    private Configuration createCoverageDataVariant(Project project, JvmTestSuite suite, JvmTestSuiteTarget target) {
+    private void createCoverageDataVariant(Project project, JvmTestSuite suite, JvmTestSuiteTarget target) {
         final Configuration variant = project.getConfigurations().create(COVERAGE_DATA_ELEMENTS_VARIANT_PREFIX + StringUtils.capitalize(target.getName()));
         variant.setDescription("Binary data file containing results of Jacoco test coverage reporting for the " + suite.getName() + " Test Suite's " + target.getName() + " target.");
         variant.setVisible(false);
@@ -140,8 +141,6 @@ public class JacocoPlugin implements Plugin<Project> {
             artifact.setType(ArtifactTypeDefinition.BINARY_DATA_TYPE);
             artifact.builtBy(target.getTestTask());
         });
-
-        return variant;
     }
 
     /**
@@ -216,9 +215,9 @@ public class JacocoPlugin implements Plugin<Project> {
         DirectoryProperty reportsDir = extension.getReportsDirectory();
         reportTask.getReports().all(action(report -> {
             if (report.getOutputType().equals(Report.OutputType.DIRECTORY)) {
-                report.setDestination(reportsDir.dir(reportTask.getName() + "/" + report.getName()).map(Directory::getAsFile));
+                ((DirectoryReport)report).getOutputLocation().convention(reportsDir.dir(reportTask.getName() + "/" + report.getName()));
             } else {
-                report.setDestination(reportsDir.dir(reportTask.getName() + "/" + reportTask.getName() + "." + report.getName()).map(Directory::getAsFile));
+                ((SingleFileReport)report).getOutputLocation().convention(reportsDir.file(reportTask.getName() + "/" + reportTask.getName() + "." + report.getName()));
             }
         }));
     }
@@ -258,9 +257,9 @@ public class JacocoPlugin implements Plugin<Project> {
                     // uses the `reportTask`.
                     // https://github.com/gradle/gradle/issues/6343
                     if (report.getOutputType().equals(Report.OutputType.DIRECTORY)) {
-                        report.setDestination(reportsDir.dir(testTaskName + "/" + report.getName()).map(Directory::getAsFile));
+                        ((DirectoryReport)report).getOutputLocation().convention(reportsDir.dir(testTaskName + "/" + report.getName()));
                     } else {
-                        report.setDestination(reportsDir.dir(testTaskName + "/" + reportTask.getName() + "." + report.getName()).map(Directory::getAsFile));
+                        ((SingleFileReport)report).getOutputLocation().convention(reportsDir.file(testTaskName + "/" + reportTask.getName() + "." + report.getName()));
                     }
                 }));
             });

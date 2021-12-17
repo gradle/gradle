@@ -99,7 +99,7 @@ The set of link:{javadocPath}/org/gradle/api/attribute/Attribute.html[Attribute]
 If the set of attributes is shared across configurations, consider adding an additional attribute to one of the variants for the sole purpose of disambiguation.
 
 [[for_use_at_configuration_time_deprecation]]
-==== Provider#forUseAtConfigurationTime
+==== `Provider#forUseAtConfigurationTime()` has been deprecated
 
 link:{javadocPath}/org/gradle/api/provider/Provider.html#forUseAtConfigurationTime--[Provider#forUseAtConfigurationTime] is now deprecated and scheduled for removal in Gradle 9.0. Clients should simply remove the call.
 
@@ -108,6 +108,12 @@ The call was mandatory on providers of external values such as link:{javadocPath
 Starting with version 7.4 Gradle will implicitly treat an external value used at configuration time as a configuration cache input.
 
 Clients are also free to use standard Java APIs such as `System#getenv` to read environment variables, `System#getProperty` to read system properties as well as Gradle APIs such as link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#systemProperty-java.lang.String-[`Project#property(String)`] and link:{javadocPath}/org/gradle/api/Project.html#findProperty-java.lang.String-[`Project#findProperty(String)`] to read Gradle properties at configuration time. The `Provider` based APIs are still the recommended way to connect external values to task inputs for maximum configuration cache reuse.
+
+==== `ConfigurableReport#setDestination(org.gradle.api.provider.Provider<java.io.File>)` has been deprecated
+
+link:{javadocPath}/org/gradle/api/reporting/ConfigurableReport.html#setDestination-org.gradle.api.provider.Provider-[`ConfigurableReport#setDestination(org.gradle.api.provider.Provider<java.io.File>)`] is now deprecated and scheduled for removal in Gradle 8.0.
+
+Use link:{javadocPath}/org/gradle/api/reporting/Report.html#getOutputLocation--[`Report#getOutputLocation().set(...)`] instead.
 
 [[changes_7.3]]
 == Upgrading from 7.2 and earlier
