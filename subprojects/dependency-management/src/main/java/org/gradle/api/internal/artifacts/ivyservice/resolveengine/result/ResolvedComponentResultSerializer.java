@@ -23,17 +23,18 @@ import org.gradle.internal.serialize.Serializer;
 
 import java.io.IOException;
 
+// TODO:configuration-cache replace this by working directly from the binary store where the result is already stored
+//                          hash the bytes for snapshotting
 public class ResolvedComponentResultSerializer implements Serializer<ResolvedComponentResult> {
 
     @Override
     public ResolvedComponentResult read(Decoder decoder) throws IOException {
         DefaultResolutionResultBuilder builder = new DefaultResolutionResultBuilder();
-        // TODO:configuration-cache try to reuse StreamingResolutionResultBuilder.RootFactory
-        return builder.complete(1L).getRoot();
+        return builder.complete(decoder.readSmallLong()).getRoot();
     }
 
     @Override
     public void write(Encoder encoder, ResolvedComponentResult value) throws IOException {
-        // TODO:configuration-cache visit selectors, components, dependencies as in StreamingResolutionResultBuilder
+        encoder.writeSmallLong(1L);
     }
 }
