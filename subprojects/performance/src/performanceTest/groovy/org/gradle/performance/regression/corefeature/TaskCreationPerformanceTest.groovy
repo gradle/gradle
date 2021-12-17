@@ -31,7 +31,7 @@ class TaskCreationPerformanceTest extends AbstractCrossVersionPerformanceTest {
     def "create many tasks"() {
         given:
         runner.tasksToRun = ['help']
-        runner.targetVersions = ["6.9.1-20210803105128+0000"]
+        runner.targetVersions = ["6.9.1-20211216190919+0000"]
         runner.runs = 60
 
         when:
