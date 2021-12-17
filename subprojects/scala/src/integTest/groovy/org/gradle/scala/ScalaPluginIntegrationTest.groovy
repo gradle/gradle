@@ -259,4 +259,23 @@ task someTask
         succeeds("assemble")
         succeeds("dependencyInsight", "--configuration", "zinc", "--dependency", "zinc")
     }
+
+    @ToBeFixedForConfigurationCache(because = ":dependencies")
+    @Issue("gradle/gradle#19328")
+    def 'show that log4j-core, if present, is 2_16_0 at the minimum'() {
+        given:
+        file('build.gradle') << """
+            apply plugin: 'scala'
+
+            ${mavenCentralRepository()}
+        """
+
+        def versionPattern = ~/.*-> 2\.(\d+).*/
+        expect:
+        succeeds('dependencies', '--configuration', 'zinc')
+        def log4jOutput = result.getOutputLineThatContains("log4j-core:{require 2.16.0; reject [2.0, 2.16)}")
+        def matcher = log4jOutput =~ versionPattern
+        matcher.find()
+        Integer.valueOf(matcher.group(1)) >= 16
+    }
 }

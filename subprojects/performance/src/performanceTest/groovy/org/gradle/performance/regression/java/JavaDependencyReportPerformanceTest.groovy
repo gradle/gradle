@@ -35,7 +35,7 @@ class JavaDependencyReportPerformanceTest extends AbstractCrossVersionPerformanc
         given:
         def subProject = (runner.testProject == LARGE_JAVA_MULTI_PROJECT.projectName) ? 'project363:' : ''
         runner.tasksToRun = ["${subProject}dependencyReport"]
-        runner.targetVersions = ["6.9.1-20210803105128+0000"]
+        runner.targetVersions = ["6.9.1-20211216190919+0000"]
 
         when:
         def result = runner.run()
