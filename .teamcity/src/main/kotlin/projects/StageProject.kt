@@ -34,6 +34,7 @@ class StageProject(
     previousPerformanceTestPasses: List<PerformanceTestsPass>
 ) : Project({
     this.id("${model.projectId}_Stage_${stage.stageName.id}")
+    this.uuid = "${model.projectId}_Stage_${stage.stageName.uuid}"
     this.name = stage.stageName.stageName
     this.description = stage.stageName.description
 }) {
