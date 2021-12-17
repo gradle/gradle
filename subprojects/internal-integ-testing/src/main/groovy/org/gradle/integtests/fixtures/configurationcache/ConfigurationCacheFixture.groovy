@@ -211,8 +211,7 @@ class ConfigurationCacheFixture {
     }
 
     private void assertHasProblems(HasProblems problemDetails) {
-        boolean isFailure = spec.result instanceof ExecutionFailure
-        if (isFailure) {
+        if (spec.failed) {
             problems.assertFailureHasProblems(spec.failure) {
                 applyProblemsTo(problemDetails, delegate)
             }
