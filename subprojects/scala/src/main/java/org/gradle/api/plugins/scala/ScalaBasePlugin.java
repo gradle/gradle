@@ -55,6 +55,7 @@ import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.scala.IncrementalCompileOptions;
 import org.gradle.api.tasks.scala.ScalaCompile;
 import org.gradle.api.tasks.scala.ScalaDoc;
+import org.gradle.internal.logging.util.Log4jBannedVersion;
 import org.gradle.jvm.tasks.Jar;
 import org.gradle.language.scala.internal.toolchain.DefaultScalaToolProvider;
 
@@ -147,6 +148,11 @@ public class ScalaBasePlugin implements Plugin<Project> {
                 });
             });
         });
+
+        zinc.getDependencyConstraints().add(dependencyHandler.getConstraints().create(Log4jBannedVersion.LOG4J2_CORE_COORDINATES, constraint -> constraint.version(version -> {
+            version.require(Log4jBannedVersion.LOG4J2_CORE_REQUIRED_VERSION);
+            version.reject(Log4jBannedVersion.LOG4J2_CORE_VULNERABLE_VERSION_RANGE);
+        })));
 
         final Configuration incrementalAnalysisElements = project.getConfigurations().create("incrementalScalaAnalysisElements");
         incrementalAnalysisElements.setVisible(false);

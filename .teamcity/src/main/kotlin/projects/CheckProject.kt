@@ -20,7 +20,7 @@ class CheckProject(
     params {
         param("credentialsStorageType", "credentialsJSON")
         param("teamcity.ui.settings.readOnly", "true")
-        param("env.GRADLE_ENTERPRISE_ACCESS_KEY", "%ge.gradle.org.access.key%")
+        param("env.GRADLE_ENTERPRISE_ACCESS_KEY", "%ge.gradle.org.access.key%;%ge-td-dogfooding.grdev.net.access.key%")
     }
 
     var prevStage: Stage? = null

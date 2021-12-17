@@ -432,7 +432,6 @@ public class NodeState implements DependencyGraphNode {
         try {
             collectAncestorsStrictVersions(incomingEdges);
             for (DependencyState dependencyState : dependencies(resolutionFilter)) {
-                dependencyState = maybeSubstitute(dependencyState, resolveState.getDependencySubstitutionApplicator());
                 PendingDependenciesVisitor.PendingState pendingState = pendingDepsVisitor.maybeAddAsPendingDependency(this, dependencyState);
                 if (dependencyState.getDependency().isConstraint()) {
                     registerActivatingConstraint(dependencyState);
@@ -505,6 +504,11 @@ public class NodeState implements DependencyGraphNode {
         }
         List<DependencyState> tmp = Lists.newArrayListWithCapacity(from.size());
         for (DependencyState dependencyState : from) {
+            if (isExcluded(spec, dependencyState)) {
+                continue;
+            }
+            dependencyState = maybeSubstitute(dependencyState, resolveState.getDependencySubstitutionApplicator());
+
             if (!isExcluded(spec, dependencyState)) {
                 tmp.add(dependencyState);
             }
