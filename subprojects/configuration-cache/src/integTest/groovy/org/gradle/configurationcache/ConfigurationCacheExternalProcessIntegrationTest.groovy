@@ -24,6 +24,10 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.configurationcache.fixtures.ExecOperationsFixture
 import org.gradle.configurationcache.fixtures.ExecOperationsFixture.ExecFormatter
 import org.gradle.process.ExecOperations
+import org.gradle.workers.WorkAction
+import org.gradle.workers.WorkParameters
+import org.gradle.workers.WorkQueue
+import org.gradle.workers.WorkerExecutor
 
 import javax.inject.Inject
 import java.util.function.Function
@@ -437,6 +441,63 @@ class ConfigurationCacheExternalProcessIntegrationTest extends AbstractConfigura
                 @TaskAction
                 public void exec() {
                     ${formatter.callProcessAndPrintOutput(method, spec.apply(formatter))}
+                }
+            }
+
+            def sneakyTask = tasks.register("sneakyTask", SneakyTask) {}
+
+            // Ensure that buildSrc compilation triggers an exec task.
+            tasks.named("classes").configure {
+                dependsOn(sneakyTask)
+            }
+        """
+
+        when:
+        configurationCacheRun(":help")
+
+        then:
+        outputContains("Hello")
+
+        where:
+        method                         | spec
+        "getExecOperations().exec"     | ExecFormatter::execSpec
+        "getExecOperations().javaexec" | ExecFormatter::javaexecSpec
+    }
+
+    def "using #method in worker task action of buildSrc is not a problem"(String method,
+                                                                           Function<ExecFormatter, String> spec) {
+        given:
+        def formatter = execOperationsFixture.groovyFormatter()
+        testDirectory.file("buildSrc/build.gradle") << """
+            import ${DefaultTask.name}
+            import ${ExecOperations.name}
+            import ${Inject.name}
+            import ${TaskAction.name}
+            import ${WorkAction.name}
+            import ${WorkParameters.name}
+            import ${WorkQueue.name}
+            import ${WorkerExecutor.name}
+            ${formatter.imports()}
+
+            public abstract class SneakyAction implements WorkAction<WorkParameters.None> {
+                @Inject
+                protected abstract ExecOperations getExecOperations();
+
+                @Override
+                void execute() {
+                    ${formatter.callProcessAndPrintOutput(method, spec.apply(formatter))}
+                }
+            }
+
+            public abstract class SneakyTask extends DefaultTask {
+
+                @Inject
+                abstract public WorkerExecutor getWorkerExecutor();
+
+                @TaskAction
+                public void exec() {
+                    WorkQueue workQueue = getWorkerExecutor().noIsolation();
+                    workQueue.submit(SneakyAction.class, parameters -> {})
                 }
             }
 
