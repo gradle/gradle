@@ -23,8 +23,7 @@ import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.internal.provider.BuildableBackedProvider;
-import org.gradle.api.internal.tasks.TaskDependencyInternal;
+import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Factory;
@@ -53,12 +52,7 @@ public class DefaultResolutionResult implements ResolutionResult {
 
     @Override
     public Provider<ResolvedComponentResult> getRootComponent() {
-        // TODO:configuration-cache task dependencies from resolved results (selected artifacts?)
-        return new BuildableBackedProvider<>(
-            () -> TaskDependencyInternal.EMPTY,
-            ResolvedComponentResult.class,
-            rootSource
-        );
+        return new DefaultProvider<>(this::getRoot);
     }
 
     @Override
