@@ -300,7 +300,7 @@ systemProp.https.proxyHost=www.somehost.org
 systemProp.https.proxyPort=8080
 systemProp.https.proxyUser=userid
 systemProp.https.proxyPassword=password
-systemProp.http.nonProxyHosts=*.nonproxyrepos.com|localhost
+systemProp.https.nonProxyHosts=*.nonproxyrepos.com|localhost
 ----
 
 You may need to set other properties to access other networks. Here are 2 references that may be helpful:
