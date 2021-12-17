@@ -41,6 +41,9 @@ class ArtifactViewDemoIntegrationTest extends AbstractIntegrationSpec {
 
                 configurations {
                     redElements {
+                        canBeConsumed = true
+                        canBeResolved = false
+
                         attributes {
                             attribute(shared, 'shared-value')
                             attribute(color, 'red')
@@ -51,6 +54,9 @@ class ArtifactViewDemoIntegrationTest extends AbstractIntegrationSpec {
                         }
                     }
                     blueElements {
+                        canBeConsumed = true
+                        canBeResolved = false
+
                         attributes {
                             attribute(shared, 'shared-value')
                             attribute(color, 'blue')
@@ -61,6 +67,9 @@ class ArtifactViewDemoIntegrationTest extends AbstractIntegrationSpec {
                         }
                     }
                     otherElements {
+                        canBeConsumed = true
+                        canBeResolved = false
+
                         attributes {
                             attribute(other, 'foobar')
                         }
@@ -70,6 +79,9 @@ class ArtifactViewDemoIntegrationTest extends AbstractIntegrationSpec {
                         }
                     }
                     noneElements {
+                        canBeConsumed = true
+                        canBeResolved = false
+
                         outgoing {
                             artifact(layout.projectDirectory.file('direct-none.txt'))
                         }
@@ -97,6 +109,9 @@ class ArtifactViewDemoIntegrationTest extends AbstractIntegrationSpec {
 
                 configurations {
                     redElements {
+                        canBeConsumed = true
+                        canBeResolved = false
+
                         attributes {
                             attribute(shared, 'shared-value')
                             attribute(color, 'red')
@@ -107,6 +122,9 @@ class ArtifactViewDemoIntegrationTest extends AbstractIntegrationSpec {
                         }
                     }
                     blueElements {
+                        canBeConsumed = true
+                        canBeResolved = false
+
                         attributes {
                             attribute(shared, 'shared-value')
                             attribute(color, 'blue')
@@ -117,6 +135,9 @@ class ArtifactViewDemoIntegrationTest extends AbstractIntegrationSpec {
                         }
                     }
                     otherElements {
+                        canBeConsumed = true
+                        canBeResolved = false
+
                         attributes {
                             attribute(other, 'foobar')
                         }
@@ -126,6 +147,9 @@ class ArtifactViewDemoIntegrationTest extends AbstractIntegrationSpec {
                         }
                     }
                     noneElements {
+                        canBeConsumed = true
+                        canBeResolved = false
+
                         outgoing {
                             artifact(layout.projectDirectory.file('transitive-none.txt'))
                         }
@@ -278,6 +302,6 @@ class ArtifactViewDemoIntegrationTest extends AbstractIntegrationSpec {
             '''
 
         expect:
-        succeeds(':consumer:resolve')
+        succeeds(':directProducer:outgoingVariants', ':consumer:resolve')
     }
 }
