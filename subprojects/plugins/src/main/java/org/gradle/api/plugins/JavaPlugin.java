@@ -322,7 +322,7 @@ public class JavaPlugin implements Plugin<Project> {
     }
 
     private void configureArchivesAndComponent(Project project, final JavaPluginExtension pluginExtension) {
-        PublishArtifact jarArtifact = new LazyPublishArtifact(registerJarTaskFor(project, pluginExtension));
+        PublishArtifact jarArtifact = new LazyPublishArtifact(registerJarTaskFor(project, pluginExtension), ((ProjectInternal) project).getFileResolver());
         Configuration apiElementConfiguration = project.getConfigurations().getByName(API_ELEMENTS_CONFIGURATION_NAME);
         Configuration runtimeElementsConfiguration = project.getConfigurations().getByName(RUNTIME_ELEMENTS_CONFIGURATION_NAME);
 

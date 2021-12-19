@@ -24,6 +24,7 @@ import org.gradle.plugin.management.internal.InvalidPluginRequestException;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin;
 import org.gradle.plugin.use.PluginId;
+import org.gradle.plugin.use.tracker.internal.PluginVersionTracker;
 
 public class AlreadyOnClasspathPluginResolver implements PluginResolver {
     private final PluginResolver delegate;
@@ -31,13 +32,22 @@ public class AlreadyOnClasspathPluginResolver implements PluginResolver {
     private final PluginDescriptorLocator pluginDescriptorLocator;
     private final ClassLoaderScope parentLoaderScope;
     private final PluginInspector pluginInspector;
+    private final PluginVersionTracker pluginVersionTracker;
 
-    public AlreadyOnClasspathPluginResolver(PluginResolver delegate, PluginRegistry corePluginRegistry, ClassLoaderScope parentLoaderScope, PluginDescriptorLocator pluginDescriptorLocator, PluginInspector pluginInspector) {
+    public AlreadyOnClasspathPluginResolver(
+        PluginResolver delegate,
+        PluginRegistry corePluginRegistry,
+        ClassLoaderScope parentLoaderScope,
+        PluginDescriptorLocator pluginDescriptorLocator,
+        PluginInspector pluginInspector,
+        PluginVersionTracker pluginVersionTracker
+    ) {
         this.delegate = delegate;
         this.corePluginRegistry = corePluginRegistry;
         this.pluginDescriptorLocator = pluginDescriptorLocator;
         this.parentLoaderScope = parentLoaderScope;
         this.pluginInspector = pluginInspector;
+        this.pluginVersionTracker = pluginVersionTracker;
     }
 
     @Override
@@ -59,14 +69,31 @@ public class AlreadyOnClasspathPluginResolver implements PluginResolver {
                     );
                 }
             }
-            throw new InvalidPluginRequestException(pluginRequest, "Plugin request for plugin already on the classpath must not include a version");
+            String existingVersion = pluginVersionTracker.findPluginVersionAt(parentLoaderScope, pluginId.getId());
+            if (existingVersion != null) {
+                if (existingVersion.equals(pluginRequest.getOriginalRequest().getVersion())) {
+                    resolveAlreadyOnClasspath(pluginId, existingVersion, result);
+                } else {
+                    throw new InvalidPluginRequestException(
+                        pluginRequest,
+                        "The request for this plugin could not be satisfied because " +
+                            "the plugin is already on the classpath with a different version (" + existingVersion + ")."
+                    );
+                }
+            } else {
+                throw new InvalidPluginRequestException(
+                    pluginRequest,
+                    "The request for this plugin could not be satisfied because " +
+                        "the plugin is already on the classpath with an unknown version, so compatibility cannot be checked."
+                );
+            }
         } else {
-            resolveAlreadyOnClasspath(pluginId, result);
+            resolveAlreadyOnClasspath(pluginId, null, result);
         }
     }
 
-    private void resolveAlreadyOnClasspath(PluginId pluginId, PluginResolutionResult result) {
-        PluginResolution pluginResolution = new ClassPathPluginResolution(pluginId, parentLoaderScope, pluginInspector);
+    private void resolveAlreadyOnClasspath(PluginId pluginId, String pluginVersion, PluginResolutionResult result) {
+        PluginResolution pluginResolution = new ClassPathPluginResolution(pluginId, pluginVersion, parentLoaderScope, pluginInspector);
         result.found("Already on classpath", pluginResolution);
     }
 

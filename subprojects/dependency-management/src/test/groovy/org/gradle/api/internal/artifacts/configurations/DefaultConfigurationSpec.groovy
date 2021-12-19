@@ -1767,7 +1767,8 @@ All Artifacts:
         def publishArtifactNotationParser = new PublishArtifactNotationParserFactory(
             instantiator,
             metaDataProvider,
-            Mock(TaskResolver)
+            Mock(TaskResolver),
+            TestFiles.resolver(),
         )
         def defaultConfigurationFactory = new DefaultConfigurationFactory(
             DirectInstantiator.INSTANCE,

@@ -31,7 +31,8 @@ import org.gradle.internal.state.Managed;
 
 import javax.annotation.Nullable;
 
-// TODO - complain when used at configuration time, except when opted in to this
+// TODO:configuration-cache - complain when used at configuration time, except when opted in to this
+@SuppressWarnings("rawtypes")
 public class BuildServiceProvider<T extends BuildService<P>, P extends BuildServiceParameters> extends AbstractMinimalProvider<T> implements Managed {
     private final BuildIdentifier buildIdentifier;
     private final String name;
@@ -43,7 +44,16 @@ public class BuildServiceProvider<T extends BuildService<P>, P extends BuildServ
     private final P parameters;
     private Try<T> instance;
 
-    public BuildServiceProvider(BuildIdentifier buildIdentifier, String name, Class<T> implementationType, @Nullable P parameters, IsolationScheme<BuildService, BuildServiceParameters> isolationScheme, InstantiationScheme instantiationScheme, IsolatableFactory isolatableFactory, ServiceRegistry internalServices) {
+    public BuildServiceProvider(
+        BuildIdentifier buildIdentifier,
+        String name,
+        Class<T> implementationType,
+        @Nullable P parameters,
+        IsolationScheme<BuildService, BuildServiceParameters> isolationScheme,
+        InstantiationScheme instantiationScheme,
+        IsolatableFactory isolatableFactory,
+        ServiceRegistry internalServices
+    ) {
         this.buildIdentifier = buildIdentifier;
         this.name = name;
         this.implementationType = implementationType;
@@ -97,26 +107,46 @@ public class BuildServiceProvider<T extends BuildService<P>, P extends BuildServ
 
     @Override
     protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
+        return Value.of(getInstance());
+    }
+
+    private T getInstance() {
         synchronized (this) {
             if (instance == null) {
-                // TODO - extract some shared infrastructure to take care of instantiation (eg which services are visible, strict vs lenient, decorated or not?)
-                // TODO - should hold the project lock to do the isolation. Should work the same way as artifact transforms (a work node does the isolation, etc)
-                P isolatedParameters = isolatableFactory.isolate(parameters).isolate();
-                // TODO - reuse this in other places
-                ServiceLookup instantiationServices = isolationScheme.servicesForImplementation(
-                    isolatedParameters,
-                    internalServices,
-                    ImmutableList.of(),
-                    serviceType -> false
-                );
-                try {
-                    instance = Try.successful(instantiationScheme.withServices(instantiationServices).instantiator().newInstance(implementationType));
-                } catch (Exception e) {
-                    instance = Try.failure(new ServiceLifecycleException("Failed to create service '" + name + "'.", e));
-                }
+                instance = instantiate();
             }
-            return Value.of(instance.get());
         }
+        return instance.get();
+    }
+
+    private Try<T> instantiate() {
+        // TODO - extract some shared infrastructure to take care of instantiation (eg which services are visible, strict vs lenient, decorated or not?)
+        // TODO - should hold the project lock to do the isolation. Should work the same way as artifact transforms (a work node does the isolation, etc)
+        P isolatedParameters = isolatableFactory.isolate(parameters).isolate();
+        // TODO - reuse this in other places
+        ServiceLookup instantiationServices = instantiationServicesFor(isolatedParameters);
+        try {
+            return Try.successful(instantiate(instantiationServices));
+        } catch (Exception e) {
+            return Try.failure(instantiationException(e));
+        }
+    }
+
+    private ServiceLifecycleException instantiationException(Exception e) {
+        return new ServiceLifecycleException("Failed to create service '" + name + "'.", e);
+    }
+
+    private T instantiate(ServiceLookup instantiationServices) {
+        return instantiationScheme.withServices(instantiationServices).instantiator().newInstance(implementationType);
+    }
+
+    private ServiceLookup instantiationServicesFor(@Nullable P isolatedParameters) {
+        return isolationScheme.servicesForImplementation(
+            isolatedParameters,
+            internalServices,
+            ImmutableList.of(),
+            serviceType -> false
+        );
     }
 
     @Override

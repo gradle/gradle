@@ -88,7 +88,8 @@ class DefaultConfigurationContainerTest extends Specification {
         new PublishArtifactNotationParserFactory(
             instantiator,
             metaDataProvider,
-            taskResolver
+            taskResolver,
+            TestFiles.resolver(),
         ),
         immutableAttributesFactory,
         documentationRegistry,

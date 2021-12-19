@@ -24,7 +24,7 @@ import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.initialization.BuildLoader;
 import org.gradle.initialization.DependenciesAccessors;
 import org.gradle.initialization.buildsrc.BuildSourceBuilder;
-import org.gradle.internal.build.BuildStateRegistry;
+import org.gradle.internal.buildtree.BuildInclusionCoordinator;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
 import org.gradle.internal.service.ServiceRegistry;
@@ -33,14 +33,14 @@ import java.io.File;
 
 public class BuildTreePreparingProjectsPreparer implements ProjectsPreparer {
     private final ProjectsPreparer delegate;
-    private final BuildStateRegistry buildStateRegistry;
+    private final BuildInclusionCoordinator coordinator;
     private final BuildSourceBuilder buildSourceBuilder;
     private final BuildLoader buildLoader;
 
-    public BuildTreePreparingProjectsPreparer(ProjectsPreparer delegate, BuildLoader buildLoader, BuildStateRegistry buildStateRegistry, BuildSourceBuilder buildSourceBuilder) {
+    public BuildTreePreparingProjectsPreparer(ProjectsPreparer delegate, BuildLoader buildLoader, BuildInclusionCoordinator coordinator, BuildSourceBuilder buildSourceBuilder) {
         this.delegate = delegate;
         this.buildLoader = buildLoader;
-        this.buildStateRegistry = buildStateRegistry;
+        this.coordinator = coordinator;
         this.buildSourceBuilder = buildSourceBuilder;
     }
 
@@ -56,7 +56,7 @@ public class BuildTreePreparingProjectsPreparer implements ProjectsPreparer {
         buildLoader.load(gradle.getSettings(), gradle);
         // Makes included build substitutions available
         if (gradle.isRootBuild()) {
-            buildStateRegistry.beforeConfigureRootBuild();
+            coordinator.registerGlobalLibrarySubstitutions();
         }
         // Build buildSrc and export classpath to root project
         buildBuildSrcAndLockClassloader(gradle, buildSrcClassLoaderScope);

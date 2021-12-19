@@ -36,8 +36,6 @@ import org.gradle.configuration.project.DelayedConfigurationActions
 import org.gradle.configuration.project.LifecycleProjectEvaluator
 import org.gradle.configuration.project.PluginsProjectConfigureActions
 import org.gradle.configuration.project.ProjectEvaluator
-import org.gradle.configurationcache.build.ConfigurationCacheIncludedBuildState
-import org.gradle.configurationcache.build.NoOpBuildModelController
 import org.gradle.configurationcache.extensions.get
 import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprintController
 import org.gradle.configurationcache.initialization.ConfigurationCacheBuildEnablement
@@ -120,15 +118,11 @@ class DefaultBuildModelControllerServices(
     private
     class ConfigurationCacheBuildControllerProvider {
         fun createBuildModelController(
-            build: BuildState,
             gradle: GradleInternal,
             stateTransitionControllerFactory: StateTransitionControllerFactory,
             cache: BuildTreeConfigurationCache
         ): BuildModelController {
-            if (build is ConfigurationCacheIncludedBuildState) {
-                return NoOpBuildModelController(gradle)
-            }
-            val vintageController = VintageBuildControllerProvider().createBuildModelController(build, gradle, stateTransitionControllerFactory)
+            val vintageController = VintageBuildControllerProvider().createBuildModelController(gradle, stateTransitionControllerFactory)
             return ConfigurationCacheAwareBuildModelController(gradle, vintageController, cache)
         }
     }
@@ -136,13 +130,9 @@ class DefaultBuildModelControllerServices(
     private
     class VintageBuildControllerProvider {
         fun createBuildModelController(
-            build: BuildState,
             gradle: GradleInternal,
             stateTransitionControllerFactory: StateTransitionControllerFactory
         ): BuildModelController {
-            if (build is ConfigurationCacheIncludedBuildState) {
-                return NoOpBuildModelController(gradle)
-            }
             val projectsPreparer: ProjectsPreparer = gradle.services.get()
             val taskSchedulingPreparer = DefaultTaskSchedulingPreparer(ExcludedTaskFilteringProjectsPreparer(gradle.services.get()))
             val settingsPreparer: SettingsPreparer = gradle.services.get()

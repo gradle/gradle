@@ -46,7 +46,6 @@ import org.intellij.lang.annotations.Language
 import org.junit.Rule
 import spock.lang.Specification
 
-import javax.annotation.Nullable
 import java.nio.file.Files
 
 import static org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout.DEFAULT_TIMEOUT_SECONDS
@@ -390,11 +389,6 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
         return currentResult
     }
 
-    @Nullable
-    ExecutionResult getResultOrNull() {
-        return currentResult
-    }
-
     void setResult(ExecutionResult result) {
         currentFailure = null
         currentResult = result
@@ -407,9 +401,8 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
         return currentFailure
     }
 
-    @Nullable
-    ExecutionFailure getFailureOrNull() {
-        return currentFailure
+    boolean isFailed() {
+        return currentFailure != null
     }
 
     void setFailure(ExecutionFailure failure) {
