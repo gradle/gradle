@@ -16,25 +16,76 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.component.ComponentSelector;
+import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
+import org.gradle.api.artifacts.result.ResolvedDependencyResult;
+import org.gradle.api.internal.artifacts.result.DefaultResolvedComponentResult;
+import org.gradle.api.internal.artifacts.result.DefaultResolvedDependencyResult;
+import org.gradle.api.internal.artifacts.result.DefaultUnresolvedDependencyResult;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 
-import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
-// TODO:configuration-cache replace this by working directly from the binary store where the result is already stored
-//                          hash the bytes for snapshotting
 public class ResolvedComponentResultSerializer implements Serializer<ResolvedComponentResult> {
+    private final Serializer<ModuleVersionIdentifier> moduleVersionIdSerializer;
+    private final Serializer<ComponentIdentifier> componentIdSerializer;
+    private final Serializer<ComponentSelector> componentSelectorSerializer;
 
-    @Override
-    public ResolvedComponentResult read(Decoder decoder) throws IOException {
-        DefaultResolutionResultBuilder builder = new DefaultResolutionResultBuilder();
-        return builder.complete(decoder.readSmallLong()).getRoot();
+    public ResolvedComponentResultSerializer(
+        Serializer<ModuleVersionIdentifier> moduleVersionIdSerializer,
+        Serializer<ComponentIdentifier> componentIdSerializer,
+        Serializer<ComponentSelector> componentSelectorSerializer
+    ) {
+        this.moduleVersionIdSerializer = moduleVersionIdSerializer;
+        this.componentIdSerializer = componentIdSerializer;
+        this.componentSelectorSerializer = componentSelectorSerializer;
     }
 
     @Override
-    public void write(Encoder encoder, ResolvedComponentResult value) throws IOException {
-        encoder.writeSmallLong(1L);
+    public ResolvedComponentResult read(Decoder decoder) throws Exception {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void write(Encoder encoder, ResolvedComponentResult value) throws Exception {
+        DefaultResolvedComponentResult root = (DefaultResolvedComponentResult) value;
+        Map<ResolvedComponentResult, Integer> components = new HashMap<>();
+        writeComponent(encoder, root, components);
+    }
+
+    private void writeComponent(Encoder encoder, ResolvedComponentResult component, Map<ResolvedComponentResult, Integer> components) throws Exception {
+        Integer id = components.get(component);
+        if (id != null) {
+            // Already seen
+            encoder.writeSmallInt(id);
+            return;
+        }
+        id = components.size();
+        components.put(component, id);
+
+        encoder.writeSmallInt(id);
+        moduleVersionIdSerializer.write(encoder, component.getModuleVersion());
+        componentIdSerializer.write(encoder, component.getId());
+        Set<? extends DependencyResult> dependencies = component.getDependencies();
+        encoder.writeSmallInt(dependencies.size());
+        for (DependencyResult dependency : dependencies) {
+            boolean successful = dependency instanceof ResolvedDependencyResult;
+            encoder.writeBoolean(successful);
+            if (successful) {
+                DefaultResolvedDependencyResult dependencyResult = (DefaultResolvedDependencyResult) dependency;
+                componentSelectorSerializer.write(encoder, dependencyResult.getRequested());
+                writeComponent(encoder, dependencyResult.getSelected(), components);
+            } else {
+                DefaultUnresolvedDependencyResult dependencyResult = (DefaultUnresolvedDependencyResult) dependency;
+                componentSelectorSerializer.write(encoder, dependencyResult.getRequested());
+            }
+        }
     }
 }

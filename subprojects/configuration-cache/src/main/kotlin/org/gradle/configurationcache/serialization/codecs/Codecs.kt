@@ -19,7 +19,6 @@ package org.gradle.configurationcache.serialization.codecs
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSetToFileCollectionFactory
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.BuildIdentifierSerializer
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolvedComponentResultSerializer
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformActionScheme
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformParameterScheme
 import org.gradle.api.internal.artifacts.transform.TransformationNode
@@ -163,7 +162,6 @@ class Codecs(
         bind(FinalizeTransformDependenciesNodeCodec())
         bind(WorkNodeActionCodec)
         bind(CapabilitiesCodec)
-        bind(ResolvedComponentResultSerializer())
 
         bind(DefaultCopySpecCodec(patternSetFactory, fileCollectionFactory, instantiator))
         bind(DestinationRootCopySpecCodec(fileResolver))

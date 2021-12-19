@@ -24,6 +24,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Default
 import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.internal.Describables
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
@@ -457,6 +458,7 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
         executedAndNotSkipped ":verify"
     }
 
+    @UnsupportedWithConfigurationCache(because = "not yet implemented")
     def "can use ResolvedComponentResult result as task input"() {
         given:
         buildFile << """
@@ -497,7 +499,7 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
         succeeds "verify"
 
         then:
-        executedAndNotSkipped ":verify"
+        skipped ":verify"
         notExecuted ":project-lib:jar", ":composite-lib:jar"
 
         when:
@@ -505,7 +507,7 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
         succeeds "verify"
 
         then:
-        executedAndNotSkipped ":verify"
+        skipped ":verify"
         notExecuted ":project-lib:jar", ":composite-lib:jar"
 
         when:
@@ -514,6 +516,13 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
 
         then:
         executedAndNotSkipped ":verify"
+        notExecuted ":project-lib:jar", ":composite-lib:jar"
+
+        when:
+        succeeds "verify"
+
+        then:
+        skipped ":verify"
         notExecuted ":project-lib:jar", ":composite-lib:jar"
     }
 

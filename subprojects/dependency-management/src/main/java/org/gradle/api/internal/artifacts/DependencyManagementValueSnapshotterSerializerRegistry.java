@@ -82,9 +82,10 @@ public class DependencyManagementValueSnapshotterSerializerRegistry extends Defa
 
         ComponentIdentifierSerializer componentIdentifierSerializer = new ComponentIdentifierSerializer();
         AttributeContainerSerializer attributeContainerSerializer = new DesugaringAttributeContainerSerializer(immutableAttributesFactory, namedObjectInstantiator);
+        ModuleVersionIdentifierSerializer moduleVersionIdentifierSerializer = new ModuleVersionIdentifierSerializer(moduleIdentifierFactory);
 
         register(Capability.class, new CapabilitySerializer());
-        register(ModuleVersionIdentifier.class, new ModuleVersionIdentifierSerializer(moduleIdentifierFactory));
+        register(ModuleVersionIdentifier.class, moduleVersionIdentifierSerializer);
         register(PublishArtifactLocalArtifactMetadata.class, new PublishArtifactLocalArtifactMetadataSerializer(componentIdentifierSerializer));
         register(OpaqueComponentArtifactIdentifier.class, new OpaqueComponentArtifactIdentifierSerializer());
         register(DefaultModuleComponentArtifactIdentifier.class, new ComponentArtifactIdentifierSerializer());
@@ -93,8 +94,9 @@ public class DependencyManagementValueSnapshotterSerializerRegistry extends Defa
         register(ResolvedVariantResult.class, new ResolvedVariantResultSerializer(componentIdentifierSerializer, attributeContainerSerializer));
         register(ComponentSelectionDescriptor.class, new ComponentSelectionDescriptorSerializer(componentSelectionDescriptorFactory));
         register(ComponentSelectionReason.class, new ComponentSelectionReasonSerializer(componentSelectionDescriptorFactory));
-        register(ComponentSelector.class, new ComponentSelectorSerializer(attributeContainerSerializer));
-        register(ResolvedComponentResult.class, new ResolvedComponentResultSerializer());
+        ComponentSelectorSerializer componentSelectorSerializer = new ComponentSelectorSerializer(attributeContainerSerializer);
+        register(ComponentSelector.class, componentSelectorSerializer);
+        register(ResolvedComponentResult.class, new ResolvedComponentResultSerializer(moduleVersionIdentifierSerializer, componentIdentifierSerializer, componentSelectorSerializer));
     }
 
     @Override
