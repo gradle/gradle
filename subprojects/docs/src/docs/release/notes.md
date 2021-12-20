@@ -1,5 +1,24 @@
 The Gradle team is excited to announce Gradle @version@.
 
+This is the third patch release for Gradle 7.3.
+
+It fixes the following issue:
+* [#19360](https://github.com/gradle/gradle/issues/19360) Upgrade checks to Log4j 2.17.0
+
+Issues fixed in second patch release:
+* [#19300](https://github.com/gradle/gradle/issues/19300) Mitigations for log4j vulnerability in Gradle builds
+* [#19257](https://github.com/gradle/gradle/issues/19257) Incremental java compilation fails when renaming classname with $ character
+
+Issues fixed in first patch release:
+* [#19058](https://github.com/gradle/gradle/issues/19058) Consider reverting breaking change about test configuration
+* [#19067](https://github.com/gradle/gradle/issues/19067) Fix multiple annotation processing issues discovered by Micronaut
+
+We recommend users upgrade to @version@ instead of 7.3.
+
+Given the context of the Log4Shell vulnerability, make sure you take a look at [our blog post](https://blog.gradle.org/log4j-vulnerability) on this topic.
+
+----
+
 This release [introduces a declarative test suite API](#test-suites) for JVM projects, adds [support for building projects with Java 17](#java17),  and updates the Scala plugin to support [Scala 3](#scala).
 
 There are also changes to make builds [more reliable](#reliability), provide [additional details to IDEs when downloading dependencies](#tooling-api), improve [untracked files in custom plugins](#untracked), several [bug fixes](#fixed-issues) and more.
@@ -34,7 +53,7 @@ Switch your build to use Gradle @version@ by updating your wrapper:
 
 See the [Gradle 7.x upgrade guide](userguide/upgrading_version_7.html#changes_@baseVersion@) to learn about deprecations, breaking changes and other considerations when upgrading to Gradle @version@.
 
-NOTE: Gradle 7.3 has had *two* patch releases, which fixes several issues from the original release.
+NOTE: Gradle 7.3 has had *three* patch releases, which fixes several issues from the original release.
 We recommend always using the latest patch release.
 
 For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).
@@ -208,9 +227,13 @@ The [`@DisableCachingByDefault` annotation](userguide/build_cache.html#sec:task_
 
 ## Fixed issues
 
+[Fixed issues in 7.3](../7.3/release-notes.html#fixed-issues)
+
 ## Known issues
 
 Known issues are problems that were discovered post release that are directly related to changes made in this release.
+
+[Known issues in 7.3](../7.3/release-notes.html#known-issues)
 
 ## External contributions
 
