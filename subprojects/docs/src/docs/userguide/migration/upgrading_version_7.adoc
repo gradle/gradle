@@ -157,9 +157,9 @@ Providing this flag in the compiler options will disable this behaviour and allo
 For up-to-date checks Gradle relies on tracking the state of the inputs and the outputs of a task.
 Gradle used to ignore unreadable files in the input or outputs to support certain use-cases, although it cannot track their state.
 Declaring input or output directories on tasks which contain unreadable content has been deprecated and these use-cases are now supported by declaring the task to be untracked.
-Use the @link:{javadocPath}/org/gradle/api/tasks/UntrackedTask.html[UntrackedTask] annotation or the @link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:doNotTrackState(java.lang.String)[Task.doNotTrackState()] method to declare a task as untracked.
+Use the @link:{javadocPath}/org/gradle/api/tasks/UntrackedTask.html[UntrackedTask] annotation or the link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:doNotTrackState(java.lang.String)[Task.doNotTrackState()] method to declare a task as untracked.
 
-When you are using a `@link:{groovyDslPath}/org.gradle.api.tasks.Copy.html[Copy]` task for copying single files into a directory which contains unreadable files, use the method link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:doNotTrackState(java.lang.String)[Task.doNotTrackState()].
+When you are using a `link:{groovyDslPath}/org.gradle.api.tasks.Copy.html[Copy]` task for copying single files into a directory which contains unreadable files, use the method link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:doNotTrackState(java.lang.String)[Task.doNotTrackState()].
 
 [[changes_7.2]]
 == Upgrading from 7.1 and earlier
