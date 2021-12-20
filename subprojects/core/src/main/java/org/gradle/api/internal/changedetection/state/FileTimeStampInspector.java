@@ -23,6 +23,7 @@ import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
 
 /**
  * Attempts to detect certain kinds of changes to files that are not always visible using file timestamp and length:
@@ -87,6 +88,10 @@ public abstract class FileTimeStampInspector {
 
     /**
      * Returns true if the given file timestamp can be used to detect a file change.
+     *
+     * lastBuildTimestamp can be in `second` or `millisecond` precision regarding on the result of timestampOf(markerFile).
+     * In case lastBuildTimestamp is in second precision, then it can happen that `timestamp` is equal to `lastBuildTimestamp`, and
+     * we might not detect the file change from the timestamp. In case of millisecond precision we can always detect the file change from the timestamp.
      */
     public boolean timestampCanBeUsedToDetectFileChange(String file, long timestamp) {
         // Do not use a timestamp that is the same as the end of the last build or the start of this build
@@ -97,7 +102,26 @@ public abstract class FileTimeStampInspector {
         return timestampOf(markerFile);
     }
 
+    /**
+     * Returns the timestamp of the given file.
+     *
+     * Since some JDKs can return millisecond precision from file.lastModified() and second precision from Files.getLastModifiedTime(),
+     * we return the lower precision available.
+     */
     private long timestampOf(File file) {
+        return Math.min(timestampFromFileOf(file), timestampViaNioOf(file));
+    }
+
+    private long timestampFromFileOf(File file) {
         return file.lastModified();
+    }
+
+    private long timestampViaNioOf(File file) {
+        try {
+            return Files.getLastModifiedTime(file.toPath()).toMillis();
+        } catch (IOException e) {
+            // Return the same value as file.lastModified() on error
+            return 0;
+        }
     }
 }
