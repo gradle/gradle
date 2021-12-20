@@ -56,9 +56,9 @@ class ApplicationPluginConfigurationIntegrationTest extends AbstractIntegrationS
         executer.workingDir = testDirectory
         executer.standardOutput = out
         executer.commandLine = "build/install/test/bin/test"
-
+        def result = executer.run()
         then:
-        executer.run().assertNormalExitValue()
+        result.assertNormalExitValue()
         out.toString() == TextUtil.toPlatformLineSeparators("all good\n")
     }
 

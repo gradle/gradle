@@ -199,39 +199,15 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
     }
 
     ExecutionResult runViaUnixStartScript(String shCommand, String... args) {
-        def path = setUpTestPATH(shCommand);
         TestFile startScriptDir = file('build/install/sample/bin')
         buildFile << """
 task execStartScript(type: Exec) {
     workingDir '$startScriptDir.canonicalPath'
-    environment PATH: "$path"
-    commandLine './sample'
-    args "${args.join('", "')}"
+    commandLine '$shCommand'
+    args "./sample", "${args.join('", "')}"
 }
 """
         return succeeds('execStartScript')
-    }
-
-    private String setUpTestPATH(String shCommand) {
-        def binDir = file('fake-bin')
-        def basicCommands = ['basename', 'dirname', 'uname', 'which', 'sed', 'java']
-        basicCommands.each { linkToBinary(it, it, binDir) }
-        linkToBinary("sh", shCommand, binDir) // link the shell we want to use to 'sh' which the script will pick up using '#!/usr/bin/env sh'
-        return binDir.absolutePath
-    }
-
-    private void linkToBinary(String command, String linkToCommand, TestFile binDir) {
-        binDir.mkdirs()
-        def binary = new File("/usr/bin/$linkToCommand")
-        if (!binary.exists()) {
-            binary = new File("/bin/$linkToCommand")
-        }
-        if (!binary.exists()) {
-            binary = new File("/opt/local/bin/$linkToCommand")
-        }
-        assert binary.exists()
-
-        binDir.file(command).createLink(binary)
     }
 
     private void createSampleProjectSetup() {
