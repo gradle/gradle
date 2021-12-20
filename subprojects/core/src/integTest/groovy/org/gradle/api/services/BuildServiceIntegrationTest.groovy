@@ -40,6 +40,35 @@ import javax.inject.Inject
 
 @ConfigurationCacheTest
 class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
+
+    def "nags when service is used by task without a corresponding usesService call"() {
+        given:
+        serviceImplementation()
+        buildFile """
+            def provider = gradle.sharedServices.registerIfAbsent("counter", CountingService) {
+                parameters.initial = 42
+            }
+
+            tasks.register("broken") {
+                doFirst {
+                    provider.get().increment()
+                }
+            }
+        """
+
+        when:
+        executer.expectDocumentedDeprecationWarning(
+            "Build service 'counter' is being used by task ':broken' without the corresponding declaration via 'Task#usesService'. " +
+                "This will fail with an error in Gradle 8.0. " +
+                "Max parallel usages constraint on the build service can't be honored. " +
+                "Declare the task uses the build service via 'Task#usesService'. " +
+                "See https://docs.gradle.org/current/dsl/org.gradle.api.Task.html#org.gradle.api.Task:usesService(org.gradle.api.provider.Provider) for more details."
+        )
+
+        then:
+        run 'broken'
+    }
+
     def "service is created once per build on first use and stopped at the end of the build"() {
         serviceImplementation()
         buildFile """
@@ -778,7 +807,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def serviceImplementation() {
-        buildFile << """
+        buildFile """
             interface CountingParams extends BuildServiceParameters {
                 Property<Integer> getInitial()
             }
