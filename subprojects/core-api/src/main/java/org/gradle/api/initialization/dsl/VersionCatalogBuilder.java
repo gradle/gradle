@@ -69,7 +69,7 @@ public interface VersionCatalogBuilder extends Named {
      * the {@link VersionCatalogBuilder.LibraryAliasBuilder#versionRef(String)} method.
      *
      * @param alias an identifier for the version
-     * @param version the version string
+     * @param version the version alias name
      */
     String version(String alias, String version);
 
