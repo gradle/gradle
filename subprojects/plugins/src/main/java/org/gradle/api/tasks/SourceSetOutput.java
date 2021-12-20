@@ -58,13 +58,13 @@ import java.util.Map;
  * }
  *
  * def generateResourcesTask = tasks.register("generate-resources", GenerateResourcesTask) {
- *   resourcesDir.set(file("$buildDir/generated-resources/main"))
+ *   resourcesDir.set(layout.buildDirectory.dir("generated-resources/main"))
  * }
  *
+ * // Include all outputs of the `generate-resources` task as outputs of the main sourceSet.
  * sourceSets {
  *   main {
- *     // Register the generated 'resourcesDir' as an output of the main source set, retaining the task dependency.
- *     output.dir(generateResourcesTask.flatMap {it.resourcesDir} )
+ *     output.dir(generateResourcesTask)
  *   }
  * }
  *
@@ -80,7 +80,7 @@ import java.util.Map;
  * }
  * </pre>
  *
- * Find more information in {@link #dir(java.util.Map, Object)} and {@link #getDirs()}
+ * Find more information in {@link #dir(Object)} and {@link #getDirs()}
  */
 public interface SourceSetOutput extends FileCollection {
 
