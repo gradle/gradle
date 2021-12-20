@@ -97,7 +97,7 @@ public class GradleUserHomeScopeFileTimeStampInspector extends FileTimeStampInsp
      * since we check all Java APIs that can return a high or a low precision, and we choose the one with the lowest precision.
      *
      * In case `isCurrentTimestampHighPrecision` is in the `second` precision, then we check also the provided timestamp.
-     * And provided timestamp is in `millisecond` precision, then we will definitely detect changes for that file correctly.
+     * And if the provided timestamp is in `millisecond` precision, then we will definitely detect changes for that file correctly.
      * But if it's in `second` precision we might not detect changes, and we might need to discard the hash at the end of the build.
      */
     private boolean isReliableTimestampPrecision(long timestamp) {
