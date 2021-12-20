@@ -38,7 +38,7 @@ public class GradleUserHomeScopeFileTimeStampInspector extends FileTimeStampInsp
     private final Object lock = new Object();
     private long currentTimestamp;
     private final Set<String> filesWithCurrentTimestamp = new HashSet<>();
-    private boolean isBaseTimestampHighPrecision;
+    private boolean isCurrentTimestampHighPrecision;
 
     public GradleUserHomeScopeFileTimeStampInspector(GlobalScopedCache globalScopedCache) {
         super(globalScopedCache.baseDirForCache("file-changes"));
@@ -52,7 +52,7 @@ public class GradleUserHomeScopeFileTimeStampInspector extends FileTimeStampInsp
     public void afterStart() {
         updateOnStartBuild();
         currentTimestamp = currentTimestamp();
-        isBaseTimestampHighPrecision = isHighTimestampPrecision(currentTimestamp);
+        isCurrentTimestampHighPrecision = isHighTimestampPrecision(currentTimestamp);
     }
 
     @Override
@@ -65,6 +65,7 @@ public class GradleUserHomeScopeFileTimeStampInspector extends FileTimeStampInsp
                     filesWithCurrentTimestamp.clear();
                     filesWithCurrentTimestamp.add(file);
                     currentTimestamp = timestamp;
+                    isCurrentTimestampHighPrecision = isHighTimestampPrecision(currentTimestamp);
                 }
             }
         }
@@ -96,7 +97,7 @@ public class GradleUserHomeScopeFileTimeStampInspector extends FileTimeStampInsp
      * then the provided file system is definitely reliable, we don't have to discard file hashes, and we will correctly detect file changes.
      */
     private boolean isReliableTimestampPrecision(long timestamp) {
-        return isBaseTimestampHighPrecision && isHighTimestampPrecision(timestamp);
+        return isCurrentTimestampHighPrecision || isHighTimestampPrecision(timestamp);
     }
 
     private static boolean isHighTimestampPrecision(long fileTimestamp) {

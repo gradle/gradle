@@ -89,9 +89,9 @@ public abstract class FileTimeStampInspector {
     /**
      * Returns true if the given file timestamp can be used to detect a file change.
      *
-     * lastBuildTimestamp can be in `second` or `millisecond` precision regarding on the result of timestampOf(markerFile).
-     * In case lastBuildTimestamp is in second precision, then it can happen that `timestamp` is equal to `lastBuildTimestamp`, and
-     * we might not detect the file change from the timestamp. In case of millisecond precision we can always detect the file change from the timestamp.
+     * Timestamp can be in `seconds` or `milliseconds` precision. In case timestamp is in `seconds` precision,
+     * then it can happen that we might not detect the file change from the timestamp. We detect that by comparing that with the `lastBuildTimestamp`.
+     * In case of millisecond precision we can always detect the file change from the timestamp.
      */
     public boolean timestampCanBeUsedToDetectFileChange(String file, long timestamp) {
         // Do not use a timestamp that is the same as the end of the last build or the start of this build
@@ -105,7 +105,7 @@ public abstract class FileTimeStampInspector {
     /**
      * Returns the timestamp of the given file.
      *
-     * Since some JDKs can return millisecond precision from file.lastModified() and second precision from Files.getLastModifiedTime(),
+     * Since some JDK 8 versions can return millisecond precision from file.lastModified() and second precision from Files.getLastModifiedTime(),
      * we return the lower precision available.
      */
     private long timestampOf(File file) {
