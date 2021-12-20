@@ -445,7 +445,7 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
     }
 
     DirectorySnapshot snapshotDirectory(File directory) {
-        directorySnapshotter.snapshot(directory.absolutePath, null, new AtomicBoolean(false)) as DirectorySnapshot
+        directorySnapshotter.snapshot(directory.absolutePath, null, new AtomicBoolean(false)) {} as DirectorySnapshot
     }
 
     void addSnapshot(FileSystemLocationSnapshot snapshot) {
