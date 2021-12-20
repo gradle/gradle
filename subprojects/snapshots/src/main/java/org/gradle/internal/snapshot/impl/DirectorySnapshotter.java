@@ -254,7 +254,7 @@ public class DirectorySnapshotter {
         protected FileVisitResult doPreVisitDirectory(Path dir, BasicFileAttributes attrs) {
             String fileName = getInternedFileName(dir);
             pathTracker.enter(fileName);
-            if (pathTracker.isRoot() || shouldVisit(dir, fileName, true, pathTracker.getSegments())) {
+            if (shouldVisitDirectory(dir, fileName)) {
                 builder.enterDirectory(AccessType.DIRECT, intern(symbolicLinkMapping.remapAbsolutePath(dir)), fileName, INCLUDE_EMPTY_DIRS);
                 parentDirectories.addFirst(dir.toString());
                 return FileVisitResult.CONTINUE;
@@ -272,34 +272,15 @@ public class DirectorySnapshotter {
                 if (attrs.isSymbolicLink()) {
                     BasicFileAttributes targetAttributes = readAttributesOfSymlinkTarget(file, attrs);
                     if (targetAttributes.isDirectory()) {
-                        try {
-                            Path targetDir = file.toRealPath();
-                            String targetDirString = targetDir.toString();
-                            if (introducesCycle(targetDirString)) {
-                                return FileVisitResult.CONTINUE;
-                            }
-                            if (pathTracker.isRoot() || shouldVisit(targetDir, internedFileName, true, pathTracker.getSegments())) {
-                                PathVisitor subtreeVisitor = new PathVisitor(
-                                    predicate,
-                                    hasBeenFiltered,
-                                    hasher,
-                                    stringInterner,
-                                    defaultExcludes,
-                                    collector,
-                                    symbolicLinkMapping.withNewMapping(file.toString(), targetDirString, pathTracker)
-                                );
-                                Files.walkFileTree(targetDir, EnumSet.noneOf(FileVisitOption.class), Integer.MAX_VALUE, subtreeVisitor);
-                                DirectorySnapshot result = (DirectorySnapshot) subtreeVisitor.getResult();
-                                builder.visitDirectory(new DirectorySnapshot(
-                                    result.getAbsolutePath(),
-                                    internedFileName,
-                                    AccessType.VIA_SYMLINK,
-                                    result.getHash(),
-                                    result.getChildren()
-                                ));
-                            }
-                        } catch (IOException e) {
-                            throw new UncheckedIOException(String.format("Could not list contents of directory '%s'.", file), e);
+                        DirectorySnapshot targetSnapshot = followSymlink(file, internedFileName);
+                        if (targetSnapshot != null) {
+                            builder.visitDirectory(new DirectorySnapshot(
+                                targetSnapshot.getAbsolutePath(),
+                                internedFileName,
+                                AccessType.VIA_SYMLINK,
+                                targetSnapshot.getHash(),
+                                targetSnapshot.getChildren()
+                            ));
                         }
                     } else {
                         visitResolvedFile(file, targetAttributes, AccessType.VIA_SYMLINK);
@@ -313,15 +294,48 @@ public class DirectorySnapshotter {
             }
         }
 
+        @Nullable
+        private DirectorySnapshot followSymlink(Path file, String internedFileName) {
+            try {
+                Path targetDir = file.toRealPath();
+                String targetDirString = targetDir.toString();
+                if (!introducesCycle(targetDirString) && shouldVisitDirectory(targetDir, internedFileName)) {
+                    PathVisitor subtreeVisitor = new PathVisitor(
+                        predicate,
+                        hasBeenFiltered,
+                        hasher,
+                        stringInterner,
+                        defaultExcludes,
+                        collector,
+                        symbolicLinkMapping.withNewMapping(file.toString(), targetDirString, pathTracker)
+                    );
+                    Files.walkFileTree(targetDir, EnumSet.noneOf(FileVisitOption.class), Integer.MAX_VALUE, subtreeVisitor);
+                    return (DirectorySnapshot) subtreeVisitor.getResult();
+                } else {
+                    return null;
+                }
+            } catch (IOException e) {
+                throw new UncheckedIOException(String.format("Could not list contents of directory '%s'.", file), e);
+            }
+        }
+
         private boolean introducesCycle(String targetDirString) {
             return parentDirectories.contains(targetDirString);
         }
 
         private void visitResolvedFile(Path file, BasicFileAttributes targetAttributes, AccessType accessType) {
             String internedName = intern(file.getFileName().toString());
-            if (shouldVisit(file, internedName, false, pathTracker.getSegments())) {
+            if (shouldVisitFile(file, internedName)) {
                 builder.visitLeafElement(snapshotFile(file, internedName, targetAttributes, accessType));
             }
+        }
+
+        private boolean shouldVisitDirectory(Path dir, String internedName) {
+            return pathTracker.isRoot() || shouldVisit(dir, internedName, true, pathTracker.getSegments());
+        }
+
+        private boolean shouldVisitFile(Path file, String internedName) {
+            return shouldVisit(file, internedName, false, pathTracker.getSegments());
         }
 
         private BasicFileAttributes readAttributesOfSymlinkTarget(Path symlink, BasicFileAttributes symlinkAttributes) {
