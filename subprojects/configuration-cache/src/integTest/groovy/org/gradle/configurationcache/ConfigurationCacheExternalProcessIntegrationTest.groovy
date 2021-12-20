@@ -22,7 +22,7 @@ import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.tasks.TaskAction
 import org.gradle.configurationcache.fixtures.ExecOperationsFixture
-import org.gradle.configurationcache.fixtures.ExecOperationsFixture.ExecFormatter
+import org.gradle.configurationcache.fixtures.ExecOperationsFixture.SnippetsFactory
 import org.gradle.process.ExecOperations
 import org.gradle.workers.WorkAction
 import org.gradle.workers.WorkParameters
@@ -30,21 +30,21 @@ import org.gradle.workers.WorkQueue
 import org.gradle.workers.WorkerExecutor
 
 import javax.inject.Inject
-import java.util.function.Function
+
+import static org.gradle.configurationcache.fixtures.ExecOperationsFixture.exec
+import static org.gradle.configurationcache.fixtures.ExecOperationsFixture.javaexec
 
 class ConfigurationCacheExternalProcessIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
     ExecOperationsFixture execOperationsFixture = new ExecOperationsFixture(testDirectory)
 
-    def "using #method in #location.toLowerCase() #file is a problem"(String method,
-                                                                      String file,
-                                                                      String location,
-                                                                      Function<ExecOperationsFixture, ExecFormatter> formatterFactory,
-                                                                      Function<ExecFormatter, String> spec) {
+    def "using #snippetsFactory.summary in #location.toLowerCase() #file is a problem"(SnippetsFactory snippetsFactory,
+                                                                                       String file,
+                                                                                       String location) {
         given:
-        def formatter = formatterFactory.apply(execOperationsFixture)
+        def snippets = snippetsFactory.newSnippets(execOperationsFixture)
         testDirectory.file(file) << """
-            ${formatter.imports()}
-            ${formatter.callProcessAndPrintOutput(method, spec.apply(formatter))}
+            ${snippets.imports}
+            ${snippets.body}
         """
 
         when:
@@ -57,33 +57,33 @@ class ConfigurationCacheExternalProcessIntegrationTest extends AbstractConfigura
         }
 
         where:
-        method     | file                           | location        | formatterFactory                       | spec
-        "exec"     | "build.gradle"                 | "Build file"    | ExecOperationsFixture::groovyFormatter | ExecFormatter::execSpec
-        "javaexec" | "build.gradle"                 | "Build file"    | ExecOperationsFixture::groovyFormatter | ExecFormatter::javaexecSpec
-        "exec"     | "build.gradle.kts"             | "Build file"    | ExecOperationsFixture::kotlinFormatter | ExecFormatter::execSpec
-        "javaexec" | "build.gradle.kts"             | "Build file"    | ExecOperationsFixture::kotlinFormatter | ExecFormatter::javaexecSpec
-        "exec"     | "settings.gradle"              | "Settings file" | ExecOperationsFixture::groovyFormatter | ExecFormatter::execSpec
-        "javaexec" | "settings.gradle"              | "Settings file" | ExecOperationsFixture::groovyFormatter | ExecFormatter::javaexecSpec
-        "exec"     | "settings.gradle.kts"          | "Settings file" | ExecOperationsFixture::kotlinFormatter | ExecFormatter::execSpec
-        "javaexec" | "settings.gradle.kts"          | "Settings file" | ExecOperationsFixture::kotlinFormatter | ExecFormatter::javaexecSpec
-        "exec"     | "buildSrc/build.gradle"        | "Build file"    | ExecOperationsFixture::groovyFormatter | ExecFormatter::execSpec
-        "javaexec" | "buildSrc/build.gradle"        | "Build file"    | ExecOperationsFixture::groovyFormatter | ExecFormatter::javaexecSpec
-        "exec"     | "buildSrc/build.gradle.kts"    | "Build file"    | ExecOperationsFixture::kotlinFormatter | ExecFormatter::execSpec
-        "javaexec" | "buildSrc/build.gradle.kts"    | "Build file"    | ExecOperationsFixture::kotlinFormatter | ExecFormatter::javaexecSpec
-        "exec"     | "buildSrc/settings.gradle"     | "Settings file" | ExecOperationsFixture::groovyFormatter | ExecFormatter::execSpec
-        "javaexec" | "buildSrc/settings.gradle"     | "Settings file" | ExecOperationsFixture::groovyFormatter | ExecFormatter::javaexecSpec
-        "exec"     | "buildSrc/settings.gradle.kts" | "Settings file" | ExecOperationsFixture::kotlinFormatter | ExecFormatter::execSpec
-        "javaexec" | "buildSrc/settings.gradle.kts" | "Settings file" | ExecOperationsFixture::kotlinFormatter | ExecFormatter::javaexecSpec
+        snippetsFactory   | file                           | location
+        exec().groovy     | "build.gradle"                 | "Build file"
+        javaexec().groovy | "build.gradle"                 | "Build file"
+        exec().kotlin     | "build.gradle.kts"             | "Build file"
+        javaexec().kotlin | "build.gradle.kts"             | "Build file"
+        exec().groovy     | "settings.gradle"              | "Settings file"
+        javaexec().groovy | "settings.gradle"              | "Settings file"
+        exec().kotlin     | "settings.gradle.kts"          | "Settings file"
+        javaexec().kotlin | "settings.gradle.kts"          | "Settings file"
+        exec().groovy     | "buildSrc/build.gradle"        | "Build file"
+        javaexec().groovy | "buildSrc/build.gradle"        | "Build file"
+        exec().kotlin     | "buildSrc/build.gradle.kts"    | "Build file"
+        javaexec().kotlin | "buildSrc/build.gradle.kts"    | "Build file"
+        exec().groovy     | "buildSrc/settings.gradle"     | "Settings file"
+        javaexec().groovy | "buildSrc/settings.gradle"     | "Settings file"
+        exec().kotlin     | "buildSrc/settings.gradle.kts" | "Settings file"
+        javaexec().kotlin | "buildSrc/settings.gradle.kts" | "Settings file"
     }
 
-    def "using #method in initialization script #file is a problem"(String method, String file, Function<ExecOperationsFixture, ExecFormatter> formatterFactory, Function<ExecFormatter, String> spec) {
+    def "using #snippetsFactory.summary in initialization script #file is a problem"(SnippetsFactory snippetsFactory, String file) {
         given:
-        def formatter = formatterFactory.apply(execOperationsFixture)
+        def snippets = snippetsFactory.newSnippets(execOperationsFixture)
 
         def initScriptFile = testDirectory.file(file)
         initScriptFile << """
-            ${formatter.imports()}
-            ${formatter.callProcessAndPrintOutput(method, spec.apply(formatter))}
+            ${snippets.imports}
+            ${snippets.body}
         """
         executer.usingInitScript(initScriptFile)
 
@@ -97,22 +97,20 @@ class ConfigurationCacheExternalProcessIntegrationTest extends AbstractConfigura
         }
 
         where:
-        method     | file                   | formatterFactory                       | spec
-        "exec"     | "exec.init.gradle"     | ExecOperationsFixture::groovyFormatter | ExecFormatter::execSpec
-        "javaexec" | "exec.init.gradle"     | ExecOperationsFixture::groovyFormatter | ExecFormatter::javaexecSpec
-        "exec"     | "exec.init.gradle.kts" | ExecOperationsFixture::kotlinFormatter | ExecFormatter::execSpec
-        "javaexec" | "exec.init.gradle.kts" | ExecOperationsFixture::kotlinFormatter | ExecFormatter::javaexecSpec
+        snippetsFactory   | file
+        exec().groovy     | "exec.init.gradle"
+        javaexec().groovy | "exec.init.gradle"
+        exec().kotlin     | "exec.init.gradle.kts"
+        javaexec().kotlin | "exec.init.gradle.kts"
     }
 
-    def "using #method in included plugin settings #file is a problem"(String method,
-                                                                       String file,
-                                                                       Function<ExecOperationsFixture, ExecFormatter> formatterFactory,
-                                                                       Function<ExecFormatter, String> spec) {
+    def "using #snippetsFactory.summary in included plugin settings #file is a problem"(SnippetsFactory snippetsFactory,
+                                                                                        String file) {
         given:
-        def formatter = formatterFactory.apply(execOperationsFixture)
+        def snippets = snippetsFactory.newSnippets(execOperationsFixture)
         testDirectory.file(file) << """
-            ${formatter.imports()}
-            ${formatter.callProcessAndPrintOutput(method, spec.apply(formatter))}
+            ${snippets.imports}
+            ${snippets.body}
         """
 
         settingsFile("""
@@ -131,26 +129,24 @@ class ConfigurationCacheExternalProcessIntegrationTest extends AbstractConfigura
         }
 
         where:
-        method     | file                           | formatterFactory                       | spec
-        "exec"     | "included/settings.gradle"     | ExecOperationsFixture::groovyFormatter | ExecFormatter::execSpec
-        "javaexec" | "included/settings.gradle"     | ExecOperationsFixture::groovyFormatter | ExecFormatter::javaexecSpec
-        "exec"     | "included/settings.gradle.kts" | ExecOperationsFixture::kotlinFormatter | ExecFormatter::execSpec
-        "javaexec" | "included/settings.gradle.kts" | ExecOperationsFixture::kotlinFormatter | ExecFormatter::javaexecSpec
+        snippetsFactory   | file
+        exec().groovy     | "included/settings.gradle"
+        javaexec().groovy | "included/settings.gradle"
+        exec().kotlin     | "included/settings.gradle.kts"
+        javaexec().kotlin | "included/settings.gradle.kts"
     }
 
-    def "using #method in included plugin build #file is a problem"(String method,
-                                                                    String file,
-                                                                    Function<ExecOperationsFixture, ExecFormatter> formatterFactory,
-                                                                    Function<ExecFormatter, String> spec) {
+    def "using #snippetsFactory.summary in included plugin build #file is a problem"(SnippetsFactory snippetsFactory,
+                                                                                     String file) {
         given:
-        def formatter = formatterFactory.apply(execOperationsFixture)
+        def snippets = snippetsFactory.newSnippets(execOperationsFixture)
         def includedBuildFile = testDirectory.file(file)
         includedBuildFile << """
-            ${formatter.imports()}
+            ${snippets.imports}
             plugins {
                 id("groovy-gradle-plugin")
             }
-            ${formatter.callProcessAndPrintOutput(method, spec.apply(formatter))}
+            ${snippets.body}
         """
         testDirectory.file("included/src/main/groovy/test-convention-plugin.gradle") << """
             println("Applied script plugin")
@@ -177,20 +173,18 @@ class ConfigurationCacheExternalProcessIntegrationTest extends AbstractConfigura
         }
 
         where:
-        method     | file                        | formatterFactory                       | spec
-        "exec"     | "included/build.gradle"     | ExecOperationsFixture::groovyFormatter | ExecFormatter::execSpec
-        "javaexec" | "included/build.gradle"     | ExecOperationsFixture::groovyFormatter | ExecFormatter::javaexecSpec
-        "exec"     | "included/build.gradle.kts" | ExecOperationsFixture::kotlinFormatter | ExecFormatter::execSpec
-        "javaexec" | "included/build.gradle.kts" | ExecOperationsFixture::kotlinFormatter | ExecFormatter::javaexecSpec
+        snippetsFactory   | file
+        exec().groovy     | "included/build.gradle"
+        javaexec().groovy | "included/build.gradle"
+        exec().kotlin     | "included/build.gradle.kts"
+        javaexec().kotlin | "included/build.gradle.kts"
     }
 
-    def "using #method in convention plugin #file is a problem"(String method,
-                                                                String file,
-                                                                String plugin,
-                                                                Function<ExecOperationsFixture, ExecFormatter> formatterFactory,
-                                                                Function<ExecFormatter, String> spec) {
+    def "using #snippetsFactory.summary in convention plugin #file is a problem"(SnippetsFactory snippetsFactory,
+                                                                                 String file,
+                                                                                 String plugin) {
         given:
-        def formatter = formatterFactory.apply(execOperationsFixture)
+        def snippets = snippetsFactory.newSnippets(execOperationsFixture)
         testDirectory.file("buildSrc/build.gradle.kts") << """
             plugins {
                 `$plugin`
@@ -202,9 +196,9 @@ class ConfigurationCacheExternalProcessIntegrationTest extends AbstractConfigura
         """
         def conventionPluginFile = testDirectory.file(file)
         conventionPluginFile << """
-            ${formatter.imports()}
+            ${snippets.imports}
 
-            ${formatter.callProcessAndPrintOutput(method, spec.apply(formatter))}
+            ${snippets.body}
         """
 
         buildFile("""
@@ -223,23 +217,22 @@ class ConfigurationCacheExternalProcessIntegrationTest extends AbstractConfigura
         }
 
         where:
-        method     | file                                                         | plugin                 | formatterFactory                       | spec
-        "exec"     | "buildSrc/src/main/groovy/test-convention-plugin.gradle"     | "groovy-gradle-plugin" | ExecOperationsFixture::groovyFormatter | ExecFormatter::execSpec
-        "javaexec" | "buildSrc/src/main/groovy/test-convention-plugin.gradle"     | "groovy-gradle-plugin" | ExecOperationsFixture::groovyFormatter | ExecFormatter::javaexecSpec
-        "exec"     | "buildSrc/src/main/kotlin/test-convention-plugin.gradle.kts" | "kotlin-dsl"           | ExecOperationsFixture::kotlinFormatter | ExecFormatter::execSpec
-        "javaexec" | "buildSrc/src/main/kotlin/test-convention-plugin.gradle.kts" | "kotlin-dsl"           | ExecOperationsFixture::kotlinFormatter | ExecFormatter::javaexecSpec
+        snippetsFactory   | file                                                         | plugin
+        exec().groovy     | "buildSrc/src/main/groovy/test-convention-plugin.gradle"     | "groovy-gradle-plugin"
+        javaexec().groovy | "buildSrc/src/main/groovy/test-convention-plugin.gradle"     | "groovy-gradle-plugin"
+        exec().kotlin     | "buildSrc/src/main/kotlin/test-convention-plugin.gradle.kts" | "kotlin-dsl"
+        javaexec().kotlin | "buildSrc/src/main/kotlin/test-convention-plugin.gradle.kts" | "kotlin-dsl"
     }
 
-    def "using #method in java project plugin application is a problem"(String method,
-                                                                        Function<ExecFormatter, String> spec) {
+    def "using #snippetsFactory.summary in java project plugin application is a problem"(SnippetsFactory snippetsFactory) {
         given:
-        def formatter = execOperationsFixture.javaFormatter()
+        def snippets = snippetsFactory.newSnippets(execOperationsFixture)
         testDirectory.file("buildSrc/src/main/java/SneakyPlugin.java") << """
             import ${ExecOperations.name};
             import ${Inject.name};
             import ${Plugin.name};
             import ${Project.name};
-            ${formatter.imports()}
+            ${snippets.imports}
 
             public abstract class SneakyPlugin implements Plugin<Project> {
                 @Inject
@@ -247,7 +240,7 @@ class ConfigurationCacheExternalProcessIntegrationTest extends AbstractConfigura
 
                 @Override
                 public void apply(Project project) {
-                    ${formatter.callProcessAndPrintOutput(method, spec.apply(formatter))}
+                    ${snippets.body}
                 }
             }
         """
@@ -266,17 +259,16 @@ class ConfigurationCacheExternalProcessIntegrationTest extends AbstractConfigura
         }
 
         where:
-        method                         | spec
-        "project.exec"                 | ExecFormatter::execSpec
-        "project.javaexec"             | ExecFormatter::javaexecSpec
-        "getExecOperations().exec"     | ExecFormatter::execSpec
-        "getExecOperations().javaexec" | ExecFormatter::javaexecSpec
+        snippetsFactory                      | _
+        exec("project").java                 | _
+        javaexec("project").java             | _
+        exec("getExecOperations()").java     | _
+        javaexec("getExecOperations()").java | _
     }
 
-    def "using #method in java settings plugin application is a problem"(String method,
-                                                                         Function<ExecFormatter, String> spec) {
+    def "using #snippetsFactory.summary in java settings plugin application is a problem"(SnippetsFactory snippetsFactory) {
         given:
-        def formatter = execOperationsFixture.javaFormatter()
+        def snippets = snippetsFactory.newSnippets(execOperationsFixture)
         testDirectory.file("included/settings.gradle") << """
             rootProject.name="included"
         """
@@ -301,7 +293,7 @@ class ConfigurationCacheExternalProcessIntegrationTest extends AbstractConfigura
             import ${Inject.name};
             import ${Plugin.name};
             import ${Settings.name};
-            ${formatter.imports()}
+            ${snippets.imports}
 
             public abstract class SneakyPlugin implements Plugin<Settings> {
                 @Inject
@@ -309,7 +301,7 @@ class ConfigurationCacheExternalProcessIntegrationTest extends AbstractConfigura
 
                 @Override
                 public void apply(Settings project) {
-                    ${formatter.callProcessAndPrintOutput(method, spec.apply(formatter))}
+                    ${snippets.body}
                 }
             }
         """
@@ -334,28 +326,27 @@ class ConfigurationCacheExternalProcessIntegrationTest extends AbstractConfigura
         }
 
         where:
-        method                         | spec
-        "getExecOperations().exec"     | ExecFormatter::execSpec
-        "getExecOperations().javaexec" | ExecFormatter::javaexecSpec
+        snippetsFactory                      | _
+        exec("getExecOperations()").java     | _
+        javaexec("getExecOperations()").java | _
     }
 
-    def "using #method in task configuration is a problem"(String method,
-                                                           Function<ExecFormatter, String> spec) {
+    def "using #snippetsFactory.summary in task configuration is a problem"(SnippetsFactory snippetsFactory) {
         given:
-        def formatter = execOperationsFixture.javaFormatter()
+        def snippets = snippetsFactory.newSnippets(execOperationsFixture)
         testDirectory.file("buildSrc/src/main/java/SneakyTask.java") << """
             import ${DefaultTask.name};
             import ${ExecOperations.name};
             import ${Inject.name};
             import ${TaskAction.name};
-            ${formatter.imports()}
+            ${snippets.imports}
 
             public abstract class SneakyTask extends DefaultTask {
                 @Inject
                 protected abstract ExecOperations getExecOperations();
 
                 public SneakyTask() {
-                    ${formatter.callProcessAndPrintOutput(method, spec.apply(formatter))}
+                    ${snippets.body}
                 }
 
                 @TaskAction
@@ -378,23 +369,22 @@ class ConfigurationCacheExternalProcessIntegrationTest extends AbstractConfigura
         }
 
         where:
-        method                         | spec
-        "getProject().exec"            | ExecFormatter::execSpec
-        "getProject().javaexec"        | ExecFormatter::javaexecSpec
-        "getExecOperations().exec"     | ExecFormatter::execSpec
-        "getExecOperations().javaexec" | ExecFormatter::javaexecSpec
+        snippetsFactory                 | _
+        exec("getProject()").java       | _
+        javaexec("getProject()").java   | _
+        exec("getExecOperations()").java     | _
+        javaexec("getExecOperations()").java | _
     }
 
-    def "using #method in task action is not a problem"(String method,
-                                                        Function<ExecFormatter, String> spec) {
+    def "using #snippetsFactory.summary in task action is not a problem"(SnippetsFactory snippetsFactory) {
         given:
-        def formatter = execOperationsFixture.javaFormatter()
+        def snippets = snippetsFactory.newSnippets(execOperationsFixture)
         testDirectory.file("buildSrc/src/main/java/SneakyTask.java") << """
             import ${DefaultTask.name};
             import ${ExecOperations.name};
             import ${Inject.name};
             import ${TaskAction.name};
-            ${formatter.imports()}
+            ${snippets.imports}
 
             public abstract class SneakyTask extends DefaultTask {
                 @Inject
@@ -402,7 +392,7 @@ class ConfigurationCacheExternalProcessIntegrationTest extends AbstractConfigura
 
                 @TaskAction
                 public void exec() {
-                    ${formatter.callProcessAndPrintOutput(method, spec.apply(formatter))}
+                    ${snippets.body}
                 }
             }
         """
@@ -418,21 +408,20 @@ class ConfigurationCacheExternalProcessIntegrationTest extends AbstractConfigura
         outputContains("Hello")
 
         where:
-        method                         | spec
-        "getExecOperations().exec"     | ExecFormatter::execSpec
-        "getExecOperations().javaexec" | ExecFormatter::javaexecSpec
+        snippetsFactory                      | _
+        exec("getExecOperations()").java     | _
+        javaexec("getExecOperations()").java | _
     }
 
-    def "using #method in task action of buildSrc is not a problem"(String method,
-                                                                    Function<ExecFormatter, String> spec) {
+    def "using #snippetsFactory.summary in task action of buildSrc is not a problem"(SnippetsFactory snippetsFactory) {
         given:
-        def formatter = execOperationsFixture.groovyFormatter()
+        def snippets = snippetsFactory.newSnippets(execOperationsFixture)
         testDirectory.file("buildSrc/build.gradle") << """
             import ${DefaultTask.name};
             import ${ExecOperations.name};
             import ${Inject.name};
             import ${TaskAction.name};
-            ${formatter.imports()}
+            ${snippets.imports}
 
             public abstract class SneakyTask extends DefaultTask {
                 @Inject
@@ -440,7 +429,7 @@ class ConfigurationCacheExternalProcessIntegrationTest extends AbstractConfigura
 
                 @TaskAction
                 public void exec() {
-                    ${formatter.callProcessAndPrintOutput(method, spec.apply(formatter))}
+                    ${snippets.body}
                 }
             }
 
@@ -459,15 +448,14 @@ class ConfigurationCacheExternalProcessIntegrationTest extends AbstractConfigura
         outputContains("Hello")
 
         where:
-        method                         | spec
-        "getExecOperations().exec"     | ExecFormatter::execSpec
-        "getExecOperations().javaexec" | ExecFormatter::javaexecSpec
+        snippetsFactory                        | _
+        exec("getExecOperations()").groovy     | _
+        javaexec("getExecOperations()").groovy | _
     }
 
-    def "using #method in worker task action of buildSrc is not a problem"(String method,
-                                                                           Function<ExecFormatter, String> spec) {
+    def "using #snippetsFactory.summary in worker task action of buildSrc is not a problem"(SnippetsFactory snippetsFactory) {
         given:
-        def formatter = execOperationsFixture.groovyFormatter()
+        def snippets = snippetsFactory.newSnippets(execOperationsFixture)
         testDirectory.file("buildSrc/build.gradle") << """
             import ${DefaultTask.name}
             import ${ExecOperations.name}
@@ -477,7 +465,7 @@ class ConfigurationCacheExternalProcessIntegrationTest extends AbstractConfigura
             import ${WorkParameters.name}
             import ${WorkQueue.name}
             import ${WorkerExecutor.name}
-            ${formatter.imports()}
+            ${snippets.imports}
 
             public abstract class SneakyAction implements WorkAction<WorkParameters.None> {
                 @Inject
@@ -485,7 +473,7 @@ class ConfigurationCacheExternalProcessIntegrationTest extends AbstractConfigura
 
                 @Override
                 void execute() {
-                    ${formatter.callProcessAndPrintOutput(method, spec.apply(formatter))}
+                    ${snippets.body}
                 }
             }
 
@@ -516,22 +504,21 @@ class ConfigurationCacheExternalProcessIntegrationTest extends AbstractConfigura
         outputContains("Hello")
 
         where:
-        method                         | spec
-        "getExecOperations().exec"     | ExecFormatter::execSpec
-        "getExecOperations().javaexec" | ExecFormatter::javaexecSpec
+        snippetsFactory                        | _
+        exec("getExecOperations()").groovy     | _
+        javaexec("getExecOperations()").groovy | _
     }
 
-    def "using #method in task of included plugin build is not a problem"(String method,
-                                                                          Function<ExecFormatter, String> spec) {
+    def "using #snippetsFactory.summary in task of included plugin build is not a problem"(SnippetsFactory snippetsFactory) {
         given:
-        def formatter = execOperationsFixture.groovyFormatter()
+        def snippets = snippetsFactory.newSnippets(execOperationsFixture)
         def includedBuildFile = testDirectory.file("included/build.gradle")
         includedBuildFile << """
             import ${DefaultTask.name};
             import ${ExecOperations.name};
             import ${Inject.name};
             import ${TaskAction.name};
-            ${formatter.imports()}
+            ${snippets.imports}
 
             plugins {
                 id("groovy-gradle-plugin")
@@ -543,7 +530,7 @@ class ConfigurationCacheExternalProcessIntegrationTest extends AbstractConfigura
 
                 @TaskAction
                 public void exec() {
-                    ${formatter.callProcessAndPrintOutput(method, spec.apply(formatter))}
+                    ${snippets.body}
                 }
             }
 
@@ -577,21 +564,20 @@ class ConfigurationCacheExternalProcessIntegrationTest extends AbstractConfigura
         outputContains("Hello")
 
         where:
-        method                         | spec
-        "getExecOperations().exec"     | ExecFormatter::execSpec
-        "getExecOperations().javaexec" | ExecFormatter::javaexecSpec
+        snippetsFactory                        | _
+        exec("getExecOperations()").groovy     | _
+        javaexec("getExecOperations()").groovy | _
     }
 
-    def "using #method in task up-to-date is not a problem"(String method,
-                                                            Function<ExecFormatter, String> spec) {
+    def "using #snippetsFactory.summary in task up-to-date is not a problem"(SnippetsFactory snippetsFactory) {
         given:
-        def formatter = execOperationsFixture.javaFormatter()
+        def snippets = snippetsFactory.newSnippets(execOperationsFixture)
         testDirectory.file("buildSrc/src/main/java/SneakyTask.java") << """
             import ${DefaultTask.name};
             import ${ExecOperations.name};
             import ${Inject.name};
             import ${TaskAction.name};
-            ${formatter.imports()}
+            ${snippets.imports}
 
             public abstract class SneakyTask extends DefaultTask {
                 @Inject
@@ -599,7 +585,7 @@ class ConfigurationCacheExternalProcessIntegrationTest extends AbstractConfigura
 
                 public SneakyTask() {
                   getOutputs().upToDateWhen(t -> {
-                    ${formatter.callProcessAndPrintOutput(method, spec.apply(formatter))};
+                    ${snippets.body};
                     return false;
                   });
                 }
@@ -620,21 +606,20 @@ class ConfigurationCacheExternalProcessIntegrationTest extends AbstractConfigura
         outputContains("Hello")
 
         where:
-        method                         | spec
-        "getExecOperations().exec"     | ExecFormatter::execSpec
-        "getExecOperations().javaexec" | ExecFormatter::javaexecSpec
+        snippetsFactory                      | _
+        exec("getExecOperations()").java     | _
+        javaexec("getExecOperations()").java | _
     }
 
-    def "using #method in up-to-date task of buildSrc is not a problem"(String method,
-                                                                        Function<ExecFormatter, String> spec) {
+    def "using #snippetsFactory.summary in up-to-date task of buildSrc is not a problem"(SnippetsFactory snippetsFactory) {
         given:
-        def formatter = execOperationsFixture.groovyFormatter()
+        def snippets = snippetsFactory.newSnippets(execOperationsFixture)
         testDirectory.file("buildSrc/build.gradle") << """
             import ${DefaultTask.name};
             import ${ExecOperations.name};
             import ${Inject.name};
             import ${TaskAction.name};
-            ${formatter.imports()}
+            ${snippets.imports}
 
             public abstract class SneakyTask extends DefaultTask {
                 @Inject
@@ -642,7 +627,7 @@ class ConfigurationCacheExternalProcessIntegrationTest extends AbstractConfigura
 
                 public SneakyTask() {
                   outputs.upToDateWhen {
-                    ${formatter.callProcessAndPrintOutput(method, spec.apply(formatter))};
+                    ${snippets.body};
                     return false;
                   }
                 }
@@ -666,8 +651,8 @@ class ConfigurationCacheExternalProcessIntegrationTest extends AbstractConfigura
         outputContains("Hello")
 
         where:
-        method                         | spec
-        "getExecOperations().exec"     | ExecFormatter::execSpec
-        "getExecOperations().javaexec" | ExecFormatter::javaexecSpec
+        snippetsFactory                        | _
+        exec("getExecOperations()").groovy     | _
+        javaexec("getExecOperations()").groovy | _
     }
 }
