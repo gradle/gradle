@@ -14,5 +14,8 @@ open class BaseGradleBuildType(model: CIBuildModel, val stage: Stage? = null, us
             param("env.GRADLE_CACHE_REMOTE_USERNAME", "%gradle.cache.remote.username%")
             param("env.GRADLE_INTERNAL_REPO_URL", "%gradle.internal.repository.url%")
         }
+        features {
+            enablePullRequestFeature()
+        }
     }
 }
