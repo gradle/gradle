@@ -15,7 +15,6 @@ class SanityCheck(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(model
 
     features {
         publishBuildStatusToGithub(model)
-        triggeredOnPullRequests()
     }
 
     applyDefaults(
