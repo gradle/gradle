@@ -114,7 +114,7 @@ class CheckstylePluginToolchainsIntegrationTest extends AbstractIntegrationSpec 
     }
 
     repositories {
-        mavenCentral()
+        ${mavenCentralRepository()}
     }
 
     dependencies {
