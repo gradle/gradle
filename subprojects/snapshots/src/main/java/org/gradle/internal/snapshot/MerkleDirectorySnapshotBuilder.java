@@ -44,7 +44,7 @@ public class MerkleDirectorySnapshotBuilder {
         return new MerkleDirectorySnapshotBuilder(false);
     }
 
-    private MerkleDirectorySnapshotBuilder(boolean sortingRequired) {
+    protected MerkleDirectorySnapshotBuilder(boolean sortingRequired) {
         this.sortingRequired = sortingRequired;
     }
 
@@ -64,13 +64,13 @@ public class MerkleDirectorySnapshotBuilder {
         collectEntry(directorySnapshot);
     }
 
-    public boolean leaveDirectory() {
+    @Nullable
+    public FileSystemLocationSnapshot leaveDirectory() {
         FileSystemLocationSnapshot snapshot = directoryStack.removeLast().fold();
-        if (snapshot == null) {
-            return false;
+        if (snapshot != null) {
+            collectEntry(snapshot);
         }
-        collectEntry(snapshot);
-        return true;
+        return snapshot;
     }
 
     private void collectEntry(FileSystemLocationSnapshot snapshot) {

@@ -227,8 +227,8 @@ public class OutputSnapshotUtil {
 
         @Override
         public void leaveDirectory(DirectorySnapshot directorySnapshot, boolean isRoot) {
-            boolean includedDir = merkleBuilder.leaveDirectory();
-            if (!includedDir) {
+            boolean excludedDir = merkleBuilder.leaveDirectory() == null;
+            if (excludedDir) {
                 currentRootFiltered = true;
                 hasBeenFiltered = true;
             }
