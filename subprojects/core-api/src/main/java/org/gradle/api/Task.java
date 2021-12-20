@@ -25,6 +25,7 @@ import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.services.BuildService;
+import org.gradle.api.services.BuildServiceRegistration;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
@@ -773,7 +774,8 @@ public interface Task extends Comparable<Task>, ExtensionAware {
     Property<Duration> getTimeout();
 
     /**
-     * Registers a {@link BuildService} that is used by this task.
+     * Registers a {@link BuildService} that is used by this task so
+     * {@link BuildServiceRegistration#getMaxParallelUsages() its constraint on parallel execution} can be honored.
      *
      * @param service The service provider.
      * @since 6.1
