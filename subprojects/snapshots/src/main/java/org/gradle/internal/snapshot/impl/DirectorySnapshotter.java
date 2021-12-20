@@ -265,6 +265,20 @@ public class DirectorySnapshotter {
         }
 
         @Override
+        protected FileVisitResult doPostVisitDirectory(Path dir, IOException exc) {
+            pathTracker.leave();
+            // File loop exceptions are ignored. When we encounter a loop (via symbolic links), we continue
+            // so we include all the other files apart from the loop.
+            // This way, we include each file only once.
+            if (isNotFileSystemLoopException(exc)) {
+                throw new UncheckedIOException(String.format("Could not read directory path '%s'.", dir), exc);
+            }
+            builder.leaveDirectory();
+            parentDirectories.removeFirst();
+            return FileVisitResult.CONTINUE;
+        }
+
+        @Override
         protected FileVisitResult doVisitFile(Path file, BasicFileAttributes attrs) {
             String internedFileName = getInternedFileName(file);
             pathTracker.enter(internedFileName);
@@ -381,20 +395,6 @@ public class DirectorySnapshotter {
             } finally {
                 pathTracker.leave();
             }
-        }
-
-        @Override
-        protected FileVisitResult doPostVisitDirectory(Path dir, IOException exc) {
-            pathTracker.leave();
-            // File loop exceptions are ignored. When we encounter a loop (via symbolic links), we continue
-            // so we include all the other files apart from the loop.
-            // This way, we include each file only once.
-            if (isNotFileSystemLoopException(exc)) {
-                throw new UncheckedIOException(String.format("Could not read directory path '%s'.", dir), exc);
-            }
-            builder.leaveDirectory();
-            parentDirectories.removeFirst();
-            return FileVisitResult.CONTINUE;
         }
 
         private boolean isNotFileSystemLoopException(@Nullable IOException e) {
