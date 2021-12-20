@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.publish.maven.internal.publisher;
+package org.gradle.api.publish.ivy.internal.publisher;
 
 import org.gradle.api.Project;
-import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.publish.internal.PublicationInternal;
 import org.gradle.api.publish.internal.validation.DuplicatePublicationTracker;
 import org.gradle.internal.service.scopes.Scopes;
@@ -27,22 +26,16 @@ import javax.annotation.Nullable;
 import java.net.URI;
 
 @ServiceScope(Scopes.Project.class)
-public class MavenDuplicatePublicationTracker {
+public class IvyDuplicatePublicationTracker {
     private final Project project;
     private final DuplicatePublicationTracker duplicatePublicationTracker;
-    private final LocalMavenRepositoryLocator mavenRepositoryLocator;
 
-    public MavenDuplicatePublicationTracker(Project project, DuplicatePublicationTracker duplicatePublicationTracker, LocalMavenRepositoryLocator mavenRepositoryLocator) {
+    public IvyDuplicatePublicationTracker(Project project, DuplicatePublicationTracker duplicatePublicationTracker) {
         this.project = project;
         this.duplicatePublicationTracker = duplicatePublicationTracker;
-        this.mavenRepositoryLocator = mavenRepositoryLocator;
     }
 
-    public void checkCanPublish(PublicationInternal publication, @Nullable URI repositoryLocation, String repositoryName) {
+    public void checkCanPublish(PublicationInternal<?> publication, @Nullable URI repositoryLocation, String repositoryName) {
         duplicatePublicationTracker.checkCanPublish(project, publication, repositoryLocation, repositoryName);
-    }
-
-    public void checkCanPublishToMavenLocal(PublicationInternal publication) {
-        checkCanPublish(publication, mavenRepositoryLocator.getLocalMavenRepository().toURI(), "mavenLocal");
     }
 }
