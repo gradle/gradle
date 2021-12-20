@@ -365,7 +365,7 @@ ${solution}
 
     static class InvalidAliasNotation extends InCatalog<InvalidAliasNotation> {
         String alias
-        String kind = 'alias'
+        String kind = 'library'
         String notation
 
         InvalidAliasNotation() {
@@ -390,11 +390,11 @@ ${solution}
 
         @Override
         String build() {
-            """${intro}  - Problem: In version catalog ${catalog}, invalid ${kind} '${notation}' name.
+            """${intro}  - Problem: In version catalog ${catalog}, invalid ${kind} alias '${notation}'.
 
-    Reason: ${kind.capitalize()} names must match the following regular expression: [a-z]([a-zA-Z0-9_.\\-])+.
+    Reason: ${kind.capitalize()} aliases must match the following regular expression: [a-z]([a-zA-Z0-9_.\\-])+.
 
-    Possible solution: Make sure the name matches the [a-z]([a-zA-Z0-9_.\\-])+ regular expression.
+    Possible solution: Make sure the alias matches the [a-z]([a-zA-Z0-9_.\\-])+ regular expression.
 
     ${documentation}"""
         }

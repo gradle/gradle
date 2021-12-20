@@ -30,6 +30,7 @@ import org.gradle.api.artifacts.MutableVersionConstraint;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.initialization.dsl.VersionCatalogBuilder;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
@@ -46,6 +47,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.FileUtils;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.management.VersionCatalogBuilderInternal;
 
@@ -56,6 +58,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -71,7 +74,16 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
 
     private enum AliasType {
         LIBRARY,
-        PLUGIN
+        PLUGIN,
+        BUNDLE,
+        VERSION,
+        // To be removed.
+        ALIAS;
+
+        @Override
+        public String toString() {
+            return name().toLowerCase(Locale.ROOT);
+        }
     }
 
     private final static Logger LOGGER = Logging.getLogger(DefaultVersionCatalogBuilder.class);
@@ -255,25 +267,25 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
     }
 
     @Override
-    public String version(String name, Action<? super MutableVersionConstraint> versionSpec) {
-        validateName("name", name);
-        name = intern(normalize(name));
-        if (versionConstraints.containsKey(name)) {
+    public String version(String alias, Action<? super MutableVersionConstraint> versionSpec) {
+        validateAlias(AliasType.VERSION, alias);
+        alias = intern(normalize(alias));
+        if (versionConstraints.containsKey(alias)) {
             // For versions, in order to allow overriding whatever is declared by
             // a platform, we want to silence overrides
-            return name;
+            return alias;
         }
         MutableVersionConstraint versionBuilder = new DefaultMutableVersionConstraint("");
         versionSpec.execute(versionBuilder);
         ImmutableVersionConstraint version = versionConstraintInterner.intern(DefaultImmutableVersionConstraint.of(versionBuilder));
-        versionConstraints.put(name, new VersionModel(version, currentContext));
-        return name;
+        versionConstraints.put(alias, new VersionModel(version, currentContext));
+        return alias;
     }
 
     @Override
-    public String version(String name, String version) {
+    public String version(String alias, String version) {
         StrictVersionParser.RichVersion richVersion = strictVersionParser.parse(version);
-        version(name, vc -> {
+        version(alias, vc -> {
             if (richVersion.require != null) {
                 vc.require(richVersion.require);
             }
@@ -284,21 +296,48 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
                 vc.strictly(richVersion.strictly);
             }
         });
-        return name;
+        return alias;
     }
 
+    @Deprecated
     @Override
     public AliasBuilder alias(String alias) {
-        validateName("alias", alias);
+        DeprecationLogger.deprecateMethod(VersionCatalogBuilder.class, "alias(String)")
+            .withAdvice("Use one of the more specifically named methods (library or plugin) instead")
+            .willBeRemovedInGradle8()
+            .withUpgradeGuideSection(7, "version_catalog_deprecations")
+            .nagUser();
+        validateAlias(AliasType.ALIAS, alias);
         return new DefaultAliasBuilder(alias);
     }
 
-    private void validateName(String type, String value) {
+    // Currently, the below are implemented in terms of DefaultAliasBuilder to avoid code duplication.
+    // When #alias is removed, the 3 methods below should be re-implemented.
+
+    @Override
+    public LibraryAliasBuilder library(String alias, String group, String artifact) {
+        validateAlias(AliasType.LIBRARY, alias);
+        return new DefaultAliasBuilder(alias).to(group, artifact);
+    }
+
+    @Override
+    public void library(String alias, String groupArtifactVersion) {
+        validateAlias(AliasType.LIBRARY, alias);
+        new DefaultAliasBuilder(alias).to(groupArtifactVersion);
+    }
+
+    @Override
+    public PluginAliasBuilder plugin(String alias, String id) {
+        validateAlias(AliasType.PLUGIN, alias);
+        return new DefaultAliasBuilder(alias).toPluginId(id);
+    }
+
+    private void validateAlias(AliasType type, String value) {
         if (!DependenciesModelHelper.ALIAS_PATTERN.matcher(value).matches()) {
             throwVersionCatalogProblem(VersionCatalogProblemId.INVALID_ALIAS_NOTATION, spec ->
-                spec.withShortDescription(() -> "Invalid " + type + " '" + value + "' name")
-                    .happensBecause(() -> type + " names must match the following regular expression: " + DependenciesModelHelper.ALIAS_REGEX)
-                    .addSolution(() -> "Make sure the name matches the " + DependenciesModelHelper.ALIAS_REGEX + " regular expression")
+                spec.withShortDescription(() -> "Invalid " + type + " alias '" + value + "'")
+                    .happensBecause(() -> type + " aliases must match the following regular expression: " + DependenciesModelHelper.ALIAS_REGEX)
+                    .addSolution(() -> "Make sure the alias matches the " + DependenciesModelHelper.ALIAS_REGEX + " regular expression")
                     .documented()
             );
         }
@@ -312,15 +351,15 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
     }
 
     @Override
-    public void bundle(String name, List<String> aliases) {
-        validateName("bundle", name);
+    public void bundle(String alias, List<String> aliases) {
+        validateAlias(AliasType.BUNDLE, alias);
         ImmutableList<String> components = ImmutableList.copyOf(aliases.stream()
             .map(AliasNormalizer::normalize)
             .map(this::intern)
             .collect(Collectors.toList()));
-        BundleModel previous = bundles.put(normalize(intern(name)), new BundleModel(components, currentContext));
+        BundleModel previous = bundles.put(normalize(intern(alias)), new BundleModel(components, currentContext));
         if (previous != null) {
-            LOGGER.warn("Duplicate entry for bundle '{}': {} is replaced with {}", name, previous.getComponents(), components);
+            LOGGER.warn("Duplicate entry for bundle '{}': {} is replaced with {}", alias, previous.getComponents(), components);
         }
     }
 
@@ -405,6 +444,7 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
         }
     }
 
+    @SuppressWarnings("deprecation")
     private class DefaultAliasBuilder implements AliasBuilder {
         private final String alias;
         private final String normalizedAlias;

@@ -499,9 +499,9 @@ class TestSuitesDependenciesIntegrationTest extends AbstractIntegrationSpec {
                     version('commons-lang3', '3.11')
                     version('mysql-connector', '6.0.6')
 
-                    alias('guava').to('com.google.guava', 'guava').versionRef('guava')
-                    alias('commons-lang3').to('org.apache.commons', 'commons-lang3').versionRef('commons-lang3')
-                    alias('mysql-connector').to('mysql', 'mysql-connector-java').versionRef('mysql-connector')
+                    library('guava', 'com.google.guava', 'guava').versionRef('guava')
+                    library('commons-lang3', 'org.apache.commons', 'commons-lang3').versionRef('commons-lang3')
+                    library('mysql-connector', 'mysql', 'mysql-connector-java').versionRef('mysql-connector')
                 }
             }
         }

@@ -54,7 +54,7 @@ class KotlinDslVersionCatalogExtensionIntegrationTest extends AbstractHttpDepend
             dependencyResolutionManagement {
                 versionCatalogs {
                     create("libs") {
-                        alias("my-lib").to("org.gradle.test:lib:1.0")
+                        library("my-lib", "org.gradle.test:lib:1.0")
                     }
                 }
             }
@@ -97,7 +97,7 @@ class KotlinDslVersionCatalogExtensionIntegrationTest extends AbstractHttpDepend
             dependencyResolutionManagement {
                 versionCatalogs {
                     create("libs") {
-                        alias("lib").to("org:test:1.0")
+                        library("lib", "org:test:1.0")
                     }
                 }
             }
@@ -151,8 +151,8 @@ class KotlinDslVersionCatalogExtensionIntegrationTest extends AbstractHttpDepend
             dependencyResolutionManagement {
                 versionCatalogs {
                     create("libs") {
-                        alias("my-lib").to("org.gradle.test:lib:1.1")
-                        alias("my-lib2").to("org.gradle.test:lib2:1.1")
+                        library("my-lib", "org.gradle.test:lib:1.1")
+                        library("my-lib2", "org.gradle.test:lib2:1.1")
                     }
                 }
             }
@@ -197,8 +197,8 @@ class KotlinDslVersionCatalogExtensionIntegrationTest extends AbstractHttpDepend
             dependencyResolutionManagement {
                 versionCatalogs {
                     create("libs") {
-                        alias("my-lib").to("org.gradle.test:lib:1.1")
-                        alias("my-lib2").to("org.gradle.test:lib2:1.1")
+                        library("my-lib", "org.gradle.test:lib:1.1")
+                        library("my-lib2", "org.gradle.test:lib2:1.1")
                     }
                 }
             }
@@ -244,9 +244,9 @@ class KotlinDslVersionCatalogExtensionIntegrationTest extends AbstractHttpDepend
             dependencyResolutionManagement {
                 versionCatalogs {
                     create("libs") {
-                        alias("my-lib").to("org.gradle.test:lib:1.1")
+                        library("my-lib", "org.gradle.test:lib:1.1")
                         // Forces `my.lib` to be a ProviderConvertible, otherwise unused
-                        alias("my-lib-two").to("org.gradle.test:lib2:1.1")
+                        library("my-lib-two", "org.gradle.test:lib2:1.1")
                     }
                 }
             }
@@ -288,9 +288,9 @@ class KotlinDslVersionCatalogExtensionIntegrationTest extends AbstractHttpDepend
             dependencyResolutionManagement {
                 versionCatalogs {
                     create("libs") {
-                        alias("my-lib").to("org.gradle.test:lib:1.1")
+                        library("my-lib", "org.gradle.test:lib:1.1")
                         // Forces `my.lib` to be a ProviderConvertible, otherwise unused
-                        alias("my-lib-two").to("org.gradle.test:lib2:1.1")
+                        library("my-lib-two", "org.gradle.test:lib2:1.1")
                     }
                 }
             }
@@ -335,8 +335,8 @@ class KotlinDslVersionCatalogExtensionIntegrationTest extends AbstractHttpDepend
             dependencyResolutionManagement {
                 versionCatalogs {
                     create("libs") {
-                        alias("myLib").to("org.gradle.test:lib:1.1")
-                        alias("myLib-subgroup").to("org.gradle.test:lib2:1.1")
+                        library("myLib", "org.gradle.test:lib:1.1")
+                        library("myLib-subgroup", "org.gradle.test:lib2:1.1")
                     }
                 }
             }
