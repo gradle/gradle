@@ -78,6 +78,17 @@ Following the migration of [AdoptOpenJDK](https://adoptopenjdk.net/) to [Eclipse
 
 See [the documentation](userguide/toolchains.html#sec:provisioning) for details.
 
+#### Checkstyle tasks can be configured to use JVM toolchain 
+
+The checkstyle task is now leveraging JVM toolchains. By default the toolchain based on the current jdk is used. 
+In combination with the Java Plugin the configured java toolchain is used for checkstyle tasks. 
+
+Furthermore the checkstyle task is now leveraging the Gradle worker API which effectively means  
+
+- the checkstyle process is always running as an external process,
+- parallel task execution within a single project is improved by allowing 
+  multiple checkstyle tasks within a project can now be executed in parallel.
+
 ### Kotlin DSL improvements
 
 #### Type-safe accessors for extensions of `repositories {}`

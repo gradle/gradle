@@ -18,10 +18,10 @@ package org.gradle.api.plugins.quality.internal;
 
 import groovy.lang.Closure;
 import org.gradle.api.AntBuilder;
+import org.gradle.api.GradleException;
 import org.gradle.api.internal.project.ant.AntLoggingAdapter;
 import org.gradle.api.internal.project.ant.BasicAntBuilder;
 import org.gradle.api.internal.project.antbuilder.AntBuilderDelegate;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.workers.WorkAction;
@@ -67,7 +67,7 @@ public abstract class AntWorkAction<T extends WorkParameters> implements WorkAct
             removeBuildListener.invoke(project, listeners.get(0));
             addBuildListener.invoke(project, antLogger);
         } catch (Exception ex) {
-            throw UncheckedException.throwAsUncheckedException(ex);
+            throw new GradleException("Unable to configure AntBuilder", ex);
         }
     }
 
@@ -81,7 +81,7 @@ public abstract class AntWorkAction<T extends WorkParameters> implements WorkAct
             removeBuildListener.invoke(project, antLogger);
             antBuilder.getClass().getDeclaredMethod("close").invoke(antBuilder);
         } catch (Exception ex) {
-            throw UncheckedException.throwAsUncheckedException(ex);
+            throw new GradleException("Unable to dispose AntBuilder", ex);
         }
     }
 
