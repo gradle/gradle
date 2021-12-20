@@ -36,6 +36,8 @@ import spock.lang.Issue
 class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
     def setup() {
+        server.start()
+
         settingsFile << """
             includeBuild 'composite-lib'
             rootProject.name = 'root'
@@ -58,8 +60,17 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
             group = 'composite-lib'
             ${variantDeclaration('compositeLibAttrValue')}
         """
-        mavenRepo.module("org.external", "external-lib").publish()
-        mavenRepo.module("org.external", "external-tool").publish()
+        def util = mavenHttpRepo.module("org.external", "external-util").publish().allowAll()
+        mavenHttpRepo.module("org.external", "external-lib")
+            .dependsOn(util)
+            .publish()
+            .allowAll()
+        mavenHttpRepo.module("org.external", "external-lib2")
+            .dependsOn(util)
+            .withModuleMetadata()
+            .publish()
+            .allowAll()
+        mavenHttpRepo.module("org.external", "external-tool").publish().allowAll()
         file('lib/file-lib.jar') << 'content'
         buildFile << """
             project(':project-lib') {
@@ -67,9 +78,10 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
                 ${variantDeclaration('projectLibAttrValue')}
             }
             apply plugin: 'java-library'
-            repositories { maven { url "${mavenRepo.uri}" } }
+            repositories { maven { url "${mavenHttpRepo.uri}" } }
             dependencies {
                 implementation 'org.external:external-lib:1.0'
+                implementation 'org.external:external-lib2:1.0'
                 implementation project('project-lib')
                 implementation files('lib/file-lib.jar')
                 implementation 'composite-lib:composite-lib'

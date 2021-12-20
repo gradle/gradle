@@ -37,6 +37,11 @@ public class CompositeProjectComponentArtifactMetadata implements LocalComponent
         this.file = file;
     }
 
+    @Override
+    public String toString() {
+        return delegate.toString();
+    }
+
     public LocalComponentArtifactMetadata getDelegate() {
         return delegate;
     }
