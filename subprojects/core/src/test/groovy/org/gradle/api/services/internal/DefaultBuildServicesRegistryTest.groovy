@@ -24,7 +24,6 @@ import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
 import org.gradle.internal.event.DefaultListenerManager
-import org.gradle.internal.execution.TaskExecutionTracker
 import org.gradle.internal.resources.SharedResourceLeaseRegistry
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.snapshot.impl.DefaultIsolatableFactory
@@ -36,17 +35,22 @@ class DefaultBuildServicesRegistryTest extends Specification {
     def isolatableFactory = new DefaultIsolatableFactory(null, TestUtil.managedFactoryRegistry())
     def leaseRegistry = Stub(SharedResourceLeaseRegistry)
     def buildIdentifier = Mock(BuildIdentifier)
-    def taskExecutionTracker = Mock(TaskExecutionTracker)
-    def registry = new DefaultBuildServicesRegistry(buildIdentifier, TestUtil.domainObjectCollectionFactory(), TestUtil.instantiatorFactory(), TestUtil.services(), listenerManager, isolatableFactory, leaseRegistry, taskExecutionTracker)
+    def registry = new DefaultBuildServicesRegistry(
+        buildIdentifier,
+        TestUtil.domainObjectCollectionFactory(),
+        TestUtil.instantiatorFactory(),
+        TestUtil.services(),
+        listenerManager,
+        isolatableFactory,
+        leaseRegistry,
+        Mock(BuildServiceProvider.Listener)
+    )
 
     def setup() {
         ServiceImpl.reset()
     }
 
     def "can lazily create service instance"() {
-        setup:
-        noTaskIsRunning()
-
         when:
         def provider = registry.registerIfAbsent("service", ServiceImpl) {}
 
@@ -78,9 +82,6 @@ class DefaultBuildServicesRegistryTest extends Specification {
     }
 
     def "wraps and memoizes service instantiation failure"() {
-        setup:
-        noTaskIsRunning()
-
         when:
         def provider = registry.registerIfAbsent("service", BrokenServiceImpl) {}
 
@@ -134,9 +135,6 @@ class DefaultBuildServicesRegistryTest extends Specification {
     }
 
     def "can provide parameters to the service"() {
-        setup:
-        noTaskIsRunning()
-
         when:
         def provider = registry.registerIfAbsent("service", ServiceImpl) {
             it.parameters.prop = "value"
@@ -149,8 +147,6 @@ class DefaultBuildServicesRegistryTest extends Specification {
 
     def "service can take no parameters"() {
         given:
-        noTaskIsRunning()
-
         def action = Mock(Action)
 
         when:
@@ -167,9 +163,6 @@ class DefaultBuildServicesRegistryTest extends Specification {
     }
 
     def "can tweak parameters via the registration"() {
-        setup:
-        noTaskIsRunning()
-
         when:
         def initialParameters
         def provider = registry.registerIfAbsent("service", ServiceImpl) {
@@ -210,9 +203,6 @@ class DefaultBuildServicesRegistryTest extends Specification {
     }
 
     def "can use base service type to create a service with no state"() {
-        setup:
-        noTaskIsRunning()
-
         when:
         def provider = registry.registerIfAbsent("service", BuildService) {}
         def service = provider.get()
@@ -231,7 +221,6 @@ class DefaultBuildServicesRegistryTest extends Specification {
 
     def "parameters are isolated when the service is instantiated"() {
         given:
-        noTaskIsRunning()
         def provider = registry.registerIfAbsent("service", ServiceImpl) {
             it.parameters.prop = "value 1"
         }
@@ -253,8 +242,6 @@ class DefaultBuildServicesRegistryTest extends Specification {
 
     def "stops service at end of build if it implements AutoCloseable"() {
         given:
-        noTaskIsRunning()
-
         def provider1 = registry.registerIfAbsent("one", ServiceImpl) {}
         def provider2 = registry.registerIfAbsent("two", StoppableServiceImpl) {}
         def provider3 = registry.registerIfAbsent("three", StoppableServiceImpl) {}
@@ -286,8 +273,6 @@ class DefaultBuildServicesRegistryTest extends Specification {
 
     def "reports failure to stop service"() {
         given:
-        noTaskIsRunning()
-
         def provider = registry.registerIfAbsent("service", BrokenStopServiceImpl) {}
         provider.get()
 
@@ -328,10 +313,6 @@ class DefaultBuildServicesRegistryTest extends Specification {
 
         and:
         registry.forService(service).maxUsages == 42
-    }
-
-    private void noTaskIsRunning() {
-        _ * taskExecutionTracker.currentTask >> Optional.empty()
     }
 
     private buildFinished() {

@@ -17,7 +17,6 @@
 package org.gradle.api.services.internal;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.Action;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.provider.AbstractMinimalProvider;
 import org.gradle.api.services.BuildService;
@@ -35,6 +34,11 @@ import javax.annotation.Nullable;
 // TODO:configuration-cache - complain when used at configuration time, except when opted in to this
 @SuppressWarnings("rawtypes")
 public class BuildServiceProvider<T extends BuildService<P>, P extends BuildServiceParameters> extends AbstractMinimalProvider<T> implements Managed {
+
+    public interface Listener {
+        void beforeGet(BuildServiceProvider<?, ?> provider);
+    }
+
     private final BuildIdentifier buildIdentifier;
     private final String name;
     private final Class<T> implementationType;
@@ -42,7 +46,7 @@ public class BuildServiceProvider<T extends BuildService<P>, P extends BuildServ
     private final InstantiationScheme instantiationScheme;
     private final IsolatableFactory isolatableFactory;
     private final ServiceRegistry internalServices;
-    private final Action<BuildServiceProvider<T, P>> beforeGet;
+    private final Listener listener;
     private final P parameters;
     private Try<T> instance;
 
@@ -55,7 +59,7 @@ public class BuildServiceProvider<T extends BuildService<P>, P extends BuildServ
         InstantiationScheme instantiationScheme,
         IsolatableFactory isolatableFactory,
         ServiceRegistry internalServices,
-        Action<BuildServiceProvider<T, P>> beforeGet
+        Listener listener
     ) {
         this.buildIdentifier = buildIdentifier;
         this.name = name;
@@ -65,7 +69,7 @@ public class BuildServiceProvider<T extends BuildService<P>, P extends BuildServ
         this.instantiationScheme = instantiationScheme;
         this.isolatableFactory = isolatableFactory;
         this.internalServices = internalServices;
-        this.beforeGet = beforeGet;
+        this.listener = listener;
     }
 
     /**
@@ -115,7 +119,7 @@ public class BuildServiceProvider<T extends BuildService<P>, P extends BuildServ
     }
 
     private T getInstance() {
-        beforeGet.execute(this);
+        listener.beforeGet(this);
         synchronized (this) {
             if (instance == null) {
                 instance = instantiate();
