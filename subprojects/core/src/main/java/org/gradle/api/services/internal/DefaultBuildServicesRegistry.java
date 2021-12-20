@@ -179,7 +179,6 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
             if (!task.getRequiredServices().contains(serviceProvider)) {
                 nagAboutUndeclaredBuildServiceUsage(serviceProvider, task);
             }
-            // TODO:configuration-cache assert build service is from the same build as the task in `Task.usesService`
         });
     }
 
