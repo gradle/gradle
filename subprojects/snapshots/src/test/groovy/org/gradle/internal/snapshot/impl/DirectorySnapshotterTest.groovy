@@ -259,12 +259,45 @@ class DirectorySnapshotterTest extends Specification {
         then:
         relativePaths == ["included", "included/text.txt", "includedSymlink", "includedSymlink/included.txt", "includedSymlink/symlinkedFile.txt"]
         SnapshotVisitorUtil.getAbsolutePaths(snapshot) == relativePaths.collect { new File(rootDir, it).absolutePath }
-        completeSubsnapshots*.absolutePath == [
-            // use "new File()" since TestFile canonicalizes the paths.
-            new File(rootDir, "includedSymlink/included.txt"),
-            new File(rootDir, "includedSymlink/symlinkedFile.txt"),
-            new File(rootDir, "included")
-        ]*.absolutePath
+        completeSubsnapshots*.absolutePath == absolutePathsFor(rootDir,
+            "includedSymlink/included.txt",
+            "includedSymlink/symlinkedFile.txt",
+            "included")
+    }
+
+    @Requires(TestPrecondition.SYMLINKS)
+    def "partially snapshotted symlinked directories are handled correctly"() {
+        def rootDir = tmpDir.createDir("root")
+        rootDir.createFile("included/text.txt")
+        def linkTarget = tmpDir.createDir("linkTarget2")
+        linkTarget.createFile("included.txt")
+        linkTarget.createFile("excluded.png")
+
+        rootDir.file("includedSymlink").createLink(linkTarget)
+
+        // rootDir
+        //   - included
+        //     - text.txt
+        //   - includedSymlink -> linkTarget
+        //     - included.txt
+        //     - excluded.png
+
+        def patterns = new PatternSet()
+        patterns.include("included*/*.txt")
+
+        when:
+        def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, directoryWalkerPredicate(patterns), actuallyFiltered, completeSubSnapshotsCollector) as DirectorySnapshot
+        def relativePaths = SnapshotVisitorUtil.getRelativePaths(snapshot)
+        then:
+        actuallyFiltered.get()
+        relativePaths == ["included", "included/text.txt", "includedSymlink", "includedSymlink/included.txt"]
+        SnapshotVisitorUtil.getAbsolutePaths(snapshot) == relativePaths.collect { new File(rootDir, it).absolutePath }
+        completeSubsnapshots*.absolutePath == absolutePathsFor(rootDir, "includedSymlink/included.txt", "included")
+    }
+
+    List<String> absolutePathsFor(File rootDir, String... relativePaths) {
+        // use "new File()" since TestFile canonicalizes the paths.
+        return relativePaths.collect { new File(rootDir, it).absolutePath }
     }
 
     @Requires(TestPrecondition.SYMLINKS)

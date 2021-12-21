@@ -302,7 +302,8 @@ public class DirectorySnapshotter {
                 if (attrs.isSymbolicLink()) {
                     BasicFileAttributes targetAttributes = readAttributesOfSymlinkTarget(file, attrs);
                     if (targetAttributes.isDirectory()) {
-                        DirectorySnapshot targetSnapshot = followSymlink(file, internedFileName);
+                        AtomicBoolean symlinkHasBeenFiltered = new AtomicBoolean(false);
+                        DirectorySnapshot targetSnapshot = followSymlink(file, internedFileName, symlinkHasBeenFiltered);
                         if (targetSnapshot != null) {
                             DirectorySnapshot directorySnapshotAccessedViaSymlink = new DirectorySnapshot(
                                 targetSnapshot.getAbsolutePath(),
@@ -311,8 +312,13 @@ public class DirectorySnapshotter {
                                 targetSnapshot.getHash(),
                                 targetSnapshot.getChildren()
                             );
-                            incompleteDirectorySnapshots.add(directorySnapshotAccessedViaSymlink);
                             builder.visitDirectory(directorySnapshotAccessedViaSymlink);
+                            boolean symlinkFiltered = symlinkHasBeenFiltered.get();
+                            if (symlinkFiltered) {
+                                incompleteDirectorySnapshots.add(directorySnapshotAccessedViaSymlink);
+                                builder.markCurrentLevelAsIncomplete();
+                                hasBeenFiltered.set(true);
+                            }
                         }
                     } else {
                         visitResolvedFile(file, targetAttributes, AccessType.VIA_SYMLINK);
@@ -327,14 +333,14 @@ public class DirectorySnapshotter {
         }
 
         @Nullable
-        private DirectorySnapshot followSymlink(Path file, String internedFileName) {
+        private DirectorySnapshot followSymlink(Path file, String internedFileName, AtomicBoolean symlinkHasBeenFiltered) {
             try {
                 Path targetDir = file.toRealPath();
                 String targetDirString = targetDir.toString();
                 if (!introducesCycle(targetDirString) && shouldVisitDirectory(targetDir, internedFileName)) {
                     PathVisitor subtreeVisitor = new PathVisitor(
                         predicate,
-                        hasBeenFiltered,
+                        symlinkHasBeenFiltered,
                         hasher,
                         stringInterner,
                         defaultExcludes,
