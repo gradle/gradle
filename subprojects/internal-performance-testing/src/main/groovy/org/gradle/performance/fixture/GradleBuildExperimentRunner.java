@@ -105,7 +105,7 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
             if (gradleExperiment.getInvocation().isUseToolingApi()) {
                 initializeNativeServicesForTapiClient(buildSpec, scenarioDefinition);
             }
-            scenarioInvoker.doRun(scenarioDefinition,
+            scenarioInvoker.run(scenarioDefinition,
                 invocationSettings,
                 consumerFor(scenarioDefinition, iterationCount, results, scenarioReporter));
         } catch (IOException | InterruptedException e) {
