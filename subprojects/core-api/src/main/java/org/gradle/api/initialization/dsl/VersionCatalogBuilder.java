@@ -87,7 +87,7 @@ public interface VersionCatalogBuilder extends Named {
     /**
      * Entry point for registering a library alias.
      *
-     * @param alias the alias identifier
+     * @param alias the alias of the library
      * @param group the group of the library
      * @param artifact the artifact ID of the library
      * @return a builder for this alias, to finish the version configuration
@@ -103,7 +103,7 @@ public interface VersionCatalogBuilder extends Named {
      * Note that declaring a classifier or extension using this method is not possible.
      * </p>
      *
-     * @param alias the alias identifier
+     * @param alias the alias of the library
      * @param groupArtifactVersion the {@code group:artifact:version} string, all components are required
      * @since 7.4
      */
@@ -112,7 +112,7 @@ public interface VersionCatalogBuilder extends Named {
     /**
      * Entry point for registering a plugin alias.
      *
-     * @param alias the alias identifier
+     * @param alias the alias of the plugin
      * @param id the ID of the plugin
      * @return a builder for this alias, to finish the version configuration
      * @since 7.4
