@@ -53,14 +53,18 @@ public interface TaskExecutionGraph {
      * <p>Adds a listener to this graph, to be notified as tasks are executed.</p>
      *
      * @param listener The listener to add. Does nothing if this listener has already been added.
+     * @deprecated This method is not supported when configuration caching is enabled.
      */
+    @Deprecated
     void addTaskExecutionListener(TaskExecutionListener listener);
 
     /**
      * <p>Remove a listener from this graph.</p>
      *
      * @param listener The listener to remove. Does nothing if this listener was never added to this graph.
+     * @deprecated This method is not supported when configuration caching is enabled.
      */
+    @Deprecated
     void removeTaskExecutionListener(TaskExecutionListener listener);
 
     /**
@@ -86,7 +90,9 @@ public interface TaskExecutionGraph {
      * parameter.</p>
      *
      * @param closure The closure to execute when a task is about to be executed.
+     * @deprecated This method is not supported when configuration caching is enabled.
      */
+    @Deprecated
     void beforeTask(Closure closure);
 
     /**
@@ -94,9 +100,11 @@ public interface TaskExecutionGraph {
      * parameter.</p>
      *
      * @param action The action to execute when a task is about to be executed.
+     * @deprecated This method is not supported when configuration caching is enabled.
      *
      * @since 3.1
      */
+    @Deprecated
     void beforeTask(Action<Task> action);
 
     /**
@@ -105,7 +113,9 @@ public interface TaskExecutionGraph {
      * optional.</p>
      *
      * @param closure The closure to execute when a task has been executed
+     * @deprecated This method is not supported when configuration caching is enabled.
      */
+    @Deprecated
     void afterTask(Closure closure);
 
     /**
@@ -113,9 +123,11 @@ public interface TaskExecutionGraph {
      * first parameter.</p>
      *
      * @param action The action to execute when a task has been executed
+     * @deprecated This method is not supported when configuration caching is enabled.
      *
      * @since 3.1
      */
+    @Deprecated
     void afterTask(Action<Task> action);
 
     /**

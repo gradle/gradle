@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.tasks.execution;
 
-import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.execution.internal.TaskInputsListeners;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -46,6 +45,7 @@ import java.util.Optional;
 /**
  * A {@link TaskExecuter} which executes the actions of a task.
  */
+@SuppressWarnings("deprecation")
 public class ExecuteActionsTaskExecuter implements TaskExecuter {
     public enum BuildCacheState {
         ENABLED, DISABLED
@@ -61,7 +61,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     private final ExecutionHistoryStore executionHistoryStore;
     private final BuildOperationExecutor buildOperationExecutor;
     private final AsyncWorkTracker asyncWorkTracker;
-    private final TaskActionListener actionListener;
+    private final org.gradle.api.execution.TaskActionListener actionListener;
     private final TaskCacheabilityResolver taskCacheabilityResolver;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final ExecutionEngine executionEngine;
@@ -79,7 +79,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         ExecutionHistoryStore executionHistoryStore,
         BuildOperationExecutor buildOperationExecutor,
         AsyncWorkTracker asyncWorkTracker,
-        TaskActionListener actionListener,
+        org.gradle.api.execution.TaskActionListener actionListener,
         TaskCacheabilityResolver taskCacheabilityResolver,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         ExecutionEngine executionEngine,
