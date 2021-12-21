@@ -16,7 +16,8 @@
 package org.gradle.process
 
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.test.fixtures.file.TestFile;
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.internal.TextUtil;
 
 /**
  * The cross-platform builder of shell scripts that can be used to verify correctness of the
@@ -29,19 +30,24 @@ abstract class ShellScript {
         this.scriptFile = scriptFile
     }
 
-    List<String> getCommandLine() {
-        return getCommandLineWithArguments()
-    }
-
-    abstract List<String> getCommandLineWithArguments(String... args)
+    /**
+     * Returns a command line elements that can be used to start this script.
+     * The resulting list can be used as an argument for the {@link ProcessBuilder} or Groovy's {@code execute} method.
+     * The first element of the list is the command interpreter (sh or cmd depending on the platform).
+     * The list also contains an absolute path to the script (which may contain spaces).
+     *
+     * @return the list of command line elements to start this script.
+     */
+    abstract List<String> getCommandLine();
 
     private static class WindowsScript extends ShellScript {
         private WindowsScript(TestFile scriptFile) {
             super(scriptFile)
         }
 
-        List<String> getCommandLineWithArguments(String... args) {
-            return [scriptFile.absolutePath] + args.toList()
+        @Override
+        List<String> getCommandLine() {
+            return ["cmd", "/c", scriptFile.absolutePath]
         }
     }
 
@@ -50,8 +56,9 @@ abstract class ShellScript {
             super(scriptFile)
         }
 
-        List<String> getCommandLineWithArguments(String... args) {
-            return ["/bin/sh", scriptFile.absolutePath] + args.toList()
+        @Override
+        List<String> getCommandLine() {
+            return ["/bin/sh", scriptFile.absolutePath]
         }
     }
 
@@ -171,4 +178,25 @@ abstract class ShellScript {
         return new PosixBuilder()
     }
 
+    /**
+     * Converts a list of command line elements (returned by {@link #getCommandLine()}) to a list of Java/Groovy/Kotlin string literals.
+     * Literals include surrounding quotes and have special symbols escaped, so they are safe to use in the sources.
+     * @param cmd the command line elements to be converted
+     * @return a List of string literals
+     */
+    static List<String> cmdToStringLiterals(List<String> cmd) {
+        return cmd.collect { "\"${TextUtil.escapeString(it)}\"".toString() }
+    }
+
+    /**
+     * Converts a list of command line elements (returned by {@link #getCommandLine()}) to a comma-separated list of Java/Groovy/Kotlin string literals.
+     * String literals include surrounding quotes and have special symbols escaped.
+     * The returned string can be used to generate call to a method that accepts varargs.
+     *
+     * @param cmd the command line elements to be converted
+     * @return a comma-separated list of string literals
+     */
+    static String cmdToVarargLiterals(List<String> cmd) {
+        return cmdToStringLiterals(cmd).join(", ")
+    }
 }

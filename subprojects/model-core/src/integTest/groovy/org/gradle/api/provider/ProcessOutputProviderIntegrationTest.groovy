@@ -31,7 +31,7 @@ class ProcessOutputProviderIntegrationTest extends AbstractIntegrationSpec {
 
         buildFile """
             def execProvider = providers.exec {
-                ${cmdToExecConfig(testScript.getCommandLineWithArguments("--some-arg"))}
+                ${cmdToExecConfig(*testScript.commandLine, "--some-arg")}
                 environment("TEST_FOO", "fooValue")
             }
 
@@ -86,7 +86,7 @@ class ProcessOutputProviderIntegrationTest extends AbstractIntegrationSpec {
 
         buildFile """
             def execProvider = providers.exec {
-                ${cmdToExecConfig(testScript.commandLine)}
+                ${cmdToExecConfig(*testScript.commandLine)}
             }
 
             println("exit value = " + execProvider.result.get().exitValue)
@@ -110,7 +110,7 @@ class ProcessOutputProviderIntegrationTest extends AbstractIntegrationSpec {
 
         buildFile """
             def execProvider = providers.exec {
-                ${cmdToExecConfig(testScript.commandLine)}
+                ${cmdToExecConfig(*testScript.commandLine)}
                 setIgnoreExitValue(true)
             }
 
@@ -137,7 +137,7 @@ class ProcessOutputProviderIntegrationTest extends AbstractIntegrationSpec {
 
         buildFile """
             def execProvider = providers.exec {
-                ${cmdToExecConfig(testScript.commandLine)}
+                ${cmdToExecConfig(*testScript.commandLine)}
                 workingDir("${TextUtil.escapeString(workingDir.path)}")
             }
 
@@ -161,7 +161,7 @@ class ProcessOutputProviderIntegrationTest extends AbstractIntegrationSpec {
 
         buildFile """
             def execProvider = providers.exec {
-                ${cmdToExecConfig(testScript.commandLine)}
+                ${cmdToExecConfig(*testScript.commandLine)}
             }
 
             abstract class MyTask extends DefaultTask {
@@ -192,7 +192,7 @@ class ProcessOutputProviderIntegrationTest extends AbstractIntegrationSpec {
 
         buildFile """
             def execProvider = providers.exec {
-                ${cmdToExecConfig(testScript.commandLine)}
+                ${cmdToExecConfig(*testScript.commandLine)}
             }
 
             abstract class MyTask extends DefaultTask {
@@ -229,7 +229,7 @@ class ProcessOutputProviderIntegrationTest extends AbstractIntegrationSpec {
 
         buildFile """
             def execProvider = providers.exec {
-                ${cmdToExecConfig(testScript.commandLine)}
+                ${cmdToExecConfig(*testScript.commandLine)}
             }
 
             abstract class MyTask extends DefaultTask {
@@ -262,10 +262,9 @@ class ProcessOutputProviderIntegrationTest extends AbstractIntegrationSpec {
         result.assertTaskExecuted(":printScriptOutput")
     }
 
-    static String cmdToExecConfig(List<String> args) {
-        def argsString = args.collect { "'${TextUtil.escapeString(it)}'" }.join(", ")
+    static String cmdToExecConfig(String... args) {
         return """
-            commandLine($argsString)
+            commandLine(${ShellScript.cmdToVarargLiterals(args.toList())})
         """
     }
 }

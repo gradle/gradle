@@ -37,8 +37,8 @@ class ExecOperationsFixture {
         this.testDirectory = testDirectory
     }
 
-    private String getTestCommandLine() {
-        return testExecutable.commandLine.collect { """ "${TextUtil.escapeString(it)}" """ }.join(", ")
+    private String getCommandLineAsVarargLiterals() {
+        return ShellScript.cmdToVarargLiterals(testExecutable.commandLine)
     }
 
     interface Snippets {
@@ -95,7 +95,7 @@ class ExecOperationsFixture {
 
     private String getGroovyKotlinExecSpec() {
         return """
-                commandLine($testCommandLine)
+                commandLine($commandLineAsVarargLiterals)
                 setStandardOutput(baos)
             """
     }
@@ -111,7 +111,7 @@ class ExecOperationsFixture {
 
     private String getJavaExecSpec() {
         return """
-                it.commandLine($testCommandLine);
+                it.commandLine($commandLineAsVarargLiterals);
                 it.setStandardOutput(baos);
             """
     }
