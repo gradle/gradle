@@ -36,6 +36,9 @@ import javax.annotation.Nullable;
 public class BuildServiceProvider<T extends BuildService<P>, P extends BuildServiceParameters> extends AbstractMinimalProvider<T> implements Managed {
 
     public interface Listener {
+        Listener EMPTY = provider -> {
+        };
+
         void beforeGet(BuildServiceProvider<?, ?> provider);
     }
 

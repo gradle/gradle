@@ -19,6 +19,7 @@ import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.internal.BuildScopeListenerRegistrationListener;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
+import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
@@ -31,6 +32,7 @@ import org.gradle.api.internal.plugins.PluginTarget;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.options.OptionReader;
+import org.gradle.api.services.internal.BuildServiceProvider;
 import org.gradle.api.services.internal.BuildServiceProviderNagger;
 import org.gradle.api.services.internal.BuildServiceRegistryInternal;
 import org.gradle.api.services.internal.DefaultBuildServicesRegistry;
@@ -244,7 +246,8 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         ListenerManager listenerManager,
         IsolatableFactory isolatableFactory,
         SharedResourceLeaseRegistry sharedResourceLeaseRegistry,
-        TaskExecutionTracker taskExecutionTracker
+        TaskExecutionTracker taskExecutionTracker,
+        FeaturePreviews featurePreviews
     ) {
         // Instantiate via `instantiator` for the DSL decorations to the `BuildServiceRegistry` API
         return instantiator.newInstance(
@@ -256,7 +259,9 @@ public class GradleScopeServices extends DefaultServiceRegistry {
             listenerManager,
             isolatableFactory,
             sharedResourceLeaseRegistry,
-            new BuildServiceProviderNagger(taskExecutionTracker)
+            featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.STABLE_BUILD_SERVICES)
+                ? new BuildServiceProviderNagger(taskExecutionTracker)
+                : BuildServiceProvider.Listener.EMPTY
         );
     }
 
