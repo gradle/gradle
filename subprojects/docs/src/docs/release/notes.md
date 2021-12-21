@@ -1,9 +1,30 @@
 This is a backport release, Gradle @version@.
 
-This release features bugfixes and other changes that were [backported](#backports) from Gradle 7.0 to Gradle 6.x.
+This is the second patch release for Gradle 6.9.
+
+It fixes the following issues:
+* [#18163](https://github.com/gradle/gradle/issues/18163) Fix excludes for substituted dependencies
+* [#18164](https://github.com/gradle/gradle/issues/18164) POSIX shell scripts improvements
+* [#18697](https://github.com/gradle/gradle/issues/18697) Fix corrupted resolution result from replacement / capability conflict
+* [#19328](https://github.com/gradle/gradle/issues/19328) Mitigations for log4j vulnerability in Gradle builds
+* [#19372](https://github.com/gradle/gradle/issues/19372) Multiple transformed artifacts selected
+
+Issues fixed in first patch release:
+* [#17949](https://github.com/gradle/gradle/issues/17949) Gradle's up-to-date checks do not work on Windows FAT drives
+* [#17950](https://github.com/gradle/gradle/issues/17950) Renaming and recreating the project directory causes Gradle to lose track of changes on Windows
+* [#18089](https://github.com/gradle/gradle/issues/18089) Deprecate jcenter() repository
+
+We recommend users upgrade to @version@ instead of 6.9.
+
+Given the context of the Log4Shell vulnerability, make sure you take a look at [our blog post](https://blog.gradle.org/log4j-vulnerability) on this topic.
+
+----
+
+This release features bugfixes and other changes that were [backported](#backports) from Gradle 7.x to Gradle 6.x.
 
 We would like to thank the following community contributors to this release of Gradle:
-[Ståle Undheim](https://github.com/staale)
+[Ståle Undheim](https://github.com/staale),
+[Fodor Zoltan](https://github.com/archfz)
 
 ## Upgrade instructions
 
