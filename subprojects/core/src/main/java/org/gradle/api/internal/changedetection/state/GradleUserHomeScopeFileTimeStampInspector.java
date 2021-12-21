@@ -65,7 +65,6 @@ public class GradleUserHomeScopeFileTimeStampInspector extends FileTimeStampInsp
                     filesWithCurrentTimestamp.clear();
                     filesWithCurrentTimestamp.add(file);
                     currentTimestamp = timestamp;
-                    isCurrentTimestampHighPrecision = isHighTimestampPrecision(currentTimestamp);
                 }
             }
         }
