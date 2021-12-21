@@ -19,4 +19,7 @@
  *
  * @since 6.1
  */
+@NonNullApi
 package org.gradle.api.services;
+
+import org.gradle.api.NonNullApi;
