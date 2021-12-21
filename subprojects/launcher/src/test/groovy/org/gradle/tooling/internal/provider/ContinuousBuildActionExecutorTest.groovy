@@ -153,6 +153,6 @@ class ContinuousBuildActionExecutorTest extends ConcurrentSpec {
     }
 
     private ContinuousBuildActionExecutor executer() {
-        new ContinuousBuildActionExecutor(waiterFactory, inputsListeners, new TestStyledTextOutputFactory(), executorFactory, requestContext, cancellationToken, deploymentRegistry, listenerManager.createChild(Scopes.BuildSession), buildExecutionTimer, Time.clock(), delegate)
+        new ContinuousBuildActionExecutor(waiterFactory, inputsListeners, new TestStyledTextOutputFactory(), executorFactory, requestContext, cancellationToken, deploymentRegistry, listenerManager.createChild(Scopes.BuildSession), buildExecutionTimer, Time.clock(), _, delegate)
     }
 }

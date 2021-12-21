@@ -20,6 +20,7 @@ import org.gradle.api.execution.internal.TaskInputsListeners;
 import org.gradle.api.internal.changedetection.state.FileHasherStatistics;
 import org.gradle.deployment.internal.DeploymentRegistryInternal;
 import org.gradle.execution.WorkValidationWarningReporter;
+import org.gradle.execution.plan.InputAccessHierarchyFactory;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.initialization.BuildRequestMetaData;
@@ -160,7 +161,6 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
             BuildOperationExecutor buildOperationExecutor,
             TaskInputsListeners inputsListeners,
             StyledTextOutputFactory styledTextOutputFactory,
-            FileSystemChangeWaiterFactory fileSystemChangeWaiterFactory,
             BuildRequestMetaData requestMetaData,
             BuildCancellationToken cancellationToken,
             DeploymentRegistryInternal deploymentRegistry,
@@ -171,14 +171,15 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
             BuildOperationNotificationValve buildOperationNotificationValve,
             BuildTreeModelControllerServices buildModelServices,
             WorkerLeaseService workerLeaseService,
-            BuildLayoutValidator buildLayoutValidator
+            BuildLayoutValidator buildLayoutValidator,
+            BuildLifecycleAwareVirtualFileSystem virtualFileSystem,
+            InputAccessHierarchyFactory inputAccessHierarchyFactory
         ) {
             return new SubscribableBuildActionExecutor(
                 listenerManager,
                 buildOperationListenerManager,
                 listenerFactory, eventConsumer,
                 new ContinuousBuildActionExecutor(
-                    fileSystemChangeWaiterFactory,
                     inputsListeners,
                     styledTextOutputFactory,
                     executorFactory,
@@ -188,6 +189,8 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                     listenerManager,
                     buildStartedTime,
                     clock,
+                    virtualFileSystem,
+                    inputAccessHierarchyFactory,
                     new RunAsWorkerThreadBuildActionExecutor(
                         workerLeaseService,
                         new RunAsBuildOperationBuildActionExecutor(

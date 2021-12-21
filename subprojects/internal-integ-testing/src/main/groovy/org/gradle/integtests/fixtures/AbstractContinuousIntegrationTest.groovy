@@ -59,7 +59,7 @@ abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec
 
     void turnOnDebug() {
         executer.startBuildProcessInDebugger(true)
-        executer.withArgument("--no-daemon")
+//        executer.withArgument("--no-daemon")
         buildTimeout *= 100
         shutdownTimeout *= 100
     }
