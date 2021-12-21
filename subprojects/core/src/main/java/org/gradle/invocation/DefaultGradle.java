@@ -380,6 +380,9 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     }
 
     private void notifyListenerRegistration(String registrationPoint, Object listener) {
+        if (listener instanceof InternalListener || listener instanceof ProjectEvaluationListener) {
+            return;
+        }
         getListenerManager().getBroadcaster(BuildScopeListenerRegistrationListener.class)
             .onBuildScopeListenerRegistration(listener, registrationPoint, this);
     }

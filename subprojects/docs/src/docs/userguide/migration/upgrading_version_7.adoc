@@ -115,23 +115,62 @@ link:{javadocPath}/org/gradle/api/reporting/ConfigurableReport.html#setDestinati
 
 Use link:{javadocPath}/org/gradle/api/reporting/Report.html#getOutputLocation--[`Report#getOutputLocation().set(...)`] instead.
 
-==== Listeners
+[[task_execution_events]]
+==== Task execution listeners and events
 
-TBD - TaskExecutionListener
-TBD - TaskActionListener
-TBD - Registering TaskExecutionListener, TaskActionListener, TestListener, TestOutputListener via Gradle.addListener()
-TBD - Gradle.buildFinished()
-TBD - BuildListener.buildFinished()
-TBD - TaskExecutionGraph.addTaskExecutionListener(), removeTaskExecutionListener()
-TBD - TaskExecutionGraph.beforeTask(), afterTask()
+TODO - links
 
-==== Calling Task#getProject() from a task action
+Gradle configuration caching does not support listeners and events that have direct access to `Task` and `Project` instances,
+to allow Gradle to execute tasks in parallel and to store the minimal amount of data in the configuration cache.
+In order to move towards a consistent API, regardless of whether configuration caching is enabled or not, the following APIs
+are deprecated and will be removed or be made an error in Gradle 8.0:
 
-TBD - Calling Task.getProject() at execution time is now deprecated, but it can still be used during configuration time. It is recommended to avoid using it during configuration time
+- TaskExecutionListener
+- TaskActionListener
+- TaskExecutionGraph.addTaskExecutionListener()
+- TaskExecutionGraph.removeTaskExecutionListener()
+- TaskExecutionGraph.beforeTask()
+- TaskExecutionGraph.afterTask()
+- Registering TaskExecutionListener, TaskActionListener, TestListener, TestOutputListener via Gradle.addListener()
 
-==== Calling Task#getDependencies() from a task action
+See the configuration cache user guide chapter for details on how to migrate these usages to APIs that are supported by the
+configuration cache.
 
-TBD -
+[[build_finished_events]]
+==== Build finished events
+
+TODO - links
+
+As for task listeners, build finished listeners are not supported by Gradle configuration caching. And so, the following
+API are deprecated and will be removed in Gradle 8.0:
+
+- Gradle.buildFinished()
+- BuildListener.buildFinished()
+
+See the configuration cache user guide chapter for details on how to migrate these usages to APIs that are supported by the
+configuration cache.
+
+[[task_project]]
+==== Calling `Task#getProject()`` from a task action
+
+TODO - links
+
+Calling Task.getProject() from a task action at execution time is now deprecated and will be made an error in Gradle 8.0.
+This method can still be used during configuration time, but it is recommended to avoid doing this.
+
+See the configuration cache user guide chapter for details on how to migrate these usages to APIs that are supported by the
+configuration cache.
+
+[[task_dependencies]]
+==== Calling `Task#getTaskDependencies()`` from a task action
+
+TODO - links
+
+Calling Task.getTaskDependencies() from a task action at execution time is now deprecated and will be made an error in Gradle 8.0.
+This method can still be used during configuration time, but it is recommended to avoid doing this.
+
+See the configuration cache user guide chapter for details on how to migrate these usages to APIs that are supported by the
+configuration cache.
 
 [[changes_7.3]]
 == Upgrading from 7.2 and earlier
