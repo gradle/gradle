@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.operations;
+package org.gradle.internal.execution;
 
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-import javax.annotation.Nullable;
 import java.util.Optional;
-import java.util.function.Function;
-import java.util.function.Predicate;
 
-@SuppressWarnings("Since15")
+/**
+ * Provides access to the task executing on the current thread.
+ */
 @ServiceScope(Scope.Global.class)
-public interface BuildOperationAncestryTracker {
-    Optional<OperationIdentifier> findClosestMatchingAncestor(@Nullable OperationIdentifier id, Predicate<? super OperationIdentifier> predicate);
+public interface TaskExecutionTracker {
 
-    <T> Optional<T> findClosestExistingAncestor(@Nullable OperationIdentifier id, Function<? super OperationIdentifier, T> lookupFunction);
+    /**
+     * Finds the task executing on the current thread, if any.
+     */
+    Optional<TaskInternal> getCurrentTask();
 }

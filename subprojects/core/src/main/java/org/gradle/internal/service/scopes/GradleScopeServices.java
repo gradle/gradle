@@ -19,6 +19,7 @@ import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.internal.BuildScopeListenerRegistrationListener;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
+import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
@@ -31,6 +32,8 @@ import org.gradle.api.internal.plugins.PluginTarget;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.options.OptionReader;
+import org.gradle.api.services.internal.BuildServiceProvider;
+import org.gradle.api.services.internal.BuildServiceProviderNagger;
 import org.gradle.api.services.internal.BuildServiceRegistryInternal;
 import org.gradle.api.services.internal.DefaultBuildServicesRegistry;
 import org.gradle.cache.GlobalCacheLocations;
@@ -74,6 +77,7 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.BuildOutputCleanupRegistry;
+import org.gradle.internal.execution.TaskExecutionTracker;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.IsolatableFactory;
@@ -241,8 +245,10 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         ServiceRegistry services,
         ListenerManager listenerManager,
         IsolatableFactory isolatableFactory,
-        SharedResourceLeaseRegistry sharedResourceLeaseRegistry
+        SharedResourceLeaseRegistry sharedResourceLeaseRegistry,
+        FeaturePreviews featurePreviews
     ) {
+        // Instantiate via `instantiator` for the DSL decorations to the `BuildServiceRegistry` API
         return instantiator.newInstance(
             DefaultBuildServicesRegistry.class,
             buildState.getBuildIdentifier(),
@@ -251,7 +257,10 @@ public class GradleScopeServices extends DefaultServiceRegistry {
             services,
             listenerManager,
             isolatableFactory,
-            sharedResourceLeaseRegistry
+            sharedResourceLeaseRegistry,
+            featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.STABLE_CONFIGURATION_CACHE)
+                ? new BuildServiceProviderNagger(services.get(TaskExecutionTracker.class))
+                : BuildServiceProvider.Listener.EMPTY
         );
     }
 
@@ -263,7 +272,7 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         return ConfigurationTargetIdentifier.of(gradle);
     }
 
-    // This needs to go here instead of being “build tree” scoped due to the GradleBuild task.
+    // This needs to go here instead of being “build tree” scoped due to the GradleBuild task.
     // Builds launched by that task are part of the same build tree, but should have their own invocation ID.
     // Such builds also have their own root Gradle object.
     protected BuildInvocationScopeId createBuildInvocationScopeId(GradleInternal gradle) {
