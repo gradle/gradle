@@ -246,7 +246,6 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         ListenerManager listenerManager,
         IsolatableFactory isolatableFactory,
         SharedResourceLeaseRegistry sharedResourceLeaseRegistry,
-        TaskExecutionTracker taskExecutionTracker,
         FeaturePreviews featurePreviews
     ) {
         // Instantiate via `instantiator` for the DSL decorations to the `BuildServiceRegistry` API
@@ -260,7 +259,7 @@ public class GradleScopeServices extends DefaultServiceRegistry {
             isolatableFactory,
             sharedResourceLeaseRegistry,
             featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.STABLE_BUILD_SERVICES)
-                ? new BuildServiceProviderNagger(taskExecutionTracker)
+                ? new BuildServiceProviderNagger(services.get(TaskExecutionTracker.class))
                 : BuildServiceProvider.Listener.EMPTY
         );
     }
@@ -273,7 +272,7 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         return ConfigurationTargetIdentifier.of(gradle);
     }
 
-    // This needs to go here instead of being “build tree” scoped due to the GradleBuild task.
+    // This needs to go here instead of being “build tree” scoped due to the GradleBuild task.
     // Builds launched by that task are part of the same build tree, but should have their own invocation ID.
     // Such builds also have their own root Gradle object.
     protected BuildInvocationScopeId createBuildInvocationScopeId(GradleInternal gradle) {
