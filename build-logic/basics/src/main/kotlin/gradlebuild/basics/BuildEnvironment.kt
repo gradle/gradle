@@ -22,7 +22,6 @@ import org.gradle.api.Project
 import org.gradle.api.file.Directory
 import org.gradle.api.provider.Provider
 import org.gradle.internal.os.OperatingSystem
-import java.io.ByteArrayOutputStream
 
 
 fun Project.repoRoot() = layout.projectDirectory.parentOrRoot()
@@ -50,27 +49,28 @@ fun Project.currentGitBranch() = git(layout.projectDirectory, "rev-parse", "--ab
 fun Project.currentGitCommit() = git(layout.projectDirectory, "rev-parse", "HEAD")
 
 
+@Suppress("UnstableApiUsage")
 private
-fun Project.git(checkoutDir: Directory, vararg args: String): Provider<String> = provider {
-    val execOutput = ByteArrayOutputStream()
-    val execResult = exec {
+fun Project.git(checkoutDir: Directory, vararg args: String): Provider<String> {
+    val execOutput = providers.exec {
         workingDir = checkoutDir.asFile
         isIgnoreExitValue = true
         commandLine = listOf("git", *args)
         if (OperatingSystem.current().isWindows) {
             commandLine = listOf("cmd", "/c") + commandLine
         }
-        standardOutput = execOutput
     }
-    when {
-        execResult.exitValue == 0 -> String(execOutput.toByteArray()).trim()
-        checkoutDir.asFile.resolve(".git/HEAD").exists() -> {
-            // Read commit id directly from filesystem
-            val headRef = checkoutDir.asFile.resolve(".git/HEAD").readText()
-                .replace("ref: ", "").trim()
-            checkoutDir.asFile.resolve(".git/$headRef").readText().trim()
+    return execOutput.result.zip(execOutput.standardOutput.asBytes) { execResult, output ->
+        when {
+            execResult.exitValue == 0 -> String(output).trim()
+            checkoutDir.asFile.resolve(".git/HEAD").exists() -> {
+                // Read commit id directly from filesystem
+                val headRef = checkoutDir.asFile.resolve(".git/HEAD").readText()
+                    .replace("ref: ", "").trim()
+                checkoutDir.asFile.resolve(".git/$headRef").readText().trim()
+            }
+            else -> "<unknown>" // It's a source distribution, we don't know.
         }
-        else -> "<unknown>" // It's a source distribution, we don't know.
     }
 }
 
