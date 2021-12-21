@@ -19,30 +19,24 @@ package org.gradle.launcher.continuous
 import groovy.transform.TupleConstructor
 import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.Flaky
 
-import static org.gradle.internal.filewatch.DefaultFileSystemChangeWaiterFactory.QUIET_PERIOD_SYSPROP
 import static org.gradle.internal.filewatch.DefaultFileWatcherEventListener.SHOW_INDIVIDUAL_CHANGES_LIMIT
 
-// Developer is able to easily determine the file(s) that triggered a rebuild
 class ContinuousBuildChangeReportingIntegrationTest extends AbstractContinuousIntegrationTest {
     TestFile inputDir
     private static int changesLimit = SHOW_INDIVIDUAL_CHANGES_LIMIT
-    // Use an extended quiet period in the test to ensure all file events are reported together.
-    def quietPeriod = OperatingSystem.current().isMacOsX() ? 2500L : 1000L
 
     def setup() {
         buildFile << """
             task theTask {
               inputs.dir "inputDir"
+              outputs.files "build/outputs"
               doLast {}
             }
         """
         inputDir = file("inputDir").createDir()
-
-        executer.withBuildJvmOpts("-D${QUIET_PERIOD_SYSPROP}=${quietPeriod}")
     }
 
     def "should report the absolute file path of the created file when a single file is created in the input directory"() {
@@ -50,7 +44,7 @@ class ContinuousBuildChangeReportingIntegrationTest extends AbstractContinuousIn
         def inputFile = inputDir.file("input.txt")
         when:
         succeeds("theTask")
-        inputFile.text = 'New input file'
+        inputFile.createFile()
 
         then:
         succeeds()
@@ -63,7 +57,7 @@ class ContinuousBuildChangeReportingIntegrationTest extends AbstractContinuousIn
         def inputFiles = (1..changesLimit).collect { inputDir.file("input${it}.txt") }
         when:
         succeeds("theTask")
-        inputFiles.each { it.text = 'New input file' }
+        inputFiles.each { it.createFile() }
 
         then:
         succeeds()
@@ -76,7 +70,7 @@ class ContinuousBuildChangeReportingIntegrationTest extends AbstractContinuousIn
         def inputFiles = (1..9).collect { inputDir.file("input${it}.txt") }
         when:
         succeeds("theTask")
-        inputFiles.each { it.text = 'New input file' }
+        inputFiles.each { it.createFile() }
 
         then:
         succeeds()
@@ -87,7 +81,7 @@ class ContinuousBuildChangeReportingIntegrationTest extends AbstractContinuousIn
     def "should report the changes when files are removed with #changesCount"(changesCount) {
         given:
         def inputFiles = (1..changesCount).collect { inputDir.file("input${it}.txt") }
-        inputFiles.each { it.text = 'New input file' }
+        inputFiles.each { it.createFile() }
         boolean expectMoreChanges = (changesCount > changesLimit)
 
         when:
@@ -106,7 +100,7 @@ class ContinuousBuildChangeReportingIntegrationTest extends AbstractContinuousIn
     def "should report the changes when files are modified #changesCount"(changesCount) {
         given:
         def inputFiles = (1..changesCount).collect { inputDir.file("input${it}.txt") }
-        inputFiles.each { it.text = 'New input file' }
+        inputFiles.each { it.createFile() }
         boolean expectMoreChanges = (changesCount > changesLimit)
 
         when:
@@ -163,16 +157,17 @@ class ContinuousBuildChangeReportingIntegrationTest extends AbstractContinuousIn
     def "should report the changes when multiple changes are made at once"() {
         given:
         def inputFiles = (1..11).collect { inputDir.file("input${it}.txt") }
-        inputFiles.each { it.text = 'Input file' }
+        inputFiles.each { it.createFile() }
         def newfile1 = inputDir.file("input12.txt")
         def newfile2 = inputDir.file("input13.txt")
+        Thread.sleep(500)
 
         when:
         succeeds("theTask")
-        newfile1.text = 'New Input file'
+        newfile1.createFile()
         inputFiles[2].text = 'Modified file'
         inputFiles[7].delete()
-        newfile2.text = 'New Input file'
+        newfile2.createFile()
 
         then:
         succeeds()
@@ -186,13 +181,11 @@ class ContinuousBuildChangeReportingIntegrationTest extends AbstractContinuousIn
         buildFile << """
             gradle.taskGraph.afterTask { Task task ->
                 if(task.path == ':theTask' && !file('changetrigged').exists()) {
-                   sleep(500) // attempt to workaround JDK-8145981
-                   file('inputDir/input.txt').text = 'New input file'
+                   file('inputDir/input.txt').createNewFile()
                    file('changetrigged').text = 'done'
                 }
             }
         """
-        waitAtEndOfBuildForQuietPeriod(quietPeriod)
 
         when:
         succeeds("theTask")
@@ -213,7 +206,7 @@ class ContinuousBuildChangeReportingIntegrationTest extends AbstractContinuousIn
         when:
         executer.withArgument("-q")
         succeeds("theTask")
-        inputFile.text = 'New input file'
+        inputFile.createFile()
 
         then:
         succeeds()

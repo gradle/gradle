@@ -18,10 +18,8 @@ package org.gradle.execution.plan;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.file.FileTreeElement;
-import org.gradle.api.file.RelativePath;
 import org.gradle.api.specs.Spec;
 import org.gradle.execution.plan.ValuedVfsHierarchy.ValueVisitor;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.collect.PersistentList;
 import org.gradle.internal.file.Stat;
 import org.gradle.internal.snapshot.CaseSensitivity;
@@ -29,10 +27,6 @@ import org.gradle.internal.snapshot.EmptyChildMap;
 import org.gradle.internal.snapshot.VfsRelativePath;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.file.Files;
 import java.util.function.Supplier;
 
 public class ExecutionNodeAccessHierarchy {
@@ -69,32 +63,11 @@ public class ExecutionNodeAccessHierarchy {
             @Override
             public void visitChildren(PersistentList<NodeAccess> values, Supplier<String> relativePathSupplier) {
                 String relativePathFromLocation = relativePathSupplier.get();
-                if (relativePathMatchesSpec(filter, new File(location, relativePathFromLocation), relativePathFromLocation)) {
+                if (ReadOnlyFileTreeElement.relativePathMatchesSpec(filter, new File(location, relativePathFromLocation), relativePathFromLocation, stat)) {
                     values.forEach(this::addNode);
                 }
             }
         });
-    }
-
-    private boolean relativePathMatchesSpec(Spec<FileTreeElement> filter, File element, String relativePathString) {
-        // A better solution for output files would be to record the type of the output file and then using this type here instead of looking at the disk.
-        // Though that is more involved and as soon as the file has been produced, the right file type will be detected here as well.
-        boolean elementIsFile = !element.isDirectory();
-        RelativePath relativePath = RelativePath.parse(elementIsFile, relativePathString);
-        if (!filter.isSatisfiedBy(new ReadOnlyFileTreeElement(element, relativePath, stat))) {
-            return false;
-        }
-        // All parent paths need to match the spec as well, since this is how we implement the file system walking for file tree.
-        RelativePath parentRelativePath = relativePath.getParent();
-        File parentFile = element.getParentFile();
-        while (parentRelativePath != null && parentRelativePath != RelativePath.EMPTY_ROOT) {
-            if (!filter.isSatisfiedBy(new ReadOnlyFileTreeElement(parentFile, parentRelativePath, stat))) {
-                return false;
-            }
-            parentRelativePath = parentRelativePath.getParent();
-            parentFile = parentFile.getParentFile();
-        }
-        return true;
     }
 
     /**
@@ -200,78 +173,7 @@ public class ExecutionNodeAccessHierarchy {
 
         @Override
         public boolean accessesChild(VfsRelativePath childPath) {
-            return relativePathMatchesSpec(spec, new File(childPath.getAbsolutePath()), childPath.getAsString());
-        }
-    }
-
-    private static class ReadOnlyFileTreeElement implements FileTreeElement {
-        private final File file;
-        private final RelativePath relativePath;
-        private final Stat stat;
-
-        public ReadOnlyFileTreeElement(File file, RelativePath relativePath, Stat stat) {
-            this.file = file;
-            this.relativePath = relativePath;
-            this.stat = stat;
-        }
-
-        @Override
-        public File getFile() {
-            return file;
-        }
-
-        @Override
-        public boolean isDirectory() {
-            return !relativePath.isFile();
-        }
-
-        @Override
-        public long getLastModified() {
-            return file.lastModified();
-        }
-
-        @Override
-        public long getSize() {
-            return file.length();
-        }
-
-        @Override
-        public InputStream open() {
-            try {
-                return Files.newInputStream(file.toPath());
-            } catch (IOException e) {
-                throw UncheckedException.throwAsUncheckedException(e);
-            }
-        }
-
-        @Override
-        public void copyTo(OutputStream output) {
-            throw new UnsupportedOperationException("Copy to not supported for filters");
-        }
-
-        @Override
-        public boolean copyTo(File target) {
-            throw new UnsupportedOperationException("Copy to not supported for filters");
-        }
-
-        @Override
-        public String getName() {
-            return file.getName();
-        }
-
-        @Override
-        public String getPath() {
-            return relativePath.getPathString();
-        }
-
-        @Override
-        public RelativePath getRelativePath() {
-            return relativePath;
-        }
-
-        @Override
-        public int getMode() {
-            return stat.getUnixMode(file);
+            return ReadOnlyFileTreeElement.relativePathMatchesSpec(spec, new File(childPath.getAbsolutePath()), childPath.getAsString(), stat);
         }
     }
 }

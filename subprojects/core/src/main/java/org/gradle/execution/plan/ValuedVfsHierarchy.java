@@ -45,6 +45,10 @@ public final class ValuedVfsHierarchy<T> {
         this.caseSensitivity = caseSensitivity;
     }
 
+    public boolean isEmpty() {
+        return children.isEmpty();
+    }
+
     /**
      * Returns an empty {@link ValuedVfsHierarchy} with the same case sensitivity.
      */

@@ -114,6 +114,11 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
                 return actuallyWatching;
             }
         });
+        if (action.getStartParameter().isContinuous()) {
+            if (!actuallyWatching) {
+                throw new IllegalStateException("Continuous build requires file system watching to be enabled");
+            }
+        }
 
         try {
             return delegate.run(action, buildController);

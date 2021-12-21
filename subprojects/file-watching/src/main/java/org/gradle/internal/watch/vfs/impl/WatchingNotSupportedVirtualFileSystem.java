@@ -24,6 +24,7 @@ import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.internal.vfs.impl.AbstractVirtualFileSystem;
 import org.gradle.internal.vfs.impl.VfsRootReference;
+import org.gradle.internal.watch.registry.FileWatcherRegistry;
 import org.gradle.internal.watch.vfs.BuildFinishedFileSystemWatchingBuildOperationType;
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem;
 import org.gradle.internal.watch.vfs.BuildStartedFileSystemWatchingBuildOperationType;
@@ -49,6 +50,10 @@ public class WatchingNotSupportedVirtualFileSystem extends AbstractVirtualFileSy
     @Override
     protected SnapshotHierarchy updateNotifyingListeners(UpdateFunction updateFunction) {
         return updateFunction.update(SnapshotHierarchy.NodeDiffListener.NOOP);
+    }
+
+    @Override
+    public void registerChangeBroadcaster(FileWatcherRegistry.ChangeHandler changeBroadcaster) {
     }
 
     @Override
