@@ -86,7 +86,6 @@ import org.gradle.api.internal.artifacts.transform.DefaultTransformerInvocationF
 import org.gradle.api.internal.artifacts.transform.DefaultVariantTransformRegistry;
 import org.gradle.api.internal.artifacts.transform.ImmutableTransformationWorkspaceServices;
 import org.gradle.api.internal.artifacts.transform.MutableTransformationWorkspaceServices;
-import org.gradle.api.internal.artifacts.transform.TransformationNodeRegistry;
 import org.gradle.api.internal.artifacts.transform.TransformationRegistrationFactory;
 import org.gradle.api.internal.artifacts.transform.TransformedVariantFactory;
 import org.gradle.api.internal.artifacts.transform.TransformerInvocationFactory;
@@ -190,10 +189,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 public void afterTransformerInvocation(Describable transformer, Describable subject) {
                 }
             };
-        }
-
-        TransformationNodeRegistry createTransformationNodeRegistry() {
-            return TransformationNodeRegistry.EMPTY;
         }
     }
 
@@ -465,7 +460,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return instantiator.newInstance(DefaultArtifactHandler.class, configurationContainer, publishArtifactNotationParser);
         }
 
-        ComponentMetadataProcessorFactory createComponentMetadataProcessorFactory(ComponentMetadataHandlerInternal componentMetadataHandler, DependencyResolutionManagementInternal dependencyResolutionManagement,  DomainObjectContext context) {
+        ComponentMetadataProcessorFactory createComponentMetadataProcessorFactory(ComponentMetadataHandlerInternal componentMetadataHandler, DependencyResolutionManagementInternal dependencyResolutionManagement, DomainObjectContext context) {
             if (context.isScript()) {
                 return componentMetadataHandler::createComponentMetadataProcessor;
             }

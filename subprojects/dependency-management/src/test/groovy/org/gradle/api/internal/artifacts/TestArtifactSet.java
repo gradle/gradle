@@ -75,7 +75,7 @@ public class TestArtifactSet implements ResolvedArtifactSet, ResolvedArtifactSet
     }
 
     @Override
-    public void visitLocalArtifacts(LocalArtifactVisitor visitor) {
+    public void visitTransformSources(TransformSourceVisitor visitor) {
     }
 
     @Override

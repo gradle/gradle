@@ -40,7 +40,7 @@ public class BrokenResolvedArtifactSet implements ResolvedArtifactSet, ResolvedA
     }
 
     @Override
-    public void visitLocalArtifacts(LocalArtifactVisitor visitor) {
+    public void visitTransformSources(TransformSourceVisitor visitor) {
         throw UncheckedException.throwAsUncheckedException(failure);
     }
 

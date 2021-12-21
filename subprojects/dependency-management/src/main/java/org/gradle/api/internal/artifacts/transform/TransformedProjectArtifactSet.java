@@ -46,14 +46,14 @@ public class TransformedProjectArtifactSet implements ResolvedArtifactSet, FileC
     public TransformedProjectArtifactSet(
         ComponentIdentifier componentIdentifier,
         ResolvedArtifactSet delegate,
-        ImmutableAttributes targetAttributes,
-        Transformation transformation,
+        VariantDefinition variantDefinition,
         ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory,
-        TransformationNodeRegistry transformationNodeRegistry
+        TransformationNodeFactory transformationNodeFactory
     ) {
         this.componentIdentifier = componentIdentifier;
-        this.targetAttributes = targetAttributes;
-        this.transformedArtifacts = transformationNodeRegistry.getOrCreate(delegate, transformation, dependenciesResolverFactory.create(componentIdentifier, transformation));
+        this.targetAttributes = variantDefinition.getTargetAttributes();
+        TransformUpstreamDependenciesResolver dependenciesResolver = dependenciesResolverFactory.create(componentIdentifier, variantDefinition.getTransformation());
+        this.transformedArtifacts = transformationNodeFactory.create(delegate, variantDefinition.getTransformationStep(), dependenciesResolver);
     }
 
     public TransformedProjectArtifactSet(ComponentIdentifier componentIdentifier, ImmutableAttributes targetAttributes, Collection<TransformationNode> transformedArtifacts) {
@@ -120,8 +120,10 @@ public class TransformedProjectArtifactSet implements ResolvedArtifactSet, FileC
     }
 
     @Override
-    public void visitLocalArtifacts(LocalArtifactVisitor visitor) {
-        throw new UnsupportedOperationException("Should not be called.");
+    public void visitTransformSources(TransformSourceVisitor visitor) {
+        for (TransformationNode transformationNode : transformedArtifacts) {
+            visitor.visitTransform(transformationNode);
+        }
     }
 
     @Override
