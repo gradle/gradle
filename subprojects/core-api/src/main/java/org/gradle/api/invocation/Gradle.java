@@ -20,7 +20,6 @@ import org.gradle.BuildListener;
 import org.gradle.BuildResult;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.UnknownDomainObjectException;
@@ -350,7 +349,6 @@ public interface Gradle extends PluginAware {
      *
      * @since 6.1
      */
-    @Incubating
     BuildServiceRegistry getSharedServices();
 
     /**

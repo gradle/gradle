@@ -17,7 +17,6 @@
 package org.gradle.api.services;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.provider.Property;
 
 /**
@@ -26,7 +25,6 @@ import org.gradle.api.provider.Property;
  * @param <P> The type of parameters to inject into the service implementation.
  * @since 6.1
  */
-@Incubating
 public interface BuildServiceSpec<P extends BuildServiceParameters> {
     /**
      * Returns the parameters to will be used to create the service instance.
