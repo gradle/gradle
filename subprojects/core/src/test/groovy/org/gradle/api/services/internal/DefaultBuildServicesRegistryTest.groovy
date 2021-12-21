@@ -43,7 +43,7 @@ class DefaultBuildServicesRegistryTest extends Specification {
         listenerManager,
         isolatableFactory,
         leaseRegistry,
-        Mock(BuildServiceProvider.Listener)
+        BuildServiceProvider.Listener.EMPTY
     )
 
     def setup() {
