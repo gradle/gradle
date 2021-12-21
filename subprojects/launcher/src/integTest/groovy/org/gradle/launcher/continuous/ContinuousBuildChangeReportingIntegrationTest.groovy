@@ -20,7 +20,6 @@ import groovy.transform.TupleConstructor
 import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.Flaky
 
 import static org.gradle.internal.filewatch.DefaultFileWatcherEventListener.SHOW_INDIVIDUAL_CHANGES_LIMIT
 
@@ -116,7 +115,6 @@ class ContinuousBuildChangeReportingIntegrationTest extends AbstractContinuousIn
         changesCount << [1, changesLimit, 11]
     }
 
-    @Flaky(because = 'https://github.com/gradle/gradle-private/issues/3205')
     def "should report the changes when directories are created #changesCount"(changesCount) {
         given:
         def inputDirectories = (1..changesCount).collect { inputDir.file("input${it}Directory") }
@@ -135,7 +133,6 @@ class ContinuousBuildChangeReportingIntegrationTest extends AbstractContinuousIn
         changesCount << [1, changesLimit, 11]
     }
 
-    @Flaky(because = 'https://github.com/gradle/gradle-private/issues/3205')
     def "should report the changes when directories are deleted #changesCount"(changesCount) {
         given:
         def inputDirectories = (1..changesCount).collect { inputDir.file("input${it}Directory").createDir() }
