@@ -20,6 +20,8 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.internal.execution.TaskExecutionTracker;
 
+import java.util.Optional;
+
 import static org.gradle.internal.deprecation.DeprecationLogger.deprecateBehaviour;
 
 public class BuildServiceProviderNagger implements BuildServiceProvider.Listener {
@@ -32,15 +34,23 @@ public class BuildServiceProviderNagger implements BuildServiceProvider.Listener
 
     @Override
     public void beforeGet(BuildServiceProvider<?, ?> provider) {
-        taskExecutionTracker.getCurrentTask().ifPresent(task -> {
-            if (!task.getRequiredServices().contains(provider)) {
-                nagAboutUndeclaredBuildServiceUsage(provider, task);
+        currentTask().ifPresent(task -> {
+            if (!isServiceRequiredBy(task, provider)) {
+                nagAboutUndeclaredUsageOf(provider, task);
             }
         });
     }
 
-    private static void nagAboutUndeclaredBuildServiceUsage(BuildServiceProvider<?, ?> serviceProvider, TaskInternal task) {
-        deprecateBehaviour(undeclaredBuildServiceUsage(serviceProvider, task))
+    private Optional<TaskInternal> currentTask() {
+        return taskExecutionTracker.getCurrentTask();
+    }
+
+    private static boolean isServiceRequiredBy(TaskInternal task, BuildServiceProvider<?, ?> provider) {
+        return task.getRequiredServices().contains(provider);
+    }
+
+    private static void nagAboutUndeclaredUsageOf(BuildServiceProvider<?, ?> provider, TaskInternal task) {
+        deprecateBehaviour(undeclaredBuildServiceUsage(provider, task))
             .withAdvice("Declare the task uses the build service via 'Task#usesService'.")
             .withContext("Max parallel usages constraint on the build service can't be honored.")
             .willBecomeAnErrorInGradle8()
@@ -48,8 +58,8 @@ public class BuildServiceProviderNagger implements BuildServiceProvider.Listener
             .nagUser();
     }
 
-    private static String undeclaredBuildServiceUsage(BuildServiceProvider<?, ?> serviceProvider, TaskInternal task) {
-        return "Build service '" + serviceProvider.getName() + "'" +
+    private static String undeclaredBuildServiceUsage(BuildServiceProvider<?, ?> provider, TaskInternal task) {
+        return "Build service '" + provider.getName() + "'" +
             " is being used by task '" + task.getIdentityPath() + "'" +
             " without the corresponding declaration via 'Task#usesService'.";
     }
