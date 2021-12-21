@@ -155,6 +155,14 @@ plugin. Now, this is allowed when Gradle can track the version of the plugin (cu
 This allows you to use [`alias`](userguide/platforms.html#sec:plugins) in both a parent and subproject's `plugins {}` without 
 needing to remove the version in some way.
 
+### Configuration Cache improvements
+
+#### Automatic detection of environment variables, system properties and Gradle properties used at configuration time
+
+Previously, in order for Gradle to correctly treat external values such as environment variables, system properties and Gradle properties as configuration cache inputs, build and plugin authors were required to change their code to use Gradle specific APIs to read them; moreover, reading an external value at configuration time required an explicit opt-in via the `Provider.forUseAtConfigurationTime()` API.
+
+Gradle 7.4 simplifies adoption of the configuration cache by deprecating `Provider.forUseAtConfigurationTime()` and allowing external values to be read using standard Java and Gradle APIs. Please check the [corresponding section of the upgrade guide](userguide/upgrading_version_7.html#for_use_at_configuration_time_deprecation) for details.
+
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
 ==========================================================
