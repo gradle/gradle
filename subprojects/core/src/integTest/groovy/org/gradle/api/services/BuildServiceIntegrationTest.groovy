@@ -58,7 +58,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
 
         if (enableFeaturePreview) {
             settingsFile '''
-                enableFeaturePreview 'STABLE_BUILD_SERVICES'
+                enableFeaturePreview 'STABLE_CONFIGURATION_CACHE'
             '''
             executer.expectDocumentedDeprecationWarning(
                 "Build service 'counter' is being used by task ':broken' without the corresponding declaration via 'Task#usesService'. " +

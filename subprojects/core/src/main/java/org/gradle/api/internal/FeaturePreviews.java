@@ -34,7 +34,7 @@ public class FeaturePreviews {
         VERSION_ORDERING_V2(false),
         VERSION_CATALOGS(true),
         TYPESAFE_PROJECT_ACCESSORS(true),
-        STABLE_BUILD_SERVICES(true);
+        STABLE_CONFIGURATION_CACHE(true);
 
         public static Feature withName(String name) {
             try {

@@ -258,7 +258,7 @@ public class GradleScopeServices extends DefaultServiceRegistry {
             listenerManager,
             isolatableFactory,
             sharedResourceLeaseRegistry,
-            featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.STABLE_BUILD_SERVICES)
+            featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.STABLE_CONFIGURATION_CACHE)
                 ? new BuildServiceProviderNagger(services.get(TaskExecutionTracker.class))
                 : BuildServiceProvider.Listener.EMPTY
         );
