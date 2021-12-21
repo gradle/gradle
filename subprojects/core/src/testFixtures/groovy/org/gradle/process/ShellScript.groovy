@@ -17,7 +17,9 @@ package org.gradle.process
 
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.internal.TextUtil;
+import org.gradle.util.internal.TextUtil
+
+import java.nio.file.Path
 
 /**
  * The cross-platform builder of shell scripts that can be used to verify correctness of the
@@ -40,6 +42,29 @@ abstract class ShellScript {
      */
     abstract List<String> getCommandLine();
 
+    /**
+     * Returns a command line elements that can be used to start this script.
+     * The resulting list can be used as an argument for the {@link ProcessBuilder} or Groovy's {@code execute} method.
+     * The first element of the list is the command interpreter (sh or cmd depending on the platform).
+     * The list also contains a path to the script relative to {@code baseDir}.
+     * This means that {@code baseDir} has to be used as a current dir when executing the command,
+     * otherwise interpreter won't be able to find the script file.
+     *
+     * @param baseDir the directory to which the script path is relative
+     *
+     * @return the list of command line elements to start this script.
+     */
+    abstract List<String> getRelativeCommandLine(File baseDir);
+
+    protected String getRelativePath(File baseDir) {
+        // Do not use Groovy's baseDir.relativePath there. It has a custom implementation
+        // and assumes that having "/" as a separator in Windows path is fine. It isn't.
+        Path basePath = baseDir.absoluteFile.toPath()
+        Path scriptPath = scriptFile.absoluteFile.toPath()
+
+        return basePath.relativize(scriptPath).toString()
+    }
+
     private static class WindowsScript extends ShellScript {
         private WindowsScript(TestFile scriptFile) {
             super(scriptFile)
@@ -49,7 +74,13 @@ abstract class ShellScript {
         List<String> getCommandLine() {
             return ["cmd", "/c", scriptFile.absolutePath]
         }
+
+        @Override
+        List<String> getRelativeCommandLine(File baseDir) {
+            return ["cmd", "/c", getRelativePath(baseDir)]
+        }
     }
+
 
     private static class PosixScript extends ShellScript {
         private PosixScript(TestFile scriptFile) {
@@ -59,6 +90,11 @@ abstract class ShellScript {
         @Override
         List<String> getCommandLine() {
             return ["/bin/sh", scriptFile.absolutePath]
+        }
+
+        @Override
+        List<String> getRelativeCommandLine(File baseDir) {
+            return ["/bin/sh", getRelativePath(baseDir)]
         }
     }
 
@@ -198,5 +234,20 @@ abstract class ShellScript {
      */
     static String cmdToVarargLiterals(List<String> cmd) {
         return cmdToStringLiterals(cmd).join(", ")
+    }
+
+    /**
+     * Converts a list of command line elements (returned by {@link #getCommandLine()}) to a single Java/Groovy/Kotlin string literal.
+     * String literal includes surrounding quotes and has special symbols escaped.
+     * This method throws {@code IllegalArgumentException} if any of {@code cmd} elements contain spaces.
+     *
+     * @param cmd the command line elements to be converted
+     * @return a comma-separated list of string literals
+     */
+    static String cmdToStringLiteral(List<String> cmd) {
+        if (cmd.any { it.contains(" ") }) {
+            throw new IllegalArgumentException("There is an element with space in $cmd")
+        }
+        return "\"${TextUtil.escapeString(cmd.join(" "))}\""
     }
 }

@@ -392,7 +392,7 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
                     for (String argument : execHandle.getArguments()) {
                         command.append(' ').append(argument);
                     }
-                    externalProcessStartedListener.onExternalProcessStarted(command.toString());
+                    externalProcessStartedListener.onExternalProcessStarted(command.toString(), /* consumer */ null);
                 }
 
                 @Override

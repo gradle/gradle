@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache
 
+import org.gradle.configurationcache.initialization.ConfigurationCacheProblemsListener
 import org.gradle.configurationcache.serialization.Workarounds
 import org.gradle.internal.classpath.Instrumented
 import org.gradle.internal.event.ListenerManager
@@ -60,11 +61,15 @@ val allowedProperties = setOf(
 
 @ServiceScope(Scopes.BuildTree::class)
 class InstrumentedInputAccessListener(
-    listenerManager: ListenerManager
+    listenerManager: ListenerManager,
+    configurationCacheProblemsListener: ConfigurationCacheProblemsListener,
 ) : Instrumented.Listener {
 
     private
     val broadcast = listenerManager.getBroadcaster(UndeclaredBuildInputListener::class.java)
+
+    private
+    val externalProcessListener = configurationCacheProblemsListener
 
     override fun systemPropertyQueried(key: String, value: Any?, consumer: String) {
         if (allowedProperties.contains(key) || Workarounds.canReadSystemProperty(consumer)) {
@@ -78,5 +83,9 @@ class InstrumentedInputAccessListener(
             return
         }
         broadcast.envVariableRead(key, value, consumer)
+    }
+
+    override fun externalProcessStarted(command: String, consumer: String?) {
+        externalProcessListener.onExternalProcessStarted(command, consumer)
     }
 }

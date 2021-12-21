@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache.fixtures
 
+import org.codehaus.groovy.runtime.ProcessGroovyMethods
 import org.gradle.process.ShellScript
 import org.gradle.process.TestJavaMain
 import org.gradle.test.fixtures.file.TestFile
@@ -27,13 +28,13 @@ import java.util.function.Function
 /**
  * Helper to test {@code exec} and {@code javaexec} methods on scripts and {@code ExecOperations}.
  */
-class ExecOperationsFixture {
+class ExternalProcessFixture {
     private final TestFile testDirectory
     private final ShellScript testExecutable = ShellScript.builder()
         .printText("Hello from script")
         .writeTo(testDirectory, "test")
 
-    ExecOperationsFixture(TestFile testDirectory) {
+    ExternalProcessFixture(TestFile testDirectory) {
         this.testDirectory = testDirectory
     }
 
@@ -48,7 +49,7 @@ class ExecOperationsFixture {
     }
 
     interface SnippetsFactory {
-        abstract Snippets newSnippets(ExecOperationsFixture fixture)
+        abstract Snippets newSnippets(ExternalProcessFixture fixture)
 
         abstract String getSummary()
     }
@@ -67,7 +68,7 @@ class ExecOperationsFixture {
     }
 
     static PrintProcessOutput exec(String instance) {
-        return new ExecJavaexecPrintOutput(instance, "exec", ExecOperationsFixture::getGroovyKotlinExecSpec, ExecOperationsFixture::getGroovyKotlinExecSpec, ExecOperationsFixture::getJavaExecSpec)
+        return new ExecJavaexecPrintOutput(instance, "exec", ExternalProcessFixture::getGroovyKotlinExecSpec, ExternalProcessFixture::getGroovyKotlinExecSpec, ExternalProcessFixture::getJavaExecSpec)
     }
 
     static PrintProcessOutput javaexec() {
@@ -76,13 +77,13 @@ class ExecOperationsFixture {
 
     static PrintProcessOutput javaexec(String instance) {
         return new ExecJavaexecPrintOutput(
-            instance, "javaexec", ExecOperationsFixture::getGroovyKotlinJavaexecSpec, ExecOperationsFixture::getGroovyKotlinJavaexecSpec, ExecOperationsFixture::getJavaJavaexecSpec)
+            instance, "javaexec", ExternalProcessFixture::getGroovyKotlinJavaexecSpec, ExternalProcessFixture::getGroovyKotlinJavaexecSpec, ExternalProcessFixture::getJavaJavaexecSpec)
     }
 
-    private static SnippetsFactory makeFactory(String summary, Function<ExecOperationsFixture, Snippets> factory) {
+    private static SnippetsFactory makeFactory(String summary, Function<ExternalProcessFixture, Snippets> factory) {
         return new SnippetsFactory() {
             @Override
-            Snippets newSnippets(ExecOperationsFixture fixture) {
+            Snippets newSnippets(ExternalProcessFixture fixture) {
                 return factory.apply(fixture)
             }
 
@@ -163,15 +164,15 @@ class ExecOperationsFixture {
 
     private static class ExecJavaexecPrintOutput implements PrintProcessOutput {
         private final String method
-        private final Function<ExecOperationsFixture, String> groovySpecFactory
-        private final Function<ExecOperationsFixture, String> kotlinSpecFactory
-        private final Function<ExecOperationsFixture, String> javaSpecFactory
+        private final Function<ExternalProcessFixture, String> groovySpecFactory
+        private final Function<ExternalProcessFixture, String> kotlinSpecFactory
+        private final Function<ExternalProcessFixture, String> javaSpecFactory
 
         ExecJavaexecPrintOutput(@Nullable String instance,
                                 String methodName,
-                                Function<ExecOperationsFixture, String> groovySpecFactory,
-                                Function<ExecOperationsFixture, String> kotlinSpecFactory,
-                                Function<ExecOperationsFixture, String> javaSpecFactory) {
+                                Function<ExternalProcessFixture, String> groovySpecFactory,
+                                Function<ExternalProcessFixture, String> kotlinSpecFactory,
+                                Function<ExternalProcessFixture, String> javaSpecFactory) {
             this.method = instance != null ? "${instance}.$methodName" : methodName
             this.groovySpecFactory = groovySpecFactory
             this.kotlinSpecFactory = kotlinSpecFactory
@@ -210,6 +211,83 @@ class ExecOperationsFixture {
             @Override
             String getImports() {
                 return imports
+            }
+        }
+    }
+
+    static PrintProcessOutput processBuilder() {
+        return new ProcessApiPrintOutput("new ProcessBuilder(command).start()", "ProcessBuilder(*command).start()", "new ProcessBuilder(command).start()")
+    }
+
+    static PrintProcessOutput stringArrayExecute() {
+        return new ProcessApiPrintOutput("command.execute()", "ProcessGroovyMethods.execute(command)", "ProcessGroovyMethods.execute(command)")
+    }
+
+    static PrintProcessOutput runtimeExec() {
+        return new ProcessApiPrintOutput("Runtime.getRuntime().exec(command)")
+    }
+
+
+    private static class ProcessApiPrintOutput implements PrintProcessOutput {
+        private final String makeProcessMethodGroovy
+        private final String makeProcessMethodKotlin
+        private final String makeProcessMethodJava
+
+        ProcessApiPrintOutput(String makeProcessMethod) {
+            this(makeProcessMethod, makeProcessMethod, makeProcessMethod)
+        }
+
+        ProcessApiPrintOutput(String makeProcessMethodGroovy, String makeProcessMethodKotlin, String makeProcessMethodJava) {
+            this.makeProcessMethodGroovy = makeProcessMethodGroovy
+            this.makeProcessMethodKotlin = makeProcessMethodKotlin
+            this.makeProcessMethodJava = makeProcessMethodJava
+        }
+
+        @Override
+        SnippetsFactory getGroovy() {
+            return makeFactory(makeProcessMethodGroovy) { fixture ->
+                newSnippets(
+                    """
+                        String[] command = [${fixture.commandLineAsVarargLiterals}]
+                        ${makeProcessMethodGroovy}.waitForProcessOutput(System.out, System.err)
+                    """,
+                    "")
+            }
+        }
+
+        @Override
+        SnippetsFactory getKotlin() {
+            return makeFactory(makeProcessMethodKotlin) { fixture ->
+                newSnippets(
+                    """
+                        val command = arrayOf(${fixture.commandLineAsVarargLiterals})
+                        ProcessGroovyMethods.waitForProcessOutput(${makeProcessMethodKotlin}, System.out as OutputStream, System.err as OutputStream)
+                    """,
+                    """
+                        import ${OutputStream.name}
+                        import ${ProcessGroovyMethods.name}
+                    """)
+            }
+        }
+
+        @Override
+        SnippetsFactory getJava() {
+            return makeFactory(makeProcessMethodJava) { fixture ->
+                newSnippets(
+                    """
+                        try {
+                            String[] command = new String[] { ${fixture.commandLineAsVarargLiterals} };
+                            ProcessGroovyMethods.waitForProcessOutput(${makeProcessMethodJava}, (OutputStream) System.out, (OutputStream) System.err);
+                        } catch (IOException e) {
+                            throw new UncheckedIOException(e);
+                        }
+                    """,
+                    """
+                        import ${IOException.name};
+                        import ${OutputStream.name};
+                        import ${ProcessGroovyMethods.name};
+                        import ${UncheckedIOException.name};
+                    """)
             }
         }
     }
