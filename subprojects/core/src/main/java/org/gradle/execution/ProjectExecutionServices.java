@@ -17,8 +17,6 @@
 package org.gradle.execution;
 
 import org.gradle.StartParameter;
-import org.gradle.api.execution.TaskActionListener;
-import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.execution.internal.TaskInputsListeners;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.TaskExecutionModeResolver;
@@ -69,14 +67,15 @@ import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
 
 import java.util.List;
 
+@SuppressWarnings("deprecation")
 public class ProjectExecutionServices extends DefaultServiceRegistry {
 
     public ProjectExecutionServices(ProjectInternal project) {
         super("Configured project services for '" + project.getPath() + "'", project.getServices());
     }
 
-    TaskActionListener createTaskActionListener(ListenerManager listenerManager) {
-        return listenerManager.getBroadcaster(TaskActionListener.class);
+    org.gradle.api.execution.TaskActionListener createTaskActionListener(ListenerManager listenerManager) {
+        return listenerManager.getBroadcaster(org.gradle.api.execution.TaskActionListener.class);
     }
 
     TaskCacheabilityResolver createTaskCacheabilityResolver(RelativeFilePathResolver relativeFilePathResolver) {
@@ -106,10 +105,10 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         OutputChangeListener outputChangeListener,
         OutputFilesRepository outputFilesRepository,
         ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry,
-        TaskActionListener actionListener,
+        org.gradle.api.execution.TaskActionListener actionListener,
         TaskCacheabilityResolver taskCacheabilityResolver,
         TaskExecutionGraphInternal taskExecutionGraph,
-        TaskExecutionListener taskExecutionListener,
+        org.gradle.api.execution.TaskExecutionListener taskExecutionListener,
         TaskExecutionModeResolver repository,
         TaskInputsListeners taskInputsListeners,
         TaskListenerInternal taskListenerInternal,

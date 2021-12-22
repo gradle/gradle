@@ -254,6 +254,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
             this.provider = provider;
         }
 
+        @SuppressWarnings("deprecation")
         @Override
         public void buildFinished(BuildResult result) {
             provider.maybeStop();

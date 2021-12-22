@@ -96,7 +96,7 @@ public class PublishToMavenRepository extends AbstractPublishToMaven {
             throw new InvalidUserDataException("The 'repository' property is required");
         }
 
-        getDuplicatePublicationTracker().checkCanPublish(getProject(), publicationInternal, repository.getUrl(), repository.getName());
+        getDuplicatePublicationTracker().checkCanPublish(publicationInternal, repository.getUrl(), repository.getName());
         MavenNormalizedPublication normalizedPublication = publicationInternal.asNormalisedPublication();
         return new PublishSpec(
                 RepositorySpec.of(repository),

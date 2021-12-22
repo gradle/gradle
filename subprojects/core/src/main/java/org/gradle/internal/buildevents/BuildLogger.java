@@ -100,6 +100,7 @@ public class BuildLogger implements InternalBuildListener, TaskExecutionGraphLis
         }
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public void buildFinished(BuildResult result) {
         this.action = result.getAction();

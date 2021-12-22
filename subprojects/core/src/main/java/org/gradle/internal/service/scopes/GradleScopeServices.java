@@ -16,7 +16,6 @@
 package org.gradle.internal.service.scopes;
 
 import org.gradle.api.execution.TaskExecutionGraphListener;
-import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.internal.BuildScopeListenerRegistrationListener;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.FeaturePreviews;
@@ -97,6 +96,7 @@ import java.util.List;
 /**
  * Contains the services for a given {@link GradleInternal} instance.
  */
+@SuppressWarnings("deprecation")
 public class GradleScopeServices extends DefaultServiceRegistry {
 
     private final CompositeStoppable registries = new CompositeStoppable();
@@ -150,11 +150,11 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         return new WorkNodeExecutor();
     }
 
-    ListenerBroadcast<TaskExecutionListener> createTaskExecutionListenerBroadcast(ListenerManager listenerManager) {
-        return listenerManager.createAnonymousBroadcaster(TaskExecutionListener.class);
+    ListenerBroadcast<org.gradle.api.execution.TaskExecutionListener> createTaskExecutionListenerBroadcast(ListenerManager listenerManager) {
+        return listenerManager.createAnonymousBroadcaster(org.gradle.api.execution.TaskExecutionListener.class);
     }
 
-    TaskExecutionListener createTaskExecutionListener(ListenerBroadcast<TaskExecutionListener> broadcast) {
+    org.gradle.api.execution.TaskExecutionListener createTaskExecutionListener(ListenerBroadcast<org.gradle.api.execution.TaskExecutionListener> broadcast) {
         return broadcast.getSource();
     }
 
@@ -172,7 +172,7 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         BuildOperationExecutor buildOperationExecutor,
         ListenerBuildOperationDecorator listenerBuildOperationDecorator,
         GradleInternal gradleInternal,
-        ListenerBroadcast<TaskExecutionListener> taskListeners,
+        ListenerBroadcast<org.gradle.api.execution.TaskExecutionListener> taskListeners,
         ListenerBroadcast<TaskExecutionGraphListener> graphListeners,
         ListenerManager listenerManager,
         ProjectStateRegistry projectStateRegistry,

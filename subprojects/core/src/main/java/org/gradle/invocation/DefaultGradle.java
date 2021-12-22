@@ -49,6 +49,7 @@ import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
 import org.gradle.internal.Cast;
 import org.gradle.internal.InternalBuildAdapter;
+import org.gradle.internal.InternalListener;
 import org.gradle.internal.MutableActionSet;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.PublicBuildPath;
@@ -354,12 +355,14 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
         buildListenerBroadcast.add("projectsEvaluated", getListenerBuildOperationDecorator().decorate("Gradle.projectsEvaluated", action));
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public void buildFinished(Closure closure) {
         notifyListenerRegistration("Gradle.buildFinished", closure);
         buildListenerBroadcast.add(new ClosureBackedMethodInvocationDispatch("buildFinished", closure));
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public void buildFinished(Action<? super BuildResult> action) {
         notifyListenerRegistration("Gradle.buildFinished", action);
@@ -377,6 +380,9 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     }
 
     private void notifyListenerRegistration(String registrationPoint, Object listener) {
+        if (listener instanceof InternalListener || listener instanceof ProjectEvaluationListener) {
+            return;
+        }
         getListenerManager().getBroadcaster(BuildScopeListenerRegistrationListener.class)
             .onBuildScopeListenerRegistration(listener, registrationPoint, this);
     }
