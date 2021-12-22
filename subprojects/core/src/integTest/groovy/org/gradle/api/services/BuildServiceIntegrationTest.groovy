@@ -63,9 +63,8 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
             executer.expectDocumentedDeprecationWarning(
                 "Build service 'counter' is being used by task ':broken' without the corresponding declaration via 'Task#usesService'. " +
                     "This will fail with an error in Gradle 8.0. " +
-                    "Max parallel usages constraint on the build service can't be honored. " +
-                    "Declare the task uses the build service via 'Task#usesService'. " +
-                    "See https://docs.gradle.org/current/dsl/org.gradle.api.Task.html#org.gradle.api.Task:usesService(org.gradle.api.provider.Provider) for more details."
+                    "Declare the association between the task and the build service using 'Task#usesService'. " +
+                    "Consult the upgrading guide for further information: https://docs.gradle.org/7.4-20211222030000+0000/userguide/upgrading_version_7.html#undeclared_build_service_usage"
             )
         }
 
