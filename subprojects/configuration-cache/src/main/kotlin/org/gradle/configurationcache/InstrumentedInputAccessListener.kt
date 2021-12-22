@@ -85,7 +85,10 @@ class InstrumentedInputAccessListener(
         broadcast.envVariableRead(key, value, consumer)
     }
 
-    override fun externalProcessStarted(command: String, consumer: String?) {
+    override fun externalProcessStarted(command: String, consumer: String) {
+        if (Workarounds.canStartExternalProcesses(consumer)) {
+            return
+        }
         externalProcessListener.onExternalProcessStarted(command, consumer)
     }
 }
