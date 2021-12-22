@@ -18,11 +18,13 @@ package org.gradle.execution.plan;
 
 import org.gradle.api.Action;
 import org.gradle.api.Task;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.internal.tasks.properties.DefaultTaskProperties;
+import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.internal.tasks.properties.TaskProperties;
 import org.gradle.api.tasks.TaskExecutionException;
@@ -49,7 +51,8 @@ public class LocalTaskNode extends TaskNode {
     private List<? extends ResourceLock> resourceLocks;
     private TaskProperties taskProperties;
 
-    public LocalTaskNode(TaskInternal task, WorkValidationContext workValidationContext) {
+    public LocalTaskNode(TaskInternal task, WorkValidationContext workValidationContext, int ordinal) {
+        super(ordinal);
         this.task = task;
         this.validationContext = workValidationContext;
     }
@@ -191,6 +194,30 @@ public class LocalTaskNode extends TaskNode {
         return task.getIdentityPath().toString();
     }
 
+    private void addOutputFilesToMutations(Set<OutputFilePropertySpec> outputFilePropertySpecs) {
+        final MutationInfo mutations = getMutationInfo();
+        outputFilePropertySpecs.forEach(spec -> {
+            File outputLocation = spec.getOutputFile();
+            if (outputLocation != null) {
+                mutations.outputPaths.add(outputLocation.getAbsolutePath());
+            }
+            mutations.hasOutputs = true;
+        });
+    }
+
+    private void addLocalStateFilesToMutations(FileCollection localStateFiles) {
+        final MutationInfo mutations = getMutationInfo();
+        localStateFiles.forEach(file -> {
+            mutations.outputPaths.add(file.getAbsolutePath());
+            mutations.hasLocalState = true;
+        });
+    }
+
+    private void addDestroyablesToMutations(FileCollection destroyables) {
+        destroyables
+            .forEach(file -> getMutationInfo().destroyablePaths.add(file.getAbsolutePath()));
+    }
+
     @Override
     public void resolveMutations() {
         final LocalTaskNode taskNode = this;
@@ -202,19 +229,11 @@ public class LocalTaskNode extends TaskNode {
         PropertyWalker propertyWalker = serviceRegistry.get(PropertyWalker.class);
         try {
             taskProperties = DefaultTaskProperties.resolve(propertyWalker, fileCollectionFactory, task);
-            taskProperties.getOutputFileProperties().forEach(spec -> {
-                File outputLocation = spec.getOutputFile();
-                if (outputLocation != null) {
-                    mutations.outputPaths.add(outputLocation.getAbsolutePath());
-                }
-                mutations.hasOutputs = true;
-            });
-            taskProperties.getLocalStateFiles().forEach(file -> {
-                mutations.outputPaths.add(file.getAbsolutePath());
-                mutations.hasLocalState = true;
-            });
-            taskProperties.getDestroyableFiles()
-                .forEach(file -> mutations.destroyablePaths.add(file.getAbsolutePath()));
+
+            addOutputFilesToMutations(taskProperties.getOutputFileProperties());
+            addLocalStateFilesToMutations(taskProperties.getLocalStateFiles());
+            addDestroyablesToMutations(taskProperties.getDestroyableFiles());
+
             mutations.hasFileInputs = !taskProperties.getInputFileProperties().isEmpty();
         } catch (Exception e) {
             throw new TaskExecutionException(task, e);

@@ -32,17 +32,20 @@ class TaskInAnotherBuildCodec(
     override suspend fun WriteContext.encode(value: TaskInAnotherBuild) {
         value.run {
             writeString(taskPath)
+            writeInt(ordinal)
             write(targetBuild)
         }
     }
 
     override suspend fun ReadContext.decode(): TaskInAnotherBuild {
         val taskPath = readString()
+        val ordinal = readInt()
         val targetBuild = readNonNull<BuildIdentifier>()
         return TaskInAnotherBuild.of(
             taskPath,
             targetBuild,
-            includedTaskGraph
+            includedTaskGraph,
+            ordinal
         )
     }
 }
