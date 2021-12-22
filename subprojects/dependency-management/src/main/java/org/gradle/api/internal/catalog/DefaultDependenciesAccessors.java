@@ -327,7 +327,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
     }
 
     private class DependencyAccessorUnitOfWork extends AbstractAccessorUnitOfWork {
-        private static final String IN_DEPENDENCY_ALIASES = "dependencyAliases";
+        private static final String IN_LIBRARIES = "libraries";
         private static final String IN_BUNDLES = "bundles";
         private static final String IN_PLUGINS = "plugins";
         private static final String IN_VERSIONS = "versions";
@@ -347,7 +347,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
 
         @Override
         public void visitIdentityInputs(InputVisitor visitor) {
-            visitor.visitInputProperty(IN_DEPENDENCY_ALIASES, model::getLibraryAliases);
+            visitor.visitInputProperty(IN_LIBRARIES, model::getLibraryAliases);
             visitor.visitInputProperty(IN_BUNDLES, model::getBundleAliases);
             visitor.visitInputProperty(IN_VERSIONS, model::getVersionAliases);
             visitor.visitInputProperty(IN_PLUGINS, model::getPluginAliases);
