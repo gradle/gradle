@@ -53,7 +53,7 @@ public class VersionCatalogView implements VersionCatalog {
         DeprecationLogger.deprecateMethod(VersionCatalog.class, "findDependency(String)")
             .replaceWith("findLibrary(String)")
             .willBeRemovedInGradle8()
-            .withUpgradeGuideSection(8, "version_catalog_deprecations")
+            .withUpgradeGuideSection(7, "version_catalog_deprecations")
             .nagUser();
         return findLibrary(alias);
     }
@@ -105,7 +105,7 @@ public class VersionCatalogView implements VersionCatalog {
         DeprecationLogger.deprecateMethod(VersionCatalog.class, "getDependencyAliases()")
             .replaceWith("getLibraryAliases()")
             .willBeRemovedInGradle8()
-            .withUpgradeGuideSection(8, "version_catalog_deprecations")
+            .withUpgradeGuideSection(7, "version_catalog_deprecations")
             .nagUser();
         return getLibraryAliases();
     }
