@@ -28,7 +28,6 @@ dependencies {
         api(kotlin("compiler-embeddable")) { version { strictly(kotlinVersion) } }
         api("org.jlleitschuh.gradle:ktlint-gradle:10.1.0")
         api("org.gradle.kotlin:gradle-kotlin-dsl-conventions:0.7.0")
-        api("com.diffplug.spotless:spotless-plugin-gradle:6.0.0")
         api("com.autonomousapps:dependency-analysis-gradle-plugin:0.71.0")
 
         // Java Libraries
