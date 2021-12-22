@@ -21,17 +21,6 @@ import org.gradle.internal.execution.history.changes.ChangeTypeInternal
 
 abstract class AbstractIncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
 
-    private boolean expectedIncrementalTaskInputsDeprecationWarning = false
-    private Set<String> incrementalTaskInputsDeprecationWarningEmittedFor = []
-
-    void expectIncrementalTaskInputsDeprecationWarning() {
-        expectedIncrementalTaskInputsDeprecationWarning = true
-    }
-
-    void resetIncrementalTaskInputsDeprecationWarningEmittedFlag() {
-        incrementalTaskInputsDeprecationWarningEmittedFor = []
-    }
-
     abstract String getTaskAction()
 
     abstract ChangeTypeInternal getRebuildChangeType();
@@ -54,13 +43,6 @@ abstract class AbstractIncrementalTasksIntegrationTest extends AbstractIntegrati
 
         file('outputs/file1.txt') << "outputFile1"
         file('outputs/file2.txt') << "outputFile2"
-
-        executer.beforeExecute {
-            maybeExpectIncrementalTaskInputsDeprecationWarning()
-        }
-        executer.afterExecute {
-            resetIncrementalTaskInputsDeprecationWarningEmittedFlag()
-        }
     }
 
     void setupTaskSources(String inputDirAnnotation = primaryInputAnnotation) {
@@ -291,7 +273,6 @@ abstract class AbstractIncrementalTasksIntegrationTest extends AbstractIntegrati
 """
 
         then:
-        resetIncrementalTaskInputsDeprecationWarningEmittedFlag()
         executesNonIncrementally()
     }
 
@@ -358,7 +339,6 @@ abstract class AbstractIncrementalTasksIntegrationTest extends AbstractIntegrati
         executer.withArgument("--rerun-tasks")
 
         then:
-        resetIncrementalTaskInputsDeprecationWarningEmittedFlag()
         executesNonIncrementally()
     }
 
@@ -420,12 +400,5 @@ abstract class AbstractIncrementalTasksIntegrationTest extends AbstractIntegrati
             ext.incrementalExecution = ${incremental}
         """
         succeeds("incrementalCheck")
-    }
-
-    void maybeExpectIncrementalTaskInputsDeprecationWarning(String className = 'BaseIncrementalTask', String methodName = 'execute') {
-        String source = "${className}.${methodName}"
-        if (expectedIncrementalTaskInputsDeprecationWarning && incrementalTaskInputsDeprecationWarningEmittedFor.add(source)) {
-            executer.expectDocumentedDeprecationWarning """IncrementalTaskInputs has been deprecated. This is scheduled to be removed in Gradle 8.0. On method '$source' use 'org.gradle.work.InputChanges' instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#incremental_task_inputs_deprecation"""
-        }
     }
 }
