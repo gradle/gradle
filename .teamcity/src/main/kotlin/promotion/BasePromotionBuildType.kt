@@ -40,7 +40,7 @@ abstract class BasePromotionBuildType(vcsRootId: String, cleanCheckout: Boolean 
 
         params {
             param("env.GRADLE_INTERNAL_REPO_URL", "%gradle.internal.repository.url%")
-            param("env.GE_GRADLE_ORG_GRADLE_ENTERPRISE_ACCESS_KEY", "%ge.gradle.org.access.key%")
+            param("env.GRADLE_ENTERPRISE_ACCESS_KEY", "%ge.gradle.org.access.key%;%e.grdev.net.access.key%")
         }
     }
 }
