@@ -41,9 +41,37 @@ import javax.inject.Inject
 @ConfigurationCacheTest
 class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
 
-    def "nags when service is used by task without a corresponding usesService call and feature preview is enabled"() {
+    def "does not nag when service is used by task without a corresponding usesService call and feature preview is NOT enabled"() {
         given:
         serviceImplementation()
+        taskUsingUndeclaredService()
+
+        when:
+        succeeds 'broken'
+
+        then:
+        outputDoesNotContain "'Task#usesService'"
+    }
+
+    def "does nag when service is used by task without a corresponding usesService call and feature preview is enabled"() {
+        given:
+        serviceImplementation()
+        taskUsingUndeclaredService()
+        settingsFile '''
+            enableFeaturePreview 'STABLE_CONFIGURATION_CACHE'
+        '''
+        executer.expectDocumentedDeprecationWarning(
+            "Build service 'counter' is being used by task ':broken' without the corresponding declaration via 'Task#usesService'. " +
+                "This will fail with an error in Gradle 8.0. " +
+                "Declare the association between the task and the build service using 'Task#usesService'. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/7.4-20211222030000+0000/userguide/upgrading_version_7.html#undeclared_build_service_usage"
+        )
+
+        expect:
+        succeeds 'broken'
+    }
+
+    private taskUsingUndeclaredService() {
         buildFile """
             def provider = gradle.sharedServices.registerIfAbsent("counter", CountingService) {
                 parameters.initial = 42
@@ -55,29 +83,6 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
-
-        if (enableFeaturePreview) {
-            settingsFile '''
-                enableFeaturePreview 'STABLE_CONFIGURATION_CACHE'
-            '''
-            executer.expectDocumentedDeprecationWarning(
-                "Build service 'counter' is being used by task ':broken' without the corresponding declaration via 'Task#usesService'. " +
-                    "This will fail with an error in Gradle 8.0. " +
-                    "Declare the association between the task and the build service using 'Task#usesService'. " +
-                    "Consult the upgrading guide for further information: https://docs.gradle.org/7.4-20211222030000+0000/userguide/upgrading_version_7.html#undeclared_build_service_usage"
-            )
-        }
-
-        when:
-        succeeds 'broken'
-
-        then:
-        if (!enableFeaturePreview) {
-            outputDoesNotContain "'Task#usesService'"
-        }
-
-        where:
-        enableFeaturePreview << [true, false]
     }
 
     def "service is created once per build on first use and stopped at the end of the build"() {
