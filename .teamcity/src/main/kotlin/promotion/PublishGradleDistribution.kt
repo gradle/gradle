@@ -49,10 +49,6 @@ abstract class PublishGradleDistribution(
             }
         }
 
-        params {
-            password("env.ORG_GRADLE_PROJECT_botGradleGitHubToken", "%github.bot-gradle.token%")
-        }
-
         dependencies {
             snapshot(RelativeId("Check_Stage_${this@PublishGradleDistribution.triggerName}_Trigger")) {
             }
