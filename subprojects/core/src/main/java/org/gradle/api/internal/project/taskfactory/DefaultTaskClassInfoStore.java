@@ -245,7 +245,7 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
         @Override
         protected Action<? super Task> doCreate(Instantiator instantiator, Class<? extends Task> taskType, Method method) {
             Class<?> declaringClass = method.getDeclaringClass();
-            DeprecationLogger.deprecate("IncrementalTaskInputs")
+            DeprecationLogger.deprecateIndirectUsage("IncrementalTaskInputs")
                 .withContext("On method '" + declaringClass.getSimpleName() + "." + method.getName() + "'")
                 .withAdvice("use 'org.gradle.work.InputChanges' instead.")
                 .willBeRemovedInGradle8()
