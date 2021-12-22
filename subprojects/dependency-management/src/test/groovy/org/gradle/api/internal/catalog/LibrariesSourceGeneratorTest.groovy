@@ -185,7 +185,7 @@ ${nameClash { noIntro().inConflict('tada.one', 'tadaOne').getterName('getTadaOne
         then:
         InvalidUserDataException ex = thrown()
         verify(ex.message, nameClash {
-            kind('bundles')
+            kind('dependency bundles')
             inConflict('one.cool', 'oneCool')
             getterName('getOneCoolBundle')
         })
@@ -205,8 +205,8 @@ ${nameClash { noIntro().inConflict('tada.one', 'tadaOne').getterName('getTadaOne
         then:
         ex = thrown()
         verify(ex.message, """Cannot generate dependency accessors:
-${nameClash { noIntro().kind('bundles').inConflict('other.cool', 'otherCool').getterName('getOtherCoolBundle') }}
-${nameClash { noIntro().kind('bundles').inConflict('one.cool', 'oneCool').getterName('getOneCoolBundle') }}
+${nameClash { noIntro().kind('dependency bundles').inConflict('other.cool', 'otherCool').getterName('getOtherCoolBundle') }}
+${nameClash { noIntro().kind('dependency bundles').inConflict('one.cool', 'oneCool').getterName('getOneCoolBundle') }}
 """)
     }
 

@@ -144,7 +144,7 @@ trait VersionCatalogErrorMessages {
     static class NameClash extends InCatalog<NameClash> {
         private List<String> aliases = []
         private String getterName
-        private String kind = 'aliases'
+        private String kind = 'library aliases'
 
         NameClash inConflict(String... aliases) {
             Collections.addAll(this.aliases, aliases)
@@ -163,7 +163,7 @@ trait VersionCatalogErrorMessages {
 
         @Override
         String build() {
-            """${intro}  - Problem: In version catalog ${catalog}, dependency ${kind} ${aliases.join(' and ')} are mapped to the same accessor name ${getterName}().
+            """${intro}  - Problem: In version catalog ${catalog}, ${kind} ${aliases.join(' and ')} are mapped to the same accessor name ${getterName}().
 
     Reason: A name clash was detected.
 
