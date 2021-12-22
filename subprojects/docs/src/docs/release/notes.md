@@ -163,6 +163,14 @@ Previously, in order for Gradle to correctly treat external values such as envir
 
 Gradle 7.4 simplifies adoption of the configuration cache by deprecating `Provider.forUseAtConfigurationTime()` and allowing external values to be read using standard Java and Gradle APIs. Please check the [corresponding section of the upgrade guide](userguide/upgrading_version_7.html#for_use_at_configuration_time_deprecation) for details.
 
+#### Opt incompatible tasks out of configuration caching
+
+It is now possible to declare that a particular task is not compatible with the configuration cache. Gradle will disable the configuration cache
+whenever an incompatible task is scheduled to run. This makes it possible to enable the configuration cache for a build without having to first 
+migrate all tasks to be compatible.
+
+Please check the [user manual](userguide/configuration_cache.html#config_cache:task_out_out) for more details.
+
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
 ==========================================================
