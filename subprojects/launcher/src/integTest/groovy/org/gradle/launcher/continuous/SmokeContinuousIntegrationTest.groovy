@@ -32,6 +32,65 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         }
     }
 
+    def "detects changes when no files are in the project"() {
+        given:
+        def markerFile = file("input/marker")
+        buildFile << """
+            task build {
+              def inputFile = file("input/marker")
+              inputs.files inputFile
+              outputs.files "build/marker"
+              doLast {
+                println "exists: " + inputFile.exists()
+              }
+            }
+        """
+
+        when:
+        succeeds("build")
+        then:
+        output.contains "exists: false"
+
+        when:
+        waitBeforeModification(markerFile)
+        markerFile.text = "created"
+        then:
+        succeeds()
+        output.contains "exists: true"
+    }
+
+    def "detects changes when no snapshotting happens (#description)"() {
+        given:
+        def markerFile = file("input/marker")
+        buildFile << """
+            task build {
+              def inputFile = file("input/marker")
+              inputs.files inputFile
+              doLast {
+                println "value: " + inputFile.text
+              }
+            }
+        """
+
+        when:
+        markerFile.text = "original"
+        succeeds("build")
+        then:
+        output.contains "value: original"
+
+        when:
+        waitBeforeModification(markerFile)
+        markerFile.text = "changed"
+        then:
+        succeeds()
+        output.contains "value: changed"
+
+        where:
+        description      | taskConfiguration
+        "no outputs"     | ""
+        "untracked task" | "outputs.file('output/marker'); doNotTrackState('for test')"
+    }
+
     @ToBeFixedForConfigurationCache
     def "basic smoke test"() {
         given:
