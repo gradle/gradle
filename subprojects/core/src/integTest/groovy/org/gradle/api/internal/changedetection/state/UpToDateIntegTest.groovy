@@ -261,4 +261,60 @@ public abstract class CreateEmptyDirectory extends DefaultTask {
         then:
         executedAndNotSkipped(":customTask")
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/19353")
+    def "file changes are recognized when file length does not change with #inputAnnotation"() {
+        buildFile << """
+            abstract class FilePrinter extends DefaultTask {
+                $inputAnnotation
+                abstract $inputType getInput()
+
+                @OutputFile
+                abstract RegularFileProperty getOutputFile()
+
+                @TaskAction
+                void doWork() {
+                    println $inputToPrint
+                }
+            }
+            tasks.register("printFile", FilePrinter) {
+                input = file("$inputPath")
+                outputFile = layout.buildDirectory.file("output/output.txt")
+            }
+        """
+        def inputFile = file("input/input.txt")
+        inputFile.text = "[1] Hello World!"
+        def previousInputFileLength = inputFile.length()
+
+        when:
+        run "printFile"
+        then:
+        executedAndNotSkipped(":printFile")
+
+        when:
+        inputFile.text = "[2] Hello World!"
+        run "printFile"
+        then:
+        executedAndNotSkipped(":printFile")
+        previousInputFileLength == inputFile.length()
+
+        when:
+        inputFile.text = "[3] Hello World!"
+        run "printFile"
+        then:
+        executedAndNotSkipped(":printFile")
+        previousInputFileLength == inputFile.length()
+
+        when:
+        inputFile.text = "[4] Hello World!"
+        run "printFile"
+        then:
+        executedAndNotSkipped(":printFile")
+        previousInputFileLength == inputFile.length()
+
+        where:
+        inputAnnotation   | inputType             | inputPath         | inputToPrint
+        "@InputDirectory" | "DirectoryProperty"   | "input"           | "getInput().file('input.txt').get().asFile.text"
+        "@InputFile"      | "RegularFileProperty" | "input/input.txt" | "getInput().get().asFile.text"
+    }
 }

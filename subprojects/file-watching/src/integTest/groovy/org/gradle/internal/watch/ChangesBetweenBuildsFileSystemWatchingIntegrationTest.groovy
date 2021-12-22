@@ -49,53 +49,6 @@ class ChangesBetweenBuildsFileSystemWatchingIntegrationTest extends AbstractFile
         executedAndNotSkipped ":compileJava", ":classes", ":run"
     }
 
-    @Issue("https://github.com/gradle/gradle/issues/19353")
-    def "source file changes are recognized when file length does not change"() {
-        buildFile << """
-            apply plugin: "application"
-
-            application.mainClass = "Main"
-        """
-
-        def mainSourceFileRelativePath = "src/main/java/Main.java"
-        def mainSourceFile = file(mainSourceFileRelativePath)
-        mainSourceFile.text = sourceFileWithGreeting("Hello World!1")
-        def previousSourceFileLength = mainSourceFile.length()
-
-        when:
-        runWithWatchingEnabled("run")
-        then:
-        outputContains "Hello World!1"
-        executedAndNotSkipped ":compileJava", ":classes", ":run"
-
-        when:
-        mainSourceFile.text = sourceFileWithGreeting("Hello World!2")
-        waitForChangesToBePickedUp()
-        runWithWatchingEnabled "run"
-        then:
-        previousSourceFileLength == mainSourceFile.length()
-        outputContains "Hello World!2"
-        executedAndNotSkipped ":compileJava", ":classes", ":run"
-
-        when:
-        mainSourceFile.text = sourceFileWithGreeting("Hello World!3")
-        waitForChangesToBePickedUp()
-        runWithWatchingEnabled "run"
-        then:
-        previousSourceFileLength == mainSourceFile.length()
-        outputContains "Hello World!3"
-        executedAndNotSkipped ":compileJava", ":classes", ":run"
-
-        when:
-        mainSourceFile.text = sourceFileWithGreeting("Hello World!4")
-        waitForChangesToBePickedUp()
-        runWithWatchingEnabled "run"
-        then:
-        previousSourceFileLength == mainSourceFile.length()
-        outputContains "Hello World!4"
-        executedAndNotSkipped ":compileJava", ":classes", ":run"
-    }
-
     def "buildSrc changes are recognized"() {
         def taskSourceFile = file("buildSrc/src/main/java/PrinterTask.java")
         taskSourceFile.text = taskWithGreeting("Hello from original task!")
