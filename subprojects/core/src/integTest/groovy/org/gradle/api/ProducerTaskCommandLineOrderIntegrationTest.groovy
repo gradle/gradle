@@ -145,7 +145,7 @@ class ProducerTaskCommandLineOrderIntegrationTest extends AbstractCommandLineOrd
         def generateBar = bar.task('generateBar').outputs('build/bar').dependsOn(generateFoo)
         def packageBarSources = bar.task('packageBarSources').outputs('build/pkg-src').shouldBlock()
         def cleanFoo = foo.task('cleanFoo').destroys('build/foo')
-        def cleanBar = bar.task('cleanBar').destroys('build/bar')
+        def cleanBar = bar.task('cleanBar').destroys('build/bar').destroys('build/pkg-src')
         def clean = rootBuild.task('clean').dependsOn(cleanFoo).dependsOn(cleanBar)
 
         server.start()
@@ -158,9 +158,10 @@ class ProducerTaskCommandLineOrderIntegrationTest extends AbstractCommandLineOrd
         succeeds(generateBar.path, packageBarSources.path, clean.path)
 
         then:
-        result.assertTaskOrder(TaskOrderSpecs.any(generateFoo.fullPath, packageBarSources.fullPath), generateBar.fullPath)
+        result.assertTaskOrder(generateFoo.fullPath, generateBar.fullPath)
         result.assertTaskOrder(generateFoo.fullPath, cleanFoo.fullPath, clean.fullPath)
-        result.assertTaskOrder(packageBarSources.fullPath, generateBar.fullPath, cleanBar.fullPath, clean.fullPath)
+        result.assertTaskOrder(packageBarSources.fullPath, cleanBar.fullPath, clean.fullPath)
+        result.assertTaskOrder(generateBar.fullPath, cleanBar.fullPath, clean.fullPath)
     }
 
     def "producer task finalized by a task in another project will run before destroyer tasks when ordered first"() {
