@@ -287,10 +287,12 @@ public abstract class CreateEmptyDirectory extends DefaultTask {
         def originalInputFileLength = inputFile.length()
 
         expect:
-        [1, 2, 3, 4].each {
-            inputFile.text = "[$it] Hello World!"
+        (1..4).each {
+            def givenText = "[$it] Hello World!"
+            inputFile.text = givenText
             run "printFile"
             executedAndNotSkipped(":printFile")
+            outputContains(givenText)
             assert originalInputFileLength == inputFile.length()
         }
 
