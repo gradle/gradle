@@ -100,7 +100,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         markerFile.text = "original"
 
         buildFile << """
-            task echo {
+            task build {
               inputs.files "marker"
               outputs.files "build/marker"
               doLast {
@@ -110,7 +110,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         """
 
         then:
-        succeeds("echo")
+        succeeds("build")
         output.contains "value: original"
 
         when:
@@ -131,7 +131,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         markerFile.text = "original"
 
         buildFile << """
-            task echo {
+            task build {
               inputs.files "marker"
               outputs.files "build/marker"
               doLast {
@@ -142,7 +142,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
 
         then:
         executer.withArgument("-q")
-        succeeds("echo")
+        succeeds("build")
         output.contains "value: original"
 
         when:
@@ -285,7 +285,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         markerFile.text = "original"
 
         buildFile << """
-            task echo {
+            task build {
               inputs.files file("marker")
               outputs.files "build/marker"
               doLast {
@@ -300,7 +300,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         """
 
         then:
-        succeeds("echo")
+        succeeds("build")
         output.contains "value: original"
         output.contains "reuse: false"
 
@@ -318,7 +318,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
     def "considered to be long lived process"() {
         when:
         buildFile << """
-            task echo {
+            task build {
               doLast {
                 println "isLongLivingProcess: " + services.get($GradleBuildEnvironment.name).isLongLivingProcess()
               }
@@ -326,7 +326,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         """
 
         then:
-        succeeds("echo")
+        succeeds("build")
         output.contains "isLongLivingProcess: true"
     }
 
