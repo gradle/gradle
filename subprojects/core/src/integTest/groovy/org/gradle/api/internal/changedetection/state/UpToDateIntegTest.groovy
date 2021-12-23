@@ -283,34 +283,16 @@ public abstract class CreateEmptyDirectory extends DefaultTask {
             }
         """
         def inputFile = file("input/input.txt")
-        inputFile.text = "[1] Hello World!"
-        def previousInputFileLength = inputFile.length()
+        inputFile.text = "[0] Hello World!"
+        def originalInputFileLength = inputFile.length()
 
-        when:
-        run "printFile"
-        then:
-        executedAndNotSkipped(":printFile")
-
-        when:
-        inputFile.text = "[2] Hello World!"
-        run "printFile"
-        then:
-        executedAndNotSkipped(":printFile")
-        previousInputFileLength == inputFile.length()
-
-        when:
-        inputFile.text = "[3] Hello World!"
-        run "printFile"
-        then:
-        executedAndNotSkipped(":printFile")
-        previousInputFileLength == inputFile.length()
-
-        when:
-        inputFile.text = "[4] Hello World!"
-        run "printFile"
-        then:
-        executedAndNotSkipped(":printFile")
-        previousInputFileLength == inputFile.length()
+        expect:
+        [1, 2, 3, 4].each {
+            inputFile.text = "[$it] Hello World!"
+            run "printFile"
+            executedAndNotSkipped(":printFile")
+            assert originalInputFileLength == inputFile.length()
+        }
 
         where:
         inputAnnotation   | inputType             | inputPath         | inputToPrint
