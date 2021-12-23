@@ -122,6 +122,53 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         output.contains "value: changed"
     }
 
+    def "detects changes in filtered file trees"() {
+        def sources = file("sources").createDir()
+        def excludedFile = sources.file("sub/some/excluded").createFile()
+        def includedFile = sources.file("sub/some/included.txt").createFile()
+
+        buildFile << """
+            task build {
+              def inputFileTree = fileTree("sources").include("**/*.txt")
+              inputs.files(inputFileTree)
+                .ignoreEmptyDirectories()
+                .withPropertyName("sources")
+              outputs.files "build/marker"
+              doLast {
+                println "includedFiles: " + inputFileTree.files.size()
+              }
+            }
+        """
+
+        when:
+        succeeds("build")
+        then:
+        outputContains("includedFiles: 1")
+
+        when:
+        includedFile.text = "changed"
+        then:
+        succeeds()
+        outputContains("includedFiles: 1")
+
+        when:
+        excludedFile.text = "changed"
+        then:
+        noBuildTriggered()
+
+        when:
+        sources.file("sub/some/otherIncluded.txt").createFile()
+        then:
+        succeeds()
+        outputContains("includedFiles: 2")
+
+        when:
+        sources.file("sub/other/included.txt").createFile()
+        then:
+        succeeds()
+        outputContains("includedFiles: 3")
+    }
+
     @ToBeFixedForConfigurationCache
     def "notifications work with quiet logging"() {
         given:
