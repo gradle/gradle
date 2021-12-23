@@ -56,6 +56,7 @@ import org.gradle.configurationcache.serialization.DefaultWriteContext
 import org.gradle.configurationcache.services.ConfigurationCacheEnvironment
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.concurrent.CompositeStoppable
+import org.gradle.internal.execution.TaskExecutionTracker
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.resource.local.FileResourceListener
 import org.gradle.internal.scripts.ScriptExecutionListener
@@ -69,7 +70,8 @@ class ConfigurationCacheFingerprintWriter(
     buildScopedContext: DefaultWriteContext,
     projectScopedContext: DefaultWriteContext,
     private val fileCollectionFactory: FileCollectionFactory,
-    private val directoryFileTreeFactory: DirectoryFileTreeFactory
+    private val directoryFileTreeFactory: DirectoryFileTreeFactory,
+    private val taskExecutionTracker: TaskExecutionTracker,
 ) : ValueSourceProviderFactory.Listener,
     TaskInputsListener,
     ScriptExecutionListener,
@@ -188,6 +190,17 @@ class ConfigurationCacheFingerprintWriter(
         if (undeclaredEnvironmentVariables.add(key)) {
             reportEnvironmentVariableInput(key, consumer)
         }
+    }
+
+    override fun fileOpened(file: File, consumer: String?) {
+        if (taskExecutionTracker.currentTask.isPresent) {
+            // Ignore files that are read as part of the task actions. These should really be task
+            // inputs. Otherwise, we risk fingerprinting temporary files that will be gone at the
+            // end of the build.
+            return
+        }
+        captureFile(file)
+        reportFile(file, consumer)
     }
 
     override fun systemPropertiesPrefixedBy(prefix: String, snapshot: Map<String, String?>) {
@@ -322,15 +335,15 @@ class ConfigurationCacheFingerprintWriter(
     }
 
     private
-    fun reportFile(file: File) {
+    fun reportFile(file: File, consumer: String? = null) {
         if (reportedFiles.add(file)) {
-            reportFileInput(file)
+            reportFileInput(file, consumer)
         }
     }
 
     private
-    fun reportFileInput(file: File) {
-        reportInput(null, null) {
+    fun reportFileInput(file: File, consumer: String?) {
+        reportInput(consumer, null) {
             text("file ")
             reference(host.displayNameOf(file))
         }
