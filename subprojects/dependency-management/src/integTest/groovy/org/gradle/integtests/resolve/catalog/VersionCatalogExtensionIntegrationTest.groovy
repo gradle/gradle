@@ -2210,19 +2210,15 @@ Second: 1.1"""
         """
 
         buildFile << """
-            tasks.register("verify") {
-                doLast {
-                    def depProvider = project.extensions.getByType(VersionCatalogsExtension).named("libs").findDependency("myLib").orElse(null)
-                    assert(depProvider != null)
-                    assert("org.gradle.test:lib:3.0.5" == depProvider.get().toString())
-                }
-            }
+            def depProvider = project.extensions.getByType(VersionCatalogsExtension).named("libs").findDependency("myLib").orElse(null)
+            assert(depProvider != null)
+            assert("org.gradle.test:lib:3.0.5" == depProvider.get().toString())
         """
 
         executer.expectDocumentedDeprecationWarning("The VersionCatalog.findDependency(String) method has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use the findLibrary(String) method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#version_catalog_deprecations")
 
         expect:
-        succeeds ':verify'
+        succeeds ':help'
     }
 
     def "getDependencyAliases is deprecated"() {
@@ -2238,17 +2234,13 @@ Second: 1.1"""
         """
 
         buildFile << """
-            tasks.register("verify") {
-                doLast {
-                    def aliases = project.extensions.getByType(VersionCatalogsExtension).named("libs").dependencyAliases
-                    assert(aliases == ["myLib"])
-                }
-            }
+            def aliases = project.extensions.getByType(VersionCatalogsExtension).named("libs").dependencyAliases
+            assert(aliases == ["myLib"])
         """
 
         executer.expectDocumentedDeprecationWarning("The VersionCatalog.getDependencyAliases() method has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use the getLibraryAliases() method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#version_catalog_deprecations")
 
         expect:
-        succeeds ':verify'
+        succeeds ':help'
     }
 }
