@@ -32,7 +32,7 @@ class ExtensionContainerTest extends Specification {
     def extension = new FooExtension()
     def barExtension = new BarExtension()
 
-    class FooExtension {
+    static class FooExtension {
         String message = "smile"
     }
 
@@ -269,6 +269,52 @@ class ExtensionContainerTest extends Specification {
 
         then:
         extension.message == "bar"
+    }
+
+    def "can find or create extension by type"() {
+        when:
+        def ext1 = container.findByType(FooExtension)
+
+        then:
+        ext1 == null
+
+        when:
+        def ext2 = container.findOrCreate("foo", FooExtension)
+
+        then:
+        container.findByName("foo") == ext2
+        container.findByType(FooExtension) == ext2
+
+        when:
+        def ext3 = container.findOrCreate("foo", FooExtension)
+
+        then:
+        ext3 == ext2
+        container.findByName("foo") == ext2
+        container.findByType(FooExtension) == ext2
+    }
+
+    def "can find or create extension by public type and instance type"() {
+        when:
+        def ext1 = container.findByType(FooExtension)
+
+        then:
+        ext1 == null
+
+        when:
+        def ext2 = container.findOrCreate(FooExtension, "foo", FooExtension)
+
+        then:
+        container.findByName("foo") == ext2
+        container.findByType(FooExtension) == ext2
+
+        when:
+        def ext3 = container.findOrCreate(FooExtension, "foo", FooExtension)
+
+        then:
+        ext3 == ext2
+        container.findByName("foo") == ext2
+        container.findByType(FooExtension) == ext2
     }
 }
 

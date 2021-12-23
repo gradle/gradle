@@ -184,6 +184,81 @@ public interface ExtensionContainer {
     <T> T findByType(TypeOf<T> type);
 
     /**
+     * Looks for the extension of a given type, or creates an adds a new extension to this container.
+     *
+     * A new instance of the given {@code type} will be created using the given {@code constructionArguments}.
+     * The extension will be exposed as {@code type} unless the extension itself declares a preferred public type via the {@link org.gradle.api.reflect.HasPublicType} protocol.
+     * The new instance will have been dynamically made {@link ExtensionAware}, which means that you can cast it to {@link ExtensionAware}.
+     *
+     * @param name The name for the extension
+     * @param type The type of the extension
+     * @param constructionArguments The arguments to be used to construct the extension instance
+     * @return The extension instance
+     * @throws IllegalArgumentException When an extension with the given name already exists.
+     * @see #findByType(Class)
+     * @see #create(String, Class, Object...)
+     * @since TODO
+     */
+    default <T> T findOrCreate(String name, Class<T> type, Object... constructionArguments) {
+        T extension = findByType(type);
+
+        if (extension == null) {
+            extension = create(name, type, constructionArguments);
+        }
+
+        return extension;
+    }
+
+    /**
+     * Looks for the extension of a given type, or creates an adds a new extension to this container.
+     *
+     * A new instance of the given {@code instanceType} will be created using the given {@code constructionArguments}.
+     * The extension will be exposed as {@code publicType}.
+     * The new instance will have been dynamically made {@link ExtensionAware}, which means that you can cast it to {@link ExtensionAware}.
+     *
+     * @param <T> the extension public type
+     * @param publicType The extension public type
+     * @param name The name for the extension
+     * @param instanceType The extension instance type
+     * @param constructionArguments The arguments to be used to construct the extension instance
+     * @return The extension instance
+     * @see #findByType(Class)
+     * @see #create(Class, String, Class, Object...)
+     * @since TODO
+     */
+    default <T> T findOrCreate(Class<? super T> publicType, String name, Class<? extends T> instanceType, Object... constructionArguments) {
+        return findOrCreate(TypeOf.typeOf(publicType), name, instanceType, constructionArguments);
+    }
+
+    /**
+     * Looks for the extension of a given type, or creates an adds a new extension to this container.
+     *
+     * A new instance of the given {@code instanceType} will be created using the given {@code constructionArguments}.
+     * The extension will be exposed as {@code publicType}.
+     * The new instance will have been dynamically made {@link ExtensionAware}, which means that you can cast it to {@link ExtensionAware}.
+     *
+     * @param <T> the extension public type
+     * @param publicType The extension public type
+     * @param name The name for the extension
+     * @param instanceType The extension instance type
+     * @param constructionArguments The arguments to be used to construct the extension instance
+     * @return The extension instance
+     * @see #findByType(Class)
+     * @see #create(TypeOf, String, Class, Object...)
+     * @since TODO
+     */
+    @SuppressWarnings("unchecked")
+    default <T> T findOrCreate(TypeOf<? super T> publicType, String name, Class<? extends T> instanceType, Object... constructionArguments) {
+        T extension = (T) findByType(publicType);
+
+        if (extension == null) {
+            extension = (T) create(publicType, name, instanceType, constructionArguments);
+        }
+
+        return extension;
+    }
+
+    /**
      * Looks for the extension of a given name. If none found it will throw an exception.
      *
      * @param name extension name
