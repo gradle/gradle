@@ -18,6 +18,7 @@ package org.gradle.configurationcache.initialization
 
 import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.internal.BuildScopeListenerRegistrationListener
+import org.gradle.api.internal.ExternalProcessStartedListener
 import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal.BUILD_SRC
@@ -26,24 +27,27 @@ import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.tasks.execution.TaskExecutionAccessListener
 import org.gradle.configuration.internal.UserCodeApplicationContext
 import org.gradle.configurationcache.problems.DocumentationSection.RequirementsBuildListeners
+import org.gradle.configurationcache.problems.DocumentationSection.RequirementsExternalProcess
 import org.gradle.configurationcache.problems.DocumentationSection.RequirementsUseProjectDuringExecution
 import org.gradle.configurationcache.problems.ProblemsListener
 import org.gradle.configurationcache.problems.PropertyProblem
 import org.gradle.configurationcache.problems.PropertyTrace
 import org.gradle.configurationcache.problems.StructuredMessage
 import org.gradle.configurationcache.problems.location
+import org.gradle.internal.execution.TaskExecutionTracker
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
 
 
 @ServiceScope(Scopes.BuildTree::class)
-interface ConfigurationCacheProblemsListener : TaskExecutionAccessListener, BuildScopeListenerRegistrationListener
+interface ConfigurationCacheProblemsListener : TaskExecutionAccessListener, BuildScopeListenerRegistrationListener, ExternalProcessStartedListener
 
 
 class DefaultConfigurationCacheProblemsListener internal constructor(
     private val problems: ProblemsListener,
     private val userCodeApplicationContext: UserCodeApplicationContext,
-    private val configurationTimeBarrier: ConfigurationTimeBarrier
+    private val configurationTimeBarrier: ConfigurationTimeBarrier,
+    private val taskExecutionTracker: TaskExecutionTracker,
 ) : ConfigurationCacheProblemsListener {
 
     override fun onProjectAccess(invocationDescription: String, task: TaskInternal) {
@@ -58,6 +62,23 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
             return
         }
         onTaskExecutionAccessProblem(invocationDescription, task)
+    }
+
+    override fun onExternalProcessStarted(command: String, consumer: String?) {
+        if (!atConfigurationTime() || taskExecutionTracker.currentTask.isPresent) {
+            return
+        }
+        problems.onProblem(
+            PropertyProblem(
+                userCodeApplicationContext.location(consumer),
+                StructuredMessage.build {
+                    text("external process started ")
+                    reference(command)
+                },
+                InvalidUserCodeException("Starting an external process '$command' during configuration time is unsupported."),
+                documentationSection = RequirementsExternalProcess
+            )
+        )
     }
 
     private
