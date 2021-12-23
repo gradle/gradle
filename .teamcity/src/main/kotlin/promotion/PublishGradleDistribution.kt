@@ -49,6 +49,11 @@ abstract class PublishGradleDistribution(
                 gradleParams = """-PuseBuildReceipt $extraParameters "-PgitUserName=$gitUserName" "-PgitUserEmail=$gitUserEmail"  """
             }
         }
+
+        params {
+            password("env.ORG_GRADLE_PROJECT_botGradleGitHubToken", "%github.bot-gradle.token%")
+        }
+
         dependencies {
             artifacts(RelativeId("Check_Stage_${this@PublishGradleDistribution.triggerName}_Trigger")) {
                 buildRule = lastSuccessful(promotedBranch)
