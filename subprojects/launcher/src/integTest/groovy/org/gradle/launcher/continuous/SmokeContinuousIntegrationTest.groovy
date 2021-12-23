@@ -94,17 +94,17 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
     @ToBeFixedForConfigurationCache
     def "basic smoke test"() {
         given:
-        def markerFile = file("marker")
+        def markerFile = file("input/marker")
 
         when:
         markerFile.text = "original"
 
         buildFile << """
             task build {
-              inputs.files "marker"
+              inputs.files "input/marker"
               outputs.files "build/marker"
               doLast {
-                println "value: " + file("marker").text
+                println "value: " + file("input/marker").text
               }
             }
         """
@@ -125,17 +125,17 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
     @ToBeFixedForConfigurationCache
     def "notifications work with quiet logging"() {
         given:
-        def markerFile = file("marker")
+        def markerFile = file("input/marker")
 
         when:
         markerFile.text = "original"
 
         buildFile << """
             task build {
-              inputs.files "marker"
+              inputs.files "input/marker"
               outputs.files "build/marker"
               doLast {
-                println "value: " + file("marker").text
+                println "value: " + file("input/marker").text
               }
             }
         """
@@ -156,13 +156,13 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
 
     def "can recover from build failure"() {
         given:
-        def markerFile = file("marker")
+        def markerFile = file("input/marker")
         file("inputFile").createFile()
 
         when:
         buildFile << """
             task build {
-              def f = file("marker")
+              def f = file("input/marker")
               inputs.files f
               inputs.files "inputFile"
               outputs.files "build/marker"
@@ -279,17 +279,17 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
     @ToBeFixedForConfigurationCache
     def "reuses build script classes"() {
         given:
-        def markerFile = file("marker")
+        def markerFile = file("input/marker")
 
         when:
         markerFile.text = "original"
 
         buildFile << """
             task build {
-              inputs.files file("marker")
+              inputs.files file("input/marker")
               outputs.files "build/marker"
               doLast {
-                println "value: " + file("marker").text
+                println "value: " + file("input/marker").text
                 println "reuse: " + Reuse.initialized
                 Reuse.initialized = true
               }
