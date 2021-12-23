@@ -58,37 +58,78 @@ public interface VersionCatalogBuilder extends Named {
      * Configures a dependency version which can then be referenced using
      * the {@link VersionCatalogBuilder.LibraryAliasBuilder#versionRef(String)} )} method.
      *
-     * @param name an identifier for the version
+     * @param alias an identifier for the version
      * @param versionSpec the dependency version spec
      * @return the version alias name
      */
-    String version(String name, Action<? super MutableVersionConstraint> versionSpec);
+    String version(String alias, Action<? super MutableVersionConstraint> versionSpec);
 
     /**
      * Configures a dependency version which can then be referenced using
      * the {@link VersionCatalogBuilder.LibraryAliasBuilder#versionRef(String)} method.
      *
-     * @param name an identifier for the version
-     * @param version the version string
+     * @param alias an identifier for the version
+     * @param version the version alias name
      */
-    String version(String name, String version);
+    String version(String alias, String version);
 
     /**
-     * Entry point for registering an alias for a library
+     * Entry point for registering an alias for a library.
+     *
      * @param alias the alias identifer
      * @return a builder for this alias
+     * @deprecated Use {@link #library(String, String, String)}, {@link #library(String, String)}
+     * and {@link #plugin(String, String)} instead. Will be removed in Gradle 8.
      */
+    @Deprecated
     AliasBuilder alias(String alias);
+
+    /**
+     * Entry point for registering a library alias.
+     *
+     * @param alias the alias of the library
+     * @param group the group of the library
+     * @param artifact the artifact ID of the library
+     * @return a builder for this alias, to finish the version configuration
+     * @since 7.4
+     */
+    LibraryAliasBuilder library(String alias, String group, String artifact);
+
+    /**
+     * Declare a library alias in full. This does not return a builder, as the declaration is fully complete.
+     * Use {@link #library(String, String, String)} if you need a more complex version declaration.
+     *
+     * <p>
+     * Note that declaring a classifier or extension using this method is not possible.
+     * </p>
+     *
+     * @param alias the alias of the library
+     * @param groupArtifactVersion the {@code group:artifact:version} string, all components are required
+     * @since 7.4
+     */
+    void library(String alias, String groupArtifactVersion);
+
+    /**
+     * Entry point for registering a plugin alias.
+     *
+     * @param alias the alias of the plugin
+     * @param id the ID of the plugin
+     * @return a builder for this alias, to finish the version configuration
+     * @since 7.4
+     */
+    PluginAliasBuilder plugin(String alias, String id);
 
     /**
      * Declares a bundle of dependencies. A bundle consists of a name for the bundle,
      * and a list of aliases. The aliases must correspond to aliases defined via
-     * the {@link #alias(String)} method.
+     * the {@code library()} methods.
      *
-     * @param name the name of the bundle
+     * @param alias the alias of the bundle
      * @param aliases the aliases of the dependencies included in the bundle
+     * @see #library(String, String, String)
+     * @see #library(String, String)
      */
-    void bundle(String name, List<String> aliases);
+    void bundle(String alias, List<String> aliases);
 
     /**
      * Returns the name of the extension configured by this builder
@@ -99,8 +140,10 @@ public interface VersionCatalogBuilder extends Named {
      * Allows configuring an alias
      *
      * @since 7.0
+     * @deprecated With the removal of {@link #alias(String)}, this class will no longer needed.
      */
     @Incubating
+    @Deprecated
     interface AliasBuilder {
         /**
          * Sets GAV coordinates for this alias

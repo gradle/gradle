@@ -237,7 +237,7 @@ class VersionCatalogIntegrationTest extends AbstractIntegrationSpec implements V
             catalog {
                 configureExplicitAlias 'foo2', 'org', 'foo'
                 versionCatalog {
-                    alias('foo').to('org:from-model:1.0')
+                    library('foo', 'org:from-model:1.0')
                     bundle('my', ['foo', 'foo2', 'from-script'])
                 }
             }
@@ -264,16 +264,16 @@ class VersionCatalogIntegrationTest extends AbstractIntegrationSpec implements V
         buildFile << """
             catalog {
                 versionCatalog {
-                    alias("my-lib").to("org:foo:1.0")
-                    alias("junit4").to("junit", "junit").version {
+                    library("my-lib", "org:foo:1.0")
+                    library("junit4", "junit", "junit").version {
                         require "[4.13.1, 5["
                         prefer "4.13.1"
                     }
                     version("lib", "1.1")
-                    alias("other").to("org", "bar").versionRef("lib")
+                    library("other", "org", "bar").versionRef("lib")
                     bundle("test", ["my-lib", "junit4"])
-                    alias("greeter").toPluginId("org.greeter").version("1.5")
-                    alias("bye").toPluginId("org.bye").versionRef("lib")
+                    plugin("greeter", "org.greeter").version("1.5")
+                    plugin("bye", "org.bye").versionRef("lib")
                 }
             }
         """

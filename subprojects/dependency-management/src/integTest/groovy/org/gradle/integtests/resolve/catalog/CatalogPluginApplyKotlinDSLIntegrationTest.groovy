@@ -42,7 +42,7 @@ class CatalogPluginApplyKotlinDSLIntegrationTest extends AbstractVersionCatalogI
 dependencyResolutionManagement {
     versionCatalogs {
         create("libs") {
-            alias("$alias").toPluginId("com.acme.greeter").version("1.5")
+            plugin("$alias", "com.acme.greeter").version("1.5")
         }
     }
 }"""
