@@ -64,7 +64,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
             "Build service 'counter' is being used by task ':broken' without the corresponding declaration via 'Task#usesService'. " +
                 "This will fail with an error in Gradle 8.0. " +
                 "Declare the association between the task and the build service using 'Task#usesService'. " +
-                "Consult the upgrading guide for further information: https://docs.gradle.org/7.4-20211222030000+0000/userguide/upgrading_version_7.html#undeclared_build_service_usage"
+                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#undeclared_build_service_usage"
         )
 
         expect:
