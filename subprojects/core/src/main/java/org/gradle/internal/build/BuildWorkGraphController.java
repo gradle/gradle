@@ -16,7 +16,7 @@
 
 package org.gradle.internal.build;
 
-import org.gradle.api.internal.TaskInternal;
+import org.gradle.composite.internal.TaskIdentifier;
 
 import java.util.Collection;
 
@@ -29,14 +29,7 @@ public interface BuildWorkGraphController {
      *
      * <p>This method does not schedule the task for execution, use {@link BuildWorkGraph#schedule(Collection)} to schedule the task.
      */
-    ExportedTaskNode locateTask(TaskInternal task);
-
-    /**
-     * Locates a future task node in this build's work graph, for use from some other build's work graph.
-     *
-     * <p>This method does not schedule the task for execution, use {@link BuildWorkGraph#schedule(Collection)} to schedule the task.
-     */
-    ExportedTaskNode locateTask(String taskPath);
+    ExportedTaskNode locateTask(TaskIdentifier taskIdentifier);
 
     /**
      * Creates a new, empty work graph for this build.
