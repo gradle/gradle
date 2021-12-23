@@ -1443,7 +1443,13 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
     @Override
     public GradleExecuter expectDocumentedDeprecationWarning(String warning) {
-        return expectDeprecationWarning(warning.replace("https://docs.gradle.org/current/", "https://docs.gradle.org/" + GradleVersion.current().getVersion() + "/"));
+        String pattern = "https://docs.gradle.org/current/";
+        String replacement = "https://docs.gradle.org/" + GradleVersion.current().getVersion() + "/";
+        String expectedWarning = warning.replace(pattern, replacement);
+        if (warning.equals(expectedWarning)) {
+            throw new IllegalArgumentException("Documented deprecation warning must reference '" + pattern + "'.");
+        }
+        return expectDeprecationWarning(expectedWarning);
     }
 
     @Override
