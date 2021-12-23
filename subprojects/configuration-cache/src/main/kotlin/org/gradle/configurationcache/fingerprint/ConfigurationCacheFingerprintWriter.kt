@@ -190,6 +190,11 @@ class ConfigurationCacheFingerprintWriter(
         }
     }
 
+    override fun fileOpened(file: File, consumer: String?) {
+        captureFile(file)
+        reportFile(file, consumer)
+    }
+
     override fun systemPropertiesPrefixedBy(prefix: String, snapshot: Map<String, String?>) {
         buildScopedSink.write(ConfigurationCacheFingerprint.SystemPropertiesPrefixedBy(prefix, snapshot))
     }
@@ -322,15 +327,15 @@ class ConfigurationCacheFingerprintWriter(
     }
 
     private
-    fun reportFile(file: File) {
+    fun reportFile(file: File, consumer: String? = null) {
         if (reportedFiles.add(file)) {
-            reportFileInput(file)
+            reportFileInput(file, consumer)
         }
     }
 
     private
-    fun reportFileInput(file: File) {
-        reportInput(null, null) {
+    fun reportFileInput(file: File, consumer: String?) {
+        reportInput(consumer, null) {
             text("file ")
             reference(host.displayNameOf(file))
         }

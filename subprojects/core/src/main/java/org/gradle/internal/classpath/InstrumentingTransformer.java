@@ -31,6 +31,7 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.lang.invoke.CallSite;
 import java.lang.invoke.LambdaMetafactory;
 import java.lang.invoke.MethodHandles;
@@ -55,6 +56,7 @@ import static org.objectweb.asm.Opcodes.DUP;
 import static org.objectweb.asm.Opcodes.F_SAME;
 import static org.objectweb.asm.Opcodes.H_INVOKESTATIC;
 import static org.objectweb.asm.Opcodes.IFEQ;
+import static org.objectweb.asm.Opcodes.INVOKESPECIAL;
 import static org.objectweb.asm.Opcodes.INVOKESTATIC;
 import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
 import static org.objectweb.asm.Type.getMethodDescriptor;
@@ -66,7 +68,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
     /**
      * Decoration format. Increment this when making changes.
      */
-    private static final int DECORATION_FORMAT = 17;
+    private static final int DECORATION_FORMAT = 18;
 
     private static final Type SYSTEM_TYPE = getType(System.class);
     private static final Type STRING_TYPE = getType(String.class);
@@ -162,6 +164,14 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
     // ProcessGroovyMethods.execute(List, List, File) -> execute(List, List, File, String)
     private static final String RETURN_PROCESS_FROM_LIST_LIST_FILE = getMethodDescriptor(PROCESS_TYPE, LIST_TYPE, LIST_TYPE, FILE_TYPE);
     private static final String RETURN_PROCESS_FROM_LIST_LIST_FILE_STRING = getMethodDescriptor(PROCESS_TYPE, LIST_TYPE, LIST_TYPE, FILE_TYPE, STRING_TYPE);
+
+    private static final Type FILE_INPUT_STREAM_TYPE = getType(FileInputStream.class);
+    // FileInputStream(File) -> fileOpened(File, String)
+    private static final String RETURN_VOID_FROM_FILE = getMethodDescriptor(Type.VOID_TYPE, FILE_TYPE);
+    private static final String RETURN_VOID_FROM_FILE_STRING = getMethodDescriptor(Type.VOID_TYPE, FILE_TYPE, STRING_TYPE);
+    // FileInputStream(String) -> fileOpened(String, String)
+    private static final String RETURN_VOID_FROM_STRING = getMethodDescriptor(Type.VOID_TYPE, STRING_TYPE);
+    private static final String RETURN_VOID_FROM_STRING_STRING = getMethodDescriptor(Type.VOID_TYPE, STRING_TYPE, STRING_TYPE);
 
     private static final String LAMBDA_METAFACTORY_TYPE = getType(LambdaMetafactory.class).getInternalName();
     private static final String LAMBDA_METAFACTORY_METHOD_DESCRIPTOR = getMethodDescriptor(getType(CallSite.class), getType(MethodHandles.Lookup.class), STRING_TYPE, getType(MethodType.class), getType(Object[].class));
@@ -317,6 +327,9 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
                 return;
             }
             if (opcode == INVOKEVIRTUAL && visitINVOKEVIRTUAL(owner, name, descriptor)) {
+                return;
+            }
+            if (opcode == INVOKESPECIAL && visitINVOKESPECIAL(owner, name, descriptor)) {
                 return;
             }
             super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
@@ -481,6 +494,32 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
             return Optional.empty();
         }
 
+        private boolean visitINVOKESPECIAL(String owner, String name, String descriptor) {
+            if (owner.equals(FILE_INPUT_STREAM_TYPE.getInternalName()) && name.equals("<init>")) {
+                Optional<String> instrumentedDescriptor = getInstrumentedDescriptorForFileInputStreamConstructor(descriptor);
+                if (instrumentedDescriptor.isPresent()) {
+                    // We are still calling the original constructor instead of replacing it with an instrumented method. The instrumented method is merely a notifier
+                    // there.
+                    _DUP();
+                    _LDC(binaryClassNameOf(className));
+                    _INVOKESTATIC(INSTRUMENTED_TYPE, "fileOpened", instrumentedDescriptor.get());
+                    _INVOKESPECIAL(owner, name, descriptor);
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private Optional<String> getInstrumentedDescriptorForFileInputStreamConstructor(String descriptor) {
+            if (descriptor.equals(RETURN_VOID_FROM_FILE)) {
+                return Optional.of(RETURN_VOID_FROM_FILE_STRING);
+            } else if (descriptor.equals(RETURN_VOID_FROM_STRING)) {
+                return Optional.of(RETURN_VOID_FROM_STRING_STRING);
+            }
+            // It is some signature of FileInputStream.<init> that we don't support.
+            return Optional.empty();
+        }
+
         @Override
         public void visitInvokeDynamicInsn(String name, String descriptor, Handle bootstrapMethodHandle, Object... bootstrapMethodArguments) {
             if (isGradleLambdaDescriptor(descriptor) && bootstrapMethodHandle.getOwner().equals(LAMBDA_METAFACTORY_TYPE) && bootstrapMethodHandle.getName().equals("metafactory")) {
@@ -547,6 +586,10 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
          */
         protected void _F_SAME() {
             super.visitFrame(F_SAME, 0, new Object[0], 0, new Object[0]);
+        }
+
+        protected void _INVOKESPECIAL(String owner, String name, String descriptor) {
+            super.visitMethodInsn(INVOKESPECIAL, owner, name, descriptor, false);
         }
 
         protected void _INVOKESTATIC(Type owner, String name, String descriptor) {

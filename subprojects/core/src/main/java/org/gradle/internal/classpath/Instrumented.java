@@ -24,6 +24,7 @@ import org.codehaus.groovy.runtime.wrappers.Wrapper;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
@@ -45,6 +46,10 @@ public class Instrumented {
 
         @Override
         public void externalProcessStarted(String command, String consumer) {
+        }
+
+        @Override
+        public void fileOpened(File file, String consumer) {
         }
     };
 
@@ -92,6 +97,9 @@ public class Instrumented {
                     break;
                 case "startPipeline":
                     array.array[callSite.getIndex()] = new ProcessBuilderStartPipelineCallSite(callSite);
+                    break;
+                case "<$constructor$>":
+                    array.array[callSite.getIndex()] = new FileInputStreamConstructorCallSite(callSite);
                     break;
             }
         }
@@ -274,6 +282,14 @@ public class Instrumented {
         }
     }
 
+    public static void fileOpened(File file, String consumer) {
+        listener().fileOpened(file, consumer);
+    }
+
+    public static void fileOpened(String path, String consumer) {
+        fileOpened(new File(path), consumer);
+    }
+
     private static void envVariableQueried(String key, String value, String consumer) {
         listener().envVariableQueried(key, value, consumer);
     }
@@ -297,7 +313,7 @@ public class Instrumented {
     private static void externalProcessStarted(List<?> command, String consumer) {
         externalProcessStarted(joinCommand(command), consumer);
     }
-    
+
     private static Listener listener() {
         return LISTENER.get();
     }
@@ -347,6 +363,13 @@ public class Instrumented {
          * @param consumer the name of the class that is starting the process
          */
         void externalProcessStarted(String command, String consumer);
+
+        /**
+         *
+         * @param file
+         * @param consumer
+         */
+        void fileOpened(File file, String consumer);
     }
 
     private static class IntegerSystemPropertyCallSite extends AbstractCallSite {
@@ -695,6 +718,30 @@ public class Instrumented {
                 return startPipeline((List<ProcessBuilder>) arg1, array.owner.getName());
             }
             return super.callStatic(receiver, arg1);
+        }
+    }
+
+    private static class FileInputStreamConstructorCallSite extends AbstractCallSite {
+        public FileInputStreamConstructorCallSite(CallSite prev) {
+            super(prev);
+        }
+
+        @Override
+        public Object callConstructor(Object receiver, Object arg1) throws Throwable {
+            if (receiver.equals(FileInputStream.class)) {
+                Object unwrappedArg1 = unwrap(arg1);
+                if (unwrappedArg1 instanceof CharSequence) {
+                    String path = convertToString(unwrappedArg1);
+                    fileOpened(path, array.owner.getName());
+                    return new FileInputStream(path);
+                } else if (unwrappedArg1 instanceof File) {
+                    File file = (File) unwrappedArg1;
+                    fileOpened(file, array.owner.getName());
+                    return new FileInputStream(file);
+                }
+            }
+
+            return super.callConstructor(receiver, arg1);
         }
     }
 }

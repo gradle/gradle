@@ -22,6 +22,7 @@ import org.gradle.internal.classpath.Instrumented
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
+import java.io.File
 
 
 private
@@ -90,5 +91,9 @@ class InstrumentedInputAccessListener(
             return
         }
         externalProcessListener.onExternalProcessStarted(command, consumer)
+    }
+
+    override fun fileOpened(file: File, consumer: String) {
+        broadcast.fileOpened(file, consumer)
     }
 }
