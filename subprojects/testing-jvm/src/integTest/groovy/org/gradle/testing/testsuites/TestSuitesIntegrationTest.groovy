@@ -434,7 +434,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
             check.dependsOn testing.suites
         """
 
-        executer.expectDocumentedDeprecationWarning("Accessing test options prior to setting test framework has been deprecated. This is scheduled to be removed in Gradle 8.0.")
+        executer.expectDeprecationWarning("Accessing test options prior to setting test framework has been deprecated. This is scheduled to be removed in Gradle 8.0.")
 
         expect:
         succeeds("check")
@@ -473,8 +473,8 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        executer.expectDocumentedDeprecationWarning("Accessing test options prior to setting test framework has been deprecated. This is scheduled to be removed in Gradle 8.0.")
-        executer.expectDocumentedDeprecationWarning("Accessing test options prior to setting test framework has been deprecated. This is scheduled to be removed in Gradle 8.0.")
+        executer.expectDeprecationWarning("Accessing test options prior to setting test framework has been deprecated. This is scheduled to be removed in Gradle 8.0.")
+        executer.expectDeprecationWarning("Accessing test options prior to setting test framework has been deprecated. This is scheduled to be removed in Gradle 8.0.")
 
         when:
         succeeds( "test")
