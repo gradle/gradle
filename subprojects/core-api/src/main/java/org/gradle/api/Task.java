@@ -280,7 +280,6 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      * @since 7.3
      */
     @Incubating
-    @Internal
     void doNotTrackState(String reasonNotToTrackState);
 
     /**
