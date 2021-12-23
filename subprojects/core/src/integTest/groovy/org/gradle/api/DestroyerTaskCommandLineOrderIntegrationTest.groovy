@@ -17,7 +17,6 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.executer.TaskOrderSpecs
-import org.gradle.test.fixtures.Flaky
 
 class DestroyerTaskCommandLineOrderIntegrationTest extends AbstractCommandLineOrderTaskIntegrationTest {
     def "destroyer task with a dependency in another project will run before producer tasks when ordered first (type: #type)"() {
@@ -46,13 +45,12 @@ class DestroyerTaskCommandLineOrderIntegrationTest extends AbstractCommandLineOr
         type << ProductionType.values()
     }
 
-    @Flaky(because = "https://github.com/gradle/gradle-private/issues/3498")
     def "a producer task will not run before a task in another project that destroys what it produces (type: #type)"() {
         def foo = subproject(':foo')
         def bar = subproject(':bar')
 
         def cleanFoo = foo.task('cleanFoo').destroys('build/foo')
-        def cleanBar = foo.task('cleanBar').destroys('build/bar').dependsOn(cleanFoo)
+        def cleanBar = foo.task('cleanBar').destroys('../bar/build/bar').dependsOn(cleanFoo)
         def clean = rootBuild.task('clean').dependsOn(cleanFoo).dependsOn(cleanBar)
         def generateFoo = foo.task('generateFoo').produces('build/foo', type)
         def generateBar = bar.task('generateBar').produces('build/bar', type)
@@ -174,7 +172,6 @@ class DestroyerTaskCommandLineOrderIntegrationTest extends AbstractCommandLineOr
         result.assertTaskOrder(cleanBar.fullPath, generateBar.fullPath, generate.fullPath)
     }
 
-    @Flaky(because = "https://github.com/gradle/gradle-private/issues/3498")
     def "multiple destroyer tasks listed on the command line followed by producers can run concurrently and are executed in the correct order"() {
         def foo = subproject(':foo')
         def bar = subproject(':bar')
@@ -197,9 +194,9 @@ class DestroyerTaskCommandLineOrderIntegrationTest extends AbstractCommandLineOr
         succeeds(clean.path, cleanBarLocal.path, generate.path)
 
         then:
-        result.assertTaskOrder(TaskOrderSpecs.any(cleanFoo.fullPath, cleanBarLocal.fullPath), cleanBar.fullPath, clean.fullPath)
         result.assertTaskOrder(cleanFoo.fullPath, cleanBar.fullPath, clean.fullPath)
-        result.assertTaskOrder(cleanBarLocal.fullPath, cleanBar.fullPath, generateBar.fullPath, generate.fullPath)
+        result.assertTaskOrder(cleanBarLocal.fullPath, generateBar.fullPath, generate.fullPath)
+        result.assertTaskOrder(cleanBar.fullPath, generateBar.fullPath, generate.fullPath)
         result.assertTaskOrder(cleanFoo.fullPath, generateFoo.fullPath, generate.fullPath)
     }
 
