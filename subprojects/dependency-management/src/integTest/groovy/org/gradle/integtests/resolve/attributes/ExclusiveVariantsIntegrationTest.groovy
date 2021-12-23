@@ -51,7 +51,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
             }""".stripIndent()
 
         expect:
-        executer.expectDocumentedDeprecationWarning("Consumable configurations with identical capabilities within a project must have unique attributes, but configuration ':sample2' and configuration ':sample1' contain identical attribute sets.")
+        executer.expectDeprecationWarning("Consumable configurations with identical capabilities within a project must have unique attributes, but configuration ':sample2' and configuration ':sample1' contain identical attribute sets.")
         succeeds("outgoingVariants")
     }
 
@@ -91,7 +91,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds("outgoingVariants")
-        executer.expectDocumentedDeprecationWarning("Consumable configurations with identical capabilities within a project must have unique attributes, but configuration ':sample2' and configuration ':sample1' contain identical attribute sets.")
+        executer.expectDeprecationWarning("Consumable configurations with identical capabilities within a project must have unique attributes, but configuration ':sample2' and configuration ':sample1' contain identical attribute sets.")
         outputContains("org.gradle:sample:1.0 (default capability)")
     }
 
@@ -136,7 +136,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds("outgoingVariants")
-        executer.expectDocumentedDeprecationWarning("Consumable configurations with identical capabilities within a project must have unique attributes, but configuration ':sample2' and configuration ':sample1' contain identical attribute sets.")
+        executer.expectDeprecationWarning("Consumable configurations with identical capabilities within a project must have unique attributes, but configuration ':sample2' and configuration ':sample1' contain identical attribute sets.")
         outputContains("org.gradle:sample:1.0 (default capability)")
     }
 
