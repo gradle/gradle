@@ -16,7 +16,6 @@
 
 package org.gradle.api.services.internal;
 
-import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.internal.execution.TaskExecutionTracker;
 
@@ -51,10 +50,9 @@ public class BuildServiceProviderNagger implements BuildServiceProvider.Listener
 
     private static void nagAboutUndeclaredUsageOf(BuildServiceProvider<?, ?> provider, TaskInternal task) {
         deprecateBehaviour(undeclaredBuildServiceUsage(provider, task))
-            .withAdvice("Declare the task uses the build service via 'Task#usesService'.")
-            .withContext("Max parallel usages constraint on the build service can't be honored.")
+            .withAdvice("Declare the association between the task and the build service using 'Task#usesService'.")
             .willBecomeAnErrorInGradle8()
-            .withDslReference(Task.class, "usesService(org.gradle.api.provider.Provider)")
+            .withUpgradeGuideSection(7, "undeclared_build_service_usage")
             .nagUser();
     }
 
