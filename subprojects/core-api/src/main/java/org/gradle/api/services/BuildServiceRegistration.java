@@ -36,6 +36,7 @@ public interface BuildServiceRegistration<T extends BuildService<P>, P extends B
     /**
      * Specifies the maximum number of tasks that can use this service in parallel. Setting this to 1 means that the service will be used by a single task at a time.
      * When this property has no value defined, then any number of tasks may use this service in parallel. This is the default.
+     *
      * <p>
      * IMPORTANT: the build service must be explicitly registered with every using task via {@link org.gradle.api.Task#usesService(Provider) Task#usesService}
      * for this constraint to be honored.
