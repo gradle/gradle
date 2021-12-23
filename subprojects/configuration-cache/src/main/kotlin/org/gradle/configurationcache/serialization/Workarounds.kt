@@ -43,6 +43,10 @@ object Workarounds {
         return isEnterpriseConventionsPlugin(from) && !shouldDisableInputWorkaroundsFor("processes")
     }
 
+    fun canReadFiles(from: String): Boolean {
+        return isBuildScanPlugin(from) && !shouldDisableInputWorkaroundsFor("files")
+    }
+
     private
     fun isBuildScanPlugin(from: String): Boolean {
         return from.startsWith("com.gradle.scan.plugin.internal.")

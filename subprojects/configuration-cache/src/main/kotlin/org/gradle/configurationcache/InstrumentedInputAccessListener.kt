@@ -94,6 +94,9 @@ class InstrumentedInputAccessListener(
     }
 
     override fun fileOpened(file: File, consumer: String) {
+        if (Workarounds.canReadFiles(consumer)) {
+            return
+        }
         broadcast.fileOpened(file, consumer)
     }
 }
