@@ -19,7 +19,8 @@ Include only their name, impactful features should be called out separately belo
 [Nikolas Grottendieck](https://github.com/Okeanos),
 [Lars Grefer](https://github.com/larsgrefer),
 [Patrick Pichler](https://github.com/patrickpichler),
-[Marcin Mielnicki](https://github.com/platan).
+[Marcin Mielnicki](https://github.com/platan),
+[Dima Merkurev](https://github.com/dimorinny).
 
 ## Upgrade instructions
 
