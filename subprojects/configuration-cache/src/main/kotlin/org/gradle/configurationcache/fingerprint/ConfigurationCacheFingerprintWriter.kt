@@ -56,6 +56,7 @@ import org.gradle.configurationcache.serialization.DefaultWriteContext
 import org.gradle.configurationcache.services.ConfigurationCacheEnvironment
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.concurrent.CompositeStoppable
+import org.gradle.internal.execution.TaskExecutionTracker
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.resource.local.FileResourceListener
 import org.gradle.internal.scripts.ScriptExecutionListener
@@ -69,7 +70,8 @@ class ConfigurationCacheFingerprintWriter(
     buildScopedContext: DefaultWriteContext,
     projectScopedContext: DefaultWriteContext,
     private val fileCollectionFactory: FileCollectionFactory,
-    private val directoryFileTreeFactory: DirectoryFileTreeFactory
+    private val directoryFileTreeFactory: DirectoryFileTreeFactory,
+    private val taskExecutionTracker: TaskExecutionTracker,
 ) : ValueSourceProviderFactory.Listener,
     TaskInputsListener,
     ScriptExecutionListener,
@@ -191,6 +193,12 @@ class ConfigurationCacheFingerprintWriter(
     }
 
     override fun fileOpened(file: File, consumer: String?) {
+        if (taskExecutionTracker.currentTask.isPresent) {
+            // Ignore files that are read as part of the task actions. These should really be task
+            // inputs. Otherwise, we risk fingerprinting temporary files that will be gone at the
+            // end of the build.
+            return
+        }
         captureFile(file)
         reportFile(file, consumer)
     }

@@ -468,6 +468,40 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
         "Kotlin with FileInputStream descendant" | "build.gradle.kts" | readFileWithFileInputStreamDescendantInKotlin()
     }
 
+    def "reading file in buildSrc task is not tracked"() {
+        def configurationCache = newConfigurationCacheFixture()
+        testDirectory.file("buildSrc/testInput.txt") << "some test input"
+
+        testDirectory.file("buildSrc/build.gradle") << """
+            def inputFile = file("testInput.txt")
+            def echoTask = tasks.register("echo") {
+                doLast {
+                    def fin = new FileInputStream(inputFile)
+                    try {
+                        System.out.bytes = fin.bytes
+                    } finally {
+                        fin.close()
+                    }
+                }
+            }
+            tasks.named("classes").configure {
+                dependsOn(echoTask)
+            }
+        """
+
+        buildFile << ""
+
+        when:
+        configurationCacheRun(":help")
+
+        then:
+        configurationCache.assertStateStored()
+        problems.assertResultHasProblems(result) {
+            withNoInputs()
+        }
+        outputContains("some test input")
+    }
+
     private static String readFileWithFileInputStreamInGroovy() {
         return """
             def fin = new FileInputStream(file("testInput.txt"))

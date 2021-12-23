@@ -37,6 +37,7 @@ import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.event.ListenerManager
+import org.gradle.internal.execution.TaskExecutionTracker
 import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinterRegistry
 import org.gradle.internal.execution.fingerprint.impl.DefaultFileNormalizationSpec
 import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer
@@ -71,7 +72,8 @@ class ConfigurationCacheFingerprintController internal constructor(
     private val fileCollectionFactory: FileCollectionFactory,
     private val directoryFileTreeFactory: DirectoryFileTreeFactory,
     private val report: ConfigurationCacheReport,
-    private val userCodeApplicationContext: UserCodeApplicationContext
+    private val userCodeApplicationContext: UserCodeApplicationContext,
+    private val taskExecutionTracker: TaskExecutionTracker,
 ) : Stoppable {
 
     interface Host {
@@ -118,7 +120,8 @@ class ConfigurationCacheFingerprintController internal constructor(
                 writeContextForOutputStream(buildScopedOutputStream),
                 writeContextForOutputStream(projectScopedOutputStream),
                 fileCollectionFactory,
-                directoryFileTreeFactory
+                directoryFileTreeFactory,
+                taskExecutionTracker
             )
             addListener(fingerprintWriter)
             return Writing(fingerprintWriter, buildScopedSpoolFile, projectScopedSpoolFile)
