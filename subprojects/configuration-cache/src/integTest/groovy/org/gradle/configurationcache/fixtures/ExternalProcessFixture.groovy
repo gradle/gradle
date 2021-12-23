@@ -168,11 +168,13 @@ class ExternalProcessFixture {
         private final Function<ExternalProcessFixture, String> kotlinSpecFactory
         private final Function<ExternalProcessFixture, String> javaSpecFactory
 
-        ExecJavaexecPrintOutput(@Nullable String instance,
-                                String methodName,
-                                Function<ExternalProcessFixture, String> groovySpecFactory,
-                                Function<ExternalProcessFixture, String> kotlinSpecFactory,
-                                Function<ExternalProcessFixture, String> javaSpecFactory) {
+        ExecJavaexecPrintOutput(
+            @Nullable String instance,
+            String methodName,
+            Function<ExternalProcessFixture, String> groovySpecFactory,
+            Function<ExternalProcessFixture, String> kotlinSpecFactory,
+            Function<ExternalProcessFixture, String> javaSpecFactory
+        ) {
             this.method = instance != null ? "${instance}.$methodName" : methodName
             this.groovySpecFactory = groovySpecFactory
             this.kotlinSpecFactory = kotlinSpecFactory
