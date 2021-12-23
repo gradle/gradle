@@ -219,6 +219,7 @@ class Codecs(
         bind(TaskNodeCodec(userTypesCodec, taskNodeFactory))
         bind(DelegatingCodec<TransformationNode>(userTypesCodec))
         bind(ActionNodeCodec(userTypesCodec))
+        bind(OrdinalNodeCodec())
 
         bind(NotImplementedCodec)
     }.build()

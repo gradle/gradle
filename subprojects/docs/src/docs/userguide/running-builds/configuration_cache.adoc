@@ -26,7 +26,7 @@ In other words, the configuration cache saves the output of the configuration ph
 
 [IMPORTANT]
 ====
-This feature is currently *_experimental_* and not enabled by default.
+This feature is currently *_incubating_* and not enabled by default.
 
 Not all <<configuration_cache#config_cache:plugins:core, core Gradle plugins>> are supported.
 Your build and the plugins you depend on might require changes to fulfil the <<configuration_cache#config_cache:requirements, requirements>>.
@@ -447,7 +447,7 @@ include::sample[dir="snippets/configurationCache/problemsFixedReuse/kotlin",file
 ====
 <1> We wired the system property provider directly, without reading it at configuration time.
 
-With this simple change in place we can run the task any number of time, change the system property value, and reuse the configuration cache:
+With this simple change in place we can run the task any number of times, change the system property value, and reuse the configuration cache:
 
 ----
 ❯ gradle --configuration-cache someTask -DsomeDestination=dest
@@ -461,6 +461,16 @@ Configuration cache entry reused.
 We're now done with fixing the problems with this simple task.
 
 Keep reading to learn how to adopt the configuration cache for your build or your plugins.
+
+[[config_cache:task_out_out]]
+=== Declare a task incompatible with the configuration cache
+
+It is possible to declare that a particular task is not compatible with the configuration cache. When a task that is incompatible is scheduled to
+run, Gradle will disable the configuration cache, if it is enabled.  You can use this to help with migration, by temporarily opting out certain tasks
+that are difficult to change to work with the configuration cache. We recommend that you use this only with tasks that are infrequently used.
+
+To declare a task is incompatible with the configuration, use the
+link:{javadocPath}/org/gradle/api/Task.html#notCompatibleWithConfigurationCache-java.lang.String-[Task.notCompatibleWithConfigurationCache()] method.
 
 [[config_cache:adoption]]
 == Adoption steps
