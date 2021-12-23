@@ -184,6 +184,10 @@ See the User Manual section on the “[Feature Lifecycle](userguide/feature_life
 
 The following are the features that have been promoted in this Gradle release.
 
+### Shared Build Services
+
+[Shared Build Services](current/userguide/build_services.html) is promoted to a stable feature.
+
 <!--
 ### Example promoted
 -->
