@@ -16,7 +16,6 @@
 
 package org.gradle.api.services;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
@@ -28,7 +27,6 @@ import org.gradle.api.provider.Provider;
  * @param <P> the service parameters type.
  * @since 6.1
  */
-@Incubating
 public interface BuildServiceRegistration<T extends BuildService<P>, P extends BuildServiceParameters> extends Named {
     /**
      * Returns the parameters that will be used to instantiate the service with.

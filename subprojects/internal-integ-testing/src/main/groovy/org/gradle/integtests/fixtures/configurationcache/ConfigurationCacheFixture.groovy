@@ -390,7 +390,11 @@ class ConfigurationCacheFixture {
     static class StateDiscardedWithProblemsDetails implements HasBuildActions, HasProblems {
         @Override
         String getStoreAction() {
-            return "discarded with ${problemsString}"
+            if (totalProblems == 0) {
+                return "discarded"
+            } else {
+                return "discarded with ${problemsString}"
+            }
         }
     }
 

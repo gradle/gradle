@@ -200,6 +200,8 @@ public interface Task extends Comparable<Task>, ExtensionAware {
     /**
      * <p>Returns the {@link Project} which this task belongs to.</p>
      *
+     * <p>Calling this method from a task action is not supported when configuration caching is enabled.</p>
+     *
      * @return The project this task belongs to. Never returns null.
      */
     @Internal
@@ -223,6 +225,8 @@ public interface Task extends Comparable<Task>, ExtensionAware {
 
     /**
      * <p>Returns a {@link TaskDependency} which contains all the tasks that this task depends on.</p>
+     *
+     * <p>Calling this method from a task action is not supported when configuration caching is enabled.</p>
      *
      * @return The dependencies of this task. Never returns null.
      */

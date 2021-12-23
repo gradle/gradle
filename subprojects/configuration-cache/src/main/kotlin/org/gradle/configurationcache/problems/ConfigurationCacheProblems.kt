@@ -70,6 +70,9 @@ class ConfigurationCacheProblems(
     var updatedProjects = 0
 
     private
+    var hasIncompatibleTypes = false
+
+    private
     lateinit var cacheAction: ConfigurationCacheAction
 
     private
@@ -99,6 +102,7 @@ class ConfigurationCacheProblems(
     }
 
     override fun forIncompatibleType(): ProblemsListener {
+        hasIncompatibleTypes = true
         return object : ProblemsListener {
             override fun onProblem(problem: PropertyProblem) {
                 onProblem(problem, ProblemSeverity.Warn)
@@ -130,7 +134,7 @@ class ConfigurationCacheProblems(
     override fun report(reportDir: File, validationFailures: Consumer<in Throwable>) {
         val summary = summarizer.get()
         val failDueToProblems = summary.failureCount > 0 && isFailOnProblems
-        val discardStateDueToProblems = summary.problemCount > 0 && isFailOnProblems
+        val discardStateDueToProblems = (summary.problemCount > 0 || hasIncompatibleTypes) && isFailOnProblems
         val hasTooManyProblems = summary.problemCount > startParameter.maxProblems
         val discardState = discardStateDueToProblems || hasTooManyProblems
         if (cacheAction != LOAD && discardState) {
@@ -195,6 +199,7 @@ class ConfigurationCacheProblems(
         override fun beforeComplete() {
             val problemCount = summarizer.get().problemCount
             val hasProblems = problemCount > 0
+            val discardStateDueToProblems = (problemCount > 0 || hasIncompatibleTypes) && isFailOnProblems
             val hasTooManyProblems = problemCount > startParameter.maxProblems
             val problemCountString = problemCount.counter("problem")
             val reusedProjectsString = reusedProjects.counter("project")
@@ -202,7 +207,8 @@ class ConfigurationCacheProblems(
             when {
                 isFailingBuildDueToSerializationError && !hasProblems -> log("Configuration cache entry discarded.")
                 isFailingBuildDueToSerializationError -> log("Configuration cache entry discarded with {}.", problemCountString)
-                cacheAction == STORE && isFailOnProblems && hasProblems -> log("Configuration cache entry discarded with {}.", problemCountString)
+                cacheAction == STORE && discardStateDueToProblems && !hasProblems -> log("Configuration cache entry discarded.")
+                cacheAction == STORE && discardStateDueToProblems -> log("Configuration cache entry discarded with {}.", problemCountString)
                 cacheAction == STORE && hasTooManyProblems -> log("Configuration cache entry discarded with too many problems ({}).", problemCountString)
                 cacheAction == STORE && !hasProblems -> log("Configuration cache entry stored.")
                 cacheAction == STORE -> log("Configuration cache entry stored with {}.", problemCountString)

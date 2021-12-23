@@ -1,6 +1,14 @@
 {
     "acceptedApiChanges": [
         {
+            "type": "org.gradle.api.publish.ivy.tasks.PublishToIvyRepository",
+            "member": "Method org.gradle.api.publish.ivy.tasks.PublishToIvyRepository.getDuplicatePublicationTracker()",
+            "acceptation": "Type of service inject getter changed",
+            "changes": [
+                "Method return type has changed"
+            ]
+        },
+        {
             "type": "org.gradle.api.initialization.Settings",
             "member": "Method org.gradle.api.initialization.Settings.include(java.lang.String[])",
             "acceptation": "Adding new Settings#include(Iterable)",

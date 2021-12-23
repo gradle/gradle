@@ -1020,6 +1020,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
             if (requiredServices == null) {
                 requiredServices = new HashSet<>();
             }
+            // TODO:configuration-cache assert build service is from the same build as the task
             requiredServices.add(service);
         });
     }

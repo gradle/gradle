@@ -17,7 +17,6 @@
 package org.gradle.configurationcache.initialization
 
 import org.gradle.api.InvalidUserCodeException
-import org.gradle.api.ProjectEvaluationListener
 import org.gradle.api.internal.BuildScopeListenerRegistrationListener
 import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.GradleInternal
@@ -33,7 +32,6 @@ import org.gradle.configurationcache.problems.PropertyProblem
 import org.gradle.configurationcache.problems.PropertyTrace
 import org.gradle.configurationcache.problems.StructuredMessage
 import org.gradle.configurationcache.problems.location
-import org.gradle.internal.InternalListener
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
 
@@ -89,8 +87,9 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
             ?: PropertyTrace.Task(GeneratedSubclasses.unpackType(task), task.identityPath.path)
 
     override fun onBuildScopeListenerRegistration(listener: Any, invocationDescription: String, invocationSource: Any) {
-        if (listener is InternalListener || listener is ProjectEvaluationListener || isBuildSrcBuild(invocationSource))
+        if (isBuildSrcBuild(invocationSource)) {
             return
+        }
         problems.onProblem(
             listenerRegistrationProblem(
                 userCodeApplicationContext.location(null),

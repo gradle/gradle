@@ -19,7 +19,8 @@ Include only their name, impactful features should be called out separately belo
 [Nikolas Grottendieck](https://github.com/Okeanos),
 [Lars Grefer](https://github.com/larsgrefer),
 [Patrick Pichler](https://github.com/patrickpichler),
-[Marcin Mielnicki](https://github.com/platan).
+[Marcin Mielnicki](https://github.com/platan),
+[Dima Merkurev](https://github.com/dimorinny).
 
 ## Upgrade instructions
 
@@ -155,6 +156,22 @@ plugin. Now, this is allowed when Gradle can track the version of the plugin (cu
 This allows you to use [`alias`](userguide/platforms.html#sec:plugins) in both a parent and subproject's `plugins {}` without 
 needing to remove the version in some way.
 
+### Configuration Cache improvements
+
+#### Automatic detection of environment variables, system properties and Gradle properties used at configuration time
+
+Previously, in order for Gradle to correctly treat external values such as environment variables, system properties and Gradle properties as configuration cache inputs, build and plugin authors were required to change their code to use Gradle specific APIs to read them; moreover, reading an external value at configuration time required an explicit opt-in via the `Provider.forUseAtConfigurationTime()` API.
+
+Gradle 7.4 simplifies adoption of the configuration cache by deprecating `Provider.forUseAtConfigurationTime()` and allowing external values to be read using standard Java and Gradle APIs. Please check the [corresponding section of the upgrade guide](userguide/upgrading_version_7.html#for_use_at_configuration_time_deprecation) for details.
+
+#### Opt incompatible tasks out of configuration caching
+
+It is now possible to declare that a particular task is not compatible with the configuration cache. Gradle will disable the configuration cache
+whenever an incompatible task is scheduled to run. This makes it possible to enable the configuration cache for a build without having to first 
+migrate all tasks to be compatible.
+
+Please check the [user manual](userguide/configuration_cache.html#config_cache:task_out_out) for more details.
+
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
 ==========================================================
@@ -166,6 +183,10 @@ Promoted features are features that were incubating in previous versions of Grad
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 
 The following are the features that have been promoted in this Gradle release.
+
+### Shared Build Services
+
+[Shared Build Services](current/userguide/build_services.html) is promoted to a stable feature.
 
 <!--
 ### Example promoted
