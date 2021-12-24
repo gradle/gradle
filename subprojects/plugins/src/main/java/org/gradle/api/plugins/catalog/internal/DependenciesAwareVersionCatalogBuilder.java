@@ -80,13 +80,13 @@ public class DependenciesAwareVersionCatalogBuilder extends DefaultVersionCatalo
 
     void tryGenericAlias(String group, String name, Action<? super MutableVersionConstraint> versionSpec) {
         String alias = normalizeName(name);
-        if (containsDependencyAlias(alias)) {
+        if (containsLibraryAlias(alias)) {
             throw new InvalidUserDataException("A dependency with alias '" + alias + "' already exists for module '" + group + ":" + name + "'. Please configure an explicit alias for this dependency.");
         }
         if (!ALIAS_PATTERN.matcher(alias).matches()) {
             throw new InvalidUserDataException("Unable to generate an automatic alias for '" + group + ":" + name + "'. Please configure an explicit alias for this dependency.");
         }
-        alias(alias).to(group, name).version(versionSpec);
+        library(alias, group, name).version(versionSpec);
     }
 
     private static String normalizeName(String name) {
@@ -102,7 +102,7 @@ public class DependenciesAwareVersionCatalogBuilder extends DefaultVersionCatalo
                 if (seen.add(id)) {
                     String alias = explicitAliases.get(id);
                     if (alias != null) {
-                        alias(alias).to(group, name).version(v -> copyDependencyVersion(dependency, group, name, v));
+                        library(alias, group, name).version(v -> copyDependencyVersion(dependency, group, name, v));
                     } else {
                         tryGenericAlias(group, name, v -> copyDependencyVersion(dependency, group, name, v));
                     }
@@ -134,7 +134,7 @@ public class DependenciesAwareVersionCatalogBuilder extends DefaultVersionCatalo
             if (seen.add(id)) {
                 String alias = explicitAliases.get(id);
                 if (alias != null) {
-                    alias(alias).to(group, name).version(into -> copyConstraint(constraint.getVersionConstraint(), into));
+                    library(alias, group, name).version(into -> copyConstraint(constraint.getVersionConstraint(), into));
                 } else {
                     tryGenericAlias(group, name, into -> copyConstraint(constraint.getVersionConstraint(), into));
                 }
