@@ -210,6 +210,13 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         this.buildAction = tapiAction
         return tapiAction
     }
+
+    def <T extends LongRunningOperation> ToolingApiAction<T> androidStudioSync(String displayName, Function<ProjectConnection, T> initialAction) {
+        useToolingApi = true
+        def tapiAction = new ToolingApiAction<T>(displayName, initialAction)
+        this.buildAction = tapiAction
+        return tapiAction
+    }
 }
 
 class ToolingApiAction<T extends LongRunningOperation> extends GradleInvokerBuildAction {

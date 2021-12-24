@@ -42,6 +42,7 @@ class GradleInvocationSpec implements InvocationSpec {
     final List<String> cleanTasks
     final boolean useDaemon
     final boolean useToolingApi
+    final boolean useAndroidStudio
     final boolean expectFailure
     final File buildLog
 
