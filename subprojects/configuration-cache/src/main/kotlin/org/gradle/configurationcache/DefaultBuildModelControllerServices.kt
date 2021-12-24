@@ -36,12 +36,12 @@ import org.gradle.configuration.project.DelayedConfigurationActions
 import org.gradle.configuration.project.LifecycleProjectEvaluator
 import org.gradle.configuration.project.PluginsProjectConfigureActions
 import org.gradle.configuration.project.ProjectEvaluator
-import org.gradle.configurationcache.build.ConfigurationCacheIncludedBuildState
-import org.gradle.configurationcache.build.NoOpBuildModelController
 import org.gradle.configurationcache.extensions.get
 import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprintController
 import org.gradle.configurationcache.initialization.ConfigurationCacheBuildEnablement
 import org.gradle.configurationcache.problems.ProblemsListener
+import org.gradle.configurationcache.services.ConfigurationCacheEnvironment
+import org.gradle.configurationcache.services.DefaultEnvironment
 import org.gradle.execution.DefaultTaskSchedulingPreparer
 import org.gradle.execution.ExcludedTaskFilteringProjectsPreparer
 import org.gradle.initialization.BuildCancellationToken
@@ -73,12 +73,15 @@ class DefaultBuildModelControllerServices(
             registration.add(BuildDefinition::class.java, buildDefinition)
             registration.add(BuildState::class.java, owner)
             registration.addProvider(ServicesProvider(buildDefinition, parentBuild, services))
+            registration.add(DeprecatedFeaturesListenerManagerAction::class.java)
             if (buildModelParameters.isConfigurationCache) {
                 registration.add(ConfigurationCacheBuildEnablement::class.java)
                 registration.add(ConfigurationCacheProblemsListenerManagerAction::class.java)
                 registration.addProvider(ConfigurationCacheBuildControllerProvider())
+                registration.add(ConfigurationCacheEnvironment::class.java)
             } else {
                 registration.addProvider(VintageBuildControllerProvider())
+                registration.add(DefaultEnvironment::class.java)
             }
             if (buildModelParameters.isIsolatedProjects) {
                 registration.addProvider(ConfigurationCacheIsolatedProjectsProvider())
@@ -116,15 +119,11 @@ class DefaultBuildModelControllerServices(
     private
     class ConfigurationCacheBuildControllerProvider {
         fun createBuildModelController(
-            build: BuildState,
             gradle: GradleInternal,
             stateTransitionControllerFactory: StateTransitionControllerFactory,
             cache: BuildTreeConfigurationCache
         ): BuildModelController {
-            if (build is ConfigurationCacheIncludedBuildState) {
-                return NoOpBuildModelController(gradle)
-            }
-            val vintageController = VintageBuildControllerProvider().createBuildModelController(build, gradle, stateTransitionControllerFactory)
+            val vintageController = VintageBuildControllerProvider().createBuildModelController(gradle, stateTransitionControllerFactory)
             return ConfigurationCacheAwareBuildModelController(gradle, vintageController, cache)
         }
     }
@@ -132,13 +131,9 @@ class DefaultBuildModelControllerServices(
     private
     class VintageBuildControllerProvider {
         fun createBuildModelController(
-            build: BuildState,
             gradle: GradleInternal,
             stateTransitionControllerFactory: StateTransitionControllerFactory
         ): BuildModelController {
-            if (build is ConfigurationCacheIncludedBuildState) {
-                return NoOpBuildModelController(gradle)
-            }
             val projectsPreparer: ProjectsPreparer = gradle.services.get()
             val taskSchedulingPreparer = DefaultTaskSchedulingPreparer(ExcludedTaskFilteringProjectsPreparer(gradle.services.get()))
             val settingsPreparer: SettingsPreparer = gradle.services.get()

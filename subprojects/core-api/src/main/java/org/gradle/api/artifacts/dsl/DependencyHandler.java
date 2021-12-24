@@ -276,7 +276,7 @@ public interface DependencyHandler extends ExtensionAware {
      * @param dependencyNotation
      *
      * The dependency notation, in one of the notations described above.
-     * @return The dependency.
+     * @return The dependency, or null if dependencyNotation is a provider.
      */
     @Nullable
     Dependency add(String configurationName, Object dependencyNotation);
@@ -287,7 +287,7 @@ public interface DependencyHandler extends ExtensionAware {
      * @param configurationName The name of the configuration.
      * @param dependencyNotation The dependency notation, in one of the notations described above.
      * @param configureClosure The closure to use to configure the dependency.
-     * @return The dependency.
+     * @return The dependency, or null if dependencyNotation is a provider.
      */
     Dependency add(String configurationName, Object dependencyNotation, Closure configureClosure);
 

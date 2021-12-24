@@ -17,28 +17,24 @@
 package org.gradle.configurationcache
 
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
+import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
 
 
 class ConfigurationCacheEnablementIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+    ConfigurationCacheFixture fixture = new ConfigurationCacheFixture(this)
 
     def "can enable with a command line #origin"() {
+        when:
+        run 'help', argument
 
-        given:
-        def configurationCache = newConfigurationCacheFixture()
+        then:
+        fixture.assertStateStored()
 
         when:
         run 'help', argument
 
         then:
-        outputContainsIncubatingFeatureUsage()
-        configurationCache.assertStateStored()
-
-        when:
-        run 'help', argument
-
-        then:
-        outputContainsIncubatingFeatureUsage()
-        configurationCache.assertStateLoaded()
+        fixture.assertStateLoaded()
 
         where:
         origin            | argument
@@ -47,11 +43,7 @@ class ConfigurationCacheEnablementIntegrationTest extends AbstractConfigurationC
     }
 
     def "can enable with a property in root directory gradle.properties"() {
-
         given:
-        def configurationCache = newConfigurationCacheFixture()
-
-        and:
         file('gradle.properties') << """
             $ENABLE_GRADLE_PROP
         """
@@ -60,23 +52,17 @@ class ConfigurationCacheEnablementIntegrationTest extends AbstractConfigurationC
         run 'help'
 
         then:
-        outputContainsIncubatingFeatureUsage()
-        configurationCache.assertStateStored()
+        fixture.assertStateStored()
 
         when:
         run 'help'
 
         then:
-        outputContainsIncubatingFeatureUsage()
-        configurationCache.assertStateLoaded()
+        fixture.assertStateLoaded()
     }
 
     def "can enable with a property in gradle user home gradle.properties"() {
-
         given:
-        def configurationCache = newConfigurationCacheFixture()
-
-        and:
         executer.requireOwnGradleUserHomeDir()
         executer.gradleUserHomeDir.file('gradle.properties') << """
             $ENABLE_GRADLE_PROP
@@ -86,23 +72,17 @@ class ConfigurationCacheEnablementIntegrationTest extends AbstractConfigurationC
         run 'help'
 
         then:
-        outputContainsIncubatingFeatureUsage()
-        configurationCache.assertStateStored()
+        fixture.assertStateStored()
 
         when:
         run 'help'
 
         then:
-        outputContainsIncubatingFeatureUsage()
-        configurationCache.assertStateLoaded()
+        fixture.assertStateLoaded()
     }
 
     def "can disable with a command line #cliOrigin when enabled in gradle.properties"() {
-
         given:
-        def configurationCache = newConfigurationCacheFixture()
-
-        and:
         file('gradle.properties') << """
             ${ConfigurationCacheOption.PROPERTY_NAME}=true
         """
@@ -111,16 +91,11 @@ class ConfigurationCacheEnablementIntegrationTest extends AbstractConfigurationC
         run 'help', cliArgument
 
         then:
-        configurationCache.assertNoConfigurationCache()
+        fixture.assertNotEnabled()
 
         where:
         cliOrigin         | cliArgument
         "long option"     | DISABLE_CLI_OPT
         "system property" | DISABLE_SYS_PROP
-    }
-
-    private void outputContainsIncubatingFeatureUsage() {
-        outputContains(CONFIGURATION_CACHE_MESSAGE)
-        outputDoesNotContain(ISOLATED_PROJECTS_MESSAGE)
     }
 }

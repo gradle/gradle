@@ -52,7 +52,12 @@ public class WatchingNotSupportedVirtualFileSystem extends AbstractVirtualFileSy
     }
 
     @Override
-    public boolean afterBuildStarted(WatchMode watchMode, VfsLogging vfsLogging, WatchLogging watchLogging, BuildOperationRunner buildOperationRunner) {
+    public boolean afterBuildStarted(
+        WatchMode watchMode,
+        VfsLogging vfsLogging,
+        WatchLogging watchLogging,
+        BuildOperationRunner buildOperationRunner
+    ) {
         if (watchMode == WatchMode.ENABLED) {
             LOGGER.warn("Watching the file system is not supported.");
         }
@@ -77,7 +82,13 @@ public class WatchingNotSupportedVirtualFileSystem extends AbstractVirtualFileSy
     }
 
     @Override
-    public void beforeBuildFinished(WatchMode watchMode, VfsLogging vfsLogging, WatchLogging watchLogging, BuildOperationRunner buildOperationRunner, int maximumNumberOfWatchedHierarchies) {
+    public void beforeBuildFinished(
+        WatchMode watchMode,
+        VfsLogging vfsLogging,
+        WatchLogging watchLogging,
+        BuildOperationRunner buildOperationRunner,
+        int maximumNumberOfWatchedHierarchies
+    ) {
         rootReference.update(vfsRoot -> buildOperationRunner.call(new CallableBuildOperation<SnapshotHierarchy>() {
             @Override
             public SnapshotHierarchy call(BuildOperationContext context) {

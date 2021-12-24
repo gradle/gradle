@@ -341,7 +341,8 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
 
         then:
         output.count("ON CI") == 1
-        configurationCache.assertStateLoaded()
+        // TODO(mlopatkin) maybe revisit this decision if we decide that ValueSources are free to read whatever files they want
+        configurationCache.assertStateStored()
 
         when: "running after changing the property value"
         file("local.properties").text = "ci=false"

@@ -39,9 +39,23 @@ object Workarounds {
         return isBuildScanPlugin(from) && !shouldDisableInputWorkaroundsFor("envVars")
     }
 
+    fun canStartExternalProcesses(from: String): Boolean {
+        return isEnterpriseConventionsPlugin(from) && !shouldDisableInputWorkaroundsFor("processes")
+    }
+
+    fun canReadFiles(from: String): Boolean {
+        return isBuildScanPlugin(from) && !shouldDisableInputWorkaroundsFor("files")
+    }
+
     private
     fun isBuildScanPlugin(from: String): Boolean {
         return from.startsWith("com.gradle.scan.plugin.internal.")
+    }
+
+    // TODO(https://github.com/gradle/gradle-org-conventions-plugin/issues/18) Remove the workaround when our conventions plugin is compatible.
+    private
+    fun isEnterpriseConventionsPlugin(from: String): Boolean {
+        return from.startsWith("com.gradle.enterprise.conventions.")
     }
 
     private

@@ -40,6 +40,7 @@ import org.gradle.api.internal.provider.sources.EnvironmentVariableValueSource
 import org.gradle.api.internal.provider.sources.FileContentValueSource
 import org.gradle.api.internal.provider.sources.GradlePropertyValueSource
 import org.gradle.api.internal.provider.sources.SystemPropertyValueSource
+import org.gradle.api.internal.provider.sources.process.ProcessOutputValueSource
 import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.configurationcache.CoupledProjectsListener
@@ -52,8 +53,10 @@ import org.gradle.configurationcache.problems.PropertyProblem
 import org.gradle.configurationcache.problems.PropertyTrace
 import org.gradle.configurationcache.problems.StructuredMessage
 import org.gradle.configurationcache.serialization.DefaultWriteContext
+import org.gradle.configurationcache.services.ConfigurationCacheEnvironment
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.concurrent.CompositeStoppable
+import org.gradle.internal.execution.TaskExecutionTracker
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.resource.local.FileResourceListener
 import org.gradle.internal.scripts.ScriptExecutionListener
@@ -67,7 +70,8 @@ class ConfigurationCacheFingerprintWriter(
     buildScopedContext: DefaultWriteContext,
     projectScopedContext: DefaultWriteContext,
     private val fileCollectionFactory: FileCollectionFactory,
-    private val directoryFileTreeFactory: DirectoryFileTreeFactory
+    private val directoryFileTreeFactory: DirectoryFileTreeFactory,
+    private val taskExecutionTracker: TaskExecutionTracker,
 ) : ValueSourceProviderFactory.Listener,
     TaskInputsListener,
     ScriptExecutionListener,
@@ -75,7 +79,8 @@ class ConfigurationCacheFingerprintWriter(
     ChangingValueDependencyResolutionListener,
     ProjectDependencyObservedListener,
     CoupledProjectsListener,
-    FileResourceListener {
+    FileResourceListener,
+    ConfigurationCacheEnvironment.Listener {
 
     interface Host {
         val gradleUserHomeDir: File
@@ -187,6 +192,25 @@ class ConfigurationCacheFingerprintWriter(
         }
     }
 
+    override fun fileOpened(file: File, consumer: String?) {
+        if (taskExecutionTracker.currentTask.isPresent) {
+            // Ignore files that are read as part of the task actions. These should really be task
+            // inputs. Otherwise, we risk fingerprinting temporary files that will be gone at the
+            // end of the build.
+            return
+        }
+        captureFile(file)
+        reportFile(file, consumer)
+    }
+
+    override fun systemPropertiesPrefixedBy(prefix: String, snapshot: Map<String, String?>) {
+        buildScopedSink.write(ConfigurationCacheFingerprint.SystemPropertiesPrefixedBy(prefix, snapshot))
+    }
+
+    override fun envVariablesPrefixedBy(prefix: String, snapshot: Map<String, String?>) {
+        buildScopedSink.write(ConfigurationCacheFingerprint.EnvironmentVariablesPrefixedBy(prefix, snapshot))
+    }
+
     override fun <T : Any, P : ValueSourceParameters> valueObtained(
         obtainedValue: ValueSourceProviderFactory.Listener.ObtainedValue<T, P>
     ) {
@@ -206,6 +230,10 @@ class ConfigurationCacheFingerprintWriter(
             }
             is EnvironmentVariableValueSource.Parameters -> {
                 envVariableRead(parameters.variableName.get(), obtainedValue.value.get() as? String, null)
+            }
+            is ProcessOutputValueSource.Parameters -> {
+                sink().write(ValueSource(obtainedValue.uncheckedCast()))
+                reportExternalProcessOutputRead(ProcessOutputValueSource.Parameters.getExecutable(parameters))
             }
             else -> {
                 captureValueSource(obtainedValue)
@@ -307,15 +335,15 @@ class ConfigurationCacheFingerprintWriter(
     }
 
     private
-    fun reportFile(file: File) {
+    fun reportFile(file: File, consumer: String? = null) {
         if (reportedFiles.add(file)) {
-            reportFileInput(file)
+            reportFileInput(file, consumer)
         }
     }
 
     private
-    fun reportFileInput(file: File) {
-        reportInput(null, null) {
+    fun reportFileInput(file: File, consumer: String?) {
+        reportInput(consumer, null) {
             text("file ")
             reference(host.displayNameOf(file))
         }
@@ -330,8 +358,16 @@ class ConfigurationCacheFingerprintWriter(
     }
 
     private
+    fun reportExternalProcessOutputRead(executable: String) {
+        reportInput(consumer = null, documentationSection = DocumentationSection.RequirementsExternalProcess) {
+            text("output of the external process ")
+            reference(executable)
+        }
+    }
+
+    private
     fun reportSystemPropertyInput(key: String, consumer: String?) {
-        reportInput(consumer, DocumentationSection.RequirementsUndeclaredSysPropRead) {
+        reportInput(consumer, DocumentationSection.RequirementsSysPropEnvVarRead) {
             text("system property ")
             reference(key)
         }
@@ -339,7 +375,7 @@ class ConfigurationCacheFingerprintWriter(
 
     private
     fun reportEnvironmentVariableInput(key: String, consumer: String?) {
-        reportInput(consumer, DocumentationSection.RequirementsUndeclaredEnvVarRead) {
+        reportInput(consumer, DocumentationSection.RequirementsSysPropEnvVarRead) {
             text("environment variable ")
             reference(key)
         }

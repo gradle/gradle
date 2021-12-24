@@ -44,7 +44,21 @@ Gradle defines a list of standard attributes used by Gradle's core plugins.
 | Indicates how dependencies of a variant are accessed.
 | `Bundling` values built from constants defined in link:{javadocPath}/org/gradle/api/attributes/Bundling.html[Bundling]
 | Following ecosystem semantics (e.g. in the JVM world, `embedded` is compatible with `external`)
+
+| link:{javadocPath}/org/gradle/api/attributes/VerificationType.html#VERIFICATION_TYPE_ATTRIBUTE[`org.gradle.verificationtype`]
+| Indicates what kind of verification task produced this output.
+| `VerificationType` values built from constants defined in link:{javadocPath}/org/gradle/api/attributes/VerificationType.html[VerificationType]
+| No default, no compatibility
 |===
+
+[[sec:verification_category]]
+[WARNING]
+====
+When the `Category` attribute is present with the incubating value `org.gradle.category=verification` on a variant, that variant is considered to be a verification-time only variant.
+
+These variants are meant to contain only the results of running verification tasks, such as test results or code coverage reports.
+They are *not publishable*, and will produce an error if added to a component which is published.
+====
 
 .Ecosystem-independent standard component attributes
 [%header%autowidth,compact]
@@ -76,6 +90,21 @@ In addition to the ecosystem independent attributes defined above, the JVM ecosy
 | Indicates that a variant is optimized for a certain JVM environment.
 | Common values are `standard-jvm` and `android`. Other values are allowed.
 | The attribute is used to prefer one variant over another if multiple are available, but in general all values are compatible. The default is `standard-jvm`.
+
+| link:{javadocPath}/org/gradle/api/attributes/TestSuiteType.html#TEST_SUITE_NAME_ATTRIBUTE[`org.gradle.testsuite.name`]
+| Indicates the name of the link:{javadocPath}/org/gradle/testing/base/TestSuite.html[TestSuite] that produced this output.
+| Value is the name of the Suite.
+| No default, no compatibility
+
+| link:{javadocPath}/org/gradle/api/attributes/TestSuiteTargetName.html#TEST_SUITE_TARGET_NAME_ATTRIBUTE[`org.gradle.testsuite.target.name`]
+| Indicates the name of the link:{javadocPath}/org/gradle/testing/base/TestSuiteTarget.html[TestSuiteTarget] that produced this output.
+| Value is the name of the Target.
+| No default, no compatibility
+
+| link:{javadocPath}/org/gradle/api/attributes/TestSuiteType.html#TEST_SUITE_TYPE_ATTRIBUTE[`org.gradle.testsuite.type`]
+| Indicates the type of test suite (unit test, integration test, performance test, etc.)
+| `TestSuiteType` values built from constants defined in link:{javadocPath}/org/gradle/api/attributes/TestSuiteType.html[TestSuiteType] or other custom values for user-defined test suite types.
+| No default, no compatibility
 |===
 
 The JVM ecosystem also contains a number of compatibility and disambiguation rules over the different attributes.

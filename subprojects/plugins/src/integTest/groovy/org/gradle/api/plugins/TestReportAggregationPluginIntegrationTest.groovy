@@ -19,6 +19,8 @@ package org.gradle.api.plugins
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.HtmlTestExecutionResult
 
+import static org.hamcrest.CoreMatchers.startsWith
+
 class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
@@ -167,7 +169,7 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
         def applicationTestResults = new HtmlTestExecutionResult(testDirectory.file('application'))
         applicationTestResults.assertTestClassesExecuted('application.AdderTest')
 
-        def aggregatedResults = new HtmlTestExecutionResult(testDirectory, "application/build/reports/tests/unit-tests/aggregated-results")
+        def aggregatedResults = new HtmlTestExecutionResult(testDirectory, "application/build/reports/tests/unit-test/aggregated-results")
         aggregatedResults.assertTestClassesExecuted("application.AdderTest", "direct.MultiplierTest", "transitive.PowerizeTest")
     }
 
@@ -177,7 +179,7 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
             testing {
                 suites {
                     integTest(JvmTestSuite) {
-                        testType = TestType.INTEGRATION_TESTS
+                        testType = TestSuiteType.INTEGRATION_TEST
                         useJUnit()
                         dependencies {
                           implementation project
@@ -192,7 +194,7 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
             testing {
                 suites {
                     integTest(JvmTestSuite) {
-                        testType = TestType.INTEGRATION_TESTS
+                        testType = TestSuiteType.INTEGRATION_TEST
                         useJUnit()
                         dependencies {
                             implementation project(':transitive') // necessary to access Divisor when compiling test
@@ -272,10 +274,10 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
         def applicationIntegTestResults = new HtmlTestExecutionResult(testDirectory.file('application'), 'build/reports/tests/integTest')
         applicationIntegTestResults.assertTestClassesExecuted('application.DivTest')
 
-        def aggregatedTestResults = new HtmlTestExecutionResult(testDirectory, 'application/build/reports/tests/unit-tests/aggregated-results')
+        def aggregatedTestResults = new HtmlTestExecutionResult(testDirectory, 'application/build/reports/tests/unit-test/aggregated-results')
         aggregatedTestResults.assertTestClassesExecuted('application.AdderTest', 'direct.MultiplierTest', 'transitive.PowerizeTest')
 
-        def aggregatedIntegTestResults = new HtmlTestExecutionResult(testDirectory, 'application/build/reports/tests/integration-tests/aggregated-results')
+        def aggregatedIntegTestResults = new HtmlTestExecutionResult(testDirectory, 'application/build/reports/tests/integration-test/aggregated-results')
         aggregatedIntegTestResults.assertTestClassesExecuted('transitive.ModTest', 'application.DivTest')
     }
 
@@ -292,7 +294,7 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
             reporting {
                 reports {
                     testAggregateTestReport(AggregateTestReport) {
-                        testType = TestType.UNIT_TESTS
+                        testType = TestSuiteType.UNIT_TEST
                     }
                 }
             }
@@ -311,8 +313,66 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
         def applicationTestResults = new HtmlTestExecutionResult(testDirectory.file('application'))
         applicationTestResults.assertTestClassesExecuted('application.AdderTest')
 
-        def aggregatedTestResults = new HtmlTestExecutionResult(testDirectory, 'build/reports/tests/unit-tests/aggregated-results')
+        def aggregatedTestResults = new HtmlTestExecutionResult(testDirectory, 'build/reports/tests/unit-test/aggregated-results')
         aggregatedTestResults.assertTestClassesExecuted('application.AdderTest', 'direct.MultiplierTest', 'transitive.PowerizeTest')
+    }
+
+    def 'can apply custom attributes to refine test results'() {
+        setup:
+        file('application/build.gradle') << '''
+            // add a additional Attribute to the test results for the application unit-test suite
+            configurations.testResultsElementsForTest.attributes {
+              attribute(Attribute.of('customAttribute', String), 'foo')
+            }
+        '''
+        file('transitive/build.gradle') << '''
+            // add a additional Attribute to the test results for the transitive unit-test suite
+            configurations.testResultsElementsForTest.attributes {
+              attribute(Attribute.of('customAttribute', String), 'bar')
+            }
+        '''
+        buildFile << '''
+            apply plugin: 'org.gradle.test-report-aggregation'
+
+            dependencies {
+                testReportAggregation project(":application")
+                testReportAggregation project(":direct")
+            }
+
+            reporting {
+                reports {
+                    testAggregateTestReport(AggregateTestReport) {
+                        testType = TestSuiteType.UNIT_TEST
+                    }
+                }
+            }
+
+            // add an Attribute to the configuration tasked with collecting results
+            // as a result, variant selection should exclude the transitive project
+            reporting {
+                reports.withType(AggregateTestReport).configureEach { report ->
+                    Configuration reportConf = configurations.getByName("${report.name}Results")
+                    reportConf.attributes {
+                        attribute(Attribute.of('customAttribute', String), 'foo')
+                    }
+                }
+            }
+        '''
+
+        when:
+        succeeds(':testAggregateTestReport')
+
+        then:
+        result.assertTaskNotExecuted(':transitive:test')
+
+        def directTestResults = new HtmlTestExecutionResult(testDirectory.file('direct'))
+        directTestResults.assertTestClassesExecuted('direct.MultiplierTest')
+
+        def applicationTestResults = new HtmlTestExecutionResult(testDirectory.file('application'))
+        applicationTestResults.assertTestClassesExecuted('application.AdderTest')
+
+        def aggregatedTestResults = new HtmlTestExecutionResult(testDirectory, 'build/reports/tests/unit-test/aggregated-results')
+        aggregatedTestResults.assertTestClassesExecuted('application.AdderTest', 'direct.MultiplierTest')
     }
 
     def 'test verification failure prevents creation of aggregated report'() {
@@ -337,12 +397,11 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
         fails(":application:testAggregateTestReport")
 
         then:
-        result.assertTaskExecuted(":application:test")
-        result.assertTaskExecuted(":direct:test")
-        result.assertTaskNotExecuted(":transitive:test")
-        result.assertTaskNotExecuted(":application:testAggregateTestReport")
+        failure.assertHasDescription("Execution failed for task ':direct:test'.")
+               .assertThatCause(startsWith("There were failing tests"))
+        result.assertTaskNotExecuted(':application:testAggregateTestReport"')
 
-        file("application/build/reports/tests/unit-tests/aggregated-results").assertDoesNotExist()
+        file("application/build/reports/tests/unit-test/aggregated-results").assertDoesNotExist()
     }
 
     def 'test verification failure creates aggregated report with --continue flag'() {
@@ -381,7 +440,7 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
         def applicationTestResults = new HtmlTestExecutionResult(testDirectory.file('application'))
         applicationTestResults.assertTestClassesExecuted('application.AdderTest')
 
-        def aggregatedResults = new HtmlTestExecutionResult(testDirectory, "application/build/reports/tests/unit-tests/aggregated-results")
+        def aggregatedResults = new HtmlTestExecutionResult(testDirectory, "application/build/reports/tests/unit-test/aggregated-results")
         aggregatedResults.assertTestClassesExecuted("application.AdderTest", "direct.MultiplierTest", "transitive.PowerizeTest")
     }
 
@@ -415,7 +474,7 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
         result.assertTaskExecuted(":transitive:test")
         result.assertTaskNotExecuted(":application:testAggregateTestReport")
 
-        file("application/build/reports/tests/unit-tests/aggregated-results").assertDoesNotExist()
+        file("application/build/reports/tests/unit-test/aggregated-results").assertDoesNotExist()
 
     }
 
@@ -450,6 +509,6 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
         result.assertTaskNotExecuted(":transitive:test")
         result.assertTaskNotExecuted(":application:testAggregateTestReport")
 
-        file("application/build/reports/tests/unit-tests/aggregated-results").assertDoesNotExist()
+        file("application/build/reports/tests/unit-test/aggregated-results").assertDoesNotExist()
     }
 }

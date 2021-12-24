@@ -26,7 +26,8 @@ import org.gradle.configurationcache.serialization.DefaultReadContext
 import org.gradle.configurationcache.serialization.DefaultWriteContext
 import org.gradle.configurationcache.serialization.LoggingTracer
 import org.gradle.configurationcache.serialization.Tracer
-import org.gradle.configurationcache.serialization.beans.BeanConstructors
+import org.gradle.configurationcache.serialization.beans.BeanStateReaderLookup
+import org.gradle.configurationcache.serialization.beans.BeanStateWriterLookup
 import org.gradle.configurationcache.serialization.codecs.Codecs
 import org.gradle.configurationcache.serialization.readCollection
 import org.gradle.configurationcache.serialization.readFile
@@ -38,7 +39,6 @@ import org.gradle.configurationcache.serialization.withGradleIsolate
 import org.gradle.configurationcache.serialization.writeCollection
 import org.gradle.configurationcache.serialization.writeFile
 import org.gradle.internal.build.BuildStateRegistry
-import org.gradle.internal.build.RootBuildState
 import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
@@ -57,8 +57,11 @@ class ConfigurationCacheIO internal constructor(
     private val host: DefaultConfigurationCache.Host,
     private val problems: ConfigurationCacheProblems,
     private val scopeRegistryListener: ConfigurationCacheClassLoaderScopeRegistryListener,
-    private val beanConstructors: BeanConstructors
+    private val beanStateReaderLookup: BeanStateReaderLookup,
+    private val beanStateWriterLookup: BeanStateWriterLookup
 ) {
+    private
+    val codecs = codecs()
 
     internal
     fun writeCacheEntryDetailsTo(
@@ -112,9 +115,7 @@ class ConfigurationCacheIO internal constructor(
     fun collectRootDirs(buildStateRegistry: BuildStateRegistry): MutableSet<File> {
         val rootDirs = mutableSetOf<File>()
         buildStateRegistry.visitBuilds { build ->
-            if (build !is RootBuildState) {
-                rootDirs.add(build.buildRootDir)
-            }
+            rootDirs.add(build.buildRootDir)
         }
         return rootDirs
     }
@@ -185,7 +186,7 @@ class ConfigurationCacheIO internal constructor(
     internal
     fun writeModelTo(model: Any, stateFile: ConfigurationCacheStateFile) {
         writeConfigurationCacheState(stateFile) {
-            withGradleIsolate(host.currentBuild.gradle, codecs().userTypesCodec) {
+            withGradleIsolate(host.currentBuild.gradle, codecs.userTypesCodec()) {
                 write(model)
             }
         }
@@ -194,7 +195,7 @@ class ConfigurationCacheIO internal constructor(
     internal
     fun readModelFrom(stateFile: ConfigurationCacheStateFile): Any {
         return readConfigurationCacheState(stateFile) {
-            withGradleIsolate(host.currentBuild.gradle, codecs().userTypesCodec) {
+            withGradleIsolate(host.currentBuild.gradle, codecs.userTypesCodec()) {
                 readNonNull()
             }
         }
@@ -202,26 +203,22 @@ class ConfigurationCacheIO internal constructor(
 
     internal
     fun writerContextFor(outputStream: OutputStream, profile: String): Pair<DefaultWriteContext, Codecs> =
-        codecs().let { codecs ->
-            KryoBackedEncoder(outputStream).let { encoder ->
-                writeContextFor(
-                    encoder,
-                    if (logger.isDebugEnabled) LoggingTracer(profile, encoder::getWritePosition, logger)
-                    else null,
-                    codecs
-                ) to codecs
-            }
+        KryoBackedEncoder(outputStream).let { encoder ->
+            writeContextFor(
+                encoder,
+                if (logger.isDebugEnabled) LoggingTracer(profile, encoder::getWritePosition, logger)
+                else null,
+                codecs
+            ) to codecs
         }
 
     internal
     fun writerContextFor(encoder: Encoder): Pair<DefaultWriteContext, Codecs> =
-        codecs().let { codecs ->
-            writeContextFor(
-                encoder,
-                null,
-                codecs
-            ) to codecs
-        }
+        writeContextFor(
+            encoder,
+            null,
+            codecs
+        ) to codecs
 
     internal
     fun <R> withReadContextFor(
@@ -248,11 +245,9 @@ class ConfigurationCacheIO internal constructor(
     fun readerContextFor(
         decoder: Decoder,
     ) =
-        codecs().let { codecs ->
-            readContextFor(decoder, codecs).apply {
-                initClassLoader(javaClass.classLoader)
-            } to codecs
-        }
+        readContextFor(decoder, codecs).apply {
+            initClassLoader(javaClass.classLoader)
+        } to codecs
 
     private
     fun writeContextFor(
@@ -260,9 +255,10 @@ class ConfigurationCacheIO internal constructor(
         tracer: Tracer?,
         codecs: Codecs
     ) = DefaultWriteContext(
-        codecs.userTypesCodec,
+        codecs.userTypesCodec(),
         encoder,
         scopeRegistryListener,
+        beanStateWriterLookup,
         logger,
         tracer,
         problems
@@ -273,10 +269,9 @@ class ConfigurationCacheIO internal constructor(
         decoder: Decoder,
         codecs: Codecs
     ) = DefaultReadContext(
-        codecs.userTypesCodec,
+        codecs.userTypesCodec(),
         decoder,
-        service(),
-        beanConstructors,
+        beanStateReaderLookup,
         logger,
         problems
     )
@@ -309,7 +304,8 @@ class ConfigurationCacheIO internal constructor(
             fileFactory = service(),
             includedTaskGraph = service(),
             buildStateRegistry = service(),
-            documentationRegistry = service()
+            documentationRegistry = service(),
+            javaSerializationEncodingLookup = service()
         )
 
     private

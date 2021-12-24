@@ -58,6 +58,7 @@ public class BuildTreeScopeServices {
         registration.add(GradleEnterprisePluginManager.class);
         registration.add(DefaultBuildLifecycleControllerFactory.class);
         registration.add(BuildOptionBuildOperationProgressEventsEmitter.class);
+        registration.add(BuildInclusionCoordinator.class);
         modelServices.applyServicesTo(registration);
     }
 

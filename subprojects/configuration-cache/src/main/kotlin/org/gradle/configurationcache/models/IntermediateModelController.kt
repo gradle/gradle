@@ -39,14 +39,14 @@ internal
 class IntermediateModelController(
     private val host: DefaultConfigurationCache.Host,
     private val cacheIO: ConfigurationCacheIO,
-    val store: ConfigurationCacheStateStore,
+    store: ConfigurationCacheStateStore,
     private val cacheFingerprintController: ConfigurationCacheFingerprintController
 ) : ProjectStateStore<ModelKey, IntermediateModel>(store, StateType.IntermediateModels) {
     override fun projectPathForKey(key: ModelKey) = key.identityPath
 
     override fun write(encoder: Encoder, value: IntermediateModel) {
         val (context, codecs) = cacheIO.writerContextFor(encoder)
-        context.push(IsolateOwner.OwnerHost(host), codecs.userTypesCodec)
+        context.push(IsolateOwner.OwnerHost(host), codecs.userTypesCodec())
         context.runWriteOperation {
             write(value)
         }
@@ -54,7 +54,7 @@ class IntermediateModelController(
 
     override fun read(decoder: Decoder): IntermediateModel {
         val (context, codecs) = cacheIO.readerContextFor(decoder)
-        context.push(IsolateOwner.OwnerHost(host), codecs.userTypesCodec)
+        context.push(IsolateOwner.OwnerHost(host), codecs.userTypesCodec())
         return context.runReadOperation {
             readNonNull()
         }

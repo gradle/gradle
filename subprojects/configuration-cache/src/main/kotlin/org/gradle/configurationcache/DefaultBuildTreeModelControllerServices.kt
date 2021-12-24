@@ -23,6 +23,9 @@ import org.gradle.configurationcache.initialization.ConfigurationCacheInjectedCl
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.configurationcache.initialization.VintageInjectedClasspathInstrumentationStrategy
 import org.gradle.configurationcache.problems.ConfigurationCacheProblems
+import org.gradle.configurationcache.serialization.beans.BeanStateReaderLookup
+import org.gradle.configurationcache.serialization.beans.BeanStateWriterLookup
+import org.gradle.configurationcache.serialization.codecs.jos.JavaSerializationEncodingLookup
 import org.gradle.internal.buildtree.BuildActionModelRequirements
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.buildtree.BuildTreeModelControllerServices
@@ -43,14 +46,15 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         }
 
         val isolatedProjects = startParameter.isolatedProjects.get()
-        val parallelToolingActions = (isolatedProjects || requirements.startParameter.isParallelProjectExecutionEnabled) && !"false".equals(requirements.startParameter.systemPropertiesArgs.get("org.gradle.internal.tooling.parallel"), true)
+        val parallelToolingActions = (isolatedProjects || requirements.startParameter.isParallelProjectExecutionEnabled) && isNotDisabled(requirements, "org.gradle.internal.tooling.parallel")
+        val invalidateCoupledProjects = isolatedProjects && isNotDisabled(requirements, "org.gradle.internal.invalidate-coupled-projects")
         val modelParameters = if (requirements.isCreatesModel) {
             // When creating a model, disable certain features - only enable configure on demand and configuration cache when isolated projects is enabled
-            BuildModelParameters(isolatedProjects, isolatedProjects, isolatedProjects, true, isolatedProjects, parallelToolingActions)
+            BuildModelParameters(isolatedProjects, isolatedProjects, isolatedProjects, true, isolatedProjects, parallelToolingActions, invalidateCoupledProjects)
         } else {
             val configurationCache = startParameter.configurationCache.get() || isolatedProjects
             val configureOnDemand = startParameter.isConfigureOnDemand || isolatedProjects
-            BuildModelParameters(configureOnDemand, configurationCache, isolatedProjects, false, false, parallelToolingActions)
+            BuildModelParameters(configureOnDemand, configurationCache, isolatedProjects, false, false, parallelToolingActions, invalidateCoupledProjects)
         }
 
         if (!startParameter.isConfigurationCacheQuiet) {
@@ -71,11 +75,15 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         }
     }
 
+    private
+    fun isNotDisabled(requirements: BuildActionModelRequirements, systemPropertyName: String) =
+        !"false".equals(requirements.startParameter.systemPropertiesArgs.get(systemPropertyName), true)
+
     override fun servicesForNestedBuildTree(startParameter: StartParameterInternal): BuildTreeModelControllerServices.Supplier {
         return BuildTreeModelControllerServices.Supplier { registration ->
             registration.add(BuildType::class.java, BuildType.TASKS)
             // Configuration cache is not supported for nested build trees
-            val buildModelParameters = BuildModelParameters(startParameter.isConfigureOnDemand, false, false, true, false, false)
+            val buildModelParameters = BuildModelParameters(startParameter.isConfigureOnDemand, false, false, true, false, false, false)
             val requirements = RunTasksRequirements(startParameter)
             registerServices(registration, buildModelParameters, requirements)
         }
@@ -92,6 +100,9 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
             registration.add(ConfigurationCacheInjectedClasspathInstrumentationStrategy::class.java)
             registration.add(ConfigurationCacheProblems::class.java)
             registration.add(DefaultConfigurationCache::class.java)
+            registration.add(BeanStateWriterLookup::class.java)
+            registration.add(BeanStateReaderLookup::class.java)
+            registration.add(JavaSerializationEncodingLookup::class.java)
         } else {
             registration.add(VintageInjectedClasspathInstrumentationStrategy::class.java)
             registration.add(VintageBuildTreeLifecycleControllerFactory::class.java)

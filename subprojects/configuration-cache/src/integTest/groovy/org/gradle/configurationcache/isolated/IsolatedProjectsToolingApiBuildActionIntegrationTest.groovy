@@ -84,10 +84,11 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         model3[1].message == "It works from project :a"
 
         and:
-        fixture.assertStateRecreated {
+        fixture.assertStateUpdated {
             fileChanged("build.gradle")
             projectConfigured(":buildSrc")
             modelsCreated(":")
+            modelsReused(":a", ":b")
         }
         outputContains("creating model for root project 'root'")
 
@@ -117,11 +118,12 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         model5[1].message == "this is project a"
 
         and:
-        fixture.assertStateRecreated {
+        fixture.assertStateUpdated {
             fileChanged("a/build.gradle")
             projectConfigured(":buildSrc")
             projectConfigured(":")
             modelsCreated(":a")
+            modelsReused(":", ":b")
         }
         outputContains("creating model for project ':a'")
     }
@@ -261,6 +263,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         model3[1].message == "It works from project :b"
 
         and:
+        // TODO - should not invalidate all cached state
         fixture.assertStateRecreated {
             gradlePropertyChanged()
             buildModelQueries = 1 // TODO:configuration-cache ???
@@ -291,11 +294,12 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         model5[1].message == "It works from project :b"
 
         and:
-        fixture.assertStateRecreated {
+        fixture.assertStateUpdated {
             systemPropertyChanged("a-input")
             projectConfigured(":buildSrc")
             projectsConfigured(":")
             modelsCreated(":a")
+            modelsReused(":", ":b", ":c")
         }
 
         when:
@@ -320,11 +324,12 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         model7[1].message == "It works from project :b"
 
         and:
-        fixture.assertStateRecreated {
+        fixture.assertStateUpdated {
             systemPropertyChanged("b-input")
             projectConfigured(":buildSrc")
             projectsConfigured(":")
             modelsCreated(":b")
+            modelsReused(":", ":a", ":c")
         }
     }
 
@@ -388,10 +393,11 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         model3[1].message == "It works from project :a"
 
         and:
-        fixture.assertStateRecreated {
+        fixture.assertStateUpdated {
             fileChanged("build.gradle")
             projectConfigured(":buildSrc")
             modelsCreated(":")
+            modelsReused(":a", ":b")
         }
         outputContains("creating model for root project 'root'")
 
@@ -462,10 +468,11 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         model3.empty
 
         and:
-        fixture.assertStateRecreated {
+        fixture.assertStateUpdated {
             fileChanged("build.gradle")
             projectConfigured(":buildSrc")
             modelsCreated(":")
+            modelsReused(":a", ":b")
         }
         outputContains("creating model for root project 'root'")
 

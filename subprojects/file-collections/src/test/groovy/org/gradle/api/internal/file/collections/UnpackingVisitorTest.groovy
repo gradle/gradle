@@ -17,7 +17,6 @@
 package org.gradle.api.internal.file.collections
 
 import org.gradle.api.Task
-import org.gradle.api.artifacts.result.ResolvedArtifactResult
 import org.gradle.api.file.DirectoryTree
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.FileCollectionInternal
@@ -210,17 +209,6 @@ class UnpackingVisitorTest extends Specification {
 
         then:
         1 * context.accept({ it instanceof ProviderBackedFileCollection })
-        0 * context._
-    }
-
-    def "resolves ResolvedArtifactResult"() {
-        def result = Mock(ResolvedArtifactResult)
-
-        when:
-        visitor.add(result)
-
-        then:
-        1 * context.accept({it instanceof FileCollection})
         0 * context._
     }
 

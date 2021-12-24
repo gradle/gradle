@@ -338,7 +338,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
             if (RuleVisitor.SOURCE_DESC_TOKEN.equals(name)) {
                 return scriptSource.getDisplayName();
             }
-            return name.replaceAll(RemappingScriptSource.MAPPED_SCRIPT, scriptSource.getClassName());
+            return name.replace(RemappingScriptSource.MAPPED_SCRIPT, scriptSource.getClassName());
         }
 
         private Object remap(Object o) {

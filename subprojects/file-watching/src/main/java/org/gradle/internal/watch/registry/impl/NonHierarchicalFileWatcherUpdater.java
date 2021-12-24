@@ -35,6 +35,7 @@ import org.gradle.internal.watch.registry.FileWatcherProbeRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
 import java.util.HashMap;
@@ -49,13 +50,15 @@ public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdate
     private final FileWatcher fileWatcher;
     private final Multiset<String> watchedDirectories = HashMultiset.create();
     private final Map<String, String> watchedDirectoryForSnapshot = new HashMap<>();
+    private final Set<String> watchedWatchableHierarchies = new HashSet<>();
 
     public NonHierarchicalFileWatcherUpdater(
         FileWatcher fileWatcher,
         FileWatcherProbeRegistry probeRegistry,
-        WatchableHierarchies watchableHierarchies
+        WatchableHierarchies watchableHierarchies,
+        MovedDirectoryHandler movedDirectoryHandler
     ) {
-        super(probeRegistry, watchableHierarchies);
+        super(probeRegistry, watchableHierarchies, movedDirectoryHandler);
         this.fileWatcher = fileWatcher;
     }
 
@@ -90,13 +93,19 @@ public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdate
     }
 
     @Override
-    protected SnapshotHierarchy doUpdateVfsOnBuildStarted(SnapshotHierarchy root) {
-        return root;
-    }
-
-    @Override
-    protected void updateWatchesOnChangedWatchedFiles(FileHierarchySet watchedFiles) {
-        // The changes already happened in `handleVirtualFileSystemContentsChanged`.
+    protected void updateWatchesOnChangedWatchedFiles(FileHierarchySet newWatchedFiles) {
+        // Most of the changes already happened in `handleVirtualFileSystemContentsChanged`.
+        // Here we only need to update watches for the roots of the hierarchies.
+        Map<String, Integer> changedWatchDirectories = new HashMap<>();
+        watchedWatchableHierarchies.forEach(absolutePath -> decrement(absolutePath, changedWatchDirectories));
+        watchedWatchableHierarchies.clear();
+        newWatchedFiles.visitRoots(absolutePath -> {
+            watchedWatchableHierarchies.add(absolutePath);
+            increment(absolutePath, changedWatchDirectories);
+        });
+        if (!changedWatchDirectories.isEmpty()) {
+            updateWatchedDirectories(changedWatchDirectories);
+        }
     }
 
     @Override
@@ -158,11 +167,20 @@ public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdate
     }
 
     private static void decrement(String path, Map<String, Integer> changedWatchedDirectories) {
-        changedWatchedDirectories.compute(path, (key, value) -> value == null ? -1 : value - 1);
+        changedWatchedDirectories.compute(path, (key, value) -> zeroToNull(nullToZero(value) - 1));
     }
 
     private static void increment(String path, Map<String, Integer> changedWatchedDirectories) {
-        changedWatchedDirectories.compute(path, (key, value) -> value == null ? 1 : value + 1);
+        changedWatchedDirectories.compute(path, (key, value) -> zeroToNull(nullToZero(value) + 1));
+    }
+
+    @Nullable
+    private static Integer zeroToNull(int value) {
+        return value == 0 ? null : value;
+    }
+
+    private static int nullToZero(@Nullable Integer value) {
+        return value == null ? 0 : value;
     }
 
     private class SubdirectoriesToWatchVisitor extends RootTrackingFileSystemSnapshotHierarchyVisitor {

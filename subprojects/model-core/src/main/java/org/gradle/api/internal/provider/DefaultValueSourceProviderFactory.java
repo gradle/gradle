@@ -36,6 +36,7 @@ import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceLookup;
+import org.gradle.process.ExecOperations;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
@@ -45,6 +46,7 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
     private final InstantiatorFactory instantiatorFactory;
     private final IsolatableFactory isolatableFactory;
     private final GradleProperties gradleProperties;
+    private final ExecOperations execOperations;
     private final AnonymousListenerBroadcast<Listener> broadcaster;
     private final IsolationScheme<ValueSource, ValueSourceParameters> isolationScheme = new IsolationScheme<>(ValueSource.class, ValueSourceParameters.class, ValueSourceParameters.None.class);
     private final InstanceGenerator paramsInstantiator;
@@ -55,12 +57,14 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         InstantiatorFactory instantiatorFactory,
         IsolatableFactory isolatableFactory,
         GradleProperties gradleProperties,
+        ExecOperations execOperations,
         ServiceLookup services
     ) {
         this.broadcaster = listenerManager.createAnonymousBroadcaster(ValueSourceProviderFactory.Listener.class);
         this.instantiatorFactory = instantiatorFactory;
         this.isolatableFactory = isolatableFactory;
         this.gradleProperties = gradleProperties;
+        this.execOperations = execOperations;
         // TODO - dedupe logic copied from DefaultBuildServicesRegistry
         this.paramsInstantiator = instantiatorFactory.decorateScheme().withServices(services).instantiator();
         this.specInstantiator = instantiatorFactory.decorateLenientScheme().withServices(services).instantiator();
@@ -115,6 +119,7 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
     ) {
         DefaultServiceRegistry services = new DefaultServiceRegistry();
         services.add(GradleProperties.class, gradleProperties);
+        services.add(ExecOperations.class, execOperations);
         if (isolatedParameters != null) {
             services.add(parametersType, isolatedParameters);
         }

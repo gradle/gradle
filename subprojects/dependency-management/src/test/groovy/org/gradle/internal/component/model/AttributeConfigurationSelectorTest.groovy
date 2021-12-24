@@ -41,7 +41,7 @@ import spock.lang.Specification
 import static org.gradle.util.AttributeTestUtil.attributes
 
 class AttributeConfigurationSelectorTest extends Specification {
-    private final AttributesSchemaInternal attributesSchema = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory(), SnapshotTestUtil.valueSnapshotter())
+    private final AttributesSchemaInternal attributesSchema = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
 
     private ComponentResolveMetadata targetComponent
     private ConfigurationMetadata selected

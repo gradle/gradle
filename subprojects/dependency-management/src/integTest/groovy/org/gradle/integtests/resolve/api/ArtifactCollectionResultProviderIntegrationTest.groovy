@@ -51,11 +51,17 @@ class ArtifactCollectionResultProviderIntegrationTest extends AbstractHttpDepend
                 @InputFiles
                 abstract ConfigurableFileCollection getArtifactFiles()
 
-                @InputFiles
+                @Internal
                 abstract SetProperty<ResolvedArtifactResult> getResolvedArtifacts()
 
                 @OutputFile
                 abstract RegularFileProperty getOutputFile()
+
+                @TaskAction
+                void action() {
+                    println(artifactFiles.files)
+                    println(resolvedArtifacts.get())
+                }
             }
         """
     }
@@ -83,6 +89,15 @@ class ArtifactCollectionResultProviderIntegrationTest extends AbstractHttpDepend
                     assert result.id.componentIdentifier.module == 'external-lib'
                     assert result.id.componentIdentifier.version == '1.0'
                     assert result.id.fileName == 'external-lib-1.0.jar'
+
+                    assert result.variant instanceof org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult
+                    assert result.variant.owner == result.id.componentIdentifier
+                    assert result.variant.attributes.getAttribute(org.gradle.api.artifacts.type.ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE) == 'jar'
+                    assert result.variant.attributes.getAttribute(org.gradle.api.internal.project.ProjectInternal.STATUS_ATTRIBUTE) == 'release'
+                    assert result.variant.capabilities.size() == 1
+                    assert result.variant.capabilities[0].group == 'org.external'
+                    assert result.variant.capabilities[0].name == 'external-lib'
+                    assert result.variant.capabilities[0].version == '1.0'
 
                     // Check project artifact
                     idx = artifactFiles.findIndexOf { it.name == 'project-lib.jar' }
@@ -121,9 +136,6 @@ class ArtifactCollectionResultProviderIntegrationTest extends AbstractHttpDepend
                 artifactFiles.from(configurations.compile.incoming.artifacts.artifactFiles)
                 resolvedArtifacts.set(configurations.compile.incoming.artifacts.resolvedArtifacts)
                 outputFile.set(layout.buildDirectory.file('output.txt'))
-                doLast {
-                    assert resolvedArtifacts.get().size == 3
-                }
             }
         """
 
@@ -140,49 +152,5 @@ class ArtifactCollectionResultProviderIntegrationTest extends AbstractHttpDepend
             failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
         }
         failure.assertHasCause("Could not find org:does-not-exist:1.0.")
-    }
-
-
-    def "task is not up-to-date when #useCase changes"() {
-        given:
-        buildFile << """
-            task verify(type: TaskWithArtifactCollectionResultProviderInput) {
-                $taskConfiguration
-                outputFile.set(layout.buildDirectory.file('output.txt'))
-            }
-"""
-        def sourceFile = file("project-lib/src/main/java/Main.java")
-        sourceFile << """
-class Main {}
-"""
-        sourceFile.makeOlder()
-
-        when:
-        succeeds "verify"
-
-        then:
-        executedAndNotSkipped ":project-lib:jar", ":verify"
-
-        when:
-        succeeds "verify"
-
-        then:
-        skipped ":project-lib:jar", ":verify"
-
-        when:
-        sourceFile.text = """
-class Main {
-    public static void main(String[] args) {}
-}
-"""
-        succeeds "verify"
-
-        then:
-        executedAndNotSkipped ":project-lib:jar", ":verify"
-
-        where:
-        useCase           | taskConfiguration
-        'files input'     | 'artifactFiles.from(configurations.compile.incoming.artifacts.artifactFiles)\nresolvedArtifacts.empty()'
-        'artifacts input' | 'resolvedArtifacts.set(configurations.compile.incoming.artifacts.resolvedArtifacts)'
     }
 }

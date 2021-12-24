@@ -34,7 +34,6 @@ import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.management.DependencyResolutionManagementInternal
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.internal.service.scopes.ExceptionCollector
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -155,7 +154,6 @@ class DefaultProjectSpec extends Specification {
 
         _ * serviceRegistryFactory.createFor(_) >> serviceRegistry
         _ * serviceRegistry.get(TaskContainerInternal) >> Stub(TaskContainerInternal)
-        _ * serviceRegistry.get(ExceptionCollector) >> Stub(ExceptionCollector)
         _ * serviceRegistry.get(InstantiatorFactory) >> Stub(InstantiatorFactory)
         _ * serviceRegistry.get(AttributesSchema) >> Stub(AttributesSchema)
         _ * serviceRegistry.get(ModelRegistry) >> Stub(ModelRegistry)

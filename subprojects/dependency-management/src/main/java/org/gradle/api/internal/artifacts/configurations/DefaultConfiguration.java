@@ -26,7 +26,7 @@ import org.gradle.api.Describable;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Task;
+import org.gradle.api.Project;
 import org.gradle.api.artifacts.ArtifactCollection;
 import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
@@ -53,6 +53,7 @@ import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.attributes.Category;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.CompositeDomainObjectSet;
@@ -91,7 +92,8 @@ import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
-import org.gradle.api.internal.provider.AbstractProviderWithValue;
+import org.gradle.api.internal.provider.BuildableBackedSetProvider;
+import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.internal.tasks.FailureCollectingTaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Provider;
@@ -107,6 +109,7 @@ import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.component.external.model.ProjectDerivedCapability;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.internal.deprecation.DeprecationLogger;
@@ -141,6 +144,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -1076,6 +1080,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     @Override
+    public boolean isCanBeMutated() {
+        return canBeMutated;
+    }
+
+    @Override
     public void preventFromFurtherMutation() {
         // TODO This should use the same `MutationValidator` infrastructure that we use for other mutation types
         if (canBeMutated) {
@@ -1087,7 +1096,65 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             configurationAttributes = new ImmutableAttributeContainerWithErrorMessage(delegatee, this.displayName);
             outgoing.preventFromFurtherMutation();
             canBeMutated = false;
+
+            // We will only check unique attributes if this configuration is consumable, not resolvable, and has attributes itself
+            if (isCanBeConsumed() && !isCanBeResolved() && !getAttributes().isEmpty()) {
+                ensureUniqueAttributes();
+            }
         }
+    }
+
+    private void ensureUniqueAttributes() {
+        final Set<? extends ConfigurationInternal> all = (configurationsProvider != null) ? configurationsProvider.getAll() : null;
+        if (all != null) {
+            final Collection<? extends Capability> allCapabilities = allCapabilitiesIncludingDefault(this);
+
+            final Consumer<ConfigurationInternal> warnIfDuplicate = otherConfiguration -> {
+                if (hasSameCapabilitiesAs(allCapabilities, otherConfiguration) && hasSameAttributesAs(otherConfiguration)) {
+                    DeprecationLogger.deprecateBehaviour("Consumable configurations with identical capabilities within a project must have unique attributes, but " + getDisplayName() + " and " + otherConfiguration.getDisplayName() + " contain identical attribute sets.")
+                        .withAdvice("Consider adding an additional attribute to one of the configurations to disambiguate them.  Run the 'outgoingVariants' task for more details.")
+                        .willBecomeAnErrorInGradle8()
+                        .withUpgradeGuideSection(7, "unique_attribute_sets")
+                        .nagUser();
+                }
+            };
+
+            all.stream()
+                .filter(Configuration::isCanBeConsumed)
+                .filter(c -> !c.isCanBeResolved())
+                .filter(c -> !c.isCanBeMutated())
+                .filter(c -> c != this)
+                .filter(c -> !c.getAttributes().isEmpty())
+                .forEach(warnIfDuplicate);
+        }
+    }
+
+    private Collection<? extends Capability> allCapabilitiesIncludingDefault(Configuration conf) {
+        if (conf.getOutgoing().getCapabilities().isEmpty()) {
+            Project project = domainObjectContext.getProject();
+            if (project == null) {
+                throw new IllegalStateException("Project is null for configuration '" + conf.getName() + "'.");
+            }
+            return Collections.singleton(new ProjectDerivedCapability(project));
+        } else {
+            return conf.getOutgoing().getCapabilities();
+        }
+    }
+
+    private boolean hasSameCapabilitiesAs(final Collection<? extends Capability> allMyCapabilities, ConfigurationInternal other) {
+        final Collection<? extends Capability> allOtherCapabilities = allCapabilitiesIncludingDefault(other);
+        //noinspection SuspiciousMethodCalls
+        return allMyCapabilities.size() == allOtherCapabilities.size() && allMyCapabilities.containsAll(allOtherCapabilities);
+    }
+
+    private boolean hasSameAttributesAs(ConfigurationInternal other) {
+        return other.getAttributes().asMap().equals(getAttributes().asMap());
+    }
+
+    @Override
+    public boolean isIncubating() {
+        final Category category = getAttributes().getAttribute(Category.CATEGORY_ATTRIBUTE);
+        return category != null && category.getName().equals(Category.VERIFICATION);
     }
 
     @Override
@@ -1827,6 +1894,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             }
 
             @Override
+            public Provider<ResolvedComponentResult> getRootComponent() {
+                return new DefaultProvider<>(this::getRoot);
+            }
+
+            @Override
             public Set<? extends DependencyResult> getAllDependencies() {
                 resolve();
                 return delegate.getAllDependencies();
@@ -2008,7 +2080,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         @Override
         public Provider<Set<ResolvedArtifactResult>> getResolvedArtifacts() {
-            return new ResolvedArtifactsProvider(this);
+            return new BuildableBackedSetProvider<>(getArtifactFiles(), new ArtifactCollectionResolvedArtifactsFactory(this));
         }
 
         @Override
@@ -2034,52 +2106,17 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
-    private static class ResolvedArtifactsProvider extends AbstractProviderWithValue<Set<ResolvedArtifactResult>> {
+    private static class ArtifactCollectionResolvedArtifactsFactory implements Factory<Set<ResolvedArtifactResult>> {
 
         private final ArtifactCollection artifactCollection;
 
-        public ResolvedArtifactsProvider(ArtifactCollection artifactCollection) {
+        private ArtifactCollectionResolvedArtifactsFactory(ArtifactCollection artifactCollection) {
             this.artifactCollection = artifactCollection;
         }
 
-        @Nullable
         @Override
-        public Class<Set<ResolvedArtifactResult>> getType() {
-            return Cast.uncheckedCast(Set.class);
-        }
-
-        @Override
-        public ValueProducer getProducer() {
-            return new ValueProducer() {
-                @Override
-                public boolean isProducesDifferentValueOverTime() {
-                    return false;
-                }
-
-                @Override
-                public void visitProducerTasks(Action<? super Task> visitor) {
-                    for (Task dependency : artifactCollection.getArtifactFiles().getBuildDependencies().getDependencies(null)) {
-                        visitor.execute(dependency);
-                    }
-                }
-            };
-        }
-
-        @Override
-        public ExecutionTimeValue<? extends Set<ResolvedArtifactResult>> calculateExecutionTimeValue() {
-            if (contentsAreBuiltByTask()) {
-                return ExecutionTimeValue.changingValue(this);
-            }
-            return ExecutionTimeValue.fixedValue(get());
-        }
-
-        private boolean contentsAreBuiltByTask() {
-            return !artifactCollection.getArtifactFiles().getBuildDependencies().getDependencies(null).isEmpty();
-        }
-
-        @Override
-        protected Value<? extends Set<ResolvedArtifactResult>> calculateOwnValue(ValueConsumer consumer) {
-            return Value.of(artifactCollection.getArtifacts());
+        public Set<ResolvedArtifactResult> create() {
+            return artifactCollection.getArtifacts();
         }
     }
 

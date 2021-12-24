@@ -22,7 +22,6 @@ import org.gradle.performance.annotations.Scenario
 import org.gradle.tooling.model.ExternalDependency
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.idea.IdeaProject
-import spock.lang.Ignore
 
 import static org.gradle.performance.annotations.ScenarioType.PER_COMMIT
 import static org.gradle.performance.generator.JavaTestProjectGenerator.LARGE_MONOLITHIC_JAVA_PROJECT
@@ -34,11 +33,10 @@ import static org.gradle.performance.results.OperatingSystem.LINUX
 class JavaIDEModelPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def setup() {
-        runner.targetVersions = ["7.4-20211118231651+0000"]
+        runner.targetVersions = ["7.4-20211214223504+0000"]
         runner.minimumBaseVersion = "2.11"
     }
 
-    @Ignore
     def "get IDE model for Eclipse"() {
         given:
         setupRunner()
@@ -91,7 +89,6 @@ class JavaIDEModelPerformanceTest extends AbstractCrossVersionPerformanceTest {
         result.assertCurrentVersionHasNotRegressed()
     }
 
-    @Ignore
     def "get IDE model for IDEA"() {
         given:
         setupRunner()

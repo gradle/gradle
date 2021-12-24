@@ -26,4 +26,6 @@ public interface ExportedTaskNode {
     TaskInternal getTask();
 
     IncludedBuildTaskResource.State getTaskState();
+
+    int getOrdinal();
 }

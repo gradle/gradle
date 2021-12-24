@@ -16,7 +16,6 @@
 
 package org.gradle.configurationcache
 
-import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
@@ -24,7 +23,6 @@ import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerFactory
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectStateRegistry
-import org.gradle.configurationcache.build.ConfigurationCacheIncludedBuildState
 import org.gradle.execution.plan.Node
 import org.gradle.groovy.scripts.TextResourceScriptSource
 import org.gradle.initialization.ClassLoaderScopeRegistry
@@ -32,10 +30,8 @@ import org.gradle.initialization.DefaultProjectDescriptor
 import org.gradle.initialization.DefaultSettings
 import org.gradle.initialization.layout.BuildLayout
 import org.gradle.internal.Factory
-import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.build.CompositeBuildParticipantBuildState
-import org.gradle.internal.build.IncludedBuildFactory
 import org.gradle.internal.build.IncludedBuildState
 import org.gradle.internal.file.PathToFileResolver
 import org.gradle.internal.reflect.Instantiator
@@ -75,7 +71,7 @@ class ConfigurationCacheHost internal constructor(
         private val fileResolver: PathToFileResolver,
         private val settingsFile: File?,
         private val rootProjectName: String
-    ) : ConfigurationCacheBuild, IncludedBuildFactory {
+    ) : ConfigurationCacheBuild {
 
         private
         val buildDirs = mutableMapOf<Path, File>()
@@ -139,26 +135,7 @@ class ConfigurationCacheHost internal constructor(
             state.projects.getProject(Path.path(path)).mutableModel
 
         override fun addIncludedBuild(buildDefinition: BuildDefinition): IncludedBuildState {
-            return service<BuildStateRegistry>().addIncludedBuildOf(this, buildDefinition)
-        }
-
-        override fun createBuild(
-            buildIdentifier: BuildIdentifier,
-            identityPath: Path,
-            buildDefinition: BuildDefinition,
-            isImplicit: Boolean,
-            owner: BuildState
-        ): IncludedBuildState = ConfigurationCacheIncludedBuildState(
-            buildIdentifier,
-            identityPath,
-            buildDefinition,
-            isImplicit,
-            owner,
-            service(),
-            service()
-        )
-
-        override fun prepareBuild(includedBuild: IncludedBuildState) {
+            return service<BuildStateRegistry>().addIncludedBuild(buildDefinition)
         }
 
         private

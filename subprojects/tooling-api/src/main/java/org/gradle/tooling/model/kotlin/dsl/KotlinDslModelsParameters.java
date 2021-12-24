@@ -17,8 +17,6 @@
 package org.gradle.tooling.model.kotlin.dsl;
 
 
-import org.gradle.internal.service.scopes.KotlinDslExceptionCollector;
-
 /**
  * Parameters for Kotlin DSL models.
  *
@@ -30,11 +28,11 @@ public final class KotlinDslModelsParameters {
 
     public static final String CORRELATION_ID_GRADLE_PROPERTY_NAME = "org.gradle.kotlin.dsl.provider.cid";
 
-    public static final String PROVIDER_MODE_SYSTEM_PROPERTY_NAME = KotlinDslExceptionCollector.PROVIDER_MODE_SYSTEM_PROPERTY_NAME;
+    public static final String PROVIDER_MODE_SYSTEM_PROPERTY_NAME = "org.gradle.kotlin.dsl.provider.mode";
 
-    public static final String CLASSPATH_MODE_SYSTEM_PROPERTY_VALUE = KotlinDslExceptionCollector.CLASSPATH_MODE_SYSTEM_PROPERTY_VALUE;
+    public static final String CLASSPATH_MODE_SYSTEM_PROPERTY_VALUE = "classpath";
 
-    public static final String STRICT_CLASSPATH_MODE_SYSTEM_PROPERTY_VALUE = KotlinDslExceptionCollector.STRICT_CLASSPATH_MODE_SYSTEM_PROPERTY_VALUE;
+    public static final String STRICT_CLASSPATH_MODE_SYSTEM_PROPERTY_VALUE = "strict-classpath";
 
     public static final String CLASSPATH_MODE_SYSTEM_PROPERTY_DECLARATION = "-D" + PROVIDER_MODE_SYSTEM_PROPERTY_NAME + "=" + CLASSPATH_MODE_SYSTEM_PROPERTY_VALUE;
 

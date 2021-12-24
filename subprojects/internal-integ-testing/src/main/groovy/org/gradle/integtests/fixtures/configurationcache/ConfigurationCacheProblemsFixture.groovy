@@ -416,7 +416,7 @@ final class ConfigurationCacheProblemsFixture {
     }
 
     private static ProblemsSummary extractSummary(String text) {
-        def headerPattern = Pattern.compile("(\\d+) (problems were|problem was) found (storing|reusing) the configuration cache(, (\\d+) of which seem(s)? unique)?.*")
+        def headerPattern = Pattern.compile("(\\d+) (problems were|problem was) found (storing|reusing|updating) the configuration cache(, (\\d+) of which seem(s)? unique)?.*")
         def problemPattern = Pattern.compile("- (.*)")
         def docPattern = Pattern.compile(" {2}\\QSee https://docs.gradle.org\\E.*")
         def tooManyProblemsPattern = Pattern.compile("plus (\\d+) more problems. Please see the report for details.")
@@ -603,7 +603,7 @@ class HasConfigurationCacheProblemsSpec {
 
     @PackageScope
     boolean hasProblems() {
-        return !uniqueProblems.isEmpty()
+        return !uniqueProblems.isEmpty() || totalProblemsCount > 0
     }
 
     HasConfigurationCacheProblemsSpec withUniqueProblems(String... uniqueProblems) {

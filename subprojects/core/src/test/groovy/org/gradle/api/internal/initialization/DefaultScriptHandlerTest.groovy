@@ -17,6 +17,8 @@ package org.gradle.api.internal.initialization
 
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
+import org.gradle.api.artifacts.DependencyConstraintSet
+import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.attributes.Bundling
@@ -35,6 +37,8 @@ import spock.lang.Specification
 class DefaultScriptHandlerTest extends Specification {
     def repositoryHandler = Mock(RepositoryHandler)
     def dependencyHandler = Mock(DependencyHandler)
+    def dependencyConstraintHandler = Mock(DependencyConstraintHandler)
+    def dependencyConstraintSet = Mock(DependencyConstraintSet)
     def configurationContainer = Mock(ConfigurationContainer)
     def configuration = Mock(Configuration)
     def scriptSource = Stub(ScriptSource)
@@ -57,11 +61,16 @@ class DefaultScriptHandlerTest extends Specification {
 
         then:
         1 * depMgmtServices.configurationContainer >> configurationContainer
+        1 * depMgmtServices.dependencyHandler >> dependencyHandler
         1 * configurationContainer.create('classpath') >> configuration
         1 * configuration.attributes >> attributes
         1 * attributes.attribute(Usage.USAGE_ATTRIBUTE, _ as Usage)
         1 * attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, _ as Bundling)
         1 * attributes.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, _)
+        1 * configuration.getDependencyConstraints() >> dependencyConstraintSet
+        1 * dependencyConstraintSet.add(_)
+        1 * dependencyHandler.getConstraints() >> dependencyConstraintHandler
+        1 * dependencyConstraintHandler.create(_, _)
         0 * configurationContainer._
         0 * depMgmtServices._
     }
@@ -73,12 +82,16 @@ class DefaultScriptHandlerTest extends Specification {
 
         then:
         1 * depMgmtServices.configurationContainer >> configurationContainer
+        1 * depMgmtServices.dependencyHandler >> dependencyHandler
         1 * configurationContainer.create('classpath') >> configuration
         1 * configuration.attributes >> attributes
         1 * attributes.attribute(Usage.USAGE_ATTRIBUTE, _ as Usage)
         1 * attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, _ as Bundling)
         1 * attributes.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, _)
-        1 * depMgmtServices.dependencyHandler >> dependencyHandler
+        1 * configuration.getDependencyConstraints() >> dependencyConstraintSet
+        1 * dependencyConstraintSet.add(_)
+        1 * dependencyHandler.getConstraints() >> dependencyConstraintHandler
+        1 * dependencyConstraintHandler.create(_, _)
         0 * configurationContainer._
         0 * depMgmtServices._
     }
@@ -107,11 +120,16 @@ class DefaultScriptHandlerTest extends Specification {
 
         and:
         1 * depMgmtServices.configurationContainer >> configurationContainer
+        1 * depMgmtServices.dependencyHandler >> dependencyHandler
         1 * configurationContainer.create('classpath') >> configuration
         1 * configuration.attributes >> attributes
         1 * attributes.attribute(Usage.USAGE_ATTRIBUTE, _ as Usage)
         1 * attributes.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, _)
         1 * attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, _ as Bundling)
+        1 * configuration.getDependencyConstraints() >> dependencyConstraintSet
+        1 * dependencyConstraintSet.add(_)
+        1 * dependencyHandler.getConstraints() >> dependencyConstraintHandler
+        1 * dependencyConstraintHandler.create(_, _)
         1 * classpathResolver.resolveClassPath(configuration) >> classpath
     }
 
@@ -151,6 +169,10 @@ class DefaultScriptHandlerTest extends Specification {
         1 * attributes.attribute(Usage.USAGE_ATTRIBUTE, _ as Usage)
         1 * attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, _ as Bundling)
         1 * attributes.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, _)
+        1 * configuration.getDependencyConstraints() >> dependencyConstraintSet
+        1 * dependencyConstraintSet.add(_)
+        1 * dependencyHandler.getConstraints() >> dependencyConstraintHandler
+        1 * dependencyConstraintHandler.create(_, _)
         1 * dependencyHandler.add('config', 'dep')
     }
 }

@@ -19,9 +19,10 @@ package org.gradle.api.plugins
 import org.gradle.api.internal.component.BuildableJavaComponent
 import org.gradle.api.internal.component.ComponentRegistry
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.InspectsOutgoingVariants
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
-class JavaPluginIntegrationTest extends AbstractIntegrationSpec {
+class JavaPluginIntegrationTest extends AbstractIntegrationSpec implements InspectsOutgoingVariants {
 
     def appliesBasePluginsAndAddsConventionObject() {
         given:
@@ -58,19 +59,24 @@ class JavaPluginIntegrationTest extends AbstractIntegrationSpec {
 
         outputContains("""
             --------------------------------------------------
-            Variant mainSourceElements
+            Variant mainSourceElements (i)
             --------------------------------------------------
+            Description = List of source directories contained in the Main SourceSet.
+
             Capabilities
                 - :${getTestDirectory().getName()}:unspecified (default capability)
             Attributes
-                - org.gradle.category = sources
-                - org.gradle.sources  = all-source-directories
-                - org.gradle.usage    = verification
+                - org.gradle.category            = verification
+                - org.gradle.dependency.bundling = external
+                - org.gradle.verificationtype    = main-sources
 
             Artifacts
                 - src${File.separator}main${File.separator}java (artifactType = directory)
                 - src${File.separator}main${File.separator}resources (artifactType = directory)
             """.stripIndent())
+
+        and:
+        hasIncubatingVariantsLegend()
     }
 
     @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
@@ -89,20 +95,25 @@ class JavaPluginIntegrationTest extends AbstractIntegrationSpec {
 
         outputContains("""
             --------------------------------------------------
-            Variant mainSourceElements
+            Variant mainSourceElements (i)
             --------------------------------------------------
+            Description = List of source directories contained in the Main SourceSet.
+
             Capabilities
                 - :${getTestDirectory().getName()}:unspecified (default capability)
             Attributes
-                - org.gradle.category = sources
-                - org.gradle.sources  = all-source-directories
-                - org.gradle.usage    = verification
+                - org.gradle.category            = verification
+                - org.gradle.dependency.bundling = external
+                - org.gradle.verificationtype    = main-sources
 
             Artifacts
                 - src${File.separator}main${File.separator}java (artifactType = directory)
                 - src${File.separator}more${File.separator}java (artifactType = directory)
                 - src${File.separator}main${File.separator}resources (artifactType = directory)
             """.stripIndent())
+
+        and:
+        hasIncubatingVariantsLegend()
     }
 
     def "mainSourceElements can be consumed by another task via Dependency Management"() {
@@ -117,9 +128,8 @@ class JavaPluginIntegrationTest extends AbstractIntegrationSpec {
                 canBeResolved = true
                 canBeConsumed = false
                 attributes {
-                    attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.VERIFICATION))
-                    attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.SOURCES))
-                    attribute(Sources.SOURCES_ATTRIBUTE, objects.named(Sources, Sources.ALL_SOURCE_DIRS))
+                    attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.VERIFICATION))
+                    attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objects.named(VerificationType.class, VerificationType.MAIN_SOURCES))
                 }
             }
 
@@ -207,9 +217,8 @@ class JavaPluginIntegrationTest extends AbstractIntegrationSpec {
                 canBeConsumed = false
                 extendsFrom(configurations.implementation)
                 attributes {
-                    attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.VERIFICATION))
-                    attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.SOURCES))
-                    attribute(Sources.SOURCES_ATTRIBUTE, objects.named(Sources, Sources.ALL_SOURCE_DIRS))
+                    attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.VERIFICATION))
+                    attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objects.named(VerificationType, VerificationType.MAIN_SOURCES))
                 }
             }
 

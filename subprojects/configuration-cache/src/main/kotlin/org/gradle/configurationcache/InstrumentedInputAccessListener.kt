@@ -16,11 +16,13 @@
 
 package org.gradle.configurationcache
 
+import org.gradle.configurationcache.initialization.ConfigurationCacheProblemsListener
 import org.gradle.configurationcache.serialization.Workarounds
 import org.gradle.internal.classpath.Instrumented
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
+import java.io.File
 
 
 private
@@ -60,11 +62,15 @@ val allowedProperties = setOf(
 
 @ServiceScope(Scopes.BuildTree::class)
 class InstrumentedInputAccessListener(
-    listenerManager: ListenerManager
+    listenerManager: ListenerManager,
+    configurationCacheProblemsListener: ConfigurationCacheProblemsListener,
 ) : Instrumented.Listener {
 
     private
     val broadcast = listenerManager.getBroadcaster(UndeclaredBuildInputListener::class.java)
+
+    private
+    val externalProcessListener = configurationCacheProblemsListener
 
     override fun systemPropertyQueried(key: String, value: Any?, consumer: String) {
         if (allowedProperties.contains(key) || Workarounds.canReadSystemProperty(consumer)) {
@@ -78,5 +84,19 @@ class InstrumentedInputAccessListener(
             return
         }
         broadcast.envVariableRead(key, value, consumer)
+    }
+
+    override fun externalProcessStarted(command: String, consumer: String) {
+        if (Workarounds.canStartExternalProcesses(consumer)) {
+            return
+        }
+        externalProcessListener.onExternalProcessStarted(command, consumer)
+    }
+
+    override fun fileOpened(file: File, consumer: String) {
+        if (Workarounds.canReadFiles(consumer)) {
+            return
+        }
+        broadcast.fileOpened(file, consumer)
     }
 }
