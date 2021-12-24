@@ -634,7 +634,7 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Adding a task provider directly to the task container is not supported.")
     }
 
-    def "can override task name, description and group"() {
+    def "can override task name, description and group without @Internal annotation"() {
         buildFile << """
             class CustomTask extends DefaultTask {
                 @Override
