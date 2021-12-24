@@ -175,6 +175,13 @@ This will become an error in a future Gradle version.
 
 Check the <<build_services.adoc#using_a_build_service_from_a_task, Shared Build Services documentation>> for more information.
 
+[[version_catalog_deprecations]]
+==== VersionCatalog and VersionCatalogBuilder deprecations
+
+Some methods in link:{javadocPath}/org/gradle/api/artifacts/VersionCatalog.html[VersionCatalog] and link:{javadocPath}/org/gradle/api/initialization/dsl/VersionCatalogBuilder.html[VersionCatalogBuilder] are now deprecated and scheduled for removal in Gradle 8.0. Specific replacements can be found in the JavaDoc of the affected methods.
+
+These methods were changed to improve the consistency between the `libs.versions.toml` file and the API classes.
+
 [[changes_7.3]]
 == Upgrading from 7.2 and earlier
 
