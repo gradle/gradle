@@ -24,7 +24,6 @@ import org.gradle.api.artifacts.transform.CacheableTransform;
 import org.gradle.api.artifacts.transform.InputArtifact;
 import org.gradle.api.artifacts.transform.InputArtifactDependencies;
 import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.DefaultDomainObjectCollection;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.DefaultNamedDomainObjectCollection;
@@ -159,7 +158,6 @@ public class ExecutionGlobalServices {
             ImmutableSet.of(
                 ClosureBackedAction.class,
                 ConfigureUtil.WrappedConfigureAction.class,
-                ConventionTask.class,
                 Describable.class,
                 DefaultDomainObjectCollection.class,
                 DefaultDomainObjectSet.class,
