@@ -338,5 +338,4 @@ public abstract class DelegatingCopySpecInternal implements CopySpecInternal {
     public CopySpecInternal preserve(Action<? super PatternFilterable> action) {
         return getDelegateCopySpec().preserve(action);
     }
-
 }
