@@ -39,16 +39,16 @@ public class SkipOnlyIfTaskExecuter implements TaskExecuter {
 
     @Override
     public TaskExecuterResult execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
-        boolean skip;
+        SelfDescribingSpec<? super TaskInternal> unsatisfiedSpec;
         try {
-            skip = !task.getOnlyIf().isSatisfiedBy(task);
+            unsatisfiedSpec = task.getOnlyIf().findUnsatisfiedSpec(task);
         } catch (Throwable t) {
             state.setOutcome(new GradleException(String.format("Could not evaluate onlyIf predicate for %s.", task), t));
             return TaskExecuterResult.WITHOUT_OUTPUTS;
         }
 
-        if (skip) {
-            LOGGER.info("Skipping {} as task onlyIf is false.", task);
+        if (unsatisfiedSpec != null) {
+            LOGGER.info("Skipping {} as task onlyIf '{}' is false.", task, unsatisfiedSpec.getDisplayName());
             state.setOutcome(TaskExecutionOutcome.SKIPPED);
             return TaskExecuterResult.WITHOUT_OUTPUTS;
         }
