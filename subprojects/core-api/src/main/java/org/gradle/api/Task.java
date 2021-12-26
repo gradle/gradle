@@ -298,6 +298,28 @@ public interface Task extends Comparable<Task>, ExtensionAware {
     void onlyIf(Spec<? super Task> onlyIfSpec);
 
     /**
+     * <p>Execute the task only if the given spec is satisfied. The spec will be evaluated at task execution time, not
+     * during configuration. If the Spec is not satisfied, the task will be skipped.</p>
+     *
+     * <p>You may add multiple such predicates. The task is skipped if any of the predicates return false.</p>
+     *
+     * <p>Typical usage (from Java):</p>
+     * <pre>myTask.onlyIf("run only in production environment", new Spec&lt;Task&gt;() {
+     *    boolean isSatisfiedBy(Task task) {
+     *       return isProductionEnvironment();
+     *    }
+     * });
+     * </pre>
+     *
+     * @param onlyIfReason specifies the reason for a task to run, which is used for logging
+     * @param onlyIfSpec specifies if a task should be run
+     *
+     * @since 7.5
+     */
+    @Incubating
+    void onlyIf(String onlyIfReason, Spec<? super Task> onlyIfSpec);
+
+    /**
      * <p>Execute the task only if the given closure returns true.  The closure will be evaluated at task execution
      * time, not during configuration.  The closure will be passed a single parameter, this task. If the closure returns
      * false, the task will be skipped.</p>
@@ -317,6 +339,20 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      * @param onlyIfSpec specifies if a task should be run
      */
     void setOnlyIf(Spec<? super Task> onlyIfSpec);
+
+    /**
+     * <p>Execute the task only if the given spec is satisfied. The spec will be evaluated at task execution time, not
+     * during configuration. If the Spec is not satisfied, the task will be skipped.</p>
+     *
+     * <p>The given predicate replaces all such predicates for this task.</p>
+     *
+     * @param onlyIfReason specifies the reason for a task to run, which is used for logging
+     * @param onlyIfSpec specifies if a task should be run
+     *
+     * @since 7.5
+     */
+    @Incubating
+    void setOnlyIf(String onlyIfReason, Spec<? super Task> onlyIfSpec);
 
     /**
      * Returns the execution state of this task. This provides information about the execution of this task, such as
