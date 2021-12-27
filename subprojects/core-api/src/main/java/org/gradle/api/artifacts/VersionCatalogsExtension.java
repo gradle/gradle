@@ -26,7 +26,6 @@ import java.util.Set;
  *
  * @since 7.0
  */
-@Incubating
 public interface VersionCatalogsExtension extends Iterable<VersionCatalog> {
 
     /**

@@ -24,6 +24,5 @@ import java.util.List;
  *
  * @since 6.8
  */
-@Incubating
 public interface ExternalModuleDependencyBundle extends List<MinimalExternalModuleDependency> {
 }

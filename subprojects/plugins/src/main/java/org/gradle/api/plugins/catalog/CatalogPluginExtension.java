@@ -25,7 +25,6 @@ import org.gradle.internal.HasInternalProtocol;
  *
  * @since 7.0
  */
-@Incubating
 @HasInternalProtocol
 public interface CatalogPluginExtension {
     /**

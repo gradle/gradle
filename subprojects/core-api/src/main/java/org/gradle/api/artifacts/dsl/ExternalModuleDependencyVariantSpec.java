@@ -24,7 +24,6 @@ import org.gradle.api.Incubating;
  *
  * @since 6.8
  */
-@Incubating
 public interface ExternalModuleDependencyVariantSpec {
     /**
      * Configures the dependency to select the "platform" variant.

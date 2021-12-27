@@ -30,7 +30,6 @@ import java.util.List;
  *
  * @since 7.0
  */
-@Incubating
 @HasInternalProtocol
 public interface VersionCatalogBuilder extends Named {
 
@@ -174,7 +173,6 @@ public interface VersionCatalogBuilder extends Named {
      *
      * @since 7.0
      */
-    @Incubating
     interface LibraryAliasBuilder {
         /**
          * Configures the version for this alias
@@ -207,7 +205,6 @@ public interface VersionCatalogBuilder extends Named {
      *
      * @since 7.2
      */
-    @Incubating
     interface PluginAliasBuilder {
         /**
          * Configures the version for this alias

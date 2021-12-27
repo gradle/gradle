@@ -15,7 +15,6 @@
  */
 package org.gradle.api.artifacts;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.provider.Provider;
@@ -32,7 +31,6 @@ import java.util.Optional;
  *
  * @since 7.0
  */
-@Incubating
 @NonNullApi
 public interface VersionCatalog extends Named {
     /**
