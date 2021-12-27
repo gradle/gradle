@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,27 +17,32 @@
 package org.gradle.api.internal.provider;
 
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.lazy.Lazy;
 
 import java.util.concurrent.Callable;
 
-public class DefaultProvider<T> extends AbstractMinimalProvider<T> implements TypeInferringProvider<T> {
-    private final Callable<? extends T> value;
+public class CachingProvider<T> extends AbstractMinimalProvider<T> implements TypeInferringProvider<T> {
+    private final Callable<? extends T> callable;
+    private final Lazy<? extends T> lazyValue;
 
-    public DefaultProvider(Callable<? extends T> value) {
-        this.value = value;
+    public CachingProvider(Callable<? extends T> callable) {
+        this.callable = callable;
+        this.lazyValue = Lazy.locking().of(() -> {
+            try {
+                return callable.call();
+            } catch (Exception e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+        });
     }
 
     @Override
     public Callable<? extends T> getCallable() {
-        return value;
+        return callable;
     }
 
     @Override
     protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
-        try {
-            return Value.ofNullable(value.call());
-        } catch (Exception e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
+        return Value.ofNullable(lazyValue.get());
     }
 }

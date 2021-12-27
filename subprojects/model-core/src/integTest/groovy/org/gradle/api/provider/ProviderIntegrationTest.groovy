@@ -34,7 +34,7 @@ class ProviderIntegrationTest extends AbstractIntegrationSpec {
             task myTask(type: MyTask)
 
             class MyTask extends DefaultTask {
-                Provider<String> text = project.provider { '$DEFAULT_TEXT' }
+                Provider<String> text = project.providers.$providerType { '$DEFAULT_TEXT' }
 
                 @Internal
                 String getText() {
@@ -60,12 +60,15 @@ class ProviderIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         buildFile << """
-            myTask.text = project.provider { '$CUSTOM_TEXT' }
+            myTask.text = providers.$providerType { '$CUSTOM_TEXT' }
         """
         succeeds('myTask')
 
         then:
         outputContains(CUSTOM_TEXT)
+
+        where:
+        providerType << ["provider", "cachingProvider"]
     }
 
     def "can inject and use provider factory via annotation"() {

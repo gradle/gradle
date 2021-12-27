@@ -58,6 +58,19 @@ public interface ProviderFactory {
     <T> Provider<T> provider(Callable<? extends T> value);
 
     /**
+     * Creates a caching {@link Provider} whose value is calculated using the given {@link Callable}.
+     *
+     * <p>The provider will call the {@link Callable} on the first query and will cache its value for subsequent queries. The {@link Callable} may return {@code null}, in which case the provider is considered to have no value.
+     *
+     * @param value The {@code java.util.concurrent.Callable} use to calculate the value.
+     * @return The provider. Never returns null.
+     *
+     * @since 7.5
+     */
+    @Incubating
+    <T> Provider<T> cachingProvider(Callable<? extends T> value);
+
+    /**
      * Creates a {@link Provider} whose value is fetched from the environment variable with the given name.
      *
      * @param variableName The name of the environment variable.

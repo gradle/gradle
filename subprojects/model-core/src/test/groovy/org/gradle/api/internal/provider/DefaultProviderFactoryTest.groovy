@@ -19,6 +19,7 @@ package org.gradle.api.internal.provider
 import org.gradle.api.Task
 import org.gradle.api.provider.Provider
 import org.gradle.testfixtures.ProjectBuilder
+import spock.lang.Shared
 import spock.lang.Specification
 
 import static org.gradle.api.internal.provider.ProviderTestUtil.withProducer
@@ -29,24 +30,34 @@ class DefaultProviderFactoryTest extends Specification implements ProviderAssert
     static final PROJECT = ProjectBuilder.builder().build()
     static final File TEST_FILE = PROJECT.file('someDir')
 
+    @Shared
     def providerFactory = new DefaultProviderFactory()
 
-    def "cannot create provider for null value"() {
+    def "cannot create #type provider for null value"() {
         when:
-        providerFactory.provider(null)
+        factory()
 
         then:
         def t = thrown(IllegalArgumentException)
         t.message == 'Value cannot be null'
+
+        where:
+        type      | factory
+        "default" | { providerFactory.provider(null) }
+        "caching" | { providerFactory.cachingProvider(null) }
     }
 
     def "can create provider for #type"() {
         when:
-        def provider = providerFactory.provider({ value })
+        def callable = { value }
+        def provider = providerFactory.provider(callable)
+        def cachingProvider = providerFactory.cachingProvider(callable)
 
         then:
         provider
         provider.get() == value
+        cachingProvider
+        cachingProvider.get() == value
 
         where:
         type      | value

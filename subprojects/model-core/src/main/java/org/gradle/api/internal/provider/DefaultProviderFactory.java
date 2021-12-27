@@ -77,6 +77,14 @@ public class DefaultProviderFactory implements ProviderFactory {
     }
 
     @Override
+    public <T> Provider<T> cachingProvider(Callable<? extends T> value) {
+        if (value == null) {
+            throw new IllegalArgumentException("Value cannot be null");
+        }
+        return new CachingProvider<>(value);
+    }
+
+    @Override
     public Provider<String> environmentVariable(String variableName) {
         return environmentVariable(Providers.of(variableName));
     }
