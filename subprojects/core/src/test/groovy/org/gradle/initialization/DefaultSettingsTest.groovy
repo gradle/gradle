@@ -35,6 +35,7 @@ import org.gradle.internal.management.DependencyResolutionManagementInternal
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.util.TestUtil
+import spock.lang.Issue
 import spock.lang.Specification
 
 class DefaultSettingsTest extends Specification {
@@ -109,6 +110,45 @@ class DefaultSettingsTest extends Specification {
 
         settings.project(":$projectB").getChildren().size() == 1
         testDescriptor(settings.project(":$projectB:$projectC"), projectC, new File(settingsDir, "$projectB/$projectC"))
+    }
+
+    @Issue("gradle/gradle#18414")
+    def 'normalizes include paths'() {
+        String projectA = "a"
+        String projectB = "b"
+        String projectC = "c"
+        String projectD = "d"
+
+        when:
+        settings.include("::$projectA")
+
+        then:
+        settings.rootProject.children.size() == 1
+        testDescriptor(settings.project(":$projectA"), projectA, new File(settingsDir, projectA))
+
+        when:
+        settings.include(":::$projectB")
+
+        then:
+        settings.rootProject.children.size() == 2
+        testDescriptor(settings.project(":$projectB"), projectB, new File(settingsDir, projectB))
+
+        when:
+        settings.include(":$projectC::$projectD ")
+
+        then:
+        settings.rootProject.children.size() == 3
+        def descriptorC = settings.project(":$projectC")
+        testDescriptor(descriptorC, projectC, new File(settingsDir, projectC))
+        descriptorC.getChildren().size() == 1
+        testDescriptor(settings.project(":$projectC:$projectD"), projectD, new File(settingsDir, "$projectC/$projectD"))
+
+        when:
+        settings.include(" : $projectD ")
+
+        then:
+        settings.rootProject.children.size() == 4
+        testDescriptor(settings.project(":$projectD"), projectD, new File(settingsDir, projectD))
     }
 
     def 'can include projects flat'() {

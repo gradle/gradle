@@ -53,7 +53,9 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public abstract class DefaultSettings extends AbstractPluginAware implements SettingsInternal {
     private ScriptSource settingsScript;
@@ -158,8 +160,11 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
     @Override
     public void include(Iterable<String> projectPaths) {
         for (String projectPath : projectPaths) {
+            List<String> pathElements = Arrays.stream(projectPath.split(":"))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.toList());
             String subPath = "";
-            String[] pathElements = removeTrailingColon(projectPath).split(":");
             DefaultProjectDescriptor parentProjectDescriptor = rootProjectDescriptor;
             for (String pathElement : pathElements) {
                 subPath = subPath + ":" + pathElement;
@@ -179,13 +184,6 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
             createProjectDescriptor(rootProjectDescriptor, projectName,
                 new File(rootProjectDescriptor.getProjectDir().getParentFile(), projectName));
         }
-    }
-
-    private String removeTrailingColon(String projectPath) {
-        if (projectPath.startsWith(":")) {
-            return projectPath.substring(1);
-        }
-        return projectPath;
     }
 
     @Override
