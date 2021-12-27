@@ -15,8 +15,6 @@
  */
 package org.gradle.api.artifacts;
 
-import org.gradle.api.Incubating;
-
 import java.util.List;
 
 /**

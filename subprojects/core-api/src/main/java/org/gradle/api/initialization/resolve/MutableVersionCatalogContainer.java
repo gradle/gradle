@@ -15,7 +15,6 @@
  */
 package org.gradle.api.initialization.resolve;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.initialization.dsl.VersionCatalogBuilder;
 

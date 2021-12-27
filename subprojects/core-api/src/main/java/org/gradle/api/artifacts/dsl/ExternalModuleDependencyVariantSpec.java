@@ -15,8 +15,6 @@
  */
 package org.gradle.api.artifacts.dsl;
 
-import org.gradle.api.Incubating;
-
 /**
  * The specification of a dependency variant. Some dependencies can be fined tuned
  * to select a particular variant. For example, one might want to select the test
