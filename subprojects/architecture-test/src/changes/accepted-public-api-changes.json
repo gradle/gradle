@@ -63,6 +63,22 @@
             "changes": [
                 "METHOD_ADDED_TO_PUBLIC_CLASS"
             ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.dsl.DependencyHandler",
+            "member": "Method org.gradle.api.artifacts.dsl.DependencyHandler.addProviderConvertible(java.lang.String,org.gradle.api.provider.ProviderConvertible,org.gradle.api.Action)",
+            "acceptation": "Stabilizing version catalogs",
+            "changes": [
+                "Method added to interface"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.dsl.DependencyHandler",
+            "member": "Method org.gradle.api.artifacts.dsl.DependencyHandler.addProviderConvertible(java.lang.String,org.gradle.api.provider.ProviderConvertible)",
+            "acceptation": "Stabilizing version catalogs",
+            "changes": [
+                "Method added to interface"
+            ]
         }
     ]
 }
