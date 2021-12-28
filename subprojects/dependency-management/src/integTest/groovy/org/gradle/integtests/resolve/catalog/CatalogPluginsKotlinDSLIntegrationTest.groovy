@@ -52,7 +52,7 @@ dependencyResolutionManagement {
         create("libs") {
             plugin("$alias", "com.acme.greeter").version("1.5")
         }
-        create("other") {
+        create("otherLibs") {
             plugin("$alias", "com.acme.greeter").version("1.5")
         }
     }
@@ -60,7 +60,7 @@ dependencyResolutionManagement {
         buildFile.renameTo(file('fixture.gradle'))
         buildKotlinFile << """
             plugins {
-                alias(other.plugins.${alias.replace('-', '.')})
+                alias(otherLibs.plugins.${alias.replace('-', '.')})
             }
 
             apply(from="fixture.gradle")

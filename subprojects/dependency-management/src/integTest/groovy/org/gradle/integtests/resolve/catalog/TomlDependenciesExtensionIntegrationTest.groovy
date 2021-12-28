@@ -566,14 +566,14 @@ my-lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
         def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.0").publish()
         settingsFile << """
             dependencyResolutionManagement {
-                defaultLibrariesExtensionName = 'libraries'
+                defaultLibrariesExtensionName = 'myLibs'
             }
         """
         buildFile << """
             apply plugin: 'java-library'
 
             dependencies {
-                implementation libraries.my.lib
+                implementation myLibs.my.lib
             }
         """
 
