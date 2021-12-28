@@ -114,7 +114,7 @@ public class AdoptOpenJdkRemoteBinary {
     }
 
     public String toFilename(JavaToolchainSpec spec) {
-        return String.format("adoptopenjdk-%s-%s-%s.%s", getLanguageVersion(spec).toString(), determineArch(), determineOs(), determineFileExtension());
+        return String.format("adoptopenjdk-%s-%s-%s-%s.%s", getLanguageVersion(spec), determineArch(), determineImplementation(spec), determineOs(), determineFileExtension());
     }
 
     private String determineFileExtension() {
