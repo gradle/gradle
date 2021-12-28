@@ -33,9 +33,9 @@ import org.gradle.internal.service.ServiceRegistry
 import org.gradle.launcher.bootstrap.CommandLineActionFactory
 import org.gradle.launcher.bootstrap.ExecutionListener
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.internal.RedirectStdOutAndErr
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.internal.DefaultGradleVersion
+import org.gradle.util.internal.RedirectStdOutAndErr
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -236,17 +236,66 @@ class DefaultCommandLineActionFactoryTest extends Specification {
         ].join(System.lineSeparator())
 
         when:
-        def action = factory.convert([option])
+        def action = factory.convert(options)
         action.execute(executionListener)
 
         then:
         outputs.stdOut.contains(expectedText)
 
         and:
+        1 * actionFactory1.configureCommandLineParser(!null) >> {CommandLineParser parser -> parser.option('some-option')}
+        0 * actionFactory1.createAction(_, _)
         1 * loggingManager.start()
         0 * executionListener._
 
         where:
-        option << ['-v', '--version']
+        options << [['-v', '--version'], ['', '--some-option']].combinations().collect { it.findAll() }
+    }
+
+    def "displays version message and continues build"() {
+        def version = DefaultGradleVersion.current()
+        def expectedText = [
+            "",
+            "------------------------------------------------------------",
+            "Gradle ${version.version}",
+            "------------------------------------------------------------",
+            "",
+            "Build time:   $version.buildTimestamp",
+            "Revision:     $version.gitRevision",
+            "",
+            "Kotlin:       ${KotlinDslVersion.current().kotlinVersion}",
+            "Groovy:       $GroovySystem.version",
+            "Ant:          $Main.antVersion",
+            "JVM:          ${Jvm.current()}",
+            "OS:           ${OperatingSystem.current()}",
+            ""
+        ].join(System.lineSeparator())
+
+        when:
+        def action = factory.convert(options)
+        action.execute(executionListener)
+
+        then:
+        outputs.stdOut.contains(expectedText)
+        outputs.stdOut.contains("action1")
+        !action1Intermediary || outputs.stdOut.contains("action2")
+
+        and:
+        1 * actionFactory1.createAction(!null, !null) >> {
+            def action1 = { println "action1" }
+            action1Intermediary ? action1 as ComposableAction : action1 as Runnable
+        }
+        action2Called * actionFactory2.createAction(!null, !null) >> {
+            { println "action2" } as Runnable
+        }
+        1 * loggingManager.start()
+        0 * executionListener._
+
+        where:
+        options            | action1Intermediary | action2Called
+        ['-V']             | false               | 0
+        ['--show-version'] | false               | 0
+        ['-V']             | true                | 1
+        ['--show-version'] | true                | 1
     }
 }
