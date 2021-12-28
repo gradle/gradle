@@ -311,10 +311,6 @@ class TestSuitesDependenciesIntegrationTest extends AbstractIntegrationSpec {
         }
         """
 
-        settingsFile << """
-        enableFeaturePreview('VERSION_CATALOGS')
-        """.stripIndent(8)
-
         versionCatalog = file('gradle', 'libs.versions.toml') << """
         [versions]
         guava = "30.1.1-jre"
@@ -365,10 +361,6 @@ class TestSuitesDependenciesIntegrationTest extends AbstractIntegrationSpec {
             }
         }
         """
-
-        settingsFile << """
-        enableFeaturePreview('VERSION_CATALOGS')
-        """.stripIndent(8)
 
         versionCatalog = file('gradle', 'libs.versions.toml') << """
         [versions]
@@ -425,10 +417,6 @@ class TestSuitesDependenciesIntegrationTest extends AbstractIntegrationSpec {
             }
         }
         """
-
-        settingsFile << """
-        enableFeaturePreview('VERSION_CATALOGS')
-        """.stripIndent(8)
 
         versionCatalog = file('gradle', 'libs.versions.toml') << """
         [versions]
@@ -490,8 +478,6 @@ class TestSuitesDependenciesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         settingsFile << """
-        enableFeaturePreview('VERSION_CATALOGS')
-
         dependencyResolutionManagement {
             versionCatalogs {
                 libs {
