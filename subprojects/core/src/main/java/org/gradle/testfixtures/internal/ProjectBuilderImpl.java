@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.BuildDefinition;
+import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
@@ -31,10 +32,12 @@ import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
+import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.initialization.DefaultBuildCancellationToken;
 import org.gradle.initialization.DefaultBuildRequestMetaData;
 import org.gradle.initialization.DefaultProjectDescriptor;
+import org.gradle.initialization.IGradlePropertiesLoader;
 import org.gradle.initialization.LegacyTypesSupport;
 import org.gradle.initialization.NoOpBuildEventConsumer;
 import org.gradle.initialization.ProjectDescriptorRegistry;
@@ -54,7 +57,9 @@ import org.gradle.internal.buildtree.RunTasksRequirements;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.composite.IncludedBuildInternal;
 import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.extensibility.ExtensibleDynamicObject;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
+import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
@@ -73,9 +78,11 @@ import org.gradle.util.Path;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 
+import static java.util.Collections.emptyMap;
 import static org.gradle.internal.concurrent.CompositeStoppable.stoppable;
 
 public class ProjectBuilderImpl {
@@ -157,6 +164,12 @@ public class ProjectBuilderImpl {
                 crossBuildSessionState
             )
         );
+
+        IGradlePropertiesLoader propertiesLoader = buildServices.get(IGradlePropertiesLoader.class);
+        GradleProperties gradleProperties = propertiesLoader.loadGradleProperties(projectDir);
+        Map<String, Object> properties = gradleProperties.mergeProperties(emptyMap());
+        DynamicObject dynamicObject = ((DynamicObjectAware) project).getAsDynamicObject();
+        ((ExtensibleDynamicObject) dynamicObject).addProperties(properties);
 
         return project;
     }

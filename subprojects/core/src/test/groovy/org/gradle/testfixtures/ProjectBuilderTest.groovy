@@ -25,6 +25,7 @@ import org.gradle.internal.featurelifecycle.UsageLocationReporter
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.internal.GUtil
 import org.gradle.util.internal.IncubationLogger
 import org.gradle.util.internal.Resources
 import org.junit.Rule
@@ -189,6 +190,28 @@ class ProjectBuilderTest extends Specification {
 
         cleanup:
         IncubationLogger.reset()
+    }
+
+    @Issue("gradle/gradle#15640")
+    def "can read gradle properties"() {
+        given:
+        def projectDir = temporaryFolder.testDirectory
+        createProperties(projectDir, ["projectDirProperty": "projectDirPropertyValue"])
+        def userHomeDir = new File(projectDir, "userHome")
+        userHomeDir.mkdir()
+        createProperties(userHomeDir, ["userHomeDirProperty": "userHomeDirPropertyValue"])
+
+        when:
+        def project = ProjectBuilder.builder().withProjectDir(projectDir).build()
+
+        then:
+        project.projectDirProperty == "projectDirPropertyValue"
+        project.userHomeDirProperty == "userHomeDirPropertyValue"
+    }
+
+    private void createProperties(File dir, Map<String, Object> properties) {
+        File propertiesFile = new File(dir, Project.GRADLE_PROPERTIES)
+        GUtil.saveProperties(new Properties(properties), propertiesFile)
     }
 }
 
