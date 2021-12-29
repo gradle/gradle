@@ -78,16 +78,16 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
 
         where:
         jdkVersion | operatingSystemName | architecture                    | implementation         | vendor                    | expectedFilename
-        11         | "Windows"           | SystemInfo.Architecture.amd64   | null                   | null                      | "adoptopenjdk-11-x64-hotspot-windows.zip"
-        12         | "Windows"           | SystemInfo.Architecture.i386    | JvmImplementation.J9   | JvmVendorSpec.IBM_SEMERU  | "adoptopenjdk-12-x32-openj9-windows.zip"
-        13         | "Windows"           | SystemInfo.Architecture.aarch64 | null                   | null                      | "adoptopenjdk-13-aarch64-hotspot-windows.zip"
-        11         | "Linux"             | SystemInfo.Architecture.amd64   | null                   | null                      | "adoptopenjdk-11-x64-hotspot-linux.tar.gz"
-        12         | "Linux"             | SystemInfo.Architecture.i386    | null                   | null                      | "adoptopenjdk-12-x32-hotspot-linux.tar.gz"
-        13         | "Linux"             | SystemInfo.Architecture.aarch64 | JvmImplementation.J9   | null                      | "adoptopenjdk-13-aarch64-openj9-linux.tar.gz"
-        11         | "Mac OS X"          | SystemInfo.Architecture.amd64   | null                   | JvmVendorSpec.IBM_SEMERU  | "adoptopenjdk-11-x64-openj9-mac.tar.gz"
-        12         | "Darwin"            | SystemInfo.Architecture.i386    | null                   | null                      | "adoptopenjdk-12-x32-hotspot-mac.tar.gz"
-        13         | "OSX"               | SystemInfo.Architecture.aarch64 | null                   | null                      | "adoptopenjdk-13-aarch64-hotspot-mac.tar.gz"
-        13         | "Solaris"           | SystemInfo.Architecture.i386    | null                   | null                      | "adoptopenjdk-13-x32-hotspot-solaris.tar.gz"
+        11         | "Windows"           | SystemInfo.Architecture.amd64   | null                   | null                      | "adoptium-11-x64-hotspot-windows.zip"
+        12         | "Windows"           | SystemInfo.Architecture.i386    | JvmImplementation.J9   | JvmVendorSpec.IBM_SEMERU  | "ibm_semeru-12-x32-openj9-windows.zip"
+        13         | "Windows"           | SystemInfo.Architecture.aarch64 | null                   | null                      | "adoptium-13-aarch64-hotspot-windows.zip"
+        11         | "Linux"             | SystemInfo.Architecture.amd64   | null                   | JvmVendorSpec.ADOPTIUM    | "adoptium-11-x64-hotspot-linux.tar.gz"
+        12         | "Linux"             | SystemInfo.Architecture.i386    | null                   | null                      | "adoptium-12-x32-hotspot-linux.tar.gz"
+        13         | "Linux"             | SystemInfo.Architecture.aarch64 | JvmImplementation.J9   | null                      | "adoptium-13-aarch64-openj9-linux.tar.gz"
+        11         | "Mac OS X"          | SystemInfo.Architecture.amd64   | null                   | JvmVendorSpec.IBM_SEMERU  | "ibm_semeru-11-x64-openj9-mac.tar.gz"
+        12         | "Darwin"            | SystemInfo.Architecture.i386    | null                   | null                      | "adoptium-12-x32-hotspot-mac.tar.gz"
+        13         | "OSX"               | SystemInfo.Architecture.aarch64 | null                   | null                      | "adoptium-13-aarch64-hotspot-mac.tar.gz"
+        13         | "Solaris"           | SystemInfo.Architecture.i386    | null                   | JvmVendorSpec.APPLE       | "apple-13-x32-hotspot-solaris.tar.gz"
     }
 
     def "uses configured base uri #customBaseUrl if available"() {
