@@ -313,7 +313,7 @@ class ModuleResolveState implements CandidateModule {
         }
     }
 
-    void removeSelector(SelectorState selector) {
+    void removeSelector(SelectorState selector, ResolutionConflictTracker conflictTracker) {
         selectors.remove(selector);
         boolean alreadyReused = selector.markForReuse();
         mergedConstraintAttributes = ImmutableAttributes.EMPTY;
@@ -321,7 +321,7 @@ class ModuleResolveState implements CandidateModule {
             mergedConstraintAttributes = appendAttributes(mergedConstraintAttributes, selectorState);
         }
         if (!alreadyReused && selectors.size() != 0 && selected != null) {
-            maybeUpdateSelection();
+            maybeUpdateSelection(conflictTracker);
         }
     }
 
@@ -409,7 +409,7 @@ class ModuleResolveState implements CandidateModule {
         pendingDependencies.unregisterConstraintProvider(nodeState);
     }
 
-    public void maybeUpdateSelection() {
+    public void maybeUpdateSelection(ResolutionConflictTracker conflictTracker) {
         if (replaced) {
             // Never update selection for a replaced module
             return;
@@ -421,7 +421,10 @@ class ModuleResolveState implements CandidateModule {
         ComponentState newSelected = selectorStateResolver.selectBest(getId(), selectors);
         newSelected.setSelectors(selectors);
         if (selected == null) {
-            select(newSelected);
+            // In some cases we should ignore this because the selection happens to be a known conflict
+            if (!conflictTracker.hasKnownConflict(newSelected.getId())) {
+                select(newSelected);
+            }
         } else if (newSelected != selected) {
             if (++selectionChangedCounter > MAX_SELECTION_CHANGE) {
                 // Let's ignore modules that are changing selection way too much, by keeping the highest version
