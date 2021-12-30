@@ -47,8 +47,8 @@ class GroovyDocOptionsIntegrationTest extends MultiVersionIntegrationSpec {
             import groovy.transform.PackageScope
 
             class Thing {
-                @PackageScope void packageMethod(){}
                 private void privateMethod(){}
+                @PackageScope void packageMethod(){}
                 protected void protectedMethod(){}
                 public void publicMethod(){}
             }
@@ -90,7 +90,7 @@ class GroovyDocOptionsIntegrationTest extends MultiVersionIntegrationSpec {
         !(text =~ GROOVY_DOC_MAIN_PATTERN)
     }
 
-    def "package and protected scope are enabled by default"() {
+    def "public and protected scope are enabled by default"() {
         when:
         buildFile << "groovydoc {}"
         run "groovydoc"
