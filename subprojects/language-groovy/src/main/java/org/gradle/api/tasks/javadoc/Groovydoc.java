@@ -91,19 +91,19 @@ public class Groovydoc extends SourceTask {
 
     private Set<Link> links = new LinkedHashSet<Link>();
 
-    boolean includePrivate;
+    private boolean includePrivate;
 
-    boolean includeProtected;
+    private boolean includePackage;
 
-    boolean includePublic;
+    private boolean includeProtected;
 
-    boolean includePackage;
+    private boolean includePublic;
 
-    boolean includeAuthor;
+    private boolean includeAuthor;
 
-    boolean processScripts;
+    private boolean processScripts = true;
 
-    boolean includeMainForScripts;
+    private boolean includeMainForScripts = true;
 
     public Groovydoc() {
         getLogging().captureStandardOutput(LogLevel.INFO);
@@ -123,7 +123,7 @@ public class Groovydoc extends SourceTask {
             getWindowTitle(), getDocTitle(), getHeader(), getFooter(), getPathToOverview(), isIncludePrivate(),
             getLinks(), getGroovyClasspath(), getClasspath(),
             getTemporaryDir(), getServices().get(FileSystemOperations.class),
-            isIncludeProtected(), isIncludePublic(), isIncludePackage(),
+            isIncludePackage(), isIncludeProtected(), isIncludePublic(),
             isIncludeAuthor(), isProcessScripts(), isIncludeMainForScripts()
         );
     }
@@ -373,6 +373,21 @@ public class Groovydoc extends SourceTask {
     }
 
     /**
+     * Returns whether to include classes and members with package scope.
+     */
+    @Input
+    public boolean isIncludePackage() {
+        return includePackage;
+    }
+
+    /**
+     * Sets whether to include classes and members with package scope if set to true.
+     */
+    public void setIncludePackage(boolean includePackage) {
+        this.includePackage = includePackage;
+    }
+
+    /**
      * Returns whether to include classes and members with protected scope.
      */
     @Input
@@ -400,21 +415,6 @@ public class Groovydoc extends SourceTask {
      */
     public void setIncludePublic(boolean includePublic) {
         this.includePublic = includePublic;
-    }
-
-    /**
-     * Returns whether to include classes and members with package scope.
-     */
-    @Input
-    public boolean isIncludePackage() {
-        return includePackage;
-    }
-
-    /**
-     * Sets whether to include classes and members with package scope if set to true.
-     */
-    public void setIncludePackage(boolean includePackage) {
-        this.includePackage = includePackage;
     }
 
     /**

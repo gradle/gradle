@@ -59,9 +59,9 @@ public final class AntGroovydoc {
         String windowTitle, String docTitle, String header, String footer, String overview, boolean includePrivate,
         final Set<Groovydoc.Link> links, final Iterable<File> groovyClasspath, Iterable<File> classpath,
         File tmpDir, FileSystemOperations fsOperations,
-        boolean includeProtected, boolean includePublic, boolean includePackage,
+        boolean includePackage, boolean includeProtected, boolean includePublic,
         boolean includeAuthor, boolean processScripts, boolean includeMainForScripts
-        ) {
+    ) {
 
         fsOperations.delete(spec -> spec.delete(tmpDir));
         fsOperations.copy(spec -> spec.from(source).into(tmpDir));
@@ -81,10 +81,11 @@ public final class AntGroovydoc {
             args.put("noTimestamp", noTimestamp);
             args.put("noVersionStamp", noVersionStamp);
         }
-        args.put("private", includePrivate);
-        args.put("protected", includeProtected);
-        args.put("public", includePublic);
-        args.put("package", includePackage);
+        if (includePublic) args.put("public", true);
+        else if (includeProtected) args.put("protected", true);
+        else if (includePackage) args.put("package", true);
+        else if (includePrivate) args.put("private", true);
+
         args.put("author", includeAuthor);
         args.put("processScripts", processScripts);
         args.put("includeMainForScripts", includeMainForScripts);
