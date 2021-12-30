@@ -39,6 +39,8 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
                     }
                     println "All files:"
                     configurations.conf.each { println it.name }
+                    // Hit legacy API to trigger both result loading logic
+                    configurations.conf.resolvedConfiguration.firstLevelModuleDependencies
                 }
             }
         """
@@ -438,6 +440,16 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         publishedMavenModules 'a->b', 'm->n->o->p->q->a:2->b->c->from->to'
         expect:
         resolvedModules 'a:2', 'b', 'c', 'to', 'm', 'n', 'o', 'p', 'q'
+    }
+
+    @Issue("gradle/gradle#19026")
+    @ToBeFixedForConfigurationCache
+    def "handles replacement when target is a dependency of replaced"() {
+        declaredDependencies 'data', 'common'
+        declaredReplacements 'standalone->original'
+        publishedMavenModules 'data->standalone->original', 'common->a->original'
+        expect:
+        resolvedModules 'data', 'common', 'a', 'original'
     }
 
     @ToBeFixedForConfigurationCache
