@@ -16,8 +16,6 @@
 
 rootProject.name = "catalog"
 
-enableFeaturePreview("VERSION_CATALOGS")
-
 dependencyResolutionManagement {
     repositories {
         mavenCentral()
