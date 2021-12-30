@@ -257,8 +257,7 @@ class DependencyManagementBuildScopeServices {
                                                                                     DependencyMetaDataProvider dependencyMetaDataProvider,
                                                                                     ObjectFactory objects,
                                                                                     ProviderFactory providers,
-                                                                                    CollectionCallbackActionDecorator collectionCallbackActionDecorator,
-                                                                                    FeaturePreviews featurePreviews) {
+                                                                                    CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
         return instantiator.newInstance(DefaultDependencyResolutionManagement.class,
             context,
             dependencyManagementServices,
@@ -267,8 +266,7 @@ class DependencyManagementBuildScopeServices {
             dependencyMetaDataProvider,
             objects,
             providers,
-            collectionCallbackActionDecorator,
-            featurePreviews
+            collectionCallbackActionDecorator
         );
     }
 
@@ -590,7 +588,6 @@ class DependencyManagementBuildScopeServices {
                                                                 ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor,
                                                                 InstantiatorFactory instantiatorFactory,
                                                                 ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
-                                                                FeaturePreviews featurePreviews,
                                                                 CalculatedValueContainerFactory calculatedValueContainerFactory) {
         return new DefaultArtifactDependencyResolver(
             buildOperationExecutor,
@@ -607,7 +604,6 @@ class DependencyManagementBuildScopeServices {
             componentMetadataSupplierRuleExecutor,
             instantiatorFactory,
             componentSelectionDescriptorFactory,
-            featurePreviews,
             calculatedValueContainerFactory);
     }
 

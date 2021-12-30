@@ -88,25 +88,29 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
     private final Map<VersionConstraint, ResolvedVersionConstraint> resolvedVersionConstraints = Maps.newHashMap();
     private final AttributeDesugaring attributeDesugaring;
     private final List<? extends DependencyMetadata> generatedRootDependencies;
+    private final ResolutionConflictTracker conflictTracker;
 
-    public ResolveState(IdGenerator<Long> idGenerator,
-                        ComponentResolveResult rootResult,
-                        String rootConfigurationName,
-                        DependencyToComponentIdResolver idResolver,
-                        ComponentMetaDataResolver metaDataResolver,
-                        Spec<? super DependencyMetadata> edgeFilter,
-                        AttributesSchemaInternal attributesSchema,
-                        ModuleExclusions moduleExclusions,
-                        ComponentSelectorConverter componentSelectorConverter,
-                        ImmutableAttributesFactory attributesFactory,
-                        DependencySubstitutionApplicator dependencySubstitutionApplicator,
-                        VersionSelectorScheme versionSelectorScheme,
-                        Comparator<Version> versionComparator,
-                        VersionParser versionParser,
-                        ModuleConflictResolver<ComponentState> conflictResolver,
-                        int graphSize,
-                        ConflictResolution conflictResolution,
-                        List<? extends DependencyMetadata> generatedRootDependencies) {
+    public ResolveState(
+        IdGenerator<Long> idGenerator,
+        ComponentResolveResult rootResult,
+        String rootConfigurationName,
+        DependencyToComponentIdResolver idResolver,
+        ComponentMetaDataResolver metaDataResolver,
+        Spec<? super DependencyMetadata> edgeFilter,
+        AttributesSchemaInternal attributesSchema,
+        ModuleExclusions moduleExclusions,
+        ComponentSelectorConverter componentSelectorConverter,
+        ImmutableAttributesFactory attributesFactory,
+        DependencySubstitutionApplicator dependencySubstitutionApplicator,
+        VersionSelectorScheme versionSelectorScheme,
+        Comparator<Version> versionComparator,
+        VersionParser versionParser,
+        ModuleConflictResolver<ComponentState> conflictResolver,
+        int graphSize,
+        ConflictResolution conflictResolution,
+        List<? extends DependencyMetadata> generatedRootDependencies,
+        ResolutionConflictTracker conflictTracker
+    ) {
         this.idGenerator = idGenerator;
         this.idResolver = idResolver;
         this.metaDataResolver = metaDataResolver;
@@ -125,6 +129,7 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
         this.queue = new ArrayDeque<>(graphSize);
         this.conflictResolution = conflictResolution;
         this.generatedRootDependencies = generatedRootDependencies;
+        this.conflictTracker = conflictTracker;
         this.resolveOptimizations = new ResolveOptimizations();
         this.attributeDesugaring = new AttributeDesugaring(attributesFactory);
         // Create root module
@@ -138,6 +143,10 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
         this.replaceSelectionWithConflictResultAction = new ReplaceSelectionWithConflictResultAction(this);
         selectorStateResolver = new SelectorStateResolver<>(conflictResolver, this, rootVersion, resolveOptimizations, versionComparator);
         getModule(rootResult.getModuleVersionId().getModule()).setSelectorStateResolver(selectorStateResolver);
+    }
+
+    public ResolutionConflictTracker getConflictTracker() {
+        return conflictTracker;
     }
 
     public Collection<ModuleResolveState> getModules() {
