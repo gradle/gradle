@@ -22,7 +22,7 @@ import projects.DEFAULT_LINUX_FUNCTIONAL_TEST_BUCKET_SIZE
 enum class StageNames(override val stageName: String, override val description: String, override val uuid: String) : StageName {
     QUICK_FEEDBACK_LINUX_ONLY("Quick Feedback - Linux Only", "Run checks and functional tests (embedded executer, Linux)", "QuickFeedbackLinuxOnly"),
     QUICK_FEEDBACK("Quick Feedback", "Run checks and functional tests (embedded executer, Windows)", "QuickFeedback"),
-    READY_FOR_MERGE("Pull Request Feedback", "Run vairous functional tests against distribution", "PullRequestFeedback") {
+    READY_FOR_MERGE("Pull Request Feedback", "Run various functional tests", "PullRequestFeedback") {
         override val id: String = "ReadyforMerge"
     },
     READY_FOR_NIGHTLY("Ready for Nightly", "Rerun tests in different environments / 3rd party components", "ReadyforNightly"),
@@ -230,7 +230,7 @@ interface StageName {
     val stageName: String
     val description: String
     val uuid: String
-        get() = id
+        get() = "${VersionedSettingsBranch.fromDslContext().branchName.toCapitalized()}_$id"
     val id: String
         get() = stageName.replace(" ", "").replace("-", "")
 }
