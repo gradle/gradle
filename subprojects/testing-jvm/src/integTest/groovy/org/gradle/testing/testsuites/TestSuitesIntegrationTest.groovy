@@ -25,6 +25,7 @@ import org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
+import org.gradle.test.fixtures.dsl.GradleDsl
 import spock.lang.Issue
 
 class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
@@ -669,5 +670,94 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds("assertSameFrameworkInstance")
+    }
+
+    def "can add a dependency to a test suite using map notation in Groovy DSL"() {
+        given:
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+            ${mavenCentralRepository()}
+
+            testing {
+                suites {
+                    test {
+                        dependencies {
+                            implementation(group: 'org.apache.commons', name: 'commons-lang3', version: '3.12.0')
+                        }
+                    }
+                }
+            }
+
+            task checkConfiguration {
+                doLast {
+                    assert configurations.testRuntimeClasspath.files.size() == 1
+                    assert configurations.testRuntimeClasspath.files.any { it.name == "commons-lang3-3.12.0.jar" }
+                }
+            }
+        """
+
+        expect:
+        succeeds( "checkConfiguration")
+    }
+
+    def "can add a dependency to a test suite using map notation in Kotlin DSL"() {
+        given:
+        buildKotlinFile << """
+            plugins {
+                java
+            }
+            ${mavenCentralRepository(GradleDsl.KOTLIN)}
+
+            testing {
+                suites {
+                    val test by getting(JvmTestSuite::class) {
+                        dependencies {
+                            implementation(mapOf("group" to "org.apache.commons", "name" to "commons-lang3", "version" to "3.12.0"))
+                        }
+                    }
+                }
+            }
+
+            tasks.register("checkConfiguration") {
+                doLast {
+                    assert(configurations.testRuntimeClasspath.files.size == 1)
+                    assert(configurations.testRuntimeClasspath.files.any { it.name == "commons-lang3-3.12.0.jar" })
+                }
+            }
+        """
+
+        expect:
+        succeeds( "checkConfiguration")
+    }
+
+    def "can add testFixture dependency to a test suite"() {
+        given:
+        def consumerBuild = multiProjectBuild("consumer", ["util"])
+        consumerBuild.buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            testing {
+                suites {
+                    test {
+                        dependencies {
+                            implementation(testFixtures(project(':util')))
+                        }
+                    }
+                }
+            }
+        """
+
+        file("util/build.gradle") << """
+            plugins {
+                id 'java-test-fixtures'
+            }
+        """
+
+        expect:
+        succeeds( "build")
     }
 }
