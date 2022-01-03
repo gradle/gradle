@@ -43,7 +43,7 @@ object Workarounds {
 
     fun canStartExternalProcesses(from: String): Boolean =
         withWorkaroundsFor("processes") {
-            isEnterpriseConventionsPlugin(from)
+            isBuildScanPlugin(from) || isEnterpriseConventionsPlugin(from)
         }
 
     fun canReadFiles(from: String): Boolean =
