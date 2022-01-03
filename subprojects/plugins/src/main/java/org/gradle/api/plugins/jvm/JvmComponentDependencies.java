@@ -99,7 +99,7 @@ public interface JvmComponentDependencies {
      * Declares a dependency on the test fixtures of a component.
      * @param notation the coordinates of the component to use test fixtures for
      *
-     * @since 7.5
+     * @since 7.4
      */
     Dependency testFixtures(Object notation);
 
@@ -108,7 +108,7 @@ public interface JvmComponentDependencies {
      * the resulting dependency.
      * @param notation the coordinates of the component to use test fixtures for
      *
-     * @since 7.5
+     * @since 7.4
      */
     Dependency testFixtures(Object notation, Action<? super Dependency> configureAction);
 }

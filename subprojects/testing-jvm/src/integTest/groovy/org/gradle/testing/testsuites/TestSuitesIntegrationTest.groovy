@@ -731,33 +731,4 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         expect:
         succeeds( "checkConfiguration")
     }
-
-    def "can add testFixture dependency to a test suite"() {
-        given:
-        def consumerBuild = multiProjectBuild("consumer", ["util"])
-        consumerBuild.buildFile << """
-            plugins {
-                id 'java'
-            }
-
-            testing {
-                suites {
-                    test {
-                        dependencies {
-                            implementation(testFixtures(project(':util')))
-                        }
-                    }
-                }
-            }
-        """
-
-        file("util/build.gradle") << """
-            plugins {
-                id 'java-test-fixtures'
-            }
-        """
-
-        expect:
-        succeeds( "build")
-    }
 }
