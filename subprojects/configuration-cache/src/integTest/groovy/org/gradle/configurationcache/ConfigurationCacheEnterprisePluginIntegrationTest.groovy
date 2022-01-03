@@ -24,25 +24,43 @@ import spock.lang.Issue
 
 class ConfigurationCacheEnterprisePluginIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
-    def setup() {
-        settingsFile '''
-            pluginManagement {
-                includeBuild("ge-conventions")
-            }
-            plugins {
-                id("ge-conventions")
-            }
-        '''
+    @Issue("https://github.com/gradle/gradle/issues/19470")
+    def "cache is not invalidated upon change to enterprise keys file"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
 
-        buildFile '''
-            plugins { id("java") }
-        '''
+        and:
+        executer.requireOwnGradleUserHomeDir()
+
+        when:
+        // TODO:configuration-cache ensure the test is actually exercising the offending code path
+        configurationCacheRun 'help', '--scan', '-Dscan.dump'
+
+        then:
+        configurationCache.assertStateStored()
+
+        and:
+        postBuildOutputContains 'Build scan written to'
+
+        when:
+        configurationCacheRun 'help', '--scan', '-Dscan.dump'
+
+        and:
+        def keysFile = executer.gradleUserHomeDir.file('enterprise', 'keys.properties')
+        keysFile << '# a change'
+
+        then:
+        configurationCache.assertStateLoaded()
+
+        and:
+        postBuildOutputContains 'Build scan written to'
     }
 
     @NotYetImplemented
     @Issue("https://github.com/gradle/gradle/issues/19047")
     def "problem is reported for Kotlin lambda expression with enterprise plugin"() {
         given:
+        withGeConventionsBuild()
         createDir('ge-conventions') {
             file('src/main/kotlin/my/GeConventionsPlugin.kt') << """
                 package my
@@ -95,6 +113,7 @@ class ConfigurationCacheEnterprisePluginIntegrationTest extends AbstractConfigur
     @Issue("https://github.com/gradle/gradle/issues/19047")
     def "precompiled script plugin can use lambda expression with enterprise plugin"() {
         given:
+        withGeConventionsBuild()
         createDir('ge-conventions') {
             file('src/main/kotlin/ge-conventions.settings.gradle.kts') << '''
                 plugins {
@@ -131,6 +150,21 @@ class ConfigurationCacheEnterprisePluginIntegrationTest extends AbstractConfigur
         then:
         configurationCache.assertStateLoaded()
         postBuildOutputContains 'Build scan written to'
+    }
+
+    private def withGeConventionsBuild() {
+        settingsFile '''
+            pluginManagement {
+                includeBuild("ge-conventions")
+            }
+            plugins {
+                id("ge-conventions")
+            }
+        '''
+
+        buildFile '''
+            plugins { id("java") }
+        '''
     }
 
     static String getGeConventionsConfig() {
