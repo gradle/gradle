@@ -22,6 +22,8 @@ import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
+import org.gradle.api.artifacts.ModuleDependency;
+import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.catalog.DependencyBundleValueSource;
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory;
@@ -32,11 +34,15 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
 import org.gradle.api.provider.ValueSource;
 import org.gradle.internal.Cast;
+import org.gradle.internal.component.external.model.ImmutableCapability;
+import org.gradle.internal.component.external.model.ProjectTestFixtures;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static org.gradle.internal.component.external.model.TestFixturesSupport.TEST_FIXTURES_CAPABILITY_APPENDIX;
 
 public class DefaultJvmComponentDependencies implements JvmComponentDependencies {
     private final Configuration implementation;
@@ -88,6 +94,29 @@ public class DefaultJvmComponentDependencies implements JvmComponentDependencies
     @Override
     public void compileOnly(Object dependency, @Nullable Action<? super Dependency> configuration) {
         doAdd(compileOnly, dependency, configuration);
+    }
+
+    @Override
+    public Dependency testFixtures(Object notation) {
+        Dependency testFixturesDependency = create(notation, null);
+        if (testFixturesDependency instanceof ProjectDependency) {
+            ProjectDependency projectDependency = (ProjectDependency) testFixturesDependency;
+            projectDependency.capabilities(new ProjectTestFixtures(projectDependency.getDependencyProject()));
+        } else if (testFixturesDependency instanceof ModuleDependency) {
+            ModuleDependency moduleDependency = (ModuleDependency) testFixturesDependency;
+            moduleDependency.capabilities(capabilities -> capabilities.requireCapability(new ImmutableCapability(
+                moduleDependency.getGroup(),
+                moduleDependency.getName() + TEST_FIXTURES_CAPABILITY_APPENDIX,
+                null)));
+        }
+        return testFixturesDependency;
+    }
+
+    @Override
+    public Dependency testFixtures(Object notation, Action<? super Dependency> configureAction) {
+        Dependency testFixturesDependency = testFixtures(notation);
+        configureAction.execute(testFixturesDependency);
+        return testFixturesDependency;
     }
 
     private void doAdd(Configuration bucket, Object dependency, @Nullable Action<? super Dependency> configuration) {

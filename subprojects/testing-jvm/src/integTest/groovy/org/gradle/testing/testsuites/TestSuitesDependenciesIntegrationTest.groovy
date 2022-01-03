@@ -17,7 +17,7 @@
 package org.gradle.testing.testsuites
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-
+import org.gradle.test.fixtures.dsl.GradleDsl
 
 
 class TestSuitesDependenciesIntegrationTest extends AbstractIntegrationSpec {
@@ -509,5 +509,175 @@ class TestSuitesDependenciesIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds 'checkConfiguration'
+    }
+
+    def "can add a dependency to a test suite using map notation in Groovy DSL"() {
+        given:
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing {
+                suites {
+                    test {
+                        dependencies {
+                            implementation(group: 'org.apache.commons', name: 'commons-lang3', version: '3.12.0')
+                        }
+                    }
+                }
+            }
+
+            task checkConfiguration {
+                doLast {
+                    assert configurations.testRuntimeClasspath.files.size() == 1
+                    assert configurations.testRuntimeClasspath.files.any { it.name == "commons-lang3-3.12.0.jar" }
+                }
+            }
+        """
+
+        expect:
+        succeeds( "checkConfiguration")
+    }
+
+    def "can add a dependency to a test suite using map notation in Kotlin DSL"() {
+        given:
+        buildKotlinFile << """
+            plugins {
+                java
+            }
+
+            ${mavenCentralRepository(GradleDsl.KOTLIN)}
+
+            testing {
+                suites {
+                    val test by getting(JvmTestSuite::class) {
+                        dependencies {
+                            implementation(mapOf("group" to "org.apache.commons", "name" to "commons-lang3", "version" to "3.12.0"))
+                        }
+                    }
+                }
+            }
+
+            tasks.register("checkConfiguration") {
+                doLast {
+                    assert(configurations.testRuntimeClasspath.files.size == 1)
+                    assert(configurations.testRuntimeClasspath.files.any { it.name == "commons-lang3-3.12.0.jar" })
+                }
+            }
+        """
+
+        expect:
+        succeeds( "checkConfiguration")
+    }
+
+    def "can add testFixture dependency to the default test suite"() {
+        given: "a multi-project build with a consumer project that depends on the fixtures in a util project"
+        multiProjectBuild("root", ["consumer", "util"])
+        file("consumer/build.gradle") << """
+            plugins {
+                id 'java-library'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing {
+                suites {
+                    test {
+                        useJUnitJupiter()
+                        dependencies {
+                            implementation(testFixtures(project(':util')))
+                        }
+                    }
+                }
+            }
+        """
+        file("util/build.gradle") << """
+            plugins {
+                id 'java-library'
+                id 'java-test-fixtures'
+            }
+        """
+
+        and: "containing a test which uses a fixture method"
+        file("consumer/src/test/java/org/test/MyTest.java") << """
+            package org.test;
+
+            import org.junit.jupiter.api.Assertions;
+            import org.junit.jupiter.api.Test;
+
+            public class MyTest {
+                @Test
+                public void testSomething() {
+                    Assertions.assertEquals(1, MyFixture.calculateSomething());
+                }
+            }
+        """
+        file("util/src/testFixtures/java/org/test/MyFixture.java") << """
+            package org.test;
+
+            public class MyFixture {
+                public static int calculateSomething() { return 1; }
+            }
+        """
+
+        expect: "that test runs successfully"
+        succeeds( ":consumer:test")
+    }
+
+    def "can add testFixture dependency to an new test suite"() {
+        given: "a multi-project build with a consumer project that depends on the fixtures in a util project for its integration tests"
+        multiProjectBuild("root", ["consumer", "util"])
+        file("consumer/build.gradle") << """
+            plugins {
+                id 'java-library'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing {
+                suites {
+                    integrationTest(JvmTestSuite) {
+                        useJUnitJupiter()
+                        dependencies {
+                            implementation(testFixtures(project(':util')))
+                        }
+                    }
+                }
+            }
+        """
+        file("util/build.gradle") << """
+            plugins {
+                id 'java-library'
+                id 'java-test-fixtures'
+            }
+        """
+
+        and: "containing a test which uses a fixture method"
+        file("consumer/src/integrationTest/java/org/test/MyTest.java") << """
+            package org.test;
+
+            import org.junit.jupiter.api.Assertions;
+            import org.junit.jupiter.api.Test;
+
+            public class MyTest {
+                @Test
+                public void testSomething() {
+                    Assertions.assertEquals(1, MyFixture.calculateSomething());
+                }
+            }
+        """
+        file("util/src/testFixtures/java/org/test/MyFixture.java") << """
+            package org.test;
+
+            public class MyFixture {
+                public static int calculateSomething() { return 1; }
+            }
+        """
+
+        expect: "that test runs successfully"
+        succeeds( ":consumer:integrationTest")
     }
 }
