@@ -52,8 +52,10 @@ object Workarounds {
         }
 
     private
-    fun isBuildScanPlugin(from: String): Boolean =
-        from.startsWith("com.gradle.scan.plugin.internal.")
+    fun isBuildScanPlugin(from: String): Boolean = from.run {
+        startsWith("com.gradle.scan.plugin.internal.")
+            || startsWith("com.gradle.enterprise.agent.")
+    }
 
     // TODO(https://github.com/gradle/gradle-org-conventions-plugin/issues/18) Remove the workaround when our conventions plugin is compatible.
     private
