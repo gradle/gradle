@@ -20,20 +20,19 @@ import org.gradle.BuildResult
 import org.gradle.StartParameter
 import org.gradle.api.GradleException
 import org.gradle.api.internal.GradleInternal
-import org.gradle.api.internal.SettingsInternal
-import org.gradle.api.internal.plugins.PluginManagerInternal
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.configuration.LoggingConfiguration
 import org.gradle.api.logging.configuration.ShowStacktrace
 import org.gradle.execution.MultipleBuildFailures
 import org.gradle.initialization.BuildClientMetaData
+import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.exceptions.FailureResolutionAware
 import org.gradle.internal.exceptions.LocationAwareException
 import org.gradle.internal.logging.DefaultLoggingConfiguration
 import org.gradle.internal.logging.text.StyledTextOutputFactory
 import org.gradle.internal.logging.text.TestStyledTextOutput
-import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin
+import org.gradle.internal.service.ServiceRegistry
 import spock.lang.Specification
 
 class BuildExceptionReporterTest extends Specification {
@@ -83,9 +82,9 @@ class BuildExceptionReporterTest extends Specification {
                 isBuildScan() >> true
                 isNoBuildScan() >> false
             }
-            getSettings() >> Mock(SettingsInternal) {
-                getPluginManager() >> Mock(PluginManagerInternal) {
-                    hasPlugin(AutoAppliedGradleEnterprisePlugin.ID.getId()) >> true
+            getServices() >> Mock(ServiceRegistry) {
+                get(GradleEnterprisePluginManager.class) >> Mock(GradleEnterprisePluginManager) {
+                    isPresent() >> true
                 }
             }
         }
@@ -115,9 +114,9 @@ class BuildExceptionReporterTest extends Specification {
                 isBuildScan() >> false
                 isNoBuildScan() >> true
             }
-            getSettings() >> Mock(SettingsInternal) {
-                getPluginManager() >> Mock(PluginManagerInternal) {
-                    hasPlugin(AutoAppliedGradleEnterprisePlugin.ID.getId()) >> true
+            getServices() >> Mock(ServiceRegistry) {
+                get(GradleEnterprisePluginManager.class) >> Mock(GradleEnterprisePluginManager) {
+                    isPresent() >> true
                 }
             }
         }
