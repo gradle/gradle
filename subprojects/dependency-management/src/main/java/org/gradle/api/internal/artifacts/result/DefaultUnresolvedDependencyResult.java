@@ -49,6 +49,30 @@ public class DefaultUnresolvedDependencyResult extends AbstractDependencyResult 
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof DefaultUnresolvedDependencyResult)) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+
+        DefaultUnresolvedDependencyResult that = (DefaultUnresolvedDependencyResult) o;
+
+        return reason != null ? reason.equals(that.reason) : that.reason == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + (reason != null ? reason.hashCode() : 0);
+        return result;
+    }
+
+    @Override
     public String toString() {
         return getRequested() + " -> " + getAttempted() + " - " + failure.getMessage();
     }
