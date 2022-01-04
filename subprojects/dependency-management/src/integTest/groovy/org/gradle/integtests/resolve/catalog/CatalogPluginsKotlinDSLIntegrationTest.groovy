@@ -50,17 +50,17 @@ class CatalogPluginsKotlinDSLIntegrationTest extends AbstractVersionCatalogInteg
 dependencyResolutionManagement {
     versionCatalogs {
         create("libs") {
-            alias("$alias").toPluginId("com.acme.greeter").version("1.5")
+            plugin("$alias", "com.acme.greeter").version("1.5")
         }
-        create("other") {
-            alias("$alias").toPluginId("com.acme.greeter").version("1.5")
+        create("otherLibs") {
+            plugin("$alias", "com.acme.greeter").version("1.5")
         }
     }
 }"""
         buildFile.renameTo(file('fixture.gradle'))
         buildKotlinFile << """
             plugins {
-                alias(other.plugins.${alias.replace('-', '.')})
+                alias(otherLibs.plugins.${alias.replace('-', '.')})
             }
 
             apply(from="fixture.gradle")
@@ -92,7 +92,7 @@ dependencyResolutionManagement {
 dependencyResolutionManagement {
     versionCatalogs {
         libs {
-            alias('greeter').toPluginId('com.acme.greeter').version('1.4')
+            plugin('greeter', 'com.acme.greeter').version('1.4')
         }
     }
 }"""
@@ -167,8 +167,8 @@ dependencyResolutionManagement {
 dependencyResolutionManagement {
     versionCatalogs {
         libs {
-            alias("greeter").toPluginId("$firstLevelPluginId").version("$pluginVersion")
-            alias("greeter-second").toPluginId("$secondLevelPluginId").version("$pluginVersion")
+            plugin("greeter", "$firstLevelPluginId").version("$pluginVersion")
+            plugin("greeter-second", "$secondLevelPluginId").version("$pluginVersion")
         }
     }
 }"""
@@ -207,8 +207,8 @@ dependencyResolutionManagement {
 dependencyResolutionManagement {
     versionCatalogs {
         libs {
-            alias('greeter').to('some', 'artifact').version('1.5')
-            alias('greeter-second').to('some', 'artifact2').version('1.5')
+            library('greeter', 'some', 'artifact').version('1.5')
+            library('greeter-second', 'some', 'artifact2').version('1.5')
         }
     }
 }"""

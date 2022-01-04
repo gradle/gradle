@@ -73,6 +73,26 @@ class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigu
         }
     }
 
+    def "discards cache entry when incompatible task scheduled but no problems generated"() {
+        addTasksWithoutProblems()
+
+        when:
+        configurationCacheRun("declared")
+
+        then:
+        result.assertTasksExecuted(":declared")
+        fixture.assertStateStoredAndDiscarded {
+        }
+
+        when:
+        configurationCacheRun("declared")
+
+        then:
+        result.assertTasksExecuted(":declared")
+        fixture.assertStateStoredAndDiscarded {
+        }
+    }
+
     def "can force storing cache entry by treating problems as warnings"() {
         addTasksWithProblems()
 
@@ -95,6 +115,35 @@ class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigu
             serializationProblem("Task `:declared` of type `Broken`: cannot deserialize object of type 'org.gradle.api.artifacts.ConfigurationContainer' as these are not supported with the configuration cache.")
             problem("Task `:declared` of type `Broken`: invocation of 'Task.project' at execution time is unsupported.")
         }
+    }
+
+    def "can force storing cache entry by treating problems as warnings when incompatible task is scheduled but has no problems"() {
+        addTasksWithoutProblems()
+
+        when:
+        configurationCacheRunLenient("declared")
+
+        then:
+        result.assertTasksExecuted(":declared")
+        fixture.assertStateStored {
+        }
+
+        when:
+        configurationCacheRun("declared")
+
+        then:
+        result.assertTasksExecuted(":declared")
+        fixture.assertStateLoaded()
+    }
+
+    private addTasksWithoutProblems() {
+        buildFile """
+            task declared {
+                notCompatibleWithConfigurationCache("not really")
+                doLast {
+                }
+            }
+        """
     }
 
     private addTasksWithProblems() {

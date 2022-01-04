@@ -19,6 +19,8 @@ package org.gradle.integtests.resolve
 import groovy.test.NotYetImplemented
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DefaultComponentSelectionDescriptor
 import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
@@ -26,12 +28,15 @@ import org.gradle.internal.Describables
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.ImmutableCapability
+import org.gradle.internal.component.local.model.DefaultLibraryComponentSelector
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
 
 class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
     def setup() {
+        server.start()
+
         settingsFile << """
             includeBuild 'composite-lib'
             rootProject.name = 'root'
@@ -54,8 +59,17 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
             group = 'composite-lib'
             ${variantDeclaration('compositeLibAttrValue')}
         """
-        mavenRepo.module("org.external", "external-lib").publish()
-        mavenRepo.module("org.external", "external-tool").publish()
+        def util = mavenHttpRepo.module("org.external", "external-util").publish().allowAll()
+        mavenHttpRepo.module("org.external", "external-lib")
+            .dependsOn(util)
+            .publish()
+            .allowAll()
+        mavenHttpRepo.module("org.external", "external-lib2")
+            .dependsOn(util)
+            .withModuleMetadata()
+            .publish()
+            .allowAll()
+        mavenHttpRepo.module("org.external", "external-tool").publish().allowAll()
         file('lib/file-lib.jar') << 'content'
         buildFile << """
             project(':project-lib') {
@@ -63,9 +77,10 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
                 ${variantDeclaration('projectLibAttrValue')}
             }
             apply plugin: 'java-library'
-            repositories { maven { url "${mavenRepo.uri}" } }
+            repositories { maven { url "${mavenHttpRepo.uri}" } }
             dependencies {
                 implementation 'org.external:external-lib:1.0'
+                implementation 'org.external:external-lib2:1.0'
                 implementation project('project-lib')
                 implementation files('lib/file-lib.jar')
                 implementation 'composite-lib:composite-lib'
@@ -134,6 +149,9 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
             import ${ImmutableAttributesFactory.name}
             import ${DefaultResolvedVariantResult.name}
             import ${Describables.name}
+            import ${DefaultComponentSelectionDescriptor.name}
+            import ${ComponentSelectionReasons.name}
+            import ${DefaultLibraryComponentSelector.name}
 
             abstract class TaskWithInput extends DefaultTask {
 
@@ -174,16 +192,21 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
         executedAndNotSkipped(":verify")
 
         where:
-        type                          | factory
+        type                           | factory
         // For ResolvedArtifactResult
-        "Attribute"                   | "Attribute.of(System.getProperty('n'), String)"
-        "AttributeContainer"          | "services.get(ImmutableAttributesFactory).of(Attribute.of('some', String.class), System.getProperty('n'))"
-        "Capability"                  | "new ImmutableCapability('group', System.getProperty('n'), '1.0')"
-        "ModuleComponentIdentifier"   | "new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId('group', System.getProperty('n')),'1.0')"
-        "ComponentArtifactIdentifier" | "new DefaultModuleComponentArtifactIdentifier(new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId('group', System.getProperty('n')),'1.0'), System.getProperty('n') + '-1.0.jar', 'jar', null)"
-        "ResolvedVariantResult"       | "new DefaultResolvedVariantResult(new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId('group', System.getProperty('n')), '1.0'), Describables.of('variantName'), services.get(ImmutableAttributesFactory).of(Attribute.of('some', String.class), System.getProperty('n')), [new ImmutableCapability('group', System.getProperty('n'), '1.0')], null)"
+        "Attribute"                    | "Attribute.of(System.getProperty('n'), String)"
+        "AttributeContainer"           | "services.get(ImmutableAttributesFactory).of(Attribute.of('some', String.class), System.getProperty('n'))"
+        "Capability"                   | "new ImmutableCapability('group', System.getProperty('n'), '1.0')"
+        "ModuleComponentIdentifier"    | "new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId('group', System.getProperty('n')),'1.0')"
+        "ComponentArtifactIdentifier"  | "new DefaultModuleComponentArtifactIdentifier(new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId('group', System.getProperty('n')),'1.0'), System.getProperty('n') + '-1.0.jar', 'jar', null)"
+        "ResolvedVariantResult"        | "new DefaultResolvedVariantResult(new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId('group', System.getProperty('n')), '1.0'), Describables.of('variantName'), services.get(ImmutableAttributesFactory).of(Attribute.of('some', String.class), System.getProperty('n')), [new ImmutableCapability('group', System.getProperty('n'), '1.0')], null)"
         // For ResolvedComponentResult
-        "ModuleVersionIdentifier"     | "DefaultModuleVersionIdentifier.newId('group', System.getProperty('n'), '1.0')"
+        "ModuleVersionIdentifier"      | "DefaultModuleVersionIdentifier.newId('group', System.getProperty('n'), '1.0')"
+//        "ResolvedComponentResult"      | "null"
+//        "DependencyResult"             | "null"
+        "ComponentSelector"            | "new DefaultLibraryComponentSelector(':sub', System.getProperty('n'))"
+        "ComponentSelectionReason"     | "ComponentSelectionReasons.of(ComponentSelectionReasons.REQUESTED.withDescription(Describables.of('csd-' + System.getProperty('n'))))"
+        "ComponentSelectionDescriptor" | "new DefaultComponentSelectionDescriptor(ComponentSelectionCause.REQUESTED, Describables.of('csd-' + System.getProperty('n')))"
     }
 
     def "can map ResolvedArtifactResult file as task input"() {
@@ -444,6 +467,73 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
         then:
         skipped ":project-lib:jar", ":composite-lib:jar"
         executedAndNotSkipped ":verify"
+    }
+
+    def "can use ResolvedComponentResult result as task input"() {
+        given:
+        buildFile << """
+            abstract class TaskWithGraphInput extends DefaultTask {
+
+                @Input
+                abstract Property<ResolvedComponentResult> getDepGraphRoot()
+
+                @OutputFile
+                abstract RegularFileProperty getOutputFile()
+            }
+
+            tasks.register('verify', TaskWithGraphInput) {
+                depGraphRoot.set(configurations.runtimeClasspath.incoming.resolutionResult.rootComponent)
+                outputFile.set(layout.buildDirectory.file('output.txt'))
+                doLast {
+                    println(depGraphRoot.get())
+                }
+            }
+        """
+
+        when:
+        succeeds "verify"
+
+        then:
+        executedAndNotSkipped ":verify"
+        notExecuted ":project-lib:jar", ":composite-lib:jar"
+
+        when:
+        succeeds "verify"
+
+        then:
+        skipped ":verify"
+        notExecuted ":project-lib:jar", ":composite-lib:jar"
+
+        when:
+        withChangedSourceIn("project-lib")
+        succeeds "verify"
+
+        then:
+        skipped ":verify"
+        notExecuted ":project-lib:jar", ":composite-lib:jar"
+
+        when:
+        withChangedSourceIn("composite-lib")
+        succeeds "verify"
+
+        then:
+        skipped ":verify"
+        notExecuted ":project-lib:jar", ":composite-lib:jar"
+
+        when:
+        withNewExternalDependency()
+        succeeds "verify"
+
+        then:
+        executedAndNotSkipped ":verify"
+        notExecuted ":project-lib:jar", ":composite-lib:jar"
+
+        when:
+        succeeds "verify"
+
+        then:
+        skipped ":verify"
+        notExecuted ":project-lib:jar", ":composite-lib:jar"
     }
 
     private void withOriginalSourceIn(String basePath) {

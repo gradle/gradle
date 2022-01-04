@@ -101,11 +101,12 @@ class LocaleSupportDaemonIntegrationTest extends DaemonIntegrationSpec {
         """
 
         when:
-        executer.withEnvironmentVars(("${DefaultGradleVersion.VERSION_OVERRIDE_VAR}".toString()): overrideVersion)
+        executer.requireIsolatedDaemons()
+        executer.withGradleVersionOverride(DefaultGradleVersion.version(overrideVersion))
         runWithLocale(locale)
 
         then:
-        outputContains("GradleVersion: Gradle ${overrideVersion}")
+        outputContains("GradleVersion: Gradle ${overrideVersion}\ndefaultLocale")
 
         and:
         ranWithLocale(locale)

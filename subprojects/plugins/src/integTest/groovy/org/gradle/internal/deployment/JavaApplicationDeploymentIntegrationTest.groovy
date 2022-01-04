@@ -18,6 +18,7 @@ package org.gradle.internal.deployment
 
 import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
 import org.gradle.test.fixtures.ConcurrentTestUtil
+import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.file.TestFile
 
 class JavaApplicationDeploymentIntegrationTest extends AbstractContinuousIntegrationTest {
@@ -73,6 +74,7 @@ class JavaApplicationDeploymentIntegrationTest extends AbstractContinuousIntegra
         assertLogHasMessage("[APP] > Hello, World!")
     }
 
+    @Flaky(because = 'https://github.com/gradle/gradle-private/issues/3499')
     def "deployment is automatically restarted"() {
         when:
         succeeds("run")

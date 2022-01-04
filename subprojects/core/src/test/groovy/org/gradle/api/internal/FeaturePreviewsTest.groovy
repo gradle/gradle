@@ -51,6 +51,6 @@ class FeaturePreviewsTest extends Specification {
 
     def 'lists active features'() {
         expect:
-        previews.getActiveFeatures() == FeaturePreviewsActivationFixture.activeFeatures()
+        previews.activeFeatures == FeaturePreviewsActivationFixture.activeFeatures()
     }
 }

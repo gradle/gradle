@@ -177,7 +177,7 @@ include::sample[dir="snippets/dependencyManagement/attributeMatching/groovy",fil
 include::sample[dir="snippets/dependencyManagement/attributeMatching/kotlin",files="build.gradle.kts[tags=define_attribute]"]
 ====
 
-Currently, only attribute types of `String`, or anything extending `Named` is supported.
+Attribute types support most Java primitive classes; such as `String` and `Integer`; Or anything extending `org.gradle.api.Named`.
 Attributes must be declared in the _attribute schema_ found on the `dependencies` handler:
 
 .Registering attributes on the attributes schema

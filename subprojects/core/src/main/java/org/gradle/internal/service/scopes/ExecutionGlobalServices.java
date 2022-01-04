@@ -85,8 +85,12 @@ import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.UntrackedTask;
 import org.gradle.api.tasks.options.OptionValues;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
+import org.gradle.internal.execution.DefaultTaskExecutionTracker;
+import org.gradle.internal.execution.TaskExecutionTracker;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.instantiation.InstantiatorFactory;
+import org.gradle.internal.operations.BuildOperationAncestryTracker;
+import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadataStore;
 import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore;
 import org.gradle.internal.scripts.ScriptOrigin;
@@ -126,6 +130,10 @@ public class ExecutionGlobalServices {
         Internal.class,
         ReplacedBy.class
     );
+
+    TaskExecutionTracker createTaskExecutionTracker(BuildOperationAncestryTracker ancestryTracker, BuildOperationListenerManager operationListenerManager) {
+        return new DefaultTaskExecutionTracker(ancestryTracker, operationListenerManager);
+    }
 
     AnnotationHandlerRegistar createAnnotationRegistry(List<AnnotationHandlerRegistration> registrations) {
         return builder -> registrations.forEach(registration -> builder.addAll(registration.getAnnotations()));

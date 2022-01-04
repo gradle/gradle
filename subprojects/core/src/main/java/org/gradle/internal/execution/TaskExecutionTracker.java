@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,22 @@
  * limitations under the License.
  */
 
-plugins {
-    id("com.diffplug.spotless")
-}
+package org.gradle.internal.execution;
 
-spotless {
-    java {
-        removeUnusedImports()
-    }
+import org.gradle.api.internal.TaskInternal;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+
+import java.util.Optional;
+
+/**
+ * Provides access to the task executing on the current thread.
+ */
+@ServiceScope(Scope.Global.class)
+public interface TaskExecutionTracker {
+
+    /**
+     * Finds the task executing on the current thread, if any.
+     */
+    Optional<TaskInternal> getCurrentTask();
 }

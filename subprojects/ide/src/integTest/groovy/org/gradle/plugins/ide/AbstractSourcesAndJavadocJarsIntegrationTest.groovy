@@ -484,6 +484,32 @@ dependencies {
         ideFileContainsNoSourcesAndJavadocEntry()
     }
 
+    @ToBeFixedForConfigurationCache
+    def "does not add project repository to download localGroovy() sources"() {
+        given:
+        def repo = givenGroovyExistsInGradleRepo()
+        executer.withEnvironmentVars('GRADLE_LIBS_REPO_OVERRIDE': "$repo.uri/")
+        settingsFile << """
+            dependencyResolutionManagement { repositoriesMode = RepositoriesMode.FAIL_ON_PROJECT_REPOS }
+        """
+
+        buildScript """
+            apply plugin: "java"
+            apply plugin: "idea"
+            apply plugin: "eclipse"
+
+            dependencies {
+                implementation localGroovy()
+            }
+        """
+
+        when:
+        succeeds ideTask
+
+        then:
+        ideFileContainsEntry("groovy-${groovyVersion}.jar", ["groovy-${groovyVersion}-sources.jar"], [])
+    }
+
     void assertSourcesDirectoryDoesNotExistInDistribution() {
         gradleDistributionSrcDir().assertDoesNotExist()
     }

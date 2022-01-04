@@ -20,7 +20,6 @@ import org.gradle.BuildListener;
 import org.gradle.BuildResult;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.UnknownDomainObjectException;
@@ -270,7 +269,9 @@ public interface Gradle extends PluginAware {
      * A {@link BuildResult} instance is passed to the closure as a parameter.
      *
      * @param closure The closure to execute.
+     * @deprecated This method is not supported when configuration caching is enabled.
      */
+    @Deprecated
     void buildFinished(Closure closure);
 
     /**
@@ -280,7 +281,9 @@ public interface Gradle extends PluginAware {
      *
      * @param action The action to execute.
      * @since 3.4
+     * @deprecated This method is not supported when configuration caching is enabled.
      */
+    @Deprecated
     void buildFinished(Action<? super BuildResult> action);
 
     /**
@@ -299,12 +302,18 @@ public interface Gradle extends PluginAware {
      * <li>{@link org.gradle.BuildListener}
      * <li>{@link org.gradle.api.execution.TaskExecutionGraphListener}
      * <li>{@link org.gradle.api.ProjectEvaluationListener}
+     * <li>{@link org.gradle.api.logging.StandardOutputListener}
+     * <li>{@link org.gradle.api.artifacts.DependencyResolutionListener}
+     * </ul>
+     *
+     * <p>The following listener types can be used, but are not supported when configuration caching is enabled.
+     * Their usage is deprecated and adding a listener of these types become an error in a future Gradle version:</p>
+     *
+     * <ul>
      * <li>{@link org.gradle.api.execution.TaskExecutionListener}
      * <li>{@link org.gradle.api.execution.TaskActionListener}
-     * <li>{@link org.gradle.api.logging.StandardOutputListener}
      * <li>{@link org.gradle.api.tasks.testing.TestListener}
      * <li>{@link org.gradle.api.tasks.testing.TestOutputListener}
-     * <li>{@link org.gradle.api.artifacts.DependencyResolutionListener}
      * </ul>
      *
      * @param listener The listener to add. Does nothing if this listener has already been added.
@@ -350,7 +359,6 @@ public interface Gradle extends PluginAware {
      *
      * @since 6.1
      */
-    @Incubating
     BuildServiceRegistry getSharedServices();
 
     /**
