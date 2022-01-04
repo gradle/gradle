@@ -49,4 +49,31 @@ public class AbstractDependencyResult implements DependencyResult {
         return constraint;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof AbstractDependencyResult)) {
+            return false;
+        }
+
+        AbstractDependencyResult that = (AbstractDependencyResult) o;
+
+        if (constraint != that.constraint) {
+            return false;
+        }
+        if (!requested.equals(that.requested)) {
+            return false;
+        }
+        return from.equals(that.from);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = requested.hashCode();
+        result = 31 * result + from.hashCode();
+        result = 31 * result + (constraint ? 1 : 0);
+        return result;
+    }
 }

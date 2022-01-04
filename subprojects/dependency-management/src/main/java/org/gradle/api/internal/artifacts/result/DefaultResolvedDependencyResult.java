@@ -45,6 +45,34 @@ public class DefaultResolvedDependencyResult extends AbstractDependencyResult im
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+
+        DefaultResolvedDependencyResult that = (DefaultResolvedDependencyResult) o;
+
+        if (!selectedComponent.equals(that.selectedComponent)) {
+            return false;
+        }
+        return selectedVariant != null ? selectedVariant.equals(that.selectedVariant) : that.selectedVariant == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + selectedComponent.hashCode();
+        result = 31 * result + (selectedVariant != null ? selectedVariant.hashCode() : 0);
+        return result;
+    }
+
+    @Override
     public String toString() {
         if (getRequested().matchesStrictly(getSelected().getId())) {
             return getRequested().toString();
