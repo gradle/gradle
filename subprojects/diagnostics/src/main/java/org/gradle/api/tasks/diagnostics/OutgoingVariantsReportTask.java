@@ -16,7 +16,6 @@
 package org.gradle.api.tasks.diagnostics;
 
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.DefaultTask;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationVariant;
@@ -34,19 +33,20 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.diagnostics.internal.AbstractVariantsReportTask;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.work.DisableCachingByDefault;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * A task which reports the outgoing variants of a project on the command line.
@@ -58,7 +58,7 @@ import java.util.stream.Stream;
  * @since 6.0
  */
 @DisableCachingByDefault(because = "Produces only non-cacheable console output")
-public class OutgoingVariantsReportTask extends DefaultTask {
+public class OutgoingVariantsReportTask extends AbstractVariantsReportTask {
     private final Property<String> variantSpec = getProject().getObjects().property(String.class);
     private final Property<Boolean> showAll = getProject().getObjects().property(Boolean.class).convention(false);
 
@@ -88,7 +88,7 @@ public class OutgoingVariantsReportTask extends DefaultTask {
 
     @TaskAction
     void buildReport() {
-        List<Configuration> configurations = filterConfigurations();
+        List<Configuration> configurations = getConfigurationsToReport();
         StyledTextOutput output = getTextOutputFactory().create(getClass());
         if (configurations.isEmpty()) {
             reportNoMatchingVariant(configurations, output);
@@ -125,11 +125,11 @@ public class OutgoingVariantsReportTask extends DefaultTask {
         String name = cnf.getName();
         if (cnf.isCanBeResolved()) {
             name += " (l)";
-            legend.hasLegacyConfigurations = true;
+            legend.setHasLegacyConfigurations(true);
         }
         if (cnf.isIncubating()) {
             name += " (i)";
-            legend.hasIncubatingConfigurations = true;
+            legend.setHasIncubatingConfigurations(true);
         }
         return name;
     }
@@ -150,7 +150,7 @@ public class OutgoingVariantsReportTask extends DefaultTask {
                     formatAttributes(variant.getAttributes(), tree);
                     formatArtifacts(variant.getArtifacts(), tree);
                 }));
-                legend.hasPublications = true;
+                legend.setHasPublications(true);
             });
             return true;
         }
@@ -215,7 +215,7 @@ public class OutgoingVariantsReportTask extends DefaultTask {
     private void reportNoMatchingVariant(List<Configuration> configurations, StyledTextOutput output) {
         if (variantSpec.isPresent()) {
             output.println("There is no variant named '" + variantSpec.get() + "' defined on this project.");
-            configurations = getAllConsumableConfigurations().collect(Collectors.toList());
+            configurations = getConfigurations(Configuration::isCanBeConsumed);
         }
         String projectName = getProject().getName();
         if (configurations.isEmpty()) {
@@ -225,113 +225,27 @@ public class OutgoingVariantsReportTask extends DefaultTask {
         }
     }
 
-    private List<Configuration> filterConfigurations() {
-        Stream<Configuration> configurations = getAllConsumableConfigurations();
-        if (!showAll.get() && !variantSpec.isPresent()) {
-            configurations = configurations.filter(files -> !files.isCanBeResolved());
-        }
-        if (variantSpec.isPresent()) {
-            String variantName = variantSpec.get();
-            configurations = configurations.filter(cnf -> cnf.getName().equals(variantName));
-        }
-        return configurations.collect(Collectors.toList());
-    }
-
-    private Stream<Configuration> getAllConsumableConfigurations() {
-        return getProject().getConfigurations()
-            .stream()
-            .filter(Configuration::isCanBeConsumed)
-            .sorted(Comparator.comparing(Configuration::getName));
-    }
-
-    private static class Legend {
-        private boolean hasPublications;
-        private boolean hasLegacyConfigurations;
-        private boolean hasIncubatingConfigurations;
-
-        void print(StyledTextOutput output) {
-            StyledTextOutput info = output.style(StyledTextOutput.Style.Info);
-            if (hasLegacyConfigurations || hasPublications) {
-                info.println();
+    @Override
+    protected Predicate<Configuration> getConfigurationsToReportFilter() {
+        String variantName = variantSpec.getOrNull();
+        return c -> {
+            if (!c.isCanBeConsumed()) {
+                return false;
             }
-            if (hasLegacyConfigurations) {
-                info.println("(l) Legacy or deprecated configuration. Those are variants created for backwards compatibility which are both resolvable and consumable.");
+
+            if (showAll.get()) {
+                if (variantSpec.isPresent()) {
+                    return Objects.equals(variantName, c.getName());
+                } else {
+                    return true;
+                }
+            } else {
+                if (variantSpec.isPresent()) {
+                    return !c.isCanBeResolved() && Objects.equals(variantName, c.getName());
+                } else {
+                    return !c.isCanBeResolved();
+                }
             }
-            if (hasIncubatingConfigurations) {
-                info.println("(i) Configuration uses incubating attributes such as Category.VERIFICATION.");
-            }
-            if (hasPublications) {
-                info.text("(*) Secondary variants are variants created via the ")
-                    .style(StyledTextOutput.Style.Identifier)
-                    .text("Configuration#getOutgoing(): ConfigurationPublications")
-                    .style(StyledTextOutput.Style.Info)
-                    .text(" API which also participate in selection, in addition to the configuration itself.")
-                    .println();
-            }
-        }
-    }
-
-    private static class Formatter {
-        private final StyledTextOutput output;
-        private int depth;
-
-        private Formatter(StyledTextOutput output) {
-            this.output = output;
-        }
-
-        void section(String title, Runnable action) {
-            section(title, null, action);
-        }
-
-        void section(String title, @Nullable String description, Runnable action) {
-            output.style(StyledTextOutput.Style.Description);
-            text(title);
-            output.style(StyledTextOutput.Style.Normal);
-            if (description != null) {
-                output.text(" : " + description);
-            }
-            try {
-                depth++;
-                output.println();
-                action.run();
-            } finally {
-                depth--;
-            }
-        }
-
-        void value(String key, String value) {
-            output.style(StyledTextOutput.Style.Identifier);
-            text(key);
-            output.style(StyledTextOutput.Style.Normal)
-                .println(" = " + value);
-        }
-
-        void append(String text) {
-            output.text(text);
-        }
-
-        void appendValue(String key, String value) {
-            output.style(StyledTextOutput.Style.Identifier);
-            append(key);
-            output.style(StyledTextOutput.Style.Normal)
-                .text(" = " + value);
-        }
-
-        void text(String text) {
-            output.text(StringUtils.repeat("   ", depth));
-            if (depth > 0) {
-                output.withStyle(StyledTextOutput.Style.Normal).text(" - ");
-            }
-            output.text(text);
-        }
-
-        public void println() {
-            output.println();
-        }
-
-        public void println(String text) {
-            text(text);
-            println();
-        }
+        };
     }
 }
