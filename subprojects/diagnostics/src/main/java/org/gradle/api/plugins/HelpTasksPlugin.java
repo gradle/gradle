@@ -17,6 +17,7 @@
 package org.gradle.api.plugins;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.internal.component.BuildableJavaComponent;
@@ -30,6 +31,7 @@ import org.gradle.api.tasks.diagnostics.DependencyReportTask;
 import org.gradle.api.tasks.diagnostics.OutgoingVariantsReportTask;
 import org.gradle.api.tasks.diagnostics.ProjectReportTask;
 import org.gradle.api.tasks.diagnostics.PropertyReportTask;
+import org.gradle.api.tasks.diagnostics.RequestedVariantsReportTask;
 import org.gradle.api.tasks.diagnostics.TaskReportTask;
 import org.gradle.configuration.Help;
 
@@ -51,6 +53,14 @@ public class HelpTasksPlugin implements Plugin<Project> {
      * @since 6.0
      */
     public static final String OUTGOING_VARIANTS_TASK = "outgoingVariants";
+
+    /**
+     * The name of the requested variants report task.
+     *
+     * @since 7.5
+     */
+    @Incubating
+    public static final String REQUESTED_VARIANTS_TASK = "requestedVariants";
     public static final String MODEL_TASK = "model";
     public static final String DEPENDENT_COMPONENTS_TASK = "dependentComponents";
 
@@ -70,6 +80,11 @@ public class HelpTasksPlugin implements Plugin<Project> {
         registerDeprecatedTasks(tasks, projectName);
         tasks.register(OUTGOING_VARIANTS_TASK, OutgoingVariantsReportTask.class, task -> {
             task.setDescription("Displays the outgoing variants of " + projectName + ".");
+            task.setGroup(HELP_GROUP);
+            task.setImpliesSubProjects(true);
+        });
+        tasks.register(REQUESTED_VARIANTS_TASK, RequestedVariantsReportTask.class, task -> {
+            task.setDescription("Displays the requested variants of " + projectName + ".");
             task.setGroup(HELP_GROUP);
             task.setImpliesSubProjects(true);
         });

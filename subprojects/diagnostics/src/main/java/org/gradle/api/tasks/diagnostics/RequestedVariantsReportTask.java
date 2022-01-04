@@ -16,18 +16,31 @@
 
 package org.gradle.api.tasks.diagnostics;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.api.tasks.diagnostics.internal.AbstractVariantsReportTask;
 import org.gradle.api.tasks.options.Option;
+import org.gradle.work.DisableCachingByDefault;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
 
+/**
+ * A task which reports the requested variants of a project on the command line.
+ *
+ * This is useful for determining which attributes are associated with the resolvable
+ * configurations being used to resolve a project's dependencies.
+ *
+ * Variants, in this context, means "resolvable configurations".
+ *
+ * @since 7.5
+ */
+@Incubating
+@DisableCachingByDefault(because = "Produces only non-cacheable console output")
 public class RequestedVariantsReportTask extends AbstractVariantsReportTask {
     private final Property<String> configurationSpec = getProject().getObjects().property(String.class);
     private final Property<Boolean> showAll = getProject().getObjects().property(Boolean.class).convention(false);

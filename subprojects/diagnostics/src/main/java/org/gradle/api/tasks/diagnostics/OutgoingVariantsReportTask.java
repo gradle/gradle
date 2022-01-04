@@ -33,7 +33,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.api.tasks.diagnostics.internal.AbstractVariantsReportTask;
+import org.gradle.api.tasks.diagnostics.internal.VariantsReportFormatter;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
@@ -93,16 +93,16 @@ public class OutgoingVariantsReportTask extends AbstractVariantsReportTask {
         if (configurations.isEmpty()) {
             reportNoMatchingVariant(configurations, output);
         } else {
-            Legend legend = new Legend();
+            VariantsReportFormatter.Legend legend = new VariantsReportFormatter.Legend();
             configurations.forEach(cnf -> reportVariant((ConfigurationInternal) cnf, new ProjectBackedModule((ProjectInternal) getProject()), output, legend));
             legend.print(output);
         }
     }
 
-    private void reportVariant(ConfigurationInternal cnf, ProjectBackedModule projectBackedModule, StyledTextOutput output, Legend legend) {
+    private void reportVariant(ConfigurationInternal cnf, ProjectBackedModule projectBackedModule, StyledTextOutput output, VariantsReportFormatter.Legend legend) {
         // makes sure the configuration is complete before reporting
         cnf.preventFromFurtherMutation();
-        Formatter tree = new Formatter(output);
+        VariantsReportFormatter tree = new VariantsReportFormatter(output);
         String name = buildNameWithIndicators(cnf, legend);
         header("Variant " + name, output);
         String description = cnf.getDescription();
@@ -121,7 +121,7 @@ public class OutgoingVariantsReportTask extends AbstractVariantsReportTask {
         }
     }
 
-    private String buildNameWithIndicators(ConfigurationInternal cnf, Legend legend) {
+    private String buildNameWithIndicators(ConfigurationInternal cnf, VariantsReportFormatter.Legend legend) {
         String name = cnf.getName();
         if (cnf.isCanBeResolved()) {
             name += " (l)";
@@ -142,7 +142,7 @@ public class OutgoingVariantsReportTask extends AbstractVariantsReportTask {
             .style(StyledTextOutput.Style.Normal);
     }
 
-    private boolean formatPublications(ConfigurationInternal cnf, Formatter tree, Legend legend) {
+    private boolean formatPublications(ConfigurationInternal cnf, VariantsReportFormatter tree, VariantsReportFormatter.Legend legend) {
         NamedDomainObjectContainer<ConfigurationVariant> outgoing = cnf.getOutgoing().getVariants();
         if (!outgoing.isEmpty()) {
             tree.section("Secondary variants (*)", () -> {
@@ -157,7 +157,7 @@ public class OutgoingVariantsReportTask extends AbstractVariantsReportTask {
         return false;
     }
 
-    private boolean formatArtifacts(PublishArtifactSet artifacts, Formatter tree) {
+    private boolean formatArtifacts(PublishArtifactSet artifacts, VariantsReportFormatter tree) {
         if (!artifacts.isEmpty()) {
             tree.section("Artifacts", () -> artifacts.stream()
                 .sorted(Comparator.comparing(PublishArtifact::toString))
@@ -167,7 +167,7 @@ public class OutgoingVariantsReportTask extends AbstractVariantsReportTask {
         return false;
     }
 
-    private void formatArtifact(PublishArtifact artifact, Formatter tree) {
+    private void formatArtifact(PublishArtifact artifact, VariantsReportFormatter tree) {
         String type = artifact.getType();
         File file = artifact.getFile();
         tree.text(getFileResolver().resolveForDisplay(file));
@@ -179,7 +179,7 @@ public class OutgoingVariantsReportTask extends AbstractVariantsReportTask {
         tree.println();
     }
 
-    private void formatAttributes(AttributeContainer attributes, Formatter tree) {
+    private void formatAttributes(AttributeContainer attributes, VariantsReportFormatter tree) {
         if (!attributes.isEmpty()) {
             tree.section("Attributes", () -> {
                 Integer max = attributes.keySet().stream().map(attr -> attr.getName().length()).max(Integer::compare).get();
@@ -190,7 +190,7 @@ public class OutgoingVariantsReportTask extends AbstractVariantsReportTask {
         }
     }
 
-    private void formatCapabilities(Collection<? extends Capability> capabilities, ProjectBackedModule projectBackedModule, Formatter tree) {
+    private void formatCapabilities(Collection<? extends Capability> capabilities, ProjectBackedModule projectBackedModule, VariantsReportFormatter tree) {
         tree.section("Capabilities", () -> {
             if (capabilities.isEmpty()) {
                 tree.text(String.format("%s:%s:%s (default capability)", projectBackedModule.getGroup(), projectBackedModule.getName(), projectBackedModule.getVersion()));
@@ -200,7 +200,7 @@ public class OutgoingVariantsReportTask extends AbstractVariantsReportTask {
         });
     }
 
-    private boolean formatAttributesAndCapabilities(ConfigurationInternal configuration, ProjectBackedModule projectBackedModule, Formatter tree) {
+    private boolean formatAttributesAndCapabilities(ConfigurationInternal configuration, ProjectBackedModule projectBackedModule, VariantsReportFormatter tree) {
         AttributeContainerInternal attributes = configuration.getAttributes();
         if (!attributes.isEmpty()) {
             Collection<? extends Capability> capabilities = configuration.getOutgoing().getCapabilities();
