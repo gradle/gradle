@@ -170,7 +170,7 @@ It is now possible to declare that a particular task is not compatible with the 
 whenever an incompatible task is scheduled to run. This makes it possible to enable the configuration cache for a build without having to first 
 migrate all tasks to be compatible.
 
-Please check the [user manual](userguide/configuration_cache.html#config_cache:task_out_out) for more details.
+Please check the [user manual](userguide/configuration_cache.html#config_cache:task_opt_out) for more details.
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
