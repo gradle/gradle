@@ -17,6 +17,7 @@
 package org.gradle.testing.testsuites
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.dsl.GradleDsl
 
 
@@ -542,6 +543,7 @@ class TestSuitesDependenciesIntegrationTest extends AbstractIntegrationSpec {
         succeeds( "checkConfiguration")
     }
 
+    @ToBeFixedForConfigurationCache
     def "can add a dependency to a test suite using map notation in Kotlin DSL"() {
         given:
         buildKotlinFile << """
