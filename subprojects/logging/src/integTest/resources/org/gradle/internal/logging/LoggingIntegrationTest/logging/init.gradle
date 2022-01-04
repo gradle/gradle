@@ -1,4 +1,6 @@
-
+if (gradle.startParameter.currentDir.name == "buildSrc") {
+    return
+}
 println 'init QUIET out'
 logging.captureStandardOutput LogLevel.INFO
 println 'init INFO out'
