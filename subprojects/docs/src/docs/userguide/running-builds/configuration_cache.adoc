@@ -462,7 +462,7 @@ We're now done with fixing the problems with this simple task.
 
 Keep reading to learn how to adopt the configuration cache for your build or your plugins.
 
-[[config_cache:task_out_out]]
+[[config_cache:task_opt_out]]
 === Declare a task incompatible with the configuration cache
 
 It is possible to declare that a particular task is not compatible with the configuration cache. When a task that is incompatible is scheduled to
