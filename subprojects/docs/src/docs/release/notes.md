@@ -186,7 +186,7 @@ The following are the features that have been promoted in this Gradle release.
 
 ### Shared Build Services
 
-[Shared Build Services](current/userguide/build_services.html) is promoted to a stable feature.
+[Shared Build Services](userguide/build_services.html) is promoted to a stable feature.
 
 <!--
 ### Example promoted
