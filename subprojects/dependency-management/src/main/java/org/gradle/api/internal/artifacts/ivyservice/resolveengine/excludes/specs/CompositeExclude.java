@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs;
 
 import java.util.Set;
-import java.util.stream.Stream;
 
 public interface CompositeExclude extends ExcludeSpec {
     @Override

@@ -27,23 +27,18 @@ import org.gradle.api.internal.artifacts.result.DefaultUnresolvedDependencyResul
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-
-import static java.util.Arrays.asList;
 
 public class CachingDependencyResultFactory {
 
-    private final Map<List<Object>, DefaultUnresolvedDependencyResult> unresolvedDependencies = new HashMap<>();
-    private final Map<List<Object>, DefaultResolvedDependencyResult> resolvedDependencies = new HashMap<>();
+    private final Map<DefaultUnresolvedDependencyResult, DefaultUnresolvedDependencyResult> unresolvedDependencies = new HashMap<>();
+    private final Map<DefaultResolvedDependencyResult, DefaultResolvedDependencyResult> resolvedDependencies = new HashMap<>();
 
     public UnresolvedDependencyResult createUnresolvedDependency(ComponentSelector requested, ResolvedComponentResult from, boolean constraint,
                                                                  ComponentSelectionReason reason, ModuleVersionResolveException failure) {
-        List<Object> key = asList(requested, from, constraint);
-        if (!unresolvedDependencies.containsKey(key)) {
-            unresolvedDependencies.put(key, new DefaultUnresolvedDependencyResult(requested, constraint, reason, from, failure));
-        }
-        return unresolvedDependencies.get(key);
+        DefaultUnresolvedDependencyResult result = new DefaultUnresolvedDependencyResult(requested, constraint, reason, from, failure);
+        DefaultUnresolvedDependencyResult existing = unresolvedDependencies.putIfAbsent(result, result);
+        return existing != null ? existing : result;
     }
 
     public ResolvedDependencyResult createResolvedDependency(ComponentSelector requested,
@@ -51,10 +46,8 @@ public class CachingDependencyResultFactory {
                                                              ResolvedComponentResult selected,
                                                              ResolvedVariantResult resolvedVariant,
                                                              boolean constraint) {
-        List<Object> key = asList(requested, from, selected, resolvedVariant, constraint);
-        if (!resolvedDependencies.containsKey(key)) {
-            resolvedDependencies.put(key, new DefaultResolvedDependencyResult(requested, constraint, selected, resolvedVariant, from));
-        }
-        return resolvedDependencies.get(key);
+        DefaultResolvedDependencyResult result = new DefaultResolvedDependencyResult(requested, constraint, selected, resolvedVariant, from);
+        DefaultResolvedDependencyResult existing = resolvedDependencies.putIfAbsent(result, result);
+        return existing != null ? existing : result;
     }
 }
