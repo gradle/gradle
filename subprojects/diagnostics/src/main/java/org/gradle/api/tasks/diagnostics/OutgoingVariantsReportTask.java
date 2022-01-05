@@ -36,7 +36,6 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.diagnostics.internal.VariantsReportFormatter;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.internal.logging.text.StyledTextOutput;
-import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
@@ -74,11 +73,6 @@ public class OutgoingVariantsReportTask extends AbstractVariantsReportTask {
     @Option(option = "all", description = "Shows all variants, including legacy and deprecated configurations")
     Property<Boolean> getShowAll() {
         return showAll;
-    }
-
-    @Inject
-    protected StyledTextOutputFactory getTextOutputFactory() {
-        throw new UnsupportedOperationException();
     }
 
     @Inject

@@ -20,8 +20,10 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.tasks.Internal;
+import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.work.DisableCachingByDefault;
 
+import javax.inject.Inject;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.Predicate;
@@ -49,5 +51,10 @@ public abstract class AbstractVariantsReportTask extends DefaultTask {
             .filter(filter)
             .sorted(Comparator.comparing(Configuration::getName))
             .collect(Collectors.toList());
+    }
+
+    @Inject
+    protected StyledTextOutputFactory getTextOutputFactory() {
+        throw new UnsupportedOperationException();
     }
 }
