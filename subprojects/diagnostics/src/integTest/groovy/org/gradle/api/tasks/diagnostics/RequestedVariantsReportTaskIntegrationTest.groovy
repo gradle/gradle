@@ -446,4 +446,27 @@ Attributes
         hasLegacyVariantsLegend()
         doesNotHaveIncubatingVariantsLegend()
     }
+
+    def "specifying a missing config with no configs produces empty report"() {
+        expect:
+        succeeds ':requestedVariants', '--configuration', 'missing'
+        outputContains("There is no configuration named 'missing' defined on this project.")
+        outputContains('There are no resolvable configurations on project myLib')
+    }
+
+    def "specifying a missing config produces empty report"() {
+        given:
+        buildFile << """
+            configurations.create("custom") {
+                description = "My custom configuration"
+                canBeResolved = true
+                canBeConsumed = false
+            }
+        """
+
+        expect:
+        succeeds ':requestedVariants', '--configuration', 'missing'
+        outputContains("There is no configuration named 'missing' defined on this project.")
+        outputContains('Here are the available resolvable configurations: custom')
+    }
 }

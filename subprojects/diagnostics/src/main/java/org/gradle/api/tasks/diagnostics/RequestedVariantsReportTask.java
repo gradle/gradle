@@ -70,7 +70,7 @@ public class RequestedVariantsReportTask extends AbstractVariantsReportTask {
 
         List<Configuration> configurations = configurationsToReport();
         if (configurations.isEmpty()) {
-            reportNoMatch(configurationSpec, configurations, output);
+            reportNoMatch(configurationSpec, configurations, Configuration::isCanBeResolved, output);
         } else {
             reportMatches(configurations, output);
         }

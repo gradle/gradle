@@ -82,10 +82,10 @@ public abstract class AbstractVariantsReportTask extends DefaultTask {
             .collect(Collectors.toList());
     }
 
-    protected void reportNoMatch(Property<String> searchTarget, List<Configuration> configurations, StyledTextOutput output) {
+    protected void reportNoMatch(Property<String> searchTarget, List<Configuration> configurations, Predicate<Configuration> availableFilter, StyledTextOutput output) {
         if (searchTarget.isPresent()) {
             output.println("There is no " + targetName() + " named '" + searchTarget.get() + "' defined on this project.");
-            configurations = getConfigurations(Configuration::isCanBeConsumed);
+            configurations = getConfigurations(availableFilter); // Reload all available configs
         }
 
         if (configurations.isEmpty()) {
