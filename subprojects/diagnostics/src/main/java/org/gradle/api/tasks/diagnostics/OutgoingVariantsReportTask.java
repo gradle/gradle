@@ -66,7 +66,7 @@ public class OutgoingVariantsReportTask extends AbstractVariantsReportTask {
 
         List<Configuration> configurations = configurationsToReport();
         if (configurations.isEmpty()) {
-            reportNoMatch(variantSpec, configurations, Configuration::isCanBeResolved, output);
+            reportNoMatch(variantSpec, configurations, Configuration::isCanBeConsumed, output);
         } else {
             reportMatches(configurations, output);
         }
