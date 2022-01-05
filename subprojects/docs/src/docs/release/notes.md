@@ -188,6 +188,11 @@ The following are the features that have been promoted in this Gradle release.
 
 [Shared Build Services](userguide/build_services.html) is promoted to a stable feature.
 
+
+### Version Catalogs
+
+[Version Catalogs](current/userguide/platforms.html) is promoted to a stable feature.
+
 <!--
 ### Example promoted
 -->
