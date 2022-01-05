@@ -16,12 +16,16 @@
 
 package org.gradle.api.tasks.diagnostics;
 
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.internal.artifacts.ProjectBackedModule;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.diagnostics.internal.VariantsReportFormatter;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.work.DisableCachingByDefault;
@@ -62,11 +66,13 @@ public class RequestedVariantsReportTask extends AbstractVariantsReportTask {
 
     @TaskAction
     void buildReport() {
-        List<Configuration> configurations = configurationsToReport();
         StyledTextOutput output = getTextOutputFactory().create(getClass());
 
+        List<Configuration> configurations = configurationsToReport();
         if (configurations.isEmpty()) {
             reportNoMatch(configurationSpec, configurations, output);
+        } else {
+            reportMatches(configurations, output);
         }
     }
 
@@ -102,5 +108,26 @@ public class RequestedVariantsReportTask extends AbstractVariantsReportTask {
                 }
             }
         };
+    }
+
+    @Override
+    protected void reportSingleMatch(ConfigurationInternal cnf, ProjectBackedModule projectBackedModule, StyledTextOutput output, VariantsReportFormatter.Legend legend) {
+        // makes sure the configuration is complete before reporting
+        cnf.preventFromFurtherMutation();
+        VariantsReportFormatter tree = new VariantsReportFormatter(output);
+        String name = buildNameWithIndicators(cnf, legend);
+        header(StringUtils.capitalize(targetName()) + " " + name, output);
+        String description = cnf.getDescription();
+        if (description != null) {
+            tree.value("Description", description);
+            tree.println();
+        }
+
+        if (formatCapabilities(cnf, projectBackedModule, tree)) {
+            tree.println();
+        }
+        if (formatAttributes(cnf, tree)) {
+            tree.println();
+        }
     }
 }

@@ -18,10 +18,10 @@ package org.gradle.api.tasks.diagnostics
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.InspectsOutgoingVariants
+import org.gradle.integtests.fixtures.InspectsVariantsReport
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
-class OutgoingVariantsReportTaskIntegrationTest extends AbstractIntegrationSpec implements InspectsOutgoingVariants {
+class OutgoingVariantsReportTaskIntegrationTest extends AbstractIntegrationSpec implements InspectsVariantsReport {
     def setup() {
         settingsFile << """
             rootProject.name = "myLib"

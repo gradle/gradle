@@ -24,7 +24,7 @@ import javax.annotation.Nullable;
 /**
  * Formatter for the report produced by this task.
  */
-public class VariantsReportFormatter {
+public final class VariantsReportFormatter {
     private final StyledTextOutput output;
     private int depth;
 
@@ -90,7 +90,7 @@ public class VariantsReportFormatter {
     /**
      * Controls the legend printed at the end of the output.
      */
-    public static class Legend {
+    public final static class Legend {
         private boolean hasPublications;
         private boolean hasLegacyConfigurations;
         private boolean hasIncubatingConfigurations;

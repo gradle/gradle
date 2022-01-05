@@ -17,11 +17,11 @@
 package org.gradle.api.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.InspectsOutgoingVariants
+import org.gradle.integtests.fixtures.InspectsVariantsReport
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 
-class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec implements InspectsOutgoingVariants {
+class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec implements InspectsVariantsReport {
 
     @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
     def "JVM Test Suites plugin adds outgoing variants for default test suite"() {

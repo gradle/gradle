@@ -19,10 +19,10 @@ package org.gradle.integtests.fixtures
 import groovy.transform.SelfType
 
 /**
- * Utility methods for tests which work with the outgoing variants task.
+ * Utility methods for tests which work with any variants reporting tasks (sub-types of {@code AbstractVariantsReportTask}).
  */
 @SelfType(AbstractIntegrationSpec)
-trait InspectsOutgoingVariants {
+trait InspectsVariantsReport {
     void hasSecondaryVariantsLegend() {
         outputContains("(*) Secondary variants are variants created via the Configuration#getOutgoing(): ConfigurationPublications API which also participate in selection, in addition to the configuration itself.")
     }
