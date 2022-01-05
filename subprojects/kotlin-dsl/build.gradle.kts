@@ -65,7 +65,7 @@ dependencies {
     implementation(libs.futureKotlin("sam-with-receiver-compiler-plugin")) {
         isTransitive = false
     }
-    implementation("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.3.0") {
+    implementation("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.4.1") {
         isTransitive = false
     }
 
