@@ -176,7 +176,7 @@ Attributes
         outputContains('There are no resolvable configurations on project myLib')
     }
 
-    def "if only custom legacy configuration present, requested variants task reports it if -all flag is set"() {
+    def "if only custom legacy configuration present, requested variants task reports it if --all flag is set"() {
         given:
         buildFile << """
             configurations.create("legacy") {
@@ -315,6 +315,135 @@ Attributes
 
         and:
         doesNotHaveLegacyVariantsLegend()
+        doesNotHaveIncubatingVariantsLegend()
+    }
+
+    def "reports requested variants of a Java Library with module dependencies if --all flag is set"() {
+        given:
+        buildFile << """
+            plugins { id 'java-library' }
+
+            ${mavenCentralRepository()}
+
+            dependencies {
+                api 'org.apache.commons:commons-lang3:3.5'
+                implementation 'org.apache.commons:commons-compress:1.19'
+            }
+        """
+
+        when:
+        executer.expectDeprecationWarning('(l) Legacy or deprecated configuration. Those are variants created for backwards compatibility which are both resolvable and consumable.')
+        run ':requestedVariants', '--all'
+
+        then:
+        outputContains """> Task :requestedVariants
+--------------------------------------------------
+Configuration annotationProcessor
+--------------------------------------------------
+Description = Annotation processors and their dependencies for source set 'main'.
+
+Capabilities
+    - :myLib:unspecified (default capability)
+Attributes
+    - org.gradle.category            = library
+    - org.gradle.dependency.bundling = external
+    - org.gradle.jvm.environment     = standard-jvm
+    - org.gradle.libraryelements     = jar
+    - org.gradle.usage               = java-runtime
+
+--------------------------------------------------
+Configuration archives (l)
+--------------------------------------------------
+Description = Configuration for archive artifacts.
+
+Capabilities
+    - :myLib:unspecified (default capability)
+
+--------------------------------------------------
+Configuration compileClasspath
+--------------------------------------------------
+Description = Compile classpath for source set 'main'.
+
+Capabilities
+    - :myLib:unspecified (default capability)
+Attributes
+    - org.gradle.category            = library
+    - org.gradle.dependency.bundling = external
+    - org.gradle.jvm.environment     = standard-jvm
+    - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
+    - org.gradle.libraryelements     = classes
+    - org.gradle.usage               = java-api
+
+--------------------------------------------------
+Configuration default (l)
+--------------------------------------------------
+Description = Configuration for default artifacts.
+
+Capabilities
+    - :myLib:unspecified (default capability)
+
+--------------------------------------------------
+Configuration runtimeClasspath
+--------------------------------------------------
+Description = Runtime classpath of source set 'main'.
+
+Capabilities
+    - :myLib:unspecified (default capability)
+Attributes
+    - org.gradle.category            = library
+    - org.gradle.dependency.bundling = external
+    - org.gradle.jvm.environment     = standard-jvm
+    - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
+    - org.gradle.libraryelements     = jar
+    - org.gradle.usage               = java-runtime
+
+--------------------------------------------------
+Configuration testAnnotationProcessor
+--------------------------------------------------
+Description = Annotation processors and their dependencies for source set 'test'.
+
+Capabilities
+    - :myLib:unspecified (default capability)
+Attributes
+    - org.gradle.category            = library
+    - org.gradle.dependency.bundling = external
+    - org.gradle.jvm.environment     = standard-jvm
+    - org.gradle.libraryelements     = jar
+    - org.gradle.usage               = java-runtime
+
+--------------------------------------------------
+Configuration testCompileClasspath
+--------------------------------------------------
+Description = Compile classpath for source set 'test'.
+
+Capabilities
+    - :myLib:unspecified (default capability)
+Attributes
+    - org.gradle.category            = library
+    - org.gradle.dependency.bundling = external
+    - org.gradle.jvm.environment     = standard-jvm
+    - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
+    - org.gradle.libraryelements     = classes
+    - org.gradle.usage               = java-api
+
+--------------------------------------------------
+Configuration testRuntimeClasspath
+--------------------------------------------------
+Description = Runtime classpath of source set 'test'.
+
+Capabilities
+    - :myLib:unspecified (default capability)
+Attributes
+    - org.gradle.category            = library
+    - org.gradle.dependency.bundling = external
+    - org.gradle.jvm.environment     = standard-jvm
+    - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
+    - org.gradle.libraryelements     = jar
+    - org.gradle.usage               = java-runtime
+"""
+
+        and:
+        hasLegacyVariantsLegend()
         doesNotHaveIncubatingVariantsLegend()
     }
 }

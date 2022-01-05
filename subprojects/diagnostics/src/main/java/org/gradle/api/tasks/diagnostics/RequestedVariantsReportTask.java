@@ -126,8 +126,7 @@ public class RequestedVariantsReportTask extends AbstractVariantsReportTask {
         if (formatCapabilities(cnf, projectBackedModule, tree)) {
             tree.println();
         }
-        if (formatAttributes(cnf, tree)) {
-            tree.println();
-        }
+        formatAttributes(cnf, tree);
+        tree.println();
     }
 }
