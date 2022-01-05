@@ -19,7 +19,6 @@ package org.gradle.performance.regression.java
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
-import spock.lang.Ignore
 
 import static org.gradle.performance.annotations.ScenarioType.PER_COMMIT
 import static org.gradle.performance.results.OperatingSystem.LINUX
@@ -29,11 +28,10 @@ import static org.gradle.performance.results.OperatingSystem.LINUX
 )
 class JavaConfigurationPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
-    @Ignore
     def "configure"() {
         given:
         runner.tasksToRun = ['help']
-        runner.targetVersions = ["7.3-20211022000247+0000"]
+        runner.targetVersions = ["7.4-20211214223504+0000"]
 
         when:
         def result = runner.run()

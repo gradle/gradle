@@ -74,6 +74,7 @@ public class ProfileEventAdapter implements InternalBuildListener, ProjectEvalua
         buildProfile.setProjectsEvaluated(clock.getCurrentTime());
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public void buildFinished(BuildResult result) {
         buildProfile.setSuccessful(result.getFailure() == null);

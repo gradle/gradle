@@ -71,9 +71,6 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
                 case 'systemProperty':
                     configurationCacheRun "printString", "-Dstring=$string"
                     break
-                case 'gradleProperty':
-                    configurationCacheRun "printString", "-Pstring=$string"
-                    break
                 case 'environmentVariable':
                     withEnvironmentVars(string: string)
                     configurationCacheRun "printString"
@@ -107,7 +104,7 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
 
         where:
         [operator, orElseKind] << [
-            ['systemProperty', 'gradleProperty', 'environmentVariable'],
+            ['systemProperty', 'environmentVariable'],
             ['primitive', 'provider', 'task output']
         ].combinations()
         orElseArgument = orElseKind == 'primitive'
@@ -156,7 +153,7 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
         configurationCache.assertStateLoaded()
 
         where:
-        operator << ['systemProperty', 'gradleProperty', 'environmentVariable']
+        operator << ['systemProperty', 'environmentVariable']
     }
 
     @Issue("https://github.com/gradle/gradle/issues/13334")
@@ -196,7 +193,7 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
         configurationCache.assertStateLoaded()
 
         where:
-        operator << ['systemProperty', 'gradleProperty', 'environmentVariable']
+        operator << ['systemProperty', 'environmentVariable']
     }
 
     def "system property from #systemPropertySource used as task and build logic input"() {
@@ -344,7 +341,8 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
 
         then:
         output.count("ON CI") == 1
-        configurationCache.assertStateLoaded()
+        // TODO(mlopatkin) maybe revisit this decision if we decide that ValueSources are free to read whatever files they want
+        configurationCache.assertStateStored()
 
         when: "running after changing the property value"
         file("local.properties").text = "ci=false"
@@ -407,7 +405,7 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
         where:
         kind     | option | description | reportedInput
         'system' | 'D'    | 'system'    | "system property 'greeting'"
-        'gradle' | 'P'    | 'Gradle'    | "Gradle property 'greeting'"
+//        'gradle' | 'P'    | 'Gradle'    | "Gradle property 'greeting'"
     }
 
     def "mapped system property used as task input"() {
@@ -465,8 +463,8 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
         def configurationCache = newConfigurationCacheFixture()
         buildKotlinFile """
 
-            val prefix = providers.gradleProperty("messagePrefix")
-            val suffix = providers.gradleProperty("messageSuffix")
+            val prefix = providers.systemProperty("messagePrefix")
+            val suffix = providers.systemProperty("messageSuffix")
             val zipped = prefix.zip(suffix) { p, s -> p + " " + s + "!" }
 
             abstract class PrintLn : DefaultTask() {
@@ -484,14 +482,14 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
         """
 
         when:
-        configurationCacheRun("ok", "-PmessagePrefix=fizz", "-PmessageSuffix=buzz")
+        configurationCacheRun("ok", "-DmessagePrefix=fizz", "-DmessageSuffix=buzz")
 
         then:
         output.count("fizz buzz!") == 1
         configurationCache.assertStateStored()
 
         when:
-        configurationCacheRun("ok", "-PmessagePrefix=foo", "-PmessageSuffix=bar")
+        configurationCacheRun("ok", "-DmessagePrefix=foo", "-DmessageSuffix=bar")
 
         then:
         output.count("foo bar!") == 1
@@ -787,7 +785,7 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
         configurationCache.assertStateStored()
     }
 
-    def "mapped gradleProperty in producer task"() {
+    def "mapped systemProperty in producer task"() {
         given:
         buildFile '''
 
@@ -832,7 +830,7 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
             }
 
             tasks.register("myTask", MyTask.class) {
-                it.getInputCount().set(project.providers.gradleProperty("generateInputs").map { Integer.parseInt(it) })
+                it.getInputCount().set(project.providers.systemProperty("generateInputs").map { Integer.parseInt(it) })
                 it.getOutputDir().set(new File(project.buildDir, "mytask"))
             }
 
@@ -863,14 +861,14 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
         }
 
         when:
-        configurationCacheRun('consumer', '-PgenerateInputs=4')
+        configurationCacheRun('consumer', '-DgenerateInputs=4')
 
         then:
         consumedFileNames() == ['0', '2'] as Set
         configurationCache.assertStateStored()
 
         when:
-        configurationCacheRun('consumer', '-PgenerateInputs=6')
+        configurationCacheRun('consumer', '-DgenerateInputs=6')
 
         then:
         consumedFileNames() == ['0', '2', '4'] as Set

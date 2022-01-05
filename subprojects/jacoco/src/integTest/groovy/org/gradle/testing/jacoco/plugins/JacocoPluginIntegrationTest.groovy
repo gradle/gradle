@@ -19,11 +19,13 @@ package org.gradle.testing.jacoco.plugins
 import org.gradle.api.Project
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.InspectsOutgoingVariants
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testing.jacoco.plugins.fixtures.JacocoReportFixture
 import org.gradle.testing.jacoco.plugins.fixtures.JavaProjectUnderTest
 
-class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
+class JacocoPluginIntegrationTest extends AbstractIntegrationSpec implements InspectsOutgoingVariants {
 
     private final JavaProjectUnderTest javaProjectUnderTest = new JavaProjectUnderTest(testDirectory)
     private static final String REPORTING_BASE = "${Project.DEFAULT_BUILD_DIR_NAME}/${ReportingExtension.DEFAULT_REPORTS_DIR_NAME}"
@@ -144,5 +146,253 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         then:
         errorOutput.contains("JaCoCo destination file must not be null if output type is FILE")
     }
-}
 
+    @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
+    def "jacoco plugin adds outgoing variants for default test suite"() {
+        settingsFile << "rootProject.name = 'Test'"
+
+        expect:
+        succeeds "outgoingVariants"
+
+        def resultsExecPath = new TestFile(getTestDirectory(), 'build/jacoco/test.exec').getRelativePathFromBase()
+        outputContains("""
+            --------------------------------------------------
+            Variant coverageDataElementsForTest (i)
+            --------------------------------------------------
+            Description = Binary data file containing results of Jacoco test coverage reporting for the test Test Suite's test target.
+
+            Capabilities
+                - :Test:unspecified (default capability)
+            Attributes
+                - org.gradle.category              = verification
+                - org.gradle.testsuite.name        = test
+                - org.gradle.testsuite.target.name = test
+                - org.gradle.testsuite.type        = unit-test
+                - org.gradle.verificationtype      = jacoco-coverage
+
+            Artifacts
+                - $resultsExecPath (artifactType = binary)""".stripIndent())
+
+        and:
+        hasIncubatingVariantsLegend()
+    }
+
+    @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
+    def "jacoco plugin adds outgoing variants for custom test suite"() {
+        settingsFile << "rootProject.name = 'Test'"
+
+        buildFile << """
+            testing {
+                suites {
+                    integrationTest(JvmTestSuite) {
+                        testType = TestSuiteType.INTEGRATION_TEST
+
+                        dependencies {
+                            implementation project
+                        }
+                    }
+                }
+            }
+        """.stripIndent()
+
+        expect:
+        succeeds "outgoingVariants"
+
+        def resultsExecPath = new TestFile(getTestDirectory(), 'build/jacoco/integrationTest.exec').getRelativePathFromBase()
+        outputContains("""
+            --------------------------------------------------
+            Variant coverageDataElementsForIntegrationTest (i)
+            --------------------------------------------------
+            Description = Binary data file containing results of Jacoco test coverage reporting for the integrationTest Test Suite's integrationTest target.
+
+            Capabilities
+                - :Test:unspecified (default capability)
+            Attributes
+                - org.gradle.category              = verification
+                - org.gradle.testsuite.name        = integrationTest
+                - org.gradle.testsuite.target.name = integrationTest
+                - org.gradle.testsuite.type        = integration-test
+                - org.gradle.verificationtype      = jacoco-coverage
+
+            Artifacts
+                - $resultsExecPath (artifactType = binary)""".stripIndent())
+
+        and:
+        hasIncubatingVariantsLegend()
+    }
+
+    def "Jacoco coverage data can be consumed by another task via Dependency Management"() {
+        buildFile << """
+            test {
+                jacoco {
+                    destinationFile = layout.buildDirectory.file("jacoco/jacocoData.exec").get().asFile
+                }
+            }
+            """.stripIndent()
+
+        buildFile << """
+            // A resolvable configuration to collect JaCoCo coverage data
+            def coverageDataConfig = configurations.create("coverageData") {
+                visible = true
+                canBeResolved = true
+                canBeConsumed = false
+                attributes {
+                    attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.VERIFICATION))
+                    attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objects.named(VerificationType.class, VerificationType.JACOCO_RESULTS))
+                }
+            }
+
+            dependencies {
+                coverageData project
+            }
+
+            // Extract the artifact view for cc compatibility by providing it as an explicit task input
+            def artifactView = coverageDataConfig.incoming.artifactView { view ->
+                                   view.componentFilter { it in ProjectComponentIdentifier }
+                                   view.lenient = true
+                               }
+
+            def testResolve = tasks.register('testResolve') {
+                inputs.files(artifactView.files)
+                doLast {
+                    assert inputs.files.singleFile.name == 'jacocoData.exec'
+                }
+            }
+            """.stripIndent()
+
+        expect:
+        succeeds('testResolve')
+    }
+
+    def "Jacoco coverage data can be consumed by another task in a different project via Dependency Management"() {
+        def subADir = createDir("subA")
+        final JavaProjectUnderTest subA = new JavaProjectUnderTest(subADir)
+        subA.writeBuildScript()
+        subADir.file("build.gradle") << """
+            test {
+                jacoco {
+                    destinationFile = layout.buildDirectory.file("jacoco/subA.exec").get().asFile
+                }
+            }
+            """.stripIndent()
+
+        def subBDir = createDir("subB")
+        final JavaProjectUnderTest subB = new JavaProjectUnderTest(subBDir)
+        subB.writeBuildScript()
+        subBDir.file("build.gradle") << """
+            test {
+                jacoco {
+                    destinationFile = layout.buildDirectory.file("jacoco/subB.exec").get().asFile
+                }
+            }
+            """.stripIndent()
+
+        settingsFile << """
+            include ':subA'
+            include ':subB'
+            """.stripIndent()
+
+        buildFile << """
+            dependencies {
+                implementation project(':subA')
+                implementation project(':subB')
+            }
+
+            // A resolvable configuration to collect JaCoCo coverage data
+            def coverageDataConfig = configurations.create("coverageData") {
+                visible = false
+                canBeResolved = true
+                canBeConsumed = false
+                extendsFrom(configurations.implementation)
+                attributes {
+                    attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.VERIFICATION))
+                    attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objects.named(VerificationType.class, VerificationType.JACOCO_RESULTS))
+                }
+            }
+
+            // Extract the artifact view for cc compatibility by providing it as an explicit task input
+            def artifactView = coverageDataConfig.incoming.artifactView { view ->
+                                   view.componentFilter { it in ProjectComponentIdentifier }
+                                   view.lenient = true
+                               }
+
+            def testResolve = tasks.register('testResolve') {
+                inputs.files(artifactView.files)
+                doLast {
+                    assert inputs.files*.name == ["subA.exec", "subB.exec"]
+                }
+            }
+            """.stripIndent()
+
+        expect:
+        succeeds('testResolve')
+    }
+
+    def "Jacoco coverage data can be consumed across transitive project dependencies via Dependency Management"() {
+        def directDir = createDir("direct")
+        final JavaProjectUnderTest subDirect = new JavaProjectUnderTest(directDir)
+        subDirect.writeBuildScript()
+        directDir.file("build.gradle") << """
+            dependencies {
+                implementation project(':transitive')
+            }
+
+            test {
+                jacoco {
+                    destinationFile = layout.buildDirectory.file("jacoco/direct.exec").get().asFile
+                }
+            }
+            """.stripIndent()
+
+        def transitiveDir = createDir("transitive")
+        final JavaProjectUnderTest subTransitive = new JavaProjectUnderTest(transitiveDir)
+        subTransitive.writeBuildScript()
+        transitiveDir.file("build.gradle") << """
+            test {
+                jacoco {
+                    destinationFile = layout.buildDirectory.file("jacoco/transitive.exec").get().asFile
+                }
+            }
+            """.stripIndent()
+
+        settingsFile << """
+            include ':direct'
+            include ':transitive'
+            """.stripIndent()
+
+        buildFile << """
+            dependencies {
+                implementation project(':direct')
+            }
+
+            // A resolvable configuration to collect JaCoCo coverage data
+            def coverageDataConfig = configurations.create("coverageData") {
+                visible = false
+                canBeResolved = true
+                canBeConsumed = false
+                extendsFrom(configurations.implementation)
+                attributes {
+                    attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.VERIFICATION))
+                    attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objects.named(VerificationType.class, VerificationType.JACOCO_RESULTS))
+                }
+            }
+
+
+            // Extract the artifact view for cc compatibility by providing it as an explicit task input
+            def artifactView = coverageDataConfig.incoming.artifactView { view ->
+                                   view.componentFilter { it in ProjectComponentIdentifier }
+                                   view.lenient = true
+                               }
+
+            def testResolve = tasks.register('testResolve') {
+                inputs.files(artifactView.files)
+                doLast {
+                    assert inputs.files*.name == ["direct.exec", "transitive.exec"]
+                }
+            }
+            """.stripIndent()
+
+        expect:
+        succeeds('testResolve')
+    }
+}

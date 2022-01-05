@@ -17,6 +17,7 @@
 package org.gradle.internal.execution.fingerprint.impl;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinter;
@@ -77,6 +78,7 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
 
         private final ImmutableSortedMap.Builder<String, ValueSnapshot> valueSnapshotsBuilder = ImmutableSortedMap.naturalOrder();
         private final ImmutableSortedMap.Builder<String, CurrentFileCollectionFingerprint> fingerprintsBuilder = ImmutableSortedMap.naturalOrder();
+        private final ImmutableSet.Builder<String> propertiesRequiringIsEmptyCheck = ImmutableSet.builder();
 
         public InputCollectingVisitor(
             ImmutableSortedMap<String, ValueSnapshot> previousValueSnapshots,
@@ -132,6 +134,9 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
                 FileCollectionFingerprinter fingerprinter = fingerprinterRegistry.getFingerprinter(normalizationSpec);
                 CurrentFileCollectionFingerprint fingerprint = fingerprinter.fingerprint(result.getSnapshot(), previousFingerprint);
                 fingerprintsBuilder.put(propertyName, fingerprint);
+                if (result.containsArchiveTrees()) {
+                    propertiesRequiringIsEmptyCheck.add(propertyName);
+                }
             } catch (Exception e) {
                 throw new InputFileFingerprintingException(propertyName, e);
             }
@@ -155,7 +160,12 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
         }
 
         public Result complete() {
-            return new InputFingerprints(knownCurrentValueSnapshots, valueSnapshotsBuilder.build(), knownCurrentFingerprints, fingerprintsBuilder.build());
+            return new InputFingerprints(
+                knownCurrentValueSnapshots,
+                valueSnapshotsBuilder.build(),
+                knownCurrentFingerprints,
+                fingerprintsBuilder.build(),
+                propertiesRequiringIsEmptyCheck.build());
         }
     }
 
@@ -165,17 +175,20 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
         private final ImmutableSortedMap<String, ValueSnapshot> valueSnapshots;
         private final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> knownCurrentFingerprints;
         private final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fileFingerprints;
+        private final ImmutableSet<String> propertiesRequiringIsEmptyCheck;
 
         public InputFingerprints(
             ImmutableSortedMap<String, ValueSnapshot> knownCurrentValueSnapshots,
             ImmutableSortedMap<String, ValueSnapshot> valueSnapshots,
             ImmutableSortedMap<String, CurrentFileCollectionFingerprint> knownCurrentFingerprints,
-            ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fileFingerprints
+            ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fileFingerprints,
+            ImmutableSet<String> propertiesRequiringIsEmptyCheck
         ) {
             this.knownCurrentValueSnapshots = knownCurrentValueSnapshots;
             this.valueSnapshots = valueSnapshots;
             this.knownCurrentFingerprints = knownCurrentFingerprints;
             this.fileFingerprints = fileFingerprints;
+            this.propertiesRequiringIsEmptyCheck = propertiesRequiringIsEmptyCheck;
         }
 
         public ImmutableSortedMap<String, ValueSnapshot> getValueSnapshots() {
@@ -194,6 +207,11 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
         @Override
         public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getAllFileFingerprints() {
             return union(knownCurrentFingerprints, fileFingerprints);
+        }
+
+        @Override
+        public ImmutableSet<String> getPropertiesRequiringIsEmptyCheck() {
+            return propertiesRequiringIsEmptyCheck;
         }
 
         private static <K extends Comparable<?>, V> ImmutableSortedMap<K, V> union(ImmutableSortedMap<K, V> a, ImmutableSortedMap<K, V> b) {

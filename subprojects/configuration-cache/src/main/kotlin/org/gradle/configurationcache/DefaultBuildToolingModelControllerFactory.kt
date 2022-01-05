@@ -31,7 +31,7 @@ class DefaultBuildToolingModelControllerFactory(
 ) : BuildToolingModelControllerFactory {
     override fun createController(owner: BuildState, controller: BuildLifecycleController): BuildToolingModelController {
         val defaultController = DefaultBuildToolingModelController(owner, controller, controller.gradle.services.get(ToolingModelBuilderLookup::class.java))
-        return if (modelParameters.isProjectScopeModelCache) {
+        return if (modelParameters.isIntermediateModelCache) {
             ConfigurationCacheAwareBuildToolingModelController(defaultController, controller.gradle.services.get(BuildTreeConfigurationCache::class.java))
         } else {
             defaultController

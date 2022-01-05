@@ -62,8 +62,8 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import static org.gradle.internal.execution.fingerprint.InputFingerprinter.InputPropertyType.INCREMENTAL;
 import static org.gradle.internal.execution.fingerprint.InputFingerprinter.InputPropertyType.NON_INCREMENTAL;
-import static org.gradle.internal.execution.fingerprint.InputFingerprinter.InputPropertyType.PRIMARY;
 import static org.gradle.internal.file.TreeType.DIRECTORY;
 import static org.gradle.internal.file.TreeType.FILE;
 
@@ -376,7 +376,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         @Override
         @OverridingMethodsMustInvokeSuper
         public void visitRegularInputs(InputVisitor visitor) {
-            visitor.visitInputFileProperty(INPUT_ARTIFACT_PROPERTY_NAME, PRIMARY,
+            visitor.visitInputFileProperty(INPUT_ARTIFACT_PROPERTY_NAME, INCREMENTAL,
                 new FileValueSupplier(
                     inputArtifactProvider,
                     transformer.getInputArtifactNormalizer(),

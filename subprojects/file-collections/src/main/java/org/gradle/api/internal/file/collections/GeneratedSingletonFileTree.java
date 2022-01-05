@@ -34,7 +34,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
-import java.util.Collections;
 
 /**
  * A generated file tree which is composed using a mapping from relative path to file source.
@@ -101,11 +100,9 @@ public class GeneratedSingletonFileTree implements FileSystemMirroringFileTree, 
     }
 
     @Override
-    public void visitStructure(FileCollectionStructureVisitor visitor, FileTreeInternal owner) {
-        if (visitor.prepareForVisit(this) == FileCollectionStructureVisitor.VisitType.NoContents) {
-            // Visit metadata but not contents
-            visitor.visitCollection(this, Collections.emptyList());
-        } else {
+    public void visitStructure(MinimalFileTreeStructureVisitor visitor, FileTreeInternal owner) {
+        if (visitor.prepareForVisit(this) != FileCollectionStructureVisitor.VisitType.NoContents) {
+            // TODO: Fail when using NoContents when we moved to using the new file system watching infrastructure for continuous build.
             visitor.visitFileTree(getFile(), new PatternSet(), owner);
         }
     }
@@ -144,6 +141,7 @@ public class GeneratedSingletonFileTree implements FileSystemMirroringFileTree, 
             if (file == null) {
                 file = createFileInstance(fileName);
                 if (!file.exists()) {
+                    fileGenerationListener.execute(file);
                     copyTo(file);
                 } else {
                     updateFileOnlyWhenGeneratedContentChanges();

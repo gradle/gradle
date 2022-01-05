@@ -74,7 +74,7 @@ fun BuildSteps.substDirOnWindows(os: Os) {
             scriptContent = """
                 subst p: /d
                 subst p: "%teamcity.build.checkoutDir%"
-                """.trimIndent()
+            """.trimIndent()
         }
         cleanBuildLogicBuild("P:/build-logic-commons")
         cleanBuildLogicBuild("P:/build-logic")
@@ -99,7 +99,7 @@ private fun BuildSteps.cleanBuildLogicBuild(buildDir: String) {
     // This means that we need to clean buildSrc before running for the first time on the subst drive
     // and before running the first time on the original location again.
     gradleWrapper {
-        name = "CLEAN_${buildDir.toUpperCase().replace("[:/%.]".toRegex(), "_")}"
+        name = "CLEAN_${buildDir.uppercase().replace("[:/%.]".toRegex(), "_")}"
         tasks = "clean"
         workingDir = buildDir
         executionMode = BuildStep.ExecutionMode.ALWAYS

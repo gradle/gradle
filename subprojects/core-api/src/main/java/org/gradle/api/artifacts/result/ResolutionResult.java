@@ -18,7 +18,9 @@ package org.gradle.api.artifacts.result;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 import java.util.Set;
@@ -38,6 +40,20 @@ public interface ResolutionResult {
      * @return the root node of the resolved dependency graph
      */
     ResolvedComponentResult getRoot();
+
+    /**
+     * Returns the root of resolved dependency graph as a {@link Provider} of {@link ResolvedComponentResult}.
+     * The returned {@link Provider} is live, and tracks the producer tasks of this resolution result.
+     * The provider will resolve the component metadata as required.
+     *
+     * You can walk the graph recursively from the root to obtain information about resolved dependencies.
+     * For example, Gradle's built-in 'dependencies' task uses this to render the dependency tree.
+     *
+     * @return a provider for the root node of the resolved dependency graph
+     * @since 7.4
+     */
+    @Incubating
+    Provider<ResolvedComponentResult> getRootComponent();
 
     /**
      * Retrieves all dependencies, including unresolved dependencies.

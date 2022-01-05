@@ -52,6 +52,7 @@ class GeneratedSingletonFileTreeSpec extends Specification {
             assert details.file == generatedFile
             assert generatedFile.text == "contents!"
         }
+        1 * generationListener.execute(generatedFile)
         1 * contentWriter.execute(_) >> { OutputStream outputStream ->
             outputStream << "contents!"
         }
@@ -80,7 +81,7 @@ class GeneratedSingletonFileTreeSpec extends Specification {
 
     def "visiting structure eagerly generates content when listener requests content but does not use it"() {
         def owner = Stub(FileTreeInternal)
-        def visitor = Mock(FileCollectionStructureVisitor)
+        def visitor = Mock(MinimalFileTree.MinimalFileTreeStructureVisitor)
         def tmpDir = tmpDir.createDir("dir")
         def generatedFile = tmpDir.file("file.bin")
         def generationListener = Mock(Action)
@@ -98,6 +99,7 @@ class GeneratedSingletonFileTreeSpec extends Specification {
             assert generatedFile.isFile()
             assert generatedFile.text == "contents!"
         }
+        1 * generationListener.execute(generatedFile)
         1 * contentWriter.execute(_) >> { OutputStream outputStream ->
             outputStream << "contents!"
         }
@@ -106,7 +108,7 @@ class GeneratedSingletonFileTreeSpec extends Specification {
 
     def "visiting structure does not generate content when listener does not need it"() {
         def owner = Stub(FileTreeInternal)
-        def visitor = Mock(FileCollectionStructureVisitor)
+        def visitor = Mock(MinimalFileTree.MinimalFileTreeStructureVisitor)
         def tmpDir = tmpDir.createDir("dir")
         def contentWriter = Mock(Action)
         def generationListener = Mock(Action)
@@ -118,7 +120,6 @@ class GeneratedSingletonFileTreeSpec extends Specification {
 
         then:
         1 * visitor.prepareForVisit(fileTree) >> FileCollectionStructureVisitor.VisitType.NoContents
-        1 * visitor.visitCollection(fileTree, [])
         0 * _
     }
 }

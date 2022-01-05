@@ -20,7 +20,7 @@ import org.gradle.api.GradleException
 import org.gradle.configurationcache.extensions.unsafeLazy
 import org.gradle.configurationcache.problems.PropertyKind
 import org.gradle.configurationcache.problems.PropertyTrace
-import org.gradle.configurationcache.serialization.IsolateContext
+import org.gradle.configurationcache.serialization.MutableIsolateContext
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.logPropertyProblem
 import org.gradle.configurationcache.serialization.ownerService
@@ -113,7 +113,7 @@ suspend fun ReadContext.readPropertyValue(kind: PropertyKind, name: String, acti
 
 
 internal
-inline fun <T : IsolateContext, R> T.withPropertyTrace(kind: PropertyKind, name: String, action: () -> R): R =
+inline fun <T : MutableIsolateContext, R> T.withPropertyTrace(kind: PropertyKind, name: String, action: () -> R): R =
     withPropertyTrace(PropertyTrace.Property(kind, name, trace)) {
         action()
     }

@@ -20,16 +20,17 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptModel
+import org.gradle.test.fixtures.Flaky
 import spock.lang.Ignore
 
 import java.lang.reflect.Proxy
 
-
 @TargetGradleVersion(">=6.0")
 @LeaksFileHandles("Kotlin Compiler Daemon taking time to shut down")
-@Ignore('https://github.com/gradle/gradle-private/issues/3414')
+@Flaky(because = 'https://github.com/gradle/gradle-private/issues/3414')
 class KotlinDslScriptsModelCrossVersionSpec extends AbstractKotlinDslScriptsModelCrossVersionSpec {
 
+    @Ignore("https://github.com/gradle/gradle-private/issues/3500")
     def "single request models equal multi requests models"() {
 
         given:

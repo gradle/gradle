@@ -17,10 +17,10 @@
 package org.gradle.kotlin.dsl.tooling.builders.r54
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinScriptModelCrossVersionTest
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
-
-import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinScriptModelCrossVersionTest
+import org.gradle.test.fixtures.Flaky
 import spock.lang.Ignore
 
 import static org.hamcrest.CoreMatchers.hasItems
@@ -28,7 +28,7 @@ import static org.hamcrest.CoreMatchers.startsWith
 import static org.hamcrest.MatcherAssert.assertThat
 
 @TargetGradleVersion(">=5.4")
-@Ignore('https://github.com/gradle/gradle-private/issues/3414')
+@Flaky(because = 'https://github.com/gradle/gradle-private/issues/3414')
 class PrecompiledScriptPluginModelCrossVersionSpec extends AbstractKotlinScriptModelCrossVersionTest {
 
     @LeaksFileHandles("Kotlin Compiler Daemon working directory")
@@ -69,6 +69,7 @@ class PrecompiledScriptPluginModelCrossVersionSpec extends AbstractKotlinScriptM
         )
     }
 
+    @Ignore("https://github.com/gradle/gradle-private/issues/3500")
     def "given a multi-project build, the classpath of a precompiled script plugin is the compile classpath of its enclosing source-set"() {
 
         given:

@@ -24,6 +24,7 @@ import org.gradle.api.provider.Provider
 import org.gradle.api.provider.SetProperty
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestBuildCache
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.Actions
 import org.gradle.internal.reflect.problems.ValidationProblemId
@@ -860,6 +861,7 @@ task someTask(type: SomeTask) {
         }
     }
 
+    @ToBeFixedForConfigurationCache
     def "input and output properties are not evaluated too often"() {
         buildFile << """
             import org.gradle.api.services.BuildServiceParameters
@@ -963,20 +965,18 @@ task someTask(type: SomeTask) {
                 def gradleProperties = propertyNames.collectEntries { [(it) : providers.gradleProperty(it)]}
                 doLast {
                     ['outputFileCount', 'inputFileCount', 'inputValueCount', 'nestedInputCount', 'nestedInputValueCount'].each { name ->
-                        assert evaluationCount.get()."\$name" == gradleProperties[name].get() as Integer
+                        def actualCount = evaluationCount.get()."\$name"
+                        def expectedCount = gradleProperties[name].get() as Integer
+                        assert actualCount == expectedCount : name
                     }
                 }
             }
         """
         def inputFile = file('input.txt')
         inputFile.text = "input"
-        def expectedCounts = [inputFile: 3, outputFile: 2, nestedInput: 2, inputValue: 1, nestedInputValue: 1]
-        def expectedIncrementalCounts = GradleContextualExecuter.configCache ?
-            [inputFile: 2, outputFile: 2, nestedInput: 1, inputValue: 1, nestedInputValue: 1]
-            : expectedCounts
-        def expectedUpToDateCounts = GradleContextualExecuter.configCache ?
-            [inputFile: 1, outputFile: 1, nestedInput: 1, inputValue: 1, nestedInputValue: 1]
-            : [inputFile: 2, outputFile: 1, nestedInput: 2, inputValue: 1, nestedInputValue: 1]
+        def expectedCounts = [inputFile: 3, outputFile: 2, nestedInput: 3, inputValue: 1, nestedInputValue: 1]
+        def expectedIncrementalCounts = expectedCounts
+        def expectedUpToDateCounts = [inputFile: 2, outputFile: 1, nestedInput: 3, inputValue: 1, nestedInputValue: 1]
         def arguments = ["assertInputCounts"] + expectedCounts.collect { name, count -> "-P${name}Count=${count}" }
         def incrementalBuildArguments = ["assertInputCounts"] + expectedIncrementalCounts.collect { name, count -> "-P${name}Count=${count}" }
         def upToDateArguments = ["assertInputCounts"] + expectedUpToDateCounts.collect { name, count -> "-P${name}Count=${count}" }

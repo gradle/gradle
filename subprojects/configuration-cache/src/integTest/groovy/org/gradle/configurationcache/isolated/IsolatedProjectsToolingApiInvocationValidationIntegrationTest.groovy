@@ -36,7 +36,7 @@ class IsolatedProjectsToolingApiInvocationValidationIntegrationTest extends Abst
         fetchModelFails()
 
         then:
-        fixture.assertStateStoreFailed {
+        fixture.assertStateStoredAndDiscarded {
             projectConfigured(":buildSrc")
             modelsCreated(":")
             problem("Build file 'build.gradle': Cannot access project ':a' from project ':'")
@@ -48,7 +48,7 @@ class IsolatedProjectsToolingApiInvocationValidationIntegrationTest extends Abst
         fetchModelFails()
 
         then:
-        fixture.assertStateStoreFailed {
+        fixture.assertStateStoredAndDiscarded {
             projectConfigured(":buildSrc")
             modelsCreated(":")
             problem("Build file 'build.gradle': Cannot access project ':a' from project ':'")
@@ -74,7 +74,7 @@ class IsolatedProjectsToolingApiInvocationValidationIntegrationTest extends Abst
         fetchModelFails()
 
         then:
-        fixture.assertStateStoreFailed {
+        fixture.assertStateStoredAndDiscarded {
             projectConfigured(":buildSrc")
             modelsCreated(":")
             problem("Plugin class 'my.MyPlugin': Cannot access project ':a' from project ':'")
@@ -86,7 +86,7 @@ class IsolatedProjectsToolingApiInvocationValidationIntegrationTest extends Abst
         fetchModelFails()
 
         then:
-        fixture.assertStateStoreFailed {
+        fixture.assertStateStoredAndDiscarded {
             projectConfigured(":buildSrc")
             modelsCreated(":")
             problem("Plugin class 'my.MyPlugin': Cannot access project ':a' from project ':'")
@@ -110,7 +110,7 @@ class IsolatedProjectsToolingApiInvocationValidationIntegrationTest extends Abst
         fetchModelFails()
 
         then:
-        fixture.assertStateStoreFailed {
+        fixture.assertStateStoredAndDiscarded {
             projectConfigured(":buildSrc")
             modelsCreated(":")
             problem("Build file 'build.gradle': registration of listener on 'Gradle.buildFinished' is unsupported")
@@ -121,7 +121,7 @@ class IsolatedProjectsToolingApiInvocationValidationIntegrationTest extends Abst
         fetchModelFails()
 
         then:
-        fixture.assertStateStoreFailed {
+        fixture.assertStateStoredAndDiscarded {
             projectConfigured(":buildSrc")
             modelsCreated(":")
             problem("Build file 'build.gradle': registration of listener on 'Gradle.buildFinished' is unsupported")
@@ -145,7 +145,7 @@ class IsolatedProjectsToolingApiInvocationValidationIntegrationTest extends Abst
         fetchModelFails()
 
         then:
-        fixture.assertStateStoreFailed {
+        fixture.assertStateStoredAndDiscarded {
             projectConfigured(":buildSrc")
             modelsCreated(":")
             problem("Plugin class 'my.MyPlugin': registration of listener on 'Gradle.buildFinished' is unsupported")
@@ -156,7 +156,7 @@ class IsolatedProjectsToolingApiInvocationValidationIntegrationTest extends Abst
         fetchModelFails()
 
         then:
-        fixture.assertStateStoreFailed {
+        fixture.assertStateStoredAndDiscarded {
             projectConfigured(":buildSrc")
             modelsCreated(":")
             problem("Plugin class 'my.MyPlugin': registration of listener on 'Gradle.buildFinished' is unsupported")

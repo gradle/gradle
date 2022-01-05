@@ -232,7 +232,7 @@ class ConfigurationCacheFingerprintCheckerTest {
 
         val checkedFingerprint = readContext.runReadOperation {
             ConfigurationCacheFingerprintChecker(host).run {
-                checkFingerprint()
+                checkBuildScopedFingerprint()
             }
         }
         return when (checkedFingerprint) {
@@ -308,6 +308,9 @@ class ConfigurationCacheFingerprintCheckerTest {
             undefined()
 
         override fun pop(): Unit =
+            undefined()
+
+        override suspend fun forIncompatibleType(action: suspend () -> Unit) =
             undefined()
 
         override fun writeNullableString(value: CharSequence?): Unit =
@@ -405,6 +408,9 @@ class ConfigurationCacheFingerprintCheckerTest {
             undefined()
 
         override fun pop(): Unit =
+            undefined()
+
+        override suspend fun forIncompatibleType(action: suspend () -> Unit) =
             undefined()
 
         override fun readInt(): Int =

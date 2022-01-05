@@ -4,6 +4,8 @@ plugins {
     id("gradlebuild.distribution.implementation-java")
 }
 
+description = "A library that aids in testing Gradle plugins and build logic in general"
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":core-api"))
@@ -14,6 +16,12 @@ dependencies {
     implementation(project(":file-temp"))
     implementation(libs.commonsIo)
     api(libs.groovyTest)
+
+    testFixturesImplementation(project(":internal-integ-testing"))
+    testFixturesImplementation(project(":launcher"))
+    testFixturesImplementation(project(":tooling-api"))
+    testFixturesImplementation(project(":wrapper"))
+    testFixturesImplementation(testFixtures(project(":core")))
 
     testImplementation(libs.guava)
     testImplementation(testFixtures(project(":core")))

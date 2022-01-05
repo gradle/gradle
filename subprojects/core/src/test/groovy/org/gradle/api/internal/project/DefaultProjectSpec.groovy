@@ -148,7 +148,7 @@ class DefaultProjectSpec extends Specification {
         nestedChild2.identityPath == Path.path(":nested:child1:child2")
     }
 
-    def project(String name, ProjectInternal parent, GradleInternal build) {
+    ProjectInternal project(String name, ProjectInternal parent, GradleInternal build) {
         def serviceRegistryFactory = Stub(ServiceRegistryFactory)
         def serviceRegistry = Stub(ServiceRegistry)
 
@@ -174,6 +174,7 @@ class DefaultProjectSpec extends Specification {
         return Spy(DefaultProject, constructorArgs: [name, parent, projectDir, new File("build file"), Stub(ScriptSource), build, container, serviceRegistryFactory, Stub(ClassLoaderScope), Stub(ClassLoaderScope)]) {
             getFileOperations() >> fileOperations
             getObjects() >> objectFactory
+            getCrossProjectModelAccess() >> Stub(CrossProjectModelAccess)
         }
     }
 }

@@ -36,6 +36,28 @@ class PotentialConflictFactory {
         return NO_CONFLICT;
     }
 
+    static PotentialConflict alreadyKnownConflict(ModuleIdentifier identifier) {
+        return new AlreadyKnownConflict(identifier);
+    }
+
+    private static class AlreadyKnownConflict implements PotentialConflict {
+        private final ModuleIdentifier identifier;
+
+        private AlreadyKnownConflict(ModuleIdentifier identifier) {
+            this.identifier = identifier;
+        }
+
+        @Override
+        public void withParticipatingModules(Action<ModuleIdentifier> action) {
+            action.execute(identifier);
+        }
+
+        @Override
+        public boolean conflictExists() {
+            return true;
+        }
+    }
+
     private static class HasConflict implements PotentialConflict {
 
         private final Set<ModuleIdentifier> participants;

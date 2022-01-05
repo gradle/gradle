@@ -22,7 +22,7 @@ import spock.lang.Ignore
 
 @TargetGradleVersion(">=6.0")
 @LeaksFileHandles("Kotlin Compiler Daemon taking time to shut down")
-@Ignore('https://github.com/gradle/gradle-private/issues/3414')
+@Ignore("https://github.com/gradle/gradle-private/issues/3500")
 class KotlinDslDefaultScriptsModelCrossVersionSpec extends AbstractKotlinDslScriptsModelCrossVersionSpec {
 
 

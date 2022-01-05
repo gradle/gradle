@@ -47,7 +47,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
                 group = 'test'
                 configurations { create("default") }
                 task producer(type: FileProducer) {
-                    content = providers.gradleProperty("\${project.name}Content").orElse("content")
+                    content = providers.systemProperty("\${project.name}Content").orElse("content")
                     output = layout.buildDirectory.file("\${project.name}.out")
                 }
                 configurations.default.outgoing.artifact(producer.output)
@@ -98,7 +98,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         outputContains("result = [a.thing, b.thing, a.out, b.out, lib1-6500.jar]")
 
         when:
-        configurationCacheRun(":resolve", "-PaContent=changed")
+        configurationCacheRun(":resolve", "-DaContent=changed")
 
         then:
         configurationCache.assertStateLoaded()
@@ -143,7 +143,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         outputContains("variant capabilities = [[], [], [capability group='test', name='a', version='unspecified'], [capability group='test', name='b', version='unspecified'], [capability group='group', name='lib1', version='6500']]")
 
         when:
-        configurationCacheRun(":resolve", "-PaContent=changed")
+        configurationCacheRun(":resolve", "-DaContent=changed")
 
         then:
         configurationCache.assertStateLoaded()
@@ -172,7 +172,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
             subprojects {
                 configurations { create("default") }
                 task producer(type: FileProducer) {
-                    content = providers.gradleProperty("\${project.name}Content").orElse("0")
+                    content = providers.systemProperty("\${project.name}Content").orElse("0")
                     output = layout.buildDirectory.file("\${project.name}.out")
                 }
                 configurations.default.outgoing.artifact(producer.output)
@@ -206,7 +206,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         file('out.txt').text == "10,10"
 
         when:
-        configurationCacheRun(":resolve", "-PaContent=2")
+        configurationCacheRun(":resolve", "-DaContent=2")
 
         then:
         configurationCache.assertStateLoaded()
@@ -262,7 +262,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         outputContains("result = [a.jar.green, b.jar.green]")
 
         when:
-        configurationCacheRun(":resolve", "-PaContent=changed")
+        configurationCacheRun(":resolve", "-DaContent=changed")
 
         then:
         configurationCache.assertStateLoaded()
@@ -306,7 +306,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         outputContains("variants = [{artifactType=jar, color=green}, {artifactType=jar, color=green}]")
 
         when:
-        configurationCacheRun(":resolveArtifacts", "-PaContent=changed")
+        configurationCacheRun(":resolveArtifacts", "-DaContent=changed")
 
         then:
         configurationCache.assertStateLoaded()
@@ -636,7 +636,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         outputContains("result = [a.jar.red.green, b.jar.red.green")
 
         when:
-        configurationCacheRun(":resolve", "-PaContent=changed")
+        configurationCacheRun(":resolve", "-DaContent=changed")
 
         then:
         configurationCache.assertStateLoaded()
@@ -686,7 +686,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         outputContains("result = [a.jar.green, b.jar.green]")
 
         when:
-        configurationCacheRun(":resolve", "-PaContent=changed")
+        configurationCacheRun(":resolve", "-DaContent=changed")
 
         then:
         configurationCache.assertStateLoaded()
@@ -745,7 +745,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         outputContains("result = [a.jar.green, b.jar.green, c.jar.green]")
 
         when:
-        configurationCacheRun(":resolve", "-PbContent=changed")
+        configurationCacheRun(":resolve", "-DbContent=changed")
 
         then:
         configurationCache.assertStateLoaded()
@@ -880,7 +880,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         outputContains("result = [a.jar.red.green, b.jar.red.green, c.jar.red.green]")
 
         when:
-        configurationCacheRun(":resolve", "-PbContent=changed")
+        configurationCacheRun(":resolve", "-DbContent=changed")
 
         then:
         configurationCache.assertStateLoaded()

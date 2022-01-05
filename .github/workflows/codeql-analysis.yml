@@ -42,8 +42,9 @@ jobs:
 
     # Install and setup JDK 11
     - name: Setup JDK 11
-      uses: actions/setup-java@v1
+      uses: actions/setup-java@v2
       with:
+        distribution: temurin
         java-version: 11
 
     # Initializes the CodeQL tools for scanning.
@@ -58,10 +59,13 @@ jobs:
 
     - name: Compile with Gradle with Build Scan
       if: ${{ matrix.language == 'java' && github.repository_owner == 'gradle' }}
-      run: ./gradlew --no-configuration-cache --init-script .github/workflows/codeql-analysis.init.gradle -DcacheNode=us -S testClasses
+      run: ./gradlew --no-configuration-cache --init-script .github/workflows/codeql-analysis.init.gradle -DcacheNode=us -S testClasses -Dhttp.keepAlive=false
       env:
         # Set the GRADLE_ENTERPRISE_ACCESS_KEY so that Gradle Build Scans are generated
         GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
+        # Potential stop-gap solution for ReadTimeout issues with the Gradle Build Cache
+        # https://gradle.slack.com/archives/CHDLT99C6/p1636477584059200
+        GRADLE_OPTS: -Dhttp.keepAlive=false
 
     - name: Compile with Gradle without Build Scan
       if: ${{ matrix.language == 'java' && github.repository_owner != 'gradle' }}

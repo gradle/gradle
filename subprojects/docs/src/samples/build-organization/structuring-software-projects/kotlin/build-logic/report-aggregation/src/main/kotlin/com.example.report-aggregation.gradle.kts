@@ -11,7 +11,7 @@ val aggregate by configurations.creating {
 }
 
 // Resolvable configuration to resolve the classes of all dependencies
-val classPath by configurations.creating {
+val classesPath by configurations.creating {
     isVisible = false
     isCanBeResolved = true
     isCanBeConsumed = false
@@ -20,7 +20,6 @@ val classPath by configurations.creating {
         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
         attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
         attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.CLASSES))
-        attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling.EXTERNAL))
     }
 }
 
@@ -31,9 +30,8 @@ val sourcesPath by configurations.creating {
     isCanBeConsumed = false
     extendsFrom(aggregate)
     attributes {
-        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
-        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.DOCUMENTATION))
-        attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named("source-folders"))
+        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.VERIFICATION))
+        attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objects.named(VerificationType.MAIN_SOURCES))
     }
 }
 
@@ -44,15 +42,14 @@ val coverageDataPath by configurations.creating {
     isCanBeConsumed = false
     extendsFrom(aggregate)
     attributes {
-        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
-        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.DOCUMENTATION))
-        attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named("jacoco-coverage-data"))
+        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.VERIFICATION))
+        attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objects.named(VerificationType.JACOCO_RESULTS))
     }
 }
 
 // Register a code coverage report task to generate the aggregated report
 val codeCoverageReport by tasks.registering(JacocoReport::class) {
-    additionalClassDirs(classPath.filter { it.isDirectory() })
+    additionalClassDirs(classesPath.filter { it.isDirectory() })
     additionalSourceDirs(sourcesPath.incoming.artifactView { lenient(true) }.files)
     executionData(coverageDataPath.incoming.artifactView { lenient(true) }.files.filter { it.exists() })
 

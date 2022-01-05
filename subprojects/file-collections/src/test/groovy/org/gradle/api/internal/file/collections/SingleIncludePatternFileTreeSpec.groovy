@@ -17,7 +17,6 @@ package org.gradle.api.internal.file.collections
 
 import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.file.FileVisitor
-import org.gradle.api.internal.file.FileCollectionStructureVisitor
 import org.gradle.api.internal.file.FileTreeInternal
 import org.gradle.api.specs.Spec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -67,7 +66,7 @@ class SingleIncludePatternFileTreeSpec extends Specification {
     def "visits structure"() {
         def spec = Stub(Spec)
         def owner = Stub(FileTreeInternal)
-        def visitor = Mock(FileCollectionStructureVisitor)
+        def visitor = Mock(MinimalFileTree.MinimalFileTreeStructureVisitor)
 
         fileTree = new SingleIncludePatternFileTree(tempDir.testDirectory, "pattern", spec)
 

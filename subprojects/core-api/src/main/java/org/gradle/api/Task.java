@@ -25,6 +25,7 @@ import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.services.BuildService;
+import org.gradle.api.services.BuildServiceRegistration;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
@@ -199,6 +200,8 @@ public interface Task extends Comparable<Task>, ExtensionAware {
     /**
      * <p>Returns the {@link Project} which this task belongs to.</p>
      *
+     * <p>Calling this method from a task action is not supported when configuration caching is enabled.</p>
+     *
      * @return The project this task belongs to. Never returns null.
      */
     @Internal
@@ -222,6 +225,8 @@ public interface Task extends Comparable<Task>, ExtensionAware {
 
     /**
      * <p>Returns a {@link TaskDependency} which contains all the tasks that this task depends on.</p>
+     *
+     * <p>Calling this method from a task action is not supported when configuration caching is enabled.</p>
      *
      * @return The dependencies of this task. Never returns null.
      */
@@ -278,6 +283,14 @@ public interface Task extends Comparable<Task>, ExtensionAware {
     @Incubating
     @Internal
     void doNotTrackState(String reasonNotToTrackState);
+
+    /**
+     * Specifies that this task is not compatible with the configuration cache.
+     *
+     * @since 7.4
+     */
+    @Incubating
+    void notCompatibleWithConfigurationCache(String reason);
 
     /**
      * <p>Execute the task only if the given spec is satisfied. The spec will be evaluated at task execution time, not
@@ -765,7 +778,8 @@ public interface Task extends Comparable<Task>, ExtensionAware {
     Property<Duration> getTimeout();
 
     /**
-     * Registers a {@link BuildService} that is used by this task.
+     * Registers a {@link BuildService} that is used by this task so
+     * {@link BuildServiceRegistration#getMaxParallelUsages() its constraint on parallel execution} can be honored.
      *
      * @param service The service provider.
      * @since 6.1

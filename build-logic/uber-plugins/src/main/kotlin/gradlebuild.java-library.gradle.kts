@@ -30,5 +30,4 @@ plugins {
     id("gradlebuild.cross-version-tests")
     id("gradlebuild.ci-lifecycle")
     id("gradlebuild.ci-reporting") // CI: Prepare reports to be uploaded to TeamCity
-    id("gradlebuild.spotless")
 }

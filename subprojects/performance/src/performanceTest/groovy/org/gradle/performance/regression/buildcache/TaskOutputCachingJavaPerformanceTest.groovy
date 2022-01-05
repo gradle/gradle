@@ -37,7 +37,7 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCachingPerf
         runner.warmUpRuns = 11
         runner.runs = 21
         runner.minimumBaseVersion = "3.5"
-        runner.targetVersions = ["7.3-20211022000247+0000"]
+        runner.targetVersions = ["7.5-20211227231450+0000"]
     }
 
     def "clean assemble with remote http cache"() {

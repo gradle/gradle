@@ -75,11 +75,11 @@ asciidoctorj {
 tasks.withType(AsciidoctorTask).configureEach { task ->
     if (task.name == "userguideSinglePagePdf") {
         task.asciidoctorj.docExtensions(
-            project.getDependencies().create("org.gradle:docs-asciidoctor-extensions-base:0.11.0"),
+            project.getDependencies().create("org.gradle:docs-asciidoctor-extensions-base:0.12.0"),
         )
     } else {
         task.asciidoctorj.docExtensions(
-            project.getDependencies().create("org.gradle:docs-asciidoctor-extensions:0.11.0"),
+            project.getDependencies().create("org.gradle:docs-asciidoctor-extensions:0.12.0"),
             project.getDependencies().create(project.files("src/main/resources"))
         )
     }
@@ -144,6 +144,9 @@ samples {
         }
         javaJunit5TestForListLibrary {
             target = "list"
+        }
+        javaJunit5TestForUtilitiesLibrary {
+            target = "utilities"
         }
         javaJunit5IntegrationTestForApplication {
             target = "application"
@@ -360,9 +363,23 @@ samples {
                 from(templates.buildSrcPluginJavaModuleTransform)
             }
         }
-        jvmMultiProjectWithCodeCoverage {
-            sampleDirectory = samplesRoot.dir("java/jvm-multi-project-with-code-coverage")
-            displayName = "Reporting code coverage with JaCoCo"
+        jvmMultiProjectWithCodeCoverageDistribution {
+            sampleDirectory = samplesRoot.dir("incubating/java/jvm-multi-project-with-code-coverage-distribution")
+            displayName = "Aggregating code coverage with JaCoCo from an application/distribution (Incubating)"
+            description = "Report code coverage on the application/distribution of a multi-module project using link:https://www.jacoco.org/jacoco/[JaCoCo]."
+            category = "Java"
+            common {
+                from(templates.javaApplicationAsSubproject)
+                from(templates.javaListLibraryAsSubproject)
+                from(templates.javaUtilitiesLibraryAsSubproject)
+                from(templates.javaJunit5TestForApplication)
+                from(templates.javaJunit5TestForListLibrary)
+                from(templates.javaJunit5TestForUtilitiesLibrary)
+            }
+        }
+        jvmMultiProjectWithCodeCoverageStandalone {
+            sampleDirectory = samplesRoot.dir("incubating/java/jvm-multi-project-with-code-coverage-standalone")
+            displayName = "Aggregating code coverage with JaCoCo using a standalone utility project (Incubating)"
             description = "Report code coverage on a multi-module project using link:https://www.jacoco.org/jacoco/[JaCoCo]."
             category = "Java"
             common {
@@ -371,6 +388,35 @@ samples {
                 from(templates.javaUtilitiesLibraryAsSubproject)
                 from(templates.javaJunit5TestForApplication)
                 from(templates.javaJunit5TestForListLibrary)
+                from(templates.javaJunit5TestForUtilitiesLibrary)
+            }
+        }
+        jvmMultiProjectWithTestAggregationDistribution {
+            sampleDirectory = samplesRoot.dir("incubating/java/jvm-multi-project-with-test-aggregation-distribution")
+            displayName = "Aggregating test results of an application/distribution (Incubating)"
+            description = "Report all test results using the application/distribution of a multi-module project."
+            category = "Java"
+            common {
+                from(templates.javaApplicationAsSubproject)
+                from(templates.javaListLibraryAsSubproject)
+                from(templates.javaUtilitiesLibraryAsSubproject)
+                from(templates.javaJunit5TestForApplication)
+                from(templates.javaJunit5TestForListLibrary)
+                from(templates.javaJunit5TestForUtilitiesLibrary)
+            }
+        }
+        jvmMultiProjectWithTestAggregationStandalone {
+            sampleDirectory = samplesRoot.dir("incubating/java/jvm-multi-project-with-test-aggregation-standalone")
+            displayName = "Aggregating test results using a standalone utility project (Incubating)"
+            description = "Report all test results using a standalone utility project as part of a multi-module project."
+            category = "Java"
+            common {
+                from(templates.javaApplicationAsSubproject)
+                from(templates.javaListLibraryAsSubproject)
+                from(templates.javaUtilitiesLibraryAsSubproject)
+                from(templates.javaJunit5TestForApplication)
+                from(templates.javaJunit5TestForListLibrary)
+                from(templates.javaJunit5TestForUtilitiesLibrary)
             }
         }
         publishingJavaLibraries {

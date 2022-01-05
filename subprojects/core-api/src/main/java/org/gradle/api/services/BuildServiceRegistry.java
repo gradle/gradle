@@ -17,7 +17,6 @@
 package org.gradle.api.services;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.provider.Provider;
@@ -29,7 +28,6 @@ import org.gradle.api.provider.Provider;
  *
  * @since 6.1
  */
-@Incubating
 public interface BuildServiceRegistry {
     /**
      * Returns the set of service registrations.

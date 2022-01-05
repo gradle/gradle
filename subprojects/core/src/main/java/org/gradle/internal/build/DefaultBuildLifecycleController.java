@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+@SuppressWarnings("deprecation")
 public class DefaultBuildLifecycleController implements BuildLifecycleController {
     private enum State implements StateTransitionController.State {
         // Configuring the build, can access build model

@@ -49,6 +49,7 @@ import org.gradle.plugin.management.PluginManagementSpec;
 import org.gradle.plugin.management.internal.PluginManagementSpecInternal;
 import org.gradle.vcs.SourceControl;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayList;
@@ -75,14 +76,16 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
     private final List<IncludedBuildSpec> includedBuildSpecs = new ArrayList<>();
     private final DependencyResolutionManagementInternal dependencyResolutionManagement;
 
-    public DefaultSettings(ServiceRegistryFactory serviceRegistryFactory,
-                           GradleInternal gradle,
-                           ClassLoaderScope classLoaderScope,
-                           ClassLoaderScope baseClassLoaderScope,
-                           ScriptHandler settingsScriptHandler,
-                           File settingsDir,
-                           ScriptSource settingsScript,
-                           StartParameter startParameter) {
+    public DefaultSettings(
+        ServiceRegistryFactory serviceRegistryFactory,
+        GradleInternal gradle,
+        ClassLoaderScope classLoaderScope,
+        ClassLoaderScope baseClassLoaderScope,
+        ScriptHandler settingsScriptHandler,
+        File settingsDir,
+        ScriptSource settingsScript,
+        StartParameter startParameter
+    ) {
         this.gradle = gradle;
         this.classLoaderScope = classLoaderScope;
         this.baseClassLoaderScope = baseClassLoaderScope;
@@ -120,7 +123,7 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
         return scriptHandler;
     }
 
-    public DefaultProjectDescriptor createProjectDescriptor(DefaultProjectDescriptor parent, String name, File dir) {
+    public DefaultProjectDescriptor createProjectDescriptor(@Nullable DefaultProjectDescriptor parent, String name, File dir) {
         return new DefaultProjectDescriptor(parent, name, dir, getProjectDescriptorRegistry(), getFileResolver());
     }
 
@@ -171,8 +174,7 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
     }
 
     @Override
-    @Deprecated
-    public void includeFlat(String... projectNames) {
+    public void includeFlat(Iterable<String> projectNames) {
         for (String projectName : projectNames) {
             createProjectDescriptor(rootProjectDescriptor, projectName,
                 new File(rootProjectDescriptor.getProjectDir().getParentFile(), projectName));

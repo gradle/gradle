@@ -24,11 +24,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 class DefaultGradleProperties implements GradleProperties {
-    final Map<String, String> defaultProperties;
-    final Map<String, String> overrideProperties;
-    final ImmutableMap<String, String> gradleProperties;
+    private final Map<String, Object> defaultProperties;
+    private final Map<String, Object> overrideProperties;
+    private final ImmutableMap<String, Object> gradleProperties;
 
-    public DefaultGradleProperties(Map<String, String> defaultProperties, Map<String, String> overrideProperties) {
+    public DefaultGradleProperties(
+        Map<String, Object> defaultProperties,
+        Map<String, Object> overrideProperties
+    ) {
         this.defaultProperties = defaultProperties;
         this.overrideProperties = overrideProperties;
         gradleProperties = immutablePropertiesWith(ImmutableMap.of());
@@ -36,23 +39,23 @@ class DefaultGradleProperties implements GradleProperties {
 
     @Nullable
     @Override
-    public String find(String propertyName) {
+    public Object find(String propertyName) {
         return gradleProperties.get(propertyName);
     }
 
     @Override
-    public Map<String, String> mergeProperties(Map<String, String> properties) {
+    public Map<String, Object> mergeProperties(Map<String, Object> properties) {
         return properties.isEmpty()
             ? gradleProperties
             : immutablePropertiesWith(properties);
     }
 
-    ImmutableMap<String, String> immutablePropertiesWith(Map<String, String> properties) {
+    ImmutableMap<String, Object> immutablePropertiesWith(Map<String, Object> properties) {
         return ImmutableMap.copyOf(mergePropertiesWith(properties));
     }
 
-    Map<String, String> mergePropertiesWith(Map<String, String> properties) {
-        Map<String, String> result = new HashMap<>();
+    Map<String, Object> mergePropertiesWith(Map<String, Object> properties) {
+        Map<String, Object> result = new HashMap<>();
         result.putAll(defaultProperties);
         result.putAll(properties);
         result.putAll(overrideProperties);

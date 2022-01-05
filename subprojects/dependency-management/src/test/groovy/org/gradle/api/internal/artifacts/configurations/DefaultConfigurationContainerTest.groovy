@@ -20,14 +20,16 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.UnknownConfigurationException
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter
 import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
+import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.LocalComponentMetadataBuilder
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultRootComponentMetadataBuilder
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.RootScriptDomainObjectContext
@@ -48,9 +50,10 @@ import spock.lang.Specification
 class DefaultConfigurationContainerTest extends Specification {
 
     private ConfigurationResolver resolver = Mock(ConfigurationResolver)
-    private ListenerManager listenerManager = Stub(ListenerManager.class)
+    private ListenerManager listenerManager = Stub(ListenerManager.class) {
+        _ * getBroadcaster(ProjectDependencyObservedListener.class) >> Stub(ProjectDependencyObservedListener)
+    }
     private DependencyMetaDataProvider metaDataProvider = Mock(DependencyMetaDataProvider.class)
-    private LocalComponentMetadataBuilder metaDataBuilder = Mock(LocalComponentMetadataBuilder)
     private ComponentIdentifierFactory componentIdentifierFactory = Mock(ComponentIdentifierFactory)
     private DependencySubstitutionRules globalSubstitutionRules = Mock(DependencySubstitutionRules)
     private VcsMappingsStore vcsMappingsInternal = Mock(VcsMappingsStore)
@@ -70,32 +73,46 @@ class DefaultConfigurationContainerTest extends Specification {
         }
     }
     private ComponentSelectorConverter componentSelectorConverter = Mock()
-    private DefaultConfigurationContainer configurationContainer = instantiator.newInstance(DefaultConfigurationContainer.class,
-        resolver,
+    private DomainObjectContext domainObjectContext = new RootScriptDomainObjectContext()
+    private DefaultRootComponentMetadataBuilder.Factory rootComponentMetadataBuilderFactory = Mock(DefaultRootComponentMetadataBuilder.Factory) {
+        create(_) >> Mock(DefaultRootComponentMetadataBuilder)
+    }
+    private DefaultConfigurationFactory configurationFactory = new DefaultConfigurationFactory(
         instantiator,
-        new RootScriptDomainObjectContext(),
+        resolver,
         listenerManager,
         metaDataProvider,
-        metaDataBuilder,
+        domainObjectContext,
         TestFiles.fileCollectionFactory(),
+        buildOperationExecutor,
+        new PublishArtifactNotationParserFactory(
+            instantiator,
+            metaDataProvider,
+            taskResolver,
+            TestFiles.resolver(),
+        ),
+        immutableAttributesFactory,
+        documentationRegistry,
+        userCodeApplicationContext,
+        projectStateRegistry,
+        Mock(WorkerThreadRegistry),
+        TestUtil.domainObjectCollectionFactory(),
+        calculatedValueContainerFactory
+    )
+    private DefaultConfigurationContainer configurationContainer = instantiator.newInstance(DefaultConfigurationContainer.class,
+        instantiator,
         globalSubstitutionRules,
         vcsMappingsInternal,
         componentIdentifierFactory,
-        buildOperationExecutor,
-        taskResolver,
         immutableAttributesFactory,
         moduleIdentifierFactory,
         componentSelectorConverter,
         lockingProvider,
-        projectStateRegistry,
-        calculatedValueContainerFactory,
-        documentationRegistry,
         callbackActionDecorator,
-        userCodeApplicationContext,
-        Mock(WorkerThreadRegistry),
-        TestUtil.domainObjectCollectionFactory(),
         Mock(NotationParser),
-        TestUtil.objectFactory()
+        TestUtil.objectFactory(),
+        rootComponentMetadataBuilderFactory,
+        configurationFactory
     )
 
     def addsNewConfigurationWhenConfiguringSelf() {

@@ -15,10 +15,13 @@
  */
 package org.gradle.api.internal;
 
-import java.util.Collections;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
+
 import java.util.EnumSet;
 import java.util.Set;
 
+@ServiceScope(Scopes.BuildSession.class)
 public class FeaturePreviews {
 
     /**
@@ -29,8 +32,9 @@ public class FeaturePreviews {
         GROOVY_COMPILATION_AVOIDANCE(true),
         ONE_LOCKFILE_PER_PROJECT(false),
         VERSION_ORDERING_V2(false),
-        VERSION_CATALOGS(true),
-        TYPESAFE_PROJECT_ACCESSORS(true);
+        VERSION_CATALOGS(false),
+        TYPESAFE_PROJECT_ACCESSORS(true),
+        STABLE_CONFIGURATION_CACHE(true);
 
         public static Feature withName(String name) {
             try {
@@ -41,29 +45,34 @@ public class FeaturePreviews {
             }
         }
 
+        /**
+         * Returns the set of active {@linkplain Feature features}.
+         */
+        private static EnumSet<Feature> activeFeatures() {
+            EnumSet<Feature> activeFeatures = EnumSet.noneOf(Feature.class);
+            for (Feature feature : Feature.values()) {
+                if (feature.isActive()) {
+                    activeFeatures.add(feature);
+                }
+            }
+            return activeFeatures;
+        }
+
         private final boolean active;
 
         Feature(boolean active) {
             this.active = active;
         }
 
+        /**
+         * Returns whether the feature is still relevant.
+         */
         public boolean isActive() {
             return active;
         }
     }
 
-    private final Set<Feature> activeFeatures;
     private final EnumSet<Feature> enabledFeatures = EnumSet.noneOf(Feature.class);
-
-    public FeaturePreviews() {
-        Set<Feature> tmpActiveSet = EnumSet.noneOf(Feature.class);
-        for (Feature feature : Feature.values()) {
-            if (feature.isActive()) {
-                tmpActiveSet.add(feature);
-            }
-        }
-        activeFeatures = Collections.unmodifiableSet(tmpActiveSet);
-    }
 
     public void enableFeature(Feature feature) {
         if (feature.isActive()) {
@@ -72,13 +81,13 @@ public class FeaturePreviews {
     }
 
     public boolean isFeatureEnabled(Feature feature) {
-        return feature.isActive() && enabledFeatures.contains(feature);
+        return enabledFeatures.contains(feature);
     }
 
     /**
      * Returns the set of active {@linkplain Feature features}.
      */
     public Set<Feature> getActiveFeatures() {
-        return activeFeatures;
+        return Feature.activeFeatures();
     }
 }
