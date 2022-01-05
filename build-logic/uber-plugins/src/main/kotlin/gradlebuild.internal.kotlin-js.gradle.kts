@@ -39,6 +39,25 @@ kotlin {
     }
 }
 
+// Move yarn.lock to the build directory, out of VCS control
+rootProject.run {
+    plugins.withType<org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlugin> {
+        configure<org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension> {
+            // This only works with Kotlin 1.6.10+
+            // Surround with try/catch to prevent breaking the build on older Kotlin versions
+            // TODO Fix once the wrapper embeds Kotlin 1.6.10+
+            // lockFileDirectory = layout.buildDirectory.file("kotlin-js-store").get().asFile
+            try {
+                withGroovyBuilder {
+                    setProperty("lockFileDirectory", layout.buildDirectory.file("kotlin-js-store").get().asFile)
+                }
+            } catch (e: Exception) {
+                /* IGNORE */
+            }
+        }
+    }
+}
+
 tasks {
     withType<KotlinJsCompile>().configureEach {
         kotlinOptions {
