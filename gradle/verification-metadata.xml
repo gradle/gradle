@@ -635,6 +635,11 @@
             <pgp value="37c5181bf2066135e771e6dcb263d126c8a7e813"/>
          </artifact>
       </component>
+      <component group="com.yarnpkg" name="yarn" version="1.22.10">
+         <artifact name="yarn-1.22.10.tar.gz">
+            <pgp value="6d98490c6f1acddd448e45954f77679369475baa"/>
+         </artifact>
+      </component>
       <component group="com.zaxxer" name="HikariCP" version="4.0.2">
          <artifact name="HikariCP-4.0.2.jar">
             <pgp value="f3a90e6b10e809f851ab4fc54cc08e7f47c3ec76"/>
