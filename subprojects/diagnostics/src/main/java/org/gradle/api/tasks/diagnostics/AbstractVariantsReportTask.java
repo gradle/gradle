@@ -19,7 +19,8 @@ package org.gradle.api.tasks.diagnostics;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.tasks.Internal;
+import org.gradle.api.provider.Property;
+import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.work.DisableCachingByDefault;
 
@@ -37,12 +38,18 @@ import java.util.stream.Collectors;
 @Incubating
 @DisableCachingByDefault(because = "Produces only non-cacheable console output")
 public abstract class AbstractVariantsReportTask extends DefaultTask {
-    @Internal
-    protected abstract Predicate<Configuration> getConfigurationsToReportFilter();
+    protected abstract Predicate<Configuration> configurationsToReportFilter();
 
-    @Internal
-    protected List<Configuration> getConfigurationsToReport() {
-        return getConfigurations(getConfigurationsToReportFilter());
+    protected abstract String targetName();
+    protected abstract String targetTypeDesc();
+
+    @Inject
+    protected StyledTextOutputFactory getTextOutputFactory() {
+        throw new UnsupportedOperationException();
+    }
+
+    protected List<Configuration> configurationsToReport() {
+        return getConfigurations(configurationsToReportFilter());
     }
 
     protected List<Configuration> getConfigurations(Predicate<Configuration> filter) {
@@ -53,8 +60,16 @@ public abstract class AbstractVariantsReportTask extends DefaultTask {
             .collect(Collectors.toList());
     }
 
-    @Inject
-    protected StyledTextOutputFactory getTextOutputFactory() {
-        throw new UnsupportedOperationException();
+    protected void reportNoMatch(Property<String> searchTarget, List<Configuration> configurations, StyledTextOutput output) {
+        if (searchTarget.isPresent()) {
+            output.println("There is no " + targetName() + " named '" + searchTarget.get() + "' defined on this project.");
+            configurations = getConfigurations(Configuration::isCanBeConsumed);
+        }
+
+        if (configurations.isEmpty()) {
+            output.println("There are no " + targetTypeDesc() + " " + targetName() + "s on project " + getProject().getName());
+        } else {
+            output.println("Here are the available " + targetTypeDesc() + " " + targetName() + "s: " + configurations.stream().map(Configuration::getName).collect(Collectors.joining(", ")));
+        }
     }
 }

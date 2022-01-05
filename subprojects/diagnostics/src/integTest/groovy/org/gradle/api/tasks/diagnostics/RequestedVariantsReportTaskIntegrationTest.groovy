@@ -27,6 +27,11 @@ class RequestedVariantsReportTaskIntegrationTest extends AbstractIntegrationSpec
         """
     }
 
+    def "if no configurations present, requested variants task produces empty report"() {
+        expect:
+        succeeds ':requestedVariants'
+        outputContains('There are no resolvable configurations on project myLib')
+    }
 
     //@ToBeFixedForConfigurationCache(because = ":requestedVariants")
     def "reports requested variants of a Java Library with module dependencies"() {

@@ -45,7 +45,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 /**
  * A task which reports the outgoing variants of a project on the command line.
@@ -82,15 +81,19 @@ public class OutgoingVariantsReportTask extends AbstractVariantsReportTask {
 
     @TaskAction
     void buildReport() {
-        List<Configuration> configurations = getConfigurationsToReport();
         StyledTextOutput output = getTextOutputFactory().create(getClass());
+        List<Configuration> configurations = configurationsToReport();
         if (configurations.isEmpty()) {
-            reportNoMatchingVariant(configurations, output);
+            reportNoMatch(variantSpec, configurations, output);
         } else {
-            VariantsReportFormatter.Legend legend = new VariantsReportFormatter.Legend();
-            configurations.forEach(cnf -> reportVariant((ConfigurationInternal) cnf, new ProjectBackedModule((ProjectInternal) getProject()), output, legend));
-            legend.print(output);
+            reportMatches(configurations, output);
         }
+    }
+
+    private void reportMatches(List<Configuration> configurations, StyledTextOutput output) {
+        VariantsReportFormatter.Legend legend = new VariantsReportFormatter.Legend();
+        configurations.forEach(cnf -> reportVariant((ConfigurationInternal) cnf, new ProjectBackedModule((ProjectInternal) getProject()), output, legend));
+        legend.print(output);
     }
 
     private void reportVariant(ConfigurationInternal cnf, ProjectBackedModule projectBackedModule, StyledTextOutput output, VariantsReportFormatter.Legend legend) {
@@ -206,21 +209,18 @@ public class OutgoingVariantsReportTask extends AbstractVariantsReportTask {
         return false;
     }
 
-    private void reportNoMatchingVariant(List<Configuration> configurations, StyledTextOutput output) {
-        if (variantSpec.isPresent()) {
-            output.println("There is no variant named '" + variantSpec.get() + "' defined on this project.");
-            configurations = getConfigurations(Configuration::isCanBeConsumed);
-        }
-        String projectName = getProject().getName();
-        if (configurations.isEmpty()) {
-            output.println("There are no outgoing variants on project " + projectName);
-        } else {
-            output.println("Here are the available outgoing variants: " + configurations.stream().map(Configuration::getName).collect(Collectors.joining(", ")));
-        }
+    @Override
+    protected String targetName() {
+        return "variant";
     }
 
     @Override
-    protected Predicate<Configuration> getConfigurationsToReportFilter() {
+    protected String targetTypeDesc() {
+        return "outgoing";
+    }
+
+    @Override
+    protected Predicate<Configuration> configurationsToReportFilter() {
         String variantName = variantSpec.getOrNull();
         return c -> {
             if (!c.isCanBeConsumed()) {

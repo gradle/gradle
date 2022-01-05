@@ -23,6 +23,7 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
+import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.work.DisableCachingByDefault;
 
 import java.util.List;
@@ -61,13 +62,26 @@ public class RequestedVariantsReportTask extends AbstractVariantsReportTask {
 
     @TaskAction
     void buildReport() {
-        List<Configuration> configurations = getConfigurationsToReport();
+        List<Configuration> configurations = configurationsToReport();
+        StyledTextOutput output = getTextOutputFactory().create(getClass());
 
-
+        if (configurations.isEmpty()) {
+            reportNoMatch(configurationSpec, configurations, output);
+        }
     }
 
     @Override
-    protected Predicate<Configuration> getConfigurationsToReportFilter() {
+    protected String targetName() {
+        return "configuration";
+    }
+
+    @Override
+    protected String targetTypeDesc() {
+        return "resolvable";
+    }
+
+    @Override
+    protected Predicate<Configuration> configurationsToReportFilter() {
         String configName = configurationSpec.getOrNull();
         return c -> {
             if (!c.isCanBeResolved()) {
