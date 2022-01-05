@@ -34,6 +34,8 @@ import org.gradle.internal.logging.text.BufferingStyledTextOutput;
 import org.gradle.internal.logging.text.LinePrefixingStyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
+import org.gradle.internal.service.ServiceLookupException;
+import org.gradle.internal.service.UnknownServiceException;
 import org.gradle.util.internal.GUtil;
 
 import java.util.Collections;
@@ -318,7 +320,14 @@ public class BuildExceptionReporter implements Action<Throwable> {
 
     private static boolean isGradleEnterprisePluginApplied(BuildResult result) {
         GradleInternal gradle = (GradleInternal) result.getGradle();
-        return gradle != null && gradle.getServices().get(GradleEnterprisePluginManager.class).isPresent();
+        if (gradle != null) {
+            try {
+                return gradle.getServices().get(GradleEnterprisePluginManager.class).isPresent();
+            } catch (UnknownServiceException | ServiceLookupException e) {
+                // If we can't determine if the Gradle Enterprise Plugin is applied, then just behave as if it isn't
+            }
+        }
+        return false;
     }
 
     private static class FailureDetails {
