@@ -72,7 +72,10 @@ fun KotlinCompile.configureKotlinCompilerForGradleBuild() {
             "-Xjsr305=strict",
             "-java-parameters",
             "-Xskip-runtime-version-check",
-            "-Xskip-metadata-version-check"
+            "-Xskip-metadata-version-check",
+            // Suppress "Language version 1.4 is deprecated and its support will be removed in a future version of Kotlin"
+            // TODO can be removed once the wrapper embeds Kotlin 1.6
+            "-Xsuppress-version-warnings",
         )
         jvmTarget = "1.8"
     }
