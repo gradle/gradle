@@ -361,7 +361,7 @@ class ConfigurationCacheFingerprintWriter(
     private
     fun reportValueSourceInput(valueSourceType: Class<out Any>) {
         reportInput(consumer = null, documentationSection = null) {
-            text("build logic input of type ")
+            text("value from custom source ")
             reference(valueSourceType.simpleName)
         }
     }
@@ -369,7 +369,7 @@ class ConfigurationCacheFingerprintWriter(
     private
     fun reportExternalProcessOutputRead(executable: String) {
         reportInput(consumer = null, documentationSection = DocumentationSection.RequirementsExternalProcess) {
-            text("output of the external process ")
+            text("output of external process ")
             reference(executable)
         }
     }
