@@ -84,6 +84,7 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
 
     private ArtifactsForNode getArtifacts(DependencyGraphEdge dependency, DependencyGraphNode toConfiguration) {
         ConfigurationMetadata targetConfiguration = toConfiguration.getMetadata();
+        // TODO is this the legacy thing? i.e. ivy directly consumes a configuration. But also, targetConfiguration#getVariants has what we want
         ComponentResolveMetadata component = toConfiguration.getOwner().getMetadata();
         ImmutableAttributes overriddenAttributes = dependency.getAttributes();
 
@@ -97,7 +98,7 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
         ArtifactsForNode configurationArtifactSet = artifactsByNodeId.get(toConfiguration.getNodeId());
         if (configurationArtifactSet == null) {
             ExcludeSpec exclusions = dependency.getExclusions();
-            ArtifactSet nodeArtifacts = artifactSelector.resolveArtifacts(component, targetConfiguration, exclusions, overriddenAttributes);
+            ArtifactSet nodeArtifacts = artifactSelector.resolveArtifacts(component, targetConfiguration, exclusions, overriddenAttributes); // TODO MultipleVariantArtifactSet#variants has what we want
             int id = nextId++;
             configurationArtifactSet = new ArtifactsForNode(id, nodeArtifacts);
 

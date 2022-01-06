@@ -67,7 +67,7 @@ public class DefaultResolutionResultBuilder {
     }
 
     public void visitComponent(ResolvedGraphComponent component) {
-        create(component.getResultId(), component.getModuleVersion(), component.getSelectionReason(), component.getComponentId(), component.getResolvedVariants(), component.getRepositoryName());
+        create(component.getResultId(), component.getModuleVersion(), component.getSelectionReason(), component.getComponentId(), component.getResolvedVariants(), component.getRepositoryName()); // NB resolved variants already known?
     }
 
     public void visitOutgoingEdges(Long fromComponent, Collection<? extends ResolvedGraphDependency> dependencies) {
