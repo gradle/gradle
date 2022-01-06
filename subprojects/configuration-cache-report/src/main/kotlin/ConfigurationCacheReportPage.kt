@@ -81,7 +81,7 @@ typealias ProblemTreeIntent = TreeView.Intent<ProblemNode>
 
 
 internal
-val ProblemTreeModel.problemCount: Int
+val ProblemTreeModel.childCount: Int
     get() = tree.children.size
 
 
@@ -96,6 +96,7 @@ object ConfigurationCacheReportPage : Component<ConfigurationCacheReportPage.Mod
         val reportedProblems: Int,
         val messageTree: ProblemTreeModel,
         val locationTree: ProblemTreeModel,
+        val reportedInputs: Int,
         val inputTree: ProblemTreeModel,
         val tab: Tab = if (totalProblems == 0) Tab.Inputs else Tab.ByMessage
     )
@@ -155,9 +156,9 @@ object ConfigurationCacheReportPage : Component<ConfigurationCacheReportPage.Mod
         ),
         div(
             attributes { className("groups") },
-            displayTabButton(Tab.Inputs, model.tab, model.inputTree.problemCount),
-            displayTabButton(Tab.ByMessage, model.tab, model.messageTree.problemCount),
-            displayTabButton(Tab.ByLocation, model.tab, model.locationTree.problemCount)
+            displayTabButton(Tab.Inputs, model.tab, model.reportedInputs),
+            displayTabButton(Tab.ByMessage, model.tab, model.messageTree.childCount),
+            displayTabButton(Tab.ByLocation, model.tab, model.locationTree.childCount)
         )
     )
 
@@ -175,12 +176,17 @@ object ConfigurationCacheReportPage : Component<ConfigurationCacheReportPage.Mod
     fun viewInputs(inputTree: ProblemTreeModel): View<Intent> =
         div(
             attributes { className("inputs") },
-            viewTree(inputTree.tree.focus().children, Intent::InputTreeIntent)
+            viewTree(
+                inputTree.tree.focus().children,
+                Intent::InputTreeIntent
+            ) { _, focus ->
+                countBalloon(focus.tree.children.size)
+            }
         )
 
     private
-    fun displaySummary(model: Model): View<Intent> {
-        return h1(
+    fun displaySummary(model: Model): View<Intent> =
+        h1(
             "${model.cacheAction.capitalize()} the configuration cache for ",
             code(model.requestedTasks),
             br(),
@@ -188,12 +194,11 @@ object ConfigurationCacheReportPage : Component<ConfigurationCacheReportPage.Mod
             br(),
             small(model.problemsSummary()),
         )
-    }
 
     private
     fun Model.inputsSummary() =
-        found(inputTree.problemCount, "build configuration input").let {
-            if (inputTree.problemCount > 0) "$it and will cause the cache to be discarded when ${itsOrTheir(inputTree.problemCount)} value change"
+        found(reportedInputs, "build configuration input").let {
+            if (reportedInputs > 0) "$it and will cause the cache to be discarded when ${itsOrTheir(reportedInputs)} value change"
             else it
         }
 
@@ -237,11 +242,14 @@ object ConfigurationCacheReportPage : Component<ConfigurationCacheReportPage.Mod
         },
         span(
             tab.text,
-            span(
-                attributes { className("group-selector__count") },
-                "$problemsCount"
-            )
+            countBalloon(problemsCount)
         )
+    )
+
+    private
+    fun countBalloon(count: Int): View<Intent> = span(
+        attributes { className("group-selector__count") },
+        "$count"
     )
 
     private
@@ -262,22 +270,23 @@ object ConfigurationCacheReportPage : Component<ConfigurationCacheReportPage.Mod
     private
     fun viewTree(
         subTrees: Sequence<Tree.Focus<ProblemNode>>,
-        treeIntent: (ProblemTreeIntent) -> Intent
+        treeIntent: (ProblemTreeIntent) -> Intent,
+        balloonForWarning: (ProblemNode.Warning, Tree.Focus<ProblemNode>) -> View<Intent> = { _, _ -> empty }
     ): View<Intent> = div(
         ol(
             viewSubTrees(subTrees) { child ->
-                when (val node = child.tree.label) {
+                when (val labelNode = child.tree.label) {
                     is ProblemNode.Error -> {
-                        viewLabel(treeIntent, child, node.label, node.docLink, errorIcon)
+                        viewLabel(treeIntent, child, labelNode.label, labelNode.docLink, errorIcon)
                     }
                     is ProblemNode.Warning -> {
-                        viewLabel(treeIntent, child, node.label, node.docLink, warningIcon)
+                        viewLabel(treeIntent, child, labelNode.label, labelNode.docLink, warningIcon, balloonForWarning(labelNode, child))
                     }
                     is ProblemNode.Exception -> {
-                        viewException(treeIntent, child, node)
+                        viewException(treeIntent, child, labelNode)
                     }
                     else -> {
-                        viewLabel(treeIntent, child, node)
+                        viewLabel(treeIntent, child, labelNode)
                     }
                 }
             }
@@ -333,17 +342,14 @@ object ConfigurationCacheReportPage : Component<ConfigurationCacheReportPage.Mod
         child: Tree.Focus<ProblemNode>,
         label: ProblemNode,
         docLink: ProblemNode? = null,
-        decoration: View<Intent> = empty
+        decoration: View<Intent> = empty,
+        balloon: View<Intent> = empty
     ): View<Intent> = div(
-        listOf(
-            treeButtonFor(child, treeIntent),
-            decoration,
-            viewNode(label)
-        ) + if (docLink == null) {
-            emptyList()
-        } else {
-            listOf(viewNode(docLink))
-        }
+        treeButtonFor(child, treeIntent),
+        decoration,
+        viewNode(label),
+        docLink?.let(::viewNode) ?: empty,
+        balloon
     )
 
     private
