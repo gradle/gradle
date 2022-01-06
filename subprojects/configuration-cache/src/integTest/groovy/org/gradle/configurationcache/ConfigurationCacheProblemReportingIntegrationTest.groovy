@@ -35,6 +35,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         file('provider.txt').text = 'provider'
         file('fis-path.txt').text = 'fis-path'
         file('fis-file.txt').text = 'fis-file'
+        file('fis-abs.txt').text = 'fis-abs'
         buildFile '''
             providers.fileContents(layout.projectDirectory.file("provider.txt")).with { provider ->
                 println("provider = ${provider.asText.get()}")
@@ -47,6 +48,10 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
             new FileInputStream(new File("fis-file.txt")).withCloseable { fis ->
                 println("fis = ${fis.text}")
             }
+
+            new FileInputStream(file("fis-abs.txt")).withCloseable { fis ->
+                println("fis = ${fis.text}")
+            }
         '''
 
         when:
@@ -56,12 +61,14 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         outputContains 'provider = provider'
         outputContains 'fis = fis-path'
         outputContains 'fis = fis-file'
+        outputContains 'fis = fis-abs'
 
         and:
         problems.assertResultHasProblems(result) {
             withInput "Build file 'build.gradle': file 'provider.txt'"
             withInput "Build file 'build.gradle': file 'fis-path.txt'"
             withInput "Build file 'build.gradle': file 'fis-file.txt'"
+            withInput "Build file 'build.gradle': file 'fis-abs.txt'"
         }
     }
 
