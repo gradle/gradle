@@ -17,7 +17,6 @@ package org.gradle.internal.buildevents;
 
 import org.gradle.BuildResult;
 import org.gradle.api.Action;
-import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
@@ -34,14 +33,10 @@ import org.gradle.internal.logging.text.BufferingStyledTextOutput;
 import org.gradle.internal.logging.text.LinePrefixingStyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
-import org.gradle.internal.service.ServiceLookupException;
-import org.gradle.internal.service.UnknownServiceException;
 import org.gradle.util.internal.GUtil;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Failure;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Info;
@@ -59,11 +54,17 @@ public class BuildExceptionReporter implements Action<Throwable> {
     private final StyledTextOutputFactory textOutputFactory;
     private final LoggingConfiguration loggingConfiguration;
     private final BuildClientMetaData clientMetaData;
+    private final GradleEnterprisePluginManager gradleEnterprisePluginManager;
 
-    public BuildExceptionReporter(StyledTextOutputFactory textOutputFactory, LoggingConfiguration loggingConfiguration, BuildClientMetaData clientMetaData) {
+    public BuildExceptionReporter(StyledTextOutputFactory textOutputFactory, LoggingConfiguration loggingConfiguration, BuildClientMetaData clientMetaData, GradleEnterprisePluginManager gradleEnterprisePluginManager) {
         this.textOutputFactory = textOutputFactory;
         this.loggingConfiguration = loggingConfiguration;
         this.clientMetaData = clientMetaData;
+        this.gradleEnterprisePluginManager = gradleEnterprisePluginManager;
+    }
+
+    public BuildExceptionReporter(StyledTextOutputFactory textOutputFactory, LoggingConfiguration loggingConfiguration, BuildClientMetaData clientMetaData) {
+        this(textOutputFactory, loggingConfiguration, clientMetaData, null);
     }
 
     public void buildFinished(BuildResult result) {
@@ -72,32 +73,29 @@ public class BuildExceptionReporter implements Action<Throwable> {
             return;
         }
 
-        execute(new FailureContext(result));
+        execute(failure);
     }
 
     @Override
     public void execute(Throwable failure) {
-        execute(new FailureContext(failure));
-    }
-
-    private void execute(FailureContext failureContext) {
-        if (failureContext.hasMultipleFailures()) {
-            renderMultipleBuildExceptions(failureContext);
+        if (failure instanceof MultipleBuildFailures) {
+            renderMultipleBuildExceptions((MultipleBuildFailures) failure);
         } else {
-            renderSingleBuildException(failureContext);
+            renderSingleBuildException(failure);
         }
     }
 
-    private void renderMultipleBuildExceptions(FailureContext failureContext) {
+    private void renderMultipleBuildExceptions(MultipleBuildFailures failure) {
+        String message = failure.getMessage();
+        List<? extends Throwable> flattenedFailures = failure.getCauses();
         StyledTextOutput output = textOutputFactory.create(BuildExceptionReporter.class, LogLevel.ERROR);
         output.println();
-        output.withStyle(Failure).format("FAILURE: %s", failureContext.getFailure().getMessage());
+        output.withStyle(Failure).format("FAILURE: %s", message);
         output.println();
 
-        List<? extends FailureContext> nestedContexts = failureContext.getNestedContexts();
-        for (int i = 0; i < nestedContexts.size(); i++) {
-            FailureContext nestedContext = nestedContexts.get(i);
-            FailureDetails details = nestedContext.getFailureDetails("Task", getShowStackTraceOption());
+        for (int i = 0; i < flattenedFailures.size(); i++) {
+            Throwable cause = flattenedFailures.get(i);
+            FailureDetails details = constructFailureDetails("Task", cause);
 
             output.println();
             output.withStyle(Failure).format("%s: ", i + 1);
@@ -112,9 +110,9 @@ public class BuildExceptionReporter implements Action<Throwable> {
         writeGeneralTips(output);
     }
 
-    private void renderSingleBuildException(FailureContext failureContext) {
+    private void renderSingleBuildException(Throwable failure) {
         StyledTextOutput output = textOutputFactory.create(BuildExceptionReporter.class, LogLevel.ERROR);
-        FailureDetails details = failureContext.getFailureDetails("Build", getShowStackTraceOption());
+        FailureDetails details = constructFailureDetails("Build", failure);
 
         output.println();
         output.withStyle(Failure).text("FAILURE: ");
@@ -132,6 +130,21 @@ public class BuildExceptionReporter implements Action<Throwable> {
         } else {
             return ExceptionStyle.NONE;
         }
+    }
+
+    private FailureDetails constructFailureDetails(String granularity, Throwable failure) {
+        FailureDetails details = new FailureDetails(failure, getShowStackTraceOption());
+        details.summary.format("%s failed with an exception.", granularity);
+
+        fillInFailureResolution(details);
+
+        if (failure instanceof ContextAwareException) {
+            ((ContextAwareException) failure).accept(new ExceptionFormattingVisitor(details));
+        } else {
+            details.appendDetails();
+        }
+        details.renderStackTrace();
+        return details;
     }
 
     private static class ExceptionFormattingVisitor extends ExceptionContextVisitor {
@@ -184,6 +197,48 @@ public class BuildExceptionReporter implements Action<Throwable> {
         }
     }
 
+    private void fillInFailureResolution(FailureDetails details) {
+        BufferingStyledTextOutput resolution = details.resolution;
+        ContextImpl context = new ContextImpl(resolution);
+        if (details.failure instanceof FailureResolutionAware) {
+            ((FailureResolutionAware) details.failure).appendResolutions(context);
+        }
+        if (details.exceptionStyle == ExceptionStyle.NONE) {
+            context.appendResolution(output -> {
+                resolution.text("Run with ");
+                resolution.withStyle(UserInput).format("--%s", LoggingConfigurationBuildOptions.StacktraceOption.STACKTRACE_LONG_OPTION);
+                resolution.text(" option to get the stack trace.");
+            });
+        }
+        if (loggingConfiguration.getLogLevel() != LogLevel.DEBUG) {
+            context.appendResolution(output -> {
+                resolution.text("Run with ");
+                if (loggingConfiguration.getLogLevel() != LogLevel.INFO) {
+                    resolution.withStyle(UserInput).format("--%s", LoggingConfigurationBuildOptions.LogLevelOption.INFO_LONG_OPTION);
+                    resolution.text(" or ");
+                }
+                resolution.withStyle(UserInput).format("--%s", LoggingConfigurationBuildOptions.LogLevelOption.DEBUG_LONG_OPTION);
+                resolution.text(" option to get more log output.");
+            });
+        }
+
+        if (!context.missingBuild && !isGradleEnterprisePluginApplied()) {
+            addBuildScanMessage(context);
+        }
+    }
+
+    private void addBuildScanMessage(ContextImpl context) {
+        context.appendResolution(output -> {
+            output.text("Run with ");
+            output.withStyle(UserInput).format("--%s", StartParameterBuildOptions.BuildScanOption.LONG_OPTION);
+            output.text(" to get full insights.");
+        });
+    }
+
+    private boolean isGradleEnterprisePluginApplied() {
+        return gradleEnterprisePluginManager != null && gradleEnterprisePluginManager.isPresent();
+    }
+
     private void writeGeneralTips(StyledTextOutput resolution) {
         resolution.println();
         resolution.text("* Get more help at ");
@@ -231,103 +286,6 @@ public class BuildExceptionReporter implements Action<Throwable> {
             details.stackTrace.writeTo(output);
             output.println();
         }
-    }
-
-    private class FailureContext {
-        private final Throwable failure;
-        private final boolean gradleEnterprisePluginApplied;
-
-        private FailureContext(Throwable failure, boolean gradleEnterprisePluginApplied) {
-            this.failure = failure;
-            this.gradleEnterprisePluginApplied = gradleEnterprisePluginApplied;
-        }
-
-        public FailureContext(Throwable failure) {
-            this(failure, false);
-        }
-
-        public FailureContext(BuildResult result) {
-            this(result.getFailure(), isGradleEnterprisePluginApplied(result));
-        }
-
-        public boolean hasMultipleFailures() {
-            return failure instanceof MultipleBuildFailures;
-        }
-
-        public List<FailureContext> getNestedContexts() {
-            return hasMultipleFailures() ?
-                ((MultipleBuildFailures) failure).getCauses().stream().map(throwable -> new FailureContext(throwable, gradleEnterprisePluginApplied)).collect(Collectors.toList())
-                : Collections.emptyList();
-        }
-
-        public Throwable getFailure() {
-            return failure;
-        }
-
-        private FailureDetails getFailureDetails(String granularity, ExceptionStyle exceptionStyle) {
-            FailureDetails details = new FailureDetails(failure, exceptionStyle);
-            details.summary.format("%s failed with an exception.", granularity);
-
-            fillInFailureResolution(details);
-
-            if (failure instanceof ContextAwareException) {
-                ((ContextAwareException) failure).accept(new ExceptionFormattingVisitor(details));
-            } else {
-                details.appendDetails();
-            }
-            details.renderStackTrace();
-            return details;
-        }
-
-        private void fillInFailureResolution(FailureDetails details) {
-            BufferingStyledTextOutput resolution = details.resolution;
-            ContextImpl context = new ContextImpl(resolution);
-            if (details.failure instanceof FailureResolutionAware) {
-                ((FailureResolutionAware) details.failure).appendResolutions(context);
-            }
-            if (details.exceptionStyle == ExceptionStyle.NONE) {
-                context.appendResolution(output -> {
-                    resolution.text("Run with ");
-                    resolution.withStyle(UserInput).format("--%s", LoggingConfigurationBuildOptions.StacktraceOption.STACKTRACE_LONG_OPTION);
-                    resolution.text(" option to get the stack trace.");
-                });
-            }
-            if (loggingConfiguration.getLogLevel() != LogLevel.DEBUG) {
-                context.appendResolution(output -> {
-                    resolution.text("Run with ");
-                    if (loggingConfiguration.getLogLevel() != LogLevel.INFO) {
-                        resolution.withStyle(UserInput).format("--%s", LoggingConfigurationBuildOptions.LogLevelOption.INFO_LONG_OPTION);
-                        resolution.text(" or ");
-                    }
-                    resolution.withStyle(UserInput).format("--%s", LoggingConfigurationBuildOptions.LogLevelOption.DEBUG_LONG_OPTION);
-                    resolution.text(" option to get more log output.");
-                });
-            }
-
-            if (!context.missingBuild && !gradleEnterprisePluginApplied) {
-                addBuildScanMessage(context);
-            }
-        }
-
-        private void addBuildScanMessage(ContextImpl context) {
-            context.appendResolution(output -> {
-                output.text("Run with ");
-                output.withStyle(UserInput).format("--%s", StartParameterBuildOptions.BuildScanOption.LONG_OPTION);
-                output.text(" to get full insights.");
-            });
-        }
-    }
-
-    private static boolean isGradleEnterprisePluginApplied(BuildResult result) {
-        GradleInternal gradle = (GradleInternal) result.getGradle();
-        if (gradle != null) {
-            try {
-                return gradle.getServices().get(GradleEnterprisePluginManager.class).isPresent();
-            } catch (UnknownServiceException | ServiceLookupException e) {
-                // If we can't determine if the Gradle Enterprise Plugin is applied, then just behave as if it isn't
-            }
-        }
-        return false;
     }
 
     private static class FailureDetails {

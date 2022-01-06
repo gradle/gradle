@@ -28,6 +28,7 @@ import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.internal.build.BuildLayoutValidator;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.event.BuildEventListenerFactory;
+import org.gradle.internal.buildevents.BuildLoggerFactory;
 import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.buildtree.BuildTreeActionExecutor;
@@ -101,20 +102,23 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
 
     static class ToolingGlobalScopeServices {
         BuildExecuter createBuildExecuter(
-            StyledTextOutputFactory styledTextOutputFactory,
             LoggingManagerInternal loggingManager,
-            WorkValidationWarningReporter workValidationWarningReporter,
+            BuildLoggerFactory buildLoggerFactory,
             GradleUserHomeScopeServiceRegistry userHomeServiceRegistry,
             ServiceRegistry globalServices
         ) {
             // @formatter:off
             return
                 new SetupLoggingActionExecuter(loggingManager,
-                new SessionFailureReportingActionExecuter(styledTextOutputFactory, Time.clock(), workValidationWarningReporter,
+                new SessionFailureReportingActionExecuter(buildLoggerFactory,
                 new StartParamsValidatingActionExecuter(
                 new BuildSessionLifecycleBuildActionExecuter(userHomeServiceRegistry, globalServices
                 ))));
             // @formatter:on
+        }
+
+        BuildLoggerFactory createBuildLoggerFactory(StyledTextOutputFactory styledTextOutputFactory, WorkValidationWarningReporter workValidationWarningReporter) {
+            return new BuildLoggerFactory(styledTextOutputFactory, workValidationWarningReporter, Time.clock(), null);
         }
 
         FileSystemChangeWaiterFactory createFileSystemChangeWaiterFactory(FileWatcherFactory fileWatcherFactory) {
@@ -200,7 +204,6 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
             StyledTextOutputFactory styledTextOutputFactory,
             BuildStateRegistry buildStateRegistry,
             BuildOperationProgressEventEmitter eventEmitter,
-            WorkValidationWarningReporter workValidationWarningReporter,
             ListenerManager listenerManager,
             BuildStartedTime buildStartedTime,
             BuildRequestMetaData buildRequestMetaData,
@@ -210,10 +213,10 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
             FileHasherStatistics.Collector fileHasherStatisticsCollector,
             DirectorySnapshotterStatistics.Collector directorySnapshotterStatisticsCollector,
             BuildOperationRunner buildOperationRunner,
-            Clock clock,
             BuildLayout buildLayout,
             ExceptionAnalyser exceptionAnalyser,
-            List<ProblemReporter> problemReporters
+            List<ProblemReporter> problemReporters,
+            BuildLoggerFactory buildLoggerFactory
         ) {
             return new RootBuildLifecycleBuildActionExecutor(
                 buildStateRegistry,
@@ -227,7 +230,6 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                         buildOperationRunner,
                         new BuildOutcomeReportingBuildActionRunner(
                             styledTextOutputFactory,
-                            workValidationWarningReporter,
                             listenerManager,
                             new ProblemReportingBuildActionRunner(
                                 new ChainingBuildActionRunner(buildActionRunners),
@@ -237,8 +239,12 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                             ),
                             buildStartedTime,
                             buildRequestMetaData,
-                            clock)),
+                            buildLoggerFactory)),
                     gradleEnterprisePluginManager));
+        }
+
+        BuildLoggerFactory createBuildLoggerFactory(StyledTextOutputFactory styledTextOutputFactory, WorkValidationWarningReporter workValidationWarningReporter, Clock clock, GradleEnterprisePluginManager gradleEnterprisePluginManager) {
+            return new BuildLoggerFactory(styledTextOutputFactory, workValidationWarningReporter, clock, gradleEnterprisePluginManager);
         }
     }
 }

@@ -19,7 +19,7 @@ package org.gradle.internal.buildevents
 import org.gradle.BuildResult
 import org.gradle.StartParameter
 import org.gradle.api.GradleException
-import org.gradle.api.internal.GradleInternal
+import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.configuration.LoggingConfiguration
 import org.gradle.api.logging.configuration.ShowStacktrace
@@ -32,15 +32,15 @@ import org.gradle.internal.exceptions.LocationAwareException
 import org.gradle.internal.logging.DefaultLoggingConfiguration
 import org.gradle.internal.logging.text.StyledTextOutputFactory
 import org.gradle.internal.logging.text.TestStyledTextOutput
-import org.gradle.internal.service.ServiceRegistry
 import spock.lang.Specification
 
 class BuildExceptionReporterTest extends Specification {
     final TestStyledTextOutput output = new TestStyledTextOutput()
     final StyledTextOutputFactory factory = Mock()
     final BuildClientMetaData clientMetaData = Mock()
+    final GradleEnterprisePluginManager gradleEnterprisePluginManager = Mock()
     final LoggingConfiguration configuration = new DefaultLoggingConfiguration()
-    final BuildExceptionReporter reporter = new BuildExceptionReporter(factory, configuration, clientMetaData)
+    final BuildExceptionReporter reporter = new BuildExceptionReporter(factory, configuration, clientMetaData, gradleEnterprisePluginManager)
 
     def setup() {
         factory.create(BuildExceptionReporter.class, LogLevel.ERROR) >> output
@@ -77,17 +77,13 @@ class BuildExceptionReporterTest extends Specification {
         GradleException exception = new GradleException("<message>");
 
         def result = result(exception)
-        result.gradle >> Mock(GradleInternal) {
+        result.gradle >> Mock(Gradle) {
             getStartParameter() >> Mock(StartParameter) {
                 isBuildScan() >> true
                 isNoBuildScan() >> false
             }
-            getServices() >> Mock(ServiceRegistry) {
-                get(GradleEnterprisePluginManager.class) >> Mock(GradleEnterprisePluginManager) {
-                    isPresent() >> true
-                }
-            }
         }
+        gradleEnterprisePluginManager.isPresent() >> true
 
         expect:
         reporter.buildFinished(result)
@@ -109,17 +105,13 @@ class BuildExceptionReporterTest extends Specification {
         GradleException exception = new GradleException("<message>");
 
         def result = result(exception)
-        result.gradle >> Mock(GradleInternal) {
+        result.gradle >> Mock(Gradle) {
             getStartParameter() >> Mock(StartParameter) {
                 isBuildScan() >> false
                 isNoBuildScan() >> true
             }
-            getServices() >> Mock(ServiceRegistry) {
-                get(GradleEnterprisePluginManager.class) >> Mock(GradleEnterprisePluginManager) {
-                    isPresent() >> true
-                }
-            }
         }
+        gradleEnterprisePluginManager.isPresent() >> true
 
         expect:
         reporter.buildFinished(result)
