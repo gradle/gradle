@@ -17,6 +17,7 @@ package org.gradle.test.fixtures.server.http
 
 import io.netty.channel.ChannelHandlerContext
 import io.netty.handler.codec.http.HttpRequest
+import org.bbottema.javasocksproxyserver.SocksServer
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.util.ports.FixedAvailablePortAllocator
@@ -29,14 +30,25 @@ import org.littleshoot.proxy.impl.DefaultHttpProxyServer
 
 import java.util.concurrent.atomic.AtomicInteger
 /**
- * A Proxy Server used for testing that http proxies are correctly supported.
+ * A Proxy Server used for testing that proxies are correctly supported.
  */
 class TestProxyServer extends ExternalResource {
     private HttpProxyServer proxyServer
+    private SocksServer socksServer
     private portFinder = FixedAvailablePortAllocator.getInstance()
+    private final Type type;
 
     int port
     AtomicInteger requestCountInternal = new AtomicInteger()
+
+    enum Type {
+        HTTP_AND_HTTPS,
+        SOCKS
+    }
+
+    TestProxyServer(Type type = Type.HTTP_AND_HTTPS) {
+        this.type = type
+    }
 
     @Override
     protected void after() {
@@ -50,6 +62,19 @@ class TestProxyServer extends ExternalResource {
     void start(final String expectedUsername = null, final String expectedPassword = null) {
         port = portFinder.assignPort()
 
+        switch (type) {
+            case Type.HTTP_AND_HTTPS:
+                startHttpProxy(expectedUsername, expectedPassword, port)
+                break
+            case Type.SOCKS:
+                startSocksProxy(port)
+                break
+            default:
+                throw new RuntimeException('Unhandled switch value for: Type.' + type)
+        }
+    }
+
+    private void startHttpProxy(String expectedUsername, String expectedPassword, int port) {
         def filters = new HttpFiltersSourceAdapter() {
             HttpFilters filterRequest(HttpRequest originalRequest, ChannelHandlerContext ctx) {
                 requestCountInternal.incrementAndGet()
@@ -58,7 +83,7 @@ class TestProxyServer extends ExternalResource {
         }
 
         def proxyAuthenticator = null
-        if (expectedUsername!=null && expectedPassword!=null) {
+        if (expectedUsername != null && expectedPassword != null) {
             proxyAuthenticator = new ProxyAuthenticator() {
                 @Override
                 boolean authenticate(String userName, String password) {
@@ -79,8 +104,15 @@ class TestProxyServer extends ExternalResource {
             .start()
     }
 
+    private void startSocksProxy(int port) {
+        socksServer = new SocksServer().tap {
+            start(port)
+        }
+    }
+
     void stop() {
         proxyServer?.stop()
+        socksServer?.stop()
         portFinder.releasePort(port)
     }
 
@@ -100,6 +132,11 @@ class TestProxyServer extends ExternalResource {
         executer.withArgument("-D${proxyScheme}.proxyPort=${port}")
         // use proxy even when accessing localhost
         executer.withArgument("-Dhttp.nonProxyHosts=${JavaVersion.current() >= JavaVersion.VERSION_1_7 ? '' : '~localhost'}")
+    }
+
+    void configureSocksProxy(GradleExecuter executer) {
+        executer.withArgument('-DsocksProxyHost=localhost')
+        executer.withArgument("-DsocksProxyPort=${port}")
     }
 }
 
