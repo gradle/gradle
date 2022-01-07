@@ -183,7 +183,7 @@ fun inputNodes(inputs: List<ImportedProblem>): Sequence<MutableList<ProblemNode>
             val inputType = message.fragments.first().unsafeCast<PrettyText.Fragment.Text>().text.trim()
             val inputDescription = message.copy(fragments = message.fragments.drop(1))
             add(
-                ProblemNode.Warning(
+                ProblemNode.Info(
                     ProblemNode.Label(inputType),
                     docLinkFor(input.problem)
                 )
