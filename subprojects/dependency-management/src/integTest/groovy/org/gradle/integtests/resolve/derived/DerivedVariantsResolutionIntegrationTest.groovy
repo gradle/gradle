@@ -70,7 +70,6 @@ class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyRes
             task resolveSources(type: Resolve) {
                 def artifactView = configurations.runtimeClasspath.incoming.artifactView {
                     lenient = true
-                    withVariantReselection()
                     attributes {
                         attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION))
                         attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling, Bundling.EXTERNAL))
@@ -86,7 +85,6 @@ class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyRes
             task resolveJavadoc(type: Resolve) {
                 def artifactView = configurations.runtimeClasspath.incoming.artifactView {
                     lenient = true
-                    withVariantReselection()
                     attributes {
                         attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION))
                         attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling, Bundling.EXTERNAL))

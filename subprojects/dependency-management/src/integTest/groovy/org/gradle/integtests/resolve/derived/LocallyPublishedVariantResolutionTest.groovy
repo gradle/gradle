@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.resolve.derived
 
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class LocallyPublishedVariantResolutionTest extends AbstractIntegrationSpec {
@@ -62,9 +63,12 @@ class LocallyPublishedVariantResolutionTest extends AbstractIntegrationSpec {
 
                 tasks.register('resolveClasses', Resolve) {
                     artifacts.from(configurations.runtimeClasspath.incoming.artifactView {
-                        //withVariantReselection()
-                        attributes {
-                            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.CLASSES))
+                        // withVariantReselection()
+                        attributes {   
+                            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION))
+//                            attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling, Bundling.EXTERNAL))
+//                            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
+                            attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType, DocsType.JAVADOC))
                         }
                     }.files)
                 }
@@ -137,12 +141,12 @@ class LocallyPublishedVariantResolutionTest extends AbstractIntegrationSpec {
                 expectations = ['producer-1.0.jar']
             }
             resolveClasses {
-                expectations = ['main']
+                expectations = ['producer-1.0-javadoc.jar']
             }
         '''
 //        succeeds(':consumer:classes', '-i')
         executer.usingProjectDirectory(file('producer'))
-        succeeds('publish')
+        succeeds('publish', 'outgoingVariants')
 
         executer.usingProjectDirectory(null)
 
