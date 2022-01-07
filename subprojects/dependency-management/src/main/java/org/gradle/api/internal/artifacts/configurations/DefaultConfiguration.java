@@ -47,7 +47,6 @@ import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
@@ -695,7 +694,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             public BuildOperationDescriptor.Builder description() {
                 String displayName = "Resolve dependencies of " + identityPath;
                 Path projectPath = domainObjectContext.getProjectPath();
-                String projectPathString = domainObjectContext.isScript() ? null : (projectPath == null ? null : projectPath.getPath());
+                String projectPathString = null;
+                if (!domainObjectContext.isScript()) {
+                    if (projectPath != null) {
+                        projectPathString = projectPath.getPath();
+                    }
+                }
                 return BuildOperationDescriptor.displayName(displayName)
                     .progressDisplayName(displayName)
                     .details(new ResolveConfigurationResolutionBuildOperationDetails(
@@ -1833,11 +1837,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             // This is a little coincidental: if view attributes have not been accessed, don't allow no matching variants
             boolean allowNoMatchingVariants = config.attributesUsed;
             ArtifactView view;
-            if (config.reselectVariant) {
-                view = new ReselectingArtifactView(viewAttributes, config.lockComponentFilter(), this);
-            } else {
-                view = new ConfigurationArtifactView(viewAttributes, config.lockComponentFilter(), config.lenient, allowNoMatchingVariants);
-            }
+            view = new ConfigurationArtifactView(viewAttributes, config.lockComponentFilter(), config.lenient, allowNoMatchingVariants);
             return view;
         }
 
@@ -1882,60 +1882,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             public FileCollection getFiles() {
                 // TODO maybe make detached configuration is flag is true
                 return new ConfigurationFileCollection(new SelectedArtifactsProvider(), Specs.satisfyAll(), viewAttributes, componentFilter, lenient, allowNoMatchingVariants, new DefaultResolutionHost());
-            }
-        }
-
-        private class ReselectingArtifactView implements ArtifactView {
-            private final ImmutableAttributes viewAttributes;
-            private final Spec<? super ComponentIdentifier> componentFilter;
-            private final ArtifactView delegatingArtifactView;
-
-            ReselectingArtifactView(ImmutableAttributes viewAttributes, Spec<? super ComponentIdentifier> componentFilter, ConfigurationResolvableDependencies underlyingConfiguration) {
-                this.viewAttributes = viewAttributes;
-                this.componentFilter = componentFilter;
-                this.delegatingArtifactView = createDelegate(underlyingConfiguration);
-            }
-
-            @Override
-            public AttributeContainer getAttributes() {
-                return viewAttributes;
-            }
-
-            @Override
-            public ArtifactCollection getArtifacts() {
-                return delegatingArtifactView.getArtifacts();
-            }
-
-            @Override
-            public FileCollection getFiles() {
-                return delegatingArtifactView.getFiles();
-            }
-
-            private ArtifactView createDelegate(ConfigurationResolvableDependencies underlyingConfiguration) {
-                ProjectInternal project = domainObjectContext.getProject();
-                Configuration detached = project.getConfigurations().detachedConfiguration();
-                detached.withDependencies(dependencies -> {
-                    for (ResolvedComponentResult component :  underlyingConfiguration.getResolutionResult().getAllComponents()) {
-                        ComponentIdentifier componentIdentifier = component.getId();
-                        // TODO are the two implementations (ProjectComponentIdentifier, ModuleComponentIdentifier) sufficient?
-                        if (componentIdentifier instanceof ProjectComponentIdentifier) {
-                            dependencies.add(project.getDependencies().project(Collections.singletonMap("path", ((ProjectComponentIdentifier) componentIdentifier).getProjectPath())));
-                        } else if (componentIdentifier instanceof ModuleComponentIdentifier) {
-                            dependencies.add(project.getDependencies().create(componentIdentifier.toString()));
-                        }
-                    }
-                });
-                detached.setTransitive(false);
-                detached.setVisible(false);
-                for (Attribute attribute : getAttributes().keySet()) {
-                    @SuppressWarnings("unchecked") Attribute<Object> key = (Attribute<Object>) attribute;
-                    Object value = getAttributes().getAttribute(key);
-                    detached.getAttributes().attribute(key, value);
-                }
-                return detached.getIncoming().artifactView(view -> {
-                    view.lenient(true);
-                    view.componentFilter(componentFilter);
-                });
             }
         }
 
