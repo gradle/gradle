@@ -134,7 +134,7 @@ class JUnitPlatformFilteringIntegrationTest extends JUnitPlatformIntegrationSpec
             .assertTestPassed('superTest')
     }
 
-    def 'does not exclude tests with a non-standard test source'() {
+    def 'does not exclude tests with a non-standard test source if filter matches nothing'() {
         given:
         buildFile << """
             dependencies {
@@ -173,7 +173,46 @@ class JUnitPlatformFilteringIntegrationTest extends JUnitPlatformIntegrationSpec
             .assertTestPassed('example')
     }
 
-    def 'does exclude tests with a non-standard test source if containing class matches'() {
+    def 'does not exclude tests with a non-standard test source if filter matches field name'() {
+        given:
+        buildFile << """
+            dependencies {
+                testImplementation 'com.tngtech.archunit:archunit-junit5:${LATEST_ARCHUNIT_VERSION}'
+            }
+
+            test {
+                filter {
+                    excludeTestsMatching "*example"
+                }
+            }
+        """
+        file('src/test/java/DeclaresTestsAsFieldsNotMethodsTest.java') << '''
+            import com.tngtech.archunit.junit.AnalyzeClasses;
+            import com.tngtech.archunit.junit.ArchTest;
+            import com.tngtech.archunit.lang.ArchRule;
+
+            import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
+
+            @AnalyzeClasses(packages = "example")
+            class DeclaresTestsAsFieldsNotMethodsTest {
+                // this will create a JUnit Platform TestDescriptor with neither a Class- nor a MethodSource
+                @ArchTest
+                static final ArchRule example = classes().should().bePublic();
+            }
+        '''
+
+        when:
+        succeeds('test')
+
+        then:
+        new DefaultTestExecutionResult(testDirectory)
+            .assertTestClassesExecuted('DeclaresTestsAsFieldsNotMethodsTest')
+            .testClass('DeclaresTestsAsFieldsNotMethodsTest')
+            .assertTestCount(1, 0, 0)
+            .assertTestPassed('example')
+    }
+
+    def 'can filter tests with a non-standard test source using containing class name'() {
         given:
         buildFile << """
             dependencies {
