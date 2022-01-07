@@ -21,7 +21,7 @@ java {
 // end::java-cross-compilation[]
 
 tasks.withType<Test>().configureEach {
-    project.findProperty("targetJavaVersion")?.let { systemProperty("targetJavaVersion", it) }
+    systemProperty("targetJavaVersion", project.findProperty("targetJavaVersion"))
 }
 
 tasks.register("checkJavadocOutput") {
