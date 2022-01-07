@@ -271,22 +271,35 @@ object ConfigurationCacheReportPage : Component<ConfigurationCacheReportPage.Mod
     fun viewTree(
         subTrees: Sequence<Tree.Focus<ProblemNode>>,
         treeIntent: (ProblemTreeIntent) -> Intent,
-        balloonForWarning: (ProblemNode.Warning, Tree.Focus<ProblemNode>) -> View<Intent> = { _, _ -> empty }
+        suffixForWarning: (ProblemNode.Warning, Tree.Focus<ProblemNode>) -> View<Intent> = { _, _ -> empty }
     ): View<Intent> = div(
         ol(
-            viewSubTrees(subTrees) { child ->
-                when (val labelNode = child.tree.label) {
+            viewSubTrees(subTrees) { focus ->
+                when (val labelNode = focus.tree.label) {
                     is ProblemNode.Error -> {
-                        viewLabel(treeIntent, child, labelNode.label, labelNode.docLink, errorIcon)
+                        treeLabel(
+                            treeIntent,
+                            focus,
+                            labelNode.label,
+                            labelNode.docLink,
+                            prefix = errorIcon
+                        )
                     }
                     is ProblemNode.Warning -> {
-                        viewLabel(treeIntent, child, labelNode.label, labelNode.docLink, warningIcon, balloonForWarning(labelNode, child))
+                        treeLabel(
+                            treeIntent,
+                            focus,
+                            labelNode.label,
+                            labelNode.docLink,
+                            prefix = warningIcon,
+                            suffix = suffixForWarning(labelNode, focus)
+                        )
                     }
                     is ProblemNode.Exception -> {
-                        viewException(treeIntent, child, labelNode)
+                        viewException(treeIntent, focus, labelNode)
                     }
                     else -> {
-                        viewLabel(treeIntent, child, labelNode)
+                        treeLabel(treeIntent, focus, labelNode)
                     }
                 }
             }
@@ -337,19 +350,19 @@ object ConfigurationCacheReportPage : Component<ConfigurationCacheReportPage.Mod
     }
 
     private
-    fun viewLabel(
+    fun treeLabel(
         treeIntent: (ProblemTreeIntent) -> Intent,
-        child: Tree.Focus<ProblemNode>,
+        focus: Tree.Focus<ProblemNode>,
         label: ProblemNode,
         docLink: ProblemNode? = null,
-        decoration: View<Intent> = empty,
-        balloon: View<Intent> = empty
+        prefix: View<Intent> = empty,
+        suffix: View<Intent> = empty
     ): View<Intent> = div(
-        treeButtonFor(child, treeIntent),
-        decoration,
+        treeButtonFor(focus, treeIntent),
+        prefix,
         viewNode(label),
         docLink?.let(::viewNode) ?: empty,
-        balloon
+        suffix
     )
 
     private
