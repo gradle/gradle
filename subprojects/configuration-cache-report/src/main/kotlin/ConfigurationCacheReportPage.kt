@@ -40,6 +40,8 @@ sealed class ProblemNode {
 
     data class Warning(val label: ProblemNode, val docLink: ProblemNode?) : ProblemNode()
 
+    data class Info(val label: ProblemNode, val docLink: ProblemNode?) : ProblemNode()
+
     data class Task(val path: String, val type: String) : ProblemNode()
 
     data class Bean(val type: String) : ProblemNode()
@@ -271,7 +273,7 @@ object ConfigurationCacheReportPage : Component<ConfigurationCacheReportPage.Mod
     fun viewTree(
         subTrees: Sequence<Tree.Focus<ProblemNode>>,
         treeIntent: (ProblemTreeIntent) -> Intent,
-        suffixForWarning: (ProblemNode.Warning, Tree.Focus<ProblemNode>) -> View<Intent> = { _, _ -> empty }
+        suffixForInfo: (ProblemNode.Info, Tree.Focus<ProblemNode>) -> View<Intent> = { _, _ -> empty }
     ): View<Intent> = div(
         ol(
             viewSubTrees(subTrees) { focus ->
@@ -291,8 +293,17 @@ object ConfigurationCacheReportPage : Component<ConfigurationCacheReportPage.Mod
                             focus,
                             labelNode.label,
                             labelNode.docLink,
-                            prefix = warningIcon,
-                            suffix = suffixForWarning(labelNode, focus)
+                            prefix = warningIcon
+                        )
+                    }
+                    is ProblemNode.Info -> {
+                        treeLabel(
+                            treeIntent,
+                            focus,
+                            labelNode.label,
+                            labelNode.docLink,
+                            prefix = squareIcon,
+                            suffix = suffixForInfo(labelNode, focus)
                         )
                     }
                     is ProblemNode.Exception -> {
@@ -369,7 +380,7 @@ object ConfigurationCacheReportPage : Component<ConfigurationCacheReportPage.Mod
     fun treeButtonFor(child: Tree.Focus<ProblemNode>, treeIntent: (ProblemTreeIntent) -> Intent): View<Intent> =
         when {
             child.tree.isNotEmpty() -> viewTreeButton(child, treeIntent)
-            else -> emptyTreeIcon
+            else -> squareIcon
         }
 
     private
@@ -404,7 +415,7 @@ object ConfigurationCacheReportPage : Component<ConfigurationCacheReportPage.Mod
     )
 
     private
-    val emptyTreeIcon = span<Intent>(
+    val squareIcon = span<Intent>(
         attributes { className("tree-icon") },
         "■"
     )
