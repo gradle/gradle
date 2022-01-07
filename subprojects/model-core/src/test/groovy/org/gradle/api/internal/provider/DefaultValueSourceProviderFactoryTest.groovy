@@ -93,7 +93,7 @@ class DefaultValueSourceProviderFactoryTest extends ValueSourceBasedSpec {
         }
         List<ObtainedValue<?, ValueSourceParameters>> obtainedValues = []
         valueSourceProviderFactory.addListener { value, source ->
-            assert source instanceof  EchoValueSource
+            assert source instanceof EchoValueSource
             obtainedValues.add(value)
         }
 
