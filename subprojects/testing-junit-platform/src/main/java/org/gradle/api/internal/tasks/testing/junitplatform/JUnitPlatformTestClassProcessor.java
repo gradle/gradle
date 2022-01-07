@@ -189,9 +189,41 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
                     return matcher.matchesTest(className, null)
                         || matcher.matchesTest(className, descriptor.getLegacyReportingName());
                 }
+            } else {
+                return descriptor.getParent().isPresent() && shouldRun(descriptor.getParent().get(), true);
             }
 
             return true;
+        }
+
+        private boolean shouldRun(TestDescriptor descriptor, boolean checkingParent) {
+            Optional<TestSource> source = descriptor.getSource();
+            if (!source.isPresent()) {
+                return true;
+            }
+
+            if (source.get() instanceof MethodSource) {
+                MethodSource methodSource = (MethodSource) source.get();
+                return matcher.matchesTest(methodSource.getClassName(), methodSource.getMethodName())
+                    || matchesParentMethod(descriptor, methodSource.getMethodName());
+            } else if (source.get() instanceof ClassSource) {
+                if (!checkingParent) {
+                    for (TestDescriptor child : descriptor.getChildren()) {
+                        if (shouldRun(child)) {
+                            return true;
+                        }
+                    }
+                }
+                if (descriptor.getChildren().isEmpty()) {
+                    String className = ((ClassSource) source.get()).getClassName();
+                    return matcher.matchesTest(className, null)
+                        || matcher.matchesTest(className, descriptor.getLegacyReportingName());
+                } else {
+                    return true;
+                }
+            } else {
+                return descriptor.getParent().isPresent() && shouldRun(descriptor.getParent().get(), true);
+            }
         }
 
         private boolean matchesParentMethod(TestDescriptor descriptor, String methodName) {

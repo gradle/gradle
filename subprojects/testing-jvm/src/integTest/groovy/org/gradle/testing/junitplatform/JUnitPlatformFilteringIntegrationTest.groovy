@@ -173,4 +173,36 @@ class JUnitPlatformFilteringIntegrationTest extends JUnitPlatformIntegrationSpec
             .assertTestPassed('example')
     }
 
+    def 'does exclude tests with a non-standard test source if containing class matches'() {
+        given:
+        buildFile << """
+            dependencies {
+                testImplementation 'com.tngtech.archunit:archunit-junit5:${LATEST_ARCHUNIT_VERSION}'
+            }
+
+            test {
+                filter {
+                    excludeTestsMatching "*DeclaresTestsAsFieldsNotMethodsTest"
+                }
+            }
+        """
+        file('src/test/java/DeclaresTestsAsFieldsNotMethodsTest.java') << '''
+            import com.tngtech.archunit.junit.AnalyzeClasses;
+            import com.tngtech.archunit.junit.ArchTest;
+            import com.tngtech.archunit.lang.ArchRule;
+
+            import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
+
+            @AnalyzeClasses(packages = "example")
+            class DeclaresTestsAsFieldsNotMethodsTest {
+                // this will create a JUnit Platform TestDescriptor with neither a Class- nor a MethodSource
+                @ArchTest
+                static final ArchRule example = classes().should().bePublic();
+            }
+        '''
+
+        expect:
+        fails('test')
+        errorOutput.contains("No tests found for given includes")
+    }
 }
