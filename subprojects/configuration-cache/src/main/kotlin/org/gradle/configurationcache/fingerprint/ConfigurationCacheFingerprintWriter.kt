@@ -183,16 +183,12 @@ class ConfigurationCacheFingerprintWriter(
 
     override fun systemPropertyRead(key: String, value: Any?, consumer: String?) {
         sink().systemPropertyRead(key, value)
-        if (undeclaredSystemProperties.add(key)) {
-            reportSystemPropertyInput(key, consumer)
-        }
+        reportUniqueSystemPropertyInput(key, consumer)
     }
 
     override fun envVariableRead(key: String, value: String?, consumer: String?) {
         sink().envVariableRead(key, value)
-        if (undeclaredEnvironmentVariables.add(key)) {
-            reportEnvironmentVariableInput(key, consumer)
-        }
+        reportUniqueEnvironmentVariableInput(key, consumer)
     }
 
     override fun fileOpened(file: File, consumer: String?) {
@@ -203,7 +199,7 @@ class ConfigurationCacheFingerprintWriter(
             return
         }
         captureFile(file)
-        reportFile(file, consumer)
+        reportUniqueFileInput(file, consumer)
     }
 
     override fun systemPropertiesPrefixedBy(prefix: String, snapshot: Map<String, String?>) {
@@ -223,7 +219,7 @@ class ConfigurationCacheFingerprintWriter(
                 parameters.file.orNull?.asFile?.let { file ->
                     // TODO - consider the potential race condition in computing the hash code here
                     captureFile(file)
-                    reportFile(file)
+                    reportUniqueFileInput(file)
                 }
             }
             is GradlePropertyValueSource.Parameters -> {
@@ -345,7 +341,7 @@ class ConfigurationCacheFingerprintWriter(
     }
 
     private
-    fun reportFile(file: File, consumer: String? = null) {
+    fun reportUniqueFileInput(file: File, consumer: String? = null) {
         if (reportedFiles.add(file)) {
             reportFileInput(file, consumer)
         }
@@ -376,10 +372,24 @@ class ConfigurationCacheFingerprintWriter(
     }
 
     private
+    fun reportUniqueSystemPropertyInput(key: String, consumer: String?) {
+        if (undeclaredSystemProperties.add(key)) {
+            reportSystemPropertyInput(key, consumer)
+        }
+    }
+
+    private
     fun reportSystemPropertyInput(key: String, consumer: String?) {
         reportInput(consumer, DocumentationSection.RequirementsSysPropEnvVarRead) {
             text("system property ")
             reference(key)
+        }
+    }
+
+    private
+    fun reportUniqueEnvironmentVariableInput(key: String, consumer: String?) {
+        if (undeclaredEnvironmentVariables.add(key)) {
+            reportEnvironmentVariableInput(key, consumer)
         }
     }
 
