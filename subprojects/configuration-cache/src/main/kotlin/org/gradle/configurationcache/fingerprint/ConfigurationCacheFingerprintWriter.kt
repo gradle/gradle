@@ -391,15 +391,14 @@ class ConfigurationCacheFingerprintWriter(
     }
 
     private
-    fun reportInput(consumer: String?, documentationSection: DocumentationSection?, messageBuilder: StructuredMessage.Builder.() -> Unit) {
-        reportInput(locationFor(consumer), documentationSection, messageBuilder)
-    }
-
-    private
-    fun reportInput(location: PropertyTrace, documentationSection: DocumentationSection?, messageBuilder: StructuredMessage.Builder.() -> Unit) {
+    fun reportInput(
+        consumer: String?,
+        documentationSection: DocumentationSection?,
+        messageBuilder: StructuredMessage.Builder.() -> Unit
+    ) {
         host.reportInput(
             PropertyProblem(
-                location,
+                locationFor(consumer),
                 StructuredMessage.build(messageBuilder),
                 null,
                 documentationSection = documentationSection
@@ -414,7 +413,7 @@ class ConfigurationCacheFingerprintWriter(
     abstract class Sink(
         private val host: Host
     ) {
-        val capturedFiles = newConcurrentHashSet<File>()
+        val capturedFiles: MutableSet<File> = newConcurrentHashSet()
 
         private
         val undeclaredSystemProperties = newConcurrentHashSet<String>()
