@@ -18,6 +18,7 @@ package org.gradle.configurationcache.fingerprint
 
 import com.google.common.collect.Maps.newConcurrentMap
 import com.google.common.collect.Sets.newConcurrentHashSet
+import org.gradle.api.Describable
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentSelector
@@ -123,7 +124,7 @@ class ConfigurationCacheFingerprintWriter(
     val reportedFiles = newConcurrentHashSet<File>()
 
     private
-    val reportedValueSources = newConcurrentHashSet<Class<*>>()
+    val reportedValueSources = newConcurrentHashSet<String>()
 
     private
     var closestChangingValue: ConfigurationCacheFingerprint.ChangingDependencyResolutionValue? = null
@@ -236,19 +237,14 @@ class ConfigurationCacheFingerprintWriter(
                 reportExternalProcessOutputRead(ProcessOutputValueSource.Parameters.getExecutable(parameters))
             }
             else -> {
-                captureValueSource(obtainedValue)
-            }
-        }
-    }
-
-    private
-    fun <P : ValueSourceParameters, T : Any> captureValueSource(obtainedValue: ValueSourceProviderFactory.Listener.ObtainedValue<T, P>) {
-        sink().write(ValueSource(obtainedValue.uncheckedCast()))
-        obtainedValue.valueSourceType.let {
-            // Currently, the report only includes the type of the value source, so let's avoid reporting them more than once
-            // to keep the report small
-            if (reportedValueSources.add(it)) {
-                reportValueSourceInput(it)
+                sink().write(ValueSource(obtainedValue.uncheckedCast()))
+                reportUniqueValueSourceInput(
+                    displayName = when (source) {
+                        is Describable -> source.displayName
+                        else -> null
+                    },
+                    typeName = obtainedValue.valueSourceType.simpleName
+                )
             }
         }
     }
@@ -341,6 +337,26 @@ class ConfigurationCacheFingerprintWriter(
     }
 
     private
+    fun reportUniqueValueSourceInput(displayName: String?, typeName: String) {
+        // We assume different types won't ever produce identical display names
+        if (reportedValueSources.add(displayName ?: typeName)) {
+            reportValueSourceInput(displayName, typeName)
+        }
+    }
+
+    private
+    fun reportValueSourceInput(displayName: String?, typeName: String) {
+        reportInput(consumer = null, documentationSection = null) {
+            text("value from custom source ")
+            reference(typeName)
+            displayName?.let {
+                text(", ")
+                text(it)
+            }
+        }
+    }
+
+    private
     fun reportUniqueFileInput(file: File, consumer: String? = null) {
         if (reportedFiles.add(file)) {
             reportFileInput(file, consumer)
@@ -352,14 +368,6 @@ class ConfigurationCacheFingerprintWriter(
         reportInput(consumer, null) {
             text("file ")
             reference(host.displayNameOf(file))
-        }
-    }
-
-    private
-    fun reportValueSourceInput(valueSourceType: Class<out Any>) {
-        reportInput(consumer = null, documentationSection = null) {
-            text("value from custom source ")
-            reference(valueSourceType.simpleName)
         }
     }
 
