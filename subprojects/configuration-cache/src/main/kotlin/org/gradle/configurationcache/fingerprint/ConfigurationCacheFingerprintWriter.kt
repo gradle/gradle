@@ -215,7 +215,8 @@ class ConfigurationCacheFingerprintWriter(
     }
 
     override fun <T : Any, P : ValueSourceParameters> valueObtained(
-        obtainedValue: ValueSourceProviderFactory.Listener.ObtainedValue<T, P>
+        obtainedValue: ValueSourceProviderFactory.Listener.ObtainedValue<T, P>,
+        source: org.gradle.api.provider.ValueSource<T, P>
     ) {
         when (val parameters = obtainedValue.valueSourceParameters) {
             is FileContentValueSource.Parameters -> {

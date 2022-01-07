@@ -68,7 +68,8 @@ class DefaultValueSourceProviderFactoryTest extends ValueSourceBasedSpec {
             it.parameters.value.set('42')
         }
         def obtainedValueCount = 0
-        valueSourceProviderFactory.addListener {
+        valueSourceProviderFactory.addListener { value, source ->
+            assert source instanceof EchoValueSource
             obtainedValueCount += 1
         }
 
@@ -91,7 +92,10 @@ class DefaultValueSourceProviderFactoryTest extends ValueSourceBasedSpec {
             it.parameters.value.set("42")
         }
         List<ObtainedValue<?, ValueSourceParameters>> obtainedValues = []
-        valueSourceProviderFactory.addListener { obtainedValues.add(it) }
+        valueSourceProviderFactory.addListener { value, source ->
+            assert source instanceof  EchoValueSource
+            obtainedValues.add(value)
+        }
 
         when: "value is obtained for the 1st time"
         provider.get()
