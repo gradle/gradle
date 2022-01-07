@@ -144,13 +144,9 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
     }
 
     @Nullable
-    private <P extends ValueSourceParameters> P isolateParameters(P parameters) {
+    private <P extends ValueSourceParameters> P isolateParameters(@Nullable P parameters) {
         // TODO - consider if should hold the project lock to do the isolation
         return isolatableFactory.isolate(parameters).isolate();
-    }
-
-    private <T, P extends ValueSourceParameters> void valueObtained(DefaultObtainedValue<T, P> obtainedValue) {
-        broadcaster.getSource().valueObtained(obtainedValue);
     }
 
     private String couldNotCreateProviderOf(Class<?> valueSourceType) {
@@ -281,22 +277,22 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         }
 
         public Try<T> obtain() {
-            if (obtainValueForThe1stTime()) {
-                valueObtained(obtainedValue());
-            }
-            return value;
-        }
-
-        private boolean obtainValueForThe1stTime() {
-            boolean valueWasObtained = false;
+            ValueSource<T, P> source;
+            // Return value from local to avoid nullability warnings when returning value from the field directly.
+            Try<T> obtained;
             synchronized (this) {
-                if (value == null) {
-                    // TODO - add more information to exception
-                    value = Try.ofFailable(() -> source().obtain());
-                    valueWasObtained = true;
+                Try<T> cached = value;
+                if (cached != null) {
+                    return cached;
                 }
+                // TODO - add more information to exceptions
+                // Fail fast when source can't be instantiated.
+                source = source();
+                value = obtained = Try.ofFailable(source::obtain);
             }
-            return valueWasObtained;
+            // Value obtained for the 1st time, notify listeners.
+            broadcaster.getSource().valueObtained(obtainedValue(obtained), source);
+            return obtained;
         }
 
         @NotNull
@@ -309,9 +305,9 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         }
 
         @NotNull
-        private DefaultObtainedValue<T, P> obtainedValue() {
+        private DefaultObtainedValue<T, P> obtainedValue(Try<T> obtained) {
             return new DefaultObtainedValue<>(
-                value,
+                obtained,
                 sourceType,
                 parametersType,
                 parameters

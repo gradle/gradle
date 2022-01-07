@@ -18,6 +18,7 @@ package org.gradle.configurationcache.fingerprint
 
 import com.google.common.collect.Maps.newConcurrentMap
 import com.google.common.collect.Sets.newConcurrentHashSet
+import org.gradle.api.Describable
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentSelector
@@ -123,7 +124,7 @@ class ConfigurationCacheFingerprintWriter(
     val reportedFiles = newConcurrentHashSet<File>()
 
     private
-    val reportedValueSources = newConcurrentHashSet<Class<*>>()
+    val reportedValueSources = newConcurrentHashSet<String>()
 
     private
     var closestChangingValue: ConfigurationCacheFingerprint.ChangingDependencyResolutionValue? = null
@@ -183,16 +184,12 @@ class ConfigurationCacheFingerprintWriter(
 
     override fun systemPropertyRead(key: String, value: Any?, consumer: String?) {
         sink().systemPropertyRead(key, value)
-        if (undeclaredSystemProperties.add(key)) {
-            reportSystemPropertyInput(key, consumer)
-        }
+        reportUniqueSystemPropertyInput(key, consumer)
     }
 
     override fun envVariableRead(key: String, value: String?, consumer: String?) {
         sink().envVariableRead(key, value)
-        if (undeclaredEnvironmentVariables.add(key)) {
-            reportEnvironmentVariableInput(key, consumer)
-        }
+        reportUniqueEnvironmentVariableInput(key, consumer)
     }
 
     override fun fileOpened(file: File, consumer: String?) {
@@ -203,7 +200,7 @@ class ConfigurationCacheFingerprintWriter(
             return
         }
         captureFile(file)
-        reportFile(file, consumer)
+        reportUniqueFileInput(file, consumer)
     }
 
     override fun systemPropertiesPrefixedBy(prefix: String, snapshot: Map<String, String?>) {
@@ -215,14 +212,15 @@ class ConfigurationCacheFingerprintWriter(
     }
 
     override fun <T : Any, P : ValueSourceParameters> valueObtained(
-        obtainedValue: ValueSourceProviderFactory.Listener.ObtainedValue<T, P>
+        obtainedValue: ValueSourceProviderFactory.Listener.ObtainedValue<T, P>,
+        source: org.gradle.api.provider.ValueSource<T, P>
     ) {
         when (val parameters = obtainedValue.valueSourceParameters) {
             is FileContentValueSource.Parameters -> {
                 parameters.file.orNull?.asFile?.let { file ->
                     // TODO - consider the potential race condition in computing the hash code here
                     captureFile(file)
-                    reportFile(file)
+                    reportUniqueFileInput(file)
                 }
             }
             is GradlePropertyValueSource.Parameters -> {
@@ -239,19 +237,14 @@ class ConfigurationCacheFingerprintWriter(
                 reportExternalProcessOutputRead(ProcessOutputValueSource.Parameters.getExecutable(parameters))
             }
             else -> {
-                captureValueSource(obtainedValue)
-            }
-        }
-    }
-
-    private
-    fun <P : ValueSourceParameters, T : Any> captureValueSource(obtainedValue: ValueSourceProviderFactory.Listener.ObtainedValue<T, P>) {
-        sink().write(ValueSource(obtainedValue.uncheckedCast()))
-        obtainedValue.valueSourceType.let {
-            // Currently, the report only includes the type of the value source, so let's avoid reporting them more than once
-            // to keep the report small
-            if (reportedValueSources.add(it)) {
-                reportValueSourceInput(it)
+                sink().write(ValueSource(obtainedValue.uncheckedCast()))
+                reportUniqueValueSourceInput(
+                    displayName = when (source) {
+                        is Describable -> source.displayName
+                        else -> null
+                    },
+                    typeName = obtainedValue.valueSourceType.simpleName
+                )
             }
         }
     }
@@ -344,7 +337,27 @@ class ConfigurationCacheFingerprintWriter(
     }
 
     private
-    fun reportFile(file: File, consumer: String? = null) {
+    fun reportUniqueValueSourceInput(displayName: String?, typeName: String) {
+        // We assume different types won't ever produce identical display names
+        if (reportedValueSources.add(displayName ?: typeName)) {
+            reportValueSourceInput(displayName, typeName)
+        }
+    }
+
+    private
+    fun reportValueSourceInput(displayName: String?, typeName: String) {
+        reportInput(consumer = null, documentationSection = null) {
+            text("value from custom source ")
+            reference(typeName)
+            displayName?.let {
+                text(", ")
+                text(it)
+            }
+        }
+    }
+
+    private
+    fun reportUniqueFileInput(file: File, consumer: String? = null) {
         if (reportedFiles.add(file)) {
             reportFileInput(file, consumer)
         }
@@ -359,14 +372,6 @@ class ConfigurationCacheFingerprintWriter(
     }
 
     private
-    fun reportValueSourceInput(valueSourceType: Class<out Any>) {
-        reportInput(consumer = null, documentationSection = null) {
-            text("value from custom source ")
-            reference(valueSourceType.simpleName)
-        }
-    }
-
-    private
     fun reportExternalProcessOutputRead(executable: String) {
         reportInput(consumer = null, documentationSection = DocumentationSection.RequirementsExternalProcess) {
             text("output of external process ")
@@ -375,10 +380,24 @@ class ConfigurationCacheFingerprintWriter(
     }
 
     private
+    fun reportUniqueSystemPropertyInput(key: String, consumer: String?) {
+        if (undeclaredSystemProperties.add(key)) {
+            reportSystemPropertyInput(key, consumer)
+        }
+    }
+
+    private
     fun reportSystemPropertyInput(key: String, consumer: String?) {
         reportInput(consumer, DocumentationSection.RequirementsSysPropEnvVarRead) {
             text("system property ")
             reference(key)
+        }
+    }
+
+    private
+    fun reportUniqueEnvironmentVariableInput(key: String, consumer: String?) {
+        if (undeclaredEnvironmentVariables.add(key)) {
+            reportEnvironmentVariableInput(key, consumer)
         }
     }
 
