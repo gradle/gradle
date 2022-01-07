@@ -40,6 +40,7 @@ dependencies {
     implementation(libs.commonsIo)
     implementation(libs.asm)
     implementation(libs.junit)
+    implementation(libs.archunitJunit5)
     implementation(libs.testng)
     implementation(libs.inject)
     implementation(libs.bsh)

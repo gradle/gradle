@@ -191,7 +191,7 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
                 }
             }
 
-            return false;
+            return true;
         }
 
         private boolean matchesParentMethod(TestDescriptor descriptor, String methodName) {

@@ -18,6 +18,8 @@ package org.gradle.testing.junitplatform
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 
+import static org.gradle.testing.fixture.JUnitCoverage.LATEST_ARCHUNIT_VERSION
+
 class JUnitPlatformFilteringIntegrationTest extends JUnitPlatformIntegrationSpec {
 
     def 'can filter nested tests'() {
@@ -130,6 +132,45 @@ class JUnitPlatformFilteringIntegrationTest extends JUnitPlatformIntegrationSpec
             .testClass('SubClass')
             .assertTestCount(1, 0, 0)
             .assertTestPassed('superTest')
+    }
+
+    def 'does not exclude tests with a non-standard test source'() {
+        given:
+        buildFile << """
+            dependencies {
+                testImplementation 'com.tngtech.archunit:archunit-junit5:${LATEST_ARCHUNIT_VERSION}'
+            }
+
+            test {
+                filter {
+                    excludeTestsMatching "*notMatchingAnythingSoEverythingShouldBeRun"
+                }
+            }
+        """
+        file('src/test/java/DeclaresTestsAsFieldsNotMethodsTest.java') << '''
+            import com.tngtech.archunit.junit.AnalyzeClasses;
+            import com.tngtech.archunit.junit.ArchTest;
+            import com.tngtech.archunit.lang.ArchRule;
+
+            import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
+
+            @AnalyzeClasses(packages = "example")
+            class DeclaresTestsAsFieldsNotMethodsTest {
+                // this will create a JUnit Platform TestDescriptor with neither a Class- nor a MethodSource
+                @ArchTest
+                static final ArchRule example = classes().should().bePublic();
+            }
+        '''
+
+        when:
+        succeeds('test')
+
+        then:
+        new DefaultTestExecutionResult(testDirectory)
+            .assertTestClassesExecuted('DeclaresTestsAsFieldsNotMethodsTest')
+            .testClass('DeclaresTestsAsFieldsNotMethodsTest')
+            .assertTestCount(1, 0, 0)
+            .assertTestPassed('example')
     }
 
 }
