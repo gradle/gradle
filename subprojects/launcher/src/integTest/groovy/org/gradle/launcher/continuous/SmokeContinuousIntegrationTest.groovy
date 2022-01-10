@@ -36,7 +36,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         given:
         def markerFile = file("input/marker")
         buildFile << """
-            task build {
+            task myTask {
               def inputFile = file("input/marker")
               inputs.files inputFile
               outputs.files "build/marker"
@@ -47,7 +47,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         """
 
         when:
-        succeeds("build")
+        succeeds("myTask")
         then:
         output.contains "exists: false"
 
@@ -63,7 +63,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         given:
         def markerFile = file("input/marker")
         buildFile << """
-            task build {
+            task myTask {
               def inputFile = file("input/marker")
               inputs.files inputFile
               doLast {
@@ -74,7 +74,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
 
         when:
         markerFile.text = "original"
-        succeeds("build")
+        succeeds("myTask")
         then:
         output.contains "value: original"
 
@@ -100,7 +100,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         markerFile.text = "original"
 
         buildFile << """
-            task build {
+            task myTask {
               inputs.files "input/marker"
               outputs.files "build/marker"
               doLast {
@@ -110,7 +110,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         """
 
         then:
-        succeeds("build")
+        succeeds("myTask")
         output.contains "value: original"
 
         when:
@@ -128,7 +128,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         def includedFile = sources.file("sub/some/included.txt").createFile()
 
         buildFile << """
-            task build {
+            task myTask {
               def inputFileTree = fileTree("sources").include("**/*.txt")
               inputs.files(inputFileTree)
                 .ignoreEmptyDirectories()
@@ -141,7 +141,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         """
 
         when:
-        succeeds("build")
+        succeeds("myTask")
         then:
         outputContains("includedFiles: 1")
 
@@ -178,7 +178,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         markerFile.text = "original"
 
         buildFile << """
-            task build {
+            task myTask {
               inputs.files "input/marker"
               outputs.files "build/marker"
               doLast {
@@ -189,7 +189,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
 
         then:
         executer.withArgument("-q")
-        succeeds("build")
+        succeeds("myTask")
         output.contains "value: original"
 
         when:
@@ -208,7 +208,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
 
         when:
         buildFile << """
-            task build {
+            task myTask {
               def f = file("input/marker")
               inputs.files f
               inputs.files "inputFile"
@@ -225,7 +225,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         markerFile << "original"
 
         then:
-        succeeds "build"
+        succeeds "myTask"
         output.contains "value: original"
 
         when:
@@ -332,7 +332,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         markerFile.text = "original"
 
         buildFile << """
-            task build {
+            task myTask {
               inputs.files file("input/marker")
               outputs.files "build/marker"
               doLast {
@@ -347,7 +347,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         """
 
         then:
-        succeeds("build")
+        succeeds("myTask")
         output.contains "value: original"
         output.contains "reuse: false"
 
@@ -365,7 +365,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
     def "considered to be long lived process"() {
         when:
         buildFile << """
-            task build {
+            task myTask {
               doLast {
                 println "isLongLivingProcess: " + services.get($GradleBuildEnvironment.name).isLongLivingProcess()
               }
@@ -373,7 +373,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         """
 
         then:
-        succeeds("build")
+        succeeds("myTask")
         output.contains "isLongLivingProcess: true"
     }
 
@@ -454,7 +454,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         when:
         file("source").createDir()
         buildScript """
-            task build {
+            task myTask {
               inputs.files(fileTree("source"))
                 .skipWhenEmpty()
                 .ignoreEmptyDirectories()
@@ -465,7 +465,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         """
 
         then:
-        succeeds("build")
+        succeeds("myTask")
 
         when:
         file("ancillary/test.txt") << "foo"
