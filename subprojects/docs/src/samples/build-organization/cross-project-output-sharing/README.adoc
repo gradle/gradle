@@ -1,0 +1,41 @@
+You want to share a file made by a task in one project with a task in another project.
+For example, one task makes a file, and the other task reads the file and uses some information inside it.
+This is one way you can share information across project boundaries. (Another way is to use extension objects.)
+
+== Example
+
+.Settings
+====
+include::sample[dir="groovy",files="settings.gradle[]"]
+include::sample[dir="kotlin",files="settings.gradle.kts[]"]
+====
+
+.Producer's build
+====
+include::sample[dir="groovy",files="producer/build.gradle[]"]
+include::sample[dir="kotlin",files="producer/build.gradle.kts[]"]
+====
+
+.Consumer's build
+====
+include::sample[dir="groovy",files="consumer/build.gradle[]"]
+include::sample[dir="kotlin",files="consumer/build.gradle.kts[]"]
+====
+
+See also:
+
+- <<../userguide/cross_project_publications.adoc#cross_project_publications, Sharing outputs between projects>>
+- https://github.com/robmoore-i/gradle-share-outputs-betwee-projects/tree/groovy[A minimal example Gradle project demonstrating this feature, provided from the community]
+
+== Anti-patterns:
+
+[WARNING]
+.Don't reference other project tasks directly
+====
+A frequent anti-pattern to declare cross-project dependencies is:
+[source,groovy]
+---- dependencies {
+// this is unsafe!
+implementation project(":other").tasks.someOtherJar } ---- This publication model is _unsafe_ and can lead to non-reproducible and hard to parallelize builds.
+(WHY?)
+====
