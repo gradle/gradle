@@ -83,7 +83,7 @@ class JavaApplicationDeploymentIntegrationTest extends AbstractContinuousIntegra
         when:
         file("ready").delete()
         messageSrc.text = messageSrc.text.replace("APP", "NEW")
-        succeeds()
+        successfulBuildTriggered()
         then:
         assertApplicationReady()
         assertLogHasMessage("[NEW] > Hello, World!")
@@ -103,7 +103,7 @@ class JavaApplicationDeploymentIntegrationTest extends AbstractContinuousIntegra
 
         when:
         messageSrc.text = messageSrc.text.replace("APP", "NEW")
-        succeeds()
+        successfulBuildTriggered()
         then:
         assertLogDoesNotHasMessage("[NEW] > Hello, World!")
     }

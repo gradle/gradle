@@ -97,8 +97,22 @@ abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec
 
     @Override
     protected ExecutionResult succeeds(String... tasks) {
-        start(tasks)
+        runBuild(tasks)
         waitForBuild()
+        throwOnBuildFailure()
+        result
+    }
+
+    protected ExecutionResult successfulBuildTriggered() {
+        if (!gradle.isRunning()) {
+            throw new UnexpectedBuildFailure("Gradle has exited")
+        }
+        waitForBuild()
+        throwOnBuildFailure()
+        result
+    }
+
+    private void throwOnBuildFailure() {
         if (result instanceof ExecutionFailure) {
             throw new UnexpectedBuildFailure("""build was expected to succeed but failed:
 -- STDOUT --
@@ -109,27 +123,23 @@ ${result.error}
 -- STDERR --
 """)
         }
-        result
-    }
-
-    protected void start(String... tasks) {
-        if (tasks) {
-            runBuild(tasks)
-        } else if (!gradle.isRunning()) {
-            throw new UnexpectedBuildFailure("Gradle has exited")
-        }
-        if (gradle == null) {
-            throw new UnexpectedBuildFailure("Gradle never started")
-        }
     }
 
     ExecutionFailure fails(String... tasks) {
-        if (tasks) {
-            runBuild(tasks)
-        } else if (!gradle.isRunning()) {
+        runBuild(tasks)
+        waitForBuild()
+        return extractFailure()
+    }
+
+    ExecutionFailure failingBuildTriggered() {
+        if (!gradle.isRunning()) {
             throw new UnexpectedBuildFailure("Gradle has exited")
         }
         waitForBuild()
+        return extractFailure()
+    }
+
+    private ExecutionFailure extractFailure() {
         if (!(result instanceof ExecutionFailure)) {
             throw new UnexpectedBuildFailure("build was expected to fail but succeeded")
         }
@@ -138,6 +148,9 @@ ${result.error}
     }
 
     private void runBuild(String... tasks) {
+        if (!tasks) {
+            throw new IllegalArgumentException("tasks must be specified")
+        }
         stopGradle()
         standardOutputBuildMarker = 0
         errorOutputBuildMarker = 0
@@ -156,6 +169,10 @@ ${result.error}
     }
 
     protected void waitForBuild() {
+        if (gradle == null) {
+            throw new UnexpectedBuildFailure("Gradle never started")
+        }
+
         def lastOutput = buildOutputSoFar()
         def lastLength = lastOutput.size()
         def lastActivity = monotonicClockMillis()

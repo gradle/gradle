@@ -55,7 +55,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         waitBeforeModification(markerFile)
         markerFile.text = "created"
         then:
-        succeeds()
+        successfulBuildTriggered()
         output.contains "exists: true"
     }
 
@@ -82,7 +82,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         waitBeforeModification(markerFile)
         markerFile.text = "changed"
         then:
-        succeeds()
+        successfulBuildTriggered()
         output.contains "value: changed"
 
         where:
@@ -118,7 +118,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         markerFile.text = "changed"
 
         then:
-        succeeds()
+        successfulBuildTriggered()
         output.contains "value: changed"
     }
 
@@ -148,7 +148,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         when:
         includedFile.text = "changed"
         then:
-        succeeds()
+        successfulBuildTriggered()
         outputContains("includedFiles: 1")
 
         when:
@@ -159,13 +159,13 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         when:
         sources.file("sub/some/otherIncluded.txt").createFile()
         then:
-        succeeds()
+        successfulBuildTriggered()
         outputContains("includedFiles: 2")
 
         when:
         sources.file("sub/other/included.txt").createFile()
         then:
-        succeeds()
+        successfulBuildTriggered()
         outputContains("includedFiles: 3")
     }
 
@@ -197,7 +197,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         markerFile.text = "changed"
 
         then:
-        succeeds()
+        successfulBuildTriggered()
         output.contains "value: changed"
     }
 
@@ -233,7 +233,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         markerFile.delete()
 
         then:
-        fails()
+        failingBuildTriggered()
         failure.assertHasCause "java.lang.Exception: file does not exist"
 
         when:
@@ -241,7 +241,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         markerFile << "changed"
 
         then:
-        succeeds()
+        successfulBuildTriggered()
         output.contains "value: changed"
     }
 
@@ -272,7 +272,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         aFile << "original"
 
         then:
-        succeeds()
+        successfulBuildTriggered()
         executed(":a")
 
         and:
@@ -356,7 +356,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         markerFile.text = "changed"
 
         then:
-        succeeds()
+        successfulBuildTriggered()
         output.contains "value: changed"
         output.contains "reuse: true"
 
@@ -446,7 +446,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         when:
         bFlag.text = "b executed"
         then:
-        fails()
+        failingBuildTriggered()
         failureDescriptionContains("Could not determine the dependencies of task ':b'.")
     }
 
@@ -477,13 +477,13 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         file("source/test.txt") << "foo"
 
         then:
-        succeeds()
+        successfulBuildTriggered()
 
         when:
         file("ancillary/test.txt") << "-bar"
 
         then:
-        succeeds()
+        successfulBuildTriggered()
     }
 
     @Ignore("This goes into a continuous loop since .gradle files change")
@@ -518,7 +518,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         aFile.text = "A"
 
         then:
-        succeeds()
+        successfulBuildTriggered()
         executedAndNotSkipped(":a")
 
         when: "file is changed"
@@ -526,7 +526,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         aFile.text = "B"
 
         then:
-        succeeds()
+        successfulBuildTriggered()
         executedAndNotSkipped(":a")
 
         when:
@@ -534,7 +534,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         aFile.delete()
 
         then:
-        succeeds()
+        successfulBuildTriggered()
         executedAndNotSkipped(":a")
     }
 
@@ -589,7 +589,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         topLevelFile.text = "hello"
 
         then:
-        succeeds()
+        successfulBuildTriggered()
         executedAndNotSkipped(":inner", ":outer")
 
         when: "file is changed"
@@ -597,7 +597,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         nestedFile.text = "B"
 
         then:
-        succeeds()
+        successfulBuildTriggered()
         executedAndNotSkipped(":outer")
     }
 

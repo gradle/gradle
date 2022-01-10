@@ -41,7 +41,7 @@ class BuildOperationNotificationContinuousBuildIntegrationTest extends AbstractC
         file("src/main/java/Thing.java").text = "class Thing {\n\n}"
 
         then:
-        succeeds()
+        successfulBuildTriggered()
         def run2 = notifications.op(RunBuildBuildOperationType.Details)
 
         and:

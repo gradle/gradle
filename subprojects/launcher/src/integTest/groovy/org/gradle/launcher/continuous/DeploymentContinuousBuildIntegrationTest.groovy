@@ -56,7 +56,7 @@ class DeploymentContinuousBuildIntegrationTest extends AbstractContinuousIntegra
         def lastBuildTime = single(buildTimes)
         waitBeforeModification fixture.triggerFile
         fixture.triggerFile << "\n#a change"
-        succeeds()
+        successfulBuildTriggered()
 
         then:
         fixture.assertDeploymentIsRunning(key)

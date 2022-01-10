@@ -54,7 +54,7 @@ class ArchivesContinuousIntegrationTest extends AbstractContinuousIntegrationTes
         subDir.file("B").text = "B"
 
         then:
-        succeeds()
+        successfulBuildTriggered()
         executedAndNotSkipped(":zip")
         outputFile.exists()
         outputFile.unzipTo(unpackDir)
@@ -64,7 +64,7 @@ class ArchivesContinuousIntegrationTest extends AbstractContinuousIntegrationTes
         sourceDir.file("newdir").createDir()
 
         then:
-        succeeds()
+        successfulBuildTriggered()
         executedAndNotSkipped(":zip")
     }
 
@@ -107,7 +107,7 @@ class ArchivesContinuousIntegrationTest extends AbstractContinuousIntegrationTes
         packDir."$packType"(sourceFile, readonly)
 
         then:
-        succeeds()
+        successfulBuildTriggered()
         executedAndNotSkipped(":unpack")
         outputDir.file("A").text == "original"
         outputDir.file("B").text == "new-file"
@@ -152,7 +152,7 @@ class ArchivesContinuousIntegrationTest extends AbstractContinuousIntegrationTes
         packDir."$packType"(sourceFile)
 
         then:
-        succeeds()
+        successfulBuildTriggered()
         executedAndNotSkipped(":unpack")
         outputDir.file("A").text == "original-changed"
 
