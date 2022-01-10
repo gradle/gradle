@@ -47,7 +47,7 @@ class ModelReportIntegrationTest extends AbstractIntegrationSpec {
                     prepareKotlinBuildScriptModel()
                     projects()
                     properties()
-                    requestedVariants()
+                    resovableVariants()
                     tasks()
                     wrapper()
                 }
@@ -374,10 +374,10 @@ model {
           | Creator: \tProject.<init>.tasks.properties()
           | Rules:
              ⤷ copyToTaskContainer
-    + requestedVariants
-          | Type:   \torg.gradle.api.tasks.diagnostics.RequestedVariantsReportTask
-          | Value:  \ttask ':requestedVariants\'
-          | Creator: \tProject.<init>.tasks.requestedVariants()
+    + resolvableVariants
+          | Type:   \torg.gradle.api.tasks.diagnostics.ResolvableVariantsReportTask
+          | Value:  \ttask ':resolvableVariants\'
+          | Creator: \tProject.<init>.tasks.resolvableVariants()
           | Rules:
              ⤷ copyToTaskContainer
     + tasks

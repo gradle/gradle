@@ -50,7 +50,7 @@ javaToolchains - Displays the detected java toolchains.
 outgoingVariants - Displays the outgoing variants of root project '$projectName'.
 projects - Displays the sub-projects of root project '$projectName'.
 properties - Displays the properties of root project '$projectName'.
-requestedVariants - Displays the requested variants of root project '$projectName'.
+resolvableVariants - Displays the configurations available to resolve in root project '$projectName'.
 tasks - Displays the tasks runnable from root project '$projectName'.""")
 
         where:
@@ -82,7 +82,7 @@ javaToolchains (org.gradle.jvm.toolchain.internal.task.ShowToolchainsTask) - Dis
 outgoingVariants (org.gradle.api.tasks.diagnostics.OutgoingVariantsReportTask) - Displays the outgoing variants of root project '$projectName'.
 projects (org.gradle.api.tasks.diagnostics.ProjectReportTask) - Displays the sub-projects of root project '$projectName'.
 properties (org.gradle.api.tasks.diagnostics.PropertyReportTask) - Displays the properties of root project '$projectName'.
-requestedVariants (org.gradle.api.tasks.diagnostics.RequestedVariantsReportTask) - Displays the requested variants of root project '$projectName'.
+resolvableVariants (org.gradle.api.tasks.diagnostics.ResolvableVariantsReportTask) - Displays the configurations available to resolve in root project '$projectName'.
 tasks (org.gradle.api.tasks.diagnostics.TaskReportTask) - Displays the tasks runnable from root project '$projectName'.""")
     }
 

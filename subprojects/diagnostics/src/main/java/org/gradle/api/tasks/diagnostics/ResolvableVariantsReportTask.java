@@ -46,7 +46,7 @@ import java.util.function.Predicate;
  */
 @Incubating
 @DisableCachingByDefault(because = "Produces only non-cacheable console output")
-public class RequestedVariantsReportTask extends AbstractVariantsReportTask {
+public class ResolvableVariantsReportTask extends AbstractVariantsReportTask {
     private final Property<String> configurationSpec = getProject().getObjects().property(String.class);
     private final Property<Boolean> showAll = getProject().getObjects().property(Boolean.class).convention(false);
 

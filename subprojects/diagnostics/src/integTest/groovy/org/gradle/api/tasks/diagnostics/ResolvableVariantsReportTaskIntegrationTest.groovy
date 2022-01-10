@@ -21,7 +21,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.InspectsVariantsReport
 
-class RequestedVariantsReportTaskIntegrationTest extends AbstractIntegrationSpec implements InspectsVariantsReport {
+class ResolvableVariantsReportTaskIntegrationTest extends AbstractIntegrationSpec implements InspectsVariantsReport {
     def setup() {
         settingsFile << """
             rootProject.name = "myLib"
@@ -30,7 +30,7 @@ class RequestedVariantsReportTaskIntegrationTest extends AbstractIntegrationSpec
 
     def "if no configurations present, requested variants task produces empty report"() {
         expect:
-        succeeds ':requestedVariants'
+        succeeds ':resolvableVariants'
         outputContains('There are no resolvable configurations on project myLib')
     }
 
@@ -45,10 +45,10 @@ class RequestedVariantsReportTaskIntegrationTest extends AbstractIntegrationSpec
         """
 
         when:
-        succeeds ':requestedVariants'
+        succeeds ':resolvableVariants'
 
         then:
-        outputContains """> Task :requestedVariants
+        outputContains """> Task :resolvableVariants
 --------------------------------------------------
 Configuration custom
 --------------------------------------------------
@@ -80,10 +80,10 @@ Capabilities
         """
 
         when:
-        succeeds ':requestedVariants'
+        succeeds ':resolvableVariants'
 
         then:
-        outputContains """> Task :requestedVariants
+        outputContains """> Task :resolvableVariants
 --------------------------------------------------
 Configuration custom
 --------------------------------------------------
@@ -129,10 +129,10 @@ Attributes
         """
 
         when:
-        succeeds ':requestedVariants'
+        succeeds ':resolvableVariants'
 
         then:
-        outputContains """> Task :requestedVariants
+        outputContains """> Task :resolvableVariants
 --------------------------------------------------
 Configuration otherConf
 --------------------------------------------------
@@ -172,7 +172,7 @@ Attributes
         """
 
         expect:
-        succeeds ':requestedVariants'
+        succeeds ':resolvableVariants'
         outputContains('There are no resolvable configurations on project myLib')
     }
 
@@ -188,10 +188,10 @@ Attributes
 
         when:
         executer.expectDeprecationWarning('(l) Legacy or deprecated configuration. Those are variants created for backwards compatibility which are both resolvable and consumable.')
-        run ':requestedVariants', '--all'
+        run ':resolvableVariants', '--all'
 
         then:
-        outputContains """> Task :requestedVariants
+        outputContains """> Task :resolvableVariants
 --------------------------------------------------
 Configuration legacy (l)
 --------------------------------------------------
@@ -220,10 +220,10 @@ Capabilities
         """
 
         when:
-        succeeds ':requestedVariants'
+        succeeds ':resolvableVariants'
 
         then:
-        outputContains """> Task :requestedVariants
+        outputContains """> Task :resolvableVariants
 --------------------------------------------------
 Configuration annotationProcessor
 --------------------------------------------------
@@ -333,10 +333,10 @@ Attributes
 
         when:
         executer.expectDeprecationWarning('(l) Legacy or deprecated configuration. Those are variants created for backwards compatibility which are both resolvable and consumable.')
-        run ':requestedVariants', '--all'
+        run ':resolvableVariants', '--all'
 
         then:
-        outputContains """> Task :requestedVariants
+        outputContains """> Task :resolvableVariants
 --------------------------------------------------
 Configuration annotationProcessor
 --------------------------------------------------
@@ -449,7 +449,7 @@ Attributes
 
     def "specifying a missing config with no configs produces empty report"() {
         expect:
-        succeeds ':requestedVariants', '--configuration', 'missing'
+        succeeds ':resolvableVariants', '--configuration', 'missing'
         outputContains("There is no configuration named 'missing' defined on this project.")
         outputContains('There are no resolvable configurations on project myLib')
     }
@@ -465,7 +465,7 @@ Attributes
         """
 
         expect:
-        succeeds ':requestedVariants', '--configuration', 'missing'
+        succeeds ':resolvableVariants', '--configuration', 'missing'
         outputContains("There is no configuration named 'missing' defined on this project.")
         outputContains('Here are the available resolvable configurations: custom')
     }

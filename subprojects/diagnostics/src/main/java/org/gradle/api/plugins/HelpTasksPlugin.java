@@ -31,7 +31,7 @@ import org.gradle.api.tasks.diagnostics.DependencyReportTask;
 import org.gradle.api.tasks.diagnostics.OutgoingVariantsReportTask;
 import org.gradle.api.tasks.diagnostics.ProjectReportTask;
 import org.gradle.api.tasks.diagnostics.PropertyReportTask;
-import org.gradle.api.tasks.diagnostics.RequestedVariantsReportTask;
+import org.gradle.api.tasks.diagnostics.ResolvableVariantsReportTask;
 import org.gradle.api.tasks.diagnostics.TaskReportTask;
 import org.gradle.configuration.Help;
 
@@ -60,7 +60,7 @@ public class HelpTasksPlugin implements Plugin<Project> {
      * @since 7.5
      */
     @Incubating
-    public static final String REQUESTED_VARIANTS_TASK = "requestedVariants";
+    public static final String RESOLVABLE_VARIANTS_TASK = "resolvableVariants";
     public static final String MODEL_TASK = "model";
     public static final String DEPENDENT_COMPONENTS_TASK = "dependentComponents";
 
@@ -83,8 +83,8 @@ public class HelpTasksPlugin implements Plugin<Project> {
             task.setGroup(HELP_GROUP);
             task.setImpliesSubProjects(true);
         });
-        tasks.register(REQUESTED_VARIANTS_TASK, RequestedVariantsReportTask.class, task -> {
-            task.setDescription("Displays the requested variants of " + projectName + ".");
+        tasks.register(RESOLVABLE_VARIANTS_TASK, ResolvableVariantsReportTask.class, task -> {
+            task.setDescription("Displays the configurations available to resolve in " + projectName + ".");
             task.setGroup(HELP_GROUP);
             task.setImpliesSubProjects(true);
         });
