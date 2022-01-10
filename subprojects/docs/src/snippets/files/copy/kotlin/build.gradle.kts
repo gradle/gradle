@@ -218,9 +218,9 @@ tasks.register<Copy>("filter") {
         "[$line]"
     }
     // Use a closure to remove lines
-    filter(nullableTransformer { line: String ->
+    filter { line: String ->
         if (line.startsWith('-')) null else line
-    })
+    }
     filteringCharset = "UTF-8"
 }
 // end::filter-files[]
