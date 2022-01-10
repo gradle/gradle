@@ -32,7 +32,7 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.provider.Property;
-import org.gradle.api.tasks.diagnostics.internal.VariantsReportFormatter;
+import org.gradle.api.tasks.diagnostics.internal.variantreports.VariantsReportFormatter;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.work.DisableCachingByDefault;
