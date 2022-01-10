@@ -1,12 +1,13 @@
 The Gradle team is excited to announce Gradle @version@.
 
-This release features [1](), [2](), ... [n](), and more.
+This release includes several usability improvements, such as [automatic detection of test source directories](#idea-test-sources) in IDEA and [better support for plugin version declarations in subprojects](#plugins-dsl). [Java toolchain support](#java-toolchains) has been updated to support the migration of AdoptOpenJDK to Adoptium.
+
+There are also changes to make adopting the [experimental configuration cache](#config-cache) easier and more correct, along with several [bug fixes](#fixed-issues) and [other changes](#other).
+
+The Build service and Version catalog features have been [promoted to stable](#promoted). 
 
 We would like to thank the following community members for their contributions to this release of Gradle:
-<!-- 
-Include only their name, impactful features should be called out separately below.
- [Some person](https://github.com/some-person)
--->
+
 [Michael Bailey](https://github.com/yogurtearl),
 [Jochen Schalanda](https://github.com/joschi),
 [Jendrik Johannes](https://github.com/jjohannes),
@@ -30,61 +31,33 @@ Switch your build to use Gradle @version@ by updating your wrapper:
 
 See the [Gradle 7.x upgrade guide](userguide/upgrading_version_7.html#changes_@baseVersion@) to learn about deprecations, breaking changes and other considerations when upgrading to Gradle @version@. 
 
-NOTE: Gradle 7.3 has had *two* patch releases, which fixes several issues from the original release.
-We recommend always using the latest patch release.
-
 For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).
 
 ## New features and usability improvements
 
-<!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. --> 
+### Usability improvements
 
-<!-- 
+<a name="idea-test-sources"></a>
+### Mark additional test source directories as tests in IntelliJ IDEA 
 
-================== TEMPLATE ==============================
+The [IntelliJ IDEA Plugin](userguide/idea_plugin.html) plugin will now automatically mark all source directories used by a [JVM Test Suite](userguide/jvm_test_suite_plugin.html#declare_an_additional_test_suite) as test source directories within the IDE. 
 
-<a name="FILL-IN-KEY-AREA"></a>
-### FILL-IN-KEY-AREA improvements
+The [JVM Test Suite Plugin](userguide/jvm_test_suite_plugin.html) is an incubating plugin that makes it easier to create additional sets of tests in a Java project.
 
-<<<FILL IN CONTEXT FOR KEY AREA>>>
-Example:
-> The [configuration cache](userguide/configuration_cache.html) improves build performance by caching the result of
-> the configuration phase. Using the configuration cache, Gradle can skip the configuration phase entirely when
-> nothing that affects the build configuration has changed.
+The Eclipse plugin will be updated in a future version of Gradle.
 
-#### FILL-IN-FEATURE
-> HIGHLIGHT the usecase or existing problem the feature solves
-> EXPLAIN how the new release addresses that problem or use case
-> PROVIDE a screenshot or snippet illustrating the new feature, if applicable
-> LINK to the full documentation for more details 
+<a name="plugins-dsl"></a>
+#### Plugins can be declared with a version in a subproject in more cases
 
-================== END TEMPLATE ==========================
+The [plugins DSL](userguide/plugins.html#sec:plugins_block) provides a succinct and convenient way to declare plugin dependencies.
 
+Previously, it was not possible to declare a plugin with a version in a subproject when the parent project also declared the same plugin. Now, this is allowed when Gradle can track the version of the plugin (currently when using included build plugins or externally resolved plugins), and the version of the plugin in both applications matches.
 
-==========================================================
-ADD RELEASE FEATURES BELOW
-vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
+This allows you to use [`alias`](userguide/platforms.html#sec:plugins) in both a parent and subproject's `plugins {}` without needing to remove the version in some way.
 
-### JVM toolchains improvements
-
-[Java toolchains](userguide/toolchains.html) provide an easy way to declare which Java version your project should be built with.
-By default, Gradle will [detect installed JDKs](userguide/toolchains.html#sec:auto_detection) or automatically download new toolchain versions.
-
-#### Changes following migration from AdoptOpenJDK to Adoptium
-
-Following the migration of [AdoptOpenJDK](https://adoptopenjdk.net/) to [Eclipse Adoptium](https://adoptium.net/), a number of changes have been made for toolchains:
-* `ADOPTIUM` and `IBM_SEMERU` are now recognized as vendors,
-* Both of the above can be used as vendors and trigger auto-provisioning,
-* Using `ADOPTOPENJDK` as a vendor and having it trigger auto-provisioning will emit a [deprecation warning](userguide/upgrading_version_7.html#adoptopenjdk_download).
-
-See [the documentation](userguide/toolchains.html#sec:provisioning) for details.
-
-### Kotlin DSL improvements
-
-#### Type-safe accessors for extensions of `repositories {}`
+#### Type-safe accessors for extensions of `repositories {}` in Kotlin DSL
 
 The Kotlin DSL now generates type-safe model accessors for extensions registered on the `repositories {}` block.
-
 
 For example, starting with this version of Gradle, the [`asciidoctorj-gems-plugin`](https://asciidoctor.github.io/asciidoctor-gradle-plugin/master/user-guide/#asciidoctorj-gems-plugin) can be configured directly via the generated type-safe accessors:
 
@@ -120,42 +93,35 @@ repositories {
 ```
 See [the documentation](userguide/kotlin_dsl.html#type-safe-accessors) for details.
 
-### Dependency verification improvements
+#### Stable dependency verification file generation
 
-[Dependency verification](userguide/dependency_verification.html) is a feature that allows to verify the checksums and signatures of the plugins and dependencies that are used by the build of your project.
+[Dependency verification](userguide/dependency_verification.html) is a feature that allows Gradle to verify the checksums and signatures of the plugins and dependencies that are used by the build of your project.
 
 With this release, the generation of the dependency verification file has been improved to produce stable output.
+
 This means that for the same inputs - build configuration and previous verification file - Gradle will always produce the same output.
+
 This allows you to leverage [the verification metadata bootstrapping feature](userguide/dependency_verification.html#sec:bootstrapping-verification) as an update strategy when dependencies change in your project.
+
 Have a look at [the documentation](userguide/dependency_verification.html#sec:verification-update) for more details.
 
-### Gradle Option Improvements
+<a name="java-toolchains"></a>
+### Java toolchain improvements
 
-#### Additional Daemon Debug Options
+[Java toolchains](userguide/toolchains.html) provide an easy way to declare which Java version your project should be built with.
 
-Additional options were added for use with `-Dorg.gradle.debug=true`. These allow specification of the port, server mode, and suspend mode.
+By default, Gradle will [detect installed JDKs](userguide/toolchains.html#sec:auto_detection) or automatically download new toolchain versions.
 
-See [the documentation](userguide/command_line_interface.html#sec:command_line_debugging) for details.
+#### Changes following migration from AdoptOpenJDK to Adoptium
 
-### Mark additional test source directories as tests in IntelliJ IDEA 
+Following the migration of [AdoptOpenJDK](https://adoptopenjdk.net/) to [Eclipse Adoptium](https://adoptium.net/), a number of changes have been made for toolchains:
+* `ADOPTIUM` and `IBM_SEMERU` are now recognized as vendors,
+* Both of the above can be used as vendors and trigger auto-provisioning,
+* Using `ADOPTOPENJDK` as a vendor and having it trigger auto-provisioning will emit a [deprecation warning](userguide/upgrading_version_7.html#adoptopenjdk_download).
 
-The [IntelliJ IDEA Plugin](userguide/idea_plugin.html) plugin will now automatically mark all source directories used by a [JVM Test Suite](userguide/jvm_test_suite_plugin.html#declare_an_additional_test_suite) as test source directories within the IDE. 
+See [the documentation](userguide/toolchains.html#sec:provisioning) for details.
 
-The [JVM Test Suite Plugin](userguide/jvm_test_suite_plugin.html) is an incubating plugin that makes it easier to create additional sets of tests in a Java project.
-
-The Eclipse plugin will be updated in a future version of Gradle.
-
-### Plugins DSL improvements
-
-The [plugins DSL](userguide/plugins.html#sec:plugins_block) provides a succinct and convenient way to declare plugin dependencies.
-
-#### Plugins can be declared with a version in a subproject in more cases
-Previously, it was not possible to declare a plugin with a version in a subproject when the parent project also declared the same
-plugin. Now, this is allowed when Gradle can track the version of the plugin (currently when using included build plugins or externally resolved plugins), and the version of the plugin in both applications matches.
-
-This allows you to use [`alias`](userguide/platforms.html#sec:plugins) in both a parent and subproject's `plugins {}` without 
-needing to remove the version in some way.
-
+<a name="config-cache"></a>
 ### Configuration Cache improvements
 
 #### Automatic detection of environment variables, system properties and Gradle properties used at configuration time
@@ -166,43 +132,45 @@ Gradle 7.4 simplifies adoption of the configuration cache by deprecating `Provid
 
 #### Opt incompatible tasks out of configuration caching
 
-It is now possible to declare that a particular task is not compatible with the configuration cache. Gradle will disable the configuration cache
-whenever an incompatible task is scheduled to run. This makes it possible to enable the configuration cache for a build without having to first 
+It is now possible to declare that a particular task is not compatible with the configuration cache. 
+
+Gradle will disable the configuration cache whenever an incompatible task is scheduled to run. This makes it possible to enable the configuration cache for a build without having to first 
 migrate all tasks to be compatible.
 
 Please check the [user manual](userguide/configuration_cache.html#config_cache:task_opt_out) for more details.
 
-<!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-ADD RELEASE FEATURES ABOVE
-==========================================================
+<a name="other"></a>
+### Other improvements
 
--->
+#### Additional Gradle daemon debug options
 
+Additional options were added for use with `-Dorg.gradle.debug=true`. These allow specification of the port, server mode, and suspend mode.
+
+See [the documentation](userguide/command_line_interface.html#sec:command_line_debugging) for details.
+
+<a name="promoted"></a>
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 
 The following are the features that have been promoted in this Gradle release.
 
-### Shared Build Services
+### Shared build services
 
-[Shared Build Services](userguide/build_services.html) is promoted to a stable feature.
+[Shared build services](userguide/build_services.html) is promoted to a stable feature.
 
+### Version catalogs
 
-### Version Catalogs
-
-[Version Catalogs](current/userguide/platforms.html) is promoted to a stable feature.
-
-<!--
-### Example promoted
--->
+[Version catalogs](userguide/platforms.html) is promoted to a stable feature.
 
 ## Fixed issues
 
 ### Idle Connection Timeout
 
 Some CI hosting providers like Azure automatically close idle connections after a certain period of time.
+
 This caused problems with connections to the Gradle Build Cache which could have an open connection for the entire execution of the build.
+
 This release of Gradle fixes this issue by automatically closing idle connections after 3 min by default.
 
 ## Known issues
