@@ -670,4 +670,43 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         expect:
         succeeds("assertSameFrameworkInstance")
     }
+
+    def "the default test suite does NOT use JUnit 4 by default"() {
+        given: "a build which uses the default test suite and doesn't specify a testing framework"
+        file("build.gradle") << """
+            plugins {
+                id 'java-library'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing {
+                suites {
+                    test {
+                        // Empty
+                    }
+                }
+            }
+        """
+
+        and: "containing a test which uses Junit 4"
+        file("src/test/java/org/test/MyTest.java") << """
+            package org.test;
+
+            import org.junit.Test;
+            import org.junit.Assert;
+
+            public class MyTest {
+                @Test
+                public void testSomething() {
+                    Assert.assertEquals(1, MyFixture.calculateSomething());
+                }
+            }
+        """
+
+        expect: "does NOT compile due to a missing dependency"
+        fails( "test")
+        failure.assertHasErrorOutput("Compilation failed; see the compiler error output for details.")
+        failure.assertHasErrorOutput("error: package org.junit does not exist")
+    }
 }
