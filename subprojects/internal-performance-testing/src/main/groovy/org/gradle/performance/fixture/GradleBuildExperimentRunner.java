@@ -25,10 +25,12 @@ import org.gradle.internal.jvm.Jvm;
 import org.gradle.performance.results.GradleProfilerReporter;
 import org.gradle.performance.results.MeasuredOperationList;
 import org.gradle.performance.results.OutputDirSelector;
+import org.gradle.profiler.AndroidStudioSyncAction;
 import org.gradle.profiler.BuildAction;
 import org.gradle.profiler.DaemonControl;
 import org.gradle.profiler.GradleBuildConfiguration;
 import org.gradle.profiler.GradleBuildInvoker;
+import org.gradle.profiler.GradleBuildInvokerPackageAccess;
 import org.gradle.profiler.GradleScenarioDefinition;
 import org.gradle.profiler.GradleScenarioInvoker;
 import org.gradle.profiler.InvocationSettings;
@@ -95,19 +97,19 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
 
         GradleBuildExperimentSpec gradleExperiment = (GradleBuildExperimentSpec) experiment;
         InvocationSettings invocationSettings = createInvocationSettings(testId, buildSpec, gradleExperiment);
-        GradleScenarioDefinition scenarioDefinition = createScenarioDefinition(gradleExperiment, invocationSettings, invocation);
+        GradleScenarioDefinition scenarioDefinition = createScenarioDefinition(gradleExperiment, invocationSettings, invocation, buildSpec);
 
         try {
             GradleScenarioInvoker scenarioInvoker = createScenarioInvoker(invocationSettings.getGradleUserHome());
             Logging.setupLogging(workingDirectory);
-            if (gradleExperiment.getInvocation().isUseToolingApi()) {
-                initializeNativeServicesForTapiClient(buildSpec, scenarioDefinition);
-            }
-            if (scenarioDefinition instanceof StudioGradleScenarioDefinition) {
-                StudioGradleScenarioDefinition studioScenarioDefinition = (StudioGradleScenarioDefinition) scenarioDefinition;
+            if (buildSpec.isUseAndroidStudio()) {
+                StudioGradleScenarioDefinition studioScenarioDefinition = new StudioGradleScenarioDefinition(scenarioDefinition, buildSpec.getStudioJvmArgs());
                 StudioGradleScenarioInvoker studioScenarioInvoker = new StudioGradleScenarioInvoker(scenarioInvoker);
                 doRunScenario(studioScenarioDefinition, studioScenarioInvoker, invocationSettings, results);
             } else {
+                if (gradleExperiment.getInvocation().isUseToolingApi()) {
+                    initializeNativeServicesForTapiClient(buildSpec, scenarioDefinition);
+                }
                 doRunScenario(scenarioDefinition, scenarioInvoker, invocationSettings, results);
             }
         } catch (IOException | InterruptedException e) {
@@ -158,13 +160,18 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
     }
 
     private InvocationSettings createInvocationSettings(String testId, GradleInvocationSpec invocationSpec, GradleBuildExperimentSpec experiment) {
-        GradleBuildInvoker daemonInvoker = invocationSpec.getUseToolingApi() ? GradleBuildInvoker.ToolingApi : GradleBuildInvoker.Cli;
-        GradleBuildInvoker invoker = GradleBuildInvoker.CliNoDaemon
-        invocationSpec.isUseDaemon()
-            ? daemonInvoker
-            : (daemonInvoker == GradleBuildInvoker.ToolingApi
-            ? daemonInvoker.withColdDaemon()
-            : GradleBuildInvoker.CliNoDaemon);
+        GradleBuildInvoker invoker;
+        if (invocationSpec.isUseAndroidStudio()) {
+            invoker = GradleBuildInvokerPackageAccess.AndroidStudio;
+        } else if (invocationSpec.isUseToolingApi()) {
+            invoker = invocationSpec.isUseDaemon()
+                ? GradleBuildInvoker.ToolingApi
+                : GradleBuildInvoker.ToolingApi.withColdDaemon();
+        } else {
+            invoker = invocationSpec.isUseDaemon()
+                ? GradleBuildInvoker.Cli
+                : GradleBuildInvoker.CliNoDaemon;
+        }
 
         boolean measureGarbageCollection = experiment.isMeasureGarbageCollection()
             // Measuring GC needs build services which have been introduced in Gradle 6.1
@@ -179,8 +186,8 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
             .setMeasuredBuildOperations(experiment.getMeasuredBuildOperations())
             .setMeasureGarbageCollection(measureGarbageCollection)
             .setBuildLog(invocationSpec.getBuildLog())
-            .setStudioInstallDir()
-            .setStudioSandboxDir()
+            .setStudioInstallDir(invocationSpec.getStudioInstallDir())
+            .setStudioSandboxDir(invocationSpec.getStudioSandboxDir())
             .build();
     }
 
@@ -190,7 +197,12 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
         return new File(projectDirectory.getParent(), projectDirectory.getName() + "-" + GRADLE_USER_HOME_NAME);
     }
 
-    private GradleScenarioDefinition createScenarioDefinition(GradleBuildExperimentSpec experimentSpec, InvocationSettings invocationSettings, GradleInvocationSpec invocationSpec) {
+    private GradleScenarioDefinition createScenarioDefinition(
+        GradleBuildExperimentSpec experimentSpec,
+        InvocationSettings invocationSettings,
+        GradleInvocationSpec invocationSpec,
+        GradleInvocationSpec buildSpec
+    ) {
         GradleDistribution gradleDistribution = invocationSpec.getGradleDistribution();
         List<String> cleanTasks = invocationSpec.getCleanTasks();
         File gradlePropertiesFile = new File(invocationSettings.getProjectDir(), "gradle.properties");
@@ -210,7 +222,9 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
             experimentSpec.getDisplayName(),
             (GradleBuildInvoker) invocationSettings.getInvoker(),
             new GradleBuildConfiguration(gradleDistribution.getVersion(), gradleDistribution.getGradleHomeDir(), Jvm.current().getJavaHome(), actualJvmArgs, false, invocationSpec.getClientJvmArguments()),
-            experimentSpec.getInvocation().getBuildAction(),
+            buildSpec.isUseAndroidStudio()
+                ? new AndroidStudioSyncAction()
+                : experimentSpec.getInvocation().getBuildAction(),
             cleanTasks.isEmpty()
                 ? BuildAction.NO_OP
                 : new RunTasksAction(cleanTasks),

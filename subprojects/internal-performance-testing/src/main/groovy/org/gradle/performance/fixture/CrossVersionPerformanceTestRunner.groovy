@@ -36,6 +36,7 @@ import org.gradle.profiler.GradleInvoker
 import org.gradle.profiler.GradleInvokerBuildAction
 import org.gradle.profiler.InvocationSettings
 import org.gradle.profiler.ToolingApiGradleClient
+import org.gradle.profiler.studio.tools.StudioFinder
 import org.gradle.tooling.LongRunningOperation
 import org.gradle.tooling.ProjectConnection
 import org.gradle.util.GradleVersion
@@ -66,6 +67,9 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     File workingDir
     boolean useDaemon = true
     boolean useToolingApi = false
+    boolean useAndroidStudio = false
+    List<String> studioJvmArgs = []
+    File studioInstallDir
 
     List<String> tasksToRun = []
     List<String> cleanTasks = []
@@ -120,12 +124,12 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             vcsCommits: [Git.current().commitId],
             startTime: clock.getCurrentTime(),
             channel: ResultsStoreHelper.determineChannel(),
-            teamCityBuildId: ResultsStoreHelper.determineTeamCityBuildId()
+            teamCityBuildId: "ResultsStoreHelper.determineTeamCityBuildId()"
         )
 
         def baselineVersions = toBaselineVersions(releases, targetVersions, minimumBaseVersion).collect { results.baseline(it) }
         try {
-            int runIndex = 0
+            def runIndex = 0
             runVersion(testId, current, perVersionWorkingDirectory(runIndex++), results.current)
 
             baselineVersions.each { baselineVersion ->
@@ -161,12 +165,21 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     private File perVersionWorkingDirectory(int runIndex) {
         def versionWorkingDirName = String.format('%03d', runIndex)
         def perVersion = new File(workingDir, versionWorkingDirName)
-        if (!perVersion.exists()) {
-            perVersion.mkdirs()
+        return cleanOrCreate(perVersion)
+    }
+
+    private File perVersionStudioSandboxDirectory(File workingDir) {
+        File studioSandboxDir = new File(workingDir, "studio-sandbox")
+        return cleanOrCreate(studioSandboxDir)
+    }
+
+    private static File cleanOrCreate(File directory) {
+        if (!directory.exists()) {
+            directory.mkdirs()
         } else {
-            FileUtils.cleanDirectory(perVersion)
+            FileUtils.cleanDirectory(directory)
         }
-        perVersion
+        directory
     }
 
     private static boolean versionMeetsLowerBaseVersionRequirement(String targetVersion, String minimumBaseVersion) {
@@ -174,6 +187,7 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     }
 
     private void runVersion(String displayName, GradleDistribution dist, File workingDir, MeasuredOperationList results) {
+        File studioSandboxDirAsFile = perVersionStudioSandboxDirectory(workingDir)
         def gradleOptsInUse = resolveGradleOpts()
         def builder = GradleBuildExperimentSpec.builder()
             .projectName(testProject)
@@ -193,6 +207,10 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
                 jvmArgs(gradleOptsInUse as String[])
                 useDaemon(this.useDaemon)
                 useToolingApi(this.useToolingApi)
+                useAndroidStudio(this.useAndroidStudio)
+                studioJvmArgs(this.studioJvmArgs)
+                studioInstallDir(this.studioInstallDir)
+                studioSandboxDir(studioSandboxDirAsFile)
                 buildAction(this.buildAction)
             }
         builder.workingDirectory = workingDir
@@ -211,11 +229,10 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         return tapiAction
     }
 
-    def <T extends LongRunningOperation> ToolingApiAction<T> androidStudioSync(String displayName, Function<ProjectConnection, T> initialAction) {
-        useToolingApi = true
-        def tapiAction = new ToolingApiAction<T>(displayName, initialAction)
-        this.buildAction = tapiAction
-        return tapiAction
+    def setupAndroidStudioSync() {
+        useAndroidStudio = true
+        studioInstallDir = StudioFinder.findStudioHome()
+        studioJvmArgs = ["-Xms256m", "-Xmx4096m"]
     }
 }
 
