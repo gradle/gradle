@@ -78,11 +78,15 @@ public class JavaMethod<T, R> {
         Method method = findMethodFrom(target.getMethods(), name, allowStatic, paramTypes);
         if (method == null) {
             // Else search declared methods recursively
-            return findDeclaredMethod(target, name, allowStatic, paramTypes);
+            method = findDeclaredMethod(target, name, allowStatic, paramTypes);
         }
-        return method;
+        if (method != null) {
+            return method;
+        }
+        throw new NoSuchMethodException(String.format("Could not find method %s(%s) on %s.", name, StringUtils.join(paramTypes, ", "), target.getSimpleName()));
     }
 
+    @Nullable
     private static Method findDeclaredMethod(Class<?> origTarget, String name, boolean allowStatic, Class<?>[] paramTypes) {
         Class<?> target = origTarget;
         while (target != null) {
@@ -92,7 +96,7 @@ public class JavaMethod<T, R> {
             }
             target = target.getSuperclass();
         }
-        throw new NoSuchMethodException(String.format("Could not find method %s(%s) on %s.", name, StringUtils.join(paramTypes, ", "), origTarget.getSimpleName()));
+        return null;
     }
 
     @Nullable
