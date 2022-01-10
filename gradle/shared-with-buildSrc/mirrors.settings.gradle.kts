@@ -53,7 +53,7 @@ fun withMirrors(handler: RepositoryHandler) {
         if (this is MavenArtifactRepository) {
             originalUrls.forEach { name, originalUrl ->
                 if (normalizeUrl(originalUrl) == normalizeUrl(this.url.toString()) && mirrorUrls.containsKey(name)) {
-                    this.setUrl(mirrorUrls.get(name))
+                    mirrorUrls.get(name)?.let { this.setUrl(it) }
                 }
             }
         }
