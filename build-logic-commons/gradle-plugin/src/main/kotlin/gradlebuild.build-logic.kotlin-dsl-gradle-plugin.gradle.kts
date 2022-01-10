@@ -36,6 +36,7 @@ java {
 dependencies {
     api(platform(project(":build-platform")))
     implementation("gradlebuild:code-quality")
+    implementation("gradlebuild:build-scan")
 
     testImplementation("org.junit.vintage:junit-vintage-engine")
 }

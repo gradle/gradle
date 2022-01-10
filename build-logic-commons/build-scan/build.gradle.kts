@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,19 @@
  * limitations under the License.
  */
 
-dependencyResolutionManagement {
-    repositories {
-        gradlePluginPortal()
-    }
+plugins {
+    `kotlin-dsl`
 }
 
-include("code-quality")
-include("build-scan")
-include("code-quality-rules")
-include("gradle-plugin")
+description = "Provides a plugin that configures build scans in the Gradle build"
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+group = "gradlebuild"
+
+dependencies {
+    implementation("com.gradle:gradle-enterprise-gradle-plugin:3.8")
+}
