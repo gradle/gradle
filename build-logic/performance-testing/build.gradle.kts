@@ -10,6 +10,7 @@ dependencies {
     implementation(project(":module-identity"))
     implementation(project(":integration-testing"))
     implementation(project(":cleanup"))
+    implementation(project(":third-party-installations"))
 
     implementation("org.openmbee.junit:junit-xml-parser") {
         exclude(module = "lombok") // don't need it at runtime

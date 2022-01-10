@@ -28,7 +28,7 @@ import static org.gradle.performance.results.OperatingSystem.LINUX
 @RunFor(
     @Scenario(type = PER_COMMIT, operatingSystems = [LINUX], testProjects = ["largeAndroidBuild", "santaTrackerAndroidBuild"])
 )
-class RealLifeAndroidStudioMockupPerformanceTest extends AbstractCrossVersionPerformanceTest {
+class RealLifeAndroidStudioPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def "run Android Studio sync"() {
         given:

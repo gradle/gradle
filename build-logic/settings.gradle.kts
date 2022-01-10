@@ -71,6 +71,9 @@ include("cleanup")
 include("idea")
 include("lifecycle")
 
+// Third party installation build logic for root project - please preserve alphabetical order
+include("third-party-installations")
+
 // Special purpose build logic for subproject - please preserve alphabetical order
 include("binary-compatibility")
 include("build-init-samples")

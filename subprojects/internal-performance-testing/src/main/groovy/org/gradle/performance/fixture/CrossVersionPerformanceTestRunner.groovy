@@ -124,12 +124,12 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             vcsCommits: [Git.current().commitId],
             startTime: clock.getCurrentTime(),
             channel: ResultsStoreHelper.determineChannel(),
-            teamCityBuildId: "ResultsStoreHelper.determineTeamCityBuildId()"
+            teamCityBuildId: ResultsStoreHelper.determineTeamCityBuildId()
         )
 
         def baselineVersions = toBaselineVersions(releases, targetVersions, minimumBaseVersion).collect { results.baseline(it) }
         try {
-            def runIndex = 0
+            int runIndex = 0
             runVersion(testId, current, perVersionWorkingDirectory(runIndex++), results.current)
 
             baselineVersions.each { baselineVersion ->

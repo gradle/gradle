@@ -17,6 +17,7 @@
 package gradlebuild.performance
 
 import com.google.common.annotations.VisibleForTesting
+import extensions.AndroidStudioInstallationExtension
 import gradlebuild.basics.accessors.groovy
 import gradlebuild.basics.includePerformanceTestScenarios
 import gradlebuild.basics.performanceBaselines
@@ -87,6 +88,7 @@ class PerformanceTestPlugin : Plugin<Project> {
         createAdditionalTasks(performanceTestSourceSet)
         createRebaselineTask(performanceTestSourceSet)
         configureIdePlugins(performanceTestSourceSet)
+        configureAndroidStudioInstallationPlugin()
     }
 
     private
@@ -248,6 +250,17 @@ class PerformanceTestPlugin : Plugin<Project> {
                     testResourceDirs = testResourceDirs + performanceTestSourceSet.resources.srcDirs
                 }
             }
+        }
+    }
+
+    private
+    fun Project.configureAndroidStudioInstallationPlugin() {
+        val autoDownloadAndRunInHeadless = providers.gradleProperty("autoDownloadAndroidStudioAndRunInHeadless").orNull == "true"
+        plugins.apply("gradlebuild.android-studio-test-setup")
+        configure<AndroidStudioInstallationExtension> {
+            androidStudioVersion.set("2021.1.1.16")
+            autoDownloadAndroidStudio.set(autoDownloadAndRunInHeadless)
+            runAndroidStudioInHeadlessMode.set(autoDownloadAndRunInHeadless)
         }
     }
 
