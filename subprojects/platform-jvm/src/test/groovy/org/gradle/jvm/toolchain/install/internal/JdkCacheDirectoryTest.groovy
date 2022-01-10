@@ -73,7 +73,7 @@ class JdkCacheDirectoryTest extends Specification {
     }
 
     def "provisions jdk from tar.gz archive"() {
-        def jdkArchive = resources.getResource("jdk.tar.gz")
+        def jdkArchive = resources.getResource("jdk-archive.tar.gz")
         def jdkCacheDirectory = new JdkCacheDirectory(newHomeDirProvider(), TestFiles.fileOperations(temporaryFolder, tmpFileProvider()), mockLockManager())
 
         when:
@@ -81,12 +81,14 @@ class JdkCacheDirectoryTest extends Specification {
 
         then:
         installedJdk.exists()
+        installedJdk.isDirectory()
+        installedJdk.getName() == "jdk-archive" //as opposed to "jdk", which is the root directory of the content in the archive
         new File(installedJdk, "file").exists()
         new File(installedJdk, "provisioned.ok").exists()
     }
 
     def "provisions jdk from zip archive"() {
-        def jdkArchive = resources.getResource("jdk.zip")
+        def jdkArchive = resources.getResource("jdk-archive.zip")
         def jdkCacheDirectory = new JdkCacheDirectory(newHomeDirProvider(), TestFiles.fileOperations(temporaryFolder, tmpFileProvider()), mockLockManager())
 
         when:
@@ -94,13 +96,14 @@ class JdkCacheDirectoryTest extends Specification {
 
         then:
         installedJdk.exists()
-        println installedJdk
+        installedJdk.isDirectory()
+        installedJdk.getName() == "jdk-archive" //as opposed to "jdk", which is the root directory of the content in the archive
         new File(installedJdk, "file").exists()
         new File(installedJdk, "provisioned.ok").exists()
     }
 
     def "provisions jdk from tar.gz archive with MacOS symlinks"() {
-        def jdkArchive = resources.getResource("jdk-with-symlinks.tar.gz")
+        def jdkArchive = resources.getResource("jdk-with-symlinks-archive.tar.gz")
         def jdkCacheDirectory = new JdkCacheDirectory(newHomeDirProvider(), TestFiles.fileOperations(temporaryFolder, tmpFileProvider()), mockLockManager())
 
         when:
