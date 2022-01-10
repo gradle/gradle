@@ -122,7 +122,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         output.contains "value: changed"
     }
 
-    def "detects changes in filtered file trees"() {
+    def "detects changes in filtered file tree inputs"() {
         def sources = file("sources").createDir()
         def excludedFile = sources.file("sub/some/excluded").createFile()
         def includedFile = sources.file("sub/some/included.txt").createFile()
