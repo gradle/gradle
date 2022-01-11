@@ -57,7 +57,7 @@ public class VfsRelativePath {
     }
 
     private static String normalizeRoot(String absolutePath) {
-        if (absolutePath.equals("/")) {
+        if (absolutePath.isEmpty() || absolutePath.equals("/")) {
             return absolutePath;
         }
         return isFileSeparator(absolutePath.charAt(absolutePath.length() - 1))
