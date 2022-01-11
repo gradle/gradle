@@ -64,13 +64,15 @@ androidStudioRuntime.withDependencies {
 }
 
 val unpackAndroidStudio = tasks.register<Copy>("unpackAndroidStudio") {
-    from(Callable {
-        val singleFile = androidStudioRuntime.singleFile
-        when {
-            singleFile.name.endsWith(".tar.gz") -> tarTree(singleFile)
-            else -> zipTree(singleFile)
+    from(
+        Callable {
+            val singleFile = androidStudioRuntime.singleFile
+            when {
+                singleFile.name.endsWith(".tar.gz") -> tarTree(singleFile)
+                else -> zipTree(singleFile)
+            }
         }
-    })
+    )
     into("$buildDir/android-studio")
 }
 
@@ -79,12 +81,14 @@ val androidStudioInstallation = objects.newInstance<AndroidStudioInstallation>()
 }
 
 tasks.withType<Test>().configureEach {
-    jvmArgumentProviders.add(AndroidStudioSystemProperties(
-        androidStudioInstallation,
-        extension.autoDownloadAndroidStudio,
-        extension.runAndroidStudioInHeadlessMode,
-        providers
-    ))
+    jvmArgumentProviders.add(
+        AndroidStudioSystemProperties(
+            androidStudioInstallation,
+            extension.autoDownloadAndroidStudio,
+            extension.runAndroidStudioInHeadlessMode,
+            providers
+        )
+    )
     // Propagate JAVA_HOME so Android Studio can find a JDK for Gradle
     System.getenv("JAVA_HOME")?.let {
         environment("JAVA_HOME" to it)

@@ -22,6 +22,6 @@ package org.gradle.profiler;
  */
 public class GradleBuildInvokerPackageAccess {
 
-    public static final GradleBuildInvoker AndroidStudio = GradleBuildInvoker.AndroidStudio;
+    public static final GradleBuildInvoker ANDROID_STUDIO = GradleBuildInvoker.AndroidStudio;
 
 }

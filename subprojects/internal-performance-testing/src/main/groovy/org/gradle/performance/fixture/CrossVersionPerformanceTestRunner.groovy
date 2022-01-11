@@ -30,6 +30,7 @@ import org.gradle.performance.results.DataReporter
 import org.gradle.performance.results.MeasuredOperationList
 import org.gradle.performance.results.ResultsStoreHelper
 import org.gradle.performance.util.Git
+import org.gradle.profiler.AndroidStudioSyncAction
 import org.gradle.profiler.BuildAction
 import org.gradle.profiler.BuildMutator
 import org.gradle.profiler.GradleInvoker
@@ -231,6 +232,7 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
 
     def setupAndroidStudioSync() {
         useAndroidStudio = true
+        buildAction = new AndroidStudioSyncAction()
         studioInstallDir = StudioFinder.findStudioHome()
         studioJvmArgs = ["-Xms256m", "-Xmx4096m"]
     }

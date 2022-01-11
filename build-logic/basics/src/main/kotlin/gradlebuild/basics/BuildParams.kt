@@ -285,12 +285,15 @@ val Project.testDistributionEnabled: Boolean
 val Project.maxTestDistributionPartitionSecond: Long?
     get() = systemProperty(TEST_DISTRIBUTION_PARTITION_SIZE).orNull?.toLong()
 
-val Project.autoDownloadAndroidStudio: Boolean
-    get() = propertyFromAnySource(AUTO_DOWNLOAD_ANDROID_STUDIO).getOrElse("false").toBoolean()
-
-val Project.runAndroidStudioInHeadlessMode: Boolean
-    get() = propertyFromAnySource(RUN_ANDROID_STUDIO_IN_HEADLESS_MODE).getOrElse("false").toBoolean()
 
 val Project.maxParallelForks: Int
     get() = gradleProperty(MAX_PARALLEL_FORKS).getOrElse("4").toInt() *
         environmentVariable("BUILD_AGENT_VARIANT").getOrElse("").let { if (it == "AX41") 2 else 1 }
+
+
+val Project.autoDownloadAndroidStudio: Boolean
+    get() = propertyFromAnySource(AUTO_DOWNLOAD_ANDROID_STUDIO).getOrElse("false").toBoolean()
+
+
+val Project.runAndroidStudioInHeadlessMode: Boolean
+    get() = propertyFromAnySource(RUN_ANDROID_STUDIO_IN_HEADLESS_MODE).getOrElse("false").toBoolean()
