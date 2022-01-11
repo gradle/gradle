@@ -465,8 +465,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
     }
 
     private TaskFinishEvent taskFinishedEvent(InternalOperationFinishedProgressEvent event) {
-        // do not remove task descriptors because they might be needed to describe subsequent tasks' dependencies
-        TaskOperationDescriptor descriptor = assertDescriptorType(TaskOperationDescriptor.class, getParentDescriptor(event.getDescriptor().getId()));
+        TaskOperationDescriptor descriptor = removeDescriptor(TaskOperationDescriptor.class, event.getDescriptor());
         return new DefaultTaskFinishEvent(event.getEventTime(), event.getDisplayName(), descriptor, toTaskResult((InternalTaskResult) event.getResult()));
     }
 
@@ -481,8 +480,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
     }
 
     private TransformFinishEvent transformFinishedEvent(InternalOperationFinishedProgressEvent event) {
-        // do not remove task descriptors because they might be needed to describe subsequent tasks' dependencies
-        TransformOperationDescriptor descriptor = assertDescriptorType(TransformOperationDescriptor.class, getParentDescriptor(event.getDescriptor().getId()));
+        TransformOperationDescriptor descriptor = removeDescriptor(TransformOperationDescriptor.class, event.getDescriptor());
         return new DefaultTransformFinishEvent(event.getEventTime(), event.getDisplayName(), descriptor, toTransformResult(event.getResult()));
     }
 
