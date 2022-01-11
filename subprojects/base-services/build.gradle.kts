@@ -11,9 +11,7 @@ gradlebuildJava.usedInWorkers()
  * Use Java 8 compatibility for Unit tests, so we can test Java 8 features as well
  */
 tasks.named<JavaCompile>("compileTestJava") {
-    options.release.set(null)
-    sourceCompatibility = "8"
-    targetCompatibility = "8"
+    options.release.set(8)
 }
 
 moduleIdentity.createBuildReceipt()
