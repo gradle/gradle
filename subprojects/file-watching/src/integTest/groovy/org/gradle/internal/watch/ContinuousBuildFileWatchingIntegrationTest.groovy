@@ -61,7 +61,7 @@ class ContinuousBuildFileWatchingIntegrationTest extends AbstractContinuousInteg
         sourceFile.text = "class Thing { public void doStuff() {} }"
 
         then:
-        successfulBuildTriggered()
+        buildTriggeredAndSucceeded()
         vfsLogs.getRetainedFilesSinceLastBuild() >= numberOfFilesInVfs - 1
         vfsLogs.getRetainedFilesInCurrentBuild() >= numberOfFilesInVfs
         executedAndNotSkipped(":compileJava")

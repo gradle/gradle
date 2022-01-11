@@ -53,7 +53,7 @@ class ContinuousBuildChangeReportingIntegrationTest extends AbstractContinuousIn
         inputFile.text = 'New input file'
 
         then:
-        successfulBuildTriggered()
+        buildTriggeredAndSucceeded()
         sendEOT()
         assertReportsChanges([new ChangeEntry('new file', inputFile)])
     }
@@ -66,7 +66,7 @@ class ContinuousBuildChangeReportingIntegrationTest extends AbstractContinuousIn
         inputFiles.each { it.text = 'New input file' }
 
         then:
-        successfulBuildTriggered()
+        buildTriggeredAndSucceeded()
         sendEOT()
         assertReportsChanges(inputFiles.collect { new ChangeEntry('new file', it) })
     }
@@ -79,7 +79,7 @@ class ContinuousBuildChangeReportingIntegrationTest extends AbstractContinuousIn
         inputFiles.each { it.text = 'New input file' }
 
         then:
-        successfulBuildTriggered()
+        buildTriggeredAndSucceeded()
         sendEOT()
         assertReportsChanges(inputFiles.collect { new ChangeEntry('new file', it) }, true)
     }
@@ -95,7 +95,7 @@ class ContinuousBuildChangeReportingIntegrationTest extends AbstractContinuousIn
         inputFiles.each { it.delete() }
 
         then:
-        successfulBuildTriggered()
+        buildTriggeredAndSucceeded()
         sendEOT()
         assertReportsChanges(inputFiles.collect { new ChangeEntry('deleted', it) }, expectMoreChanges)
 
@@ -114,7 +114,7 @@ class ContinuousBuildChangeReportingIntegrationTest extends AbstractContinuousIn
         inputFiles.each { it.text = 'File modified' }
 
         then:
-        successfulBuildTriggered()
+        buildTriggeredAndSucceeded()
         sendEOT()
         assertReportsChanges(inputFiles.collect { new ChangeEntry('modified', it) }, expectMoreChanges)
 
@@ -133,7 +133,7 @@ class ContinuousBuildChangeReportingIntegrationTest extends AbstractContinuousIn
         inputDirectories.each { it.mkdir() }
 
         then:
-        successfulBuildTriggered()
+        buildTriggeredAndSucceeded()
         sendEOT()
         assertReportsChanges(inputDirectories.collect { new ChangeEntry('new directory', it) }, expectMoreChanges)
 
@@ -152,7 +152,7 @@ class ContinuousBuildChangeReportingIntegrationTest extends AbstractContinuousIn
         inputDirectories.each { it.delete() }
 
         then:
-        successfulBuildTriggered()
+        buildTriggeredAndSucceeded()
         sendEOT()
         assertReportsChanges(inputDirectories.collect { new ChangeEntry('deleted', it) }, expectMoreChanges)
 
@@ -175,7 +175,7 @@ class ContinuousBuildChangeReportingIntegrationTest extends AbstractContinuousIn
         newfile2.text = 'New Input file'
 
         then:
-        successfulBuildTriggered()
+        buildTriggeredAndSucceeded()
         sendEOT()
         assertReportsChanges([new ChangeEntry("new file", newfile1), new ChangeEntry("modified", inputFiles[2]), new ChangeEntry("deleted", inputFiles[7]), new ChangeEntry("new file", newfile2)], true)
     }
@@ -216,7 +216,7 @@ class ContinuousBuildChangeReportingIntegrationTest extends AbstractContinuousIn
         inputFile.text = 'New input file'
 
         then:
-        successfulBuildTriggered()
+        buildTriggeredAndSucceeded()
         sendEOT()
         assertReportsChanges([new ChangeEntry('new file', inputFile)])
     }

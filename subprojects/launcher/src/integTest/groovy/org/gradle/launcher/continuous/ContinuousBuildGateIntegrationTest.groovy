@@ -124,7 +124,7 @@ class ContinuousBuildGateIntegrationTest extends AbstractContinuousIntegrationTe
         server.expect(server.get("command").send("stop"))
         then:
         // waits for build to start and finish
-        successfulBuildTriggered()
+        buildTriggeredAndSucceeded()
         // Change has been incorporated
         outputFile.text == "changed"
     }

@@ -52,14 +52,14 @@ class MultiProjectContinuousIntegrationTest extends AbstractContinuousIntegratio
         upstreamSource.text = "class Upstream { int change = 1; }"
 
         then:
-        successfulBuildTriggered()
+        buildTriggeredAndSucceeded()
         executedAndNotSkipped ":upstream:compileJava", ":downstream:compileJava"
 
         when:
         downstreamSource.text = "class Downstream extends Upstream { int change = 1; }"
 
         then:
-        successfulBuildTriggered()
+        buildTriggeredAndSucceeded()
         executedAndNotSkipped ":downstream:compileJava"
         skipped ":upstream:compileJava"
 
@@ -67,7 +67,7 @@ class MultiProjectContinuousIntegrationTest extends AbstractContinuousIntegratio
         upstreamSource.text = "class Upstream {"
 
         then:
-        failingBuildTriggered()
+        buildTriggeredAndFailed()
 
         when:
         downstreamSource.text = "class Downstream extends Upstream { int change = 11; }"
@@ -80,7 +80,7 @@ class MultiProjectContinuousIntegrationTest extends AbstractContinuousIntegratio
         upstreamSource.text = "class Upstream {}"
 
         then:
-        successfulBuildTriggered()
+        buildTriggeredAndSucceeded()
         executedAndNotSkipped ":upstream:compileJava", ":downstream:compileJava"
     }
 
@@ -117,7 +117,7 @@ class MultiProjectContinuousIntegrationTest extends AbstractContinuousIntegratio
         file("A").text = "A"
 
         then:
-        successfulBuildTriggered()
+        buildTriggeredAndSucceeded()
         executedAndNotSkipped(":a", ":upstream:a", ":downstream:a")
 
         expect:
@@ -129,7 +129,7 @@ class MultiProjectContinuousIntegrationTest extends AbstractContinuousIntegratio
         file("B").text = "B"
 
         then:
-        successfulBuildTriggered()
+        buildTriggeredAndSucceeded()
         executedAndNotSkipped(":downstream:a")
     }
 
@@ -155,21 +155,21 @@ class MultiProjectContinuousIntegrationTest extends AbstractContinuousIntegratio
         downstreamSource.text = "class Downstream extends Upstream { int change = 1; }"
 
         then:
-        successfulBuildTriggered()
+        buildTriggeredAndSucceeded()
         skipped extraCompileTasks
 
         when:
         upstreamSource.text = "class Upstream { int change = 1; }"
 
         then:
-        successfulBuildTriggered()
+        buildTriggeredAndSucceeded()
         executedAndNotSkipped extraCompileTasks
 
         when:
         file("${anExtraProjectName}/src/main/java/Thing.java").text = "class Thing extends Upstream{ int change = 1; }"
 
         then:
-        successfulBuildTriggered()
+        buildTriggeredAndSucceeded()
         executedAndNotSkipped ":$anExtraProjectName:compileJava"
     }
 }

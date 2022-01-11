@@ -87,14 +87,14 @@ class ContinuousScopeIdsIntegrationTest extends AbstractContinuousIntegrationTes
         update(i1, "2")
 
         then:
-        successfulBuildTriggered()
+        buildTriggeredAndSucceeded()
         afterBuild()
 
         when:
         update(i2, "2")
 
         then:
-        successfulBuildTriggered()
+        buildTriggeredAndSucceeded()
         afterBuild()
 
         and:

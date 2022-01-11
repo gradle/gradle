@@ -103,7 +103,7 @@ abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec
         result
     }
 
-    protected ExecutionResult successfulBuildTriggered() {
+    protected ExecutionResult buildTriggeredAndSucceeded() {
         if (!gradle.isRunning()) {
             throw new UnexpectedBuildFailure("Gradle has exited")
         }
@@ -131,7 +131,7 @@ ${result.error}
         return extractFailure()
     }
 
-    ExecutionFailure failingBuildTriggered() {
+    ExecutionFailure buildTriggeredAndFailed() {
         if (!gradle.isRunning()) {
             throw new UnexpectedBuildFailure("Gradle has exited")
         }

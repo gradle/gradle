@@ -41,19 +41,19 @@ class PlayExternalContinuousBuildIntegrationTest extends AbstractMultiVersionPla
         file("conf/routes") << "\n# changed"
 
         then:
-        successfulBuildTriggered()
+        buildTriggeredAndSucceeded()
 
         when:
         file("conf/routes") << "\n# changed again"
 
         then:
-        successfulBuildTriggered()
+        buildTriggeredAndSucceeded()
 
         when:
         file("conf/routes") << "\n# changed yet again"
 
         then:
-        successfulBuildTriggered()
+        buildTriggeredAndSucceeded()
     }
 
     def "build failure prior to launch does not prevent launch on subsequent build" () {
@@ -70,7 +70,7 @@ class PlayExternalContinuousBuildIntegrationTest extends AbstractMultiVersionPla
         file("app/controllers/Application.scala").text = original
 
         then:
-        successfulBuildTriggered()
+        buildTriggeredAndSucceeded()
 
         and:
         appIsRunningAndDeployed()

@@ -86,7 +86,7 @@ class CancellationContinuousIntegrationTest extends AbstractContinuousIntegratio
         file("src/main/java/Thing.java") << "class Thing {}"
 
         then:
-        successfulBuildTriggered()
+        buildTriggeredAndSucceeded()
     }
 
 }

@@ -60,7 +60,7 @@ class SimpleJavaContinuousIntegrationTest extends AbstractContinuousIntegrationT
 
 
         then:
-        successfulBuildTriggered()
+        buildTriggeredAndSucceeded()
         executedAndNotSkipped(":compileJava")
         executed(":build")
     }
@@ -90,7 +90,7 @@ class SimpleJavaContinuousIntegrationTest extends AbstractContinuousIntegrationT
         sourceFile << "*/"
 
         then:
-        successfulBuildTriggered()
+        buildTriggeredAndSucceeded()
     }
 
     def "can run tests"() {
@@ -107,7 +107,7 @@ class SimpleJavaContinuousIntegrationTest extends AbstractContinuousIntegrationT
         sourceFile.text = "class Thing { static public int FLAG = 1; }"
 
         then:
-        successfulBuildTriggered()
+        buildTriggeredAndSucceeded()
         executedAndNotSkipped(":compileJava", ":compileTestJava", ":test")
         skipped(":processResources")
 
@@ -115,7 +115,7 @@ class SimpleJavaContinuousIntegrationTest extends AbstractContinuousIntegrationT
         testFile.text = "class TestThing extends Thing { static public int FLAG = 1; }"
 
         then:
-        successfulBuildTriggered()
+        buildTriggeredAndSucceeded()
         executedAndNotSkipped(":compileTestJava", ":test")
         skipped(":processResources", ":compileJava")
 
@@ -123,7 +123,7 @@ class SimpleJavaContinuousIntegrationTest extends AbstractContinuousIntegrationT
         resourceFile << "# another change"
 
         then:
-        successfulBuildTriggered()
+        buildTriggeredAndSucceeded()
         executedAndNotSkipped(":processResources", ":test")
         skipped(":compileJava", ":compileTestJava")
     }
@@ -140,14 +140,14 @@ class SimpleJavaContinuousIntegrationTest extends AbstractContinuousIntegrationT
         testSourceFile << " broken "
 
         then:
-        failingBuildTriggered()
+        buildTriggeredAndFailed()
         failureDescriptionStartsWith("Execution failed for task ':compileTestJava'.")
 
         when:
         sourceFile << " broken "
 
         then:
-        failingBuildTriggered()
+        buildTriggeredAndFailed()
         failureDescriptionStartsWith("Execution failed for task ':compileJava'.")
 
         when:
@@ -160,7 +160,7 @@ class SimpleJavaContinuousIntegrationTest extends AbstractContinuousIntegrationT
         sourceFile.text = "class Thing {}"
 
         then:
-        successfulBuildTriggered()
+        buildTriggeredAndSucceeded()
     }
 
     // Just exercises the dependency management layers to shake out any weirdness
@@ -184,7 +184,7 @@ class SimpleJavaContinuousIntegrationTest extends AbstractContinuousIntegrationT
         sourceFile.text = "import org.apache.log4j.LogManager; class Thing {}"
 
         then:
-        successfulBuildTriggered()
+        buildTriggeredAndSucceeded()
         executedAndNotSkipped ":compileJava"
     }
 
@@ -209,21 +209,21 @@ class SimpleJavaContinuousIntegrationTest extends AbstractContinuousIntegrationT
         jarWithClasses(somelib, Thing: 'class Thing { public void foo () {} }')
 
         then:
-        successfulBuildTriggered()
+        buildTriggeredAndSucceeded()
         executedAndNotSkipped ":compileJava"
 
         when:
         jarWithClasses(somelib, Thing: 'class Thing { public void bar() {} }')
 
         then:
-        successfulBuildTriggered()
+        buildTriggeredAndSucceeded()
         executedAndNotSkipped ":compileJava"
 
         when:
         somelib.delete()
 
         then:
-        failingBuildTriggered()
+        buildTriggeredAndFailed()
         executedAndNotSkipped ":compileJava"
     }
 
@@ -248,7 +248,7 @@ class SimpleJavaContinuousIntegrationTest extends AbstractContinuousIntegrationT
         anotherJar.delete()
 
         then:
-        failingBuildTriggered()
+        buildTriggeredAndFailed()
         executedAndNotSkipped ":compileJava"
     }
 
@@ -262,7 +262,7 @@ class SimpleJavaContinuousIntegrationTest extends AbstractContinuousIntegrationT
         file("src/main/java/Thing.java") << "class Thing {}"
 
         then:
-        successfulBuildTriggered()
+        buildTriggeredAndSucceeded()
         executedAndNotSkipped ":compileJava"
     }
 }

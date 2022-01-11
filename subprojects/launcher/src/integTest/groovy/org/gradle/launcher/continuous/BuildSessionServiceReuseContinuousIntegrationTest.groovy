@@ -60,7 +60,7 @@ class BuildSessionServiceReuseContinuousIntegrationTest extends AbstractContinuo
         triggerFile << "change"
 
         then:
-        successfulBuildTriggered()
+        buildTriggeredAndSucceeded()
 
         and:
         def ids = idFile.readLines()
