@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.diagnostics.internal.variantreports;
+package org.gradle.api.tasks.diagnostics.internal.variantreports.formatter;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.internal.logging.text.StyledTextOutput;

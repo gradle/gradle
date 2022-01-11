@@ -86,6 +86,7 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributeContainerWithErrorMessage;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.attributes.IncubatingAttributesChecker;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -1154,8 +1155,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public boolean isIncubating() {
-        final Category category = getAttributes().getAttribute(Category.CATEGORY_ATTRIBUTE);
-        return category != null && category.getName().equals(Category.VERIFICATION);
+        return IncubatingAttributesChecker.isAnyIncubating(getAttributes());
     }
 
     @Override

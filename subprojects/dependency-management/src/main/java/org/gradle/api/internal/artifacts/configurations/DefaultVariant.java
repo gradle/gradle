@@ -62,6 +62,11 @@ public class DefaultVariant implements ConfigurationVariantInternal {
     }
 
     @Override
+    public String getDescription() {
+        return getAsDescribable().getDisplayName();
+    }
+
+    @Override
     public String getName() {
         return name;
     }

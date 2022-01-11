@@ -16,21 +16,16 @@
 
 package org.gradle.api.tasks.diagnostics;
 
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.internal.artifacts.ProjectBackedModule;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
-import org.gradle.api.tasks.TaskAction;
-import org.gradle.api.tasks.diagnostics.internal.variantreports.VariantsReportFormatter;
+import org.gradle.api.tasks.diagnostics.internal.variantreports.formatter.AbstractVariantReportWriter;
+import org.gradle.api.tasks.diagnostics.internal.variantreports.formatter.ConsoleVariantReportWriter;
 import org.gradle.api.tasks.options.Option;
-import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.work.DisableCachingByDefault;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
 
@@ -53,41 +48,39 @@ public class ResolvableVariantsReportTask extends AbstractVariantsReportTask {
     @Input
     @Optional
     @Option(option = "configuration", description = "The requested configuration name")
-    Property<String> getConfigurationName() {
+    public Property<String> getConfigurationName() {
         return configurationSpec;
     }
 
     @Input
     @Optional
     @Option(option = "all", description = "Shows all resolvable configurations, including legacy and deprecated configurations")
-    Property<Boolean> getShowAll() {
+    public Property<Boolean> getShowAll() {
         return showAll;
     }
 
-    @TaskAction
-    void buildReport() {
-        StyledTextOutput output = getTextOutputFactory().create(getClass());
-
-        List<Configuration> configurations = configurationsToReport();
-        if (configurations.isEmpty()) {
-            reportNoMatch(configurationSpec, configurations, Configuration::isCanBeResolved, output);
-        } else {
-            reportMatches(configurations, output);
+    @Override
+    protected AbstractVariantReportWriter getReportWriter() {
+        switch (getFormat().get()) {
+            case "text":
+                return ConsoleVariantReportWriter.outgoingVariants(getTextOutputFactory().create(getClass()), getProject().getName());
+            default:
+                throw new IllegalArgumentException("Unknown format: " + getFormat().get());
         }
     }
 
     @Override
-    protected String targetName() {
-        return "configuration";
+    protected java.util.Optional<String> getSearchTarget() {
+        return configurationSpec.isPresent() ? configurationSpec.map(java.util.Optional::of).get() : java.util.Optional.empty();
     }
 
     @Override
-    protected String targetTypeDesc() {
-        return "resolvable";
+    protected Predicate<Configuration> getAllConfigurationsFilter() {
+        return Configuration::isCanBeResolved;
     }
 
     @Override
-    protected Predicate<Configuration> configurationsToReportFilter() {
+    protected Predicate<Configuration> getMatchingConfigurationsFilter() {
         String configName = configurationSpec.getOrNull();
         return c -> {
             if (!c.isCanBeResolved()) {
@@ -108,25 +101,5 @@ public class ResolvableVariantsReportTask extends AbstractVariantsReportTask {
                 }
             }
         };
-    }
-
-    @Override
-    protected void reportSingleMatch(ConfigurationInternal cnf, ProjectBackedModule projectBackedModule, StyledTextOutput output, VariantsReportFormatter.Legend legend) {
-        // makes sure the configuration is complete before reporting
-        cnf.preventFromFurtherMutation();
-        VariantsReportFormatter tree = new VariantsReportFormatter(output);
-        String name = buildNameWithIndicators(cnf, legend);
-        header(StringUtils.capitalize(targetName()) + " " + name, output);
-        String description = cnf.getDescription();
-        if (description != null) {
-            tree.value("Description", description);
-            tree.println();
-        }
-
-        if (formatCapabilities(cnf, projectBackedModule, tree)) {
-            tree.println();
-        }
-        formatAttributes(cnf, tree);
-        tree.println();
     }
 }

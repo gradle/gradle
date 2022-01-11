@@ -114,6 +114,11 @@ public class ConfigurationVariantMapping {
         }
 
         @Override
+        public String getDescription() {
+            return outgoingConfiguration.getDescription();
+        }
+
+        @Override
         public ConfigurationVariant attributes(Action<? super AttributeContainer> action) {
             throw new InvalidUserCodeException("Cannot mutate outgoing configuration during filtering");
         }
