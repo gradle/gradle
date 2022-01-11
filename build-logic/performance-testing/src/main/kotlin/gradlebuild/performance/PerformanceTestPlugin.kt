@@ -258,7 +258,7 @@ class PerformanceTestPlugin : Plugin<Project> {
         val autoDownloadAndRunInHeadless = providers.gradleProperty("autoDownloadAndroidStudioAndRunInHeadless").orNull == "true"
         plugins.apply("gradlebuild.android-studio-test-setup")
         configure<AndroidStudioInstallationExtension> {
-            androidStudioVersion.set("2021.1.1.16")
+            androidStudioVersion.set("2021.1.1.19")
             autoDownloadAndroidStudio.set(autoDownloadAndRunInHeadless)
             runAndroidStudioInHeadlessMode.set(autoDownloadAndRunInHeadless)
         }
