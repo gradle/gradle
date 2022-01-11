@@ -28,6 +28,9 @@ import java.util.Map;
 /**
  * Resolution of a configuration's dependencies.
  *
+ * As an optimization, if one configuration being resolved causes another configuration to resolve, (eg. project A depends upon a configuration in project B and the configuration in A is resolved),
+ * only one {@link ResolveConfigurationDependenciesBuildOperationType} may be emitted.
+ *
  * @since 4.4
  */
 public final class ResolveConfigurationDependenciesBuildOperationType implements BuildOperationType<ResolveConfigurationDependenciesBuildOperationType.Details, ResolveConfigurationDependenciesBuildOperationType.Result> {
