@@ -50,11 +50,13 @@ public class ZipFileTree extends AbstractArchiveFileTree {
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
     private final FileHasher fileHasher;
 
-    public ZipFileTree(Provider<File> zipFile,
-                       File tmpDir,
-                       Chmod chmod,
-                       DirectoryFileTreeFactory directoryFileTreeFactory,
-                       FileHasher fileHasher) {
+    public ZipFileTree(
+        Provider<File> zipFile,
+        File tmpDir,
+        Chmod chmod,
+        DirectoryFileTreeFactory directoryFileTreeFactory,
+        FileHasher fileHasher
+    ) {
         this.fileProvider = zipFile;
         this.tmpDir = tmpDir;
         this.chmod = chmod;
