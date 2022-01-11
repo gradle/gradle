@@ -7,6 +7,13 @@ description = "A set of generic services and utilities."
 
 gradlebuildJava.usedInWorkers()
 
+/**
+ * Use Java 8 compatibility for Unit tests, so we can test Java 8 features as well
+ */
+tasks.named<JavaCompile>("compileTestJava") {
+    options.release.set(8)
+}
+
 moduleIdentity.createBuildReceipt()
 
 dependencies {
