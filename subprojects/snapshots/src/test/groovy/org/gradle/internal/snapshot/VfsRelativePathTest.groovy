@@ -36,6 +36,7 @@ class VfsRelativePathTest extends Specification {
         '/a'                   | 'a'
         '/a/b/c'               | 'a/b/c'
         '/a/b/c/'              | 'a/b/c'
+        ''                     | ''
     }
 
     def "'#relativePath' fromChild '#child' is '#result'"() {
