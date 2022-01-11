@@ -22,7 +22,7 @@ import projects.DEFAULT_LINUX_FUNCTIONAL_TEST_BUCKET_SIZE
 enum class StageNames(override val stageName: String, override val description: String, override val uuid: String) : StageName {
     QUICK_FEEDBACK_LINUX_ONLY("Quick Feedback - Linux Only", "Run checks and functional tests (embedded executer, Linux)", "QuickFeedbackLinuxOnly"),
     QUICK_FEEDBACK("Quick Feedback", "Run checks and functional tests (embedded executer, Windows)", "QuickFeedback"),
-    READY_FOR_MERGE("Pull Request Feedback", "Run various functional tests", "PullRequestFeedback"),
+    PULL_REQUEST_FEEDBACK("Pull Request Feedback", "Run various functional tests", "PullRequestFeedback"),
     READY_FOR_NIGHTLY("Ready for Nightly", "Rerun tests in different environments / 3rd party components", "ReadyforNightly"),
     READY_FOR_RELEASE("Ready for Release", "Once a day: Rerun tests in more environments", "ReadyforRelease"),
     HISTORICAL_PERFORMANCE("Historical Performance", "Once a week: Run performance tests for multiple Gradle versions", "HistoricalPerformance"),
@@ -66,7 +66,7 @@ data class CIBuildModel(
             dependsOnSanityCheck = true
         ),
         Stage(
-            StageNames.READY_FOR_MERGE,
+            StageNames.PULL_REQUEST_FEEDBACK,
             specificBuilds = listOf(
                 SpecificBuild.BuildDistributions,
                 SpecificBuild.Gradleception,

@@ -57,7 +57,7 @@ class PerformanceTestBuildTypeTest {
         val performanceTest = PerformanceTest(
             buildModel,
             Stage(
-                StageNames.READY_FOR_MERGE,
+                StageNames.PULL_REQUEST_FEEDBACK,
                 specificBuilds = listOf(
                     SpecificBuild.BuildDistributions,
                     SpecificBuild.Gradleception,
