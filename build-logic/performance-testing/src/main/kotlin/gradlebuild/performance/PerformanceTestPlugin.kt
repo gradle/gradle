@@ -19,6 +19,7 @@ package gradlebuild.performance
 import com.google.common.annotations.VisibleForTesting
 import extensions.AndroidStudioInstallationExtension
 import gradlebuild.basics.accessors.groovy
+import gradlebuild.basics.autoDownloadAndroidStudio
 import gradlebuild.basics.includePerformanceTestScenarios
 import gradlebuild.basics.performanceBaselines
 import gradlebuild.basics.performanceDependencyBuildIds
@@ -26,6 +27,7 @@ import gradlebuild.basics.performanceGeneratorMaxProjects
 import gradlebuild.basics.performanceTestVerbose
 import gradlebuild.basics.propertiesForPerformanceDb
 import gradlebuild.basics.repoRoot
+import gradlebuild.basics.runAndroidStudioInHeadlessMode
 import gradlebuild.identity.extension.ModuleIdentityExtension
 import gradlebuild.integrationtests.addDependenciesAndConfigurations
 import gradlebuild.performance.generator.tasks.AbstractProjectGeneratorTask
@@ -255,12 +257,12 @@ class PerformanceTestPlugin : Plugin<Project> {
 
     private
     fun Project.configureAndroidStudioInstallationPlugin() {
-        val autoDownloadAndRunInHeadless = providers.gradleProperty("autoDownloadAndroidStudioAndRunInHeadless").orNull == "true"
+        val isRunningOnTeamCity = System.getenv("TEAMCITY_VERSION") != null
         plugins.apply("gradlebuild.android-studio-test-setup")
         configure<AndroidStudioInstallationExtension> {
             androidStudioVersion.set("2021.1.1.19")
-            autoDownloadAndroidStudio.set(autoDownloadAndRunInHeadless)
-            runAndroidStudioInHeadlessMode.set(autoDownloadAndRunInHeadless)
+            autoDownloadAndroidStudio.set(project.autoDownloadAndroidStudio || isRunningOnTeamCity)
+            runAndroidStudioInHeadlessMode.set(project.runAndroidStudioInHeadlessMode || isRunningOnTeamCity)
         }
     }
 

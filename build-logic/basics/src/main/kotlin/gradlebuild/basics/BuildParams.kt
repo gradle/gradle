@@ -16,6 +16,7 @@
 
 package gradlebuild.basics
 
+import gradlebuild.basics.BuildParams.AUTO_DOWNLOAD_ANDROID_STUDIO
 import gradlebuild.basics.BuildParams.BUILD_BRANCH
 import gradlebuild.basics.BuildParams.BUILD_COMMIT_DISTRIBUTION
 import gradlebuild.basics.BuildParams.BUILD_COMMIT_ID
@@ -30,8 +31,8 @@ import gradlebuild.basics.BuildParams.BUILD_SERVER_URL
 import gradlebuild.basics.BuildParams.BUILD_TIMESTAMP
 import gradlebuild.basics.BuildParams.BUILD_VCS_NUMBER
 import gradlebuild.basics.BuildParams.BUILD_VERSION_QUALIFIER
-import gradlebuild.basics.BuildParams.FLAKY_TEST_QUARANTINE
 import gradlebuild.basics.BuildParams.CI_ENVIRONMENT_VARIABLE
+import gradlebuild.basics.BuildParams.FLAKY_TEST_QUARANTINE
 import gradlebuild.basics.BuildParams.GRADLE_INSTALL_PATH
 import gradlebuild.basics.BuildParams.INCLUDE_PERFORMANCE_TEST_SCENARIOS
 import gradlebuild.basics.BuildParams.MAX_PARALLEL_FORKS
@@ -44,6 +45,7 @@ import gradlebuild.basics.BuildParams.PERFORMANCE_DEPENDENCY_BUILD_IDS
 import gradlebuild.basics.BuildParams.PERFORMANCE_MAX_PROJECTS
 import gradlebuild.basics.BuildParams.PERFORMANCE_TEST_VERBOSE
 import gradlebuild.basics.BuildParams.RERUN_ALL_TESTS
+import gradlebuild.basics.BuildParams.RUN_ANDROID_STUDIO_IN_HEADLESS_MODE
 import gradlebuild.basics.BuildParams.TEST_DISTRIBUTION_ENABLED
 import gradlebuild.basics.BuildParams.TEST_DISTRIBUTION_PARTITION_SIZE
 import gradlebuild.basics.BuildParams.TEST_FILTERING_ENABLED
@@ -94,6 +96,8 @@ object BuildParams {
     const val TEST_SPLIT_ONLY_TEST_GRADLE_VERSION = "onlyTestGradleVersion"
     const val TEST_JAVA_VENDOR = "testJavaVendor"
     const val TEST_JAVA_VERSION = "testJavaVersion"
+    const val AUTO_DOWNLOAD_ANDROID_STUDIO = "autoDownloadAndroidStudio"
+    const val RUN_ANDROID_STUDIO_IN_HEADLESS_MODE = "runAndroidStudioInHeadlessMode"
 }
 
 
@@ -281,6 +285,11 @@ val Project.testDistributionEnabled: Boolean
 val Project.maxTestDistributionPartitionSecond: Long?
     get() = systemProperty(TEST_DISTRIBUTION_PARTITION_SIZE).orNull?.toLong()
 
+val Project.autoDownloadAndroidStudio: Boolean
+    get() = propertyFromAnySource(AUTO_DOWNLOAD_ANDROID_STUDIO).getOrElse("false").toBoolean()
+
+val Project.runAndroidStudioInHeadlessMode: Boolean
+    get() = propertyFromAnySource(RUN_ANDROID_STUDIO_IN_HEADLESS_MODE).getOrElse("false").toBoolean()
 
 val Project.maxParallelForks: Int
     get() = gradleProperty(MAX_PARALLEL_FORKS).getOrElse("4").toInt() *

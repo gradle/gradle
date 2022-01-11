@@ -85,6 +85,10 @@ tasks.withType<Test>().configureEach {
         extension.runAndroidStudioInHeadlessMode,
         providers
     ))
+    // Propagate JAVA_HOME so Android Studio can find a JDK for Gradle
+    System.getenv("JAVA_HOME")?.let {
+        environment("JAVA_HOME" to it)
+    }
 }
 
 abstract class AndroidStudioInstallation {
