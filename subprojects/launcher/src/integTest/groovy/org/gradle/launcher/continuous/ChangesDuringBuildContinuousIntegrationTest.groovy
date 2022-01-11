@@ -219,7 +219,7 @@ jar.dependsOn postCompile
 
         then:
         if (shouldTrigger) {
-            fails()
+            buildTriggeredAndFailed()
         } else {
             noBuildTriggered()
         }

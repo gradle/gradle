@@ -56,7 +56,7 @@ class GradleBuildContinuousIntegrationTest extends AbstractContinuousIntegration
         when:
         file("gradle-build/inputs/input.txt").text = "second"
         then:
-        succeeds()
+        buildTriggeredAndSucceeded()
         outputFile.text == "second"
     }
 }

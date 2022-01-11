@@ -47,7 +47,7 @@ class ContinuousWorkerDaemonServiceIntegrationTest extends AbstractContinuousInt
         triggerNewBuild()
 
         then:
-        succeeds()
+        buildTriggeredAndSucceeded()
 
         and:
         outputContains("Runnable executed...")
