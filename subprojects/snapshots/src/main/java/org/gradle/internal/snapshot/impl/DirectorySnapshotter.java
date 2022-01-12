@@ -391,11 +391,11 @@ public class DirectorySnapshotter {
         }
 
         private boolean shouldVisitDirectory(Path dir, String internedName) {
-            return pathTracker.isRoot() || shouldVisit(dir, internedName, true, pathTracker.getSegments());
+            return pathTracker.isRoot() || shouldVisit(dir, internedName, true);
         }
 
         private boolean shouldVisitFile(Path file, String internedName) {
-            return shouldVisit(file, internedName, false, pathTracker.getSegments());
+            return shouldVisit(file, internedName, false);
         }
 
         private BasicFileAttributes readAttributesOfSymlinkTarget(Path symlink, BasicFileAttributes symlinkAttributes) {
@@ -433,7 +433,7 @@ public class DirectorySnapshotter {
                 // This way, we include each file only once.
                 if (isNotFileSystemLoopException(exc)) {
                     boolean isDirectory = Files.isDirectory(file);
-                    if (shouldVisit(file, internedFileName, isDirectory, pathTracker.getSegments())) {
+                    if (shouldVisit(file, internedFileName, isDirectory)) {
                         throw new UncheckedIOException(exc);
                     }
                 }
@@ -456,7 +456,7 @@ public class DirectorySnapshotter {
          * based on the directory/file excludes or the provided filtering predicate.
          * Excludes won't mark this walk as `filtered`, only if the `predicate` rejects any entry.
          **/
-        private boolean shouldVisit(Path path, String internedName, boolean isDirectory, Iterable<String> relativePath) {
+        private boolean shouldVisit(Path path, String internedName, boolean isDirectory) {
             if (isDirectory) {
                 if (defaultExcludes.excludeDir(internedName)) {
                     return false;
@@ -468,7 +468,7 @@ public class DirectorySnapshotter {
             if (predicate == null) {
                 return true;
             }
-            boolean allowed = predicate.test(path, internedName, isDirectory, symbolicLinkMapping.getRemappedSegments(relativePath));
+            boolean allowed = predicate.test(path, internedName, isDirectory, symbolicLinkMapping.getRemappedSegments(pathTracker.getSegments()));
             if (!allowed) {
                 builder.markCurrentLevelAsFiltered();
                 hasBeenFiltered.set(true);
