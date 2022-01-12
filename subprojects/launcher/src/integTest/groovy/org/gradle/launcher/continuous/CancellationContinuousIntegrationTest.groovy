@@ -24,6 +24,8 @@ class CancellationContinuousIntegrationTest extends AbstractContinuousIntegratio
 
     def setup() {
         buildFile.text = "apply plugin: 'java'"
+
+        file("src/main/java/MyClass.java") << "public class MyClass {}"
     }
 
     def "should cancel build when System.in contains EOT"() {
