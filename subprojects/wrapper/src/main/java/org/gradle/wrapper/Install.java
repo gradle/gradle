@@ -274,6 +274,10 @@ public class Install {
     /**
      * Checks the entry name for zip-slip vulnerable sequences.
      *
+     * <b>IMPLEMENTATION NOTE</b>
+     * We do it this way instead of the way recommended in https://snyk.io/research/zip-slip-vulnerability
+     * for performance reasons, calling {@link File#getCanonicalPath()} is too expensive.
+     *
      * @throws IllegalArgumentException if the entry contains vulnerable sequences
      */
     private String safeZipEntryName(String name) {
