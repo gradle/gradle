@@ -60,6 +60,9 @@ import java.util.function.Predicate;
 
 import static org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder.EmptyDirectoryHandlingStrategy.INCLUDE_EMPTY_DIRS;
 
+/**
+ * For creating {@link DirectorySnapshot}s of directories.
+ */
 public class DirectorySnapshotter {
     private static final EnumSet<FileVisitOption> DONT_FOLLOW_SYMLINKS = EnumSet.noneOf(FileVisitOption.class);
     private static final SymbolicLinkMapping EMPTY_SYMBOLIC_LINK_MAPPING = new SymbolicLinkMapping() {
@@ -92,6 +95,23 @@ public class DirectorySnapshotter {
         this.collector = collector;
     }
 
+    /**
+     * Snapshots a directory.
+     *
+     * Follows symlinks and includes them in the returned snapshot.
+     * Snapshots of followed symlinks are marked with {@link AccessType#VIA_SYMLINK}.
+     *
+     * @param absolutePath The absolute path of the directory to snapshot.
+     * @param predicate A predicate that determines which files to include in the snapshot.
+     *                  {@code null} means to include everything.
+     * @param hasBeenFiltered Whether the returned snapshot is a filtered snapshot of the directory.
+     * @param unfilteredSnapshotConsumer If the returned snapshot is filtered by the predicate, i.e. it doesn't have all the contents of the directory,
+     *                                   then this consumer will receive all the unfiltered snapshots within the snapshot directory.
+     *                                   For example, if an element of a directory is filtered out, the consumer will receive all the non-filtered out
+     *                                   file snapshots and all the non-filtered directory snapshots in the directory.
+     *
+     * @return The (possible filtered) snapshot of the directory.
+     */
     public FileSystemLocationSnapshot snapshot(String absolutePath, @Nullable SnapshottingFilter.DirectoryWalkerPredicate predicate, final AtomicBoolean hasBeenFiltered, Consumer<FileSystemLocationSnapshot> unfilteredSnapshotConsumer) {
         try {
             Path rootPath = Paths.get(absolutePath);
