@@ -41,6 +41,7 @@ import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.lang.String.format;
+import static org.gradle.util.internal.GUtil.safeZipEntryName;
 
 public class ZipFileTree extends AbstractArchiveFileTree {
     private final Provider<File> fileProvider;
@@ -159,7 +160,7 @@ public class ZipFileTree extends AbstractArchiveFileTree {
         @Override
         public File getFile() {
             if (file == null) {
-                file = safeDestinationFileForZipEntry(entry.getName(), expandedDir);
+                file = new File(expandedDir, safeZipEntryName(entry.getName()));
                 if (!file.exists()) {
                     copyTo(file);
                 }
@@ -207,20 +208,5 @@ public class ZipFileTree extends AbstractArchiveFileTree {
                 ? FileSystem.DEFAULT_DIR_MODE
                 : FileSystem.DEFAULT_FILE_MODE;
         }
-    }
-
-    private static File safeDestinationFileForZipEntry(String entryName, File destinationDir) {
-        // From https://snyk.io/research/zip-slip-vulnerability
-        File destinationFile = new File(destinationDir, entryName);
-        try {
-            String canonicalDestinationFile = destinationFile.getCanonicalPath();
-            String canonicalDestinationDirPath = destinationDir.getCanonicalPath();
-            if (!canonicalDestinationFile.startsWith(canonicalDestinationDirPath + File.separator)) {
-                throw new IllegalArgumentException(format("'%s' is not a safe zip entry name.", entryName));
-            }
-        } catch (IOException e) {
-            throw new IllegalArgumentException(format("'%s' is not a safe zip entry name.", entryName), e);
-        }
-        return destinationFile;
     }
 }
