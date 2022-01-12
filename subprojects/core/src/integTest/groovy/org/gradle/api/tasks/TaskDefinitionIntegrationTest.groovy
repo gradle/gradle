@@ -634,13 +634,9 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Adding a task provider directly to the task container is not supported.")
     }
 
-    def "can override task name, description and group without @Internal annotation"() {
+    def "can override description and group without @Internal annotation"() {
         buildFile << """
             class CustomTask extends DefaultTask {
-                @Override
-                public String getName() {
-                    return "customTask";
-                }
                 @Override
                 public String getDescription() {
                     return "My custom task description.";
@@ -672,36 +668,5 @@ customTask - My custom task description.
 
         then:
         outputContains("Hello from CustomTask")
-    }
-
-    // This test just shows the problem with overriding the task name,
-    // if it does not match name at the registration it will not be found.
-    def "fails when running a task with overriden name that is registered with a different name"() {
-        buildFile << """
-            class CustomTask extends DefaultTask {
-                @Override
-                public String getName() {
-                    return "customTask";
-                }
-                @TaskAction
-                void doWork() {
-                    println("Hello from CustomTask")
-                }
-            }
-            tasks.register("differentCustomTask", CustomTask)
-        """
-
-        when:
-        fails("differentCustomTask")
-
-        then:
-        failureDescriptionContains("A problem occurred configuring root project")
-        failureCauseContains("Task with name 'differentCustomTask' not found in root project")
-
-        when:
-        fails("customTask")
-
-        then:
-        failureDescriptionContains("Task 'customTask' not found in root project")
     }
 }
