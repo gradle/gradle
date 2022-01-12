@@ -18,34 +18,53 @@ package org.gradle.internal.snapshot.impl;
 
 import org.gradle.internal.file.FileMetadata;
 import org.gradle.internal.snapshot.DirectorySnapshot;
+import org.gradle.internal.snapshot.DirectorySnapshotBuilder;
+import org.gradle.internal.snapshot.FileSystemLeafSnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
 import org.gradle.internal.snapshot.SnapshotVisitResult;
 
+import javax.annotation.Nullable;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.function.Consumer;
 
-public class FilteredTrackingMerkleDirectorySnapshotBuilder extends MerkleDirectorySnapshotBuilder {
+public class FilteredTrackingMerkleDirectorySnapshotBuilder implements DirectorySnapshotBuilder {
     private final Deque<Boolean> isCurrentLevelUnfiltered = new ArrayDeque<>();
     private final Consumer<FileSystemLocationSnapshot> unfilteredSnapshotConsumer;
+    private final DirectorySnapshotBuilder delegate;
 
     public static FilteredTrackingMerkleDirectorySnapshotBuilder sortingRequired(Consumer<FileSystemLocationSnapshot> unfilteredSnapshotConsumer) {
-        return new FilteredTrackingMerkleDirectorySnapshotBuilder(true, unfilteredSnapshotConsumer);
+        return new FilteredTrackingMerkleDirectorySnapshotBuilder(unfilteredSnapshotConsumer);
     }
 
-    private FilteredTrackingMerkleDirectorySnapshotBuilder(boolean sortingRequired, Consumer<FileSystemLocationSnapshot> unfilteredSnapshotConsumer) {
-        super(sortingRequired);
+    private FilteredTrackingMerkleDirectorySnapshotBuilder(Consumer<FileSystemLocationSnapshot> unfilteredSnapshotConsumer) {
+        this.delegate = MerkleDirectorySnapshotBuilder.sortingRequired();
         this.unfilteredSnapshotConsumer = unfilteredSnapshotConsumer;
         // The root starts out as unfiltered.
         isCurrentLevelUnfiltered.addLast(true);
     }
 
     @Override
+    public void enterDirectory(DirectorySnapshot directorySnapshot, EmptyDirectoryHandlingStrategy emptyDirectoryHandlingStrategy) {
+        delegate.enterDirectory(directorySnapshot, emptyDirectoryHandlingStrategy);
+    }
+
+    @Override
     public void enterDirectory(FileMetadata.AccessType accessType, String absolutePath, String name, EmptyDirectoryHandlingStrategy emptyDirectoryHandlingStrategy) {
         isCurrentLevelUnfiltered.addLast(true);
-        super.enterDirectory(accessType, absolutePath, name, emptyDirectoryHandlingStrategy);
+        delegate.enterDirectory(accessType, absolutePath, name, emptyDirectoryHandlingStrategy);
+    }
+
+    @Override
+    public void visitLeafElement(FileSystemLeafSnapshot snapshot) {
+        delegate.visitLeafElement(snapshot);
+    }
+
+    @Override
+    public void visitDirectory(DirectorySnapshot directorySnapshot) {
+        delegate.visitDirectory(directorySnapshot);
     }
 
     public void markCurrentLevelAsFiltered() {
@@ -59,7 +78,7 @@ public class FilteredTrackingMerkleDirectorySnapshotBuilder extends MerkleDirect
 
     @Override
     public FileSystemLocationSnapshot leaveDirectory() {
-        FileSystemLocationSnapshot directorySnapshot = super.leaveDirectory();
+        FileSystemLocationSnapshot directorySnapshot = delegate.leaveDirectory();
         boolean leftLevelUnfiltered = isCurrentLevelUnfiltered.removeLast();
         isCurrentLevelUnfiltered.addLast(isCurrentLevelUnfiltered.removeLast() && leftLevelUnfiltered);
         if (!leftLevelUnfiltered && directorySnapshot != null) {
@@ -84,5 +103,11 @@ public class FilteredTrackingMerkleDirectorySnapshotBuilder extends MerkleDirect
             });
         }
         return directorySnapshot;
+    }
+
+    @Nullable
+    @Override
+    public FileSystemLocationSnapshot getResult() {
+        return delegate.getResult();
     }
 }
