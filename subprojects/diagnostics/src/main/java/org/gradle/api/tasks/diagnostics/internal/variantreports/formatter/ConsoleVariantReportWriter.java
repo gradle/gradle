@@ -126,6 +126,7 @@ public final class ConsoleVariantReportWriter implements VariantReportWriter {
         } else {
             if (!config.getAttributes().isEmpty()) {
                 writeAttributes(config.getAttributes());
+                newLine();
             }
         }
 

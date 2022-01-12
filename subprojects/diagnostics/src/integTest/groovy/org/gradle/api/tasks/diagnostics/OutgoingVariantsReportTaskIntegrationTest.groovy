@@ -20,6 +20,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.InspectsVariantsReport
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import spock.lang.Ignore
 
 class OutgoingVariantsReportTaskIntegrationTest extends AbstractIntegrationSpec implements InspectsVariantsReport {
     def setup() {
@@ -1121,6 +1122,7 @@ Artifacts
         outputContains('There are no outgoing variants on project myLib')
     }
 
+    @Ignore("This needs to be updated after the behavior of --variant is updated") // TODO: remove ignore
     @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
     def "if only custom legacy configuration present, task does not report it"() {
         given:
@@ -1155,12 +1157,9 @@ Artifacts
         then:
         outputContains """> Task :outgoingVariants
 --------------------------------------------------
-Configuration legacy (l)
+Variant legacy (l)
 --------------------------------------------------
 Description = My custom legacy configuration
-
-Capabilities
-    - org:myLib:1.0 (default capability)
 """
 
         and:
