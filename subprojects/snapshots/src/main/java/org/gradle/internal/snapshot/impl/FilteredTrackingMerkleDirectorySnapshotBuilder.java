@@ -28,32 +28,32 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.function.Consumer;
 
-public class IncompleteTrackingMerkleDirectorySnapshotBuilder extends MerkleDirectorySnapshotBuilder {
-    private final Deque<Boolean> isCurrentLevelComplete = new ArrayDeque<>();
+public class FilteredTrackingMerkleDirectorySnapshotBuilder extends MerkleDirectorySnapshotBuilder {
+    private final Deque<Boolean> isCurrentLevelUnfiltered = new ArrayDeque<>();
 
-    public static IncompleteTrackingMerkleDirectorySnapshotBuilder sortingRequired() {
-        return new IncompleteTrackingMerkleDirectorySnapshotBuilder(true);
+    public static FilteredTrackingMerkleDirectorySnapshotBuilder sortingRequired() {
+        return new FilteredTrackingMerkleDirectorySnapshotBuilder(true);
     }
 
-    private IncompleteTrackingMerkleDirectorySnapshotBuilder(boolean sortingRequired) {
+    private FilteredTrackingMerkleDirectorySnapshotBuilder(boolean sortingRequired) {
         super(sortingRequired);
-        // The root starts out as complete.
-        isCurrentLevelComplete.addLast(true);
+        // The root starts out as unfiltered.
+        isCurrentLevelUnfiltered.addLast(true);
     }
 
     @Override
     public void enterDirectory(FileMetadata.AccessType accessType, String absolutePath, String name, EmptyDirectoryHandlingStrategy emptyDirectoryHandlingStrategy) {
-        isCurrentLevelComplete.addLast(true);
+        isCurrentLevelUnfiltered.addLast(true);
         super.enterDirectory(accessType, absolutePath, name, emptyDirectoryHandlingStrategy);
     }
 
-    public void markCurrentLevelAsIncomplete() {
-        isCurrentLevelComplete.removeLast();
-        isCurrentLevelComplete.addLast(false);
+    public void markCurrentLevelAsFiltered() {
+        isCurrentLevelUnfiltered.removeLast();
+        isCurrentLevelUnfiltered.addLast(false);
     }
 
-    public boolean isCurrentLevelComplete() {
-        return isCurrentLevelComplete.getLast();
+    public boolean isCurrentLevelUnfiltered() {
+        return isCurrentLevelUnfiltered.getLast();
     }
 
     @Override
@@ -62,11 +62,11 @@ public class IncompleteTrackingMerkleDirectorySnapshotBuilder extends MerkleDire
     }
 
     @Nullable
-    public FileSystemLocationSnapshot leaveDirectory(Consumer<FileSystemLocationSnapshot> incompleteSnapshotConsumer) {
+    public FileSystemLocationSnapshot leaveDirectory(Consumer<FileSystemLocationSnapshot> unfilteredSnapshotConsumer) {
         FileSystemLocationSnapshot directorySnapshot = super.leaveDirectory();
-        boolean leftLevelComplete = isCurrentLevelComplete.removeLast();
-        isCurrentLevelComplete.addLast(isCurrentLevelComplete.removeLast() && leftLevelComplete);
-        if (!leftLevelComplete && directorySnapshot != null) {
+        boolean leftLevelUnfiltered = isCurrentLevelUnfiltered.removeLast();
+        isCurrentLevelUnfiltered.addLast(isCurrentLevelUnfiltered.removeLast() && leftLevelUnfiltered);
+        if (!leftLevelUnfiltered && directorySnapshot != null) {
             directorySnapshot.accept(new FileSystemSnapshotHierarchyVisitor() {
                 private boolean isRoot = true;
 
@@ -80,7 +80,7 @@ public class IncompleteTrackingMerkleDirectorySnapshotBuilder extends MerkleDire
                     if (isRoot) {
                         return SnapshotVisitResult.CONTINUE;
                     } else {
-                        incompleteSnapshotConsumer.accept(snapshot);
+                        unfilteredSnapshotConsumer.accept(snapshot);
                     }
 
                     return SnapshotVisitResult.SKIP_SUBTREE;

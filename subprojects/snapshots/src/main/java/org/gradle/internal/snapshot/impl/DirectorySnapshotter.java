@@ -92,10 +92,10 @@ public class DirectorySnapshotter {
         this.collector = collector;
     }
 
-    public FileSystemLocationSnapshot snapshot(String absolutePath, @Nullable SnapshottingFilter.DirectoryWalkerPredicate predicate, final AtomicBoolean hasBeenFiltered, Consumer<FileSystemLocationSnapshot> storeInVfs) {
+    public FileSystemLocationSnapshot snapshot(String absolutePath, @Nullable SnapshottingFilter.DirectoryWalkerPredicate predicate, final AtomicBoolean hasBeenFiltered, Consumer<FileSystemLocationSnapshot> unfilteredSnapshotConsumer) {
         try {
             Path rootPath = Paths.get(absolutePath);
-            PathVisitor visitor = new PathVisitor(predicate, hasBeenFiltered, hasher, stringInterner, defaultExcludes, collector, EMPTY_SYMBOLIC_LINK_MAPPING, storeInVfs);
+            PathVisitor visitor = new PathVisitor(predicate, hasBeenFiltered, hasher, stringInterner, defaultExcludes, collector, EMPTY_SYMBOLIC_LINK_MAPPING, unfilteredSnapshotConsumer);
             Files.walkFileTree(rootPath, DONT_FOLLOW_SYMLINKS, Integer.MAX_VALUE, visitor);
             return visitor.getResult();
         } catch (IOException e) {
@@ -222,7 +222,7 @@ public class DirectorySnapshotter {
 
     private static class PathVisitor extends DirectorySnapshotterStatistics.CollectingFileVisitor {
         private final RelativePathTracker pathTracker = new RelativePathTracker();
-        private final IncompleteTrackingMerkleDirectorySnapshotBuilder builder;
+        private final FilteredTrackingMerkleDirectorySnapshotBuilder builder;
         private final SnapshottingFilter.DirectoryWalkerPredicate predicate;
         private final AtomicBoolean hasBeenFiltered;
         private final FileHasher hasher;
@@ -230,8 +230,8 @@ public class DirectorySnapshotter {
         private final DefaultExcludes defaultExcludes;
         private final SymbolicLinkMapping symbolicLinkMapping;
         private final Deque<String> parentDirectories = new ArrayDeque<>();
-        private final Set<FileSystemLocationSnapshot> incompleteDirectorySnapshots = new HashSet<>();
-        private final Consumer<FileSystemLocationSnapshot> storeInVfs;
+        private final Set<FileSystemLocationSnapshot> filteredDirectorySnapshots = new HashSet<>();
+        private final Consumer<FileSystemLocationSnapshot> unfilteredSnapshotConsumer;
 
         public PathVisitor(
             @Nullable SnapshottingFilter.DirectoryWalkerPredicate predicate,
@@ -241,17 +241,17 @@ public class DirectorySnapshotter {
             DefaultExcludes defaultExcludes,
             DirectorySnapshotterStatistics.Collector statisticsCollector,
             SymbolicLinkMapping symbolicLinkMapping,
-            Consumer<FileSystemLocationSnapshot> storeInVfs
+            Consumer<FileSystemLocationSnapshot> unfilteredSnapshotConsumer
         ) {
             super(statisticsCollector);
-            this.builder = IncompleteTrackingMerkleDirectorySnapshotBuilder.sortingRequired();
+            this.builder = FilteredTrackingMerkleDirectorySnapshotBuilder.sortingRequired();
             this.predicate = predicate;
             this.hasBeenFiltered = hasBeenFiltered;
             this.hasher = hasher;
             this.stringInterner = stringInterner;
             this.defaultExcludes = defaultExcludes;
             this.symbolicLinkMapping = symbolicLinkMapping;
-            this.storeInVfs = storeInVfs;
+            this.unfilteredSnapshotConsumer = unfilteredSnapshotConsumer;
         }
 
         @Override
@@ -277,18 +277,18 @@ public class DirectorySnapshotter {
             if (isNotFileSystemLoopException(exc)) {
                 throw new UncheckedIOException(String.format("Could not read directory path '%s'.", dir), exc);
             }
-            boolean currentLevelComplete = builder.isCurrentLevelComplete();
-            FileSystemLocationSnapshot currentLevel = builder.leaveDirectory(incompleteSnapshot -> {
-                if (incompleteSnapshot.getType() == FileType.Directory) {
-                    if (!incompleteDirectorySnapshots.contains(incompleteSnapshot)) {
-                        storeInVfs.accept(incompleteSnapshot);
+            boolean currentLevelComplete = builder.isCurrentLevelUnfiltered();
+            FileSystemLocationSnapshot currentLevel = builder.leaveDirectory(snapshot -> {
+                if (snapshot.getType() == FileType.Directory) {
+                    if (!filteredDirectorySnapshots.contains(snapshot)) {
+                        unfilteredSnapshotConsumer.accept(snapshot);
                     }
                 } else {
-                    storeInVfs.accept(incompleteSnapshot);
+                    unfilteredSnapshotConsumer.accept(snapshot);
                 }
             });
             if (!currentLevelComplete) {
-                incompleteDirectorySnapshots.add(currentLevel);
+                filteredDirectorySnapshots.add(currentLevel);
             }
             parentDirectories.removeFirst();
             return FileVisitResult.CONTINUE;
@@ -315,8 +315,8 @@ public class DirectorySnapshotter {
                             builder.visitDirectory(directorySnapshotAccessedViaSymlink);
                             boolean symlinkFiltered = symlinkHasBeenFiltered.get();
                             if (symlinkFiltered) {
-                                incompleteDirectorySnapshots.add(directorySnapshotAccessedViaSymlink);
-                                builder.markCurrentLevelAsIncomplete();
+                                filteredDirectorySnapshots.add(directorySnapshotAccessedViaSymlink);
+                                builder.markCurrentLevelAsFiltered();
                                 hasBeenFiltered.set(true);
                             }
                         }
@@ -346,7 +346,7 @@ public class DirectorySnapshotter {
                         defaultExcludes,
                         collector,
                         symbolicLinkMapping.withNewMapping(file.toString(), targetDirString, pathTracker),
-                        storeInVfs);
+                        unfilteredSnapshotConsumer);
                     Files.walkFileTree(targetDir, EnumSet.noneOf(FileVisitOption.class), Integer.MAX_VALUE, subtreeVisitor);
                     return (DirectorySnapshot) subtreeVisitor.getResult();
                 } else {
@@ -448,7 +448,7 @@ public class DirectorySnapshotter {
             }
             boolean allowed = predicate.test(path, internedName, isDirectory, symbolicLinkMapping.getRemappedSegments(relativePath));
             if (!allowed) {
-                builder.markCurrentLevelAsIncomplete();
+                builder.markCurrentLevelAsFiltered();
                 hasBeenFiltered.set(true);
             }
             return allowed;
