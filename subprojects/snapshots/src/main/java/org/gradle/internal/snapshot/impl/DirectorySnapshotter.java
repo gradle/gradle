@@ -264,7 +264,7 @@ public class DirectorySnapshotter {
             Consumer<FileSystemLocationSnapshot> unfilteredSnapshotConsumer
         ) {
             super(statisticsCollector);
-            this.builder = FilteredTrackingMerkleDirectorySnapshotBuilder.sortingRequired();
+            this.builder = FilteredTrackingMerkleDirectorySnapshotBuilder.sortingRequired(this::consumeUnfilteredSnapshot);
             this.predicate = predicate;
             this.hasBeenFiltered = hasBeenFiltered;
             this.hasher = hasher;
@@ -272,6 +272,16 @@ public class DirectorySnapshotter {
             this.defaultExcludes = defaultExcludes;
             this.symbolicLinkMapping = symbolicLinkMapping;
             this.unfilteredSnapshotConsumer = unfilteredSnapshotConsumer;
+        }
+
+        private void consumeUnfilteredSnapshot(FileSystemLocationSnapshot snapshot) {
+            if (snapshot.getType() == FileType.Directory) {
+                if (!filteredDirectorySnapshots.contains(snapshot)) {
+                    unfilteredSnapshotConsumer.accept(snapshot);
+                }
+            } else {
+                unfilteredSnapshotConsumer.accept(snapshot);
+            }
         }
 
         @Override
@@ -298,15 +308,7 @@ public class DirectorySnapshotter {
                 throw new UncheckedIOException(String.format("Could not read directory path '%s'.", dir), exc);
             }
             boolean currentLevelComplete = builder.isCurrentLevelUnfiltered();
-            FileSystemLocationSnapshot currentLevel = builder.leaveDirectory(snapshot -> {
-                if (snapshot.getType() == FileType.Directory) {
-                    if (!filteredDirectorySnapshots.contains(snapshot)) {
-                        unfilteredSnapshotConsumer.accept(snapshot);
-                    }
-                } else {
-                    unfilteredSnapshotConsumer.accept(snapshot);
-                }
-            });
+            FileSystemLocationSnapshot currentLevel = builder.leaveDirectory();
             if (!currentLevelComplete) {
                 filteredDirectorySnapshots.add(currentLevel);
             }

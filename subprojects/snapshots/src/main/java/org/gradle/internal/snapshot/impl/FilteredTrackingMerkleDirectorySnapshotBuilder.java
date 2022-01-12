@@ -23,20 +23,21 @@ import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
 import org.gradle.internal.snapshot.SnapshotVisitResult;
 
-import javax.annotation.Nullable;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.function.Consumer;
 
 public class FilteredTrackingMerkleDirectorySnapshotBuilder extends MerkleDirectorySnapshotBuilder {
     private final Deque<Boolean> isCurrentLevelUnfiltered = new ArrayDeque<>();
+    private final Consumer<FileSystemLocationSnapshot> unfilteredSnapshotConsumer;
 
-    public static FilteredTrackingMerkleDirectorySnapshotBuilder sortingRequired() {
-        return new FilteredTrackingMerkleDirectorySnapshotBuilder(true);
+    public static FilteredTrackingMerkleDirectorySnapshotBuilder sortingRequired(Consumer<FileSystemLocationSnapshot> unfilteredSnapshotConsumer) {
+        return new FilteredTrackingMerkleDirectorySnapshotBuilder(true, unfilteredSnapshotConsumer);
     }
 
-    private FilteredTrackingMerkleDirectorySnapshotBuilder(boolean sortingRequired) {
+    private FilteredTrackingMerkleDirectorySnapshotBuilder(boolean sortingRequired, Consumer<FileSystemLocationSnapshot> unfilteredSnapshotConsumer) {
         super(sortingRequired);
+        this.unfilteredSnapshotConsumer = unfilteredSnapshotConsumer;
         // The root starts out as unfiltered.
         isCurrentLevelUnfiltered.addLast(true);
     }
@@ -58,11 +59,6 @@ public class FilteredTrackingMerkleDirectorySnapshotBuilder extends MerkleDirect
 
     @Override
     public FileSystemLocationSnapshot leaveDirectory() {
-        return leaveDirectory(snapshot -> {});
-    }
-
-    @Nullable
-    public FileSystemLocationSnapshot leaveDirectory(Consumer<FileSystemLocationSnapshot> unfilteredSnapshotConsumer) {
         FileSystemLocationSnapshot directorySnapshot = super.leaveDirectory();
         boolean leftLevelUnfiltered = isCurrentLevelUnfiltered.removeLast();
         isCurrentLevelUnfiltered.addLast(isCurrentLevelUnfiltered.removeLast() && leftLevelUnfiltered);
