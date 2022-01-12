@@ -21,8 +21,8 @@ import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.DirectorySnapshotBuilder;
 import org.gradle.internal.snapshot.FileSystemLeafSnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
-import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
+import org.gradle.internal.snapshot.RootTrackingFileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.SnapshotVisitResult;
 
 import javax.annotation.Nullable;
@@ -82,16 +82,10 @@ public class FilteredTrackingMerkleDirectorySnapshotBuilder implements Directory
         boolean leftLevelUnfiltered = isCurrentLevelUnfiltered.removeLast();
         isCurrentLevelUnfiltered.addLast(isCurrentLevelUnfiltered.removeLast() && leftLevelUnfiltered);
         if (!leftLevelUnfiltered && directorySnapshot != null) {
-            directorySnapshot.accept(new FileSystemSnapshotHierarchyVisitor() {
-                private boolean isRoot = true;
+            directorySnapshot.accept(new RootTrackingFileSystemSnapshotHierarchyVisitor() {
 
                 @Override
-                public void enterDirectory(DirectorySnapshot directorySnapshot) {
-                    isRoot = false;
-                }
-
-                @Override
-                public SnapshotVisitResult visitEntry(FileSystemLocationSnapshot snapshot) {
+                public SnapshotVisitResult visitEntry(FileSystemLocationSnapshot snapshot, boolean isRoot) {
                     if (isRoot) {
                         return SnapshotVisitResult.CONTINUE;
                     } else {
