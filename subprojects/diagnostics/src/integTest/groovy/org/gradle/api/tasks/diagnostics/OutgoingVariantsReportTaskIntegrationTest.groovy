@@ -29,6 +29,30 @@ class OutgoingVariantsReportTaskIntegrationTest extends AbstractIntegrationSpec 
     }
 
     @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
+    def "if no configurations present, outgoing variants task produces empty report"() {
+        expect:
+        succeeds ':outgoingVariants'
+        outputContains('There are no outgoing variants on project myLib')
+    }
+
+
+    @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
+    def "if only consumable configurations present, outgoing variants task produces empty report"() {
+        given:
+        buildFile << """
+            configurations.create("custom") {
+                description = "My custom configuration"
+                canBeResolved = true
+                canBeConsumed = false
+            }
+        """
+
+        expect:
+        succeeds ':outgoingVariants'
+        outputContains('There are no outgoing variants on project myLib')
+    }
+
+    @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
     def "reports outgoing variants of a Java Library"() {
         buildFile << """
             plugins { id 'java-library' }
@@ -1070,5 +1094,77 @@ Artifacts
         doesNotHaveLegacyVariantsLegend()
         hasSecondaryVariantsLegend()
         hasIncubatingVariantsLegend()
+    }
+
+    @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
+    def "specifying a missing config with no configs produces empty report"() {
+        expect:
+        succeeds ':outgoingVariants', '--variant', 'missing'
+        outputContains("There is no variant named 'missing' defined on this project.")
+        outputContains('There are no outgoing variants on project myLib')
+    }
+
+    @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
+    def "specifying a missing config produces empty report"() {
+        given:
+        buildFile << """
+            configurations.create("custom") {
+                description = "My custom configuration"
+                canBeResolved = true
+                canBeConsumed = false
+            }
+        """
+
+        expect:
+        succeeds ':outgoingVariants', '--variant', 'missing'
+        outputContains("There is no variant named 'missing' defined on this project.")
+        outputContains('There are no outgoing variants on project myLib')
+    }
+
+    @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
+    def "if only custom legacy configuration present, task does not report it"() {
+        given:
+        buildFile << """
+            configurations.create("legacy") {
+                description = "My custom legacy configuration"
+                canBeResolved = true
+                canBeConsumed = true
+            }
+        """
+
+        expect:
+        succeeds ':outgoingVariants'
+        outputContains('There are no outgoing variants on project myLib')
+    }
+
+    @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
+    def "if only custom legacy configuration present, task reports it if --all flag is set"() {
+        given:
+        buildFile << """
+            configurations.create("legacy") {
+                description = "My custom legacy configuration"
+                canBeResolved = true
+                canBeConsumed = true
+            }
+        """
+
+        when:
+        executer.expectDeprecationWarning('(l) Legacy or deprecated configuration. Those are variants created for backwards compatibility which are both resolvable and consumable.')
+        run ':outgoingVariants', '--all'
+
+        then:
+        outputContains """> Task :outgoingVariants
+--------------------------------------------------
+Configuration legacy (l)
+--------------------------------------------------
+Description = My custom legacy configuration
+
+Capabilities
+    - org:myLib:1.0 (default capability)
+"""
+
+        and:
+        hasLegacyVariantsLegend()
+        doesNotHaveIncubatingVariantsLegend()
     }
 }

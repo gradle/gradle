@@ -32,7 +32,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public final class ConsoleVariantReportWriter extends AbstractVariantReportWriter {
+public final class ConsoleVariantReportWriter implements VariantReportWriter {
     private final StyledTextOutput output;
     private int depth;
 
@@ -65,15 +65,18 @@ public final class ConsoleVariantReportWriter extends AbstractVariantReportWrite
     public void writeReport(Optional<String> searchTarget, List<ReportConfiguration> matchingConfigs, List<ReportConfiguration> allConfigs) {
         depth = 0;
         if (matchingConfigs.isEmpty()) {
-            writeNoMatches(searchTarget.get(), allConfigs);
+            writeNoMatches(searchTarget, allConfigs);
         } else {
             writeMatches(matchingConfigs);
         }
     }
 
-    private void writeNoMatches(String searchTarget, List<ReportConfiguration> configs) {
-        text("There is no " + targetName + " named '" + searchTarget + "' defined on this project.");
-        newLine();
+    private void writeNoMatches(Optional<String> searchTarget, List<ReportConfiguration> configs) {
+        if (searchTarget.isPresent()) {
+            text("There is no " + targetName + " named '" + searchTarget.get() + "' defined on this project.");
+            newLine();
+        }
+
         if (configs.isEmpty()) {
             output.println("There are no " + direction + " " + targetName + "s on project " + projectName);
         } else {
@@ -131,8 +134,8 @@ public final class ConsoleVariantReportWriter extends AbstractVariantReportWrite
                 newLine(); // Preserve formatting for now
             }
             writeArtifacts(config.getArtifacts());
+            newLine(); // Preserve formatting
         }
-        newLine(); // Preserve formatting
 
         if (includeSecondaryVariants) {
             writeSecondaryVariants(config.getVariants());

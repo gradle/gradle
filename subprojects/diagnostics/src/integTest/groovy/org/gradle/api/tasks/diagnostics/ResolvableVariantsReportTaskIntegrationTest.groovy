@@ -20,6 +20,7 @@ import org.gradle.api.JavaVersion
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.InspectsVariantsReport
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class ResolvableVariantsReportTaskIntegrationTest extends AbstractIntegrationSpec implements InspectsVariantsReport {
     def setup() {
@@ -28,13 +29,31 @@ class ResolvableVariantsReportTaskIntegrationTest extends AbstractIntegrationSpe
         """
     }
 
-    def "if no configurations present, requested variants task produces empty report"() {
+    @ToBeFixedForConfigurationCache(because = ":resolvableVariants")
+    def "if no configurations present, resolvable variants task produces empty report"() {
         expect:
         succeeds ':resolvableVariants'
         outputContains('There are no resolvable configurations on project myLib')
     }
 
-    def "if only custom configuration present, requested variants task reports it"() {
+    @ToBeFixedForConfigurationCache(because = ":resolvableVariants")
+    def "if only consumable configurations present, resolvable variants task produces empty report"() {
+        given:
+        buildFile << """
+            configurations.create("custom") {
+                description = "My custom configuration"
+                canBeResolved = false
+                canBeConsumed = true
+            }
+        """
+
+        expect:
+        succeeds ':resolvableVariants'
+        outputContains('There are no resolvable configurations on project myLib')
+    }
+
+    @ToBeFixedForConfigurationCache(because = ":resolvableVariants")
+    def "if only custom configuration present, resolvable variants task reports it"() {
         given:
         buildFile << """
             configurations.create("custom") {
@@ -54,8 +73,6 @@ Configuration custom
 --------------------------------------------------
 Description = My custom configuration
 
-Capabilities
-    - :myLib:unspecified (default capability)
 """
 
         and:
@@ -63,7 +80,8 @@ Capabilities
         doesNotHaveIncubatingVariantsLegend()
     }
 
-    def "if only custom configuration present with attributes, requested variants task reports it and them"() {
+    @ToBeFixedForConfigurationCache(because = ":resolvableVariants")
+    def "if only custom configuration present with attributes, resolvable variants task reports it and them"() {
         given:
         buildFile << """
             configurations.create("custom") {
@@ -89,8 +107,6 @@ Configuration custom
 --------------------------------------------------
 Description = My custom configuration
 
-Capabilities
-    - :myLib:unspecified (default capability)
 Attributes
     - org.gradle.dependency.bundling = external
     - org.gradle.libraryelements     = jar
@@ -102,7 +118,7 @@ Attributes
         doesNotHaveIncubatingVariantsLegend()
     }
 
-    def "Multiple custom configurations present with attributes, requested variants task reports them all"() {
+    def "Multiple custom configurations present with attributes, resolvable variants task reports them all"() {
         given:
         buildFile << """
             configurations.create("someConf") {
@@ -138,8 +154,6 @@ Configuration otherConf
 --------------------------------------------------
 Description = My second custom configuration
 
-Capabilities
-    - :myLib:unspecified (default capability)
 Attributes
     - org.gradle.category = documentation
 
@@ -148,8 +162,6 @@ Configuration someConf
 --------------------------------------------------
 Description = My first custom configuration
 
-Capabilities
-    - :myLib:unspecified (default capability)
 Attributes
     - org.gradle.dependency.bundling = external
     - org.gradle.libraryelements     = jar
@@ -161,7 +173,8 @@ Attributes
         doesNotHaveIncubatingVariantsLegend()
     }
 
-    def "if only custom legacy configuration present, requested variants task does not report it"() {
+    @ToBeFixedForConfigurationCache(because = ":resolvableVariants")
+    def "if only custom legacy configuration present, resolvable variants task does not report it"() {
         given:
         buildFile << """
             configurations.create("legacy") {
@@ -176,7 +189,8 @@ Attributes
         outputContains('There are no resolvable configurations on project myLib')
     }
 
-    def "if only custom legacy configuration present, requested variants task reports it if --all flag is set"() {
+    @ToBeFixedForConfigurationCache(because = ":resolvableVariants")
+    def "if only custom legacy configuration present, resolvable variants task reports it if --all flag is set"() {
         given:
         buildFile << """
             configurations.create("legacy") {
@@ -197,8 +211,6 @@ Configuration legacy (l)
 --------------------------------------------------
 Description = My custom legacy configuration
 
-Capabilities
-    - :myLib:unspecified (default capability)
 """
 
         and:
@@ -206,7 +218,8 @@ Capabilities
         doesNotHaveIncubatingVariantsLegend()
     }
 
-    def "reports requested variants of a Java Library with module dependencies"() {
+    @ToBeFixedForConfigurationCache(because = ":resolvableVariants")
+    def "reports resolvable variants of a Java Library with module dependencies"() {
         given:
         buildFile << """
             plugins { id 'java-library' }
@@ -229,8 +242,6 @@ Configuration annotationProcessor
 --------------------------------------------------
 Description = Annotation processors and their dependencies for source set 'main'.
 
-Capabilities
-    - :myLib:unspecified (default capability)
 Attributes
     - org.gradle.category            = library
     - org.gradle.dependency.bundling = external
@@ -243,8 +254,6 @@ Configuration compileClasspath
 --------------------------------------------------
 Description = Compile classpath for source set 'main'.
 
-Capabilities
-    - :myLib:unspecified (default capability)
 Attributes
     - org.gradle.category            = library
     - org.gradle.dependency.bundling = external
@@ -258,8 +267,6 @@ Configuration runtimeClasspath
 --------------------------------------------------
 Description = Runtime classpath of source set 'main'.
 
-Capabilities
-    - :myLib:unspecified (default capability)
 Attributes
     - org.gradle.category            = library
     - org.gradle.dependency.bundling = external
@@ -273,8 +280,6 @@ Configuration testAnnotationProcessor
 --------------------------------------------------
 Description = Annotation processors and their dependencies for source set 'test'.
 
-Capabilities
-    - :myLib:unspecified (default capability)
 Attributes
     - org.gradle.category            = library
     - org.gradle.dependency.bundling = external
@@ -287,8 +292,6 @@ Configuration testCompileClasspath
 --------------------------------------------------
 Description = Compile classpath for source set 'test'.
 
-Capabilities
-    - :myLib:unspecified (default capability)
 Attributes
     - org.gradle.category            = library
     - org.gradle.dependency.bundling = external
@@ -302,8 +305,6 @@ Configuration testRuntimeClasspath
 --------------------------------------------------
 Description = Runtime classpath of source set 'test'.
 
-Capabilities
-    - :myLib:unspecified (default capability)
 Attributes
     - org.gradle.category            = library
     - org.gradle.dependency.bundling = external
@@ -318,7 +319,8 @@ Attributes
         doesNotHaveIncubatingVariantsLegend()
     }
 
-    def "reports requested variants of a Java Library with module dependencies if --all flag is set"() {
+    @ToBeFixedForConfigurationCache(because = ":resolvableVariants")
+    def "reports resolvable variants of a Java Library with module dependencies if --all flag is set"() {
         given:
         buildFile << """
             plugins { id 'java-library' }
@@ -342,8 +344,6 @@ Configuration annotationProcessor
 --------------------------------------------------
 Description = Annotation processors and their dependencies for source set 'main'.
 
-Capabilities
-    - :myLib:unspecified (default capability)
 Attributes
     - org.gradle.category            = library
     - org.gradle.dependency.bundling = external
@@ -356,16 +356,12 @@ Configuration archives (l)
 --------------------------------------------------
 Description = Configuration for archive artifacts.
 
-Capabilities
-    - :myLib:unspecified (default capability)
 
 --------------------------------------------------
 Configuration compileClasspath
 --------------------------------------------------
 Description = Compile classpath for source set 'main'.
 
-Capabilities
-    - :myLib:unspecified (default capability)
 Attributes
     - org.gradle.category            = library
     - org.gradle.dependency.bundling = external
@@ -379,16 +375,12 @@ Configuration default (l)
 --------------------------------------------------
 Description = Configuration for default artifacts.
 
-Capabilities
-    - :myLib:unspecified (default capability)
 
 --------------------------------------------------
 Configuration runtimeClasspath
 --------------------------------------------------
 Description = Runtime classpath of source set 'main'.
 
-Capabilities
-    - :myLib:unspecified (default capability)
 Attributes
     - org.gradle.category            = library
     - org.gradle.dependency.bundling = external
@@ -402,8 +394,6 @@ Configuration testAnnotationProcessor
 --------------------------------------------------
 Description = Annotation processors and their dependencies for source set 'test'.
 
-Capabilities
-    - :myLib:unspecified (default capability)
 Attributes
     - org.gradle.category            = library
     - org.gradle.dependency.bundling = external
@@ -416,8 +406,6 @@ Configuration testCompileClasspath
 --------------------------------------------------
 Description = Compile classpath for source set 'test'.
 
-Capabilities
-    - :myLib:unspecified (default capability)
 Attributes
     - org.gradle.category            = library
     - org.gradle.dependency.bundling = external
@@ -431,8 +419,6 @@ Configuration testRuntimeClasspath
 --------------------------------------------------
 Description = Runtime classpath of source set 'test'.
 
-Capabilities
-    - :myLib:unspecified (default capability)
 Attributes
     - org.gradle.category            = library
     - org.gradle.dependency.bundling = external
@@ -447,6 +433,7 @@ Attributes
         doesNotHaveIncubatingVariantsLegend()
     }
 
+    @ToBeFixedForConfigurationCache(because = ":resolvableVariants")
     def "specifying a missing config with no configs produces empty report"() {
         expect:
         succeeds ':resolvableVariants', '--configuration', 'missing'
@@ -454,6 +441,7 @@ Attributes
         outputContains('There are no resolvable configurations on project myLib')
     }
 
+    @ToBeFixedForConfigurationCache(because = ":resolvableVariants")
     def "specifying a missing config produces empty report"() {
         given:
         buildFile << """

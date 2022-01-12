@@ -19,7 +19,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
-import org.gradle.api.tasks.diagnostics.internal.variantreports.formatter.AbstractVariantReportWriter;
+import org.gradle.api.tasks.diagnostics.internal.variantreports.formatter.VariantReportWriter;
 import org.gradle.api.tasks.diagnostics.internal.variantreports.formatter.ConsoleVariantReportWriter;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.work.DisableCachingByDefault;
@@ -36,7 +36,7 @@ import java.util.function.Predicate;
  *
  * @since 6.0
  */
-@DisableCachingByDefault(because = "Produces only non-cacheable console output")
+@DisableCachingByDefault(because = "Produces only non-cacheable console output by examining configurations at execution time")
 public class OutgoingVariantsReportTask extends AbstractVariantsReportTask {
     private final Property<String> variantSpec = getProject().getObjects().property(String.class);
     private final Property<Boolean> showAll = getProject().getObjects().property(Boolean.class).convention(false);
@@ -56,7 +56,7 @@ public class OutgoingVariantsReportTask extends AbstractVariantsReportTask {
     }
 
     @Override
-    protected AbstractVariantReportWriter getReportWriter() {
+    protected VariantReportWriter getReportWriter() {
         switch (getFormat().get()) {
             case "text":
                 return ConsoleVariantReportWriter.outgoingVariants(getTextOutputFactory().create(getClass()), getProject().getName());

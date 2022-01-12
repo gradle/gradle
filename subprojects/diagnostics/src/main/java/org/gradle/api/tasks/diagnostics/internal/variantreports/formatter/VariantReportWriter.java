@@ -21,6 +21,6 @@ import org.gradle.api.tasks.diagnostics.internal.variantreports.model.ReportConf
 import java.util.List;
 import java.util.Optional;
 
-public abstract class AbstractVariantReportWriter {
-    public abstract void writeReport(Optional<String> searchTarget, List<ReportConfiguration> matchingConfigs, List<ReportConfiguration> allConfigs);
+public interface VariantReportWriter {
+    void writeReport(Optional<String> searchTarget, List<ReportConfiguration> matchingConfigs, List<ReportConfiguration> allConfigs);
 }
