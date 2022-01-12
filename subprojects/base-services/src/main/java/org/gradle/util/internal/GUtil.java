@@ -591,8 +591,9 @@ public class GUtil {
 
     public static boolean isUnsafeZipEntryName(String name) {
         return name.isEmpty()
-            || name.contains("..")
             || name.startsWith("/")
-            || name.startsWith("\\");
+            || name.startsWith("\\")
+            || name.contains("..")
+            || name.contains(":");
     }
 }

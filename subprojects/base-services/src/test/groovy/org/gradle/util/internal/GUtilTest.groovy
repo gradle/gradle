@@ -308,5 +308,6 @@ class GUtilTest extends Specification {
         "\\foo"    | "foo"
         "foo/.."   | "foo/bar"
         "foo\\.."  | "foo\\bar"
+        "C:/foo"   | "foo"
     }
 }
