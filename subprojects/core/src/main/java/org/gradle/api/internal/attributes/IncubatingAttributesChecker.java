@@ -67,7 +67,7 @@ public abstract class IncubatingAttributesChecker {
     }
 
     private static <T> boolean isIncubatingAttributeValue(Class<T> type, @Nullable T value) {
-        return getIncubatingFields(type).stream().map(IncubatingAttributesChecker::getFieldValue).anyMatch(v -> Objects.equals(v, value));
+        return getIncubatingFields(type).stream().map(IncubatingAttributesChecker::getFieldValue).anyMatch(v -> Objects.equals(v, value != null ? value.toString() : null));
     }
 
     private static Object getFieldValue(Field f) {

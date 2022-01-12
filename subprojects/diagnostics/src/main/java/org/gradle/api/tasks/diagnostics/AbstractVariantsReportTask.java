@@ -19,6 +19,7 @@ package org.gradle.api.tasks.diagnostics;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
@@ -50,7 +51,9 @@ public abstract class AbstractVariantsReportTask extends DefaultTask {
     @Input
     @org.gradle.api.tasks.Optional
     @Option(option = "format", description = "The output format (text, json), defaults to text")
-    Property<String> getFormat() { return format; }
+    public Property<String> getFormat() {
+        return format;
+    }
 
     @Inject
     protected StyledTextOutputFactory getTextOutputFactory() {
@@ -80,6 +83,7 @@ public abstract class AbstractVariantsReportTask extends DefaultTask {
             .stream()
             .filter(filter)
             .sorted(Comparator.comparing(Configuration::getName))
+            .map(ConfigurationInternal.class::cast)
             .map(c -> ReportConfiguration.fromConfigurationInProject(c, getProject(), getFileResolver()))
             .collect(Collectors.toList());
     }

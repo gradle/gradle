@@ -17,7 +17,7 @@
 package org.gradle.api.tasks.diagnostics.internal.variantreports.model;
 
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.file.FileResolver;
 
 import javax.annotation.Nullable;
@@ -44,7 +44,10 @@ public final class ReportConfiguration {
         this.variants = variants;
     }
 
-    public static ReportConfiguration fromConfigurationInProject(Configuration configuration, Project project, FileResolver fileResolver) {
+    public static ReportConfiguration fromConfigurationInProject(ConfigurationInternal configuration, Project project, FileResolver fileResolver) {
+        // Important to lock the config prior to extracting the attributes, as some attributes, such as TargetJvmVersion, are actually added by this locking process
+        configuration.preventFromFurtherMutation();
+
         Set<ReportAttribute> attributes = configuration.getAttributes().keySet().stream().map(a -> ReportAttribute.fromAttributeInContainer(a, configuration.getAttributes())).collect(Collectors.toSet());
         Set<ReportCapability> capabilities = configuration.getOutgoing().getCapabilities().stream().map(ReportCapability::fromCapability).collect(Collectors.toSet());
         if (capabilities.isEmpty()) {

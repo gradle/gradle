@@ -42,6 +42,11 @@ class IncubatingAttributesCheckerTest extends Specification {
         IncubatingAttributesChecker.isIncubating(Category.CATEGORY_ATTRIBUTE, Category.VERIFICATION)
     }
 
+    def "attribute without @Incubating annotation on class, with @Incubating on value, specified as named object is reported"() {
+        expect:
+        IncubatingAttributesChecker.isIncubating(Category.CATEGORY_ATTRIBUTE, TestUtil.objectFactory().named(Category, Category.VERIFICATION))
+    }
+
     def "attribute without @Incubating annotation on class, with @Incubating on different value is not reported"() {
         expect:
         !IncubatingAttributesChecker.isIncubating(Category.CATEGORY_ATTRIBUTE, Category.LIBRARY)
@@ -63,6 +68,22 @@ class IncubatingAttributesCheckerTest extends Specification {
 
         expect:
         IncubatingAttributesChecker.isAnyIncubating(container)
+    }
+
+    def "container with attribute without @Incubating annotation on class, with @Incubating on value is reported"() {
+        def container = new DefaultMutableAttributeContainer(attributesFactory)
+        container.attribute(Category.CATEGORY_ATTRIBUTE, TestUtil.objectFactory().named(Category, Category.VERIFICATION))
+
+        expect:
+        IncubatingAttributesChecker.isAnyIncubating(container)
+    }
+
+    def "container with attribute without @Incubating annotation on class, with @Incubating on different value is not reported"() {
+        def container = new DefaultMutableAttributeContainer(attributesFactory)
+        container.attribute(Category.CATEGORY_ATTRIBUTE, TestUtil.objectFactory().named(Category, Category.LIBRARY))
+
+        expect:
+        !IncubatingAttributesChecker.isAnyIncubating(container)
     }
     // endregion
 }

@@ -73,13 +73,12 @@ public final class ConsoleVariantReportWriter extends AbstractVariantReportWrite
 
     private void writeNoMatches(String searchTarget, List<ReportConfiguration> configs) {
         text("There is no " + targetName + " named '" + searchTarget + "' defined on this project.");
+        newLine();
         if (configs.isEmpty()) {
             output.println("There are no " + direction + " " + targetName + "s on project " + projectName);
         } else {
             output.println("Here are the available " + direction + " " + targetName + "s: " + configs.stream().map(ReportConfiguration::getName).collect(Collectors.joining(", ")));
         }
-
-        writeLegend(configs);
     }
 
     private void writeMatches(List<ReportConfiguration> configs) {
@@ -122,12 +121,19 @@ public final class ConsoleVariantReportWriter extends AbstractVariantReportWrite
                 writeAttributes(config.getAttributes());
             }
         } else {
-            writeAttributes(config.getAttributes());
+            if (!config.getAttributes().isEmpty()) {
+                writeAttributes(config.getAttributes());
+            }
         }
 
         if (includeArtifacts) {
+            if (!config.getArtifacts().isEmpty() && !config.getAttributes().isEmpty()) {
+                newLine(); // Preserve formatting for now
+            }
             writeArtifacts(config.getArtifacts());
         }
+        newLine(); // Preserve formatting
+
         if (includeSecondaryVariants) {
             writeSecondaryVariants(config.getVariants());
         }
@@ -167,6 +173,7 @@ public final class ConsoleVariantReportWriter extends AbstractVariantReportWrite
                         writeArtifacts(variant.getArtifacts());
                     }));
             });
+            newLine();
         }
     }
 
@@ -190,7 +197,6 @@ public final class ConsoleVariantReportWriter extends AbstractVariantReportWrite
                     .sorted(Comparator.comparing(ReportArtifact::getDisplayName))
                     .forEach(artifact -> writeArtifact(artifact));
             });
-            newLine();
         }
     }
 
@@ -207,10 +213,13 @@ public final class ConsoleVariantReportWriter extends AbstractVariantReportWrite
 
     private void writeCapabilities(Set<ReportCapability> capabilities) {
         section("Capabilities", () -> {
-            capabilities.forEach(cap -> {
-                text(String.format("%s:%s:%s%s", cap.getGroup(), cap.getModule(), cap.getVersion(), cap.isDefault() ? " (default capability)" : ""));
-                newLine();
-            });
+            capabilities.stream()
+                .map(cap -> String.format("%s:%s:%s%s", cap.getGroup(), cap.getModule(), cap.getVersion(), cap.isDefault() ? " (default capability)" : ""))
+                .sorted()
+                .forEach(cap -> {
+                    text(cap);
+                    newLine();
+                });
         });
     }
 

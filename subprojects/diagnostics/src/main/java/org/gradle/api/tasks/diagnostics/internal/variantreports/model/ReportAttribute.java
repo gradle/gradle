@@ -20,12 +20,14 @@ import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.attributes.IncubatingAttributesChecker;
 
+import javax.annotation.Nullable;
+
 public final class ReportAttribute {
     private final String name;
     private final Object value;
     private final boolean isIncubating;
 
-    private ReportAttribute(Attribute<Object> key, Object value) {
+    private ReportAttribute(Attribute<Object> key, @Nullable Object value) {
         this.name = key.getName();
         this.value = value;
         this.isIncubating = IncubatingAttributesChecker.isIncubating(key, value);
