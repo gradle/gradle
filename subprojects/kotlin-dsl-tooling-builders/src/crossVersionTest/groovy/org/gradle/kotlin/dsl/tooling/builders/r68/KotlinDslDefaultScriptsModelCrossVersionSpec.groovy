@@ -17,12 +17,14 @@
 package org.gradle.kotlin.dsl.tooling.builders.r68
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.file.LeaksFileHandles
 
 @TargetGradleVersion(">=6.8")
 @LeaksFileHandles("Kotlin Compiler Daemon taking time to shut down")
 class KotlinDslDefaultScriptsModelCrossVersionSpec extends AbstractKotlinDslScriptsModelCrossVersionSpec {
 
+    @Flaky(because = 'https://github.com/gradle/gradle-private/issues/3503')
     def "can fetch model for the init scripts of a build"() {
 
         given:
@@ -38,6 +40,7 @@ class KotlinDslDefaultScriptsModelCrossVersionSpec extends AbstractKotlinDslScri
         assertModelMatchesBuildSpec(model, spec)
     }
 
+    @Flaky(because = 'https://github.com/gradle/gradle-private/issues/3503')
     def "can fetch model for the init scripts of a build in lenient mode"() {
 
         given:
