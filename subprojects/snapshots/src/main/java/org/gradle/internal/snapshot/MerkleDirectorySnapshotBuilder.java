@@ -27,20 +27,20 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 
-import static org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder.EmptyDirectoryHandlingStrategy.EXCLUDE_EMPTY_DIRS;
+import static org.gradle.internal.snapshot.DirectorySnapshotBuilder.EmptyDirectoryHandlingStrategy.EXCLUDE_EMPTY_DIRS;
 
-public class MerkleDirectorySnapshotBuilder {
+public class MerkleDirectorySnapshotBuilder implements DirectorySnapshotBuilder {
     private static final HashCode DIR_SIGNATURE = Hashing.signature("DIR");
 
     private final Deque<Directory> directoryStack = new ArrayDeque<>();
     private final boolean sortingRequired;
     private FileSystemLocationSnapshot result;
 
-    public static MerkleDirectorySnapshotBuilder sortingRequired() {
+    public static DirectorySnapshotBuilder sortingRequired() {
         return new MerkleDirectorySnapshotBuilder(true);
     }
 
-    public static MerkleDirectorySnapshotBuilder noSortingRequired() {
+    public static DirectorySnapshotBuilder noSortingRequired() {
         return new MerkleDirectorySnapshotBuilder(false);
     }
 
@@ -48,23 +48,27 @@ public class MerkleDirectorySnapshotBuilder {
         this.sortingRequired = sortingRequired;
     }
 
+    @Override
     public void enterDirectory(DirectorySnapshot directorySnapshot, EmptyDirectoryHandlingStrategy emptyDirectoryHandlingStrategy) {
         enterDirectory(directorySnapshot.getAccessType(), directorySnapshot.getAbsolutePath(), directorySnapshot.getName(), emptyDirectoryHandlingStrategy);
     }
 
+    @Override
     public void enterDirectory(AccessType accessType, String absolutePath, String name, EmptyDirectoryHandlingStrategy emptyDirectoryHandlingStrategy) {
         directoryStack.addLast(new Directory(accessType, absolutePath, name, emptyDirectoryHandlingStrategy));
     }
 
+    @Override
     public void visitLeafElement(FileSystemLeafSnapshot snapshot) {
         collectEntry(snapshot);
     }
 
+    @Override
     public void visitDirectory(DirectorySnapshot directorySnapshot) {
         collectEntry(directorySnapshot);
     }
 
-    @Nullable
+    @Override
     public FileSystemLocationSnapshot leaveDirectory() {
         FileSystemLocationSnapshot snapshot = directoryStack.removeLast().fold();
         if (snapshot != null) {
@@ -83,14 +87,9 @@ public class MerkleDirectorySnapshotBuilder {
         }
     }
 
-    @Nullable
+    @Override
     public FileSystemLocationSnapshot getResult() {
         return result;
-    }
-
-    public enum EmptyDirectoryHandlingStrategy {
-        INCLUDE_EMPTY_DIRS,
-        EXCLUDE_EMPTY_DIRS
     }
 
     private class Directory {
