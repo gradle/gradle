@@ -30,9 +30,8 @@ import org.gradle.initialization.ContinuousExecutionGate;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.filewatch.PendingChangesListener;
 import org.gradle.internal.logging.text.StyledTextOutput;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.watch.registry.FileWatcherRegistry;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -49,7 +48,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static org.gradle.internal.filewatch.DefaultFileSystemChangeWaiterFactory.QUIET_PERIOD_SYSPROP;
 
 public class FileSystemChangeListener implements FileChangeListener, TaskInputsListener {
-    private static final Logger LOGGER = LoggerFactory.getLogger(FileSystemChangeListener.class);
+    private static final boolean IS_MAC_OSX = OperatingSystem.current().isMacOsX();
 
     private final InputAccessHierarchy inputAccessHierarchy;
     private final PendingChangesListener pendingChangesListener;
@@ -190,10 +189,20 @@ public class FileSystemChangeListener implements FileChangeListener, TaskInputsL
 
             if (existingEvent != null || aggregatedEvents.size() < SHOW_INDIVIDUAL_CHANGES_LIMIT) {
                 aggregatedEvents.put(path, type);
-            } else {
+            } else if (shouldIncreaseChangesCount(type, path)) {
                 moreChangesCount++;
             }
         }
+
+        private boolean shouldIncreaseChangesCount(FileWatcherRegistry.Type type, Path path) {
+            if (IS_MAC_OSX) {
+                return true; // count every event on OSX
+            }
+
+            // Only count non-CREATE events, since creation also causes a modification event, unless the event is for a directory.
+            return type != FileWatcherRegistry.Type.CREATED || Files.isDirectory(path);
+        }
+
 
         public void errorWhenWatching() {
             errorWhenWatching = true;
