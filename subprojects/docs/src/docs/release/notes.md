@@ -1,10 +1,10 @@
 The Gradle team is excited to announce Gradle @version@.
 
-This release makes it easier to create [a single test report](#aggregation-tests) or [JaCoCo code coverage report](#aggregation-jacoco) across several projects. This release also includes several usability improvements, such as [marking additional test source directories as tests in IDEA](#idea-test-sources) and [better support for plugin version declarations in subprojects](#plugins-dsl).
+This release makes it easier to create a [single test report](#aggregation-tests) or [JaCoCo code coverage report](#aggregation-jacoco) across several projects. This release also includes several usability improvements, such as [marking additional test source directories as tests in IDEA](#idea-test-sources) and [better support for plugin version declarations in subprojects](#plugins-dsl).
 
-[Java toolchain support](#java-toolchains) has been updated to support the [migration of AdoptOpenJDK to Adoptium](https://blog.adoptopenjdk.net/2021/03/transition-to-eclipse-an-update/).
+[Java toolchain support](#java-toolchains) has been updated to reflect the [migration of AdoptOpenJDK to Adoptium](https://blog.adoptopenjdk.net/2021/03/transition-to-eclipse-an-update/).
 
-There are changes to make adopting the [experimental configuration cache](#config-cache) easier and more correct, along with several [bug fixes](#fixed-issues) and [other changes](#other).
+There are changes to make adopting the [experimental configuration cache](#config-cache) easier, along with several [bug fixes](#fixed-issues) and [other changes](#other).
 
 The [build services](userguide/build_services.html) and [version catalogs](userguide/platforms.html) features have been [promoted to stable](#promoted). 
 
@@ -40,9 +40,9 @@ For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility 
 <a name="aggregation-tests"></a>
 ### Generate a single report for tests from multiple projects
 
-By default, Gradle produces HTML test reports for a single test task in a single project. Previously, it was difficult to do this across multiple projects in a safe and convenient way.
+By default, Gradle produces a separate HTML test report for every test task in each project. Previously, it was difficult to combine those reports across multiple projects in a safe and convenient way.
 
-This release adds a new [`test-report-aggregation`](userguide/test_report_aggregation_plugin.html) plugin to make it easy to aggregate test results from multiple projects into a single HTML report. This plugin uses test suites registered with the `jvm-test-suite` plugin.
+This release adds the new [`test-report-aggregation`](userguide/test_report_aggregation_plugin.html) plugin to make it easy to aggregate test results from multiple projects into a single HTML report. This plugin uses test suites registered with the [`jvm-test-suite`](userguide/jvm_test_suite_plugin.html) plugin.
 
 When this plugin is applied to a Java project, Gradle will automatically create an aggregated test report for each test suite with test results from a compatible test suite in every project that the Java project depends on. See [the sample](samples/sample_jvm_multi_project_with_test_aggregation_distribution.html) in the user manual.
 
@@ -51,9 +51,9 @@ If you want more control over the set of projects that are included in the aggre
 <a name="aggregation-jacoco"></a>
 ### Generate a single JaCoCo code coverage from multiple projects
 
-Gradle comes with a [JaCoCo code coverage](userguide/jacoco_plugin.html) plugin that produces a coverage report for the built-in test task. Previously, it was difficult to do this across multiple projects in a safe and convenient way.
+Gradle comes with a [JaCoCo code coverage](userguide/jacoco_plugin.html) plugin that produces a coverage report for the built-in test task. Previously, it was difficult to combine such reports across multiple projects in a safe and convenient way.
 
-This release adds a new [`jacoco-report-aggregation`](userguide/jacoco_report_aggregation_plugin.html) plugin to make it easy to aggregate code coverage from multiple projects into a single report. This plugin uses test suites registered with the `jvm-test-suite` plugin.
+This release adds the new [`jacoco-report-aggregation`](userguide/jacoco_report_aggregation_plugin.html) plugin to make it easy to aggregate code coverage from multiple projects into a single report. This plugin uses test suites registered with the `jvm-test-suite` plugin.
 
 When this plugin is applied to a Java project, Gradle will automatically create an aggregated code coverage report for each test suite with code coverage data from a compatible test suite in every project that the Java project depends on. See [the sample](samples/sample_jvm_multi_project_with_code_coverage_distribution.html) in the user manual.
 
@@ -70,7 +70,7 @@ The [IntelliJ IDEA Plugin](userguide/idea_plugin.html) plugin will now automatic
 
 The Eclipse plugin will be updated in a future version of Gradle. 
 
-Additional test source directories created in Android projects will still need to be manually configured to be considered test directories. 
+This change does not affect additional test source directories created in Android projects that will still need to be manually configured to be considered test directories. These test sources are not created using JVM test suites.
 
 <a name="plugins-dsl"></a>
 #### Plugins can be declared with a version in a subproject in more cases
@@ -83,13 +83,9 @@ This allows you to use [`alias`](userguide/platforms.html#sec:plugins) in both a
 
 #### Type-safe accessors for extensions of `repositories {}` in Kotlin DSL
 
-[Kotlin DSL](userguide/kotlin_dsl.html) is a scripting language that allows you to write Gradle build scripts in the Kotlin language. 
+Starting with this version of Gradle, [Kotlin DSL](userguide/kotlin_dsl.html) generates [type-safe model accessors](userguide/kotlin_dsl.html#type-safe-accessors) for custom extensions added to the `repositories {}` block. Custom extensions now have full content assist in the IDE. 
 
-Starting with this version of Gradle, Kotlin DSL generates [type-safe model accessors](userguide/kotlin_dsl.html#type-safe-accessors) for the `repositories {}` block. 
-
-Custom extensions added to the `repositories {}` block now have full content assist in the IDE, such as the one added by [`asciidoctorj-gems-plugin`](https://asciidoctor.github.io/asciidoctor-gradle-plugin/master/user-guide/#asciidoctorj-gems-plugin):
-
-
+For instance, the [`asciidoctorj-gems-plugin`](https://asciidoctor.github.io/asciidoctor-gradle-plugin/master/user-guide/#asciidoctorj-gems-plugin) plugin adds a custom extension. You can now use this succinct syntax:
 ```kotlin
 repositories {
     ruby {
@@ -99,7 +95,6 @@ repositories {
 ```
 
 In previous releases, you were required to use [`withGroovyBuilder`]():
-
 ```kotlin
 repositories {
     withGroovyBuilder {
@@ -145,13 +140,13 @@ See [the documentation](userguide/toolchains.html#sec:provisioning) for details.
 <a name="config-cache"></a>
 ### Configuration cache improvements
 
-The [configuration cache](userguide/configuration_cache.html)improves build time by caching the result of the configuration phase and reusing this for subsequent builds. 
+The [configuration cache](userguide/configuration_cache.html) improves build time by caching the result of the configuration phase and reusing this for subsequent builds. 
 
 #### Automatic detection of environment variables, system properties and Gradle properties used at configuration time
 
-Previously, Gradle required build and plugin authors to use specific APIs to read external values such as environment variables, system properties and Gradle properties in order to take these values into consideration as configuration cache inputs. When one of those values changed, Gradle would re-execute the configuration phase of the build to create a new cache entry. Gradle also required marking external values used at configuration time with an explicit opt-in `Provider.forUseAtConfigurationTime()` API.
+Previously, Gradle required build and plugin authors to use specific APIs to read external values such as environment variables, system properties and Gradle properties in order to take these values into consideration as configuration cache inputs. When one of those values changed, Gradle would re-execute the configuration phase of the build and create a new cache entry. Gradle also required marking external values used at configuration time with an explicit opt-in `Provider.forUseAtConfigurationTime()` API.
 
-This release makes it easier to adopt configuration cache by relaxing these requirements. `Provider.forUseAtConfigurationTime()` has been deprecated and external values can be read using standard Java and Gradle APIs. Environment variables, system properties and Gradle properties used at configuration time are automatically detected without requiring build or plugin authors to migrate to Gradle specific APIs. In case any of those inputs change, the configuration cache is invalidated automatically. Moreover, the detected configuration inputs are now presented in the configuration-cache HTML report.
+This release makes it easier to adopt configuration cache by relaxing these requirements. `Provider.forUseAtConfigurationTime()` has been deprecated and external values can be read using standard Java and Gradle APIs. Environment variables, system properties and Gradle properties used at configuration time are automatically detected without requiring build or plugin authors to migrate to Gradle specific APIs. In case any of those inputs change, the configuration cache is invalidated automatically. Moreover, the detected configuration inputs are now presented in the configuration-cache HTML report to make it easier to investigate unexpected configuration cache misses.
 
 See the [corresponding section of the upgrade guide](userguide/upgrading_version_7.html#for_use_at_configuration_time_deprecation) for details.
 
