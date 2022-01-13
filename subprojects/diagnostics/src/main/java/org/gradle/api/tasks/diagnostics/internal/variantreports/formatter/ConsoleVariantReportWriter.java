@@ -21,14 +21,13 @@ import org.gradle.api.tasks.diagnostics.internal.variantreports.model.ReportArti
 import org.gradle.api.tasks.diagnostics.internal.variantreports.model.ReportAttribute;
 import org.gradle.api.tasks.diagnostics.internal.variantreports.model.ReportCapability;
 import org.gradle.api.tasks.diagnostics.internal.variantreports.model.ReportConfiguration;
+import org.gradle.api.tasks.diagnostics.internal.variantreports.model.VariantReportModel;
 import org.gradle.api.tasks.diagnostics.internal.variantreports.model.ReportSecondaryVariant;
 import org.gradle.internal.logging.text.StyledTextOutput;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -36,57 +35,36 @@ public final class ConsoleVariantReportWriter implements VariantReportWriter {
     private final StyledTextOutput output;
     private int depth;
 
-    private final String projectName;
-    private final String targetName;
-    private final String direction;
-    private final boolean includeCapabilities;
-    private final boolean includeArtifacts;
-    private final boolean includeSecondaryVariants;
-
-    private ConsoleVariantReportWriter(StyledTextOutput output, String projectName, String targetName, String direction, boolean includeCapabilities, boolean includeArtifacts, boolean includeSecondaryVariants) {
+    public ConsoleVariantReportWriter(StyledTextOutput output) {
         this.output = output;
-        this.projectName = projectName;
-        this.targetName = targetName;
-        this.direction = direction;
-        this.includeCapabilities = includeCapabilities;
-        this.includeArtifacts = includeArtifacts;
-        this.includeSecondaryVariants = includeSecondaryVariants;
-    }
-
-    public static ConsoleVariantReportWriter outgoingVariants(StyledTextOutput output, String projectName) {
-        return new ConsoleVariantReportWriter(output, projectName, "variant", "outgoing", true, true, true);
-    }
-
-    public static ConsoleVariantReportWriter resolvableConfigurations(StyledTextOutput output, String projectName) {
-        return new ConsoleVariantReportWriter(output, projectName, "configuration", "resolvable", false, false, false);
     }
 
     @Override
-    public void writeReport(Optional<String> searchTarget, List<ReportConfiguration> matchingConfigs, List<ReportConfiguration> allConfigs) {
+    public void writeReport(VariantReportSpec spec, VariantReportModel data) {
         depth = 0;
-        if (matchingConfigs.isEmpty()) {
-            writeNoMatches(searchTarget, allConfigs);
+        if (data.getMatchingConfigs().isEmpty()) {
+            writeNoMatches(spec, data);
         } else {
-            writeMatches(matchingConfigs);
+            writeMatches(spec, data);
         }
     }
 
-    private void writeNoMatches(Optional<String> searchTarget, List<ReportConfiguration> configs) {
-        if (searchTarget.isPresent()) {
-            text("There is no " + targetName + " named '" + searchTarget.get() + "' defined on this project.");
+    private void writeNoMatches(VariantReportSpec spec, VariantReportModel data) {
+        spec.getSearchTarget().ifPresent(searchTarget -> {
+            text("There is no " + spec.getReportType().getReportedTypeAlias() + " named '" + searchTarget + "' defined on this project.");
             newLine();
-        }
+        });
 
-        if (configs.isEmpty()) {
-            output.println("There are no " + direction + " " + targetName + "s on project " + projectName);
+        if (data.getAllConfigs().isEmpty()) {
+            output.println("There are no " + spec.getReportType().getFullReportedTypeDesc() + " on project " + data.getProjectName());
         } else {
-            output.println("Here are the available " + direction + " " + targetName + "s: " + configs.stream().map(ReportConfiguration::getName).collect(Collectors.joining(", ")));
+            output.println("Here are the available " + spec.getReportType().getFullReportedTypeDesc() + " " + data.getAllConfigs().stream().map(ReportConfiguration::getName).collect(Collectors.joining(", ")));
         }
     }
 
-    private void writeMatches(List<ReportConfiguration> configs) {
-        configs.forEach(this::writeConfiguration);
-        writeLegend(configs);
+    private void writeMatches(VariantReportSpec format, VariantReportModel data) {
+        data.getMatchingConfigs().forEach(c -> writeConfiguration(format, c));
+        writeLegend(data.getMatchingConfigs());
     }
 
     private void writeLegend(Collection<ReportConfiguration> configs) {
@@ -113,11 +91,11 @@ public final class ConsoleVariantReportWriter implements VariantReportWriter {
         }
     }
 
-    private void writeConfiguration(ReportConfiguration config) {
-        writeConfigurationNameHeader(config);
+    private void writeConfiguration(VariantReportSpec format, ReportConfiguration config) {
+        writeConfigurationNameHeader(config, format.getReportType().getReportedTypeAlias());
         writeConfigurationDescription(config);
 
-        if (includeCapabilities) {
+        if (format.getReportType().isIncludeCapabilities()) {
             // Preserve existing behavior where capabilities are not printed if no attributes
             if (!config.getAttributes().isEmpty()) {
                 writeCapabilities(config.getCapabilities());
@@ -130,7 +108,7 @@ public final class ConsoleVariantReportWriter implements VariantReportWriter {
             }
         }
 
-        if (includeArtifacts) {
+        if (format.getReportType().isIncludeArtifacts()) {
             if (!config.getArtifacts().isEmpty() && !config.getAttributes().isEmpty()) {
                 newLine(); // Preserve formatting for now
             }
@@ -138,12 +116,12 @@ public final class ConsoleVariantReportWriter implements VariantReportWriter {
             newLine(); // Preserve formatting
         }
 
-        if (includeSecondaryVariants) {
+        if (format.getReportType().isIncludeVariants()) {
             writeSecondaryVariants(config.getVariants());
         }
     }
 
-    private void writeConfigurationNameHeader(ReportConfiguration config) {
+    private void writeConfigurationNameHeader(ReportConfiguration config, String targetName) {
         String name = buildNameWithIndicators(config);
         header(StringUtils.capitalize(targetName) + " " + name, output);
     }
@@ -199,7 +177,7 @@ public final class ConsoleVariantReportWriter implements VariantReportWriter {
             section("Artifacts", () -> {
                 artifacts.stream()
                     .sorted(Comparator.comparing(ReportArtifact::getDisplayName))
-                    .forEach(artifact -> writeArtifact(artifact));
+                    .forEach(this::writeArtifact);
             });
         }
     }

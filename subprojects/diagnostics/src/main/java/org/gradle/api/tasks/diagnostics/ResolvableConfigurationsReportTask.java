@@ -21,8 +21,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
-import org.gradle.api.tasks.diagnostics.internal.variantreports.formatter.VariantReportWriter;
-import org.gradle.api.tasks.diagnostics.internal.variantreports.formatter.ConsoleVariantReportWriter;
+import org.gradle.api.tasks.diagnostics.internal.variantreports.formatter.VariantReportSpec;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.work.DisableCachingByDefault;
 
@@ -60,27 +59,17 @@ public class ResolvableConfigurationsReportTask extends AbstractVariantsReportTa
     }
 
     @Override
-    protected VariantReportWriter getReportWriter() {
-        switch (getFormat().get()) {
-            case "text":
-                return ConsoleVariantReportWriter.resolvableConfigurations(getTextOutputFactory().create(getClass()), getProject().getName());
-            default:
-                throw new IllegalArgumentException("Unknown format: " + getFormat().get());
-        }
+    protected VariantReportSpec buildReportSpec() {
+        return new VariantReportSpec(VariantReportSpec.ReportType.RESOLVABLE, configurationSpec.getOrNull());
     }
 
     @Override
-    protected java.util.Optional<String> getSearchTarget() {
-        return configurationSpec.isPresent() ? configurationSpec.map(java.util.Optional::of).get() : java.util.Optional.empty();
-    }
-
-    @Override
-    protected Predicate<Configuration> getAllConfigurationsFilter() {
+    protected Predicate<Configuration> buildAllConfigurationsFilter() {
         return Configuration::isCanBeResolved;
     }
 
     @Override
-    protected Predicate<Configuration> getMatchingConfigurationsFilter() {
+    protected Predicate<Configuration> buildMatchingConfigurationsFilter() {
         String configName = configurationSpec.getOrNull();
         return c -> {
             if (!c.isCanBeResolved()) {

@@ -23,10 +23,12 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.diagnostics.internal.variantreports.formatter.ConsoleVariantReportWriter;
+import org.gradle.api.tasks.diagnostics.internal.variantreports.formatter.VariantReportSpec;
 import org.gradle.api.tasks.diagnostics.internal.variantreports.formatter.VariantReportWriter;
 import org.gradle.api.tasks.diagnostics.internal.variantreports.model.ReportConfiguration;
+import org.gradle.api.tasks.diagnostics.internal.variantreports.model.VariantReportModel;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.work.DisableCachingByDefault;
@@ -34,7 +36,6 @@ import org.gradle.work.DisableCachingByDefault;
 import javax.inject.Inject;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -65,17 +66,32 @@ public abstract class AbstractVariantsReportTask extends DefaultTask {
         throw new UnsupportedOperationException();
     }
 
-    @Internal protected abstract Optional<String> getSearchTarget();
-    @Internal protected abstract VariantReportWriter getReportWriter();
-    @Internal protected abstract Predicate<Configuration> getMatchingConfigurationsFilter();
-    @Internal protected abstract Predicate<Configuration> getAllConfigurationsFilter();
+    protected abstract VariantReportSpec buildReportSpec();
+    protected abstract Predicate<Configuration> buildMatchingConfigurationsFilter();
+    protected abstract Predicate<Configuration> buildAllConfigurationsFilter();
 
     @TaskAction
     public void report() {
-        getReportWriter().writeReport(
-            getSearchTarget(),
-            gatherConfigurationData(getMatchingConfigurationsFilter()),
-            gatherConfigurationData(getAllConfigurationsFilter()));
+        final VariantReportSpec reportSpec = buildReportSpec();
+        final VariantReportModel reportModel = buildReportModel(reportSpec);
+        final VariantReportWriter writer = buildReportWriter();
+        writer.writeReport(reportSpec, reportModel);
+    }
+
+    private VariantReportWriter buildReportWriter() {
+        switch (getFormat().get()) {
+            case "text":
+                return new ConsoleVariantReportWriter(getTextOutputFactory().create(getClass()));
+            default:
+                throw new IllegalArgumentException("Unknown format: " + getFormat().get());
+        }
+    }
+
+    private VariantReportModel buildReportModel(VariantReportSpec spec) {
+        return new VariantReportModel(
+            getProject().getName(),
+            gatherConfigurationData(buildMatchingConfigurationsFilter()),
+            gatherConfigurationData(buildAllConfigurationsFilter()));
     }
 
     private List<ReportConfiguration> gatherConfigurationData(Predicate<Configuration> filter) {

@@ -19,8 +19,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
-import org.gradle.api.tasks.diagnostics.internal.variantreports.formatter.VariantReportWriter;
-import org.gradle.api.tasks.diagnostics.internal.variantreports.formatter.ConsoleVariantReportWriter;
+import org.gradle.api.tasks.diagnostics.internal.variantreports.formatter.VariantReportSpec;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.work.DisableCachingByDefault;
 
@@ -56,27 +55,17 @@ public class OutgoingVariantsReportTask extends AbstractVariantsReportTask {
     }
 
     @Override
-    protected VariantReportWriter getReportWriter() {
-        switch (getFormat().get()) {
-            case "text":
-                return ConsoleVariantReportWriter.outgoingVariants(getTextOutputFactory().create(getClass()), getProject().getName());
-            default:
-                throw new IllegalArgumentException("Unknown format: " + getFormat().get());
-        }
+    protected VariantReportSpec buildReportSpec() {
+        return new VariantReportSpec(VariantReportSpec.ReportType.OUTGOING, variantSpec.getOrNull());
     }
 
     @Override
-    protected java.util.Optional<String> getSearchTarget() {
-        return variantSpec.isPresent() ? variantSpec.map(java.util.Optional::of).get() : java.util.Optional.empty();
-    }
-
-    @Override
-    protected Predicate<Configuration> getAllConfigurationsFilter() {
+    protected Predicate<Configuration> buildAllConfigurationsFilter() {
         return Configuration::isCanBeConsumed;
     }
 
     @Override
-    protected Predicate<Configuration> getMatchingConfigurationsFilter() {
+    protected Predicate<Configuration> buildMatchingConfigurationsFilter() {
         String variantName = variantSpec.getOrNull();
         return c -> {
             if (!c.isCanBeConsumed()) {

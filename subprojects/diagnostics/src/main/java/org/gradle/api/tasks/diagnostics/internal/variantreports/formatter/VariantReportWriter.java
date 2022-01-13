@@ -16,11 +16,8 @@
 
 package org.gradle.api.tasks.diagnostics.internal.variantreports.formatter;
 
-import org.gradle.api.tasks.diagnostics.internal.variantreports.model.ReportConfiguration;
-
-import java.util.List;
-import java.util.Optional;
+import org.gradle.api.tasks.diagnostics.internal.variantreports.model.VariantReportModel;
 
 public interface VariantReportWriter {
-    void writeReport(Optional<String> searchTarget, List<ReportConfiguration> matchingConfigs, List<ReportConfiguration> allConfigs);
+    void writeReport(VariantReportSpec spec, VariantReportModel data);
 }
