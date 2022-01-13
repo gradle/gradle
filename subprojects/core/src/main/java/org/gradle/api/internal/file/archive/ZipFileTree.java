@@ -160,12 +160,16 @@ public class ZipFileTree extends AbstractArchiveFileTree {
         @Override
         public File getFile() {
             if (file == null) {
-                file = new File(expandedDir, safeZipEntryName(entry.getName()));
+                file = new File(expandedDir, safeEntryName());
                 if (!file.exists()) {
                     copyTo(file);
                 }
             }
             return file;
+        }
+
+        private String safeEntryName() {
+            return safeZipEntryName(entry.getName());
         }
 
         @Override
@@ -194,7 +198,7 @@ public class ZipFileTree extends AbstractArchiveFileTree {
 
         @Override
         public RelativePath getRelativePath() {
-            return new RelativePath(!entry.isDirectory(), entry.getName().split("/"));
+            return new RelativePath(!entry.isDirectory(), safeEntryName().split("/"));
         }
 
         @Override
