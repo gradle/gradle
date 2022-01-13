@@ -56,11 +56,6 @@ public class FilteredTrackingMerkleDirectorySnapshotBuilder implements Directory
     }
 
     @Override
-    public void enterDirectory(DirectorySnapshot directorySnapshot, EmptyDirectoryHandlingStrategy emptyDirectoryHandlingStrategy) {
-        delegate.enterDirectory(directorySnapshot, emptyDirectoryHandlingStrategy);
-    }
-
-    @Override
     public void enterDirectory(FileMetadata.AccessType accessType, String absolutePath, String name, EmptyDirectoryHandlingStrategy emptyDirectoryHandlingStrategy) {
         isCurrentLevelUnfiltered.addLast(true);
         delegate.enterDirectory(accessType, absolutePath, name, emptyDirectoryHandlingStrategy);

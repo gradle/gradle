@@ -31,14 +31,30 @@ import javax.annotation.Nullable;
  */
 public interface DirectorySnapshotBuilder {
 
-    void enterDirectory(DirectorySnapshot directorySnapshot, EmptyDirectoryHandlingStrategy emptyDirectoryHandlingStrategy);
+    /**
+     * Convenience method for {@link #enterDirectory(FileMetadata.AccessType, String, String, EmptyDirectoryHandlingStrategy)}
+     * when you already have a {@link DirectorySnapshot}.
+     */
+    default void enterDirectory(DirectorySnapshot directorySnapshot, EmptyDirectoryHandlingStrategy emptyDirectoryHandlingStrategy) {
+        enterDirectory(directorySnapshot.getAccessType(), directorySnapshot.getAbsolutePath(), directorySnapshot.getName(), emptyDirectoryHandlingStrategy);
+    }
 
+    /**
+     * Method to call before visiting all the entries of a directory.
+     */
     void enterDirectory(FileMetadata.AccessType accessType, String absolutePath, String name, EmptyDirectoryHandlingStrategy emptyDirectoryHandlingStrategy);
 
     void visitLeafElement(FileSystemLeafSnapshot snapshot);
 
     void visitDirectory(DirectorySnapshot directorySnapshot);
 
+    /**
+     * Method to call after having visited all the entries of a directory.
+     *
+     * May return {@code null} when the directory is empty and {@link EmptyDirectoryHandlingStrategy#EXCLUDE_EMPTY_DIRS}
+     * has been used when calling {@link #enterDirectory(FileMetadata.AccessType, String, String, EmptyDirectoryHandlingStrategy)}.
+     * This means that the directory will not be part of the built snapshot.
+     */
     @Nullable
     FileSystemLocationSnapshot leaveDirectory();
 
