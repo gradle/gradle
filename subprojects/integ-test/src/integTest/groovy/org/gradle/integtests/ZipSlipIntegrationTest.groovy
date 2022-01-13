@@ -16,6 +16,7 @@
 
 package org.gradle.integtests
 
+import org.gradle.api.internal.artifacts.transform.UnzipTransform
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 
@@ -27,7 +28,6 @@ import java.util.zip.ZipOutputStream
  * Ensures Gradle core tasks and types are not subject to the
  * <a href="https://snyk.io/research/zip-slip-vulnerability">Zip Slip Vulnerability</a>.
  */
-// TODO: test org.gradle.api.internal.artifacts.transform.UnzipTransform
 class ZipSlipIntegrationTest extends AbstractIntegrationSpec {
 
     private TestFile getEvilZip() {
@@ -68,6 +68,65 @@ class ZipSlipIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failureDescriptionContains "Execution failed for task ':copyEvilZip'"
+        failure.assertHasErrorOutput "'../../tmp/evil.sh' is not a safe zip entry name"
+    }
+
+    def "UnzipTransform refuses to unzip evil.zip"() {
+        given:
+        buildFile """
+            def artifactType = Attribute.of('artifactType', String)
+            def compressed = Attribute.of('compressed', Boolean)
+
+            dependencies {
+                attributesSchema {
+                    attribute(compressed)
+                }
+                artifactTypes {
+                    zip {
+                        attributes.attribute(compressed, true)
+                    }
+                }
+            }
+
+            abstract class TestUnzipTransform extends ${UnzipTransform.class.name} {
+                @Override
+                public void transform(TransformOutputs outputs) {
+                    println "Executing unzip transform..."
+                    super.transform(outputs)
+                }
+            }
+
+            dependencies {
+                registerTransform(TestUnzipTransform) {
+                    from.attribute(artifactType, "zip").attribute(compressed, true)
+                    to.attribute(artifactType, "directory").attribute(compressed, false)
+                }
+            }
+
+            configurations {
+                zipped {
+                    attributes {
+                        attribute(compressed, true)
+                    }
+                }
+            }
+
+            dependencies {
+                zipped files('evil.zip')
+            }
+
+            println(
+                configurations.zipped.incoming.artifactView {
+                    attributes.attribute(compressed, false)
+                }.artifacts.artifactFiles.files
+            )
+        """
+
+        when:
+        fails 'help'
+
+        then:
+        outputContains 'Executing unzip transform...'
         failure.assertHasErrorOutput "'../../tmp/evil.sh' is not a safe zip entry name"
     }
 }
