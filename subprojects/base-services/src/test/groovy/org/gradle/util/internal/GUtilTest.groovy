@@ -15,6 +15,7 @@
  */
 package org.gradle.util.internal
 
+import org.gradle.internal.os.OperatingSystem
 import spock.lang.Specification
 
 import java.nio.CharBuffer
@@ -33,6 +34,7 @@ import static org.gradle.util.internal.GUtil.toEnum
 import static org.gradle.util.internal.GUtil.toEnumSet
 import static org.gradle.util.internal.GUtil.toLowerCamelCase
 import static org.gradle.util.internal.GUtil.toWords
+import static org.junit.Assume.assumeFalse
 
 class GUtilTest extends Specification {
     static sep = File.pathSeparator
@@ -296,6 +298,12 @@ class GUtilTest extends Specification {
     }
 
     def "identifies potentially unsafe zip entry names"() {
+        setup:
+        assumeFalse(
+            ": is only unsafe on Windows systems",
+            unsafePath.contains(':') && !isWindows()
+        )
+
         expect:
         isUnsafeZipEntryName(unsafePath)
         !isUnsafeZipEntryName(safePath)
@@ -309,5 +317,9 @@ class GUtilTest extends Specification {
         "foo/.."   | "foo/bar"
         "foo\\.."  | "foo\\bar"
         "C:/foo"   | "foo"
+    }
+
+    private static boolean isWindows() {
+        OperatingSystem.current().isWindows()
     }
 }

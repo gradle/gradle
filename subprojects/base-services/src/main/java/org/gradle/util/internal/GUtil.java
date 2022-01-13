@@ -26,6 +26,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.io.StreamByteBuffer;
+import org.gradle.internal.os.OperatingSystem;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -596,6 +597,10 @@ public class GUtil {
             || name.startsWith("/")
             || name.startsWith("\\")
             || name.contains("..")
-            || name.contains(":");
+            || (name.contains(":") && isWindows());
+    }
+
+    private static boolean isWindows() {
+        return OperatingSystem.current().isWindows();
     }
 }
