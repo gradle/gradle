@@ -17,9 +17,12 @@
 package gradlebuild.performance
 
 import com.google.common.annotations.VisibleForTesting
-import extensions.AndroidStudioInstallationExtension
+import gradlebuild.basics.BuildEnvironment.isCiServer
+import gradlebuild.basics.BuildEnvironment.isIntel
+import gradlebuild.basics.BuildEnvironment.isLinux
+import gradlebuild.basics.BuildEnvironment.isMacOsX
+import gradlebuild.basics.BuildEnvironment.isWindows
 import gradlebuild.basics.accessors.groovy
-import gradlebuild.basics.autoDownloadAndroidStudio
 import gradlebuild.basics.includePerformanceTestScenarios
 import gradlebuild.basics.performanceBaselines
 import gradlebuild.basics.performanceDependencyBuildIds
@@ -27,9 +30,10 @@ import gradlebuild.basics.performanceGeneratorMaxProjects
 import gradlebuild.basics.performanceTestVerbose
 import gradlebuild.basics.propertiesForPerformanceDb
 import gradlebuild.basics.repoRoot
-import gradlebuild.basics.runAndroidStudioInHeadlessMode
 import gradlebuild.identity.extension.ModuleIdentityExtension
 import gradlebuild.integrationtests.addDependenciesAndConfigurations
+import gradlebuild.performance.Config.androidStudioVersion
+import gradlebuild.performance.Config.defaultAndroidStudioJvmArgs
 import gradlebuild.performance.generator.tasks.AbstractProjectGeneratorTask
 import gradlebuild.performance.generator.tasks.JvmProjectGeneratorTask
 import gradlebuild.performance.generator.tasks.ProjectGeneratorTask
@@ -43,12 +47,21 @@ import org.gradle.api.Action
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
+import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.ClasspathNormalizer
+import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.Delete
+import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.JavaExec
+import org.gradle.api.tasks.Nested
+import org.gradle.api.tasks.Optional
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskProvider
@@ -60,12 +73,14 @@ import org.gradle.plugins.ide.eclipse.EclipsePlugin
 import org.gradle.plugins.ide.eclipse.model.EclipseModel
 import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.idea.model.IdeaModel
+import org.gradle.process.CommandLineArgumentProvider
 import org.w3c.dom.Document
 import java.io.File
 import java.nio.charset.StandardCharsets
 import java.time.Instant.now
 import java.time.ZoneId.systemDefault
 import java.time.format.DateTimeFormatter.ofPattern
+import java.util.concurrent.Callable
 import javax.xml.parsers.DocumentBuilderFactory
 
 
@@ -74,6 +89,8 @@ object Config {
     const val performanceTestReportsDir = "performance-tests/report"
     const val performanceTestResultsJsonName = "perf-results.json"
     const val performanceTestResultsJson = "performance-tests/$performanceTestResultsJsonName"
+    const val androidStudioVersion = "2021.1.1.19"
+    val defaultAndroidStudioJvmArgs = listOf("-Xms256m", "-Xmx4096m")
 }
 
 
@@ -90,7 +107,7 @@ class PerformanceTestPlugin : Plugin<Project> {
         createAdditionalTasks(performanceTestSourceSet)
         createRebaselineTask(performanceTestSourceSet)
         configureIdePlugins(performanceTestSourceSet)
-        configureAndroidStudioInstallationPlugin()
+        configureAndroidStudioInstallation()
     }
 
     private
@@ -256,13 +273,44 @@ class PerformanceTestPlugin : Plugin<Project> {
     }
 
     private
-    fun Project.configureAndroidStudioInstallationPlugin() {
-        val isRunningOnTeamCity = System.getenv("TEAMCITY_VERSION") != null
-        plugins.apply("gradlebuild.android-studio-test-setup")
-        configure<AndroidStudioInstallationExtension> {
-            androidStudioVersion.set("2021.1.1.19")
-            autoDownloadAndroidStudio.set(project.autoDownloadAndroidStudio || isRunningOnTeamCity)
-            runAndroidStudioInHeadlessMode.set(project.runAndroidStudioInHeadlessMode || isRunningOnTeamCity)
+    fun Project.configureAndroidStudioInstallation() {
+        repositories {
+            ivy {
+                // Url of Android Studio archive
+                url = uri("https://redirector.gvt1.com/edgedl/android/studio/ide-zips")
+                patternLayout {
+                    artifact("[revision]/[artifact]-[revision]-[ext]")
+                }
+                metadataSources { artifact() }
+                content {
+                    includeGroup("android-studio")
+                }
+            }
+        }
+
+        val androidStudioRuntime by configurations.creating
+        dependencies {
+            val extension = when {
+                isWindows -> "windows.zip"
+                isMacOsX && isIntel -> "mac.zip"
+                isMacOsX && !isIntel -> "mac_arm.zip"
+                isLinux -> "linux.tar.gz"
+                else -> throw IllegalStateException("Unsupported OS: ${OperatingSystem.current()}")
+            }
+            androidStudioRuntime("android-studio:android-studio:$androidStudioVersion@$extension")
+        }
+
+        tasks.register<Copy>("unpackAndroidStudio") {
+            from(
+                Callable {
+                    val singleFile = androidStudioRuntime.singleFile
+                    when {
+                        singleFile.name.endsWith(".tar.gz") -> tarTree(singleFile)
+                        else -> zipTree(singleFile)
+                    }
+                }
+            )
+            into("$buildDir/android-studio")
         }
     }
 
@@ -332,6 +380,55 @@ class PerformanceTestExtension(
         registerTestProject(testProject, T::class.java, configuration)
 
     fun <T : Task> registerTestProject(testProject: String, type: Class<T>, configurationAction: Action<in T>): TaskProvider<T> {
+        return doRegisterTestProject(testProject, type, configurationAction)
+    }
+
+    fun <T : Task> registerAndroidTestProject(testProject: String, type: Class<T>, configurationAction: Action<in T>): TaskProvider<T> {
+        return doRegisterTestProject(testProject, type, configurationAction) {
+            // AndroidStudio jvmArgs could be set per project, but at the moment that is not necessary
+            jvmArgumentProviders.add(getAndroidProjectJvmArguments(defaultAndroidStudioJvmArgs))
+            environment("JAVA_HOME", javaLauncher.get().metadata.installationPath.asFile.absolutePath)
+        }
+    }
+
+    private
+    fun getAndroidProjectJvmArguments(androidStudioJvmArgs: List<String>): CommandLineArgumentProvider {
+        val unpackAndroidStudio = project.tasks.named("unpackAndroidStudio", Copy::class.java)
+        val androidStudioInstallation = project.objects.newInstance<AndroidStudioInstallation>().apply {
+            studioInstallLocation.fileProvider(unpackAndroidStudio.map { it.destinationDir })
+        }
+        val autoDownloadAndroidStudio = isCiServer
+        val runInHeadlessMode = isCiServer
+        return object : AndroidStudioSystemProperties(androidStudioInstallation, autoDownloadAndroidStudio, project.providers) {
+            override fun asArguments(): Iterable<String> {
+                val systemProperties = mutableListOf<String>()
+                if (autoDownloadAndroidStudio) {
+                    val androidStudioPath = androidStudioInstallation.studioInstallLocation.asFile.get().absolutePath
+                    val macOsAndroidStudioPath = "$androidStudioPath/Android Studio.app"
+                    val macOsAndroidStudioPathPreview = "$androidStudioPath/Android Studio Preview.app"
+                    val windowsAndLinuxPath = "$androidStudioPath/android-studio"
+                    val studioHome = when {
+                        isMacOsX && File(macOsAndroidStudioPath).exists() -> macOsAndroidStudioPath
+                        isMacOsX -> macOsAndroidStudioPathPreview
+                        else -> windowsAndLinuxPath
+                    }
+                    systemProperties.add("-Dstudio.home=$studioHome")
+                } else {
+                    System.getProperty("studio.home")?.let {
+                        systemProperties.add("-Dstudio.home=$it")
+                    }
+                }
+                if (runInHeadlessMode) {
+                    systemProperties.add("-Dstudio.tests.headless=true")
+                }
+                systemProperties.add("-DstudioJvmArgs=${androidStudioJvmArgs.joinToString(separator = ",")}")
+                return systemProperties
+            }
+        }
+    }
+
+    private
+    fun <T : Task> doRegisterTestProject(testProject: String, type: Class<T>, configurationAction: Action<in T>, testSpecificConfigurator: PerformanceTest.() -> Unit = {}): TaskProvider<T> {
         val generatorTask = project.tasks.register(testProject, type, configurationAction)
         val currentlyRegisteredTestProjects = registeredTestProjects.toList()
         cleanTestProjectsTask.configure {
@@ -346,6 +443,7 @@ class PerformanceTestExtension(
                 channel = "adhoc"
                 outputs.doNotCacheIf("Is adhoc performance test") { true }
                 mustRunAfter(currentlyRegisteredTestProjects)
+                testSpecificConfigurator(this)
 
                 retry {
                     maxRetries.set(0)
@@ -374,6 +472,7 @@ class PerformanceTestExtension(
                     }
                 }
                 mustRunAfter(currentlyRegisteredTestProjects)
+                testSpecificConfigurator(this)
             }
         )
         registeredTestProjects.add(generatorTask)
@@ -454,6 +553,33 @@ class PerformanceTestExtension(
             destinationDirectory.set(project.layout.buildDirectory)
             archiveFileName.set("test-results-${junitXmlDir.name}.zip")
         }
+}
+
+
+abstract class AndroidStudioInstallation {
+    @get:InputFiles
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    abstract val studioInstallLocation: DirectoryProperty
+}
+
+
+abstract class AndroidStudioSystemProperties(
+    @get:Internal
+    val studioInstallation: AndroidStudioInstallation,
+    @get:Internal
+    val autoDownloadAndroidStudio: Boolean,
+    providers: ProviderFactory
+) : CommandLineArgumentProvider {
+
+    @get:Optional
+    @get:Nested
+    val studioInstallationProvider = providers.provider {
+        if (autoDownloadAndroidStudio) {
+            studioInstallation
+        } else {
+            null
+        }
+    }
 }
 
 

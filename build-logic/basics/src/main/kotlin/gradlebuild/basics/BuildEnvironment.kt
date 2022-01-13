@@ -99,6 +99,9 @@ object BuildEnvironment {
         "CODEQL_RUNNER"
     )
 
+    private
+    val architecture = System.getProperty("os.arch").toLowerCase()
+
     val isCiServer = CI_ENVIRONMENT_VARIABLE in System.getenv()
     val isTravis = "TRAVIS" in System.getenv()
     val isJenkins = "JENKINS_HOME" in System.getenv()
@@ -111,6 +114,9 @@ object BuildEnvironment {
     val jvm = org.gradle.internal.jvm.Jvm.current()
     val javaVersion = JavaVersion.current()
     val isWindows = OperatingSystem.current().isWindows
+    val isLinux = OperatingSystem.current().isLinux
+    val isMacOsX = OperatingSystem.current().isMacOsX
+    val isIntel: Boolean = architecture == "x86_64" || architecture == "x86"
     val isSlowInternetConnection
         get() = System.getProperty("slow.internet.connection", "false")!!.toBoolean()
     val agentNum: Int

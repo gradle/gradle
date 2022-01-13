@@ -30,6 +30,10 @@ import static org.gradle.performance.results.OperatingSystem.LINUX
 )
 class RealLifeAndroidStudioPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
+    /**
+     * To run this test locally you should have Android Studio installed in /Applications/Android Studio.*.app folder
+     * or you should set "studio.home" system property with Android Studio installation path.
+     */
     def "run Android Studio sync"() {
         given:
         runner.args = [AndroidGradlePluginVersions.OVERRIDE_VERSION_CHECK]

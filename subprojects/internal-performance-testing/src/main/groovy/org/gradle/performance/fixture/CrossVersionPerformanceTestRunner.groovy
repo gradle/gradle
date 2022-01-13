@@ -234,7 +234,9 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         useAndroidStudio = true
         buildAction = new AndroidStudioSyncAction()
         studioInstallDir = StudioFinder.findStudioHome()
-        studioJvmArgs = ["-Xms256m", "-Xmx4096m"]
+        studioJvmArgs = System.getProperty("studioJvmArgs") != null
+            ? System.getProperty("studioJvmArgs").split(",").collect()
+            : []
     }
 }
 
