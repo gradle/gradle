@@ -280,14 +280,14 @@ public class Install {
      *
      * @throws IllegalArgumentException if the entry contains vulnerable sequences
      */
-    public static String safeZipEntryName(String name) {
+    private static String safeZipEntryName(String name) {
         if (isUnsafeZipEntryName(name)) {
             throw new IllegalArgumentException(format("'%s' is not a safe zip entry name.", name));
         }
         return name;
     }
 
-    public static boolean isUnsafeZipEntryName(String name) {
+    private static boolean isUnsafeZipEntryName(String name) {
         return name.isEmpty()
             || name.startsWith("/")
             || name.startsWith("\\")
