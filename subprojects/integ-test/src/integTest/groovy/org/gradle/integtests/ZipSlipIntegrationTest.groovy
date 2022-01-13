@@ -47,7 +47,7 @@ class ZipSlipIntegrationTest extends AbstractIntegrationSpec {
     def "evil.zip has path traversal"() {
         given:
         def entryNames = new ZipFile(evilZip).withCloseable {
-            it.entries().asIterator().collect { it.name }
+            it.entries().collect { it.name }
         }
 
         expect:
