@@ -19,14 +19,11 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import groovy.lang.GroovyObject;
 import groovy.transform.Generated;
-import org.gradle.api.DefaultTask;
 import org.gradle.api.Describable;
-import org.gradle.api.Task;
 import org.gradle.api.artifacts.transform.CacheableTransform;
 import org.gradle.api.artifacts.transform.InputArtifact;
 import org.gradle.api.artifacts.transform.InputArtifactDependencies;
 import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.DefaultDomainObjectCollection;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.DefaultNamedDomainObjectCollection;
@@ -141,8 +138,6 @@ public class ExecutionGlobalServices {
 
     TypeAnnotationMetadataStore createAnnotationMetadataStore(CrossBuildInMemoryCacheFactory cacheFactory, AnnotationHandlerRegistar annotationRegistry) {
         @SuppressWarnings("deprecation")
-        Class<?> deprecatedAbstractTask = org.gradle.api.internal.AbstractTask.class;
-        @SuppressWarnings("deprecation")
         Class<?> deprecatedHasConvention = org.gradle.api.internal.HasConvention.class;
         ImmutableSet.Builder<Class<? extends Annotation>> builder = ImmutableSet.builder();
         builder.addAll(PROPERTY_TYPE_ANNOTATIONS);
@@ -161,10 +156,8 @@ public class ExecutionGlobalServices {
                 "kotlin"
             ),
             ImmutableSet.of(
-                deprecatedAbstractTask,
                 ClosureBackedAction.class,
                 ConfigureUtil.WrappedConfigureAction.class,
-                ConventionTask.class,
                 Describable.class,
                 DefaultDomainObjectCollection.class,
                 DefaultDomainObjectSet.class,
@@ -172,13 +165,11 @@ public class ExecutionGlobalServices {
                 DefaultNamedDomainObjectList.class,
                 DefaultNamedDomainObjectSet.class,
                 DefaultPolymorphicDomainObjectContainer.class,
-                DefaultTask.class,
                 DynamicObjectAware.class,
                 ExtensionAware.class,
                 deprecatedHasConvention,
                 IConventionAware.class,
-                ScriptOrigin.class,
-                Task.class
+                ScriptOrigin.class
             ),
             ImmutableSet.of(
                 GroovyObject.class,
