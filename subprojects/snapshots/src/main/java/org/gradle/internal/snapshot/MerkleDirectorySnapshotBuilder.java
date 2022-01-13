@@ -29,6 +29,14 @@ import java.util.List;
 
 import static org.gradle.internal.snapshot.DirectorySnapshotBuilder.EmptyDirectoryHandlingStrategy.EXCLUDE_EMPTY_DIRS;
 
+/**
+ * A builder for {@link DirectorySnapshot} instances.
+ *
+ * This implementation combines the hashes of the children of a directory into a single hash for the directory.
+ * For the hash to be reproducible, the children must be sorted in a consistent order.
+ * The implementation uses {@link FileSystemLocationSnapshot#BY_NAME} ordering.
+ * If you already provide the children in sorted order, use {@link #noSortingRequired()} to avoid the overhead of sorting again.
+ */
 public class MerkleDirectorySnapshotBuilder implements DirectorySnapshotBuilder {
     private static final HashCode DIR_SIGNATURE = Hashing.signature("DIR");
 

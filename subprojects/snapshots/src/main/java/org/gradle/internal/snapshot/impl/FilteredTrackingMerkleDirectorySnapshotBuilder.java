@@ -30,6 +30,15 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.function.Consumer;
 
+/**
+ * A {@link DirectorySnapshotBuilder} that tracks whether a directory has been filtered.
+ *
+ * You can mark a directory as filtered by {@link #markCurrentLevelAsFiltered()}.
+ * When you do that, all the parent levels are marked as filtered as well.
+ * On {@link #leaveDirectory()}, the {@code unfilteredSnapshotConsumer} will receive the direct child snapshots
+ * of the left directory if it was marked as filtered, or nothing if it wasn't.
+ * This builder delegates to {@link MerkleDirectorySnapshotBuilder} for the actual building of the snapshot.
+ */
 public class FilteredTrackingMerkleDirectorySnapshotBuilder implements DirectorySnapshotBuilder {
     private final Deque<Boolean> isCurrentLevelUnfiltered = new ArrayDeque<>();
     private final Consumer<FileSystemLocationSnapshot> unfilteredSnapshotConsumer;

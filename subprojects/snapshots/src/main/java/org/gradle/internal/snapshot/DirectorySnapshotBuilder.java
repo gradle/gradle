@@ -20,6 +20,15 @@ import org.gradle.internal.file.FileMetadata;
 
 import javax.annotation.Nullable;
 
+/**
+ * A builder for {@link DirectorySnapshot}.
+ *
+ * In order to build a directory snapshot, you need to call the methods for entering/leaving a directory
+ * and for visiting leaf elements.
+ * The visit methods need to be called in depth-first order.
+ * When leaving a directory, the builder will create a {@link DirectorySnapshot} for the directory,
+ * calculating the combined hash of the entries.
+ */
 public interface DirectorySnapshotBuilder {
 
     void enterDirectory(DirectorySnapshot directorySnapshot, EmptyDirectoryHandlingStrategy emptyDirectoryHandlingStrategy);
@@ -33,6 +42,13 @@ public interface DirectorySnapshotBuilder {
     @Nullable
     FileSystemLocationSnapshot leaveDirectory();
 
+    /**
+     * Returns the snapshot for the root directory.
+     *
+     * May return null if
+     * - nothing was visited, or
+     * - only empty directories have been visited with {@link EmptyDirectoryHandlingStrategy#EXCLUDE_EMPTY_DIRS}.
+     */
     @Nullable
     FileSystemLocationSnapshot getResult();
 
