@@ -16,6 +16,7 @@
 
 package org.gradle.util.internal;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
@@ -589,7 +590,8 @@ public class GUtil {
         return name;
     }
 
-    public static boolean isUnsafeZipEntryName(String name) {
+    @VisibleForTesting
+    static boolean isUnsafeZipEntryName(String name) {
         return name.isEmpty()
             || name.startsWith("/")
             || name.startsWith("\\")
