@@ -374,10 +374,10 @@ model {
           | Creator: \tProject.<init>.tasks.properties()
           | Rules:
              ⤷ copyToTaskContainer
-    + resolvableVariants
-          | Type:   \torg.gradle.api.tasks.diagnostics.ResolvableVariantsReportTask
-          | Value:  \ttask ':resolvableVariants\'
-          | Creator: \tProject.<init>.tasks.resolvableVariants()
+    + resolvableConfigurations
+          | Type:   \torg.gradle.api.tasks.diagnostics.ResolvableConfigurationsReportTask
+          | Value:  \ttask ':resolvableConfigurations\'
+          | Creator: \tProject.<init>.tasks.resolvableConfigurations()
           | Rules:
              ⤷ copyToTaskContainer
     + tasks

@@ -22,22 +22,22 @@ import org.gradle.integtests.fixtures.InspectsVariantsReport
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import spock.lang.Ignore
 
-class ResolvableVariantsReportTaskIntegrationTest extends AbstractIntegrationSpec implements InspectsVariantsReport {
+class ResolvableConfigurationsReportTaskIntegrationTest extends AbstractIntegrationSpec implements InspectsVariantsReport {
     def setup() {
         settingsFile << """
             rootProject.name = "myLib"
         """
     }
 
-    @ToBeFixedForConfigurationCache(because = ":resolvableVariants")
-    def "if no configurations present, resolvable variants task produces empty report"() {
+    @ToBeFixedForConfigurationCache(because = ":resolvableConfigurations")
+    def "if no configurations present,  task produces empty report"() {
         expect:
-        succeeds ':resolvableVariants'
+        succeeds ':resolvableConfigurations'
         outputContains('There are no resolvable configurations on project myLib')
     }
 
-    @ToBeFixedForConfigurationCache(because = ":resolvableVariants")
-    def "if only consumable configurations present, resolvable variants task produces empty report"() {
+    @ToBeFixedForConfigurationCache(because = ":resolvableConfigurations")
+    def "if only consumable configurations present,  task produces empty report"() {
         given:
         buildFile << """
             configurations.create("custom") {
@@ -48,12 +48,12 @@ class ResolvableVariantsReportTaskIntegrationTest extends AbstractIntegrationSpe
         """
 
         expect:
-        succeeds ':resolvableVariants'
+        succeeds ':resolvableConfigurations'
         outputContains('There are no resolvable configurations on project myLib')
     }
 
-    @ToBeFixedForConfigurationCache(because = ":resolvableVariants")
-    def "if only custom configuration present, resolvable variants task reports it"() {
+    @ToBeFixedForConfigurationCache(because = ":resolvableConfigurations")
+    def "if only custom configuration present,  task reports it"() {
         given:
         buildFile << """
             configurations.create("custom") {
@@ -64,10 +64,10 @@ class ResolvableVariantsReportTaskIntegrationTest extends AbstractIntegrationSpe
         """
 
         when:
-        succeeds ':resolvableVariants'
+        succeeds ':resolvableConfigurations'
 
         then:
-        outputContains """> Task :resolvableVariants
+        outputContains """> Task :resolvableConfigurations
 --------------------------------------------------
 Configuration custom
 --------------------------------------------------
@@ -80,8 +80,8 @@ Description = My custom configuration
         doesNotHaveIncubatingVariantsLegend()
     }
 
-    @ToBeFixedForConfigurationCache(because = ":resolvableVariants")
-    def "if only custom configuration present with attributes, resolvable variants task reports it and them"() {
+    @ToBeFixedForConfigurationCache(because = ":resolvableConfigurations")
+    def "if only custom configuration present with attributes,  task reports it and them"() {
         given:
         buildFile << """
             configurations.create("custom") {
@@ -98,10 +98,10 @@ Description = My custom configuration
         """
 
         when:
-        succeeds ':resolvableVariants'
+        succeeds ':resolvableConfigurations'
 
         then:
-        outputContains """> Task :resolvableVariants
+        outputContains """> Task :resolvableConfigurations
 --------------------------------------------------
 Configuration custom
 --------------------------------------------------
@@ -118,7 +118,7 @@ Attributes
         doesNotHaveIncubatingVariantsLegend()
     }
 
-    def "Multiple custom configurations present with attributes, resolvable variants task reports them all"() {
+    def "Multiple custom configurations present with attributes,  task reports them all"() {
         given:
         buildFile << """
             configurations.create("someConf") {
@@ -145,10 +145,10 @@ Attributes
         """
 
         when:
-        succeeds ':resolvableVariants'
+        succeeds ':resolvableConfigurations'
 
         then:
-        outputContains """> Task :resolvableVariants
+        outputContains """> Task :resolvableConfigurations
 --------------------------------------------------
 Configuration otherConf
 --------------------------------------------------
@@ -174,8 +174,8 @@ Attributes
     }
 
     @Ignore("This needs to be updated after the behavior of --variant is updated") // TODO: remove ignore
-    @ToBeFixedForConfigurationCache(because = ":resolvableVariants")
-    def "if only custom legacy configuration present, resolvable variants task does not report it"() {
+    @ToBeFixedForConfigurationCache(because = ":resolvableConfigurations")
+    def "if only custom legacy configuration present,  task does not report it"() {
         given:
         buildFile << """
             configurations.create("legacy") {
@@ -186,12 +186,12 @@ Attributes
         """
 
         expect:
-        succeeds ':resolvableVariants'
+        succeeds ':resolvableConfigurations'
         outputContains('There are no resolvable configurations on project myLib')
     }
 
-    @ToBeFixedForConfigurationCache(because = ":resolvableVariants")
-    def "if only custom legacy configuration present, resolvable variants task reports it if --all flag is set"() {
+    @ToBeFixedForConfigurationCache(because = ":resolvableConfigurations")
+    def "if only custom legacy configuration present,  task reports it if --all flag is set"() {
         given:
         buildFile << """
             configurations.create("legacy") {
@@ -203,10 +203,10 @@ Attributes
 
         when:
         executer.expectDeprecationWarning('(l) Legacy or deprecated configuration. Those are variants created for backwards compatibility which are both resolvable and consumable.')
-        run ':resolvableVariants', '--all'
+        run ':resolvableConfigurations', '--all'
 
         then:
-        outputContains """> Task :resolvableVariants
+        outputContains """> Task :resolvableConfigurations
 --------------------------------------------------
 Configuration legacy (l)
 --------------------------------------------------
@@ -219,8 +219,8 @@ Description = My custom legacy configuration
         doesNotHaveIncubatingVariantsLegend()
     }
 
-    @ToBeFixedForConfigurationCache(because = ":resolvableVariants")
-    def "reports resolvable variants of a Java Library with module dependencies"() {
+    @ToBeFixedForConfigurationCache(because = ":resolvableConfigurations")
+    def "reports resolvable configurations of a Java Library with module dependencies"() {
         given:
         buildFile << """
             plugins { id 'java-library' }
@@ -234,10 +234,10 @@ Description = My custom legacy configuration
         """
 
         when:
-        succeeds ':resolvableVariants'
+        succeeds ':resolvableConfigurations'
 
         then:
-        outputContains """> Task :resolvableVariants
+        outputContains """> Task :resolvableConfigurations
 --------------------------------------------------
 Configuration annotationProcessor
 --------------------------------------------------
@@ -320,8 +320,8 @@ Attributes
         doesNotHaveIncubatingVariantsLegend()
     }
 
-    @ToBeFixedForConfigurationCache(because = ":resolvableVariants")
-    def "reports resolvable variants of a Java Library with module dependencies if --all flag is set"() {
+    @ToBeFixedForConfigurationCache(because = ":resolvableConfigurations")
+    def "reports resolvable configurations of a Java Library with module dependencies if --all flag is set"() {
         given:
         buildFile << """
             plugins { id 'java-library' }
@@ -336,10 +336,10 @@ Attributes
 
         when:
         executer.expectDeprecationWarning('(l) Legacy or deprecated configuration. Those are variants created for backwards compatibility which are both resolvable and consumable.')
-        run ':resolvableVariants', '--all'
+        run ':resolvableConfigurations', '--all'
 
         then:
-        outputContains """> Task :resolvableVariants
+        outputContains """> Task :resolvableConfigurations
 --------------------------------------------------
 Configuration annotationProcessor
 --------------------------------------------------
@@ -432,15 +432,15 @@ Attributes
         doesNotHaveIncubatingVariantsLegend()
     }
 
-    @ToBeFixedForConfigurationCache(because = ":resolvableVariants")
+    @ToBeFixedForConfigurationCache(because = ":resolvableConfigurations")
     def "specifying a missing config with no configs produces empty report"() {
         expect:
-        succeeds ':resolvableVariants', '--configuration', 'missing'
+        succeeds ':resolvableConfigurations', '--configuration', 'missing'
         outputContains("There is no configuration named 'missing' defined on this project.")
         outputContains('There are no resolvable configurations on project myLib')
     }
 
-    @ToBeFixedForConfigurationCache(because = ":resolvableVariants")
+    @ToBeFixedForConfigurationCache(because = ":resolvableConfigurations")
     def "specifying a missing config produces empty report"() {
         given:
         buildFile << """
@@ -452,7 +452,7 @@ Attributes
         """
 
         expect:
-        succeeds ':resolvableVariants', '--configuration', 'missing'
+        succeeds ':resolvableConfigurations', '--configuration', 'missing'
         outputContains("There is no configuration named 'missing' defined on this project.")
         outputContains('Here are the available resolvable configurations: custom')
     }

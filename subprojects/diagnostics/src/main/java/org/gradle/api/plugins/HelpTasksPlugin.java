@@ -31,7 +31,7 @@ import org.gradle.api.tasks.diagnostics.DependencyReportTask;
 import org.gradle.api.tasks.diagnostics.OutgoingVariantsReportTask;
 import org.gradle.api.tasks.diagnostics.ProjectReportTask;
 import org.gradle.api.tasks.diagnostics.PropertyReportTask;
-import org.gradle.api.tasks.diagnostics.ResolvableVariantsReportTask;
+import org.gradle.api.tasks.diagnostics.ResolvableConfigurationsReportTask;
 import org.gradle.api.tasks.diagnostics.TaskReportTask;
 import org.gradle.configuration.Help;
 
@@ -55,12 +55,12 @@ public class HelpTasksPlugin implements Plugin<Project> {
     public static final String OUTGOING_VARIANTS_TASK = "outgoingVariants";
 
     /**
-     * The name of the requested variants report task.
+     * The name of the requested configurations report task.
      *
      * @since 7.5
      */
     @Incubating
-    public static final String RESOLVABLE_VARIANTS_TASK = "resolvableVariants";
+    public static final String RESOLVABLE_CONFIGURATIONS_TASK = "resolvableConfigurations";
     public static final String MODEL_TASK = "model";
     public static final String DEPENDENT_COMPONENTS_TASK = "dependentComponents";
 
@@ -83,7 +83,7 @@ public class HelpTasksPlugin implements Plugin<Project> {
             task.setGroup(HELP_GROUP);
             task.setImpliesSubProjects(true);
         });
-        tasks.register(RESOLVABLE_VARIANTS_TASK, ResolvableVariantsReportTask.class, task -> {
+        tasks.register(RESOLVABLE_CONFIGURATIONS_TASK, ResolvableConfigurationsReportTask.class, task -> {
             task.setDescription("Displays the configurations available to resolve in " + projectName + ".");
             task.setGroup(HELP_GROUP);
             task.setImpliesSubProjects(true);
