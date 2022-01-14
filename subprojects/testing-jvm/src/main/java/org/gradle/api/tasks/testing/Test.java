@@ -1164,19 +1164,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         return getDebug() ? 0 : forkEvery;
     }
 
-    @Internal
-    public long getUntilFailureRunCount() {
-        return untilFailureRunCount;
-    }
-
-    @Option(option = "run-until-failure", description = "Runs the tests until failure occurs.")
-    public void setUntilFailureRunCount(@Nullable Long untilFailureRunCount) {
-        if (untilFailureRunCount != null && untilFailureRunCount < 1) {
-            throw new IllegalArgumentException("Cannot set untilFailureRunCount to a value less than 1.");
-        }
-        this.untilFailureRunCount = untilFailureRunCount == null ? DEFAULT_RUN_UNTIL_FAILURE_COUNT : untilFailureRunCount;
-    }
-
     /**
      * Sets the maximum number of test classes to execute in a forked test process.
      * <p>
@@ -1190,6 +1177,39 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
             throw new IllegalArgumentException("Cannot set forkEvery to a value less than 0.");
         }
         this.forkEvery = forkEvery == null ? 0 : forkEvery;
+    }
+
+    /**
+     * @since 7.5
+     */
+    @Internal
+    public long getUntilFailureRunCount() {
+        return untilFailureRunCount;
+    }
+
+    /**
+     * Sets the maximum number of test runs to be executed before first failure occurs.
+     * <p>
+     * By default, Gradle runs tests just once, but with this property you can specify that Gradle runs tests until a failure occurs.
+     * </p>
+     *
+     * @param untilFailureRunCount The maximum number of test runs.
+     * @since 7.5
+     */
+    public void setUntilFailureRunCount(@Nullable Long untilFailureRunCount) {
+        if (untilFailureRunCount != null && untilFailureRunCount < 1) {
+            throw new IllegalArgumentException("Cannot set untilFailureRunCount to a value less than 1.");
+        }
+        this.untilFailureRunCount = untilFailureRunCount == null ? DEFAULT_RUN_UNTIL_FAILURE_COUNT : untilFailureRunCount;
+    }
+
+    /**
+     * @since 7.5
+     */
+    @SuppressWarnings("unused")
+    @Option(option = "run-until-failure", description = "Runs the tests until failure occurs.")
+    public void setUntilFailureRunCountOption(@Nullable String untilFailureRunCount) {
+        setUntilFailureRunCount(untilFailureRunCount == null ? null : Long.parseLong(untilFailureRunCount));
     }
 
     /**

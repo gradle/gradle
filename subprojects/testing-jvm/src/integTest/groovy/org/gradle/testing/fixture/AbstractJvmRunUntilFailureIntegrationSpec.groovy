@@ -29,7 +29,23 @@ abstract class AbstractJvmRunUntilFailureIntegrationSpec extends AbstractIntegra
         def testClassName = generateAlwaysPassingTestClass()
 
         when:
-        executer.withTasks('test').run()
+        succeeds('test')
+
+        then:
+        def result = new DefaultTestExecutionResult(testDirectory)
+        result.testClass(testClassName).assertTestCount(untilFailureRunCount, 0, 0)
+
+        where:
+        untilFailureRunCount << [1, 5, 10]
+    }
+
+    def "runs tests #untilFailureRunCount with run-until-failure=#untilFailureRunCount parameter"() {
+        given:
+        buildFile.text = initBuildFile()
+        def testClassName = generateAlwaysPassingTestClass()
+
+        when:
+        run 'test', "--run-until-failure", "$untilFailureRunCount"
 
         then:
         def result = new DefaultTestExecutionResult(testDirectory)
