@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.testing.FrameworkTestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestFramework;
+import org.gradle.api.internal.tasks.testing.WorkerFrameworkTestClassProcessorFactory;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.api.internal.tasks.testing.detection.ClassFileExtractionManager;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
@@ -50,7 +51,7 @@ public class JUnitTestFramework implements TestFramework {
     }
 
     @Override
-    public WorkerTestClassProcessorFactory getProcessorFactory() {
+    public WorkerFrameworkTestClassProcessorFactory getProcessorFactory() {
         return new TestClassProcessorFactoryImpl(new JUnitSpec(
             options.getIncludeCategories(), options.getExcludeCategories(),
             filter.getIncludePatterns(), filter.getExcludePatterns(),
@@ -95,7 +96,7 @@ public class JUnitTestFramework implements TestFramework {
         detector = null;
     }
 
-    private static class TestClassProcessorFactoryImpl implements WorkerTestClassProcessorFactory, Serializable {
+    private static class TestClassProcessorFactoryImpl implements WorkerFrameworkTestClassProcessorFactory, Serializable {
         private final JUnitSpec spec;
 
         public TestClassProcessorFactoryImpl(JUnitSpec spec) {
@@ -103,7 +104,7 @@ public class JUnitTestFramework implements TestFramework {
         }
 
         @Override
-        public TestClassProcessor create(ServiceRegistry serviceRegistry) {
+        public FrameworkTestClassProcessor create(ServiceRegistry serviceRegistry) {
             return new JUnitTestClassProcessor(spec, serviceRegistry.get(IdGenerator.class), serviceRegistry.get(ActorFactory.class), serviceRegistry.get(Clock.class));
         }
     }

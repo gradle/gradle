@@ -20,16 +20,11 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
-import org.gradle.api.internal.tasks.testing.FrameworkTestClassProcessor;
 import org.gradle.api.internal.tasks.testing.JvmTestExecutionSpec;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
-import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
-import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
-import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestExecuter;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
-import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.internal.tasks.testing.processors.MaxNParallelTestClassProcessor;
@@ -37,22 +32,19 @@ import org.gradle.api.internal.tasks.testing.processors.PatternMatchTestClassPro
 import org.gradle.api.internal.tasks.testing.processors.RestartEveryNTestClassProcessor;
 import org.gradle.api.internal.tasks.testing.processors.RunPreviousFailedFirstTestClassProcessor;
 import org.gradle.api.internal.tasks.testing.processors.TestMainAction;
+import org.gradle.api.internal.tasks.testing.retrying.UntilFailureWorkerTestClassProcessorFactory;
 import org.gradle.api.internal.tasks.testing.worker.ForkingTestClassProcessor;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.internal.Factory;
 import org.gradle.internal.actor.ActorFactory;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 
 import java.io.File;
-import java.io.Serializable;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * The default test class scanner factory.
@@ -89,7 +81,7 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
     @Override
     public void execute(final JvmTestExecutionSpec testExecutionSpec, TestResultProcessor testResultProcessor) {
         final TestFramework testFramework = testExecutionSpec.getTestFramework();
-        final WorkerTestClassProcessorFactory testInstanceFactory = decorateWithRetryer(testExecutionSpec, testFramework.getProcessorFactory());
+        final WorkerTestClassProcessorFactory testInstanceFactory = getWorkerTestClassProcessorFactory(testExecutionSpec);
         final Set<File> classpath = ImmutableSet.copyOf(testExecutionSpec.getClasspath());
         final Set<File> modulePath = ImmutableSet.copyOf(testExecutionSpec.getModulePath());
         final List<String> testWorkerImplementationModules = testFramework.getTestWorkerImplementationModules();
@@ -126,96 +118,9 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
         new TestMainAction(detector, processor, testResultProcessor, workerLeaseService, clock, testExecutionSpec.getPath(), "Gradle Test Run " + testExecutionSpec.getIdentityPath()).run();
     }
 
-    private WorkerTestClassProcessorFactory decorateWithRetryer(final JvmTestExecutionSpec testExecutionSpec, final WorkerTestClassProcessorFactory workerTestClassProcessorFactory) {
-        return new RetryableWorkerTestClassProcessorFactory(workerTestClassProcessorFactory, testExecutionSpec.getUntilFailureRunCount());
-    }
-
-    public static class RetryableTestResultProcessor implements TestResultProcessor {
-
-        private final TestResultProcessor delegate;
-        private final AtomicBoolean hasFailedStatus;
-
-        public RetryableTestResultProcessor(AtomicBoolean hasFailedStatus, TestResultProcessor delegate) {
-            this.delegate = delegate;
-            this.hasFailedStatus = hasFailedStatus;
-        }
-
-        @Override
-        public void started(TestDescriptorInternal test, TestStartEvent event) {
-            delegate.started(test, event);
-        }
-
-        @Override
-        public void completed(Object testId, TestCompleteEvent event) {
-            delegate.completed(testId, event);
-        }
-
-        @Override
-        public void output(Object testId, TestOutputEvent event) {
-            delegate.output(testId, event);
-        }
-
-        @Override
-        public void failure(Object testId, Throwable result) {
-            hasFailedStatus.set(true);
-            delegate.failure(testId, result);
-        }
-    }
-
-    public static class RetryableWorkerTestClassProcessorFactory implements WorkerTestClassProcessorFactory, Serializable {
-
-        private final WorkerTestClassProcessorFactory other;
-        private final long untilFailureRunCount;
-
-        public RetryableWorkerTestClassProcessorFactory(WorkerTestClassProcessorFactory other, long untilFailureRunCount) {
-            this.other = other;
-            this.untilFailureRunCount = untilFailureRunCount;
-        }
-
-        @Override
-        public TestClassProcessor create(ServiceRegistry serviceRegistry) {
-            final TestClassProcessor frameworkProcessor = other.create(serviceRegistry);
-            return new RetryableTestClassProcessor((FrameworkTestClassProcessor) frameworkProcessor, untilFailureRunCount);
-        }
-    }
-
-    public static class RetryableTestClassProcessor implements TestClassProcessor {
-        private final FrameworkTestClassProcessor processor;
-        private final long untilFailureRunCount;
-        private final AtomicBoolean hasAnyTestFailed;
-
-        public RetryableTestClassProcessor(FrameworkTestClassProcessor processor, long untilFailureRunCount) {
-            this.processor = processor;
-            this.untilFailureRunCount = untilFailureRunCount;
-            this.hasAnyTestFailed = new AtomicBoolean();
-        }
-
-        @Override
-        public void startProcessing(TestResultProcessor resultProcessor) {
-            processor.startProcessing(new RetryableTestResultProcessor(hasAnyTestFailed, resultProcessor));
-        }
-
-        @Override
-        public void processTestClass(TestClassRunInfo testClass) {
-            processor.processTestClass(testClass);
-        }
-
-        @Override
-        public void stop() {
-            try {
-                long executions = Math.max(untilFailureRunCount, 1);
-                while (!hasAnyTestFailed.get() && executions-- > 0) {
-                    processor.runTests();
-                }
-            } finally {
-                processor.stop();
-            }
-        }
-
-        @Override
-        public void stopNow() {
-            hasAnyTestFailed.set(true);
-        }
+    private WorkerTestClassProcessorFactory getWorkerTestClassProcessorFactory(JvmTestExecutionSpec testExecutionSpec) {
+        TestFramework testFramework = testExecutionSpec.getTestFramework();
+        return new UntilFailureWorkerTestClassProcessorFactory(testFramework.getProcessorFactory(), testExecutionSpec.getUntilFailureRunCount());
     }
 
     @Override

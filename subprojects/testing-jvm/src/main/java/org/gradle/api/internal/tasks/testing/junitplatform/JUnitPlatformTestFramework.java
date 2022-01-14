@@ -22,6 +22,7 @@ import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.tasks.testing.FrameworkTestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestFramework;
+import org.gradle.api.internal.tasks.testing.WorkerFrameworkTestClassProcessorFactory;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.api.internal.tasks.testing.detection.TestFrameworkDetector;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
@@ -52,7 +53,7 @@ public class JUnitPlatformTestFramework implements TestFramework {
     }
 
     @Override
-    public WorkerTestClassProcessorFactory getProcessorFactory() {
+    public WorkerFrameworkTestClassProcessorFactory getProcessorFactory() {
         if (!JavaVersion.current().isJava8Compatible()) {
             throw new UnsupportedJavaRuntimeException("Running JUnit Platform requires Java 8+, please configure your test java executable with Java 8 or higher.");
         }
@@ -91,7 +92,7 @@ public class JUnitPlatformTestFramework implements TestFramework {
         // this test framework doesn't hold any state
     }
 
-    static class JUnitPlatformTestClassProcessorFactory implements WorkerTestClassProcessorFactory, Serializable {
+    static class JUnitPlatformTestClassProcessorFactory implements WorkerFrameworkTestClassProcessorFactory, Serializable {
         private final JUnitPlatformSpec spec;
 
         JUnitPlatformTestClassProcessorFactory(JUnitPlatformSpec spec) {
@@ -99,14 +100,14 @@ public class JUnitPlatformTestFramework implements TestFramework {
         }
 
         @Override
-        public TestClassProcessor create(ServiceRegistry serviceRegistry) {
+        public FrameworkTestClassProcessor create(ServiceRegistry serviceRegistry) {
             try {
                 IdGenerator<?> idGenerator = serviceRegistry.get(IdGenerator.class);
                 Clock clock = serviceRegistry.get(Clock.class);
                 ActorFactory actorFactory = serviceRegistry.get(ActorFactory.class);
                 Class<?> clazz = getClass().getClassLoader().loadClass("org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestClassProcessor");
                 Constructor<?> constructor = clazz.getConstructor(JUnitPlatformSpec.class, IdGenerator.class, ActorFactory.class, Clock.class);
-                return (TestClassProcessor) constructor.newInstance(spec, idGenerator, actorFactory, clock);
+                return (FrameworkTestClassProcessor) constructor.newInstance(spec, idGenerator, actorFactory, clock);
             } catch (Exception e) {
                 throw UncheckedException.throwAsUncheckedException(e);
             }

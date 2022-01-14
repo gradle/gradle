@@ -25,6 +25,7 @@ import org.gradle.api.internal.tasks.testing.FrameworkTestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassLoaderFactory;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestFramework;
+import org.gradle.api.internal.tasks.testing.WorkerFrameworkTestClassProcessorFactory;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.api.internal.tasks.testing.detection.ClassFileExtractionManager;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
@@ -80,7 +81,7 @@ public class TestNGTestFramework implements TestFramework {
     }
 
     @Override
-    public WorkerTestClassProcessorFactory getProcessorFactory() {
+    public WorkerFrameworkTestClassProcessorFactory getProcessorFactory() {
         verifyConfigFailurePolicy();
         verifyPreserveOrder();
         verifyGroupByInstances();
@@ -165,7 +166,7 @@ public class TestNGTestFramework implements TestFramework {
         detector = null;
     }
 
-    private static class TestClassProcessorFactoryImpl implements WorkerTestClassProcessorFactory, Serializable {
+    private static class TestClassProcessorFactoryImpl implements WorkerFrameworkTestClassProcessorFactory, Serializable {
         private final File testReportDir;
         private final TestNGSpec options;
         private final List<File> suiteFiles;
@@ -177,7 +178,7 @@ public class TestNGTestFramework implements TestFramework {
         }
 
         @Override
-        public TestClassProcessor create(ServiceRegistry serviceRegistry) {
+        public FrameworkTestClassProcessor create(ServiceRegistry serviceRegistry) {
             return new TestNGTestClassProcessor(testReportDir, options, suiteFiles, serviceRegistry.get(IdGenerator.class), serviceRegistry.get(Clock.class), serviceRegistry.get(ActorFactory.class));
         }
     }

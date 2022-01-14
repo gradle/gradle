@@ -47,7 +47,7 @@ public interface TestFramework extends Closeable {
      * method is called to create the test processor.
      */
     @Internal
-    WorkerTestClassProcessorFactory getProcessorFactory();
+    WorkerFrameworkTestClassProcessorFactory getProcessorFactory();
 
     /**
      * Returns an action which is used to perform some framework specific worker process configuration. This action is

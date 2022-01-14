@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.testing.testng;
 
 import org.gradle.api.GradleException;
+import org.gradle.api.internal.tasks.testing.FrameworkTestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
@@ -45,7 +46,7 @@ import java.util.Set;
 
 import static org.gradle.api.tasks.testing.testng.TestNGOptions.DEFAULT_CONFIG_FAILURE_POLICY;
 
-public class TestNGTestClassProcessor implements TestClassProcessor {
+public class TestNGTestClassProcessor implements FrameworkTestClassProcessor {
     private final List<Class<?>> testClasses = new ArrayList<Class<?>>();
     private final File testReportDir;
     private final TestNGSpec options;
@@ -94,7 +95,7 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
         throw new UnsupportedOperationException("stopNow() should not be invoked on remote worker TestClassProcessor");
     }
 
-//    @Override
+    @Override
     public void runTests() {
         TestNG testNg = new TestNG();
         testNg.setOutputDirectory(testReportDir.getAbsolutePath());
