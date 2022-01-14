@@ -160,6 +160,8 @@ import static org.gradle.util.internal.ConfigureUtil.configureUsing;
 @CacheableTask
 public class Test extends AbstractTestTask implements JavaForkOptions, PatternFilterable {
 
+    private static final long DEFAULT_RUN_UNTIL_FAILURE_COUNT = 1;
+
     private final JavaForkOptions forkOptions;
     private final ModularitySpec modularity;
     private final Property<JavaLauncher> javaLauncher;
@@ -174,8 +176,8 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
 
     private boolean scanForTestClasses = true;
     private long forkEvery;
-    private long untilFailureRunCount = 1;
     private int maxParallelForks = 1;
+    private long untilFailureRunCount = DEFAULT_RUN_UNTIL_FAILURE_COUNT;
     private TestExecuter<JvmTestExecutionSpec> testExecuter;
 
     public Test() {
@@ -695,7 +697,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
 
     @Override
     protected boolean shouldFailFast() {
-        return super.shouldFailFast() || getUntilFailureRunCount() > 1;
+        return getUntilFailureRunCount() > DEFAULT_RUN_UNTIL_FAILURE_COUNT || super.shouldFailFast();
     }
 
     @Override
@@ -1172,7 +1174,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         if (untilFailureRunCount != null && untilFailureRunCount < 1) {
             throw new IllegalArgumentException("Cannot set untilFailureRunCount to a value less than 1.");
         }
-        this.untilFailureRunCount = untilFailureRunCount == null ? 1 : untilFailureRunCount;
+        this.untilFailureRunCount = untilFailureRunCount == null ? DEFAULT_RUN_UNTIL_FAILURE_COUNT : untilFailureRunCount;
     }
 
     /**

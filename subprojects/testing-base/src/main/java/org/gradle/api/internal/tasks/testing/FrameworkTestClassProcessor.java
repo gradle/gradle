@@ -16,8 +16,14 @@
 
 package org.gradle.api.internal.tasks.testing;
 
+/**
+ * A TestClassProcessor for executing tests for a specific test framework.
+ */
 public interface FrameworkTestClassProcessor extends TestClassProcessor {
-
+    /**
+     * Runs all the tests.
+     *
+     * This is called after the processTestClass() and before stop() method.
+     */
     void runTests();
-
 }

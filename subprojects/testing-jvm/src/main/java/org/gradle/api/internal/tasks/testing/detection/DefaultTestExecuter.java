@@ -24,9 +24,12 @@ import org.gradle.api.internal.tasks.testing.FrameworkTestClassProcessor;
 import org.gradle.api.internal.tasks.testing.JvmTestExecutionSpec;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
+import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
+import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestExecuter;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
+import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.internal.tasks.testing.processors.MaxNParallelTestClassProcessor;
@@ -37,6 +40,7 @@ import org.gradle.api.internal.tasks.testing.processors.TestMainAction;
 import org.gradle.api.internal.tasks.testing.worker.ForkingTestClassProcessor;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.internal.Factory;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.service.ServiceRegistry;
@@ -49,7 +53,6 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * The default test class scanner factory.
@@ -127,6 +130,38 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
         return new RetryableWorkerTestClassProcessorFactory(workerTestClassProcessorFactory, testExecutionSpec.getUntilFailureRunCount());
     }
 
+    public static class RetryableTestResultProcessor implements TestResultProcessor {
+
+        private final TestResultProcessor delegate;
+        private final AtomicBoolean hasFailedStatus;
+
+        public RetryableTestResultProcessor(AtomicBoolean hasFailedStatus, TestResultProcessor delegate) {
+            this.delegate = delegate;
+            this.hasFailedStatus = hasFailedStatus;
+        }
+
+        @Override
+        public void started(TestDescriptorInternal test, TestStartEvent event) {
+            delegate.started(test, event);
+        }
+
+        @Override
+        public void completed(Object testId, TestCompleteEvent event) {
+            delegate.completed(testId, event);
+        }
+
+        @Override
+        public void output(Object testId, TestOutputEvent event) {
+            delegate.output(testId, event);
+        }
+
+        @Override
+        public void failure(Object testId, Throwable result) {
+            hasFailedStatus.set(true);
+            delegate.failure(testId, result);
+        }
+    }
+
     public static class RetryableWorkerTestClassProcessorFactory implements WorkerTestClassProcessorFactory, Serializable {
 
         private final WorkerTestClassProcessorFactory other;
@@ -147,17 +182,17 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
     public static class RetryableTestClassProcessor implements TestClassProcessor {
         private final FrameworkTestClassProcessor processor;
         private final long untilFailureRunCount;
-        private final AtomicBoolean isRunning;
+        private final AtomicBoolean hasAnyTestFailed;
 
         public RetryableTestClassProcessor(FrameworkTestClassProcessor processor, long untilFailureRunCount) {
             this.processor = processor;
             this.untilFailureRunCount = untilFailureRunCount;
-            this.isRunning = new AtomicBoolean(true);
+            this.hasAnyTestFailed = new AtomicBoolean();
         }
 
         @Override
         public void startProcessing(TestResultProcessor resultProcessor) {
-            processor.startProcessing(resultProcessor);
+            processor.startProcessing(new RetryableTestResultProcessor(hasAnyTestFailed, resultProcessor));
         }
 
         @Override
@@ -169,7 +204,7 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
         public void stop() {
             try {
                 long executions = Math.max(untilFailureRunCount, 1);
-                while (isRunning.get() && executions-- > 0) {
+                while (!hasAnyTestFailed.get() && executions-- > 0) {
                     processor.runTests();
                 }
             } finally {
@@ -179,8 +214,7 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
 
         @Override
         public void stopNow() {
-            isRunning.set(false);
-            processor.stopNow();
+            hasAnyTestFailed.set(true);
         }
     }
 

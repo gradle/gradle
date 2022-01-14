@@ -19,83 +19,74 @@ package org.gradle.testing.fixture
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
-import org.gradle.test.fixtures.server.http.BlockingHttpServer
-import org.junit.Rule
 
 abstract class AbstractJvmRunUntilFailureIntegrationSpec extends AbstractIntegrationSpec {
-
-    @Rule
-    BlockingHttpServer server = new BlockingHttpServer()
-    JvmBlockingTestClassGenerator generator
-
-    def setup() {
-        server.start()
-        generator = new JvmBlockingTestClassGenerator(testDirectory, server, testAnnotationClass(), testDependency(), testFrameworkConfiguration())
-    }
 
     def "runs tests #untilFailureRunCount times without failure"() {
         given:
         buildFile.text = initBuildFile()
         buildFile << "test { untilFailureRunCount = $untilFailureRunCount }"
-        file('src/test/java/pkg/OtherTest.java') << """
-            package pkg;
-            import ${testAnnotationClass()};
-            public class OtherTest {
-                @Test
-                public void passingTest() {
-                    System.out.println("passingTest");
-                }
-            }
-        """.stripIndent()
+        def testClassName = generateAlwaysPassingTestClass()
 
         when:
         executer.withTasks('test').run()
 
         then:
         def result = new DefaultTestExecutionResult(testDirectory)
-        result.testClass('pkg.OtherTest').assertTestCount(untilFailureRunCount, 0, 0)
+        result.testClass(testClassName).assertTestCount(untilFailureRunCount, 0, 0)
 
         where:
         untilFailureRunCount << [1, 5, 10]
     }
 
-    def "stops running tests after first failure"() {
+    def "stops running tests after first failure on the #failOnRun run with untilFailureRunCount = #untilFailureRunCount"() {
         given:
-        File runCounter = temporaryFolder.createFile("run-count.txt")
-        runCounter.text = "0"
         buildFile.text = initBuildFile()
         buildFile << "test { untilFailureRunCount = $untilFailureRunCount }"
-        file('src/test/java/pkg/OtherTest.java') << """
-            package pkg;
-            import java.io.*;
-            import java.nio.file.*;
-            import ${testAnnotationClass()};
-            public class OtherTest {
-                @Test
-                public void randomlyFailingTest() throws IOException {
-                    String previousRun = Files.readAllLines(Paths.get("${runCounter.absolutePath}")).get(0);
-                    int runNumber = Integer.parseInt(previousRun) + 1;
-                    if (runNumber >= $failOnRun) {
-                        throw new RuntimeException("failure");
-                    }
-                    Files.write(Paths.get("${runCounter.absolutePath}"), Integer.toString(runNumber).getBytes());
-                    System.out.println("passingTest");
-                }
-            }
-        """.stripIndent()
+        def failingClassName = generateFailingTestClass(failOnRun)
 
         when:
         fails('test')
 
         then:
         def result = new DefaultTestExecutionResult(testDirectory)
-        result.testClass('pkg.OtherTest').assertTestCount(failOnRun, 1, 0)
+        result.testClass(failingClassName).assertTestCount(failOnRun, 1, 0)
 
         where:
         untilFailureRunCount | failOnRun
-        5                    | 1
-        5                    | 3
-        5                    | 5
+        10                   | 1
+        10                   | 3
+        10                   | 5
+        10                   | 10
+    }
+
+    /**
+     * Tests that the test in the other worker stops fast after the failure.
+     * We cannot stop the test in the other worker at the same iteration as failure happens, but we can stop it soon enough.
+     */
+    def "stops running tests in other worker fast after the first failure"() {
+        given:
+        def failFastThreshold = 100
+        buildFile.text = initBuildFile()
+        buildFile << """
+        test {
+            untilFailureRunCount = ${failFastThreshold * 10}
+            maxParallelForks = 2
+            forkEvery = 1
+        }"""
+        def failOnRun = 3
+        def failingClassName = generateFailingTestClass(failOnRun)
+        def passingClassName = generateAlwaysPassingTestClass()
+
+        when:
+        fails('test')
+
+        then:
+        def result = new DefaultTestExecutionResult(testDirectory)
+        result.testClass(failingClassName).assertTestCount(failOnRun, 1, 0)
+        // Assert that passing test stopped fast after first failure
+        result.testClass(passingClassName).assertTestPassed("passingTest")
+        result.testClass(passingClassName).getTestCount() < failFastThreshold
     }
 
     String initBuildFile() {
@@ -110,6 +101,46 @@ abstract class AbstractJvmRunUntilFailureIntegrationSpec extends AbstractIntegra
 
             ${testFrameworkConfiguration()}
         """
+    }
+
+    private String generateFailingTestClass(int failOnRun) {
+        File runCounter = temporaryFolder.createFile("run-count.txt")
+        runCounter.text = "0"
+        file('src/test/java/pkg/FailingTest.java') << """
+            package pkg;
+            import java.io.*;
+            import java.nio.file.*;
+            import ${testAnnotationClass()};
+            public class FailingTest {
+                @Test
+                public void failingTest() throws IOException {
+                    String previousRun = Files.readAllLines(Paths.get("${runCounter.absolutePath}")).get(0);
+                    int runNumber = Integer.parseInt(previousRun) + 1;
+                    if (runNumber >= $failOnRun) {
+                        throw new RuntimeException("failure");
+                    }
+                    Files.write(Paths.get("${runCounter.absolutePath}"), Integer.toString(runNumber).getBytes());
+                    System.out.println("passingTest");
+                }
+            }
+        """.stripIndent()
+        return "pkg.FailingTest"
+    }
+
+    private String generateAlwaysPassingTestClass() {
+        file('src/test/java/pkg/AlwaysPassingTest.java') << """
+            package pkg;
+            import java.io.*;
+            import java.nio.file.*;
+            import ${testAnnotationClass()};
+            public class AlwaysPassingTest {
+                @Test
+                public void passingTest() {
+                    System.out.println("passingTest");
+                }
+            }
+        """.stripIndent()
+        return "pkg.AlwaysPassingTest"
     }
 
     abstract String testAnnotationClass()
