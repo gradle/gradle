@@ -14,18 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.diagnostics.internal.variantreports.formatter;
+package org.gradle.api.tasks.diagnostics.internal.configurations.formatter;
 
 import javax.annotation.Nullable;
 import java.util.Optional;
 
-public class VariantReportSpec {
+public class ConfigurationReportSpec {
     private final ReportType reportType;
     @Nullable private final String searchTarget;
+    private final boolean showLegacy;
 
-    public VariantReportSpec(ReportType reportType, @Nullable String searchTarget) {
+    public ConfigurationReportSpec(ReportType reportType, @Nullable String searchTarget, boolean showLegacy) {
         this.reportType = reportType;
         this.searchTarget = searchTarget;
+        this.showLegacy = showLegacy;
     }
 
     public ReportType getReportType() {
@@ -34,6 +36,14 @@ public class VariantReportSpec {
 
     public Optional<String> getSearchTarget() {
         return Optional.ofNullable(searchTarget);
+    }
+
+    public boolean isSearchForSpecificVariant() {
+        return null != searchTarget;
+    }
+
+    public boolean isShowLegacy() {
+        return showLegacy;
     }
 
     public enum ReportType {
@@ -58,12 +68,8 @@ public class VariantReportSpec {
             return reportedTypeAlias;
         }
 
-        public String getDirection() {
-            return direction;
-        }
-
         public String getFullReportedTypeDesc() {
-            return direction + " " + reportedTypeAlias + "s";
+            return direction + " " + getReportedTypeAlias();
         }
 
         public boolean isIncludeCapabilities() {

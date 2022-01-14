@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-/**
- * Internal value types responsible for containing variant report data.
- */
-@NonNullApi
-package org.gradle.api.tasks.diagnostics.internal.variantreports.model;
+package org.gradle.api.tasks.diagnostics.internal.configurations.formatter;
 
-import org.gradle.api.NonNullApi;
+import org.gradle.api.tasks.diagnostics.internal.configurations.model.ConfigurationReportModel;
+
+public interface ConfigurationReportWriter {
+    void writeReport(ConfigurationReportSpec spec, ConfigurationReportModel data);
+}

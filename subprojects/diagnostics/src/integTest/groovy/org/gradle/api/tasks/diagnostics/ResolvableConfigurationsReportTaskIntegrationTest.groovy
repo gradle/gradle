@@ -20,7 +20,6 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.InspectsVariantsReport
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import spock.lang.Ignore
 
 class ResolvableConfigurationsReportTaskIntegrationTest extends AbstractIntegrationSpec implements InspectsVariantsReport {
     def setup() {
@@ -30,14 +29,14 @@ class ResolvableConfigurationsReportTaskIntegrationTest extends AbstractIntegrat
     }
 
     @ToBeFixedForConfigurationCache(because = ":resolvableConfigurations")
-    def "if no configurations present,  task produces empty report"() {
+    def "if no configurations present in project, task reports complete absence"() {
         expect:
         succeeds ':resolvableConfigurations'
-        outputContains('There are no resolvable configurations on project myLib')
+        reportsCompleteAbsenceOfResolvableConfigurations()
     }
 
     @ToBeFixedForConfigurationCache(because = ":resolvableConfigurations")
-    def "if only consumable configurations present,  task produces empty report"() {
+    def "if only consumable configurations present, task reports complete absence"() {
         given:
         buildFile << """
             configurations.create("custom") {
@@ -49,11 +48,56 @@ class ResolvableConfigurationsReportTaskIntegrationTest extends AbstractIntegrat
 
         expect:
         succeeds ':resolvableConfigurations'
-        outputContains('There are no resolvable configurations on project myLib')
+        reportsCompleteAbsenceOfResolvableConfigurations()
     }
 
     @ToBeFixedForConfigurationCache(because = ":resolvableConfigurations")
-    def "if only custom configuration present,  task reports it"() {
+    def "if only legacy configuration present, and --all not specified, task produces empty report and prompts for rerun"() {
+        given:
+        buildFile << """
+            configurations.create("legacy") {
+                description = "My legacy configuration"
+                canBeResolved = true
+                canBeConsumed = true
+            }
+        """
+
+        expect:
+        succeeds ':resolvableConfigurations'
+        reportsNoProperConfigurations()
+        promptsForRerunToFindMoreConfigurations()
+    }
+
+    @ToBeFixedForConfigurationCache(because = ":resolvableConfigurations")
+    def "if only legacy configuration present, task reports it if --all flag is set"() {
+        given:
+        buildFile << """
+            configurations.create("legacy") {
+                description = "My custom legacy configuration"
+                canBeResolved = true
+                canBeConsumed = true
+            }
+        """
+
+        when:
+        executer.expectDeprecationWarning('(l) Legacy or deprecated configuration. Those are variants created for backwards compatibility which are both resolvable and consumable.')
+        run ':resolvableConfigurations', '--all'
+
+        then:
+        outputContains """> Task :resolvableConfigurations
+--------------------------------------------------
+Configuration legacy (l)
+--------------------------------------------------
+Description = My custom legacy configuration"""
+
+        and:
+        hasLegacyVariantsLegend()
+        doesNotHaveIncubatingVariantsLegend()
+        doesNotPromptForRerunToFindMoreConfigurations()
+    }
+
+    @ToBeFixedForConfigurationCache(because = ":resolvableConfigurations")
+    def "if single resolvable configuration with no attributes or artifacts present, task reports it"() {
         given:
         buildFile << """
             configurations.create("custom") {
@@ -72,16 +116,15 @@ class ResolvableConfigurationsReportTaskIntegrationTest extends AbstractIntegrat
 Configuration custom
 --------------------------------------------------
 Description = My custom configuration
-
 """
-
         and:
         doesNotHaveLegacyVariantsLegend()
         doesNotHaveIncubatingVariantsLegend()
+        doesNotPromptForRerunToFindMoreConfigurations()
     }
 
     @ToBeFixedForConfigurationCache(because = ":resolvableConfigurations")
-    def "if only custom configuration present with attributes,  task reports it and them"() {
+    def "if single resolvable configuration present with attributes, task reports it and them"() {
         given:
         buildFile << """
             configurations.create("custom") {
@@ -116,9 +159,11 @@ Attributes
         and:
         doesNotHaveLegacyVariantsLegend()
         doesNotHaveIncubatingVariantsLegend()
+        doesNotPromptForRerunToFindMoreConfigurations()
     }
 
-    def "Multiple custom configurations present with attributes,  task reports them all"() {
+    @ToBeFixedForConfigurationCache(because = ":resolvableConfigurations")
+    def "If multiple resolvable configurations present with attributes,  task reports them all, sorted alphabetically"() {
         given:
         buildFile << """
             configurations.create("someConf") {
@@ -171,54 +216,10 @@ Attributes
         and:
         doesNotHaveLegacyVariantsLegend()
         doesNotHaveIncubatingVariantsLegend()
+        doesNotPromptForRerunToFindMoreConfigurations()
     }
 
-    @Ignore("This needs to be updated after the behavior of --variant is updated") // TODO: remove ignore
-    @ToBeFixedForConfigurationCache(because = ":resolvableConfigurations")
-    def "if only custom legacy configuration present,  task does not report it"() {
-        given:
-        buildFile << """
-            configurations.create("legacy") {
-                description = "My custom legacy configuration"
-                canBeResolved = true
-                canBeConsumed = true
-            }
-        """
-
-        expect:
-        succeeds ':resolvableConfigurations'
-        outputContains('There are no resolvable configurations on project myLib')
-    }
-
-    @ToBeFixedForConfigurationCache(because = ":resolvableConfigurations")
-    def "if only custom legacy configuration present,  task reports it if --all flag is set"() {
-        given:
-        buildFile << """
-            configurations.create("legacy") {
-                description = "My custom legacy configuration"
-                canBeResolved = true
-                canBeConsumed = true
-            }
-        """
-
-        when:
-        executer.expectDeprecationWarning('(l) Legacy or deprecated configuration. Those are variants created for backwards compatibility which are both resolvable and consumable.')
-        run ':resolvableConfigurations', '--all'
-
-        then:
-        outputContains """> Task :resolvableConfigurations
---------------------------------------------------
-Configuration legacy (l)
---------------------------------------------------
-Description = My custom legacy configuration
-
-"""
-
-        and:
-        hasLegacyVariantsLegend()
-        doesNotHaveIncubatingVariantsLegend()
-    }
-
+    /*
     @ToBeFixedForConfigurationCache(because = ":resolvableConfigurations")
     def "reports resolvable configurations of a Java Library with module dependencies"() {
         given:
@@ -456,4 +457,5 @@ Attributes
         outputContains("There is no configuration named 'missing' defined on this project.")
         outputContains('Here are the available resolvable configurations: custom')
     }
+    */
 }

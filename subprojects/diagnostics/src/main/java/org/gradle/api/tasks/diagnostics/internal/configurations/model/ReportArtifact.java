@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.diagnostics.internal.variantreports.model;
+package org.gradle.api.tasks.diagnostics.internal.configurations.model;
 
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.file.FileResolver;

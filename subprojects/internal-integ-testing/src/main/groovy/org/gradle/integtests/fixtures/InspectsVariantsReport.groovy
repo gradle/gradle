@@ -46,4 +46,20 @@ trait InspectsVariantsReport {
     void doesNotHaveIncubatingVariantsLegend() {
         outputDoesNotContain("(i) Configuration uses incubating attributes such as Category.VERIFICATION.")
     }
+
+    void reportsCompleteAbsenceOfResolvableConfigurations() {
+        outputContains("There are no resolvable configurations (including legacy configurations) present in project")
+    }
+
+    void reportsNoProperConfigurations() {
+        outputContains("There are no proper resolvable configurations present in project")
+    }
+
+    void promptsForRerunToFindMoreConfigurations() {
+        outputContains("Re-run this report with the '--all' flag to include legacy configurations (legacy = consumable and resolvable).")
+    }
+
+    void doesNotPromptForRerunToFindMoreConfigurations() {
+        outputDoesNotContain("Re-run this report with the '--all' flag to include legacy configurations (legacy = consumable and resolvable).")
+    }
 }

@@ -21,11 +21,10 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
-import org.gradle.api.tasks.diagnostics.internal.variantreports.formatter.VariantReportSpec;
+import org.gradle.api.tasks.diagnostics.internal.configurations.formatter.ConfigurationReportSpec;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.work.DisableCachingByDefault;
 
-import java.util.Objects;
 import java.util.function.Predicate;
 
 /**
@@ -40,7 +39,7 @@ import java.util.function.Predicate;
  */
 @Incubating
 @DisableCachingByDefault(because = "Produces only non-cacheable console output by examining configurations at execution time")
-public class ResolvableConfigurationsReportTask extends AbstractVariantsReportTask {
+public class ResolvableConfigurationsReportTask extends AbstractConfigurationReportTask {
     private final Property<String> configurationSpec = getProject().getObjects().property(String.class);
     private final Property<Boolean> showAll = getProject().getObjects().property(Boolean.class).convention(false);
 
@@ -59,36 +58,12 @@ public class ResolvableConfigurationsReportTask extends AbstractVariantsReportTa
     }
 
     @Override
-    protected VariantReportSpec buildReportSpec() {
-        return new VariantReportSpec(VariantReportSpec.ReportType.RESOLVABLE, configurationSpec.getOrNull());
+    protected ConfigurationReportSpec buildReportSpec() {
+        return new ConfigurationReportSpec(ConfigurationReportSpec.ReportType.RESOLVABLE, configurationSpec.getOrNull(), showAll.get());
     }
 
     @Override
-    protected Predicate<Configuration> buildAllConfigurationsFilter() {
+    protected Predicate<Configuration> buildEligibleConfigurationsFilter() {
         return Configuration::isCanBeResolved;
-    }
-
-    @Override
-    protected Predicate<Configuration> buildMatchingConfigurationsFilter() {
-        String configName = configurationSpec.getOrNull();
-        return c -> {
-            if (!c.isCanBeResolved()) {
-                return false;
-            }
-
-            if (showAll.get()) {
-                if (configurationSpec.isPresent()) {
-                    return Objects.equals(configName, c.getName());
-                } else {
-                    return true;
-                }
-            } else {
-                if (configurationSpec.isPresent()) {
-                    return !c.isCanBeConsumed() && Objects.equals(configName, c.getName());
-                } else {
-                    return !c.isCanBeConsumed();
-                }
-            }
-        };
     }
 }

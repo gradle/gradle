@@ -24,11 +24,11 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.api.tasks.diagnostics.internal.variantreports.formatter.ConsoleVariantReportWriter;
-import org.gradle.api.tasks.diagnostics.internal.variantreports.formatter.VariantReportSpec;
-import org.gradle.api.tasks.diagnostics.internal.variantreports.formatter.VariantReportWriter;
-import org.gradle.api.tasks.diagnostics.internal.variantreports.model.ReportConfiguration;
-import org.gradle.api.tasks.diagnostics.internal.variantreports.model.VariantReportModel;
+import org.gradle.api.tasks.diagnostics.internal.configurations.formatter.ConsoleConfigurationReportWriter;
+import org.gradle.api.tasks.diagnostics.internal.configurations.formatter.ConfigurationReportSpec;
+import org.gradle.api.tasks.diagnostics.internal.configurations.formatter.ConfigurationReportWriter;
+import org.gradle.api.tasks.diagnostics.internal.configurations.model.ReportConfiguration;
+import org.gradle.api.tasks.diagnostics.internal.configurations.model.ConfigurationReportModel;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.work.DisableCachingByDefault;
@@ -46,7 +46,7 @@ import java.util.stream.Collectors;
  */
 @Incubating
 @DisableCachingByDefault(because = "Produces only non-cacheable console output")
-public abstract class AbstractVariantsReportTask extends DefaultTask {
+public abstract class AbstractConfigurationReportTask extends DefaultTask {
     protected final Property<String> format = getProject().getObjects().property(String.class).convention("text");
 
     @Input
@@ -66,32 +66,30 @@ public abstract class AbstractVariantsReportTask extends DefaultTask {
         throw new UnsupportedOperationException();
     }
 
-    protected abstract VariantReportSpec buildReportSpec();
-    protected abstract Predicate<Configuration> buildMatchingConfigurationsFilter();
-    protected abstract Predicate<Configuration> buildAllConfigurationsFilter();
+    protected abstract ConfigurationReportSpec buildReportSpec();
+    protected abstract Predicate<Configuration> buildEligibleConfigurationsFilter();
 
     @TaskAction
     public void report() {
-        final VariantReportSpec reportSpec = buildReportSpec();
-        final VariantReportModel reportModel = buildReportModel(reportSpec);
-        final VariantReportWriter writer = buildReportWriter();
+        final ConfigurationReportSpec reportSpec = buildReportSpec();
+        final ConfigurationReportModel reportModel = buildReportModel();
+        final ConfigurationReportWriter writer = buildReportWriter();
         writer.writeReport(reportSpec, reportModel);
     }
 
-    private VariantReportWriter buildReportWriter() {
+    private ConfigurationReportModel buildReportModel() {
+        return new ConfigurationReportModel(
+            getProject().getName(),
+            gatherConfigurationData(buildEligibleConfigurationsFilter()));
+    }
+
+    private ConfigurationReportWriter buildReportWriter() {
         switch (getFormat().get()) {
             case "text":
-                return new ConsoleVariantReportWriter(getTextOutputFactory().create(getClass()));
+                return new ConsoleConfigurationReportWriter(getTextOutputFactory().create(getClass()));
             default:
                 throw new IllegalArgumentException("Unknown format: " + getFormat().get());
         }
-    }
-
-    private VariantReportModel buildReportModel(VariantReportSpec spec) {
-        return new VariantReportModel(
-            getProject().getName(),
-            gatherConfigurationData(buildMatchingConfigurationsFilter()),
-            gatherConfigurationData(buildAllConfigurationsFilter()));
     }
 
     private List<ReportConfiguration> gatherConfigurationData(Predicate<Configuration> filter) {

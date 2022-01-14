@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.diagnostics.internal.variantreports.model;
+package org.gradle.api.tasks.diagnostics.internal.configurations.model;
 
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
