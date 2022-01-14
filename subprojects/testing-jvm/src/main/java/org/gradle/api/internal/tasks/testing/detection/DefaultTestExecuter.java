@@ -35,7 +35,6 @@ import org.gradle.api.internal.tasks.testing.processors.RestartEveryNTestClassPr
 import org.gradle.api.internal.tasks.testing.processors.RunPreviousFailedFirstTestClassProcessor;
 import org.gradle.api.internal.tasks.testing.processors.TestMainAction;
 import org.gradle.api.internal.tasks.testing.worker.ForkingTestClassProcessor;
-import org.gradle.api.internal.tasks.testing.worker.WorkerTestClassProcessor;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.Factory;
@@ -49,6 +48,8 @@ import java.io.File;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * The default test class scanner factory.
@@ -146,10 +147,12 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
     public static class RetryableTestClassProcessor implements TestClassProcessor {
         private final FrameworkTestClassProcessor processor;
         private final long untilFailureRunCount;
+        private final AtomicBoolean isRunning;
 
         public RetryableTestClassProcessor(FrameworkTestClassProcessor processor, long untilFailureRunCount) {
             this.processor = processor;
             this.untilFailureRunCount = untilFailureRunCount;
+            this.isRunning = new AtomicBoolean(true);
         }
 
         @Override
@@ -166,7 +169,7 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
         public void stop() {
             try {
                 long executions = Math.max(untilFailureRunCount, 1);
-                while (executions-- > 0) {
+                while (isRunning.get() && executions-- > 0) {
                     processor.runTests();
                 }
             } finally {
@@ -176,6 +179,7 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
 
         @Override
         public void stopNow() {
+            isRunning.set(false);
             processor.stopNow();
         }
     }

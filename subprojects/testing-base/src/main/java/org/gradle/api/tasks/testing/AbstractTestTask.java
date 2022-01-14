@@ -484,7 +484,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
 
         TestExecuter<TestExecutionSpec> testExecuter = Cast.uncheckedNonnullCast(createTestExecuter());
         TestListenerInternal resultProcessorDelegate = getTestListenerInternalBroadcaster().getSource();
-        if (failFast) {
+        if (shouldFailFast()) {
             resultProcessorDelegate = new FailFastTestListenerInternal(testExecuter, resultProcessorDelegate);
         }
 
@@ -506,6 +506,10 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         createReporting(results, testOutputStore);
 
         handleCollectedResults(testCountLogger);
+    }
+
+    protected boolean shouldFailFast() {
+        return failFast;
     }
 
     private void handleCollectedResults(TestCountLogger testCountLogger) {

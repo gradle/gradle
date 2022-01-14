@@ -694,6 +694,11 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     @Override
+    protected boolean shouldFailFast() {
+        return super.shouldFailFast() || getUntilFailureRunCount() > 1;
+    }
+
+    @Override
     protected TestExecuter<JvmTestExecutionSpec> createTestExecuter() {
         if (testExecuter == null) {
             return new DefaultTestExecuter(getProcessBuilderFactory(), getActorFactory(), getModuleRegistry(),
