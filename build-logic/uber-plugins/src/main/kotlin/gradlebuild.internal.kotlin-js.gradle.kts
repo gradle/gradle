@@ -39,6 +39,15 @@ kotlin {
     }
 }
 
+// Move yarn.lock to the build directory, out of VCS control
+rootProject.run {
+    plugins.withType<org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlugin> {
+        configure<org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension> {
+            lockFileDirectory = layout.buildDirectory.file("kotlin-js-store").get().asFile
+        }
+    }
+}
+
 tasks {
     withType<KotlinJsCompile>().configureEach {
         kotlinOptions {

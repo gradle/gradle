@@ -20,6 +20,7 @@ import gradlebuild.basics.repoRoot
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.tasks.Classpath
+import org.gradle.api.tasks.Console
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.gradle.work.DisableCachingByDefault
@@ -46,6 +47,9 @@ abstract class CheckKotlinCompilerEmbeddableDependencies : DefaultTask() {
     @OutputFile
     val receiptFile = project.layout.buildDirectory.file("receipts/$name/receipt.txt")
 
+    @get:Console
+    val buildScriptPath = project.buildFile.relativeTo(project.repoRoot().asFile)
+
     @TaskAction
     @Suppress("unused")
     fun check() {
@@ -56,7 +60,7 @@ abstract class CheckKotlinCompilerEmbeddableDependencies : DefaultTask() {
             var message = "$path dependencies to kotlin-compiler-embeddable dependencies are wrong\n\nexpected:\n\n"
             message += expectedFiles.joinToString(separator = "\n", postfix = "\n\ngot:\n\n") { "  $it" }
             message += currentFiles.joinToString(separator = "\n", postfix = "\n\n") { "  $it" }
-            message += "Please fix dependency declarations in ${project.buildFile.relativeTo(project.repoRoot().asFile)}"
+            message += "Please fix dependency declarations in $buildScriptPath"
             message
         }
         receiptFile.get().asFile.apply {
