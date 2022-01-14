@@ -20,8 +20,10 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
+import org.gradle.api.internal.tasks.testing.FrameworkTestClassProcessor;
 import org.gradle.api.internal.tasks.testing.JvmTestExecutionSpec;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
+import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestExecuter;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
@@ -37,6 +39,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.Factory;
 import org.gradle.internal.actor.ActorFactory;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
@@ -80,7 +83,7 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
     @Override
     public void execute(final JvmTestExecutionSpec testExecutionSpec, TestResultProcessor testResultProcessor) {
         final TestFramework testFramework = testExecutionSpec.getTestFramework();
-        final WorkerTestClassProcessorFactory testInstanceFactory = testFramework.getProcessorFactory();
+        final WorkerTestClassProcessorFactory testInstanceFactory = decorateWithRetryer(testExecutionSpec, testFramework.getProcessorFactory());
         final Set<File> classpath = ImmutableSet.copyOf(testExecutionSpec.getClasspath());
         final Set<File> modulePath = ImmutableSet.copyOf(testExecutionSpec.getModulePath());
         final List<String> testWorkerImplementationModules = testFramework.getTestWorkerImplementationModules();
@@ -115,6 +118,45 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
         }
 
         new TestMainAction(detector, processor, testResultProcessor, workerLeaseService, clock, testExecutionSpec.getPath(), "Gradle Test Run " + testExecutionSpec.getIdentityPath()).run();
+    }
+
+    private WorkerTestClassProcessorFactory decorateWithRetryer(final JvmTestExecutionSpec testExecutionSpec, final WorkerTestClassProcessorFactory workerTestClassProcessorFactory) {
+        return new WorkerTestClassProcessorFactory() {
+            @Override
+            public FrameworkTestClassProcessor create(ServiceRegistry serviceRegistry) {
+                final FrameworkTestClassProcessor frameworkProcessor = workerTestClassProcessorFactory.create(serviceRegistry);
+                return new FrameworkTestClassProcessor() {
+                    @Override
+                    public void runTests() {
+
+                    }
+
+                    @Override
+                    public void startProcessing(TestResultProcessor resultProcessor) {
+                        frameworkProcessor.startProcessing(resultProcessor);
+                    }
+
+                    @Override
+                    public void processTestClass(TestClassRunInfo testClass) {
+                        frameworkProcessor.processTestClass(testClass);
+                    }
+
+                    @Override
+                    public void stop() {
+                        long executions = Math.max(testExecutionSpec.getUntilFailureRunCount(), 1);
+                        while (executions-- > 0) {
+                            frameworkProcessor.runTests();
+                        }
+                        frameworkProcessor.stop();
+                    }
+
+                    @Override
+                    public void stopNow() {
+                        frameworkProcessor.stopNow();
+                    }
+                };
+            }
+        };
     }
 
     @Override

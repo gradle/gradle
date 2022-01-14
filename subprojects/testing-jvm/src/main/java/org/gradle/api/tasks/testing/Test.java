@@ -174,6 +174,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
 
     private boolean scanForTestClasses = true;
     private long forkEvery;
+    private long untilFailureRunCount = 1;
     private int maxParallelForks = 1;
     private TestExecuter<JvmTestExecutionSpec> testExecuter;
 
@@ -642,7 +643,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         boolean testIsModule = javaModuleDetector.isModule(modularity.getInferModulePath().get(), getTestClassesDirs());
         FileCollection classpath = javaModuleDetector.inferClasspath(testIsModule, stableClasspath);
         FileCollection modulePath = javaModuleDetector.inferModulePath(testIsModule, stableClasspath);
-        return new JvmTestExecutionSpec(getTestFramework(), classpath, modulePath, getCandidateClassFiles(), isScanForTestClasses(), getTestClassesDirs(), getPath(), getIdentityPath(), getForkEvery(), javaForkOptions, getMaxParallelForks(), getPreviousFailedTestClasses());
+        return new JvmTestExecutionSpec(getTestFramework(), classpath, modulePath, getCandidateClassFiles(), isScanForTestClasses(), getTestClassesDirs(), getPath(), getIdentityPath(), getForkEvery(), javaForkOptions, getMaxParallelForks(), getPreviousFailedTestClasses(), getUntilFailureRunCount());
     }
 
     private void validateToolchainConfiguration() {
@@ -1154,6 +1155,18 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     @Internal
     public long getForkEvery() {
         return getDebug() ? 0 : forkEvery;
+    }
+
+    @Internal
+    public long getUntilFailureRunCount() {
+        return untilFailureRunCount;
+    }
+
+    public void setUntilFailureRunCount(@Nullable Long untilFailureRunCount) {
+        if (untilFailureRunCount != null && untilFailureRunCount < 1) {
+            throw new IllegalArgumentException("Cannot set untilFailureRunCount to a value less than 1.");
+        }
+        this.untilFailureRunCount = untilFailureRunCount == null ? 1 : untilFailureRunCount;
     }
 
     /**

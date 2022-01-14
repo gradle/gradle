@@ -71,9 +71,8 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
     }
 
     @Override
-    public void stop() {
+    public void runTests() {
         testClassExecutor.processAllTestClasses();
-        super.stop();
     }
 
     private class CollectAllTestClassesExecutor implements Action<String> {

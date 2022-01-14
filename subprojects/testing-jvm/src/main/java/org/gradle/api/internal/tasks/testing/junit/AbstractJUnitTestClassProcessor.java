@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.testing.junit;
 
 import org.gradle.api.Action;
+import org.gradle.api.internal.tasks.testing.FrameworkTestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
@@ -27,7 +28,7 @@ import org.gradle.internal.time.Clock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class AbstractJUnitTestClassProcessor<T extends AbstractJUnitSpec> implements TestClassProcessor {
+public abstract class AbstractJUnitTestClassProcessor<T extends AbstractJUnitSpec> implements FrameworkTestClassProcessor {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractJUnitTestClassProcessor.class);
 
     protected final T spec;
