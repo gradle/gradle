@@ -17,76 +17,50 @@
 package org.gradle.integtests.resolve.http
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.test.fixtures.server.http.MavenHttpModule
-import org.gradle.test.fixtures.server.http.TestProxyServer
-import org.gradle.util.SetSystemProperties
+import org.gradle.test.fixtures.server.http.SocksProxyServer
 import org.hamcrest.CoreMatchers
 import org.junit.Rule
 
 class SocksProxyResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
-
     @Rule
-    SetSystemProperties systemProperties = new SetSystemProperties()
-    protected TestProxyServer testSocksProxyServer
-    MavenHttpModule module
-
-    @Rule
-    TestProxyServer getProxyServer() {
-        if (testSocksProxyServer == null) {
-            testSocksProxyServer = new TestProxyServer(TestProxyServer.Type.SOCKS)
-        }
-        return testSocksProxyServer
-    }
+    SocksProxyServer proxyServer = new SocksProxyServer()
 
     def setup() {
-        module = mavenHttpRepo.module("org.gradle.test", "some-lib", "1.2.17").publish()
         buildFile << """
+repositories {
+    ${mavenCentralRepository()}
+}
 configurations { compile }
-dependencies { compile 'org.gradle.test:some-lib:1.2.17' }
+dependencies { compile 'log4j:log4j:1.2.17' }
 task listJars {
     doLast {
-        assert configurations.compile.collect { it.name } == ['some-lib-1.2.17.jar']
+        assert configurations.compile.collect { it.name } == ['log4j-1.2.17.jar']
     }
 }
 """
     }
 
     def "uses configured SOCKS proxy to access remote repository"() {
-        given:
-        proxyServer.start()
-
-        and:
-        buildFile << """
-repositories {
-    maven { url "${mavenHttpRepo.uri}" }
-}
-"""
+        proxyServer.configureProxy(executer)
         when:
-        proxyServer.configureSocksProxy(executer)
-        module.allowAll()
-
-        then:
-        succeeds('listJars')
-    }
-
-    def "reports SOCKS proxy not running at configured location"() {
-        given:
-        buildFile << """
-repositories {
-    maven { url "${mavenHttpRepo.uri}" }
-}
-"""
-        when:
-        proxyServer.configureSocksProxy(executer)
-        module.allowAll()
-
-        then:
         fails('listJars')
+        then:
+        failure.assertHasCause("Could not resolve log4j:log4j:1.2.17.")
+        failure.assertThatCause(CoreMatchers.containsString("Can't connect to SOCKS proxy:Connection refused"))
 
-        and:
-        failure.assertHasCause("Could not resolve org.gradle.test:some-lib:1.2.17.")
-        failure.assertHasCause("Could not get resource '${module.pom.uri}'")
-        failure.assertThatCause(CoreMatchers.containsString("Connection refused"))
+        when:
+        proxyServer.start()
+        proxyServer.configureProxy(executer)
+        succeeds('listJars')
+        then:
+        result.assertTaskExecuted(":listJars")
+
+        when:
+        proxyServer.stop()
+        proxyServer.configureProxy(executer)
+        fails('listJars', '--refresh-dependencies')
+        then:
+        failure.assertHasCause("Could not resolve log4j:log4j:1.2.17.")
+        failure.assertThatCause(CoreMatchers.containsString("Can't connect to SOCKS proxy:Connection refused"))
     }
-
 }

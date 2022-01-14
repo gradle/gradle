@@ -17,10 +17,9 @@ package org.gradle.test.fixtures.server.http
 
 import io.netty.channel.ChannelHandlerContext
 import io.netty.handler.codec.http.HttpRequest
-import org.bbottema.javasocksproxyserver.SocksServer
-import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.util.ports.FixedAvailablePortAllocator
+import org.gradle.util.ports.PortAllocator
 import org.junit.rules.ExternalResource
 import org.littleshoot.proxy.HttpFilters
 import org.littleshoot.proxy.HttpFiltersSourceAdapter
@@ -29,26 +28,15 @@ import org.littleshoot.proxy.ProxyAuthenticator
 import org.littleshoot.proxy.impl.DefaultHttpProxyServer
 
 import java.util.concurrent.atomic.AtomicInteger
+
 /**
  * A Proxy Server used for testing that proxies are correctly supported.
  */
 class TestProxyServer extends ExternalResource {
+    private PortAllocator portFinder = FixedAvailablePortAllocator.getInstance()
     private HttpProxyServer proxyServer
-    private SocksServer socksServer
-    private portFinder = FixedAvailablePortAllocator.getInstance()
-    private final Type type;
-
-    int port
-    AtomicInteger requestCountInternal = new AtomicInteger()
-
-    enum Type {
-        HTTP_AND_HTTPS,
-        SOCKS
-    }
-
-    TestProxyServer(Type type = Type.HTTP_AND_HTTPS) {
-        this.type = type
-    }
+    private int port
+    private AtomicInteger requestCountInternal = new AtomicInteger()
 
     @Override
     protected void after() {
@@ -61,17 +49,7 @@ class TestProxyServer extends ExternalResource {
 
     void start(final String expectedUsername = null, final String expectedPassword = null) {
         port = portFinder.assignPort()
-
-        switch (type) {
-            case Type.HTTP_AND_HTTPS:
-                startHttpProxy(expectedUsername, expectedPassword, port)
-                break
-            case Type.SOCKS:
-                startSocksProxy(port)
-                break
-            default:
-                throw new RuntimeException('Unhandled switch value for: Type.' + type)
-        }
+        startHttpProxy(expectedUsername, expectedPassword, port)
     }
 
     private void startHttpProxy(String expectedUsername, String expectedPassword, int port) {
@@ -104,15 +82,13 @@ class TestProxyServer extends ExternalResource {
             .start()
     }
 
-    private void startSocksProxy(int port) {
-        socksServer = new SocksServer().tap {
-            start(port)
-        }
+    @Override
+    String toString() {
+        return "HTTP proxy: $port"
     }
 
     void stop() {
         proxyServer?.stop()
-        socksServer?.stop()
         portFinder.releasePort(port)
     }
 
@@ -131,12 +107,7 @@ class TestProxyServer extends ExternalResource {
         executer.withArgument("-D${proxyScheme}.proxyHost=localhost")
         executer.withArgument("-D${proxyScheme}.proxyPort=${port}")
         // use proxy even when accessing localhost
-        executer.withArgument("-Dhttp.nonProxyHosts=${JavaVersion.current() >= JavaVersion.VERSION_1_7 ? '' : '~localhost'}")
-    }
-
-    void configureSocksProxy(GradleExecuter executer) {
-        executer.withArgument('-DsocksProxyHost=localhost')
-        executer.withArgument("-DsocksProxyPort=${port}")
+        executer.withArgument("-Dhttp.nonProxyHosts=''")
     }
 }
 
