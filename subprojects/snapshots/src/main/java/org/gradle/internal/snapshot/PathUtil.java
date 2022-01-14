@@ -16,13 +16,13 @@
 
 package org.gradle.internal.snapshot;
 
-import com.google.common.annotations.VisibleForTesting;
+import org.gradle.internal.snapshot.spi.CaseSensitivity;
 
 import java.io.File;
 import java.util.Comparator;
 
-import static org.gradle.internal.snapshot.CaseSensitivity.CASE_INSENSITIVE;
-import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE;
+import static org.gradle.internal.snapshot.spi.CaseSensitivity.CASE_INSENSITIVE;
+import static org.gradle.internal.snapshot.spi.CaseSensitivity.CASE_SENSITIVE;
 
 /**
  * Methods for dealing with paths on the file system.
@@ -108,8 +108,7 @@ public class PathUtil {
         }
     }
 
-    @VisibleForTesting
-    static int compareCharsIgnoringCase(char char1, char char2) {
+    public static int compareCharsIgnoringCase(char char1, char char2) {
         if (char1 == char2) {
             return 0;
         }
@@ -135,8 +134,7 @@ public class PathUtil {
         return 0;
     }
 
-    @VisibleForTesting
-    static int compareChars(char char1, char char2) {
+    public static int compareChars(char char1, char char2) {
         if (char1 == char2) {
             return 0;
         }
@@ -149,8 +147,7 @@ public class PathUtil {
                 : Character.compare(char1, char2);
     }
 
-    @VisibleForTesting
-    static boolean equalChars(char char1, char char2, CaseSensitivity caseSensitivity) {
+    public static boolean equalChars(char char1, char char2, CaseSensitivity caseSensitivity) {
         if (char1 == char2) {
             return true;
         }

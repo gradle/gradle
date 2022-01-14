@@ -41,7 +41,7 @@ import org.gradle.util.TestPrecondition
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
-import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
+import static org.gradle.internal.snapshot.spi.CaseSensitivity.CASE_SENSITIVE
 
 class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
 

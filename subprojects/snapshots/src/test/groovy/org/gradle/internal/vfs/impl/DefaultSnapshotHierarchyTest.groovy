@@ -41,7 +41,7 @@ import spock.lang.Specification
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.stream.Collectors
 
-import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
+import static org.gradle.internal.snapshot.spi.CaseSensitivity.CASE_SENSITIVE
 
 class DefaultSnapshotHierarchyTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())

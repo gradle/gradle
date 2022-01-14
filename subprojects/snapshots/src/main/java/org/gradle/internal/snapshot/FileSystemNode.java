@@ -16,6 +16,9 @@
 
 package org.gradle.internal.snapshot;
 
+import org.gradle.internal.snapshot.spi.CaseSensitivity;
+import org.gradle.internal.snapshot.spi.VfsRelativePath;
+
 import javax.annotation.CheckReturnValue;
 import java.util.Optional;
 

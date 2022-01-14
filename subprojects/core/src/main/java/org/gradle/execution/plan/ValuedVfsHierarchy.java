@@ -18,11 +18,11 @@ package org.gradle.execution.plan;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.internal.collect.PersistentList;
-import org.gradle.internal.snapshot.CaseSensitivity;
-import org.gradle.internal.snapshot.ChildMap;
-import org.gradle.internal.snapshot.ChildMapFactory;
-import org.gradle.internal.snapshot.EmptyChildMap;
-import org.gradle.internal.snapshot.VfsRelativePath;
+import org.gradle.internal.snapshot.factory.ChildMapFactory;
+import org.gradle.internal.snapshot.implementation.EmptyChildMap;
+import org.gradle.internal.snapshot.spi.CaseSensitivity;
+import org.gradle.internal.snapshot.spi.ChildMap;
+import org.gradle.internal.snapshot.spi.VfsRelativePath;
 
 import javax.annotation.CheckReturnValue;
 import java.util.function.BiConsumer;

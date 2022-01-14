@@ -16,13 +16,15 @@
 
 package org.gradle.internal.snapshot
 
+import org.gradle.internal.snapshot.spi.CaseSensitivity
+import org.gradle.internal.snapshot.spi.VfsRelativePath
 import spock.lang.Specification
 
-import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
 import static org.gradle.internal.snapshot.PathUtil.compareChars
 import static org.gradle.internal.snapshot.PathUtil.compareCharsIgnoringCase
 import static org.gradle.internal.snapshot.PathUtil.equalChars
 import static org.gradle.internal.snapshot.PathUtil.getPathComparator
+import static org.gradle.internal.snapshot.spi.CaseSensitivity.CASE_SENSITIVE
 
 abstract class AbstractCaseVfsRelativePathTest extends Specification {
 

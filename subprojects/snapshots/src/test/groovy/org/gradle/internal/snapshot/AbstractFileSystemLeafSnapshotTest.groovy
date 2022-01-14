@@ -17,9 +17,10 @@
 package org.gradle.internal.snapshot
 
 import org.gradle.internal.file.FileType
+import org.gradle.internal.snapshot.spi.VfsRelativePath
 import spock.lang.Specification
 
-import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
+import static org.gradle.internal.snapshot.spi.CaseSensitivity.CASE_SENSITIVE
 
 abstract class AbstractFileSystemLeafSnapshotTest<T extends FileSystemLeafSnapshot> extends Specification {
 

@@ -32,7 +32,7 @@ import org.gradle.util.Path
 import org.gradle.util.internal.TextUtil
 import spock.lang.Issue
 
-import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
+import static org.gradle.internal.snapshot.spi.CaseSensitivity.CASE_SENSITIVE
 import static org.gradle.util.internal.TextUtil.toPlatformLineSeparators
 import static org.gradle.util.internal.WrapUtil.toList
 

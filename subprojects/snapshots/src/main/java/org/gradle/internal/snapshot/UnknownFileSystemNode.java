@@ -16,6 +16,8 @@
 
 package org.gradle.internal.snapshot;
 
+import org.gradle.internal.snapshot.spi.ChildMap;
+
 import java.util.Optional;
 
 /**

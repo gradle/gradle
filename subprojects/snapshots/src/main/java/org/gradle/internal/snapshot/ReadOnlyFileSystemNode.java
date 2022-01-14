@@ -16,6 +16,9 @@
 
 package org.gradle.internal.snapshot;
 
+import org.gradle.internal.snapshot.spi.CaseSensitivity;
+import org.gradle.internal.snapshot.spi.VfsRelativePath;
+
 import javax.annotation.Nullable;
 import java.util.Optional;
 import java.util.stream.Stream;

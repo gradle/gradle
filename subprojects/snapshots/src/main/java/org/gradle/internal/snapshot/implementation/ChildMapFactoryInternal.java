@@ -14,16 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.snapshot;
+package org.gradle.internal.snapshot.implementation;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.internal.snapshot.PathUtil;
+import org.gradle.internal.snapshot.spi.CaseSensitivity;
+import org.gradle.internal.snapshot.spi.ChildMap;
+import org.gradle.internal.snapshot.spi.VfsRelativePath;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 
-public class ChildMapFactory {
+public class ChildMapFactoryInternal {
     /**
      * If a node has fewer children, we use a linear search for the child.
      * We use this limit since {@link VfsRelativePath#compareToFirstSegment(String, CaseSensitivity)}
@@ -52,7 +56,7 @@ public class ChildMapFactory {
         }
     }
 
-    static <T> ChildMap<T> childMap(CaseSensitivity caseSensitivity, ChildMap.Entry<T> entry1, ChildMap.Entry<T> entry2) {
+    public static <T> ChildMap<T> childMap(CaseSensitivity caseSensitivity, ChildMap.Entry<T> entry1, ChildMap.Entry<T> entry2) {
         int compared = PathUtil.getPathComparator(caseSensitivity).compare(entry1.getPath(), entry2.getPath());
         List<ChildMap.Entry<T>> sortedEntries = compared < 0
             ? ImmutableList.of(entry1, entry2)

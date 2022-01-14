@@ -14,7 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.snapshot;
+package org.gradle.internal.snapshot.implementation;
+
+import org.gradle.internal.snapshot.AbstractInvalidateChildHandler;
+import org.gradle.internal.snapshot.AbstractStorePathRelationshipHandler;
+import org.gradle.internal.snapshot.SearchUtil;
+import org.gradle.internal.snapshot.spi.CaseSensitivity;
+import org.gradle.internal.snapshot.spi.ChildMap;
+import org.gradle.internal.snapshot.spi.VfsRelativePath;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -109,7 +116,7 @@ public abstract class AbstractListChildMap<T> implements ChildMap<T> {
     protected ChildMap<T> withNewChild(int insertBefore, String path, T newChild) {
         List<Entry<T>> newChildren = new ArrayList<>(entries);
         newChildren.add(insertBefore, new Entry<>(path, newChild));
-        return ChildMapFactory.childMapFromSorted(newChildren);
+        return ChildMapFactoryInternal.childMapFromSorted(newChildren);
     }
 
     protected ChildMap<T> withReplacedChild(int childIndex, String newPath, T newChild) {
@@ -119,13 +126,13 @@ public abstract class AbstractListChildMap<T> implements ChildMap<T> {
         }
         List<Entry<T>> newChildren = new ArrayList<>(entries);
         newChildren.set(childIndex, new Entry<>(newPath, newChild));
-        return ChildMapFactory.childMapFromSorted(newChildren);
+        return ChildMapFactoryInternal.childMapFromSorted(newChildren);
     }
 
     protected ChildMap<T> withRemovedChild(int childIndex) {
         List<Entry<T>> newChildren = new ArrayList<>(entries);
         newChildren.remove(childIndex);
-        return ChildMapFactory.childMapFromSorted(newChildren);
+        return ChildMapFactoryInternal.childMapFromSorted(newChildren);
     }
 
     @Override

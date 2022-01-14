@@ -21,7 +21,7 @@ import org.gradle.api.file.FileTreeElement
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.file.Stat
-import org.gradle.internal.snapshot.CaseSensitivity
+import org.gradle.internal.snapshot.spi.CaseSensitivity
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule

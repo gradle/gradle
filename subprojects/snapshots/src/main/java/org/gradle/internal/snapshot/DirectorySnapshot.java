@@ -21,13 +21,16 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.internal.file.FileMetadata.AccessType;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.snapshot.spi.CaseSensitivity;
+import org.gradle.internal.snapshot.spi.ChildMap;
+import org.gradle.internal.snapshot.spi.VfsRelativePath;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static org.gradle.internal.snapshot.ChildMapFactory.childMapFromSorted;
 import static org.gradle.internal.snapshot.SnapshotVisitResult.CONTINUE;
+import static org.gradle.internal.snapshot.factory.ChildMapFactory.childMapFromSorted;
 
 /**
  * A snapshot of an existing directory hierarchy.

@@ -75,9 +75,9 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.snapshot.impl.DirectorySnapshotterStatistics;
+import org.gradle.internal.snapshot.spi.CaseSensitivity;
 import org.gradle.internal.vfs.FileSystemAccess;
 import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.internal.vfs.impl.DefaultFileSystemAccess;
@@ -102,8 +102,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
 
-import static org.gradle.internal.snapshot.CaseSensitivity.CASE_INSENSITIVE;
-import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE;
+import static org.gradle.internal.snapshot.spi.CaseSensitivity.CASE_INSENSITIVE;
+import static org.gradle.internal.snapshot.spi.CaseSensitivity.CASE_SENSITIVE;
 
 public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
 

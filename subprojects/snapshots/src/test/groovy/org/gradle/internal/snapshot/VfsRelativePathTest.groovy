@@ -16,9 +16,10 @@
 
 package org.gradle.internal.snapshot
 
+import org.gradle.internal.snapshot.spi.VfsRelativePath
 import spock.lang.Specification
 
-import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
+import static org.gradle.internal.snapshot.spi.CaseSensitivity.CASE_SENSITIVE
 
 class VfsRelativePathTest extends Specification {
 

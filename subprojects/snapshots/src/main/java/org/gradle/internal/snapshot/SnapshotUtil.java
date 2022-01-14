@@ -19,6 +19,9 @@ package org.gradle.internal.snapshot;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableMultimap;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.snapshot.spi.CaseSensitivity;
+import org.gradle.internal.snapshot.spi.ChildMap;
+import org.gradle.internal.snapshot.spi.VfsRelativePath;
 
 import java.util.HashMap;
 import java.util.Map;

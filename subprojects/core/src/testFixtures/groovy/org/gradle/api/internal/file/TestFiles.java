@@ -41,8 +41,8 @@ import org.gradle.internal.hash.DefaultStreamHasher;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.resource.local.FileResourceConnector;
 import org.gradle.internal.resource.local.FileResourceRepository;
-import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.snapshot.impl.DirectorySnapshotterStatistics;
+import org.gradle.internal.snapshot.spi.CaseSensitivity;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.vfs.FileSystemAccess;
 import org.gradle.internal.vfs.VirtualFileSystem;
@@ -60,8 +60,8 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
 
-import static org.gradle.internal.snapshot.CaseSensitivity.CASE_INSENSITIVE;
-import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE;
+import static org.gradle.internal.snapshot.spi.CaseSensitivity.CASE_INSENSITIVE;
+import static org.gradle.internal.snapshot.spi.CaseSensitivity.CASE_SENSITIVE;
 import static org.gradle.util.TestUtil.objectFactory;
 import static org.gradle.util.TestUtil.providerFactory;
 

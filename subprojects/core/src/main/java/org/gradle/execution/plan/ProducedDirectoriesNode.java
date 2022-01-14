@@ -16,7 +16,7 @@
 
 package org.gradle.execution.plan;
 
-import org.gradle.internal.snapshot.VfsRelativePath;
+import org.gradle.internal.snapshot.spi.VfsRelativePath;
 
 import java.util.Collection;
 

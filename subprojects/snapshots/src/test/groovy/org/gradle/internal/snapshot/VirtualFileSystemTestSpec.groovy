@@ -16,6 +16,8 @@
 
 package org.gradle.internal.snapshot
 
+import org.gradle.internal.snapshot.spi.VfsRelativePath
+
 import javax.annotation.Nullable
 
 class VirtualFileSystemTestSpec {

@@ -19,7 +19,7 @@ package org.gradle.execution.plan;
 import org.gradle.internal.file.Stat;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
-import org.gradle.internal.snapshot.CaseSensitivity;
+import org.gradle.internal.snapshot.spi.CaseSensitivity;
 
 @ServiceScope(Scopes.Build.class)
 public class ExecutionNodeAccessHierarchies {

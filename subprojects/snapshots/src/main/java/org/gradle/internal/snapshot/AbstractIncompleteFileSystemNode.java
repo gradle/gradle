@@ -17,6 +17,9 @@
 package org.gradle.internal.snapshot;
 
 import org.gradle.internal.file.FileType;
+import org.gradle.internal.snapshot.spi.CaseSensitivity;
+import org.gradle.internal.snapshot.spi.ChildMap;
+import org.gradle.internal.snapshot.spi.VfsRelativePath;
 
 import java.util.Optional;
 import java.util.function.Predicate;

@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.snapshot;
+package org.gradle.internal.snapshot.spi;
+
+import org.gradle.internal.snapshot.PathUtil;
 
 /**
  * The case sensitivity of a file system.

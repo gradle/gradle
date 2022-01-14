@@ -17,8 +17,10 @@
 package org.gradle.internal.snapshot
 
 import org.gradle.internal.file.FileType
+import org.gradle.internal.snapshot.factory.ChildMapFactory
+import org.gradle.internal.snapshot.spi.ChildMap
 
-import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
+import static org.gradle.internal.snapshot.spi.CaseSensitivity.CASE_SENSITIVE
 
 abstract class AbstractIncompleteFileSystemNodeTest<T extends FileSystemNode> extends AbstractFileSystemNodeWithChildrenTest<T, FileSystemNode> {
 
@@ -383,10 +385,9 @@ abstract class AbstractIncompleteFileSystemNodeTest<T extends FileSystemNode> ex
     }
 
     static ChildMap<FileSystemNode> sortedChildren(String path1, FileSystemNode child1, String path2, FileSystemNode child2) {
-        def compared = PathUtil.getPathComparator(CASE_SENSITIVE).compare(path1, path2)
         def entry1 = new ChildMap.Entry<FileSystemNode>(path1, child1)
         def entry2 = new ChildMap.Entry<FileSystemNode>(path2, child2)
-        return compared < 0 ? ChildMapFactory.childMapFromSorted([entry1, entry2]) : ChildMapFactory.childMapFromSorted([entry2, entry1])
+        return ChildMapFactory.childMap(CASE_SENSITIVE, entry1, entry2)
     }
 
     @Override

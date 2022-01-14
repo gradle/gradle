@@ -16,6 +16,11 @@
 
 package org.gradle.internal.snapshot;
 
+import org.gradle.internal.snapshot.factory.ChildMapFactory;
+import org.gradle.internal.snapshot.spi.CaseSensitivity;
+import org.gradle.internal.snapshot.spi.ChildMap;
+import org.gradle.internal.snapshot.spi.VfsRelativePath;
+
 public abstract class AbstractStorePathRelationshipHandler<T> implements ChildMap.Entry.PathRelationshipHandler<ChildMap<T>, T> {
 
     private final CaseSensitivity caseSensitivity;

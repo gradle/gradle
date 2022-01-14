@@ -14,11 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.snapshot;
+package org.gradle.internal.snapshot.implementation;
+
+import org.gradle.internal.snapshot.AbstractInvalidateChildHandler;
+import org.gradle.internal.snapshot.AbstractStorePathRelationshipHandler;
+import org.gradle.internal.snapshot.spi.CaseSensitivity;
+import org.gradle.internal.snapshot.spi.ChildMap;
+import org.gradle.internal.snapshot.spi.VfsRelativePath;
 
 import java.util.stream.Stream;
 
-import static org.gradle.internal.snapshot.ChildMapFactory.childMap;
+import static org.gradle.internal.snapshot.implementation.ChildMapFactoryInternal.childMap;
 
 public class SingletonChildMap<T> implements ChildMap<T> {
     private final Entry<T> entry;

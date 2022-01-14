@@ -16,12 +16,15 @@
 
 package org.gradle.internal.snapshot
 
+
+import org.gradle.internal.snapshot.spi.ChildMap
+import org.gradle.internal.snapshot.spi.VfsRelativePath
 import spock.lang.Specification
 
 import javax.annotation.Nullable
 import java.util.stream.Collectors
 
-import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
+import static org.gradle.internal.snapshot.spi.CaseSensitivity.CASE_SENSITIVE
 
 abstract class AbstractFileSystemNodeWithChildrenTest<NODE extends FileSystemNode, CHILD extends FileSystemNode> extends Specification {
     NODE initialRoot

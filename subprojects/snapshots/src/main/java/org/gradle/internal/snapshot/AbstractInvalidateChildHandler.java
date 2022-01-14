@@ -16,6 +16,9 @@
 
 package org.gradle.internal.snapshot;
 
+import org.gradle.internal.snapshot.spi.ChildMap;
+import org.gradle.internal.snapshot.spi.VfsRelativePath;
+
 import java.util.Optional;
 
 public abstract class AbstractInvalidateChildHandler<T, RESULT> implements ChildMap.NodeHandler<T, ChildMap<RESULT>> {

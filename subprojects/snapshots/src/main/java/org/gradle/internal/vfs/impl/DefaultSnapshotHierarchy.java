@@ -18,16 +18,17 @@ package org.gradle.internal.vfs.impl;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.internal.file.FileType;
-import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemNode;
 import org.gradle.internal.snapshot.MetadataSnapshot;
 import org.gradle.internal.snapshot.PartialDirectoryNode;
 import org.gradle.internal.snapshot.ReadOnlyFileSystemNode;
-import org.gradle.internal.snapshot.SingletonChildMap;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.snapshot.UnknownFileSystemNode;
-import org.gradle.internal.snapshot.VfsRelativePath;
+import org.gradle.internal.snapshot.factory.ChildMapFactory;
+import org.gradle.internal.snapshot.spi.CaseSensitivity;
+import org.gradle.internal.snapshot.spi.ChildMap;
+import org.gradle.internal.snapshot.spi.VfsRelativePath;
 
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -144,7 +145,7 @@ public class DefaultSnapshotHierarchy implements SnapshotHierarchy {
         public SnapshotHierarchy store(String absolutePath, MetadataSnapshot snapshot, NodeDiffListener diffListener) {
             VfsRelativePath relativePath = VfsRelativePath.of(absolutePath);
             String childPath = relativePath.getAsString();
-            SingletonChildMap<FileSystemNode> children = new SingletonChildMap<>(childPath, snapshot.asFileSystemNode());
+            ChildMap<FileSystemNode> children = ChildMapFactory.childMap(childPath, snapshot.asFileSystemNode());
             FileSystemNode rootNode = snapshot.getType() == FileType.Missing
                 ? new UnknownFileSystemNode(children)
                 : new PartialDirectoryNode(children);

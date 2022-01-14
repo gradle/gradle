@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.snapshot;
+package org.gradle.internal.snapshot.spi;
 
 import java.util.Optional;
 import java.util.stream.Stream;

@@ -19,6 +19,7 @@ package org.gradle.internal.snapshot
 import org.apache.commons.io.FilenameUtils
 import org.gradle.internal.file.FileMetadata
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.snapshot.spi.CaseSensitivity
 import org.gradle.internal.vfs.impl.DefaultSnapshotHierarchy
 
 import javax.annotation.Nullable

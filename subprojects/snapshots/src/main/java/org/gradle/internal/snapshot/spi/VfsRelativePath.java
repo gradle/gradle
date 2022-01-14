@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.snapshot;
+package org.gradle.internal.snapshot.spi;
 
 import com.google.common.annotations.VisibleForTesting;
 
-import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE;
 import static org.gradle.internal.snapshot.PathUtil.compareChars;
 import static org.gradle.internal.snapshot.PathUtil.compareCharsIgnoringCase;
 import static org.gradle.internal.snapshot.PathUtil.equalChars;
 import static org.gradle.internal.snapshot.PathUtil.isFileSeparator;
+import static org.gradle.internal.snapshot.spi.CaseSensitivity.CASE_SENSITIVE;
 
 /**
  * A relative path represented by a path suffix of an absolute path.

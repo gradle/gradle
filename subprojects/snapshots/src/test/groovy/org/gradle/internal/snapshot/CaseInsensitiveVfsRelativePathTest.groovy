@@ -16,11 +16,13 @@
 
 package org.gradle.internal.snapshot
 
-import static org.gradle.internal.snapshot.CaseSensitivity.CASE_INSENSITIVE
-import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
+import org.gradle.internal.snapshot.spi.CaseSensitivity
+
 import static org.gradle.internal.snapshot.PathUtil.compareChars
 import static org.gradle.internal.snapshot.PathUtil.compareCharsIgnoringCase
 import static org.gradle.internal.snapshot.PathUtil.equalChars
+import static org.gradle.internal.snapshot.spi.CaseSensitivity.CASE_INSENSITIVE
+import static org.gradle.internal.snapshot.spi.CaseSensitivity.CASE_SENSITIVE
 
 class CaseInsensitiveVfsRelativePathTest extends AbstractCaseVfsRelativePathTest {
 

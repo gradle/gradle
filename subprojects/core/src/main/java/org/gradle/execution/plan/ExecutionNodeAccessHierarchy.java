@@ -24,9 +24,9 @@ import org.gradle.execution.plan.ValuedVfsHierarchy.ValueVisitor;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.collect.PersistentList;
 import org.gradle.internal.file.Stat;
-import org.gradle.internal.snapshot.CaseSensitivity;
-import org.gradle.internal.snapshot.EmptyChildMap;
-import org.gradle.internal.snapshot.VfsRelativePath;
+import org.gradle.internal.snapshot.implementation.EmptyChildMap;
+import org.gradle.internal.snapshot.spi.CaseSensitivity;
+import org.gradle.internal.snapshot.spi.VfsRelativePath;
 
 import java.io.File;
 import java.io.IOException;

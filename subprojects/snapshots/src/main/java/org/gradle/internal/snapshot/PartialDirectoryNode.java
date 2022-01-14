@@ -16,6 +16,9 @@
 
 package org.gradle.internal.snapshot;
 
+import org.gradle.internal.snapshot.factory.ChildMapFactory;
+import org.gradle.internal.snapshot.spi.ChildMap;
+
 import java.util.Optional;
 
 /**
@@ -26,7 +29,7 @@ import java.util.Optional;
 public class PartialDirectoryNode extends AbstractIncompleteFileSystemNode {
 
     public static PartialDirectoryNode withoutKnownChildren() {
-        return new PartialDirectoryNode(EmptyChildMap.getInstance());
+        return new PartialDirectoryNode(ChildMapFactory.emptyChildMap());
     }
 
     public PartialDirectoryNode(ChildMap<? extends FileSystemNode> children) {

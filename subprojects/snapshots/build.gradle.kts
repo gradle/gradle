@@ -26,6 +26,9 @@ dependencies {
     testImplementation(testFixtures(project(":file-collections")))
     testImplementation(testFixtures(project(":messaging")))
 
+    testImplementation(libs.archunitJunit5)
+    testImplementation("org.junit.jupiter:junit-jupiter")
+
     testFixturesImplementation(project(":base-services"))
     testFixturesImplementation(project(":core-api"))
     testFixturesImplementation(project(":file-collections"))

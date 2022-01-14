@@ -19,8 +19,9 @@ package org.gradle.internal.snapshot
 import org.gradle.internal.file.FileMetadata.AccessType
 import org.gradle.internal.file.FileType
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.snapshot.spi.ChildMap
 
-import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
+import static org.gradle.internal.snapshot.spi.CaseSensitivity.CASE_SENSITIVE
 
 class DirectoryNodeTest extends AbstractFileSystemNodeWithChildrenTest<FileSystemNode, FileSystemLocationSnapshot> {
     @Override

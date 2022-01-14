@@ -16,8 +16,9 @@
 
 package org.gradle.internal.snapshot
 
+import org.gradle.internal.snapshot.spi.ChildMap
 
-import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
+import static org.gradle.internal.snapshot.spi.CaseSensitivity.CASE_SENSITIVE
 
 class UnknownFileSystemNodeTest extends AbstractIncompleteFileSystemNodeTest<UnknownFileSystemNode> {
 

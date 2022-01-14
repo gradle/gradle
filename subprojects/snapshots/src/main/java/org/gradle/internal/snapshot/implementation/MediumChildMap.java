@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.snapshot;
+package org.gradle.internal.snapshot.implementation;
+
+import org.gradle.internal.snapshot.spi.CaseSensitivity;
+import org.gradle.internal.snapshot.spi.VfsRelativePath;
 
 import java.util.List;
 import java.util.Optional;

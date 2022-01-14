@@ -22,13 +22,13 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.TestVirtualFileSystem
 import org.gradle.internal.file.FileMetadata.AccessType
 import org.gradle.internal.file.impl.DefaultFileMetadata
-import org.gradle.internal.snapshot.CaseSensitivity
 import org.gradle.internal.snapshot.DirectorySnapshot
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.internal.snapshot.SnapshotHierarchy
 import org.gradle.internal.snapshot.impl.DirectorySnapshotter
 import org.gradle.internal.snapshot.impl.DirectorySnapshotterStatistics
+import org.gradle.internal.snapshot.spi.CaseSensitivity
 import org.gradle.internal.vfs.impl.AbstractVirtualFileSystem
 import org.gradle.internal.vfs.impl.DefaultSnapshotHierarchy
 import org.gradle.internal.watch.registry.FileWatcherProbeRegistry

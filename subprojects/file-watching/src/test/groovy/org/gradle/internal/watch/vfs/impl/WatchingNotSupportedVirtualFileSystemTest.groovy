@@ -17,8 +17,8 @@
 package org.gradle.internal.watch.vfs.impl
 
 import org.gradle.internal.operations.TestBuildOperationExecutor
-import org.gradle.internal.snapshot.CaseSensitivity
 import org.gradle.internal.snapshot.SnapshotHierarchy
+import org.gradle.internal.snapshot.spi.CaseSensitivity
 import org.gradle.internal.vfs.impl.DefaultSnapshotHierarchy
 import org.gradle.internal.vfs.impl.VfsRootReference
 import org.gradle.internal.watch.vfs.VfsLogging
