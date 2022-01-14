@@ -111,7 +111,7 @@ class TestProxyServer extends ExternalResource {
         executer.withArgument("-D${proxyScheme}.proxyHost=localhost")
         executer.withArgument("-D${proxyScheme}.proxyPort=${port}")
         // use proxy even when accessing localhost
-        executer.withArgument("-Dhttp.nonProxyHosts=''")
+        executer.withArgument("-Dhttp.nonProxyHosts=")
     }
 }
 
