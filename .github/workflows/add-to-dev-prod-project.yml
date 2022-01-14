@@ -8,7 +8,7 @@ on:
 
 jobs:
   add-to-dev-prod-project:
-    if: contains(github.event.issue.labels.*.name, '@dev-productivity')
+    if: (github.event.issue!=null && contains(github.event.issue.labels.*.name, '@dev-productivity')) || (github.event.pull_request!=null && contains(github.event.pull_request.labels.*.name, '@dev-productivity'))
     runs-on: ubuntu-latest
     steps:
       - name: Get project data
@@ -21,8 +21,6 @@ jobs:
                   fields(first:20) {
                     nodes {
                       id
-                      name
-                      settings
                     }
                   }
                 }
