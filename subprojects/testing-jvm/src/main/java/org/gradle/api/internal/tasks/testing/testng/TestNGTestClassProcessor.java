@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.testing.testng;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.testing.FrameworkTestClassProcessor;
-import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;

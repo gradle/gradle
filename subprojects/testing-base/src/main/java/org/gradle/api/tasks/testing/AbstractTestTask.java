@@ -21,6 +21,7 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.file.DeleteSpec;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileSystemOperations;
@@ -508,6 +509,12 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         handleCollectedResults(testCountLogger);
     }
 
+    /**
+     * Return true if tests should fail fast.
+     *
+     * @since 7.5
+     */
+    @Incubating
     protected boolean shouldFailFast() {
         return failFast;
     }

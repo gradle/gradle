@@ -1180,9 +1180,12 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     /**
+     * Return until failure count
+     *
      * @since 7.5
      */
     @Internal
+    @Incubating
     public long getUntilFailureRunCount() {
         return untilFailureRunCount;
     }
@@ -1196,17 +1199,21 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      * @param untilFailureRunCount The maximum number of test runs.
      * @since 7.5
      */
-    public void setUntilFailureRunCount(@Nullable Long untilFailureRunCount) {
-        if (untilFailureRunCount != null && untilFailureRunCount < 1) {
+    @Incubating
+    public void setUntilFailureRunCount(long untilFailureRunCount) {
+        if (untilFailureRunCount < 1) {
             throw new IllegalArgumentException("Cannot set untilFailureRunCount to a value less than 1.");
         }
-        this.untilFailureRunCount = untilFailureRunCount == null ? DEFAULT_RUN_UNTIL_FAILURE_COUNT : untilFailureRunCount;
+        this.untilFailureRunCount = untilFailureRunCount;
     }
 
     /**
+     * Command line options to set until failure run count
+     *
      * @since 7.5
      */
     @SuppressWarnings("unused")
+    @Incubating
     @Option(option = "run-until-failure", description = "Runs the tests until failure occurs.")
     public void setUntilFailureRunCountOption(@Nullable String untilFailureRunCount) {
         setUntilFailureRunCount(untilFailureRunCount == null ? null : Long.parseLong(untilFailureRunCount));

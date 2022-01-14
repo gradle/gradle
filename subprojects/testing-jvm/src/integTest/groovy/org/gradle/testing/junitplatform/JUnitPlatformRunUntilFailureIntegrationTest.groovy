@@ -18,7 +18,7 @@ package org.gradle.testing.junitplatform;
 
 import org.gradle.testing.fixture.AbstractJvmRunUntilFailureIntegrationSpec
 
-import static org.gradle.testing.fixture.JUnitCoverage.getLATEST_JUPITER_VERSION;
+import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUPITER_VERSION
 
 class JUnitPlatformRunUntilFailureIntegrationTest extends AbstractJvmRunUntilFailureIntegrationSpec {
     @Override
