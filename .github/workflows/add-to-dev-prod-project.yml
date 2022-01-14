@@ -12,6 +12,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Get project data
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh api graphql -f query='
             query($org: String!, $number: Int!) {
@@ -29,6 +31,8 @@ jobs:
 
           echo 'PROJECT_ID='$(jq '.data.organization.projectNext.id' project_data.json) >> $GITHUB_ENV
       - name: Add issue/PR to project
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh api graphql -f query='
             mutation($project:ID!, $pr:ID!) {
