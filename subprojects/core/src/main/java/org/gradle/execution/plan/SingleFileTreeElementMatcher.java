@@ -28,11 +28,11 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 
-public class SingleFileTreeElementMatchUtil {
+public class SingleFileTreeElementMatcher {
 
     private final Stat stat;
 
-    public SingleFileTreeElementMatchUtil(Stat stat) {
+    public SingleFileTreeElementMatcher(Stat stat) {
         this.stat = stat;
     }
 

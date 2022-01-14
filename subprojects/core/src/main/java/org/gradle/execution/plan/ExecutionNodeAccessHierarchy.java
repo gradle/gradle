@@ -31,11 +31,11 @@ import java.util.function.Supplier;
 
 public class ExecutionNodeAccessHierarchy {
     private volatile ValuedVfsHierarchy<NodeAccess> root;
-    private final SingleFileTreeElementMatchUtil matchUtil;
+    private final SingleFileTreeElementMatcher matcher;
 
     public ExecutionNodeAccessHierarchy(CaseSensitivity caseSensitivity, Stat stat) {
         this.root = new ValuedVfsHierarchy<>(PersistentList.of(), EmptyChildMap.getInstance(), caseSensitivity);
-        this.matchUtil = new SingleFileTreeElementMatchUtil(stat);
+        this.matcher = new SingleFileTreeElementMatcher(stat);
     }
 
     /**
@@ -63,7 +63,7 @@ public class ExecutionNodeAccessHierarchy {
             @Override
             public void visitChildren(PersistentList<NodeAccess> values, Supplier<String> relativePathSupplier) {
                 String relativePathFromLocation = relativePathSupplier.get();
-                if (matchUtil.elementWithRelativePathMatches(filter, new File(location, relativePathFromLocation), relativePathFromLocation)) {
+                if (matcher.elementWithRelativePathMatches(filter, new File(location, relativePathFromLocation), relativePathFromLocation)) {
                     values.forEach(this::addNode);
                 }
             }
@@ -173,7 +173,7 @@ public class ExecutionNodeAccessHierarchy {
 
         @Override
         public boolean accessesChild(VfsRelativePath childPath) {
-            return matchUtil.elementWithRelativePathMatches(spec, new File(childPath.getAbsolutePath()), childPath.getAsString());
+            return matcher.elementWithRelativePathMatches(spec, new File(childPath.getAbsolutePath()), childPath.getAsString());
         }
     }
 }
