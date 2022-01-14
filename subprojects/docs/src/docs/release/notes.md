@@ -1,10 +1,12 @@
 The Gradle team is excited to announce Gradle @version@.
 
-This release includes several usability improvements, such as [automatic detection of test source directories](#idea-test-sources) in IDEA and [better support for plugin version declarations in subprojects](#plugins-dsl). [Java toolchain support](#java-toolchains) has been updated to support the migration of AdoptOpenJDK to Adoptium.
+This release makes it easier to create a [single test report](#aggregation-tests) or [JaCoCo code coverage report](#aggregation-jacoco) across several projects. This release also includes several usability improvements, such as [marking additional test source directories as tests in IDEA](#idea-test-sources) and [better support for plugin version declarations in subprojects](#plugins-dsl).
 
-There are also changes to make adopting the [experimental configuration cache](#config-cache) easier and more correct, along with several [bug fixes](#fixed-issues) and [other changes](#other).
+[Java toolchain support](#java-toolchains) has been updated to reflect the [migration of AdoptOpenJDK to Adoptium](https://blog.adoptopenjdk.net/2021/03/transition-to-eclipse-an-update/).
 
-The Build service and Version catalog features have been [promoted to stable](#promoted). 
+There are changes to make adopting the [experimental configuration cache](#config-cache) easier, along with several [bug fixes](#fixed-issues) and [other changes](#other).
+
+The [build services](userguide/build_services.html) and [version catalogs](userguide/platforms.html) features have been [promoted to stable](#promoted). 
 
 We would like to thank the following community members for their contributions to this release of Gradle:
 
@@ -35,33 +37,55 @@ For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility 
 
 ## New features and usability improvements
 
+<a name="aggregation-tests"></a>
+### Generate a single report for tests from multiple projects
+
+By default, Gradle produces a separate HTML test report for every test task in each project. Previously, it was difficult to combine those reports across multiple projects in a safe and convenient way.
+
+This release adds the new [`test-report-aggregation`](userguide/test_report_aggregation_plugin.html) plugin to make it easy to aggregate test results from multiple projects into a single HTML report. This plugin uses test suites registered with the [`jvm-test-suite`](userguide/jvm_test_suite_plugin.html) plugin.
+
+When this plugin is applied to a Java project, Gradle will automatically create an aggregated test report for each test suite with test results from a compatible test suite in every project that the Java project depends on. See [the sample](samples/sample_jvm_multi_project_with_test_aggregation_distribution.html) in the user manual.
+
+If you want more control over the set of projects that are included in the aggregated report or which test suites are used, see [another sample that requires you to provide this configuration](samples/sample_jvm_multi_project_with_test_aggregation_standalone.html) in the user manual.
+
+<a name="aggregation-jacoco"></a>
+### Generate a single JaCoCo code coverage from multiple projects
+
+Gradle comes with a [JaCoCo code coverage](userguide/jacoco_plugin.html) plugin that produces a coverage report for the built-in test task. Previously, it was difficult to combine such reports across multiple projects in a safe and convenient way.
+
+This release adds the new [`jacoco-report-aggregation`](userguide/jacoco_report_aggregation_plugin.html) plugin to make it easy to aggregate code coverage from multiple projects into a single report. This plugin uses test suites registered with the `jvm-test-suite` plugin.
+
+When this plugin is applied to a Java project, Gradle will automatically create an aggregated code coverage report for each test suite with code coverage data from a compatible test suite in every project that the Java project depends on. See [the sample](samples/sample_jvm_multi_project_with_code_coverage_distribution.html) in the user manual.
+
+If you want more control over the set of projects that are included in the aggregated report or which test suites are used, see [another sample that requires you to provide this configuration](samples/sample_jvm_multi_project_with_code_coverage_standalone.html) in the user manual.
+
 ### Usability improvements
 
 <a name="idea-test-sources"></a>
-### Mark additional test source directories as tests in IntelliJ IDEA 
+#### Mark additional test source directories as tests in IntelliJ IDEA 
+
+The [JVM Test Suite Plugin](userguide/jvm_test_suite_plugin.html) makes it easier to create additional sets of tests in a Java project.
 
 The [IntelliJ IDEA Plugin](userguide/idea_plugin.html) plugin will now automatically mark all source directories used by a [JVM Test Suite](userguide/jvm_test_suite_plugin.html#declare_an_additional_test_suite) as test source directories within the IDE. 
 
-The [JVM Test Suite Plugin](userguide/jvm_test_suite_plugin.html) is an incubating plugin that makes it easier to create additional sets of tests in a Java project.
+The Eclipse plugin will be updated in a future version of Gradle. 
 
-The Eclipse plugin will be updated in a future version of Gradle.
+This change does not affect additional test source directories created in Android projects that will still need to be manually configured to be considered test directories. These test sources are not created using JVM test suites.
 
 <a name="plugins-dsl"></a>
 #### Plugins can be declared with a version in a subproject in more cases
 
 The [plugins DSL](userguide/plugins.html#sec:plugins_block) provides a succinct and convenient way to declare plugin dependencies.
 
-Previously, it was not possible to declare a plugin with a version in a subproject when the parent project also declared the same plugin. Now, this is allowed when Gradle can track the version of the plugin (currently when using included build plugins or externally resolved plugins), and the version of the plugin in both applications matches.
+Previously, it was not possible to declare a plugin with a version in a subproject when the parent project also declared the same plugin. Now, this is allowed when Gradle can track the version of the plugin (currently when using included build plugins or externally resolved plugins), and the version of the plugin in both are the same.
 
 This allows you to use [`alias`](userguide/platforms.html#sec:plugins) in both a parent and subproject's `plugins {}` without needing to remove the version in some way.
 
 #### Type-safe accessors for extensions of `repositories {}` in Kotlin DSL
 
-The Kotlin DSL now generates type-safe model accessors for extensions registered on the `repositories {}` block.
+Starting with this version of Gradle, [Kotlin DSL](userguide/kotlin_dsl.html) generates [type-safe model accessors](userguide/kotlin_dsl.html#type-safe-accessors) for custom extensions added to the `repositories {}` block. Custom extensions now have full content assist in the IDE. 
 
-For example, starting with this version of Gradle, the [`asciidoctorj-gems-plugin`](https://asciidoctor.github.io/asciidoctor-gradle-plugin/master/user-guide/#asciidoctorj-gems-plugin) can be configured directly via the generated type-safe accessors:
-
-
+For instance, the [`asciidoctorj-gems-plugin`](https://asciidoctor.github.io/asciidoctor-gradle-plugin/master/user-guide/#asciidoctorj-gems-plugin) plugin adds a custom extension. You can now use this succinct syntax:
 ```kotlin
 repositories {
     ruby {
@@ -70,8 +94,7 @@ repositories {
 }
 ```
 
-Whereas before it required to use [`withGroovyBuilder`]():
-
+In previous releases, you were required to use [`withGroovyBuilder`]():
 ```kotlin
 repositories {
     withGroovyBuilder {
@@ -82,7 +105,7 @@ repositories {
 }
 ```
 
-or, required more tinkering in order to discover what names and types to use, relying on the API:
+or directly rely on the type of the extension:
 ```kotlin
 repositories {
     this as ExtensionAware
@@ -91,28 +114,21 @@ repositories {
     }
 }
 ```
-See [the documentation](userguide/kotlin_dsl.html#type-safe-accessors) for details.
 
 #### Stable dependency verification file generation
 
-[Dependency verification](userguide/dependency_verification.html) is a feature that allows Gradle to verify the checksums and signatures of the plugins and dependencies that are used by the build of your project.
+[Dependency verification](userguide/dependency_verification.html) allows Gradle to verify the checksums and signatures of the plugins and dependencies that are used by the build of your project to improve supply chain security.
 
-With this release, the generation of the dependency verification file has been improved to produce stable output.
+With this release, the generation of the dependency verification file has been improved to produce stable output. This means that Gradle will always produce the same output if the build configuration and the verification file did not change.
 
-This means that for the same inputs - build configuration and previous verification file - Gradle will always produce the same output.
+This makes it easier for you to leverage [the verification metadata generation feature](userguide/dependency_verification.html#sec:bootstrapping-verification) as an update strategy when dependencies change in your project.
 
-This allows you to leverage [the verification metadata bootstrapping feature](userguide/dependency_verification.html#sec:bootstrapping-verification) as an update strategy when dependencies change in your project.
-
-Have a look at [the documentation](userguide/dependency_verification.html#sec:verification-update) for more details.
+See [the documentation](userguide/dependency_verification.html#sec:verification-update) for more details.
 
 <a name="java-toolchains"></a>
-### Java toolchain improvements
+### Changes following migration from AdoptOpenJDK to Adoptium
 
-[Java toolchains](userguide/toolchains.html) provide an easy way to declare which Java version your project should be built with.
-
-By default, Gradle will [detect installed JDKs](userguide/toolchains.html#sec:auto_detection) or automatically download new toolchain versions.
-
-#### Changes following migration from AdoptOpenJDK to Adoptium
+[Java toolchains](userguide/toolchains.html) provide an easy way to declare which Java version your project should be built with. By default, Gradle will [detect installed JDKs](userguide/toolchains.html#sec:auto_detection) or automatically download new toolchain versions.
 
 Following the migration of [AdoptOpenJDK](https://adoptopenjdk.net/) to [Eclipse Adoptium](https://adoptium.net/), a number of changes have been made for toolchains:
 * `ADOPTIUM` and `IBM_SEMERU` are now recognized as vendors,
@@ -122,31 +138,52 @@ Following the migration of [AdoptOpenJDK](https://adoptopenjdk.net/) to [Eclipse
 See [the documentation](userguide/toolchains.html#sec:provisioning) for details.
 
 <a name="config-cache"></a>
-### Configuration Cache improvements
+### Configuration cache improvements
+
+The [configuration cache](userguide/configuration_cache.html) improves build time by caching the result of the configuration phase and reusing this for subsequent builds. 
 
 #### Automatic detection of environment variables, system properties and Gradle properties used at configuration time
 
-Previously, in order for Gradle to correctly treat external values such as environment variables, system properties and Gradle properties as configuration cache inputs, build and plugin authors were required to change their code to use Gradle specific APIs to read them; moreover, reading an external value at configuration time required an explicit opt-in via the `Provider.forUseAtConfigurationTime()` API.
+Previously, Gradle required build and plugin authors to use specific APIs to read external values such as environment variables, system properties and Gradle properties in order to take these values into consideration as configuration cache inputs. When one of those values changed, Gradle would re-execute the configuration phase of the build and create a new cache entry. Gradle also required marking external values used at configuration time with an explicit opt-in `Provider.forUseAtConfigurationTime()` API.
 
-Gradle 7.4 simplifies adoption of the configuration cache by deprecating `Provider.forUseAtConfigurationTime()` and allowing external values to be read using standard Java and Gradle APIs. Please check the [corresponding section of the upgrade guide](userguide/upgrading_version_7.html#for_use_at_configuration_time_deprecation) for details.
+This release makes it easier to adopt configuration cache by relaxing these requirements. `Provider.forUseAtConfigurationTime()` has been deprecated and external values can be read using standard Java and Gradle APIs. Environment variables, system properties and Gradle properties used at configuration time are automatically detected without requiring build or plugin authors to migrate to Gradle specific APIs. In case any of those inputs change, the configuration cache is invalidated automatically. Moreover, the detected configuration inputs are now presented in the configuration-cache HTML report to make it easier to investigate unexpected configuration cache misses.
 
-#### Opt incompatible tasks out of configuration caching
+See the [corresponding section of the upgrade guide](userguide/upgrading_version_7.html#for_use_at_configuration_time_deprecation) for details.
 
-It is now possible to declare that a particular task is not compatible with the configuration cache. 
+#### Disable configuration caching when incompatible tasks are executed
 
-Gradle will disable the configuration cache whenever an incompatible task is scheduled to run. This makes it possible to enable the configuration cache for a build without having to first 
-migrate all tasks to be compatible.
+The configuration cache works by caching the entire task graph for each set of requested tasks. 
 
-Please check the [user manual](userguide/configuration_cache.html#config_cache:task_opt_out) for more details.
+Prior to this release, all tasks used by the project needed to be compatible with configuration cache before the configuration cache could be enabled. 
+
+It is now possible to declare that a particular task is not compatible with the configuration cache. Gradle will disable the configuration cache automatically whenever an incompatible task is scheduled to run. This makes it possible to enable the configuration cache without having to first migrate all tasks to be compatible. Builds will still benefit from the configuration cache when only compatible tasks are executed. This enables more gradual adoption of the configuration cache. 
+
+Check the [user manual](userguide/configuration_cache.html#config_cache:task_opt_out) for more details.
 
 <a name="other"></a>
 ### Other improvements
 
 #### Additional Gradle daemon debug options
 
-Additional options were added for use with `-Dorg.gradle.debug=true`. These allow specification of the port, server mode, and suspend mode.
+The Gradle daemon can be started in a debug mode that allows you to connect a debugger to troubleshoot build scripts or plugin code execution. By default, Gradle assumes a particular set of debugging options. 
+
+In this release, additional options have been added to specify the port, server mode, and suspend mode for the Gradle daemon. This is useful when the default options are not sufficient to connect to the Gradle daemon to debug build scripts or plugin code. 
+
+This **does not** affect the debugging options used with `--debug-jvm` when used with `Test` or `JavaExec` tasks.
 
 See [the documentation](userguide/command_line_interface.html#sec:command_line_debugging) for details.
+
+This improvement was contributed by [Marcin Mielnicki](https://github.com/platan).
+
+#### Conflicts of precompiled plugins with core plugins is now an error
+
+[Precompiled plugins](userguide/custom_plugins.html#sec:precompiled_plugins) are plugins written in either Groovy or Kotlin DSLs. They are used to easily share build logic between projects using a DSL language and without the need to write a full plugin class.
+
+In previous versions, it was possible to name a precompiled plugin with a name that conflicted with any core plugin id. Since core plugins take precedence over other plugins this caused the precompiled plugin to be silently ignored. 
+
+With this release, a name conflict between a precompiled plugin and a core plugin causes an error.
+
+See the user manual for [precompiled plugins](userguide/custom_plugins.html#sec:precompiled_plugins) for more information.
 
 <a name="promoted"></a>
 ## Promoted features
