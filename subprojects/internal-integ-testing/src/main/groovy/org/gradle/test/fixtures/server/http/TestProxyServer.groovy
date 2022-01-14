@@ -84,7 +84,10 @@ class TestProxyServer extends ExternalResource {
 
     @Override
     String toString() {
-        return "HTTP proxy: $port"
+        if (port > 0) {
+            return "HTTP proxy: $port"
+        }
+        return "HTTP proxy (not started)"
     }
 
     void stop() {
@@ -104,6 +107,7 @@ class TestProxyServer extends ExternalResource {
     }
 
     void configureProxyHost(GradleExecuter executer, String proxyScheme) {
+        assert port > 0
         executer.withArgument("-D${proxyScheme}.proxyHost=localhost")
         executer.withArgument("-D${proxyScheme}.proxyPort=${port}")
         // use proxy even when accessing localhost
