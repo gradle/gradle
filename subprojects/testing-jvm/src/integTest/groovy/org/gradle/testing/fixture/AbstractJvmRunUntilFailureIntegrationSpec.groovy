@@ -18,10 +18,9 @@ package org.gradle.testing.fixture
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
-
-import static org.gradle.testing.fixture.JvmBlockingTestClassGenerator.OTHER_RESOURCE
 
 abstract class AbstractJvmRunUntilFailureIntegrationSpec extends AbstractIntegrationSpec {
 
@@ -34,33 +33,83 @@ abstract class AbstractJvmRunUntilFailureIntegrationSpec extends AbstractIntegra
         generator = new JvmBlockingTestClassGenerator(testDirectory, server, testAnnotationClass(), testDependency(), testFrameworkConfiguration())
     }
 
-    def "runs tests n times without failure"() {
+    def "runs tests #untilFailureRunCount times without failure"() {
         given:
-        buildFile.text = generator.initBuildFile()
-        buildFile << buildConfig
-//        generator.withFailingTest()
-        generator.withNonfailingTest()
-        def testExecution = server.expectAndBlock(OTHER_RESOURCE)
+        buildFile.text = initBuildFile()
+        buildFile << "test { untilFailureRunCount = $untilFailureRunCount }"
+        file('src/test/java/pkg/OtherTest.java') << """
+            package pkg;
+            import ${testAnnotationClass()};
+            public class OtherTest {
+                @Test
+                public void passingTest() {
+                    System.out.println("passingTest");
+                }
+            }
+        """.stripIndent()
 
         when:
-        def gradleHandle = executer.withTasks(taskList).start()
-        testExecution.waitForAllPendingCalls()
+        executer.withTasks('test').run()
 
         then:
-//        testExecution.release(FAILED_RESOURCE)
-        for (int i = 0; i < 5; i++) {
-            testExecution.release(OTHER_RESOURCE)
-        }
-        gradleHandle.waitForExit()
         def result = new DefaultTestExecutionResult(testDirectory)
-//        result.testClass('pkg.FailedTest').assertTestFailed('failTest', CoreMatchers.anything())
-        result.testClass('pkg.OtherTest').assertTestCount(5, 0, 0)
-
+        result.testClass('pkg.OtherTest').assertTestCount(untilFailureRunCount, 0, 0)
 
         where:
-        description         | taskList | buildConfig
-        'run test 5 times'  | ['test'] | 'test { untilFailureRunCount = 5 }'
-//        'run test 10 times' | ['test'] | 'test { untilFailureRunCount = 10 }'
+        untilFailureRunCount << [1, 5, 10]
+    }
+
+    def "stops running tests after first failure"() {
+        given:
+        File runCounter = temporaryFolder.createFile("run-count.txt")
+        runCounter.text = "0"
+        buildFile.text = initBuildFile()
+        buildFile << "test { untilFailureRunCount = $untilFailureRunCount }"
+        file('src/test/java/pkg/OtherTest.java') << """
+            package pkg;
+            import java.io.*;
+            import java.nio.file.*;
+            import ${testAnnotationClass()};
+            public class OtherTest {
+                @Test
+                public void randomlyFailingTest() throws IOException {
+                    String previousRun = Files.readAllLines(Paths.get("${runCounter.absolutePath}")).get(0);
+                    int runNumber = Integer.parseInt(previousRun) + 1;
+                    if (runNumber >= $failOnRun) {
+                        throw new RuntimeException("failure");
+                    }
+                    Files.write(Paths.get("${runCounter.absolutePath}"), Integer.toString(runNumber).getBytes());
+                    System.out.println("passingTest");
+                }
+            }
+        """.stripIndent()
+
+        when:
+        fails('test')
+
+        then:
+        def result = new DefaultTestExecutionResult(testDirectory)
+        result.testClass('pkg.OtherTest').assertTestCount(failOnRun, 1, 0)
+
+        where:
+        untilFailureRunCount | failOnRun
+        5                    | 1
+        5                    | 3
+        5                    | 5
+    }
+
+    String initBuildFile() {
+        return """
+            apply plugin: 'java'
+
+            ${RepoScriptBlockUtil.mavenCentralRepository()}
+
+            dependencies {
+                testImplementation '${testDependency()}'
+            }
+
+            ${testFrameworkConfiguration()}
+        """
     }
 
     abstract String testAnnotationClass()
