@@ -20,9 +20,11 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
 
-    def "can download missing jdk automatically"() {
+    def setup() {
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id "java"
+            }
 
             java {
                 toolchain {
@@ -33,44 +35,40 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
 
         file("src/main/java/Foo.java") << "public class Foo {}"
 
+        executer.requireOwnGradleUserHomeDir()
+        executer.withToolchainDownloadEnabled()
+    }
+
+    def "can download missing jdk automatically"() {
         when:
-        result = executer
-            .withArguments("--info", "-Porg.gradle.java.installations.auto-detect=false")
-            .withTasks("compileJava")
-            .withToolchainDownloadEnabled()
-            .requireOwnGradleUserHomeDir()
-            .run()
+        succeeds("compileJava", "-Porg.gradle.java.installations.auto-detect=false")
 
         then:
-        outputContains("Compiling with toolchain '${executer.gradleUserHomeDir.absolutePath}${File.separator}jdks${File.separator}jdk-14.")
-        javaClassFile("Foo.class").exists()
+        javaClassFile("Foo.class").assertExists()
+        assertJdkWasDownloaded("hotspot")
     }
 
     def "can download missing j9 jdk automatically"() {
         buildFile << """
-            apply plugin: "java"
-
             java {
                 toolchain {
-                    languageVersion = JavaLanguageVersion.of(14)
                     implementation = JvmImplementation.J9
                 }
             }
         """
 
-        file("src/main/java/Foo.java") << "public class Foo {}"
-
         when:
-        result = executer
-            .withArguments("--info", "-Porg.gradle.java.installations.auto-detect=false")
-            .withTasks("compileJava")
-            .withToolchainDownloadEnabled()
-            .requireOwnGradleUserHomeDir()
-            .run()
+        succeeds("compileJava", "-Porg.gradle.java.installations.auto-detect=false")
 
         then:
-        outputContains("Compiling with toolchain '${executer.gradleUserHomeDir.absolutePath}${File.separator}jdks${File.separator}jdk-14.")
-        javaClassFile("Foo.class").exists()
+        javaClassFile("Foo.class").assertExists()
+        assertJdkWasDownloaded("openj9")
+    }
+
+    private void assertJdkWasDownloaded(String implementation) {
+        assert executer.gradleUserHomeDir.file("jdks").listFiles({ file ->
+            file.name.contains("-14-") && file.name.contains(implementation)
+        } as FileFilter)
     }
 
 }
