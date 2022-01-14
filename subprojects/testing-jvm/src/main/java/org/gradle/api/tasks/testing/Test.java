@@ -1162,6 +1162,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         return untilFailureRunCount;
     }
 
+    @Option(option = "run-until-failure", description = "Runs the tests until failure occurs.")
     public void setUntilFailureRunCount(@Nullable Long untilFailureRunCount) {
         if (untilFailureRunCount != null && untilFailureRunCount < 1) {
             throw new IllegalArgumentException("Cannot set untilFailureRunCount to a value less than 1.");

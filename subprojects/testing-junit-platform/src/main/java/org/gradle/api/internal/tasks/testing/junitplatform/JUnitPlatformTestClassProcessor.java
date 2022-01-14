@@ -71,6 +71,11 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
     }
 
     @Override
+    public void stop() {
+        super.stop();
+    }
+
+    @Override
     public void runTests() {
         testClassExecutor.processAllTestClasses();
     }

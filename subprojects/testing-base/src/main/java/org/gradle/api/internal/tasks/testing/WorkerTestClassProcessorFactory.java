@@ -19,5 +19,5 @@ package org.gradle.api.internal.tasks.testing;
 import org.gradle.internal.service.ServiceRegistry;
 
 public interface WorkerTestClassProcessorFactory {
-    FrameworkTestClassProcessor create(ServiceRegistry serviceRegistry);
+    TestClassProcessor create(ServiceRegistry serviceRegistry);
 }

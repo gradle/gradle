@@ -358,6 +358,13 @@ public class BlockingHttpServer extends ExternalResource implements ResettableEx
     }
 
     /**
+     * Expects the given request to be made n times. Blocks until the request is explicitly released using one of the methods on {@link BlockingHandler}.
+     */
+    public BlockingHandler expectAndBlock(String expectedCall, int numberOfCalls) {
+        return addBlockingHandler(1, Collections.singleton(doGet(expectedCall)));
+    }
+
+    /**
      * Expects the given request to be made. Releases the request as soon as it is received.
      */
     public void expect(ExpectedRequest expectedRequest) {

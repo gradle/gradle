@@ -45,7 +45,7 @@ public class JUnitTestClassProcessor extends AbstractJUnitTestClassProcessor<JUn
         return new JUnitTestClassExecutor(Thread.currentThread().getContextClassLoader(), spec, junitEventAdapter, threadSafeTestClassListener);
     }
 
-    @Override
+//    @Override
     public void runTests() {
 
     }

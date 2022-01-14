@@ -35,6 +35,7 @@ import org.gradle.api.internal.tasks.testing.processors.RestartEveryNTestClassPr
 import org.gradle.api.internal.tasks.testing.processors.RunPreviousFailedFirstTestClassProcessor;
 import org.gradle.api.internal.tasks.testing.processors.TestMainAction;
 import org.gradle.api.internal.tasks.testing.worker.ForkingTestClassProcessor;
+import org.gradle.api.internal.tasks.testing.worker.WorkerTestClassProcessor;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.Factory;
@@ -45,6 +46,7 @@ import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 
 import java.io.File;
+import java.io.Serializable;
 import java.util.List;
 import java.util.Set;
 
@@ -121,42 +123,61 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
     }
 
     private WorkerTestClassProcessorFactory decorateWithRetryer(final JvmTestExecutionSpec testExecutionSpec, final WorkerTestClassProcessorFactory workerTestClassProcessorFactory) {
-        return new WorkerTestClassProcessorFactory() {
-            @Override
-            public FrameworkTestClassProcessor create(ServiceRegistry serviceRegistry) {
-                final FrameworkTestClassProcessor frameworkProcessor = workerTestClassProcessorFactory.create(serviceRegistry);
-                return new FrameworkTestClassProcessor() {
-                    @Override
-                    public void runTests() {
+        return new RetryableWorkerTestClassProcessorFactory(workerTestClassProcessorFactory, testExecutionSpec.getUntilFailureRunCount());
+    }
 
-                    }
+    public static class RetryableWorkerTestClassProcessorFactory implements WorkerTestClassProcessorFactory, Serializable {
 
-                    @Override
-                    public void startProcessing(TestResultProcessor resultProcessor) {
-                        frameworkProcessor.startProcessing(resultProcessor);
-                    }
+        private final WorkerTestClassProcessorFactory other;
+        private final long untilFailureRunCount;
 
-                    @Override
-                    public void processTestClass(TestClassRunInfo testClass) {
-                        frameworkProcessor.processTestClass(testClass);
-                    }
+        public RetryableWorkerTestClassProcessorFactory(WorkerTestClassProcessorFactory other, long untilFailureRunCount) {
+            this.other = other;
+            this.untilFailureRunCount = untilFailureRunCount;
+        }
 
-                    @Override
-                    public void stop() {
-                        long executions = Math.max(testExecutionSpec.getUntilFailureRunCount(), 1);
-                        while (executions-- > 0) {
-                            frameworkProcessor.runTests();
-                        }
-                        frameworkProcessor.stop();
-                    }
+        @Override
+        public TestClassProcessor create(ServiceRegistry serviceRegistry) {
+            final TestClassProcessor frameworkProcessor = other.create(serviceRegistry);
+            return new RetryableTestClassProcessor((FrameworkTestClassProcessor) frameworkProcessor, untilFailureRunCount);
+        }
+    }
 
-                    @Override
-                    public void stopNow() {
-                        frameworkProcessor.stopNow();
-                    }
-                };
+    public static class RetryableTestClassProcessor implements TestClassProcessor {
+        private final FrameworkTestClassProcessor processor;
+        private final long untilFailureRunCount;
+
+        public RetryableTestClassProcessor(FrameworkTestClassProcessor processor, long untilFailureRunCount) {
+            this.processor = processor;
+            this.untilFailureRunCount = untilFailureRunCount;
+        }
+
+        @Override
+        public void startProcessing(TestResultProcessor resultProcessor) {
+            processor.startProcessing(resultProcessor);
+        }
+
+        @Override
+        public void processTestClass(TestClassRunInfo testClass) {
+            processor.processTestClass(testClass);
+        }
+
+        @Override
+        public void stop() {
+            try {
+                long executions = Math.max(untilFailureRunCount, 1);
+                while (executions-- > 0) {
+                    processor.runTests();
+                }
+            } finally {
+                processor.stop();
             }
-        };
+        }
+
+        @Override
+        public void stopNow() {
+            processor.stopNow();
+        }
     }
 
     @Override
