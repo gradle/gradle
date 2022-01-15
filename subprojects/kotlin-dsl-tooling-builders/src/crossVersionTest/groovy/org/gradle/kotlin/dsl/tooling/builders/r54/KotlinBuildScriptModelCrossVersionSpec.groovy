@@ -543,8 +543,7 @@ class KotlinBuildScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCr
             rootProjectScript,
             subProjectScript,
             hasItems(
-                equalTo("kotlin-gradle-plugin-${targetKotlinVersion}-sources.jar".toString()),
-                matching("annotations-[0-9.]+-sources\\.jar")
+                equalTo("kotlin-gradle-plugin-${targetKotlinVersion}-sources.jar".toString())
             )
         )
     }
