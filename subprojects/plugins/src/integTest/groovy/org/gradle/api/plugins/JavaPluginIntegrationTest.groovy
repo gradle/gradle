@@ -76,7 +76,7 @@ class JavaPluginIntegrationTest extends AbstractIntegrationSpec implements Inspe
             """.stripIndent())
 
         and:
-        hasIncubatingVariantsLegend()
+        hasIncubatingLegend()
     }
 
     @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
@@ -113,7 +113,7 @@ class JavaPluginIntegrationTest extends AbstractIntegrationSpec implements Inspe
             """.stripIndent())
 
         and:
-        hasIncubatingVariantsLegend()
+        hasIncubatingLegend()
     }
 
     def "mainSourceElements can be consumed by another task via Dependency Management"() {

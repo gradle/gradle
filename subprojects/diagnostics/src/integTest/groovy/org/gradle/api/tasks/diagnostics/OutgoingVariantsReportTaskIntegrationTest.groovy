@@ -16,11 +16,10 @@
 
 package org.gradle.api.tasks.diagnostics
 
-import org.gradle.api.JavaVersion
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.InspectsConfigurationReport
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import spock.lang.Ignore
 
 class OutgoingVariantsReportTaskIntegrationTest extends AbstractIntegrationSpec implements InspectsConfigurationReport {
     def setup() {
@@ -29,16 +28,16 @@ class OutgoingVariantsReportTaskIntegrationTest extends AbstractIntegrationSpec 
         """
     }
 
+
     @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
-    def "if no configurations present, outgoing variants task produces empty report"() {
+    def "if no configurations present in project, task reports complete absence"() {
         expect:
         succeeds ':outgoingVariants'
-        outputContains('There are no outgoing variants on project myLib')
+        reportsCompleteAbsenceOfResolvableVariants()
     }
 
-
     @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
-    def "if only consumable configurations present, outgoing variants task produces empty report"() {
+    def "if only resolvable configurations present, task reports complete absence"() {
         given:
         buildFile << """
             configurations.create("custom") {
@@ -50,9 +49,185 @@ class OutgoingVariantsReportTaskIntegrationTest extends AbstractIntegrationSpec 
 
         expect:
         succeeds ':outgoingVariants'
-        outputContains('There are no outgoing variants on project myLib')
+        reportsCompleteAbsenceOfResolvableVariants()
     }
 
+    @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
+    def "if only legacy configuration present, and --all not specified, task produces empty report and prompts for rerun"() {
+        given:
+        buildFile << """
+            configurations.create("legacy") {
+                description = "My legacy configuration"
+                canBeResolved = true
+                canBeConsumed = true
+            }
+        """
+
+        expect:
+        succeeds ':outgoingVariants'
+        reportsNoProperVariants()
+        promptsForRerunToFindMoreVariants()
+    }
+
+    @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
+    def "if only legacy configuration present, task reports it if --all flag is set"() {
+        given:
+        buildFile << """
+            configurations.create("legacy") {
+                description = "My custom legacy configuration"
+                canBeResolved = true
+                canBeConsumed = true
+            }
+        """
+
+        when:
+        executer.expectDeprecationWarning('(l) Legacy or deprecated configuration. Those are variants created for backwards compatibility which are both resolvable and consumable.')
+        run ':outgoingVariants', '--all'
+
+        then:
+        outputContains """> Task :outgoingVariants
+--------------------------------------------------
+Variant legacy (l)
+--------------------------------------------------
+Description = My custom legacy configuration"""
+
+        and:
+        hasLegacyLegend()
+        doesNotHaveIncubatingLegend()
+        doesNotPromptForRerunToFindMoreConfigurations()
+    }
+
+    @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
+    def "if single outgoing variant with no attributes or artifacts present, task reports it"() {
+        given:
+        buildFile << """
+            configurations.create("custom") {
+                description = "My custom configuration"
+                canBeResolved = false
+                canBeConsumed = true
+            }
+        """
+
+        when:
+        succeeds ':outgoingVariants'
+
+        then:
+        outputContains """> Task :outgoingVariants
+--------------------------------------------------
+Variant custom
+--------------------------------------------------
+Description = My custom configuration
+"""
+        and:
+        doesNotHaveLegacyLegend()
+        doesNotHaveIncubatingLegend()
+        doesNotPromptForRerunToFindMoreVariants()
+    }
+
+    @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
+    def "if single outgoing variant present with attributes, task reports it and them"() {
+        given:
+        buildFile << """
+            configurations.create("custom") {
+                description = "My custom configuration"
+                canBeResolved = false
+                canBeConsumed = true
+
+                attributes {
+                    attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, project.objects.named(LibraryElements, LibraryElements.JAR))
+                    attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME))
+                    attribute(Bundling.BUNDLING_ATTRIBUTE, project.objects.named(Bundling, Bundling.EXTERNAL))
+                }
+            }
+        """
+
+        when:
+        succeeds ':outgoingVariants'
+
+        then:
+        outputContains """> Task :outgoingVariants
+--------------------------------------------------
+Variant custom
+--------------------------------------------------
+Description = My custom configuration
+
+Capabilities
+    - :myLib:unspecified (default capability)
+Attributes
+    - org.gradle.dependency.bundling = external
+    - org.gradle.libraryelements     = jar
+    - org.gradle.usage               = java-runtime
+"""
+
+        and:
+        doesNotHaveLegacyLegend()
+        doesNotHaveIncubatingLegend()
+        doesNotPromptForRerunToFindMoreVariants()
+    }
+
+    @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
+    def "If multiple outgoing variants present with attributes, task reports them all, sorted alphabetically"() {
+        given:
+        buildFile << """
+            configurations.create("someConf") {
+                description = "My first custom configuration"
+                canBeResolved = false
+                canBeConsumed = true
+
+                attributes {
+                    attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, project.objects.named(LibraryElements, LibraryElements.JAR))
+                    attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME))
+                    attribute(Bundling.BUNDLING_ATTRIBUTE, project.objects.named(Bundling, Bundling.EXTERNAL))
+                }
+            }
+
+            configurations.create("otherConf") {
+                description = "My second custom configuration"
+                canBeResolved = false
+                canBeConsumed = true
+
+                attributes {
+                    attribute(Category.CATEGORY_ATTRIBUTE, project.objects.named(Category, Category.DOCUMENTATION));
+                }
+            }
+        """
+
+        when:
+        succeeds ':outgoingVariants'
+
+        then:
+        outputContains """> Task :outgoingVariants
+--------------------------------------------------
+Variant otherConf
+--------------------------------------------------
+Description = My second custom configuration
+
+Capabilities
+    - :myLib:unspecified (default capability)
+Attributes
+    - org.gradle.category = documentation
+
+--------------------------------------------------
+Variant someConf
+--------------------------------------------------
+Description = My first custom configuration
+
+Capabilities
+    - :myLib:unspecified (default capability)
+Attributes
+    - org.gradle.dependency.bundling = external
+    - org.gradle.libraryelements     = jar
+    - org.gradle.usage               = java-runtime
+"""
+
+        and:
+        doesNotHaveLegacyLegend()
+        doesNotHaveIncubatingLegend()
+        doesNotPromptForRerunToFindMoreVariants()
+    }
+
+
+    /*
     @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
     def "reports outgoing variants of a Java Library"() {
         buildFile << """
@@ -1166,4 +1341,5 @@ Description = My custom legacy configuration
         hasLegacyVariantsLegend()
         doesNotHaveIncubatingVariantsLegend()
     }
+    */
 }

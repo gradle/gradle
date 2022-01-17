@@ -91,8 +91,8 @@ Configuration legacy (l)
 Description = My custom legacy configuration"""
 
         and:
-        hasLegacyVariantsLegend()
-        doesNotHaveIncubatingVariantsLegend()
+        hasLegacyLegend()
+        doesNotHaveIncubatingLegend()
         doesNotPromptForRerunToFindMoreConfigurations()
     }
 
@@ -118,8 +118,8 @@ Configuration custom
 Description = My custom configuration
 """
         and:
-        doesNotHaveLegacyVariantsLegend()
-        doesNotHaveIncubatingVariantsLegend()
+        doesNotHaveLegacyLegend()
+        doesNotHaveIncubatingLegend()
         doesNotPromptForRerunToFindMoreConfigurations()
     }
 
@@ -157,13 +157,13 @@ Attributes
 """
 
         and:
-        doesNotHaveLegacyVariantsLegend()
-        doesNotHaveIncubatingVariantsLegend()
+        doesNotHaveLegacyLegend()
+        doesNotHaveIncubatingLegend()
         doesNotPromptForRerunToFindMoreConfigurations()
     }
 
     @ToBeFixedForConfigurationCache(because = ":resolvableConfigurations")
-    def "If multiple resolvable configurations present with attributes,  task reports them all, sorted alphabetically"() {
+    def "If multiple resolvable configurations present with attributes, task reports them all, sorted alphabetically"() {
         given:
         buildFile << """
             configurations.create("someConf") {
@@ -214,8 +214,8 @@ Attributes
 """
 
         and:
-        doesNotHaveLegacyVariantsLegend()
-        doesNotHaveIncubatingVariantsLegend()
+        doesNotHaveLegacyLegend()
+        doesNotHaveIncubatingLegend()
         doesNotPromptForRerunToFindMoreConfigurations()
     }
 
@@ -316,8 +316,8 @@ Attributes
 """
 
         and:
-        doesNotHaveLegacyVariantsLegend()
-        doesNotHaveIncubatingVariantsLegend()
+        doesNotHaveLegacyLegend()
+        doesNotHaveIncubatingLegend()
     }
 
     @ToBeFixedForConfigurationCache(because = ":resolvableConfigurations")
@@ -428,8 +428,8 @@ Attributes
 """
 
         and:
-        hasLegacyVariantsLegend()
-        doesNotHaveIncubatingVariantsLegend()
+        hasLegacyLegend()
+        doesNotHaveIncubatingLegend()
     }
 
     @ToBeFixedForConfigurationCache(because = ":resolvableConfigurations")

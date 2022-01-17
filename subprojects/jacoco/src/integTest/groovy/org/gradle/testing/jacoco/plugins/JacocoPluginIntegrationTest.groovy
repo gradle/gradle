@@ -174,7 +174,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec implements Ins
                 - $resultsExecPath (artifactType = binary)""".stripIndent())
 
         and:
-        hasIncubatingVariantsLegend()
+        hasIncubatingLegend()
     }
 
     @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
@@ -218,7 +218,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec implements Ins
                 - $resultsExecPath (artifactType = binary)""".stripIndent())
 
         and:
-        hasIncubatingVariantsLegend()
+        hasIncubatingLegend()
     }
 
     def "Jacoco coverage data can be consumed by another task via Dependency Management"() {

@@ -65,7 +65,7 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec implemen
             """.stripIndent())
 
         and:
-        hasIncubatingVariantsLegend()
+        hasIncubatingLegend()
     }
 
     @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
@@ -114,7 +114,7 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec implemen
             """.stripIndent())
 
         and:
-        hasIncubatingVariantsLegend()
+        hasIncubatingLegend()
     }
 
     def "Test coverage data can be consumed by another task via Dependency Management"() {

@@ -31,19 +31,19 @@ trait InspectsConfigurationReport {
         outputDoesNotContain("(*) Secondary variants are variants created via the Configuration#getOutgoing(): ConfigurationPublications API which also participate in selection, in addition to the configuration itself.")
     }
 
-    void hasLegacyVariantsLegend() {
+    void hasLegacyLegend() {
         outputContains("(l) Legacy or deprecated configuration. Those are variants created for backwards compatibility which are both resolvable and consumable.")
     }
 
-    void doesNotHaveLegacyVariantsLegend() {
+    void doesNotHaveLegacyLegend() {
         outputDoesNotContain("(l) Legacy or deprecated configuration. Those are variants created for backwards compatibility which are both resolvable and consumable.")
     }
 
-    void hasIncubatingVariantsLegend() {
+    void hasIncubatingLegend() {
         outputContains("(i) Configuration uses incubating attributes such as Category.VERIFICATION.")
     }
 
-    void doesNotHaveIncubatingVariantsLegend() {
+    void doesNotHaveIncubatingLegend() {
         outputDoesNotContain("(i) Configuration uses incubating attributes such as Category.VERIFICATION.")
     }
 
@@ -51,15 +51,31 @@ trait InspectsConfigurationReport {
         outputContains("There are no resolvable configurations (including legacy configurations) present in project")
     }
 
+    void reportsCompleteAbsenceOfResolvableVariants() {
+        outputContains("There are no outgoing variants (including legacy variants) present in project")
+    }
+
     void reportsNoProperConfigurations() {
         outputContains("There are no proper resolvable configurations present in project")
+    }
+
+    void reportsNoProperVariants() {
+        outputContains("There are no proper outgoing variants present in project")
     }
 
     void promptsForRerunToFindMoreConfigurations() {
         outputContains("Re-run this report with the '--all' flag to include legacy configurations (legacy = consumable and resolvable).")
     }
 
+    void promptsForRerunToFindMoreVariants() {
+        outputContains("Re-run this report with the '--all' flag to include legacy variants (legacy = consumable and resolvable).")
+    }
+
     void doesNotPromptForRerunToFindMoreConfigurations() {
         outputDoesNotContain("Re-run this report with the '--all' flag to include legacy configurations (legacy = consumable and resolvable).")
+    }
+
+    void doesNotPromptForRerunToFindMoreVariants() {
+        outputDoesNotContain("Re-run this report with the '--all' flag to include legacy variants (legacy = consumable and resolvable).")
     }
 }
