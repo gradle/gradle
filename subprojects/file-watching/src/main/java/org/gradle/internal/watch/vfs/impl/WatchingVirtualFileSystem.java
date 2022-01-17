@@ -107,7 +107,19 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
 
     @Override
     public void registerChangeBroadcaster(FileWatcherRegistry.ChangeHandler changeBroadcaster) {
+        if (this.changeBroadcaster != null) {
+            throw new IllegalStateException("A change broadcaster has already been registered: " + changeBroadcaster);
+        }
         this.changeBroadcaster = changeBroadcaster;
+    }
+
+    @Override
+    public void unregisterChangeBroadcaster(FileWatcherRegistry.ChangeHandler changeBroadcaster) {
+        if (this.changeBroadcaster == changeBroadcaster) {
+            this.changeBroadcaster = null;
+        } else {
+            throw new IllegalStateException("Cannot unregister change broadcaster " + changeBroadcaster + " because it is not registered");
+        }
     }
 
     @Override

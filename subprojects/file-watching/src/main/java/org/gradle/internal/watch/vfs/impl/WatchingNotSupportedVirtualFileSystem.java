@@ -57,6 +57,10 @@ public class WatchingNotSupportedVirtualFileSystem extends AbstractVirtualFileSy
     }
 
     @Override
+    public void unregisterChangeBroadcaster(FileWatcherRegistry.ChangeHandler changeBroadcaster) {
+    }
+
+    @Override
     public boolean afterBuildStarted(
         WatchMode watchMode,
         VfsLogging vfsLogging,

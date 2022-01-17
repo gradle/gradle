@@ -141,7 +141,8 @@ public class ContinuousBuildActionExecutor implements BuildSessionActionExecutor
                                                            BuildCancellationToken cancellationToken, CancellableOperationManager cancellableOperationManager, ContinuousExecutionGate continuousExecutionGate) {
         BuildActionRunner.Result lastResult;
         PendingChangesListener pendingChangesListener = listenerManager.getBroadcaster(PendingChangesListener.class);
-        virtualFileSystem.registerChangeBroadcaster(listenerManager.getBroadcaster(FileChangeListener.class));
+        FileChangeListener changeBroadcaster = listenerManager.getBroadcaster(FileChangeListener.class);
+        virtualFileSystem.registerChangeBroadcaster(changeBroadcaster);
         try {
             while (true) {
                 FileSystemChangeListener fileSystemChangeListener = new FileSystemChangeListener(
@@ -179,7 +180,7 @@ public class ContinuousBuildActionExecutor implements BuildSessionActionExecutor
                 }
             }
         } finally {
-            virtualFileSystem.registerChangeBroadcaster(null);
+            virtualFileSystem.unregisterChangeBroadcaster(changeBroadcaster);
         }
 
         logger.println("Build cancelled.");
