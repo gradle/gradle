@@ -41,9 +41,9 @@ class BuildSessionServiceReuseContinuousIntegrationTest extends AbstractContinuo
 
             task captureService {
                 inputs.file file("$triggerFileName")
+                outputs.file "$idFileName"
                 doLast {
                     def idFile = file("${idFileName}")
-                    mkdir(idFile.parent)
                     def service = services.get(${service})
                     idFile << System.identityHashCode(service) + "\\n"
                 }
@@ -60,7 +60,7 @@ class BuildSessionServiceReuseContinuousIntegrationTest extends AbstractContinuo
         triggerFile << "change"
 
         then:
-        succeeds()
+        buildTriggeredAndSucceeded()
 
         and:
         def ids = idFile.readLines()

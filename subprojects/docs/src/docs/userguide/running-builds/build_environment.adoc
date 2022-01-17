@@ -300,6 +300,7 @@ systemProp.https.proxyHost=www.somehost.org
 systemProp.https.proxyPort=8080
 systemProp.https.proxyUser=userid
 systemProp.https.proxyPassword=password
+# NOTE: this is not a typo.
 systemProp.http.nonProxyHosts=*.nonproxyrepos.com|localhost
 ----
 

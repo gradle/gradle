@@ -151,21 +151,25 @@ jar.dependsOn postCompile
 
             task a {
               inputs.dir "a"
+              outputs.file "build/a"
               doLast taskAction
             }
             task b {
               dependsOn "a"
               inputs.dir "b"
+              outputs.file "build/b"
               doLast taskAction
             }
             task c {
               dependsOn "b"
               inputs.dir "c"
+              outputs.file "build/c"
               doLast taskAction
             }
             task d {
               dependsOn "c"
               inputs.dir "d"
+              outputs.file "build/d"
               doLast taskAction
             }
         """
@@ -190,16 +194,19 @@ jar.dependsOn postCompile
         buildFile << """
             task a {
               inputs.dir "a"
+              outputs.file "build/a"
               doLast {}
             }
             task b {
               dependsOn "a"
               inputs.dir "b"
+              outputs.file "build/b"
               doLast {}
             }
             task c {
               dependsOn "b"
               inputs.dir "c"
+              outputs.file "build/c"
               doLast {
                 throw new Exception("Failure in :c")
               }
@@ -207,6 +214,7 @@ jar.dependsOn postCompile
             task d {
               dependsOn "c"
               inputs.dir "d"
+              outputs.file "build/d"
               doLast {}
             }
         """
@@ -219,7 +227,7 @@ jar.dependsOn postCompile
 
         then:
         if (shouldTrigger) {
-            fails()
+            buildTriggeredAndFailed()
         } else {
             noBuildTriggered()
         }

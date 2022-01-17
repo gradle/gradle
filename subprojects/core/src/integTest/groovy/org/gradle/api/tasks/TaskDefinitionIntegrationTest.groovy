@@ -633,4 +633,40 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasCause("Adding a task provider directly to the task container is not supported.")
     }
+
+    def "can override description and group without @Internal annotation"() {
+        buildFile << """
+            class CustomTask extends DefaultTask {
+                @Override
+                public String getDescription() {
+                    return "My custom task description.";
+                }
+                @Override
+                public String getGroup() {
+                    return "custom group";
+                }
+                @TaskAction
+                void doWork() {
+                    println("Hello from CustomTask")
+                }
+            }
+            tasks.register("customTask", CustomTask)
+        """
+
+        when:
+        succeeds("tasks")
+
+        then:
+        outputContains("""
+Custom group tasks
+------------------
+customTask - My custom task description.
+""")
+
+        when:
+        succeeds("customTask")
+
+        then:
+        outputContains("Hello from CustomTask")
+    }
 }

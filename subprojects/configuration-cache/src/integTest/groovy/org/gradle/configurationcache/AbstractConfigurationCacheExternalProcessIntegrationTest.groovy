@@ -14,25 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal;
+package org.gradle.configurationcache
 
-import org.gradle.api.Transformer;
 
-import javax.annotation.Nullable;
+import org.gradle.configurationcache.fixtures.ExternalProcessFixture
 
-/**
- * <p>{@code Transformer} extension that explicitly allows {@code null} return values</p>
- *
- * @param <OUT> The type the value is transformed to.
- * @param <IN> The type of the value to be transformed.
- */
-public abstract class NullableTransformer<OUT, IN> implements Transformer<OUT, IN> {
-
-    @Nullable
-    @Override
-    public abstract OUT transform(IN in);
-
-    public Transformer<OUT, IN> asTransformer() {
-        return this;
-    }
+abstract class AbstractConfigurationCacheExternalProcessIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+    ExternalProcessFixture execOperationsFixture = new ExternalProcessFixture(testDirectory)
 }

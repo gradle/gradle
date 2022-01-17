@@ -15,6 +15,7 @@
  */
 package org.gradle.util.internal
 
+import org.gradle.internal.os.OperatingSystem
 import spock.lang.Specification
 
 import java.nio.CharBuffer
@@ -26,12 +27,14 @@ import static org.gradle.util.internal.GUtil.endsWith
 import static org.gradle.util.internal.GUtil.flatten
 import static org.gradle.util.internal.GUtil.flattenElements
 import static org.gradle.util.internal.GUtil.isSecureUrl
+import static org.gradle.util.internal.GUtil.isUnsafeZipEntryName
 import static org.gradle.util.internal.GUtil.toCamelCase
 import static org.gradle.util.internal.GUtil.toConstant
 import static org.gradle.util.internal.GUtil.toEnum
 import static org.gradle.util.internal.GUtil.toEnumSet
 import static org.gradle.util.internal.GUtil.toLowerCamelCase
 import static org.gradle.util.internal.GUtil.toWords
+import static org.junit.Assume.assumeFalse
 
 class GUtilTest extends Specification {
     static sep = File.pathSeparator
@@ -258,12 +261,12 @@ class GUtilTest extends Specification {
         endsWith(CharBuffer.wrap(a), CharBuffer.wrap(b)) == a.endsWith(b)
 
         where:
-        a           | b
-        "foo"       | "fo"
-        "foo"       | "oo"
-        "fo"        | "foo"
-        "foo"       | ""
-        ""          | "foo"
+        a     | b
+        "foo" | "fo"
+        "foo" | "oo"
+        "fo"  | "foo"
+        "foo" | ""
+        ""    | "foo"
     }
 
     static enum TestEnum {
@@ -292,5 +295,31 @@ class GUtilTest extends Specification {
         isSecureUrl(new URI("https://example.com"))
         isSecureUrl(new URI("https://localhost"))
         isSecureUrl(new URI("https://127.0.0.1"))
+    }
+
+    def "identifies potentially unsafe zip entry names"() {
+        setup:
+        assumeFalse(
+            ": is only unsafe on Windows systems",
+            unsafePath.contains(':') && !isWindows()
+        )
+
+        expect:
+        isUnsafeZipEntryName(unsafePath)
+        !isUnsafeZipEntryName(safePath)
+
+        where:
+        unsafePath | safePath
+        "/"        | "foo/"
+        "\\"       | "foo\\"
+        "/foo"     | "foo"
+        "\\foo"    | "foo"
+        "foo/.."   | "foo/bar"
+        "foo\\.."  | "foo\\bar"
+        "C:/foo"   | "foo"
+    }
+
+    private static boolean isWindows() {
+        OperatingSystem.current().isWindows()
     }
 }

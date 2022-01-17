@@ -20,13 +20,12 @@ import groovy.transform.TupleConstructor
 import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.Flaky
+import org.gradle.test.fixtures.file.TestFile
 
 import static org.gradle.internal.filewatch.DefaultFileSystemChangeWaiterFactory.QUIET_PERIOD_SYSPROP
 import static org.gradle.internal.filewatch.DefaultFileWatcherEventListener.SHOW_INDIVIDUAL_CHANGES_LIMIT
 
-// Developer is able to easily determine the file(s) that triggered a rebuild
 class ContinuousBuildChangeReportingIntegrationTest extends AbstractContinuousIntegrationTest {
     TestFile inputDir
     private static int changesLimit = SHOW_INDIVIDUAL_CHANGES_LIMIT
@@ -37,6 +36,7 @@ class ContinuousBuildChangeReportingIntegrationTest extends AbstractContinuousIn
         buildFile << """
             task theTask {
               inputs.dir "inputDir"
+              outputs.files "build/outputs"
               doLast {}
             }
         """
@@ -53,33 +53,39 @@ class ContinuousBuildChangeReportingIntegrationTest extends AbstractContinuousIn
         inputFile.text = 'New input file'
 
         then:
-        succeeds()
+        buildTriggeredAndSucceeded()
         sendEOT()
         assertReportsChanges([new ChangeEntry('new file', inputFile)])
     }
 
     def "should report the absolute file path of the created files when the number of files added to the input directory is at the limit"() {
         given:
-        def inputFiles = (1..changesLimit).collect { inputDir.file("input${it}.txt") }
+        // We need to put these files in subdirectories, since on Linux we'd stop watching a directory as soon as we
+        // received file changes for all the files inside.
+        def inputSubdirectories = (1..changesLimit).collect { inputDir.createDir("subdir${it}")}
+        def inputFiles = inputSubdirectories.collect { inputDir.file("input.txt") }
         when:
         succeeds("theTask")
         inputFiles.each { it.text = 'New input file' }
 
         then:
-        succeeds()
+        buildTriggeredAndSucceeded()
         sendEOT()
         assertReportsChanges(inputFiles.collect { new ChangeEntry('new file', it) })
     }
 
     def "should report the absolute file path of the created files up to the limit and 'and some more changes' when the number of files added to the input directory is over the limit"() {
         given:
-        def inputFiles = (1..9).collect { inputDir.file("input${it}.txt") }
+        // We need to put these files in subdirectories, since on Linux we'd stop watching a directory as soon as we
+        // received file changes for all the files inside.
+        def inputSubdirectories = (1..9).collect { inputDir.createDir("subdir${it}")}
+        def inputFiles = inputSubdirectories.collect { it.file("input.txt") }
         when:
         succeeds("theTask")
         inputFiles.each { it.text = 'New input file' }
 
         then:
-        succeeds()
+        buildTriggeredAndSucceeded()
         sendEOT()
         assertReportsChanges(inputFiles.collect { new ChangeEntry('new file', it) }, true)
     }
@@ -95,7 +101,7 @@ class ContinuousBuildChangeReportingIntegrationTest extends AbstractContinuousIn
         inputFiles.each { it.delete() }
 
         then:
-        succeeds()
+        buildTriggeredAndSucceeded()
         sendEOT()
         assertReportsChanges(inputFiles.collect { new ChangeEntry('deleted', it) }, expectMoreChanges)
 
@@ -114,7 +120,7 @@ class ContinuousBuildChangeReportingIntegrationTest extends AbstractContinuousIn
         inputFiles.each { it.text = 'File modified' }
 
         then:
-        succeeds()
+        buildTriggeredAndSucceeded()
         sendEOT()
         assertReportsChanges(inputFiles.collect { new ChangeEntry('modified', it) }, expectMoreChanges)
 
@@ -133,7 +139,7 @@ class ContinuousBuildChangeReportingIntegrationTest extends AbstractContinuousIn
         inputDirectories.each { it.mkdir() }
 
         then:
-        succeeds()
+        buildTriggeredAndSucceeded()
         sendEOT()
         assertReportsChanges(inputDirectories.collect { new ChangeEntry('new directory', it) }, expectMoreChanges)
 
@@ -152,7 +158,7 @@ class ContinuousBuildChangeReportingIntegrationTest extends AbstractContinuousIn
         inputDirectories.each { it.delete() }
 
         then:
-        succeeds()
+        buildTriggeredAndSucceeded()
         sendEOT()
         assertReportsChanges(inputDirectories.collect { new ChangeEntry('deleted', it) }, expectMoreChanges)
 
@@ -175,7 +181,7 @@ class ContinuousBuildChangeReportingIntegrationTest extends AbstractContinuousIn
         newfile2.text = 'New Input file'
 
         then:
-        succeeds()
+        buildTriggeredAndSucceeded()
         sendEOT()
         assertReportsChanges([new ChangeEntry("new file", newfile1), new ChangeEntry("modified", inputFiles[2]), new ChangeEntry("deleted", inputFiles[7]), new ChangeEntry("new file", newfile2)], true)
     }
@@ -216,7 +222,7 @@ class ContinuousBuildChangeReportingIntegrationTest extends AbstractContinuousIn
         inputFile.text = 'New input file'
 
         then:
-        succeeds()
+        buildTriggeredAndSucceeded()
         sendEOT()
         assertReportsChanges([new ChangeEntry('new file', inputFile)])
     }

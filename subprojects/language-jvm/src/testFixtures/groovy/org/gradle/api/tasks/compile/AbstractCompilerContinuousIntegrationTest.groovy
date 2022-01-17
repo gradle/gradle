@@ -77,7 +77,7 @@ abstract class AbstractCompilerContinuousIntegrationTest extends AbstractContinu
         inputFile.text = changedSourceContent
 
         then:
-        succeeds()
+        buildTriggeredAndSucceeded()
 
         and:
         def compilerDaemonSets = compilerDaemonIdentityFile.readLines()

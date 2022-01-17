@@ -50,13 +50,13 @@ class SymlinkContinuousIntegrationTest extends AbstractContinuousIntegrationTest
         when: "symlink is deleted"
         symlink.delete()
         then:
-        succeeds()
+        buildTriggeredAndSucceeded()
         executedAndNotSkipped(":echo")
         output.contains("text: missing")
         when: "symlink is created"
         Files.createSymbolicLink(Paths.get(symlink.toURI()), Paths.get(sourceFile.toURI()))
         then:
-        succeeds()
+        buildTriggeredAndSucceeded()
         executedAndNotSkipped(":echo")
         output.contains("text: original")
         when: "changes made to target of symlink"
@@ -94,7 +94,7 @@ class SymlinkContinuousIntegrationTest extends AbstractContinuousIntegrationTest
         then:
         // OSX uses a polling implementation, so changes to links are detectable
         if (OperatingSystem.current().isMacOsX()) {
-            succeeds()
+            buildTriggeredAndSucceeded()
         } else {
             // Other OS's do not produce filesystem events for deleted symlinks
             noBuildTriggered()

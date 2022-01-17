@@ -21,6 +21,7 @@ import org.codehaus.groovy.runtime.callsite.AbstractCallSite;
 import org.codehaus.groovy.runtime.callsite.CallSite;
 import org.codehaus.groovy.runtime.callsite.CallSiteArray;
 import org.codehaus.groovy.runtime.wrappers.Wrapper;
+import org.gradle.internal.SystemProperties;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -283,7 +284,15 @@ public class Instrumented {
     }
 
     public static void fileOpened(File file, String consumer) {
-        listener().fileOpened(file, consumer);
+        listener().fileOpened(absoluteFileOf(file), consumer);
+    }
+
+    private static File absoluteFileOf(File file) {
+        return file.isAbsolute() ? file : new File(currentDir(), file.getPath());
+    }
+
+    private static File currentDir() {
+        return SystemProperties.getInstance().getCurrentDir();
     }
 
     public static void fileOpened(String path, String consumer) {
@@ -365,9 +374,10 @@ public class Instrumented {
         void externalProcessStarted(String command, String consumer);
 
         /**
+         * Invoked when the code opens a file.
          *
-         * @param file
-         * @param consumer
+         * @param file the absolute file that was open
+         * @param consumer the name of the class that is opening the file
          */
         void fileOpened(File file, String consumer);
     }

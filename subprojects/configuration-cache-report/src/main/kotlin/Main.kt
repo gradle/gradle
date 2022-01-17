@@ -136,9 +136,10 @@ fun reportPageModelFromJsModel(jsModel: JsModel): ConfigurationCacheReportPage.M
             ProblemNode.Label("Problems grouped by location"),
             problemNodesByLocation(diagnostics.problems)
         ),
+        reportedInputs = diagnostics.inputs.size,
         inputTree = treeModelFor(
             ProblemNode.Label("Inputs"),
-            problemNodesByMessage(diagnostics.inputs)
+            inputNodes(diagnostics.inputs)
         )
     )
 }
@@ -172,6 +173,25 @@ fun toImportedProblem(label: Array<JsMessageFragment>, jsProblem: JsDiagnostic) 
     label.let(::toPrettyText),
     jsProblem.trace.map(::toProblemNode)
 )
+
+
+private
+fun inputNodes(inputs: List<ImportedProblem>): Sequence<MutableList<ProblemNode>> =
+    inputs.asSequence().map { input ->
+        mutableListOf<ProblemNode>().apply {
+            val message = input.message
+            val inputType = message.fragments.first().unsafeCast<PrettyText.Fragment.Text>().text.trim()
+            val inputDescription = message.copy(fragments = message.fragments.drop(1))
+            add(
+                ProblemNode.Info(
+                    ProblemNode.Label(inputType),
+                    docLinkFor(input.problem)
+                )
+            )
+            add(ProblemNode.Message(inputDescription))
+            addAll(input.trace)
+        }
+    }
 
 
 private

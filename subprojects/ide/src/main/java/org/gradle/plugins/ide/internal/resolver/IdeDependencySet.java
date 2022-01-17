@@ -68,14 +68,20 @@ public class IdeDependencySet {
     private final Collection<Configuration> minusConfigurations;
     private final boolean inferModulePath;
     private final GradleApiSourcesResolver gradleApiSourcesResolver;
+    private final Collection<Configuration> testConfigurations;
 
-    public IdeDependencySet(DependencyHandler dependencyHandler, JavaModuleDetector javaModuleDetector, Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations,  boolean inferModulePath, GradleApiSourcesResolver gradleApiSourcesResolver) {
+    public IdeDependencySet(DependencyHandler dependencyHandler, JavaModuleDetector javaModuleDetector, Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations, boolean inferModulePath, GradleApiSourcesResolver gradleApiSourcesResolver) {
+        this(dependencyHandler, javaModuleDetector, plusConfigurations, minusConfigurations, inferModulePath, gradleApiSourcesResolver, Collections.emptySet());
+    }
+
+    public IdeDependencySet(DependencyHandler dependencyHandler, JavaModuleDetector javaModuleDetector, Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations, boolean inferModulePath, GradleApiSourcesResolver gradleApiSourcesResolver, Collection<Configuration> testConfigurations) {
         this.dependencyHandler = dependencyHandler;
         this.javaModuleDetector = javaModuleDetector;
         this.plusConfigurations = plusConfigurations;
         this.minusConfigurations = minusConfigurations;
         this.inferModulePath = inferModulePath;
         this.gradleApiSourcesResolver = gradleApiSourcesResolver;
+        this.testConfigurations = testConfigurations;
     }
 
     public void visit(IdeDependencyVisitor visitor) {
@@ -222,7 +228,7 @@ public class IdeDependencySet {
                 boolean testOnly = isTestConfiguration(configurations.get(artifact.getId()));
                 boolean asModule = isModule(testOnly, artifact.getFile());
                 if (componentIdentifier instanceof ProjectComponentIdentifier) {
-                    visitor.visitProjectDependency(artifact, asModule);
+                    visitor.visitProjectDependency(artifact, testOnly, asModule);
                 } else {
                     if (componentIdentifier instanceof ModuleComponentIdentifier) {
                         Set<ResolvedArtifactResult> sources = auxiliaryArtifacts.get(componentIdentifier, SourcesArtifact.class);
@@ -261,12 +267,7 @@ public class IdeDependencySet {
         }
 
         private boolean isTestConfiguration(Set<Configuration> configurations) {
-            for (Configuration c : configurations) {
-                if (!c.getName().toLowerCase().contains("test")) {
-                    return false;
-                }
-            }
-            return true;
+            return testConfigurations.containsAll(configurations);
         }
 
         private void visitUnresolvedDependencies(IdeDependencyVisitor visitor) {

@@ -28,7 +28,6 @@ import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceRegistration;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Internal;
-import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskDestroyables;
 import org.gradle.api.tasks.TaskInputs;
@@ -281,7 +280,6 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      * @since 7.3
      */
     @Incubating
-    @Internal
     void doNotTrackState(String reasonNotToTrackState);
 
     /**
@@ -774,7 +772,6 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      * @since 5.0
      */
     @Internal
-    @Optional
     Property<Duration> getTimeout();
 
     /**

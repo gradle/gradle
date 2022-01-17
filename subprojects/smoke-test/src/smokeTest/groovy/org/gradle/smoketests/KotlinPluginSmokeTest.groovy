@@ -25,7 +25,7 @@ import org.gradle.util.internal.VersionNumber
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
-import static org.junit.Assume.assumeTrue
+import static org.junit.Assume.assumeFalse
 
 class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements ValidationMessageChecker {
 
@@ -175,7 +175,8 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
     @UnsupportedWithConfigurationCache(iterationMatchers = KGP_NO_CC_ITERATION_MATCHER)
     def 'kotlin jvm and java-gradle-plugin plugins combined (kotlin=#kotlinVersion)'() {
 
-        assumeTrue(kotlinVersion != '1.3.72')
+        assumeFalse(kotlinVersion.startsWith("1.3."))
+        assumeFalse(kotlinVersion.startsWith("1.4."))
 
         given:
         buildFile << """

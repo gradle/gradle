@@ -4,6 +4,8 @@ plugins {
     id("gradlebuild.internal.java")
 }
 
+description = "Collection of test fixtures for performance tests, internal use only"
+
 val reports by configurations.creating
 val flamegraph by configurations.creating
 configurations.compileOnly { extendsFrom(flamegraph) }
