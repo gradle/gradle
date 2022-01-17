@@ -22,6 +22,7 @@ import org.gradle.internal.environment.GradleBuildEnvironment
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Ignore
 import spock.lang.Issue
 
@@ -55,10 +56,17 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         waitBeforeModification(markerFile)
         markerFile.text = "created"
         then:
-        buildTriggeredAndSucceeded()
-        output.contains "exists: true"
+        if (OperatingSystem.current().linux) {
+            buildTriggeredAndSucceeded()
+            output.contains "exists: true"
+        } else {
+            // TODO: We may want to support this use-case for
+            //       hierarchical watchers at some point as well.
+            noBuildTriggered()
+        }
     }
 
+    @ToBeImplemented
     def "detects changes when no snapshotting happens (#description)"() {
         given:
         def markerFile = file("input/marker")
@@ -82,8 +90,10 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         waitBeforeModification(markerFile)
         markerFile.text = "changed"
         then:
-        buildTriggeredAndSucceeded()
-        output.contains "value: changed"
+        noBuildTriggered()
+        // TODO: We may want to support this use-case at some point
+        //   buildTriggeredAndSucceeded()
+        //   output.contains "value: changed"
 
         where:
         description      | taskConfiguration
@@ -165,8 +175,14 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         when:
         sources.file("sub/other/included.txt").createFile()
         then:
-        buildTriggeredAndSucceeded()
-        outputContains("includedFiles: 3")
+        if (OperatingSystem.current().linux) {
+            // On Linux, we don't watch sub, since it is a filtered directory,
+            // and it doesn't contain any file or unfiltered directory
+            noBuildTriggered()
+        } else {
+            buildTriggeredAndSucceeded()
+            outputContains("includedFiles: 3")
+        }
     }
 
     @ToBeFixedForConfigurationCache
