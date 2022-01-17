@@ -927,6 +927,58 @@ This can indicate that a dependency has been compromised. Please carefully verif
         terse << [true, false]
     }
 
+    // TODO add correct issue
+    @ToBeFixedForConfigurationCache
+    @Issue("https://github.com/gradle/gradle/issues/xxxxx")
+    def "fails validation when first configuration has verification disabled"() {
+        createMetadataFile {
+            addChecksum("org.slf4j:slf4j-simple:1.7.10", 'sha256', "invalid")
+            addChecksum("org.slf4j:slf4j-parent:1.7.10", 'sha256', "1abee7f5182fb79b4926fb64658af8c3248ed6b374f9ac7da1fd9e8b9197e2ce", "pom", "pom")
+            addChecksum("org.slf4j:slf4j-simple:1.7.10", 'sha256', "bbd8c6f5cf54d1c1fb11b415e51f6b35483fc264f81ccd98654cc3420e756901", "pom", "pom")
+            addChecksum("org.slf4j:slf4j-api:1.7.10", 'sha256', "af9c5e8d2263422c74792ddd91b3cc1a24bd02b451b54cbb10cd6f2ba46c14b1", "pom", "pom")
+            addChecksum("org.slf4j:slf4j-api:1.7.10", 'sha256', "3863e27005740d4d1289bf87b113efea115e9a22408a7d623be8004991232bfe")
+        }
+        javaLibrary()
+
+        given:
+        uncheckedModule("org", "foo")
+        buildFile << """
+            repositories {
+                mavenCentral()
+            }
+            configurations {
+                unverified {
+                    resolutionStrategy.disableDependencyVerification()
+                }
+            }
+
+            dependencies {
+                unverified "org.slf4j:slf4j-simple:1.7.10"
+                implementation "org.slf4j:slf4j-simple:1.7.10"
+            }
+
+            tasks.register("resolveUnverified") {
+                doLast {
+                    println "\\nCompile"
+                    configurations.compileClasspath.files.each {
+                        println it
+                    }
+                    println "Unverified"
+                    configurations.unverified.files.each {
+                        println it
+                    }
+                }
+            }
+        """
+
+        when:
+        executer.withArgument("--info")
+        fails ":resolveUnverified"
+
+        then:
+        outputContains ""
+    }
+
     @ToBeFixedForConfigurationCache
     def "can disable verification of a detached configuration (terse output=#terse)"() {
         createMetadataFile {
@@ -1132,5 +1184,4 @@ This can indicate that a dependency has been compromised. Please carefully verif
   - monitor-1.0.jar (org:monitor:1.0) from repository maven
   - monitor-1.0.pom (org:monitor:1.0) from repository maven"""))
     }
-
 }

@@ -53,11 +53,11 @@ class AbstractDependencyVerificationIntegTest extends AbstractHttpDependencyReso
                 id 'java-library'
             }
 
-            repositories {
-                maven {
-                    url "${mavenHttpRepo.uri}"
-                }
-            }
+//            repositories {
+//                maven {
+//                    url "${mavenHttpRepo.uri}"
+//                }
+//            }
         """
         def projectName = "main"
         if (f != buildFile) {
