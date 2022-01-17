@@ -16,6 +16,7 @@
 
 package org.gradle.internal.watch.vfs.impl;
 
+import com.google.common.collect.ImmutableList;
 import net.rubygrapefruit.platform.NativeException;
 import net.rubygrapefruit.platform.internal.jni.InotifyInstanceLimitTooLowException;
 import net.rubygrapefruit.platform.internal.jni.InotifyWatchesLimitTooLowException;
@@ -309,33 +310,11 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
     @CheckReturnValue
     private SnapshotHierarchy startWatching(SnapshotHierarchy currentRoot, WatchMode watchMode, List<File> unsupportedFileSystems) {
         try {
-            watchRegistry = watcherRegistryFactory.createFileWatcherRegistry(new FileWatcherRegistry.ChangeHandler() {
-                @Override
-                public void handleChange(FileWatcherRegistry.Type type, Path path) {
-                    try {
-                        String absolutePath = path.toString();
-                        if (!locationsWrittenByCurrentBuild.wasLocationWritten(absolutePath)) {
-                            rootReference.update(root -> updateNotifyingListeners(
-                                diffListener -> root.invalidate(absolutePath, new VfsChangeLoggingNodeDiffListener(type, path, diffListener))
-                            ));
-                            if (changeBroadcaster != null) {
-                                changeBroadcaster.handleChange(type, path);
-                            }
-                        }
-                    } catch (Exception e) {
-                        LOGGER.error("Error while processing file events", e);
-                        stopWatchingAndInvalidateHierarchyAfterError();
-                    }
-                }
-
-                @Override
-                public void stopWatchingAfterError() {
-                    stopWatchingAndInvalidateHierarchyAfterError();
-                    if (changeBroadcaster != null) {
-                        changeBroadcaster.stopWatchingAfterError();
-                    }
-                }
-            });
+            watchRegistry = watcherRegistryFactory.createFileWatcherRegistry(new FilterChangesToOutputsChangesHandler(locationsWrittenByCurrentBuild,
+                new CompositeChangeHandler(ImmutableList.of(
+                    new InvalidateVfsChangeHandler(),
+                    new BroadcastingChangeHandler()
+                ))));
             SnapshotHierarchy newRoot = watchRegistry.updateVfsOnBuildStarted(currentRoot.empty(), watchMode, unsupportedFileSystems);
             watchableHierarchiesRegisteredEarly.forEach(watchableHierarchy -> watchRegistry.registerWatchableHierarchy(watchableHierarchy, newRoot));
             watchableHierarchiesRegisteredEarly.clear();
@@ -344,6 +323,76 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
             logWatchingError(ex, FILE_WATCHING_ERROR_MESSAGE_DURING_BUILD, null);
             closeUnderLock();
             return currentRoot.empty();
+        }
+    }
+
+    private static class FilterChangesToOutputsChangesHandler implements FileWatcherRegistry.ChangeHandler {
+        private final LocationsWrittenByCurrentBuild locationsWrittenByCurrentBuild;
+        private final FileWatcherRegistry.ChangeHandler delegate;
+
+        public FilterChangesToOutputsChangesHandler(LocationsWrittenByCurrentBuild locationsWrittenByCurrentBuild, FileWatcherRegistry.ChangeHandler delegate) {
+            this.locationsWrittenByCurrentBuild = locationsWrittenByCurrentBuild;
+            this.delegate = delegate;
+        }
+
+        @Override
+        public void handleChange(FileWatcherRegistry.Type type, Path path) {
+            if (!locationsWrittenByCurrentBuild.wasLocationWritten(path.toString())) {
+                delegate.handleChange(type, path);
+            }
+        }
+
+        @Override
+        public void stopWatchingAfterError() {
+            delegate.stopWatchingAfterError();
+        }
+    }
+
+    private class InvalidateVfsChangeHandler implements FileWatcherRegistry.ChangeHandler {
+        @Override
+        public void handleChange(FileWatcherRegistry.Type type, Path path) {
+            rootReference.update(root -> updateNotifyingListeners(
+                diffListener -> root.invalidate(path.toString(), new VfsChangeLoggingNodeDiffListener(type, path, diffListener))
+            ));
+        }
+
+        @Override
+        public void stopWatchingAfterError() {
+            stopWatchingAndInvalidateHierarchyAfterError();
+        }
+    }
+
+    private class BroadcastingChangeHandler implements FileWatcherRegistry.ChangeHandler {
+        @Override
+        public void handleChange(FileWatcherRegistry.Type type, Path path) {
+            if (changeBroadcaster != null) {
+                changeBroadcaster.handleChange(type, path);
+            }
+        }
+
+        @Override
+        public void stopWatchingAfterError() {
+            if (changeBroadcaster != null) {
+                changeBroadcaster.stopWatchingAfterError();
+            }
+        }
+    }
+
+    private static class CompositeChangeHandler implements FileWatcherRegistry.ChangeHandler {
+        private final List<FileWatcherRegistry.ChangeHandler> handlers;
+
+        public CompositeChangeHandler(List<FileWatcherRegistry.ChangeHandler> handlers) {
+            this.handlers = handlers;
+        }
+
+        @Override
+        public void handleChange(FileWatcherRegistry.Type type, Path path) {
+            handlers.forEach(handler -> handler.handleChange(type, path));
+        }
+
+        @Override
+        public void stopWatchingAfterError() {
+            handlers.forEach(FileWatcherRegistry.ChangeHandler::stopWatchingAfterError);
         }
     }
 
