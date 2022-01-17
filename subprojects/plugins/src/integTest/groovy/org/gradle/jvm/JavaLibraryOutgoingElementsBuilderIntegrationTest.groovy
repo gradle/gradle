@@ -79,8 +79,7 @@ class JavaLibraryOutgoingElementsBuilderIntegrationTest extends AbstractIntegrat
         run 'outgoingVariants'
 
         then:
-        outputContains """--------------------------------------------------
-Variant shadowElements
+        outputContainsLinewise """Variant shadowElements
 --------------------------------------------------
 Description = A fat jar
 
@@ -91,7 +90,6 @@ Attributes
     - org.gradle.dependency.bundling = external
     - org.gradle.libraryelements     = jar
     - org.gradle.usage               = java-${runtime ? 'runtime' : 'api'}
-
 Artifacts
     - build${File.separator}libs${File.separator}mylib-1.4-all.jar (artifactType = jar)
 """
@@ -112,7 +110,7 @@ Artifacts
         "non published API"        | false     | false   | null    | null      | null
         "with explicit capability" | false     | false   | "'com'" | "'other'" | "'1.2'"
 
-        capability = cgroup == null ? 'com.acme:mylib:1.4 (default capability)' : "${cgroup}:${cname}:${cversion}\n".replaceAll(/'/, '')
+        capability = cgroup == null ? 'com.acme:mylib:1.4 (default capability)' : "${cgroup}:${cname}:${cversion}".replaceAll(/'/, '')
     }
 
     @ToBeFixedForConfigurationCache(because = "outgoing variants report isn't compatible")
@@ -135,9 +133,9 @@ Artifacts
         run 'outgoingVariants'
 
         then:
-        outputContains """--------------------------------------------------
-Variant integTestElements
+        outputContainsLinewise """Variant integTestElements
 --------------------------------------------------
+
 Capabilities
     - com.acme:mylib:1.4 (default capability)
 Attributes
@@ -146,12 +144,11 @@ Attributes
     - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
     - org.gradle.libraryelements     = jar
     - org.gradle.usage               = java-api
-
 """
         if (classesDir) {
-            outputContains """--------------------------------------------------
-Variant integTestElements
+            outputContainsLinewise """Variant integTestElements
 --------------------------------------------------
+
 Capabilities
     - com.acme:mylib:1.4 (default capability)
 Attributes
@@ -161,16 +158,19 @@ Attributes
     - org.gradle.libraryelements     = jar
     - org.gradle.usage               = java-api
 
-Secondary variants (*)
-    - Variant : classes
-       - Attributes
-          - org.gradle.category            = library
-          - org.gradle.dependency.bundling = external
-          - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
-          - org.gradle.libraryelements     = classes
-          - org.gradle.usage               = java-api
-       - Artifacts
-          - build${File.separator}classes${File.separator}java${File.separator}integTest (artifactType = java-classes-directory)"""
+Secondary Variants (*)
+
+    --------------------------------------------------
+    Secondary Variant classes (*)
+    --------------------------------------------------
+        Attributes
+            - org.gradle.category            = library
+            - org.gradle.dependency.bundling = external
+            - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
+            - org.gradle.libraryelements     = classes
+            - org.gradle.usage               = java-api
+        Artifacts
+            - build${File.separator}classes${File.separator}java${File.separator}integTest (artifactType = java-classes-directory)"""
         }
 
         where:
@@ -196,9 +196,9 @@ Secondary variants (*)
         succeeds 'outgoingVariants'
 
         then:
-        outputContains """--------------------------------------------------
-Variant userguide
+        outputContainsLinewise """Variant userguide
 --------------------------------------------------
+
 Capabilities
     - com.acme:mylib:1.4 (default capability)
 Attributes
@@ -206,7 +206,6 @@ Attributes
     - org.gradle.dependency.bundling = external
     - org.gradle.docstype            = userguide
     - org.gradle.usage               = java-runtime
-
 Artifacts
     - userguide.zip (artifactType = zip)"""
     }

@@ -594,10 +594,24 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
         result.assertOutputContains(string.trim())
     }
 
+    /**
+     * Given a string containing a first line which is <strong>unique within the expected output</strong>, checks
+     * if every line in the output matches the lines in the given string, reporting the failing line and number
+     * within both the actual and expected outputs.
+     *
+     * @param string the expected output
+     */
     void outputContainsLinewise(String string) {
         outputContainsLinewise(string.readLines())
     }
 
+    /**
+     * Given a collection of lines beginning with a line which is <strong>unique within the expected output</strong>, checks
+     * if every line in the output matches the lines in the given string, reporting the failing line and number
+     * within both the actual and expected outputs.
+     *
+     * @param lines the expected output
+     */
     void outputContainsLinewise(List<String> lines) {
         List<String> outputLines = result.output.readLines()
         def firstIndex = outputLines.findIndexOf {lines[0] == it }

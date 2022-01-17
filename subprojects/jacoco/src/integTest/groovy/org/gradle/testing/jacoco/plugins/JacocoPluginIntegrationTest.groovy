@@ -155,8 +155,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec implements Ins
         succeeds "outgoingVariants"
 
         def resultsExecPath = new TestFile(getTestDirectory(), 'build/jacoco/test.exec').getRelativePathFromBase()
-        outputContains("""
-            --------------------------------------------------
+        outputContainsLinewise("""--------------------------------------------------
             Variant coverageDataElementsForTest (i)
             --------------------------------------------------
             Description = Binary data file containing results of Jacoco test coverage reporting for the test Test Suite's test target.
@@ -199,8 +198,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec implements Ins
         succeeds "outgoingVariants"
 
         def resultsExecPath = new TestFile(getTestDirectory(), 'build/jacoco/integrationTest.exec').getRelativePathFromBase()
-        outputContains("""
-            --------------------------------------------------
+        outputContainsLinewise("""--------------------------------------------------
             Variant coverageDataElementsForIntegrationTest (i)
             --------------------------------------------------
             Description = Binary data file containing results of Jacoco test coverage reporting for the integrationTest Test Suite's integrationTest target.

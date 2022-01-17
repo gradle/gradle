@@ -45,9 +45,7 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec implemen
         succeeds "outgoingVariants"
 
         def resultsPath = new TestFile(getTestDirectory(), 'build/test-results/test/binary').getRelativePathFromBase()
-        outputContains("""
-            --------------------------------------------------
-            Variant testResultsElementsForTest (i)
+        outputContainsLinewise("""Variant testResultsElementsForTest (i)
             --------------------------------------------------
             Description = Directory containing binary results of running tests for the test Test Suite's test target.
 
@@ -59,7 +57,6 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec implemen
                 - org.gradle.testsuite.target.name = test
                 - org.gradle.testsuite.type        = unit-test
                 - org.gradle.verificationtype      = test-results
-
             Artifacts
                 - $resultsPath (artifactType = directory)
             """.stripIndent())
@@ -94,9 +91,7 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec implemen
         succeeds "outgoingVariants"
 
         def resultsPath = new TestFile(getTestDirectory(), 'build/test-results/integrationTest/binary').getRelativePathFromBase()
-        outputContains("""
-            --------------------------------------------------
-            Variant testResultsElementsForIntegrationTest (i)
+        outputContainsLinewise("""Variant testResultsElementsForIntegrationTest (i)
             --------------------------------------------------
             Description = Directory containing binary results of running tests for the integrationTest Test Suite's integrationTest target.
 
@@ -108,7 +103,6 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec implemen
                 - org.gradle.testsuite.target.name = integrationTest
                 - org.gradle.testsuite.type        = integration-test
                 - org.gradle.verificationtype      = test-results
-
             Artifacts
                 - $resultsPath (artifactType = directory)
             """.stripIndent())
