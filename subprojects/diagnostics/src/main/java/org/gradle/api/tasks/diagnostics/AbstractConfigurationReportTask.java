@@ -24,7 +24,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.api.tasks.diagnostics.internal.configurations.formatter.ConsoleConfigurationReportWriter;
+import org.gradle.api.tasks.diagnostics.internal.configurations.formatter.TextConfigurationReportWriter;
 import org.gradle.api.tasks.diagnostics.internal.configurations.formatter.ConfigurationReportSpec;
 import org.gradle.api.tasks.diagnostics.internal.configurations.formatter.ConfigurationReportWriter;
 import org.gradle.api.tasks.diagnostics.internal.configurations.model.ReportConfiguration;
@@ -86,7 +86,7 @@ public abstract class AbstractConfigurationReportTask extends DefaultTask {
     private ConfigurationReportWriter buildReportWriter() {
         switch (getFormat().get()) {
             case "text":
-                return new ConsoleConfigurationReportWriter(getTextOutputFactory().create(getClass()));
+                return new TextConfigurationReportWriter(getTextOutputFactory().create(getClass()));
             default:
                 throw new IllegalArgumentException("Unknown format: " + getFormat().get());
         }

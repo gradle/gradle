@@ -19,10 +19,10 @@ package org.gradle.api.plugins
 import org.gradle.api.internal.component.BuildableJavaComponent
 import org.gradle.api.internal.component.ComponentRegistry
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.InspectsVariantsReport
+import org.gradle.integtests.fixtures.InspectsConfigurationReport
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
-class JavaPluginIntegrationTest extends AbstractIntegrationSpec implements InspectsVariantsReport {
+class JavaPluginIntegrationTest extends AbstractIntegrationSpec implements InspectsConfigurationReport {
 
     def appliesBasePluginsAndAddsConventionObject() {
         given:

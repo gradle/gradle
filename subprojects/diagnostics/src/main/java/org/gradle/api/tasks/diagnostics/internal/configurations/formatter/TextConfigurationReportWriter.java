@@ -37,11 +37,11 @@ import java.util.Set;
  *
  * Note that although the name of this class includes "variants", the implementation internals speak of "configurations".
  */
-public final class ConsoleConfigurationReportWriter implements ConfigurationReportWriter {
+public final class TextConfigurationReportWriter implements ConfigurationReportWriter {
     private final StyledTextOutput output;
     private int depth;
 
-    public ConsoleConfigurationReportWriter(StyledTextOutput output) {
+    public TextConfigurationReportWriter(StyledTextOutput output) {
         this.output = output;
     }
 
