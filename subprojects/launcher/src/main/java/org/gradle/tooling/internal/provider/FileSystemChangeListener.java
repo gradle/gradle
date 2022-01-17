@@ -170,7 +170,7 @@ public class FileSystemChangeListener implements FileChangeListener, TaskInputsL
     }
 
     private static long monotonicClockMillis() {
-        return System.nanoTime() / 1000000L;
+        return TimeUnit.NANOSECONDS.toMillis(System.nanoTime());
     }
 
     private static class FileEventCollector {
@@ -195,12 +195,10 @@ public class FileSystemChangeListener implements FileChangeListener, TaskInputsL
         }
 
         private boolean shouldIncreaseChangesCount(FileWatcherRegistry.Type type, Path path) {
-            if (IS_MAC_OSX) {
-                return true; // count every event on OSX
-            }
-
-            // Only count non-CREATE events, since creation also causes a modification event, unless the event is for a directory.
-            return type != FileWatcherRegistry.Type.CREATED || Files.isDirectory(path);
+            // Count every event on macOS, since there is only one event for file creation.
+            return IS_MAC_OSX ||
+                // On other operating systems count only non-CREATE events, since creation also causes a modification event, unless the event is for a directory.
+                type != FileWatcherRegistry.Type.CREATED || Files.isDirectory(path);
         }
 
 
