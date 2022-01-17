@@ -37,6 +37,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import static java.lang.String.format;
+import static org.gradle.util.internal.ZipSlip.safeZipEntryName;
 
 public class Install {
     public static final String DEFAULT_DISTRIBUTION_PATH = "wrapper/dists";
@@ -269,30 +270,6 @@ public class Install {
         } finally {
             zipFile.close();
         }
-    }
-
-    /**
-     * Checks the entry name for zip-slip vulnerable sequences.
-     *
-     * <b>IMPLEMENTATION NOTE</b>
-     * We do it this way instead of the way recommended in https://snyk.io/research/zip-slip-vulnerability
-     * for performance reasons, calling {@link File#getCanonicalPath()} is too expensive.
-     *
-     * @throws IllegalArgumentException if the entry contains vulnerable sequences
-     */
-    private static String safeZipEntryName(String name) {
-        if (isUnsafeZipEntryName(name)) {
-            throw new IllegalArgumentException(format("'%s' is not a safe zip entry name.", name));
-        }
-        return name;
-    }
-
-    private static boolean isUnsafeZipEntryName(String name) {
-        return name.isEmpty()
-            || name.startsWith("/")
-            || name.startsWith("\\")
-            || name.contains("..")
-            || name.contains(":");
     }
 
     private void copyInputStream(InputStream in, OutputStream out) throws IOException {
