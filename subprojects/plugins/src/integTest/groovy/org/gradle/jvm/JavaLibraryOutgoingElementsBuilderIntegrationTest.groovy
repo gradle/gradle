@@ -91,7 +91,7 @@ Attributes
     - org.gradle.libraryelements     = jar
     - org.gradle.usage               = java-${runtime ? 'runtime' : 'api'}
 Artifacts
-    - build${File.separator}libs${File.separator}mylib-1.4-all.jar (artifactType = jar)
+    - build${File.separator}libs${File.separator}mylib-1.4-all.jar (artifactType = jar, classifier = all)
 """
         when:
         run 'publish'

@@ -218,10 +218,15 @@ public final class TextConfigurationReportWriter implements ConfigurationReportW
 
     private void writeArtifact(ReportArtifact artifact) {
         String type = artifact.getType();
+        String classifier = artifact.getClassifier();
         output.text(artifact.getDisplayName());
         if (StringUtils.isNotEmpty(type)) {
             output.text(" (");
             valuePair("artifactType", type);
+            if (StringUtils.isNotEmpty(classifier)) {
+                output.text(", ");
+                valuePair("classifier", classifier);
+            }
             output.text(")");
         }
     }

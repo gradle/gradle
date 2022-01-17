@@ -155,8 +155,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec implements Ins
         succeeds "outgoingVariants"
 
         def resultsExecPath = new TestFile(getTestDirectory(), 'build/jacoco/test.exec').getRelativePathFromBase()
-        outputContainsLinewise("""--------------------------------------------------
-            Variant coverageDataElementsForTest (i)
+        outputContainsLinewise("""Variant coverageDataElementsForTest (i)
             --------------------------------------------------
             Description = Binary data file containing results of Jacoco test coverage reporting for the test Test Suite's test target.
 
@@ -168,7 +167,6 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec implements Ins
                 - org.gradle.testsuite.target.name = test
                 - org.gradle.testsuite.type        = unit-test
                 - org.gradle.verificationtype      = jacoco-coverage
-
             Artifacts
                 - $resultsExecPath (artifactType = binary)""".stripIndent())
 
@@ -198,8 +196,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec implements Ins
         succeeds "outgoingVariants"
 
         def resultsExecPath = new TestFile(getTestDirectory(), 'build/jacoco/integrationTest.exec').getRelativePathFromBase()
-        outputContainsLinewise("""--------------------------------------------------
-            Variant coverageDataElementsForIntegrationTest (i)
+        outputContainsLinewise("""Variant coverageDataElementsForIntegrationTest (i)
             --------------------------------------------------
             Description = Binary data file containing results of Jacoco test coverage reporting for the integrationTest Test Suite's integrationTest target.
 
@@ -211,7 +208,6 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec implements Ins
                 - org.gradle.testsuite.target.name = integrationTest
                 - org.gradle.testsuite.type        = integration-test
                 - org.gradle.verificationtype      = jacoco-coverage
-
             Artifacts
                 - $resultsExecPath (artifactType = binary)""".stripIndent())
 

@@ -422,7 +422,7 @@ Attributes
     - org.gradle.docstype            = javadoc
     - org.gradle.usage               = java-runtime
 Artifacts
-    - $javadocJarPath (artifactType = jar)
+    - $javadocJarPath (artifactType = jar, classifier = javadoc)
 
 --------------------------------------------------
 Variant mainSourceElements (i)
@@ -494,7 +494,7 @@ Attributes
     - org.gradle.docstype            = sources
     - org.gradle.usage               = java-runtime
 Artifacts
-    - $sourcesJarPath (artifactType = jar)
+    - $sourcesJarPath (artifactType = jar, classifier = sources)
 
 --------------------------------------------------
 Variant testResultsElementsForTest (i)
@@ -585,7 +585,7 @@ Attributes
     - org.gradle.docstype            = javadoc
     - org.gradle.usage               = java-runtime
 Artifacts
-    - $javadocJarPath (artifactType = jar)
+    - $javadocJarPath (artifactType = jar, classifier = javadoc)
 
 --------------------------------------------------
 Variant mainSourceElements (i)
@@ -657,7 +657,7 @@ Attributes
     - org.gradle.docstype            = sources
     - org.gradle.usage               = java-runtime
 Artifacts
-    - $sourcesJarPath (artifactType = jar)
+    - $sourcesJarPath (artifactType = jar, classifier = sources)
 
 --------------------------------------------------
 Variant testResultsElementsForTest (i)
@@ -1292,5 +1292,59 @@ Artifacts
         doesNotHaveLegacyLegend()
         hasSecondaryVariantsLegend()
         hasIncubatingLegend()
+    }
+
+    @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
+    def "custom artifact with classifier is printed"() {
+        given:
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            configurations.create("custom") {
+                description = "My custom configuration"
+                canBeResolved = false
+                canBeConsumed = true
+            }
+
+            task redJar(type: Jar) {
+                archiveClassifier = 'red'
+                from(sourceSets.main.output)
+            }
+
+            artifacts {
+                custom redJar
+            }
+        """.stripIndent()
+
+        and:
+        file("src/main/java/Hello.java") << """
+            public class Hello {
+                public static void main(String... args) {
+                    System.out.println("Hello World!");
+                }
+            }
+        """
+
+        when:
+        succeeds ':outgoingVariants'
+
+        then:
+        def jarPath = file('build/libs/myLib-red.jar').getRelativePathFromBase()
+        outputContainsLinewise """Variant custom
+--------------------------------------------------
+Description = My custom configuration
+
+Capabilities
+    - :myLib:unspecified (default capability)
+Artifacts
+    - $jarPath (artifactType = jar, classifier = red)
+"""
+
+        and:
+        doesNotHaveLegacyLegend()
+        hasIncubatingLegend()
+        doesNotPromptForRerunToFindMoreVariants()
     }
 }
