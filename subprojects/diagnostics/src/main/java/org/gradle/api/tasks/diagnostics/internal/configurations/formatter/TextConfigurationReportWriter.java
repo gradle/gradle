@@ -64,8 +64,7 @@ public final class TextConfigurationReportWriter implements ConfigurationReportW
     }
 
     private void writeCompleteAbsenceOfResults(ConfigurationReportSpec spec, ConfigurationReportModel data) {
-        text("There are no " + spec.getReportType().getFullReportedTypeDesc() + "s (including legacy " + spec.getReportType().getReportedTypeAlias() + "s) present in project '" + data.getProjectName() + "'.");
-        newLine();
+        message("There are no " + spec.getReportType().getFullReportedTypeDesc() + "s (including legacy " + spec.getReportType().getReportedTypeAlias() + "s) present in project '" + data.getProjectName() + "'.");
     }
 
     private void writeSearchResults(ConfigurationReportSpec spec, ConfigurationReportModel data) {
@@ -73,30 +72,26 @@ public final class TextConfigurationReportWriter implements ConfigurationReportW
         if (searchResult.isPresent()) {
             writeConfigurations(spec, Collections.singletonList(searchResult.get()));
         } else {
-            text("There are no " + spec.getReportType().getFullReportedTypeDesc() + "s on project '" + data.getProjectName() + "' named '" + spec.getSearchTarget().get() + "'.");
+            message("There are no " + spec.getReportType().getFullReportedTypeDesc() + "s on project '" + data.getProjectName() + "' named '" + spec.getSearchTarget().get() + "'.");
         }
-        newLine();
     }
 
     private void writeLegacyResults(ConfigurationReportSpec spec, ConfigurationReportModel data) {
         writeConfigurations(spec, data.getEligibleConfigs());
-        newLine();
     }
 
     private void writeNonLegacyResults(ConfigurationReportSpec spec, ConfigurationReportModel data) {
         List<ReportConfiguration> nonLegacyConfigs = data.getNonLegacyConfigs();
         if (nonLegacyConfigs.isEmpty()) {
-            text("There are no proper " + spec.getReportType().getFullReportedTypeDesc() + "s present in project '" + data.getProjectName() + "'.");
-            newLine();
+            message("There are no proper " + spec.getReportType().getFullReportedTypeDesc() + "s present in project '" + data.getProjectName() + "'.");
 
             boolean additionalLegacyConfigs = data.getEligibleConfigs().size() > nonLegacyConfigs.size();
             if (additionalLegacyConfigs) {
-                text("Re-run this report with the '--all' flag to include legacy " + spec.getReportType().getReportedTypeAlias() + "s (legacy = consumable and resolvable).");
+                message("Re-run this report with the '--all' flag to include legacy " + spec.getReportType().getReportedTypeAlias() + "s (legacy = consumable and resolvable).");
             }
         } else {
             writeConfigurations(spec, nonLegacyConfigs);
         }
-        newLine();
     }
 
     private void writeConfigurations(ConfigurationReportSpec spec, List<ReportConfiguration> configurations) {
@@ -106,12 +101,10 @@ public final class TextConfigurationReportWriter implements ConfigurationReportW
 
     private void writeLegend(Collection<ReportConfiguration> configs) {
         boolean hasLegacy =  configs.stream().anyMatch(ReportConfiguration::isLegacy);
-        boolean hasIncubating = configs.stream().anyMatch(ReportConfiguration::hasIncubatingAttributes);
+        boolean hasIncubating = configs.stream().anyMatch(ReportConfiguration::hasIncubatingAttributes) ||
+            configs.stream().flatMap(c -> c.getSecondaryVariants().stream()).anyMatch(ReportSecondaryVariant::hasIncubatingAttributes);
         boolean hasVariants = configs.stream().anyMatch(ReportConfiguration::hasVariants);
 
-        if (hasLegacy || hasVariants) {
-            output.println();
-        }
         if (hasLegacy) {
             output.println("(l) Legacy or deprecated configuration. Those are variants created for backwards compatibility which are both resolvable and consumable.");
         }
@@ -132,41 +125,39 @@ public final class TextConfigurationReportWriter implements ConfigurationReportW
         writeConfigurationNameHeader(config, format.getReportType().getReportedTypeAlias());
         writeConfigurationDescription(config);
 
-        if (format.getReportType().isIncludeCapabilities()) {
-            // Preserve existing behavior where capabilities are not printed if no attributes
-            if (!config.getAttributes().isEmpty()) {
-                writeCapabilities(config.getCapabilities());
-                writeAttributes(config.getAttributes());
-            }
-        } else {
-            if (!config.getAttributes().isEmpty()) {
-                writeAttributes(config.getAttributes());
-                newLine();
-            }
+        if (!config.getAttributes().isEmpty() ||
+            (format.getReportType().isIncludeCapabilities() && !config.getCapabilities().isEmpty()) ||
+            (format.getReportType().isIncludeArtifacts() && !config.getArtifacts().isEmpty()) ||
+            (format.getReportType().isIncludeVariants() && !config.getSecondaryVariants().isEmpty())) {
+            newLine();
         }
 
+        if (format.getReportType().isIncludeCapabilities()) {
+            writeCapabilities(config.getCapabilities());
+        }
+
+        writeAttributes(config.getAttributes());
+
         if (format.getReportType().isIncludeArtifacts()) {
-            if (!config.getArtifacts().isEmpty() && !config.getAttributes().isEmpty()) {
-                newLine(); // Preserve formatting for now
-            }
             writeArtifacts(config.getArtifacts());
-            newLine(); // Preserve formatting
         }
 
         if (format.getReportType().isIncludeVariants()) {
-            writeSecondaryVariants(config.getVariants());
+            writeSecondaryVariants(config.getSecondaryVariants());
         }
+
+        newLine();
     }
 
     private void writeConfigurationNameHeader(ReportConfiguration config, String targetName) {
         String name = buildNameWithIndicators(config);
-        printHeader(StringUtils.capitalize(targetName) + " " + name, output);
+        printHeader(StringUtils.capitalize(targetName) + " " + name);
     }
 
     private void writeConfigurationDescription(ReportConfiguration config) {
         String description = config.getDescription();
         if (description != null) {
-            printValue("Description", description);
+            valuePair("Description", description);
             newLine();
         }
     }
@@ -184,15 +175,15 @@ public final class TextConfigurationReportWriter implements ConfigurationReportW
 
     private void writeSecondaryVariants(Set<ReportSecondaryVariant> variants) {
         if (!variants.isEmpty()) {
-            printSection("Secondary variants (*)", () -> {
+            newLine();
+            printSection("Secondary Variants (*)", () -> {
                 variants.stream()
                     .sorted(Comparator.comparing(ReportSecondaryVariant::getName))
-                    .forEach(variant -> printSection("Variant", variant.getName(), () -> {
-                        writeAttributes(variant.getAttributes());
-                        writeArtifacts(variant.getArtifacts());
-                    }));
+                    .forEach(variant -> {
+                        newLine();
+                        writeSecondaryVariant(variant);
+                    });
             });
-            newLine();
         }
     }
 
@@ -202,9 +193,11 @@ public final class TextConfigurationReportWriter implements ConfigurationReportW
             printSection("Attributes", () -> {
                 attributes.stream()
                     .sorted(Comparator.comparing(ReportAttribute::getName))
-                    .forEach(attr ->
-                        printValue(StringUtils.rightPad(attr.getName(), max), String.valueOf(attr.getValue()))
-                    );
+                    .forEach(attr -> {
+                        bulletIndent();
+                        valuePair(StringUtils.rightPad(attr.getName(), max), String.valueOf(attr.getValue()));
+                        newLine();
+                    });
             });
         }
     }
@@ -214,40 +207,68 @@ public final class TextConfigurationReportWriter implements ConfigurationReportW
             printSection("Artifacts", () -> {
                 artifacts.stream()
                     .sorted(Comparator.comparing(ReportArtifact::getDisplayName))
-                    .forEach(this::writeArtifact);
+                    .forEach(art -> {
+                        bulletIndent();
+                        writeArtifact(art);
+                        newLine();
+                    });
             });
         }
     }
 
     private void writeArtifact(ReportArtifact artifact) {
         String type = artifact.getType();
-        text(artifact.getDisplayName());
+        output.text(artifact.getDisplayName());
         if (StringUtils.isNotEmpty(type)) {
             output.text(" (");
-            printValue("artifactType", type);
+            valuePair("artifactType", type);
             output.text(")");
         }
-        newLine();
     }
 
     private void writeCapabilities(Set<ReportCapability> capabilities) {
-        printSection("Capabilities", () -> {
-            capabilities.stream()
-                .map(cap -> String.format("%s:%s:%s%s", cap.getGroup(), cap.getModule(), cap.getVersion(), cap.isDefault() ? " (default capability)" : ""))
-                .sorted()
-                .forEach(cap -> {
-                    text(cap);
-                    newLine();
-                });
-        });
+        if (!capabilities.isEmpty()) {
+            printSection("Capabilities", () -> {
+                capabilities.stream()
+                    .map(cap -> String.format("%s:%s:%s%s", cap.getGroup(), cap.getModule(), cap.getVersion(), cap.isDefault() ? " (default capability)" : ""))
+                    .sorted()
+                    .forEach(cap -> {
+                        bulletIndent();
+                        output.text(cap);
+                        newLine();
+                    });
+            });
+        }
     }
 
-    private void printHeader(String text, StyledTextOutput output) {
-        output.style(StyledTextOutput.Style.Header)
-            .println("--------------------------------------------------")
-            .println(text)
-            .println("--------------------------------------------------")
-            .style(StyledTextOutput.Style.Normal);
+    private String buildSecondaryVariantNameWithIndicators(ReportSecondaryVariant config) {
+        String name = config.getName();
+        if (config.hasIncubatingAttributes()) {
+            name += " (i)";
+        }
+        return name += " (*)";
+    }
+
+    private void writeSecondaryVariant(ReportSecondaryVariant variant) {
+        printHeader("Secondary Variant " + buildSecondaryVariantNameWithIndicators(variant));
+        try {
+            depth++;
+            writeAttributes(variant.getAttributes());
+            writeArtifacts(variant.getArtifacts());
+        } finally {
+            depth--;
+        }
+    }
+
+    private void printHeader(String text) {
+        output.style(StyledTextOutput.Style.Header);
+        output.text(StringUtils.repeat("    ", depth));
+        output.println("--------------------------------------------------");
+        output.text(StringUtils.repeat("    ", depth));
+        output.println(text);
+        output.text(StringUtils.repeat("    ", depth));
+        output.println("--------------------------------------------------");
+        output.style(StyledTextOutput.Style.Normal);
     }
 
     private void printSection(String title, Runnable action) {
@@ -255,34 +276,38 @@ public final class TextConfigurationReportWriter implements ConfigurationReportW
     }
 
     private void printSection(String title, @Nullable String description, Runnable action) {
+        output.text(StringUtils.repeat("    ", depth));
         output.style(StyledTextOutput.Style.Description);
-        text(title);
+        output.text(title);
         output.style(StyledTextOutput.Style.Normal);
         if (description != null) {
             output.text(" : " + description);
         }
         try {
             depth++;
-            output.println();
+            newLine();
             action.run();
         } finally {
             depth--;
         }
     }
 
-    private void printValue(String key, String value) {
+    private void valuePair(String key, String value) {
         output.style(StyledTextOutput.Style.Identifier);
-        text(key);
+        output.text(key);
         output.style(StyledTextOutput.Style.Normal)
-            .println(" = " + value);
+            .text(" = " + value);
     }
 
-    private void text(String text) {
-        output.text(StringUtils.repeat("   ", depth));
+    private void bulletIndent() {
+        output.text(StringUtils.repeat("    ", depth));
         if (depth > 0) {
-            output.withStyle(StyledTextOutput.Style.Normal).text(" - ");
+            output.withStyle(StyledTextOutput.Style.Normal).text("- ");
         }
-        output.text(text);
+    }
+
+    private void message(String msg) {
+        output.text(msg).println();
     }
 
     private void newLine() {

@@ -85,7 +85,7 @@ public final class ReportConfiguration {
         return artifacts;
     }
 
-    public Set<ReportSecondaryVariant> getVariants() {
+    public Set<ReportSecondaryVariant> getSecondaryVariants() {
         return variants;
     }
 

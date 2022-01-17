@@ -84,7 +84,7 @@ class ResolvableConfigurationsReportTaskIntegrationTest extends AbstractIntegrat
         run ':resolvableConfigurations', '--all'
 
         then:
-        outputContains """> Task :resolvableConfigurations
+        outputContainsLinewise """> Task :resolvableConfigurations
 --------------------------------------------------
 Configuration legacy (l)
 --------------------------------------------------
@@ -111,7 +111,7 @@ Description = My custom legacy configuration"""
         succeeds ':resolvableConfigurations'
 
         then:
-        outputContains """> Task :resolvableConfigurations
+        outputContainsLinewise """> Task :resolvableConfigurations
 --------------------------------------------------
 Configuration custom
 --------------------------------------------------
@@ -144,7 +144,7 @@ Description = My custom configuration
         succeeds ':resolvableConfigurations'
 
         then:
-        outputContains """> Task :resolvableConfigurations
+        outputContainsLinewise """> Task :resolvableConfigurations
 --------------------------------------------------
 Configuration custom
 --------------------------------------------------
@@ -193,7 +193,7 @@ Attributes
         succeeds ':resolvableConfigurations'
 
         then:
-        outputContains """> Task :resolvableConfigurations
+        outputContainsLinewise """> Task :resolvableConfigurations
 --------------------------------------------------
 Configuration otherConf
 --------------------------------------------------
@@ -237,7 +237,7 @@ Attributes
         succeeds ':resolvableConfigurations'
 
         then:
-        outputContains """> Task :resolvableConfigurations
+        outputContainsLinewise """> Task :resolvableConfigurations
 --------------------------------------------------
 Configuration annotationProcessor
 --------------------------------------------------
@@ -339,7 +339,7 @@ Attributes
         run ':resolvableConfigurations', '--all'
 
         then:
-        outputContains """> Task :resolvableConfigurations
+        outputContainsLinewise """> Task :resolvableConfigurations
 --------------------------------------------------
 Configuration annotationProcessor
 --------------------------------------------------

@@ -594,6 +594,22 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
         result.assertOutputContains(string.trim())
     }
 
+    void outputContainsLinewise(String string) {
+        outputContainsLinewise(string.readLines())
+    }
+
+    void outputContainsLinewise(List<String> lines) {
+        List<String> outputLines = result.output.readLines()
+        def firstIndex = outputLines.findIndexOf {lines[0] == it }
+        (0..<lines.size()).each {
+            def actual = outputLines[firstIndex + it].trim()
+            def expected = lines[it].trim()
+            if (actual != expected) {
+                throw new AssertionError("Output line ${firstIndex + it}: '$actual'\ndid not match expected line $it: '$expected'")
+            }
+        }
+    }
+
     void postBuildOutputContains(String string) {
         assertHasResult()
         result.assertHasPostBuildOutput(string.trim())

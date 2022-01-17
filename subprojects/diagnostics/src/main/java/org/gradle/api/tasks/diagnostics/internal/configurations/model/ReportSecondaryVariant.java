@@ -60,4 +60,7 @@ public final class ReportSecondaryVariant {
         return artifacts;
     }
 
+    public boolean hasIncubatingAttributes() {
+        return attributes.stream().anyMatch(ReportAttribute::isIncubating);
+    }
 }
