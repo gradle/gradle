@@ -18,10 +18,10 @@ package org.gradle.api.tasks.diagnostics
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.InspectsVariantsReport
+import org.gradle.integtests.fixtures.InspectsConfigurationReport
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
-class ResolvableConfigurationsReportTaskIntegrationTest extends AbstractIntegrationSpec implements InspectsVariantsReport {
+class ResolvableConfigurationsReportTaskIntegrationTest extends AbstractIntegrationSpec implements InspectsConfigurationReport {
     def setup() {
         settingsFile << """
             rootProject.name = "myLib"
@@ -219,7 +219,6 @@ Attributes
         doesNotPromptForRerunToFindMoreConfigurations()
     }
 
-    /*
     @ToBeFixedForConfigurationCache(because = ":resolvableConfigurations")
     def "reports resolvable configurations of a Java Library with module dependencies"() {
         given:
@@ -437,8 +436,7 @@ Attributes
     def "specifying a missing config with no configs produces empty report"() {
         expect:
         succeeds ':resolvableConfigurations', '--configuration', 'missing'
-        outputContains("There is no configuration named 'missing' defined on this project.")
-        outputContains('There are no resolvable configurations on project myLib')
+        reportsCompleteAbsenceOfResolvableConfigurations()
     }
 
     @ToBeFixedForConfigurationCache(because = ":resolvableConfigurations")
@@ -454,8 +452,30 @@ Attributes
 
         expect:
         succeeds ':resolvableConfigurations', '--configuration', 'missing'
-        outputContains("There is no configuration named 'missing' defined on this project.")
-        outputContains('Here are the available resolvable configurations: custom')
+        outputContains("There are no resolvable configurations on project 'myLib' named 'missing'.")
+        doesNotPromptForRerunToFindMoreConfigurations()
     }
-    */
+
+    @ToBeFixedForConfigurationCache(because = ":resolvableConfigurations")
+    def "specifying a missing config with --all and legacy configs available produces empty report and no suggestion"() {
+        given:
+        buildFile << """
+            configurations.create("custom") {
+                description = "My custom configuration"
+                canBeResolved = true
+                canBeConsumed = false
+            }
+
+            configurations.create("legacy") {
+                description = "My custom configuration"
+                canBeResolved = true
+                canBeConsumed = true
+            }
+        """
+
+        expect:
+        succeeds ':resolvableConfigurations', '--configuration', 'missing', '--all'
+        outputContains("There are no resolvable configurations on project 'myLib' named 'missing'.")
+        doesNotPromptForRerunToFindMoreConfigurations()
+    }
 }
