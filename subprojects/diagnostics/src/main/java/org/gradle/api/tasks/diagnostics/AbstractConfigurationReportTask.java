@@ -47,24 +47,16 @@ import java.util.stream.Collectors;
 @Incubating
 @DisableCachingByDefault(because = "Produces only non-cacheable console output")
 public abstract class AbstractConfigurationReportTask extends DefaultTask {
-    protected final Property<String> format = getProject().getObjects().property(String.class).convention("text");
-
     @Input
     @org.gradle.api.tasks.Optional
     @Option(option = "format", description = "The output format (text, json), defaults to text")
-    public Property<String> getFormat() {
-        return format;
-    }
+    public abstract Property<String> getFormat();
 
     @Inject
-    protected StyledTextOutputFactory getTextOutputFactory() {
-        throw new UnsupportedOperationException();
-    }
-
+    protected abstract StyledTextOutputFactory getTextOutputFactory();
+    
     @Inject
-    protected FileResolver getFileResolver() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract FileResolver getFileResolver();
 
     protected abstract ConfigurationReportSpec buildReportSpec();
     protected abstract Predicate<Configuration> buildEligibleConfigurationsFilter();
