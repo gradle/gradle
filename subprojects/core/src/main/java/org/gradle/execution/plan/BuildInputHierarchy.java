@@ -28,22 +28,23 @@ import org.gradle.internal.snapshot.VfsRelativePath;
 import java.io.File;
 import java.util.function.Supplier;
 
-public class InputAccessHierarchy {
-    private volatile ValuedVfsHierarchy<ChildAccess> root;
+/**
+ * Allows recording and querying the input locations of a build.
+ */
+public class BuildInputHierarchy {
+    private volatile ValuedVfsHierarchy<InputDeclaration> root;
     private final SingleFileTreeElementMatcher matcher;
 
-    public InputAccessHierarchy(CaseSensitivity caseSensitivity, Stat stat) {
+    public BuildInputHierarchy(CaseSensitivity caseSensitivity, Stat stat) {
         this.root = new ValuedVfsHierarchy<>(PersistentList.of(), EmptyChildMap.getInstance(), caseSensitivity);
         this.matcher = new SingleFileTreeElementMatcher(stat);
     }
 
     /**
-     * Returns all nodes which access the location.
-     *
-     * That includes node which access ancestors or children of the location.
+     * Returns whether the given location is an input to the build.
      */
     public boolean isInput(String location) {
-        AccessVisitor visitor = new AccessVisitor();
+        InputDeclarationVisitor visitor = new InputDeclarationVisitor();
         VfsRelativePath relativePath = VfsRelativePath.of(location);
         if (relativePath.length() == 0) {
             root.visitAllValues(visitor);
@@ -58,33 +59,26 @@ public class InputAccessHierarchy {
     }
 
     /**
-     * Records that a node accesses the given locations.
+     * Records that some locations are an input to the build.
      */
-    public synchronized void recordInputs(Iterable<String> accessedLocations) {
-        for (String location : accessedLocations) {
+    public synchronized void recordInputs(Iterable<String> inputLocations) {
+        for (String location : inputLocations) {
             VfsRelativePath relativePath = VfsRelativePath.of(location);
-            root = root.recordValue(relativePath, ALL_CHILDREN);
+            root = root.recordValue(relativePath, ALL_CHILDREN_ARE_INPUTS);
         }
     }
 
     /**
-     * Records that a node accesses the fileTreeRoot with a filter.
+     * Records that a fileTreeRoot with a filter is an input to the build.
      *
-     * The node only accesses children of the fileTreeRoot if they match the filter.
+     * Only children of the fileTreeRoot that match the filter are considered inputs.
      */
     public synchronized void recordFilteredInput(String fileTreeRoot, Spec<FileTreeElement> filter) {
         VfsRelativePath relativePath = VfsRelativePath.of(fileTreeRoot);
-        root = root.recordValue(relativePath, new FilteredChildAccess(filter));
+        root = root.recordValue(relativePath, new FilteredInputDeclaration(filter));
     }
 
-    /**
-     * Removes all recorded nodes.
-     */
-    public synchronized void clear() {
-        root = root.empty();
-    }
-
-    private static class AccessVisitor implements ValueVisitor<ChildAccess> {
+    private static class InputDeclarationVisitor implements ValueVisitor<InputDeclaration> {
         private boolean input = false;
 
         private void foundInput() {
@@ -92,19 +86,19 @@ public class InputAccessHierarchy {
         }
 
         @Override
-        public void visitExact(ChildAccess value) {
+        public void visitExact(InputDeclaration value) {
             foundInput();
         }
 
         @Override
-        public void visitAncestor(ChildAccess value, VfsRelativePath pathToVisitedLocation) {
-            if (value.accessesChild(pathToVisitedLocation)) {
+        public void visitAncestor(InputDeclaration value, VfsRelativePath pathToVisitedLocation) {
+            if (value.isInput(pathToVisitedLocation)) {
                 foundInput();
             }
         }
 
         @Override
-        public void visitChildren(PersistentList<ChildAccess> values, Supplier<String> relativePathSupplier) {
+        public void visitChildren(PersistentList<InputDeclaration> values, Supplier<String> relativePathSupplier) {
             this.input = true;
         }
 
@@ -113,21 +107,21 @@ public class InputAccessHierarchy {
         }
     }
 
-    private interface ChildAccess {
-        boolean accessesChild(VfsRelativePath childPath);
+    private interface InputDeclaration {
+        boolean isInput(VfsRelativePath childPath);
     }
 
-    private static final ChildAccess ALL_CHILDREN = childPath -> true;
+    private static final InputDeclaration ALL_CHILDREN_ARE_INPUTS = childPath -> true;
 
-    private class FilteredChildAccess implements ChildAccess {
+    private class FilteredInputDeclaration implements InputDeclaration {
         private final Spec<FileTreeElement> spec;
 
-        public FilteredChildAccess(Spec<FileTreeElement> spec) {
+        public FilteredInputDeclaration(Spec<FileTreeElement> spec) {
             this.spec = spec;
         }
 
         @Override
-        public boolean accessesChild(VfsRelativePath childPath) {
+        public boolean isInput(VfsRelativePath childPath) {
             return matcher.elementWithRelativePathMatches(spec, new File(childPath.getAbsolutePath()), childPath.getAsString());
         }
     }

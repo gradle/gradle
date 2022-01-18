@@ -19,16 +19,16 @@ package org.gradle.execution.plan;
 import org.gradle.internal.file.Stat;
 import org.gradle.internal.snapshot.CaseSensitivity;
 
-public class InputAccessHierarchyFactory {
+public class BuildInputHierarchyFactory {
     private final Stat stat;
     private final CaseSensitivity caseSensitivity;
 
-    public InputAccessHierarchyFactory(CaseSensitivity caseSensitivity, Stat stat) {
+    public BuildInputHierarchyFactory(CaseSensitivity caseSensitivity, Stat stat) {
         this.caseSensitivity = caseSensitivity;
         this.stat = stat;
     }
 
-    public InputAccessHierarchy create() {
-        return new InputAccessHierarchy(caseSensitivity, stat);
+    public BuildInputHierarchy create() {
+        return new BuildInputHierarchy(caseSensitivity, stat);
     }
 }

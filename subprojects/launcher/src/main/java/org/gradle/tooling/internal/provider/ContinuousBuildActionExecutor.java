@@ -26,7 +26,7 @@ import org.gradle.deployment.internal.DeploymentRegistryInternal;
 import org.gradle.execution.CancellableOperationManager;
 import org.gradle.execution.DefaultCancellableOperationManager;
 import org.gradle.execution.PassThruCancellableOperationManager;
-import org.gradle.execution.plan.InputAccessHierarchyFactory;
+import org.gradle.execution.plan.BuildInputHierarchyFactory;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.initialization.ContinuousExecutionGate;
@@ -60,7 +60,7 @@ public class ContinuousBuildActionExecutor implements BuildSessionActionExecutor
     private final BuildStartedTime buildStartedTime;
     private final Clock clock;
     private final BuildLifecycleAwareVirtualFileSystem virtualFileSystem;
-    private final InputAccessHierarchyFactory inputAccessHierarchyFactory;
+    private final BuildInputHierarchyFactory buildInputHierarchyFactory;
     private final ExecutorFactory executorFactory;
     private final StyledTextOutput logger;
 
@@ -75,7 +75,7 @@ public class ContinuousBuildActionExecutor implements BuildSessionActionExecutor
         BuildStartedTime buildStartedTime,
         Clock clock,
         BuildLifecycleAwareVirtualFileSystem virtualFileSystem,
-        InputAccessHierarchyFactory inputAccessHierarchyFactory,
+        BuildInputHierarchyFactory buildInputHierarchyFactory,
         BuildSessionActionExecutor delegate
     ) {
         this.inputsListeners = inputsListeners;
@@ -86,7 +86,7 @@ public class ContinuousBuildActionExecutor implements BuildSessionActionExecutor
         this.buildStartedTime = buildStartedTime;
         this.clock = clock;
         this.virtualFileSystem = virtualFileSystem;
-        this.inputAccessHierarchyFactory = inputAccessHierarchyFactory;
+        this.buildInputHierarchyFactory = buildInputHierarchyFactory;
         this.operatingSystem = OperatingSystem.current();
         this.executorFactory = executorFactory;
         this.logger = styledTextOutputFactory.create(ContinuousBuildActionExecutor.class, LogLevel.QUIET);
@@ -146,7 +146,7 @@ public class ContinuousBuildActionExecutor implements BuildSessionActionExecutor
         try {
             while (true) {
                 ContinuousBuildTriggerHandler continuousBuildTriggerHandler = new ContinuousBuildTriggerHandler(
-                    inputAccessHierarchyFactory.create(),
+                    buildInputHierarchyFactory.create(),
                     new SingleFirePendingChangesListener(pendingChangesListener),
                     cancellationToken,
                     continuousExecutionGate

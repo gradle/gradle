@@ -24,7 +24,7 @@ import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.execution.plan.InputAccessHierarchy;
+import org.gradle.execution.plan.BuildInputHierarchy;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.ContinuousExecutionGate;
 import org.gradle.internal.UncheckedException;
@@ -50,7 +50,7 @@ import static org.gradle.internal.filewatch.DefaultFileSystemChangeWaiterFactory
 public class ContinuousBuildTriggerHandler implements FileChangeListener, TaskInputsListener {
     private static final boolean IS_MAC_OSX = OperatingSystem.current().isMacOsX();
 
-    private final InputAccessHierarchy inputAccessHierarchy;
+    private final BuildInputHierarchy buildInputHierarchy;
     private final PendingChangesListener pendingChangesListener;
     private final BuildCancellationToken cancellationToken;
     private final ContinuousExecutionGate continuousExecutionGate;
@@ -62,12 +62,12 @@ public class ContinuousBuildTriggerHandler implements FileChangeListener, TaskIn
     private volatile long lastChangeAt = monotonicClockMillis();
 
     public ContinuousBuildTriggerHandler(
-        InputAccessHierarchy inputAccessHierarchy,
+        BuildInputHierarchy buildInputHierarchy,
         PendingChangesListener pendingChangesListener,
         BuildCancellationToken cancellationToken,
         ContinuousExecutionGate continuousExecutionGate
     ) {
-        this.inputAccessHierarchy = inputAccessHierarchy;
+        this.buildInputHierarchy = buildInputHierarchy;
         this.pendingChangesListener = pendingChangesListener;
         this.cancellationToken = cancellationToken;
         this.continuousExecutionGate = continuousExecutionGate;
@@ -75,7 +75,7 @@ public class ContinuousBuildTriggerHandler implements FileChangeListener, TaskIn
     }
 
     public boolean hasAnyInputs() {
-        return !inputAccessHierarchy.isEmpty();
+        return !buildInputHierarchy.isEmpty();
     }
 
     void wait(Runnable notifier) {
@@ -116,7 +116,7 @@ public class ContinuousBuildTriggerHandler implements FileChangeListener, TaskIn
     public void handleChange(FileWatcherRegistry.Type type, Path path) {
         String absolutePath = path.toString();
         lastChangeAt = monotonicClockMillis();
-        if (inputAccessHierarchy.isInput(absolutePath)) {
+        if (buildInputHierarchy.isInput(absolutePath)) {
             // got a change, store it
             fileEventCollector.onChange(type, path);
             notifyChangeArrived();
@@ -165,8 +165,8 @@ public class ContinuousBuildTriggerHandler implements FileChangeListener, TaskIn
                 taskInputs.add(file.getAbsolutePath());
             }
         });
-        inputAccessHierarchy.recordInputs(taskInputs);
-        filteredFileTreeTaskInputs.forEach(fileTree -> inputAccessHierarchy.recordFilteredInput(fileTree.getRoot(), fileTree.getPatterns().getAsSpec()));
+        buildInputHierarchy.recordInputs(taskInputs);
+        filteredFileTreeTaskInputs.forEach(fileTree -> buildInputHierarchy.recordFilteredInput(fileTree.getRoot(), fileTree.getPatterns().getAsSpec()));
     }
 
     private static long monotonicClockMillis() {
