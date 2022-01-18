@@ -179,9 +179,11 @@ public class DependencyVerifyingModuleComponentRepository implements ModuleCompo
         @Override
         public void resolveArtifacts(ComponentResolveMetadata component, ConfigurationMetadata variant, BuildableComponentArtifactsResolveResult result) {
             delegate.resolveArtifacts(component, variant, result);
-            if (component.getId() instanceof ModuleComponentIdentifier) {
-                if (result.hasResult() && result.isSuccessful()) {
-                    for (ComponentArtifactMetadata artifact : variant.getArtifacts()) {
+            if (result.hasResult() && result.isSuccessful() && component.getId() instanceof ModuleComponentIdentifier) {
+                String repositoryId = getId();
+                for (ComponentArtifactMetadata artifact : variant.getArtifacts()) {
+                    ModuleComponentArtifactIdentifier moduleComponentArtifactIdentifier = (ModuleComponentArtifactIdentifier) artifact.getId();
+                    if (!operation.wasAlreadyProcessed(moduleComponentArtifactIdentifier, repositoryId)) {
                         resolveArtifact(artifact, component.getSources(), new DefaultBuildableArtifactResolveResult());
                     }
                 }
