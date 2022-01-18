@@ -105,6 +105,7 @@ public final class TextConfigurationReportWriter implements ConfigurationReportW
             configs.stream().flatMap(c -> c.getSecondaryVariants().stream()).anyMatch(ReportSecondaryVariant::hasIncubatingAttributes);
         boolean hasVariants = configs.stream().anyMatch(ReportConfiguration::hasVariants);
 
+        output.style(StyledTextOutput.Style.Info);
         if (hasLegacy) {
             output.println("(l) Legacy or deprecated configuration. Those are variants created for backwards compatibility which are both resolvable and consumable.");
         }
@@ -112,12 +113,9 @@ public final class TextConfigurationReportWriter implements ConfigurationReportW
             output.println("(i) Configuration uses incubating attributes such as Category.VERIFICATION.");
         }
         if (hasVariants) {
-            output.text("(*) Secondary variants are variants created via the ")
-                .style(StyledTextOutput.Style.Identifier)
-                .text("Configuration#getOutgoing(): ConfigurationPublications")
-                .style(StyledTextOutput.Style.Info)
-                .text(" API which also participate in selection, in addition to the configuration itself.")
-                .println();
+            output.text("(*) Secondary variants are variants created via the ");
+            output.style(StyledTextOutput.Style.Identifier).text("Configuration#getOutgoing(): ConfigurationPublications");
+            output.style(StyledTextOutput.Style.Info).println(" API which also participate in selection, in addition to the configuration itself.");
         }
     }
 
@@ -150,27 +148,30 @@ public final class TextConfigurationReportWriter implements ConfigurationReportW
     }
 
     private void writeConfigurationNameHeader(ReportConfiguration config, String targetName) {
-        String name = buildNameWithIndicators(config);
-        printHeader(StringUtils.capitalize(targetName) + " " + name);
+        printHeader(() -> {
+            output.style(StyledTextOutput.Style.Normal).text(StringUtils.capitalize(targetName) + " ");
+            output.style(StyledTextOutput.Style.Header).text(config.getName());
+            output.style(StyledTextOutput.Style.Info).println(buildIndicators(config));
+        });
     }
 
     private void writeConfigurationDescription(ReportConfiguration config) {
         String description = config.getDescription();
         if (description != null) {
-            valuePair("Description", description);
-            newLine();
+            output.style(StyledTextOutput.Style.Description).text("Description");
+            output.style(StyledTextOutput.Style.Normal).text(" ").println(description);
         }
     }
 
-    private String buildNameWithIndicators(ReportConfiguration config) {
-        String name = config.getName();
+    private String buildIndicators(ReportConfiguration config) {
+        String indicators = "";
         if (config.isLegacy()) {
-            name += " (l)";
+            indicators += " (l)";
         }
         if (config.hasIncubatingAttributes()) {
-            name += " (i)";
+            indicators += " (i)";
         }
-        return name;
+        return indicators;
     }
 
     private void writeSecondaryVariants(Set<ReportSecondaryVariant> variants) {
@@ -219,43 +220,64 @@ public final class TextConfigurationReportWriter implements ConfigurationReportW
     private void writeArtifact(ReportArtifact artifact) {
         String type = artifact.getType();
         String classifier = artifact.getClassifier();
-        output.text(artifact.getDisplayName());
+        output.style(StyledTextOutput.Style.Normal).text(artifact.getDisplayName());
         if (StringUtils.isNotEmpty(type)) {
-            output.text(" (");
-            valuePair("artifactType", type);
+            output.style(StyledTextOutput.Style.Normal).text(" (");
+            output.style(StyledTextOutput.Style.Description).text("artifactType");
+            output.style(StyledTextOutput.Style.Normal).text(" = ");
+            output.style(StyledTextOutput.Style.Identifier).text(type);
             if (StringUtils.isNotEmpty(classifier)) {
-                output.text(", ");
-                valuePair("classifier", classifier);
+                output.style(StyledTextOutput.Style.Normal).text(", ");
+                output.style(StyledTextOutput.Style.Description).text("classifier");
+                output.style(StyledTextOutput.Style.Normal).text(" = ");
+                output.style(StyledTextOutput.Style.Identifier).text(classifier);
             }
-            output.text(")");
+            output.style(StyledTextOutput.Style.Normal).text(")");
         }
     }
 
     private void writeCapabilities(Set<ReportCapability> capabilities) {
         if (!capabilities.isEmpty()) {
+            class FormattedCapability {
+                String name;
+                boolean isDefault;
+
+                public FormattedCapability(String name, boolean isDefault) {
+                    this.name = name; this.isDefault = isDefault;
+                }
+            }
+
             printSection("Capabilities", () -> {
                 capabilities.stream()
-                    .map(cap -> String.format("%s:%s:%s%s", cap.getGroup(), cap.getModule(), cap.getVersion(), cap.isDefault() ? " (default capability)" : ""))
-                    .sorted()
+                    .map(cap -> new FormattedCapability(String.format("%s:%s:%s", cap.getGroup(), cap.getModule(), cap.getVersion()), cap.isDefault()))
+                    .sorted(Comparator.comparing(c -> c.name))
                     .forEach(cap -> {
                         bulletIndent();
-                        output.text(cap);
+                        output.style(StyledTextOutput.Style.Identifier).text(cap.name);
+                        if (cap.isDefault) {
+                            output.style(StyledTextOutput.Style.Normal).text(" (default capability)");
+                        }
                         newLine();
                     });
             });
         }
     }
 
-    private String buildSecondaryVariantNameWithIndicators(ReportSecondaryVariant config) {
-        String name = config.getName();
+    private String buildIndicators(ReportSecondaryVariant config) {
+        String indicators = "";
         if (config.hasIncubatingAttributes()) {
-            name += " (i)";
+            indicators += " (i)";
         }
-        return name += " (*)";
+        return indicators;
     }
 
     private void writeSecondaryVariant(ReportSecondaryVariant variant) {
-        printHeader("Secondary Variant " + buildSecondaryVariantNameWithIndicators(variant));
+        printHeader(() -> {
+            output.style(StyledTextOutput.Style.Normal).text("Secondary Variant ");
+            output.style(StyledTextOutput.Style.Header).text(variant.getName());
+            output.style(StyledTextOutput.Style.Normal).println(buildIndicators(variant));
+        });
+
         try {
             depth++;
             writeAttributes(variant.getAttributes());
@@ -265,12 +287,13 @@ public final class TextConfigurationReportWriter implements ConfigurationReportW
         }
     }
 
-    private void printHeader(String text) {
+    private void printHeader(Runnable action) {
         output.style(StyledTextOutput.Style.Header);
         output.text(StringUtils.repeat("    ", depth));
         output.println("--------------------------------------------------");
         output.text(StringUtils.repeat("    ", depth));
-        output.println(text);
+        action.run();
+        output.style(StyledTextOutput.Style.Header);
         output.text(StringUtils.repeat("    ", depth));
         output.println("--------------------------------------------------");
         output.style(StyledTextOutput.Style.Normal);
@@ -282,8 +305,7 @@ public final class TextConfigurationReportWriter implements ConfigurationReportW
 
     private void printSection(String title, @Nullable String description, Runnable action) {
         output.text(StringUtils.repeat("    ", depth));
-        output.style(StyledTextOutput.Style.Description);
-        output.text(title);
+        output.style(StyledTextOutput.Style.Description).text(title);
         output.style(StyledTextOutput.Style.Normal);
         if (description != null) {
             output.text(" : " + description);
@@ -298,10 +320,8 @@ public final class TextConfigurationReportWriter implements ConfigurationReportW
     }
 
     private void valuePair(String key, String value) {
-        output.style(StyledTextOutput.Style.Identifier);
-        output.text(key);
-        output.style(StyledTextOutput.Style.Normal)
-            .text(" = " + value);
+        output.style(StyledTextOutput.Style.Identifier).text(key);
+        output.style(StyledTextOutput.Style.Normal).text(" = " + value);
     }
 
     private void bulletIndent() {
