@@ -1,10 +1,8 @@
-import java.nio.file.Files
-
 def outputFile = project.layout.buildDirectory.dir("some-subdir").map { it.file("shared-file.txt") }
 def makeFile = tasks.register("makeFile", DefaultTask) {
     it.outputs.file(outputFile)
     it.doFirst {
-        Files.writeString(outputFile.get().asFile.toPath(), "This file is shared across Gradle subprojects.")
+        outputFile.get().asFile << "This file is shared across Gradle subprojects."
     }
 }
 
