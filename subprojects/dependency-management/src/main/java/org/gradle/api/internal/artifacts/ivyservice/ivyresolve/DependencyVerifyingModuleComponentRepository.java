@@ -184,7 +184,7 @@ public class DependencyVerifyingModuleComponentRepository implements ModuleCompo
                 for (ComponentArtifactMetadata artifact : variant.getArtifacts()) {
                     ModuleComponentArtifactIdentifier moduleComponentArtifactIdentifier = (ModuleComponentArtifactIdentifier) artifact.getId();
                     if (!operation.wasAlreadyProcessed(moduleComponentArtifactIdentifier, repositoryId)) {
-                        resolveArtifact(artifact, component.getSources(), new DefaultBuildableArtifactResolveResult());
+//                        resolveArtifact(artifact, component.getSources(), new DefaultBuildableArtifactResolveResult());
                     }
                 }
             }
