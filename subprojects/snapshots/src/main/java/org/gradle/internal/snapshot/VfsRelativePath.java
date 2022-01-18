@@ -208,42 +208,31 @@ public class VfsRelativePath {
      * Checks whether this path has the prefix.
      */
     public boolean hasPrefix(String prefix, CaseSensitivity caseSensitivity) {
-        int prefixLength = prefix.length();
-        if (prefixLength == 0) {
-            return true;
-        }
-        int pathLength = absolutePath.length();
-        int endOfThisSegment = prefixLength + offset;
-        if (pathLength < endOfThisSegment) {
-            return false;
-        }
-        for (int i = prefixLength - 1, j = endOfThisSegment - 1; i >= 0; i--, j--) {
-            if (!equalChars(prefix.charAt(i), absolutePath.charAt(j), caseSensitivity)) {
-                return false;
-            }
-        }
-        return endOfThisSegment == pathLength || isFileSeparator(absolutePath.charAt(endOfThisSegment));
+        return isPrefix(prefix, 0, absolutePath, offset, caseSensitivity);
     }
 
     /**
      * Checks whether this path is a prefix of another path.
      */
     public boolean isPrefixOf(String otherPath, CaseSensitivity caseSensitivity) {
-        int prefixLength = length();
+        return isPrefix(absolutePath, offset, otherPath, 0, caseSensitivity);
+    }
+
+    private static boolean isPrefix(String stringEndingInPrefix, int offsetInPrefix, String stringToCheck, int offsetInStringToCheck, CaseSensitivity caseSensitivity) {
+        int prefixLength = stringEndingInPrefix.length() - offsetInPrefix;
         if (prefixLength == 0) {
             return true;
         }
-        int endOfThisSegment = prefixLength + offset;
-        int pathLength = otherPath.length();
-        if (pathLength < prefixLength) {
+        int endOfPrefixInStringToCheck = offsetInStringToCheck + prefixLength;
+        if (stringToCheck.length() < endOfPrefixInStringToCheck) {
             return false;
         }
-        for (int i = prefixLength - 1, j = endOfThisSegment - 1; i >= 0; i--, j--) {
-            if (!equalChars(otherPath.charAt(i), absolutePath.charAt(j), caseSensitivity)) {
+        for (int i = stringEndingInPrefix.length() - 1, j = endOfPrefixInStringToCheck - 1; i >= offsetInPrefix; i--, j--) {
+            if (!equalChars(stringEndingInPrefix.charAt(i), stringToCheck.charAt(j), caseSensitivity)) {
                 return false;
             }
         }
-        return prefixLength == pathLength || isFileSeparator(otherPath.charAt(prefixLength));
+        return stringToCheck.length() == endOfPrefixInStringToCheck || isFileSeparator(stringToCheck.charAt(endOfPrefixInStringToCheck));
     }
 
     private static int computeCombinedCompare(int previousCombinedValue, char charInPath1, char charInPath2, boolean caseSensitive) {
