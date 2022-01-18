@@ -25,7 +25,6 @@ include::sample[dir="kotlin",files="consumer/build.gradle.kts[]"]
 See also:
 
 - <<../userguide/cross_project_publications.adoc#cross_project_publications, Sharing outputs between projects>>
-- https://github.com/robmoore-i/gradle-share-outputs-betwee-projects/tree/groovy[A minimal example Gradle project demonstrating this feature, provided from the community]
 
 == Anti-patterns:
 
