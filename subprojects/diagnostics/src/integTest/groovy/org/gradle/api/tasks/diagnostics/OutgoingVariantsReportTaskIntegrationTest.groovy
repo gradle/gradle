@@ -263,7 +263,7 @@ Artifacts
 Secondary Variants (*)
 
     --------------------------------------------------
-    Secondary Variant classes (*)
+    Secondary Variant classes
     --------------------------------------------------
         Attributes
             - org.gradle.category            = library
@@ -308,7 +308,7 @@ Artifacts
 Secondary Variants (*)
 
     --------------------------------------------------
-    Secondary Variant classes (*)
+    Secondary Variant classes
     --------------------------------------------------
         Attributes
             - org.gradle.category            = library
@@ -320,7 +320,7 @@ Secondary Variants (*)
             - $builtMainClassesPath (artifactType = java-classes-directory)
 
     --------------------------------------------------
-    Secondary Variant resources (*)
+    Secondary Variant resources
     --------------------------------------------------
         Attributes
             - org.gradle.category            = library
@@ -398,7 +398,7 @@ Artifacts
 Secondary Variants (*)
 
     --------------------------------------------------
-    Secondary Variant classes (*)
+    Secondary Variant classes
     --------------------------------------------------
         Attributes
             - org.gradle.category            = library
@@ -458,7 +458,7 @@ Artifacts
 Secondary Variants (*)
 
     --------------------------------------------------
-    Secondary Variant classes (*)
+    Secondary Variant classes
     --------------------------------------------------
         Attributes
             - org.gradle.category            = library
@@ -470,7 +470,7 @@ Secondary Variants (*)
             - $builtMainClassesPath (artifactType = java-classes-directory)
 
     --------------------------------------------------
-    Secondary Variant resources (*)
+    Secondary Variant resources
     --------------------------------------------------
         Attributes
             - org.gradle.category            = library
@@ -561,7 +561,7 @@ Artifacts
 Secondary Variants (*)
 
     --------------------------------------------------
-    Secondary Variant classes (*)
+    Secondary Variant classes
     --------------------------------------------------
         Attributes
             - org.gradle.category            = library
@@ -621,7 +621,7 @@ Artifacts
 Secondary Variants (*)
 
     --------------------------------------------------
-    Secondary Variant classes (*)
+    Secondary Variant classes
     --------------------------------------------------
         Attributes
             - org.gradle.category            = library
@@ -633,7 +633,7 @@ Secondary Variants (*)
             - $builtMainClassesPath (artifactType = java-classes-directory)
 
     --------------------------------------------------
-    Secondary Variant resources (*)
+    Secondary Variant resources
     --------------------------------------------------
         Attributes
             - org.gradle.category            = library
@@ -716,7 +716,7 @@ Artifacts
 Secondary Variants (*)
 
     --------------------------------------------------
-    Secondary Variant classes (*)
+    Secondary Variant classes
     --------------------------------------------------
         Attributes
             - org.gradle.category            = library
@@ -728,7 +728,7 @@ Secondary Variants (*)
             - $builtMainClassesPath (artifactType = java-classes-directory)
 
     --------------------------------------------------
-    Secondary Variant resources (*)
+    Secondary Variant resources
     --------------------------------------------------
         Attributes
             - org.gradle.category            = library
@@ -785,7 +785,7 @@ Artifacts
 Secondary Variants (*)
 
     --------------------------------------------------
-    Secondary Variant classes (*)
+    Secondary Variant classes
     --------------------------------------------------
         Attributes
             - org.gradle.category            = library
@@ -850,7 +850,7 @@ Artifacts
 Secondary Variants (*)
 
     --------------------------------------------------
-    Secondary Variant classes (*)
+    Secondary Variant classes
     --------------------------------------------------
         Attributes
             - org.gradle.category            = library
@@ -862,7 +862,7 @@ Secondary Variants (*)
             - $builtMainClassesPath (artifactType = java-classes-directory)
 
     --------------------------------------------------
-    Secondary Variant resources (*)
+    Secondary Variant resources
     --------------------------------------------------
         Attributes
             - org.gradle.category            = library
@@ -935,7 +935,7 @@ Artifacts
 Secondary Variants (*)
 
     --------------------------------------------------
-    Secondary Variant classes (*)
+    Secondary Variant classes
     --------------------------------------------------
         Attributes
             - org.gradle.category            = library
@@ -1000,7 +1000,7 @@ Artifacts
 Secondary Variants (*)
 
     --------------------------------------------------
-    Secondary Variant classes (*)
+    Secondary Variant classes
     --------------------------------------------------
         Attributes
             - org.gradle.category            = library
@@ -1012,7 +1012,7 @@ Secondary Variants (*)
             - $builtMainClassesPath (artifactType = java-classes-directory)
 
     --------------------------------------------------
-    Secondary Variant resources (*)
+    Secondary Variant resources
     --------------------------------------------------
         Attributes
             - org.gradle.category            = library
@@ -1115,7 +1115,7 @@ Artifacts
 Secondary Variants (*)
 
     --------------------------------------------------
-    Secondary Variant classes (*)
+    Secondary Variant classes
     --------------------------------------------------
         Attributes
             - org.gradle.category            = library
@@ -1128,7 +1128,7 @@ Secondary Variants (*)
             - foo
 
     --------------------------------------------------
-    Secondary Variant resources (*)
+    Secondary Variant resources
     --------------------------------------------------
         Attributes
             - org.gradle.category            = library
@@ -1194,7 +1194,7 @@ Artifacts
 Secondary Variants (*)
 
     --------------------------------------------------
-    Secondary Variant classes (*)
+    Secondary Variant classes
     --------------------------------------------------
         Attributes
             - org.gradle.category            = library
@@ -1239,7 +1239,7 @@ Artifacts
 Secondary Variants (*)
 
     --------------------------------------------------
-    Secondary Variant classes (*)
+    Secondary Variant classes
     --------------------------------------------------
         Attributes
             - org.gradle.category            = library
@@ -1251,7 +1251,7 @@ Secondary Variants (*)
             - $builtMainClassesPath (artifactType = java-classes-directory)
 
     --------------------------------------------------
-    Secondary Variant resources (*)
+    Secondary Variant resources
     --------------------------------------------------
         Attributes
             - org.gradle.category            = library

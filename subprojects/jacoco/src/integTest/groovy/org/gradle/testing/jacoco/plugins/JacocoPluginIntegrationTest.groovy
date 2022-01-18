@@ -168,7 +168,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec implements Ins
                 - org.gradle.testsuite.type        = unit-test
                 - org.gradle.verificationtype      = jacoco-coverage
             Artifacts
-                - $resultsExecPath (artifactType = binary)""".stripIndent())
+                - $resultsExecPath (artifactType = binary)""")
 
         and:
         hasIncubatingLegend()
@@ -209,7 +209,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec implements Ins
                 - org.gradle.testsuite.type        = integration-test
                 - org.gradle.verificationtype      = jacoco-coverage
             Artifacts
-                - $resultsExecPath (artifactType = binary)""".stripIndent())
+                - $resultsExecPath (artifactType = binary)""")
 
         and:
         hasIncubatingLegend()

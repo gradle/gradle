@@ -161,7 +161,7 @@ Attributes
 Secondary Variants (*)
 
     --------------------------------------------------
-    Secondary Variant classes (*)
+    Secondary Variant classes
     --------------------------------------------------
         Attributes
             - org.gradle.category            = library

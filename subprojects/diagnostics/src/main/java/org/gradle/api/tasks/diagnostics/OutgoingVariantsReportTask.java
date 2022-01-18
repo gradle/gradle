@@ -35,7 +35,7 @@ import java.util.function.Predicate;
  * @since 6.0
  */
 @DisableCachingByDefault(because = "Produces only non-cacheable console output by examining configurations at execution time")
-public class OutgoingVariantsReportTask extends AbstractConfigurationReportTask {
+public abstract class OutgoingVariantsReportTask extends AbstractConfigurationReportTask {
     private final Property<String> variantSpec = getProject().getObjects().property(String.class);
     private final Property<Boolean> showAll = getProject().getObjects().property(Boolean.class).convention(false);
 

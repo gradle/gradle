@@ -159,7 +159,7 @@ public final class TextConfigurationReportWriter implements ConfigurationReportW
         String description = config.getDescription();
         if (description != null) {
             output.style(StyledTextOutput.Style.Description).text("Description");
-            output.style(StyledTextOutput.Style.Normal).text(" ").println(description);
+            output.style(StyledTextOutput.Style.Normal).text(" = ").println(description);
         }
     }
 
