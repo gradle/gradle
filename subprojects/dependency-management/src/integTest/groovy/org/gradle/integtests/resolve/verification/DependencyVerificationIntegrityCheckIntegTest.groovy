@@ -927,7 +927,6 @@ This can indicate that a dependency has been compromised. Please carefully verif
         terse << [true, false]
     }
 
-    @ToBeFixedForConfigurationCache
     def "fails validation when first configuration has verification disabled"() {
         createMetadataFile {
             addChecksum("org:foo:1.0", 'sha256', "invalid")
@@ -950,9 +949,11 @@ This can indicate that a dependency has been compromised. Please carefully verif
             }
 
             tasks.register("printConfigurations") {
+                FileCollection unverified = configurations.unverified
+                FileCollection classpath = configurations.compileClasspath
                 doLast {
-                    println configurations.unverified.files
-                    println configurations.compileClasspath.files
+                    println unverified.files
+                    println classpath.files
                 }
             }
         """
