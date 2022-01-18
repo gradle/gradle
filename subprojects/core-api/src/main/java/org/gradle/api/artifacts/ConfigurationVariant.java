@@ -22,7 +22,7 @@ import org.gradle.api.Named;
 import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.internal.HasInternalProtocol;
 
-import javax.annotation.Nullable;
+import java.util.Optional;
 
 /**
  * Represents some variant of an outgoing configuration.
@@ -37,8 +37,7 @@ public interface ConfigurationVariant extends Named, HasConfigurableAttributes<C
      * @since 7.5
      */
     @Incubating
-    @Nullable
-    String getDescription();
+    Optional<String> getDescription();
 
     /**
      * Returns the artifacts associated with this variant.

@@ -40,7 +40,7 @@ public final class ReportSecondaryVariant {
     public static ReportSecondaryVariant fromConfigurationVariant(ConfigurationVariant variant, FileResolver fileResolver) {
         final Set<ReportAttribute> attributes = variant.getAttributes().keySet().stream().map(a -> ReportAttribute.fromAttributeInContainer(a, variant.getAttributes())).collect(Collectors.toSet());
         final Set<ReportArtifact> artifacts = variant.getArtifacts().stream().map(publishArtifact -> ReportArtifact.fromPublishArtifact(publishArtifact, fileResolver)).collect(Collectors.toSet());
-        return new ReportSecondaryVariant(variant.getName(), variant.getDescription(), attributes, artifacts);
+        return new ReportSecondaryVariant(variant.getName(), variant.getDescription().orElse(null), attributes, artifacts);
     }
 
     public String getName() {

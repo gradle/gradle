@@ -62,7 +62,7 @@ public abstract class AbstractConfigurationReportTask extends DefaultTask {
     protected abstract Predicate<Configuration> buildEligibleConfigurationsFilter();
 
     @TaskAction
-    public void report() {
+    public final void report() {
         final AbstractConfigurationReportSpec reportSpec = buildReportSpec();
         final ConfigurationReportModel reportModel = buildReportModel();
         final ConfigurationReportWriter writer = buildReportWriter();

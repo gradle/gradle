@@ -188,6 +188,7 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
         // Define a classes variant to use for compilation
         ConfigurationPublications publications = configuration.getOutgoing();
         ConfigurationVariantInternal variant = (ConfigurationVariantInternal) publications.getVariants().maybeCreate("classes");
+        variant.setDescription("Directories containing compiled class files for " + sourceSet.getName() + ".");
         variant.getAttributes().attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, LibraryElements.CLASSES));
         variant.artifactsProvider(new Factory<List<PublishArtifact>>() {
             @Nullable

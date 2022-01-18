@@ -163,6 +163,8 @@ Secondary Variants (*)
     --------------------------------------------------
     Secondary Variant classes
     --------------------------------------------------
+        Description = Directories containing compiled class files for integTest.
+
         Attributes
             - org.gradle.category            = library
             - org.gradle.dependency.bundling = external

@@ -265,6 +265,8 @@ Secondary Variants (*)
     --------------------------------------------------
     Secondary Variant classes
     --------------------------------------------------
+        Description = Directories containing compiled class files for main.
+
         Attributes
             - org.gradle.category            = library
             - org.gradle.dependency.bundling = external
@@ -310,6 +312,8 @@ Secondary Variants (*)
     --------------------------------------------------
     Secondary Variant classes
     --------------------------------------------------
+        Description = Directories containing compiled class files for main.
+
         Attributes
             - org.gradle.category            = library
             - org.gradle.dependency.bundling = external
@@ -322,6 +326,8 @@ Secondary Variants (*)
     --------------------------------------------------
     Secondary Variant resources
     --------------------------------------------------
+        Description = Directories containing the project's assembled resource files for use at runtime.
+
         Attributes
             - org.gradle.category            = library
             - org.gradle.dependency.bundling = external
@@ -400,6 +406,8 @@ Secondary Variants (*)
     --------------------------------------------------
     Secondary Variant classes
     --------------------------------------------------
+        Description = Directories containing compiled class files for main.
+
         Attributes
             - org.gradle.category            = library
             - org.gradle.dependency.bundling = external
@@ -460,6 +468,8 @@ Secondary Variants (*)
     --------------------------------------------------
     Secondary Variant classes
     --------------------------------------------------
+        Description = Directories containing compiled class files for main.
+
         Attributes
             - org.gradle.category            = library
             - org.gradle.dependency.bundling = external
@@ -472,6 +482,8 @@ Secondary Variants (*)
     --------------------------------------------------
     Secondary Variant resources
     --------------------------------------------------
+        Description = Directories containing the project's assembled resource files for use at runtime.
+
         Attributes
             - org.gradle.category            = library
             - org.gradle.dependency.bundling = external
@@ -563,6 +575,8 @@ Secondary Variants (*)
     --------------------------------------------------
     Secondary Variant classes
     --------------------------------------------------
+        Description = Directories containing compiled class files for main.
+
         Attributes
             - org.gradle.category            = library
             - org.gradle.dependency.bundling = external
@@ -623,6 +637,8 @@ Secondary Variants (*)
     --------------------------------------------------
     Secondary Variant classes
     --------------------------------------------------
+        Description = Directories containing compiled class files for main.
+
         Attributes
             - org.gradle.category            = library
             - org.gradle.dependency.bundling = external
@@ -635,6 +651,8 @@ Secondary Variants (*)
     --------------------------------------------------
     Secondary Variant resources
     --------------------------------------------------
+        Description = Directories containing the project's assembled resource files for use at runtime.
+
         Attributes
             - org.gradle.category            = library
             - org.gradle.dependency.bundling = external
@@ -718,6 +736,8 @@ Secondary Variants (*)
     --------------------------------------------------
     Secondary Variant classes
     --------------------------------------------------
+        Description = Directories containing compiled class files for main.
+
         Attributes
             - org.gradle.category            = library
             - org.gradle.dependency.bundling = external
@@ -730,6 +750,8 @@ Secondary Variants (*)
     --------------------------------------------------
     Secondary Variant resources
     --------------------------------------------------
+        Description = Directories containing the project's assembled resource files for use at runtime.
+
         Attributes
             - org.gradle.category            = library
             - org.gradle.dependency.bundling = external
@@ -787,6 +809,8 @@ Secondary Variants (*)
     --------------------------------------------------
     Secondary Variant classes
     --------------------------------------------------
+        Description = Directories containing compiled class files for main.
+
         Attributes
             - org.gradle.category            = library
             - org.gradle.dependency.bundling = external
@@ -852,6 +876,8 @@ Secondary Variants (*)
     --------------------------------------------------
     Secondary Variant classes
     --------------------------------------------------
+        Description = Directories containing compiled class files for main.
+
         Attributes
             - org.gradle.category            = library
             - org.gradle.dependency.bundling = external
@@ -864,6 +890,8 @@ Secondary Variants (*)
     --------------------------------------------------
     Secondary Variant resources
     --------------------------------------------------
+        Description = Directories containing the project's assembled resource files for use at runtime.
+
         Attributes
             - org.gradle.category            = library
             - org.gradle.dependency.bundling = external
@@ -937,6 +965,8 @@ Secondary Variants (*)
     --------------------------------------------------
     Secondary Variant classes
     --------------------------------------------------
+        Description = Directories containing compiled class files for main.
+
         Attributes
             - org.gradle.category            = library
             - org.gradle.dependency.bundling = external
@@ -1002,6 +1032,8 @@ Secondary Variants (*)
     --------------------------------------------------
     Secondary Variant classes
     --------------------------------------------------
+        Description = Directories containing compiled class files for main.
+
         Attributes
             - org.gradle.category            = library
             - org.gradle.dependency.bundling = external
@@ -1014,6 +1046,8 @@ Secondary Variants (*)
     --------------------------------------------------
     Secondary Variant resources
     --------------------------------------------------
+        Description = Directories containing the project's assembled resource files for use at runtime.
+
         Attributes
             - org.gradle.category            = library
             - org.gradle.dependency.bundling = external
@@ -1117,6 +1151,8 @@ Secondary Variants (*)
     --------------------------------------------------
     Secondary Variant classes
     --------------------------------------------------
+        Description = Directories containing compiled class files for main.
+
         Attributes
             - org.gradle.category            = library
             - org.gradle.dependency.bundling = external
@@ -1130,6 +1166,8 @@ Secondary Variants (*)
     --------------------------------------------------
     Secondary Variant resources
     --------------------------------------------------
+        Description = Directories containing the project's assembled resource files for use at runtime.
+
         Attributes
             - org.gradle.category            = library
             - org.gradle.dependency.bundling = external
@@ -1196,6 +1234,8 @@ Secondary Variants (*)
     --------------------------------------------------
     Secondary Variant classes
     --------------------------------------------------
+        Description = Directories containing compiled class files for main.
+
         Attributes
             - org.gradle.category            = library
             - org.gradle.dependency.bundling = external
@@ -1241,6 +1281,8 @@ Secondary Variants (*)
     --------------------------------------------------
     Secondary Variant classes
     --------------------------------------------------
+        Description = Directories containing compiled class files for main.
+
         Attributes
             - org.gradle.category            = library
             - org.gradle.dependency.bundling = external
@@ -1253,6 +1295,8 @@ Secondary Variants (*)
     --------------------------------------------------
     Secondary Variant resources
     --------------------------------------------------
+        Description = Directories containing the project's assembled resource files for use at runtime.
+
         Attributes
             - org.gradle.category            = library
             - org.gradle.dependency.bundling = external

@@ -33,6 +33,7 @@ import org.gradle.internal.Actions;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.reflect.Instantiator;
 
+import java.util.Optional;
 import java.util.Set;
 
 public class ConfigurationVariantMapping {
@@ -114,8 +115,8 @@ public class ConfigurationVariantMapping {
         }
 
         @Override
-        public String getDescription() {
-            return outgoingConfiguration.getDescription();
+        public Optional<String> getDescription() {
+            return Optional.ofNullable(outgoingConfiguration.getDescription());
         }
 
         @Override

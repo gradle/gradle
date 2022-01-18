@@ -122,7 +122,7 @@ public final class TextConfigurationReportWriter implements ConfigurationReportW
 
     private void writeConfiguration(AbstractConfigurationReportSpec format, ReportConfiguration config) {
         writeConfigurationNameHeader(config, format.getReportedTypeAlias());
-        writeConfigurationDescription(config);
+        writeConfigurationDescription(config.getDescription());
 
         if (!config.getAttributes().isEmpty() ||
             (format.isIncludeCapabilities() && !config.getCapabilities().isEmpty()) ||
@@ -156,8 +156,8 @@ public final class TextConfigurationReportWriter implements ConfigurationReportW
         });
     }
 
-    private void writeConfigurationDescription(ReportConfiguration config) {
-        String description = config.getDescription();
+    private void writeConfigurationDescription(String description) {
+        indent(false);
         if (description != null) {
             output.style(StyledTextOutput.Style.Description).text("Description");
             output.style(StyledTextOutput.Style.Normal).text(" = ").println(description);
@@ -196,7 +196,7 @@ public final class TextConfigurationReportWriter implements ConfigurationReportW
                 attributes.stream()
                     .sorted(Comparator.comparing(ReportAttribute::getName))
                     .forEach(attr -> {
-                        bulletIndent();
+                        indent(true);
                         valuePair(StringUtils.rightPad(attr.getName(), max), String.valueOf(attr.getValue()));
                         newLine();
                     });
@@ -210,7 +210,7 @@ public final class TextConfigurationReportWriter implements ConfigurationReportW
                 artifacts.stream()
                     .sorted(Comparator.comparing(ReportArtifact::getDisplayName))
                     .forEach(art -> {
-                        bulletIndent();
+                        indent(true);
                         writeArtifact(art);
                         newLine();
                     });
@@ -253,7 +253,7 @@ public final class TextConfigurationReportWriter implements ConfigurationReportW
                     .map(cap -> new FormattedCapability(String.format("%s:%s:%s", cap.getGroup(), cap.getModule(), cap.getVersion()), cap.isDefault()))
                     .sorted(Comparator.comparing(c -> c.name))
                     .forEach(cap -> {
-                        bulletIndent();
+                        indent(true);
                         output.style(StyledTextOutput.Style.Identifier).text(cap.name);
                         if (cap.isDefault) {
                             output.style(StyledTextOutput.Style.Normal).text(" (default capability)");
@@ -278,6 +278,11 @@ public final class TextConfigurationReportWriter implements ConfigurationReportW
             output.style(StyledTextOutput.Style.Header).text(variant.getName());
             output.style(StyledTextOutput.Style.Normal).println(buildIndicators(variant));
         });
+        writeConfigurationDescription(variant.getDescription());
+
+        if (!(variant.getAttributes().isEmpty() && variant.getArtifacts().isEmpty())) {
+            newLine();
+        }
 
         try {
             depth++;
@@ -290,12 +295,12 @@ public final class TextConfigurationReportWriter implements ConfigurationReportW
 
     private void printHeader(Runnable action) {
         output.style(StyledTextOutput.Style.Header);
-        output.text(StringUtils.repeat("    ", depth));
+        indent(false);
         output.println("--------------------------------------------------");
-        output.text(StringUtils.repeat("    ", depth));
+        indent(false);
         action.run();
         output.style(StyledTextOutput.Style.Header);
-        output.text(StringUtils.repeat("    ", depth));
+        indent(false);
         output.println("--------------------------------------------------");
         output.style(StyledTextOutput.Style.Normal);
     }
@@ -305,7 +310,7 @@ public final class TextConfigurationReportWriter implements ConfigurationReportW
     }
 
     private void printSection(String title, @Nullable String description, Runnable action) {
-        output.text(StringUtils.repeat("    ", depth));
+        indent(false);
         output.style(StyledTextOutput.Style.Description).text(title);
         output.style(StyledTextOutput.Style.Normal);
         if (description != null) {
@@ -325,9 +330,9 @@ public final class TextConfigurationReportWriter implements ConfigurationReportW
         output.style(StyledTextOutput.Style.Normal).text(" = " + value);
     }
 
-    private void bulletIndent() {
+    private void indent(boolean bullet) {
         output.text(StringUtils.repeat("    ", depth));
-        if (depth > 0) {
+        if (depth > 0 && bullet) {
             output.withStyle(StyledTextOutput.Style.Normal).text("- ");
         }
     }
