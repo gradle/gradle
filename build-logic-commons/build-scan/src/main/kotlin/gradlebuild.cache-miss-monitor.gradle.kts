@@ -18,12 +18,14 @@ import com.gradle.scan.plugin.BuildScanExtension
 import java.util.concurrent.atomic.AtomicBoolean
 
 val cacheMissTagged = AtomicBoolean(false)
-val buildScan = extensions.findByType<BuildScanExtension>()
+plugins.withId("com.gradle.build-scan") {
+    val buildScan = extensions.findByType<BuildScanExtension>()
 
-if (System.getenv("TEAMCITY_VERSION") != null) {
-    gradle.taskGraph.afterTask {
-        if (buildCacheEnabled() && isCacheMiss() && isNotTaggedYet()) {
-            buildScan?.tag("CACHE_MISS")
+    if (System.getenv("TEAMCITY_VERSION") != null) {
+        gradle.taskGraph.afterTask {
+            if (buildCacheEnabled() && isCacheMiss() && isNotTaggedYet()) {
+                buildScan?.tag("CACHE_MISS")
+            }
         }
     }
 }

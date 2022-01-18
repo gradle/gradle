@@ -28,5 +28,5 @@ java {
 group = "gradlebuild"
 
 dependencies {
-    implementation("com.gradle:gradle-enterprise-gradle-plugin:3.8")
+    compileOnly("com.gradle:gradle-enterprise-gradle-plugin:3.8")
 }
