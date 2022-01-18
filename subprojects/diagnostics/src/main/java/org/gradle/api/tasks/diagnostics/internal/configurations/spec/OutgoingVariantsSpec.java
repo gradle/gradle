@@ -34,6 +34,11 @@ public final class OutgoingVariantsSpec extends AbstractConfigurationReportSpec 
     }
 
     @Override
+    public String getReportedConfigurationDirection() {
+        return "consumable";
+    }
+
+    @Override
     public boolean isIncludeCapabilities() {
         return true;
     }

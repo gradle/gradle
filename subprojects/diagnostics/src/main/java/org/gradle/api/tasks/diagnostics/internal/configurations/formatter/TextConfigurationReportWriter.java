@@ -84,7 +84,7 @@ public final class TextConfigurationReportWriter implements ConfigurationReportW
     private void writeNonLegacyResults(AbstractConfigurationReportSpec spec, ConfigurationReportModel data) {
         List<ReportConfiguration> nonLegacyConfigs = data.getNonLegacyConfigs();
         if (nonLegacyConfigs.isEmpty()) {
-            message("There are no proper " + spec.getFullReportedTypeDesc() + "s present in project '" + data.getProjectName() + "'.");
+            message("There are no purely " + spec.getReportedConfigurationDirection() + " " + spec.getReportedTypeAlias() + "s present in project '" + data.getProjectName() + "'.");
 
             boolean additionalLegacyConfigs = data.getEligibleConfigs().size() > nonLegacyConfigs.size();
             if (additionalLegacyConfigs) {

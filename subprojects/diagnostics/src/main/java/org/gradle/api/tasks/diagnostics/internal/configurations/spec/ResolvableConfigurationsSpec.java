@@ -30,7 +30,12 @@ public class ResolvableConfigurationsSpec extends AbstractConfigurationReportSpe
 
     @Override
     public String getFullReportedTypeDesc() {
-        return "resolvable" + " " + getReportedTypeAlias();
+        return getReportedConfigurationDirection() + " " + getReportedTypeAlias();
+    }
+
+    @Override
+    public String getReportedConfigurationDirection() {
+        return "resolvable";
     }
 
     @Override

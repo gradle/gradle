@@ -56,11 +56,11 @@ trait InspectsConfigurationReport {
     }
 
     void reportsNoProperConfigurations() {
-        outputContains("There are no proper resolvable configurations present in project")
+        outputContains("There are no purely resolvable configurations present in project")
     }
 
     void reportsNoProperVariants() {
-        outputContains("There are no proper outgoing variants present in project")
+        outputContains("There are no purely consumable variants present in project")
     }
 
     void promptsForRerunToFindMoreConfigurations() {

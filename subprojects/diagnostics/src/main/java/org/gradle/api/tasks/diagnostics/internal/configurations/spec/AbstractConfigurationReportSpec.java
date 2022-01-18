@@ -34,6 +34,7 @@ public abstract class AbstractConfigurationReportSpec {
 
     public abstract String getReportedTypeAlias();
     public abstract String getFullReportedTypeDesc();
+    public abstract String getReportedConfigurationDirection();
 
     public abstract boolean isIncludeCapabilities();
     public abstract boolean isIncludeArtifacts();
