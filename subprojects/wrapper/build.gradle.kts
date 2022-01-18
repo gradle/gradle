@@ -10,6 +10,7 @@ gradlebuildJava.usedInWorkers()
 
 dependencies {
     implementation(project(":cli"))
+    implementation(project(":wrapper-shared"))
 
     testImplementation(project(":base-services"))
     testImplementation(project(":native"))

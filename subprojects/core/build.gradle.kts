@@ -43,6 +43,7 @@ dependencies {
     implementation(project(":execution"))
     implementation(project(":worker-processes"))
     implementation(project(":normalization-java"))
+    implementation(project(":wrapper-shared"))
 
     implementation(libs.groovy)
     implementation(libs.groovyAnt)

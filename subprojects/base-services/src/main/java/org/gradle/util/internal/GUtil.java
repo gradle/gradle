@@ -16,7 +16,6 @@
 
 package org.gradle.util.internal;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
@@ -26,7 +25,6 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.io.StreamByteBuffer;
-import org.gradle.internal.os.OperatingSystem;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -56,7 +54,6 @@ import java.util.concurrent.Callable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static java.lang.String.format;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 
@@ -573,34 +570,5 @@ public class GUtil {
 
         final String scheme = url.getScheme();
         return !"http".equalsIgnoreCase(scheme);
-    }
-
-    /**
-     * Checks the entry name for zip-slip vulnerable sequences.
-     *
-     * <b>IMPLEMENTATION NOTE</b>
-     * We do it this way instead of the way recommended in https://snyk.io/research/zip-slip-vulnerability
-     * for performance reasons, calling {@link File#getCanonicalPath()} is too expensive.
-     *
-     * @throws IllegalArgumentException if the entry contains vulnerable sequences
-     */
-    public static String safeZipEntryName(String name) {
-        if (isUnsafeZipEntryName(name)) {
-            throw new IllegalArgumentException(format("'%s' is not a safe zip entry name.", name));
-        }
-        return name;
-    }
-
-    @VisibleForTesting
-    static boolean isUnsafeZipEntryName(String name) {
-        return name.isEmpty()
-            || name.startsWith("/")
-            || name.startsWith("\\")
-            || name.contains("..")
-            || (name.contains(":") && isWindows());
-    }
-
-    private static boolean isWindows() {
-        return OperatingSystem.current().isWindows();
     }
 }
