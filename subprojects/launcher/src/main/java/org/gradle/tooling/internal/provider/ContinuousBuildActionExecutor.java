@@ -145,31 +145,31 @@ public class ContinuousBuildActionExecutor implements BuildSessionActionExecutor
         virtualFileSystem.registerChangeBroadcaster(changeBroadcaster);
         try {
             while (true) {
-                FileSystemChangeListener fileSystemChangeListener = new FileSystemChangeListener(
+                ContinuousBuildTriggerHandler continuousBuildTriggerHandler = new ContinuousBuildTriggerHandler(
                     inputAccessHierarchyFactory.create(),
                     new SingleFirePendingChangesListener(pendingChangesListener),
                     cancellationToken,
                     continuousExecutionGate
                 );
                 try {
-                    listenerManager.addListener(fileSystemChangeListener);
-                    lastResult = executeBuildAndAccumulateInputs(action, fileSystemChangeListener, buildSession);
+                    listenerManager.addListener(continuousBuildTriggerHandler);
+                    lastResult = executeBuildAndAccumulateInputs(action, continuousBuildTriggerHandler, buildSession);
 
-                    if (!fileSystemChangeListener.hasAnyInputs()) {
+                    if (!continuousBuildTriggerHandler.hasAnyInputs()) {
                         logger.println().withStyle(StyledTextOutput.Style.Failure).println("Exiting continuous build as no executed tasks declared file system inputs.");
                         return lastResult;
                     } else {
                         cancellableOperationManager.monitorInput(operationToken -> {
-                            fileSystemChangeListener.wait(
+                            continuousBuildTriggerHandler.wait(
                                 () -> logger.println().println("Waiting for changes to input files of tasks..." + determineExitHint(requestContext))
                             );
                             if (!operationToken.isCancellationRequested()) {
-                                fileSystemChangeListener.reportChanges(logger);
+                                continuousBuildTriggerHandler.reportChanges(logger);
                             }
                         });
                     }
                 } finally {
-                    listenerManager.removeListener(fileSystemChangeListener);
+                    listenerManager.removeListener(continuousBuildTriggerHandler);
                 }
 
                 if (cancellationToken.isCancellationRequested()) {
@@ -205,11 +205,11 @@ public class ContinuousBuildActionExecutor implements BuildSessionActionExecutor
 
     private BuildActionRunner.Result executeBuildAndAccumulateInputs(
         BuildAction action,
-        FileSystemChangeListener changeListener,
+        TaskInputsListener taskInputsListener,
         BuildSessionContext buildSession
     ) {
         return withTaskInputsListener(
-            changeListener,
+            taskInputsListener,
             () -> delegate.execute(action, buildSession)
         );
     }

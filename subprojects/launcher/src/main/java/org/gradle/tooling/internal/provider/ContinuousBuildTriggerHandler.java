@@ -47,7 +47,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.gradle.internal.filewatch.DefaultFileSystemChangeWaiterFactory.QUIET_PERIOD_SYSPROP;
 
-public class FileSystemChangeListener implements FileChangeListener, TaskInputsListener {
+public class ContinuousBuildTriggerHandler implements FileChangeListener, TaskInputsListener {
     private static final boolean IS_MAC_OSX = OperatingSystem.current().isMacOsX();
 
     private final InputAccessHierarchy inputAccessHierarchy;
@@ -61,7 +61,7 @@ public class FileSystemChangeListener implements FileChangeListener, TaskInputsL
     private final long quietPeriod;
     private volatile long lastChangeAt = monotonicClockMillis();
 
-    public FileSystemChangeListener(
+    public ContinuousBuildTriggerHandler(
         InputAccessHierarchy inputAccessHierarchy,
         PendingChangesListener pendingChangesListener,
         BuildCancellationToken cancellationToken,
