@@ -4,7 +4,7 @@ val sharedConfiguration: Configuration by configurations.creating {
 }
 
 dependencies {
-    add(sharedConfiguration.name, project(mapOf("path" to ":producer", "configuration" to "sharedConfiguration")))
+    sharedConfiguration(project(path = ":producer", configuration = "sharedConfiguration"))
 }
 
 tasks.register("showFile") {
