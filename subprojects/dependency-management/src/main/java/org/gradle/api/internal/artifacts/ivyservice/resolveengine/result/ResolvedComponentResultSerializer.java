@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
+import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
@@ -37,15 +38,18 @@ public class ResolvedComponentResultSerializer implements Serializer<ResolvedCom
     private final Serializer<ModuleVersionIdentifier> moduleVersionIdSerializer;
     private final Serializer<ComponentIdentifier> componentIdSerializer;
     private final Serializer<ComponentSelector> componentSelectorSerializer;
+    private final Serializer<ComponentSelectionReason> componentSelectionReasonSerializer;
 
     public ResolvedComponentResultSerializer(
         Serializer<ModuleVersionIdentifier> moduleVersionIdSerializer,
         Serializer<ComponentIdentifier> componentIdSerializer,
-        Serializer<ComponentSelector> componentSelectorSerializer
+        Serializer<ComponentSelector> componentSelectorSerializer,
+        Serializer<ComponentSelectionReason> componentSelectionReasonSerializer
     ) {
         this.moduleVersionIdSerializer = moduleVersionIdSerializer;
         this.componentIdSerializer = componentIdSerializer;
         this.componentSelectorSerializer = componentSelectorSerializer;
+        this.componentSelectionReasonSerializer = componentSelectionReasonSerializer;
     }
 
     @Override
@@ -73,6 +77,7 @@ public class ResolvedComponentResultSerializer implements Serializer<ResolvedCom
         encoder.writeSmallInt(id);
         moduleVersionIdSerializer.write(encoder, component.getModuleVersion());
         componentIdSerializer.write(encoder, component.getId());
+        componentSelectionReasonSerializer.write(encoder, component.getSelectionReason());
         Set<? extends DependencyResult> dependencies = component.getDependencies();
         encoder.writeSmallInt(dependencies.size());
         for (DependencyResult dependency : dependencies) {
