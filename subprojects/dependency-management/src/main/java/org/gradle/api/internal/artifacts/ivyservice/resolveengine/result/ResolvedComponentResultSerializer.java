@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
+import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedComponentResult;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedDependencyResult;
 import org.gradle.api.internal.artifacts.result.DefaultUnresolvedDependencyResult;
@@ -31,6 +32,7 @@ import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -38,17 +40,20 @@ public class ResolvedComponentResultSerializer implements Serializer<ResolvedCom
     private final Serializer<ModuleVersionIdentifier> moduleVersionIdSerializer;
     private final Serializer<ComponentIdentifier> componentIdSerializer;
     private final Serializer<ComponentSelector> componentSelectorSerializer;
+    private final Serializer<ResolvedVariantResult> resolvedVariantResultSerializer;
     private final Serializer<ComponentSelectionReason> componentSelectionReasonSerializer;
 
     public ResolvedComponentResultSerializer(
         Serializer<ModuleVersionIdentifier> moduleVersionIdSerializer,
         Serializer<ComponentIdentifier> componentIdSerializer,
         Serializer<ComponentSelector> componentSelectorSerializer,
+        Serializer<ResolvedVariantResult> resolvedVariantResultSerializer,
         Serializer<ComponentSelectionReason> componentSelectionReasonSerializer
     ) {
         this.moduleVersionIdSerializer = moduleVersionIdSerializer;
         this.componentIdSerializer = componentIdSerializer;
         this.componentSelectorSerializer = componentSelectorSerializer;
+        this.resolvedVariantResultSerializer = resolvedVariantResultSerializer;
         this.componentSelectionReasonSerializer = componentSelectionReasonSerializer;
     }
 
@@ -78,6 +83,11 @@ public class ResolvedComponentResultSerializer implements Serializer<ResolvedCom
         moduleVersionIdSerializer.write(encoder, component.getModuleVersion());
         componentIdSerializer.write(encoder, component.getId());
         componentSelectionReasonSerializer.write(encoder, component.getSelectionReason());
+        List<ResolvedVariantResult> variants = component.getVariants();
+        encoder.writeSmallInt(variants.size());
+        for (ResolvedVariantResult variant : variants) {
+            resolvedVariantResultSerializer.write(encoder, variant);
+        }
         Set<? extends DependencyResult> dependencies = component.getDependencies();
         encoder.writeSmallInt(dependencies.size());
         for (DependencyResult dependency : dependencies) {

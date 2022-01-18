@@ -543,6 +543,27 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
         then:
         executedAndNotSkipped ":verify"
         notExecuted ":project-lib:jar", ":composite-lib:jar"
+
+        when: "changing project library variant metadata"
+        succeeds "verify", "-DprojectLibAttrValue=new-value"
+
+        then:
+        executedAndNotSkipped ":verify"
+        notExecuted ":project-lib:jar", ":composite-lib:jar"
+
+        when: "changing included library variant metadata"
+        succeeds "verify", "-DcompositeLibAttrValue=new-value"
+
+        then:
+        executedAndNotSkipped ":verify"
+        notExecuted ":project-lib:jar", ":composite-lib:jar"
+
+        when: "changing external library variant metadata"
+        succeeds "verify", "-DexternalLibAttrValue=new-value"
+
+        then:
+        executedAndNotSkipped ":verify"
+        notExecuted ":project-lib:jar", ":composite-lib:jar"
     }
 
     private void withOriginalSourceIn(String basePath) {
