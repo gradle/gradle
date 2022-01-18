@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
+/**
+ * Formatters responsible for generating configuration reports from gathered data.
+ */
+@NonNullApi
 package org.gradle.api.tasks.diagnostics.internal.configurations.formatter;
 
-import org.gradle.api.tasks.diagnostics.internal.configurations.model.ConfigurationReportModel;
-import org.gradle.api.tasks.diagnostics.internal.configurations.spec.AbstractConfigurationReportSpec;
-
-public interface ConfigurationReportWriter {
-    void writeReport(AbstractConfigurationReportSpec spec, ConfigurationReportModel data);
-}
+import org.gradle.api.NonNullApi;

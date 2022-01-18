@@ -15,7 +15,7 @@
  */
 
 /**
- * Internal value types responsible for containing variant report data.
+ * Internal value types responsible for containing configuration report data.
  */
 @NonNullApi
 package org.gradle.api.tasks.diagnostics.internal.configurations.model;

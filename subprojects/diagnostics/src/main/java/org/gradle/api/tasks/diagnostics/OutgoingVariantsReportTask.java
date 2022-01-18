@@ -19,7 +19,8 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
-import org.gradle.api.tasks.diagnostics.internal.configurations.formatter.ConfigurationReportSpec;
+import org.gradle.api.tasks.diagnostics.internal.configurations.spec.AbstractConfigurationReportSpec;
+import org.gradle.api.tasks.diagnostics.internal.configurations.spec.OutgoingVariantsSpec;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.work.DisableCachingByDefault;
 
@@ -54,8 +55,8 @@ public abstract class OutgoingVariantsReportTask extends AbstractConfigurationRe
     }
 
     @Override
-    protected ConfigurationReportSpec buildReportSpec() {
-        return new ConfigurationReportSpec(ConfigurationReportSpec.ReportType.OUTGOING, variantSpec.getOrNull(), showAll.get());
+    protected AbstractConfigurationReportSpec buildReportSpec() {
+        return new OutgoingVariantsSpec(variantSpec.getOrNull(), showAll.get());
     }
 
     @Override

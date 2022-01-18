@@ -25,7 +25,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.diagnostics.internal.configurations.formatter.TextConfigurationReportWriter;
-import org.gradle.api.tasks.diagnostics.internal.configurations.formatter.ConfigurationReportSpec;
+import org.gradle.api.tasks.diagnostics.internal.configurations.spec.AbstractConfigurationReportSpec;
 import org.gradle.api.tasks.diagnostics.internal.configurations.formatter.ConfigurationReportWriter;
 import org.gradle.api.tasks.diagnostics.internal.configurations.model.ReportConfiguration;
 import org.gradle.api.tasks.diagnostics.internal.configurations.model.ConfigurationReportModel;
@@ -54,16 +54,16 @@ public abstract class AbstractConfigurationReportTask extends DefaultTask {
 
     @Inject
     protected abstract StyledTextOutputFactory getTextOutputFactory();
-    
+
     @Inject
     protected abstract FileResolver getFileResolver();
 
-    protected abstract ConfigurationReportSpec buildReportSpec();
+    protected abstract AbstractConfigurationReportSpec buildReportSpec();
     protected abstract Predicate<Configuration> buildEligibleConfigurationsFilter();
 
     @TaskAction
     public void report() {
-        final ConfigurationReportSpec reportSpec = buildReportSpec();
+        final AbstractConfigurationReportSpec reportSpec = buildReportSpec();
         final ConfigurationReportModel reportModel = buildReportModel();
         final ConfigurationReportWriter writer = buildReportWriter();
         writer.writeReport(reportSpec, reportModel);

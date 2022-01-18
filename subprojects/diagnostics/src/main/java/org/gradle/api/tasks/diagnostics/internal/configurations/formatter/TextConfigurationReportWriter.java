@@ -23,6 +23,7 @@ import org.gradle.api.tasks.diagnostics.internal.configurations.model.ReportCapa
 import org.gradle.api.tasks.diagnostics.internal.configurations.model.ReportConfiguration;
 import org.gradle.api.tasks.diagnostics.internal.configurations.model.ConfigurationReportModel;
 import org.gradle.api.tasks.diagnostics.internal.configurations.model.ReportSecondaryVariant;
+import org.gradle.api.tasks.diagnostics.internal.configurations.spec.AbstractConfigurationReportSpec;
 import org.gradle.internal.logging.text.StyledTextOutput;
 
 import javax.annotation.Nullable;
@@ -46,7 +47,7 @@ public final class TextConfigurationReportWriter implements ConfigurationReportW
     }
 
     @Override
-    public void writeReport(ConfigurationReportSpec spec, ConfigurationReportModel data) {
+    public void writeReport(AbstractConfigurationReportSpec spec, ConfigurationReportModel data) {
         depth = 0;
         if (data.getEligibleConfigs().isEmpty()) {
             writeCompleteAbsenceOfResults(spec, data);
@@ -63,38 +64,38 @@ public final class TextConfigurationReportWriter implements ConfigurationReportW
         }
     }
 
-    private void writeCompleteAbsenceOfResults(ConfigurationReportSpec spec, ConfigurationReportModel data) {
-        message("There are no " + spec.getReportType().getFullReportedTypeDesc() + "s (including legacy " + spec.getReportType().getReportedTypeAlias() + "s) present in project '" + data.getProjectName() + "'.");
+    private void writeCompleteAbsenceOfResults(AbstractConfigurationReportSpec spec, ConfigurationReportModel data) {
+        message("There are no " + spec.getFullReportedTypeDesc() + "s (including legacy " + spec.getReportedTypeAlias() + "s) present in project '" + data.getProjectName() + "'.");
     }
 
-    private void writeSearchResults(ConfigurationReportSpec spec, ConfigurationReportModel data) {
+    private void writeSearchResults(AbstractConfigurationReportSpec spec, ConfigurationReportModel data) {
         Optional<ReportConfiguration> searchResult = data.getConfigNamed(spec.getSearchTarget().get());
         if (searchResult.isPresent()) {
             writeConfigurations(spec, Collections.singletonList(searchResult.get()));
         } else {
-            message("There are no " + spec.getReportType().getFullReportedTypeDesc() + "s on project '" + data.getProjectName() + "' named '" + spec.getSearchTarget().get() + "'.");
+            message("There are no " + spec.getFullReportedTypeDesc() + "s on project '" + data.getProjectName() + "' named '" + spec.getSearchTarget().get() + "'.");
         }
     }
 
-    private void writeLegacyResults(ConfigurationReportSpec spec, ConfigurationReportModel data) {
+    private void writeLegacyResults(AbstractConfigurationReportSpec spec, ConfigurationReportModel data) {
         writeConfigurations(spec, data.getEligibleConfigs());
     }
 
-    private void writeNonLegacyResults(ConfigurationReportSpec spec, ConfigurationReportModel data) {
+    private void writeNonLegacyResults(AbstractConfigurationReportSpec spec, ConfigurationReportModel data) {
         List<ReportConfiguration> nonLegacyConfigs = data.getNonLegacyConfigs();
         if (nonLegacyConfigs.isEmpty()) {
-            message("There are no proper " + spec.getReportType().getFullReportedTypeDesc() + "s present in project '" + data.getProjectName() + "'.");
+            message("There are no proper " + spec.getFullReportedTypeDesc() + "s present in project '" + data.getProjectName() + "'.");
 
             boolean additionalLegacyConfigs = data.getEligibleConfigs().size() > nonLegacyConfigs.size();
             if (additionalLegacyConfigs) {
-                message("Re-run this report with the '--all' flag to include legacy " + spec.getReportType().getReportedTypeAlias() + "s (legacy = consumable and resolvable).");
+                message("Re-run this report with the '--all' flag to include legacy " + spec.getReportedTypeAlias() + "s (legacy = consumable and resolvable).");
             }
         } else {
             writeConfigurations(spec, nonLegacyConfigs);
         }
     }
 
-    private void writeConfigurations(ConfigurationReportSpec spec, List<ReportConfiguration> configurations) {
+    private void writeConfigurations(AbstractConfigurationReportSpec spec, List<ReportConfiguration> configurations) {
         configurations.forEach(c -> writeConfiguration(spec, c));
         writeLegend(configurations);
     }
@@ -119,28 +120,28 @@ public final class TextConfigurationReportWriter implements ConfigurationReportW
         }
     }
 
-    private void writeConfiguration(ConfigurationReportSpec format, ReportConfiguration config) {
-        writeConfigurationNameHeader(config, format.getReportType().getReportedTypeAlias());
+    private void writeConfiguration(AbstractConfigurationReportSpec format, ReportConfiguration config) {
+        writeConfigurationNameHeader(config, format.getReportedTypeAlias());
         writeConfigurationDescription(config);
 
         if (!config.getAttributes().isEmpty() ||
-            (format.getReportType().isIncludeCapabilities() && !config.getCapabilities().isEmpty()) ||
-            (format.getReportType().isIncludeArtifacts() && !config.getArtifacts().isEmpty()) ||
-            (format.getReportType().isIncludeVariants() && !config.getSecondaryVariants().isEmpty())) {
+            (format.isIncludeCapabilities() && !config.getCapabilities().isEmpty()) ||
+            (format.isIncludeArtifacts() && !config.getArtifacts().isEmpty()) ||
+            (format.isIncludeVariants() && !config.getSecondaryVariants().isEmpty())) {
             newLine();
         }
 
-        if (format.getReportType().isIncludeCapabilities()) {
+        if (format.isIncludeCapabilities()) {
             writeCapabilities(config.getCapabilities());
         }
 
         writeAttributes(config.getAttributes());
 
-        if (format.getReportType().isIncludeArtifacts()) {
+        if (format.isIncludeArtifacts()) {
             writeArtifacts(config.getArtifacts());
         }
 
-        if (format.getReportType().isIncludeVariants()) {
+        if (format.isIncludeVariants()) {
             writeSecondaryVariants(config.getSecondaryVariants());
         }
 

@@ -21,7 +21,8 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
-import org.gradle.api.tasks.diagnostics.internal.configurations.formatter.ConfigurationReportSpec;
+import org.gradle.api.tasks.diagnostics.internal.configurations.spec.AbstractConfigurationReportSpec;
+import org.gradle.api.tasks.diagnostics.internal.configurations.spec.ResolvableConfigurationsSpec;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.work.DisableCachingByDefault;
 
@@ -58,8 +59,8 @@ public abstract class ResolvableConfigurationsReportTask extends AbstractConfigu
     }
 
     @Override
-    protected ConfigurationReportSpec buildReportSpec() {
-        return new ConfigurationReportSpec(ConfigurationReportSpec.ReportType.RESOLVABLE, configurationSpec.getOrNull(), showAll.get());
+    protected AbstractConfigurationReportSpec buildReportSpec() {
+        return new ResolvableConfigurationsSpec(configurationSpec.getOrNull(), showAll.get());
     }
 
     @Override
