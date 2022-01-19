@@ -39,7 +39,11 @@ public final class ValuedVfsHierarchy<T> {
     private final ChildMap<ValuedVfsHierarchy<T>> children;
     private final CaseSensitivity caseSensitivity;
 
-    public ValuedVfsHierarchy(PersistentList<T> values, ChildMap<ValuedVfsHierarchy<T>> children, CaseSensitivity caseSensitivity) {
+    public static <T> ValuedVfsHierarchy<T> emptyHierarchy(CaseSensitivity caseSensitivity) {
+        return new ValuedVfsHierarchy<>(PersistentList.of(), EmptyChildMap.getInstance(), caseSensitivity);
+    }
+
+    private ValuedVfsHierarchy(PersistentList<T> values, ChildMap<ValuedVfsHierarchy<T>> children, CaseSensitivity caseSensitivity) {
         this.values = values;
         this.children = children;
         this.caseSensitivity = caseSensitivity;
@@ -54,7 +58,7 @@ public final class ValuedVfsHierarchy<T> {
      */
     @CheckReturnValue
     public ValuedVfsHierarchy<T> empty() {
-        return new ValuedVfsHierarchy<>(PersistentList.of(), EmptyChildMap.getInstance(), caseSensitivity);
+        return emptyHierarchy(caseSensitivity);
     }
 
     /**

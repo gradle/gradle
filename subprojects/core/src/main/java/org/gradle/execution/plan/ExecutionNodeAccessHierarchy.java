@@ -23,7 +23,6 @@ import org.gradle.execution.plan.ValuedVfsHierarchy.ValueVisitor;
 import org.gradle.internal.collect.PersistentList;
 import org.gradle.internal.file.Stat;
 import org.gradle.internal.snapshot.CaseSensitivity;
-import org.gradle.internal.snapshot.EmptyChildMap;
 import org.gradle.internal.snapshot.VfsRelativePath;
 
 import java.io.File;
@@ -34,7 +33,7 @@ public class ExecutionNodeAccessHierarchy {
     private final SingleFileTreeElementMatcher matcher;
 
     public ExecutionNodeAccessHierarchy(CaseSensitivity caseSensitivity, Stat stat) {
-        this.root = new ValuedVfsHierarchy<>(PersistentList.of(), EmptyChildMap.getInstance(), caseSensitivity);
+        this.root = ValuedVfsHierarchy.emptyHierarchy(caseSensitivity);
         this.matcher = new SingleFileTreeElementMatcher(stat);
     }
 
