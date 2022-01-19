@@ -33,7 +33,7 @@ public interface BuildLifecycleAwareVirtualFileSystem extends VirtualFileSystem 
 
     void registerChangeBroadcaster(FileWatcherRegistry.ChangeHandler changeBroadcaster);
 
-    void unregisterChangeBroadcaster(FileWatcherRegistry.ChangeHandler changeBroadcaster);
+    void unregisterChangeBroadcaster();
 
     /**
      * Called when the build is started.

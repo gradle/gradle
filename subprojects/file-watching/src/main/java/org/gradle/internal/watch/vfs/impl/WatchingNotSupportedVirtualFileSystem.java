@@ -57,7 +57,7 @@ public class WatchingNotSupportedVirtualFileSystem extends AbstractVirtualFileSy
     }
 
     @Override
-    public void unregisterChangeBroadcaster(FileWatcherRegistry.ChangeHandler changeBroadcaster) {
+    public void unregisterChangeBroadcaster() {
     }
 
     @Override

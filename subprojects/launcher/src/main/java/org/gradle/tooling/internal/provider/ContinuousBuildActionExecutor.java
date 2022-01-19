@@ -185,7 +185,7 @@ public class ContinuousBuildActionExecutor implements BuildSessionActionExecutor
                 }
             }
         } finally {
-            virtualFileSystem.unregisterChangeBroadcaster(changeBroadcaster);
+            virtualFileSystem.unregisterChangeBroadcaster();
         }
 
         logger.println("Build cancelled.");
