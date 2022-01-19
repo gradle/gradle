@@ -62,7 +62,7 @@ public final class ValuedVfsHierarchy<T> {
      */
     public void visitValues(String location, ValueVisitor<T> visitor) {
         VfsRelativePath relativePath = VfsRelativePath.of(location);
-        if (relativePath.length() == 0) {
+        if (relativePath.isEmpty()) {
             visitAllValues(visitor);
         } else {
             visitValuesRelatedTo(relativePath, visitor);
@@ -141,7 +141,7 @@ public final class ValuedVfsHierarchy<T> {
      */
     @CheckReturnValue
     public ValuedVfsHierarchy<T> recordValue(VfsRelativePath location, T value) {
-        if (location.length() == 0) {
+        if (location.isEmpty()) {
             return new ValuedVfsHierarchy<>(values.plus(value), children, caseSensitivity);
         }
         ChildMap<ValuedVfsHierarchy<T>> newChildren = children.store(location, caseSensitivity, new ChildMap.StoreHandler<ValuedVfsHierarchy<T>>() {
