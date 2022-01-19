@@ -13,8 +13,6 @@ dependencies {
     implementation(project(":wrapper-shared"))
 
     testImplementation(project(":base-services"))
-    testImplementation(project(":native"))
-    testImplementation(libs.ant)
     testImplementation(testFixtures(project(":core")))
 
     integTestImplementation(project(":logging"))
