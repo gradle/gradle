@@ -319,10 +319,10 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
     private SnapshotHierarchy startWatching(SnapshotHierarchy currentRoot, WatchMode watchMode, List<File> unsupportedFileSystems) {
         try {
             watchRegistry = watcherRegistryFactory.createFileWatcherRegistry(new FilterChangesToOutputsChangesHandler(locationsWrittenByCurrentBuild,
-                new CompositeChangeHandler(ImmutableList.of(
+                new CompositeChangeHandler(
                     new InvalidateVfsChangeHandler(),
                     new BroadcastingChangeHandler()
-                ))));
+                )));
             SnapshotHierarchy newRoot = watchRegistry.updateVfsOnBuildStarted(currentRoot.empty(), watchMode, unsupportedFileSystems);
             watchableHierarchiesRegisteredEarly.forEach(watchableHierarchy -> watchRegistry.registerWatchableHierarchy(watchableHierarchy, newRoot));
             watchableHierarchiesRegisteredEarly.clear();
@@ -389,8 +389,8 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
     private static class CompositeChangeHandler implements FileWatcherRegistry.ChangeHandler {
         private final List<FileWatcherRegistry.ChangeHandler> handlers;
 
-        public CompositeChangeHandler(List<FileWatcherRegistry.ChangeHandler> handlers) {
-            this.handlers = handlers;
+        public CompositeChangeHandler(FileWatcherRegistry.ChangeHandler... handlers) {
+            this.handlers = ImmutableList.copyOf(handlers);
         }
 
         @Override
