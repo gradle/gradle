@@ -90,6 +90,30 @@ public class VfsRelativePath {
     }
 
     /**
+     * Returns a new relative path starting after the given prefix.
+     *
+     * E.g.
+     *   (some/path, some) -&gt; path
+     */
+    public VfsRelativePath suffixStartingFrom(VfsRelativePath prefix) {
+        return suffixStartingFrom(prefix.length() + 1);
+    }
+
+    /**
+     * Removes this relative path from the beginning of another relative path.
+     *
+     * Also removes the trailing slash of the prefix.
+     *
+     * E.g.
+     *   (some, some/path) -&gt; path
+     *   (some, some/path/othere) -&gt; path/other
+     *   (C:, '') -&gt; C:
+     */
+    public String removeAsPrefixOf(String relativeChildPath) {
+        return relativeChildPath.substring(length() + 1);
+    }
+
+    /**
      * Returns a new relative path starting from the child.
      *
      * E.g.
@@ -103,7 +127,11 @@ public class VfsRelativePath {
             : suffixStartingFrom(relativeChildPath.length() + 1);
     }
 
-    public int length() {
+    public boolean isEmpty() {
+        return offset == absolutePath.length();
+    }
+
+    int length() {
         return absolutePath.length() - offset;
     }
 

@@ -100,7 +100,7 @@ public class ExecutionNodeAccessHierarchy {
 
     private ImmutableSet<Node> visitValues(String location, AbstractNodeAccessVisitor visitor) {
         VfsRelativePath relativePath = VfsRelativePath.of(location);
-        if (relativePath.length() == 0) {
+        if (relativePath.isEmpty()) {
             root.visitAllValues(visitor);
         } else {
             root.visitValuesRelatedTo(relativePath, visitor);
