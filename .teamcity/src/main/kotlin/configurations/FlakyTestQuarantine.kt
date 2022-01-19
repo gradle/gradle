@@ -11,6 +11,7 @@ import common.gradleWrapper
 import common.killProcessStep
 import common.toCapitalized
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildStep
+import jetbrains.buildServer.configs.kotlin.v2019_2.RelativeId
 import model.CIBuildModel
 import model.Stage
 import model.StageNames
@@ -52,5 +53,9 @@ class FlakyTestQuarantine(model: CIBuildModel, stage: Stage, os: Os) : BaseGradl
 
     steps {
         checkCleanM2AndAndroidUserHome(os)
+    }
+
+    dependencies {
+        snapshot(RelativeId(stageTriggerId(model, StageNames.QUICK_FEEDBACK_LINUX_ONLY))) {}
     }
 })
