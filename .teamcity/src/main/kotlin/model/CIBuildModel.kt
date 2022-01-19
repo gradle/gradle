@@ -28,9 +28,7 @@ enum class StageNames(override val stageName: String, override val description: 
     READY_FOR_NIGHTLY("Ready for Nightly", "Rerun tests in different environments / 3rd party components"),
     READY_FOR_RELEASE("Ready for Release", "Once a day: Rerun tests in more environments"),
     HISTORICAL_PERFORMANCE("Historical Performance", "Once a week: Run performance tests for multiple Gradle versions"),
-    EXPERIMENTAL("Experimental", "On demand: Run experimental tests"),
     EXPERIMENTAL_VFS_RETENTION("Experimental FS Watching", "On demand checks to run tests with file system watching enabled"),
-    EXPERIMENTAL_JDK("Experimental JDK", "On demand checks to run tests with latest experimental JDK"),
     EXPERIMENTAL_PERFORMANCE("Experimental Performance", "Try out new performance test running")
 }
 
@@ -138,18 +136,6 @@ data class CIBuildModel(
             )
         ),
         Stage(
-            StageNames.EXPERIMENTAL,
-            trigger = Trigger.never,
-            runsIndependent = true,
-            functionalTests = listOf(
-                TestCoverage(16, TestType.quick, Os.LINUX, JvmCategory.EXPERIMENTAL_VERSION),
-                TestCoverage(17, TestType.quick, Os.WINDOWS, JvmCategory.EXPERIMENTAL_VERSION),
-                TestCoverage(18, TestType.platform, Os.LINUX, JvmCategory.EXPERIMENTAL_VERSION),
-                TestCoverage(19, TestType.platform, Os.WINDOWS, JvmCategory.EXPERIMENTAL_VERSION),
-                TestCoverage(21, TestType.allVersionsCrossVersion, Os.LINUX, JvmCategory.MAX_VERSION)
-            )
-        ),
-        Stage(
             StageNames.EXPERIMENTAL_VFS_RETENTION,
             trigger = Trigger.never,
             runsIndependent = true,
@@ -166,34 +152,6 @@ data class CIBuildModel(
                         )
                     }
                 )
-            )
-        ),
-        Stage(
-            StageNames.EXPERIMENTAL_JDK,
-            trigger = Trigger.never,
-            runsIndependent = true,
-            specificBuilds = listOf(
-                SpecificBuild.SmokeTestsExperimentalJDK,
-                SpecificBuild.ConfigCacheSmokeTestsExperimentalJDK
-            ),
-            functionalTests = listOf(
-                TestCoverage(55, TestType.quick, Os.LINUX, JvmCategory.EXPERIMENTAL_VERSION),
-                TestCoverage(56, TestType.quick, Os.WINDOWS, JvmCategory.EXPERIMENTAL_VERSION),
-                TestCoverage(57, TestType.platform, Os.LINUX, JvmCategory.EXPERIMENTAL_VERSION),
-                TestCoverage(58, TestType.platform, Os.WINDOWS, JvmCategory.EXPERIMENTAL_VERSION),
-                TestCoverage(59, TestType.configCache, Os.LINUX, JvmCategory.EXPERIMENTAL_VERSION),
-                TestCoverage(60, TestType.quickFeedbackCrossVersion, Os.LINUX, JvmCategory.EXPERIMENTAL_VERSION),
-                TestCoverage(61, TestType.quickFeedbackCrossVersion, Os.WINDOWS, JvmCategory.EXPERIMENTAL_VERSION),
-                TestCoverage(62, TestType.parallel, Os.LINUX, JvmCategory.EXPERIMENTAL_VERSION),
-                TestCoverage(63, TestType.soak, Os.LINUX, JvmCategory.EXPERIMENTAL_VERSION),
-                TestCoverage(64, TestType.soak, Os.WINDOWS, JvmCategory.EXPERIMENTAL_VERSION),
-                TestCoverage(65, TestType.soak, Os.MACOS, JvmCategory.EXPERIMENTAL_VERSION),
-                TestCoverage(66, TestType.allVersionsCrossVersion, Os.LINUX, JvmCategory.EXPERIMENTAL_VERSION),
-                TestCoverage(67, TestType.allVersionsCrossVersion, Os.WINDOWS, JvmCategory.EXPERIMENTAL_VERSION),
-                TestCoverage(68, TestType.noDaemon, Os.LINUX, JvmCategory.EXPERIMENTAL_VERSION),
-                TestCoverage(69, TestType.noDaemon, Os.WINDOWS, JvmCategory.EXPERIMENTAL_VERSION),
-                TestCoverage(70, TestType.allVersionsIntegMultiVersion, Os.LINUX, JvmCategory.EXPERIMENTAL_VERSION),
-                TestCoverage(71, TestType.allVersionsIntegMultiVersion, Os.WINDOWS, JvmCategory.EXPERIMENTAL_VERSION)
             )
         ),
         Stage(
