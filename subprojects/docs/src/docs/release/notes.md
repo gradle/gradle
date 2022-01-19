@@ -24,6 +24,7 @@ We would like to thank the following community members for their contributions t
 [Lars Grefer](https://github.com/larsgrefer),
 [Patrick Pichler](https://github.com/patrickpichler),
 [Marcin Mielnicki](https://github.com/platan),
+[Marcono1234](https://github.com/Marcono1234),
 [Dima Merkurev](https://github.com/dimorinny).
 
 ## Upgrade instructions
