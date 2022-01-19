@@ -20,6 +20,9 @@ import org.gradle.api.tasks.diagnostics.internal.configurations.model.Configurat
 import org.gradle.api.tasks.diagnostics.internal.configurations.spec.AbstractConfigurationReportSpec;
 import org.gradle.internal.logging.text.StyledTextOutput;
 
-public interface ConfigurationReportWriter {
-    void writeReport(StyledTextOutput output, AbstractConfigurationReportSpec spec, ConfigurationReportModel data);
+public class JSONConfigurationReportWriter implements ConfigurationReportWriter {
+    @Override
+    public void writeReport(StyledTextOutput output, AbstractConfigurationReportSpec spec, ConfigurationReportModel data) {
+        output.println("{ json: 'Yea!  This is full of JSON!' }"); // TODO: Actual JSON
+    }
 }

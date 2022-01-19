@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.diagnostics.internal.configurations.formatter;
+/**
+ * Diagnostic tasks which report information about configurations.
+ */
+@NonNullApi
+package org.gradle.api.tasks.diagnostics.configurations;
 
-import org.gradle.api.tasks.diagnostics.internal.configurations.model.ConfigurationReportModel;
-import org.gradle.api.tasks.diagnostics.internal.configurations.spec.AbstractConfigurationReportSpec;
-import org.gradle.internal.logging.text.StyledTextOutput;
-
-public interface ConfigurationReportWriter {
-    void writeReport(StyledTextOutput output, AbstractConfigurationReportSpec spec, ConfigurationReportModel data);
-}
+import org.gradle.api.NonNullApi;

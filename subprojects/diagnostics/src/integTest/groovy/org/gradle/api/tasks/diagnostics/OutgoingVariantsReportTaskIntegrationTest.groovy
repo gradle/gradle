@@ -1391,4 +1391,53 @@ Artifacts
         hasIncubatingLegend()
         doesNotPromptForRerunToFindMoreVariants()
     }
+
+    @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
+    def "can write text report to file"() {
+        given:
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            outgoingVariants {
+                reports {
+                    text {
+                        required = true
+                        outputLocation.set(file('build/reports/outgoingVariants.txt'))
+                    }
+                }
+            }
+        """.stripIndent()
+
+        when:
+        succeeds ':outgoingVariants'
+
+        then:
+        def outputFile = file('build/reports/outgoingVariants.txt')
+        outputFile.assertExists()
+        outputContains(outputFile.text)
+    }
+
+    @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
+    def "can write json report to default file"() {
+        given:
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            outgoingVariants {
+                reports.json.required = true
+            }
+        """.stripIndent()
+
+        when:
+        succeeds ':outgoingVariants'
+
+        then:
+        def outputFile = file('build/reports/configuration/outgoingVariants.json')
+        outputFile.assertExists()
+        outputFile.assertContents(containsNormalizedString("{ json: 'Yea!  This is full of JSON!' }"))
+    }
 }

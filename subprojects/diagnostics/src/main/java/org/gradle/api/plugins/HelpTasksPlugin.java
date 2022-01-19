@@ -81,13 +81,11 @@ public class HelpTasksPlugin implements Plugin<Project> {
         tasks.register(OUTGOING_VARIANTS_TASK, OutgoingVariantsReportTask.class, task -> {
             task.setDescription("Displays the outgoing variants of " + projectName + ".");
             task.setGroup(HELP_GROUP);
-            task.getFormat().convention("text");
             task.setImpliesSubProjects(true);
         });
         tasks.register(RESOLVABLE_CONFIGURATIONS_TASK, ResolvableConfigurationsReportTask.class, task -> {
             task.setDescription("Displays the configurations available to resolve in " + projectName + ".");
             task.setGroup(HELP_GROUP);
-            task.getFormat().convention("text");
             task.setImpliesSubProjects(true);
         });
         tasks.withType(TaskReportTask.class).configureEach(task -> {

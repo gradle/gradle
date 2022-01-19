@@ -31,6 +31,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
@@ -39,16 +40,14 @@ import java.util.Set;
  * Note that although the name of this class includes "variants", the implementation internals speak of "configurations".
  */
 public final class TextConfigurationReportWriter implements ConfigurationReportWriter {
-    private final StyledTextOutput output;
+    @Nullable private StyledTextOutput output;
     private int depth;
 
-    public TextConfigurationReportWriter(StyledTextOutput output) {
-        this.output = output;
-    }
-
     @Override
-    public void writeReport(AbstractConfigurationReportSpec spec, ConfigurationReportModel data) {
-        depth = 0;
+    public void writeReport(StyledTextOutput output, AbstractConfigurationReportSpec spec, ConfigurationReportModel data) {
+        this.depth = 0;
+        this.output = Objects.requireNonNull(output, "Output to write report to must not be null!");
+
         if (data.getEligibleConfigs().isEmpty()) {
             writeCompleteAbsenceOfResults(spec, data);
         } else {

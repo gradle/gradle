@@ -478,4 +478,53 @@ Attributes
         outputContains("There are no resolvable configurations on project 'myLib' named 'missing'.")
         doesNotPromptForRerunToFindMoreConfigurations()
     }
+
+    @ToBeFixedForConfigurationCache(because = ":resolvableConfigurations")
+    def "can write text report to file"() {
+        given:
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            resolvableConfigurations {
+                reports {
+                    text {
+                        required = true
+                        outputLocation.set(file('build/reports/resolvableConfigurations.txt'))
+                    }
+                }
+            }
+        """.stripIndent()
+
+        when:
+        succeeds ':resolvableConfigurations'
+
+        then:
+        def outputFile = file('build/reports/resolvableConfigurations.txt')
+        outputFile.assertExists()
+        outputContains(outputFile.text)
+    }
+
+    @ToBeFixedForConfigurationCache(because = ":resolvableConfigurations")
+    def "can write json report to default file"() {
+        given:
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            resolvableConfigurations {
+                reports.json.required = true
+            }
+        """.stripIndent()
+
+        when:
+        succeeds ':resolvableConfigurations'
+
+        then:
+        def outputFile = file('build/reports/configuration/resolvableConfigurations.json')
+        outputFile.assertExists()
+        outputFile.assertContents(containsNormalizedString("{ json: 'Yea!  This is full of JSON!' }"))
+    }
 }
