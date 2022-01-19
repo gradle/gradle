@@ -20,7 +20,6 @@ import org.gradle.api.execution.internal.TaskInputsListeners;
 import org.gradle.api.internal.changedetection.state.FileHasherStatistics;
 import org.gradle.deployment.internal.DeploymentRegistryInternal;
 import org.gradle.execution.WorkValidationWarningReporter;
-import org.gradle.execution.plan.BuildInputHierarchyFactory;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.initialization.BuildRequestMetaData;
@@ -45,6 +44,7 @@ import org.gradle.internal.filewatch.FileSystemChangeWaiterFactory;
 import org.gradle.internal.filewatch.FileWatcherFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
+import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
@@ -56,6 +56,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.session.BuildSessionActionExecutor;
+import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.snapshot.impl.DirectorySnapshotterStatistics;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.time.Time;
@@ -79,6 +80,9 @@ import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.WellKnownClassLoaderRegistry;
 
 import java.util.List;
+
+import static org.gradle.internal.snapshot.CaseSensitivity.CASE_INSENSITIVE;
+import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE;
 
 public class LauncherServices extends AbstractPluginServiceRegistry {
     @Override
@@ -173,8 +177,9 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
             WorkerLeaseService workerLeaseService,
             BuildLayoutValidator buildLayoutValidator,
             BuildLifecycleAwareVirtualFileSystem virtualFileSystem,
-            BuildInputHierarchyFactory buildInputHierarchyFactory
+            FileSystem fileSystem
         ) {
+            CaseSensitivity caseSensitivity = fileSystem.isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE;
             return new SubscribableBuildActionExecutor(
                 listenerManager,
                 buildOperationListenerManager,
@@ -190,7 +195,8 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                     buildStartedTime,
                     clock,
                     virtualFileSystem,
-                    buildInputHierarchyFactory,
+                    fileSystem,
+                    caseSensitivity,
                     new RunAsWorkerThreadBuildActionExecutor(
                         workerLeaseService,
                         new RunAsBuildOperationBuildActionExecutor(
