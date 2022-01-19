@@ -71,7 +71,7 @@ public interface JvmTestSuite extends TestSuite, Buildable {
     /**
      * Get the test type for this test suite.
      *
-     * Defaults to {@link TestSuiteType#UNIT_TEST} for the built-in test suite, and to the dash-case name of the
+     * Defaults to the value of the {@code UNIT_TEST} constant defined in {@link TestSuiteType} for the built-in test suite, and to the dash-case name of the
      * test suite for custom test suites.  Test suite types must be unique across all test suites within a project.
      *
      * @since 7.4
