@@ -444,6 +444,33 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
         aggregatedResults.assertTestClassesExecuted("application.AdderTest", "direct.MultiplierTest", "transitive.PowerizeTest")
     }
 
+    def 'test aggregated report can be put into a custom location'() {
+        given:
+        // Reordering the plugins so that Java is applied later
+        file("application/build.gradle").text = """
+                plugins {
+                    id 'org.gradle.test-report-aggregation'
+                    id 'java'
+                }
+
+                java {
+                    testReportDir = layout.buildDirectory.dir("non-default-location")
+                }
+                dependencies {
+                    implementation project(":direct")
+                }
+            """
+
+        when:
+        succeeds(":application:testAggregateTestReport", "--continue")
+
+        then:
+        result.assertTaskExecuted(":application:testAggregateTestReport")
+
+        def aggregatedResults = new HtmlTestExecutionResult(testDirectory, "application/build/non-default-location/unit-test/aggregated-results")
+        aggregatedResults.assertTestClassesExecuted("application.AdderTest", "direct.MultiplierTest", "transitive.PowerizeTest")
+    }
+
     def 'catastrophic failure of single test prevents creation of aggregated report'() {
         given:
         file("application/build.gradle") << """
