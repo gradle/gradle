@@ -132,8 +132,9 @@ class ConfigurationCacheProblems(
     override fun report(reportDir: File, validationFailures: Consumer<in Throwable>) {
         val summary = summarizer.get()
         val failDueToProblems = summary.failureCount > 0 && isFailOnProblems
-        val discardStateDueToProblems = (summary.problemCount > 0 || hasIncompatibleTypes) && isFailOnProblems
-        val hasTooManyProblems = summary.problemCount > startParameter.maxProblems
+        val problemCount = summary.problemCount
+        val discardStateDueToProblems = discardStateDueToProblems(problemCount)
+        val hasTooManyProblems = problemCount > startParameter.maxProblems
         val discardState = discardStateDueToProblems || hasTooManyProblems
         if (cacheAction != LOAD && discardState) {
             // Invalidate stored state if problems fail the build
@@ -143,10 +144,10 @@ class ConfigurationCacheProblems(
         val outputDirectory = outputDirectoryFor(reportDir)
         val cacheActionText = cacheAction.summaryText()
         val requestedTasks = startParameter.requestedTasksOrDefault()
-        val htmlReportFile = report.writeReportFileTo(outputDirectory, cacheActionText, requestedTasks, summary.problemCount)
+        val htmlReportFile = report.writeReportFileTo(outputDirectory, cacheActionText, requestedTasks, problemCount)
         if (htmlReportFile == null) {
             // there was nothing to report
-            require(summary.problemCount == 0)
+            require(problemCount == 0)
             return
         }
 
@@ -197,7 +198,7 @@ class ConfigurationCacheProblems(
         override fun beforeComplete() {
             val problemCount = summarizer.get().problemCount
             val hasProblems = problemCount > 0
-            val discardStateDueToProblems = (problemCount > 0 || hasIncompatibleTypes) && isFailOnProblems
+            val discardStateDueToProblems = discardStateDueToProblems(problemCount)
             val hasTooManyProblems = problemCount > startParameter.maxProblems
             val problemCountString = problemCount.counter("problem")
             val reusedProjectsString = reusedProjects.counter("project")
@@ -220,6 +221,10 @@ class ConfigurationCacheProblems(
             }
         }
     }
+
+    private
+    fun discardStateDueToProblems(problemCount: Int) =
+        hasIncompatibleTypes || (problemCount > 0 && isFailOnProblems)
 
     private
     fun log(msg: String, vararg args: Any = emptyArray()) {
