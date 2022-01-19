@@ -32,9 +32,9 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.diagnostics.configurations.ConfigurationReports;
 import org.gradle.api.tasks.diagnostics.internal.configurations.ConfigurationReportsImpl;
-import org.gradle.api.tasks.diagnostics.internal.configurations.StylelessTextFileStyledTextOutput;
+import org.gradle.api.tasks.diagnostics.internal.configurations.StylelessTextStyledTextOutput;
 import org.gradle.api.tasks.diagnostics.internal.configurations.formatter.ConfigurationReportWriter;
-import org.gradle.api.tasks.diagnostics.internal.configurations.formatter.JSONConfigurationReportWriter;
+import org.gradle.api.tasks.diagnostics.internal.configurations.formatter.json.JSONConfigurationReportWriter;
 import org.gradle.api.tasks.diagnostics.internal.configurations.formatter.TextConfigurationReportWriter;
 import org.gradle.api.tasks.diagnostics.internal.configurations.model.ConfigurationReportModel;
 import org.gradle.api.tasks.diagnostics.internal.configurations.model.ReportConfiguration;
@@ -155,7 +155,7 @@ public abstract class AbstractConfigurationReportTask extends DefaultTask implem
     private void reportToFile(SingleFileReport report, AbstractConfigurationReportSpec reportSpec, ConfigurationReportModel reportModel) {
         final File outputFile = report.getOutputLocation().get().getAsFile();
         try (FileWriter fw = new FileWriter(outputFile)) {
-            final StyledTextOutput output = new StylelessTextFileStyledTextOutput(fw);
+            final StyledTextOutput output = new StylelessTextStyledTextOutput(fw);
             final ConfigurationReportWriter writer = buildWriter(report);
             writer.writeReport(output, reportSpec, reportModel);
         } catch (Exception e) {

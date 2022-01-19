@@ -19,13 +19,13 @@ package org.gradle.api.tasks.diagnostics.internal.configurations;
 import org.gradle.api.GradleException;
 import org.gradle.internal.logging.text.AbstractStyledTextOutput;
 
-import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Writer;
 
-public final class StylelessTextFileStyledTextOutput extends AbstractStyledTextOutput {
-    private final FileWriter writer;
+public final class StylelessTextStyledTextOutput extends AbstractStyledTextOutput {
+    private final Writer writer;
 
-    public StylelessTextFileStyledTextOutput(FileWriter writer) {
+    public StylelessTextStyledTextOutput(Writer writer) {
         this.writer = writer;
     }
 

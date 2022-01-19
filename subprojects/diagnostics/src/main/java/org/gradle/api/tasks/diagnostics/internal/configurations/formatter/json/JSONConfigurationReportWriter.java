@@ -14,15 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.diagnostics.internal.configurations.formatter;
+package org.gradle.api.tasks.diagnostics.internal.configurations.formatter.json;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import org.gradle.api.tasks.diagnostics.internal.configurations.formatter.ConfigurationReportWriter;
 import org.gradle.api.tasks.diagnostics.internal.configurations.model.ConfigurationReportModel;
 import org.gradle.api.tasks.diagnostics.internal.configurations.spec.AbstractConfigurationReportSpec;
 import org.gradle.internal.logging.text.StyledTextOutput;
 
 public class JSONConfigurationReportWriter implements ConfigurationReportWriter {
+    private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
+
     @Override
     public void writeReport(StyledTextOutput output, AbstractConfigurationReportSpec spec, ConfigurationReportModel data) {
-        output.println("{ json: 'Yea!  This is full of JSON!' }"); // TODO: Actual JSON
+        String json = gson.toJson(new JSONConfigurationReport(data.getEligibleConfigs()));
+        output.println(json);
     }
 }
