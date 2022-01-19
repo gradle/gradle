@@ -20,11 +20,6 @@ plugins {
 
 description = "Provides a plugin that configures build scans in the Gradle build"
 
-java {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
-}
-
 group = "gradlebuild"
 
 dependencies {

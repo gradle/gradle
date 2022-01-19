@@ -3,11 +3,6 @@ plugins {
 }
 description = "Provides a custom CodeNarc rule used by the Gradle build"
 
-java {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
-}
-
 group = "gradlebuild"
 
 dependencies {
