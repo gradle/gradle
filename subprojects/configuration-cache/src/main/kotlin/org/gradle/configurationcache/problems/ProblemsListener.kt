@@ -25,5 +25,5 @@ interface ProblemsListener {
 
     fun onProblem(problem: PropertyProblem)
 
-    fun forIncompatibleType(): ProblemsListener
+    fun forIncompatibleType(): ProblemsListener = this
 }
