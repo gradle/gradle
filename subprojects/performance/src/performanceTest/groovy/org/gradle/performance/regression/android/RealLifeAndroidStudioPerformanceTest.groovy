@@ -18,8 +18,6 @@ package org.gradle.performance.regression.android
 
 import org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
-import org.gradle.performance.android.GetModel
-import org.gradle.performance.android.SyncAction
 import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
 import org.gradle.performance.fixture.AndroidTestProject
@@ -30,9 +28,13 @@ import static org.gradle.performance.results.OperatingSystem.LINUX
 @RunFor(
     @Scenario(type = PER_COMMIT, operatingSystems = [LINUX], testProjects = ["largeAndroidBuild", "santaTrackerAndroidBuild"])
 )
-class RealLifeAndroidStudioMockupPerformanceTest extends AbstractCrossVersionPerformanceTest {
+class RealLifeAndroidStudioPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
-    def "get IDE model for Android Studio"() {
+    /**
+     * To run this test locally you should have Android Studio installed in /Applications/Android Studio.*.app folder
+     * or you should set "studioHome" system property with the Android Studio installation path.
+     */
+    def "run Android Studio sync"() {
         given:
         runner.args = [AndroidGradlePluginVersions.OVERRIDE_VERSION_CHECK]
         def testProject = AndroidTestProject.projectFor(runner.testProject)
@@ -42,12 +44,7 @@ class RealLifeAndroidStudioMockupPerformanceTest extends AbstractCrossVersionPer
         runner.runs = 40
         runner.minimumBaseVersion = "6.5"
         runner.targetVersions = ["7.5-20211229231357+0000"]
-
-        runner.toolingApi("Android Studio Sync") {
-            it.action(new GetModel())
-        }.run { modelBuilder ->
-            SyncAction.withModelBuilder(modelBuilder)
-        }
+        runner.setupAndroidStudioSync()
 
         when:
         def result = runner.run()
