@@ -637,4 +637,13 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         executedAndNotSkipped(":outer")
     }
 
+    def "fails when using continuous build and watching is disabled"() {
+        buildFile << """
+            task myTask
+        """
+
+        expect:
+        fails("myTask", "--no-watch-fs")
+        failureDescriptionContains("Continuous build does not work when file system watching is disabled")
+    }
 }
