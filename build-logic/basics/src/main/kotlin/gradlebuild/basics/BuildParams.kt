@@ -46,6 +46,7 @@ import gradlebuild.basics.BuildParams.PERFORMANCE_MAX_PROJECTS
 import gradlebuild.basics.BuildParams.PERFORMANCE_TEST_VERBOSE
 import gradlebuild.basics.BuildParams.RERUN_ALL_TESTS
 import gradlebuild.basics.BuildParams.RUN_ANDROID_STUDIO_IN_HEADLESS_MODE
+import gradlebuild.basics.BuildParams.STUDIO_HOME
 import gradlebuild.basics.BuildParams.TEST_DISTRIBUTION_ENABLED
 import gradlebuild.basics.BuildParams.TEST_DISTRIBUTION_PARTITION_SIZE
 import gradlebuild.basics.BuildParams.TEST_FILTERING_ENABLED
@@ -98,6 +99,7 @@ object BuildParams {
     const val TEST_JAVA_VERSION = "testJavaVersion"
     const val AUTO_DOWNLOAD_ANDROID_STUDIO = "autoDownloadAndroidStudio"
     const val RUN_ANDROID_STUDIO_IN_HEADLESS_MODE = "runAndroidStudioInHeadlessMode"
+    const val STUDIO_HOME = "studio.home"
 }
 
 
@@ -297,3 +299,7 @@ val Project.autoDownloadAndroidStudio: Boolean
 
 val Project.runAndroidStudioInHeadlessMode: Boolean
     get() = propertyFromAnySource(RUN_ANDROID_STUDIO_IN_HEADLESS_MODE).getOrElse("false").toBoolean()
+
+
+val Project.androidStudioHome: Provider<String>
+    get() = propertyFromAnySource(STUDIO_HOME)

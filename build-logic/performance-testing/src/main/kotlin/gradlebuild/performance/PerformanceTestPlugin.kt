@@ -17,12 +17,13 @@
 package gradlebuild.performance
 
 import com.google.common.annotations.VisibleForTesting
-import gradlebuild.basics.BuildEnvironment.isCiServer
 import gradlebuild.basics.BuildEnvironment.isIntel
 import gradlebuild.basics.BuildEnvironment.isLinux
 import gradlebuild.basics.BuildEnvironment.isMacOsX
 import gradlebuild.basics.BuildEnvironment.isWindows
 import gradlebuild.basics.accessors.groovy
+import gradlebuild.basics.androidStudioHome
+import gradlebuild.basics.autoDownloadAndroidStudio
 import gradlebuild.basics.includePerformanceTestScenarios
 import gradlebuild.basics.performanceBaselines
 import gradlebuild.basics.performanceDependencyBuildIds
@@ -30,6 +31,7 @@ import gradlebuild.basics.performanceGeneratorMaxProjects
 import gradlebuild.basics.performanceTestVerbose
 import gradlebuild.basics.propertiesForPerformanceDb
 import gradlebuild.basics.repoRoot
+import gradlebuild.basics.runAndroidStudioInHeadlessMode
 import gradlebuild.identity.extension.ModuleIdentityExtension
 import gradlebuild.integrationtests.addDependenciesAndConfigurations
 import gradlebuild.performance.Config.androidStudioVersion
@@ -387,7 +389,7 @@ class PerformanceTestExtension(
         return doRegisterTestProject(testProject, type, configurationAction) {
             // AndroidStudio jvmArgs could be set per project, but at the moment that is not necessary
             jvmArgumentProviders.add(getAndroidProjectJvmArguments(defaultAndroidStudioJvmArgs))
-            environment("JAVA_HOME", javaLauncher.get().metadata.installationPath.asFile.absolutePath)
+            environment("JAVA_HOME", LazyEnvironmentVariable { javaLauncher.get().metadata.installationPath.asFile.absolutePath })
         }
     }
 
@@ -397,34 +399,14 @@ class PerformanceTestExtension(
         val androidStudioInstallation = project.objects.newInstance<AndroidStudioInstallation>().apply {
             studioInstallLocation.fileProvider(unpackAndroidStudio.map { it.destinationDir })
         }
-        val autoDownloadAndroidStudio = isCiServer
-        val runInHeadlessMode = isCiServer
-        return object : AndroidStudioSystemProperties(androidStudioInstallation, autoDownloadAndroidStudio, project.providers) {
-            override fun asArguments(): Iterable<String> {
-                val systemProperties = mutableListOf<String>()
-                if (autoDownloadAndroidStudio) {
-                    val androidStudioPath = androidStudioInstallation.studioInstallLocation.asFile.get().absolutePath
-                    val macOsAndroidStudioPath = "$androidStudioPath/Android Studio.app"
-                    val macOsAndroidStudioPathPreview = "$androidStudioPath/Android Studio Preview.app"
-                    val windowsAndLinuxPath = "$androidStudioPath/android-studio"
-                    val studioHome = when {
-                        isMacOsX && File(macOsAndroidStudioPath).exists() -> macOsAndroidStudioPath
-                        isMacOsX -> macOsAndroidStudioPathPreview
-                        else -> windowsAndLinuxPath
-                    }
-                    systemProperties.add("-Dstudio.home=$studioHome")
-                } else {
-                    System.getProperty("studio.home")?.let {
-                        systemProperties.add("-Dstudio.home=$it")
-                    }
-                }
-                if (runInHeadlessMode) {
-                    systemProperties.add("-Dstudio.tests.headless=true")
-                }
-                systemProperties.add("-DstudioJvmArgs=${androidStudioJvmArgs.joinToString(separator = ",")}")
-                return systemProperties
-            }
-        }
+        return AndroidStudioSystemProperties(
+            androidStudioInstallation,
+            project.autoDownloadAndroidStudio,
+            project.runAndroidStudioInHeadlessMode,
+            project.androidStudioHome,
+            androidStudioJvmArgs,
+            project.providers
+        )
     }
 
     private
@@ -563,11 +545,17 @@ abstract class AndroidStudioInstallation {
 }
 
 
-abstract class AndroidStudioSystemProperties(
+class AndroidStudioSystemProperties(
     @get:Internal
     val studioInstallation: AndroidStudioInstallation,
     @get:Internal
     val autoDownloadAndroidStudio: Boolean,
+    @get:Internal
+    val runAndroidStudioInHeadlessMode: Boolean,
+    @get:Internal
+    val androidStudioHome: Provider<String>,
+    @get:Internal
+    val androidStudioJvmArgs: List<String>,
     providers: ProviderFactory
 ) : CommandLineArgumentProvider {
 
@@ -579,6 +567,40 @@ abstract class AndroidStudioSystemProperties(
         } else {
             null
         }
+    }
+
+    override fun asArguments(): Iterable<String> {
+        val systemProperties = mutableListOf<String>()
+        if (autoDownloadAndroidStudio) {
+            val androidStudioPath = studioInstallation.studioInstallLocation.asFile.get().absolutePath
+            val macOsAndroidStudioPath = "$androidStudioPath/Android Studio.app"
+            val macOsAndroidStudioPathPreview = "$androidStudioPath/Android Studio Preview.app"
+            val windowsAndLinuxPath = "$androidStudioPath/android-studio"
+            val studioHome = when {
+                isMacOsX && File(macOsAndroidStudioPath).exists() -> macOsAndroidStudioPath
+                isMacOsX -> macOsAndroidStudioPathPreview
+                else -> windowsAndLinuxPath
+            }
+            systemProperties.add("-Dstudio.home=$studioHome")
+        } else {
+            if (androidStudioHome.isPresent) {
+                systemProperties.add("-Dstudio.home=${androidStudioHome.get()}")
+            }
+        }
+        if (runAndroidStudioInHeadlessMode) {
+            systemProperties.add("-Dstudio.tests.headless=true")
+        }
+        if (androidStudioJvmArgs.isNotEmpty()) {
+            systemProperties.add("-DstudioJvmArgs=${androidStudioJvmArgs.joinToString(separator = ",")}")
+        }
+        return systemProperties
+    }
+}
+
+
+class LazyEnvironmentVariable(private val callable: Callable<String>) {
+    override fun toString(): String {
+        return callable.call()
     }
 }
 
