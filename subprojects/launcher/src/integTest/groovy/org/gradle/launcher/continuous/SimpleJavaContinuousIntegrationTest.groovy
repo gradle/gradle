@@ -19,7 +19,6 @@ package org.gradle.launcher.continuous
 import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-
 // NB: there's nothing specific about Java support and continuous.
 //     this spec just lays out some more practical use cases than the other targeted tests.
 class SimpleJavaContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
@@ -253,8 +252,6 @@ class SimpleJavaContinuousIntegrationTest extends AbstractContinuousIntegrationT
     }
 
     def "creation of initial source file triggers build"() {
-        file("src/main/java").createDir()
-
         expect:
         succeeds("build")
         skipped(":compileJava")
