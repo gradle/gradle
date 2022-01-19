@@ -24,10 +24,10 @@ import org.gradle.internal.vfs.impl.DefaultSnapshotHierarchy
 import org.gradle.internal.vfs.impl.VfsRootReference
 import org.gradle.internal.watch.registry.FileWatcherRegistry
 import org.gradle.internal.watch.registry.FileWatcherRegistryFactory
+import org.gradle.internal.watch.registry.WatchMode
 import org.gradle.internal.watch.registry.impl.DaemonDocumentationIndex
 import org.gradle.internal.watch.vfs.VfsLogging
 import org.gradle.internal.watch.vfs.WatchLogging
-import org.gradle.internal.watch.vfs.WatchMode
 import org.gradle.internal.watch.vfs.WatchableFileSystemDetector
 import spock.lang.Specification
 

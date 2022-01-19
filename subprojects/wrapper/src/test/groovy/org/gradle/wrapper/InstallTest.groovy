@@ -22,6 +22,9 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
+
 @CleanupTestDirectory
 class InstallTest extends Specification {
     File testDir
@@ -37,9 +40,9 @@ class InstallTest extends Specification {
     PathAssembler pathAssembler = Mock()
     PathAssembler.LocalDistribution localDistribution = Mock()
     @Rule
-    public TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass());
+    public TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
-    public void setup() {
+    void setup() {
         downloadCalled = false
         testDir = temporaryFolder.testDirectory
         configuration.zipBase = PathAssembler.PROJECT_STRING
@@ -49,7 +52,7 @@ class InstallTest extends Specification {
         configuration.distribution = new URI('http://server/gradle-0.9.zip')
         distributionDir = new TestFile(testDir, 'someDistPath')
         gradleHomeDir = new TestFile(distributionDir, 'gradle-0.9')
-        zipStore = new File(testDir, 'zips');
+        zipStore = new File(testDir, 'zips')
         zipDestination = new TestFile(zipStore, 'gradle-0.9.zip')
         install = new Install(new Logger(true), download, pathAssembler)
     }
@@ -125,5 +128,33 @@ class InstallTest extends Specification {
         and:
         1 * download.download(configuration.distribution, _) >> { createTestZip(it[1]) }
         0 * download._
+    }
+
+    def "refuses to install distribution with unsafe zip entry name"() {
+        given:
+        _ * pathAssembler.getDistribution(configuration) >> localDistribution
+        _ * localDistribution.distributionDir >> distributionDir
+        _ * localDistribution.zipFile >> zipDestination
+
+        when:
+        install.createDist(configuration)
+
+        then:
+        def failure = thrown(IllegalArgumentException)
+        failure.message == "'../../tmp/evil.sh' is not a safe zip entry name."
+
+        and:
+        1 * download.download(configuration.distribution, _) >> { createEvilZip(it[1]) }
+        0 * download._
+    }
+
+    static void createEvilZip(File zipDestination) {
+        zipDestination.withOutputStream {
+            new ZipOutputStream(it).withCloseable { ZipOutputStream zos ->
+                zos.putNextEntry(new ZipEntry('../../tmp/evil.sh'))
+                zos.write("evil".getBytes('utf-8'))
+                zos.closeEntry()
+            }
+        }
     }
 }

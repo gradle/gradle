@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import org.gradle.test.fixtures.Flaky
-
 runner {
-    exclude {
-        annotation Flaky
+    System.getProperty("include.spock.annotation")?.split(",")?.each {
+        include Class.forName(it)
+    }
+    System.getProperty("exclude.spock.annotation")?.split(",")?.each {
+        exclude Class.forName(it)
     }
 }
-

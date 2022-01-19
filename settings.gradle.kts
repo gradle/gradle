@@ -19,7 +19,7 @@ pluginManagement {
 }
 
 plugins {
-    id("com.gradle.enterprise").version("3.8")
+    id("com.gradle.enterprise").version("3.8.1")
     id("io.github.gradle.gradle-enterprise-conventions-plugin").version("0.7.6")
     id("gradlebuild.base.allprojects")
     id("com.gradle.enterprise.test-distribution").version("2.2.2") // Sync with `build-logic/build-platform/build.gradle.kts`
@@ -61,6 +61,7 @@ include("jvm-services")
 include("core")
 include("dependency-management")
 include("wrapper")
+include("wrapper-shared")
 include("cli")
 include("launcher")
 include("bootstrap")

@@ -11,6 +11,7 @@ import common.gradleWrapper
 import common.killProcessStep
 import common.toCapitalized
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildStep
+import jetbrains.buildServer.configs.kotlin.v2019_2.RelativeId
 import model.CIBuildModel
 import model.Stage
 import model.StageNames
@@ -28,7 +29,6 @@ class FlakyTestQuarantine(model: CIBuildModel, stage: Stage, os: Os) : BaseGradl
             StageNames.QUICK_FEEDBACK,
             StageNames.PULL_REQUEST_FEEDBACK,
             StageNames.READY_FOR_NIGHTLY,
-            StageNames.READY_FOR_RELEASE,
         )
     }.flatMap { it.functionalTests }.filter { it.os == os }
 
@@ -36,7 +36,7 @@ class FlakyTestQuarantine(model: CIBuildModel, stage: Stage, os: Os) : BaseGradl
         val extraParameters = functionalTestExtraParameters("FlakyTestQuarantine", os, testCoverage.testJvmVersion.major.toString(), testCoverage.vendor.name)
         val parameters = (
             buildToolGradleParameters(true) +
-                listOf("-PflakyTestQuarantine") +
+                listOf("-PflakyTests=only", "-x", "test") +
                 listOf(extraParameters) +
                 functionalTestParameters(os)
             ).joinToString(separator = " ")
@@ -53,5 +53,9 @@ class FlakyTestQuarantine(model: CIBuildModel, stage: Stage, os: Os) : BaseGradl
 
     steps {
         checkCleanM2AndAndroidUserHome(os)
+    }
+
+    dependencies {
+        snapshot(RelativeId(stageTriggerId(model, StageNames.QUICK_FEEDBACK_LINUX_ONLY))) {}
     }
 })

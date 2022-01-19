@@ -32,7 +32,7 @@ import gradlebuild.basics.BuildParams.BUILD_TIMESTAMP
 import gradlebuild.basics.BuildParams.BUILD_VCS_NUMBER
 import gradlebuild.basics.BuildParams.BUILD_VERSION_QUALIFIER
 import gradlebuild.basics.BuildParams.CI_ENVIRONMENT_VARIABLE
-import gradlebuild.basics.BuildParams.FLAKY_TEST_QUARANTINE
+import gradlebuild.basics.BuildParams.FLAKY_TEST
 import gradlebuild.basics.BuildParams.GRADLE_INSTALL_PATH
 import gradlebuild.basics.BuildParams.INCLUDE_PERFORMANCE_TEST_SCENARIOS
 import gradlebuild.basics.BuildParams.MAX_PARALLEL_FORKS
@@ -58,6 +58,12 @@ import gradlebuild.basics.BuildParams.TEST_SPLIT_ONLY_TEST_GRADLE_VERSION
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.provider.Provider
+import org.jetbrains.kotlin.util.capitalizeDecapitalize.toUpperCaseAsciiOnly
+
+
+enum class FlakyTestStrategy {
+    INCLUDE, EXCLUDE, ONLY
+}
 
 
 object BuildParams {
@@ -77,7 +83,17 @@ object BuildParams {
     const val BUILD_VERSION_QUALIFIER = "versionQualifier"
     const val CI_ENVIRONMENT_VARIABLE = "CI"
     const val GRADLE_INSTALL_PATH = "gradle_installPath"
-    const val FLAKY_TEST_QUARANTINE = "flakyTestQuarantine"
+
+    /**
+     * Specify the flaky test quarantine strategy:
+     *
+     * -PflakyTests=include: run all tests, including flaky tests.
+     * -PflakyTests=exclude: run all tests, excluding flaky tests.
+     * -PflakyTests=only: run flaky tests only.
+     *
+     * Default value (if absent) is "include".
+     */
+    const val FLAKY_TEST = "flakyTests"
     const val INCLUDE_PERFORMANCE_TEST_SCENARIOS = "includePerformanceTestScenarios"
     const val MAX_PARALLEL_FORKS = "maxParallelForks"
     const val PERFORMANCE_BASELINES = "performanceBaselines"
@@ -194,8 +210,14 @@ val Project.buildVersionQualifier: Provider<String>
     get() = gradleProperty(BUILD_VERSION_QUALIFIER)
 
 
-val Project.flakyTestQuarantine: Provider<String>
-    get() = gradleProperty(FLAKY_TEST_QUARANTINE)
+val Project.flakyTestStrategy: FlakyTestStrategy
+    get() = gradleProperty(FLAKY_TEST).let {
+        if (it.getOrElse("").isEmpty()) {
+            return FlakyTestStrategy.INCLUDE
+        } else {
+            return FlakyTestStrategy.valueOf(it.get().toUpperCaseAsciiOnly())
+        }
+    }
 
 
 val Project.ignoreIncomingBuildReceipt: Provider<Boolean>
