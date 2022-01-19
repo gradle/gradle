@@ -143,42 +143,48 @@ class ComponentAttributeMatcherTest extends Specification {
     }
 
     def "applies disambiguation rules and selects intersection of best matches for each attribute"() {
-        def attr = Attribute.of(String)
-        def attr2 = Attribute.of('2', String)
-        schema.attribute(attr)
-        schema.accept(attr, "requested", "value1")
-        schema.accept(attr, "requested", "value2")
-        schema.prefer(attr, "value1")
-        schema.attribute(attr2)
-        schema.accept(attr2, "requested", "value1")
-        schema.accept(attr2, "requested", "value2")
-        schema.prefer(attr2, "value2")
+        def usageAttribute = Attribute.of('usage', String)
+        def elementsAttribute = Attribute.of('elements', String)
+        schema.attribute(usageAttribute)
+        schema.accept(usageAttribute, "requested", "value1")
+        schema.accept(usageAttribute, "requested", "value2")
+        schema.prefer(usageAttribute, "value1")
+
+        schema.attribute(elementsAttribute)
+        schema.accept(elementsAttribute, "requested", "value1")
+        schema.accept(elementsAttribute, "requested", "value2")
+        schema.prefer(elementsAttribute, "value2")
 
         given:
+        def candidate0 = attrs()
+        candidate0.attribute(usageAttribute, "value1")
+        candidate0.attribute(elementsAttribute, "value1")
         def candidate1 = attrs()
-        candidate1.attribute(attr, "value1")
-        candidate1.attribute(attr2, "value1")
+        candidate1.attribute(usageAttribute, "no match")
+        candidate1.attribute(elementsAttribute, "no match")
         def candidate2 = attrs()
-        candidate2.attribute(attr, "no match")
-        candidate2.attribute(attr2, "no match")
+        candidate2.attribute(usageAttribute, "value2")
+        candidate2.attribute(elementsAttribute, "value2")
         def candidate3 = attrs()
-        candidate3.attribute(attr, "value2")
-        candidate3.attribute(attr2, "value2")
         def candidate4 = attrs()
+        candidate4.attribute(usageAttribute, "value1")
+        candidate4.attribute(elementsAttribute, "value2")
         def candidate5 = attrs()
-        candidate5.attribute(attr, "value1")
-        candidate5.attribute(attr2, "value2")
+        candidate5.attribute(usageAttribute, "value2")
+        candidate5.attribute(elementsAttribute, "value1")
+
         def requested = attrs()
-        requested.attribute(attr, "requested")
-        requested.attribute(attr2, "requested")
+        requested.attribute(usageAttribute, "requested")
+        requested.attribute(elementsAttribute, "requested")
 
         def matcher = new ComponentAttributeMatcher()
 
         expect:
-        matcher.match(schema, [candidate1, candidate2, candidate3, candidate4, candidate5], requested, null, explanationBuilder) == [candidate5]
-        matcher.match(schema, [candidate1, candidate2, candidate3, candidate4], requested, null, explanationBuilder) == [candidate1, candidate3, candidate4]
-        matcher.match(schema, [candidate1, candidate2, candidate4], requested, null, explanationBuilder) == [candidate1]
-        matcher.match(schema, [candidate2, candidate4], requested, null, explanationBuilder) == [candidate4]
+        matcher.match(schema, [candidate0, candidate1, candidate2, candidate3, candidate4, candidate5], requested, null, explanationBuilder) == [candidate4]
+        matcher.match(schema, [candidate0, candidate1, candidate2, candidate3, candidate4], requested, null, explanationBuilder) == [candidate4]
+        matcher.match(schema, [candidate0, candidate1, candidate2, candidate3], requested, null, explanationBuilder) == [candidate0, candidate2, candidate3]
+        matcher.match(schema, [candidate0, candidate1, candidate3], requested, null, explanationBuilder) == [candidate0]
+        matcher.match(schema, [candidate1, candidate3], requested, null, explanationBuilder) == [candidate3]
     }
 
     def "rule can disambiguate based on requested value"() {
