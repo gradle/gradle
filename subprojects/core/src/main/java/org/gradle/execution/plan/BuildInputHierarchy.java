@@ -45,12 +45,7 @@ public class BuildInputHierarchy {
      */
     public boolean isInput(String location) {
         InputDeclarationVisitor visitor = new InputDeclarationVisitor();
-        VfsRelativePath relativePath = VfsRelativePath.of(location);
-        if (relativePath.length() == 0) {
-            root.visitAllValues(visitor);
-        } else {
-            root.visitValuesRelatedTo(relativePath, visitor);
-        }
+        root.visitValues(location, visitor);
         return visitor.isInput();
     }
 

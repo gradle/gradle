@@ -60,7 +60,21 @@ public final class ValuedVfsHierarchy<T> {
     /**
      * Visits the values which are attached to ancestors and children of the given location.
      */
-    public void visitValuesRelatedTo(VfsRelativePath location, ValueVisitor<T> visitor) {
+    public void visitValues(String location, ValueVisitor<T> visitor) {
+        VfsRelativePath relativePath = VfsRelativePath.of(location);
+        if (relativePath.length() == 0) {
+            visitAllValues(visitor);
+        } else {
+            visitValuesRelatedTo(relativePath, visitor);
+        }
+    }
+
+    /**
+     * Visits the values which are attached to ancestors and children of the given location.
+     *
+     * The location must not be empty.
+     */
+    private void visitValuesRelatedTo(VfsRelativePath location, ValueVisitor<T> visitor) {
         values.forEach(value -> visitor.visitAncestor(value, location));
         children.withNode(location, caseSensitivity, new ChildMap.NodeHandler<ValuedVfsHierarchy<T>, String>() {
             @Override
@@ -98,7 +112,7 @@ public final class ValuedVfsHierarchy<T> {
     /**
      * Visits all values relative to the root.
      */
-    public void visitAllValues(ValueVisitor<T> valueVisitor) {
+    private void visitAllValues(ValueVisitor<T> valueVisitor) {
         getValues().forEach(valueVisitor::visitExact);
         visitAllChildren(valueVisitor::visitChildren);
     }
