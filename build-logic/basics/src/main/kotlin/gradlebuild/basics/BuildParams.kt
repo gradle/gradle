@@ -115,7 +115,7 @@ object BuildParams {
     const val TEST_JAVA_VERSION = "testJavaVersion"
     const val AUTO_DOWNLOAD_ANDROID_STUDIO = "autoDownloadAndroidStudio"
     const val RUN_ANDROID_STUDIO_IN_HEADLESS_MODE = "runAndroidStudioInHeadlessMode"
-    const val STUDIO_HOME = "studio.home"
+    const val STUDIO_HOME = "studioHome"
 }
 
 

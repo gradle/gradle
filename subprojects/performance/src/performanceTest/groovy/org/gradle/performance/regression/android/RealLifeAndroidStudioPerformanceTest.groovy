@@ -32,7 +32,7 @@ class RealLifeAndroidStudioPerformanceTest extends AbstractCrossVersionPerforman
 
     /**
      * To run this test locally you should have Android Studio installed in /Applications/Android Studio.*.app folder
-     * or you should set "studio.home" system property with Android Studio installation path.
+     * or you should set "studioHome" system property with the Android Studio installation path.
      */
     def "run Android Studio sync"() {
         given:

@@ -29,7 +29,6 @@ import org.gradle.profiler.BuildAction;
 import org.gradle.profiler.DaemonControl;
 import org.gradle.profiler.GradleBuildConfiguration;
 import org.gradle.profiler.GradleBuildInvoker;
-import org.gradle.profiler.GradleBuildInvokerPackageAccess;
 import org.gradle.profiler.GradleScenarioDefinition;
 import org.gradle.profiler.GradleScenarioInvoker;
 import org.gradle.profiler.InvocationSettings;
@@ -161,7 +160,7 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
     private InvocationSettings createInvocationSettings(String testId, GradleInvocationSpec invocationSpec, GradleBuildExperimentSpec experiment) {
         GradleBuildInvoker invoker;
         if (invocationSpec.isUseAndroidStudio()) {
-            invoker = GradleBuildInvokerPackageAccess.ANDROID_STUDIO;
+            invoker = GradleBuildInvoker.AndroidStudio;
         } else if (invocationSpec.isUseToolingApi()) {
             invoker = invocationSpec.isUseDaemon()
                 ? GradleBuildInvoker.ToolingApi
