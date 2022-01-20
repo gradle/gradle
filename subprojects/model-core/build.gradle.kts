@@ -2,6 +2,8 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
+description = "Implementation configuration model types (Providers, software model, conventions)"
+
 dependencies {
     api(project(":core-api"))
     api(project(":problems"))

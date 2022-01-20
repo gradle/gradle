@@ -3,6 +3,8 @@ plugins {
     id("gradlebuild.launchable-jar")
 }
 
+description = "Implementation for launching, controlling and communicating with Gradle Daemon from CLI and TAPI"
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":enterprise-operations"))

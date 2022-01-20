@@ -2,6 +2,8 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
+description = "Plugin and integration with JaCoCo code coverage"
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":logging"))
