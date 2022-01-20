@@ -61,6 +61,7 @@ import org.gradle.internal.snapshot.impl.DirectorySnapshotterStatistics;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem;
+import org.gradle.internal.watch.vfs.FileChangeListeners;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.launcher.exec.BuildCompletionNotifyingBuildActionRunner;
 import org.gradle.launcher.exec.BuildExecuter;
@@ -164,6 +165,7 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
             BuildOperationListenerManager buildOperationListenerManager,
             BuildOperationExecutor buildOperationExecutor,
             TaskInputsListeners inputsListeners,
+            FileChangeListeners fileChangeListeners,
             StyledTextOutputFactory styledTextOutputFactory,
             BuildRequestMetaData requestMetaData,
             BuildCancellationToken cancellationToken,
@@ -176,7 +178,6 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
             BuildTreeModelControllerServices buildModelServices,
             WorkerLeaseService workerLeaseService,
             BuildLayoutValidator buildLayoutValidator,
-            BuildLifecycleAwareVirtualFileSystem virtualFileSystem,
             FileSystem fileSystem
         ) {
             CaseSensitivity caseSensitivity = fileSystem.isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE;
@@ -186,6 +187,7 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                 listenerFactory, eventConsumer,
                 new ContinuousBuildActionExecutor(
                     inputsListeners,
+                    fileChangeListeners,
                     styledTextOutputFactory,
                     executorFactory,
                     requestMetaData,
@@ -194,7 +196,6 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                     listenerManager,
                     buildStartedTime,
                     clock,
-                    virtualFileSystem,
                     fileSystem,
                     caseSensitivity,
                     new RunAsWorkerThreadBuildActionExecutor(

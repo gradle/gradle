@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.internal.provider;
 
-import org.gradle.api.execution.internal.FileChangeListener;
 import org.gradle.api.execution.internal.TaskInputsListener;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileCollectionInternal;
@@ -32,6 +31,7 @@ import org.gradle.internal.filewatch.PendingChangesListener;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.watch.registry.FileWatcherRegistry;
+import org.gradle.internal.watch.vfs.FileChangeListener;
 
 import java.io.File;
 import java.nio.file.Files;

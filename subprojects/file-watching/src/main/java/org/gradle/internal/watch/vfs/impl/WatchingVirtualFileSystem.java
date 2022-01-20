@@ -37,6 +37,7 @@ import org.gradle.internal.watch.registry.impl.SnapshotCollectingDiffListener;
 import org.gradle.internal.watch.vfs.BuildFinishedFileSystemWatchingBuildOperationType;
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem;
 import org.gradle.internal.watch.vfs.BuildStartedFileSystemWatchingBuildOperationType;
+import org.gradle.internal.watch.vfs.FileChangeListeners;
 import org.gradle.internal.watch.vfs.FileSystemWatchingStatistics;
 import org.gradle.internal.watch.vfs.VfsLogging;
 import org.gradle.internal.watch.vfs.WatchLogging;
@@ -65,6 +66,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
     private final DaemonDocumentationIndex daemonDocumentationIndex;
     private final LocationsWrittenByCurrentBuild locationsWrittenByCurrentBuild;
     private final WatchableFileSystemDetector watchableFileSystemDetector;
+    private final FileChangeListeners fileChangeListeners;
     private final List<File> unsupportedFileSystems = new ArrayList<>();
     private Logger warningLogger = LOGGER;
 
@@ -76,20 +78,21 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
     private FileWatcherRegistry watchRegistry;
     private Exception reasonForNotWatchingFiles;
     private boolean stateInvalidatedAtStartOfBuild;
-    private FileWatcherRegistry.ChangeHandler changeBroadcaster;
 
     public WatchingVirtualFileSystem(
         FileWatcherRegistryFactory watcherRegistryFactory,
         VfsRootReference rootReference,
         DaemonDocumentationIndex daemonDocumentationIndex,
         LocationsWrittenByCurrentBuild locationsWrittenByCurrentBuild,
-        WatchableFileSystemDetector watchableFileSystemDetector
+        WatchableFileSystemDetector watchableFileSystemDetector,
+        FileChangeListeners fileChangeListeners
     ) {
         super(rootReference);
         this.watcherRegistryFactory = watcherRegistryFactory;
         this.daemonDocumentationIndex = daemonDocumentationIndex;
         this.locationsWrittenByCurrentBuild = locationsWrittenByCurrentBuild;
         this.watchableFileSystemDetector = watchableFileSystemDetector;
+        this.fileChangeListeners = fileChangeListeners;
     }
 
     @Override
@@ -103,19 +106,6 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
                 watchRegistry.virtualFileSystemContentsChanged(removedSnapshots, addedSnapshots, newRoot)
             ));
         }
-    }
-
-    @Override
-    public void registerChangeBroadcaster(FileWatcherRegistry.ChangeHandler changeBroadcaster) {
-        if (this.changeBroadcaster != null) {
-            throw new IllegalStateException("A change broadcaster has already been registered: " + changeBroadcaster);
-        }
-        this.changeBroadcaster = changeBroadcaster;
-    }
-
-    @Override
-    public void unregisterChangeBroadcaster() {
-        this.changeBroadcaster = null;
     }
 
     @Override
@@ -373,16 +363,12 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
     private class BroadcastingChangeHandler implements FileWatcherRegistry.ChangeHandler {
         @Override
         public void handleChange(FileWatcherRegistry.Type type, Path path) {
-            if (changeBroadcaster != null) {
-                changeBroadcaster.handleChange(type, path);
-            }
+            fileChangeListeners.broadcastChange(type, path);
         }
 
         @Override
         public void stopWatchingAfterError() {
-            if (changeBroadcaster != null) {
-                changeBroadcaster.stopWatchingAfterError();
-            }
+            fileChangeListeners.broadcastWatchingError();
         }
     }
 

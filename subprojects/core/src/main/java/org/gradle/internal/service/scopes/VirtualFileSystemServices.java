@@ -49,6 +49,7 @@ import org.gradle.cache.scopes.GlobalScopedCache;
 import org.gradle.initialization.RootBuildLifecycleListener;
 import org.gradle.internal.build.BuildAddedListener;
 import org.gradle.internal.classloader.ClasspathHasher;
+import org.gradle.internal.event.AnonymousListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.OutputSnapshotter;
@@ -83,11 +84,14 @@ import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.internal.vfs.impl.DefaultFileSystemAccess;
 import org.gradle.internal.vfs.impl.DefaultSnapshotHierarchy;
 import org.gradle.internal.vfs.impl.VfsRootReference;
+import org.gradle.internal.watch.registry.FileWatcherRegistry;
 import org.gradle.internal.watch.registry.FileWatcherRegistryFactory;
 import org.gradle.internal.watch.registry.impl.DarwinFileWatcherRegistryFactory;
 import org.gradle.internal.watch.registry.impl.LinuxFileWatcherRegistryFactory;
 import org.gradle.internal.watch.registry.impl.WindowsFileWatcherRegistryFactory;
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem;
+import org.gradle.internal.watch.vfs.FileChangeListener;
+import org.gradle.internal.watch.vfs.FileChangeListeners;
 import org.gradle.internal.watch.vfs.WatchableFileSystemDetector;
 import org.gradle.internal.watch.vfs.impl.DefaultWatchableFileSystemDetector;
 import org.gradle.internal.watch.vfs.impl.LocationsWrittenByCurrentBuild;
@@ -98,6 +102,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.nio.file.Path;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -208,6 +213,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             DocumentationRegistry documentationRegistry,
             NativeCapabilities nativeCapabilities,
             ListenerManager listenerManager,
+            FileChangeListeners fileChangeListeners,
             FileSystem fileSystem,
             GlobalCacheLocations globalCacheLocations,
             WatchableFileSystemDetector watchableFileSystemDetector
@@ -227,7 +233,8 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                     rootReference,
                     sectionId -> documentationRegistry.getDocumentationFor("gradle_daemon", sectionId),
                     locationsWrittenByCurrentBuild,
-                    watchableFileSystemDetector
+                    watchableFileSystemDetector,
+                    fileChangeListeners
                 ))
                 .orElse(new WatchingNotSupportedVirtualFileSystem(rootReference));
             listenerManager.addListener((BuildAddedListener) buildState -> {
@@ -326,6 +333,38 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
 
         ClasspathHasher createClasspathHasher(ClasspathFingerprinter fingerprinter, FileCollectionFactory fileCollectionFactory) {
             return new DefaultClasspathHasher(fingerprinter, fileCollectionFactory);
+        }
+
+        FileChangeListeners createFileChangeListeners(ListenerManager listenerManager) {
+            return new DefaultFileChangeListeners(listenerManager);
+        }
+
+        private static class DefaultFileChangeListeners implements FileChangeListeners {
+            private final AnonymousListenerBroadcast<FileChangeListener> broadcaster;
+
+            DefaultFileChangeListeners(ListenerManager listenerManager) {
+                this.broadcaster = listenerManager.createAnonymousBroadcaster(FileChangeListener.class);
+            }
+
+            @Override
+            public void addListener(FileChangeListener listener) {
+                broadcaster.add(listener);
+            }
+
+            @Override
+            public void removeListener(FileChangeListener listener) {
+                broadcaster.remove(listener);
+            }
+
+            @Override
+            public void broadcastChange(FileWatcherRegistry.Type type, Path path) {
+                broadcaster.getSource().handleChange(type, path);
+            }
+
+            @Override
+            public void broadcastWatchingError() {
+                broadcaster.getSource().stopWatchingAfterError();
+            }
         }
     }
 

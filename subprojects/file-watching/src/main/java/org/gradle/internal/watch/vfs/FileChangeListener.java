@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.execution.internal;
+package org.gradle.internal.watch.vfs;
 
 import org.gradle.internal.service.scopes.EventScope;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.watch.registry.FileWatcherRegistry;
 
-@EventScope(Scopes.BuildSession.class)
+@EventScope(Scopes.UserHome.class)
 public interface FileChangeListener extends FileWatcherRegistry.ChangeHandler {
 }
