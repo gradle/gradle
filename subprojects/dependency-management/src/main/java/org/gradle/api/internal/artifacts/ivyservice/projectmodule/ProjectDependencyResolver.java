@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
@@ -130,9 +131,15 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
     @Override
     public ArtifactSet resolveArtifacts(final ComponentResolveMetadata component, final ConfigurationMetadata configuration, final ArtifactTypeRegistry artifactTypeRegistry, final ExcludeSpec exclusions, final ImmutableAttributes overriddenAttributes) {
         if (isProjectModule(component.getId())) {
-            Set<VariantResolveMetadata> variants = new LinkedHashSet<>();
-            ImmutableList<? extends ConfigurationMetadata> allVariants = component.getVariantsForGraphTraversal().get();
-            allVariants.forEach(configurationMetadata -> variants.addAll(configurationMetadata.getVariants()));
+            Optional<ImmutableList<? extends ConfigurationMetadata>> variantsForGraphTraversal = component.getVariantsForGraphTraversal();
+            final Set<VariantResolveMetadata> variants = new LinkedHashSet<>();
+            if (variantsForGraphTraversal.isPresent()) {
+                ImmutableList<? extends ConfigurationMetadata> allVariants = variantsForGraphTraversal.get();
+                allVariants.forEach(configurationMetadata -> variants.addAll(configurationMetadata.getVariants()));
+            } else {
+                variants.addAll(configuration.getVariants());
+            }
+
             return artifactSetResolver.resolveArtifacts(component.getId(), component.getModuleVersionId(), component.getSources(), exclusions, variants, component.getAttributesSchema(), artifactTypeRegistry, overriddenAttributes);
         } else {
             return null;
