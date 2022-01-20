@@ -10,6 +10,7 @@ dependencies {
 
     testImplementation(project(":base-services"))
     testImplementation(project(":core-api"))
+    testImplementation(project(":native"))
 
     integTestImplementation(project(":dependency-management"))
 
