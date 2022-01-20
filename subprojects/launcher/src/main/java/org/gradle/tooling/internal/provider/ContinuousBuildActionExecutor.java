@@ -36,7 +36,6 @@ import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.file.Stat;
 import org.gradle.internal.filewatch.PendingChangesListener;
-import org.gradle.internal.filewatch.SingleFirePendingChangesListener;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
@@ -148,13 +147,13 @@ public class ContinuousBuildActionExecutor implements BuildSessionActionExecutor
         while (true) {
             BuildInputHierarchy buildInputs = new BuildInputHierarchy(caseSensitivity, stat);
             ContinuousBuildTriggerHandler continuousBuildTriggerHandler = new ContinuousBuildTriggerHandler(
-                buildInputs,
-                new SingleFirePendingChangesListener(pendingChangesListener),
+                pendingChangesListener,
                 cancellationToken,
                 continuousExecutionGate
             );
+            FileEventCollector fileEventCollector = new FileEventCollector(buildInputs, continuousBuildTriggerHandler::notifyFileChangeArrived);
             try {
-                fileChangeListeners.addListener(continuousBuildTriggerHandler);
+                fileChangeListeners.addListener(fileEventCollector);
                 lastResult = executeBuildAndAccumulateInputs(action, new AccumulateBuildInputsListener(buildInputs), buildSession);
 
                 if (buildInputs.isEmpty()) {
@@ -166,13 +165,12 @@ public class ContinuousBuildActionExecutor implements BuildSessionActionExecutor
                             () -> logger.println().println("Waiting for changes to input files of tasks..." + determineExitHint(requestContext))
                         );
                         if (!operationToken.isCancellationRequested()) {
-                            continuousBuildTriggerHandler.reportChanges(logger);
+                            fileEventCollector.reportChanges(logger);
                         }
                     });
                 }
             } finally {
-                listenerManager.removeListener(continuousBuildTriggerHandler);
-                fileChangeListeners.removeListener(continuousBuildTriggerHandler);
+                fileChangeListeners.removeListener(fileEventCollector);
             }
 
             if (cancellationToken.isCancellationRequested()) {
