@@ -24,6 +24,12 @@ import org.gradle.api.artifacts.transform.CacheableTransform;
 import org.gradle.api.artifacts.transform.InputArtifact;
 import org.gradle.api.artifacts.transform.InputArtifactDependencies;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.internal.DefaultDomainObjectCollection;
+import org.gradle.api.internal.DefaultDomainObjectSet;
+import org.gradle.api.internal.DefaultNamedDomainObjectCollection;
+import org.gradle.api.internal.DefaultNamedDomainObjectList;
+import org.gradle.api.internal.DefaultNamedDomainObjectSet;
+import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
 import org.gradle.api.internal.project.taskfactory.DefaultTaskClassInfoStore;
 import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
@@ -126,8 +132,6 @@ public class ExecutionGlobalServices {
     }
 
     TypeAnnotationMetadataStore createAnnotationMetadataStore(CrossBuildInMemoryCacheFactory cacheFactory, AnnotationHandlerRegistar annotationRegistry) {
-        @SuppressWarnings("deprecation")
-        Class<?> deprecatedHasConvention = org.gradle.api.internal.HasConvention.class;
         ImmutableSet.Builder<Class<? extends Annotation>> builder = ImmutableSet.builder();
         builder.addAll(PROPERTY_TYPE_ANNOTATIONS);
         annotationRegistry.registerPropertyTypeAnnotations(builder);
@@ -145,14 +149,16 @@ public class ExecutionGlobalServices {
                 "kotlin"
             ),
             ImmutableSet.of(
-//                // model-core
-//                ClosureBackedAction.class,
-//                // model-core
-//                ConfigureUtil.WrappedConfigureAction.class,
-                // Used in gradle-base
-                Describable.class,
-                // core
-                ScriptOrigin.class
+                // Inputs can extend these classes,
+                // so we want to ignore get methods declared in these classes
+                DefaultDomainObjectCollection.class,
+                DefaultDomainObjectSet.class,
+                DefaultNamedDomainObjectCollection.class,
+                DefaultNamedDomainObjectList.class,
+                DefaultNamedDomainObjectSet.class,
+                DefaultPolymorphicDomainObjectContainer.class,
+                // Used in gradle-base so it can't have annotations anyway
+                Describable.class
             ),
             ImmutableSet.of(
                 GroovyObject.class,
