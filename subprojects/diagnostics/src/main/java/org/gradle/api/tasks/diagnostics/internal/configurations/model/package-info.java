@@ -15,7 +15,8 @@
  */
 
 /**
- * Internal value types responsible for containing configuration report data.
+ * Internal value types responsible for containing the model of configuration report data in a project
+ * for use in reporting.
  */
 @NonNullApi
 package org.gradle.api.tasks.diagnostics.internal.configurations.model;

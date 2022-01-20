@@ -15,7 +15,7 @@
  */
 
 /**
- * Formatters responsible for generating configuration reports from gathered data.
+ * Renderes responsible for generating configuration reports from gathered data.
  */
 @NonNullApi
 package org.gradle.api.tasks.diagnostics.internal.configurations.renderer;

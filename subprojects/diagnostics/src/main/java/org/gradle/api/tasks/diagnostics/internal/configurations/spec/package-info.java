@@ -15,7 +15,8 @@
  */
 
 /**
- * Specification classes which describe how to generate configuration reports from gathered data.
+ * Specification classes which describe options used to run configuration reports
+ * which will affect output.
  */
 @NonNullApi
 package org.gradle.api.tasks.diagnostics.internal.configurations.spec;
