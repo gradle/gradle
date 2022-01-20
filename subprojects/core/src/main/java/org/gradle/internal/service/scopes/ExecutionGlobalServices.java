@@ -88,6 +88,7 @@ import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadataStore;
 import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore;
 import org.gradle.internal.scripts.ScriptOrigin;
+import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.work.DisableCachingByDefault;
 import org.gradle.work.Incremental;
 import org.gradle.work.NormalizeLineEndings;
@@ -149,6 +150,8 @@ public class ExecutionGlobalServices {
                 "kotlin"
             ),
             ImmutableSet.of(
+                // Getter called when there is a nested bean with action in a Task
+                ConfigureUtil.WrappedConfigureAction.class,
                 // Inputs can extend these classes,
                 // so we want to ignore get methods declared in these classes
                 DefaultDomainObjectCollection.class,
