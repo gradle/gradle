@@ -1393,33 +1393,6 @@ Artifacts
         doesNotPromptForRerunToFindMoreVariants()
     }
 
-    @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
-    def "can write text report to file"() {
-        given:
-        buildFile << """
-            plugins {
-                id 'java'
-            }
-
-            outgoingVariants {
-                reports {
-                    text {
-                        required = true
-                        outputLocation.set(file('build/reports/outgoingVariants.txt'))
-                    }
-                }
-            }
-        """.stripIndent()
-
-        when:
-        succeeds ':outgoingVariants'
-
-        then:
-        def outputFile = file('build/reports/outgoingVariants.txt')
-        outputFile.assertExists()
-        outputContains(outputFile.text)
-    }
-
     @Ignore // expected output is not correct, this will be removed anyway
     @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
     def "can write json report to default file"() {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.diagnostics.internal.configurations.formatter;
+package org.gradle.api.tasks.diagnostics.internal.configurations.renderer;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.tasks.diagnostics.internal.configurations.model.ReportArtifact;
@@ -39,12 +39,16 @@ import java.util.Set;
  *
  * Note that although the name of this class includes "variants", the implementation internals speak of "configurations".
  */
-public final class TextConfigurationReportWriter implements ConfigurationReportWriter {
+public final class ConsoleConfigurationReportRenderer extends AbstractConfigurationReportRenderer<StyledTextOutput> {
     @Nullable private StyledTextOutput output;
     private int depth;
 
+    public ConsoleConfigurationReportRenderer(AbstractConfigurationReportSpec spec) {
+        super(spec);
+    }
+
     @Override
-    public void writeReport(StyledTextOutput output, AbstractConfigurationReportSpec spec, ConfigurationReportModel data) {
+    public void render(ConfigurationReportModel data, StyledTextOutput output) {
         this.depth = 0;
         this.output = Objects.requireNonNull(output, "Output to write report to must not be null!");
 

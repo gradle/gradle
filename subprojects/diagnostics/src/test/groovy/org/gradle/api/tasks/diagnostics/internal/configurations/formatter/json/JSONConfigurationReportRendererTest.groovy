@@ -18,24 +18,26 @@ package org.gradle.api.tasks.diagnostics.internal.configurations.formatter.json
 
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
-import org.gradle.api.tasks.diagnostics.internal.configurations.StylelessTextStyledTextOutput
+
 import org.gradle.api.tasks.diagnostics.internal.configurations.model.ConfigurationReportModel
 import org.gradle.api.tasks.diagnostics.internal.configurations.model.ReportConfiguration
+import org.gradle.api.tasks.diagnostics.internal.configurations.renderer.json.JSONConfigurationReport
+import org.gradle.api.tasks.diagnostics.internal.configurations.renderer.json.JSONConfigurationReportRenderer
 import org.gradle.api.tasks.diagnostics.internal.configurations.spec.OutgoingVariantsSpec
 import spock.lang.Specification
 
-class JSONConfigurationReportWriterTest extends Specification {
-    private final writer = new JSONConfigurationReportWriter()
+class JSONConfigurationReportRendererTest extends Specification {
+    private final spec = new OutgoingVariantsSpec(null, false)
+    private final renderer = new JSONConfigurationReportRenderer(spec)
     private final StringWriter output = new StringWriter()
     private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
     def "empty model produces empty output"() {
         given:
-        def spec = new OutgoingVariantsSpec(null, false)
         def model = new ConfigurationReportModel("myLib", Collections.emptyList())
 
         when:
-        writer.writeReport(new StylelessTextStyledTextOutput(output), spec, model)
+        renderer.render(model, output)
 
         then:
         def expected = expectedJson("""{ "configurations": [] }""")
@@ -48,7 +50,7 @@ class JSONConfigurationReportWriterTest extends Specification {
         def model = new ConfigurationReportModel("myLib", Collections.singletonList(new ReportConfiguration("test", "a test config", ReportConfiguration.Type.RESOLVABLE, Collections.emptySet(), Collections.emptySet(), Collections.emptySet(), Collections.emptySet())))
 
         when:
-        writer.writeReport(new StylelessTextStyledTextOutput(output), spec, model)
+        renderer.render(model, output)
 
         then:
         def expected = expectedJson("""{ "configurations": [

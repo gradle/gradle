@@ -14,12 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.diagnostics.internal.configurations.formatter;
+package org.gradle.api.tasks.diagnostics.internal.configurations.renderer;
 
 import org.gradle.api.tasks.diagnostics.internal.configurations.model.ConfigurationReportModel;
 import org.gradle.api.tasks.diagnostics.internal.configurations.spec.AbstractConfigurationReportSpec;
-import org.gradle.internal.logging.text.StyledTextOutput;
+import org.gradle.reporting.ReportRenderer;
 
-public interface ConfigurationReportWriter {
-    void writeReport(StyledTextOutput output, AbstractConfigurationReportSpec spec, ConfigurationReportModel data);
+public abstract class AbstractConfigurationReportRenderer<E> extends ReportRenderer<ConfigurationReportModel, E> {
+    protected final AbstractConfigurationReportSpec spec;
+
+    protected AbstractConfigurationReportRenderer(AbstractConfigurationReportSpec spec) {
+        this.spec = spec;
+    }
 }

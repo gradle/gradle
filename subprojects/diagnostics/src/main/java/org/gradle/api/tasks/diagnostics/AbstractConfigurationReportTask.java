@@ -32,10 +32,9 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.diagnostics.configurations.ConfigurationReports;
 import org.gradle.api.tasks.diagnostics.internal.configurations.ConfigurationReportsImpl;
-import org.gradle.api.tasks.diagnostics.internal.configurations.StylelessTextStyledTextOutput;
-import org.gradle.api.tasks.diagnostics.internal.configurations.formatter.ConfigurationReportWriter;
-import org.gradle.api.tasks.diagnostics.internal.configurations.formatter.json.JSONConfigurationReportWriter;
-import org.gradle.api.tasks.diagnostics.internal.configurations.formatter.TextConfigurationReportWriter;
+import org.gradle.api.tasks.diagnostics.internal.configurations.renderer.AbstractWritableConfigurationReportRenderer;
+import org.gradle.api.tasks.diagnostics.internal.configurations.renderer.json.JSONConfigurationReportRenderer;
+import org.gradle.api.tasks.diagnostics.internal.configurations.renderer.ConsoleConfigurationReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.configurations.model.ConfigurationReportModel;
 import org.gradle.api.tasks.diagnostics.internal.configurations.model.ReportConfiguration;
 import org.gradle.api.tasks.diagnostics.internal.configurations.spec.AbstractConfigurationReportSpec;
@@ -115,14 +114,14 @@ public abstract class AbstractConfigurationReportTask extends DefaultTask implem
      *
      * The contained reports can be configured by task name and closures.
      *
-     * For example, to configure the "resolvableConfigurations" report to emit a text file:
+     * For example, to configure the "resolvableConfigurations" report to emit a JSON file:
      *
      * <pre>
      * resolvableConfigurations {
      *   reports {
-     *     text {
+     *     json {
      *       required = true
-     *       outputLocation.set(file("build/reports/confs/resolvableConfigurations.txt"))
+     *       outputLocation.set(file("build/reports/confs/resolvableConfigurations.js"))
      *     }
      *   }
      * }
@@ -145,36 +144,31 @@ public abstract class AbstractConfigurationReportTask extends DefaultTask implem
         if (reports.getJSON().getRequired().get()) {
             reportToFile(reports.getJSON(), reportSpec, reportModel);
         }
-        if (reports.getText().getRequired().get()) {
-            reportToFile(reports.getText(), reportSpec, reportModel);
-        }
 
         reportToConsole(reportSpec, reportModel);
     }
 
     private void reportToFile(SingleFileReport report, AbstractConfigurationReportSpec reportSpec, ConfigurationReportModel reportModel) {
         final File outputFile = report.getOutputLocation().get().getAsFile();
+        final AbstractWritableConfigurationReportRenderer renderer = buildToFileRenderer(report, reportSpec);
+
         try (FileWriter fw = new FileWriter(outputFile)) {
-            final StyledTextOutput output = new StylelessTextStyledTextOutput(fw);
-            final ConfigurationReportWriter writer = buildWriter(report);
-            writer.writeReport(output, reportSpec, reportModel);
+            renderer.render(reportModel, fw);
         } catch (Exception e) {
             throw new GradleException("Failed to write '" + report.getName() +  "' report to " + outputFile, e);
         }
     }
 
     private void reportToConsole(AbstractConfigurationReportSpec reportSpec, ConfigurationReportModel reportModel) {
+        final ConsoleConfigurationReportRenderer renderer = new ConsoleConfigurationReportRenderer(reportSpec);
         final StyledTextOutput output = getTextOutputFactory().create(getClass());
-        final ConfigurationReportWriter writer = new TextConfigurationReportWriter();
-        writer.writeReport(output, reportSpec, reportModel);
+        renderer.render(reportModel, output);
     }
 
-    private ConfigurationReportWriter buildWriter(SingleFileReport report) {
+    private AbstractWritableConfigurationReportRenderer buildToFileRenderer(SingleFileReport report, AbstractConfigurationReportSpec reportSpec) {
         switch (report.getName()) {
             case "json":
-                return new JSONConfigurationReportWriter();
-            case "text":
-                return new TextConfigurationReportWriter();
+                return new JSONConfigurationReportRenderer(reportSpec);
             default:
                 throw new IllegalArgumentException("Unknown report type: " + report.getName());
         }

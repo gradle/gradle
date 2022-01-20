@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.diagnostics.internal.configurations.formatter.json;
+package org.gradle.api.tasks.diagnostics.internal.configurations.renderer.json;
 
 import org.gradle.api.tasks.diagnostics.internal.configurations.model.ReportConfiguration;
 

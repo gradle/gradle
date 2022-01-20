@@ -18,6 +18,6 @@
  * Formatters responsible for generating configuration reports from gathered data.
  */
 @NonNullApi
-package org.gradle.api.tasks.diagnostics.internal.configurations.formatter;
+package org.gradle.api.tasks.diagnostics.internal.configurations.renderer;
 
 import org.gradle.api.NonNullApi;

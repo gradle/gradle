@@ -30,16 +30,9 @@ public class ConfigurationReportsImpl extends TaskReportContainer<SingleFileRepo
     public ConfigurationReportsImpl(Task task, CollectionCallbackActionDecorator callbackActionDecorator) {
         super(SingleFileReport.class, task, callbackActionDecorator);
 
-        add(TaskGeneratedSingleFileReport.class, "text", task);
         add(TaskGeneratedSingleFileReport.class, "json", task);
 
-        getText().getOutputLocation().convention(task.getProject().getLayout().getBuildDirectory().file("reports/configuration/" + task.getName() + ".txt"));
         getJSON().getOutputLocation().convention(task.getProject().getLayout().getBuildDirectory().file("reports/configuration/" + task.getName() + ".json"));
-    }
-
-    @Override
-    public SingleFileReport getText() {
-        return getByName("text");
     }
 
     @Override

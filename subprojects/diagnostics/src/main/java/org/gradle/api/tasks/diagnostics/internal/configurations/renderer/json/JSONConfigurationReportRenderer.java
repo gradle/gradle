@@ -14,21 +14,32 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.diagnostics.internal.configurations.formatter.json;
+package org.gradle.api.tasks.diagnostics.internal.configurations.renderer.json;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import org.gradle.api.tasks.diagnostics.internal.configurations.formatter.ConfigurationReportWriter;
+import org.gradle.api.GradleException;
 import org.gradle.api.tasks.diagnostics.internal.configurations.model.ConfigurationReportModel;
+import org.gradle.api.tasks.diagnostics.internal.configurations.renderer.AbstractWritableConfigurationReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.configurations.spec.AbstractConfigurationReportSpec;
-import org.gradle.internal.logging.text.StyledTextOutput;
 
-public class JSONConfigurationReportWriter implements ConfigurationReportWriter {
+import java.io.IOException;
+import java.io.Writer;
+
+public final class JSONConfigurationReportRenderer extends AbstractWritableConfigurationReportRenderer {
     private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
+    public JSONConfigurationReportRenderer(AbstractConfigurationReportSpec spec) {
+        super(spec);
+    }
+
     @Override
-    public void writeReport(StyledTextOutput output, AbstractConfigurationReportSpec spec, ConfigurationReportModel data) {
+    public void render(ConfigurationReportModel data, Writer writer) {
         String json = gson.toJson(new JSONConfigurationReport(data.getEligibleConfigs()));
-        output.println(json);
+        try {
+            writer.write(json);
+        } catch (IOException e) {
+            throw new GradleException("Failed to write report", e);
+        }
     }
 }

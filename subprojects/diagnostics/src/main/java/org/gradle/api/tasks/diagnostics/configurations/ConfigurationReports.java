@@ -29,16 +29,6 @@ import org.gradle.api.tasks.Internal;
 @Incubating
 public interface ConfigurationReports extends ReportContainer<SingleFileReport> {
     /**
-     * The text-based configuration report, which contains the same text as the console output.
-     * <p>
-     * This report <strong>IS</strong> enabled by default.
-     *
-     * @return The text configuration report
-     */
-    @Internal
-    SingleFileReport getText();
-
-    /**
      * The JSON-based configuration report.
      * <p>
      * This report is <strong>NOT</strong> enabled by default.
