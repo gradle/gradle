@@ -32,6 +32,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflict
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons;
+import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult;
 import org.gradle.internal.Pair;
 import org.gradle.internal.component.external.model.ImmutableCapability;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
@@ -277,7 +278,15 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     @Override
     public List<ResolvedVariantResult> getAllVariants() {
         return nodes.stream()
-            .map(NodeState::getResolvedVariant)
+            .map(NodeState::getMetadata)
+            .flatMap(m -> m.getVariants().stream())
+            .map(v -> new DefaultResolvedVariantResult(
+                v.asDescribable()::getDisplayName,
+                v.asDescribable(),
+                v.getAttributes(),
+                ImmutableList.of(),
+                null
+            ))
             .collect(ImmutableList.toImmutableList());
     }
 
