@@ -65,12 +65,12 @@ public abstract class TestReportAggregationPlugin implements Plugin<Project> {
 
         ObjectFactory objects = project.getObjects();
 
-        // prepare testReportDir with a reasonable default, but override with JavaPluginExtension#testReportDir if available
-        final DirectoryProperty testReportDir = objects.directoryProperty().convention(reporting.getBaseDirectory().dir(TestingBasePlugin.TESTS_DIR_NAME));
-        JavaPluginExtension javaPluginExtension = project.getExtensions().findByType(JavaPluginExtension.class);
-        if (javaPluginExtension != null) {
-            testReportDir.set(javaPluginExtension.getTestReportDir());
-        }
+        final DirectoryProperty testReportDirectory = objects.directoryProperty().convention(reporting.getBaseDirectory().dir(TestingBasePlugin.TESTS_DIR_NAME));
+        // prepare testReportDirectory with a reasonable default, but override with JavaPluginExtension#testReportDirectory if available
+        project.getPlugins().withId("java-base", plugin -> {
+            JavaPluginExtension javaPluginExtension = project.getExtensions().getByType(JavaPluginExtension.class);
+            testReportDirectory.convention(javaPluginExtension.getTestReportDir());
+        });
 
         // iterate and configure each user-specified report, creating a <reportName>Results configuration for each
         reporting.getReports().withType(AggregateTestReport.class).configureEach(report -> {
@@ -95,7 +95,7 @@ public abstract class TestReportAggregationPlugin implements Plugin<Project> {
                     }).getFiles();
 
                 task.getTestResults().from(testResults);
-                task.getDestinationDirectory().convention(testReportDir.dir(report.getTestType().map(tt -> tt + "/aggregated-results")));
+                task.getDestinationDirectory().convention(testReportDirectory.dir(report.getTestType().map(tt -> tt + "/aggregated-results")));
             });
         });
 
