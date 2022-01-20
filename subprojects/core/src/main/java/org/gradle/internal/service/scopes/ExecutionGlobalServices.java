@@ -52,6 +52,7 @@ import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHa
 import org.gradle.api.internal.tasks.properties.annotations.TypeAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.UntrackedTaskTypeAnnotationHandler;
 import org.gradle.api.model.ReplacedBy;
+import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
@@ -154,6 +155,8 @@ public class ExecutionGlobalServices {
                 DefaultDomainObjectCollection.class,
                 DefaultNamedDomainObjectCollection.class,
                 DefaultNamedDomainObjectSet.class,
+                // Task extends this interface
+                ExtensionAware.class,
                 // Used in gradle-base so it can't have annotations anyway
                 Describable.class
             ),
