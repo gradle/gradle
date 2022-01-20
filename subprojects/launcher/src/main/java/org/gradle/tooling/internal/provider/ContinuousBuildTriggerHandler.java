@@ -19,34 +19,24 @@ package org.gradle.tooling.internal.provider;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.ContinuousExecutionGate;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.filewatch.PendingChangesListener;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.gradle.internal.filewatch.DefaultFileSystemChangeWaiterFactory.QUIET_PERIOD_SYSPROP;
 
 public class ContinuousBuildTriggerHandler {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ContinuousBuildTriggerHandler.class);
-
-    private final PendingChangesListener pendingChangesListener;
     private final BuildCancellationToken cancellationToken;
     private final ContinuousExecutionGate continuousExecutionGate;
-    private final AtomicBoolean changeArrived = new AtomicBoolean(false);
     private final CountDownLatch changeOrCancellationArrived = new CountDownLatch(1);
     private final CountDownLatch cancellationArrived = new CountDownLatch(1);
     private final long quietPeriod;
     private volatile long lastChangeAt = monotonicClockMillis();
 
     public ContinuousBuildTriggerHandler(
-        PendingChangesListener pendingChangesListener,
         BuildCancellationToken cancellationToken,
         ContinuousExecutionGate continuousExecutionGate
     ) {
-        this.pendingChangesListener = pendingChangesListener;
         this.cancellationToken = cancellationToken;
         this.continuousExecutionGate = continuousExecutionGate;
         this.quietPeriod = Long.getLong(QUIET_PERIOD_SYSPROP, 250L);
@@ -85,12 +75,6 @@ public class ContinuousBuildTriggerHandler {
     public void notifyFileChangeArrived() {
         lastChangeAt = monotonicClockMillis();
         changeOrCancellationArrived.countDown();
-        if (changeArrived.compareAndSet(false, true)) {
-            LOGGER.debug("notifying pending changes");
-            pendingChangesListener.onPendingChanges();
-        } else {
-            LOGGER.debug("already notified");
-        }
     }
 
     private static long monotonicClockMillis() {

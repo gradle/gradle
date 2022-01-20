@@ -36,6 +36,7 @@ import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.file.Stat;
 import org.gradle.internal.filewatch.PendingChangesListener;
+import org.gradle.internal.filewatch.SingleFirePendingChangesListener;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
@@ -147,11 +148,14 @@ public class ContinuousBuildActionExecutor implements BuildSessionActionExecutor
         while (true) {
             BuildInputHierarchy buildInputs = new BuildInputHierarchy(caseSensitivity, stat);
             ContinuousBuildTriggerHandler continuousBuildTriggerHandler = new ContinuousBuildTriggerHandler(
-                pendingChangesListener,
                 cancellationToken,
                 continuousExecutionGate
             );
-            FileEventCollector fileEventCollector = new FileEventCollector(buildInputs, continuousBuildTriggerHandler::notifyFileChangeArrived);
+            SingleFirePendingChangesListener singleFirePendingChangesListener = new SingleFirePendingChangesListener(pendingChangesListener);
+            FileEventCollector fileEventCollector = new FileEventCollector(buildInputs, () -> {
+                continuousBuildTriggerHandler.notifyFileChangeArrived();
+                singleFirePendingChangesListener.onPendingChanges();
+            });
             try {
                 fileChangeListeners.addListener(fileEventCollector);
                 lastResult = executeBuildAndAccumulateInputs(action, new AccumulateBuildInputsListener(buildInputs), buildSession);
