@@ -16,6 +16,7 @@
 
 package org.gradle.api.artifacts.result;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
@@ -92,15 +93,27 @@ public interface ResolvedComponentResult extends ComponentResult {
     List<ResolvedVariantResult> getVariants();
 
     /**
+     * Returns all the variants for this component, even ones that weren't selected.
+     *
+     * @return all variants for this component
+     * @since 7.5
+     */
+    @Incubating
+    List<ResolvedVariantResult> getAllVariants();
+
+    /**
      * Returns the dependencies of a specific variant. It is possible for a component to be selected multiple
      * times with different variants (for example, the main component and its test fixtures). The dependencies
      * of each variant are different, but the {@link #getDependencies() method} doesn't give access to each
      * variant individual dependencies.
      *
+     * <p>
+     * The variant must be a {@linkplain #getVariants() selected variant} of this component.
+     * </p>
+     *
      * @param variant the variant to find the dependencies for
-     *
+     * @throws IllegalStateException if the variant is not a selected variant of this component
      * @since 5.6
-     *
      */
     List<DependencyResult> getDependenciesForVariant(ResolvedVariantResult variant);
 }

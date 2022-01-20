@@ -57,6 +57,7 @@ import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Description;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Failure;
@@ -367,7 +368,7 @@ public class DependencyInsightReportTask extends DefaultTask {
         }
 
         private void printVariantDetails(StyledTextOutput out, RenderableDependency dependency) {
-            List<ResolvedVariantResult> resolvedVariants = dependency.getResolvedVariants();
+            List<ResolvedVariantResult> resolvedVariants = dependency.getAllVariants();
             for (ResolvedVariantResult resolvedVariant : resolvedVariants) {
                 out.println();
                 out.withStyle(Description).text("   variant \"" + resolvedVariant.getDisplayName() + "\"");
@@ -442,14 +443,10 @@ public class DependencyInsightReportTask extends DefaultTask {
         }
 
         private int computeAttributePadding(AttributeContainer attributes, AttributeContainer requested) {
-            int maxAttributeLen = 0;
-            for (Attribute<?> attribute : requested.keySet()) {
-                maxAttributeLen = Math.max(maxAttributeLen, attribute.getName().length());
-            }
-            for (Attribute<?> attribute : attributes.keySet()) {
-                maxAttributeLen = Math.max(maxAttributeLen, attribute.getName().length());
-            }
-            return maxAttributeLen;
+            return Stream.concat(attributes.keySet().stream(), requested.keySet().stream())
+                .mapToInt(attr -> attr.getName().length())
+                .max()
+                .orElse(0);
         }
 
     }

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -42,7 +43,6 @@ import org.gradle.internal.resolve.result.DefaultBuildableComponentResolveResult
 
 import javax.annotation.Nullable;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.StreamSupport;
@@ -268,29 +268,17 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
 
     @Override
     public List<ResolvedVariantResult> getResolvedVariants() {
-        List<ResolvedVariantResult> result = null;
-        ResolvedVariantResult cur = null;
-        for (NodeState node : nodes) {
-            if (node.isSelected()) {
-                ResolvedVariantResult details = node.getResolvedVariant();
-                if (result != null) {
-                    result.add(details);
-                } else if (cur != null) {
-                    result = Lists.newArrayList();
-                    result.add(cur);
-                    result.add(details);
-                } else {
-                    cur = details;
-                }
-            }
-        }
-        if (result != null) {
-            return result;
-        }
-        if (cur != null) {
-            return Collections.singletonList(cur);
-        }
-        return Collections.emptyList();
+        return nodes.stream()
+            .filter(NodeState::isSelected)
+            .map(NodeState::getResolvedVariant)
+            .collect(ImmutableList.toImmutableList());
+    }
+
+    @Override
+    public List<ResolvedVariantResult> getAllVariants() {
+        return nodes.stream()
+            .map(NodeState::getResolvedVariant)
+            .collect(ImmutableList.toImmutableList());
     }
 
     @Override

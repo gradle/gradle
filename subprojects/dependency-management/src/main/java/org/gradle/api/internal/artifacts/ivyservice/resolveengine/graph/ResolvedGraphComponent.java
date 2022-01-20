@@ -57,4 +57,6 @@ public interface ResolvedGraphComponent {
     String getRepositoryName();
 
     List<ResolvedVariantResult> getResolvedVariants();
+
+    List<ResolvedVariantResult> getAllVariants();
 }

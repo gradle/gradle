@@ -37,5 +37,7 @@ public interface DependencyEdge {
 
     List<ResolvedVariantResult> getSelectedVariants();
 
+    List<ResolvedVariantResult> getAllVariants();
+
     Set<? extends RenderableDependency> getChildren();
 }

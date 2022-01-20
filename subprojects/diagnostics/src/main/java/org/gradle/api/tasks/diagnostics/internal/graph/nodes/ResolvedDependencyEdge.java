@@ -54,6 +54,11 @@ public class ResolvedDependencyEdge implements DependencyEdge {
     }
 
     @Override
+    public List<ResolvedVariantResult> getAllVariants() {
+        return dependency.getSelected().getAllVariants();
+    }
+
+    @Override
     public ComponentIdentifier getActual() {
         return dependency.getSelected().getId();
     }
