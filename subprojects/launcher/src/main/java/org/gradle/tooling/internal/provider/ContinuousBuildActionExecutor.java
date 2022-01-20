@@ -146,17 +146,18 @@ public class ContinuousBuildActionExecutor implements BuildSessionActionExecutor
         BuildActionRunner.Result lastResult;
         PendingChangesListener pendingChangesListener = listenerManager.getBroadcaster(PendingChangesListener.class);
         while (true) {
+            BuildInputHierarchy buildInputs = new BuildInputHierarchy(caseSensitivity, stat);
             ContinuousBuildTriggerHandler continuousBuildTriggerHandler = new ContinuousBuildTriggerHandler(
-                new BuildInputHierarchy(caseSensitivity, stat),
+                buildInputs,
                 new SingleFirePendingChangesListener(pendingChangesListener),
                 cancellationToken,
                 continuousExecutionGate
             );
             try {
                 fileChangeListeners.addListener(continuousBuildTriggerHandler);
-                lastResult = executeBuildAndAccumulateInputs(action, continuousBuildTriggerHandler, buildSession);
+                lastResult = executeBuildAndAccumulateInputs(action, new AccumulateBuildInputsListener(buildInputs), buildSession);
 
-                if (!continuousBuildTriggerHandler.hasAnyInputs()) {
+                if (buildInputs.isEmpty()) {
                     logger.println().withStyle(StyledTextOutput.Style.Failure).println("Exiting continuous build as no executed tasks declared file system inputs.");
                     return lastResult;
                 } else {
