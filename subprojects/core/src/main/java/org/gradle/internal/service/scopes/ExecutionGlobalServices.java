@@ -24,14 +24,6 @@ import org.gradle.api.artifacts.transform.CacheableTransform;
 import org.gradle.api.artifacts.transform.InputArtifact;
 import org.gradle.api.artifacts.transform.InputArtifactDependencies;
 import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.internal.DefaultDomainObjectCollection;
-import org.gradle.api.internal.DefaultDomainObjectSet;
-import org.gradle.api.internal.DefaultNamedDomainObjectCollection;
-import org.gradle.api.internal.DefaultNamedDomainObjectList;
-import org.gradle.api.internal.DefaultNamedDomainObjectSet;
-import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
-import org.gradle.api.internal.DynamicObjectAware;
-import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.project.taskfactory.DefaultTaskClassInfoStore;
 import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
@@ -57,7 +49,6 @@ import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHa
 import org.gradle.api.internal.tasks.properties.annotations.TypeAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.UntrackedTaskTypeAnnotationHandler;
 import org.gradle.api.model.ReplacedBy;
-import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
@@ -91,8 +82,6 @@ import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadataStore;
 import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore;
 import org.gradle.internal.scripts.ScriptOrigin;
-import org.gradle.util.internal.ClosureBackedAction;
-import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.work.DisableCachingByDefault;
 import org.gradle.work.Incremental;
 import org.gradle.work.NormalizeLineEndings;
@@ -162,26 +151,6 @@ public class ExecutionGlobalServices {
 //                ConfigureUtil.WrappedConfigureAction.class,
                 // Used in gradle-base
                 Describable.class,
-//                // core
-//                DefaultDomainObjectCollection.class,
-//                // core
-//                DefaultDomainObjectSet.class,
-//                // core
-//                DefaultNamedDomainObjectCollection.class,
-//                // core
-//                DefaultNamedDomainObjectList.class,
-//                // core
-//                DefaultNamedDomainObjectSet.class,
-//                // core
-//                DefaultPolymorphicDomainObjectContainer.class,
-//                // model-core
-//                DynamicObjectAware.class,
-//                // core-api
-//                ExtensionAware.class,
-//                // model-core
-//                deprecatedHasConvention,
-//                // model-core
-//                IConventionAware.class,
                 // core
                 ScriptOrigin.class
             ),
