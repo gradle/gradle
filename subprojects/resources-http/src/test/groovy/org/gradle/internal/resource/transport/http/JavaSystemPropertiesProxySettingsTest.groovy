@@ -65,12 +65,16 @@ class JavaSystemPropertiesProxySettingsTest extends Specification {
         settings("proxyHost", prop, null).getProxy("host").port == value
 
         where:
-        prop     | value
-        null     | 80
-        ""       | 80
-        "notInt" | 80
-        "0"      | 0
-        "111"    | 111
+        prop      | value
+        null      | 80
+        ""        | 80
+        " "       | 80
+        "notInt"  | 80
+        "0"       | 0
+        "111"     | 111
+        "  111  " | 111
+        "  111"   | 111
+        "111  "   | 111
     }
 
     def "uses specified proxy user and password"() {
