@@ -156,19 +156,33 @@ public class ExecutionGlobalServices {
                 "kotlin"
             ),
             ImmutableSet.of(
-                ClosureBackedAction.class,
-                ConfigureUtil.WrappedConfigureAction.class,
+//                // model-core
+//                ClosureBackedAction.class,
+//                // model-core
+//                ConfigureUtil.WrappedConfigureAction.class,
+                // Used in gradle-base
                 Describable.class,
-                DefaultDomainObjectCollection.class,
-                DefaultDomainObjectSet.class,
-                DefaultNamedDomainObjectCollection.class,
-                DefaultNamedDomainObjectList.class,
-                DefaultNamedDomainObjectSet.class,
-                DefaultPolymorphicDomainObjectContainer.class,
-                DynamicObjectAware.class,
-                ExtensionAware.class,
-                deprecatedHasConvention,
-                IConventionAware.class,
+//                // core
+//                DefaultDomainObjectCollection.class,
+//                // core
+//                DefaultDomainObjectSet.class,
+//                // core
+//                DefaultNamedDomainObjectCollection.class,
+//                // core
+//                DefaultNamedDomainObjectList.class,
+//                // core
+//                DefaultNamedDomainObjectSet.class,
+//                // core
+//                DefaultPolymorphicDomainObjectContainer.class,
+//                // model-core
+//                DynamicObjectAware.class,
+//                // core-api
+//                ExtensionAware.class,
+//                // model-core
+//                deprecatedHasConvention,
+//                // model-core
+//                IConventionAware.class,
+                // core
                 ScriptOrigin.class
             ),
             ImmutableSet.of(
