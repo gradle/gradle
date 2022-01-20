@@ -74,4 +74,10 @@ public class DetachedComponentResult implements ResolvedGraphComponent {
     public List<ResolvedVariantResult> getResolvedVariants() {
         return resolvedVariants;
     }
+
+    @Override
+    public List<ResolvedVariantResult> getAllVariants() {
+        // TODO fill in
+        return resolvedVariants;
+    }
 }

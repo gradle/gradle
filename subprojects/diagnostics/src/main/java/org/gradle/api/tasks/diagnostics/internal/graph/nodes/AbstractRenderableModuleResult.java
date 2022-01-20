@@ -48,6 +48,11 @@ public abstract class AbstractRenderableModuleResult extends AbstractRenderableD
     }
 
     @Override
+    public List<ResolvedVariantResult> getAllVariants() {
+        return module.getAllVariants();
+    }
+
+    @Override
     public String getDescription() {
         return null;
     }
