@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.external.model;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
@@ -41,9 +42,15 @@ import java.util.Set;
 public class MetadataSourcedComponentArtifacts implements ComponentArtifacts {
     @Override
     public ArtifactSet getArtifactsFor(ComponentResolveMetadata component, ConfigurationMetadata configuration, ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvableArtifact> allResolvedArtifacts, ArtifactTypeRegistry artifactTypeRegistry, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes, CalculatedValueContainerFactory calculatedValueContainerFactory) {
-        Set<VariantResolveMetadata> variants = new LinkedHashSet<>();
-        ImmutableList<? extends ConfigurationMetadata> allVariants = component.getVariantsForGraphTraversal().get();
-        allVariants.forEach(configurationMetadata -> variants.addAll(configurationMetadata.getVariants()));
+        Optional<ImmutableList<? extends ConfigurationMetadata>> variantsForGraphTraversal = component.getVariantsForGraphTraversal();
+        final Set<VariantResolveMetadata> variants = new LinkedHashSet<>();
+        if (variantsForGraphTraversal.isPresent()) {
+            ImmutableList<? extends ConfigurationMetadata> allVariants = variantsForGraphTraversal.get();
+            allVariants.forEach(configurationMetadata -> variants.addAll(configurationMetadata.getVariants()));
+        } else {
+            variants.addAll(configuration.getVariants());
+        }
+
         return DefaultArtifactSet.createFromVariantMetadata(component.getId(), component.getModuleVersionId(), component.getSources(), exclusions, variants, component.getAttributesSchema(), artifactResolver, allResolvedArtifacts, artifactTypeRegistry, overriddenAttributes, calculatedValueContainerFactory);
     }
 }
