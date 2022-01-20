@@ -346,6 +346,44 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
         report.assertHasClassCoverage("transitive.Powerize")
     }
 
+    def "can aggregate jacoco reports from root project when subproject doesn't have tests"() {
+        given:
+        buildFile << """
+            apply plugin: 'org.gradle.jacoco-report-aggregation'
+
+            dependencies {
+                jacocoAggregation project(":application")
+                jacocoAggregation project(":direct")
+            }
+
+            reporting {
+                reports {
+                    testCodeCoverageReport(JacocoCoverageReport) {
+                        testType = TestSuiteType.UNIT_TEST
+                    }
+                }
+            }
+        """
+
+        // remove tests from transitive
+        file("transitive/src/test").deleteDir()
+
+        when:
+        succeeds(":testCodeCoverageReport")
+
+        then:
+        file("transitive/build/jacoco/test.exec").assertDoesNotExist()
+        file("direct/build/jacoco/test.exec").assertExists()
+        file("application/build/jacoco/test.exec").assertExists()
+
+        file("build/reports/jacoco/testCodeCoverageReport/html/index.html").assertExists()
+
+        def report = new JacocoReportXmlFixture(file("build/reports/jacoco/testCodeCoverageReport/testCodeCoverageReport.xml"))
+        report.assertHasClassCoverage("application.Adder")
+        report.assertHasClassCoverage("direct.Multiplier")
+        report.assertHasClassButNoCoverage("transitive.Powerize")
+    }
+
     def "can aggregate jacoco reports from root project with platform"() {
         given:
         file("transitive/build.gradle") << """
