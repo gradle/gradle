@@ -199,6 +199,11 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
             return value.sourceType;
         }
 
+        @Override
+        public String toString() {
+            return String.format("valueof(%s)", getValueSourceType().getSimpleName());
+        }
+
         @Nullable
         public Class<P> getParametersType() {
             return value.parametersType;

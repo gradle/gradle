@@ -33,6 +33,11 @@ class BiProvider<R, A, B> extends AbstractMinimalProvider<R> {
     }
 
     @Override
+    public String toString() {
+        return String.format("and(%s, %s)", left, right);
+    }
+
+    @Override
     public ExecutionTimeValue<? extends R> calculateExecutionTimeValue() {
         return isChangingValue(left) || isChangingValue(right)
             ? ExecutionTimeValue.changingValue(this)
