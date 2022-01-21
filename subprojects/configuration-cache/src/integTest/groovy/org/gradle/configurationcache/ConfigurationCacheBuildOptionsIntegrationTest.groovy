@@ -456,6 +456,53 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
         configurationCache.assertStateLoaded()
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/19649")
+    def "zip chain used as task input"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile '''
+            def userProvider = providers.gradleProperty("ci").map { "" }.orElse(providers.systemProperty("user"))
+            def versionMajorProvider = providers.gradleProperty("versionMajor").orElse("1")
+            def versionMinorProvider = providers.gradleProperty("versionMinor").orElse("2")
+            def versionNameProvider = versionMajorProvider
+                .zip(versionMinorProvider) { major, minor ->
+                    "$major.$minor"
+                }
+                .zip(userProvider) { prev, user ->
+                    "$prev-$user"
+                }
+
+            abstract class PrintVersionName extends DefaultTask {
+
+                @Input
+                abstract Property<String> getVersionName()
+
+                @TaskAction
+                def printVersionName() {
+                    println('*' + versionName.get() + '*')
+                }
+            }
+
+            tasks.register("ok", PrintVersionName.class) {
+                versionName = versionNameProvider
+            }
+        '''
+
+        when:
+        configurationCacheRun 'ok', '-Duser=alice'
+
+        then:
+        outputContains '*1.2-alice*'
+        configurationCache.assertStateStored()
+
+        when:
+        configurationCacheRun 'ok', '-Duser=bob'
+
+        then:
+        outputContains '*1.2-bob*'
+        configurationCache.assertStateLoaded()
+    }
+
     def "zipped properties used as task input"() {
 
         given:
