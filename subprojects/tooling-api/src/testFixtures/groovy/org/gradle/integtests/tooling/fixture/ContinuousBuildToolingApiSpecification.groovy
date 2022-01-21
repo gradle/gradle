@@ -20,6 +20,7 @@ import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.integtests.fixtures.executer.UnexpectedBuildFailure
 import org.gradle.internal.os.OperatingSystem
@@ -28,7 +29,9 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.CancellationToken
 import org.gradle.tooling.ProjectConnection
+import org.gradle.util.GradleVersion
 import org.hamcrest.Matcher
+import org.junit.Assume
 import org.junit.Rule
 import spock.lang.Retry
 import spock.lang.Timeout
@@ -46,6 +49,21 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
     public static final String BUILD_CANCELLED = "Build cancelled."
     public static final String BUILD_CANCELLED_AND_STOPPED = "the build was canceled"
 
+    // We have problems loading the file system watching library when starting a Gradle build via the tooling API in debug (= embedded) mode.
+    // The problem there is that Gradle then tries to load the native library in two different classloaders in the same JDK, which isn't allowed.
+    // We could try to fix this problems, though this is only a problem for testing.
+    static boolean canUseContinuousBuildViaToolingApi() {
+        return  !GradleContextualExecuter.embedded
+    }
+
+    static void addWatchFsArgumentIfNecessary(List<String> arguments, GradleVersion targetVersion) {
+        if (targetVersion.baseVersion >= GradleVersion.version("7.5")) {
+            // Although file system watching is enabled by default, we may run the test via test distribution
+            // on Docker, which has an unsupported file system. So we need to explicitly enable it.
+            arguments.add("--watch-fs")
+        }
+    }
+
     private static final boolean OS_IS_WINDOWS = OperatingSystem.current().isWindows()
 
     ExecutionResult result
@@ -62,6 +80,7 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
 
 
     def setup() {
+        Assume.assumeTrue("Unsupported for the embedded runner", canUseContinuousBuildViaToolingApi())
         buildFile.text = "apply plugin: 'java'\n"
         sourceDir = file("src/main/java")
     }
@@ -106,8 +125,10 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
                     |}
                 """.stripMargin()
 
+                def arguments = ["--continuous", "-I", initScript.absolutePath]
+                addWatchFsArgumentIfNecessary(arguments, targetVersion)
                 BuildLauncher launcher = projectConnection.newBuild()
-                    .withArguments("--continuous", "-I", initScript.absolutePath)
+                    .withArguments(arguments)
                     .forTasks(tasks as String[])
                     .withCancellationToken(token)
 

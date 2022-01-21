@@ -59,7 +59,6 @@ abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec
 
     void turnOnDebug() {
         executer.startBuildProcessInDebugger(true)
-        executer.withArgument("--no-daemon")
         buildTimeout *= 100
         shutdownTimeout *= 100
     }
@@ -158,6 +157,7 @@ ${result.error}
             .withTasks(tasks)
             .withForceInteractive(true)
             .withArgument("--full-stacktrace")
+            .withArgument("--watch-fs")
         if (!withoutContinuousArg) {
             executer.withArgument("--continuous")
         }

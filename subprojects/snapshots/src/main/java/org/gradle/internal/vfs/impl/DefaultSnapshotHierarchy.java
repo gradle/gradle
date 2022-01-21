@@ -61,7 +61,7 @@ public class DefaultSnapshotHierarchy implements SnapshotHierarchy {
     @Override
     public Optional<MetadataSnapshot> findMetadata(String absolutePath) {
         VfsRelativePath relativePath = VfsRelativePath.of(absolutePath);
-        if (relativePath.length() == 0) {
+        if (relativePath.isEmpty()) {
             return rootNode.getSnapshot();
         }
         return rootNode.getSnapshot(relativePath, caseSensitivity);
@@ -75,7 +75,7 @@ public class DefaultSnapshotHierarchy implements SnapshotHierarchy {
     @Override
     public SnapshotHierarchy store(String absolutePath, MetadataSnapshot snapshot, NodeDiffListener diffListener) {
         VfsRelativePath relativePath = VfsRelativePath.of(absolutePath);
-        if (relativePath.length() == 0) {
+        if (relativePath.isEmpty()) {
             return new DefaultSnapshotHierarchy(snapshot.asFileSystemNode(), caseSensitivity);
         }
         return new DefaultSnapshotHierarchy(
@@ -87,7 +87,7 @@ public class DefaultSnapshotHierarchy implements SnapshotHierarchy {
     @Override
     public SnapshotHierarchy invalidate(String absolutePath, NodeDiffListener diffListener) {
         VfsRelativePath relativePath = VfsRelativePath.of(absolutePath);
-        if (relativePath.length() == 0) {
+        if (relativePath.isEmpty()) {
             diffListener.nodeRemoved(rootNode);
             return empty();
         }
@@ -115,7 +115,7 @@ public class DefaultSnapshotHierarchy implements SnapshotHierarchy {
 
     private ReadOnlyFileSystemNode getNode(String absolutePath) {
         VfsRelativePath relativePath = VfsRelativePath.of(absolutePath);
-        return relativePath.length() == 0
+        return relativePath.isEmpty()
             ? rootNode
             : rootNode.getNode(relativePath, caseSensitivity);
     }

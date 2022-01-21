@@ -44,6 +44,7 @@ import org.gradle.internal.filewatch.FileSystemChangeWaiterFactory;
 import org.gradle.internal.filewatch.FileWatcherFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
+import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
@@ -55,10 +56,12 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.session.BuildSessionActionExecutor;
+import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.snapshot.impl.DirectorySnapshotterStatistics;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem;
+import org.gradle.internal.watch.vfs.FileChangeListeners;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.launcher.exec.BuildCompletionNotifyingBuildActionRunner;
 import org.gradle.launcher.exec.BuildExecuter;
@@ -78,6 +81,9 @@ import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.WellKnownClassLoaderRegistry;
 
 import java.util.List;
+
+import static org.gradle.internal.snapshot.CaseSensitivity.CASE_INSENSITIVE;
+import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE;
 
 public class LauncherServices extends AbstractPluginServiceRegistry {
     @Override
@@ -159,8 +165,8 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
             BuildOperationListenerManager buildOperationListenerManager,
             BuildOperationExecutor buildOperationExecutor,
             TaskInputsListeners inputsListeners,
+            FileChangeListeners fileChangeListeners,
             StyledTextOutputFactory styledTextOutputFactory,
-            FileSystemChangeWaiterFactory fileSystemChangeWaiterFactory,
             BuildRequestMetaData requestMetaData,
             BuildCancellationToken cancellationToken,
             DeploymentRegistryInternal deploymentRegistry,
@@ -171,15 +177,17 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
             BuildOperationNotificationValve buildOperationNotificationValve,
             BuildTreeModelControllerServices buildModelServices,
             WorkerLeaseService workerLeaseService,
-            BuildLayoutValidator buildLayoutValidator
+            BuildLayoutValidator buildLayoutValidator,
+            FileSystem fileSystem
         ) {
+            CaseSensitivity caseSensitivity = fileSystem.isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE;
             return new SubscribableBuildActionExecutor(
                 listenerManager,
                 buildOperationListenerManager,
                 listenerFactory, eventConsumer,
                 new ContinuousBuildActionExecutor(
-                    fileSystemChangeWaiterFactory,
                     inputsListeners,
+                    fileChangeListeners,
                     styledTextOutputFactory,
                     executorFactory,
                     requestMetaData,
@@ -188,6 +196,8 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                     listenerManager,
                     buildStartedTime,
                     clock,
+                    fileSystem,
+                    caseSensitivity,
                     new RunAsWorkerThreadBuildActionExecutor(
                         workerLeaseService,
                         new RunAsBuildOperationBuildActionExecutor(
