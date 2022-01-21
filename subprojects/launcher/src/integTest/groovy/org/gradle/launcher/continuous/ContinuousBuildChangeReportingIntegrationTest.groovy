@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 
-import static org.gradle.internal.filewatch.DefaultFileWatcherEventListener.SHOW_INDIVIDUAL_CHANGES_LIMIT
+import static org.gradle.tooling.internal.provider.FileEventCollector.SHOW_INDIVIDUAL_CHANGES_LIMIT
 
 class ContinuousBuildChangeReportingIntegrationTest extends AbstractContinuousIntegrationTest {
     TestFile inputDir

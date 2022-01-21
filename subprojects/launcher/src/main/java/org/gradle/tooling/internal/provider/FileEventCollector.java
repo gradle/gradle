@@ -28,8 +28,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class FileEventCollector implements FileChangeListener {
+    public static final int SHOW_INDIVIDUAL_CHANGES_LIMIT = 3;
     private static final boolean IS_MAC_OSX = OperatingSystem.current().isMacOsX();
-    private static final int SHOW_INDIVIDUAL_CHANGES_LIMIT = 3;
 
     private final Map<Path, FileWatcherRegistry.Type> aggregatedEvents = new LinkedHashMap<>();
     private final BuildInputHierarchy buildInputs;
