@@ -502,4 +502,104 @@ Attributes
         outputFile.assertExists()
         outputFile.assertContents(containsNormalizedString("{ json: 'Yea!  This is full of JSON!' }"))
     }
+
+    def "compatibility rules are printed if present"() {
+        given: "A compatibility rule applying to the alphabetically first named attribute in the list"
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            def flavor = Attribute.of('flavor', String)
+
+            configurations {
+                custom {
+                    description = "My custom configuration"
+                    canBeResolved = true
+                    canBeConsumed = false
+
+                    attributes {
+                        attribute(flavor, 'vanilla')
+                    }
+                }
+            }
+
+            class CategoryCompatibilityRule implements AttributeCompatibilityRule<String> {
+                void execute(CompatibilityCheckDetails<String> details) {
+                    details.compatible()
+                }
+            }
+
+            dependencies.attributesSchema {
+                attribute(flavor) {
+                    compatibilityRules.add(CategoryCompatibilityRule)
+                }
+            }
+        """.stripIndent()
+
+        when:
+        succeeds ':resolvableConfigurations'
+
+        then:
+        outputContainsLinewise("""Compatibility Rules
+        --------------------------------------------------
+        Description = The following Attributes have compatibility rules defined.
+
+            - flavor""")
+
+        and:
+        doesNotHaveLegacyLegend()
+        doesNotHaveIncubatingLegend()
+    }
+
+    def "disambiguation rules are printed if present"() {
+        given: "A disambiguation rule applying to the alphabetically first named attribute in the list"
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            def flavor = Attribute.of('flavor', String)
+
+            configurations {
+                custom {
+                    description = "My custom configuration"
+                    canBeResolved = true
+                    canBeConsumed = false
+
+                    attributes {
+                        attribute(flavor, 'vanilla')
+                    }
+                }
+            }
+
+            class CategorySelectionRule implements AttributeDisambiguationRule<String> {
+                void execute(MultipleCandidatesDetails<String> details) {
+                    if (details.candidateValues.contains('chocolate')) {
+                        details.closestMatch('chocolate')
+                    }
+                }
+            }
+
+            dependencies.attributesSchema {
+                attribute(flavor) {
+                    disambiguationRules.add(CategorySelectionRule)
+                }
+            }
+        """.stripIndent()
+
+        when:
+        succeeds ':resolvableConfigurations'
+
+        then:
+        outputContainsLinewise("""Disambiguation Rules
+        --------------------------------------------------
+        Description = The following Attributes have disambiguation rules defined.
+
+            - flavor""")
+
+        and:
+        doesNotHaveLegacyLegend()
+        doesNotHaveIncubatingLegend()
+    }
 }
