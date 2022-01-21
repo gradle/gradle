@@ -18,44 +18,20 @@ package org.gradle.internal.filewatch
 
 import spock.lang.Specification
 
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.Executors
-import java.util.concurrent.atomic.AtomicInteger
-
 class SingleFirePendingChangesListenerTest extends Specification {
-    def delegateCalled = new AtomicInteger()
-    // Can't use Spock Mocks in parallel, so we use an actual implementation here.
-    def delegate = new PendingChangesListener() {
-        @Override
-        void onPendingChanges() {
-            delegateCalled.incrementAndGet()
-        }
-    }
-    int numberOfConcurrentThreads = 20
-    def executer = Executors.newFixedThreadPool(numberOfConcurrentThreads)
+    def delegate = Mock(PendingChangesListener)
 
     def "propagates changes only once"() {
-        def threadsReadyLatch = new CountDownLatch(numberOfConcurrentThreads)
-        def startChangesLatch = new CountDownLatch(1)
-        def threadsFinishedLatch = new CountDownLatch(numberOfConcurrentThreads)
-        def singleFireListener = new SingleFirePendingChangesListener(delegate)
-        (1..numberOfConcurrentThreads).each {
-            executer.submit {
-                threadsReadyLatch.countDown()
-                startChangesLatch.await()
-                singleFireListener.onPendingChanges()
-                threadsFinishedLatch.countDown()
-            }
-        }
+        def singleFirePendingChangesListener = new SingleFirePendingChangesListener(delegate)
 
         when:
-        startChangesLatch.countDown()
-        threadsFinishedLatch.await()
+        singleFirePendingChangesListener.onPendingChanges()
         then:
-        delegateCalled.get() == 1
-    }
+        1 * delegate.onPendingChanges()
 
-    def cleanup() {
-        executer.shutdownNow()
+        when:
+        singleFirePendingChangesListener.onPendingChanges()
+        then:
+        0 * delegate.onPendingChanges()
     }
 }

@@ -19,13 +19,11 @@ package org.gradle.internal.filewatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-
 public class SingleFirePendingChangesListener implements PendingChangesListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(SingleFirePendingChangesListener.class);
 
     private final PendingChangesListener delegate;
-    private final AtomicBoolean changeArrived = new AtomicBoolean(false);
+    private boolean seenChanges;
 
     public SingleFirePendingChangesListener(PendingChangesListener delegate) {
         this.delegate = delegate;
@@ -34,9 +32,10 @@ public class SingleFirePendingChangesListener implements PendingChangesListener 
     @Override
     public void onPendingChanges() {
         // Only fire once
-        if (changeArrived.compareAndSet(false, true)) {
+        if (!seenChanges) {
             LOGGER.debug("notifying pending changes");
             delegate.onPendingChanges();
+            seenChanges = true;
         } else {
             LOGGER.debug("already notified");
         }
