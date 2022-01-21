@@ -174,7 +174,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         }
     }
 
-    def "does not detect changes in filtered file tree inputs if there aren't any unfiltered files"() {
+    def "does not detect changes in filtered file tree inputs when first matching file is created"() {
         def sources = file("sources").createDir()
         sources.file("sub/some/excluded").createFile()
         def includedFile = sources.file("sub/some/included.txt")
