@@ -44,6 +44,7 @@ import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.internal.tasks.TaskLocalStateInternal;
 import org.gradle.api.internal.tasks.TaskMutator;
 import org.gradle.api.internal.tasks.TaskStateInternal;
+import org.gradle.api.internal.tasks.execution.SelfDescribingSpec;
 import org.gradle.api.internal.tasks.execution.TaskExecutionAccessListener;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.logging.Logger;
@@ -94,6 +95,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -145,6 +147,8 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     private String reasonNotToTrackState;
 
     private String reasonIncompatibleWithConfigurationCache;
+
+    private final List<SelfDescribingSpec<TaskInternal>> doNotCacheConfigurationIfSpecs = new LinkedList<>();
 
     private final ServiceRegistry services;
 
@@ -397,6 +401,13 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     @Override
+    public void doNotCacheConfigurationIf(String cachingDisabledReason, Spec<? super Task> spec) {
+        taskMutator.mutate("Task.doNotCacheConfigurationIf(String, Spec)", () -> {
+            doNotCacheConfigurationIfSpecs.add(new SelfDescribingSpec<>(spec, cachingDisabledReason));
+        });
+    }
+
+    @Override
     public boolean isCompatibleWithConfigurationCache() {
         return reasonIncompatibleWithConfigurationCache == null;
     }
@@ -404,6 +415,11 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Override
     public Optional<String> getReasonTaskIsIncompatibleWithConfigurationCache() {
         return Optional.ofNullable(reasonIncompatibleWithConfigurationCache);
+    }
+
+    @Override
+    public List<SelfDescribingSpec<TaskInternal>> getDoNotCacheConfigurationIfSpecs() {
+        return doNotCacheConfigurationIfSpecs;
     }
 
     @Internal

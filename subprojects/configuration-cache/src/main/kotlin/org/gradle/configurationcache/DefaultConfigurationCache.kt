@@ -34,6 +34,7 @@ import org.gradle.configurationcache.serialization.DefaultWriteContext
 import org.gradle.configurationcache.serialization.IsolateOwner
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.withIsolate
+import org.gradle.execution.plan.TaskNode
 import org.gradle.initialization.GradlePropertiesController
 import org.gradle.internal.Factory
 import org.gradle.internal.build.BuildStateRegistry
@@ -308,6 +309,10 @@ class DefaultConfigurationCache internal constructor(
     fun saveToCache(stateType: StateType, action: (ConfigurationCacheStateFile) -> Unit) {
         crossConfigurationTimeBarrier()
 
+        if (hasNonCacheableTasks()) {
+            return
+        }
+
         // TODO - fingerprint should be collected until the state file has been written, as user code can run during this process
         // Moving this is currently broken because the Jar task queries provider values when serializing the manifest file tree and this
         // can cause the provider value to incorrectly be treated as a task graph input
@@ -330,6 +335,12 @@ class DefaultConfigurationCache internal constructor(
 
         hasSavedValues = true
     }
+
+    private
+    fun hasNonCacheableTasks(): Boolean =
+        host.currentBuild.scheduledWork.parallelStream().anyMatch { node ->
+            node is TaskNode && node.task.doNotCacheConfigurationIfSpecs.any { it.isSatisfiedBy(node.task) }
+        }
 
     private
     fun loadModel(): Any {
