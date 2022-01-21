@@ -39,6 +39,7 @@ public abstract class AbstractConfigurationReportSpec {
     public abstract boolean isIncludeCapabilities();
     public abstract boolean isIncludeArtifacts();
     public abstract boolean isIncludeVariants();
+    public abstract boolean isIncludeRuleSchema();
 
     public Optional<String> getSearchTarget() {
         return Optional.ofNullable(searchTarget);

@@ -57,4 +57,8 @@ public final class ReportCapability {
     public boolean isDefault() {
         return isDefault;
     }
+
+    public String toGAV() {
+        return String.format("%s:%s:%s", group, module, version);
+    }
 }

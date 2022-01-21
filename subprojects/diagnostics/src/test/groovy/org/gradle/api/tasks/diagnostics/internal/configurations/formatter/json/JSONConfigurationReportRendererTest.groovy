@@ -34,7 +34,7 @@ class JSONConfigurationReportRendererTest extends Specification {
 
     def "empty model produces empty output"() {
         given:
-        def model = new ConfigurationReportModel("myLib", Collections.emptyList())
+        def model = new ConfigurationReportModel("myLib", Collections.emptyList(), Collections.emptyList(), Collections.emptyList())
 
         when:
         renderer.render(model, output)
@@ -47,7 +47,9 @@ class JSONConfigurationReportRendererTest extends Specification {
     def "model with single eligible config produces report"() {
         given:
         def spec = new OutgoingVariantsSpec(null, false)
-        def model = new ConfigurationReportModel("myLib", Collections.singletonList(new ReportConfiguration("test", "a test config", ReportConfiguration.Type.RESOLVABLE, Collections.emptySet(), Collections.emptySet(), Collections.emptySet(), Collections.emptySet())))
+        def model = new ConfigurationReportModel("myLib",
+            Collections.singletonList(new ReportConfiguration("test", "a test config", ReportConfiguration.Type.RESOLVABLE, Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList())),
+            Collections.emptyList(), Collections.emptyList())
 
         when:
         renderer.render(model, output)

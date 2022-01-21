@@ -21,10 +21,11 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.attributes.IncubatingAttributesChecker;
 
 import javax.annotation.Nullable;
+import java.util.Optional;
 
 public final class ReportAttribute {
     private final String name;
-    private final Object value;
+    @Nullable private final Object value;
     private final boolean isIncubating;
 
     private ReportAttribute(Attribute<Object> key, @Nullable Object value) {
@@ -39,12 +40,17 @@ public final class ReportAttribute {
         return new ReportAttribute(key, value);
     }
 
+    public static ReportAttribute fromUncontainedAttribute(Attribute<?> attribute) {
+        @SuppressWarnings("unchecked") Attribute<Object> key = (Attribute<Object>) attribute;
+        return new ReportAttribute(key, null);
+    }
+
     public String getName() {
         return name;
     }
 
-    public Object getValue() {
-        return value;
+    public Optional<Object> getValue() {
+        return Optional.ofNullable(value);
     }
 
     public boolean isIncubating() {

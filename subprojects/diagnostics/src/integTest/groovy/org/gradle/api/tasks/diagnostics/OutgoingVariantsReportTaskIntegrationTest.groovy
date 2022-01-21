@@ -1161,8 +1161,8 @@ Secondary Variants (*)
             - org.gradle.libraryelements     = classes
             - org.gradle.usage               = java-runtime
         Artifacts
-            - $builtMainClassesPath (artifactType = java-classes-directory)
             - foo
+            - $builtMainClassesPath (artifactType = java-classes-directory)
 
     --------------------------------------------------
     Secondary Variant resources

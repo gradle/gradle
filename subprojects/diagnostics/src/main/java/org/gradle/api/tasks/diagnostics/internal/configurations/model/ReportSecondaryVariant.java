@@ -20,17 +20,19 @@ import org.gradle.api.artifacts.ConfigurationVariant;
 import org.gradle.api.internal.file.FileResolver;
 
 import javax.annotation.Nullable;
-import java.util.Set;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.stream.Collectors;
 
 public final class ReportSecondaryVariant {
     private final String name;
     @Nullable
     private final String description;
-    private final Set<ReportAttribute> attributes;
-    private final Set<ReportArtifact> artifacts;
+    private final List<ReportAttribute> attributes;
+    private final List<ReportArtifact> artifacts;
 
-    private ReportSecondaryVariant(String name, @Nullable String description, Set<ReportAttribute> attributes, Set<ReportArtifact> artifacts) {
+    private ReportSecondaryVariant(String name, @Nullable String description, List<ReportAttribute> attributes, List<ReportArtifact> artifacts) {
         this.name = name;
         this.description = description;
         this.attributes = attributes;
@@ -38,8 +40,14 @@ public final class ReportSecondaryVariant {
     }
 
     public static ReportSecondaryVariant fromConfigurationVariant(ConfigurationVariant variant, FileResolver fileResolver) {
-        final Set<ReportAttribute> attributes = variant.getAttributes().keySet().stream().map(a -> ReportAttribute.fromAttributeInContainer(a, variant.getAttributes())).collect(Collectors.toSet());
-        final Set<ReportArtifact> artifacts = variant.getArtifacts().stream().map(publishArtifact -> ReportArtifact.fromPublishArtifact(publishArtifact, fileResolver)).collect(Collectors.toSet());
+        final List<ReportAttribute> attributes = Collections.unmodifiableList(variant.getAttributes().keySet().stream()
+            .map(a -> ReportAttribute.fromAttributeInContainer(a, variant.getAttributes()))
+            .sorted(Comparator.comparing(ReportAttribute::getName))
+            .collect(Collectors.toList()));
+        final List<ReportArtifact> artifacts = Collections.unmodifiableList(variant.getArtifacts().stream()
+            .map(publishArtifact -> ReportArtifact.fromPublishArtifact(publishArtifact, fileResolver))
+            .sorted(Comparator.comparing(ReportArtifact::getName))
+            .collect(Collectors.toList()));
         return new ReportSecondaryVariant(variant.getName(), variant.getDescription().orElse(null), attributes, artifacts);
     }
 
@@ -52,11 +60,11 @@ public final class ReportSecondaryVariant {
         return description;
     }
 
-    public Set<ReportAttribute> getAttributes() {
+    public List<ReportAttribute> getAttributes() {
         return attributes;
     }
 
-    public Set<ReportArtifact> getArtifacts() {
+    public List<ReportArtifact> getArtifacts() {
         return artifacts;
     }
 

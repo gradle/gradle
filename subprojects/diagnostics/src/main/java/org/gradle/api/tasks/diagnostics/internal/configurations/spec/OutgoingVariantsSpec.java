@@ -52,4 +52,9 @@ public final class OutgoingVariantsSpec extends AbstractConfigurationReportSpec 
     public boolean isIncludeVariants() {
         return true;
     }
+
+    @Override
+    public boolean isIncludeRuleSchema() {
+        return false;
+    }
 }

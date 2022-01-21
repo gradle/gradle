@@ -32,11 +32,13 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.diagnostics.configurations.ConfigurationReports;
 import org.gradle.api.tasks.diagnostics.internal.configurations.ConfigurationReportsImpl;
-import org.gradle.api.tasks.diagnostics.internal.configurations.renderer.AbstractWritableConfigurationReportRenderer;
-import org.gradle.api.tasks.diagnostics.internal.configurations.renderer.json.JSONConfigurationReportRenderer;
-import org.gradle.api.tasks.diagnostics.internal.configurations.renderer.ConsoleConfigurationReportRenderer;
+import org.gradle.api.tasks.diagnostics.internal.configurations.ConfigurationRuleScanner;
 import org.gradle.api.tasks.diagnostics.internal.configurations.model.ConfigurationReportModel;
+import org.gradle.api.tasks.diagnostics.internal.configurations.model.ReportAttribute;
 import org.gradle.api.tasks.diagnostics.internal.configurations.model.ReportConfiguration;
+import org.gradle.api.tasks.diagnostics.internal.configurations.renderer.AbstractWritableConfigurationReportRenderer;
+import org.gradle.api.tasks.diagnostics.internal.configurations.renderer.ConsoleConfigurationReportRenderer;
+import org.gradle.api.tasks.diagnostics.internal.configurations.renderer.json.JSONConfigurationReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.configurations.spec.AbstractConfigurationReportSpec;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
@@ -175,9 +177,15 @@ public abstract class AbstractConfigurationReportTask extends DefaultTask implem
     }
 
     private ConfigurationReportModel buildReportModel() {
+        final ConfigurationRuleScanner scanner = new ConfigurationRuleScanner(getProject());
+        final List<ReportAttribute> attributesWithCompatibilityRules = scanner.getAttributesWithCompatibilityRules();
+        final List<ReportAttribute> attributesWithDisambiguationRules = scanner.getAttributesWithDisambiguationRules();
+
         return new ConfigurationReportModel(
             getProject().getName(),
-            gatherConfigurationData(buildEligibleConfigurationsFilter()));
+            gatherConfigurationData(buildEligibleConfigurationsFilter()),
+            attributesWithCompatibilityRules,
+            attributesWithDisambiguationRules);
     }
 
     private List<ReportConfiguration> gatherConfigurationData(Predicate<Configuration> filter) {

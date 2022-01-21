@@ -17,23 +17,21 @@
 package org.gradle.api.tasks.diagnostics.internal.configurations.renderer;
 
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.tasks.diagnostics.internal.configurations.model.ConfigurationReportModel;
 import org.gradle.api.tasks.diagnostics.internal.configurations.model.ReportArtifact;
 import org.gradle.api.tasks.diagnostics.internal.configurations.model.ReportAttribute;
 import org.gradle.api.tasks.diagnostics.internal.configurations.model.ReportCapability;
 import org.gradle.api.tasks.diagnostics.internal.configurations.model.ReportConfiguration;
-import org.gradle.api.tasks.diagnostics.internal.configurations.model.ConfigurationReportModel;
 import org.gradle.api.tasks.diagnostics.internal.configurations.model.ReportSecondaryVariant;
 import org.gradle.api.tasks.diagnostics.internal.configurations.spec.AbstractConfigurationReportSpec;
 import org.gradle.internal.logging.text.StyledTextOutput;
 
 import javax.annotation.Nullable;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
+import java.util.function.Supplier;
 
 /**
  *
@@ -74,14 +72,15 @@ public final class ConsoleConfigurationReportRenderer extends AbstractConfigurat
     private void writeSearchResults(AbstractConfigurationReportSpec spec, ConfigurationReportModel data) {
         Optional<ReportConfiguration> searchResult = data.getConfigNamed(spec.getSearchTarget().get());
         if (searchResult.isPresent()) {
-            writeConfigurations(spec, Collections.singletonList(searchResult.get()));
+            writeResults(spec, data, () -> Collections.singletonList(searchResult.get()));
         } else {
             message("There are no " + spec.getFullReportedTypeDesc() + "s on project '" + data.getProjectName() + "' named '" + spec.getSearchTarget().get() + "'.");
         }
     }
 
     private void writeLegacyResults(AbstractConfigurationReportSpec spec, ConfigurationReportModel data) {
-        writeConfigurations(spec, data.getEligibleConfigs());
+        writeResults(spec, data, data::getEligibleConfigs);
+
     }
 
     private void writeNonLegacyResults(AbstractConfigurationReportSpec spec, ConfigurationReportModel data) {
@@ -94,16 +93,57 @@ public final class ConsoleConfigurationReportRenderer extends AbstractConfigurat
                 message("Re-run this report with the '--all' flag to include legacy " + spec.getReportedTypeAlias() + "s (legacy = consumable and resolvable).");
             }
         } else {
-            writeConfigurations(spec, nonLegacyConfigs);
+            writeResults(spec, data, data::getNonLegacyConfigs);
         }
+    }
+
+    private void writeResults(AbstractConfigurationReportSpec spec, ConfigurationReportModel data, Supplier<List<ReportConfiguration>> configsSupplier) {
+        final List<ReportConfiguration> configs = configsSupplier.get();
+
+        writeConfigurations(spec, configs);
+        if (spec.isIncludeRuleSchema()) {
+            writeRuleSchema(data.getAttributesWithCompatibilityRules(), data.getAttributesWithDisambiguationRules());
+        }
+        writeLegend(configs);
+
     }
 
     private void writeConfigurations(AbstractConfigurationReportSpec spec, List<ReportConfiguration> configurations) {
         configurations.forEach(c -> writeConfiguration(spec, c));
-        writeLegend(configurations);
     }
 
-    private void writeLegend(Collection<ReportConfiguration> configs) {
+    private void writeRuleSchema(List<ReportAttribute> attributesWithCompatibilityRules, List<ReportAttribute> attributesWithDisambiguationRules) {
+        final Integer maxC
+            = attributesWithCompatibilityRules.stream().map(attr -> attr.getName().length()).max(Integer::compare).orElse(0);
+        if (!attributesWithCompatibilityRules.isEmpty()) {
+            printHeader(() -> message("Compatibility Rules"));
+            writeDescription("The following Attributes have compatibility rules defined.");
+            newLine();
+            try {
+                depth++;
+                attributesWithCompatibilityRules.forEach(a -> writeAttribute(maxC, a));
+                newLine();
+            } finally {
+                depth--;
+            }
+        }
+
+        final Integer maxD = attributesWithDisambiguationRules.stream().map(attr -> attr.getName().length()).max(Integer::compare).orElse(0);
+        if (!attributesWithDisambiguationRules.isEmpty()) {
+            printHeader(() -> message("Disambiguation Rules"));
+            writeDescription("The following Attributes have disambiguation rules defined.");
+            newLine();
+            try {
+                depth++;
+                attributesWithDisambiguationRules.forEach(a -> writeAttribute(maxD, a));
+                newLine();
+            } finally {
+                depth--;
+            }
+        }
+    }
+
+    private void writeLegend(List<ReportConfiguration> configs) {
         boolean hasLegacy =  configs.stream().anyMatch(ReportConfiguration::isLegacy);
         boolean hasIncubating = configs.stream().anyMatch(ReportConfiguration::hasIncubatingAttributes) ||
             configs.stream().flatMap(c -> c.getSecondaryVariants().stream()).anyMatch(ReportSecondaryVariant::hasIncubatingAttributes);
@@ -125,7 +165,7 @@ public final class ConsoleConfigurationReportRenderer extends AbstractConfigurat
 
     private void writeConfiguration(AbstractConfigurationReportSpec format, ReportConfiguration config) {
         writeConfigurationNameHeader(config, format.getReportedTypeAlias());
-        writeConfigurationDescription(config.getDescription());
+        writeDescription(config.getDescription());
 
         if (!config.getAttributes().isEmpty() ||
             (format.isIncludeCapabilities() && !config.getCapabilities().isEmpty()) ||
@@ -159,7 +199,7 @@ public final class ConsoleConfigurationReportRenderer extends AbstractConfigurat
         });
     }
 
-    private void writeConfigurationDescription(String description) {
+    private void writeDescription(String description) {
         indent(false);
         if (description != null) {
             output.style(StyledTextOutput.Style.Description).text("Description");
@@ -178,45 +218,47 @@ public final class ConsoleConfigurationReportRenderer extends AbstractConfigurat
         return indicators;
     }
 
-    private void writeSecondaryVariants(Set<ReportSecondaryVariant> variants) {
+    private void writeSecondaryVariants(List<ReportSecondaryVariant> variants) {
         if (!variants.isEmpty()) {
             newLine();
             printSection("Secondary Variants (*)", () -> {
-                variants.stream()
-                    .sorted(Comparator.comparing(ReportSecondaryVariant::getName))
-                    .forEach(variant -> {
-                        newLine();
-                        writeSecondaryVariant(variant);
-                    });
+                variants.stream().forEach(variant -> {
+                    newLine();
+                    writeSecondaryVariant(variant);
+                });
             });
         }
     }
 
-    private void writeAttributes(Set<ReportAttribute> attributes) {
+    private void writeAttributes(List<ReportAttribute> attributes) {
         if (!attributes.isEmpty()) {
             Integer max = attributes.stream().map(attr -> attr.getName().length()).max(Integer::compare).orElse(0);
             printSection("Attributes", () -> {
-                attributes.stream()
-                    .sorted(Comparator.comparing(ReportAttribute::getName))
-                    .forEach(attr -> {
-                        indent(true);
-                        valuePair(StringUtils.rightPad(attr.getName(), max), String.valueOf(attr.getValue()));
-                        newLine();
-                    });
+                attributes.stream().forEach(attr -> {
+                    writeAttribute(max, attr);
+                });
             });
         }
     }
 
-    private void writeArtifacts(Collection<ReportArtifact> artifacts) {
+    private void writeAttribute(Integer max, ReportAttribute attr) {
+        indent(true);
+        if (attr.getValue().isPresent()) {
+            valuePair(StringUtils.rightPad(attr.getName(), max), String.valueOf(attr.getValue().orElse("")));
+        } else {
+            output.style(StyledTextOutput.Style.Identifier).text(attr.getName());
+        }
+        newLine();
+    }
+
+    private void writeArtifacts(List<ReportArtifact> artifacts) {
         if (!artifacts.isEmpty()) {
             printSection("Artifacts", () -> {
-                artifacts.stream()
-                    .sorted(Comparator.comparing(ReportArtifact::getDisplayName))
-                    .forEach(art -> {
-                        indent(true);
-                        writeArtifact(art);
-                        newLine();
-                    });
+                artifacts.stream().forEach(art -> {
+                    indent(true);
+                    writeArtifact(art);
+                    newLine();
+                });
             });
         }
     }
@@ -240,24 +282,23 @@ public final class ConsoleConfigurationReportRenderer extends AbstractConfigurat
         }
     }
 
-    private void writeCapabilities(Set<ReportCapability> capabilities) {
+    private void writeCapabilities(List<ReportCapability> capabilities) {
         if (!capabilities.isEmpty()) {
             class FormattedCapability {
-                String name;
+                String gav;
                 boolean isDefault;
 
                 public FormattedCapability(String name, boolean isDefault) {
-                    this.name = name; this.isDefault = isDefault;
+                    this.gav = name; this.isDefault = isDefault;
                 }
             }
 
             printSection("Capabilities", () -> {
                 capabilities.stream()
-                    .map(cap -> new FormattedCapability(String.format("%s:%s:%s", cap.getGroup(), cap.getModule(), cap.getVersion()), cap.isDefault()))
-                    .sorted(Comparator.comparing(c -> c.name))
+                    .map(cap -> new FormattedCapability(cap.toGAV(), cap.isDefault()))
                     .forEach(cap -> {
                         indent(true);
-                        output.style(StyledTextOutput.Style.Identifier).text(cap.name);
+                        output.style(StyledTextOutput.Style.Identifier).text(cap.gav);
                         if (cap.isDefault) {
                             output.style(StyledTextOutput.Style.Normal).text(" (default capability)");
                         }
@@ -281,14 +322,14 @@ public final class ConsoleConfigurationReportRenderer extends AbstractConfigurat
             output.style(StyledTextOutput.Style.Header).text(variant.getName());
             output.style(StyledTextOutput.Style.Normal).println(buildIndicators(variant));
         });
-        writeConfigurationDescription(variant.getDescription());
-
-        if (!(variant.getAttributes().isEmpty() && variant.getArtifacts().isEmpty())) {
-            newLine();
-        }
 
         try {
             depth++;
+            writeDescription(variant.getDescription());
+
+            if (!(variant.getAttributes().isEmpty() && variant.getArtifacts().isEmpty())) {
+                newLine();
+            }
             writeAttributes(variant.getAttributes());
             writeArtifacts(variant.getArtifacts());
         } finally {

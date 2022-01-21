@@ -23,14 +23,29 @@ import java.util.stream.Collectors;
 public final class ConfigurationReportModel {
     private final String projectName;
     private final List<ReportConfiguration> eligibleConfigs;
+    private final List<ReportAttribute> attributesWithCompatibilityRules;
+    private final List<ReportAttribute> attributesWithDisambiguationRules;
 
-    public ConfigurationReportModel(String projectName, List<ReportConfiguration> eligibleConfigs) {
+    public ConfigurationReportModel(String projectName,
+                                    List<ReportConfiguration> eligibleConfigs,
+                                    List<ReportAttribute> attributesWithCompatibilityRules,
+                                    List<ReportAttribute> attributesWithDisambiguationRules) {
         this.projectName = projectName;
         this.eligibleConfigs = eligibleConfigs;
+        this.attributesWithCompatibilityRules = attributesWithCompatibilityRules;
+        this.attributesWithDisambiguationRules = attributesWithDisambiguationRules;
     }
 
     public String getProjectName() {
         return projectName;
+    }
+
+    public List<ReportAttribute> getAttributesWithCompatibilityRules() {
+        return attributesWithCompatibilityRules;
+    }
+
+    public List<ReportAttribute> getAttributesWithDisambiguationRules() {
+        return attributesWithDisambiguationRules;
     }
 
     public List<ReportConfiguration> getEligibleConfigs() {
@@ -44,4 +59,5 @@ public final class ConfigurationReportModel {
     public List<ReportConfiguration> getNonLegacyConfigs() {
         return eligibleConfigs.stream().filter(c -> !c.isLegacy()).collect(Collectors.toList());
     }
+
 }
