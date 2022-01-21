@@ -29,6 +29,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.CancellationToken
 import org.gradle.tooling.ProjectConnection
+import org.gradle.util.GradleVersion
 import org.hamcrest.Matcher
 import org.junit.Assume
 import org.junit.Rule
@@ -53,6 +54,14 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
     // We could try to fix this problems, though this is only a problem for testing.
     static boolean canUseContinuousBuildViaToolingApi() {
         return  !GradleContextualExecuter.embedded
+    }
+
+    static void addWatchFsArgumentIfNecessary(List<String> arguments, GradleVersion targetVersion) {
+        if (targetVersion.baseVersion >= GradleVersion.version("7.5")) {
+            // Although file system watching is enabled by default, we may run the test via test distribution
+            // on Docker, which has an unsupported file system. So we need to explicitly enable it.
+            arguments.add("--watch-fs")
+        }
     }
 
     private static final boolean OS_IS_WINDOWS = OperatingSystem.current().isWindows()
@@ -116,8 +125,10 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
                     |}
                 """.stripMargin()
 
+                def arguments = ["--continuous", "-I", initScript.absolutePath]
+                addWatchFsArgumentIfNecessary(arguments, targetVersion)
                 BuildLauncher launcher = projectConnection.newBuild()
-                    .withArguments("--continuous", "--watch-fs", "-I", initScript.absolutePath)
+                    .withArguments(arguments)
                     .forTasks(tasks as String[])
                     .withCancellationToken(token)
 
