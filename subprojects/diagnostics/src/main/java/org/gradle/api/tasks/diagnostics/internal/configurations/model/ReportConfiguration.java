@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.diagnostics.internal.configurations.model;
 
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.file.FileResolver;
 
@@ -35,25 +36,32 @@ public final class ReportConfiguration {
     private final List<ReportCapability> capabilities;
     private final List<ReportArtifact> artifacts;
     private final List<ReportSecondaryVariant> variants;
+    private final List<String> extendedConfigurations;
 
-    private ReportConfiguration(String name, @Nullable String description, Type type, List<ReportAttribute> attributes, List<ReportCapability> capabilities, List<ReportArtifact> artifacts, List<ReportSecondaryVariant> variants) {
+    private ReportConfiguration(String name, @Nullable String description, Type type,
+                                List<ReportAttribute> attributes,
+                                List<ReportCapability> capabilities,
+                                List<ReportArtifact> artifacts,
+                                List<ReportSecondaryVariant> variants,
+                                List<String> extendedConfigurations) {
         this.name = name;
         this.description = description;
         this.type = type;
-        this.attributes = attributes;
-        this.capabilities = capabilities;
-        this.artifacts = artifacts;
-        this.variants = variants;
+        this.attributes = Collections.unmodifiableList(attributes);
+        this.capabilities = Collections.unmodifiableList(capabilities);
+        this.artifacts = Collections.unmodifiableList(artifacts);
+        this.variants = Collections.unmodifiableList(variants);
+        this.extendedConfigurations = Collections.unmodifiableList(extendedConfigurations);
     }
 
     public static ReportConfiguration fromConfigurationInProject(ConfigurationInternal configuration, Project project, FileResolver fileResolver) {
         // Important to lock the config prior to extracting the attributes, as some attributes, such as TargetJvmVersion, are actually added by this locking process
         configuration.preventFromFurtherMutation();
 
-        final List<ReportAttribute> attributes = Collections.unmodifiableList(configuration.getAttributes().keySet().stream()
+        final List<ReportAttribute> attributes = configuration.getAttributes().keySet().stream()
             .map(a -> ReportAttribute.fromAttributeInContainer(a, configuration.getAttributes()))
             .sorted(Comparator.comparing(ReportAttribute::getName))
-            .collect(Collectors.toList()));
+            .collect(Collectors.toList());
 
         final List<ReportCapability> explicitCapabilities = configuration.getOutgoing().getCapabilities().stream()
             .map(ReportCapability::fromCapability)
@@ -63,7 +71,7 @@ public final class ReportConfiguration {
         if (explicitCapabilities.isEmpty()) {
             capabilities = Collections.singletonList(ReportCapability.defaultCapability(project));
         } else {
-            capabilities = Collections.unmodifiableList(explicitCapabilities);
+            capabilities = explicitCapabilities;
         }
 
         final List<ReportArtifact> artifacts = Collections.unmodifiableList(configuration.getAllArtifacts().stream()
@@ -71,13 +79,18 @@ public final class ReportConfiguration {
             .sorted(Comparator.comparing(ReportArtifact::getDisplayName))
             .collect(Collectors.toList()));
 
-        final List<ReportSecondaryVariant> variants = Collections.unmodifiableList(configuration.getOutgoing().getVariants().stream()
+        final List<ReportSecondaryVariant> variants = configuration.getOutgoing().getVariants().stream()
             .map(v -> ReportSecondaryVariant.fromConfigurationVariant(v, fileResolver))
             .sorted(Comparator.comparing(ReportSecondaryVariant::getName))
-            .collect(Collectors.toList()));
+            .collect(Collectors.toList());
+
+        final List<String> extendedConfigurations = configuration.getExtendsFrom().stream()
+            .map(Configuration::getName)
+            .sorted()
+            .collect(Collectors.toList());
 
         final Type type = configuration.isCanBeConsumed() ? (configuration.isCanBeResolved() ? Type.LEGACY : Type.CONSUMABLE) : Type.RESOLVABLE;
-        return new ReportConfiguration(configuration.getName(), configuration.getDescription(), type, attributes, capabilities, artifacts, variants);
+        return new ReportConfiguration(configuration.getName(), configuration.getDescription(), type, attributes, capabilities, artifacts, variants, extendedConfigurations);
     }
 
     public String getName() {
@@ -107,6 +120,10 @@ public final class ReportConfiguration {
 
     public List<ReportSecondaryVariant> getSecondaryVariants() {
         return variants;
+    }
+
+    public List<String> getExtendedConfigurations() {
+        return extendedConfigurations;
     }
 
     public boolean isLegacy() {

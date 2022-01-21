@@ -70,6 +70,8 @@ class JavaPluginIntegrationTest extends AbstractIntegrationSpec implements Inspe
             Artifacts
                 - src${File.separator}main${File.separator}java (artifactType = directory)
                 - src${File.separator}main${File.separator}resources (artifactType = directory)
+            Extended Configurations
+                - implementation
             """)
 
         and:
@@ -104,6 +106,8 @@ class JavaPluginIntegrationTest extends AbstractIntegrationSpec implements Inspe
                 - src${File.separator}main${File.separator}java (artifactType = directory)
                 - src${File.separator}main${File.separator}resources (artifactType = directory)
                 - src${File.separator}more${File.separator}java (artifactType = directory)
+            Extended Configurations
+                - implementation
             """)
 
         and:

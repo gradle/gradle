@@ -59,6 +59,9 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec implemen
                 - org.gradle.verificationtype      = test-results
             Artifacts
                 - $resultsPath (artifactType = directory)
+            Extended Configurations
+                - testImplementation
+                - testRuntimeOnly
             """.stripIndent())
 
         and:
@@ -105,6 +108,9 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec implemen
                 - org.gradle.verificationtype      = test-results
             Artifacts
                 - $resultsPath (artifactType = directory)
+            Extended Configurations
+                - integrationTestImplementation
+                - integrationTestRuntimeOnly
             """.stripIndent())
 
         and:

@@ -57,4 +57,9 @@ public class ResolvableConfigurationsSpec extends AbstractConfigurationReportSpe
     public boolean isIncludeRuleSchema() {
         return true;
     }
+
+    @Override
+    public boolean isIncludeExtensions() {
+        return true;
+    }
 }

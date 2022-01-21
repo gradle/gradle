@@ -263,6 +263,9 @@ Attributes
     - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
     - org.gradle.libraryelements     = classes
     - org.gradle.usage               = java-api
+Extended Configurations
+    - compileOnly
+    - implementation
 
 --------------------------------------------------
 Configuration runtimeClasspath
@@ -276,6 +279,9 @@ Attributes
     - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
     - org.gradle.libraryelements     = jar
     - org.gradle.usage               = java-runtime
+Extended Configurations
+    - implementation
+    - runtimeOnly
 
 --------------------------------------------------
 Configuration testAnnotationProcessor
@@ -301,6 +307,9 @@ Attributes
     - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
     - org.gradle.libraryelements     = classes
     - org.gradle.usage               = java-api
+Extended Configurations
+    - testCompileOnly
+    - testImplementation
 
 --------------------------------------------------
 Configuration testRuntimeClasspath
@@ -314,6 +323,9 @@ Attributes
     - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
     - org.gradle.libraryelements     = jar
     - org.gradle.usage               = java-runtime
+Extended Configurations
+    - testImplementation
+    - testRuntimeOnly
 """
 
         and:
@@ -370,11 +382,17 @@ Attributes
     - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
     - org.gradle.libraryelements     = classes
     - org.gradle.usage               = java-api
+Extended Configurations
+    - compileOnly
+    - implementation
 
 --------------------------------------------------
 Configuration default (l)
 --------------------------------------------------
 Description = Configuration for default artifacts.
+
+Extended Configurations
+    - runtimeElements
 
 --------------------------------------------------
 Configuration runtimeClasspath
@@ -388,6 +406,9 @@ Attributes
     - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
     - org.gradle.libraryelements     = jar
     - org.gradle.usage               = java-runtime
+Extended Configurations
+    - implementation
+    - runtimeOnly
 
 --------------------------------------------------
 Configuration testAnnotationProcessor
@@ -413,6 +434,9 @@ Attributes
     - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
     - org.gradle.libraryelements     = classes
     - org.gradle.usage               = java-api
+Extended Configurations
+    - testCompileOnly
+    - testImplementation
 
 --------------------------------------------------
 Configuration testRuntimeClasspath
@@ -426,6 +450,9 @@ Attributes
     - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
     - org.gradle.libraryelements     = jar
     - org.gradle.usage               = java-runtime
+Extended Configurations
+    - testImplementation
+    - testRuntimeOnly
 """
 
         and:

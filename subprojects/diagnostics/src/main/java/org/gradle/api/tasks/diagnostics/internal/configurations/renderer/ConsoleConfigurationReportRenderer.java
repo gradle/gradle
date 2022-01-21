@@ -80,7 +80,6 @@ public final class ConsoleConfigurationReportRenderer extends AbstractConfigurat
 
     private void writeLegacyResults(AbstractConfigurationReportSpec spec, ConfigurationReportModel data) {
         writeResults(spec, data, data::getEligibleConfigs);
-
     }
 
     private void writeNonLegacyResults(AbstractConfigurationReportSpec spec, ConfigurationReportModel data) {
@@ -163,28 +162,32 @@ public final class ConsoleConfigurationReportRenderer extends AbstractConfigurat
         }
     }
 
-    private void writeConfiguration(AbstractConfigurationReportSpec format, ReportConfiguration config) {
-        writeConfigurationNameHeader(config, format.getReportedTypeAlias());
+    private void writeConfiguration(AbstractConfigurationReportSpec spec, ReportConfiguration config) {
+        writeConfigurationNameHeader(config, spec.getReportedTypeAlias());
         writeDescription(config.getDescription());
 
         if (!config.getAttributes().isEmpty() ||
-            (format.isIncludeCapabilities() && !config.getCapabilities().isEmpty()) ||
-            (format.isIncludeArtifacts() && !config.getArtifacts().isEmpty()) ||
-            (format.isIncludeVariants() && !config.getSecondaryVariants().isEmpty())) {
+            (spec.isIncludeCapabilities() && !config.getCapabilities().isEmpty()) ||
+            (spec.isIncludeArtifacts() && !config.getArtifacts().isEmpty()) ||
+            (spec.isIncludeExtensions() && !config.getExtendedConfigurations().isEmpty()) ||
+            (spec.isIncludeVariants() && !config.getSecondaryVariants().isEmpty())) {
             newLine();
         }
 
-        if (format.isIncludeCapabilities()) {
+        if (spec.isIncludeCapabilities()) {
             writeCapabilities(config.getCapabilities());
         }
 
         writeAttributes(config.getAttributes());
 
-        if (format.isIncludeArtifacts()) {
+        if (spec.isIncludeArtifacts()) {
             writeArtifacts(config.getArtifacts());
         }
+        if (spec.isIncludeExtensions()) {
+            writeExtensions(config.getExtendedConfigurations());
+        }
 
-        if (format.isIncludeVariants()) {
+        if (spec.isIncludeVariants()) {
             writeSecondaryVariants(config.getSecondaryVariants());
         }
 
@@ -217,6 +220,17 @@ public final class ConsoleConfigurationReportRenderer extends AbstractConfigurat
         }
         return indicators;
     }
+
+    private void writeExtensions(List<String> extensions) {
+        if (!extensions.isEmpty()) {
+            printSection("Extended Configurations", () -> {
+                extensions.stream().forEach(ext -> {
+                    indent(true);
+                    output.withStyle(StyledTextOutput.Style.Identifier).println(ext);
+                });
+            });
+        }
+    };
 
     private void writeSecondaryVariants(List<ReportSecondaryVariant> variants) {
         if (!variants.isEmpty()) {
