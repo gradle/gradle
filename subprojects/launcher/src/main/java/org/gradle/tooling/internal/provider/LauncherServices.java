@@ -39,9 +39,6 @@ import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.file.StatStatistics;
-import org.gradle.internal.filewatch.DefaultFileSystemChangeWaiterFactory;
-import org.gradle.internal.filewatch.FileSystemChangeWaiterFactory;
-import org.gradle.internal.filewatch.FileWatcherFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
@@ -125,10 +122,6 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
 
         BuildLoggerFactory createBuildLoggerFactory(StyledTextOutputFactory styledTextOutputFactory, WorkValidationWarningReporter workValidationWarningReporter) {
             return new BuildLoggerFactory(styledTextOutputFactory, workValidationWarningReporter, Time.clock(), null);
-        }
-
-        FileSystemChangeWaiterFactory createFileSystemChangeWaiterFactory(FileWatcherFactory fileWatcherFactory) {
-            return new DefaultFileSystemChangeWaiterFactory(fileWatcherFactory);
         }
 
         ExecuteBuildActionRunner createExecuteBuildActionRunner() {
