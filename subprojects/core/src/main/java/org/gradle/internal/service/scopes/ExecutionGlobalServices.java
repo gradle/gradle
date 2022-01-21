@@ -24,8 +24,6 @@ import org.gradle.api.artifacts.transform.CacheableTransform;
 import org.gradle.api.artifacts.transform.InputArtifact;
 import org.gradle.api.artifacts.transform.InputArtifactDependencies;
 import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.internal.DefaultDomainObjectCollection;
-import org.gradle.api.internal.DefaultNamedDomainObjectCollection;
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
 import org.gradle.api.internal.project.taskfactory.DefaultTaskClassInfoStore;
 import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
@@ -52,7 +50,6 @@ import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHa
 import org.gradle.api.internal.tasks.properties.annotations.TypeAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.UntrackedTaskTypeAnnotationHandler;
 import org.gradle.api.model.ReplacedBy;
-import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
@@ -148,15 +145,11 @@ public class ExecutionGlobalServices {
                 "kotlin"
             ),
             ImmutableSet.of(
-                // Getter called when there is a nested bean with action in a Task
+                // Used by a nested bean with action in a task, example:
+                // `NestedInputIntegrationTest.implementation of nested closure in decorated bean is tracked`
                 ConfigureUtil.WrappedConfigureAction.class,
-                // Inputs can extend these classes,
-                // so we want to ignore get methods declared in these classes
-                DefaultDomainObjectCollection.class,
-                DefaultNamedDomainObjectCollection.class,
+                // DefaultTestTaskReports used by AbstractTestTask extends this class
                 DefaultNamedDomainObjectSet.class,
-                // Task extends this interface
-                ExtensionAware.class,
                 // Used in gradle-base so it can't have annotations anyway
                 Describable.class
             ),
