@@ -135,7 +135,7 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
             final Set<VariantResolveMetadata> variants = new LinkedHashSet<>();
             if (variantsForGraphTraversal.isPresent()) {
                 ImmutableList<? extends ConfigurationMetadata> allVariants = variantsForGraphTraversal.get();
-                allVariants.forEach(configurationMetadata -> variants.addAll(configurationMetadata.getVariants()));
+                allVariants.stream().filter(configurationMetadata -> configurationMetadata.getCapabilities().getCapabilities().equals(configuration.getCapabilities().getCapabilities())).forEach(configurationMetadata -> variants.addAll(configurationMetadata.getVariants()));
             } else {
                 variants.addAll(configuration.getVariants());
             }
