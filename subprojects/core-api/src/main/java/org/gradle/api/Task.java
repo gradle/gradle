@@ -306,6 +306,19 @@ public interface Task extends Comparable<Task>, ExtensionAware {
     void notCompatibleWithConfigurationCache(String reason);
 
     /**
+     * <p>Disables caching the configuration of the task if the given spec is satisfied. The spec will be evaluated at configuration time,
+     * before task execution time.</p>
+     *
+     * <p>You may add multiple such predicates. The configuration of the task is not cached if any of the predicates return {@code true}.
+     *
+     * @param cachingDisabledReason the reason why caching would be disabled by the spec.
+     * @param spec specifies if the configuration of the task should not be cached.
+     * @since 7.4
+     */
+    @Incubating
+    void doNotCacheConfigurationIf(String cachingDisabledReason, Spec<? super Task> spec);
+
+    /**
      * <p>Execute the task only if the given spec is satisfied. The spec will be evaluated at task execution time, not
      * during configuration. If the Spec is not satisfied, the task will be skipped.</p>
      *

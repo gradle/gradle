@@ -51,6 +51,10 @@ class ConfigurationCacheFixture {
         assertHasNoProblems()
     }
 
+    void assertNoConfigurationCache() {
+        configurationCacheBuildOperations.assertNoConfigurationCache()
+    }
+
     /**
      * Asserts that the cache entry was written with no problems.
      *

@@ -21,6 +21,33 @@ import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixtu
 class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
     ConfigurationCacheFixture fixture = new ConfigurationCacheFixture(this)
 
+    def "doesn't cache configuration when non cacheable task scheduled"() {
+        given:
+        buildFile """
+            task nonCacheable {
+                doNotCacheConfigurationIf("whatever") {
+                    true
+                }
+                doLast {
+                }
+            }
+        """
+
+        when:
+        configurationCacheRun("nonCacheable")
+
+        then:
+        result.assertTasksExecuted(":nonCacheable")
+        fixture.assertNoConfigurationCache()
+
+        when:
+        configurationCacheRun("nonCacheable")
+
+        then:
+        result.assertTasksExecuted(":nonCacheable")
+        fixture.assertNoConfigurationCache()
+    }
+
     def "reports incompatible task serialization error and discards cache entry when task is scheduled"() {
         given:
         withBrokenSerializableType()
