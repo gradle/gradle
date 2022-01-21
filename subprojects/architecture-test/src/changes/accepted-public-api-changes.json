@@ -1,3 +1,61 @@
 {
-    "acceptedApiChanges": []
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.api.plugins.quality.Checkstyle",
+            "member": "Method org.gradle.api.plugins.quality.Checkstyle.reports(groovy.lang.Closure)",
+            "acceptation": "[ADD YOUR CUSTOM REASON HERE]",
+            "changes": [
+                "Method has been removed"
+            ]
+        }, {
+            "type": "org.gradle.api.plugins.quality.CodeNarc",
+            "member": "Method org.gradle.api.plugins.quality.CodeNarc.reports(groovy.lang.Closure)",
+            "acceptation": "[ADD YOUR CUSTOM REASON HERE]",
+            "changes": [
+                "Method has been removed"
+            ]
+        }, {
+            "type": "org.gradle.api.plugins.quality.Pmd",
+            "member": "Method org.gradle.api.plugins.quality.Pmd.reports(groovy.lang.Closure)",
+            "acceptation": "[ADD YOUR CUSTOM REASON HERE]",
+            "changes": [
+                "Method has been removed"
+            ]
+        }, {
+            "type": "org.gradle.api.reporting.dependencies.HtmlDependencyReportTask",
+            "member": "Method org.gradle.api.reporting.dependencies.HtmlDependencyReportTask.reports(groovy.lang.Closure)",
+            "acceptation": "[ADD YOUR CUSTOM REASON HERE]",
+            "changes": [
+                "Method has been removed"
+            ]
+        }, {
+            "type": "org.gradle.api.reporting.GenerateBuildDashboard",
+            "member": "Method org.gradle.api.reporting.GenerateBuildDashboard.reports(groovy.lang.Closure)",
+            "acceptation": "[ADD YOUR CUSTOM REASON HERE]",
+            "changes": [
+                "Method has been removed"
+            ]
+        }, {
+            "type": "org.gradle.api.reporting.Reporting",
+            "member": "Method org.gradle.api.reporting.Reporting.reports(groovy.lang.Closure)",
+            "acceptation": "[ADD YOUR CUSTOM REASON HERE]",
+            "changes": [
+                "Method has been removed"
+            ]
+        }, {
+            "type": "org.gradle.api.tasks.testing.AbstractTestTask",
+            "member": "Method org.gradle.api.tasks.testing.AbstractTestTask.reports(groovy.lang.Closure)",
+            "acceptation": "[ADD YOUR CUSTOM REASON HERE]",
+            "changes": [
+                "Method has been removed"
+            ]
+        }, {
+            "type": "org.gradle.testing.jacoco.tasks.JacocoReport",
+            "member": "Method org.gradle.testing.jacoco.tasks.JacocoReport.reports(groovy.lang.Closure)",
+            "acceptation": "[ADD YOUR CUSTOM REASON HERE]",
+            "changes": [
+                "Method has been removed"
+            ]
+        }
+    ]
 }

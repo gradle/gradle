@@ -16,8 +16,6 @@
 
 package org.gradle.api.reporting;
 
-import groovy.lang.Closure;
-import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 
 /**
@@ -67,23 +65,6 @@ public interface Reporting<T extends ReportContainer> {
      * @return The report container
      */
     T getReports();
-
-    /**
-     * Allow configuration of the report container by closure.
-     *
-     * <pre>
-     * reports {
-     *   html {
-     *     enabled false
-     *   }
-     *   xml.destination "build/reports/myReport.xml"
-     * }
-     * </pre>
-     *
-     * @param closure The configuration
-     * @return The report container
-     */
-    T reports(@DelegatesTo(type="T", strategy = Closure.DELEGATE_FIRST) Closure closure);
 
     /**
      * Allow configuration of the report container by closure.

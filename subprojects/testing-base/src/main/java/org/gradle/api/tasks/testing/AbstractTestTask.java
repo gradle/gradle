@@ -77,7 +77,6 @@ import org.gradle.internal.nativeintegration.network.HostnameLookup;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
-import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.work.DisableCachingByDefault;
 
@@ -605,17 +604,6 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     @Nested
     public TestTaskReports getReports() {
         return reports;
-    }
-
-    /**
-     * Configures the reports that this task potentially produces.
-     *
-     * @param closure The configuration
-     * @return The reports that this task potentially produces
-     */
-    @Override
-    public TestTaskReports reports(Closure closure) {
-        return reports(new ClosureBackedAction<TestTaskReports>(closure));
     }
 
     /**
