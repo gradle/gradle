@@ -48,6 +48,13 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
     public static final String BUILD_CANCELLED = "Build cancelled."
     public static final String BUILD_CANCELLED_AND_STOPPED = "the build was canceled"
 
+    // We have problems loading the file system watching library when starting a Gradle build via the tooling API in debug (= embedded) mode.
+    // The problem there is that Gradle then tries to load the native library in two different classloaders in the same JDK, which isn't allowed.
+    // We could try to fix this problems, though this is only a problem for testing.
+    static boolean canUseContinuousBuildViaToolingApi() {
+        return  !GradleContextualExecuter.embedded
+    }
+
     private static final boolean OS_IS_WINDOWS = OperatingSystem.current().isWindows()
 
     ExecutionResult result
@@ -64,7 +71,7 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
 
 
     def setup() {
-        Assume.assumeTrue("Unsupported for the embedded runner", !GradleContextualExecuter.embedded)
+        Assume.assumeTrue("Unsupported for the embedded runner", canUseContinuousBuildViaToolingApi())
         buildFile.text = "apply plugin: 'java'\n"
         sourceDir = file("src/main/java")
     }
