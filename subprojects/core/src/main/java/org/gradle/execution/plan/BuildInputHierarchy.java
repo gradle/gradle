@@ -85,8 +85,8 @@ public class BuildInputHierarchy {
         }
 
         @Override
-        public void visitAncestor(InputDeclaration value, VfsRelativePath pathToVisitedLocation) {
-            if (value.isInput(pathToVisitedLocation)) {
+        public void visitAncestor(InputDeclaration ancestor, VfsRelativePath pathToVisitedLocation) {
+            if (ancestor.contains(pathToVisitedLocation)) {
                 foundInput();
             }
         }
@@ -102,7 +102,7 @@ public class BuildInputHierarchy {
     }
 
     private interface InputDeclaration {
-        boolean isInput(VfsRelativePath childPath);
+        boolean contains(VfsRelativePath childPath);
     }
 
     private static final InputDeclaration ALL_CHILDREN_ARE_INPUTS = childPath -> true;
@@ -115,7 +115,7 @@ public class BuildInputHierarchy {
         }
 
         @Override
-        public boolean isInput(VfsRelativePath childPath) {
+        public boolean contains(VfsRelativePath childPath) {
             return matcher.elementWithRelativePathMatches(spec, new File(childPath.getAbsolutePath()), childPath.getAsString());
         }
     }
