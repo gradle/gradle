@@ -41,26 +41,19 @@ import java.util.function.Predicate;
 @Incubating
 @DisableCachingByDefault(because = "Produces only non-cacheable console output by examining configurations at execution time")
 public abstract class ResolvableConfigurationsReportTask extends AbstractConfigurationReportTask {
-    private final Property<String> configurationSpec = getProject().getObjects().property(String.class);
-    private final Property<Boolean> showAll = getProject().getObjects().property(Boolean.class).convention(false);
-
     @Input
     @Optional
     @Option(option = "configuration", description = "The requested configuration name")
-    public Property<String> getConfigurationName() {
-        return configurationSpec;
-    }
+    public abstract Property<String> getConfigurationName();
 
     @Input
     @Optional
     @Option(option = "all", description = "Shows all resolvable configurations, including legacy and deprecated configurations")
-    public Property<Boolean> getShowAll() {
-        return showAll;
-    }
+    public abstract Property<Boolean> getShowAll();
 
     @Override
     protected AbstractConfigurationReportSpec buildReportSpec() {
-        return new ResolvableConfigurationsSpec(configurationSpec.getOrNull(), showAll.get());
+        return new ResolvableConfigurationsSpec(getConfigurationName().getOrNull(), getShowAll().get());
     }
 
     @Override

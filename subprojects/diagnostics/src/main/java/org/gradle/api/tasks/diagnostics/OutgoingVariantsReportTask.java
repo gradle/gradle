@@ -37,26 +37,19 @@ import java.util.function.Predicate;
  */
 @DisableCachingByDefault(because = "Produces only non-cacheable console output by examining configurations at execution time")
 public abstract class OutgoingVariantsReportTask extends AbstractConfigurationReportTask {
-    private final Property<String> variantSpec = getProject().getObjects().property(String.class);
-    private final Property<Boolean> showAll = getProject().getObjects().property(Boolean.class).convention(false);
-
     @Input
     @Optional
     @Option(option = "variant", description = "The variant name")
-    Property<String> getVariantName() {
-        return variantSpec;
-    }
+    public abstract Property<String> getVariantName();
 
     @Input
     @Optional
     @Option(option = "all", description = "Shows all variants, including legacy and deprecated configurations")
-    Property<Boolean> getShowAll() {
-        return showAll;
-    }
+    public abstract Property<Boolean> getShowAll();
 
     @Override
     protected AbstractConfigurationReportSpec buildReportSpec() {
-        return new OutgoingVariantsSpec(variantSpec.getOrNull(), showAll.get());
+        return new OutgoingVariantsSpec(getVariantName().getOrNull(), getShowAll().get());
     }
 
     @Override
