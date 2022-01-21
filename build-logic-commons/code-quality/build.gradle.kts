@@ -4,6 +4,11 @@ plugins {
 
 description = "Provides a plugin that configures code quality plugins in the Gradle build"
 
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+}
+
 group = "gradlebuild"
 
 dependencies {
