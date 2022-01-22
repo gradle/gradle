@@ -20,11 +20,13 @@ import com.google.common.util.concurrent.SimpleTimeLimiter
 import com.google.common.util.concurrent.UncheckedTimeoutException
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.integtests.fixtures.executer.UnexpectedBuildFailure
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.ConcurrentTestUtil
+import org.junit.Assume
 import spock.lang.Retry
 
 import java.util.concurrent.ExecutorService
@@ -72,6 +74,7 @@ abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec
     }
 
     def setup() {
+        Assume.assumeFalse("Continuous build doesn't work with --no-daemon", GradleContextualExecuter.noDaemon)
         executer.beforeExecute {
             def initScript = file("init.gradle")
             initScript.text = buildLogicForMinimumBuildTime(minimumBuildTimeMillis)
@@ -298,7 +301,7 @@ $lastOutput
             }
             // if we get here it means that there was build output at some point while polling
             throw new UnexpectedBuildStartedException("Expected build not to start, but started with output: " + buildOutputSoFar())
-        } catch (AssertionError e) {
+        } catch (AssertionError ignored) {
             // ok, what we want
         }
     }
