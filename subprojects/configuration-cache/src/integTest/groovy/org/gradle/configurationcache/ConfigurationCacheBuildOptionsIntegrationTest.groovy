@@ -456,8 +456,58 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
         configurationCache.assertStateLoaded()
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/19658")
+    def "map orElse chain used as task input"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile '''
+            abstract class PrintValueTask extends DefaultTask {
+
+                @Input
+                abstract Property<String> getValue();
+
+                @TaskAction
+                void printValue() {
+                    println("*" + value.get() + "*")
+                }
+            }
+
+            def chain = providers
+                .systemProperty("foo")
+                .orElse(providers.systemProperty("bar"))
+                .map { "foo | bar = $it" }
+                .orElse(providers.systemProperty("baz"))
+                .map { "($it)" }
+
+            tasks.register("ok", PrintValueTask.class) { task ->
+                task.value = chain
+            }
+        '''
+
+        when:
+        configurationCacheRun 'ok', '-Dfoo=foo'
+
+        then:
+        outputContains "*(foo | bar = foo)*"
+        configurationCache.assertStateStored()
+
+        when:
+        configurationCacheRun 'ok', '-Dbar=bar'
+
+        then:
+        outputContains "*(foo | bar = bar)*"
+        configurationCache.assertStateLoaded()
+
+        when:
+        configurationCacheRun 'ok', '-Dbaz=baz'
+
+        then:
+        outputContains "*(baz)*"
+        configurationCache.assertStateLoaded()
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/19649")
-    def "zip chain used as task input"() {
+    def "zip orElse chain used as task input"() {
         given:
         def configurationCache = newConfigurationCacheFixture()
         buildFile '''
