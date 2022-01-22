@@ -28,10 +28,13 @@ import org.gradle.internal.logging.text.StyledTextOutput;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -48,11 +51,10 @@ public final class ConsoleConfigurationReportRenderer extends AbstractConfigurat
     @Override
     public void render(ConfigurationReportModel data, StyledTextOutput output) {
         this.depth = 0;
-        this.output = Objects.requireNonNull(output, "Output to write report to must not be null!");
+        this.output = output;
 
-        if (data.getEligibleConfigs().isEmpty()) {
-            writeCompleteAbsenceOfResults(spec, data);
-        } else {
+        final boolean hasAnyRelevantConfigs = data.getAllConfigs().stream().anyMatch(c -> spec.isPurelyCorrectType(c) || c.isLegacy());
+        if (hasAnyRelevantConfigs) {
             if (spec.isSearchForSpecificVariant()) {
                 writeSearchResults(spec, data);
             } else {
@@ -62,6 +64,8 @@ public final class ConsoleConfigurationReportRenderer extends AbstractConfigurat
                     writeNonLegacyResults(spec, data);
                 }
             }
+        } else {
+            writeCompleteAbsenceOfResults(spec, data);
         }
     }
 
@@ -79,20 +83,25 @@ public final class ConsoleConfigurationReportRenderer extends AbstractConfigurat
     }
 
     private void writeLegacyResults(AbstractConfigurationReportSpec spec, ConfigurationReportModel data) {
-        writeResults(spec, data, data::getEligibleConfigs);
+        final Supplier<List<ReportConfiguration>> legacySupplier = () -> data.getAllConfigs().stream()
+            .filter(c -> c.isLegacy() || spec.isPurelyCorrectType(c))
+            .collect(Collectors.toList());
+        writeResults(spec, data, legacySupplier);
     }
 
     private void writeNonLegacyResults(AbstractConfigurationReportSpec spec, ConfigurationReportModel data) {
-        List<ReportConfiguration> nonLegacyConfigs = data.getNonLegacyConfigs();
+        final List<ReportConfiguration> nonLegacyConfigs = data.getAllConfigs().stream()
+            .filter(spec::isPurelyCorrectType)
+            .collect(Collectors.toList());
         if (nonLegacyConfigs.isEmpty()) {
             message("There are no purely " + spec.getReportedConfigurationDirection() + " " + spec.getReportedTypeAlias() + "s present in project '" + data.getProjectName() + "'.");
 
-            boolean additionalLegacyConfigs = data.getEligibleConfigs().size() > nonLegacyConfigs.size();
-            if (additionalLegacyConfigs) {
+            final boolean hasLegacyConfigs = data.getAllConfigs().stream().anyMatch(ReportConfiguration::isLegacy);
+            if (hasLegacyConfigs) {
                 message("Re-run this report with the '--all' flag to include legacy " + spec.getReportedTypeAlias() + "s (legacy = consumable and resolvable).");
             }
         } else {
-            writeResults(spec, data, data::getNonLegacyConfigs);
+            writeResults(spec, data, () -> nonLegacyConfigs);
         }
     }
 
@@ -184,7 +193,7 @@ public final class ConsoleConfigurationReportRenderer extends AbstractConfigurat
             writeArtifacts(config.getArtifacts());
         }
         if (spec.isIncludeExtensions()) {
-            writeExtensions(config.getExtendedConfigurations());
+            writeExtensions(config.getExtendedConfigurations(), spec.isIncludeExtensionsRecursively());
         }
 
         if (spec.isIncludeVariants()) {
@@ -221,13 +230,20 @@ public final class ConsoleConfigurationReportRenderer extends AbstractConfigurat
         return indicators;
     }
 
-    private void writeExtensions(List<String> extensions) {
+    private void writeExtensions(List<ReportConfiguration> extensions, boolean recursive) {
+        final Set<ReportConfiguration> extensionsToPrint = new HashSet<>(extensions);
+        if (recursive) {
+            extensions.stream().flatMap(e -> e.getExtendedConfigurations().stream()).forEach(extensionsToPrint::add);
+        }
+
         if (!extensions.isEmpty()) {
             printSection("Extended Configurations", () -> {
-                extensions.stream().forEach(ext -> {
-                    indent(true);
-                    output.withStyle(StyledTextOutput.Style.Identifier).println(ext);
-                });
+                extensionsToPrint.stream()
+                    .sorted(Comparator.comparing(ReportConfiguration::getName))
+                    .forEach(ext -> {
+                        indent(true);
+                        output.withStyle(StyledTextOutput.Style.Identifier).println(ext.getName());
+                    });
             });
         }
     };

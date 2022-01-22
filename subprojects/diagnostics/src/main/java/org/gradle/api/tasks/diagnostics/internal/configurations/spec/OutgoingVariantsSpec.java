@@ -16,6 +16,8 @@
 
 package org.gradle.api.tasks.diagnostics.internal.configurations.spec;
 
+import org.gradle.api.tasks.diagnostics.internal.configurations.model.ReportConfiguration;
+
 import javax.annotation.Nullable;
 
 public final class OutgoingVariantsSpec extends AbstractConfigurationReportSpec {
@@ -60,6 +62,16 @@ public final class OutgoingVariantsSpec extends AbstractConfigurationReportSpec 
 
     @Override
     public boolean isIncludeExtensions() {
-        return true;
+        return false;
+    }
+
+    @Override
+    public boolean isIncludeExtensionsRecursively() {
+        return false;
+    }
+
+    @Override
+    public boolean isPurelyCorrectType(ReportConfiguration configuration) {
+        return configuration.getType() == ReportConfiguration.Type.CONSUMABLE;
     }
 }

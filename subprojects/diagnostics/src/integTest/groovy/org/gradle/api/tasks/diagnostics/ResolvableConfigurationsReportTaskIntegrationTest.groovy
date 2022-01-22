@@ -629,4 +629,55 @@ Extended Configurations
         doesNotHaveLegacyLegend()
         doesNotHaveIncubatingLegend()
     }
+
+    @ToBeFixedForConfigurationCache(because = ":resolvableConfigurations")
+    def "specifying --recursive includes transitively extended configurations"() {
+        given:
+        buildFile << """
+            def base = configurations.create("base") {
+                description = "Base configuration"
+                canBeResolved = true
+                canBeConsumed = false
+            }
+
+            def mid = configurations.create("mid") {
+                description = "Mid configuration"
+                canBeResolved = true
+                canBeConsumed = false
+                extendsFrom base
+            }
+
+            def leaf = configurations.create("leaf") {
+                description = "Leaf configuration"
+                canBeResolved = true
+                canBeConsumed = false
+                extendsFrom mid
+            }
+        """
+
+        when:
+        succeeds ':resolvableConfigurations', '--recursive'
+
+        then:
+        outputContainsLinewise """Configuration base
+--------------------------------------------------
+Description = Base configuration
+
+--------------------------------------------------
+Configuration leaf
+--------------------------------------------------
+Description = Leaf configuration
+
+Extended Configurations
+    - base
+    - mid
+
+--------------------------------------------------
+Configuration mid
+--------------------------------------------------
+Description = Mid configuration
+
+Extended Configurations
+    - base"""
+    }
 }

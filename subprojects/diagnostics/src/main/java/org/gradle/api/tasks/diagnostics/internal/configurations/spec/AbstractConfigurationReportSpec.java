@@ -16,6 +16,8 @@
 
 package org.gradle.api.tasks.diagnostics.internal.configurations.spec;
 
+import org.gradle.api.tasks.diagnostics.internal.configurations.model.ReportConfiguration;
+
 import javax.annotation.Nullable;
 import java.util.Optional;
 
@@ -41,6 +43,7 @@ public abstract class AbstractConfigurationReportSpec {
     public abstract boolean isIncludeVariants();
     public abstract boolean isIncludeRuleSchema();
     public abstract boolean isIncludeExtensions();
+    public abstract boolean isIncludeExtensionsRecursively();
 
     public Optional<String> getSearchTarget() {
         return Optional.ofNullable(searchTarget);
@@ -48,4 +51,6 @@ public abstract class AbstractConfigurationReportSpec {
     public boolean isSearchForSpecificVariant() {
         return null != searchTarget;
     }
+
+    public abstract boolean isPurelyCorrectType(ReportConfiguration configuration);
 }

@@ -17,7 +17,6 @@
 package org.gradle.api.tasks.diagnostics;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
@@ -25,8 +24,6 @@ import org.gradle.api.tasks.diagnostics.internal.configurations.spec.AbstractCon
 import org.gradle.api.tasks.diagnostics.internal.configurations.spec.ResolvableConfigurationsSpec;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.work.DisableCachingByDefault;
-
-import java.util.function.Predicate;
 
 /**
  * A task which reports the requested variants of a project on the command line.
@@ -51,13 +48,13 @@ public abstract class ResolvableConfigurationsReportTask extends AbstractConfigu
     @Option(option = "all", description = "Shows all resolvable configurations, including legacy and deprecated configurations")
     public abstract Property<Boolean> getShowAll();
 
-    @Override
-    protected AbstractConfigurationReportSpec buildReportSpec() {
-        return new ResolvableConfigurationsSpec(getConfigurationName().getOrNull(), getShowAll().get());
-    }
+    @Input
+    @Optional
+    @Option(option = "recursive", description = "Shows all extended configurations, including transitively extended configurations")
+    public abstract Property<Boolean> getRecursive();
 
     @Override
-    protected Predicate<Configuration> buildEligibleConfigurationsFilter() {
-        return Configuration::isCanBeResolved;
+    protected AbstractConfigurationReportSpec buildReportSpec() {
+        return new ResolvableConfigurationsSpec(getConfigurationName().getOrNull(), getShowAll().get(), getRecursive().get());
     }
 }

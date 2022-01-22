@@ -15,7 +15,6 @@
  */
 package org.gradle.api.tasks.diagnostics;
 
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
@@ -23,8 +22,6 @@ import org.gradle.api.tasks.diagnostics.internal.configurations.spec.AbstractCon
 import org.gradle.api.tasks.diagnostics.internal.configurations.spec.OutgoingVariantsSpec;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.work.DisableCachingByDefault;
-
-import java.util.function.Predicate;
 
 /**
  * A task which reports the outgoing variants of a project on the command line.
@@ -50,10 +47,5 @@ public abstract class OutgoingVariantsReportTask extends AbstractConfigurationRe
     @Override
     protected AbstractConfigurationReportSpec buildReportSpec() {
         return new OutgoingVariantsSpec(getVariantName().getOrNull(), getShowAll().get());
-    }
-
-    @Override
-    protected Predicate<Configuration> buildEligibleConfigurationsFilter() {
-        return Configuration::isCanBeConsumed;
     }
 }

@@ -89,6 +89,7 @@ public class HelpTasksPlugin implements Plugin<Project> {
             task.setGroup(HELP_GROUP);
             task.setImpliesSubProjects(true);
             task.getShowAll().convention(false);
+            task.getRecursive().convention(false);
         });
         tasks.withType(TaskReportTask.class).configureEach(task -> {
             task.getShowTypes().convention(false);

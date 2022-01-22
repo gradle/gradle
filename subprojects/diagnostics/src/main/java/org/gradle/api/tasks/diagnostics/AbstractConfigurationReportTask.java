@@ -22,8 +22,7 @@ import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.Project;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.reporting.Reporting;
@@ -31,11 +30,9 @@ import org.gradle.api.reporting.SingleFileReport;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.diagnostics.configurations.ConfigurationReports;
+import org.gradle.api.tasks.diagnostics.internal.configurations.ConfigurationReportModelFactory;
 import org.gradle.api.tasks.diagnostics.internal.configurations.ConfigurationReportsImpl;
-import org.gradle.api.tasks.diagnostics.internal.configurations.ConfigurationRuleScanner;
 import org.gradle.api.tasks.diagnostics.internal.configurations.model.ConfigurationReportModel;
-import org.gradle.api.tasks.diagnostics.internal.configurations.model.ReportAttribute;
-import org.gradle.api.tasks.diagnostics.internal.configurations.model.ReportConfiguration;
 import org.gradle.api.tasks.diagnostics.internal.configurations.renderer.AbstractWritableConfigurationReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.configurations.renderer.ConsoleConfigurationReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.configurations.renderer.json.JSONConfigurationReportRenderer;
@@ -48,10 +45,6 @@ import org.gradle.work.DisableCachingByDefault;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.FileWriter;
-import java.util.Comparator;
-import java.util.List;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 /**
  * Base class for tasks which reports on attributes of a variant or configuration.
@@ -68,7 +61,6 @@ public abstract class AbstractConfigurationReportTask extends DefaultTask implem
     @Inject protected abstract FileResolver getFileResolver();
 
     protected abstract AbstractConfigurationReportSpec buildReportSpec();
-    protected abstract Predicate<Configuration> buildEligibleConfigurationsFilter();
 
     public AbstractConfigurationReportTask() {
         ObjectFactory objects = getObjectFactory();
@@ -141,7 +133,7 @@ public abstract class AbstractConfigurationReportTask extends DefaultTask implem
     @TaskAction
     public final void report() {
         final AbstractConfigurationReportSpec reportSpec = buildReportSpec();
-        final ConfigurationReportModel reportModel = buildReportModel();
+        final ConfigurationReportModel reportModel = buildReportModel(getProject());
 
         if (reports.getJSON().getRequired().get()) {
             reportToFile(reports.getJSON(), reportSpec, reportModel);
@@ -176,25 +168,8 @@ public abstract class AbstractConfigurationReportTask extends DefaultTask implem
         }
     }
 
-    private ConfigurationReportModel buildReportModel() {
-        final ConfigurationRuleScanner scanner = new ConfigurationRuleScanner(getProject());
-        final List<ReportAttribute> attributesWithCompatibilityRules = scanner.getAttributesWithCompatibilityRules();
-        final List<ReportAttribute> attributesWithDisambiguationRules = scanner.getAttributesWithDisambiguationRules();
-
-        return new ConfigurationReportModel(
-            getProject().getName(),
-            gatherConfigurationData(buildEligibleConfigurationsFilter()),
-            attributesWithCompatibilityRules,
-            attributesWithDisambiguationRules);
-    }
-
-    private List<ReportConfiguration> gatherConfigurationData(Predicate<Configuration> filter) {
-        return getProject().getConfigurations()
-            .stream()
-            .filter(filter)
-            .sorted(Comparator.comparing(Configuration::getName))
-            .map(ConfigurationInternal.class::cast)
-            .map(c -> ReportConfiguration.fromConfigurationInProject(c, getProject(), getFileResolver()))
-            .collect(Collectors.toList());
+    private ConfigurationReportModel buildReportModel(Project project) {
+        final ConfigurationReportModelFactory factory = new ConfigurationReportModelFactory(getFileResolver());
+        return factory.buildForProject(project);
     }
 }

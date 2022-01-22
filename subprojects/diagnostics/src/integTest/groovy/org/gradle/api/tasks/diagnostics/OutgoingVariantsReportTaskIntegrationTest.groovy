@@ -260,9 +260,6 @@ Attributes
     - org.gradle.usage               = java-api
 Artifacts
     - $jarPath (artifactType = jar)
-Extended Configurations
-    - api
-    - compileOnlyApi
 
 Secondary Variants (*)
 
@@ -294,8 +291,6 @@ Attributes
 Artifacts
     - $sourceMainJavaPath (artifactType = directory)
     - $sourceMainResourcePath (artifactType = directory)
-Extended Configurations
-    - implementation
 
 --------------------------------------------------
 Variant runtimeElements
@@ -312,9 +307,6 @@ Attributes
     - org.gradle.usage               = java-runtime
 Artifacts
     - $jarPath (artifactType = jar)
-Extended Configurations
-    - implementation
-    - runtimeOnly
 
 Secondary Variants (*)
 
@@ -361,10 +353,6 @@ Attributes
     - org.gradle.verificationtype      = test-results
 Artifacts
     - $resultsBinPath (artifactType = directory)
-Extended Configurations
-    - testImplementation
-    - testRuntimeOnly
-
 """
         and:
         doesNotHaveLegacyLegend()
@@ -412,9 +400,6 @@ Attributes
     - org.gradle.usage               = java-api
 Artifacts
     - $jarPath (artifactType = jar)
-Extended Configurations
-    - api
-    - compileOnlyApi
 
 Secondary Variants (*)
 
@@ -461,8 +446,6 @@ Attributes
 Artifacts
     - $sourceMainJavaPath (artifactType = directory)
     - $sourceMainResourcePath (artifactType = directory)
-Extended Configurations
-    - implementation
 
 --------------------------------------------------
 Variant runtimeElements
@@ -479,9 +462,6 @@ Attributes
     - org.gradle.usage               = java-runtime
 Artifacts
     - $jarPath (artifactType = jar)
-Extended Configurations
-    - implementation
-    - runtimeOnly
 
 Secondary Variants (*)
 
@@ -543,9 +523,6 @@ Attributes
     - org.gradle.verificationtype      = test-results
 Artifacts
     - $resultsBinPath (artifactType = directory)
-Extended Configurations
-    - testImplementation
-    - testRuntimeOnly
 """
         and:
         doesNotHaveLegacyLegend()
@@ -592,9 +569,6 @@ Attributes
     - org.gradle.usage               = java-api
 Artifacts
     - $jarPath (artifactType = jar)
-Extended Configurations
-    - api
-    - compileOnlyApi
 
 Secondary Variants (*)
 
@@ -641,8 +615,6 @@ Attributes
 Artifacts
     - $sourceMainJavaPath (artifactType = directory)
     - $sourceMainResourcePath (artifactType = directory)
-Extended Configurations
-    - implementation
 
 --------------------------------------------------
 Variant runtimeElements
@@ -659,9 +631,6 @@ Attributes
     - org.gradle.usage               = java-runtime
 Artifacts
     - $jarPath (artifactType = jar)
-Extended Configurations
-    - implementation
-    - runtimeOnly
 
 Secondary Variants (*)
 
@@ -723,9 +692,6 @@ Attributes
     - org.gradle.verificationtype      = test-results
 Artifacts
     - $resultsBinPath (artifactType = directory)
-Extended Configurations
-    - testImplementation
-    - testRuntimeOnly
 """
         and:
         doesNotHaveLegacyLegend()
@@ -764,9 +730,6 @@ Attributes
     - org.gradle.usage               = java-runtime
 Artifacts
     - $jarPath (artifactType = jar)
-Extended Configurations
-    - implementation
-    - runtimeOnly
 
 Secondary Variants (*)
 
@@ -840,9 +803,6 @@ Attributes
     - org.gradle.usage               = java-api
 Artifacts
     - $jarPath (artifactType = jar)
-Extended Configurations
-    - api
-    - compileOnlyApi
 
 Secondary Variants (*)
 
@@ -879,8 +839,6 @@ Capabilities
     - org:myLib:1.0 (default capability)
 Artifacts
     - $jarPath (artifactType = jar)
-Extended Configurations
-    - runtimeElements
 
 --------------------------------------------------
 Variant mainSourceElements (i)
@@ -896,8 +854,6 @@ Attributes
 Artifacts
     - $sourceMainJavaPath (artifactType = directory)
     - $sourceMainResourcePath (artifactType = directory)
-Extended Configurations
-    - implementation
 
 --------------------------------------------------
 Variant runtimeElements
@@ -914,9 +870,6 @@ Attributes
     - org.gradle.usage               = java-runtime
 Artifacts
     - $jarPath (artifactType = jar)
-Extended Configurations
-    - implementation
-    - runtimeOnly
 
 Secondary Variants (*)
 
@@ -963,9 +916,6 @@ Attributes
     - org.gradle.verificationtype      = test-results
 Artifacts
     - $resultsBinPath (artifactType = directory)
-Extended Configurations
-    - testImplementation
-    - testRuntimeOnly
 """
 
         and:
@@ -1009,9 +959,6 @@ Attributes
     - org.gradle.usage               = java-api
 Artifacts
     - $jarPath (artifactType = jar)
-Extended Configurations
-    - api
-    - compileOnlyApi
 
 Secondary Variants (*)
 
@@ -1048,8 +995,6 @@ Capabilities
     - org:myLib:1.0 (default capability)
 Artifacts
     - $jarPath (artifactType = jar)
-Extended Configurations
-    - runtimeElements
 
 --------------------------------------------------
 Variant mainSourceElements (i)
@@ -1065,8 +1010,6 @@ Attributes
 Artifacts
     - $sourceMainJavaPath (artifactType = directory)
     - $sourceMainResourcePath (artifactType = directory)
-Extended Configurations
-    - implementation
 
 --------------------------------------------------
 Variant runtimeElements
@@ -1083,9 +1026,6 @@ Attributes
     - org.gradle.usage               = java-runtime
 Artifacts
     - $jarPath (artifactType = jar)
-Extended Configurations
-    - implementation
-    - runtimeOnly
 
 Secondary Variants (*)
 
@@ -1132,9 +1072,6 @@ Attributes
     - org.gradle.verificationtype      = test-results
 Artifacts
     - $resultsBinPath (artifactType = directory)
-Extended Configurations
-    - testImplementation
-    - testRuntimeOnly
 """
 
         and:
@@ -1208,9 +1145,6 @@ Attributes
     - org.gradle.usage               = java-runtime
 Artifacts
     - $jarPath (artifactType = jar)
-Extended Configurations
-    - implementation
-    - runtimeOnly
 
 Secondary Variants (*)
 
@@ -1294,9 +1228,6 @@ Attributes
     - org.gradle.usage               = java-api
 Artifacts
     - $jarPath (artifactType = jar)
-Extended Configurations
-    - api
-    - compileOnlyApi
 
 Secondary Variants (*)
 
@@ -1328,8 +1259,6 @@ Attributes
 Artifacts
     - $sourceMainJavaPath (artifactType = directory)
     - $sourceMainResourcePath (artifactType = directory)
-Extended Configurations
-    - implementation
 
 --------------------------------------------------
 Variant runtimeElements
@@ -1346,9 +1275,6 @@ Attributes
     - org.gradle.usage               = java-runtime
 Artifacts
     - $jarPath (artifactType = jar)
-Extended Configurations
-    - implementation
-    - runtimeOnly
 
 Secondary Variants (*)
 
@@ -1404,9 +1330,6 @@ Attributes
     - org.gradle.verificationtype      = test-results
 Artifacts
     - $resultsBinPath (artifactType = directory)
-Extended Configurations
-    - testImplementation
-    - testRuntimeOnly
 """
 
         and:

@@ -16,11 +16,16 @@
 
 package org.gradle.api.tasks.diagnostics.internal.configurations.spec;
 
+import org.gradle.api.tasks.diagnostics.internal.configurations.model.ReportConfiguration;
+
 import javax.annotation.Nullable;
 
 public class ResolvableConfigurationsSpec extends AbstractConfigurationReportSpec{
-    public ResolvableConfigurationsSpec(@Nullable String searchTarget, boolean showLegacy) {
+    private final boolean recursive;
+
+    public ResolvableConfigurationsSpec(@Nullable String searchTarget, boolean showLegacy, boolean recursive) {
         super(searchTarget, showLegacy);
+        this.recursive = recursive;
     }
 
     @Override
@@ -61,5 +66,15 @@ public class ResolvableConfigurationsSpec extends AbstractConfigurationReportSpe
     @Override
     public boolean isIncludeExtensions() {
         return true;
+    }
+
+    @Override
+    public boolean isIncludeExtensionsRecursively() {
+        return recursive;
+    }
+
+    @Override
+    public boolean isPurelyCorrectType(ReportConfiguration configuration) {
+        return configuration.getType() == ReportConfiguration.Type.RESOLVABLE;
     }
 }

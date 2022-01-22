@@ -48,7 +48,7 @@ class JSONConfigurationReportRendererTest extends Specification {
         given:
         def spec = new OutgoingVariantsSpec(null, false)
         def model = new ConfigurationReportModel("myLib",
-            Collections.singletonList(new ReportConfiguration("test", "a test config", ReportConfiguration.Type.RESOLVABLE, Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList())),
+            Collections.singletonList(new ReportConfiguration("test", "a test config", ReportConfiguration.Type.RESOLVABLE, Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(),)),
             Collections.emptyList(), Collections.emptyList())
 
         when:

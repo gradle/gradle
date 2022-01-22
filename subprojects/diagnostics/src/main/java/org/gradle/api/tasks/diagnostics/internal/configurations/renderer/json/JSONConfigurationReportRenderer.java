@@ -35,7 +35,7 @@ public final class JSONConfigurationReportRenderer extends AbstractWritableConfi
 
     @Override
     public void render(ConfigurationReportModel data, Writer writer) {
-        String json = gson.toJson(new JSONConfigurationReport(data.getEligibleConfigs()));
+        String json = gson.toJson(new JSONConfigurationReport(data.getAllConfigs()));
         try {
             writer.write(json);
         } catch (IOException e) {

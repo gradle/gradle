@@ -22,16 +22,16 @@ import java.util.stream.Collectors;
 
 public final class ConfigurationReportModel {
     private final String projectName;
-    private final List<ReportConfiguration> eligibleConfigs;
+    private final List<ReportConfiguration> allConfigs;
     private final List<ReportAttribute> attributesWithCompatibilityRules;
     private final List<ReportAttribute> attributesWithDisambiguationRules;
 
     public ConfigurationReportModel(String projectName,
-                                    List<ReportConfiguration> eligibleConfigs,
+                                    List<ReportConfiguration> allConfigs,
                                     List<ReportAttribute> attributesWithCompatibilityRules,
                                     List<ReportAttribute> attributesWithDisambiguationRules) {
         this.projectName = projectName;
-        this.eligibleConfigs = eligibleConfigs;
+        this.allConfigs = allConfigs;
         this.attributesWithCompatibilityRules = attributesWithCompatibilityRules;
         this.attributesWithDisambiguationRules = attributesWithDisambiguationRules;
     }
@@ -48,16 +48,19 @@ public final class ConfigurationReportModel {
         return attributesWithDisambiguationRules;
     }
 
-    public List<ReportConfiguration> getEligibleConfigs() {
-        return eligibleConfigs;
+    public List<ReportConfiguration> getAllConfigs() {
+        return allConfigs;
+    }
+
+    public List<ReportConfiguration> getPurelyResolvableConfigs() {
+        return allConfigs.stream().filter(ReportConfiguration::isPurelyResolvable).collect(Collectors.toList());
+    }
+
+    public List<ReportConfiguration> getPurelyConsumableConfigs() {
+        return allConfigs.stream().filter(ReportConfiguration::isPurelyConsumable).collect(Collectors.toList());
     }
 
     public Optional<ReportConfiguration> getConfigNamed(String configName) {
-        return eligibleConfigs.stream().filter(config -> config.getName().equals(configName)).findFirst();
+        return allConfigs.stream().filter(config -> config.getName().equals(configName)).findFirst();
     }
-
-    public List<ReportConfiguration> getNonLegacyConfigs() {
-        return eligibleConfigs.stream().filter(c -> !c.isLegacy()).collect(Collectors.toList());
-    }
-
 }

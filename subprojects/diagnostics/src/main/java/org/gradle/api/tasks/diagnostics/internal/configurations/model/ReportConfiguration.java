@@ -17,11 +17,11 @@
 package org.gradle.api.tasks.diagnostics.internal.configurations.model;
 
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.file.FileResolver;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -31,19 +31,23 @@ public final class ReportConfiguration {
     private final String name;
     @Nullable
     private final String description;
+    @Nullable
     private final Type type;
     private final List<ReportAttribute> attributes;
     private final List<ReportCapability> capabilities;
     private final List<ReportArtifact> artifacts;
     private final List<ReportSecondaryVariant> variants;
-    private final List<String> extendedConfigurations;
 
-    private ReportConfiguration(String name, @Nullable String description, Type type,
+    /**
+     * This is the one non-immutable part of this class.
+     */
+    private final List<ReportConfiguration> extendedConfigurations = new ArrayList<>();
+
+    private ReportConfiguration(String name, @Nullable String description, @Nullable Type type,
                                 List<ReportAttribute> attributes,
                                 List<ReportCapability> capabilities,
                                 List<ReportArtifact> artifacts,
-                                List<ReportSecondaryVariant> variants,
-                                List<String> extendedConfigurations) {
+                                List<ReportSecondaryVariant> variants) {
         this.name = name;
         this.description = description;
         this.type = type;
@@ -51,7 +55,6 @@ public final class ReportConfiguration {
         this.capabilities = Collections.unmodifiableList(capabilities);
         this.artifacts = Collections.unmodifiableList(artifacts);
         this.variants = Collections.unmodifiableList(variants);
-        this.extendedConfigurations = Collections.unmodifiableList(extendedConfigurations);
     }
 
     public static ReportConfiguration fromConfigurationInProject(ConfigurationInternal configuration, Project project, FileResolver fileResolver) {
@@ -84,13 +87,21 @@ public final class ReportConfiguration {
             .sorted(Comparator.comparing(ReportSecondaryVariant::getName))
             .collect(Collectors.toList());
 
-        final List<String> extendedConfigurations = configuration.getExtendsFrom().stream()
-            .map(Configuration::getName)
-            .sorted()
-            .collect(Collectors.toList());
+        final Type type;
+        if (configuration.isCanBeConsumed() && configuration.isCanBeResolved()) {
+            type = Type.LEGACY;
+        } else if (configuration.isCanBeResolved()) {
+            type = Type.RESOLVABLE;
+        } else if (configuration.isCanBeConsumed()) {
+            type = Type.CONSUMABLE;
+        } else {
+            type = null;
+        }
+        return new ReportConfiguration(configuration.getName(), configuration.getDescription(), type, attributes, capabilities, artifacts, variants);
+    }
 
-        final Type type = configuration.isCanBeConsumed() ? (configuration.isCanBeResolved() ? Type.LEGACY : Type.CONSUMABLE) : Type.RESOLVABLE;
-        return new ReportConfiguration(configuration.getName(), configuration.getDescription(), type, attributes, capabilities, artifacts, variants, extendedConfigurations);
+    public void setExtendedConfigurations(List<ReportConfiguration> extendedConfigurations) {
+        this.extendedConfigurations.addAll(extendedConfigurations);
     }
 
     public String getName() {
@@ -102,6 +113,7 @@ public final class ReportConfiguration {
         return description;
     }
 
+    @Nullable
     public Type getType() {
         return type;
     }
@@ -122,8 +134,16 @@ public final class ReportConfiguration {
         return variants;
     }
 
-    public List<String> getExtendedConfigurations() {
-        return extendedConfigurations;
+    public List<ReportConfiguration> getExtendedConfigurations() {
+        return Collections.unmodifiableList(extendedConfigurations);
+    }
+
+    public boolean isPurelyConsumable() {
+        return Type.CONSUMABLE == type;
+    }
+
+    public boolean isPurelyResolvable() {
+        return Type.RESOLVABLE == type;
     }
 
     public boolean isLegacy() {
