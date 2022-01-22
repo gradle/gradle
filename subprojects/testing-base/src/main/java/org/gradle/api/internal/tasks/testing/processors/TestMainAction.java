@@ -24,7 +24,10 @@ import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.internal.tasks.testing.results.AttachParentTestResultProcessor;
 import org.gradle.internal.time.Clock;
+import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseService;
+
+import java.util.Collections;
 
 public class TestMainAction implements Runnable {
     private final Runnable detector;
@@ -55,7 +58,9 @@ public class TestMainAction implements Runnable {
                 detector.run();
             } finally {
                 // Release worker lease while waiting for tests to complete
-                workerLeaseService.blocking(new Runnable() {
+                // Do not release any other locks, so that other test tasks from the same project do not start running
+                WorkerLeaseRegistry.WorkerLease currentWorkerLease = workerLeaseService.getCurrentWorkerLease();
+                workerLeaseService.withoutLocks(Collections.singletonList(currentWorkerLease), new Runnable() {
                     @Override
                     public void run() {
                         processor.stop();
