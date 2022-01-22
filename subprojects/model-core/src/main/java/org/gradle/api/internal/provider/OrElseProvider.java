@@ -43,16 +43,27 @@ class OrElseProvider<T> extends AbstractMinimalProvider<T> {
         return left.calculatePresence(consumer) || right.calculatePresence(consumer);
     }
 
+    @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
     public ExecutionTimeValue<? extends T> calculateExecutionTimeValue() {
         ExecutionTimeValue<? extends T> leftValue = left.calculateExecutionTimeValue();
         if (leftValue.isFixedValue()) {
             return leftValue;
         }
+        ExecutionTimeValue<? extends T> rightValue = right.calculateExecutionTimeValue();
         if (leftValue.isMissing()) {
-            return right.calculateExecutionTimeValue();
+            return rightValue;
         }
-        return ExecutionTimeValue.changingValue(this);
+        if (rightValue.isMissing()) {
+            // simplify
+            return leftValue;
+        }
+        return ExecutionTimeValue.changingValue(
+            new OrElseProvider(
+                leftValue.getChangingValue(),
+                rightValue.toProvider()
+            )
+        );
     }
 
     @Override
