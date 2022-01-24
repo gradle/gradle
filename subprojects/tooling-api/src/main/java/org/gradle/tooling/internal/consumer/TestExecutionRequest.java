@@ -17,6 +17,7 @@
 package org.gradle.tooling.internal.consumer;
 
 import org.gradle.api.Transformer;
+import org.gradle.tooling.TestPatternSpec;
 import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.internal.OperationDescriptorWrapper;
 import org.gradle.tooling.events.test.TestOperationDescriptor;
@@ -39,8 +40,16 @@ public class TestExecutionRequest implements InternalTestExecutionRequest {
     private final Map<String, List<InternalJvmTestRequest>> taskAndTests;
     private final boolean isRunDefaultTasks;
     private final List<String> tasks;
+    private final List<TestPatternSpec> testPatternSpecs;
 
-    public TestExecutionRequest(Iterable<TestOperationDescriptor> operationDescriptors, Collection<String> testClassNames, Set<InternalJvmTestRequest> internalJvmTestRequests, InternalDebugOptions debugOptions, Map<String, List<InternalJvmTestRequest>> testTasks, boolean isRunDefaultTasks, List<String> tasks) {
+    public TestExecutionRequest(Iterable<TestOperationDescriptor> operationDescriptors,
+                                Collection<String> testClassNames,
+                                Set<InternalJvmTestRequest> internalJvmTestRequests,
+                                InternalDebugOptions debugOptions,
+                                Map<String, List<InternalJvmTestRequest>> testTasks,
+                                boolean isRunDefaultTasks,
+                                List<String> tasks,
+                                List<TestPatternSpec> testPatternSpecs) {
         this.testDescriptors = adaptDescriptors(operationDescriptors);
         this.testClassNames = testClassNames;
         this.internalJvmTestRequests = internalJvmTestRequests;
@@ -48,6 +57,7 @@ public class TestExecutionRequest implements InternalTestExecutionRequest {
         this.taskAndTests = testTasks;
         this.isRunDefaultTasks = isRunDefaultTasks;
         this.tasks = tasks;
+        this.testPatternSpecs = testPatternSpecs;
     }
 
     public InternalDebugOptions getDebugOptions() {
@@ -70,6 +80,10 @@ public class TestExecutionRequest implements InternalTestExecutionRequest {
 
     public Collection<InternalJvmTestRequest> getInternalJvmTestRequests() {
         return internalJvmTestRequests;
+    }
+
+    public List<TestPatternSpec> getTestPatternSpecs() {
+        return testPatternSpecs;
     }
 
     private Collection<InternalTestDescriptor> adaptDescriptors(Iterable<TestOperationDescriptor> operationDescriptors) {
