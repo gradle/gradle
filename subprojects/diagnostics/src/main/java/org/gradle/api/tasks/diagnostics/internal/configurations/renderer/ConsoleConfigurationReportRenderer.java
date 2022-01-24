@@ -162,15 +162,17 @@ public final class ConsoleConfigurationReportRenderer extends AbstractConfigurat
             output.println("(l) Legacy or deprecated configuration. Those are variants created for backwards compatibility which are both resolvable and consumable.");
         }
         if (hasIncubating) {
-            output.println("(i) Configuration uses incubating attributes such as Category.VERIFICATION.");
+            output.text("(i) Configuration uses incubating attributes such as ");
+            output.withStyle(StyledTextOutput.Style.Identifier).text("Category.VERIFICATION");
+            output.println(".");
         }
         if (recursiveExtensionsPrinted) {
             output.println("(t) Configuration extended transitively.");
         }
         if (hasVariants) {
             output.text("(*) Secondary variants are variants created via the ");
-            output.style(StyledTextOutput.Style.Identifier).text("Configuration#getOutgoing(): ConfigurationPublications");
-            output.style(StyledTextOutput.Style.Info).println(" API which also participate in selection, in addition to the configuration itself.");
+            output.withStyle(StyledTextOutput.Style.Identifier).text("Configuration#getOutgoing(): ConfigurationPublications");
+            output.println(" API which also participate in selection, in addition to the configuration itself.");
         }
     }
 
@@ -265,7 +267,12 @@ public final class ConsoleConfigurationReportRenderer extends AbstractConfigurat
                     .sorted(Comparator.comparing(e -> e.name))
                     .forEach(e -> {
                         indent(true);
-                        output.withStyle(StyledTextOutput.Style.Identifier).println(e.name + (e.isTransitive ? " (t)" : ""));
+                        output.withStyle(StyledTextOutput.Style.Identifier).text(e.name);
+                        if (e.isTransitive) {
+                            output.withStyle(StyledTextOutput.Style.Info).println(" (t)");
+                        } else {
+                            newLine();
+                        }
                     });
             });
         }
