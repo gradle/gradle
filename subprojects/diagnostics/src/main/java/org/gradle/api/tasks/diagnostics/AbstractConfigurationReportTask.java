@@ -35,6 +35,7 @@ import org.gradle.api.tasks.diagnostics.internal.configurations.ConfigurationRep
 import org.gradle.api.tasks.diagnostics.internal.configurations.model.ConfigurationReportModel;
 import org.gradle.api.tasks.diagnostics.internal.configurations.renderer.AbstractWritableConfigurationReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.configurations.renderer.ConsoleConfigurationReportRenderer;
+import org.gradle.api.tasks.diagnostics.internal.configurations.renderer.json.JSONConfigurationReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.configurations.spec.AbstractConfigurationReportSpec;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
@@ -160,6 +161,8 @@ public abstract class AbstractConfigurationReportTask extends DefaultTask implem
 
     private AbstractWritableConfigurationReportRenderer buildToFileRenderer(SingleFileReport report, AbstractConfigurationReportSpec reportSpec) {
         switch (report.getName()) {
+            case "json":
+                return new JSONConfigurationReportRenderer(reportSpec);
             default:
                 throw new IllegalArgumentException("Unknown report type: " + report.getName());
         }

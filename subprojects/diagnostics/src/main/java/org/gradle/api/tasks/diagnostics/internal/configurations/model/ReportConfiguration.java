@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks.diagnostics.internal.configurations.model;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.Project;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.file.FileResolver;
@@ -43,7 +44,8 @@ public final class ReportConfiguration {
      */
     private final List<ReportConfiguration> extendedConfigurations = new ArrayList<>();
 
-    private ReportConfiguration(String name, @Nullable String description, @Nullable Type type,
+    @VisibleForTesting
+    ReportConfiguration(String name, @Nullable String description, @Nullable Type type,
                                 List<ReportAttribute> attributes,
                                 List<ReportCapability> capabilities,
                                 List<ReportArtifact> artifacts,
