@@ -669,7 +669,7 @@ Configuration leaf
 Description = Leaf configuration
 
 Extended Configurations
-    - base
+    - base (t)
     - mid
 
 --------------------------------------------------
@@ -679,5 +679,99 @@ Description = Mid configuration
 
 Extended Configurations
     - base"""
+
+        and:
+        hasTransitiveLegend()
+    }
+
+    @ToBeFixedForConfigurationCache(because = ":resolvableConfigurations")
+    def "not specifying --recursive does not includes transitively extended configurations"() {
+        given:
+        buildFile << """
+            def base = configurations.create("base") {
+                description = "Base configuration"
+                canBeResolved = true
+                canBeConsumed = false
+            }
+
+            def mid = configurations.create("mid") {
+                description = "Mid configuration"
+                canBeResolved = true
+                canBeConsumed = false
+                extendsFrom base
+            }
+
+            def leaf = configurations.create("leaf") {
+                description = "Leaf configuration"
+                canBeResolved = true
+                canBeConsumed = false
+                extendsFrom mid
+            }
+        """
+
+        when:
+        succeeds ':resolvableConfigurations'
+
+        then:
+        outputContainsLinewise """Configuration base
+--------------------------------------------------
+Description = Base configuration
+
+--------------------------------------------------
+Configuration leaf
+--------------------------------------------------
+Description = Leaf configuration
+
+Extended Configurations
+    - mid
+
+--------------------------------------------------
+Configuration mid
+--------------------------------------------------
+Description = Mid configuration
+
+Extended Configurations
+    - base"""
+
+        and:
+        doesNotHaveTransitiveLegend()
+    }
+
+    @ToBeFixedForConfigurationCache(because = ":resolvableConfigurations")
+    def "specifying --recursive with no transitively extended configurations does not print legend"() {
+        given:
+        buildFile << """
+            def base = configurations.create("base") {
+                description = "Base configuration"
+                canBeResolved = true
+                canBeConsumed = false
+            }
+
+            def mid = configurations.create("mid") {
+                description = "Mid configuration"
+                canBeResolved = true
+                canBeConsumed = false
+                extendsFrom base
+            }
+        """
+
+        when:
+        succeeds ':resolvableConfigurations', '--recursive'
+
+        then:
+        outputContainsLinewise """Configuration base
+--------------------------------------------------
+Description = Base configuration
+
+--------------------------------------------------
+Configuration mid
+--------------------------------------------------
+Description = Mid configuration
+
+Extended Configurations
+    - base"""
+
+        and:
+        doesNotHaveTransitiveLegend()
     }
 }

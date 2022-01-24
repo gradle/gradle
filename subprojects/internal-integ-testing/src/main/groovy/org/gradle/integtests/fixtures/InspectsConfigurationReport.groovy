@@ -47,6 +47,14 @@ trait InspectsConfigurationReport {
         outputDoesNotContain("(i) Configuration uses incubating attributes such as Category.VERIFICATION.")
     }
 
+    void hasTransitiveLegend() {
+        outputContains("(t) Configuration extended transitively.")
+    }
+
+    void doesNotHaveTransitiveLegend() {
+        outputDoesNotContain("(t) Configuration extended transitively.")
+    }
+
     void reportsCompleteAbsenceOfResolvableConfigurations() {
         outputContains("There are no resolvable configurations (including legacy configurations) present in project")
     }

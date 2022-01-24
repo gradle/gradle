@@ -29,10 +29,8 @@ import org.gradle.internal.logging.text.StyledTextOutput;
 import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -43,6 +41,7 @@ import java.util.stream.Collectors;
 public final class ConsoleConfigurationReportRenderer extends AbstractConfigurationReportRenderer<StyledTextOutput> {
     @Nullable private StyledTextOutput output;
     private int depth;
+    private boolean recursiveExtensionsPrinted;
 
     public ConsoleConfigurationReportRenderer(AbstractConfigurationReportSpec spec) {
         super(spec);
@@ -52,6 +51,7 @@ public final class ConsoleConfigurationReportRenderer extends AbstractConfigurat
     public void render(ConfigurationReportModel data, StyledTextOutput output) {
         this.depth = 0;
         this.output = output;
+        this.recursiveExtensionsPrinted = false;
 
         final boolean hasAnyRelevantConfigs = data.getAllConfigs().stream().anyMatch(c -> spec.isPurelyCorrectType(c) || c.isLegacy());
         if (hasAnyRelevantConfigs) {
@@ -164,6 +164,9 @@ public final class ConsoleConfigurationReportRenderer extends AbstractConfigurat
         if (hasIncubating) {
             output.println("(i) Configuration uses incubating attributes such as Category.VERIFICATION.");
         }
+        if (recursiveExtensionsPrinted) {
+            output.println("(t) Configuration extended transitively.");
+        }
         if (hasVariants) {
             output.text("(*) Secondary variants are variants created via the ");
             output.style(StyledTextOutput.Style.Identifier).text("Configuration#getOutgoing(): ConfigurationPublications");
@@ -231,18 +234,38 @@ public final class ConsoleConfigurationReportRenderer extends AbstractConfigurat
     }
 
     private void writeExtensions(List<ReportConfiguration> extensions, boolean recursive) {
-        final Set<ReportConfiguration> extensionsToPrint = new HashSet<>(extensions);
+        class FormattedExtension {
+            String name;
+            boolean isTransitive;
+
+            public FormattedExtension(String name, boolean isTransitive) {
+                this.name = name;
+                this.isTransitive = isTransitive;
+            }
+        }
+
+        final List<FormattedExtension> extensionsToPrint = extensions.stream()
+            .map(e -> new FormattedExtension(e.getName(), false))
+            .collect(Collectors.toList());
         if (recursive) {
-            extensions.stream().flatMap(e -> e.getExtendedConfigurations().stream()).forEach(extensionsToPrint::add);
+            int nonRecursiveCount = extensionsToPrint.size();
+            extensionsToPrint.addAll(extensions.stream()
+                .flatMap(e -> e.getExtendedConfigurations().stream())
+                .filter(e -> extensionsToPrint.stream().noneMatch(eToP -> eToP.name.equals(e.getName())))
+                .map(e -> new FormattedExtension(e.getName(), true))
+                .collect(Collectors.toList()));
+            if (nonRecursiveCount != extensionsToPrint.size()) {
+                recursiveExtensionsPrinted = true;
+            }
         }
 
         if (!extensions.isEmpty()) {
             printSection("Extended Configurations", () -> {
                 extensionsToPrint.stream()
-                    .sorted(Comparator.comparing(ReportConfiguration::getName))
-                    .forEach(ext -> {
+                    .sorted(Comparator.comparing(e -> e.name))
+                    .forEach(e -> {
                         indent(true);
-                        output.withStyle(StyledTextOutput.Style.Identifier).println(ext.getName());
+                        output.withStyle(StyledTextOutput.Style.Identifier).println(e.name + (e.isTransitive ? " (t)" : ""));
                     });
             });
         }
