@@ -21,7 +21,6 @@ dependencies {
 
     implementation(libs.groovy)
     implementation(libs.groovyJson)
-    implementation(libs.gson)
     implementation(libs.guava)
     implementation(libs.commonsLang)
     implementation(libs.inject)
