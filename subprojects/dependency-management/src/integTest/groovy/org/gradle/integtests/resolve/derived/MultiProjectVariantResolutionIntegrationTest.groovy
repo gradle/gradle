@@ -139,42 +139,40 @@ class MultiProjectVariantResolutionIntegrationTest extends AbstractIntegrationSp
         succeeds(':producer:outgoingVariants')
 
         then:
-        outputContains '''
---------------------------------------------------
+        result.groupedOutput.task(':producer:outgoingVariants').assertOutputContains('''--------------------------------------------------
 Variant jarElements
 --------------------------------------------------
+
 Capabilities
     - org.test:producer:1.0 (default capability)
 Attributes
     - shared = shared-value
     - unique = jar-value
-
 Artifacts
     - producer-jar.txt
 
 --------------------------------------------------
 Variant javadocElements
 --------------------------------------------------
+
 Capabilities
     - org.test:producer:1.0 (default capability)
 Attributes
     - shared = shared-value
     - unique = javadoc-value
-
 Artifacts
     - producer-javadoc.txt
 
 --------------------------------------------------
 Variant otherElements
 --------------------------------------------------
+
 Capabilities
     - org.test:producer:1.0 (default capability)
 Attributes
     - other = foobar
-
 Artifacts
-    - producer-other.txt
-'''
+    - producer-other.txt''')
     }
 
     def 'consumer resolves jar variant of producer'() {
