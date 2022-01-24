@@ -27,6 +27,7 @@ import spock.lang.Issue
 import spock.lang.Requires
 
 import static org.gradle.api.tasks.LocalStateFixture.defineTaskWithLocalState
+import static org.gradle.util.Matchers.matchesRegexp
 
 class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture, ValidationMessageChecker {
     def configureCacheForBuildSrc() {
@@ -587,7 +588,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         when:
         withBuildCache().fails "customTask"
         then:
-        failureHasCause("Failed to store cache entry for task ':customTask'")
+        failureHasCause(matchesRegexp("Failed to store cache entry [0-9a-z]+ for task ':customTask': Could not pack tree 'output'.*"))
         def expectedMessage = message.replace("PATH", file("build/output").path)
         errorOutput.contains "Could not pack tree 'output': $expectedMessage"
 

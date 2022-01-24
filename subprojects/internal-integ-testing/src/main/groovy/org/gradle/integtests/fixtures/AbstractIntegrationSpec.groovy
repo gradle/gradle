@@ -461,6 +461,10 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
         failure.assertHasCause(cause)
     }
 
+    protected void failureHasCause(Matcher<? super String> matcher) {
+        failure.assertThatCause(matcher)
+    }
+
     protected void failureDescriptionStartsWith(String description) {
         failure.assertThatDescription(containsNormalizedString(description))
     }

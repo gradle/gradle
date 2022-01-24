@@ -20,6 +20,7 @@ import org.gradle.caching.BuildCacheKey
 import org.gradle.caching.internal.controller.BuildCacheCommandFactory
 import org.gradle.caching.internal.controller.BuildCacheController
 import org.gradle.caching.internal.controller.BuildCacheLoadCommand
+import org.gradle.caching.internal.controller.BuildCacheLoadException
 import org.gradle.caching.internal.controller.BuildCacheStoreCommand
 import org.gradle.caching.internal.origin.OriginMetadata
 import org.gradle.internal.Try
@@ -41,7 +42,10 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
     def buildCacheCommandFactory = Mock(BuildCacheCommandFactory)
 
     def beforeExecutionState = Stub(BeforeExecutionState)
-    def cacheKey = Stub(BuildCacheKey)
+    def cacheKeyHashCode = "30a042b90a"
+    def cacheKey = Stub(BuildCacheKey) {
+        hashCode >> cacheKeyHashCode
+    }
     def loadMetadata = Mock(BuildCacheCommandFactory.LoadMetadata)
     def deleter = Mock(Deleter)
     def outputChangeListener = Mock(OutputChangeListener)
@@ -117,8 +121,7 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
         0 * _
     }
 
-    def "fails after unpack failure"() {
-        def failure = new RuntimeException("unpack failure")
+    def "fails after #exceptionName unpack failure with descriptive error"() {
         def loadedOutputFile = file("output.txt")
         def loadedOutputDir = file("output")
 
@@ -127,7 +130,7 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
 
         then:
         def ex = thrown Exception
-        ex.message == "Failed to load cache entry for job ':test'"
+        ex.message == "Failed to load cache entry $cacheKeyHashCode from $cacheName for job ':test': unpack failure"
         ex.cause == failure
 
         interaction { withValidCacheKey() }
@@ -144,6 +147,11 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
 
         then:
         0 * _
+
+        where:
+        exceptionName             | failure                                                                            | cacheName
+        "RuntimeException"        | new RuntimeException("unpack failure")                                             | "build cache"
+        "BuildCacheLoadException" | BuildCacheLoadException.forRemoteCache("", new RuntimeException("unpack failure")) | "remote build cache"
     }
 
     def "does not store untracked result in cache"() {
@@ -222,7 +230,7 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
 
         then:
         def ex = thrown Exception
-        ex.message == "Failed to store cache entry for job ':test'"
+        ex.message == "Failed to store cache entry $cacheKeyHashCode for job ':test': store failure"
         ex.cause == failure
 
         interaction { withValidCacheKey() }
