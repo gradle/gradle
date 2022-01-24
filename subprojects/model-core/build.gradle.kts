@@ -2,7 +2,7 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
-description = "Implementation configuration model types (Providers, software model, conventions)"
+description = "Implementation of configuration model types and annotation metadata handling (Providers, software model, conventions)"
 
 dependencies {
     api(project(":core-api"))
