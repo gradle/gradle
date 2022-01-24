@@ -37,7 +37,8 @@ class FlakyTestQuarantine(model: CIBuildModel, stage: Stage, os: Os) : BaseGradl
             buildToolGradleParameters(true) +
                 listOf("-PflakyTests=only", "-x", "test") +
                 listOf(extraParameters) +
-                functionalTestParameters(os)
+                functionalTestParameters(os) +
+                listOf(buildScanTag(functionalTestTag))
             ).joinToString(separator = " ")
         steps {
             gradleWrapper {
