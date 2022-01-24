@@ -19,7 +19,6 @@ package org.gradle.api.tasks.diagnostics.configurations;
 import org.gradle.api.Incubating;
 import org.gradle.api.reporting.ReportContainer;
 import org.gradle.api.reporting.SingleFileReport;
-import org.gradle.api.tasks.Internal;
 
 /**
  * The reporting configuration for any {@link org.gradle.api.tasks.diagnostics.AbstractConfigurationReportTask}.
@@ -28,13 +27,5 @@ import org.gradle.api.tasks.Internal;
  */
 @Incubating
 public interface ConfigurationReports extends ReportContainer<SingleFileReport> {
-    /**
-     * The JSON-based configuration report.
-     * <p>
-     * This report is <strong>NOT</strong> enabled by default.
-     *
-     * @return The JSON configuration report
-     */
-    @Internal
-    SingleFileReport getJSON();
+    // empty for now, additional report output formats can be added here
 }

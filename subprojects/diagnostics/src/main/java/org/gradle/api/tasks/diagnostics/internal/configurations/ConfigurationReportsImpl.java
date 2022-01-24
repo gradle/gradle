@@ -19,7 +19,6 @@ package org.gradle.api.tasks.diagnostics.internal.configurations;
 import org.gradle.api.Task;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.reporting.SingleFileReport;
-import org.gradle.api.reporting.internal.TaskGeneratedSingleFileReport;
 import org.gradle.api.reporting.internal.TaskReportContainer;
 import org.gradle.api.tasks.diagnostics.configurations.ConfigurationReports;
 
@@ -29,14 +28,5 @@ public class ConfigurationReportsImpl extends TaskReportContainer<SingleFileRepo
     @Inject
     public ConfigurationReportsImpl(Task task, CollectionCallbackActionDecorator callbackActionDecorator) {
         super(SingleFileReport.class, task, callbackActionDecorator);
-
-        add(TaskGeneratedSingleFileReport.class, "json", task);
-
-        getJSON().getOutputLocation().convention(task.getProject().getLayout().getBuildDirectory().file("reports/configuration/" + task.getName() + ".json"));
-    }
-
-    @Override
-    public SingleFileReport getJSON() {
-        return getByName("json");
     }
 }

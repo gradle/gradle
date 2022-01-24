@@ -134,10 +134,6 @@ public abstract class AbstractConfigurationReportTask extends DefaultTask implem
         final AbstractConfigurationReportSpec reportSpec = buildReportSpec();
         final ConfigurationReportModel reportModel = buildReportModel(getProject());
 
-        if (reports.getJSON().getRequired().get()) {
-            reportToFile(reports.getJSON(), reportSpec, reportModel);
-        }
-
         reportToConsole(reportSpec, reportModel);
     }
 
