@@ -26,28 +26,42 @@ import org.gradle.api.tasks.options.Option;
 import org.gradle.work.DisableCachingByDefault;
 
 /**
- * A task which reports the requested variants of a project on the command line.
+ * A task which reports the configurations of a project which can be resolved on the command line.
  *
  * This is useful for determining which attributes are associated with the resolvable
- * configurations being used to resolve a project's dependencies.
- *
- * Variants, in this context, means "resolvable configurations".
+ * configurations being used to resolve a project's dependencies and predict which variants of
+ * dependencies will be resolved.
  *
  * @since 7.5
  */
 @Incubating
 @DisableCachingByDefault(because = "Produces only non-cacheable console output by examining configurations at execution time")
 public abstract class ResolvableConfigurationsReportTask extends AbstractConfigurationReportTask {
+    /**
+     * Limits the report to a single configuration.
+     *
+     * @return property holding name of the configuration to report
+     */
     @Input
     @Optional
     @Option(option = "configuration", description = "The name of a single configuration to report")
     public abstract Property<String> getConfigurationName();
 
+    /**
+     * Shows all configurations, including legacy and deprecated configurations.
+     *
+     * @return property holding the flag to show all configurations
+     */
     @Input
     @Optional
     @Option(option = "all", description = "Shows all resolvable configurations, including legacy and deprecated configurations")
     public abstract Property<Boolean> getShowAll();
 
+    /**
+     * Show all extended configurations, including transitively extended configurations.
+     *
+     * @return property holding the flag to show all extended configurations
+     */
     @Input
     @Optional
     @Option(option = "recursive", description = "Lists all extended configurations of the reported configurations, including any which are extended transitively")

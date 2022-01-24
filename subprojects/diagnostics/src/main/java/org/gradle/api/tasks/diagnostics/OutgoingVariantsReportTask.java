@@ -25,8 +25,10 @@ import org.gradle.work.DisableCachingByDefault;
 
 /**
  * A task which reports the outgoing variants of a project on the command line.
+ *
  * This is useful for listing what a project produces in terms of variants and
  * what artifacts are attached to each variant.
+ *
  * Variants, in this context, must be understood as "things produced by a project
  * which can safely be consumed by another project".
  *
@@ -34,11 +36,21 @@ import org.gradle.work.DisableCachingByDefault;
  */
 @DisableCachingByDefault(because = "Produces only non-cacheable console output by examining configurations at execution time")
 public abstract class OutgoingVariantsReportTask extends AbstractConfigurationReportTask {
+    /**
+     * Limits the report to a single variant.
+     *
+     * @return property holding name of the variant to report
+     */
     @Input
     @Optional
     @Option(option = "variant", description = "The name of a single variant to report")
     public abstract Property<String> getVariantName();
 
+    /**
+     * Shows all variants, including legacy and deprecated configurations.
+     *
+     * @return property holding the flag to show all variants
+     */
     @Input
     @Optional
     @Option(option = "all", description = "Shows all variants, including legacy and deprecated configurations")
