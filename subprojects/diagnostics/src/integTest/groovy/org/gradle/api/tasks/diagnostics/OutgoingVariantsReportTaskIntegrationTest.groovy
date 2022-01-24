@@ -20,7 +20,6 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.InspectsConfigurationReport
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import spock.lang.Ignore
 
 class OutgoingVariantsReportTaskIntegrationTest extends AbstractIntegrationSpec implements InspectsConfigurationReport {
     def setup() {
@@ -85,11 +84,10 @@ class OutgoingVariantsReportTaskIntegrationTest extends AbstractIntegrationSpec 
         run ':outgoingVariants', '--all'
 
         then:
-        outputContains """> Task :outgoingVariants
---------------------------------------------------
+        result.groupedOutput.task(":outgoingVariants").assertOutputContains("""--------------------------------------------------
 Variant legacy (l)
 --------------------------------------------------
-Description = My custom legacy configuration"""
+Description = My custom legacy configuration""")
 
         and:
         hasLegacyLegend()
@@ -112,8 +110,7 @@ Description = My custom legacy configuration"""
         succeeds ':outgoingVariants'
 
         then:
-        outputContains """> Task :outgoingVariants
---------------------------------------------------
+        result.groupedOutput.task(":outgoingVariants").assertOutputContains """--------------------------------------------------
 Variant custom
 --------------------------------------------------
 Description = My custom configuration
@@ -145,8 +142,7 @@ Description = My custom configuration
         succeeds ':outgoingVariants'
 
         then:
-        outputContains """> Task :outgoingVariants
---------------------------------------------------
+        result.groupedOutput.task(":outgoingVariants").assertOutputContains("""--------------------------------------------------
 Variant custom
 --------------------------------------------------
 Description = My custom configuration
@@ -156,8 +152,7 @@ Capabilities
 Attributes
     - org.gradle.dependency.bundling = external
     - org.gradle.libraryelements     = jar
-    - org.gradle.usage               = java-runtime
-"""
+    - org.gradle.usage               = java-runtime""".stripIndent())
 
         and:
         doesNotHaveLegacyLegend()
@@ -196,8 +191,7 @@ Attributes
         succeeds ':outgoingVariants'
 
         then:
-        outputContains """> Task :outgoingVariants
---------------------------------------------------
+        result.groupedOutput.task(":outgoingVariants").assertOutputContains """--------------------------------------------------
 Variant otherConf
 --------------------------------------------------
 Description = My second custom configuration
@@ -217,8 +211,7 @@ Capabilities
 Attributes
     - org.gradle.dependency.bundling = external
     - org.gradle.libraryelements     = jar
-    - org.gradle.usage               = java-runtime
-"""
+    - org.gradle.usage               = java-runtime"""
 
         and:
         doesNotHaveLegacyLegend()
@@ -244,8 +237,7 @@ Attributes
         def sourceMainJavaPath = file('src/main/java').getRelativePathFromBase()
         def sourceMainResourcePath = file('src/main/resources').getRelativePathFromBase()
         def resultsBinPath = file('build/test-results/test/binary').getRelativePathFromBase()
-        outputContains """> Task :outgoingVariants
---------------------------------------------------
+        result.groupedOutput.task(":outgoingVariants").assertOutputContains """--------------------------------------------------
 Variant apiElements
 --------------------------------------------------
 Description = API elements for main.
@@ -384,8 +376,7 @@ Artifacts
         def sourceMainJavaPath = file('src/main/java').getRelativePathFromBase()
         def sourceMainResourcePath = file('src/main/resources').getRelativePathFromBase()
         def resultsBinPath = file('build/test-results/test/binary').getRelativePathFromBase()
-        outputContains """> Task :outgoingVariants
---------------------------------------------------
+        result.groupedOutput.task(":outgoingVariants").assertOutputContains("""--------------------------------------------------
 Variant apiElements
 --------------------------------------------------
 Description = API elements for main.
@@ -523,7 +514,7 @@ Attributes
     - org.gradle.verificationtype      = test-results
 Artifacts
     - $resultsBinPath (artifactType = directory)
-"""
+""")
         and:
         doesNotHaveLegacyLegend()
         hasSecondaryVariantsLegend()
@@ -553,8 +544,7 @@ Artifacts
         def sourceMainJavaPath = file('src/main/java').getRelativePathFromBase()
         def sourceMainResourcePath = file('src/main/resources').getRelativePathFromBase()
         def resultsBinPath = file('build/test-results/test/binary').getRelativePathFromBase()
-        outputContains """> Task :outgoingVariants
---------------------------------------------------
+        result.groupedOutput.task(":outgoingVariants").assertOutputContains("""--------------------------------------------------
 Variant apiElements
 --------------------------------------------------
 Description = API elements for main.
@@ -692,7 +682,8 @@ Attributes
     - org.gradle.verificationtype      = test-results
 Artifacts
     - $resultsBinPath (artifactType = directory)
-"""
+""")
+
         and:
         doesNotHaveLegacyLegend()
         hasSecondaryVariantsLegend()
@@ -714,8 +705,7 @@ Artifacts
         def jarPath = file('build/libs/myLib-1.0.jar').getRelativePathFromBase()
         def builtMainClassesPath = file('build/classes/java/main').getRelativePathFromBase()
         def builtMainResourcesPath = file('build/resources/main').getRelativePathFromBase()
-        outputContains """> Task :outgoingVariants
---------------------------------------------------
+        result.groupedOutput.task(":outgoingVariants").assertOutputContains("""--------------------------------------------------
 Variant runtimeElements
 --------------------------------------------------
 Description = Elements of runtime for main.
@@ -760,7 +750,7 @@ Secondary Variants (*)
             - org.gradle.usage               = java-runtime
         Artifacts
             - $builtMainResourcesPath (artifactType = java-resources-directory)
-"""
+""")
 
         and:
         doesNotHaveLegacyLegend()
@@ -787,8 +777,7 @@ Secondary Variants (*)
         def sourceMainResourcePath = file( 'src/main/resources').getRelativePathFromBase()
         def resultsBinPath = file('build/test-results/test/binary').getRelativePathFromBase()
 
-        outputContains """> Task :outgoingVariants
---------------------------------------------------
+        result.groupedOutput.task(":outgoingVariants").assertOutputContains("""--------------------------------------------------
 Variant apiElements
 --------------------------------------------------
 Description = API elements for main.
@@ -916,7 +905,7 @@ Attributes
     - org.gradle.verificationtype      = test-results
 Artifacts
     - $resultsBinPath (artifactType = directory)
-"""
+""")
 
         and:
         hasLegacyLegend()
@@ -943,8 +932,7 @@ Artifacts
         def sourceMainJavaPath = file('src/main/java').getRelativePathFromBase()
         def sourceMainResourcePath = file('src/main/resources').getRelativePathFromBase()
         def resultsBinPath = file('build/test-results/test/binary').getRelativePathFromBase()
-        outputContains """> Task :outgoingVariants
---------------------------------------------------
+        result.groupedOutput.task(":outgoingVariants").assertOutputContains("""--------------------------------------------------
 Variant apiElements
 --------------------------------------------------
 Description = API elements for main.
@@ -1072,7 +1060,7 @@ Attributes
     - org.gradle.verificationtype      = test-results
 Artifacts
     - $resultsBinPath (artifactType = directory)
-"""
+""")
 
         and:
         hasLegacyLegend()
@@ -1095,8 +1083,7 @@ Artifacts
         run ':outgoingVariants', '--variant', 'runtimeElements'
 
         then:
-        outputContains """> Task :outgoingVariants
---------------------------------------------------
+        result.groupedOutput.task(":outgoingVariants").assertOutputContains("""--------------------------------------------------
 Variant runtimeElements
 --------------------------------------------------
 Description = Elements of runtime for main.
@@ -1104,7 +1091,7 @@ Description = Elements of runtime for main.
 Capabilities
     - org.test:extra:1.0
     - org.test:other:3.0
-"""
+""")
     }
 
     @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
@@ -1129,8 +1116,7 @@ Capabilities
         def jarPath = file('build/libs/myLib-1.0.jar').getRelativePathFromBase()
         def builtMainClassesPath = file('build/classes/java/main').getRelativePathFromBase()
         def builtMainResourcesPath = file('build/resources/main').getRelativePathFromBase()
-        outputContains """> Task :outgoingVariants
---------------------------------------------------
+        result.groupedOutput.task(":outgoingVariants").assertOutputContains("""--------------------------------------------------
 Variant runtimeElements
 --------------------------------------------------
 Description = Elements of runtime for main.
@@ -1176,7 +1162,7 @@ Secondary Variants (*)
             - org.gradle.usage               = java-runtime
         Artifacts
             - $builtMainResourcesPath (artifactType = java-resources-directory)
-"""
+""")
 
         and:
         doesNotHaveLegacyLegend()
@@ -1212,8 +1198,7 @@ Secondary Variants (*)
         def sourceMainJavaPath = file('src/main/java').getRelativePathFromBase()
         def sourceMainResourcePath = file('src/main/resources').getRelativePathFromBase()
         def resultsBinPath = file('build/test-results/test/binary').getRelativePathFromBase()
-        outputContains """> Task :outgoingVariants
---------------------------------------------------
+        result.groupedOutput.task(":outgoingVariants").assertOutputContains("""--------------------------------------------------
 Variant apiElements
 --------------------------------------------------
 Description = API elements for main.
@@ -1330,7 +1315,7 @@ Attributes
     - org.gradle.verificationtype      = test-results
 Artifacts
     - $resultsBinPath (artifactType = directory)
-"""
+""")
 
         and:
         doesNotHaveLegacyLegend()
@@ -1376,7 +1361,9 @@ Artifacts
 
         then:
         def jarPath = file('build/libs/myLib-red.jar').getRelativePathFromBase()
-        outputContains """Variant custom
+
+        result.groupedOutput.task(":outgoingVariants").assertOutputContains("""--------------------------------------------------
+Variant custom
 --------------------------------------------------
 Description = My custom configuration
 
@@ -1384,34 +1371,11 @@ Capabilities
     - :myLib:unspecified (default capability)
 Artifacts
     - $jarPath (artifactType = jar, classifier = red)
-"""
+""")
 
         and:
         doesNotHaveLegacyLegend()
         hasIncubatingLegend()
         doesNotPromptForRerunToFindMoreVariants()
-    }
-
-    @Ignore // expected output is not correct, this will be removed anyway
-    @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
-    def "can write json report to default file"() {
-        given:
-        buildFile << """
-            plugins {
-                id 'java'
-            }
-
-            outgoingVariants {
-                reports.json.required = true
-            }
-        """.stripIndent()
-
-        when:
-        succeeds ':outgoingVariants'
-
-        then:
-        def outputFile = file('build/reports/configuration/outgoingVariants.json')
-        outputFile.assertExists()
-        outputFile.assertContents(containsNormalizedString("{ json: 'Yea!  This is full of JSON!' }"))
     }
 }

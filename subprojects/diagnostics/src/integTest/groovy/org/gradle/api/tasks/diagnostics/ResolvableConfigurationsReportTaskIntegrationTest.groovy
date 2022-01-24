@@ -85,11 +85,10 @@ class ResolvableConfigurationsReportTaskIntegrationTest extends AbstractIntegrat
         run ':resolvableConfigurations', '--all'
 
         then:
-        outputContains """> Task :resolvableConfigurations
---------------------------------------------------
+        result.groupedOutput.task(":resolvableConfigurations").assertOutputContains("""--------------------------------------------------
 Configuration legacy (l)
 --------------------------------------------------
-Description = My custom legacy configuration"""
+Description = My custom legacy configuration""")
 
         and:
         hasLegacyLegend()
@@ -112,12 +111,12 @@ Description = My custom legacy configuration"""
         succeeds ':resolvableConfigurations'
 
         then:
-        outputContains """> Task :resolvableConfigurations
---------------------------------------------------
+        result.groupedOutput.task(":resolvableConfigurations").assertOutputContains("""--------------------------------------------------
 Configuration custom
 --------------------------------------------------
 Description = My custom configuration
-"""
+""")
+
         and:
         doesNotHaveLegacyLegend()
         doesNotHaveIncubatingLegend()
@@ -145,8 +144,7 @@ Description = My custom configuration
         succeeds ':resolvableConfigurations'
 
         then:
-        outputContains """> Task :resolvableConfigurations
---------------------------------------------------
+        result.groupedOutput.task(":resolvableConfigurations").assertOutputContains("""--------------------------------------------------
 Configuration custom
 --------------------------------------------------
 Description = My custom configuration
@@ -155,7 +153,7 @@ Attributes
     - org.gradle.dependency.bundling = external
     - org.gradle.libraryelements     = jar
     - org.gradle.usage               = java-runtime
-"""
+""")
 
         and:
         doesNotHaveLegacyLegend()
@@ -194,8 +192,7 @@ Attributes
         succeeds ':resolvableConfigurations'
 
         then:
-        outputContains """> Task :resolvableConfigurations
---------------------------------------------------
+        result.groupedOutput.task(":resolvableConfigurations").assertOutputContains("""--------------------------------------------------
 Configuration otherConf
 --------------------------------------------------
 Description = My second custom configuration
@@ -212,7 +209,7 @@ Attributes
     - org.gradle.dependency.bundling = external
     - org.gradle.libraryelements     = jar
     - org.gradle.usage               = java-runtime
-"""
+""")
 
         and:
         doesNotHaveLegacyLegend()
@@ -238,8 +235,7 @@ Attributes
         succeeds ':resolvableConfigurations'
 
         then:
-        outputContains """> Task :resolvableConfigurations
---------------------------------------------------
+        result.groupedOutput.task(":resolvableConfigurations").assertOutputContains("""--------------------------------------------------
 Configuration annotationProcessor
 --------------------------------------------------
 Description = Annotation processors and their dependencies for source set 'main'.
@@ -326,7 +322,7 @@ Attributes
 Extended Configurations
     - testImplementation
     - testRuntimeOnly
-"""
+""")
 
         and:
         doesNotHaveLegacyLegend()
@@ -352,8 +348,7 @@ Extended Configurations
         run ':resolvableConfigurations', '--all'
 
         then:
-        outputContains """> Task :resolvableConfigurations
---------------------------------------------------
+        result.groupedOutput.task(":resolvableConfigurations").assertOutputContains("""--------------------------------------------------
 Configuration annotationProcessor
 --------------------------------------------------
 Description = Annotation processors and their dependencies for source set 'main'.
@@ -453,7 +448,7 @@ Attributes
 Extended Configurations
     - testImplementation
     - testRuntimeOnly
-"""
+""")
 
         and:
         hasLegacyLegend()
@@ -568,8 +563,7 @@ Extended Configurations
         succeeds ':resolvableConfigurations'
 
         then:
-        outputContains("""
---------------------------------------------------
+        result.groupedOutput.task(":resolvableConfigurations").assertOutputContains("""--------------------------------------------------
 Compatibility Rules
 --------------------------------------------------
 Description = The following Attributes have compatibility rules defined.
@@ -621,8 +615,7 @@ Description = The following Attributes have compatibility rules defined.
         succeeds ':resolvableConfigurations'
 
         then:
-        outputContains("""
---------------------------------------------------
+        result.groupedOutput.task(":resolvableConfigurations").assertOutputContains("""--------------------------------------------------
 Disambiguation Rules
 --------------------------------------------------
 Description = The following Attributes have disambiguation rules defined.
@@ -663,8 +656,7 @@ Description = The following Attributes have disambiguation rules defined.
         succeeds ':resolvableConfigurations', '--recursive'
 
         then:
-        outputContains """Configuration base
---------------------------------------------------
+        result.groupedOutput.task(":resolvableConfigurations").assertOutputContains("""--------------------------------------------------
 Description = Base configuration
 
 --------------------------------------------------
@@ -682,7 +674,7 @@ Configuration mid
 Description = Mid configuration
 
 Extended Configurations
-    - base"""
+    - base""")
 
         and:
         hasTransitiveLegend()
@@ -717,8 +709,7 @@ Extended Configurations
         succeeds ':resolvableConfigurations'
 
         then:
-        outputContains """Configuration base
---------------------------------------------------
+        result.groupedOutput.task(":resolvableConfigurations").assertOutputContains("""--------------------------------------------------
 Description = Base configuration
 
 --------------------------------------------------
@@ -735,7 +726,7 @@ Configuration mid
 Description = Mid configuration
 
 Extended Configurations
-    - base"""
+    - base""")
 
         and:
         doesNotHaveTransitiveLegend()
@@ -763,7 +754,8 @@ Extended Configurations
         succeeds ':resolvableConfigurations', '--recursive'
 
         then:
-        outputContains """Configuration base
+        result.groupedOutput.task(":resolvableConfigurations").assertOutputContains("""--------------------------------------------------
+Configuration base
 --------------------------------------------------
 Description = Base configuration
 
@@ -773,7 +765,7 @@ Configuration mid
 Description = Mid configuration
 
 Extended Configurations
-    - base"""
+    - base""")
 
         and:
         doesNotHaveTransitiveLegend()
