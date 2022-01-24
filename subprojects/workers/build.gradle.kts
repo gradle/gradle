@@ -2,7 +2,7 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
-description = "Infrastructure for running worker processes"
+description = "Infrastructure for starting and managing worker processes"
 
 dependencies {
     implementation(project(":base-services"))
