@@ -321,17 +321,17 @@ public final class ConsoleConfigurationReportRenderer extends AbstractConfigurat
         String classifier = artifact.getClassifier();
         output.style(StyledTextOutput.Style.Normal).text(artifact.getDisplayName());
         if (StringUtils.isNotEmpty(type)) {
-            output.style(StyledTextOutput.Style.Normal).text(" (");
-            output.style(StyledTextOutput.Style.Description).text("artifactType");
-            output.style(StyledTextOutput.Style.Normal).text(" = ");
-            output.style(StyledTextOutput.Style.Identifier).text(type);
+            output.text(" (");
+            output.withStyle(StyledTextOutput.Style.Description).text("artifactType");
+            output.text(" = ");
+            output.withStyle(StyledTextOutput.Style.Identifier).text(type);
             if (StringUtils.isNotEmpty(classifier)) {
-                output.style(StyledTextOutput.Style.Normal).text(", ");
-                output.style(StyledTextOutput.Style.Description).text("classifier");
-                output.style(StyledTextOutput.Style.Normal).text(" = ");
-                output.style(StyledTextOutput.Style.Identifier).text(classifier);
+                output.text(", ");
+                output.withStyle(StyledTextOutput.Style.Description).text("classifier");
+                output.text(" = ");
+                output.withStyle(StyledTextOutput.Style.Identifier).text(classifier);
             }
-            output.style(StyledTextOutput.Style.Normal).text(")");
+            output.text(")");
         }
     }
 
@@ -372,8 +372,8 @@ public final class ConsoleConfigurationReportRenderer extends AbstractConfigurat
     private void writeSecondaryVariant(ReportSecondaryVariant variant) {
         printHeader(() -> {
             output.style(StyledTextOutput.Style.Normal).text("Secondary Variant ");
-            output.style(StyledTextOutput.Style.Header).text(variant.getName());
-            output.style(StyledTextOutput.Style.Normal).println(buildIndicators(variant));
+            output.withStyle(StyledTextOutput.Style.Header).text(variant.getName());
+            output.println(buildIndicators(variant));
         });
 
         try {
