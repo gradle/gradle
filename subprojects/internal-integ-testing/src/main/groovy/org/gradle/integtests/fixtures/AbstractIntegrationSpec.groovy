@@ -594,36 +594,6 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
         result.assertOutputContains(string.trim())
     }
 
-    /**
-     * Given a string containing a first line which is <strong>unique within the expected output</strong>, checks
-     * if every line in the output matches the lines in the given string, reporting the failing line and number
-     * within both the actual and expected outputs.
-     *
-     * @param string the expected output
-     */
-    void outputContainsLinewise(String string) {
-        outputContainsLinewise(string.readLines())
-    }
-
-    /**
-     * Given a collection of lines beginning with a line which is <strong>unique within the expected output</strong>, checks
-     * if every line in the output matches the lines in the given string, reporting the failing line and number
-     * within both the actual and expected outputs.
-     *
-     * @param lines the expected output
-     */
-    void outputContainsLinewise(List<String> lines) {
-        List<String> outputLines = result.output.readLines()
-        def firstIndex = outputLines.findIndexOf {lines[0] == it }
-        (0..<lines.size()).each {
-            def actual = outputLines[firstIndex + it].trim()
-            def expected = lines[it].trim()
-            if (actual != expected) {
-                throw new AssertionError("Output line ${firstIndex + it}: '$actual'\ndid not match expected line $it: '$expected'")
-            }
-        }
-    }
-
     void postBuildOutputContains(String string) {
         assertHasResult()
         result.assertHasPostBuildOutput(string.trim())

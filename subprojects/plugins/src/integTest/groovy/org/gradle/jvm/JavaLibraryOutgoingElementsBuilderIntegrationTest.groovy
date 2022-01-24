@@ -79,7 +79,7 @@ class JavaLibraryOutgoingElementsBuilderIntegrationTest extends AbstractIntegrat
         run 'outgoingVariants'
 
         then:
-        outputContainsLinewise """Variant shadowElements
+        outputContains """Variant shadowElements
 --------------------------------------------------
 Description = A fat jar
 
@@ -133,7 +133,7 @@ Artifacts
         run 'outgoingVariants'
 
         then:
-        outputContainsLinewise """Variant integTestElements
+        outputContains """Variant integTestElements
 --------------------------------------------------
 
 Capabilities
@@ -146,7 +146,7 @@ Attributes
     - org.gradle.usage               = java-api
 """
         if (classesDir) {
-            outputContainsLinewise """Variant integTestElements
+            outputContains """Variant integTestElements
 --------------------------------------------------
 
 Capabilities
@@ -198,7 +198,7 @@ Secondary Variants (*)
         succeeds 'outgoingVariants'
 
         then:
-        outputContainsLinewise """Variant userguide
+        outputContains """Variant userguide
 --------------------------------------------------
 
 Capabilities

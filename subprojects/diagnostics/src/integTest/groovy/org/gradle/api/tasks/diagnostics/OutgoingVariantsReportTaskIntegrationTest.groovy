@@ -85,7 +85,7 @@ class OutgoingVariantsReportTaskIntegrationTest extends AbstractIntegrationSpec 
         run ':outgoingVariants', '--all'
 
         then:
-        outputContainsLinewise """> Task :outgoingVariants
+        outputContains """> Task :outgoingVariants
 --------------------------------------------------
 Variant legacy (l)
 --------------------------------------------------
@@ -112,7 +112,7 @@ Description = My custom legacy configuration"""
         succeeds ':outgoingVariants'
 
         then:
-        outputContainsLinewise """> Task :outgoingVariants
+        outputContains """> Task :outgoingVariants
 --------------------------------------------------
 Variant custom
 --------------------------------------------------
@@ -145,7 +145,7 @@ Description = My custom configuration
         succeeds ':outgoingVariants'
 
         then:
-        outputContainsLinewise """> Task :outgoingVariants
+        outputContains """> Task :outgoingVariants
 --------------------------------------------------
 Variant custom
 --------------------------------------------------
@@ -196,7 +196,7 @@ Attributes
         succeeds ':outgoingVariants'
 
         then:
-        outputContainsLinewise """> Task :outgoingVariants
+        outputContains """> Task :outgoingVariants
 --------------------------------------------------
 Variant otherConf
 --------------------------------------------------
@@ -244,7 +244,7 @@ Attributes
         def sourceMainJavaPath = file('src/main/java').getRelativePathFromBase()
         def sourceMainResourcePath = file('src/main/resources').getRelativePathFromBase()
         def resultsBinPath = file('build/test-results/test/binary').getRelativePathFromBase()
-        outputContainsLinewise """> Task :outgoingVariants
+        outputContains """> Task :outgoingVariants
 --------------------------------------------------
 Variant apiElements
 --------------------------------------------------
@@ -384,7 +384,7 @@ Artifacts
         def sourceMainJavaPath = file('src/main/java').getRelativePathFromBase()
         def sourceMainResourcePath = file('src/main/resources').getRelativePathFromBase()
         def resultsBinPath = file('build/test-results/test/binary').getRelativePathFromBase()
-        outputContainsLinewise """> Task :outgoingVariants
+        outputContains """> Task :outgoingVariants
 --------------------------------------------------
 Variant apiElements
 --------------------------------------------------
@@ -553,7 +553,7 @@ Artifacts
         def sourceMainJavaPath = file('src/main/java').getRelativePathFromBase()
         def sourceMainResourcePath = file('src/main/resources').getRelativePathFromBase()
         def resultsBinPath = file('build/test-results/test/binary').getRelativePathFromBase()
-        outputContainsLinewise """> Task :outgoingVariants
+        outputContains """> Task :outgoingVariants
 --------------------------------------------------
 Variant apiElements
 --------------------------------------------------
@@ -714,7 +714,7 @@ Artifacts
         def jarPath = file('build/libs/myLib-1.0.jar').getRelativePathFromBase()
         def builtMainClassesPath = file('build/classes/java/main').getRelativePathFromBase()
         def builtMainResourcesPath = file('build/resources/main').getRelativePathFromBase()
-        outputContainsLinewise """> Task :outgoingVariants
+        outputContains """> Task :outgoingVariants
 --------------------------------------------------
 Variant runtimeElements
 --------------------------------------------------
@@ -787,7 +787,7 @@ Secondary Variants (*)
         def sourceMainResourcePath = file( 'src/main/resources').getRelativePathFromBase()
         def resultsBinPath = file('build/test-results/test/binary').getRelativePathFromBase()
 
-        outputContainsLinewise """> Task :outgoingVariants
+        outputContains """> Task :outgoingVariants
 --------------------------------------------------
 Variant apiElements
 --------------------------------------------------
@@ -943,7 +943,7 @@ Artifacts
         def sourceMainJavaPath = file('src/main/java').getRelativePathFromBase()
         def sourceMainResourcePath = file('src/main/resources').getRelativePathFromBase()
         def resultsBinPath = file('build/test-results/test/binary').getRelativePathFromBase()
-        outputContainsLinewise """> Task :outgoingVariants
+        outputContains """> Task :outgoingVariants
 --------------------------------------------------
 Variant apiElements
 --------------------------------------------------
@@ -1095,7 +1095,7 @@ Artifacts
         run ':outgoingVariants', '--variant', 'runtimeElements'
 
         then:
-        outputContainsLinewise """> Task :outgoingVariants
+        outputContains """> Task :outgoingVariants
 --------------------------------------------------
 Variant runtimeElements
 --------------------------------------------------
@@ -1129,7 +1129,7 @@ Capabilities
         def jarPath = file('build/libs/myLib-1.0.jar').getRelativePathFromBase()
         def builtMainClassesPath = file('build/classes/java/main').getRelativePathFromBase()
         def builtMainResourcesPath = file('build/resources/main').getRelativePathFromBase()
-        outputContainsLinewise """> Task :outgoingVariants
+        outputContains """> Task :outgoingVariants
 --------------------------------------------------
 Variant runtimeElements
 --------------------------------------------------
@@ -1212,7 +1212,7 @@ Secondary Variants (*)
         def sourceMainJavaPath = file('src/main/java').getRelativePathFromBase()
         def sourceMainResourcePath = file('src/main/resources').getRelativePathFromBase()
         def resultsBinPath = file('build/test-results/test/binary').getRelativePathFromBase()
-        outputContainsLinewise """> Task :outgoingVariants
+        outputContains """> Task :outgoingVariants
 --------------------------------------------------
 Variant apiElements
 --------------------------------------------------
@@ -1376,7 +1376,7 @@ Artifacts
 
         then:
         def jarPath = file('build/libs/myLib-red.jar').getRelativePathFromBase()
-        outputContainsLinewise """Variant custom
+        outputContains """Variant custom
 --------------------------------------------------
 Description = My custom configuration
 

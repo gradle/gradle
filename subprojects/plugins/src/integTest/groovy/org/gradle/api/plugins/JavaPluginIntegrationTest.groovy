@@ -57,20 +57,21 @@ class JavaPluginIntegrationTest extends AbstractIntegrationSpec implements Inspe
         expect:
         succeeds "outgoingVariants"
 
-        outputContainsLinewise("""Variant mainSourceElements (i)
-            --------------------------------------------------
-            Description = List of source directories contained in the Main SourceSet.
+        outputContains("""
+--------------------------------------------------
+Variant mainSourceElements (i)
+--------------------------------------------------
+Description = List of source directories contained in the Main SourceSet.
 
-            Capabilities
-                - :${getTestDirectory().getName()}:unspecified (default capability)
-            Attributes
-                - org.gradle.category            = verification
-                - org.gradle.dependency.bundling = external
-                - org.gradle.verificationtype    = main-sources
-            Artifacts
-                - src${File.separator}main${File.separator}java (artifactType = directory)
-                - src${File.separator}main${File.separator}resources (artifactType = directory)
-            """)
+Capabilities
+    - :${getTestDirectory().getName()}:unspecified (default capability)
+Attributes
+    - org.gradle.category            = verification
+    - org.gradle.dependency.bundling = external
+    - org.gradle.verificationtype    = main-sources
+Artifacts
+    - src${File.separator}main${File.separator}java (artifactType = directory)
+    - src${File.separator}main${File.separator}resources (artifactType = directory)""")
 
         and:
         hasIncubatingLegend()
@@ -90,21 +91,22 @@ class JavaPluginIntegrationTest extends AbstractIntegrationSpec implements Inspe
         expect:
         succeeds "outgoingVariants"
 
-        outputContainsLinewise("""Variant mainSourceElements (i)
-            --------------------------------------------------
-            Description = List of source directories contained in the Main SourceSet.
+        outputContains("""
+--------------------------------------------------
+Variant mainSourceElements (i)
+--------------------------------------------------
+Description = List of source directories contained in the Main SourceSet.
 
-            Capabilities
-                - :${getTestDirectory().getName()}:unspecified (default capability)
-            Attributes
-                - org.gradle.category            = verification
-                - org.gradle.dependency.bundling = external
-                - org.gradle.verificationtype    = main-sources
-            Artifacts
-                - src${File.separator}main${File.separator}java (artifactType = directory)
-                - src${File.separator}main${File.separator}resources (artifactType = directory)
-                - src${File.separator}more${File.separator}java (artifactType = directory)
-            """)
+Capabilities
+    - :${getTestDirectory().getName()}:unspecified (default capability)
+Attributes
+    - org.gradle.category            = verification
+    - org.gradle.dependency.bundling = external
+    - org.gradle.verificationtype    = main-sources
+Artifacts
+    - src${File.separator}main${File.separator}java (artifactType = directory)
+    - src${File.separator}main${File.separator}resources (artifactType = directory)
+    - src${File.separator}more${File.separator}java (artifactType = directory)""")
 
         and:
         hasIncubatingLegend()

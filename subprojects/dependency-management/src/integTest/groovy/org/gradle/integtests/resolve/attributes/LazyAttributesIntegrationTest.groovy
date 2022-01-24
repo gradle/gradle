@@ -49,7 +49,7 @@ class LazyAttributesIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds "outgoingVariants"
-        outputContainsLinewise("""--------------------------------------------------
+        outputContains("""--------------------------------------------------
             Variant sample
             --------------------------------------------------
             Capabilities

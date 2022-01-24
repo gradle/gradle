@@ -45,21 +45,22 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec implemen
         succeeds "outgoingVariants"
 
         def resultsPath = new TestFile(getTestDirectory(), 'build/test-results/test/binary').getRelativePathFromBase()
-        outputContainsLinewise("""Variant testResultsElementsForTest (i)
-            --------------------------------------------------
-            Description = Directory containing binary results of running tests for the test Test Suite's test target.
+        outputContains("""
+--------------------------------------------------
+Variant testResultsElementsForTest (i)
+--------------------------------------------------
+Description = Directory containing binary results of running tests for the test Test Suite's test target.
 
-            Capabilities
-                - :Test:unspecified (default capability)
-            Attributes
-                - org.gradle.category              = verification
-                - org.gradle.testsuite.name        = test
-                - org.gradle.testsuite.target.name = test
-                - org.gradle.testsuite.type        = unit-test
-                - org.gradle.verificationtype      = test-results
-            Artifacts
-                - $resultsPath (artifactType = directory)
-            """.stripIndent())
+Capabilities
+    - :Test:unspecified (default capability)
+Attributes
+    - org.gradle.category              = verification
+    - org.gradle.testsuite.name        = test
+    - org.gradle.testsuite.target.name = test
+    - org.gradle.testsuite.type        = unit-test
+    - org.gradle.verificationtype      = test-results
+Artifacts
+    - $resultsPath (artifactType = directory)""".stripIndent())
 
         and:
         hasIncubatingLegend()
@@ -91,21 +92,22 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec implemen
         succeeds "outgoingVariants"
 
         def resultsPath = new TestFile(getTestDirectory(), 'build/test-results/integrationTest/binary').getRelativePathFromBase()
-        outputContainsLinewise("""Variant testResultsElementsForIntegrationTest (i)
-            --------------------------------------------------
-            Description = Directory containing binary results of running tests for the integrationTest Test Suite's integrationTest target.
+        outputContains("""
+--------------------------------------------------
+Variant testResultsElementsForIntegrationTest (i)
+--------------------------------------------------
+Description = Directory containing binary results of running tests for the integrationTest Test Suite's integrationTest target.
 
-            Capabilities
-                - :Test:unspecified (default capability)
-            Attributes
-                - org.gradle.category              = verification
-                - org.gradle.testsuite.name        = integrationTest
-                - org.gradle.testsuite.target.name = integrationTest
-                - org.gradle.testsuite.type        = integration-test
-                - org.gradle.verificationtype      = test-results
-            Artifacts
-                - $resultsPath (artifactType = directory)
-            """.stripIndent())
+Capabilities
+    - :Test:unspecified (default capability)
+Attributes
+    - org.gradle.category              = verification
+    - org.gradle.testsuite.name        = integrationTest
+    - org.gradle.testsuite.target.name = integrationTest
+    - org.gradle.testsuite.type        = integration-test
+    - org.gradle.verificationtype      = test-results
+Artifacts
+    - $resultsPath (artifactType = directory)""".stripIndent())
 
         and:
         hasIncubatingLegend()

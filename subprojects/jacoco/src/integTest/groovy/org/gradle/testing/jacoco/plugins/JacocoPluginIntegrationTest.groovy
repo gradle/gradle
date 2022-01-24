@@ -155,20 +155,23 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec implements Ins
         succeeds "outgoingVariants"
 
         def resultsExecPath = new TestFile(getTestDirectory(), 'build/jacoco/test.exec').getRelativePathFromBase()
-        outputContainsLinewise("""Variant coverageDataElementsForTest (i)
-            --------------------------------------------------
-            Description = Binary data file containing results of Jacoco test coverage reporting for the test Test Suite's test target.
+        outputContains("""
+--------------------------------------------------
+Variant coverageDataElementsForTest (i)
+--------------------------------------------------
+Description = Binary data file containing results of Jacoco test coverage reporting for the test Test Suite's test target.
 
-            Capabilities
-                - :Test:unspecified (default capability)
-            Attributes
-                - org.gradle.category              = verification
-                - org.gradle.testsuite.name        = test
-                - org.gradle.testsuite.target.name = test
-                - org.gradle.testsuite.type        = unit-test
-                - org.gradle.verificationtype      = jacoco-coverage
-            Artifacts
-                - $resultsExecPath (artifactType = binary)""")
+Capabilities
+    - :Test:unspecified (default capability)
+Attributes
+    - org.gradle.category              = verification
+    - org.gradle.testsuite.name        = test
+    - org.gradle.testsuite.target.name = test
+    - org.gradle.testsuite.type        = unit-test
+    - org.gradle.verificationtype      = jacoco-coverage
+Artifacts
+    - $resultsExecPath (artifactType = binary)
+""")
 
         and:
         hasIncubatingLegend()
@@ -196,20 +199,22 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec implements Ins
         succeeds "outgoingVariants"
 
         def resultsExecPath = new TestFile(getTestDirectory(), 'build/jacoco/integrationTest.exec').getRelativePathFromBase()
-        outputContainsLinewise("""Variant coverageDataElementsForIntegrationTest (i)
-            --------------------------------------------------
-            Description = Binary data file containing results of Jacoco test coverage reporting for the integrationTest Test Suite's integrationTest target.
+        outputContains("""
+--------------------------------------------------
+Variant coverageDataElementsForIntegrationTest (i)
+--------------------------------------------------
+Description = Binary data file containing results of Jacoco test coverage reporting for the integrationTest Test Suite's integrationTest target.
 
-            Capabilities
-                - :Test:unspecified (default capability)
-            Attributes
-                - org.gradle.category              = verification
-                - org.gradle.testsuite.name        = integrationTest
-                - org.gradle.testsuite.target.name = integrationTest
-                - org.gradle.testsuite.type        = integration-test
-                - org.gradle.verificationtype      = jacoco-coverage
-            Artifacts
-                - $resultsExecPath (artifactType = binary)""")
+Capabilities
+    - :Test:unspecified (default capability)
+Attributes
+    - org.gradle.category              = verification
+    - org.gradle.testsuite.name        = integrationTest
+    - org.gradle.testsuite.target.name = integrationTest
+    - org.gradle.testsuite.type        = integration-test
+    - org.gradle.verificationtype      = jacoco-coverage
+Artifacts
+    - $resultsExecPath (artifactType = binary)""")
 
         and:
         hasIncubatingLegend()

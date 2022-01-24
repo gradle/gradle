@@ -85,7 +85,7 @@ class ResolvableConfigurationsReportTaskIntegrationTest extends AbstractIntegrat
         run ':resolvableConfigurations', '--all'
 
         then:
-        outputContainsLinewise """> Task :resolvableConfigurations
+        outputContains """> Task :resolvableConfigurations
 --------------------------------------------------
 Configuration legacy (l)
 --------------------------------------------------
@@ -112,7 +112,7 @@ Description = My custom legacy configuration"""
         succeeds ':resolvableConfigurations'
 
         then:
-        outputContainsLinewise """> Task :resolvableConfigurations
+        outputContains """> Task :resolvableConfigurations
 --------------------------------------------------
 Configuration custom
 --------------------------------------------------
@@ -145,7 +145,7 @@ Description = My custom configuration
         succeeds ':resolvableConfigurations'
 
         then:
-        outputContainsLinewise """> Task :resolvableConfigurations
+        outputContains """> Task :resolvableConfigurations
 --------------------------------------------------
 Configuration custom
 --------------------------------------------------
@@ -194,7 +194,7 @@ Attributes
         succeeds ':resolvableConfigurations'
 
         then:
-        outputContainsLinewise """> Task :resolvableConfigurations
+        outputContains """> Task :resolvableConfigurations
 --------------------------------------------------
 Configuration otherConf
 --------------------------------------------------
@@ -238,7 +238,7 @@ Attributes
         succeeds ':resolvableConfigurations'
 
         then:
-        outputContainsLinewise """> Task :resolvableConfigurations
+        outputContains """> Task :resolvableConfigurations
 --------------------------------------------------
 Configuration annotationProcessor
 --------------------------------------------------
@@ -352,7 +352,7 @@ Extended Configurations
         run ':resolvableConfigurations', '--all'
 
         then:
-        outputContainsLinewise """> Task :resolvableConfigurations
+        outputContains """> Task :resolvableConfigurations
 --------------------------------------------------
 Configuration annotationProcessor
 --------------------------------------------------
@@ -568,11 +568,13 @@ Extended Configurations
         succeeds ':resolvableConfigurations'
 
         then:
-        outputContainsLinewise("""Compatibility Rules
-        --------------------------------------------------
-        Description = The following Attributes have compatibility rules defined.
+        outputContains("""
+--------------------------------------------------
+Compatibility Rules
+--------------------------------------------------
+Description = The following Attributes have compatibility rules defined.
 
-            - flavor""")
+    - flavor""")
 
         and:
         doesNotHaveLegacyLegend()
@@ -619,11 +621,13 @@ Extended Configurations
         succeeds ':resolvableConfigurations'
 
         then:
-        outputContainsLinewise("""Disambiguation Rules
-        --------------------------------------------------
-        Description = The following Attributes have disambiguation rules defined.
+        outputContains("""
+--------------------------------------------------
+Disambiguation Rules
+--------------------------------------------------
+Description = The following Attributes have disambiguation rules defined.
 
-            - flavor""")
+    - flavor""")
 
         and:
         doesNotHaveLegacyLegend()
@@ -659,7 +663,7 @@ Extended Configurations
         succeeds ':resolvableConfigurations', '--recursive'
 
         then:
-        outputContainsLinewise """Configuration base
+        outputContains """Configuration base
 --------------------------------------------------
 Description = Base configuration
 
@@ -713,7 +717,7 @@ Extended Configurations
         succeeds ':resolvableConfigurations'
 
         then:
-        outputContainsLinewise """Configuration base
+        outputContains """Configuration base
 --------------------------------------------------
 Description = Base configuration
 
@@ -759,7 +763,7 @@ Extended Configurations
         succeeds ':resolvableConfigurations', '--recursive'
 
         then:
-        outputContainsLinewise """Configuration base
+        outputContains """Configuration base
 --------------------------------------------------
 Description = Base configuration
 
