@@ -285,6 +285,8 @@ $lastOutput
         } catch (AssertionError ignored) {
             // ok, what we want
         }
+        assert gradle.isRunning()
+        assert !output.contains("Exiting continuous build")
     }
 
     // should be private, but is accessed by closures in this class

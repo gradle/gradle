@@ -29,7 +29,6 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
 
     def "detects no changes when no files are in the project"() {
         given:
-        def markerFile = file("input/marker")
         buildFile << """
             task myTask {
               def inputFile = file("input/marker")
@@ -45,11 +44,6 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         succeeds("myTask")
         then:
         output.contains "exists: false"
-
-        when:
-        waitBeforeModification(markerFile)
-        markerFile.text = "created"
-        then:
         // There are different reason why this doesn't work for hierarchical and non-hierarchical watchers.
         // We may want to support this use-case at some point.
         // For hierarchical watchers, we don't watch the project directory if the VFS only contains missing files in there.
@@ -57,7 +51,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         // When the `input` directory is created, we invalidate the VFS and stop watching since the missing snapshot now has been removed.
         // Though we don't consider the path `input` as an input to the build, since it is a parent of the declared input
         // `input/marker`. So we don't trigger a rebuild.
-        noBuildTriggered()
+        exitsContinuousBuildSinceNotWatchingAnyLocations()
     }
 
     def "does not detect changes when no snapshotting happens (#description)"() {
@@ -78,15 +72,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         succeeds("myTask")
         then:
         output.contains "value: original"
-
-        when:
-        waitBeforeModification(markerFile)
-        markerFile.text = "changed"
-        then:
-        // If we don't snapshot anything, then we are also not watching anything,
-        // since we only watch things in the VFS.
-        // This is a limitation of the current implementation.
-        noBuildTriggered()
+        exitsContinuousBuildSinceNotWatchingAnyLocations()
 
         where:
         description      | taskConfiguration
@@ -170,7 +156,6 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
     def "does not detect changes in filtered file tree inputs when first matching file is created"() {
         def sources = file("sources").createDir()
         sources.file("sub/some/excluded").createFile()
-        def includedFile = sources.file("sub/some/included.txt")
 
         buildFile << taskOnlyIncludingTxtFiles
 
@@ -178,11 +163,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         succeeds("myTask")
         then:
         outputContains("includedFiles: 0")
-
-        when:
-        includedFile.text = "created"
-        then:
-        noBuildTriggered()
+        exitsContinuousBuildSinceNotWatchingAnyLocations()
     }
 
     String taskOnlyIncludingTxtFiles = """
@@ -324,8 +305,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
 
         then:
         fails("a")
-        !gradle.running
-        output.contains("Exiting continuous build as no executed tasks declared file system inputs.")
+        exitContinuousBuildSinceNoDeclaredInputs()
     }
 
     def "exits when build fails with configuration error"() {
@@ -336,8 +316,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
 
         then:
         fails("a")
-        !gradle.running
-        output.contains("Exiting continuous build as no executed tasks declared file system inputs.")
+        exitContinuousBuildSinceNoDeclaredInputs()
     }
 
     def "exits when no executed tasks have file system inputs"() {
@@ -348,8 +327,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
 
         then:
         succeeds("a")
-        !gradle.running
-        output.contains("Exiting continuous build as no executed tasks declared file system inputs.")
+        exitContinuousBuildSinceNoDeclaredInputs()
     }
 
     @ToBeFixedForConfigurationCache
@@ -638,5 +616,15 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         expect:
         fails("myTask", "--no-watch-fs")
         failureDescriptionContains("Continuous build does not work when file system watching is disabled")
+    }
+
+    private void exitContinuousBuildSinceNoDeclaredInputs() {
+        assert !gradle.running
+        assert output.contains("Exiting continuous build as no executed tasks declared file system inputs.")
+    }
+
+    private void exitsContinuousBuildSinceNotWatchingAnyLocations() {
+        assert !gradle.running
+        assert output.contains("Exiting continuous build as Gradle does not watch any file system locations.")
     }
 }

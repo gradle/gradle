@@ -46,6 +46,7 @@ import org.gradle.internal.session.BuildSessionContext;
 import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.watch.vfs.FileChangeListeners;
+import org.gradle.internal.watch.vfs.FileSystemWatchingInformation;
 import org.gradle.util.internal.DisconnectableInputStream;
 
 import java.util.function.Supplier;
@@ -63,6 +64,7 @@ public class ContinuousBuildActionExecutor implements BuildSessionActionExecutor
     private final Clock clock;
     private final Stat stat;
     private final CaseSensitivity caseSensitivity;
+    private final FileSystemWatchingInformation fileSystemWatchingInformation;
     private final ExecutorFactory executorFactory;
     private final StyledTextOutput logger;
 
@@ -79,6 +81,7 @@ public class ContinuousBuildActionExecutor implements BuildSessionActionExecutor
         Clock clock,
         Stat stat,
         CaseSensitivity caseSensitivity,
+        FileSystemWatchingInformation fileSystemWatchingInformation,
         BuildSessionActionExecutor delegate
     ) {
         this.inputsListeners = inputsListeners;
@@ -91,6 +94,7 @@ public class ContinuousBuildActionExecutor implements BuildSessionActionExecutor
         this.clock = clock;
         this.stat = stat;
         this.caseSensitivity = caseSensitivity;
+        this.fileSystemWatchingInformation = fileSystemWatchingInformation;
         this.operatingSystem = OperatingSystem.current();
         this.executorFactory = executorFactory;
         this.logger = styledTextOutputFactory.create(ContinuousBuildActionExecutor.class, LogLevel.QUIET);
@@ -127,7 +131,13 @@ public class ContinuousBuildActionExecutor implements BuildSessionActionExecutor
         return cancellableOperationManager;
     }
 
-    private void waitForDeployments(BuildAction action, BuildRequestMetaData requestContext, BuildSessionContext buildSession, BuildCancellationToken cancellationToken, CancellableOperationManager cancellableOperationManager) {
+    private void waitForDeployments(
+        BuildAction action,
+        BuildRequestMetaData requestContext,
+        BuildSessionContext buildSession,
+        BuildCancellationToken cancellationToken,
+        CancellableOperationManager cancellableOperationManager
+    ) {
         if (!deploymentRegistry.getRunningDeployments().isEmpty()) {
             // Deployments are considered outOfDate until initial execution with file watching
             for (Deployment deployment : deploymentRegistry.getRunningDeployments()) {
@@ -141,8 +151,14 @@ public class ContinuousBuildActionExecutor implements BuildSessionActionExecutor
         cancellableOperationManager.closeInput();
     }
 
-    private BuildActionRunner.Result executeMultipleBuilds(BuildAction action, BuildRequestMetaData requestContext, BuildSessionContext buildSession,
-                                                           BuildCancellationToken cancellationToken, CancellableOperationManager cancellableOperationManager, ContinuousExecutionGate continuousExecutionGate) {
+    private BuildActionRunner.Result executeMultipleBuilds(
+        BuildAction action,
+        BuildRequestMetaData requestContext,
+        BuildSessionContext buildSession,
+        BuildCancellationToken cancellationToken,
+        CancellableOperationManager cancellableOperationManager,
+        ContinuousExecutionGate continuousExecutionGate
+    ) {
         BuildActionRunner.Result lastResult;
         PendingChangesListener pendingChangesListener = listenerManager.getBroadcaster(PendingChangesListener.class);
         while (true) {
@@ -162,6 +178,9 @@ public class ContinuousBuildActionExecutor implements BuildSessionActionExecutor
 
                 if (buildInputs.isEmpty()) {
                     logger.println().withStyle(StyledTextOutput.Style.Failure).println("Exiting continuous build as no executed tasks declared file system inputs.");
+                    return lastResult;
+                } else if (!fileSystemWatchingInformation.isWatchingAnyLocations()) {
+                    logger.println().withStyle(StyledTextOutput.Style.Failure).println("Exiting continuous build as Gradle does not watch any file system locations.");
                     return lastResult;
                 } else {
                     cancellableOperationManager.monitorInput(operationToken -> {
