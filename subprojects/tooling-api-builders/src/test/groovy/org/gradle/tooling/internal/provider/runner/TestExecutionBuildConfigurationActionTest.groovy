@@ -76,6 +76,7 @@ class TestExecutionBuildConfigurationActionTest extends Specification {
         debugOptions = Mock()
         debugOptions.isDebugMode() >> false
         testExecutionRequest.getDebugOptions() >> debugOptions
+        testExecutionRequest.getTestPatternSpecs() >> []
 
         setupProject()
         setupTestTask()

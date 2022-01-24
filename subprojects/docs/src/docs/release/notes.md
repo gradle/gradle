@@ -70,6 +70,23 @@ connection.newTestLauncher()
 
 Note, that the task execution only works if the target Gradle version is >=7.6.
 
+#### Fine-grained test selection with TestLauncher
+
+The [TestLauncher](javadoc/org/gradle/tooling/TestLauncher.html) interface now allows Tooling API clients to select test classes, methods, packages and patterns with a new API.
+
+```
+TestLauncher testLauncher = projectConnection.newTestLauncher();
+testLauncher.withTestsFor(spec -> {
+    spec.forTaskPath(":test")
+        .includePackage("org.pkg")
+        .includeClass("com.TestClass")
+        .includeMethod("com.TestClass")
+        .includePattern("io.*")
+}).run();
+```
+
+Note, that the new test selection interface only works if the target Gradle version is >=7.6.
+
 ### Improved Maven Conversion
 
 The `init` task now adds compile-time Maven dependencies to Gradle's `api` configuration when converting a Maven project. This sharply reduces the number of compilation errors resulting from the automatic conversion utility. See the [Build Init Plugin](userguide/build_init_plugin.html#sec:pom_maven_conversion) for more information.
