@@ -36,7 +36,7 @@ import org.gradle.work.DisableCachingByDefault;
 public abstract class OutgoingVariantsReportTask extends AbstractConfigurationReportTask {
     @Input
     @Optional
-    @Option(option = "variant", description = "The variant name")
+    @Option(option = "variant", description = "The name of a single variant to report")
     public abstract Property<String> getVariantName();
 
     @Input

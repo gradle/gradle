@@ -40,7 +40,7 @@ import org.gradle.work.DisableCachingByDefault;
 public abstract class ResolvableConfigurationsReportTask extends AbstractConfigurationReportTask {
     @Input
     @Optional
-    @Option(option = "configuration", description = "The requested configuration name")
+    @Option(option = "configuration", description = "The name of a single configuration to report")
     public abstract Property<String> getConfigurationName();
 
     @Input
@@ -50,7 +50,7 @@ public abstract class ResolvableConfigurationsReportTask extends AbstractConfigu
 
     @Input
     @Optional
-    @Option(option = "recursive", description = "Shows all extended configurations, including transitively extended configurations")
+    @Option(option = "recursive", description = "Lists all extended configurations of the reported configurations, including any which are extended transitively")
     public abstract Property<Boolean> getRecursive();
 
     @Override
