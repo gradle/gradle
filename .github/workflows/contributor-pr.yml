@@ -118,4 +118,5 @@ jobs:
               ${{ matrix.bucket.tasks }}
               --no-configuration-cache
               -DdisableLocalCache=true
+              -PflakyTests=exclude
               ${{ needs.build.outputs.sys-prop-args }}
