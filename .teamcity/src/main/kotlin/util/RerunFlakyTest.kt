@@ -94,7 +94,7 @@ class RerunFlakyTest(os: Os) : BuildType({
             "openjdk",
             display = ParameterDisplay.PROMPT,
             description = "Java vendor to run the test with",
-            options = listOf(JvmVendor.values().map { it.displayName to it.name })
+            options = JvmVendor.values().map { it.displayName to it.name }
         )
         text(
             testTaskOptionsParameterName,
