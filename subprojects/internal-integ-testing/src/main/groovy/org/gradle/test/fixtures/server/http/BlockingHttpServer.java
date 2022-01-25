@@ -66,7 +66,7 @@ public class BlockingHttpServer extends ExternalResource implements ResettableEx
     private String hostAlias;
 
     public BlockingHttpServer() throws IOException {
-        this(120000);
+        this(120_000);
     }
 
     public BlockingHttpServer(int timeoutMs) throws IOException {
