@@ -16,7 +16,9 @@
 
 package org.gradle.caching.internal.controller;
 
+import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.BuildCacheService;
+import org.gradle.caching.internal.CacheableEntity;
 
 import java.io.Closeable;
 import java.util.Optional;
@@ -32,7 +34,7 @@ public interface BuildCacheController extends Closeable {
 
     boolean isEmitDebugLogging();
 
-    <T> Optional<T> load(BuildCacheLoadCommand<T> command);
+    Optional<BuildCacheLoadMetadata> load(BuildCacheKey cacheKey, CacheableEntity cacheableEntity);
 
     void store(BuildCacheStoreCommand command);
 

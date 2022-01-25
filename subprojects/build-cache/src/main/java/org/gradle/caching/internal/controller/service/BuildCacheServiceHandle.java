@@ -22,6 +22,7 @@ import org.gradle.caching.BuildCacheService;
 
 import javax.annotation.Nullable;
 import java.io.Closeable;
+import java.io.File;
 
 public interface BuildCacheServiceHandle extends Closeable {
 
@@ -31,7 +32,12 @@ public interface BuildCacheServiceHandle extends Closeable {
 
     boolean canLoad();
 
-    void load(BuildCacheKey key, LoadTarget loadTarget);
+    /**
+     * Load the cached entry corresponding to the given cache key to the given target file.
+     *
+     * Returns true if load succeeded or false if it failed.
+     */
+    boolean load(BuildCacheKey key, File loadTarget);
 
     boolean canStore();
 

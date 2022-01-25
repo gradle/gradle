@@ -16,6 +16,9 @@
 
 package org.gradle.caching.internal.controller;
 
+import org.gradle.caching.BuildCacheKey;
+import org.gradle.caching.internal.CacheableEntity;
+
 import java.util.Optional;
 
 public class NoOpBuildCacheController implements BuildCacheController {
@@ -36,7 +39,7 @@ public class NoOpBuildCacheController implements BuildCacheController {
     }
 
     @Override
-    public <T> Optional<T> load(BuildCacheLoadCommand<T> command) {
+    public Optional<BuildCacheLoadMetadata> load(BuildCacheKey cacheKey, CacheableEntity cacheableEntity) {
         return Optional.empty();
     }
 

@@ -17,13 +17,15 @@
 package org.gradle.caching.internal.controller.service;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.gradle.api.Action;
 import org.gradle.caching.BuildCacheKey;
+import org.gradle.caching.internal.controller.BuildCacheLoadMetadata;
 import org.gradle.caching.local.internal.LocalBuildCacheService;
 
 import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.File;
+import java.util.Optional;
+import java.util.function.Function;
 
 public interface LocalBuildCacheServiceHandle extends Closeable {
 
@@ -34,7 +36,7 @@ public interface LocalBuildCacheServiceHandle extends Closeable {
     boolean canLoad();
 
     // TODO: what if this errors?
-    void load(BuildCacheKey key, Action<? super File> reader);
+    Optional<BuildCacheLoadMetadata> load(BuildCacheKey key, Function<File, BuildCacheLoadMetadata> reader);
 
     boolean canStore();
 

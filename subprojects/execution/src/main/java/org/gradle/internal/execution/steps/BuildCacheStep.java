@@ -24,6 +24,7 @@ import org.gradle.caching.internal.CacheableEntity;
 import org.gradle.caching.internal.controller.BuildCacheCommandFactory;
 import org.gradle.caching.internal.controller.BuildCacheCommandFactory.LoadMetadata;
 import org.gradle.caching.internal.controller.BuildCacheController;
+import org.gradle.caching.internal.controller.BuildCacheLoadMetadata;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.ExecutionOutcome;
@@ -79,8 +80,8 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExec
     private AfterExecutionResult executeWithCache(UnitOfWork work, IncrementalChangesContext context, BuildCacheKey cacheKey, BeforeExecutionState beforeExecutionState) {
         CacheableWork cacheableWork = new CacheableWork(context.getIdentity().getUniqueId(), context.getWorkspace(), work);
         return Try.ofFailable(() -> work.isAllowedToLoadFromCache()
-                ? buildCache.load(commandFactory.createLoad(cacheKey, cacheableWork))
-                : Optional.<LoadMetadata>empty()
+                ? buildCache.load(cacheKey, cacheableWork)
+                : Optional.<BuildCacheLoadMetadata>empty()
             )
             .map(successfulLoad -> successfulLoad
                 .map(cacheHit -> {

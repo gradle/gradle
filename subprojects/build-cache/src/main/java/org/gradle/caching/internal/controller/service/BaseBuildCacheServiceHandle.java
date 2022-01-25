@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
+import java.io.File;
 
 public class BaseBuildCacheServiceHandle implements BuildCacheServiceHandle {
 
@@ -63,13 +64,16 @@ public class BaseBuildCacheServiceHandle implements BuildCacheServiceHandle {
     }
 
     @Override
-    public final void load(BuildCacheKey key, LoadTarget loadTarget) {
+    public final boolean load(BuildCacheKey key, File loadTargetFile) {
         String description = "Load entry " + key.getDisplayName() + " from " + role.getDisplayName() + " build cache";
         LOGGER.debug(description);
         try {
+            LoadTarget loadTarget = new LoadTarget(loadTargetFile);
             loadInner(description, key, loadTarget);
+            return loadTarget.isLoaded();
         } catch (Exception e) {
             failure("load", "from", key, e);
+            return false;
         }
     }
 

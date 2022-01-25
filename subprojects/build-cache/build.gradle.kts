@@ -7,6 +7,7 @@ dependencies {
     api(project(":build-cache-base"))
     api(project(":snapshots"))
 
+    implementation(project(":build-cache-packaging"))
     implementation(project(":base-services"))
     implementation(project(":enterprise-operations"))
     implementation(project(":core-api"))

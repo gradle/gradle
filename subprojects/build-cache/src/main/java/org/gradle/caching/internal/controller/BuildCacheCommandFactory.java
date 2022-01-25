@@ -31,6 +31,7 @@ public interface BuildCacheCommandFactory {
     BuildCacheStoreCommand createStore(BuildCacheKey cacheKey, CacheableEntity entity, Map<String, ? extends FileSystemSnapshot> snapshots, Duration executionTime);
 
     interface LoadMetadata {
+        long getArtifactEntryCount();
         OriginMetadata getOriginMetadata();
         ImmutableSortedMap<String, FileSystemSnapshot> getResultingSnapshots();
     }
