@@ -24,12 +24,6 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
     def setup() {
         System.out.println("TAPI client is using Java " + clientJdkVersion)
 
-        def jvmArgs = """
-            if (${clientJdkVersion.isCompatibleWith(JavaVersion.VERSION_16)} && ['2.14.1'].contains(project.findProperty("gradleVersion"))) {
-                jvmArgs = ["--add-opens", "java.base/java.lang=ALL-UNNAMED"]
-            }
-        """
-
         executer.beforeExecute {
             withToolchainDetectionEnabled()
         }
@@ -44,27 +38,24 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
             }
 
             task runTask(type: JavaExec) {
-                classpath = sourceSets.main.runtimeClasspath
-                mainClass = "ToolingApiCompatibilityClient"
-                javaLauncher = javaToolchains.launcherFor {
-                    languageVersion = JavaLanguageVersion.of(Integer.parseInt(project.findProperty("clientJdk")))
-                }
-                enableAssertions = true
-                $jvmArgs
-
                 args = [ "help", file("test-project"), project.findProperty("gradleVersion"), project.findProperty("targetJdk"), gradle.gradleUserHomeDir ]
             }
 
             task buildAction(type: JavaExec) {
+                args = [ "action", file("test-project"), project.findProperty("gradleVersion"), project.findProperty("targetJdk"), gradle.gradleUserHomeDir ]
+            }
+            
+            configure([runTask, buildAction]) {
                 classpath = sourceSets.main.runtimeClasspath
                 mainClass = "ToolingApiCompatibilityClient"
                 javaLauncher = javaToolchains.launcherFor {
                     languageVersion = JavaLanguageVersion.of(Integer.parseInt(project.findProperty("clientJdk")))
                 }
                 enableAssertions = true
-                $jvmArgs
-
-                args = [ "action", file("test-project"), project.findProperty("gradleVersion"), project.findProperty("targetJdk"), gradle.gradleUserHomeDir ]
+                
+                if (${clientJdkVersion.isCompatibleWith(JavaVersion.VERSION_16)} && ['2.14.1'].contains(project.findProperty("gradleVersion"))) {
+                    jvmArgs = ["--add-opens", "java.base/java.lang=ALL-UNNAMED"]
+                }
             }
 
             java {
