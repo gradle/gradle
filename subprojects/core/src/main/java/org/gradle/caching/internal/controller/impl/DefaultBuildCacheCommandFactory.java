@@ -41,6 +41,7 @@ import java.io.OutputStream;
 import java.time.Duration;
 import java.util.Map;
 
+// TODO delete
 public class DefaultBuildCacheCommandFactory implements BuildCacheCommandFactory {
 
     private final BuildCacheEntryPacker packer;
@@ -99,6 +100,11 @@ public class DefaultBuildCacheCommandFactory implements BuildCacheCommandFactory
                 @Override
                 public LoadMetadata getMetadata() {
                     return new LoadMetadata() {
+                        @Override
+                        public long getArtifactEntryCount() {
+                            return 0;
+                        }
+
                         @Override
                         public OriginMetadata getOriginMetadata() {
                             return unpackResult.getOriginMetadata();

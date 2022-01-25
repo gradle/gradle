@@ -164,7 +164,7 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExec
 
     private void store(CacheableWork work, BuildCacheKey cacheKey, ImmutableSortedMap<String, FileSystemSnapshot> outputFilesProducedByWork, Duration executionTime) {
         try {
-            buildCache.store(commandFactory.createStore(cacheKey, work, outputFilesProducedByWork, executionTime));
+            buildCache.store(cacheKey, work, outputFilesProducedByWork, executionTime);
             if (LOGGER.isInfoEnabled()) {
                 LOGGER.info("Stored cache entry for {} with cache key {}",
                     work.getDisplayName(), cacheKey.getHashCode());

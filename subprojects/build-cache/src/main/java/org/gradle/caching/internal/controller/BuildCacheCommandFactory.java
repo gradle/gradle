@@ -25,6 +25,7 @@ import org.gradle.internal.snapshot.FileSystemSnapshot;
 import java.time.Duration;
 import java.util.Map;
 
+// TODO delete
 public interface BuildCacheCommandFactory {
     BuildCacheLoadCommand<LoadMetadata> createLoad(BuildCacheKey cacheKey, CacheableEntity entity);
 

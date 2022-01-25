@@ -19,8 +19,11 @@ package org.gradle.caching.internal.controller;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.internal.CacheableEntity;
+import org.gradle.internal.snapshot.FileSystemSnapshot;
 
 import java.io.Closeable;
+import java.time.Duration;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -36,6 +39,6 @@ public interface BuildCacheController extends Closeable {
 
     Optional<BuildCacheLoadMetadata> load(BuildCacheKey cacheKey, CacheableEntity cacheableEntity);
 
-    void store(BuildCacheStoreCommand command);
+    void store(BuildCacheKey cacheKey, CacheableEntity entity, Map<String, FileSystemSnapshot> snapshots, Duration executionTime);
 
 }

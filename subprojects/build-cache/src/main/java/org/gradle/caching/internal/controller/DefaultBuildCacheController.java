@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Interner;
 import com.google.common.io.Closer;
-import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.caching.BuildCacheKey;
@@ -64,6 +63,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
@@ -207,17 +207,13 @@ public class DefaultBuildCacheController implements BuildCacheController {
     }
 
     @Override
-    public void store(BuildCacheStoreCommand command) {
+    public void store(BuildCacheKey key, CacheableEntity entity, Map<String, FileSystemSnapshot> snapshots, Duration executionTime) {
         if (!local.canStore() && !remote.canStore()) {
             return;
         }
 
-        BuildCacheKey key = command.getKey();
-        Pack pack = new Pack(command);
-
-        tmp.withTempFile(command.getKey(), file -> {
-            pack.execute(file);
-
+        tmp.withTempFile(key, file -> {
+            pack(file, key, entity, snapshots, executionTime);
             if (remote.canStore()) {
                 remote.store(key, new StoreTarget(file));
             }
@@ -228,36 +224,24 @@ public class DefaultBuildCacheController implements BuildCacheController {
         });
     }
 
-    private class Pack implements Action<File> {
-
-        private final BuildCacheStoreCommand command;
-
-        private Pack(BuildCacheStoreCommand command) {
-            this.command = command;
-        }
-
-        @Override
-        public void execute(final File file) {
-            buildOperationExecutor.run(new RunnableBuildOperation() {
-                @Override
-                public void run(BuildOperationContext context) throws IOException {
-                    try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
-                        BuildCacheStoreCommand.Result result = command.store(fileOutputStream);
-                        context.setResult(new PackOperationResult(
-                            result.getArtifactEntryCount(),
-                            file.length()
-                        ));
-                    }
+    private void pack(File file, BuildCacheKey key, CacheableEntity entity, Map<String, FileSystemSnapshot> snapshots, Duration executionTime) {
+        buildOperationExecutor.run(new RunnableBuildOperation() {
+            @Override
+            public void run(BuildOperationContext context) throws IOException {
+                try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
+                    BuildCacheEntryPacker.PackResult packResult = packer.pack(entity, snapshots, fileOutputStream, originMetadataFactory.createWriter(entity, executionTime));
+                    long entryCount = packResult.getEntries();
+                    context.setResult(new PackOperationResult(entryCount, file.length()));
                 }
+            }
 
-                @Override
-                public BuildOperationDescriptor.Builder description() {
-                    return BuildOperationDescriptor.displayName("Pack build cache entry " + command.getKey())
-                        .details(new PackOperationDetails(command.getKey()))
-                        .progressDisplayName("Packing build cache entry");
-                }
-            });
-        }
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                return BuildOperationDescriptor.displayName("Pack build cache entry " + key)
+                    .details(new PackOperationDetails(key))
+                    .progressDisplayName("Packing build cache entry");
+            }
+        });
     }
 
     @Override
