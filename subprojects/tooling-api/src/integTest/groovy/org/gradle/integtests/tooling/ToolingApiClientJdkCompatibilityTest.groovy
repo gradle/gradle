@@ -228,9 +228,8 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
         JavaVersion.VERSION_1_8 | "4.6"    // last version with reported regression
         JavaVersion.VERSION_1_8 | "4.7"    // first version that had no reported regression
         JavaVersion.VERSION_1_8 | "4.10.3"
-        JavaVersion.VERSION_1_8 | "5.0"
         JavaVersion.VERSION_1_8 | "5.6.4"
-        JavaVersion.VERSION_1_8 | "6.0"
+        JavaVersion.VERSION_1_8 | "6.9.2"
     }
 
     def "tapi client can run build action with Gradle and Java combination"(JavaVersion gradleDaemonJdkVersion, String gradleVersion) {
@@ -262,8 +261,7 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
         JavaVersion.VERSION_1_8 | "4.6"    // last version with reported regression
         JavaVersion.VERSION_1_8 | "4.7"    // first version that had no reported regression
         JavaVersion.VERSION_1_8 | "4.10.3"
-        JavaVersion.VERSION_1_8 | "5.0"
         JavaVersion.VERSION_1_8 | "5.6.4"
-        JavaVersion.VERSION_1_8 | "6.0"
+        JavaVersion.VERSION_1_8 | "6.9.2"
     }
 }
