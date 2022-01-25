@@ -17,7 +17,6 @@
 package org.gradle.api.tasks.diagnostics.internal.configurations.model;
 
 import org.gradle.api.attributes.Attribute;
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.attributes.IncubatingAttributesChecker;
 
 import javax.annotation.Nullable;
@@ -31,21 +30,10 @@ public final class ReportAttribute {
     @Nullable private final Object value;
     private final boolean isIncubating;
 
-    private ReportAttribute(Attribute<Object> key, @Nullable Object value) {
+    ReportAttribute(Attribute<Object> key, @Nullable Object value) {
         this.name = key.getName();
         this.value = value;
         this.isIncubating = IncubatingAttributesChecker.isIncubating(key, value);
-    }
-
-    public static ReportAttribute fromAttributeInContainer(Attribute<?> attribute, AttributeContainer container) {
-        @SuppressWarnings("unchecked") Attribute<Object> key = (Attribute<Object>) attribute;
-        Object value = container.getAttribute(key);
-        return new ReportAttribute(key, value);
-    }
-
-    public static ReportAttribute fromUncontainedAttribute(Attribute<?> attribute) {
-        @SuppressWarnings("unchecked") Attribute<Object> key = (Attribute<Object>) attribute;
-        return new ReportAttribute(key, null);
     }
 
     public String getName() {

@@ -32,10 +32,10 @@ public final class ConfigurationReportModel {
     private final List<ReportAttribute> attributesWithCompatibilityRules;
     private final List<ReportAttribute> attributesWithDisambiguationRules;
 
-    public ConfigurationReportModel(String projectName,
-                                    List<ReportConfiguration> allConfigs,
-                                    List<ReportAttribute> attributesWithCompatibilityRules,
-                                    List<ReportAttribute> attributesWithDisambiguationRules) {
+    ConfigurationReportModel(String projectName,
+                             List<ReportConfiguration> allConfigs,
+                             List<ReportAttribute> attributesWithCompatibilityRules,
+                             List<ReportAttribute> attributesWithDisambiguationRules) {
         this.projectName = projectName;
         this.allConfigs = allConfigs;
         this.attributesWithCompatibilityRules = attributesWithCompatibilityRules;

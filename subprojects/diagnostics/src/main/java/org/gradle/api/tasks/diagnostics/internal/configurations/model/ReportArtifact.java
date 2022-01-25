@@ -16,9 +16,6 @@
 
 package org.gradle.api.tasks.diagnostics.internal.configurations.model;
 
-import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.internal.file.FileResolver;
-
 import javax.annotation.Nullable;
 
 /**
@@ -31,15 +28,11 @@ public final class ReportArtifact {
     private final String classifier;
     private final String type;
 
-    private ReportArtifact(String name, String displayName, @Nullable String classifier, String type) {
+    ReportArtifact(String name, String displayName, @Nullable String classifier, String type) {
         this.name = name;
         this.displayName = displayName;
         this.classifier = classifier;
         this.type = type;
-    }
-
-    public static ReportArtifact fromPublishArtifact(PublishArtifact publishArtifact, FileResolver fileResolver) {
-        return new ReportArtifact(publishArtifact.getName(), fileResolver.resolveForDisplay(publishArtifact.getFile()), publishArtifact.getClassifier(), publishArtifact.getType());
     }
 
     public String getName() {

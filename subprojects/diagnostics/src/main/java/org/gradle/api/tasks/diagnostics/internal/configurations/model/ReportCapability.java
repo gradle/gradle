@@ -16,11 +16,6 @@
 
 package org.gradle.api.tasks.diagnostics.internal.configurations.model;
 
-import org.gradle.api.Project;
-import org.gradle.api.capabilities.Capability;
-
-import java.util.Objects;
-
 /**
  * Lightweight, immutable model of a variant's capability for configuration reporting.
  */
@@ -30,19 +25,11 @@ public final class ReportCapability {
     private final String version;
     private final boolean isDefault;
 
-    private ReportCapability(String group, String module, String version, boolean isDefault) {
+    ReportCapability(String group, String module, String version, boolean isDefault) {
         this.group = group;
         this.module = module;
         this.version = version;
         this.isDefault = isDefault;
-    }
-
-    public static ReportCapability fromCapability(Capability capability) {
-        return new ReportCapability(capability.getGroup(), capability.getName(), capability.getVersion(), false);
-    }
-
-    public static ReportCapability defaultCapability(Project project) {
-        return new ReportCapability(Objects.toString(project.getGroup()), project.getName(), Objects.toString(project.getVersion()), true);
     }
 
     public String getGroup() {

@@ -30,7 +30,7 @@ import org.gradle.api.reporting.SingleFileReport;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.diagnostics.configurations.ConfigurationReports;
-import org.gradle.api.tasks.diagnostics.internal.configurations.ConfigurationReportModelFactory;
+import org.gradle.api.tasks.diagnostics.internal.configurations.model.ConfigurationReportModelFactory;
 import org.gradle.api.tasks.diagnostics.internal.configurations.ConfigurationReportsImpl;
 import org.gradle.api.tasks.diagnostics.internal.configurations.model.ConfigurationReportModel;
 import org.gradle.api.tasks.diagnostics.internal.configurations.renderer.AbstractWritableConfigurationReportRenderer;

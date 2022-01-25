@@ -16,14 +16,8 @@
 
 package org.gradle.api.tasks.diagnostics.internal.configurations.model;
 
-import org.gradle.api.artifacts.ConfigurationVariant;
-import org.gradle.api.internal.file.FileResolver;
-
 import javax.annotation.Nullable;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Lightweight, immutable model of a secondary variant of a configuration for configuration reporting.
@@ -35,23 +29,11 @@ public final class ReportSecondaryVariant {
     private final List<ReportAttribute> attributes;
     private final List<ReportArtifact> artifacts;
 
-    private ReportSecondaryVariant(String name, @Nullable String description, List<ReportAttribute> attributes, List<ReportArtifact> artifacts) {
+    ReportSecondaryVariant(String name, @Nullable String description, List<ReportAttribute> attributes, List<ReportArtifact> artifacts) {
         this.name = name;
         this.description = description;
         this.attributes = attributes;
         this.artifacts = artifacts;
-    }
-
-    public static ReportSecondaryVariant fromConfigurationVariant(ConfigurationVariant variant, FileResolver fileResolver) {
-        final List<ReportAttribute> attributes = Collections.unmodifiableList(variant.getAttributes().keySet().stream()
-            .map(a -> ReportAttribute.fromAttributeInContainer(a, variant.getAttributes()))
-            .sorted(Comparator.comparing(ReportAttribute::getName))
-            .collect(Collectors.toList()));
-        final List<ReportArtifact> artifacts = Collections.unmodifiableList(variant.getArtifacts().stream()
-            .map(publishArtifact -> ReportArtifact.fromPublishArtifact(publishArtifact, fileResolver))
-            .sorted(Comparator.comparing(ReportArtifact::getName))
-            .collect(Collectors.toList()));
-        return new ReportSecondaryVariant(variant.getName(), variant.getDescription().orElse(null), attributes, artifacts);
     }
 
     public String getName() {
