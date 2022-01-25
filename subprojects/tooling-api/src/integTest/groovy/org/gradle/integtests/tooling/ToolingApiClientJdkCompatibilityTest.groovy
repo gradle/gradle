@@ -90,7 +90,7 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
 
         file("test-project/build.gradle") << "println 'Hello from ' + gradle.gradleVersion"
         file("test-project/settings.gradle") << "rootProject.name = 'target-project'"
-        file("src/main/java/ToolingApiCompatibilityClient.java") << """
+        file("src/main/java/ToolingApiCompatibilityClient.java").java("""
             import org.gradle.tooling.GradleConnector;
             import org.gradle.tooling.ProjectConnection;
 
@@ -186,8 +186,8 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
                     }
                }
             }
-        """
-        file("src/main/java/ToolingApiCompatibilityBuildAction.java") << """
+        """)
+        file("src/main/java/ToolingApiCompatibilityBuildAction.java").java("""
             import org.gradle.tooling.BuildAction;
             import org.gradle.tooling.BuildController;
 
@@ -198,7 +198,7 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
                     return "Build action result: " + controller.toString();
                 }
             }
-        """
+        """)
     }
 
     abstract JavaVersion getClientJdkVersion()
