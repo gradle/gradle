@@ -84,7 +84,7 @@ class ForkingTestClassProcessorTest extends Specification {
         then:
         19 * moduleRegistry.getModule(_) >> { module(it[0]) }
         7 * moduleRegistry.getExternalModule(_) >> { module(it[0]) }
-        1 * workerProcessBuilder.setImplementationClasspath(_) >> { assert it[0].size() == 24 }
+        1 * workerProcessBuilder.setImplementationClasspath(_) >> { assert it[0].size() == 26 }
         1 * workerProcessBuilder.setImplementationModulePath(_) >> { assert it[0].size() == 0 }
     }
 
@@ -99,7 +99,7 @@ class ForkingTestClassProcessorTest extends Specification {
         then:
         19 * moduleRegistry.getModule(_) >> { module(it[0]) }
         10 * moduleRegistry.getExternalModule(_) >> { module(it[0]) }
-        1 * workerProcessBuilder.setImplementationClasspath(_) >> { assert it[0].size() == 24 }
+        1 * workerProcessBuilder.setImplementationClasspath(_) >> { assert it[0].size() == 26 }
         1 * workerProcessBuilder.setImplementationModulePath(_) >> { assert it[0].size() == 3 }
     }
 
