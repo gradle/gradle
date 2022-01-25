@@ -82,7 +82,7 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
     def setup() {
         Assume.assumeTrue("Unsupported for the embedded runner", canUseContinuousBuildViaToolingApi())
         buildFile.text = "apply plugin: 'java'\n"
-        sourceDir = file("src/main/java")
+        sourceDir = file("src/main/java").createDir()
     }
 
     @Override
