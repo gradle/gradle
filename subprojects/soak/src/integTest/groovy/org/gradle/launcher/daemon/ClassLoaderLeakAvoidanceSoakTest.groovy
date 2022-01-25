@@ -81,8 +81,9 @@ class ClassLoaderLeakAvoidanceSoakTest extends AbstractIntegrationSpec {
             interface Foo0 extends Named {
             }
             task myTask() {
+                def objFactory = project.objects
                 doLast {
-                    def instance = project.objects.named(Foo0, new String(new byte[10 * 1024 * 1024], "UTF-8"))
+                    def instance = objFactory.named(Foo0, new String(new byte[10 * 1024 * 1024], "UTF-8"))
                     println "\${instance.class.name}"
                 }
             }
