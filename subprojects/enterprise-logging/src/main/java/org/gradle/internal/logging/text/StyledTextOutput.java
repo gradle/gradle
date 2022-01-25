@@ -16,15 +16,11 @@
 
 package org.gradle.internal.logging.text;
 
-import org.gradle.internal.scan.UsedByScanPlugin;
-
 /**
  * Provides streaming of styled text, that is, a stream of text with inline styling information. Implementations are not
  * required to be thread-safe.
  */
-@UsedByScanPlugin
 public interface StyledTextOutput extends Appendable {
-    @UsedByScanPlugin
     enum Style {
         /**
          * Regular text.
