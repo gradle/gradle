@@ -37,12 +37,20 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
                 maven { url '${buildContext.localRepository.toURI().toURL()}' }
             }
 
+            def requestedGradleVersion = project.findProperty("gradleVersion")
+            def requestedTargetJdk = project.findProperty("targetJdk")
+
+            // Earlier versions of Gradle can sometimes fail to connect to the just started Gradle daemon. 
+            // The failure will be the "tried to connect to 100 daemons" error
+            // If we're testing against a version that has this problem, we can ignore it. 
+            def ignoreFlakyDaemonConnections = Boolean.toString(GradleVersion.version(requestedGradleVersion) < GradleVersion.version("6.0"))
+            
             task runTask(type: JavaExec) {
-                args = [ "help", file("test-project"), project.findProperty("gradleVersion"), project.findProperty("targetJdk"), gradle.gradleUserHomeDir ]
+                args = [ "help", file("test-project"), requestedGradleVersion, requestedTargetJdk, gradle.gradleUserHomeDir, ignoreFlakyDaemonConnections ]
             }
 
             task buildAction(type: JavaExec) {
-                args = [ "action", file("test-project"), project.findProperty("gradleVersion"), project.findProperty("targetJdk"), gradle.gradleUserHomeDir ]
+                args = [ "action", file("test-project"), requestedGradleVersion, requestedTargetJdk, gradle.gradleUserHomeDir, ignoreFlakyDaemonConnections ]
             }
             
             configure([runTask, buildAction]) {
@@ -89,35 +97,48 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
             import java.io.File;
 
             public class ToolingApiCompatibilityClient {
-                public static void main(String[] args) throws Exception {
+                public static void main(String[] args) {
                     // parameters
                     // 1. action
                     // 2. project directory
                     // 3. target gradle version (or home)
                     // 4. target JDK
                     // 5. gradle user home
-                    if (args.length == 5) {
-                        String action = args[0];
-                        File projectDir = new File(args[1]);
-                        String gradleVersion = args[2];
-                        File javaHome = new File(args[3]);
-                        File gradleUserHome = new File(args[4]);
-                        System.out.println("action = " + action);
-                        System.out.println("projectDir = " + projectDir);
-                        System.out.println("gradleVersion = " + gradleVersion);
-                        System.out.println("javaHome = " + javaHome);
-                        System.out.println("gradleUserHome = " + gradleUserHome);
+                    // 6. whether or not we're allowed to ignore "NoUsableDaemonFoundException" exceptions
+                    String action = args[0];
+                    File projectDir = new File(args[1]);
+                    String gradleVersion = args[2];
+                    File javaHome = new File(args[3]);
+                    File gradleUserHome = new File(args[4]);
+                    boolean allowUnusable = Boolean.parseBoolean(args[5]);
+                    System.out.println("action = " + action);
+                    System.out.println("projectDir = " + projectDir);
+                    System.out.println("gradleVersion = " + gradleVersion);
+                    System.out.println("javaHome = " + javaHome);
+                    System.out.println("gradleUserHome = " + gradleUserHome);
+                    System.out.println("allow unusable daemons = " + allowUnusable);
+                    try {
                         if (action.equals("help")) {
-                            int result = runHelp(projectDir, gradleVersion, javaHome, gradleUserHome);
-                            System.exit(result);
+                            runHelp(projectDir, gradleVersion, javaHome, gradleUserHome);
                         } else if (action.equals("action")) {
-                            int result = buildAction(projectDir, gradleVersion, javaHome, gradleUserHome);
-                            System.exit(result);
+                            buildAction(projectDir, gradleVersion, javaHome, gradleUserHome);
                         }
+                        System.exit(0);
+                    } catch (org.gradle.tooling.GradleConnectionException e) {
+                        e.printStackTrace();
+                        if (allowUnusable && e.getCause()!=null && e.getCause().getClass().getSimpleName().equals("NoUsableDaemonFoundException")) {
+                            System.out.println("Daemon registry is in a bad state and we cannot connect to the daemon.");
+                            System.exit(0);
+                        } else {
+                            System.exit(1);                                
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        System.exit(1);
                     }
                 }
 
-                private static int runHelp(File projectLocation, String gradleVersion, File javaHome, File gradleUserHome) {
+                private static void runHelp(File projectLocation, String gradleVersion, File javaHome, File gradleUserHome) throws Exception {
                     GradleConnector connector = GradleConnector.newConnector();
                     connector.useGradleVersion(gradleVersion);
 
@@ -138,18 +159,15 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
 
                         assert out.toString().contains("Hello from");
                         System.err.println(err.toString());
-                        return 0;
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        return 1;
                     } finally {
                         if (connection != null) {
                             connection.close();
                         }
+                        connector.disconnect();
                     }
                 }
 
-               private static int buildAction(File projectLocation, String gradleVersion, File javaHome, File gradleUserHome) {
+               private static void buildAction(File projectLocation, String gradleVersion, File javaHome, File gradleUserHome) throws Exception {
                     GradleConnector connector = GradleConnector.newConnector();
                     connector.useGradleVersion(gradleVersion);
 
@@ -164,16 +182,13 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
                             .setJavaHome(javaHome)
                             .run();
                         assert result.contains("Build action result");
-                        return 0;
-                    } catch(Exception e) {
-                        e.printStackTrace();
-                        return 1;
                     } finally {
                         System.out.println(out.toString());
                         System.err.println(err.toString());
                         if (connection != null) {
                             connection.close();
                         }
+                        connector.disconnect();
                     }
                }
             }
