@@ -15,7 +15,7 @@ subprojects/snapshots/              @gradle/execution @gradle/ge-test-distributi
 
 # Gradle Enterprise
 subprojects/enterprise/             @ldaley @gradle/ge-test-distribution
-subprojects/enterprise-logging/     @facewindu
+subprojects/enterprise-logging/     @facewindu @marcphilipp
 subprojects/enterprise-operations/  @facewindu
 subprojects/enterprise-workers/     @facewindu
 
