@@ -266,6 +266,13 @@
     "crossVersionTests": false
   },
   {
+    "dirName": "enterprise-logging",
+    "name": "enterprise-logging",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "dirName": "enterprise-operations",
     "name": "enterprise-operations",
     "unitTests": false,

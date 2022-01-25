@@ -7,6 +7,7 @@ description = "Services and utilities needed by Gradle Enterprise plugin"
 dependencies {
     api(project(":base-services"))
     api(project(":enterprise-operations"))
+    api(project(":enterprise-logging"))
 
     implementation(libs.inject)
     implementation(libs.jsr305)

@@ -82,6 +82,7 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider {
         "gradle-logging",
         "gradle-messaging",
         "gradle-base-services",
+        "gradle-enterprise-logging",
         "gradle-enterprise-workers",
         "gradle-cli",
         "gradle-wrapper-shared",

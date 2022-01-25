@@ -8,6 +8,7 @@ gradlebuildJava.usedInWorkers()
 
 dependencies {
     api(libs.slf4jApi)
+    api(project(":enterprise-logging"))
 
     implementation(project(":base-services"))
     implementation(project(":enterprise-workers"))
