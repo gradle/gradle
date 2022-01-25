@@ -8,9 +8,9 @@ gradlebuildJava.usedInWorkers()
 
 dependencies {
     api(project(":logging-api"))
+    api(project(":enterprise-logging"))
 
     implementation(project(":base-services"))
-    implementation(project(":enterprise-logging"))
     implementation(project(":enterprise-workers"))
     implementation(project(":messaging"))
     implementation(project(":cli"))
