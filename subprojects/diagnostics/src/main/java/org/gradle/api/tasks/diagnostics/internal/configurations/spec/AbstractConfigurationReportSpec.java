@@ -21,6 +21,10 @@ import org.gradle.api.tasks.diagnostics.internal.configurations.model.ReportConf
 import javax.annotation.Nullable;
 import java.util.Optional;
 
+/**
+ * This is the base class for all configuration report specs, which describe how the report was run and what features of the configuration data model for
+ * a project should be rendered in the output.
+ */
 public abstract class AbstractConfigurationReportSpec {
     @Nullable private final String searchTarget;
     private final boolean showLegacy;

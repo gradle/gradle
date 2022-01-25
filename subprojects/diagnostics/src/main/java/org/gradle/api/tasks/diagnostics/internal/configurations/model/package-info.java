@@ -15,7 +15,7 @@
  */
 
 /**
- * Internal value types responsible for containing the model of configuration report data in a project
+ * Internal immutable value types responsible for containing the model of configuration data in a project
  * for use in reporting.
  */
 @NonNullApi

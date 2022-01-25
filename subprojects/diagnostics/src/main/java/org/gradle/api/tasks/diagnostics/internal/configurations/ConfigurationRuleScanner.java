@@ -28,6 +28,10 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * This class can examine a project to deterimne which {@link Attribute}s in its schema have {@link org.gradle.api.internal.attributes.CompatibilityRule CompatibilityRule}s or
+ * {@link org.gradle.api.internal.attributes.DisambiguationRule DisambiguationRule}s defined.
+ */
 public final class ConfigurationRuleScanner {
     private final AttributesSchema attributesSchema;
 

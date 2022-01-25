@@ -34,9 +34,10 @@ import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+
 /**
- *
- * Note that although the name of this class includes "variants", the implementation internals speak of "configurations".
+ * The {@link AbstractConfigurationReportRenderer} extension that can be used to render a {@link ConfigurationReportModel}
+ * to the console with richly formatted output.
  */
 public final class ConsoleConfigurationReportRenderer extends AbstractConfigurationReportRenderer<StyledTextOutput> {
     @Nullable private StyledTextOutput output;

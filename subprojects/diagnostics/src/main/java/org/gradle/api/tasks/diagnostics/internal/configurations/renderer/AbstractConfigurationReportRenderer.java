@@ -20,6 +20,14 @@ import org.gradle.api.tasks.diagnostics.internal.configurations.model.Configurat
 import org.gradle.api.tasks.diagnostics.internal.configurations.spec.AbstractConfigurationReportSpec;
 import org.gradle.reporting.ReportRenderer;
 
+/**
+ * An {@code abstract} {@link ReportRenderer} implementation that can be used to render a {@link ConfigurationReportModel}
+ * according to a {@link AbstractConfigurationReportSpec}.
+ *
+ * This is meant to be the base class for any such renderer used for configuration reporting.
+ *
+ * @param <E> the destination type which will receive the model data and be responsible for writing it somewhere
+ */
 public abstract class AbstractConfigurationReportRenderer<E> extends ReportRenderer<ConfigurationReportModel, E> {
     protected final AbstractConfigurationReportSpec spec;
 

@@ -20,6 +20,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+ /**
+ * Lightweight, immutable model of all the data in a project necessary for configuration reporting.
+  *
+  * The intented use is that this data model can be populated with the complete information of a project prior to any
+  * report logic running.  This enables the reporting logic to remain completely independent of the actual project classes.
+ */
 public final class ConfigurationReportModel {
     private final String projectName;
     private final List<ReportConfiguration> allConfigs;

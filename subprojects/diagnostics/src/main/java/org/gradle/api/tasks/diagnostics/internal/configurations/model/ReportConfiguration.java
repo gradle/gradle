@@ -27,6 +27,12 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Lightweight, immutable model (with one exception) of a configuration for configuration reporting.
+ *
+ * The {@link #setExtendedConfigurations(List)} method allows for setting all extended configurations after construction.  This is the one non-immutable
+ * part of this class.  This method should be called exactly once, in order that immutability can be pretended.
+ */
 public final class ReportConfiguration {
     private final String name;
     @Nullable

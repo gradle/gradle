@@ -20,6 +20,9 @@ import org.gradle.api.tasks.diagnostics.internal.configurations.model.ReportConf
 
 import javax.annotation.Nullable;
 
+/**
+ * An {@link AbstractConfigurationReportSpec} extension that describes an {@link org.gradle.api.tasks.diagnostics.OutgoingVariantsReportTask outgoingVariants} report.
+ */
 public final class OutgoingVariantsSpec extends AbstractConfigurationReportSpec {
     public OutgoingVariantsSpec(@Nullable String searchTarget, boolean showLegacy) {
         super(searchTarget, showLegacy);

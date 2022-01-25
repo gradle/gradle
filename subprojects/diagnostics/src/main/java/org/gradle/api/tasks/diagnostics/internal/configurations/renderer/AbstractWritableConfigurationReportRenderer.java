@@ -16,10 +16,17 @@
 
 package org.gradle.api.tasks.diagnostics.internal.configurations.renderer;
 
+import org.gradle.api.tasks.diagnostics.internal.configurations.model.ConfigurationReportModel;
 import org.gradle.api.tasks.diagnostics.internal.configurations.spec.AbstractConfigurationReportSpec;
 
 import java.io.Writer;
 
+/**
+ * An {@code abstract} {@link AbstractConfigurationReportRenderer} extension that can be used to render a {@link ConfigurationReportModel}
+ * to a {@link Writer}.
+ *
+ * This is meant to be the base class for any such renderer which does <strong>NOT</strong> output directly to the console.
+ */
 public abstract class AbstractWritableConfigurationReportRenderer extends AbstractConfigurationReportRenderer<Writer> {
     public AbstractWritableConfigurationReportRenderer(AbstractConfigurationReportSpec spec) {
         super(spec);

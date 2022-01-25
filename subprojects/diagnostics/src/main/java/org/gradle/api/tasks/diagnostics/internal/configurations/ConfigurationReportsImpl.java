@@ -24,6 +24,11 @@ import org.gradle.api.tasks.diagnostics.configurations.ConfigurationReports;
 
 import javax.inject.Inject;
 
+/**
+ * Default implementation of {@link ConfigurationReports} which allows for adding and configuring reports.
+ *
+ * Class must by non-{@code final}.
+ */
 public class ConfigurationReportsImpl extends TaskReportContainer<SingleFileReport> implements ConfigurationReports {
     @Inject
     public ConfigurationReportsImpl(Task task, CollectionCallbackActionDecorator callbackActionDecorator) {

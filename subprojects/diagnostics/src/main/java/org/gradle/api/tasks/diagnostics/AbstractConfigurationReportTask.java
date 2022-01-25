@@ -46,7 +46,9 @@ import java.io.File;
 import java.io.FileWriter;
 
 /**
- * Base class for tasks which reports on attributes of a variant or configuration.
+ * Base class for reporting tasks which display information about attributes and related data associated to a variant/configuration.
+ *
+ * This class implements {@link Reporting} to make configuring additional file output formats simple.
  *
  * @since 7.5
  */

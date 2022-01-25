@@ -21,6 +21,9 @@ import org.gradle.api.capabilities.Capability;
 
 import java.util.Objects;
 
+/**
+ * Lightweight, immutable model of a variant's capability for configuration reporting.
+ */
 public final class ReportCapability {
     private final String group;
     private final String module;

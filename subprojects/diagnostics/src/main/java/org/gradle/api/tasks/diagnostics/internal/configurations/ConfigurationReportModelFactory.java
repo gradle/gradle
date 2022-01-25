@@ -28,6 +28,9 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Factory for creating {@link ConfigurationReportModel} instances which represent the configurations present in a project.
+ */
 public final class ConfigurationReportModelFactory {
     private final FileResolver fileResolver;
 

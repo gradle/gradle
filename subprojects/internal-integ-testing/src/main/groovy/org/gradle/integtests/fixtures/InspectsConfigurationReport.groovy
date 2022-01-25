@@ -19,7 +19,7 @@ package org.gradle.integtests.fixtures
 import groovy.transform.SelfType
 
 /**
- * Utility methods for tests which work with any variants reporting tasks (sub-types of {@code AbstractVariantsReportTask}).
+ * Utility methods for tests which work with any configuration reporting tasks (sub-types of {@code AbstractConfigurationReportTask}).
  */
 @SelfType(AbstractIntegrationSpec)
 trait InspectsConfigurationReport {

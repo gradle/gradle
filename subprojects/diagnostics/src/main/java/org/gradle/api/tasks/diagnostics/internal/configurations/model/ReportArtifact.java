@@ -21,6 +21,9 @@ import org.gradle.api.internal.file.FileResolver;
 
 import javax.annotation.Nullable;
 
+/**
+ * Lightweight, immutable model of an artifact for configuration reporting.
+ */
 public final class ReportArtifact {
     private final String name;
     private final String displayName;

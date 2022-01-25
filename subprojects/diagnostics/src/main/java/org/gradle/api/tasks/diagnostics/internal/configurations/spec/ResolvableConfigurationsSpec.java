@@ -20,7 +20,11 @@ import org.gradle.api.tasks.diagnostics.internal.configurations.model.ReportConf
 
 import javax.annotation.Nullable;
 
-public class ResolvableConfigurationsSpec extends AbstractConfigurationReportSpec{
+/**
+ * An {@link AbstractConfigurationReportSpec} extension that describes a {@link org.gradle.api.tasks.diagnostics.ResolvableConfigurationsReportTask resolvableConfigurations}
+ * report.
+ */
+public final class ResolvableConfigurationsSpec extends AbstractConfigurationReportSpec {
     private final boolean recursive;
 
     public ResolvableConfigurationsSpec(@Nullable String searchTarget, boolean showLegacy, boolean recursive) {

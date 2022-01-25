@@ -25,6 +25,9 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Lightweight, immutable model of a secondary variant of a configuration for configuration reporting.
+ */
 public final class ReportSecondaryVariant {
     private final String name;
     @Nullable

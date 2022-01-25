@@ -23,6 +23,9 @@ import org.gradle.api.internal.attributes.IncubatingAttributesChecker;
 import javax.annotation.Nullable;
 import java.util.Optional;
 
+/**
+ * Lightweight, immutable model of an attribute for configuration reporting.
+ */
 public final class ReportAttribute {
     private final String name;
     @Nullable private final Object value;
