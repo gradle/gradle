@@ -17,7 +17,6 @@
 package org.gradle.api.tasks.diagnostics.internal.configurations.model;
 
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationVariant;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.Attribute;
@@ -33,10 +32,10 @@ import org.gradle.api.internal.file.FileResolver;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
@@ -54,10 +53,10 @@ public final class ConfigurationReportModelFactory {
         final List<ReportAttribute> attributesWithCompatibilityRules = scanner.getAttributesWithCompatibilityRules();
         final List<ReportAttribute> attributesWithDisambiguationRules = scanner.getAttributesWithDisambiguationRules();
 
-        final Map<String, ReportConfiguration> convertedConfigurations = new HashMap<>(project.getConfigurations().size());
-        for (Configuration configuration : project.getConfigurations()) {
-            getOrConvert((ConfigurationInternal) configuration, project, convertedConfigurations);
-        }
+        final Map<String, ReportConfiguration> convertedConfigurations = new ConcurrentHashMap<>(project.getConfigurations().size());
+        project.getConfigurations().stream()
+            .map(ConfigurationInternal.class::cast)
+            .forEach(configuration -> getOrConvert(configuration, project, convertedConfigurations));
 
         return new ConfigurationReportModel(project.getName(),
             convertedConfigurations.values().stream().sorted(Comparator.comparing(ReportConfiguration::getName)).collect(Collectors.toList()),
@@ -65,15 +64,14 @@ public final class ConfigurationReportModelFactory {
     }
 
     private ReportConfiguration getOrConvert(ConfigurationInternal configuration, Project project, Map<String, ReportConfiguration> convertedConfigurations) {
-        if (!convertedConfigurations.containsKey(configuration.getName())) {
+        return convertedConfigurations.computeIfAbsent(configuration.getName(), name -> {
             final List<ReportConfiguration> extendedConfigurations = new ArrayList<>(configuration.getExtendsFrom().size());
-            for (Configuration parent : configuration.getExtendsFrom()) {
-                extendedConfigurations.add(getOrConvert((ConfigurationInternal) parent, project, convertedConfigurations));
-            }
-            convertedConfigurations.put(configuration.getName(), convertConfiguration(configuration, project, fileResolver, extendedConfigurations));
-        }
+            configuration.getExtendsFrom().stream()
+                .map(ConfigurationInternal.class::cast)
+                .forEach(c -> extendedConfigurations.add(getOrConvert(c, project, convertedConfigurations)));
 
-        return convertedConfigurations.get(configuration.getName());
+            return convertConfiguration(configuration, project, fileResolver, extendedConfigurations);
+        });
     }
 
     private ReportConfiguration convertConfiguration(ConfigurationInternal configuration, Project project, FileResolver fileResolver, List<ReportConfiguration> extendedConfigurations) {
@@ -143,7 +141,7 @@ public final class ConfigurationReportModelFactory {
         return new ReportAttribute(key, value);
     }
 
-    public ReportAttribute convertUncontainedAttribute(Attribute<?> attribute) {
+    private ReportAttribute convertUncontainedAttribute(Attribute<?> attribute) {
         @SuppressWarnings("unchecked") Attribute<Object> key = (Attribute<Object>) attribute;
         return new ReportAttribute(key, null);
     }
