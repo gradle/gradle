@@ -7,10 +7,10 @@ description = "Logging infrastructure"
 gradlebuildJava.usedInWorkers()
 
 dependencies {
-    api(libs.slf4jApi)
-    api(project(":enterprise-logging"))
+    api(project(":logging-api"))
 
     implementation(project(":base-services"))
+    implementation(project(":enterprise-logging"))
     implementation(project(":enterprise-workers"))
     implementation(project(":messaging"))
     implementation(project(":cli"))

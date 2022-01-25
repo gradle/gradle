@@ -518,6 +518,13 @@
     "crossVersionTests": false
   },
   {
+    "dirName": "logging-api",
+    "name": "logging-api",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "dirName": "maven",
     "name": "maven",
     "unitTests": true,
