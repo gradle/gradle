@@ -56,6 +56,10 @@ public class BuildTreeDefinedKeys {
         return SecuritySupport.asciiArmoredFileFor(keyringsFile);
     }
 
+    public File getEffectiveKeyringsFile() {
+        return effectiveKeyringsFile;
+    }
+
     public List<PGPPublicKeyRing> loadKeys() throws IOException {
         if (effectiveKeyringsFile != null) {
             return SecuritySupport.loadKeyRingFile(effectiveKeyringsFile);
@@ -75,4 +79,5 @@ public class BuildTreeDefinedKeys {
     public BuildTreeDefinedKeys dryRun() {
         return new BuildTreeDefinedKeys(new File(keyringsFile.getParentFile(), VERIFICATION_KEYRING_DRYRUN_GPG));
     }
+
 }
