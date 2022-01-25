@@ -520,7 +520,7 @@
   {
     "dirName": "logging-api",
     "name": "logging-api",
-    "unitTests": false,
+    "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
