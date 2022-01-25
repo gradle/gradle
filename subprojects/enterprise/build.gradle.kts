@@ -18,6 +18,7 @@ dependencies {
     implementation(project(":jvm-services"))
     implementation(project(":launcher"))
     implementation(project(":logging"))
+    implementation(project(":messaging"))
     implementation(project(":model-core"))
     implementation(project(":process-services"))
     implementation(project(":reporting"))
