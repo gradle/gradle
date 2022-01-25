@@ -16,8 +16,6 @@
 
 package org.gradle.internal.logging.progress;
 
-import org.gradle.internal.scan.UsedByScanPlugin;
-
 import javax.annotation.Nullable;
 
 /**
@@ -38,7 +36,6 @@ import javax.annotation.Nullable;
  * </ul>
  *
  */
-@UsedByScanPlugin("test-distribution")
 public interface ProgressLogger {
     /**
      * Returns the description of the operation.
