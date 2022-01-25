@@ -93,7 +93,11 @@ public class BuildInputHierarchy {
 
         @Override
         public void visitChildren(PersistentList<InputDeclaration> values, Supplier<String> relativePathSupplier) {
-            this.input = true;
+            // A parent directory to the input is not an input.
+            // As long as nothing within the input location changes we don't need to trigger a build.
+            // If we would consider the parents as inputs, then the creation of parent directories for
+            // an output file produced by the current build would directly trigger, though actually
+            // everything is up-to-date.
         }
 
         public boolean isInput() {

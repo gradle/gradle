@@ -32,7 +32,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         }
     }
 
-    def "detects changes when no files are in the project"() {
+    def "detects no changes when no files are in the project"() {
         given:
         def markerFile = file("input/marker")
         buildFile << """
@@ -55,16 +55,14 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         waitBeforeModification(markerFile)
         markerFile.text = "created"
         then:
-        if (OperatingSystem.current().linux) {
-            buildTriggeredAndSucceeded()
-            output.contains "exists: true"
-        } else {
-            // TODO: We may want to support this use-case for
-            //       hierarchical watchers at some point as well.
-            //       This only works on Linux since there we watch parent directories
-            //       of missing files, even if there are only missing files in the VFS.
-            noBuildTriggered()
-        }
+        // There are different reason why this doesn't work for hierarchical and non-hierarchical watchers.
+        // We may want to support this use-case at some point.
+        // For hierarchical watchers, we don't watch the project directory if the VFS only contains missing files in there.
+        // For non-hierarchical watchers, we watch the parent directory of the missing file, the project directory in this case.
+        // When the `input` directory is created, we invalidate the VFS and stop watching since the missing snapshot now has been removed.
+        // Though we don't consider the path `input` as an input to the build, since it is a parent of the declared input
+        // `input/marker`. So we don't trigger a rebuild.
+        noBuildTriggered()
     }
 
     def "does not detect changes when no snapshotting happens (#description)"() {
