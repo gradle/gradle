@@ -362,6 +362,11 @@ public interface ValueSupplier {
     abstract class ExecutionTimeValue<T> {
         private static final MissingExecutionTimeValue MISSING = new MissingExecutionTimeValue();
 
+        /**
+         * Returns {@code true} when the value is <b>definitely</b> missing.
+         *
+         * A {@code false} return value doesn't mean the value is <b>definitely</b> present, it might still be missing at runtime.
+         */
         public boolean isMissing() {
             return false;
         }
