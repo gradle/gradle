@@ -16,6 +16,7 @@
 
 package org.gradle.api
 
+
 import org.gradle.cache.internal.BuildScopeCacheDir
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
@@ -93,7 +94,23 @@ class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private void assertNoProjectCaches(TestFile dir) {
-        assert !(dir.list()?.findAll { !(it in ["caches", "native"]) })
+        def contents = (dir.list()?.findAll { !(it in ["caches", "native"]) })
+        printFileTree(dir)
+        assert !contents
+    }
+
+    private void printFileTree(File dir) {
+        def list = []
+        if (dir.exists()) {
+            dir.eachFileRecurse { file ->
+                list << file
+            }
+        }
+
+        println "Contents of $dir.absolutePath:"
+        list.each {
+            println it.path
+        }
     }
 
     def "fails when user home directory is used and Gradle has not been run before"() {
