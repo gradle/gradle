@@ -368,6 +368,103 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
         configurationCache.assertStateLoaded()
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/19658")
+    def "map orElse chain used as task input"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile '''
+            abstract class PrintValueTask extends DefaultTask {
+
+                @Input
+                abstract Property<String> getValue();
+
+                @TaskAction
+                void printValue() {
+                    println("*" + value.get() + "*")
+                }
+            }
+
+            def chain = providers
+                .systemProperty("foo")
+                .orElse(providers.systemProperty("bar"))
+                .map { "foo | bar = $it" }
+                .orElse(providers.systemProperty("baz"))
+                .map { "($it)" }
+
+            tasks.register("ok", PrintValueTask.class) { task ->
+                task.value = chain
+            }
+        '''
+
+        when:
+        configurationCacheRun 'ok', '-Dfoo=foo'
+
+        then:
+        outputContains "*(foo | bar = foo)*"
+        configurationCache.assertStateStored()
+
+        when:
+        configurationCacheRun 'ok', '-Dbar=bar'
+
+        then:
+        outputContains "*(foo | bar = bar)*"
+        configurationCache.assertStateLoaded()
+
+        when:
+        configurationCacheRun 'ok', '-Dbaz=baz'
+
+        then:
+        outputContains "*(baz)*"
+        configurationCache.assertStateLoaded()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/19649")
+    def "zip orElse chain used as task input"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile '''
+            def userProvider = providers.gradleProperty("ci").map { "" }.orElse(providers.systemProperty("user"))
+            def versionMajorProvider = providers.gradleProperty("versionMajor").orElse("1")
+            def versionMinorProvider = providers.gradleProperty("versionMinor").orElse("2")
+            def versionNameProvider = versionMajorProvider
+                .zip(versionMinorProvider) { major, minor ->
+                    "$major.$minor"
+                }
+                .zip(userProvider) { prev, user ->
+                    "$prev-$user"
+                }
+
+            abstract class PrintVersionName extends DefaultTask {
+
+                @Input
+                abstract Property<String> getVersionName()
+
+                @TaskAction
+                def printVersionName() {
+                    println('*' + versionName.get() + '*')
+                }
+            }
+
+            tasks.register("ok", PrintVersionName.class) {
+                versionName = versionNameProvider
+            }
+        '''
+
+        when:
+        configurationCacheRun 'ok', '-Duser=alice'
+
+        then:
+        outputContains '*1.2-alice*'
+        configurationCache.assertStateStored()
+
+        when:
+        configurationCacheRun 'ok', '-Duser=bob'
+
+        then:
+        outputContains '*1.2-bob*'
+        configurationCache.assertStateLoaded()
+    }
+
     def "zipped properties used as task input"() {
 
         given:
