@@ -35,7 +35,7 @@ public final class OutgoingVariantsSpec extends AbstractConfigurationReportSpec 
 
     @Override
     public String getFullReportedTypeDesc() {
-        return "outgoing" + " " + getReportedTypeAlias();
+        return "outgoing " + getReportedTypeAlias();
     }
 
     @Override
