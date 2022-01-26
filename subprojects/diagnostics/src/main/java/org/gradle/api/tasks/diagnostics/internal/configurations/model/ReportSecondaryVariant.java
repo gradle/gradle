@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.diagnostics.internal.configurations.model;
 
 import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -32,8 +33,8 @@ public final class ReportSecondaryVariant {
     ReportSecondaryVariant(String name, @Nullable String description, List<ReportAttribute> attributes, List<ReportArtifact> artifacts) {
         this.name = name;
         this.description = description;
-        this.attributes = attributes;
-        this.artifacts = artifacts;
+        this.attributes = Collections.unmodifiableList(attributes);
+        this.artifacts = Collections.unmodifiableList(artifacts);
     }
 
     public String getName() {
