@@ -20,15 +20,8 @@ import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.util.TestPrecondition
-import spock.lang.Retry
 
-import static org.gradle.integtests.fixtures.RetryConditions.cleanProjectDir
-import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
-
-// Continuous build will trigger a rebuild when an input file is changed during build execution
 @TestReproducibleArchives
-@Retry(condition = { TestPrecondition.LINUX && TestPrecondition.JDK8_OR_EARLIER && cleanProjectDir(instance) }, mode = SETUP_FEATURE_CLEANUP, count = 2)
 class ChangesDuringBuildContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
 
     def setup() {
@@ -83,7 +76,7 @@ jar.dependsOn postCompile
     }
 
     @UnsupportedWithConfigurationCache(because = "taskGraph.afterTask")
-    def "new build should be triggered when input files to tasks are changed after each task has been executed, but before the build has completed"(changingInput) {
+    def "new build should be triggered when input files to tasks are changed after each task has been executed, but before the build has completed (changed: #changingInput)"() {
         given:
         ['a', 'b', 'c', 'd'].each { file(it).createDir() }
 
@@ -91,21 +84,25 @@ jar.dependsOn postCompile
         buildFile << """
             task a {
               inputs.dir "a"
+              outputs.file "build/a"
               doLast {}
             }
             task b {
               dependsOn "a"
               inputs.dir "b"
+              outputs.file "build/b"
               doLast {}
             }
             task c {
               dependsOn "b"
               inputs.dir "c"
+              outputs.file "build/c"
               doLast {}
             }
             task d {
               dependsOn "c"
               inputs.dir "d"
+              outputs.file "build/d"
               doLast {}
             }
 
@@ -130,7 +127,7 @@ jar.dependsOn postCompile
         changingInput << ['a', 'b', 'c', 'd']
     }
 
-    def "new build should be triggered when input files to tasks are changed during the task is executing"(changingInput) {
+    def "new build should be triggered when input files to tasks are changed during the task is executing (changed: #changingInput)"() {
         given:
         ['a', 'b', 'c', 'd'].each { file(it).createDir() }
 
@@ -183,7 +180,7 @@ jar.dependsOn postCompile
         changingInput << ['a', 'b', 'c', 'd']
     }
 
-    def "check build executing and failing in task :c - change in :#changingInput"(changingInput, shouldTrigger) {
+    def "#description for change in #changingInput and failure in task :c"() {
         given:
         ['a', 'b', 'c', 'd'].each { file(it).createDir() }
 
@@ -236,5 +233,6 @@ jar.dependsOn postCompile
         'b'           | true
         'c'           | true
         'd'           | false
+        description = shouldTrigger ? "build should be triggered" : "build should not be triggered"
     }
 }
