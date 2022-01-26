@@ -927,6 +927,47 @@ This can indicate that a dependency has been compromised. Please carefully verif
         terse << [true, false]
     }
 
+    def "fails validation when first configuration has verification disabled"() {
+        createMetadataFile {
+            addChecksum("org:foo:1.0", 'sha256', "invalid")
+            addChecksum("org:foo:1.0", 'sha256', "f331cce36f6ce9ea387a2c8719fabaf67dc5a5862227ebaa13368ff84eb69481", "pom", "pom")
+        }
+        javaLibrary()
+
+        given:
+        uncheckedModule("org", "foo")
+        buildFile << """
+            configurations {
+                unverified {
+                    resolutionStrategy.disableDependencyVerification()
+                }
+            }
+
+            dependencies {
+                unverified "org:foo:1.0"
+                implementation "org:foo:1.0"
+            }
+
+            tasks.register("printConfigurations") {
+                FileCollection unverified = configurations.unverified
+                FileCollection classpath = configurations.compileClasspath
+                doLast {
+                    println unverified.files
+                    println classpath.files
+                }
+            }
+        """
+
+        when:
+        fails ":printConfigurations"
+
+        then:
+        errorOutput.contains """
+> Dependency verification failed for configuration ':compileClasspath'
+  One artifact failed verification: foo-1.0.jar (org:foo:1.0) from repository maven
+  This can indicate that a dependency has been compromised. Please carefully verify the checksums."""
+    }
+
     @ToBeFixedForConfigurationCache
     def "can disable verification of a detached configuration (terse output=#terse)"() {
         createMetadataFile {
@@ -1132,5 +1173,4 @@ This can indicate that a dependency has been compromised. Please carefully verif
   - monitor-1.0.jar (org:monitor:1.0) from repository maven
   - monitor-1.0.pom (org:monitor:1.0) from repository maven"""))
     }
-
 }
