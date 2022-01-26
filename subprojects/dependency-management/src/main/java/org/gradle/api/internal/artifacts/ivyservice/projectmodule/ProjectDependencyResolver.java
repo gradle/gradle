@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
@@ -48,6 +49,7 @@ import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 
 import javax.annotation.Nullable;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 public class ProjectDependencyResolver implements ComponentMetaDataResolver, DependencyToComponentIdResolver, ArtifactResolver, OriginArtifactSelector, ComponentResolvers {
@@ -130,9 +132,16 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
     @Override
     public ArtifactSet resolveArtifacts(final ComponentResolveMetadata component, final ConfigurationMetadata configuration, final ArtifactTypeRegistry artifactTypeRegistry, final ExcludeSpec exclusions, final ImmutableAttributes overriddenAttributes) {
         if (isProjectModule(component.getId())) {
+            Optional<ImmutableList<? extends ConfigurationMetadata>> variantsForGraphTraversal = component.getVariantsForGraphTraversal();
             Set<VariantResolveMetadata> variants = new LinkedHashSet<>();
-            ImmutableList<? extends ConfigurationMetadata> allVariants = component.getVariantsForGraphTraversal().get();
-            allVariants.forEach(configurationMetadata -> variants.addAll(configurationMetadata.getVariants()));
+            if (variantsForGraphTraversal.isPresent()) {
+                List<? extends ConfigurationMetadata> allVariants = variantsForGraphTraversal.get();
+                // filter variant capabilities based on the configuration's capability
+                allVariants.stream().filter(configurationMetadata -> configurationMetadata.getCapabilities().getCapabilities().equals(configuration.getCapabilities().getCapabilities())).forEach(configurationMetadata -> variants.addAll(configurationMetadata.getVariants()));
+            } else {
+                variants.addAll(configuration.getVariants());
+            }
+
             return artifactSetResolver.resolveArtifacts(component.getId(), component.getModuleVersionId(), component.getSources(), exclusions, variants, component.getAttributesSchema(), artifactTypeRegistry, overriddenAttributes);
         } else {
             return null;

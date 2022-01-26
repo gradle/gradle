@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.external.model;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
@@ -32,6 +33,7 @@ import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -41,9 +43,16 @@ import java.util.Set;
 public class MetadataSourcedComponentArtifacts implements ComponentArtifacts {
     @Override
     public ArtifactSet getArtifactsFor(ComponentResolveMetadata component, ConfigurationMetadata configuration, ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvableArtifact> allResolvedArtifacts, ArtifactTypeRegistry artifactTypeRegistry, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes, CalculatedValueContainerFactory calculatedValueContainerFactory) {
-        Set<VariantResolveMetadata> variants = new LinkedHashSet<>();
-        ImmutableList<? extends ConfigurationMetadata> allVariants = component.getVariantsForGraphTraversal().get();
-        allVariants.forEach(configurationMetadata -> variants.addAll(configurationMetadata.getVariants()));
+        Optional<ImmutableList<? extends ConfigurationMetadata>> variantsForGraphTraversal = component.getVariantsForGraphTraversal();
+        final Set<VariantResolveMetadata> variants = new LinkedHashSet<>();
+        if (variantsForGraphTraversal.isPresent()) {
+            List<? extends ConfigurationMetadata> allVariants = variantsForGraphTraversal.get();
+            // filter variant capabilities based on the configuration's capability
+            allVariants.stream().filter(configurationMetadata -> configurationMetadata.getCapabilities().getCapabilities().equals(configuration.getCapabilities().getCapabilities())).forEach(configurationMetadata -> variants.addAll(configurationMetadata.getVariants()));
+        } else {
+            variants.addAll(configuration.getVariants());
+        }
+
         return DefaultArtifactSet.createFromVariantMetadata(component.getId(), component.getModuleVersionId(), component.getSources(), exclusions, variants, component.getAttributesSchema(), artifactResolver, allResolvedArtifacts, artifactTypeRegistry, overriddenAttributes, calculatedValueContainerFactory);
     }
 }
