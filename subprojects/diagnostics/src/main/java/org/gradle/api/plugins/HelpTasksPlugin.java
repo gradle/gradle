@@ -85,7 +85,7 @@ public class HelpTasksPlugin implements Plugin<Project> {
             task.getShowAll().convention(false);
         });
         tasks.register(RESOLVABLE_CONFIGURATIONS_TASK, ResolvableConfigurationsReportTask.class, task -> {
-            task.setDescription("Displays the configurations available to resolve in " + projectName + ".");
+            task.setDescription("Displays the configurations that can be resolved in " + projectName + ".");
             task.setGroup(HELP_GROUP);
             task.setImpliesSubProjects(true);
             task.getShowAll().convention(false);
