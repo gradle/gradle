@@ -20,15 +20,8 @@ import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.util.TestPrecondition
-import spock.lang.Retry
 
-import static org.gradle.integtests.fixtures.RetryConditions.cleanProjectDir
-import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
-
-// Continuous build will trigger a rebuild when an input file is changed during build execution
 @TestReproducibleArchives
-@Retry(condition = { TestPrecondition.LINUX && TestPrecondition.JDK8_OR_EARLIER && cleanProjectDir(instance) }, mode = SETUP_FEATURE_CLEANUP, count = 2)
 class ChangesDuringBuildContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
 
     def setup() {
