@@ -82,7 +82,7 @@ public final class ReportConfiguration {
     }
 
     public List<ReportConfiguration> getExtendedConfigurations() {
-        return Collections.unmodifiableList(extendedConfigurations);
+        return extendedConfigurations;
     }
 
     public boolean isPurelyConsumable() {
