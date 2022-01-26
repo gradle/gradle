@@ -44,7 +44,7 @@ public abstract class ResolvableConfigurationsReportTask extends AbstractConfigu
      */
     @Input
     @Optional
-    @Option(option = "configuration", description = "The name of a single configuration to report")
+    @Option(option = "configuration", description = "The name of the configuration to report")
     public abstract Property<String> getConfigurationName();
 
     /**
