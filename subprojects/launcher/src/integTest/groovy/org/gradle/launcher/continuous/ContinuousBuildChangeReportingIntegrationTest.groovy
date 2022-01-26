@@ -123,7 +123,10 @@ class ContinuousBuildChangeReportingIntegrationTest extends AbstractContinuousIn
 
     def "should report the changes when directories are created #changesCount"(changesCount) {
         given:
-        def inputDirectories = (1..changesCount).collect { inputDir.file("input${it}Directory") }
+        // We need to put these directories in subdirectories, since on Linux we'd stop watching a directory as soon as we
+        // received file changes for all the files inside.
+        def inputSubdirectories = (1..changesCount).collect { inputDir.createDir("subdir${it}")}
+        def inputDirectories = inputSubdirectories.collect { it.file("inputDirectory") }
         boolean expectMoreChanges = (changesCount > changesLimit)
 
         when:
