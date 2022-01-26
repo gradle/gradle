@@ -100,7 +100,8 @@ class BaselineVersion implements VersionResults {
     }
 
     private static boolean differenceIsSignificant(DataSeries<Duration> myTime, DataSeries<Duration> otherTime, double minConfidence) {
-        DataSeries.confidenceInDifference(myTime, otherTime) > minConfidence
+        return (myTime.median - otherTime.median).abs() > Duration.millis(10) &&
+            DataSeries.confidenceInDifference(myTime, otherTime) > minConfidence
     }
 
     private static boolean differenceInMedianIsSignificant(DataSeries<Duration> myTime, DataSeries<Duration> otherTime, double minRelativeMedianDifference) {
