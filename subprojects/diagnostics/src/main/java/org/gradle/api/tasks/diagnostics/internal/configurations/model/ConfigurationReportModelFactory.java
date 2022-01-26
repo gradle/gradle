@@ -32,10 +32,11 @@ import org.gradle.api.internal.file.FileResolver;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -53,7 +54,7 @@ public final class ConfigurationReportModelFactory {
         final List<ReportAttribute> attributesWithCompatibilityRules = scanner.getAttributesWithCompatibilityRules();
         final List<ReportAttribute> attributesWithDisambiguationRules = scanner.getAttributesWithDisambiguationRules();
 
-        final Map<String, ReportConfiguration> convertedConfigurations = new ConcurrentHashMap<>(project.getConfigurations().size());
+        final Map<String, ReportConfiguration> convertedConfigurations = new HashMap<>(project.getConfigurations().size());
         project.getConfigurations().stream()
             .map(ConfigurationInternal.class::cast)
             .forEach(configuration -> getOrConvert(configuration, project, convertedConfigurations));
@@ -64,7 +65,7 @@ public final class ConfigurationReportModelFactory {
     }
 
     private ReportConfiguration getOrConvert(ConfigurationInternal configuration, Project project, Map<String, ReportConfiguration> convertedConfigurations) {
-        return convertedConfigurations.computeIfAbsent(configuration.getName(), name -> {
+        return computeIfAbsentExternal(convertedConfigurations, configuration.getName(), name -> {
             final List<ReportConfiguration> extendedConfigurations = new ArrayList<>(configuration.getExtendsFrom().size());
             configuration.getExtendsFrom().stream()
                 .map(ConfigurationInternal.class::cast)
@@ -191,6 +192,21 @@ public final class ConfigurationReportModelFactory {
             final AttributeMatchingStrategy<?> matchingStrategy = attributesSchema.getMatchingStrategy(attribute);
             final DefaultDisambiguationRuleChain<?> ruleChain = (DefaultDisambiguationRuleChain<?>) matchingStrategy.getDisambiguationRules();
             return ruleChain.doesSomething();
+        }
+    }
+
+    /**
+     * Recursively calling {@link Map#computeIfAbsent(Object, Function)} to insert multiple keys could pose issues, depending on the implementation of the underlying map.
+     *
+     * This method exists to externalize that usage and avoid the potential for these sort of issues.
+     */
+    private static <K, V> V computeIfAbsentExternal(Map<K, V> map, K key, Function<? super K, ? extends V> mappingFunction) {
+        if (map.containsKey(key)) {
+            return map.get(key);
+        } else {
+            V v = mappingFunction.apply(key);
+            map.put(key, v);
+            return v;
         }
     }
 }
