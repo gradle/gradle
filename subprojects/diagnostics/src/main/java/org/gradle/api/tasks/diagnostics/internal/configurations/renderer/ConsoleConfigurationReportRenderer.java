@@ -31,9 +31,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
-
 
 /**
  * The {@link AbstractConfigurationReportRenderer} extension that can be used to render a {@link ConfigurationReportModel}
@@ -77,17 +75,17 @@ public final class ConsoleConfigurationReportRenderer extends AbstractConfigurat
     private void writeSearchResults(ConfigurationReportModel data) {
         Optional<ReportConfiguration> searchResult = data.getConfigNamed(spec.getSearchTarget().get());
         if (searchResult.isPresent()) {
-            writeResults(data, () -> Collections.singletonList(searchResult.get()));
+            writeResults(data, Collections.singletonList(searchResult.get()));
         } else {
             message("There are no " + spec.getFullReportedTypeDesc() + "s on project '" + data.getProjectName() + "' named '" + spec.getSearchTarget().get() + "'.");
         }
     }
 
     private void writeLegacyResults(ConfigurationReportModel data) {
-        final Supplier<List<ReportConfiguration>> legacySupplier = () -> data.getAllConfigs().stream()
+        final List<ReportConfiguration> legacyConfigs = data.getAllConfigs().stream()
             .filter(c -> c.isLegacy() || spec.isPurelyCorrectType(c))
             .collect(Collectors.toList());
-        writeResults(data, legacySupplier);
+        writeResults(data, legacyConfigs);
     }
 
     private void writeNonLegacyResults(ConfigurationReportModel data) {
@@ -102,13 +100,11 @@ public final class ConsoleConfigurationReportRenderer extends AbstractConfigurat
                 message("Re-run this report with the '--all' flag to include legacy " + spec.getReportedTypeAlias() + "s (legacy = consumable and resolvable).");
             }
         } else {
-            writeResults(data, () -> nonLegacyConfigs);
+            writeResults(data, nonLegacyConfigs);
         }
     }
 
-    private void writeResults(ConfigurationReportModel data, Supplier<List<ReportConfiguration>> configsSupplier) {
-        final List<ReportConfiguration> configs = configsSupplier.get();
-
+    private void writeResults(ConfigurationReportModel data, List<ReportConfiguration> configs) {
         writeConfigurations(configs);
         if (spec.isIncludeRuleSchema()) {
             writeRuleSchema(data.getAttributesWithCompatibilityRules(), data.getAttributesWithDisambiguationRules());
