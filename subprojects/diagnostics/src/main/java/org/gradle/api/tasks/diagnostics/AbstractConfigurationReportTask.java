@@ -64,8 +64,7 @@ public abstract class AbstractConfigurationReportTask extends DefaultTask implem
     protected abstract AbstractConfigurationReportSpec buildReportSpec();
 
     public AbstractConfigurationReportTask() {
-        ObjectFactory objects = getObjectFactory();
-        reports = objects.newInstance(ConfigurationReportsImpl.class, this);
+        reports = getObjectFactory().newInstance(ConfigurationReportsImpl.class, this);
     }
 
     /**
