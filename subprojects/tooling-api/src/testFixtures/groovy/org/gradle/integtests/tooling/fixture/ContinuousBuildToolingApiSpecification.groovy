@@ -36,13 +36,13 @@ import org.junit.Rule
 import spock.lang.Retry
 import spock.lang.Timeout
 
-import static org.gradle.integtests.fixtures.RetryConditions.onBuildTimeout
+import static org.gradle.integtests.fixtures.RetryConditions.onContinuousBuildTimeout
 import static org.hamcrest.CoreMatchers.anyOf
 import static org.hamcrest.CoreMatchers.containsString
 import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
 
 @Timeout(180)
-@Retry(condition = { onBuildTimeout(instance, failure) }, mode = SETUP_FEATURE_CLEANUP, count = 2)
+@Retry(condition = { onContinuousBuildTimeout(instance, failure) }, mode = SETUP_FEATURE_CLEANUP, count = 2)
 abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecification {
 
     public static final String WAITING_MESSAGE = "Waiting for changes to input files of tasks..."
