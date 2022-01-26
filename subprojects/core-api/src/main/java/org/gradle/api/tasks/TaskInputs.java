@@ -87,8 +87,8 @@ public interface TaskInputs {
      * <p>The given value must be a simple value, like a String or Integer, or serializable. For complex values,
      *  Gradle compares the serialized forms for detecting changes and the {@code equals()} method is ignored.
      *
-     * <p>You can specify a {@link org.gradle.api.provider.Provider}, {@link java.util.concurrent.Callable}, Groovy closure,
-     * or Kotlin function as the value of the property. In which case, the function is executed to determine the actual
+     * <p>If the value is not known when registering the input, a {@link org.gradle.api.provider.Provider} can be
+     * passed instead. Gradle will then resolve the provider at the latest possible time in order to determine the actual
      * property value.</p>
      *
      * @param name The name of the property. Must not be null.
