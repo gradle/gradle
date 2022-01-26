@@ -1443,6 +1443,7 @@ One artifact failed verification: foo-1.0.jar (org:foo:1.0) from repository mave
 This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums. Key servers are disabled, this can indicate that you need to update the local keyring with the missing keys."""
     }
 
+    @ToBeFixedForConfigurationCache
     @Issue("https://github.com/gradle/gradle/issues/19663")
     def "fails when disabling reaching out to key servers after previous successful build and no key rings file"() {
         given:
@@ -1489,6 +1490,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
 This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums. Key servers are disabled, this can indicate that you need to update the local keyring with the missing keys."""
     }
 
+    @ToBeFixedForConfigurationCache
     @Issue("https://github.com/gradle/gradle/issues/18440")
     def "fails on a bad verification file change after previous successful build when key servers are disabled"() {
         def keyring = newKeyRing()
