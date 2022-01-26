@@ -208,7 +208,9 @@ For example, the secondary variant `classes` from `apiElements` is what allows G
 Gradle also offers a complimentary report task called `resolvableConfigurations` that displays the _resolvable_ configurations of a project, which are those which can have dependencies added and be resolved.  The report will list their attributes and any configurations that they extend.  It will also list a summary of any attributes which will be affected by <<variant_attributes.doc#sec:abm_compatibility_rules, Compatibility Rules>> or <<variant_attributes.doc#sec:abm_disambiguation_rules, Disambiguation Rules>> during resolution.
 
 By default, `resolvableConfigurations` prints information about all purely resolvable configurations.
-It offers the optional parameter `--configuration <configurationName>` to select a single configuration to display.
+These are configurations that are marked resolvable but *not* marked consumable.
+Though some resolvable configurations are also marked consumable, these are legacy configurations that should *not* have dependencies added in build scripts.
+This report offers the optional parameter `--configuration <configurationName>` to select a single configuration to display.
 It also accepts the `--all` flag to include information about legacy and deprecated configurations.
 Finally, it accepts the `--recursive` flag to list in the extended configurations section those configurations which are extended _transitively_ rather than directly.
 
