@@ -55,12 +55,14 @@ import java.util.concurrent.TimeUnit
 class ContinuousBuildActionExecutorTest extends ConcurrentSpec {
 
     def delegate = Mock(BuildSessionActionExecutor)
-    def action = Mock(BuildAction)
     def cancellationToken = new DefaultBuildCancellationToken()
     def buildExecutionTimer = Mock(BuildStartedTime)
     def requestMetadata = Stub(BuildRequestMetaData)
     def requestContext = new DefaultBuildRequestContext(requestMetadata, cancellationToken, new NoOpBuildEventConsumer())
     def startParameter = new StartParameterInternal()
+    def action = Stub(BuildAction) {
+        getStartParameter() >> startParameter
+    }
     def globalListenerManager = new DefaultListenerManager(Scope.Global)
     def userHomeListenerManager = globalListenerManager.createChild(Scopes.UserHome)
     def inputsListeners = new DefaultTaskInputsListeners(globalListenerManager)
@@ -76,7 +78,6 @@ class ContinuousBuildActionExecutorTest extends ConcurrentSpec {
     def executorService = Executors.newCachedThreadPool()
 
     def executer = executer()
-    Future<?> runningBuild
 
     private File file = new File('file').absoluteFile
     PollingConditions conditions = new PollingConditions(timeout: 60, initialDelay: 0, factor: 1.25)
@@ -90,20 +91,25 @@ class ContinuousBuildActionExecutorTest extends ConcurrentSpec {
     }
 
     def "uses underlying executer when continuous build is not enabled"() {
+        given:
+        continuousBuildDisabled()
+
         when:
-        singleBuild()
         executeBuild()
 
         then:
         1 * delegate.execute(action, buildSessionContext)
+        0 * _
     }
 
     def "allows exceptions to propagate for single builds"() {
-        when:
-        singleBuild()
+        given:
+        continuousBuildDisabled()
         1 * delegate.execute(action, buildSessionContext) >> {
             throw new RuntimeException("!")
         }
+
+        when:
         executeBuild()
 
         then:
@@ -112,43 +118,52 @@ class ContinuousBuildActionExecutorTest extends ConcurrentSpec {
 
     @Timeout(value = 60, unit = TimeUnit.SECONDS)
     def "close System.in after build"() {
+        given:
+        continuousBuildDisabled()
+        buildIsInteractive()
+
         when:
-        singleBuild()
-        interactiveBuild()
         executeBuild()
 
         then:
         1 * delegate.execute(action, buildSessionContext)
+        0 * _
         System.in instanceof DisconnectableInputStream
         System.in.read() == -1
     }
 
     def "can cancel the build"() {
+        given:
+        continuousBuildEnabled()
+        buildDeclaresInputs()
+
         when:
-        continuousBuildWithInputs()
-        runningBuild = startBuild()
+        def runningBuild = startBuild()
 
         then:
         conditions.eventually {
-            lastLogLine == "Waiting for changes to input files of tasks..."
+            waitingForChangesMessageAppears()
         }
 
         when:
         cancellationToken.cancel()
 
         then:
-        buildExits()
+        buildExits(runningBuild)
         lastLogLine == "Build cancelled."
     }
 
     def "runs a new build on file change"() {
+        given:
+        continuousBuildEnabled()
+        buildDeclaresInputs()
+
         when:
-        continuousBuildWithInputs()
-        startBuild()
+        def runningBuild = startBuild()
 
         then:
         conditions.eventually {
-            waitingForChanges()
+            waitingForChangesMessageAppears()
         }
 
         when:
@@ -159,29 +174,32 @@ class ContinuousBuildActionExecutorTest extends ConcurrentSpec {
             rebuiltBecauseOfChange()
         }
 
-        when:
+        cleanup:
         cancellationToken.cancel()
-        then:
-        buildExits()
+        buildExits(runningBuild)
     }
 
     def "only triggers the build when the gatekeeper is open"() {
+        given:
+        continuousBuildDisabled()
+        buildDeclaresInputs()
+        buildHasDeployment()
+
         when:
-        buildWithDeployment()
         def gatekeeper = continuousExecutionGate.createGateKeeper()
-        startBuild()
+        def runningBuild = startBuild()
 
         then:
         conditions.eventually {
             reloadableDeploymentDetected()
         }
+        waitingForChangesMessageAppears()
 
         when:
         changeListeners.broadcastChange(FileWatcherRegistry.Type.MODIFIED, file.toPath())
         // Wait to make sure the build is not triggered
         Thread.sleep(500)
         then:
-        waitingForChanges()
         !changeDetected()
 
         when:
@@ -191,45 +209,36 @@ class ContinuousBuildActionExecutorTest extends ConcurrentSpec {
             rebuiltBecauseOfChange()
         }
 
-        when:
-        cancellationToken.cancel()
-        then:
-        buildExits()
-
         cleanup:
-        println(textOutputFactory)
+        cancellationToken.cancel()
+        buildExits(runningBuild)
     }
 
     def "exits if there are no file system inputs"() {
+        given:
+        continuousBuildEnabled()
+
         when:
-        continuousBuild()
-        1 * delegate.execute(action, buildSessionContext)
-        then:
         executeBuild()
+        then:
+        lastLogLine == "{failure}Exiting continuous build as no executed tasks declared file system inputs.{normal}"
     }
 
-    private void buildExits() {
+    private void buildExits(Future<?> runningBuild) {
         runningBuild.get(1, TimeUnit.SECONDS)
     }
 
     private Future<?> startBuild() {
-        runningBuild = executorService.submit {
+        return executorService.submit {
             executeBuild()
         }
-        return runningBuild
     }
 
-    private void continuousBuildWithInputs() {
-        buildWithInputs()
-        continuousBuild()
-    }
-
-    private void buildWithDeployment() {
-        buildWithInputs()
+    private void buildHasDeployment() {
         deployments.add(Stub(DeploymentInternal))
     }
 
-    private void buildWithInputs() {
+    private void buildDeclaresInputs() {
         delegate = new BuildSessionActionExecutor() {
             @Override
             BuildActionRunner.Result execute(BuildAction action, BuildSessionContext context) {
@@ -240,7 +249,7 @@ class ContinuousBuildActionExecutorTest extends ConcurrentSpec {
         executer = executer()
     }
 
-    private boolean waitingForChanges() {
+    private boolean waitingForChangesMessageAppears() {
         return lastLogLine == "Waiting for changes to input files of tasks..."
     }
 
@@ -251,7 +260,7 @@ class ContinuousBuildActionExecutorTest extends ConcurrentSpec {
 
     private void rebuiltBecauseOfChange() {
         assert changeDetected()
-        assert waitingForChanges()
+        assert waitingForChangesMessageAppears()
     }
 
     private boolean changeDetected() {
@@ -267,15 +276,15 @@ class ContinuousBuildActionExecutorTest extends ConcurrentSpec {
         return textOutputFactory.toString().readLines().findAll { !it.empty }
     }
 
-    private void singleBuild() {
+    private void continuousBuildDisabled() {
         startParameter.continuous = false
     }
 
-    private void interactiveBuild() {
+    private void buildIsInteractive() {
         requestMetadata.interactive >> true
     }
 
-    private void continuousBuild() {
+    private void continuousBuildEnabled() {
         startParameter.continuous = true
     }
 
