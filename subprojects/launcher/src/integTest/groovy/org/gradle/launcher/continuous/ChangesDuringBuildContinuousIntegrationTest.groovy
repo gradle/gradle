@@ -43,7 +43,6 @@ apply plugin: 'java'
 task postCompile {
     doLast {
         if (!file('change-triggered').exists()) {
-            sleep(500) // attempt to workaround JDK-8145981
             println "Modifying 'Thing.java' after initial compile task"
             file("src/main/java/Thing.java").text = "class Thing { private static final boolean CHANGED=true; }"
             file('change-triggered').text = 'done'
@@ -108,7 +107,6 @@ jar.dependsOn postCompile
 
             gradle.taskGraph.afterTask { Task task ->
                 if(task.path == ':$changingInput' && !file('change-triggered').exists()) {
-                   sleep(500) // attempt to workaround JDK-8145981
                    file('$changingInput/input.txt').text = 'New input file'
                    file('change-triggered').text = 'done'
                 }
@@ -137,7 +135,6 @@ jar.dependsOn postCompile
             def inputFile = file('$changingInput/input.txt')
             def taskAction = { Task task ->
                 if (task.path == ':$changingInput' && !changeTriggerFile.exists()) {
-                   sleep(500) // attempt to workaround JDK-8145981
                    inputFile.text = 'New input file'
                    changeTriggerFile.text = 'done'
                 }

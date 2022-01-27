@@ -16,8 +16,7 @@
 
 package org.gradle.integtests.fixtures
 
-import com.google.common.util.concurrent.SimpleTimeLimiter
-import com.google.common.util.concurrent.UncheckedTimeoutException
+
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
@@ -27,10 +26,6 @@ import org.gradle.integtests.fixtures.executer.UnexpectedBuildFailure
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.junit.Assume
-
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
 
 import static org.gradle.integtests.fixtures.WaitAtEndOfBuildFixture.buildLogicForEndOfBuildWait
 import static org.gradle.integtests.fixtures.WaitAtEndOfBuildFixture.buildLogicForMinimumBuildTime
@@ -49,16 +44,13 @@ abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec
     private int errorOutputBuildMarker = 0
 
     int buildTimeout = WAIT_FOR_WATCHING_TIMEOUT_SECONDS
-    int shutdownTimeout = WAIT_FOR_SHUTDOWN_TIMEOUT_SECONDS
     boolean killToStop
-    boolean ignoreShutdownTimeoutException
     boolean withoutContinuousArg
     List<ExecutionResult> results = []
 
     void turnOnDebug() {
         executer.startBuildProcessInDebugger(true)
         buildTimeout *= 100
-        shutdownTimeout *= 100
     }
 
     def cleanup() {
@@ -270,19 +262,12 @@ $lastOutput
                 gradle.abort()
             } else {
                 gradle.cancel()
-                ExecutorService executorService = Executors.newCachedThreadPool()
                 try {
-                    SimpleTimeLimiter.create(executorService).callWithTimeout(
-                        { gradle.waitForExit() },
-                        shutdownTimeout, TimeUnit.SECONDS, false
-                    )
-                } catch (UncheckedTimeoutException e) {
-                    gradle.abort()
-                    if (!ignoreShutdownTimeoutException) {
-                        throw e
-                    }
+                    waitForNotRunning()
                 } finally {
-                    executorService.shutdownNow()
+                    if (gradle.running) {
+                        gradle.abort()
+                    }
                 }
             }
         }

@@ -26,11 +26,6 @@ import spock.lang.Ignore
 import spock.lang.Issue
 
 class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
-    def setup() {
-        if (OperatingSystem.current().isWindows()) {
-            ignoreShutdownTimeoutException = true
-        }
-    }
 
     def "detects no changes when no files are in the project"() {
         given:
