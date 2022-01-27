@@ -68,17 +68,6 @@ class DefaultNestedBuildTest extends Specification {
         return new DefaultNestedBuild(buildIdentifier, Path.path(":a:b:c"), buildDefinition, owner, tree)
     }
 
-    def "stops controller on stop"() {
-        services.add(Stub(BuildModelParameters))
-        def build = build()
-
-        when:
-        build.stop()
-
-        then:
-        1 * controller.stop()
-    }
-
     def "runs action and finishes build when model is not required by root build"() {
         given:
         services.add(new BuildModelParameters(false, false, false, false, false, false, false))
