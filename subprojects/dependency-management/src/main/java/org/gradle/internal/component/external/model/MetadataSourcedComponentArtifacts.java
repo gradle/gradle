@@ -48,7 +48,11 @@ public class MetadataSourcedComponentArtifacts implements ComponentArtifacts {
         if (variantsForGraphTraversal.isPresent()) {
             List<? extends ConfigurationMetadata> allVariants = variantsForGraphTraversal.get();
             // filter variant capabilities based on the configuration's capability
-            allVariants.stream().filter(configurationMetadata -> configurationMetadata.getCapabilities().getCapabilities().equals(configuration.getCapabilities().getCapabilities())).forEach(configurationMetadata -> variants.addAll(configurationMetadata.getVariants()));
+            for (ConfigurationMetadata configurationMetadata : allVariants) {
+                if (configurationMetadata.getCapabilities().getCapabilities().equals(configuration.getCapabilities().getCapabilities())) {
+                    variants.addAll(configurationMetadata.getVariants());
+                }
+            }
         } else {
             variants.addAll(configuration.getVariants());
         }
