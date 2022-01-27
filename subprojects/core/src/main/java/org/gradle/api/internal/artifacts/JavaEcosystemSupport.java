@@ -152,17 +152,19 @@ public abstract class JavaEcosystemSupport {
                     } else if (candidateValues.contains(javaRuntime)) {
                         details.closestMatch(javaRuntime);
                     }
-                } else if (candidateValues.contains(consumerValue)) {
-                    details.closestMatch(consumerValue);
                 } else if (javaApi.equals(consumerValue)) {
                     // we're asking for an API variant, prefer -jars first for runtime
                     if (candidateValues.contains(javaApiJars)) {
                         details.closestMatch(javaApiJars);
+                    } else if (candidateValues.contains(javaApi)) {
+                        details.closestMatch(javaApi);
                     } else if (candidateValues.contains(javaRuntimeJars)) {
                         details.closestMatch(javaRuntimeJars);
                     } else if (candidateValues.contains(javaRuntime)) {
                         details.closestMatch(javaRuntime);
                     }
+                } else if (candidateValues.contains(consumerValue)) {
+                    details.closestMatch(consumerValue);
                 }
             }
         }
