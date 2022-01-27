@@ -46,7 +46,7 @@ Note that the location of the Gradle user home may have been changed beforehand 
 The following properties can be used to configure the Gradle build environment:
 
 `org.gradle.caching=(true,false)`::
-When set to true, Gradle will reuse task outputs from any previous build, when possible, resulting is much faster builds. Learn more about <<build_cache.adoc#build_cache, using the build cache>>.
+When set to true, Gradle will reuse task outputs from any previous build, when possible, resulting in much faster builds. Learn more about <<build_cache.adoc#build_cache, using the build cache>>.
 _By default, the build cache is *not* enabled._
 
 `org.gradle.caching.debug=(true,false)`::
