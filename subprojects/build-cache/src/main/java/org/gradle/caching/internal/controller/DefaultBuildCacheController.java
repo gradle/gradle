@@ -148,9 +148,9 @@ public class DefaultBuildCacheController implements BuildCacheController {
                 } catch (Exception e) {
                     throw new GradleException("Build cache entry " + key.getHashCode() + " from remote build cache is invalid", e);
                 }
-            }
-            if (local.canStore()) {
-                local.store(key, file);
+                if (local.canStore()) {
+                    local.store(key, file);
+                }
             }
         });
         return result.get();
