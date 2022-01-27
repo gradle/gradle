@@ -16,6 +16,7 @@ We would like to thank the following community members for their contributions t
 [Jendrik Johannes](https://github.com/jjohannes),
 [Roberto Perez Alcolea](https://github.com/rpalcolea),
 [Konstantin Gribov](https://github.com/grossws),
+[Per Lundberg](https://github.com/perlun),
 [Piyush Mor](https://github.com/piyushmor),
 [Róbert Papp](https://github.com/TWiStErRob),
 [Piyush Mor](https://github.com/piyushmor),
