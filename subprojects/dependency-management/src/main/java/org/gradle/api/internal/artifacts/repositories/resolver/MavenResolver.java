@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
-import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.ComponentMetadataListerDetails;
 import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -28,7 +27,6 @@ import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransp
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.resources.MissingResourceException;
 import org.gradle.internal.action.InstantiatingAction;
-import org.gradle.internal.component.external.model.FixedComponentArtifacts;
 import org.gradle.internal.component.external.model.MetadataSourcedComponentArtifacts;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
@@ -222,14 +220,7 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
     private class MavenLocalRepositoryAccess extends LocalRepositoryAccess {
         @Override
         protected void resolveModuleArtifacts(MavenModuleResolveMetadata module, ConfigurationMetadata variant, BuildableComponentArtifactsResolveResult result) {
-            if (!variant.requiresMavenArtifactDiscovery()) {
-                result.resolved(new MetadataSourcedComponentArtifacts());
-            } else if (module.isKnownJarPackaging()) {
-                ModuleComponentArtifactMetadata artifact = module.artifact("jar", "jar", null);
-                result.resolved(new FixedComponentArtifacts(ImmutableSet.of(artifact)));
-            } else if (module.isRelocated()) {
-                result.resolved(new FixedComponentArtifacts(Collections.emptyList()));
-            }
+            result.resolved(new MetadataSourcedComponentArtifacts());
         }
 
         @Override

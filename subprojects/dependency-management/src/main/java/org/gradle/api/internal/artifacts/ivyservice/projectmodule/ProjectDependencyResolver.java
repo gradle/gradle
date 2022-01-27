@@ -15,8 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
-import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
@@ -36,7 +34,6 @@ import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ModuleSources;
-import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
@@ -48,9 +45,6 @@ import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 
 import javax.annotation.Nullable;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
 
 public class ProjectDependencyResolver implements ComponentMetaDataResolver, DependencyToComponentIdResolver, ArtifactResolver, OriginArtifactSelector, ComponentResolvers {
     private final LocalComponentRegistry localComponentRegistry;
@@ -132,21 +126,7 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
     @Override
     public ArtifactSet resolveArtifacts(final ComponentResolveMetadata component, final ConfigurationMetadata configuration, final ArtifactTypeRegistry artifactTypeRegistry, final ExcludeSpec exclusions, final ImmutableAttributes overriddenAttributes) {
         if (isProjectModule(component.getId())) {
-            Optional<ImmutableList<? extends ConfigurationMetadata>> variantsForGraphTraversal = component.getVariantsForGraphTraversal();
-            Set<VariantResolveMetadata> variants = new LinkedHashSet<>();
-            if (variantsForGraphTraversal.isPresent()) {
-                List<? extends ConfigurationMetadata> allVariants = variantsForGraphTraversal.get();
-                // filter variant capabilities based on the configuration's capability
-                for (ConfigurationMetadata configurationMetadata : allVariants) {
-                    if (configurationMetadata.getCapabilities().getCapabilities().equals(configuration.getCapabilities().getCapabilities())) {
-                        variants.addAll(configurationMetadata.getVariants());
-                    }
-                }
-            } else {
-                variants.addAll(configuration.getVariants());
-            }
-
-            return artifactSetResolver.resolveArtifacts(component.getId(), component.getModuleVersionId(), component.getSources(), exclusions, variants, component.getAttributesSchema(), artifactTypeRegistry, overriddenAttributes);
+            return artifactSetResolver.resolveArtifacts(component.getId(), component.getModuleVersionId(), component.getSources(), exclusions, configuration.getVariants(), component.getAttributesSchema(), artifactTypeRegistry, overriddenAttributes);
         } else {
             return null;
         }

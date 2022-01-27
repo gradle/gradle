@@ -1820,7 +1820,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             // This is a little coincidental: if view attributes have not been accessed, don't allow no matching variants
             boolean allowNoMatchingVariants = config.attributesUsed;
             ArtifactView view;
-            view = new ConfigurationArtifactView(viewAttributes, config.lockComponentFilter(), config.lenient, allowNoMatchingVariants);
+            if (config.reselectVariant) {
+                view = new ReselectingArtifactView(viewAttributes, config.lockComponentFilter(), this);
+            } else {
+                view = new ConfigurationArtifactView(viewAttributes, config.lockComponentFilter(), config.lenient, allowNoMatchingVariants);
+            }
             return view;
         }
 
