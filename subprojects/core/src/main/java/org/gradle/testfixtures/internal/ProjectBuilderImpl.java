@@ -122,6 +122,12 @@ public class ProjectBuilderImpl {
         BuildScopeServices buildServices = build.getBuildServices();
         buildServices.get(BuildStateRegistry.class).attachRootBuild(build);
 
+        // Take a root worker lease; this won't ever be released as ProjectBuilder has no lifecycle
+        ResourceLockCoordinationService coordinationService = buildServices.get(ResourceLockCoordinationService.class);
+        WorkerLeaseService workerLeaseService = buildServices.get(WorkerLeaseService.class);
+        WorkerLeaseRegistry.WorkerLease workerLease = workerLeaseService.getWorkerLease();
+        coordinationService.withStateLock(DefaultResourceLockCoordinationService.lock(workerLease));
+
         GradleInternal gradle = build.getMutableModel();
         gradle.setIncludedBuilds(Collections.emptyList());
 
@@ -140,11 +146,8 @@ public class ProjectBuilderImpl {
         gradle.setRootProject(project);
         gradle.setDefaultProject(project);
 
-        // Take a root worker lease and lock the project, these won't ever be released as ProjectBuilder has no lifecycle
-        ResourceLockCoordinationService coordinationService = buildServices.get(ResourceLockCoordinationService.class);
-        WorkerLeaseService workerLeaseService = buildServices.get(WorkerLeaseService.class);
-        WorkerLeaseRegistry.WorkerLease workerLease = workerLeaseService.getWorkerLease();
-        coordinationService.withStateLock(DefaultResourceLockCoordinationService.lock(workerLease, project.getOwner().getAccessLock()));
+        // Lock root project; this won't ever be released as ProjectBuilder has no lifecycle
+        coordinationService.withStateLock(DefaultResourceLockCoordinationService.lock(project.getOwner().getAccessLock()));
 
         project.getExtensions().getExtraProperties().set(
             "ProjectBuilder.stoppable",
