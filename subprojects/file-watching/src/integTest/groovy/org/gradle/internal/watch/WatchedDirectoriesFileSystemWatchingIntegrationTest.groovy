@@ -292,7 +292,7 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
         def mavenRepository = maven("repo")
         def mavenHttpRepository = new MavenHttpRepository(server, mavenRepository)
         m2.generateGlobalSettingsFile()
-        String artifactId = "foo-${UUID.randomUUID().toString()}-${System.currentTimeMillis()}"
+        def artifactId = "foo-watch-test"
         def remoteModule = mavenHttpRepository.module('watched.directories.maven.local.test', artifactId, "1.0").publish()
         def m2Module = m2.mavenRepo().module('watched.directories.maven.local.test', artifactId, "1.0").publish()
 
@@ -304,7 +304,7 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
             }
             configurations { compile }
             dependencies {
-                compile 'watched.directories.maven.local.test:${artifactId}:1.0'
+                compile 'watched.directories.maven.local.test:$artifactId:1.0'
             }
             task retrieve(type: Sync) {
                 from configurations.compile
@@ -323,7 +323,7 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
         withWatchFs().run 'retrieve', "--info"
 
         then:
-        projectDir.file("build/${artifactId}-1.0.jar").assertIsCopyOf(m2Module.artifactFile)
+        projectDir.file("build/$artifactId-1.0.jar").assertIsCopyOf(m2Module.artifactFile)
         assertWatchedHierarchies([projectDir])
     }
 
