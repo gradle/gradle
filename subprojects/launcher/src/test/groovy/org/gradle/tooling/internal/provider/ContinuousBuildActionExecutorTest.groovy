@@ -87,6 +87,8 @@ class ContinuousBuildActionExecutorTest extends ConcurrentSpec {
     }
 
     def cleanup() {
+        println("Build Output:")
+        println(textOutputFactory)
         executorService.shutdownNow()
     }
 
