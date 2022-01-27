@@ -141,7 +141,6 @@ public class ExecutionGradleServices {
     }
 
     public ExecutionEngine createExecutionEngine(
-        BuildCacheCommandFactory buildCacheCommandFactory,
         BuildCacheController buildCacheController,
         BuildCancellationToken cancellationToken,
         BuildInvocationScopeId buildInvocationScopeId,
@@ -179,7 +178,7 @@ public class ExecutionGradleServices {
             new SkipUpToDateStep<>(
             new RecordOutputsStep<>(outputFilesRepository,
             new StoreExecutionStateStep<>(
-            new BuildCacheStep(buildCacheController, buildCacheCommandFactory, deleter, outputChangeListener,
+            new BuildCacheStep(buildCacheController, deleter, outputChangeListener,
             new BroadcastChangingOutputsStep<>(outputChangeListener,
             new CaptureStateAfterExecutionStep<>(buildOperationExecutor, buildInvocationScopeId.getId(), outputSnapshotter,
             new CreateOutputsStep<>(

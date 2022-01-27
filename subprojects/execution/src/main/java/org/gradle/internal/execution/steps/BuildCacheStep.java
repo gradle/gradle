@@ -21,8 +21,6 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.file.FileCollection;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.CacheableEntity;
-import org.gradle.caching.internal.controller.BuildCacheCommandFactory;
-import org.gradle.caching.internal.controller.BuildCacheCommandFactory.LoadMetadata;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.controller.BuildCacheLoadMetadata;
 import org.gradle.caching.internal.origin.OriginMetadata;
@@ -50,20 +48,17 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExec
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildCacheStep.class);
 
     private final BuildCacheController buildCache;
-    private final BuildCacheCommandFactory commandFactory;
     private final Deleter deleter;
     private final OutputChangeListener outputChangeListener;
     private final Step<? super IncrementalChangesContext, ? extends AfterExecutionResult> delegate;
 
     public BuildCacheStep(
         BuildCacheController buildCache,
-        BuildCacheCommandFactory commandFactory,
         Deleter deleter,
         OutputChangeListener outputChangeListener,
         Step<? super IncrementalChangesContext, ? extends AfterExecutionResult> delegate
     ) {
         this.buildCache = buildCache;
-        this.commandFactory = commandFactory;
         this.deleter = deleter;
         this.outputChangeListener = outputChangeListener;
         this.delegate = delegate;

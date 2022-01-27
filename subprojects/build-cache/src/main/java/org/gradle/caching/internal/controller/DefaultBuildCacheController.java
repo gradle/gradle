@@ -19,7 +19,6 @@ package org.gradle.caching.internal.controller;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
-import com.google.common.collect.Interner;
 import com.google.common.io.Closer;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.cache.StringInterner;
@@ -104,7 +103,6 @@ public class DefaultBuildCacheController implements BuildCacheController {
         this.local = toLocalHandle(config.getLocal(), config.isLocalPush());
         this.remote = toRemoteHandle(config.getRemote(), config.isRemotePush(), buildOperationExecutor, logStackTraces, disableRemoteOnError);
         this.tmp = toTempFileStore(config.getLocal(), temporaryFileProvider);
-        // TODO inject properly
         this.fileSystemAccess = fileSystemAccess;
         this.packer = packer;
         this.originMetadataFactory = originMetadataFactory;
