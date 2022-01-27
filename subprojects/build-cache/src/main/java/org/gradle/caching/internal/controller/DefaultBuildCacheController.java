@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Interner;
 import com.google.common.io.Closer;
 import org.gradle.api.GradleException;
+import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.BuildCacheService;
@@ -82,7 +83,7 @@ public class DefaultBuildCacheController implements BuildCacheController {
     private final FileSystemAccess fileSystemAccess;
     private final BuildCacheEntryPacker packer;
     private final OriginMetadataFactory originMetadataFactory;
-    private final Interner<String> stringInterner;
+    private final StringInterner stringInterner;
 
     private boolean closed;
 
@@ -92,7 +93,11 @@ public class DefaultBuildCacheController implements BuildCacheController {
         TemporaryFileProvider temporaryFileProvider,
         boolean logStackTraces,
         boolean emitDebugLogging,
-        boolean disableRemoteOnError
+        boolean disableRemoteOnError,
+        FileSystemAccess fileSystemAccess,
+        BuildCacheEntryPacker packer,
+        OriginMetadataFactory originMetadataFactory,
+        StringInterner stringInterner
     ) {
         this.buildOperationExecutor = buildOperationExecutor;
         this.emitDebugLogging = emitDebugLogging;
@@ -100,10 +105,10 @@ public class DefaultBuildCacheController implements BuildCacheController {
         this.remote = toRemoteHandle(config.getRemote(), config.isRemotePush(), buildOperationExecutor, logStackTraces, disableRemoteOnError);
         this.tmp = toTempFileStore(config.getLocal(), temporaryFileProvider);
         // TODO inject properly
-        this.fileSystemAccess = null;
-        this.packer = null;
-        this.originMetadataFactory = null;
-        this.stringInterner = null;
+        this.fileSystemAccess = fileSystemAccess;
+        this.packer = packer;
+        this.originMetadataFactory = originMetadataFactory;
+        this.stringInterner = stringInterner;
     }
 
     @Override

@@ -20,6 +20,7 @@ import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.BuildCacheService;
 
 import javax.annotation.Nullable;
+import java.io.File;
 
 public class NullBuildCacheServiceHandle implements BuildCacheServiceHandle {
 
@@ -37,7 +38,7 @@ public class NullBuildCacheServiceHandle implements BuildCacheServiceHandle {
     }
 
     @Override
-    public void load(BuildCacheKey key, LoadTarget loadTarget) {
+    public boolean load(BuildCacheKey key, File loadTarget) {
         throw new UnsupportedOperationException();
     }
 
@@ -55,5 +56,4 @@ public class NullBuildCacheServiceHandle implements BuildCacheServiceHandle {
     public void close() {
 
     }
-
 }

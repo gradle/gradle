@@ -18,7 +18,10 @@ package org.gradle.caching.internal.controller;
 
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.CacheableEntity;
+import org.gradle.internal.snapshot.FileSystemSnapshot;
 
+import java.time.Duration;
+import java.util.Map;
 import java.util.Optional;
 
 public class NoOpBuildCacheController implements BuildCacheController {
@@ -44,7 +47,7 @@ public class NoOpBuildCacheController implements BuildCacheController {
     }
 
     @Override
-    public void store(BuildCacheStoreCommand command) {
+    public void store(BuildCacheKey cacheKey, CacheableEntity entity, Map<String, FileSystemSnapshot> snapshots, Duration executionTime) {
 
     }
 
@@ -52,5 +55,4 @@ public class NoOpBuildCacheController implements BuildCacheController {
     public void close() {
 
     }
-
 }
