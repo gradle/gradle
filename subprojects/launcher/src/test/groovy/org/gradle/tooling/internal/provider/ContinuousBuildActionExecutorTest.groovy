@@ -216,6 +216,42 @@ class ContinuousBuildActionExecutorTest extends ConcurrentSpec {
         buildExits(runningBuild)
     }
 
+    def "triggers build on change when gatekeeper is open"() {
+        given:
+        continuousBuildDisabled()
+        buildDeclaresInputs()
+        buildHasDeployment()
+
+        when:
+        def gatekeeper = continuousExecutionGate.createGateKeeper()
+        def runningBuild = startBuild()
+
+        then:
+        conditions.eventually {
+            reloadableDeploymentDetected()
+        }
+        waitingForChangesMessageAppears()
+
+        when:
+        def logLengthBeforeOpeneningGatekeeper = logLines.size()
+        gatekeeper.open()
+        // Wait to make sure the build is not triggered
+        Thread.sleep(500)
+        then:
+        logLines.size() == logLengthBeforeOpeneningGatekeeper
+
+        when:
+        changeListeners.broadcastChange(FileWatcherRegistry.Type.MODIFIED, file.toPath())
+        then:
+        conditions.eventually {
+            rebuiltBecauseOfChange()
+        }
+
+        cleanup:
+        cancellationToken.cancel()
+        buildExits(runningBuild)
+    }
+
     def "exits if there are no file system inputs"() {
         given:
         continuousBuildEnabled()
