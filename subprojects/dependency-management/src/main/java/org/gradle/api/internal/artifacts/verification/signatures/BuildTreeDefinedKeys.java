@@ -79,5 +79,4 @@ public class BuildTreeDefinedKeys {
     public BuildTreeDefinedKeys dryRun() {
         return new BuildTreeDefinedKeys(new File(keyringsFile.getParentFile(), VERIFICATION_KEYRING_DRYRUN_GPG));
     }
-
 }
