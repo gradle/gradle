@@ -30,6 +30,7 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -39,6 +40,7 @@ import static com.google.common.collect.Maps.transformValues;
 public class DefaultExecutionHistoryStore implements ExecutionHistoryStore {
 
     private final PersistentIndexedCache<String, PreviousExecutionState> store;
+    private final boolean isReadOnly = Objects.equals(System.getProperty("org.gradle.unsafe.executionhistory.readonly"), "true");
 
     public DefaultExecutionHistoryStore(
         Supplier<PersistentCache> cache,
@@ -66,6 +68,9 @@ public class DefaultExecutionHistoryStore implements ExecutionHistoryStore {
 
     @Override
     public void store(String key, boolean successful, AfterExecutionState executionState) {
+        if (isReadOnly) {
+            return;
+        }
         store.put(key, new DefaultPreviousExecutionState(
             executionState.getOriginMetadata(),
             executionState.getImplementation(),
@@ -79,6 +84,9 @@ public class DefaultExecutionHistoryStore implements ExecutionHistoryStore {
 
     @Override
     public void remove(String key) {
+        if (isReadOnly) {
+            return;
+        }
         store.remove(key);
     }
 
