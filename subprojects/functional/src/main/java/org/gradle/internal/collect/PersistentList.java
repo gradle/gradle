@@ -55,6 +55,8 @@ public abstract class PersistentList<T> {
     @CheckReturnValue
     public abstract PersistentList<T> plus(T element);
 
+    public abstract boolean isEmpty();
+
     private PersistentList() {}
 
     private static final PersistentList<Object> NIL = new PersistentList<Object>() {
@@ -65,6 +67,11 @@ public abstract class PersistentList<T> {
         @Override
         public PersistentList<Object> plus(Object element) {
             return new Cons<>(element, this);
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return true;
         }
 
         @Override
@@ -91,6 +98,11 @@ public abstract class PersistentList<T> {
         @Override
         public PersistentList<T> plus(T element) {
             return new Cons<>(element, this);
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return false;
         }
 
         @Override

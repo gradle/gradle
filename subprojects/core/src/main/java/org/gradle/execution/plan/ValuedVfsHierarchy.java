@@ -50,7 +50,7 @@ public final class ValuedVfsHierarchy<T> {
     }
 
     public boolean isEmpty() {
-        return children.isEmpty();
+        return children.isEmpty() && values.isEmpty();
     }
 
     /**
