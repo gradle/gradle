@@ -18,7 +18,7 @@ package org.gradle.api.tasks.diagnostics.internal.configurations;
 
 import org.gradle.api.Task;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
-import org.gradle.api.reporting.SingleFileReport;
+import org.gradle.api.reporting.ConfigurableReport;
 import org.gradle.api.reporting.internal.TaskReportContainer;
 import org.gradle.api.tasks.diagnostics.configurations.ConfigurationReports;
 
@@ -29,9 +29,9 @@ import javax.inject.Inject;
  *
  * Class must by non-{@code final}.
  */
-public class ConfigurationReportsImpl extends TaskReportContainer<SingleFileReport> implements ConfigurationReports {
+public class ConfigurationReportsImpl extends TaskReportContainer<ConfigurableReport> implements ConfigurationReports {
     @Inject
     public ConfigurationReportsImpl(Task task, CollectionCallbackActionDecorator callbackActionDecorator) {
-        super(SingleFileReport.class, task, callbackActionDecorator);
+        super(ConfigurableReport.class, task, callbackActionDecorator);
     }
 }

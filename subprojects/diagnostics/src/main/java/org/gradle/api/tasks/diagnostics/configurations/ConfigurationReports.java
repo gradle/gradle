@@ -17,8 +17,8 @@
 package org.gradle.api.tasks.diagnostics.configurations;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.reporting.ConfigurableReport;
 import org.gradle.api.reporting.ReportContainer;
-import org.gradle.api.reporting.SingleFileReport;
 
 /**
  * The reporting configuration for any {@link org.gradle.api.tasks.diagnostics.AbstractConfigurationReportTask}.
@@ -26,6 +26,6 @@ import org.gradle.api.reporting.SingleFileReport;
  * @since 7.5
  */
 @Incubating
-public interface ConfigurationReports extends ReportContainer<SingleFileReport> {
+public interface ConfigurationReports extends ReportContainer<ConfigurableReport> {
     // empty for now, additional report output formats can be added here
 }
