@@ -39,6 +39,7 @@ import org.gradle.caching.internal.controller.service.NullBuildCacheServiceHandl
 import org.gradle.caching.internal.controller.service.NullLocalBuildCacheServiceHandle;
 import org.gradle.caching.internal.controller.service.OpFiringBuildCacheServiceHandle;
 import org.gradle.caching.internal.controller.service.StoreTarget;
+import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.caching.internal.origin.OriginMetadataFactory;
 import org.gradle.caching.internal.packaging.BuildCacheEntryPacker;
 import org.gradle.caching.local.internal.BuildCacheTempFileStore;
@@ -118,8 +119,8 @@ public class DefaultBuildCacheController implements BuildCacheController {
     }
 
     @Override
-    public Optional<BuildCacheLoadMetadata> load(BuildCacheKey key, CacheableEntity entity) {
-        Optional<BuildCacheLoadMetadata> result = Optional.empty();
+    public Optional<LoadResult> load(BuildCacheKey key, CacheableEntity entity) {
+        Optional<LoadResult> result = Optional.empty();
         if (local.canLoad()) {
             result = loadLocal(key, entity);
         }
@@ -129,7 +130,7 @@ public class DefaultBuildCacheController implements BuildCacheController {
         return result;
     }
 
-    private Optional<BuildCacheLoadMetadata> loadLocal(BuildCacheKey key, CacheableEntity entity) {
+    private Optional<LoadResult> loadLocal(BuildCacheKey key, CacheableEntity entity) {
         try {
             return local.load(key, file -> packExecutor.unpack(key, entity, file));
         } catch (Exception e) {
@@ -137,8 +138,8 @@ public class DefaultBuildCacheController implements BuildCacheController {
         }
     }
 
-    private Optional<BuildCacheLoadMetadata> loadRemoteAndStoreResultLocally(BuildCacheKey key, CacheableEntity entity) {
-        AtomicReference<Optional<BuildCacheLoadMetadata>> result = new AtomicReference<>(Optional.empty());
+    private Optional<LoadResult> loadRemoteAndStoreResultLocally(BuildCacheKey key, CacheableEntity entity) {
+        AtomicReference<Optional<LoadResult>> result = new AtomicReference<>(Optional.empty());
         tmp.withTempFile(key, file -> {
             if (remote.load(key, file)) {
                 try {
@@ -200,12 +201,12 @@ public class DefaultBuildCacheController implements BuildCacheController {
         }
 
         @VisibleForTesting
-        BuildCacheLoadMetadata unpack(BuildCacheKey key, CacheableEntity entity, File file) {
-            return buildOperationExecutor.call(new CallableBuildOperation<BuildCacheLoadMetadata>() {
+        LoadResult unpack(BuildCacheKey key, CacheableEntity entity, File file) {
+            return buildOperationExecutor.call(new CallableBuildOperation<LoadResult>() {
                 @Override
-                public BuildCacheLoadMetadata call(BuildOperationContext context) throws IOException {
+                public LoadResult call(BuildOperationContext context) throws IOException {
                     try (InputStream input = new FileInputStream(file)) {
-                        BuildCacheLoadMetadata metadata = doUnpack(entity, input);
+                        LoadResult metadata = doUnpack(entity, input);
                         context.setResult(new UnpackOperationResult(metadata.getArtifactEntryCount()));
                         return metadata;
                     }
@@ -220,7 +221,7 @@ public class DefaultBuildCacheController implements BuildCacheController {
             });
         }
 
-        private BuildCacheLoadMetadata doUnpack(CacheableEntity entity, InputStream input) throws IOException {
+        private LoadResult doUnpack(CacheableEntity entity, InputStream input) throws IOException {
             ImmutableList.Builder<String> roots = ImmutableList.builder();
             entity.visitOutputTrees((name, type, root) -> roots.add(root.getAbsolutePath()));
             // TODO: Actually unpack the roots inside of the action
@@ -228,7 +229,20 @@ public class DefaultBuildCacheController implements BuildCacheController {
             BuildCacheEntryPacker.UnpackResult unpackResult = packer.unpack(entity, input, originMetadataFactory.createReader(entity));
             // TODO: Update the snapshots from the action
             ImmutableSortedMap<String, FileSystemSnapshot> resultingSnapshots = snapshotUnpackedData(entity, unpackResult.getSnapshots());
-            return BuildCacheLoadMetadata.of(unpackResult, resultingSnapshots);
+            return new LoadResult() {
+                @Override
+                public long getArtifactEntryCount() {
+                    return unpackResult.getEntries();
+                }
+                @Override
+                public OriginMetadata getOriginMetadata() {
+                    return unpackResult.getOriginMetadata();
+                }
+                @Override
+                public ImmutableSortedMap<String, FileSystemSnapshot> getResultingSnapshots() {
+                    return resultingSnapshots;
+                }
+            };
         }
 
         private ImmutableSortedMap<String, FileSystemSnapshot> snapshotUnpackedData(CacheableEntity entity, Map<String, ? extends FileSystemLocationSnapshot> treeSnapshots) {

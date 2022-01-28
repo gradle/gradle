@@ -42,7 +42,7 @@ public class NoOpBuildCacheController implements BuildCacheController {
     }
 
     @Override
-    public Optional<BuildCacheLoadMetadata> load(BuildCacheKey cacheKey, CacheableEntity cacheableEntity) {
+    public Optional<LoadResult> load(BuildCacheKey cacheKey, CacheableEntity cacheableEntity) {
         return Optional.empty();
     }
 

@@ -65,7 +65,7 @@ public class RootBuildCacheControllerRef {
         }
 
         @Override
-        public Optional<BuildCacheLoadMetadata> load(BuildCacheKey cacheKey, CacheableEntity cacheableEntity) {
+        public Optional<LoadResult> load(BuildCacheKey cacheKey, CacheableEntity cacheableEntity) {
             return delegate.load(cacheKey, cacheableEntity);
         }
 

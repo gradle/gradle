@@ -19,7 +19,6 @@ package org.gradle.internal.execution.steps
 import org.gradle.caching.BuildCacheKey
 import org.gradle.caching.internal.CacheableEntity
 import org.gradle.caching.internal.controller.BuildCacheController
-import org.gradle.caching.internal.controller.BuildCacheLoadMetadata
 import org.gradle.caching.internal.origin.OriginMetadata
 import org.gradle.internal.Try
 import org.gradle.internal.execution.ExecutionOutcome
@@ -40,7 +39,7 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
 
     def beforeExecutionState = Stub(BeforeExecutionState)
     def cacheKey = Stub(BuildCacheKey)
-    def loadMetadata = Mock(BuildCacheLoadMetadata)
+    def loadMetadata = Mock(BuildCacheController.LoadResult)
     def deleter = Mock(Deleter)
     def outputChangeListener = Mock(OutputChangeListener)
 

@@ -17,7 +17,7 @@
 package org.gradle.caching.internal.controller.service;
 
 import org.gradle.caching.BuildCacheKey;
-import org.gradle.caching.internal.controller.BuildCacheLoadMetadata;
+import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.local.internal.LocalBuildCacheService;
 
 import javax.annotation.Nullable;
@@ -44,7 +44,7 @@ public class NullLocalBuildCacheServiceHandle implements LocalBuildCacheServiceH
     }
 
     @Override
-    public Optional<BuildCacheLoadMetadata> load(BuildCacheKey key, Function<File, BuildCacheLoadMetadata> reader) {
+    public Optional<BuildCacheController.LoadResult> load(BuildCacheKey key, Function<File, BuildCacheController.LoadResult> reader) {
         throw new UnsupportedOperationException();
     }
 
