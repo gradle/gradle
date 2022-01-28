@@ -193,4 +193,32 @@ class DefaultMutableAttributeContainerTest extends Specification {
         then: "the lazy provider should be retrievable"
         "lazy value" == container.getAttribute(testAttr)
     }
+
+    def "toString should not change the internal state of the class"() {
+        given: "a container and a lazy and non-lazy attribute"
+        def container = new DefaultMutableAttributeContainer(attributesFactory, null)
+        def testEager = Attribute.of("eager", String)
+        def testLazy = Attribute.of("lazy", String)
+        Property<String> testProvider = new DefaultProperty<>(Mock(PropertyHost), String).convention("lazy value")
+
+        when: "the attributes are added to the container"
+        container.attribute(testEager, "eager value")
+        container.attributeProvider(testLazy, testProvider)
+
+        then: "they are located in proper internal collections"
+        container.@state.contains(testEager)
+        !container.@state.contains(testLazy)
+        container.@lazyAttributes.containsKey(testLazy)
+        !container.@lazyAttributes.containsKey(testEager)
+
+        when: "calling toString"
+        def result = container.toString()
+
+        then: "the result should not change the internals of the class"
+        result == "{eager=eager value, lazy=property(java.lang.String, fixed(class java.lang.String, lazy value))}"
+        container.@state.contains(testEager)
+        !container.@state.contains(testLazy)
+        container.@lazyAttributes.containsKey(testLazy)
+        !container.@lazyAttributes.containsKey(testEager)
+    }
 }

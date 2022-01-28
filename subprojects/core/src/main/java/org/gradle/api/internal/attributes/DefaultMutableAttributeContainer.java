@@ -25,11 +25,13 @@ import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TreeMap;
 
 class DefaultMutableAttributeContainer implements AttributeContainerInternal {
     private final ImmutableAttributesFactory immutableAttributesFactory;
@@ -48,7 +50,15 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
 
     @Override
     public String toString() {
-        return asImmutable().toString();
+        final Map<Attribute<?>, Object> sorted = new TreeMap<>(Comparator.comparing(Attribute::getName));
+
+        state.keySet().forEach(key -> sorted.put(key, state.getAttribute(key)));
+        if (null != parent) {
+            parent.keySet().forEach(key -> sorted.put(key, parent.getAttribute(key)));
+        }
+        lazyAttributes.keySet().forEach(key -> sorted.put(key, lazyAttributes.get(key).toString()));
+
+        return sorted.toString();
     }
 
     @Override
