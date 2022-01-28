@@ -27,7 +27,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class FileEventCollector implements FileChangeListener {
-    private static final int SHOW_INDIVIDUAL_CHANGES_LIMIT = 3;
+    public static final int SHOW_INDIVIDUAL_CHANGES_LIMIT = 3;
 
     private final Map<Path, FileWatcherRegistry.Type> aggregatedEvents = new LinkedHashMap<>();
     private final BuildInputHierarchy buildInputs;
