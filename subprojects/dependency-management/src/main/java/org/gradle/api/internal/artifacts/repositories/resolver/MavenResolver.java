@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.ComponentMetadataListerDetails;
 import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -27,7 +28,7 @@ import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransp
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.resources.MissingResourceException;
 import org.gradle.internal.action.InstantiatingAction;
-import org.gradle.internal.component.external.model.MetadataSourcedComponentArtifacts;
+import org.gradle.internal.component.external.model.FixedComponentArtifacts;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.maven.MavenModuleResolveMetadata;
@@ -220,7 +221,9 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
     private class MavenLocalRepositoryAccess extends LocalRepositoryAccess {
         @Override
         protected void resolveModuleArtifacts(MavenModuleResolveMetadata module, ConfigurationMetadata variant, BuildableComponentArtifactsResolveResult result) {
-            result.resolved(new MetadataSourcedComponentArtifacts());
+            if (module.isRelocated()) {
+                result.resolved(new FixedComponentArtifacts(Collections.emptyList()));
+            }
         }
 
         @Override
@@ -237,6 +240,18 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
     private class MavenRemoteRepositoryAccess extends RemoteRepositoryAccess {
         @Override
         protected void resolveModuleArtifacts(MavenModuleResolveMetadata module, ConfigurationMetadata variant, BuildableComponentArtifactsResolveResult result) {
+            if (module.isPomPackaging()) {
+                result.resolved(new FixedComponentArtifacts(findOptionalArtifacts(module, "jar", null)));
+            } else {
+                ModuleComponentArtifactMetadata artifactMetaData = module.artifact(module.getPackaging(), module.getPackaging(), null);
+
+                if (createArtifactResolver(module.getSources()).artifactExists(artifactMetaData, new DefaultResourceAwareResolveResult())) {
+                    result.resolved(new FixedComponentArtifacts(ImmutableSet.of(artifactMetaData)));
+                } else {
+                    ModuleComponentArtifactMetadata artifact = module.artifact("jar", "jar", null);
+                    result.resolved(new FixedComponentArtifacts(ImmutableSet.of(artifact)));
+                }
+            }
         }
 
         @Override
