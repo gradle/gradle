@@ -29,6 +29,7 @@ import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.resources.MissingResourceException;
 import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.component.external.model.FixedComponentArtifacts;
+import org.gradle.internal.component.external.model.MetadataSourcedComponentArtifacts;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.maven.MavenModuleResolveMetadata;
@@ -42,6 +43,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
+import org.gradle.internal.resolve.result.DefaultResourceAwareResolveResult;
 import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.local.FileStore;
@@ -221,7 +223,12 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
     private class MavenLocalRepositoryAccess extends LocalRepositoryAccess {
         @Override
         protected void resolveModuleArtifacts(MavenModuleResolveMetadata module, ConfigurationMetadata variant, BuildableComponentArtifactsResolveResult result) {
-            if (module.isRelocated()) {
+            if (!variant.requiresMavenArtifactDiscovery()) {
+                result.resolved(new MetadataSourcedComponentArtifacts());
+            } else if (module.isKnownJarPackaging()) {
+                ModuleComponentArtifactMetadata artifact = module.artifact("jar", "jar", null);
+                result.resolved(new FixedComponentArtifacts(ImmutableSet.of(artifact)));
+            } else if (module.isRelocated()) {
                 result.resolved(new FixedComponentArtifacts(Collections.emptyList()));
             }
         }
