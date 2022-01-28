@@ -41,8 +41,8 @@ class VfsRelativePathTest extends Specification {
 
     def "'#relativePath' fromChild '#child' is '#result'"() {
         expect:
-        VfsRelativePath.of(relativePath).fromChild(child).asString == result
-        VfsRelativePath.of(child).removeAsPrefixOf(relativePath) == result
+        VfsRelativePath.of(relativePath).pathFromChild(child).asString == result
+        VfsRelativePath.of(child).pathToChild(relativePath) == result
 
         where:
         relativePath | child | result

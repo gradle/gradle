@@ -87,7 +87,7 @@ public class VfsRelativePath {
      *   (some/path/other, some) -&gt; path/other
      *   (C:, '') -&gt; C:
      */
-    public VfsRelativePath fromChild(String relativeChildPath) {
+    public VfsRelativePath pathFromChild(String relativeChildPath) {
         return relativeChildPath.isEmpty()
             ? this
             : new VfsRelativePath(absolutePath, offset + relativeChildPath.length() + 1);
@@ -101,7 +101,7 @@ public class VfsRelativePath {
      *   (some, some/path/othere) -&gt; path/other
      *   (C:, '') -&gt; C:
      */
-    public String removeAsPrefixOf(String relativeChildPath) {
+    public String pathToChild(String relativeChildPath) {
         return isEmpty()
             ? relativeChildPath
             : relativeChildPath.substring(length() + 1);

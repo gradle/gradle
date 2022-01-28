@@ -111,7 +111,7 @@ abstract class AbstractFileSystemNodeWithChildrenTest<NODE extends FileSystemNod
     }
 
     String getPathFromCommonPrefix() {
-        return searchedPath.fromChild(commonPrefix).asString
+        return searchedPath.pathFromChild(commonPrefix).asString
     }
 
     String getSelectedChildPathFromCommonPrefix() {
@@ -119,15 +119,15 @@ abstract class AbstractFileSystemNodeWithChildrenTest<NODE extends FileSystemNod
     }
 
     def getDescendantSnapshotOfSelectedChild(@Nullable MetadataSnapshot foundSnapshot) {
-        1 * selectedChild.getSnapshot(searchedPath.fromChild(selectedChildPath), CASE_SENSITIVE) >> Optional.ofNullable(foundSnapshot)
+        1 * selectedChild.getSnapshot(searchedPath.pathFromChild(selectedChildPath), CASE_SENSITIVE) >> Optional.ofNullable(foundSnapshot)
     }
 
     def getDescendantNodeOfSelectedChild(ReadOnlyFileSystemNode foundNode) {
-        1 * selectedChild.getNode(searchedPath.fromChild(selectedChildPath), CASE_SENSITIVE) >> foundNode
+        1 * selectedChild.getNode(searchedPath.pathFromChild(selectedChildPath), CASE_SENSITIVE) >> foundNode
     }
 
     def invalidateDescendantOfSelectedChild(@Nullable FileSystemNode invalidatedChild) {
-        1 * selectedChild.invalidate(searchedPath.fromChild(selectedChildPath), CASE_SENSITIVE, _) >> Optional.ofNullable(invalidatedChild)
+        1 * selectedChild.invalidate(searchedPath.pathFromChild(selectedChildPath), CASE_SENSITIVE, _) >> Optional.ofNullable(invalidatedChild)
     }
 
     @SuppressWarnings("GrMethodMayBeStatic")

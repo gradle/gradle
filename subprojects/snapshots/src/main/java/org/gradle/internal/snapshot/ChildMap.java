@@ -72,7 +72,7 @@ public interface ChildMap<T> {
                 if (targetPath.length() == path.length()) {
                     return Optional.of(handler.handleExactMatchWithChild(value));
                 } else {
-                    return Optional.of(handler.handleAsDescendantOfChild(targetPath.fromChild(path), value));
+                    return Optional.of(handler.handleAsDescendantOfChild(targetPath.pathFromChild(path), value));
                 }
             } else if (targetPath.length() < path.length() && targetPath.isPrefixOf(path, caseSensitivity)) {
                 return Optional.of(handler.handleAsAncestorOfChild(path, value));

@@ -236,7 +236,7 @@ abstract class AbstractIncompleteFileSystemNodeTest<T extends FileSystemNode> ex
     }
 
     def storeDescendantOfSelectedChild(MetadataSnapshot snapshot, FileSystemNode updatedChild) {
-        1 * selectedChild.store(searchedPath.fromChild(selectedChildPath), CASE_SENSITIVE, snapshot, diffListener) >> updatedChild
+        1 * selectedChild.store(searchedPath.pathFromChild(selectedChildPath), CASE_SENSITIVE, snapshot, diffListener) >> updatedChild
     }
 
     def "querying the snapshot for non-existing child #vfsSpec.searchedPath finds nothings (#vfsSpec)"() {
