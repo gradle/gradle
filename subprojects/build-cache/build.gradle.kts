@@ -34,6 +34,7 @@ dependencies {
     testImplementation(project(":file-collections"))
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":base-services")))
+    testImplementation(testFixtures(project(":snapshots")))
 
     integTestDistributionRuntimeOnly(project(":distributions-core"))
 }

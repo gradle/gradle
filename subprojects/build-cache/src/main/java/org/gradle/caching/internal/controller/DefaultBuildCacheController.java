@@ -77,12 +77,8 @@ public class DefaultBuildCacheController implements BuildCacheController {
     final LocalBuildCacheServiceHandle local;
 
     private final BuildCacheTempFileStore tmp;
-    private final BuildOperationExecutor buildOperationExecutor;
     private final boolean emitDebugLogging;
-    private final FileSystemAccess fileSystemAccess;
-    private final BuildCacheEntryPacker packer;
-    private final OriginMetadataFactory originMetadataFactory;
-    private final StringInterner stringInterner;
+    private final PackOperationExecutor packExecutor;
 
     private boolean closed;
 
@@ -98,15 +94,17 @@ public class DefaultBuildCacheController implements BuildCacheController {
         OriginMetadataFactory originMetadataFactory,
         StringInterner stringInterner
     ) {
-        this.buildOperationExecutor = buildOperationExecutor;
         this.emitDebugLogging = emitDebugLogging;
         this.local = toLocalHandle(config.getLocal(), config.isLocalPush());
         this.remote = toRemoteHandle(config.getRemote(), config.isRemotePush(), buildOperationExecutor, logStackTraces, disableRemoteOnError);
         this.tmp = toTempFileStore(config.getLocal(), temporaryFileProvider);
-        this.fileSystemAccess = fileSystemAccess;
-        this.packer = packer;
-        this.originMetadataFactory = originMetadataFactory;
-        this.stringInterner = stringInterner;
+        this.packExecutor = new PackOperationExecutor(
+            buildOperationExecutor,
+            fileSystemAccess,
+            packer,
+            originMetadataFactory,
+            stringInterner
+        );
     }
 
     @Override
@@ -133,7 +131,7 @@ public class DefaultBuildCacheController implements BuildCacheController {
 
     private Optional<BuildCacheLoadMetadata> loadLocal(BuildCacheKey key, CacheableEntity entity) {
         try {
-            return local.load(key, file -> unpack(key, entity, file));
+            return local.load(key, file -> packExecutor.unpack(key, entity, file));
         } catch (Exception e) {
             throw new GradleException("Build cache entry " + key.getHashCode() + " from local build cache is invalid", e);
         }
@@ -144,7 +142,7 @@ public class DefaultBuildCacheController implements BuildCacheController {
         tmp.withTempFile(key, file -> {
             if (remote.load(key, file)) {
                 try {
-                    result.set(Optional.of(unpack(key, entity, file)));
+                    result.set(Optional.of(packExecutor.unpack(key, entity, file)));
                 } catch (Exception e) {
                     throw new GradleException("Build cache entry " + key.getHashCode() + " from remote build cache is invalid", e);
                 }
@@ -156,59 +154,6 @@ public class DefaultBuildCacheController implements BuildCacheController {
         return result.get();
     }
 
-    private BuildCacheLoadMetadata unpack(BuildCacheKey key, CacheableEntity entity, File file) {
-        return buildOperationExecutor.call(new CallableBuildOperation<BuildCacheLoadMetadata>() {
-            @Override
-            public BuildCacheLoadMetadata call(BuildOperationContext context) throws IOException {
-                try (InputStream input = new FileInputStream(file)) {
-                    BuildCacheLoadMetadata metadata = load(entity, input);
-                    UnpackOperationResult operationResult = new UnpackOperationResult(metadata.getArtifactEntryCount());
-                    context.setResult(operationResult);
-                    return metadata;
-                }
-            }
-
-            @Override
-            public BuildOperationDescriptor.Builder description() {
-                return BuildOperationDescriptor.displayName("Unpack build cache entry " + key.getHashCode())
-                    .details(new UnpackOperationDetails(key, file.length()))
-                    .progressDisplayName("Unpacking build cache entry");
-            }
-        });
-    }
-
-    private BuildCacheLoadMetadata load(CacheableEntity entity, InputStream input) throws IOException {
-        ImmutableList.Builder<String> roots = ImmutableList.builder();
-        entity.visitOutputTrees((name, type, root) -> roots.add(root.getAbsolutePath()));
-        // TODO: Actually unpack the roots inside of the action
-        fileSystemAccess.write(roots.build(), () -> {
-        });
-        BuildCacheEntryPacker.UnpackResult unpackResult = packer.unpack(entity, input, originMetadataFactory.createReader(entity));
-        // TODO: Update the snapshots from the action
-        ImmutableSortedMap<String, FileSystemSnapshot> resultingSnapshots = snapshotUnpackedData(entity, unpackResult.getSnapshots());
-        return BuildCacheLoadMetadata.of(unpackResult, resultingSnapshots);
-    }
-
-    private ImmutableSortedMap<String, FileSystemSnapshot> snapshotUnpackedData(CacheableEntity entity, Map<String, ? extends FileSystemLocationSnapshot> treeSnapshots) {
-        ImmutableSortedMap.Builder<String, FileSystemSnapshot> builder = ImmutableSortedMap.naturalOrder();
-        entity.visitOutputTrees((treeName, type, root) -> {
-            FileSystemLocationSnapshot treeSnapshot = treeSnapshots.get(treeName);
-            FileSystemLocationSnapshot resultingSnapshot;
-            if (treeSnapshot == null) {
-                String internedAbsolutePath = stringInterner.intern(root.getAbsolutePath());
-                resultingSnapshot = new MissingFileSnapshot(internedAbsolutePath, FileMetadata.AccessType.DIRECT);
-            } else {
-                if (type == TreeType.FILE && treeSnapshot.getType() != FileType.RegularFile) {
-                    throw new IllegalStateException(String.format("Only a regular file should be produced by unpacking tree '%s', but saw a %s", treeName, treeSnapshot.getType()));
-                }
-                resultingSnapshot = treeSnapshot;
-            }
-            fileSystemAccess.record(resultingSnapshot);
-            builder.put(treeName, resultingSnapshot);
-        });
-        return builder.build();
-    }
-
     @Override
     public void store(BuildCacheKey key, CacheableEntity entity, Map<String, FileSystemSnapshot> snapshots, Duration executionTime) {
         if (!local.canStore() && !remote.canStore()) {
@@ -216,33 +161,13 @@ public class DefaultBuildCacheController implements BuildCacheController {
         }
 
         tmp.withTempFile(key, file -> {
-            pack(file, key, entity, snapshots, executionTime);
+            packExecutor.pack(file, key, entity, snapshots, executionTime);
             if (remote.canStore()) {
                 remote.store(key, new StoreTarget(file));
             }
 
             if (local.canStore()) {
                 local.store(key, file);
-            }
-        });
-    }
-
-    private void pack(File file, BuildCacheKey key, CacheableEntity entity, Map<String, FileSystemSnapshot> snapshots, Duration executionTime) {
-        buildOperationExecutor.run(new RunnableBuildOperation() {
-            @Override
-            public void run(BuildOperationContext context) throws IOException {
-                try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
-                    BuildCacheEntryPacker.PackResult packResult = packer.pack(entity, snapshots, fileOutputStream, originMetadataFactory.createWriter(entity, executionTime));
-                    long entryCount = packResult.getEntries();
-                    context.setResult(new PackOperationResult(entryCount, file.length()));
-                }
-            }
-
-            @Override
-            public BuildOperationDescriptor.Builder description() {
-                return BuildOperationDescriptor.displayName("Pack build cache entry " + key)
-                    .details(new PackOperationDetails(key))
-                    .progressDisplayName("Packing build cache entry");
             }
         });
     }
@@ -255,6 +180,96 @@ public class DefaultBuildCacheController implements BuildCacheController {
             closer.register(local);
             closer.register(remote);
             closer.close();
+        }
+    }
+
+    @VisibleForTesting
+    static class PackOperationExecutor {
+        private final BuildOperationExecutor buildOperationExecutor;
+        private final FileSystemAccess fileSystemAccess;
+        private final BuildCacheEntryPacker packer;
+        private final OriginMetadataFactory originMetadataFactory;
+        private final StringInterner stringInterner;
+
+        PackOperationExecutor(BuildOperationExecutor buildOperationExecutor, FileSystemAccess fileSystemAccess, BuildCacheEntryPacker packer, OriginMetadataFactory originMetadataFactory, StringInterner stringInterner) {
+            this.buildOperationExecutor = buildOperationExecutor;
+            this.fileSystemAccess = fileSystemAccess;
+            this.packer = packer;
+            this.originMetadataFactory = originMetadataFactory;
+            this.stringInterner = stringInterner;
+        }
+
+        @VisibleForTesting
+        BuildCacheLoadMetadata unpack(BuildCacheKey key, CacheableEntity entity, File file) {
+            return buildOperationExecutor.call(new CallableBuildOperation<BuildCacheLoadMetadata>() {
+                @Override
+                public BuildCacheLoadMetadata call(BuildOperationContext context) throws IOException {
+                    try (InputStream input = new FileInputStream(file)) {
+                        BuildCacheLoadMetadata metadata = doUnpack(entity, input);
+                        context.setResult(new UnpackOperationResult(metadata.getArtifactEntryCount()));
+                        return metadata;
+                    }
+                }
+
+                @Override
+                public BuildOperationDescriptor.Builder description() {
+                    return BuildOperationDescriptor.displayName("Unpack build cache entry " + key.getHashCode())
+                        .details(new UnpackOperationDetails(key, file.length()))
+                        .progressDisplayName("Unpacking build cache entry");
+                }
+            });
+        }
+
+        private BuildCacheLoadMetadata doUnpack(CacheableEntity entity, InputStream input) throws IOException {
+            ImmutableList.Builder<String> roots = ImmutableList.builder();
+            entity.visitOutputTrees((name, type, root) -> roots.add(root.getAbsolutePath()));
+            // TODO: Actually unpack the roots inside of the action
+            fileSystemAccess.write(roots.build(), () -> {});
+            BuildCacheEntryPacker.UnpackResult unpackResult = packer.unpack(entity, input, originMetadataFactory.createReader(entity));
+            // TODO: Update the snapshots from the action
+            ImmutableSortedMap<String, FileSystemSnapshot> resultingSnapshots = snapshotUnpackedData(entity, unpackResult.getSnapshots());
+            return BuildCacheLoadMetadata.of(unpackResult, resultingSnapshots);
+        }
+
+        private ImmutableSortedMap<String, FileSystemSnapshot> snapshotUnpackedData(CacheableEntity entity, Map<String, ? extends FileSystemLocationSnapshot> treeSnapshots) {
+            ImmutableSortedMap.Builder<String, FileSystemSnapshot> builder = ImmutableSortedMap.naturalOrder();
+            entity.visitOutputTrees((treeName, type, root) -> {
+                FileSystemLocationSnapshot treeSnapshot = treeSnapshots.get(treeName);
+                FileSystemLocationSnapshot resultingSnapshot;
+                if (treeSnapshot == null) {
+                    String internedAbsolutePath = stringInterner.intern(root.getAbsolutePath());
+                    resultingSnapshot = new MissingFileSnapshot(internedAbsolutePath, FileMetadata.AccessType.DIRECT);
+                } else {
+                    if (type == TreeType.FILE && treeSnapshot.getType() != FileType.RegularFile) {
+                        throw new IllegalStateException(String.format("Only a regular file should be produced by unpacking tree '%s', but saw a %s", treeName, treeSnapshot.getType()));
+                    }
+                    resultingSnapshot = treeSnapshot;
+                }
+                fileSystemAccess.record(resultingSnapshot);
+                builder.put(treeName, resultingSnapshot);
+            });
+            return builder.build();
+        }
+
+        @VisibleForTesting
+        void pack(File file, BuildCacheKey key, CacheableEntity entity, Map<String, FileSystemSnapshot> snapshots, Duration executionTime) {
+            buildOperationExecutor.run(new RunnableBuildOperation() {
+                @Override
+                public void run(BuildOperationContext context) throws IOException {
+                    try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
+                        BuildCacheEntryPacker.PackResult packResult = packer.pack(entity, snapshots, fileOutputStream, originMetadataFactory.createWriter(entity, executionTime));
+                        long entryCount = packResult.getEntries();
+                        context.setResult(new PackOperationResult(entryCount, file.length()));
+                    }
+                }
+
+                @Override
+                public BuildOperationDescriptor.Builder description() {
+                    return BuildOperationDescriptor.displayName("Pack build cache entry " + key)
+                        .details(new PackOperationDetails(key))
+                        .progressDisplayName("Packing build cache entry");
+                }
+            });
         }
     }
 
