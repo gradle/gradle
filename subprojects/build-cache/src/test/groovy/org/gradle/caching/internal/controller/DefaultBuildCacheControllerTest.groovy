@@ -63,37 +63,6 @@ class DefaultBuildCacheControllerTest extends Specification {
     OriginMetadataFactory originMetadataFactory = Stub(OriginMetadataFactory)
     StringInterner stringInterner = Stub(StringInterner)
 
-    def storeCommand = Stub(BuildCacheStoreCommand) {
-        getKey() >> key
-        store(_ as OutputStream) >> { OutputStream output ->
-            output.close()
-            new BuildCacheStoreCommand.Result() {
-                @Override
-                long getArtifactEntryCount() {
-                    return 0
-                }
-            }
-        }
-    }
-
-    def loadCommand = Stub(BuildCacheLoadCommand) {
-        getKey() >> key
-        load(_ as InputStream) >> { InputStream input ->
-            input.close()
-            new BuildCacheLoadCommand.Result() {
-                @Override
-                long getArtifactEntryCount() {
-                    return 0
-                }
-
-                @Override
-                Object getMetadata() {
-                    return loadmetadata
-                }
-            }
-        }
-    }
-
     def operations = new TestBuildOperationExecutor()
 
     @Rule

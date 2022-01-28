@@ -25,10 +25,8 @@ import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal
 import org.gradle.caching.configuration.internal.BuildCacheServiceRegistration;
 import org.gradle.caching.configuration.internal.DefaultBuildCacheConfiguration;
 import org.gradle.caching.configuration.internal.DefaultBuildCacheServiceRegistration;
-import org.gradle.caching.internal.controller.BuildCacheCommandFactory;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.controller.RootBuildCacheControllerRef;
-import org.gradle.caching.internal.controller.impl.DefaultBuildCacheCommandFactory;
 import org.gradle.caching.internal.origin.OriginMetadataFactory;
 import org.gradle.caching.internal.packaging.BuildCacheEntryPacker;
 import org.gradle.caching.internal.packaging.impl.DefaultTarPackerFileSystemSupport;
@@ -139,15 +137,6 @@ public final class BuildCacheServices extends AbstractPluginServiceRegistry {
                     properties -> properties.setProperty(GRADLE_VERSION_KEY, GradleVersion.current().getVersion()),
                     hostnameLookup::getHostname
                 );
-            }
-
-            BuildCacheCommandFactory createBuildCacheCommandFactory(
-                BuildCacheEntryPacker packer,
-                OriginMetadataFactory originMetadataFactory,
-                FileSystemAccess fileSystemAccess,
-                StringInterner stringInterner
-            ) {
-                return new DefaultBuildCacheCommandFactory(packer, originMetadataFactory, fileSystemAccess, stringInterner);
             }
 
             BuildCacheController createBuildCacheController(
