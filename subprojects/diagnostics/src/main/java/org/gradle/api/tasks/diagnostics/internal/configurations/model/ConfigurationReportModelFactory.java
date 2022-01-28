@@ -95,10 +95,10 @@ public final class ConfigurationReportModelFactory {
             capabilities = explicitCapabilities;
         }
 
-        final List<ReportArtifact> artifacts = Collections.unmodifiableList(configuration.getAllArtifacts().stream()
+        final List<ReportArtifact> artifacts = configuration.getAllArtifacts().stream()
             .map(a -> convertPublishArtifact(a, fileResolver))
             .sorted(Comparator.comparing(ReportArtifact::getDisplayName))
-            .collect(Collectors.toList()));
+            .collect(Collectors.toList());
 
         final List<ReportSecondaryVariant> variants = configuration.getOutgoing().getVariants().stream()
             .map(v -> convertConfigurationVariant(v, fileResolver))

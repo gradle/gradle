@@ -16,8 +16,9 @@
 
 package org.gradle.api.tasks.diagnostics.internal.configurations.model;
 
+import com.google.common.collect.ImmutableList;
+
 import javax.annotation.Nullable;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -27,14 +28,14 @@ public final class ReportSecondaryVariant {
     private final String name;
     @Nullable
     private final String description;
-    private final List<ReportAttribute> attributes;
-    private final List<ReportArtifact> artifacts;
+    private final ImmutableList<ReportAttribute> attributes;
+    private final ImmutableList<ReportArtifact> artifacts;
 
     ReportSecondaryVariant(String name, @Nullable String description, List<ReportAttribute> attributes, List<ReportArtifact> artifacts) {
         this.name = name;
         this.description = description;
-        this.attributes = Collections.unmodifiableList(attributes);
-        this.artifacts = Collections.unmodifiableList(artifacts);
+        this.attributes = ImmutableList.copyOf(attributes);
+        this.artifacts = ImmutableList.copyOf(artifacts);
     }
 
     public String getName() {

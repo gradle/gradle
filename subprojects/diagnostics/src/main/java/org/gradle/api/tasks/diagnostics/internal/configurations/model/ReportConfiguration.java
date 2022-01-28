@@ -16,12 +16,13 @@
 
 package org.gradle.api.tasks.diagnostics.internal.configurations.model;
 
+import com.google.common.collect.ImmutableList;
+
 import javax.annotation.Nullable;
-import java.util.Collections;
 import java.util.List;
 
 /**
- * Lightweight, immutable model (with one exception) of a configuration for configuration reporting.
+ * Lightweight, immutable model of a configuration for configuration reporting.
  */
 public final class ReportConfiguration {
     private final String name;
@@ -29,11 +30,11 @@ public final class ReportConfiguration {
     private final String description;
     @Nullable
     private final Type type;
-    private final List<ReportAttribute> attributes;
-    private final List<ReportCapability> capabilities;
-    private final List<ReportArtifact> artifacts;
-    private final List<ReportSecondaryVariant> variants;
-    private final List<ReportConfiguration> extendedConfigurations;
+    private final ImmutableList<ReportAttribute> attributes;
+    private final ImmutableList<ReportCapability> capabilities;
+    private final ImmutableList<ReportArtifact> artifacts;
+    private final ImmutableList<ReportSecondaryVariant> variants;
+    private final ImmutableList<ReportConfiguration> extendedConfigurations;
 
     ReportConfiguration(String name, @Nullable String description, @Nullable Type type,
                                 List<ReportAttribute> attributes,
@@ -44,11 +45,11 @@ public final class ReportConfiguration {
         this.name = name;
         this.description = description;
         this.type = type;
-        this.attributes = Collections.unmodifiableList(attributes);
-        this.capabilities = Collections.unmodifiableList(capabilities);
-        this.artifacts = Collections.unmodifiableList(artifacts);
-        this.variants = Collections.unmodifiableList(variants);
-        this.extendedConfigurations = Collections.unmodifiableList(extendedConfigurations);
+        this.attributes = ImmutableList.copyOf(attributes);
+        this.capabilities = ImmutableList.copyOf(capabilities);
+        this.artifacts = ImmutableList.copyOf(artifacts);
+        this.variants = ImmutableList.copyOf(variants);
+        this.extendedConfigurations = ImmutableList.copyOf(extendedConfigurations);
     }
 
     public String getName() {
