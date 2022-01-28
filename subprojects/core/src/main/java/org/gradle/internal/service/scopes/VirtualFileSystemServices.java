@@ -46,7 +46,6 @@ import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.scopes.BuildTreeScopedCache;
 import org.gradle.cache.scopes.GlobalScopedCache;
-import org.gradle.execution.plan.BuildInputHierarchyFactory;
 import org.gradle.initialization.RootBuildLifecycleListener;
 import org.gradle.internal.build.BuildAddedListener;
 import org.gradle.internal.classloader.ClasspathHasher;
@@ -89,6 +88,7 @@ import org.gradle.internal.watch.registry.impl.DarwinFileWatcherRegistryFactory;
 import org.gradle.internal.watch.registry.impl.LinuxFileWatcherRegistryFactory;
 import org.gradle.internal.watch.registry.impl.WindowsFileWatcherRegistryFactory;
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem;
+import org.gradle.internal.watch.vfs.FileChangeListeners;
 import org.gradle.internal.watch.vfs.WatchableFileSystemDetector;
 import org.gradle.internal.watch.vfs.impl.DefaultWatchableFileSystemDetector;
 import org.gradle.internal.watch.vfs.impl.LocationsWrittenByCurrentBuild;
@@ -209,6 +209,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             DocumentationRegistry documentationRegistry,
             NativeCapabilities nativeCapabilities,
             ListenerManager listenerManager,
+            FileChangeListeners fileChangeListeners,
             FileSystem fileSystem,
             GlobalCacheLocations globalCacheLocations,
             WatchableFileSystemDetector watchableFileSystemDetector
@@ -228,7 +229,8 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                     rootReference,
                     sectionId -> documentationRegistry.getDocumentationFor("gradle_daemon", sectionId),
                     locationsWrittenByCurrentBuild,
-                    watchableFileSystemDetector
+                    watchableFileSystemDetector,
+                    fileChangeListeners
                 ))
                 .orElse(new WatchingNotSupportedVirtualFileSystem(rootReference));
             listenerManager.addListener((BuildAddedListener) buildState -> {
@@ -237,10 +239,6 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                 }
             );
             return virtualFileSystem;
-        }
-
-        BuildInputHierarchyFactory createInputAccessHierarchyFactory(FileSystem fileSystem, Stat stat) {
-            return new BuildInputHierarchyFactory(fileSystem.isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE, stat);
         }
 
         FileSystemAccess createFileSystemAccess(
@@ -332,6 +330,11 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
         ClasspathHasher createClasspathHasher(ClasspathFingerprinter fingerprinter, FileCollectionFactory fileCollectionFactory) {
             return new DefaultClasspathHasher(fingerprinter, fileCollectionFactory);
         }
+
+        FileChangeListeners createFileChangeListeners(ListenerManager listenerManager) {
+            return new DefaultFileChangeListeners(listenerManager);
+        }
+
     }
 
     @VisibleForTesting
@@ -445,4 +448,5 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
 
     interface WatchFilter extends Predicate<String> {
     }
+
 }

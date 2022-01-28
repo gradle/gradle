@@ -107,8 +107,6 @@ class ConfigurationCacheProblems(
             override fun onProblem(problem: PropertyProblem) {
                 onProblem(problem, ProblemSeverity.Warn)
             }
-
-            override fun forIncompatibleType() = this
         }
     }
 

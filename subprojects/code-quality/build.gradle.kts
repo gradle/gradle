@@ -2,6 +2,8 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
+description = "Plugins and integration with code quality (Checkstyle, PMD, CodeNarc)"
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":logging"))

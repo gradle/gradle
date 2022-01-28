@@ -84,7 +84,7 @@ class SymlinkContinuousIntegrationTest extends AbstractContinuousIntegrationTest
         def linkdir = baseDir.createDir("linkdir")
         def symlink = linkdir.file("link")
         // Since we remove symlinks at the end of the build from the VFS, we
-        // need an existing sibling of the symlink to ensure the parent directory of
+        // need an existing non-symlink sibling of the symlink to ensure the parent directory of
         // the symlink is watched between builds.
         linkdir.file("existing").createFile()
 

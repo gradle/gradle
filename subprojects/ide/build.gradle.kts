@@ -2,6 +2,8 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
+description = "Plugins and model builders for integration with Eclipse and IntelliJ IDEs"
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":logging"))

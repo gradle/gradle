@@ -22,7 +22,6 @@ import org.gradle.execution.plan.ValuedVfsHierarchy.ValueVisitor;
 import org.gradle.internal.collect.PersistentList;
 import org.gradle.internal.file.Stat;
 import org.gradle.internal.snapshot.CaseSensitivity;
-import org.gradle.internal.snapshot.EmptyChildMap;
 import org.gradle.internal.snapshot.VfsRelativePath;
 
 import java.io.File;
@@ -36,7 +35,7 @@ public class BuildInputHierarchy {
     private final SingleFileTreeElementMatcher matcher;
 
     public BuildInputHierarchy(CaseSensitivity caseSensitivity, Stat stat) {
-        this.root = new ValuedVfsHierarchy<>(PersistentList.of(), EmptyChildMap.getInstance(), caseSensitivity);
+        this.root = ValuedVfsHierarchy.emptyHierarchy(caseSensitivity);
         this.matcher = new SingleFileTreeElementMatcher(stat);
     }
 
@@ -45,12 +44,7 @@ public class BuildInputHierarchy {
      */
     public boolean isInput(String location) {
         InputDeclarationVisitor visitor = new InputDeclarationVisitor();
-        VfsRelativePath relativePath = VfsRelativePath.of(location);
-        if (relativePath.isEmpty()) {
-            root.visitAllValues(visitor);
-        } else {
-            root.visitValuesRelatedTo(relativePath, visitor);
-        }
+        root.visitValues(location, visitor);
         return visitor.isInput();
     }
 
@@ -91,15 +85,19 @@ public class BuildInputHierarchy {
         }
 
         @Override
-        public void visitAncestor(InputDeclaration value, VfsRelativePath pathToVisitedLocation) {
-            if (value.isInput(pathToVisitedLocation)) {
+        public void visitAncestor(InputDeclaration ancestor, VfsRelativePath pathToVisitedLocation) {
+            if (ancestor.contains(pathToVisitedLocation)) {
                 foundInput();
             }
         }
 
         @Override
         public void visitChildren(PersistentList<InputDeclaration> values, Supplier<String> relativePathSupplier) {
-            this.input = true;
+            // A parent directory to the input is not an input.
+            // As long as nothing within the input location changes we don't need to trigger a build.
+            // If we would consider the parents as inputs, then the creation of parent directories for
+            // an output file produced by the current build would directly trigger, though actually
+            // everything is up-to-date.
         }
 
         public boolean isInput() {
@@ -108,7 +106,7 @@ public class BuildInputHierarchy {
     }
 
     private interface InputDeclaration {
-        boolean isInput(VfsRelativePath childPath);
+        boolean contains(VfsRelativePath childPath);
     }
 
     private static final InputDeclaration ALL_CHILDREN_ARE_INPUTS = childPath -> true;
@@ -121,7 +119,7 @@ public class BuildInputHierarchy {
         }
 
         @Override
-        public boolean isInput(VfsRelativePath childPath) {
+        public boolean contains(VfsRelativePath childPath) {
             return matcher.elementWithRelativePathMatches(spec, new File(childPath.getAbsolutePath()), childPath.getAsString());
         }
     }

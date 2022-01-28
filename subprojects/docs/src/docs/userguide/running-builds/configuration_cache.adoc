@@ -615,9 +615,10 @@ For example, if you reference a `Configuration` to later get the resolved files,
 In the same vein, if you reference a `SourceDirectorySet` you should instead declare a `FileTree` as an input to your task.
 
 Referencing dependency resolution results is also disallowed (e.g. `ArtifactResolutionQuery`, `ResolvedArtifact`, `ArtifactResult` etc...).
-For example, if you reference some `ResolvedArtifactResult` instances, you should instead declare some `ArtifactCollection` as an input to your task.
+For example, if you reference some `ResolvedComponentResult` instances, you should instead declare a `Provider<ResolvedComponentResult>` as an input to your task.
+Such a provider can be obtained by invoking `ResolutionResult.getRootComponent()`.
+In the same vein, if you reference some `ResolvedArtifactResult` instances, you should instead use `ArtifactCollection.getResolvedArtifacts()` that returns a `Provider<Set<ResolvedArtifactResult>>` that can be mapped as an input to your task.
 The rule of thumb is that tasks must not reference _resolved_ results, but lazy specifications instead, in order to do the dependency resolution at execution time.
-Some APIs are missing and cannot yet be used as task inputs, for example it is currently not possible for task actions to reason about the dependency _graph_, see link:{gradle-issues}12871[gradle/gradle#12871].
 
 Some types, such as `Publication` or `Dependency` are not serializable, but could be.
 We may, if necessary, allow these to be used as task inputs directly.

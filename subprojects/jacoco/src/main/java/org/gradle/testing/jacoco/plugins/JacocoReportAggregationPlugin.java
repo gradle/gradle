@@ -53,6 +53,7 @@ public abstract class JacocoReportAggregationPlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
         project.getPluginManager().apply("org.gradle.reporting-base");
+        project.getPluginManager().apply("jvm-ecosystem");
         project.getPluginManager().apply("jacoco");
 
         Configuration jacocoAggregation = project.getConfigurations().create(JACOCO_AGGREGATION_CONFIGURATION_NAME);

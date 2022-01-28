@@ -16,9 +16,7 @@
 
 package org.gradle.api.internal.artifacts;
 
-
 import org.gradle.internal.operations.BuildOperationType;
-import org.gradle.internal.scan.UsedByScanPlugin;
 
 /**
  * Details about an artifact set being resolved.
@@ -27,7 +25,6 @@ import org.gradle.internal.scan.UsedByScanPlugin;
  */
 public final class ResolveArtifactsBuildOperationType implements BuildOperationType<ResolveArtifactsBuildOperationType.Details, ResolveArtifactsBuildOperationType.Result> {
 
-    @UsedByScanPlugin
     public interface Details {
 
         String getConfigurationPath();

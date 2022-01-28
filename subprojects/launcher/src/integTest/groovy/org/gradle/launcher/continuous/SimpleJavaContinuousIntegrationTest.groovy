@@ -252,9 +252,8 @@ class SimpleJavaContinuousIntegrationTest extends AbstractContinuousIntegrationT
         executedAndNotSkipped ":compileJava"
     }
 
-    def "creation of initial source file triggers build"() {
-        file("src/main/java").createDir()
-
+    @Requires(TestPrecondition.NOT_LINUX)
+    def "creation of initial source file triggers build for hierarchical watchers"() {
         expect:
         succeeds("build")
         skipped(":compileJava")
@@ -266,5 +265,23 @@ class SimpleJavaContinuousIntegrationTest extends AbstractContinuousIntegrationT
         then:
         buildTriggeredAndSucceeded()
         executedAndNotSkipped ":compileJava"
+    }
+
+    @Requires(TestPrecondition.LINUX)
+    def "creation of initial source file does not trigger build for non-hierarchical watchers"() {
+        expect:
+        succeeds("build")
+        skipped(":compileJava")
+        executed(":build")
+
+        when:
+        file("src/main/java/Thing.java") << "class Thing {}"
+
+        then:
+        // We watch the missing file `src/main/java`. As soon as `src` is created
+        // we invalidate everything below `src` and stop watching, since there is nothing more
+        // left in the VFS to watch. Though we don't consider the parent directory of
+        // `src/main/java` as an input, so we don't trigger a new build.
+        noBuildTriggered()
     }
 }

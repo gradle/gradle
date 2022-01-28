@@ -13,135 +13,106 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.plugins.DslObject
-import org.gradle.initialization.StartParameterBuildOptions
 
-val startParameterInternal =
-    gradle.startParameter as StartParameterInternal
+val unsupportedTasksPredicate: (Task) -> Boolean = { task: Task ->
+    when {
 
-val isConfigurationCacheEnabled: Boolean =
-    startParameterInternal.configurationCache.get()
+        // Working tasks that would otherwise be matched by filters below
+        task.name in listOf(
+            "publishLocalPublicationToLocalRepository",
+            "validateExternalPlugins",
+        ) -> false
+        task.name.startsWith("validatePluginWithId") -> false
 
-val isConfigurationCacheProblemsFail: Boolean =
-    startParameterInternal.configurationCacheProblems == StartParameterBuildOptions.ConfigurationCacheProblemsOption.Value.FAIL
+        // Core tasks
+        task.name in listOf(
+            "buildEnvironment",
+            "dependencies",
+            "dependencyInsight",
+            "properties",
+            "projects",
+            "outgoingVariants",
+            "javaToolchains",
+            "components",
+            "dependantComponents",
+            "model",
+        ) -> true
+        task.name.startsWithAnyOf(
+            "publish",
+            "idea",
+        ) -> true
+        task is GradleBuild -> true
 
-if (isConfigurationCacheEnabled && isConfigurationCacheProblemsFail) {
+        // gradle/gradle build tasks
+        task.name in listOf(
+            "updateInitPluginTemplateVersionFile",
+            "resolveAllDependencies",
+        ) -> true
+        task.name.endsWith("Wrapper") -> true
+        task.name in listOf("docs", "stageDocs", "docsTest", "serveDocs") -> true
+        task.name.startsWith("userguide") -> true
+        task.name.contains("Sample") -> true
+        task.name.contains("Snippet") -> true
+        task.typeSimpleName in listOf(
+            "KtsProjectGeneratorTask",
+            "JavaExecProjectGeneratorTask",
+            "JvmProjectGeneratorTask",
+            "NativeProjectGeneratorTask",
+            "MonolithicNativeProjectGeneratorTask",
+            "NativeProjectWithDepsGeneratorTask",
+            "CppMultiProjectGeneratorTask",
+            "BuildBuilderGenerator",
+        ) -> true
 
-    val unsupportedTasksPredicate: (Task) -> Boolean = { task: Task ->
-        when {
+        // Third parties tasks
 
-            // Working tasks that would otherwise be matched by filters below
-            task.name in listOf(
-                "publishLocalPublicationToLocalRepository",
-                "validateExternalPlugins",
-            ) -> false
-            task.name.startsWith("validatePluginWithId") -> false
+        // Publish plugin
+        task.name == "login" -> true
 
-            // Core tasks
-            task.name in listOf(
-                "buildEnvironment",
-                "dependencies",
-                "dependencyInsight",
-                "properties",
-                "projects",
-                "outgoingVariants",
-                "javaToolchains",
-                "components",
-                "dependantComponents",
-                "model",
-            ) -> true
-            task.name.startsWithAnyOf(
-                "publish",
-                "idea",
-            ) -> true
-            task is GradleBuild -> true
+        // Kotlin/JS
+        task.name in listOf("generateExternals") -> true
 
-            // gradle/gradle build tasks
-            task.name in listOf(
-                "updateInitPluginTemplateVersionFile",
-                "resolveAllDependencies",
-            ) -> true
-            task.name.endsWith("Wrapper") -> true
-            task.name in listOf("docs", "stageDocs", "docsTest", "serveDocs") -> true
-            task.name.startsWith("userguide") -> true
-            task.name.contains("Sample") -> true
-            task.name.contains("Snippet") -> true
-            task.typeSimpleName in listOf(
-                "KtsProjectGeneratorTask",
-                "JavaExecProjectGeneratorTask",
-                "JvmProjectGeneratorTask",
-                "NativeProjectGeneratorTask",
-                "MonolithicNativeProjectGeneratorTask",
-                "NativeProjectWithDepsGeneratorTask",
-                "CppMultiProjectGeneratorTask",
-                "BuildBuilderGenerator",
-            ) -> true
+        // JMH plugin
+        task.name in listOf("jmh", "jmhJar", "jmhReport") -> true
 
-            // Third parties tasks
+        // Gradle Doctor plugin
+        task.name in listOf(
+            "buildHealth",
+            "projectHealth",
+            "graph", "graphMain",
+            "projectGraphReport",
+            "ripples",
+            "aggregateAdvice",
+        ) -> true
+        task.name.startsWithAnyOf(
+            "abiAnalysis",
+            "advice",
+            "analyzeClassUsage",
+            "analyzeJar",
+            "artifactsReport",
+            "constantUsageDetector",
+            "createVariantFiles",
+            "findDeclaredProcs",
+            "findUnusedProcs",
+            "generalsUsageDetector",
+            "importFinder",
+            "inlineMemberExtractor",
+            "locateDependencies",
+            "misusedDependencies",
+            "reason",
+            "redundantKaptCheck",
+            "redundantPluginAlert",
+            "serviceLoader",
+        ) -> true
 
-            // Publish plugin
-            task.name == "login" -> true
-
-            // Kotlin/JS
-            task.name in listOf("generateExternals") -> true
-
-            // JMH plugin
-            task.name in listOf("jmh", "jmhJar", "jmhReport") -> true
-
-            // Gradle Doctor plugin
-            task.name in listOf(
-                "buildHealth",
-                "projectHealth",
-                "graph", "graphMain",
-                "projectGraphReport",
-                "ripples",
-                "aggregateAdvice",
-            ) -> true
-            task.name.startsWithAnyOf(
-                "abiAnalysis",
-                "advice",
-                "analyzeClassUsage",
-                "analyzeJar",
-                "artifactsReport",
-                "constantUsageDetector",
-                "createVariantFiles",
-                "findDeclaredProcs",
-                "findUnusedProcs",
-                "generalsUsageDetector",
-                "importFinder",
-                "inlineMemberExtractor",
-                "locateDependencies",
-                "misusedDependencies",
-                "reason",
-                "redundantKaptCheck",
-                "redundantPluginAlert",
-                "serviceLoader",
-            ) -> true
-
-            else -> false
-        }
+        else -> false
     }
+}
 
-    gradle.taskGraph.whenReady {
-        val unsupportedTasks = allTasks.filter(unsupportedTasksPredicate)
-        if (unsupportedTasks.isNotEmpty()) {
-            val maxDisplayed = 5
-            val displayedTasks = unsupportedTasks.takeLast(maxDisplayed).reversed().joinToString(separator = ", ") { it.path } +
-                if (unsupportedTasks.size > maxDisplayed) " and more..."
-                else ""
-            throw GradleException("""
-                Tasks unsupported with the configuration cache were scheduled: $displayedTasks
-
-                  The gradle/gradle build enables the configuration cache as an experiment.
-                  It seems you are using a feature of this build that is not yet supported.
-
-                  You can disable the configuration cache with `--no-configuration-cache`.
-                  You can ignore problems with `--configuration-cache-problems=warn`.
-
-                  Please see further instructions in CONTRIBUTING.md
-            """.trimIndent())
-        }
+gradle.taskGraph.whenReady {
+    allTasks.filter(unsupportedTasksPredicate).forEach { task ->
+        task.notCompatibleWithConfigurationCache("Task is not compatible with the configuration cache")
     }
 }
 

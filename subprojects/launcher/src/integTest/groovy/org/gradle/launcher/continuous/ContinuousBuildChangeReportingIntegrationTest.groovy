@@ -43,7 +43,7 @@ class ContinuousBuildChangeReportingIntegrationTest extends AbstractContinuousIn
         def inputFile = inputDir.file("input.txt")
         when:
         succeeds("theTask")
-        inputFile.text = 'New input file'
+        inputFile.createFile()
 
         then:
         buildTriggeredAndSucceeded()
@@ -59,7 +59,7 @@ class ContinuousBuildChangeReportingIntegrationTest extends AbstractContinuousIn
         def inputFiles = inputSubdirectories.collect { inputDir.file("input.txt") }
         when:
         succeeds("theTask")
-        inputFiles.each { it.text = 'New input file' }
+        inputFiles.each { it.createFile() }
 
         then:
         buildTriggeredAndSucceeded()
@@ -75,7 +75,7 @@ class ContinuousBuildChangeReportingIntegrationTest extends AbstractContinuousIn
         def inputFiles = inputSubdirectories.collect { it.file("input.txt") }
         when:
         succeeds("theTask")
-        inputFiles.each { it.text = 'New input file' }
+        inputFiles.each { it.createFile() }
 
         then:
         buildTriggeredAndSucceeded()
@@ -86,7 +86,7 @@ class ContinuousBuildChangeReportingIntegrationTest extends AbstractContinuousIn
     def "should report the changes when files are removed with #changesCount"(changesCount) {
         given:
         def inputFiles = (1..changesCount).collect { inputDir.file("input${it}.txt") }
-        inputFiles.each { it.text = 'New input file' }
+        inputFiles.each { it.createFile() }
         boolean expectMoreChanges = (changesCount > changesLimit)
 
         when:
@@ -123,7 +123,10 @@ class ContinuousBuildChangeReportingIntegrationTest extends AbstractContinuousIn
 
     def "should report the changes when directories are created #changesCount"(changesCount) {
         given:
-        def inputDirectories = (1..changesCount).collect { inputDir.file("input${it}Directory") }
+        // We need to put these directories in subdirectories, since on Linux we'd stop watching a directory as soon as we
+        // received file changes for all the files inside.
+        def inputSubdirectories = (1..changesCount).collect { inputDir.createDir("subdir${it}")}
+        def inputDirectories = inputSubdirectories.collect { it.file("inputDirectory") }
         boolean expectMoreChanges = (changesCount > changesLimit)
 
         when:
@@ -160,16 +163,16 @@ class ContinuousBuildChangeReportingIntegrationTest extends AbstractContinuousIn
     def "should report the changes when multiple changes are made at once"() {
         given:
         def inputFiles = (1..11).collect { inputDir.file("input${it}.txt") }
-        inputFiles.each { it.text = 'Input file' }
+        inputFiles.each { it.createFile() }
         def newfile1 = inputDir.file("input12.txt")
         def newfile2 = inputDir.file("input13.txt")
 
         when:
         succeeds("theTask")
-        newfile1.text = 'New Input file'
+        newfile1.createFile()
         inputFiles[2].text = 'Modified file'
         inputFiles[7].delete()
-        newfile2.text = 'New Input file'
+        newfile2.createFile()
 
         then:
         buildTriggeredAndSucceeded()
@@ -183,7 +186,7 @@ class ContinuousBuildChangeReportingIntegrationTest extends AbstractContinuousIn
         buildFile << """
             gradle.taskGraph.afterTask { Task task ->
                 if(task.path == ':theTask' && !file('changetrigged').exists()) {
-                   file('inputDir/input.txt').text = 'New input file'
+                   file('inputDir/input.txt').createNewFile()
                    file('changetrigged').text = 'done'
                 }
             }
@@ -208,7 +211,7 @@ class ContinuousBuildChangeReportingIntegrationTest extends AbstractContinuousIn
         when:
         executer.withArgument("-q")
         succeeds("theTask")
-        inputFile.text = 'New input file'
+        inputFile.createFile()
 
         then:
         buildTriggeredAndSucceeded()

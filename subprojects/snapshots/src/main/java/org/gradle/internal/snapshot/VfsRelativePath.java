@@ -127,8 +127,11 @@ public class VfsRelativePath {
             : suffixStartingFrom(relativeChildPath.length() + 1);
     }
 
+    /**
+     * Whether this is an empty relative path, denoting the current location.
+     */
     public boolean isEmpty() {
-        return offset == absolutePath.length();
+        return absolutePath.length() == offset;
     }
 
     int length() {
