@@ -159,7 +159,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec implements Ins
 --------------------------------------------------
 Variant coverageDataElementsForTest (i)
 --------------------------------------------------
-Description = Binary data file containing results of Jacoco test coverage reporting for the test Test Suite's test target.
+Binary data file containing results of Jacoco test coverage reporting for the test Test Suite's test target.
 
 Capabilities
     - :Test:unspecified (default capability)
@@ -203,7 +203,7 @@ Artifacts
 --------------------------------------------------
 Variant coverageDataElementsForIntegrationTest (i)
 --------------------------------------------------
-Description = Binary data file containing results of Jacoco test coverage reporting for the integrationTest Test Suite's integrationTest target.
+Binary data file containing results of Jacoco test coverage reporting for the integrationTest Test Suite's integrationTest target.
 
 Capabilities
     - :Test:unspecified (default capability)

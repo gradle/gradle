@@ -61,7 +61,7 @@ class JavaPluginIntegrationTest extends AbstractIntegrationSpec implements Inspe
 --------------------------------------------------
 Variant mainSourceElements (i)
 --------------------------------------------------
-Description = List of source directories contained in the Main SourceSet.
+List of source directories contained in the Main SourceSet.
 
 Capabilities
     - :${getTestDirectory().getName()}:unspecified (default capability)
@@ -95,7 +95,7 @@ Artifacts
 --------------------------------------------------
 Variant mainSourceElements (i)
 --------------------------------------------------
-Description = List of source directories contained in the Main SourceSet.
+List of source directories contained in the Main SourceSet.
 
 Capabilities
     - :${getTestDirectory().getName()}:unspecified (default capability)

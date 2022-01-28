@@ -81,7 +81,7 @@ class JavaLibraryOutgoingElementsBuilderIntegrationTest extends AbstractIntegrat
         then:
         outputContains """Variant shadowElements
 --------------------------------------------------
-Description = A fat jar
+A fat jar
 
 Capabilities
     - $capability
@@ -163,7 +163,7 @@ Secondary Variants (*)
     --------------------------------------------------
     Secondary Variant classes
     --------------------------------------------------
-    Description = Directories containing compiled class files for integTest.
+    Directories containing compiled class files for integTest.
 
     Attributes
         - org.gradle.category            = library
