@@ -75,13 +75,11 @@ public class BaseBuildCacheServiceHandle implements BuildCacheServiceHandle {
         try {
             LoadTarget loadTarget = new LoadTarget(loadTargetFile);
             loadInner(description, key, loadTarget);
-            if (loadTarget.isLoaded()) {
-                return Optional.ofNullable(unpackFunction.apply(loadTargetFile));
-            }
+            return maybeUnpack(loadTarget, unpackFunction);
         } catch (Exception e) {
             failure("load", "from", key, e);
+            return Optional.empty();
         }
-        return Optional.empty();
     }
 
     protected void loadInner(String description, BuildCacheKey key, LoadTarget loadTarget) {
@@ -90,6 +88,13 @@ public class BaseBuildCacheServiceHandle implements BuildCacheServiceHandle {
 
     protected void loadInner(BuildCacheKey key, BuildCacheEntryReader entryReader) {
         service.load(key, entryReader);
+    }
+
+    private Optional<BuildCacheLoadResult> maybeUnpack(LoadTarget loadTarget, Function<File, BuildCacheLoadResult> unpackFunction) {
+        if (loadTarget.isLoaded()) {
+            return Optional.ofNullable(unpackFunction.apply(loadTarget.getFile()));
+        }
+        return Optional.empty();
     }
 
     @Override
