@@ -86,7 +86,7 @@ class JavaIDEModelPerformanceTest extends AbstractCrossVersionPerformanceTest {
         def result = runner.run()
 
         then:
-        result.assertCurrentVersionHasNotRegressed()
+        result.assertCurrentVersionHasNotRegressedWithHighRelativeMedianDifference()
     }
 
     def "get IDE model for IDEA"() {
@@ -134,7 +134,7 @@ class JavaIDEModelPerformanceTest extends AbstractCrossVersionPerformanceTest {
         def result = runner.run()
 
         then:
-        result.assertCurrentVersionHasNotRegressed()
+        result.assertCurrentVersionHasNotRegressedWithHighRelativeMedianDifference()
     }
 
     private setupRunner() {
