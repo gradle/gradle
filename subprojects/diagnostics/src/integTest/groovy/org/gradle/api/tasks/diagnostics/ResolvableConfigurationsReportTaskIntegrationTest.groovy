@@ -88,7 +88,7 @@ class ResolvableConfigurationsReportTaskIntegrationTest extends AbstractIntegrat
         result.groupedOutput.task(":resolvableConfigurations").assertOutputContains("""--------------------------------------------------
 Configuration legacy (l)
 --------------------------------------------------
-Description = My custom legacy configuration""")
+My custom legacy configuration""")
 
         and:
         hasLegacyLegend()
@@ -114,7 +114,7 @@ Description = My custom legacy configuration""")
         result.groupedOutput.task(":resolvableConfigurations").assertOutputContains("""--------------------------------------------------
 Configuration custom
 --------------------------------------------------
-Description = My custom configuration
+My custom configuration
 """)
 
         and:
@@ -147,7 +147,7 @@ Description = My custom configuration
         result.groupedOutput.task(":resolvableConfigurations").assertOutputContains("""--------------------------------------------------
 Configuration custom
 --------------------------------------------------
-Description = My custom configuration
+My custom configuration
 
 Attributes
     - org.gradle.dependency.bundling = external
@@ -195,7 +195,7 @@ Attributes
         result.groupedOutput.task(":resolvableConfigurations").assertOutputContains("""--------------------------------------------------
 Configuration otherConf
 --------------------------------------------------
-Description = My second custom configuration
+My second custom configuration
 
 Attributes
     - org.gradle.category = documentation
@@ -203,7 +203,7 @@ Attributes
 --------------------------------------------------
 Configuration someConf
 --------------------------------------------------
-Description = My first custom configuration
+My first custom configuration
 
 Attributes
     - org.gradle.dependency.bundling = external
@@ -238,7 +238,7 @@ Attributes
         result.groupedOutput.task(":resolvableConfigurations").assertOutputContains("""--------------------------------------------------
 Configuration annotationProcessor
 --------------------------------------------------
-Description = Annotation processors and their dependencies for source set 'main'.
+Annotation processors and their dependencies for source set 'main'.
 
 Attributes
     - org.gradle.category            = library
@@ -250,7 +250,7 @@ Attributes
 --------------------------------------------------
 Configuration compileClasspath
 --------------------------------------------------
-Description = Compile classpath for source set 'main'.
+Compile classpath for source set 'main'.
 
 Attributes
     - org.gradle.category            = library
@@ -266,7 +266,7 @@ Extended Configurations
 --------------------------------------------------
 Configuration runtimeClasspath
 --------------------------------------------------
-Description = Runtime classpath of source set 'main'.
+Runtime classpath of source set 'main'.
 
 Attributes
     - org.gradle.category            = library
@@ -282,7 +282,7 @@ Extended Configurations
 --------------------------------------------------
 Configuration testAnnotationProcessor
 --------------------------------------------------
-Description = Annotation processors and their dependencies for source set 'test'.
+Annotation processors and their dependencies for source set 'test'.
 
 Attributes
     - org.gradle.category            = library
@@ -294,7 +294,7 @@ Attributes
 --------------------------------------------------
 Configuration testCompileClasspath
 --------------------------------------------------
-Description = Compile classpath for source set 'test'.
+Compile classpath for source set 'test'.
 
 Attributes
     - org.gradle.category            = library
@@ -310,7 +310,7 @@ Extended Configurations
 --------------------------------------------------
 Configuration testRuntimeClasspath
 --------------------------------------------------
-Description = Runtime classpath of source set 'test'.
+Runtime classpath of source set 'test'.
 
 Attributes
     - org.gradle.category            = library
@@ -351,7 +351,7 @@ Extended Configurations
         result.groupedOutput.task(":resolvableConfigurations").assertOutputContains("""--------------------------------------------------
 Configuration annotationProcessor
 --------------------------------------------------
-Description = Annotation processors and their dependencies for source set 'main'.
+Annotation processors and their dependencies for source set 'main'.
 
 Attributes
     - org.gradle.category            = library
@@ -363,12 +363,12 @@ Attributes
 --------------------------------------------------
 Configuration archives (l)
 --------------------------------------------------
-Description = Configuration for archive artifacts.
+Configuration for archive artifacts.
 
 --------------------------------------------------
 Configuration compileClasspath
 --------------------------------------------------
-Description = Compile classpath for source set 'main'.
+Compile classpath for source set 'main'.
 
 Attributes
     - org.gradle.category            = library
@@ -384,7 +384,7 @@ Extended Configurations
 --------------------------------------------------
 Configuration default (l)
 --------------------------------------------------
-Description = Configuration for default artifacts.
+Configuration for default artifacts.
 
 Extended Configurations
     - runtimeElements
@@ -392,7 +392,7 @@ Extended Configurations
 --------------------------------------------------
 Configuration runtimeClasspath
 --------------------------------------------------
-Description = Runtime classpath of source set 'main'.
+Runtime classpath of source set 'main'.
 
 Attributes
     - org.gradle.category            = library
@@ -408,7 +408,7 @@ Extended Configurations
 --------------------------------------------------
 Configuration testAnnotationProcessor
 --------------------------------------------------
-Description = Annotation processors and their dependencies for source set 'test'.
+Annotation processors and their dependencies for source set 'test'.
 
 Attributes
     - org.gradle.category            = library
@@ -420,7 +420,7 @@ Attributes
 --------------------------------------------------
 Configuration testCompileClasspath
 --------------------------------------------------
-Description = Compile classpath for source set 'test'.
+Compile classpath for source set 'test'.
 
 Attributes
     - org.gradle.category            = library
@@ -436,7 +436,7 @@ Extended Configurations
 --------------------------------------------------
 Configuration testRuntimeClasspath
 --------------------------------------------------
-Description = Runtime classpath of source set 'test'.
+Runtime classpath of source set 'test'.
 
 Attributes
     - org.gradle.category            = library
@@ -566,7 +566,7 @@ Extended Configurations
         result.groupedOutput.task(":resolvableConfigurations").assertOutputContains("""--------------------------------------------------
 Compatibility Rules
 --------------------------------------------------
-Description = The following Attributes have compatibility rules defined.
+The following Attributes have compatibility rules defined.
 
     - flavor""")
 
@@ -618,7 +618,7 @@ Description = The following Attributes have compatibility rules defined.
         result.groupedOutput.task(":resolvableConfigurations").assertOutputContains("""--------------------------------------------------
 Disambiguation Rules
 --------------------------------------------------
-Description = The following Attributes have disambiguation rules defined.
+The following Attributes have disambiguation rules defined.
 
     - flavor""")
 
@@ -657,12 +657,12 @@ Description = The following Attributes have disambiguation rules defined.
 
         then:
         result.groupedOutput.task(":resolvableConfigurations").assertOutputContains("""--------------------------------------------------
-Description = Base configuration
+Base configuration
 
 --------------------------------------------------
 Configuration leaf
 --------------------------------------------------
-Description = Leaf configuration
+Leaf configuration
 
 Extended Configurations
     - base (t)
@@ -671,7 +671,7 @@ Extended Configurations
 --------------------------------------------------
 Configuration mid
 --------------------------------------------------
-Description = Mid configuration
+Mid configuration
 
 Extended Configurations
     - base""")
@@ -710,12 +710,12 @@ Extended Configurations
 
         then:
         result.groupedOutput.task(":resolvableConfigurations").assertOutputContains("""--------------------------------------------------
-Description = Base configuration
+Base configuration
 
 --------------------------------------------------
 Configuration leaf
 --------------------------------------------------
-Description = Leaf configuration
+Leaf configuration
 
 Extended Configurations
     - mid
@@ -723,7 +723,7 @@ Extended Configurations
 --------------------------------------------------
 Configuration mid
 --------------------------------------------------
-Description = Mid configuration
+Mid configuration
 
 Extended Configurations
     - base""")
@@ -757,12 +757,12 @@ Extended Configurations
         result.groupedOutput.task(":resolvableConfigurations").assertOutputContains("""--------------------------------------------------
 Configuration base
 --------------------------------------------------
-Description = Base configuration
+Base configuration
 
 --------------------------------------------------
 Configuration mid
 --------------------------------------------------
-Description = Mid configuration
+Mid configuration
 
 Extended Configurations
     - base""")

@@ -87,7 +87,7 @@ class OutgoingVariantsReportTaskIntegrationTest extends AbstractIntegrationSpec 
         result.groupedOutput.task(":outgoingVariants").assertOutputContains("""--------------------------------------------------
 Variant legacy (l)
 --------------------------------------------------
-Description = My custom legacy configuration""")
+My custom legacy configuration""")
 
         and:
         hasLegacyLegend()
@@ -113,7 +113,7 @@ Description = My custom legacy configuration""")
         result.groupedOutput.task(":outgoingVariants").assertOutputContains """--------------------------------------------------
 Variant custom
 --------------------------------------------------
-Description = My custom configuration
+My custom configuration
 """
         and:
         doesNotHaveLegacyLegend()
@@ -145,7 +145,7 @@ Description = My custom configuration
         result.groupedOutput.task(":outgoingVariants").assertOutputContains("""--------------------------------------------------
 Variant custom
 --------------------------------------------------
-Description = My custom configuration
+My custom configuration
 
 Capabilities
     - :myLib:unspecified (default capability)
@@ -194,7 +194,7 @@ Attributes
         result.groupedOutput.task(":outgoingVariants").assertOutputContains """--------------------------------------------------
 Variant otherConf
 --------------------------------------------------
-Description = My second custom configuration
+My second custom configuration
 
 Capabilities
     - :myLib:unspecified (default capability)
@@ -204,7 +204,7 @@ Attributes
 --------------------------------------------------
 Variant someConf
 --------------------------------------------------
-Description = My first custom configuration
+My first custom configuration
 
 Capabilities
     - :myLib:unspecified (default capability)
@@ -240,7 +240,7 @@ Attributes
         result.groupedOutput.task(":outgoingVariants").assertOutputContains """--------------------------------------------------
 Variant apiElements
 --------------------------------------------------
-Description = API elements for main.
+API elements for main.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -258,21 +258,21 @@ Secondary Variants (*)
     --------------------------------------------------
     Secondary Variant classes
     --------------------------------------------------
-        Description = Directories containing compiled class files for main.
+    Directories containing compiled class files for main.
 
-        Attributes
-            - org.gradle.category            = library
-            - org.gradle.dependency.bundling = external
-            - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
-            - org.gradle.libraryelements     = classes
-            - org.gradle.usage               = java-api
-        Artifacts
-            - $builtMainClassesPath (artifactType = java-classes-directory)
+    Attributes
+        - org.gradle.category            = library
+        - org.gradle.dependency.bundling = external
+        - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
+        - org.gradle.libraryelements     = classes
+        - org.gradle.usage               = java-api
+    Artifacts
+        - $builtMainClassesPath (artifactType = java-classes-directory)
 
 --------------------------------------------------
 Variant mainSourceElements (i)
 --------------------------------------------------
-Description = List of source directories contained in the Main SourceSet.
+List of source directories contained in the Main SourceSet.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -287,7 +287,7 @@ Artifacts
 --------------------------------------------------
 Variant runtimeElements
 --------------------------------------------------
-Description = Elements of runtime for main.
+Elements of runtime for main.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -305,35 +305,35 @@ Secondary Variants (*)
     --------------------------------------------------
     Secondary Variant classes
     --------------------------------------------------
-        Description = Directories containing compiled class files for main.
+    Directories containing compiled class files for main.
 
-        Attributes
-            - org.gradle.category            = library
-            - org.gradle.dependency.bundling = external
-            - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
-            - org.gradle.libraryelements     = classes
-            - org.gradle.usage               = java-runtime
-        Artifacts
-            - $builtMainClassesPath (artifactType = java-classes-directory)
+    Attributes
+        - org.gradle.category            = library
+        - org.gradle.dependency.bundling = external
+        - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
+        - org.gradle.libraryelements     = classes
+        - org.gradle.usage               = java-runtime
+    Artifacts
+        - $builtMainClassesPath (artifactType = java-classes-directory)
 
     --------------------------------------------------
     Secondary Variant resources
     --------------------------------------------------
-        Description = Directories containing the project's assembled resource files for use at runtime.
+    Directories containing the project's assembled resource files for use at runtime.
 
-        Attributes
-            - org.gradle.category            = library
-            - org.gradle.dependency.bundling = external
-            - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
-            - org.gradle.libraryelements     = resources
-            - org.gradle.usage               = java-runtime
-        Artifacts
-            - $builtMainResourcesPath (artifactType = java-resources-directory)
+    Attributes
+        - org.gradle.category            = library
+        - org.gradle.dependency.bundling = external
+        - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
+        - org.gradle.libraryelements     = resources
+        - org.gradle.usage               = java-runtime
+    Artifacts
+        - $builtMainResourcesPath (artifactType = java-resources-directory)
 
 --------------------------------------------------
 Variant testResultsElementsForTest (i)
 --------------------------------------------------
-Description = Directory containing binary results of running tests for the test Test Suite's test target.
+Directory containing binary results of running tests for the test Test Suite's test target.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -379,7 +379,7 @@ Artifacts
         result.groupedOutput.task(":outgoingVariants").assertOutputContains("""--------------------------------------------------
 Variant apiElements
 --------------------------------------------------
-Description = API elements for main.
+API elements for main.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -397,21 +397,21 @@ Secondary Variants (*)
     --------------------------------------------------
     Secondary Variant classes
     --------------------------------------------------
-        Description = Directories containing compiled class files for main.
+    Directories containing compiled class files for main.
 
-        Attributes
-            - org.gradle.category            = library
-            - org.gradle.dependency.bundling = external
-            - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
-            - org.gradle.libraryelements     = classes
-            - org.gradle.usage               = java-api
-        Artifacts
-            - $builtMainClassesPath (artifactType = java-classes-directory)
+    Attributes
+        - org.gradle.category            = library
+        - org.gradle.dependency.bundling = external
+        - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
+        - org.gradle.libraryelements     = classes
+        - org.gradle.usage               = java-api
+    Artifacts
+        - $builtMainClassesPath (artifactType = java-classes-directory)
 
 --------------------------------------------------
 Variant javadocElements
 --------------------------------------------------
-Description = javadoc elements for main.
+javadoc elements for main.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -426,7 +426,7 @@ Artifacts
 --------------------------------------------------
 Variant mainSourceElements (i)
 --------------------------------------------------
-Description = List of source directories contained in the Main SourceSet.
+List of source directories contained in the Main SourceSet.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -441,7 +441,7 @@ Artifacts
 --------------------------------------------------
 Variant runtimeElements
 --------------------------------------------------
-Description = Elements of runtime for main.
+Elements of runtime for main.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -459,35 +459,35 @@ Secondary Variants (*)
     --------------------------------------------------
     Secondary Variant classes
     --------------------------------------------------
-        Description = Directories containing compiled class files for main.
+    Directories containing compiled class files for main.
 
-        Attributes
-            - org.gradle.category            = library
-            - org.gradle.dependency.bundling = external
-            - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
-            - org.gradle.libraryelements     = classes
-            - org.gradle.usage               = java-runtime
-        Artifacts
-            - $builtMainClassesPath (artifactType = java-classes-directory)
+    Attributes
+        - org.gradle.category            = library
+        - org.gradle.dependency.bundling = external
+        - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
+        - org.gradle.libraryelements     = classes
+        - org.gradle.usage               = java-runtime
+    Artifacts
+        - $builtMainClassesPath (artifactType = java-classes-directory)
 
     --------------------------------------------------
     Secondary Variant resources
     --------------------------------------------------
-        Description = Directories containing the project's assembled resource files for use at runtime.
+    Directories containing the project's assembled resource files for use at runtime.
 
-        Attributes
-            - org.gradle.category            = library
-            - org.gradle.dependency.bundling = external
-            - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
-            - org.gradle.libraryelements     = resources
-            - org.gradle.usage               = java-runtime
-        Artifacts
-            - $builtMainResourcesPath (artifactType = java-resources-directory)
+    Attributes
+        - org.gradle.category            = library
+        - org.gradle.dependency.bundling = external
+        - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
+        - org.gradle.libraryelements     = resources
+        - org.gradle.usage               = java-runtime
+    Artifacts
+        - $builtMainResourcesPath (artifactType = java-resources-directory)
 
 --------------------------------------------------
 Variant sourcesElements
 --------------------------------------------------
-Description = sources elements for main.
+sources elements for main.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -502,7 +502,7 @@ Artifacts
 --------------------------------------------------
 Variant testResultsElementsForTest (i)
 --------------------------------------------------
-Description = Directory containing binary results of running tests for the test Test Suite's test target.
+Directory containing binary results of running tests for the test Test Suite's test target.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -547,7 +547,7 @@ Artifacts
         result.groupedOutput.task(":outgoingVariants").assertOutputContains("""--------------------------------------------------
 Variant apiElements
 --------------------------------------------------
-Description = API elements for main.
+API elements for main.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -565,21 +565,21 @@ Secondary Variants (*)
     --------------------------------------------------
     Secondary Variant classes
     --------------------------------------------------
-        Description = Directories containing compiled class files for main.
+    Directories containing compiled class files for main.
 
-        Attributes
-            - org.gradle.category            = library
-            - org.gradle.dependency.bundling = external
-            - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
-            - org.gradle.libraryelements     = classes
-            - org.gradle.usage               = java-api
-        Artifacts
-            - $builtMainClassesPath (artifactType = java-classes-directory)
+    Attributes
+        - org.gradle.category            = library
+        - org.gradle.dependency.bundling = external
+        - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
+        - org.gradle.libraryelements     = classes
+        - org.gradle.usage               = java-api
+    Artifacts
+        - $builtMainClassesPath (artifactType = java-classes-directory)
 
 --------------------------------------------------
 Variant javadocElements
 --------------------------------------------------
-Description = javadoc elements for main.
+javadoc elements for main.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -594,7 +594,7 @@ Artifacts
 --------------------------------------------------
 Variant mainSourceElements (i)
 --------------------------------------------------
-Description = List of source directories contained in the Main SourceSet.
+List of source directories contained in the Main SourceSet.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -609,7 +609,7 @@ Artifacts
 --------------------------------------------------
 Variant runtimeElements
 --------------------------------------------------
-Description = Elements of runtime for main.
+Elements of runtime for main.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -627,35 +627,35 @@ Secondary Variants (*)
     --------------------------------------------------
     Secondary Variant classes
     --------------------------------------------------
-        Description = Directories containing compiled class files for main.
+    Directories containing compiled class files for main.
 
-        Attributes
-            - org.gradle.category            = library
-            - org.gradle.dependency.bundling = external
-            - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
-            - org.gradle.libraryelements     = classes
-            - org.gradle.usage               = java-runtime
-        Artifacts
-            - $builtMainClassesPath (artifactType = java-classes-directory)
+    Attributes
+        - org.gradle.category            = library
+        - org.gradle.dependency.bundling = external
+        - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
+        - org.gradle.libraryelements     = classes
+        - org.gradle.usage               = java-runtime
+    Artifacts
+        - $builtMainClassesPath (artifactType = java-classes-directory)
 
     --------------------------------------------------
     Secondary Variant resources
     --------------------------------------------------
-        Description = Directories containing the project's assembled resource files for use at runtime.
+    Directories containing the project's assembled resource files for use at runtime.
 
-        Attributes
-            - org.gradle.category            = library
-            - org.gradle.dependency.bundling = external
-            - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
-            - org.gradle.libraryelements     = resources
-            - org.gradle.usage               = java-runtime
-        Artifacts
-            - $builtMainResourcesPath (artifactType = java-resources-directory)
+    Attributes
+        - org.gradle.category            = library
+        - org.gradle.dependency.bundling = external
+        - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
+        - org.gradle.libraryelements     = resources
+        - org.gradle.usage               = java-runtime
+    Artifacts
+        - $builtMainResourcesPath (artifactType = java-resources-directory)
 
 --------------------------------------------------
 Variant sourcesElements
 --------------------------------------------------
-Description = sources elements for main.
+sources elements for main.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -670,7 +670,7 @@ Artifacts
 --------------------------------------------------
 Variant testResultsElementsForTest (i)
 --------------------------------------------------
-Description = Directory containing binary results of running tests for the test Test Suite's test target.
+Directory containing binary results of running tests for the test Test Suite's test target.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -708,7 +708,7 @@ Artifacts
         result.groupedOutput.task(":outgoingVariants").assertOutputContains("""--------------------------------------------------
 Variant runtimeElements
 --------------------------------------------------
-Description = Elements of runtime for main.
+Elements of runtime for main.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -726,30 +726,30 @@ Secondary Variants (*)
     --------------------------------------------------
     Secondary Variant classes
     --------------------------------------------------
-        Description = Directories containing compiled class files for main.
+    Directories containing compiled class files for main.
 
-        Attributes
-            - org.gradle.category            = library
-            - org.gradle.dependency.bundling = external
-            - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
-            - org.gradle.libraryelements     = classes
-            - org.gradle.usage               = java-runtime
-        Artifacts
-            - $builtMainClassesPath (artifactType = java-classes-directory)
+    Attributes
+        - org.gradle.category            = library
+        - org.gradle.dependency.bundling = external
+        - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
+        - org.gradle.libraryelements     = classes
+        - org.gradle.usage               = java-runtime
+    Artifacts
+        - $builtMainClassesPath (artifactType = java-classes-directory)
 
     --------------------------------------------------
     Secondary Variant resources
     --------------------------------------------------
-        Description = Directories containing the project's assembled resource files for use at runtime.
+    Directories containing the project's assembled resource files for use at runtime.
 
-        Attributes
-            - org.gradle.category            = library
-            - org.gradle.dependency.bundling = external
-            - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
-            - org.gradle.libraryelements     = resources
-            - org.gradle.usage               = java-runtime
-        Artifacts
-            - $builtMainResourcesPath (artifactType = java-resources-directory)
+    Attributes
+        - org.gradle.category            = library
+        - org.gradle.dependency.bundling = external
+        - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
+        - org.gradle.libraryelements     = resources
+        - org.gradle.usage               = java-runtime
+    Artifacts
+        - $builtMainResourcesPath (artifactType = java-resources-directory)
 """)
 
         and:
@@ -780,7 +780,7 @@ Secondary Variants (*)
         result.groupedOutput.task(":outgoingVariants").assertOutputContains("""--------------------------------------------------
 Variant apiElements
 --------------------------------------------------
-Description = API elements for main.
+API elements for main.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -798,21 +798,21 @@ Secondary Variants (*)
     --------------------------------------------------
     Secondary Variant classes
     --------------------------------------------------
-        Description = Directories containing compiled class files for main.
+    Directories containing compiled class files for main.
 
-        Attributes
-            - org.gradle.category            = library
-            - org.gradle.dependency.bundling = external
-            - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
-            - org.gradle.libraryelements     = classes
-            - org.gradle.usage               = java-api
-        Artifacts
-            - $builtMainClassesPath (artifactType = java-classes-directory)
+    Attributes
+        - org.gradle.category            = library
+        - org.gradle.dependency.bundling = external
+        - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
+        - org.gradle.libraryelements     = classes
+        - org.gradle.usage               = java-api
+    Artifacts
+        - $builtMainClassesPath (artifactType = java-classes-directory)
 
 --------------------------------------------------
 Variant archives (l)
 --------------------------------------------------
-Description = Configuration for archive artifacts.
+Configuration for archive artifacts.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -822,7 +822,7 @@ Artifacts
 --------------------------------------------------
 Variant default (l)
 --------------------------------------------------
-Description = Configuration for default artifacts.
+Configuration for default artifacts.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -832,7 +832,7 @@ Artifacts
 --------------------------------------------------
 Variant mainSourceElements (i)
 --------------------------------------------------
-Description = List of source directories contained in the Main SourceSet.
+List of source directories contained in the Main SourceSet.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -847,7 +847,7 @@ Artifacts
 --------------------------------------------------
 Variant runtimeElements
 --------------------------------------------------
-Description = Elements of runtime for main.
+Elements of runtime for main.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -865,35 +865,35 @@ Secondary Variants (*)
     --------------------------------------------------
     Secondary Variant classes
     --------------------------------------------------
-        Description = Directories containing compiled class files for main.
+    Directories containing compiled class files for main.
 
-        Attributes
-            - org.gradle.category            = library
-            - org.gradle.dependency.bundling = external
-            - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
-            - org.gradle.libraryelements     = classes
-            - org.gradle.usage               = java-runtime
-        Artifacts
-            - $builtMainClassesPath (artifactType = java-classes-directory)
+    Attributes
+        - org.gradle.category            = library
+        - org.gradle.dependency.bundling = external
+        - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
+        - org.gradle.libraryelements     = classes
+        - org.gradle.usage               = java-runtime
+    Artifacts
+        - $builtMainClassesPath (artifactType = java-classes-directory)
 
     --------------------------------------------------
     Secondary Variant resources
     --------------------------------------------------
-        Description = Directories containing the project's assembled resource files for use at runtime.
+    Directories containing the project's assembled resource files for use at runtime.
 
-        Attributes
-            - org.gradle.category            = library
-            - org.gradle.dependency.bundling = external
-            - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
-            - org.gradle.libraryelements     = resources
-            - org.gradle.usage               = java-runtime
-        Artifacts
-            - $builtMainResourcesPath (artifactType = java-resources-directory)
+    Attributes
+        - org.gradle.category            = library
+        - org.gradle.dependency.bundling = external
+        - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
+        - org.gradle.libraryelements     = resources
+        - org.gradle.usage               = java-runtime
+    Artifacts
+        - $builtMainResourcesPath (artifactType = java-resources-directory)
 
 --------------------------------------------------
 Variant testResultsElementsForTest (i)
 --------------------------------------------------
-Description = Directory containing binary results of running tests for the test Test Suite's test target.
+Directory containing binary results of running tests for the test Test Suite's test target.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -935,7 +935,7 @@ Artifacts
         result.groupedOutput.task(":outgoingVariants").assertOutputContains("""--------------------------------------------------
 Variant apiElements
 --------------------------------------------------
-Description = API elements for main.
+API elements for main.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -953,21 +953,21 @@ Secondary Variants (*)
     --------------------------------------------------
     Secondary Variant classes
     --------------------------------------------------
-        Description = Directories containing compiled class files for main.
+    Directories containing compiled class files for main.
 
-        Attributes
-            - org.gradle.category            = library
-            - org.gradle.dependency.bundling = external
-            - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
-            - org.gradle.libraryelements     = classes
-            - org.gradle.usage               = java-api
-        Artifacts
-            - $builtMainClassesPath (artifactType = java-classes-directory)
+    Attributes
+        - org.gradle.category            = library
+        - org.gradle.dependency.bundling = external
+        - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
+        - org.gradle.libraryelements     = classes
+        - org.gradle.usage               = java-api
+    Artifacts
+        - $builtMainClassesPath (artifactType = java-classes-directory)
 
 --------------------------------------------------
 Variant archives (l)
 --------------------------------------------------
-Description = Configuration for archive artifacts.
+Configuration for archive artifacts.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -977,7 +977,7 @@ Artifacts
 --------------------------------------------------
 Variant default (l)
 --------------------------------------------------
-Description = Configuration for default artifacts.
+Configuration for default artifacts.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -987,7 +987,7 @@ Artifacts
 --------------------------------------------------
 Variant mainSourceElements (i)
 --------------------------------------------------
-Description = List of source directories contained in the Main SourceSet.
+List of source directories contained in the Main SourceSet.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -1002,7 +1002,7 @@ Artifacts
 --------------------------------------------------
 Variant runtimeElements
 --------------------------------------------------
-Description = Elements of runtime for main.
+Elements of runtime for main.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -1020,35 +1020,35 @@ Secondary Variants (*)
     --------------------------------------------------
     Secondary Variant classes
     --------------------------------------------------
-        Description = Directories containing compiled class files for main.
+    Directories containing compiled class files for main.
 
-        Attributes
-            - org.gradle.category            = library
-            - org.gradle.dependency.bundling = external
-            - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
-            - org.gradle.libraryelements     = classes
-            - org.gradle.usage               = java-runtime
-        Artifacts
-            - $builtMainClassesPath (artifactType = java-classes-directory)
+    Attributes
+        - org.gradle.category            = library
+        - org.gradle.dependency.bundling = external
+        - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
+        - org.gradle.libraryelements     = classes
+        - org.gradle.usage               = java-runtime
+    Artifacts
+        - $builtMainClassesPath (artifactType = java-classes-directory)
 
     --------------------------------------------------
     Secondary Variant resources
     --------------------------------------------------
-        Description = Directories containing the project's assembled resource files for use at runtime.
+    Directories containing the project's assembled resource files for use at runtime.
 
-        Attributes
-            - org.gradle.category            = library
-            - org.gradle.dependency.bundling = external
-            - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
-            - org.gradle.libraryelements     = resources
-            - org.gradle.usage               = java-runtime
-        Artifacts
-            - $builtMainResourcesPath (artifactType = java-resources-directory)
+    Attributes
+        - org.gradle.category            = library
+        - org.gradle.dependency.bundling = external
+        - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
+        - org.gradle.libraryelements     = resources
+        - org.gradle.usage               = java-runtime
+    Artifacts
+        - $builtMainResourcesPath (artifactType = java-resources-directory)
 
 --------------------------------------------------
 Variant testResultsElementsForTest (i)
 --------------------------------------------------
-Description = Directory containing binary results of running tests for the test Test Suite's test target.
+Directory containing binary results of running tests for the test Test Suite's test target.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -1086,7 +1086,7 @@ Artifacts
         result.groupedOutput.task(":outgoingVariants").assertOutputContains("""--------------------------------------------------
 Variant runtimeElements
 --------------------------------------------------
-Description = Elements of runtime for main.
+Elements of runtime for main.
 
 Capabilities
     - org.test:extra:1.0
@@ -1119,7 +1119,7 @@ Capabilities
         result.groupedOutput.task(":outgoingVariants").assertOutputContains("""--------------------------------------------------
 Variant runtimeElements
 --------------------------------------------------
-Description = Elements of runtime for main.
+Elements of runtime for main.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -1137,31 +1137,31 @@ Secondary Variants (*)
     --------------------------------------------------
     Secondary Variant classes
     --------------------------------------------------
-        Description = Directories containing compiled class files for main.
+    Directories containing compiled class files for main.
 
-        Attributes
-            - org.gradle.category            = library
-            - org.gradle.dependency.bundling = external
-            - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
-            - org.gradle.libraryelements     = classes
-            - org.gradle.usage               = java-runtime
-        Artifacts
-            - foo
-            - $builtMainClassesPath (artifactType = java-classes-directory)
+    Attributes
+        - org.gradle.category            = library
+        - org.gradle.dependency.bundling = external
+        - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
+        - org.gradle.libraryelements     = classes
+        - org.gradle.usage               = java-runtime
+    Artifacts
+        - foo
+        - $builtMainClassesPath (artifactType = java-classes-directory)
 
     --------------------------------------------------
     Secondary Variant resources
     --------------------------------------------------
-        Description = Directories containing the project's assembled resource files for use at runtime.
+    Directories containing the project's assembled resource files for use at runtime.
 
-        Attributes
-            - org.gradle.category            = library
-            - org.gradle.dependency.bundling = external
-            - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
-            - org.gradle.libraryelements     = resources
-            - org.gradle.usage               = java-runtime
-        Artifacts
-            - $builtMainResourcesPath (artifactType = java-resources-directory)
+    Attributes
+        - org.gradle.category            = library
+        - org.gradle.dependency.bundling = external
+        - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
+        - org.gradle.libraryelements     = resources
+        - org.gradle.usage               = java-runtime
+    Artifacts
+        - $builtMainResourcesPath (artifactType = java-resources-directory)
 """)
 
         and:
@@ -1201,7 +1201,7 @@ Secondary Variants (*)
         result.groupedOutput.task(":outgoingVariants").assertOutputContains("""--------------------------------------------------
 Variant apiElements
 --------------------------------------------------
-Description = API elements for main.
+API elements for main.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -1219,21 +1219,21 @@ Secondary Variants (*)
     --------------------------------------------------
     Secondary Variant classes
     --------------------------------------------------
-        Description = Directories containing compiled class files for main.
+    Directories containing compiled class files for main.
 
-        Attributes
-            - org.gradle.category            = library
-            - org.gradle.dependency.bundling = external
-            - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
-            - org.gradle.libraryelements     = classes
-            - org.gradle.usage               = java-api
-        Artifacts
-            - $builtMainClassesPath (artifactType = java-classes-directory)
+    Attributes
+        - org.gradle.category            = library
+        - org.gradle.dependency.bundling = external
+        - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
+        - org.gradle.libraryelements     = classes
+        - org.gradle.usage               = java-api
+    Artifacts
+        - $builtMainClassesPath (artifactType = java-classes-directory)
 
 --------------------------------------------------
 Variant mainSourceElements (i)
 --------------------------------------------------
-Description = List of source directories contained in the Main SourceSet.
+List of source directories contained in the Main SourceSet.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -1248,7 +1248,7 @@ Artifacts
 --------------------------------------------------
 Variant runtimeElements
 --------------------------------------------------
-Description = Elements of runtime for main.
+Elements of runtime for main.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -1266,30 +1266,30 @@ Secondary Variants (*)
     --------------------------------------------------
     Secondary Variant classes
     --------------------------------------------------
-        Description = Directories containing compiled class files for main.
+    Directories containing compiled class files for main.
 
-        Attributes
-            - org.gradle.category            = library
-            - org.gradle.dependency.bundling = external
-            - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
-            - org.gradle.libraryelements     = classes
-            - org.gradle.usage               = java-runtime
-        Artifacts
-            - $builtMainClassesPath (artifactType = java-classes-directory)
+    Attributes
+        - org.gradle.category            = library
+        - org.gradle.dependency.bundling = external
+        - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
+        - org.gradle.libraryelements     = classes
+        - org.gradle.usage               = java-runtime
+    Artifacts
+        - $builtMainClassesPath (artifactType = java-classes-directory)
 
     --------------------------------------------------
     Secondary Variant resources
     --------------------------------------------------
-        Description = Directories containing the project's assembled resource files for use at runtime.
+    Directories containing the project's assembled resource files for use at runtime.
 
-        Attributes
-            - org.gradle.category            = library
-            - org.gradle.dependency.bundling = external
-            - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
-            - org.gradle.libraryelements     = resources
-            - org.gradle.usage               = java-runtime
-        Artifacts
-            - $builtMainResourcesPath (artifactType = java-resources-directory)
+    Attributes
+        - org.gradle.category            = library
+        - org.gradle.dependency.bundling = external
+        - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
+        - org.gradle.libraryelements     = resources
+        - org.gradle.usage               = java-runtime
+    Artifacts
+        - $builtMainResourcesPath (artifactType = java-resources-directory)
 
 --------------------------------------------------
 Variant sample (i)
@@ -1303,7 +1303,7 @@ Attributes
 --------------------------------------------------
 Variant testResultsElementsForTest (i)
 --------------------------------------------------
-Description = Directory containing binary results of running tests for the test Test Suite's test target.
+Directory containing binary results of running tests for the test Test Suite's test target.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -1365,7 +1365,7 @@ Artifacts
         result.groupedOutput.task(":outgoingVariants").assertOutputContains("""--------------------------------------------------
 Variant custom
 --------------------------------------------------
-Description = My custom configuration
+My custom configuration
 
 Capabilities
     - :myLib:unspecified (default capability)

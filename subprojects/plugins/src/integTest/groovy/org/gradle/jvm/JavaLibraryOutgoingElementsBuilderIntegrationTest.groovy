@@ -163,16 +163,16 @@ Secondary Variants (*)
     --------------------------------------------------
     Secondary Variant classes
     --------------------------------------------------
-        Description = Directories containing compiled class files for integTest.
+    Description = Directories containing compiled class files for integTest.
 
-        Attributes
-            - org.gradle.category            = library
-            - org.gradle.dependency.bundling = external
-            - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
-            - org.gradle.libraryelements     = classes
-            - org.gradle.usage               = java-api
-        Artifacts
-            - build${File.separator}classes${File.separator}java${File.separator}integTest (artifactType = java-classes-directory)"""
+    Attributes
+        - org.gradle.category            = library
+        - org.gradle.dependency.bundling = external
+        - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
+        - org.gradle.libraryelements     = classes
+        - org.gradle.usage               = java-api
+    Artifacts
+        - build${File.separator}classes${File.separator}java${File.separator}integTest (artifactType = java-classes-directory)"""
         }
 
         where:

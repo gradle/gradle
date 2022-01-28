@@ -216,8 +216,7 @@ public final class ConsoleConfigurationReportRenderer extends AbstractConfigurat
     private void writeDescription(String description) {
         indent(false);
         if (description != null) {
-            output.style(StyledTextOutput.Style.Description).text("Description");
-            output.style(StyledTextOutput.Style.Normal).text(" = ").println(description);
+            output.style(StyledTextOutput.Style.Normal).println(description);
         }
     }
 
@@ -376,18 +375,13 @@ public final class ConsoleConfigurationReportRenderer extends AbstractConfigurat
             output.println(buildIndicators(variant));
         });
 
-        try {
-            depth++;
-            writeDescription(variant.getDescription());
+        writeDescription(variant.getDescription());
 
-            if (!(variant.getAttributes().isEmpty() && variant.getArtifacts().isEmpty())) {
-                newLine();
-            }
-            writeAttributes(variant.getAttributes());
-            writeArtifacts(variant.getArtifacts());
-        } finally {
-            depth--;
+        if (!(variant.getAttributes().isEmpty() && variant.getArtifacts().isEmpty())) {
+            newLine();
         }
+        writeAttributes(variant.getAttributes());
+        writeArtifacts(variant.getArtifacts());
     }
 
     private void printHeader(Runnable action) {
