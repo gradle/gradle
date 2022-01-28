@@ -125,6 +125,17 @@ class ValuedVfsHierarchyTest extends Specification {
         "some/location/intermediate/child/non-existing" | [:]
     }
 
+    def "can record value at root"() {
+        def hierarchy = complexHierarchy()
+        hierarchy = hierarchy.recordValue(VfsRelativePath.of(""), 10)
+
+        when:
+        def visitor = new CollectingValueVisitor()
+        hierarchy.visitValues("", visitor)
+        then:
+        visitor.exactValues == [10]
+    }
+
     private ValuedVfsHierarchy<Integer> complexHierarchy() {
         def hierarchy = emptyHierarchy()
         hierarchy = hierarchy.recordValue(VfsRelativePath.of("some/location"), 1)

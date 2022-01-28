@@ -156,7 +156,9 @@ public final class ValuedVfsHierarchy<T> {
 
             @Override
             public ValuedVfsHierarchy<T> handleAsAncestorOfChild(String childPath, ValuedVfsHierarchy<T> child) {
-                ChildMap<ValuedVfsHierarchy<T>> singletonChild = ChildMapFactory.childMapFromSorted(ImmutableList.of(new ChildMap.Entry<>(VfsRelativePath.of(childPath).suffixStartingFrom(location).getAsString(), child)));
+                ChildMap<ValuedVfsHierarchy<T>> singletonChild = ChildMapFactory.childMapFromSorted(ImmutableList.of(
+                    new ChildMap.Entry<>(location.removeAsPrefixOf(childPath), child)
+                ));
                 return new ValuedVfsHierarchy<>(PersistentList.of(value), singletonChild, caseSensitivity);
             }
 

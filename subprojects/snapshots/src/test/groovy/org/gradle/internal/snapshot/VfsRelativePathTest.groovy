@@ -42,11 +42,13 @@ class VfsRelativePathTest extends Specification {
     def "'#relativePath' fromChild '#child' is '#result'"() {
         expect:
         VfsRelativePath.of(relativePath).fromChild(child).asString == result
+        VfsRelativePath.of(child).removeAsPrefixOf(relativePath) == result
 
         where:
         relativePath | child | result
         "a/b"        | "a"   | "b"
         "a/b"        | ""    | "a/b"
+        ""           | ""    | ""
     }
 
     def "'#relativePath / #offset' #verb a prefix of '#childPath'"() {
