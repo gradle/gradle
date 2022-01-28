@@ -43,7 +43,7 @@ public abstract class OutgoingVariantsReportTask extends AbstractConfigurationRe
      */
     @Input
     @Optional
-    @Option(option = "variant", description = "The name the single variant to report")
+    @Option(option = "variant", description = "The name of the single variant to report")
     public abstract Property<String> getVariantName();
 
     /**
