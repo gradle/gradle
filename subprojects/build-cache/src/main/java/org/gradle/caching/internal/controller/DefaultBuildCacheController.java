@@ -38,7 +38,6 @@ import org.gradle.caching.internal.controller.service.LocalBuildCacheServiceHand
 import org.gradle.caching.internal.controller.service.NullBuildCacheServiceHandle;
 import org.gradle.caching.internal.controller.service.NullLocalBuildCacheServiceHandle;
 import org.gradle.caching.internal.controller.service.OpFiringBuildCacheServiceHandle;
-import org.gradle.caching.internal.controller.service.StoreTarget;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.caching.internal.origin.OriginMetadataFactory;
 import org.gradle.caching.internal.packaging.BuildCacheEntryPacker;
@@ -120,36 +119,34 @@ public class DefaultBuildCacheController implements BuildCacheController {
 
     @Override
     public Optional<LoadResult> load(BuildCacheKey key, CacheableEntity entity) {
-        Optional<LoadResult> result = Optional.empty();
-        if (local.canLoad()) {
-            result = loadLocal(key, entity);
+        Optional<LoadResult> result = loadLocal(key, entity);
+        if (result.isPresent()) {
+            return result;
         }
-        if (!result.isPresent() && remote.canLoad()) {
-            result = loadRemoteAndStoreResultLocally(key, entity);
-        }
-        return result;
+        return loadRemoteAndStoreResultLocally(key, entity);
     }
 
     private Optional<LoadResult> loadLocal(BuildCacheKey key, CacheableEntity entity) {
         try {
-            return local.load(key, file -> packExecutor.unpack(key, entity, file));
+            return local.maybeLoad(key, file -> packExecutor.unpack(key, entity, file));
         } catch (Exception e) {
             throw new GradleException("Build cache entry " + key.getHashCode() + " from local build cache is invalid", e);
         }
     }
 
     private Optional<LoadResult> loadRemoteAndStoreResultLocally(BuildCacheKey key, CacheableEntity entity) {
+        if (!remote.canLoad()) {
+            return Optional.empty();
+        }
         AtomicReference<Optional<LoadResult>> result = new AtomicReference<>(Optional.empty());
         tmp.withTempFile(key, file -> {
-            if (remote.load(key, file)) {
+            if (remote.maybeLoad(key, file)) {
                 try {
                     result.set(Optional.of(packExecutor.unpack(key, entity, file)));
                 } catch (Exception e) {
                     throw new GradleException("Build cache entry " + key.getHashCode() + " from remote build cache is invalid", e);
                 }
-                if (local.canStore()) {
-                    local.store(key, file);
-                }
+                local.maybeStore(key, file);
             }
         });
         return result.get();
@@ -163,13 +160,8 @@ public class DefaultBuildCacheController implements BuildCacheController {
 
         tmp.withTempFile(key, file -> {
             packExecutor.pack(file, key, entity, snapshots, executionTime);
-            if (remote.canStore()) {
-                remote.store(key, new StoreTarget(file));
-            }
-
-            if (local.canStore()) {
-                local.store(key, file);
-            }
+            remote.maybeStore(key, file);
+            local.maybeStore(key, file);
         });
     }
 

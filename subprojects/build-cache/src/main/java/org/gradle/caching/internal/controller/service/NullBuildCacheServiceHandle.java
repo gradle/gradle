@@ -38,8 +38,8 @@ public class NullBuildCacheServiceHandle implements BuildCacheServiceHandle {
     }
 
     @Override
-    public boolean load(BuildCacheKey key, File loadTarget) {
-        throw new UnsupportedOperationException();
+    public boolean maybeLoad(BuildCacheKey key, File loadTarget) {
+        return false;
     }
 
     @Override
@@ -48,8 +48,8 @@ public class NullBuildCacheServiceHandle implements BuildCacheServiceHandle {
     }
 
     @Override
-    public void store(BuildCacheKey key, StoreTarget storeTarget) {
-        throw new UnsupportedOperationException();
+    public boolean maybeStore(BuildCacheKey key, File file) {
+        return false;
     }
 
     @Override

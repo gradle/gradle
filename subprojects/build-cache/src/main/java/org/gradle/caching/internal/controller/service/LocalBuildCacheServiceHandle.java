@@ -33,15 +33,19 @@ public interface LocalBuildCacheServiceHandle extends Closeable {
     @VisibleForTesting
     LocalBuildCacheService getService();
 
-    boolean canLoad();
-
     // TODO: what if this errors?
-    Optional<BuildCacheController.LoadResult> load(BuildCacheKey key, Function<File, BuildCacheController.LoadResult> reader);
+    Optional<BuildCacheController.LoadResult> maybeLoad(BuildCacheKey key, Function<File, BuildCacheController.LoadResult> reader);
 
     boolean canStore();
 
-    // TODO: what if this errors?
-    void store(BuildCacheKey key, File file);
+    /**
+     * Stores the file to the local cache.
+     *
+     * If canStore() returns false, then this method will do nothing and will return false.
+     *
+     * Returns true if store was completed.
+     */
+    boolean maybeStore(BuildCacheKey key, File file);
 
     @Override
     void close();

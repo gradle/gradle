@@ -64,7 +64,10 @@ public class BaseBuildCacheServiceHandle implements BuildCacheServiceHandle {
     }
 
     @Override
-    public final boolean load(BuildCacheKey key, File loadTargetFile) {
+    public final boolean maybeLoad(BuildCacheKey key, File loadTargetFile) {
+        if (!canLoad()) {
+            return false;
+        }
         String description = "Load entry " + key.getDisplayName() + " from " + role.getDisplayName() + " build cache";
         LOGGER.debug(description);
         try {
@@ -91,13 +94,18 @@ public class BaseBuildCacheServiceHandle implements BuildCacheServiceHandle {
     }
 
     @Override
-    public final void store(BuildCacheKey key, StoreTarget storeTarget) {
+    public final boolean maybeStore(BuildCacheKey key, File file) {
+        if (!canStore()) {
+            return false;
+        }
         String description = "Store entry " + key.getDisplayName() + " in " + role.getDisplayName() + " build cache";
         LOGGER.debug(description);
         try {
-            storeInner(description, key, storeTarget);
+            storeInner(description, key, new StoreTarget(file));
+            return true;
         } catch (Exception e) {
             failure("store", "in", key, e);
+            return false;
         }
     }
 

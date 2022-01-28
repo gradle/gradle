@@ -35,13 +35,22 @@ public interface BuildCacheServiceHandle extends Closeable {
     /**
      * Load the cached entry corresponding to the given cache key to the given target file.
      *
+     * If canLoad() returns false, then this method will do nothing and will return false.
+     *
      * Returns true if load succeeded or false if it failed.
      */
-    boolean load(BuildCacheKey key, File loadTarget);
+    boolean maybeLoad(BuildCacheKey key, File loadTarget);
 
     boolean canStore();
 
-    void store(BuildCacheKey key, StoreTarget storeTarget);
+    /**
+     * Stores the file to the cache.
+     *
+     * If canStore() returns false, then this method will do nothing and will return false.
+     *
+     * Returns true if store was completed.
+     */
+    boolean maybeStore(BuildCacheKey key, File file);
 
     @Override
     void close();

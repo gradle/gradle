@@ -39,13 +39,8 @@ public class NullLocalBuildCacheServiceHandle implements LocalBuildCacheServiceH
     }
 
     @Override
-    public boolean canLoad() {
-        return false;
-    }
-
-    @Override
-    public Optional<BuildCacheController.LoadResult> load(BuildCacheKey key, Function<File, BuildCacheController.LoadResult> reader) {
-        throw new UnsupportedOperationException();
+    public Optional<BuildCacheController.LoadResult> maybeLoad(BuildCacheKey key, Function<File, BuildCacheController.LoadResult> reader) {
+        return Optional.empty();
     }
 
     @Override
@@ -54,8 +49,8 @@ public class NullLocalBuildCacheServiceHandle implements LocalBuildCacheServiceH
     }
 
     @Override
-    public void store(BuildCacheKey key, File file) {
-        throw new UnsupportedOperationException();
+    public boolean maybeStore(BuildCacheKey key, File file) {
+        return false;
     }
 
     @Override

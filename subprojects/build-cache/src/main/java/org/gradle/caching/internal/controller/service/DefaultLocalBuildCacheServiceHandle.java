@@ -43,12 +43,7 @@ public class DefaultLocalBuildCacheServiceHandle implements LocalBuildCacheServi
     }
 
     @Override
-    public boolean canLoad() {
-        return true;
-    }
-
-    @Override
-    public Optional<BuildCacheController.LoadResult> load(BuildCacheKey key, Function<File, BuildCacheController.LoadResult> reader) {
+    public Optional<BuildCacheController.LoadResult> maybeLoad(BuildCacheKey key, Function<File, BuildCacheController.LoadResult> reader) {
         AtomicReference<Optional<BuildCacheController.LoadResult>> result = new AtomicReference<>(Optional.empty());
         service.loadLocally(key, file -> result.set(Optional.ofNullable(reader.apply(file))));
         return result.get();
@@ -60,8 +55,12 @@ public class DefaultLocalBuildCacheServiceHandle implements LocalBuildCacheServi
     }
 
     @Override
-    public void store(BuildCacheKey key, File file) {
-        service.storeLocally(key, file);
+    public boolean maybeStore(BuildCacheKey key, File file) {
+        if (canStore()) {
+            service.storeLocally(key, file);
+            return true;
+        }
+        return false;
     }
 
     @Override
