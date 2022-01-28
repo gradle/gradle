@@ -24,6 +24,8 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.Optional;
+import java.util.function.Function;
 
 public class BaseBuildCacheServiceHandle implements BuildCacheServiceHandle {
 
@@ -64,20 +66,22 @@ public class BaseBuildCacheServiceHandle implements BuildCacheServiceHandle {
     }
 
     @Override
-    public final boolean maybeLoad(BuildCacheKey key, File loadTargetFile) {
+    public final Optional<BuildCacheLoadResult> maybeLoad(BuildCacheKey key, File loadTargetFile, Function<File, BuildCacheLoadResult> unpackFunction) {
         if (!canLoad()) {
-            return false;
+            return Optional.empty();
         }
         String description = "Load entry " + key.getDisplayName() + " from " + role.getDisplayName() + " build cache";
         LOGGER.debug(description);
         try {
             LoadTarget loadTarget = new LoadTarget(loadTargetFile);
             loadInner(description, key, loadTarget);
-            return loadTarget.isLoaded();
+            if (loadTarget.isLoaded()) {
+                return Optional.ofNullable(unpackFunction.apply(loadTargetFile));
+            }
         } catch (Exception e) {
             failure("load", "from", key, e);
-            return false;
         }
+        return Optional.empty();
     }
 
     protected void loadInner(String description, BuildCacheKey key, LoadTarget loadTarget) {

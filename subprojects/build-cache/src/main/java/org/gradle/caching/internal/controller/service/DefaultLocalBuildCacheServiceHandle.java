@@ -17,7 +17,6 @@
 package org.gradle.caching.internal.controller.service;
 
 import org.gradle.caching.BuildCacheKey;
-import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.local.internal.LocalBuildCacheService;
 
 import javax.annotation.Nullable;
@@ -43,9 +42,9 @@ public class DefaultLocalBuildCacheServiceHandle implements LocalBuildCacheServi
     }
 
     @Override
-    public Optional<BuildCacheController.LoadResult> maybeLoad(BuildCacheKey key, Function<File, BuildCacheController.LoadResult> reader) {
-        AtomicReference<Optional<BuildCacheController.LoadResult>> result = new AtomicReference<>(Optional.empty());
-        service.loadLocally(key, file -> result.set(Optional.ofNullable(reader.apply(file))));
+    public Optional<BuildCacheLoadResult> maybeLoad(BuildCacheKey key, Function<File, BuildCacheLoadResult> unpackFunction) {
+        AtomicReference<Optional<BuildCacheLoadResult>> result = new AtomicReference<>(Optional.empty());
+        service.loadLocally(key, file -> result.set(Optional.ofNullable(unpackFunction.apply(file))));
         return result.get();
     }
 

@@ -18,6 +18,7 @@ package org.gradle.caching.internal.controller;
 
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.CacheableEntity;
+import org.gradle.caching.internal.controller.service.BuildCacheLoadResult;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 
 import java.time.Duration;
@@ -42,7 +43,7 @@ public class NoOpBuildCacheController implements BuildCacheController {
     }
 
     @Override
-    public Optional<LoadResult> load(BuildCacheKey cacheKey, CacheableEntity cacheableEntity) {
+    public Optional<BuildCacheLoadResult> load(BuildCacheKey cacheKey, CacheableEntity cacheableEntity) {
         return Optional.empty();
     }
 

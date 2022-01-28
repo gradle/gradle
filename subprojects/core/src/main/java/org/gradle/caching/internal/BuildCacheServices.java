@@ -16,7 +16,6 @@
 
 package org.gradle.caching.internal;
 
-import com.google.common.collect.Interner;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.cache.StringInterner;

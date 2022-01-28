@@ -16,11 +16,10 @@
 
 package org.gradle.caching.internal.controller;
 
-import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.internal.CacheableEntity;
-import org.gradle.caching.internal.origin.OriginMetadata;
+import org.gradle.caching.internal.controller.service.BuildCacheLoadResult;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 
 import java.io.Closeable;
@@ -39,13 +38,7 @@ public interface BuildCacheController extends Closeable {
 
     boolean isEmitDebugLogging();
 
-    Optional<LoadResult> load(BuildCacheKey cacheKey, CacheableEntity cacheableEntity);
+    Optional<BuildCacheLoadResult> load(BuildCacheKey cacheKey, CacheableEntity cacheableEntity);
 
     void store(BuildCacheKey cacheKey, CacheableEntity entity, Map<String, FileSystemSnapshot> snapshots, Duration executionTime);
-
-    interface LoadResult {
-        long getArtifactEntryCount();
-        OriginMetadata getOriginMetadata();
-        ImmutableSortedMap<String, FileSystemSnapshot> getResultingSnapshots();
-    }
 }

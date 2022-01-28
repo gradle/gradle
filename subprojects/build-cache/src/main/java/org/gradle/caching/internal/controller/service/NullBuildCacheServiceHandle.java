@@ -21,6 +21,8 @@ import org.gradle.caching.BuildCacheService;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.Optional;
+import java.util.function.Function;
 
 public class NullBuildCacheServiceHandle implements BuildCacheServiceHandle {
 
@@ -38,8 +40,8 @@ public class NullBuildCacheServiceHandle implements BuildCacheServiceHandle {
     }
 
     @Override
-    public boolean maybeLoad(BuildCacheKey key, File loadTarget) {
-        return false;
+    public Optional<BuildCacheLoadResult> maybeLoad(BuildCacheKey key, File toFile, Function<File, BuildCacheLoadResult> unpackFunction) {
+        return Optional.empty();
     }
 
     @Override

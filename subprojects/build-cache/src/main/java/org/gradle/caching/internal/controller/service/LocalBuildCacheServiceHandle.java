@@ -18,7 +18,6 @@ package org.gradle.caching.internal.controller.service;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.caching.BuildCacheKey;
-import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.local.internal.LocalBuildCacheService;
 
 import javax.annotation.Nullable;
@@ -34,7 +33,7 @@ public interface LocalBuildCacheServiceHandle extends Closeable {
     LocalBuildCacheService getService();
 
     // TODO: what if this errors?
-    Optional<BuildCacheController.LoadResult> maybeLoad(BuildCacheKey key, Function<File, BuildCacheController.LoadResult> reader);
+    Optional<BuildCacheLoadResult> maybeLoad(BuildCacheKey key, Function<File, BuildCacheLoadResult> unpackFunction);
 
     boolean canStore();
 
