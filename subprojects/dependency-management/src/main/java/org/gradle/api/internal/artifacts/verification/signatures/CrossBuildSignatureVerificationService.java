@@ -29,6 +29,7 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
+import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.serialize.InterningStringSerializer;
 import org.gradle.internal.serialize.SetSerializer;
 import org.gradle.security.internal.PublicKeyService;
@@ -48,17 +49,23 @@ public class CrossBuildSignatureVerificationService implements SignatureVerifica
     private final boolean refreshKeys;
     private final PersistentCache store;
     private final PersistentIndexedCache<CacheKey, CacheEntry> cache;
+    private final boolean useKeyServers;
+    private final HashCode keyringFileHash;
 
     public CrossBuildSignatureVerificationService(SignatureVerificationService delegate,
                                                   FileHasher fileHasher,
                                                   BuildScopedCache scopedCache,
                                                   InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,
                                                   BuildCommencedTimeProvider timeProvider,
-                                                  boolean refreshKeys) {
+                                                  boolean refreshKeys,
+                                                  boolean useKeyServers,
+                                                  HashCode keyringFileHash) {
         this.delegate = delegate;
         this.fileHasher = fileHasher;
         this.timeProvider = timeProvider;
         this.refreshKeys = refreshKeys;
+        this.useKeyServers = useKeyServers;
+        this.keyringFileHash = keyringFileHash;
         store = scopedCache.cache("signature-verification")
             .withDisplayName("Signature verification cache")
             .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // Lock on demand
@@ -74,7 +81,7 @@ public class CrossBuildSignatureVerificationService implements SignatureVerifica
 
     @Override
     public void verify(File origin, File signature, Set<String> trustedKeys, Set<String> ignoredKeys, SignatureVerificationResultBuilder builder) {
-        CacheKey cacheKey = new CacheKey(origin.getAbsolutePath(), signature.getAbsolutePath(), trustedKeys, ignoredKeys);
+        CacheKey cacheKey = new CacheKey(origin.getAbsolutePath(), signature.getAbsolutePath(), trustedKeys, ignoredKeys, useKeyServers, keyringFileHash);
         HashCode originHash = fileHasher.hash(origin);
         HashCode signatureHash = fileHasher.hash(signature);
         CacheEntry entry = cache.getIfPresent(cacheKey);
@@ -116,12 +123,16 @@ public class CrossBuildSignatureVerificationService implements SignatureVerifica
         private final String signaturePath;
         private final Set<String> trustedKeys;
         private final Set<String> ignoredKeys;
+        private final boolean useKeyServers;
+        private final HashCode keyringFileHash;
 
-        private CacheKey(String filePath, String signaturePath, Set<String> trustedKeys, Set<String> ignoredKeys) {
+        private CacheKey(String filePath, String signaturePath, Set<String> trustedKeys, Set<String> ignoredKeys, boolean useKeyServers, HashCode keyringFileHash) {
             this.filePath = filePath;
             this.signaturePath = signaturePath;
             this.trustedKeys = trustedKeys;
             this.ignoredKeys = ignoredKeys;
+            this.useKeyServers = useKeyServers;
+            this.keyringFileHash = keyringFileHash;
         }
 
         @Override
@@ -144,7 +155,13 @@ public class CrossBuildSignatureVerificationService implements SignatureVerifica
             if (!trustedKeys.equals(cacheKey.trustedKeys)) {
                 return false;
             }
-            return ignoredKeys.equals(cacheKey.ignoredKeys);
+            if (!ignoredKeys.equals(cacheKey.ignoredKeys)) {
+                return false;
+            }
+            if (useKeyServers != cacheKey.useKeyServers) {
+                return false;
+            }
+            return keyringFileHash.equals(cacheKey.keyringFileHash);
         }
 
         @Override
@@ -153,6 +170,8 @@ public class CrossBuildSignatureVerificationService implements SignatureVerifica
             result = 31 * result + signaturePath.hashCode();
             result = 31 * result + trustedKeys.hashCode();
             result = 31 * result + ignoredKeys.hashCode();
+            result = 31 * result + Boolean.hashCode(useKeyServers);
+            result = 31 * result + keyringFileHash.hashCode();
             return result;
         }
     }
@@ -160,15 +179,17 @@ public class CrossBuildSignatureVerificationService implements SignatureVerifica
     private static class CacheKeySerializer extends AbstractSerializer<CacheKey> {
         private final InterningStringSerializer delegate;
         private final SetSerializer<String> setSerializer;
+        private final HashCodeSerializer hashCodeSerializer;
 
         private CacheKeySerializer(InterningStringSerializer stringSerializer, SetSerializer<String> setSerializer) {
             this.delegate = stringSerializer;
             this.setSerializer = setSerializer;
+            this.hashCodeSerializer = new HashCodeSerializer();
         }
 
         @Override
         public CacheKey read(Decoder decoder) throws Exception {
-            return new CacheKey(delegate.read(decoder), delegate.read(decoder), setSerializer.read(decoder), setSerializer.read(decoder));
+            return new CacheKey(delegate.read(decoder), delegate.read(decoder), setSerializer.read(decoder), setSerializer.read(decoder), decoder.readBoolean(), hashCodeSerializer.read(decoder));
         }
 
         @Override
@@ -177,6 +198,8 @@ public class CrossBuildSignatureVerificationService implements SignatureVerifica
             delegate.write(encoder, value.signaturePath);
             setSerializer.write(encoder, value.trustedKeys);
             setSerializer.write(encoder, value.ignoredKeys);
+            encoder.writeBoolean(value.useKeyServers);
+            hashCodeSerializer.write(encoder, value.keyringFileHash);
         }
     }
 

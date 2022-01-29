@@ -22,6 +22,7 @@ import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.security.fixtures.KeyServer
 import org.gradle.security.fixtures.SigningFixtures
 import org.gradle.security.internal.Fingerprint
+import spock.lang.Issue
 
 import static org.gradle.security.fixtures.SigningFixtures.getValidPublicKeyLongIdHexString
 import static org.gradle.security.fixtures.SigningFixtures.signAsciiArmored
@@ -130,7 +131,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
         terse << [true, false]
     }
 
-    def "fails verification is key is  (terse output=#terse)"() {
+    def "fails verification is key is (terse output=#terse)"() {
         createMetadataFile {
             keyServer(keyServerFixture.uri)
             verifySignatures()
@@ -1279,7 +1280,7 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
         def pkId = toLongIdHexString(keyring.publicKey.keyID)
 
         createMetadataFile {
-            keyServer(keyServerFixture.uri)
+            disableKeyServers()
             verifySignatures()
             addTrustedKey("org:foo:1.0", pkId)
             addTrustedKey("org:foo:1.0", pkId, "pom", "pom")
@@ -1416,6 +1417,7 @@ One artifact failed verification: foo-1.0.jar (org:foo:1.0) from repository mave
             addTrustedKey("org:foo:1.0", validPublicKeyHexString)
             addTrustedKey("org:foo:1.0", validPublicKeyHexString, "pom", "pom")
         }
+        serveValidKey()
 
         given:
         javaLibrary()
@@ -1431,6 +1433,100 @@ One artifact failed verification: foo-1.0.jar (org:foo:1.0) from repository mave
         """
 
         when:
+        fails ":compileJava"
+
+        then:
+        failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath'
+2 artifacts failed verification:
+  - foo-1.0.jar (org:foo:1.0) from repository maven
+  - foo-1.0.pom (org:foo:1.0) from repository maven
+This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums. Key servers are disabled, this can indicate that you need to update the local keyring with the missing keys."""
+    }
+
+    @ToBeFixedForConfigurationCache
+    @Issue("https://github.com/gradle/gradle/issues/19663")
+    def "fails when disabling reaching out to key servers after previous successful build and no key rings file"() {
+        given:
+        createMetadataFile {
+            keyServer(keyServerFixture.uri)
+            verifySignatures()
+            addTrustedKey("org:foo:1.0", validPublicKeyHexString)
+            addTrustedKey("org:foo:1.0", validPublicKeyHexString, "pom", "pom")
+        }
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0") {
+            withSignature {
+                signAsciiArmored(it)
+            }
+        }
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+        serveValidKey()
+
+        when:
+        succeeds ":compileJava"
+
+        then:
+        noExceptionThrown()
+
+        when:
+        replaceMetadataFile {
+            keyServer(keyServerFixture.uri)
+            verifySignatures()
+            addTrustedKey("org:foo:1.0", validPublicKeyHexString)
+            addTrustedKey("org:foo:1.0", validPublicKeyHexString, "pom", "pom")
+            disableKeyServers()
+        }
+        fails ":compileJava"
+
+        then:
+        failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath'
+2 artifacts failed verification:
+  - foo-1.0.jar (org:foo:1.0) from repository maven
+  - foo-1.0.pom (org:foo:1.0) from repository maven
+This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums. Key servers are disabled, this can indicate that you need to update the local keyring with the missing keys."""
+    }
+
+    @ToBeFixedForConfigurationCache
+    @Issue("https://github.com/gradle/gradle/issues/18440")
+    def "fails on a bad verification file change after previous successful build when key servers are disabled"() {
+        def keyring = newKeyRing()
+        def pkId = toLongIdHexString(keyring.publicKey.keyID)
+
+        createMetadataFile {
+            disableKeyServers()
+            verifySignatures()
+            addTrustedKey("org:foo:1.0", pkId)
+            addTrustedKey("org:foo:1.0", pkId, "pom", "pom")
+        }
+
+        def verificationFile = file("gradle/verification-keyring.keys")
+        keyring.writePublicKeyRingTo(verificationFile)
+
+        given:
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0") {
+            withSignature {
+                keyring.sign(it)
+            }
+        }
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        when:
+        succeeds ":compileJava"
+
+        then:
+        noExceptionThrown()
+
+        when:
+        verificationFile.delete()
         fails ":compileJava"
 
         then:
