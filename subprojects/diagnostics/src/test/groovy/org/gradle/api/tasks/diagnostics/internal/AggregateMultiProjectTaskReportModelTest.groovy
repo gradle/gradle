@@ -18,7 +18,7 @@ package org.gradle.api.tasks.diagnostics.internal
 import org.gradle.api.Task
 
 class AggregateMultiProjectTaskReportModelTest extends AbstractTaskModelSpec {
-    final AggregateMultiProjectTaskReportModel model = new AggregateMultiProjectTaskReportModel(false, true, null)
+    final AggregateMultiProjectTaskReportModel model = new AggregateMultiProjectTaskReportModel(false, true, null, [])
 
     def mergesTheGroupsFromEachProject() {
         TaskReportModel project1 = Mock()
@@ -70,7 +70,7 @@ class AggregateMultiProjectTaskReportModelTest extends AbstractTaskModelSpec {
         _ * project2.groups >> (['group'] as LinkedHashSet)
         _ * project2.getTasksForGroup('group') >> ([task3] as Set)
 
-        def model = new AggregateMultiProjectTaskReportModel(true, true, null)
+        def model = new AggregateMultiProjectTaskReportModel(true, true, null, [])
 
         when:
         model.add(project1)
@@ -96,7 +96,7 @@ class AggregateMultiProjectTaskReportModelTest extends AbstractTaskModelSpec {
         _ * project2.groups >> (['group2'] as LinkedHashSet)
         _ * project2.getTasksForGroup('group2') >> ([task3] as Set)
 
-        def model = new AggregateMultiProjectTaskReportModel(true, true, 'group2')
+        def model = new AggregateMultiProjectTaskReportModel(true, true, 'group2', [])
 
         when:
         model.add(project1)
@@ -104,7 +104,7 @@ class AggregateMultiProjectTaskReportModelTest extends AbstractTaskModelSpec {
         model.build()
 
         then:
-        model.groups as Set == ['group2'] as Set
+        model.groups == ['group2'] as Set
     }
 
     def handlesGroupWhichIsNotPresentInEachProject() {
