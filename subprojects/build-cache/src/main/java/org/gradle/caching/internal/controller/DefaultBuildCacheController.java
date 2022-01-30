@@ -31,14 +31,14 @@ import org.gradle.caching.internal.controller.operations.PackOperationResult;
 import org.gradle.caching.internal.controller.operations.UnpackOperationDetails;
 import org.gradle.caching.internal.controller.operations.UnpackOperationResult;
 import org.gradle.caching.internal.controller.service.BuildCacheLoadResult;
-import org.gradle.caching.internal.controller.service.BuildCacheServiceHandle;
+import org.gradle.caching.internal.controller.service.RemoteBuildCacheServiceHandle;
 import org.gradle.caching.internal.controller.service.BuildCacheServiceRole;
 import org.gradle.caching.internal.controller.service.BuildCacheServicesConfiguration;
 import org.gradle.caching.internal.controller.service.DefaultLocalBuildCacheServiceHandle;
 import org.gradle.caching.internal.controller.service.LocalBuildCacheServiceHandle;
-import org.gradle.caching.internal.controller.service.NullBuildCacheServiceHandle;
+import org.gradle.caching.internal.controller.service.NullRemoteBuildCacheServiceHandle;
 import org.gradle.caching.internal.controller.service.NullLocalBuildCacheServiceHandle;
-import org.gradle.caching.internal.controller.service.OpFiringBuildCacheServiceHandle;
+import org.gradle.caching.internal.controller.service.OpFiringRemoteBuildCacheServiceHandle;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.caching.internal.origin.OriginMetadataFactory;
 import org.gradle.caching.internal.packaging.BuildCacheEntryPacker;
@@ -72,7 +72,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public class DefaultBuildCacheController implements BuildCacheController {
 
     @VisibleForTesting
-    final BuildCacheServiceHandle remote;
+    final RemoteBuildCacheServiceHandle remote;
 
     @VisibleForTesting
     final LocalBuildCacheServiceHandle local;
@@ -281,10 +281,10 @@ public class DefaultBuildCacheController implements BuildCacheController {
         }
     }
 
-    private static BuildCacheServiceHandle toRemoteHandle(@Nullable BuildCacheService service, boolean push, BuildOperationExecutor buildOperationExecutor, boolean logStackTraces, boolean disableOnError) {
+    private static RemoteBuildCacheServiceHandle toRemoteHandle(@Nullable BuildCacheService service, boolean push, BuildOperationExecutor buildOperationExecutor, boolean logStackTraces, boolean disableOnError) {
         return service == null
-            ? NullBuildCacheServiceHandle.INSTANCE
-            : new OpFiringBuildCacheServiceHandle(service, push, BuildCacheServiceRole.REMOTE, buildOperationExecutor, logStackTraces, disableOnError);
+            ? NullRemoteBuildCacheServiceHandle.INSTANCE
+            : new OpFiringRemoteBuildCacheServiceHandle(service, push, BuildCacheServiceRole.REMOTE, buildOperationExecutor, logStackTraces, disableOnError);
     }
 
     private static LocalBuildCacheServiceHandle toLocalHandle(@Nullable LocalBuildCacheService local, boolean localPush) {

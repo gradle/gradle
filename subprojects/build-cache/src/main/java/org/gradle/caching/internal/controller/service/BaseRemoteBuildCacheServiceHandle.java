@@ -27,9 +27,9 @@ import java.io.File;
 import java.util.Optional;
 import java.util.function.Function;
 
-public class BaseBuildCacheServiceHandle implements BuildCacheServiceHandle {
+public class BaseRemoteBuildCacheServiceHandle implements RemoteBuildCacheServiceHandle {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(OpFiringBuildCacheServiceHandle.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(OpFiringRemoteBuildCacheServiceHandle.class);
 
     protected final BuildCacheService service;
 
@@ -40,7 +40,7 @@ public class BaseBuildCacheServiceHandle implements BuildCacheServiceHandle {
 
     private boolean disabled;
 
-    public BaseBuildCacheServiceHandle(
+    public BaseRemoteBuildCacheServiceHandle(
         BuildCacheService service,
         boolean push,
         BuildCacheServiceRole role,
