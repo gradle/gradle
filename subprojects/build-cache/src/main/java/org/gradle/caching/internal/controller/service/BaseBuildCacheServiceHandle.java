@@ -72,14 +72,13 @@ public class BaseBuildCacheServiceHandle implements BuildCacheServiceHandle {
         }
         String description = "Load entry " + key.getDisplayName() + " from " + role.getDisplayName() + " build cache";
         LOGGER.debug(description);
+        LoadTarget loadTarget = new LoadTarget(loadTargetFile);
         try {
-            LoadTarget loadTarget = new LoadTarget(loadTargetFile);
             loadInner(description, key, loadTarget);
-            return maybeUnpack(loadTarget, unpackFunction);
         } catch (Exception e) {
             failure("load", "from", key, e);
-            return Optional.empty();
         }
+        return maybeUnpack(loadTarget, unpackFunction);
     }
 
     protected void loadInner(String description, BuildCacheKey key, LoadTarget loadTarget) {

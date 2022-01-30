@@ -26,7 +26,7 @@ class OriginMetadataFactoryTest extends Specification {
     def rootDir = Mock(File)
     def buildInvocationId = UUID.randomUUID().toString()
     def factory = new OriginMetadataFactory(
-        rootDir,
+        () -> rootDir,
         "user",
         "os",
         buildInvocationId,

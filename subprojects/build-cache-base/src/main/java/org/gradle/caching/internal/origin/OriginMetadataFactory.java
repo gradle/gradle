@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.time.Duration;
 import java.util.Properties;
+import java.util.function.Supplier;
 
 public class OriginMetadataFactory {
 
@@ -38,7 +39,7 @@ public class OriginMetadataFactory {
     private static final String HOST_NAME_KEY = "hostName";
     private static final String USER_NAME_KEY = "userName";
 
-    private final File rootDir;
+    private final Supplier<File> rootDir;
     private final String userName;
     private final String operatingSystem;
     private final String currentBuildInvocationId;
@@ -46,7 +47,7 @@ public class OriginMetadataFactory {
     private final HostnameLookup hostnameLookup;
 
     public OriginMetadataFactory(
-        File rootDir,
+        Supplier<File> rootDir,
         String userName,
         String operatingSystem,
         String currentBuildInvocationId,
@@ -69,7 +70,7 @@ public class OriginMetadataFactory {
             properties.setProperty(IDENTITY_KEY, entry.getIdentity());
             properties.setProperty(CREATION_TIME_KEY, Long.toString(System.currentTimeMillis()));
             properties.setProperty(EXECUTION_TIME_KEY, Long.toString(elapsedTime.toMillis()));
-            properties.setProperty(ROOT_PATH_KEY, rootDir.getAbsolutePath());
+            properties.setProperty(ROOT_PATH_KEY, rootDir.get().getAbsolutePath());
             properties.setProperty(OPERATING_SYSTEM_KEY, operatingSystem);
             properties.setProperty(HOST_NAME_KEY, hostnameLookup.getHostname());
             properties.setProperty(USER_NAME_KEY, userName);
