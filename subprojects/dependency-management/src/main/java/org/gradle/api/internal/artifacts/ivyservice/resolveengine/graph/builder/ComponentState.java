@@ -33,6 +33,8 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Compone
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult;
+import org.gradle.api.internal.attributes.AttributeDesugaring;
+import org.gradle.internal.Describables;
 import org.gradle.internal.Pair;
 import org.gradle.internal.component.external.model.ImmutableCapability;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
@@ -44,6 +46,7 @@ import org.gradle.internal.resolve.result.DefaultBuildableComponentResolveResult
 
 import javax.annotation.Nullable;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.StreamSupport;
@@ -55,6 +58,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     private final ComponentIdentifier componentIdentifier;
     private final ModuleVersionIdentifier id;
     private final ComponentMetaDataResolver resolver;
+    private final AttributeDesugaring attributeDesugaring;
     private final List<NodeState> nodes = Lists.newLinkedList();
     private final Long resultId;
     private final ModuleResolveState module;
@@ -73,13 +77,14 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     private boolean root;
     private Pair<Capability, Collection<NodeState>> capabilityReject;
 
-    ComponentState(Long resultId, ModuleResolveState module, ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier, ComponentMetaDataResolver resolver) {
+    ComponentState(Long resultId, ModuleResolveState module, ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier, ComponentMetaDataResolver resolver, AttributeDesugaring attributeDesugaring) {
         this.resultId = resultId;
         this.module = module;
         this.id = id;
         this.componentIdentifier = componentIdentifier;
         this.resolver = resolver;
         this.implicitCapability = ImmutableCapability.defaultCapabilityForComponent(id);
+        this.attributeDesugaring = attributeDesugaring;
         this.hashCode = 31 * id.hashCode() ^ resultId.hashCode();
     }
 
@@ -277,16 +282,39 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
 
     @Override
     public List<ResolvedVariantResult> getAllVariants() {
+        if (metadata.getVariantsForGraphTraversal().isPresent()) {
+            return metadata.getVariantsForGraphTraversal().get().stream()
+                .flatMap(primary -> primary.getVariants().stream())
+                .map(v -> {
+                    List<? extends Capability> capabilities = v.getCapabilities().getCapabilities();
+                    if (capabilities.isEmpty()) {
+                        capabilities = Collections.singletonList(getImplicitCapability());
+                    } else {
+                        capabilities = ImmutableList.copyOf(capabilities);
+                    }
+                    return new DefaultResolvedVariantResult(
+                        metadata.getId(),
+                        Describables.of(v.getName()),
+                        attributeDesugaring.desugar(v.getAttributes().asImmutable()),
+                        capabilities,
+                        null
+                    );
+                })
+                .collect(ImmutableList.toImmutableList());
+        }
+        // Fall-back if there's no graph data
         return nodes.stream()
-            .map(NodeState::getMetadata)
-            .flatMap(m -> m.getVariants().stream())
-            .map(v -> new DefaultResolvedVariantResult(
-                v.asDescribable()::getDisplayName,
-                v.asDescribable(),
-                v.getAttributes(),
-                ImmutableList.of(),
-                null
-            ))
+            .flatMap(nodeState ->
+                nodeState.getMetadata()
+                    .getVariants().stream()
+                    .map(v -> new DefaultResolvedVariantResult(
+                        metadata.getId(),
+                        Describables.of(v.getName()),
+                        nodeState.desugar(v.getAttributes().asImmutable()),
+                        ImmutableList.of(),
+                        null
+                    ))
+            )
             .collect(ImmutableList.toImmutableList());
     }
 

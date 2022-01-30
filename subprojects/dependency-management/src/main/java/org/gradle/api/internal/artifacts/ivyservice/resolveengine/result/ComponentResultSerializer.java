@@ -58,12 +58,13 @@ public class ComponentResultSerializer implements Serializer<ResolvedGraphCompon
         ModuleVersionIdentifier id = idSerializer.read(decoder);
         ComponentSelectionReason reason = reasonSerializer.read(decoder);
         ComponentIdentifier componentId = componentIdSerializer.read(decoder);
-        List<ResolvedVariantResult> resolvedVariants = readResolvedVariants(decoder);
+        List<ResolvedVariantResult> resolvedVariants = readVariants(decoder);
+        List<ResolvedVariantResult> allVariants = readVariants(decoder);
         String repositoryName = decoder.readNullableString();
-        return new DetachedComponentResult(resultId, id, reason, componentId, resolvedVariants, repositoryName);
+        return new DetachedComponentResult(resultId, id, reason, componentId, resolvedVariants, allVariants, repositoryName);
     }
 
-    private List<ResolvedVariantResult> readResolvedVariants(Decoder decoder) throws IOException {
+    private List<ResolvedVariantResult> readVariants(Decoder decoder) throws IOException {
         int size = decoder.readSmallInt();
         ImmutableList.Builder<ResolvedVariantResult> builder = ImmutableList.builderWithExpectedSize(size);
         for (int i=0; i<size; i++) {
@@ -79,6 +80,7 @@ public class ComponentResultSerializer implements Serializer<ResolvedGraphCompon
         reasonSerializer.write(encoder, value.getSelectionReason());
         componentIdSerializer.write(encoder, value.getComponentId());
         writeSelectedVariantDetails(encoder, value.getResolvedVariants());
+        writeSelectedVariantDetails(encoder, value.getAllVariants());
         encoder.writeNullableString(value.getRepositoryName());
     }
 
