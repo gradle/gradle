@@ -16,7 +16,8 @@
 
 package org.gradle.api.tasks.diagnostics;
 
-import com.google.common.collect.Sets;
+import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.InvalidUserDataException;
@@ -43,6 +44,7 @@ import org.gradle.api.tasks.diagnostics.internal.graph.NodeRenderer;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.Section;
 import org.gradle.api.tasks.diagnostics.internal.insight.DependencyInsightReporter;
+import org.gradle.api.tasks.diagnostics.internal.text.TablePrinter;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.initialization.StartParameterBuildOptions;
 import org.gradle.internal.graph.GraphRenderer;
@@ -53,16 +55,24 @@ import org.gradle.work.DisableCachingByDefault;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.EnumSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Stream;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Description;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Failure;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Header;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Identifier;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Info;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Success;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
 
 /**
@@ -95,9 +105,11 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
 @DisableCachingByDefault(because = "Produces only non-cacheable console output")
 public class DependencyInsightReportTask extends DefaultTask {
 
+    private final Set<SelectionReasonOutput> enabledSelectionReasonOutputs = EnumSet.noneOf(SelectionReasonOutput.class);
     private Configuration configuration;
     private Spec<DependencyResult> dependencySpec;
     private boolean showSinglePathToDependency;
+    private boolean showingAllVariants;
 
     /**
      * Selects the dependency (or dependencies if multiple matches found) to show the report for.
@@ -174,9 +186,30 @@ public class DependencyInsightReportTask extends DefaultTask {
      *
      * @since 4.9
      */
-    @Option(option = "singlepath", description = "Show at most one path to each dependency")
+    @Option(option = "single-path", description = "Show at most one path to each dependency")
     public void setShowSinglePathToDependency(boolean showSinglePathToDependency) {
         this.showSinglePathToDependency = showSinglePathToDependency;
+    }
+
+    @Internal
+    public boolean isShowingAllVariants() {
+        return showingAllVariants;
+    }
+
+    @Option(option = "all-variants", description = "Show all variants of each dependency")
+    public void setShowingAllVariants(boolean showingAllVariants) {
+        this.showingAllVariants = showingAllVariants;
+    }
+
+    @Internal
+    public Set<SelectionReasonOutput> getEnabledSelectionReasonOutputs() {
+        return enabledSelectionReasonOutputs;
+    }
+
+    @Option(option = "reasons", description = "Enable the given selection reason output")
+    public void setEnabledSelectionReasonOutputs(List<SelectionReasonOutput> enabledSelectionReasonOutputs) {
+        this.enabledSelectionReasonOutputs.clear();
+        this.enabledSelectionReasonOutputs.addAll(enabledSelectionReasonOutputs);
     }
 
     @Inject
@@ -229,9 +262,11 @@ public class DependencyInsightReportTask extends DefaultTask {
 
     private void renderSelectedDependencies(Configuration configuration, StyledTextOutput output, Set<DependencyResult> selectedDependencies) {
         GraphRenderer renderer = new GraphRenderer(output);
-        DependencyInsightReporter reporter = new DependencyInsightReporter(getVersionSelectorScheme(), getVersionComparator(), getVersionParser());
+        boolean showDepSelectionReasons = getEnabledSelectionReasonOutputs().contains(SelectionReasonOutput.DEPENDENCY);
+        DependencyInsightReporter reporter = new DependencyInsightReporter(getVersionSelectorScheme(), getVersionComparator(), getVersionParser(), showDepSelectionReasons);
         Collection<RenderableDependency> itemsToRender = reporter.convertToRenderableItems(selectedDependencies, isShowSinglePathToDependency());
-        RootDependencyRenderer rootRenderer = new RootDependencyRenderer(configuration, getAttributesFactory());
+        boolean showVariantSelectionReasons = getEnabledSelectionReasonOutputs().contains(SelectionReasonOutput.VARIANT);
+        RootDependencyRenderer rootRenderer = new RootDependencyRenderer(configuration, getAttributesFactory(), isShowingAllVariants(), showVariantSelectionReasons);
         ReplaceProjectWithConfigurationNameRenderer dependenciesRenderer = new ReplaceProjectWithConfigurationNameRenderer(configuration);
         DependencyGraphsRenderer dependencyGraphRenderer = new DependencyGraphsRenderer(output, renderer, rootRenderer, dependenciesRenderer);
         dependencyGraphRenderer.setShowSinglePath(showSinglePathToDependency);
@@ -272,25 +307,33 @@ public class DependencyInsightReportTask extends DefaultTask {
     }
 
 
-    private static AttributeMatchDetails match(Attribute<?> actualAttribute, Object actualValue, AttributeContainer requestedAttributes) {
+    private AttributeMatchDetails match(Attribute<?> actualAttribute, @Nullable Object actualValue, AttributeContainer requestedAttributes) {
         for (Attribute<?> requested : requestedAttributes.keySet()) {
             Object requestedValue = requestedAttributes.getAttribute(requested);
             if (requested.getName().equals(actualAttribute.getName())) {
                 // found an attribute with the same name, but they do not necessarily have the same type
                 if (requested.equals(actualAttribute)) {
-                    if (actualValue.equals(requestedValue)) {
-                        return new AttributeMatchDetails(MatchType.requested, requested, requestedValue);
+                    if (Objects.equals(actualValue, requestedValue)) {
+                        return new AttributeMatchDetails(MatchType.REQUESTED, requested, requestedValue);
                     }
                 } else {
                     // maybe it matched through coercion
-                    if (actualValue.toString().equals(requestedValue.toString())) {
-                        return new AttributeMatchDetails(MatchType.requested, requested, requestedValue);
+                    Object actualString = actualValue != null ? actualValue.toString() : null;
+                    Object requestedString = requestedValue != null ? requestedValue.toString() : null;
+                    if (Objects.equals(actualString, requestedString)) {
+                        return new AttributeMatchDetails(MatchType.REQUESTED, requested, requestedValue);
                     }
                 }
-                return new AttributeMatchDetails(MatchType.different_value, requested, requestedValue);
+                // TODO report "compatible" vs "incompatible" different values (MatchType.INCOMPATIBLE)
+                return new AttributeMatchDetails(MatchType.DIFFERENT_VALUE, requested, requestedValue);
             }
         }
-        return new AttributeMatchDetails(MatchType.not_requested, null, null);
+        return new AttributeMatchDetails(MatchType.NOT_REQUESTED, null, null);
+    }
+
+    private enum SelectionReasonOutput {
+        DEPENDENCY,
+        VARIANT,
     }
 
     private static class AttributeMatchDetails {
@@ -308,18 +351,23 @@ public class DependencyInsightReportTask extends DefaultTask {
     }
 
     private enum MatchType {
-        requested,
-        different_value,
-        not_requested
+        NOT_REQUESTED,
+        INCOMPATIBLE,
+        DIFFERENT_VALUE,
+        REQUESTED,
     }
 
-    private static class RootDependencyRenderer implements NodeRenderer {
+    private class RootDependencyRenderer implements NodeRenderer {
         private final Configuration configuration;
         private final ImmutableAttributesFactory attributesFactory;
+        private final boolean showAllVariants;
+        private final boolean showSelectionReasons;
 
-        public RootDependencyRenderer(Configuration configuration, ImmutableAttributesFactory attributesFactory) {
+        public RootDependencyRenderer(Configuration configuration, ImmutableAttributesFactory attributesFactory, boolean showAllVariants, boolean showSelectionReasons) {
             this.configuration = configuration;
             this.attributesFactory = attributesFactory;
+            this.showAllVariants = showAllVariants;
+            this.showSelectionReasons = showSelectionReasons;
         }
 
         @Override
@@ -368,15 +416,47 @@ public class DependencyInsightReportTask extends DefaultTask {
         }
 
         private void printVariantDetails(StyledTextOutput out, RenderableDependency dependency) {
-            List<ResolvedVariantResult> resolvedVariants = dependency.getAllVariants();
-            for (ResolvedVariantResult resolvedVariant : resolvedVariants) {
+            if (dependency.getResolvedVariants().isEmpty() && dependency.getAllVariants().isEmpty()) {
+                return;
+            }
+            Set<String> selectedVariantNames = dependency.getResolvedVariants()
+                .stream()
+                .map(ResolvedVariantResult::getDisplayName)
+                .collect(Collectors.toSet());
+            if (showAllVariants) {
                 out.println();
-                out.withStyle(Description).text("   variant \"" + resolvedVariant.getDisplayName() + "\"");
-                AttributeContainer attributes = resolvedVariant.getAttributes();
-                AttributeContainer requested = getRequestedAttributes(configuration, dependency);
-                if (!attributes.isEmpty() || !requested.isEmpty()) {
-                    writeAttributeBlock(out, attributes, requested);
+                out.withStyle(Header).text("-------------------");
+                out.println();
+                out.withStyle(Header).text("Selected Variant(s)");
+                out.println();
+                out.withStyle(Header).text("-------------------");
+            }
+            for (ResolvedVariantResult variant : dependency.getResolvedVariants()) {
+                printVariant(out, dependency, variant, true);
+            }
+            if (showAllVariants) {
+                out.withStyle(Header).text("---------------------");
+                out.println();
+                out.withStyle(Header).text("Unselected Variant(s)");
+                out.println();
+                out.withStyle(Header).text("---------------------");
+                for (ResolvedVariantResult variant : dependency.getAllVariants()) {
+                    if (selectedVariantNames.contains(variant.getDisplayName())) {
+                        continue;
+                    }
+                    printVariant(out, dependency, variant, false);
                 }
+            }
+        }
+
+        private void printVariant(StyledTextOutput out, RenderableDependency dependency, ResolvedVariantResult variant, boolean selected) {
+            out.println();
+            out.withStyle(Description).text("Variant \"" + variant.getDisplayName() + "\":");
+            out.println();
+            AttributeContainer attributes = variant.getAttributes();
+            AttributeContainer requested = getRequestedAttributes(configuration, dependency);
+            if (!attributes.isEmpty() || !requested.isEmpty()) {
+                writeAttributeBlock(out, attributes, requested, selected);
             }
         }
 
@@ -394,59 +474,112 @@ public class DependencyInsightReportTask extends DefaultTask {
                     ((AttributeContainerInternal) dependencyAttributes).asImmutable());
         }
 
-        private void writeAttributeBlock(StyledTextOutput out, AttributeContainer attributes, AttributeContainer requested) {
-            out.withStyle(Description).text(" [");
+        private void writeAttributeBlock(StyledTextOutput out, AttributeContainer attributes, AttributeContainer requested, boolean selected) {
+            out.withStyle(Description).text("  Attributes:");
             out.println();
-            int maxAttributeLen = computeAttributePadding(attributes, requested);
-            Set<Attribute<?>> matchedAttributes = Sets.newLinkedHashSet();
-            writeFoundAttributes(out, attributes, requested, maxAttributeLen, matchedAttributes);
-            Sets.SetView<Attribute<?>> missing = Sets.difference(requested.keySet(), matchedAttributes);
-            if (!missing.isEmpty()) {
-                writeMissingAttributes(out, requested, maxAttributeLen, missing);
-            }
-            out.withStyle(Description).text("   ]");
-        }
-
-        private void writeMissingAttributes(StyledTextOutput out, AttributeContainer requested, int maxAttributeLen, Sets.SetView<Attribute<?>> missing) {
-            if (missing.size() != requested.keySet().size()) {
-                out.println();
-            }
-            out.withStyle(Description).text("      Requested attributes not found in the selected variant:");
-            out.println();
-            for (Attribute<?> missingAttribute : missing) {
-                out.withStyle(Description).text("         " + StringUtils.rightPad(missingAttribute.getName(), maxAttributeLen) + " = " + requested.getAttribute(missingAttribute));
-                out.println();
+            if (showSelectionReasons) {
+                writeAttributeTable(out, attributes, requested, selected);
+            } else {
+                writeFoundAttributes(out, attributes);
             }
         }
 
-        private void writeFoundAttributes(StyledTextOutput out, AttributeContainer attributes, AttributeContainer requested, int maxAttributeLen, Set<Attribute<?>> matchedAttributes) {
+        private void writeAttributeTable(
+            StyledTextOutput out, AttributeContainer attributes, AttributeContainer requested, boolean selected
+        ) {
+            // Bucket attributes into three groups:
+            // 1. Attributes that are only in the variant
+            // 2. Attributes that are both in the variant and requested by the configuration
+            // 3. Attributes that are only in the requested configuration
+            List<Attribute<?>> providedAttributes = new ArrayList<>();
+            Map<Attribute<?>, AttributeMatchDetails> bothAttributes = new LinkedHashMap<>();
+            List<Attribute<?>> requestedAttributes = new ArrayList<>();
             for (Attribute<?> attribute : attributes.keySet()) {
-                Object actualValue = attributes.getAttribute(attribute);
-                AttributeMatchDetails match = match(attribute, actualValue, requested);
-                out.withStyle(Description).text("      " + StringUtils.rightPad(attribute.getName(), maxAttributeLen) + " = " + actualValue);
-                Attribute<?> requestedAttribute = match.requested;
-                if (requestedAttribute != null) {
-                    matchedAttributes.add(requestedAttribute);
+                AttributeMatchDetails details = match(attribute, attributes.getAttribute(attribute), requested);
+                if (details.matchType != MatchType.NOT_REQUESTED) {
+                    bothAttributes.put(attribute, details);
+                } else {
+                    providedAttributes.add(attribute);
                 }
-                switch (match.matchType) {
-                    case requested:
-                        break;
-                    case different_value:
-                        out.withStyle(Info).text(" (compatible with: " + match.requestedValue + ")");
-                        break;
-                    case not_requested:
-                        out.withStyle(Info).text(" (not requested)");
-                        break;
-                }
-                out.println();
             }
+            for (Attribute<?> attribute : requested.keySet()) {
+                // If it's not in the matches, it's only in the requested attributes
+                if (bothAttributes.values().stream().map(d -> d.requested).noneMatch(Predicate.isEqual(attribute))) {
+                    requestedAttributes.add(attribute);
+                }
+            }
+
+            List<String> header = new ArrayList<>(ImmutableList.of("Name", "Provided", "Requested"));
+            if (!selected) {
+                header.add("Compatibility");
+            }
+            List<TablePrinter.Row> rows = new ArrayList<>();
+            for (Attribute<?> attribute : providedAttributes) {
+                Object providedValue = attributes.getAttribute(attribute);
+                List<String> text = new ArrayList<>(ImmutableList.of(
+                    attribute.getName(),
+                    providedValue == null ? "" : providedValue.toString(),
+                    ""
+                ));
+                if (!selected) {
+                    text.add("Compatible");
+                }
+                rows.add(new TablePrinter.Row(text, Info));
+            }
+            for (Map.Entry<Attribute<?>, AttributeMatchDetails> entry : bothAttributes.entrySet()) {
+                Object providedValue = attributes.getAttribute(entry.getKey());
+                AttributeMatchDetails match = entry.getValue();
+                List<String> text = new ArrayList<>(ImmutableList.of(
+                    entry.getKey().getName(),
+                    providedValue == null ? "" : providedValue.toString(),
+                    String.valueOf(entry.getValue().requestedValue)
+                ));
+                StyledTextOutput.Style style;
+                switch (match.matchType) {
+                    case REQUESTED:
+                        style = Success;
+                        break;
+                    case DIFFERENT_VALUE:
+                    case NOT_REQUESTED:
+                        style = Info;
+                        break;
+                    case INCOMPATIBLE:
+                        style = StyledTextOutput.Style.Error;
+                        break;
+                    default:
+                        throw new IllegalStateException("Unknown match type: " + match.matchType);
+                }
+                if (!selected) {
+                    text.add(match.matchType == MatchType.INCOMPATIBLE ? "Incompatible" : "Compatible");
+                }
+                rows.add(new TablePrinter.Row(text, style));
+            }
+            for (Attribute<?> attribute : requestedAttributes) {
+                Object requestedValue = requested.getAttribute(attribute);
+                List<String> text = new ArrayList<>(ImmutableList.of(
+                    attribute.getName(),
+                    "",
+                    String.valueOf(requestedValue)
+                ));
+                if (!selected) {
+                    text.add("Compatible");
+                }
+                rows.add(new TablePrinter.Row(text, Info));
+            }
+
+            new TablePrinter(Strings.repeat(" ", 4), header, rows).print(out);
         }
 
-        private int computeAttributePadding(AttributeContainer attributes, AttributeContainer requested) {
-            return Stream.concat(attributes.keySet().stream(), requested.keySet().stream())
+        private void writeFoundAttributes(StyledTextOutput out, AttributeContainer attributes) {
+            int maxAttributeLen = attributes.keySet().stream()
                 .mapToInt(attr -> attr.getName().length())
                 .max()
                 .orElse(0);
+            for (Attribute<?> attribute : attributes.keySet()) {
+                Object actualValue = attributes.getAttribute(attribute);
+                out.withStyle(Description).text(Strings.repeat(" ", 4) + StringUtils.rightPad(attribute.getName(), maxAttributeLen) + " = " + actualValue);
+                out.println();
+            }
         }
 
     }

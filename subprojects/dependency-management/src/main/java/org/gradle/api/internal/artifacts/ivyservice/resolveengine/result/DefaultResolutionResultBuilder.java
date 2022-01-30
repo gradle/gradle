@@ -54,7 +54,7 @@ public class DefaultResolutionResultBuilder {
     public static ResolutionResult empty(ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier, AttributeContainer attributes) {
         DefaultResolutionResultBuilder builder = new DefaultResolutionResultBuilder();
         builder.setRequestedAttributes(attributes);
-        builder.visitComponent(new DetachedComponentResult(0L, id, ComponentSelectionReasons.root(), componentIdentifier, Collections.emptyList(), null));
+        builder.visitComponent(new DetachedComponentResult(0L, id, ComponentSelectionReasons.root(), componentIdentifier, Collections.emptyList(), Collections.emptyList(), null));
         return builder.complete(0L);
     }
 
