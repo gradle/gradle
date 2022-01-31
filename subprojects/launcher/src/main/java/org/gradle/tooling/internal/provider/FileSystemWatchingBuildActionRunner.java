@@ -77,6 +77,10 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
             : WatchLogging.NORMAL;
 
         LOGGER.info("Watching the file system is configured to be {}", watchFileSystemMode.getDescription());
+        if (startParameter.isContinuous() && watchFileSystemMode == WatchMode.DEFAULT) {
+            // Try to watch as much as possible when using continuous build.
+            watchFileSystemMode = WatchMode.ENABLED;
+        }
         if (watchFileSystemMode.isEnabled()) {
             dropVirtualFileSystemIfRequested(startParameter, virtualFileSystem);
         }
