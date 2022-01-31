@@ -546,8 +546,8 @@ include::{snippetsPath}/java/incrementalAnnotationProcessing/groovy/processor/sr
 
 Both categories have the following limitations:
 
-* They have to read `CLASS` or `RUNTIME` retention annotations only.
-    Reading `SOURCE` retention annotations is possible for "isolating" processors on their own. But it will produce incorrect results when a different "aggregating" processor process the same types as the "isolating" processor, so it should not be used.
+* They can only read `CLASS` or `RUNTIME` retention annotations.
+* They can only read parameter names if the user passes the `-parameters` compiler argument.
 * They must generate their files using the link:{javaApi}/javax/annotation/processing/Filer.html[Filer API].
     Writing files any other way will result in silent failures later on, as these files won't be cleaned up correctly.
     If your processor does this, it cannot be incremental.
@@ -597,10 +597,6 @@ For instance, a `ServiceRegistryProcessor` could create a single `ServiceRegistr
 ----
 include::{snippetsPath}/java/incrementalAnnotationProcessing/groovy/processor/src/main/java/org/gradle/ServiceRegistryProcessor.java[tag=aggregating-annotation-processor]
 ----
-
-"Aggregating" processors have the following additional limitation:
-
-* They can only read parameter names if the user passes the `-parameters` compiler argument.
 
 Gradle will always reprocess (but not recompile) all annotated files that the processor was registered for.
 Gradle will always recompile any files the processor generates.
