@@ -41,46 +41,282 @@ class JavaEcosystemAttributeMatcherTest extends Specification {
         selectionSchema = schema.mergeWith(EmptySchema.INSTANCE)
     }
 
-    def "querying for java api"() {
-        def usage = Usage.USAGE_ATTRIBUTE
-        def libraryElements = LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE
-        def targetJvm = TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE
+    def "resolve compileClasspath with java plugin"() {
+        def requested = attributes(Usage.JAVA_API, LibraryElements.CLASSES, 8)
 
-        def requested = attributes(
-                (usage): named(Usage, Usage.JAVA_API),
-                (libraryElements): named(LibraryElements, LibraryElements.CLASSES),
-                (targetJvm): 9,
-        )
+        def apiElements = attributes(Usage.JAVA_API, LibraryElements.JAR, 8)
 
-        def usageCandidates = [
-            named(Usage, Usage.JAVA_API),
-            named(Usage, Usage.JAVA_RUNTIME),
-        ]
-        def libraryElementsCandidates = [
-                //named(LibraryElements, LibraryElements.CLASSES),
-                named(LibraryElements, LibraryElements.JAR),
-        ]
-        def targetJvmCandidates = [
-                8, 9, 11
-        ]
-
-        def candidates = [usageCandidates, libraryElementsCandidates, targetJvmCandidates].combinations { combination ->
-            attributes((usage): combination[0], (libraryElements): combination[1], (targetJvm): combination[2])
-        }
-
-        candidates.add(attributes((usage): named(Usage, Usage.JAVA_RUNTIME), (libraryElements): named(LibraryElements, LibraryElements.CLASSES), (targetJvm): 8))
-        candidates.add(attributes((usage): named(Usage, Usage.JAVA_RUNTIME), (libraryElements): named(LibraryElements, LibraryElements.CLASSES), (targetJvm): 9))
-        candidates.add(attributes((usage): named(Usage, Usage.JAVA_RUNTIME), (libraryElements): named(LibraryElements, LibraryElements.CLASSES), (targetJvm): 11))
-
-        candidates.each { println it }
+        def runtimeElements = attributes(Usage.JAVA_RUNTIME, LibraryElements.JAR, 8)
+        def runtimeElementsClasses = attributes(Usage.JAVA_RUNTIME, LibraryElements.CLASSES, 8)
 
         when:
+        def candidates = [
+                apiElements,
+                runtimeElements,
+                runtimeElementsClasses
+        ]
         def matches = matcher.match(selectionSchema, candidates, requested, null, explanationBuilder)
-
-        println "matches"
-        matches.each { println it }
         then:
-        false // matches == []
+        matches == [ apiElements ]
+    }
+
+    def "resolve compileClasspath with java-library plugin"() {
+        def requested = attributes(Usage.JAVA_API, LibraryElements.CLASSES, 8)
+
+        def apiElements = attributes(Usage.JAVA_API, LibraryElements.JAR, 8)
+        def apiElementsClasses = attributes(Usage.JAVA_API, LibraryElements.CLASSES, 8)
+        def runtimeElements = attributes(Usage.JAVA_RUNTIME, LibraryElements.JAR, 8)
+        def runtimeElementsClasses = attributes(Usage.JAVA_RUNTIME, LibraryElements.CLASSES, 8)
+
+        when:
+        def candidates = [
+                apiElements,
+                apiElementsClasses,
+                runtimeElements,
+                runtimeElementsClasses
+        ]
+        def matches = matcher.match(selectionSchema, candidates, requested, null, explanationBuilder)
+        then:
+        matches == [ apiElementsClasses ]
+    }
+
+    def "resolve runtimeClasspath with java plugin"() {
+        def requested = attributes(Usage.JAVA_RUNTIME, LibraryElements.JAR, 8)
+
+        def apiElements = attributes(Usage.JAVA_API, LibraryElements.JAR, 8)
+
+        def runtimeElements = attributes(Usage.JAVA_RUNTIME, LibraryElements.JAR, 8)
+        def runtimeElementsClasses = attributes(Usage.JAVA_RUNTIME, LibraryElements.CLASSES, 8)
+
+        when:
+        def candidates = [
+                apiElements,
+                runtimeElements,
+                runtimeElementsClasses
+        ]
+        def matches = matcher.match(selectionSchema, candidates, requested, null, explanationBuilder)
+        then:
+        matches == [ runtimeElements ]
+    }
+
+    def "resolve runtimeClasspath with java-library plugin"() {
+        def requested = attributes(Usage.JAVA_RUNTIME, LibraryElements.JAR, 8)
+
+        def apiElements = attributes(Usage.JAVA_API, LibraryElements.JAR, 8)
+        def apiElementsClasses = attributes(Usage.JAVA_API, LibraryElements.CLASSES, 8)
+        def runtimeElements = attributes(Usage.JAVA_RUNTIME, LibraryElements.JAR, 8)
+        def runtimeElementsClasses = attributes(Usage.JAVA_RUNTIME, LibraryElements.CLASSES, 8)
+
+        when:
+        def candidates = [
+                apiElements,
+                apiElementsClasses,
+                runtimeElements,
+                runtimeElementsClasses
+        ]
+        def matches = matcher.match(selectionSchema, candidates, requested, null, explanationBuilder)
+        then:
+        matches == [ runtimeElements ]
+    }
+
+    def "resolve compileClasspath with java plugin targetJvm={8,11} requesting 9"() {
+        def requested = attributes(Usage.JAVA_API, LibraryElements.CLASSES, 9)
+
+        def apiElements = attributes(Usage.JAVA_API, LibraryElements.JAR, 8)
+
+        def runtimeElements = attributes(Usage.JAVA_RUNTIME, LibraryElements.JAR, 8)
+        def runtimeElementsClasses = attributes(Usage.JAVA_RUNTIME, LibraryElements.CLASSES, 8)
+
+        def apiElements11 = attributes(Usage.JAVA_API, LibraryElements.JAR, 11)
+
+        def runtimeElements11 = attributes(Usage.JAVA_RUNTIME, LibraryElements.JAR, 11)
+        def runtimeElementsClasses11 = attributes(Usage.JAVA_RUNTIME, LibraryElements.CLASSES, 11)
+
+        when:
+        def candidates = [
+                apiElements,
+                runtimeElements,
+                runtimeElementsClasses,
+                apiElements11,
+                runtimeElements11,
+                runtimeElementsClasses11,
+        ]
+        def matches = matcher.match(selectionSchema, candidates, requested, null, explanationBuilder)
+        then:
+        matches == [ apiElements ]
+    }
+
+    def "resolve compileClasspath with java-library plugin targetJvm={8,11} requesting 9"() {
+        def requested = attributes(Usage.JAVA_API, LibraryElements.CLASSES, 9)
+
+        def apiElements = attributes(Usage.JAVA_API, LibraryElements.JAR, 8)
+        def apiElementsClasses = attributes(Usage.JAVA_API, LibraryElements.CLASSES, 8)
+        def runtimeElements = attributes(Usage.JAVA_RUNTIME, LibraryElements.JAR, 8)
+        def runtimeElementsClasses = attributes(Usage.JAVA_RUNTIME, LibraryElements.CLASSES, 8)
+
+        def apiElements11 = attributes(Usage.JAVA_API, LibraryElements.JAR, 11)
+        def apiElementsClasses11 = attributes(Usage.JAVA_API, LibraryElements.CLASSES, 11)
+        def runtimeElements11 = attributes(Usage.JAVA_RUNTIME, LibraryElements.JAR, 11)
+        def runtimeElementsClasses11 = attributes(Usage.JAVA_RUNTIME, LibraryElements.CLASSES, 11)
+
+        when:
+        def candidates = [
+                apiElements,
+                apiElementsClasses,
+                runtimeElements,
+                runtimeElementsClasses,
+                apiElements11,
+                apiElementsClasses11,
+                runtimeElements11,
+                runtimeElementsClasses11,
+        ]
+        def matches = matcher.match(selectionSchema, candidates, requested, null, explanationBuilder)
+        then:
+        matches == [ apiElementsClasses ]
+    }
+
+    def "resolve compileClasspath with java plugin targetJvm={8,9,11} requesting 9"() {
+        def requested = attributes(Usage.JAVA_API, LibraryElements.CLASSES, 9)
+
+        def apiElements = attributes(Usage.JAVA_API, LibraryElements.JAR, 8)
+
+        def runtimeElements = attributes(Usage.JAVA_RUNTIME, LibraryElements.JAR, 8)
+        def runtimeElementsClasses = attributes(Usage.JAVA_RUNTIME, LibraryElements.CLASSES, 8)
+
+        def apiElements9 = attributes(Usage.JAVA_API, LibraryElements.JAR, 9)
+
+        def runtimeElements9 = attributes(Usage.JAVA_RUNTIME, LibraryElements.JAR, 9)
+        def runtimeElementsClasses9 = attributes(Usage.JAVA_RUNTIME, LibraryElements.CLASSES, 9)
+
+        def apiElements11 = attributes(Usage.JAVA_API, LibraryElements.JAR, 11)
+
+        def runtimeElements11 = attributes(Usage.JAVA_RUNTIME, LibraryElements.JAR, 11)
+        def runtimeElementsClasses11 = attributes(Usage.JAVA_RUNTIME, LibraryElements.CLASSES, 11)
+
+        when:
+        def candidates = [
+                apiElements,
+
+                runtimeElements,
+                runtimeElementsClasses,
+                apiElements9,
+
+                runtimeElements9,
+                runtimeElementsClasses9,
+                apiElements11,
+
+                runtimeElements11,
+                runtimeElementsClasses11,
+        ]
+        def matches = matcher.match(selectionSchema, candidates, requested, null, explanationBuilder)
+        then:
+        matches == [ apiElements9 ]
+    }
+
+    def "resolve compileClasspath with java-library plugin targetJvm={8,9,11} requesting 9"() {
+        def requested = attributes(Usage.JAVA_API, LibraryElements.CLASSES, 9)
+
+        def apiElements = attributes(Usage.JAVA_API, LibraryElements.JAR, 8)
+        def apiElementsClasses = attributes(Usage.JAVA_API, LibraryElements.CLASSES, 8)
+        def runtimeElements = attributes(Usage.JAVA_RUNTIME, LibraryElements.JAR, 8)
+        def runtimeElementsClasses = attributes(Usage.JAVA_RUNTIME, LibraryElements.CLASSES, 8)
+
+        def apiElements9 = attributes(Usage.JAVA_API, LibraryElements.JAR, 9)
+        def apiElementsClasses9 = attributes(Usage.JAVA_API, LibraryElements.CLASSES, 9)
+        def runtimeElements9 = attributes(Usage.JAVA_RUNTIME, LibraryElements.JAR, 9)
+        def runtimeElementsClasses9 = attributes(Usage.JAVA_RUNTIME, LibraryElements.CLASSES, 9)
+
+        def apiElements11 = attributes(Usage.JAVA_API, LibraryElements.JAR, 11)
+        def apiElementsClasses11 = attributes(Usage.JAVA_API, LibraryElements.CLASSES, 11)
+        def runtimeElements11 = attributes(Usage.JAVA_RUNTIME, LibraryElements.JAR, 11)
+        def runtimeElementsClasses11 = attributes(Usage.JAVA_RUNTIME, LibraryElements.CLASSES, 11)
+
+        when:
+        def candidates = [
+                apiElements,
+                apiElementsClasses,
+                runtimeElements,
+                runtimeElementsClasses,
+                apiElements9,
+                apiElementsClasses9,
+                runtimeElements9,
+                runtimeElementsClasses9,
+                apiElements11,
+                apiElementsClasses11,
+                runtimeElements11,
+                runtimeElementsClasses11,
+        ]
+        def matches = matcher.match(selectionSchema, candidates, requested, null, explanationBuilder)
+        then:
+        matches == [ apiElementsClasses9 ]
+    }
+
+    def "resolve compileClasspath with java-library plugin targetJvm={8,9,11} requesting 9 only primary"() {
+        def requested = attributes(Usage.JAVA_API, LibraryElements.CLASSES, 9)
+
+        def apiElements = attributes(Usage.JAVA_API, LibraryElements.JAR, 8)
+        def runtimeElements = attributes(Usage.JAVA_RUNTIME, LibraryElements.JAR, 8)
+
+        def apiElements9 = attributes(Usage.JAVA_API, LibraryElements.JAR, 9)
+        def runtimeElements9 = attributes(Usage.JAVA_RUNTIME, LibraryElements.JAR, 9)
+
+        def apiElements11 = attributes(Usage.JAVA_API, LibraryElements.JAR, 11)
+        def runtimeElements11 = attributes(Usage.JAVA_RUNTIME, LibraryElements.JAR, 11)
+
+        when:
+        def candidates = [
+                apiElements,
+                runtimeElements,
+                apiElements9,
+                runtimeElements9,
+                apiElements11,
+                runtimeElements11,
+        ]
+        def matches = matcher.match(selectionSchema, candidates, requested, null, explanationBuilder)
+        then:
+        matches == [ apiElements9 ]
+    }
+
+//    def "querying for java api"() {
+//        def requested = attributes(Usage.JAVA_API, LibraryElements.CLASSES, 9)
+//
+//        def usageCandidates = [
+//            Usage.JAVA_API,
+//            Usage.JAVA_RUNTIME,
+//        ]
+//        def libraryElementsCandidates = [
+//                // LibraryElements.CLASSES,
+//                LibraryElements.JAR,
+//        ]
+//        def targetJvmCandidates = [
+//                8, 9, 11
+//        ]
+//
+//        def candidates = [usageCandidates, libraryElementsCandidates, targetJvmCandidates].combinations { List combination ->
+//            attributes(combination[0] as String, combination[1] as String, combination[2] as int)
+//        }
+//
+//        candidates.add(attributes(Usage.JAVA_RUNTIME, LibraryElements.CLASSES, 8))
+//        candidates.add(attributes(Usage.JAVA_RUNTIME, LibraryElements.CLASSES, 9))
+//        candidates.add(attributes(Usage.JAVA_RUNTIME, LibraryElements.CLASSES, 11))
+//
+//        candidates.each { println it }
+//
+//        when:
+//        def matches = matcher.match(selectionSchema, candidates, requested, null, explanationBuilder)
+//
+//        println "matches"
+//        matches.each { println it }
+//        then:
+//        true
+//    }
+
+    private static AttributeContainerInternal attributes(String usage, String libraryElements, int targetJvm) {
+        return attributes(
+                (Usage.USAGE_ATTRIBUTE): named(Usage, usage),
+                (TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE): targetJvm,
+                (LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE): named(LibraryElements, libraryElements),
+        )
     }
 
     private static named(Class type, String value) {
