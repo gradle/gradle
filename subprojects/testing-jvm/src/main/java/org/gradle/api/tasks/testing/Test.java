@@ -160,7 +160,7 @@ import static org.gradle.util.internal.ConfigureUtil.configureUsing;
 @CacheableTask
 public class Test extends AbstractTestTask implements JavaForkOptions, PatternFilterable {
 
-    private static final long DEFAULT_RUN_UNTIL_FAILURE_COUNT = 1;
+    private static final long DEFAULT_RETRY_UNTIL_FAILURE_COUNT = 1;
 
     private final JavaForkOptions forkOptions;
     private final ModularitySpec modularity;
@@ -177,7 +177,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     private boolean scanForTestClasses = true;
     private long forkEvery;
     private int maxParallelForks = 1;
-    private long untilFailureRunCount = DEFAULT_RUN_UNTIL_FAILURE_COUNT;
+    private long untilFailureRetryCount = DEFAULT_RETRY_UNTIL_FAILURE_COUNT;
     private TestExecuter<JvmTestExecutionSpec> testExecuter;
 
     public Test() {
@@ -645,7 +645,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         boolean testIsModule = javaModuleDetector.isModule(modularity.getInferModulePath().get(), getTestClassesDirs());
         FileCollection classpath = javaModuleDetector.inferClasspath(testIsModule, stableClasspath);
         FileCollection modulePath = javaModuleDetector.inferModulePath(testIsModule, stableClasspath);
-        return new JvmTestExecutionSpec(getTestFramework(), classpath, modulePath, getCandidateClassFiles(), isScanForTestClasses(), getTestClassesDirs(), getPath(), getIdentityPath(), getForkEvery(), javaForkOptions, getMaxParallelForks(), getPreviousFailedTestClasses(), getUntilFailureRunCount());
+        return new JvmTestExecutionSpec(getTestFramework(), classpath, modulePath, getCandidateClassFiles(), isScanForTestClasses(), getTestClassesDirs(), getPath(), getIdentityPath(), getForkEvery(), javaForkOptions, getMaxParallelForks(), getPreviousFailedTestClasses(), getUntilFailureRetryCount());
     }
 
     private void validateToolchainConfiguration() {
@@ -697,7 +697,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
 
     @Override
     protected boolean shouldFailFast() {
-        return getUntilFailureRunCount() > DEFAULT_RUN_UNTIL_FAILURE_COUNT || super.shouldFailFast();
+        return getUntilFailureRetryCount() > DEFAULT_RETRY_UNTIL_FAILURE_COUNT || super.shouldFailFast();
     }
 
     @Override
@@ -1186,8 +1186,8 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      */
     @Internal
     @Incubating
-    public long getUntilFailureRunCount() {
-        return untilFailureRunCount;
+    public long getUntilFailureRetryCount() {
+        return untilFailureRetryCount;
     }
 
     /**
@@ -1196,15 +1196,15 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      * By default, Gradle runs tests just once, but with this property you can specify that Gradle runs tests until a failure occurs.
      * </p>
      *
-     * @param untilFailureRunCount The maximum number of test runs.
+     * @param untilFailureRetryCount The maximum number of test runs.
      * @since 7.5
      */
     @Incubating
-    public void setUntilFailureRunCount(long untilFailureRunCount) {
-        if (untilFailureRunCount < 1) {
-            throw new IllegalArgumentException("Cannot set untilFailureRunCount to a value less than 1.");
+    public void setUntilFailureRetryCount(long untilFailureRetryCount) {
+        if (untilFailureRetryCount < 1) {
+            throw new IllegalArgumentException("Cannot set untilFailureRetryCount to a value less than 1.");
         }
-        this.untilFailureRunCount = untilFailureRunCount;
+        this.untilFailureRetryCount = untilFailureRetryCount;
     }
 
     /**
@@ -1214,9 +1214,9 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      */
     @SuppressWarnings("unused")
     @Incubating
-    @Option(option = "run-until-failure", description = "Runs the tests until failure occurs.")
-    public void setUntilFailureRunCountOption(@Nullable String untilFailureRunCount) {
-        setUntilFailureRunCount(untilFailureRunCount == null ? null : Long.parseLong(untilFailureRunCount));
+    @Option(option = "retry-until-failure", description = "Runs the tests until failure occurs.")
+    public void setUntilFailureRetryCountOption(@Nullable String untilFailureRetryCount) {
+        setUntilFailureRetryCount(untilFailureRetryCount == null ? -1 : Long.parseLong(untilFailureRetryCount));
     }
 
     /**

@@ -29,16 +29,16 @@ public class UntilFailureWorkerTestClassProcessorFactory implements WorkerTestCl
     private static final long serialVersionUID = 42L;
 
     private final WorkerFrameworkTestClassProcessorFactory frameworkProcessorFactory;
-    private final long untilFailureRunCount;
+    private final long untilFailureRetryCount;
 
-    public UntilFailureWorkerTestClassProcessorFactory(WorkerFrameworkTestClassProcessorFactory frameworkProcessorFactory, long untilFailureRunCount) {
+    public UntilFailureWorkerTestClassProcessorFactory(WorkerFrameworkTestClassProcessorFactory frameworkProcessorFactory, long untilFailureRetryCount) {
         this.frameworkProcessorFactory = frameworkProcessorFactory;
-        this.untilFailureRunCount = untilFailureRunCount;
+        this.untilFailureRetryCount = untilFailureRetryCount;
     }
 
     @Override
     public TestClassProcessor create(ServiceRegistry serviceRegistry) {
         FrameworkTestClassProcessor frameworkProcessor = frameworkProcessorFactory.create(serviceRegistry);
-        return new UntilFailureTestClassProcessor(frameworkProcessor, untilFailureRunCount);
+        return new UntilFailureTestClassProcessor(frameworkProcessor, untilFailureRetryCount);
     }
 }

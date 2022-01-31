@@ -40,7 +40,7 @@ public class JvmTestExecutionSpec implements TestExecutionSpec {
     private final JavaForkOptions javaForkOptions;
     private final int maxParallelForks;
     private final Set<String> previousFailedTestClasses;
-    private final long untilFailureRunCount;
+    private final long untilFailureRetryCount;
 
     @UsedByScanPlugin("test-retry <= 1.1.3")
     public JvmTestExecutionSpec(TestFramework testFramework, Iterable<? extends File> classpath, FileTree candidateClassFiles, boolean scanForTestClasses, FileCollection testClassesDirs, String path, Path identityPath, long forkEvery, JavaForkOptions javaForkOptions, int maxParallelForks, Set<String> previousFailedTestClasses) {
@@ -52,7 +52,7 @@ public class JvmTestExecutionSpec implements TestExecutionSpec {
         this(testFramework, classpath, Collections.<File>emptyList(), candidateClassFiles, scanForTestClasses, testClassesDirs, path, identityPath, forkEvery, javaForkOptions, maxParallelForks, previousFailedTestClasses, 1);
     }
 
-    public JvmTestExecutionSpec(TestFramework testFramework, Iterable<? extends File> classpath, Iterable<? extends File>  modulePath, FileTree candidateClassFiles, boolean scanForTestClasses, FileCollection testClassesDirs, String path, Path identityPath, long forkEvery, JavaForkOptions javaForkOptions, int maxParallelForks, Set<String> previousFailedTestClasses, long untilFailureRunCount) {
+    public JvmTestExecutionSpec(TestFramework testFramework, Iterable<? extends File> classpath, Iterable<? extends File>  modulePath, FileTree candidateClassFiles, boolean scanForTestClasses, FileCollection testClassesDirs, String path, Path identityPath, long forkEvery, JavaForkOptions javaForkOptions, int maxParallelForks, Set<String> previousFailedTestClasses, long untilFailureRetryCount) {
         this.testFramework = testFramework;
         this.classpath = classpath;
         this.modulePath = modulePath;
@@ -65,7 +65,7 @@ public class JvmTestExecutionSpec implements TestExecutionSpec {
         this.javaForkOptions = javaForkOptions;
         this.maxParallelForks = maxParallelForks;
         this.previousFailedTestClasses = previousFailedTestClasses;
-        this.untilFailureRunCount = untilFailureRunCount;
+        this.untilFailureRetryCount = untilFailureRetryCount;
     }
 
     public TestFramework getTestFramework() {
@@ -105,8 +105,8 @@ public class JvmTestExecutionSpec implements TestExecutionSpec {
         return forkEvery;
     }
 
-    public long getUntilFailureRunCount() {
-        return untilFailureRunCount;
+    public long getUntilFailureRetryCount() {
+        return untilFailureRetryCount;
     }
 
     @UsedByScanPlugin("test-distribution")

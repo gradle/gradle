@@ -120,7 +120,7 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
 
     private WorkerTestClassProcessorFactory getWorkerTestClassProcessorFactory(JvmTestExecutionSpec testExecutionSpec) {
         TestFramework testFramework = testExecutionSpec.getTestFramework();
-        return new UntilFailureWorkerTestClassProcessorFactory(testFramework.getProcessorFactory(), testExecutionSpec.getUntilFailureRunCount());
+        return new UntilFailureWorkerTestClassProcessorFactory(testFramework.getProcessorFactory(), testExecutionSpec.getUntilFailureRetryCount());
     }
 
     @Override

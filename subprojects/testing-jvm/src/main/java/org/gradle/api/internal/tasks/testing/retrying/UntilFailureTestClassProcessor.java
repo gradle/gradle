@@ -25,12 +25,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class UntilFailureTestClassProcessor implements TestClassProcessor {
     private final FrameworkTestClassProcessor processor;
-    private final long untilFailureRunCount;
+    private final long untilFailureRetryCount;
     private final AtomicBoolean hasAnyTestFailed;
 
-    public UntilFailureTestClassProcessor(FrameworkTestClassProcessor processor, long untilFailureRunCount) {
+    public UntilFailureTestClassProcessor(FrameworkTestClassProcessor processor, long untilFailureRetryCount) {
         this.processor = processor;
-        this.untilFailureRunCount = untilFailureRunCount;
+        this.untilFailureRetryCount = untilFailureRetryCount;
         this.hasAnyTestFailed = new AtomicBoolean();
     }
 
@@ -47,7 +47,7 @@ public class UntilFailureTestClassProcessor implements TestClassProcessor {
     @Override
     public void stop() {
         try {
-            long executions = Math.max(untilFailureRunCount, 1);
+            long executions = Math.max(untilFailureRetryCount, 1);
             while (shouldRetry(executions--)) {
                 processor.runTests();
             }

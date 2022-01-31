@@ -24,10 +24,10 @@ import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
 
 abstract class AbstractJvmRunUntilFailureIntegrationSpec extends AbstractIntegrationSpec {
 
-    def "runs tests #untilFailureRunCount times without failure"() {
+    def "runs tests #untilFailureRetryCount times without failure"() {
         given:
         buildFile.text = initBuildFile()
-        buildFile << "test { untilFailureRunCount = $untilFailureRunCount }"
+        buildFile << "test { untilFailureRetryCount = $untilFailureRetryCount }"
         def testClassName = generateAlwaysPassingTestClass()
 
         when:
@@ -35,32 +35,32 @@ abstract class AbstractJvmRunUntilFailureIntegrationSpec extends AbstractIntegra
 
         then:
         def result = new DefaultTestExecutionResult(testDirectory)
-        result.testClass(testClassName).assertTestCount(untilFailureRunCount, 0, 0)
+        result.testClass(testClassName).assertTestCount(untilFailureRetryCount, 0, 0)
 
         where:
-        untilFailureRunCount << [1, 5, 10]
+        untilFailureRetryCount << [1, 5, 10]
     }
 
-    def "runs tests #untilFailureRunCount with run-until-failure=#untilFailureRunCount parameter"() {
+    def "runs tests #untilFailureRetryCount with retry-until-failure=#untilFailureRetryCount parameter"() {
         given:
         buildFile.text = initBuildFile()
         def testClassName = generateAlwaysPassingTestClass()
 
         when:
-        run 'test', "--run-until-failure", "$untilFailureRunCount"
+        run 'test', "--retry-until-failure", "$untilFailureRetryCount"
 
         then:
         def result = new DefaultTestExecutionResult(testDirectory)
-        result.testClass(testClassName).assertTestCount(untilFailureRunCount, 0, 0)
+        result.testClass(testClassName).assertTestCount(untilFailureRetryCount, 0, 0)
 
         where:
-        untilFailureRunCount << [1, 5, 10]
+        untilFailureRetryCount << [1, 5, 10]
     }
 
-    def "stops running tests after first failure on the #failOnRun run with untilFailureRunCount = #untilFailureRunCount"() {
+    def "stops running tests after first failure on the #failOnRun run with untilFailureRetryCount = #untilFailureRetryCount"() {
         given:
         buildFile.text = initBuildFile()
-        buildFile << "test { untilFailureRunCount = $untilFailureRunCount }"
+        buildFile << "test { untilFailureRetryCount = $untilFailureRetryCount }"
         def failingClassName = generateFailingTestClass(failOnRun)
 
         when:
@@ -71,7 +71,7 @@ abstract class AbstractJvmRunUntilFailureIntegrationSpec extends AbstractIntegra
         result.testClass(failingClassName).assertTestCount(failOnRun, 1, 0)
 
         where:
-        untilFailureRunCount | failOnRun
+        untilFailureRetryCount | failOnRun
         10                   | 1
         10                   | 3
         10                   | 5
@@ -88,7 +88,7 @@ abstract class AbstractJvmRunUntilFailureIntegrationSpec extends AbstractIntegra
         buildFile.text = initBuildFile()
         buildFile << """
         test {
-            untilFailureRunCount = ${failFastThreshold * 10}
+            untilFailureRetryCount = ${failFastThreshold * 10}
             maxParallelForks = 2
             forkEvery = 1
         }"""
