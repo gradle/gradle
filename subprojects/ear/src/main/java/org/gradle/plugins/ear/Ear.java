@@ -50,7 +50,9 @@ import javax.inject.Inject;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.Serializable;
 import java.util.concurrent.Callable;
 
 import static java.util.Collections.singleton;
@@ -75,53 +77,67 @@ public class Ear extends Jar {
         generateDeploymentDescriptor = getObjectFactory().property(Boolean.class);
         generateDeploymentDescriptor.convention(true);
         lib = getRootSpec().addChildBeforeSpec(getMainSpec()).into(
-            (Callable<String>) () -> GUtil.elvis(getLibDirName(), DEFAULT_LIB_DIR_NAME)
+            (Callable<String> & Serializable) () -> GUtil.elvis(getLibDirName(), DEFAULT_LIB_DIR_NAME)
         );
-        getMainSpec().appendCachingSafeCopyAction(details -> {
-            if (generateDeploymentDescriptor.get()) {
-                checkIfShouldGenerateDeploymentDescriptor(details);
-                recordTopLevelModules(details);
-            }
-        });
+        getMainSpec().appendCachingSafeCopyAction(new Action<FileCopyDetails>() {
+                  @Override
+                  public void execute(FileCopyDetails details) {
+                      if (generateDeploymentDescriptor.get()) {
+                          checkIfShouldGenerateDeploymentDescriptor(details);
+                          recordTopLevelModules(details);
+                      }
+                  }
+            });
 
         // create our own metaInf which runs after mainSpec's files
         // this allows us to generate the deployment descriptor after recording all modules it contains
         CopySpecInternal metaInf = (CopySpecInternal) getMainSpec().addChild().into("META-INF");
         CopySpecInternal descriptorChild = metaInf.addChild();
-        descriptorChild.from((Callable<FileTree>) () -> {
-            final DeploymentDescriptor descriptor = getDeploymentDescriptor();
+        descriptorChild.from(new Callable<Object>() {
+            @Override
+            public Object call() throws Exception {
+                final DeploymentDescriptor descriptor = getDeploymentDescriptor();
 
-            if (descriptor != null && generateDeploymentDescriptor.get()) {
-                if (descriptor.getLibraryDirectory() == null) {
-                    descriptor.setLibraryDirectory(getLibDirName());
-                }
-
-                String descriptorFileName = descriptor.getFileName();
-                if (descriptorFileName.contains("/") || descriptorFileName.contains(File.separator)) {
-                    throw new InvalidUserDataException("Deployment descriptor file name must be a simple name but was " + descriptorFileName);
-                }
-
-                // TODO: Consider capturing the `descriptor` as a spec
-                //  so any captured manifest attribute providers are re-evaluated
-                //  on each run.
-                //  See https://github.com/gradle/configuration-cache/issues/168
-                Cached<byte[]> cachedDescriptor = cachedContentsOf(descriptor);
-                final OutputChangeListener outputChangeListener = outputChangeListener();
-                return fileCollectionFactory().generated(
-                    getTemporaryDirFactory(),
-                    descriptorFileName,
-                    file -> outputChangeListener.beforeOutputChange(singleton(file.getAbsolutePath())),
-                    outputStream -> {
-                        try {
-                            outputStream.write(cachedDescriptor.get());
-                        } catch (IOException e) {
-                            throw UncheckedException.throwAsUncheckedException(e);
-                        }
+                if (descriptor != null && generateDeploymentDescriptor.get()) {
+                    if (descriptor.getLibraryDirectory() == null) {
+                        descriptor.setLibraryDirectory(getLibDirName());
                     }
-                );
-            }
 
-            return null;
+                    String descriptorFileName = descriptor.getFileName();
+                    if (descriptorFileName.contains("/") || descriptorFileName.contains(File.separator)) {
+                        throw new InvalidUserDataException("Deployment descriptor file name must be a simple name but was " + descriptorFileName);
+                    }
+
+                    // TODO: Consider capturing the `descriptor` as a spec
+                    //  so any captured manifest attribute providers are re-evaluated
+                    //  on each run.
+                    //  See https://github.com/gradle/configuration-cache/issues/168
+                    Cached<byte[]> cachedDescriptor = cachedContentsOf(descriptor);
+                    final OutputChangeListener outputChangeListener = outputChangeListener();
+                    return fileCollectionFactory().generated(
+                        getTemporaryDirFactory(),
+                        descriptorFileName,
+                        new Action<File>() {
+                            @Override
+                            public void execute(File file) {
+                                outputChangeListener.beforeOutputChange(singleton(file.getAbsolutePath()));
+                            }
+                        },
+                        new Action<OutputStream>() {
+                            @Override
+                            public void execute(OutputStream outputStream) {
+                                try {
+                                    outputStream.write(cachedDescriptor.get());
+                                } catch (IOException e) {
+                                    throw UncheckedException.throwAsUncheckedException(e);
+                                }
+                            }
+                        }
+                    );
+                }
+
+                return null;
+            }
         });
 
         appDir = getObjectFactory().directoryProperty();
@@ -292,4 +308,5 @@ public class Ear extends Jar {
     public DirectoryProperty getAppDirectory() {
         return appDir;
     }
+
 }
