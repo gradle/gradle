@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.changedetection.state.FileHasherStatistics;
+import org.gradle.deployment.internal.DeploymentRegistryInternal;
 import org.gradle.initialization.StartParameterBuildOptions;
 import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
@@ -40,6 +41,7 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
 
     private final BuildOperationProgressEventEmitter eventEmitter;
     private final BuildLifecycleAwareVirtualFileSystem virtualFileSystem;
+    private final DeploymentRegistryInternal deploymentRegistry;
     private final StatStatistics.Collector statStatisticsCollector;
     private final FileHasherStatistics.Collector fileHasherStatisticsCollector;
     private final DirectorySnapshotterStatistics.Collector directorySnapshotterStatisticsCollector;
@@ -49,6 +51,7 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
     public FileSystemWatchingBuildActionRunner(
         BuildOperationProgressEventEmitter eventEmitter,
         BuildLifecycleAwareVirtualFileSystem virtualFileSystem,
+        DeploymentRegistryInternal deploymentRegistry,
         StatStatistics.Collector statStatisticsCollector,
         FileHasherStatistics.Collector fileHasherStatisticsCollector,
         DirectorySnapshotterStatistics.Collector directorySnapshotterStatisticsCollector,
@@ -57,6 +60,7 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
     ) {
         this.eventEmitter = eventEmitter;
         this.virtualFileSystem = virtualFileSystem;
+        this.deploymentRegistry = deploymentRegistry;
         this.statStatisticsCollector = statStatisticsCollector;
         this.fileHasherStatisticsCollector = fileHasherStatisticsCollector;
         this.directorySnapshotterStatisticsCollector = directorySnapshotterStatisticsCollector;
@@ -77,7 +81,10 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
             : WatchLogging.NORMAL;
 
         LOGGER.info("Watching the file system is configured to be {}", watchFileSystemMode.getDescription());
-        if (startParameter.isContinuous() && watchFileSystemMode == WatchMode.DEFAULT) {
+
+        boolean continuousBuild = startParameter.isContinuous() || !deploymentRegistry.getRunningDeployments().isEmpty();
+
+        if (continuousBuild && watchFileSystemMode == WatchMode.DEFAULT) {
             // Try to watch as much as possible when using continuous build.
             watchFileSystemMode = WatchMode.ENABLED;
         }
@@ -104,6 +111,7 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
             }
         }
 
+        LOGGER.debug("Watching the file system computed to be {}", watchFileSystemMode.getDescription());
         boolean actuallyWatching = virtualFileSystem.afterBuildStarted(
             watchFileSystemMode,
             verboseVfsLogging,
@@ -118,7 +126,7 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
                 return actuallyWatching;
             }
         });
-        if (action.getStartParameter().isContinuous()) {
+        if (continuousBuild) {
             if (!actuallyWatching) {
                 throw new IllegalStateException("Continuous build does not work when file system watching is disabled");
             }
