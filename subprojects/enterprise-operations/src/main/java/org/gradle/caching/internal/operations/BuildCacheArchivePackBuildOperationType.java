@@ -17,11 +17,9 @@
 package org.gradle.caching.internal.operations;
 
 import org.gradle.internal.operations.BuildOperationType;
-import org.gradle.internal.scan.UsedByScanPlugin;
 
 public final class BuildCacheArchivePackBuildOperationType implements BuildOperationType<BuildCacheArchivePackBuildOperationType.Details, BuildCacheArchivePackBuildOperationType.Result> {
 
-    @UsedByScanPlugin
     public interface Details {
 
         /**
@@ -31,7 +29,6 @@ public final class BuildCacheArchivePackBuildOperationType implements BuildOpera
 
     }
 
-    @UsedByScanPlugin
     public interface Result {
 
         long getArchiveSize();

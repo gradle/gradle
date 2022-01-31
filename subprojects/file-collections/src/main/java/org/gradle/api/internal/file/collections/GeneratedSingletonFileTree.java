@@ -21,7 +21,6 @@ import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
-import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
@@ -101,10 +100,7 @@ public class GeneratedSingletonFileTree implements FileSystemMirroringFileTree, 
 
     @Override
     public void visitStructure(MinimalFileTreeStructureVisitor visitor, FileTreeInternal owner) {
-        if (visitor.prepareForVisit(this) != FileCollectionStructureVisitor.VisitType.NoContents) {
-            // TODO: Fail when using NoContents when we moved to using the new file system watching infrastructure for continuous build.
-            visitor.visitFileTree(getFile(), new PatternSet(), owner);
-        }
+        visitor.visitFileTree(getFile(), new PatternSet(), owner);
     }
 
     @Override

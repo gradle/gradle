@@ -2,6 +2,8 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
+description = "Implementation of messaging between Gradle processes"
+
 gradlebuildJava.usedInWorkers()
 
 dependencies {

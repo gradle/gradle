@@ -32,7 +32,7 @@ trait ArtifactTransformTestFixture extends TasksWithInputsAndOutputs {
     /**
      * Defines a 'blue' variant for the given module.
      */
-    MavenModule withColorVariants(MavenModule module) {
+    def <T extends MavenModule> T withColorVariants(T module) {
         module.adhocVariants().variant('runtime', [color: 'blue']).withModuleMetadata()
         return module
     }

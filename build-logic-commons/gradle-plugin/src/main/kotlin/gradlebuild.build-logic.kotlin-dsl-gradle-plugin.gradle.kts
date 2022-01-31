@@ -29,13 +29,14 @@ plugins {
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
 }
 
 dependencies {
     api(platform(project(":build-platform")))
     implementation("gradlebuild:code-quality")
+    implementation("gradlebuild:build-scan")
 
     testImplementation("org.junit.vintage:junit-vintage-engine")
 }

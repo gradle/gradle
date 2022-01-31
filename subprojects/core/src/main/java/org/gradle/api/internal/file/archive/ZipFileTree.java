@@ -41,7 +41,7 @@ import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.lang.String.format;
-import static org.gradle.util.internal.GUtil.safeZipEntryName;
+import static org.gradle.util.internal.ZipSlip.safeZipEntryName;
 
 public class ZipFileTree extends AbstractArchiveFileTree {
     private final Provider<File> fileProvider;

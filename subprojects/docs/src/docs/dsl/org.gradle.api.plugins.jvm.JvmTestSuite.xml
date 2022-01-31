@@ -32,6 +32,9 @@
             <tr>
                 <td>targets</td>
             </tr>
+            <tr>
+                <td>testType</td>
+            </tr>
         </table>
     </section>
     <section>

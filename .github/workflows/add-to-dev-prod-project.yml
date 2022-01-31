@@ -8,12 +8,15 @@ on:
 
 jobs:
   add-to-dev-prod-project:
-    if: (github.event.issue!=null && contains(github.event.issue.labels.*.name, '@dev-productivity')) || (github.event.pull_request!=null && contains(github.event.pull_request.labels.*.name, '@dev-productivity'))
     runs-on: ubuntu-latest
     steps:
-      - name: Get project data
+      - name: Check label
+        if: (github.event.issue!=null && contains(github.event.issue.labels.*.name, '@dev-productivity')) || (github.event.pull_request!=null && contains(github.event.pull_request.labels.*.name, '@dev-productivity'))
+        run: echo 'HAS_DEV_PROD_LABEL=true' >> $GITHUB_ENV
+      - name: Get project data  
+        if: ${{ env.HAS_DEV_PROD_LABEL == 'true' }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.BOT_GRADLE_GH_ORG_BOARD_ACCESS_TOKEN }}
         run: |
           gh api graphql -f query='
             query($org: String!, $number: Int!) {
@@ -31,8 +34,9 @@ jobs:
 
           echo 'PROJECT_ID='$(jq '.data.organization.projectNext.id' project_data.json) >> $GITHUB_ENV
       - name: Add issue/PR to project
+        if: ${{ env.HAS_DEV_PROD_LABEL == 'true' }} 
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.BOT_GRADLE_GH_ORG_BOARD_ACCESS_TOKEN }}
         run: |
           gh api graphql -f query='
             mutation($project:ID!, $pr:ID!) {

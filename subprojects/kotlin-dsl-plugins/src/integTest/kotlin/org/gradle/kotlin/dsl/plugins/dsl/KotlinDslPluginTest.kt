@@ -4,14 +4,11 @@ import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
 import org.gradle.kotlin.dsl.support.expectedKotlinDslPluginsVersion
-import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.not
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
-import org.junit.experimental.categories.Category
-import spock.lang.Issue
 
 
 @LeaksFileHandles("Kotlin Compiler Daemon working directory")
@@ -265,8 +262,6 @@ class KotlinDslPluginTest : AbstractPluginTest() {
     }
 
     @Test
-    @Issue("https://github.com/gradle/gradle-private/issues/3487")
-    @Category(Flaky::class)
     fun `can use SAM conversions for Kotlin functions without warnings`() {
 
         withBuildExercisingSamConversionForKotlinFunctions()

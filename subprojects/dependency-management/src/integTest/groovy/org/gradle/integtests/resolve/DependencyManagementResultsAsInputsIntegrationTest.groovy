@@ -79,7 +79,9 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
             apply plugin: 'java-library'
             repositories { maven { url "${mavenHttpRepo.uri}" } }
             dependencies {
-                implementation 'org.external:external-lib:1.0'
+                implementation('org.external:external-lib:1.0') {
+                    because(System.getProperty('selectionReason', 'original'))
+                }
                 implementation 'org.external:external-lib2:1.0'
                 implementation project('project-lib')
                 implementation files('lib/file-lib.jar')
@@ -533,6 +535,34 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
 
         then:
         skipped ":verify"
+        notExecuted ":project-lib:jar", ":composite-lib:jar"
+
+        when: "changing selection reason"
+        succeeds "verify", "-DselectionReason=changed"
+
+        then:
+        executedAndNotSkipped ":verify"
+        notExecuted ":project-lib:jar", ":composite-lib:jar"
+
+        when: "changing project library variant metadata"
+        succeeds "verify", "-DprojectLibAttrValue=new-value"
+
+        then:
+        executedAndNotSkipped ":verify"
+        notExecuted ":project-lib:jar", ":composite-lib:jar"
+
+        when: "changing included library variant metadata"
+        succeeds "verify", "-DcompositeLibAttrValue=new-value"
+
+        then:
+        executedAndNotSkipped ":verify"
+        notExecuted ":project-lib:jar", ":composite-lib:jar"
+
+        when: "changing external library variant metadata"
+        succeeds "verify", "-DexternalLibAttrValue=new-value"
+
+        then:
+        executedAndNotSkipped ":verify"
         notExecuted ":project-lib:jar", ":composite-lib:jar"
     }
 
