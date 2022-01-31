@@ -89,6 +89,16 @@ public class EmptySchema implements AttributesSchemaInternal {
         throw new UnsupportedOperationException();
     }
 
+    @Override
+    public void attributePrecedence(Attribute<?>... attribute) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public List<Attribute<?>> getAttributePrecedence() {
+        return Collections.emptyList();
+    }
+
     private static class DoNothingCompatibilityRule implements CompatibilityRule<Object> {
         @Override
         public void execute(CompatibilityCheckResult<Object> result) {

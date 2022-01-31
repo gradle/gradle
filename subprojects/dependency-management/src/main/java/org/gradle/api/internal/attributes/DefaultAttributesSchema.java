@@ -19,6 +19,7 @@ package org.gradle.api.internal.attributes;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Ordering;
 import org.gradle.api.Action;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
@@ -36,9 +37,11 @@ import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.IsolatableFactory;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -53,6 +56,7 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
     private final IsolatableFactory isolatableFactory;
     private final Map<ExtraAttributesEntry, Attribute<?>[]> extraAttributesCache = Maps.newHashMap();
     private final List<AttributeDescriber> consumerAttributeDescribers = Lists.newArrayList();
+    private final List<Attribute<?>> precedence = Lists.newArrayList();
 
     public DefaultAttributesSchema(ComponentAttributeMatcher componentAttributeMatcher, InstantiatorFactory instantiatorFactory, IsolatableFactory isolatableFactory) {
         this.componentAttributeMatcher = componentAttributeMatcher;
@@ -139,6 +143,17 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
     @Override
     public void addConsumerDescriber(AttributeDescriber describer) {
         consumerAttributeDescribers.add(describer);
+    }
+
+    @Override
+    public void attributePrecedence(Attribute<?>... attributes) {
+        precedence.clear();
+        precedence.addAll(Arrays.asList(attributes));
+    }
+
+    @Override
+    public List<Attribute<?>> getAttributePrecedence() {
+        return precedence;
     }
 
     private static class DefaultAttributeMatcher implements AttributeMatcher {
@@ -290,6 +305,19 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
             }
             MergedSchema that = (MergedSchema) o;
             return producerSchema.equals(that.producerSchema);
+        }
+
+        @Override
+        public List<Attribute<?>> sortedByPrecedence(Set<Attribute<?>> requested) {
+            return Ordering.explicit(new ArrayList<>(getDisambiguatingAttributes())).sortedCopy(requested);
+        }
+
+        @Override
+        public Set<Attribute<?>> getDisambiguatingAttributes() {
+            Set<Attribute<?>> combined = new LinkedHashSet<>();
+            combined.addAll(precedence);
+            combined.addAll(producerSchema.getAttributePrecedence());
+            return combined;
         }
 
         @Override

@@ -69,4 +69,6 @@ public interface AttributesSchema {
      * Returns true when this schema contains the given attribute.
      */
     boolean hasAttribute(Attribute<?> key);
+
+    void attributePrecedence(Attribute<?>... attributes);
 }

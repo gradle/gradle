@@ -690,5 +690,15 @@ class ComponentAttributeMatcherTest extends Specification {
         Attribute<?>[] collectExtraAttributes(ImmutableAttributes[] candidates, ImmutableAttributes requested) {
             AttributeSelectionUtils.collectExtraAttributes(this, candidates, requested)
         }
+
+        @Override
+        List<Attribute<?>> sortedByPrecedence(Set<Attribute<?>> requested) {
+            return requested
+        }
+
+        @Override
+        Set<Attribute<?>> getDisambiguatingAttributes() {
+            return []
+        }
     }
 }

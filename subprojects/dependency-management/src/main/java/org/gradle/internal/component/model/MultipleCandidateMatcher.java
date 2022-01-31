@@ -96,7 +96,7 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
         for (int i = 0; i < candidates.size(); i++) {
             candidateAttributeSets[i] = ((AttributeContainerInternal) this.candidates.get(i).getAttributes()).asImmutable();
         }
-        this.requestedAttributes = requested.keySet().asList();
+        this.requestedAttributes = schema.sortedByPrecedence(requested.keySet());
         requestedAttributeValues = new Object[(1 + candidates.size()) * requestedAttributes.size()];
         compatible = new BitSet(candidates.size());
         compatible.set(0, candidates.size());

@@ -19,6 +19,8 @@ package org.gradle.api.internal.attributes;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.internal.component.model.AttributeMatcher;
 
+import java.util.List;
+
 public interface AttributesSchemaInternal extends DescribableAttributesSchema {
     /**
      * Returns a matcher that uses the consumer rules from this schema, and the producer rules from the given schema.
@@ -33,4 +35,6 @@ public interface AttributesSchemaInternal extends DescribableAttributesSchema {
     CompatibilityRule<Object> compatibilityRules(Attribute<?> attribute);
 
     DisambiguationRule<Object> disambiguationRules(Attribute<?> attribute);
+
+    List<Attribute<?>> getAttributePrecedence();
 }
