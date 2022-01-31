@@ -26,13 +26,8 @@ import spock.lang.Ignore
 import spock.lang.Issue
 
 class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
-    def setup() {
-        if (OperatingSystem.current().isWindows()) {
-            ignoreShutdownTimeoutException = true
-        }
-    }
 
-    def "detects changes when no files are in the project"() {
+    def "detects no changes when no files are in the project"() {
         given:
         def markerFile = file("input/marker")
         buildFile << """
@@ -55,11 +50,17 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         waitBeforeModification(markerFile)
         markerFile.text = "created"
         then:
-        buildTriggeredAndSucceeded()
-        output.contains "exists: true"
+        // There are different reason why this doesn't work for hierarchical and non-hierarchical watchers.
+        // We may want to support this use-case at some point.
+        // For hierarchical watchers, we don't watch the project directory if the VFS only contains missing files in there.
+        // For non-hierarchical watchers, we watch the parent directory of the missing file, the project directory in this case.
+        // When the `input` directory is created, we invalidate the VFS and stop watching since the missing snapshot now has been removed.
+        // Though we don't consider the path `input` as an input to the build, since it is a parent of the declared input
+        // `input/marker`. So we don't trigger a rebuild.
+        noBuildTriggered()
     }
 
-    def "detects changes when no snapshotting happens (#description)"() {
+    def "does not detect changes when no snapshotting happens (#description)"() {
         given:
         def markerFile = file("input/marker")
         buildFile << """
@@ -82,8 +83,10 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         waitBeforeModification(markerFile)
         markerFile.text = "changed"
         then:
-        buildTriggeredAndSucceeded()
-        output.contains "value: changed"
+        // If we don't snapshot anything, then we are also not watching anything,
+        // since we only watch things in the VFS.
+        // This is a limitation of the current implementation.
+        noBuildTriggered()
 
         where:
         description      | taskConfiguration
@@ -127,18 +130,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         def excludedFile = sources.file("sub/some/excluded").createFile()
         def includedFile = sources.file("sub/some/included.txt").createFile()
 
-        buildFile << """
-            task myTask {
-              def inputFileTree = fileTree("sources").include("**/*.txt")
-              inputs.files(inputFileTree)
-                .ignoreEmptyDirectories()
-                .withPropertyName("sources")
-              outputs.files "build/marker"
-              doLast {
-                println "includedFiles: " + inputFileTree.files.size()
-              }
-            }
-        """
+        buildFile << taskOnlyIncludingTxtFiles
 
         when:
         succeeds("myTask")
@@ -165,9 +157,46 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         when:
         sources.file("sub/other/included.txt").createFile()
         then:
-        buildTriggeredAndSucceeded()
-        outputContains("includedFiles: 3")
+        if (OperatingSystem.current().linux) {
+            // On Linux, we don't watch sub, since it is a filtered directory,
+            // and it doesn't contain any file or unfiltered directory
+            noBuildTriggered()
+        } else {
+            buildTriggeredAndSucceeded()
+            outputContains("includedFiles: 3")
+        }
     }
+
+    def "does not detect changes in filtered file tree inputs when first matching file is created"() {
+        def sources = file("sources").createDir()
+        sources.file("sub/some/excluded").createFile()
+        def includedFile = sources.file("sub/some/included.txt")
+
+        buildFile << taskOnlyIncludingTxtFiles
+
+        when:
+        succeeds("myTask")
+        then:
+        outputContains("includedFiles: 0")
+
+        when:
+        includedFile.text = "created"
+        then:
+        noBuildTriggered()
+    }
+
+    String taskOnlyIncludingTxtFiles = """
+            task myTask {
+              def inputFileTree = fileTree("sources").include("**/*.txt")
+              inputs.files(inputFileTree)
+                .ignoreEmptyDirectories()
+                .withPropertyName("sources")
+              outputs.files "build/marker"
+              doLast {
+                println "includedFiles: " + inputFileTree.files.size()
+              }
+            }
+        """
 
     @ToBeFixedForConfigurationCache
     def "notifications work with quiet logging"() {
@@ -601,4 +630,13 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         executedAndNotSkipped(":outer")
     }
 
+    def "fails when using continuous build and watching is disabled"() {
+        buildFile << """
+            task myTask
+        """
+
+        expect:
+        fails("myTask", "--no-watch-fs")
+        failureDescriptionContains("Continuous build does not work when file system watching is disabled")
+    }
 }

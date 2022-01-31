@@ -285,6 +285,21 @@ public interface Task extends Comparable<Task>, ExtensionAware {
     /**
      * Specifies that this task is not compatible with the configuration cache.
      *
+     * <p>
+     * Configuration cache problems found in the task will be reported but won't cause the build to fail.
+     * </p>
+     *
+     * <p>
+     * The presence of incompatible tasks in the task graph will cause the configuration state to be discarded
+     * at the end of the build unless the global {@code configuration-cache-problems} option is set to {@code warn},
+     * in which case the configuration state would still be cached in a best-effort manner as usual for the option.
+     * </p>
+     *
+     * <p>
+     * <b>IMPORTANT:</b> This setting doesn't affect how Gradle treats problems found in other tasks also present in the task graph and those
+     * could still cause the build to fail.
+     * </p>
+     *
      * @since 7.4
      */
     @Incubating

@@ -92,7 +92,7 @@ public interface PolymorphicDomainObjectContainer<T> extends NamedDomainObjectCo
      * @param type The object type.
      * @param configurationAction The action to run to configure the object. This action runs when the object is required.
      * @param <U> The object type
-     * @return A {@link Provider} that whose value will be the object, when queried.
+     * @return A {@link Provider} whose value will be the object, when queried.
      * @throws InvalidUserDataException If a object with the given name already exists in this project.
      * @since 4.10
      */
@@ -106,7 +106,7 @@ public interface PolymorphicDomainObjectContainer<T> extends NamedDomainObjectCo
      * @param name The name of the object.
      * @param type The object type.
      * @param <U> The object type
-     * @return A {@link Provider} that whose value will be the object, when queried.
+     * @return A {@link Provider} whose value will be the object, when queried.
      * @throws InvalidUserDataException If a object with the given name already exists in this project.
      * @since 4.10
      */

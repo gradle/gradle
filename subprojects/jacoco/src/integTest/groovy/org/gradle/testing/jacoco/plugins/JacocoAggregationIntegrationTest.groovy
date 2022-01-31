@@ -188,6 +188,28 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
         report.assertDoesNotContainClass("org.apache.commons.io.IOUtils")
     }
 
+    def 'aggregated report infers dependency versions from platform'() {
+        given:
+        file("application/build.gradle") << """
+            apply plugin: 'org.gradle.jacoco-report-aggregation'
+        """
+        file("transitive/build.gradle") << """
+            dependencies {
+                implementation 'org.apache.commons:commons-io:1.3.2'
+                implementation(platform('org.springframework.boot:spring-boot-dependencies:2.5.8'))
+                runtimeOnly 'org.codehaus.janino:janino'
+            }
+        """
+
+        when:
+        succeeds(":application:testCodeCoverageReport")
+
+        then:
+        def report = new JacocoReportXmlFixture(file("application/build/reports/jacoco/testCodeCoverageReport/testCodeCoverageReport.xml"))
+        report.assertDoesNotContainClass("org.apache.commons.io.IOUtils")
+        report.assertDoesNotContainClass("org.codehaus.janino.Parser")
+    }
+
     def 'multiple test suites create multiple aggregation tasks'() {
         given:
         file("transitive/build.gradle") << """
@@ -322,6 +344,92 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
         report.assertHasClassCoverage("application.Adder")
         report.assertHasClassCoverage("direct.Multiplier")
         report.assertHasClassCoverage("transitive.Powerize")
+    }
+
+    def "can aggregate jacoco reports from root project when subproject doesn't have tests"() {
+        given:
+        buildFile << """
+            apply plugin: 'org.gradle.jacoco-report-aggregation'
+
+            dependencies {
+                jacocoAggregation project(":application")
+                jacocoAggregation project(":direct")
+            }
+
+            reporting {
+                reports {
+                    testCodeCoverageReport(JacocoCoverageReport) {
+                        testType = TestSuiteType.UNIT_TEST
+                    }
+                }
+            }
+        """
+
+        // remove tests from transitive
+        file("transitive/src/test").deleteDir()
+
+        when:
+        succeeds(":testCodeCoverageReport")
+
+        then:
+        file("transitive/build/jacoco/test.exec").assertDoesNotExist()
+        file("direct/build/jacoco/test.exec").assertExists()
+        file("application/build/jacoco/test.exec").assertExists()
+
+        file("build/reports/jacoco/testCodeCoverageReport/html/index.html").assertExists()
+
+        def report = new JacocoReportXmlFixture(file("build/reports/jacoco/testCodeCoverageReport/testCodeCoverageReport.xml"))
+        report.assertHasClassCoverage("application.Adder")
+        report.assertHasClassCoverage("direct.Multiplier")
+        report.assertHasClassButNoCoverage("transitive.Powerize")
+    }
+
+    def "can aggregate jacoco reports from root project with platform"() {
+        given:
+        file("transitive/build.gradle") << """
+            dependencies {
+                implementation 'org.apache.commons:commons-io:1.3.2'
+                implementation(platform('org.springframework.boot:spring-boot-dependencies:2.5.8'))
+                runtimeOnly 'org.codehaus.janino:janino'
+            }
+        """
+
+        buildFile << """
+            apply plugin: 'jvm-ecosystem'
+            apply plugin: 'org.gradle.jacoco-report-aggregation'
+
+            dependencies {
+                jacocoAggregation project(":application")
+                jacocoAggregation project(":direct")
+            }
+
+            reporting {
+                reports {
+                    testCodeCoverageReport(JacocoCoverageReport) {
+                        testType = TestSuiteType.UNIT_TEST
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds(":testCodeCoverageReport")
+
+        then:
+        file("transitive/build/jacoco/test.exec").assertExists()
+        file("direct/build/jacoco/test.exec").assertExists()
+        file("application/build/jacoco/test.exec").assertExists()
+
+        file("build/reports/jacoco/testCodeCoverageReport/html/index.html").assertExists()
+
+        def report = new JacocoReportXmlFixture(file("build/reports/jacoco/testCodeCoverageReport/testCodeCoverageReport.xml"))
+        report.assertHasClassCoverage("application.Adder")
+        report.assertHasClassCoverage("direct.Multiplier")
+        report.assertHasClassCoverage("transitive.Powerize")
+
+        // verify that external dependencies are filtered
+        report.assertDoesNotContainClass("org.apache.commons.io.IOUtils")
+        report.assertDoesNotContainClass("org.codehaus.janino.Parser")
     }
 
     def 'can apply custom attributes to refine coverage results'() {

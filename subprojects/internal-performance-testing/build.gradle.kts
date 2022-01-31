@@ -39,7 +39,7 @@ dependencies {
     implementation(project(":resources"))
     implementation(project(":persistent-cache"))
     implementation(project(":jvm-services"))
-    implementation(project(":wrapper"))
+    implementation(project(":wrapper-shared"))
     implementation(project(":internal-integ-testing"))
 
     implementation(libs.junit)

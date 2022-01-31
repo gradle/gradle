@@ -66,7 +66,7 @@ public class BlockingHttpServer extends ExternalResource implements ResettableEx
     private String hostAlias;
 
     public BlockingHttpServer() throws IOException {
-        this(120000);
+        this(120_000);
     }
 
     public BlockingHttpServer(int timeoutMs) throws IOException {
@@ -206,8 +206,30 @@ public class BlockingHttpServer extends ExternalResource implements ResettableEx
     }
 
     /**
-     * Expects the given requests to be made. Blocks until the given number of concurrent requests have been received, then releases the requests. Repeats
-     * until all of the requests have been received.
+     * Returns an expectation that the given requests are made concurrently. Blocks each request until they have all been received then releases them all.
+     */
+    public ExpectedRequests concurrent(String... expectedRequests) {
+        List<ResourceExpectation> expectations = new ArrayList<>();
+        for (String request : expectedRequests) {
+            expectations.add(doGet(request));
+        }
+        return new DefaultExpectedRequests(previous -> new ExpectAllRequestsThenReleaseAll(lock, serverId, timeout, previous, expectations, EXECUTOR_SERVICE));
+    }
+
+    /**
+     * Expects the given groups of requests. Asserts that at most one group runs at a given time, but that the groups can happen in any order.
+     */
+    public void expectInAnyOrder(ExpectedRequests... expectedRequests) {
+        List<DefaultExpectedRequests> expectations = new ArrayList<>();
+        for (ExpectedRequests expectedRequest : expectedRequests) {
+            expectations.add((DefaultExpectedRequests) expectedRequest);
+        }
+        handler.addHandler(previous -> new ExpectInAnyOrder(lock, previous, expectations));
+    }
+
+    /**
+     * Expects the given requests to be made. Blocks until the given number of concurrent requests have been received, then releases one of the requests and blocks again.
+     * Repeats until all of the requests have been received.
      */
     public void expectConcurrent(int concurrent, String... expectedRequests) {
         List<ResourceExpectation> expectations = new ArrayList<>();
@@ -406,6 +428,9 @@ public class BlockingHttpServer extends ExternalResource implements ResettableEx
             return path.substring(1);
         }
         return path;
+    }
+
+    public interface ExpectedRequests {
     }
 
     /**

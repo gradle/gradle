@@ -175,7 +175,7 @@ include::sample[dir="snippets/testing/test-suite-configure-source-dir/kotlin",fi
 
 == Differences between similar methods on link:{groovyDslPath}/org.gradle.api.plugins.jvm.JvmTestSuite.html[JvmTestSuite] and link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] task types
 
-Instances of JvmTestSuite have methods link:{javadocPath}org/gradle/api/plugins/jvm/JvmTestSuite.html#useJUnit--[useJUnit()] and link:{javadocPath}org/gradle/api/plugins/jvm/JvmTestSuite.html#useJUnitJupiter[useJUnitJupiter()], which are similar in name to methods on the link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] task type:  link:{javadocPath}/org/gradle/api/tasks/testing/Test.html#useJUnit[useJUnit()] and link:{javadocPath}/org/gradle/api/tasks/testing/Test.html#useJUnitPlatform[useJUnitPlatform()].  However, there are important differences.
+Instances of JvmTestSuite have methods link:{javadocPath}/org/gradle/api/plugins/jvm/JvmTestSuite.html#useJUnit--[useJUnit()] and link:{javadocPath}/org/gradle/api/plugins/jvm/JvmTestSuite.html#useJUnitJupiter--[useJUnitJupiter()], which are similar in name to methods on the link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] task type:  link:{javadocPath}/org/gradle/api/tasks/testing/Test.html#useJUnit--[useJUnit()] and link:{javadocPath}/org/gradle/api/tasks/testing/Test.html#useJUnitPlatform--[useJUnitPlatform()].  However, there are important differences.
 
 Unlike the methods on the link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] task, link:{groovyDslPath}/org.gradle.api.plugins.jvm.JvmTestSuite.html[JvmTestSuite] methods perform two additional pieces of configuration:
 

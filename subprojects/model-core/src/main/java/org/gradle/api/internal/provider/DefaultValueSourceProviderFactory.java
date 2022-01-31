@@ -106,7 +106,7 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         @Nullable Class<P> parametersType,
         @Nullable P parameters
     ) {
-        return new ConfigurationTimeProvider<>(
+        return new ValueSourceProvider<>(
             new LazilyObtainedValue<>(valueSourceType, parametersType, parameters)
         );
     }
@@ -178,16 +178,7 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         }
     }
 
-    private static class ConfigurationTimeProvider<T, P extends ValueSourceParameters>
-        extends ValueSourceProvider<T, P> {
-
-        public ConfigurationTimeProvider(LazilyObtainedValue<T, P> value) {
-            super(value);
-        }
-    }
-
-    public abstract static class ValueSourceProvider<T, P extends ValueSourceParameters>
-        extends AbstractMinimalProvider<T> {
+    public static class ValueSourceProvider<T, P extends ValueSourceParameters> extends AbstractMinimalProvider<T> {
 
         protected final LazilyObtainedValue<T, P> value;
 
@@ -197,6 +188,11 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
 
         public Class<? extends ValueSource<T, P>> getValueSourceType() {
             return value.sourceType;
+        }
+
+        @Override
+        public String toString() {
+            return String.format("valueof(%s)", getValueSourceType().getSimpleName());
         }
 
         @Nullable
