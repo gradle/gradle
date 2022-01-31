@@ -74,6 +74,18 @@ Note, that these changes improve the [Buildship](https://eclipse.org/buildship) 
 
 See [the documentation](userguide/eclipse_plugin.html#sec:test-sources) for more details.
 
+### Continuous build is responsive on Windows and macOS
+
+Continuous Build allows you to automatically re-execute the requested tasks when task inputs change.
+This allows for continuous feedback during development.
+
+Since Java 9, continuous build did not work very well on Windows and macOS.
+It took up to 10 seconds to pick up a change and trigger a build.
+
+Now, continuous build uses the same infrastructure as Gradle's [file system watching](userguide/gradle_daemon.html#sec:daemon_watch_fs) to detect changes.
+This means that Gradle picks up changes nearly instantly on Windows, macOS and Linux.
+
+For more information see the section on [continuous build](userguide/command_line_interface.html#sec:continuous_build) in the user manual.
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
