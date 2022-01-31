@@ -560,7 +560,13 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
     def "exit hint mentions enter when on windows"() {
         when:
         file("a").touch()
-        buildScript "task a { inputs.file 'a'; doLast {} }"
+        buildScript """
+            task a {
+                inputs.file 'a'
+                outputs.file 'build/b'
+                doLast {}
+            }
+        """
 
         then:
         succeeds "a"
