@@ -255,7 +255,7 @@ public class DependencyInsightReportTask extends DefaultTask {
             output.println("No dependencies matching given input were found in " + configuration);
             return;
         }
-        errorHandler.renderErrors(output);
+        errorHandler.renderErrors(output, getProject().getLayout().getBuildDirectory().dir("reports/resolution-errors/html").get());
         renderSelectedDependencies(configuration, output, selectedDependencies);
         renderBuildScanHint(output);
     }
@@ -265,6 +265,7 @@ public class DependencyInsightReportTask extends DefaultTask {
         boolean showDepSelectionReasons = getEnabledSelectionReasonOutputs().contains(SelectionReasonOutput.DEPENDENCY);
         DependencyInsightReporter reporter = new DependencyInsightReporter(getVersionSelectorScheme(), getVersionComparator(), getVersionParser(), showDepSelectionReasons);
         Collection<RenderableDependency> itemsToRender = reporter.convertToRenderableItems(selectedDependencies, isShowSinglePathToDependency());
+
         boolean showVariantSelectionReasons = getEnabledSelectionReasonOutputs().contains(SelectionReasonOutput.VARIANT);
         RootDependencyRenderer rootRenderer = new RootDependencyRenderer(configuration, getAttributesFactory(), isShowingAllVariants(), showVariantSelectionReasons);
         ReplaceProjectWithConfigurationNameRenderer dependenciesRenderer = new ReplaceProjectWithConfigurationNameRenderer(configuration);

@@ -17,24 +17,31 @@ package org.gradle.api.tasks.diagnostics;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
+import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
+import org.gradle.api.file.Directory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.VersionConflictException;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.diagnostics.internal.dependencies.HtmlResolutionErrorRenderer;
 import org.gradle.internal.Pair;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.locking.LockOutOfDateException;
 import org.gradle.internal.logging.text.StyledTextOutput;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 class ResolutionErrorRenderer implements Action<Throwable> {
     private final Spec<DependencyResult> dependencySpec;
-    private final List<Action<StyledTextOutput>> errorActions = Lists.newArrayListWithExpectedSize(1);
+    private final List<ErrorAction> errorActions = Lists.newArrayListWithExpectedSize(1);
 
     public ResolutionErrorRenderer(Spec<DependencyResult> dependencySpec) {
         this.dependencySpec = dependencySpec;
@@ -63,7 +70,7 @@ class ResolutionErrorRenderer implements Action<Throwable> {
     }
 
     private void handleOutOfDateLocks(final LockOutOfDateException cause) {
-        registerError(output -> {
+        registerError(cause, output -> {
             List<String> errors = cause.getErrors();
             output.text("The dependency locks are out-of-date:");
             output.println();
@@ -76,7 +83,7 @@ class ResolutionErrorRenderer implements Action<Throwable> {
     }
 
     private void handleConflict(final VersionConflictException conflict) {
-        registerError(output -> {
+        registerError(conflict, output -> {
             output.text("Dependency resolution failed because of conflict(s) on the following module(s):");
             output.println();
             for (Pair<List<? extends ModuleVersionIdentifier>, String> identifierStringPair : conflict.getConflicts()) {
@@ -93,14 +100,23 @@ class ResolutionErrorRenderer implements Action<Throwable> {
 
     }
 
-    public void renderErrors(StyledTextOutput output) {
+    public void renderErrors(StyledTextOutput output, Directory outputDirectory) {
         for (Action<StyledTextOutput> errorAction : errorActions) {
             errorAction.execute(output);
         }
+
+        final File reportFile = outputDirectory.file("resolution-errors.html").getAsFile();
+        try (final FileWriter writer = new FileWriter(reportFile)) {
+            final HtmlResolutionErrorRenderer htmlRenderer = new HtmlResolutionErrorRenderer();
+            final List<Throwable> errors = errorActions.stream().map(a -> a.getException()).collect(Collectors.toList());
+            htmlRenderer.render(errors, writer);
+        } catch (IOException e) {
+            throw new GradleException("Error creating report file: '" + reportFile + "'", e);
+        }
     }
 
-    private void registerError(Action<StyledTextOutput> errorAction) {
-        errorActions.add(errorAction);
+    private void registerError(Throwable exception, Action<StyledTextOutput> errorAction) {
+        errorActions.add(new ErrorAction(exception, errorAction));
     }
 
     private boolean hasVersionConflictOnRequestedDependency(final List<? extends ModuleVersionIdentifier> versionIdentifiers) {
@@ -131,4 +147,22 @@ class ResolutionErrorRenderer implements Action<Throwable> {
         };
     }
 
+    private static final class ErrorAction implements Action<StyledTextOutput> {
+        private final Throwable exception;
+        private final Action<StyledTextOutput> delegate;
+
+        private ErrorAction(Throwable exception, Action<StyledTextOutput> delegate) {
+            this.exception = exception;
+            this.delegate = delegate;
+        }
+
+        public Throwable getException() {
+            return exception;
+        }
+
+        @Override
+        public void execute(StyledTextOutput styledTextOutput) {
+            delegate.execute(styledTextOutput);
+        }
+    }
 }
