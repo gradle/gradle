@@ -20,6 +20,8 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 
+import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
+
 abstract class AbstractJvmRunUntilFailureIntegrationSpec extends AbstractIntegrationSpec {
 
     def "runs tests #untilFailureRunCount times without failure"() {
@@ -121,6 +123,7 @@ abstract class AbstractJvmRunUntilFailureIntegrationSpec extends AbstractIntegra
 
     private String generateFailingTestClass(int failOnRun) {
         File runCounter = temporaryFolder.createFile("run-count.txt")
+        def runCounterPath = normaliseFileSeparators(runCounter.absolutePath)
         runCounter.text = "0"
         file('src/test/java/pkg/FailingTest.java') << """
             package pkg;
@@ -130,12 +133,12 @@ abstract class AbstractJvmRunUntilFailureIntegrationSpec extends AbstractIntegra
             public class FailingTest {
                 @Test
                 public void failingTest() throws IOException {
-                    String previousRun = Files.readAllLines(Paths.get("${runCounter.absolutePath}")).get(0);
+                    String previousRun = Files.readAllLines(Paths.get("${runCounterPath}")).get(0);
                     int runNumber = Integer.parseInt(previousRun) + 1;
                     if (runNumber >= $failOnRun) {
                         throw new RuntimeException("failure");
                     }
-                    Files.write(Paths.get("${runCounter.absolutePath}"), Integer.toString(runNumber).getBytes());
+                    Files.write(Paths.get("${runCounterPath}"), Integer.toString(runNumber).getBytes());
                     System.out.println("passingTest");
                 }
             }

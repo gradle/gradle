@@ -60,6 +60,7 @@ class TestNGTestClassProcessorTest extends Specification {
         for (String c : clazz*.name) {
             classProcessor.processTestClass(new DefaultTestClassRunInfo(c))
         }
+        classProcessor.runTests()
         classProcessor.stop()
     }
 
@@ -269,8 +270,7 @@ class TestNGTestClassProcessorTest extends Specification {
         classProcessor = new TestNGTestClassProcessor(dir.testDirectory, options, [suite], new LongIdGenerator(), Time.clock(), new TestActorFactory())
 
         when:
-        classProcessor.startProcessing(processor)
-        classProcessor.stop()
+        process()
 
         then: 1 * processor.started({ it.id == 1 && it.name == 'AwesomeSuite' && it.className == null }, { it.parentId == null })
         then: 1 * processor.started({ it.id == 2 && it.name == 'AwesomeTest' && it.className == null }, { it.parentId == 1 })
@@ -313,8 +313,7 @@ class TestNGTestClassProcessorTest extends Specification {
         classProcessor = new TestNGTestClassProcessor(dir.testDirectory, options, [suite1, suite2], new LongIdGenerator(), Time.clock(), new TestActorFactory())
 
         when:
-        classProcessor.startProcessing(processor)
-        classProcessor.stop()
+        process()
 
         then: 1 * processor.started({ it.id == 1 && it.name == 'suite 1' && it.className == null }, { it.parentId == null })
         then: 1 * processor.started({ it.id == 2 && it.name == 'test 1' && it.className == null }, { it.parentId == 1 })
