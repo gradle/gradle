@@ -24,10 +24,6 @@ import org.gradle.process.internal.worker.child.WorkerProcessClassPathProvider
 
 
 class BuildSessionServiceReuseContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
-    def cleanup() {
-        gradle.cancel()
-    }
-
     @ToBeFixedForConfigurationCache
     def "reuses #service across continuous builds" () {
         def triggerFileName = "trigger"

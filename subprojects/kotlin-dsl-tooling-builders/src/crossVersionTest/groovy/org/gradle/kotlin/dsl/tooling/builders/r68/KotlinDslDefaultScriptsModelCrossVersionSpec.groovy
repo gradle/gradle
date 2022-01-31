@@ -25,7 +25,6 @@ import org.gradle.test.fixtures.file.LeaksFileHandles
 @LeaksFileHandles("Kotlin Compiler Daemon taking time to shut down")
 class KotlinDslDefaultScriptsModelCrossVersionSpec extends AbstractKotlinDslScriptsModelCrossVersionSpec {
 
-    @Flaky(because = 'https://github.com/gradle/gradle-private/issues/3503')
     def "can fetch model for the init scripts of a build"() {
 
         given:
@@ -41,7 +40,6 @@ class KotlinDslDefaultScriptsModelCrossVersionSpec extends AbstractKotlinDslScri
         assertModelMatchesBuildSpec(model, spec)
     }
 
-    @Flaky(because = 'https://github.com/gradle/gradle-private/issues/3503')
     def "can fetch model for the init scripts of a build in lenient mode"() {
 
         given:

@@ -22,7 +22,6 @@ import org.gradle.internal.operations.BuildOperationRef
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.resources.ResourceLockCoordinationService
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
-import org.gradle.test.fixtures.Flaky
 
 import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RELEASE_AND_REACQUIRE_PROJECT_LOCKS
 import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RELEASE_PROJECT_LOCKS
@@ -102,7 +101,6 @@ class DefaultAsyncWorkTrackerTest extends ConcurrentSpec {
         instant.waitFinished >= instant.completeWorker1
     }
 
-    @Flaky(because = "https://github.com/gradle/gradle-private/issues/3461")
     def "work can be submitted to one operation while another operation is being waited on"() {
         def operation1 = Mock(BuildOperationRef)
         def operation2 = Mock(BuildOperationRef)
@@ -119,8 +117,8 @@ class DefaultAsyncWorkTrackerTest extends ConcurrentSpec {
                 asyncWorkTracker.waitForCompletion(operation1, RELEASE_PROJECT_LOCKS)
                 instant.waitFinished
             }
+            thread.blockUntil.waitStarted
             workerThread {
-                thread.blockUntil.waitStarted
                 asyncWorkTracker.registerWork(operation2, blockingWorkCompletion("completeWorker1"))
                 instant.worker2Started
             }
@@ -219,7 +217,6 @@ class DefaultAsyncWorkTrackerTest extends ConcurrentSpec {
         e.causes.get(0).message == "BOOM!"
     }
 
-    @Flaky(because = "https://github.com/gradle/gradle-private/issues/3461")
     def "an error is thrown when work is submitted while being waited on"() {
         def operation1 = Mock(BuildOperationRef)
 
@@ -245,8 +242,8 @@ class DefaultAsyncWorkTrackerTest extends ConcurrentSpec {
                 })
                 instant.registered
             }
+            thread.blockUntil.registered
             workerThread {
-                thread.blockUntil.registered
                 asyncWorkTracker.waitForCompletion(operation1, RELEASE_PROJECT_LOCKS)
             }
             thread.blockUntil.waitStarted

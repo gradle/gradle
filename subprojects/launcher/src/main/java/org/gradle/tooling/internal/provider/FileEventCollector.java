@@ -18,7 +18,6 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.execution.plan.BuildInputHierarchy;
 import org.gradle.internal.logging.text.StyledTextOutput;
-import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.watch.registry.FileWatcherRegistry;
 import org.gradle.internal.watch.vfs.FileChangeListener;
 
@@ -28,8 +27,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class FileEventCollector implements FileChangeListener {
-    private static final boolean IS_MAC_OSX = OperatingSystem.current().isMacOsX();
-    private static final int SHOW_INDIVIDUAL_CHANGES_LIMIT = 3;
+    public static final int SHOW_INDIVIDUAL_CHANGES_LIMIT = 3;
 
     private final Map<Path, FileWatcherRegistry.Type> aggregatedEvents = new LinkedHashMap<>();
     private final BuildInputHierarchy buildInputs;
@@ -67,18 +65,10 @@ public class FileEventCollector implements FileChangeListener {
 
         if (existingEvent != null || aggregatedEvents.size() < SHOW_INDIVIDUAL_CHANGES_LIMIT) {
             aggregatedEvents.put(path, type);
-        } else if (shouldIncreaseChangesCount(type, path)) {
+        } else {
             moreChangesCount++;
         }
     }
-
-    private boolean shouldIncreaseChangesCount(FileWatcherRegistry.Type type, Path path) {
-        // Count every event on macOS, since there is only one event for file creation.
-        return IS_MAC_OSX ||
-            // On other operating systems count only non-CREATE events, since creation also causes a modification event, unless the event is for a directory.
-            type != FileWatcherRegistry.Type.CREATED || Files.isDirectory(path);
-    }
-
 
     public void reportChanges(StyledTextOutput logger) {
         for (Map.Entry<Path, FileWatcherRegistry.Type> entry : aggregatedEvents.entrySet()) {

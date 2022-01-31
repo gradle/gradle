@@ -16,27 +16,20 @@
 
 package org.gradle.integtests.fixtures
 
-import com.google.common.util.concurrent.SimpleTimeLimiter
-import com.google.common.util.concurrent.UncheckedTimeoutException
+
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.integtests.fixtures.executer.UnexpectedBuildFailure
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.ConcurrentTestUtil
-import spock.lang.Retry
+import org.junit.Assume
 
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
-
-import static org.gradle.integtests.fixtures.RetryConditions.onBuildTimeout
 import static org.gradle.integtests.fixtures.WaitAtEndOfBuildFixture.buildLogicForEndOfBuildWait
 import static org.gradle.integtests.fixtures.WaitAtEndOfBuildFixture.buildLogicForMinimumBuildTime
-import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
 
-@Retry(condition = { onBuildTimeout(instance, failure) }, mode = SETUP_FEATURE_CLEANUP, count = 2)
 abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec {
 
     private static final int WAIT_FOR_WATCHING_TIMEOUT_SECONDS = 60
@@ -51,16 +44,13 @@ abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec
     private int errorOutputBuildMarker = 0
 
     int buildTimeout = WAIT_FOR_WATCHING_TIMEOUT_SECONDS
-    int shutdownTimeout = WAIT_FOR_SHUTDOWN_TIMEOUT_SECONDS
     boolean killToStop
-    boolean ignoreShutdownTimeoutException
     boolean withoutContinuousArg
     List<ExecutionResult> results = []
 
     void turnOnDebug() {
         executer.startBuildProcessInDebugger(true)
         buildTimeout *= 100
-        shutdownTimeout *= 100
     }
 
     def cleanup() {
@@ -72,6 +62,7 @@ abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec
     }
 
     def setup() {
+        Assume.assumeFalse("Continuous build doesn't work with --no-daemon", GradleContextualExecuter.noDaemon)
         executer.beforeExecute {
             def initScript = file("init.gradle")
             initScript.text = buildLogicForMinimumBuildTime(minimumBuildTimeMillis)
@@ -271,19 +262,12 @@ $lastOutput
                 gradle.abort()
             } else {
                 gradle.cancel()
-                ExecutorService executorService = Executors.newCachedThreadPool()
                 try {
-                    SimpleTimeLimiter.create(executorService).callWithTimeout(
-                        { gradle.waitForExit() },
-                        shutdownTimeout, TimeUnit.SECONDS, false
-                    )
-                } catch (UncheckedTimeoutException e) {
-                    gradle.abort()
-                    if (!ignoreShutdownTimeoutException) {
-                        throw e
-                    }
+                    waitForNotRunning()
                 } finally {
-                    executorService.shutdownNow()
+                    if (gradle.running) {
+                        gradle.abort()
+                    }
                 }
             }
         }
@@ -298,7 +282,7 @@ $lastOutput
             }
             // if we get here it means that there was build output at some point while polling
             throw new UnexpectedBuildStartedException("Expected build not to start, but started with output: " + buildOutputSoFar())
-        } catch (AssertionError e) {
+        } catch (AssertionError ignored) {
             // ok, what we want
         }
     }

@@ -17,7 +17,6 @@
 package org.gradle.internal.enterprise;
 
 import org.gradle.StartParameter;
-import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.launcher.daemon.server.scaninfo.DaemonScanInfo;
 
 import javax.annotation.Nullable;
@@ -25,7 +24,6 @@ import javax.annotation.Nullable;
 /**
  * Information about the current build invocation or build invocation environment required by the plugin.
  */
-@UsedByScanPlugin
 public interface GradleEnterprisePluginBuildState {
 
     long getBuildStartedTime();
