@@ -7,7 +7,8 @@ We would like to thank the following community members for their contributions t
 [Marcono1234](https://github.com/Marcono1234),
 [Lieven Vaneeckhaute](https://github.com/denshade),
 [kiwi-oss](https://github.com/kiwi-oss),
-[Stefan Neuhaus](https://github.com/stefanneuhaus)
+[Stefan Neuhaus](https://github.com/stefanneuhaus),
+[George Thomas](https://github.com/smoothreggae)
 <!-- 
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
