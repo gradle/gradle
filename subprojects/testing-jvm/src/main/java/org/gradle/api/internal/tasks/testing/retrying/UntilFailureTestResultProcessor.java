@@ -23,13 +23,14 @@ import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class UntilFailureTestResultProcessor implements TestResultProcessor {
 
     private final TestResultProcessor delegate;
-    private final AtomicBoolean hasFailedFlag;
+    private final AtomicLong hasFailedFlag;
 
-    public UntilFailureTestResultProcessor(AtomicBoolean hasFailedFlag, TestResultProcessor delegate) {
+    public UntilFailureTestResultProcessor(AtomicLong hasFailedFlag, TestResultProcessor delegate) {
         this.delegate = delegate;
         this.hasFailedFlag = hasFailedFlag;
     }
@@ -51,7 +52,7 @@ public class UntilFailureTestResultProcessor implements TestResultProcessor {
 
     @Override
     public void failure(Object testId, Throwable result) {
-        hasFailedFlag.set(true);
+        hasFailedFlag.incrementAndGet();
         delegate.failure(testId, result);
     }
 }

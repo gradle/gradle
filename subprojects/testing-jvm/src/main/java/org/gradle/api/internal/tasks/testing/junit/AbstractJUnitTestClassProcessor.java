@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.testing.FrameworkTestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
+import org.gradle.api.internal.tasks.testing.retrying.OnWorkerTestRetryer;
 import org.gradle.internal.actor.Actor;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.id.IdGenerator;
@@ -36,16 +37,19 @@ public abstract class AbstractJUnitTestClassProcessor<T extends AbstractJUnitSpe
     private final ActorFactory actorFactory;
     private Actor resultProcessorActor;
     private Action<String> executor;
+    private final OnWorkerTestRetryer testRetryer;
 
     public AbstractJUnitTestClassProcessor(T spec, IdGenerator<?> idGenerator, ActorFactory actorFactory, Clock clock) {
         this.idGenerator = idGenerator;
         this.spec = spec;
         this.actorFactory = actorFactory;
         this.clock = clock;
+        this.testRetryer = null;
     }
 
     @Override
     public void startProcessing(TestResultProcessor resultProcessor) {
+        resultProcessor = testRetryer.createAttachedResultProcessor(resultProcessor);
         TestResultProcessor resultProcessorChain = createResultProcessorChain(resultProcessor);
         // Wrap the result processor chain up in a blocking actor, to make the whole thing thread-safe
         resultProcessorActor = actorFactory.createBlockingActor(resultProcessorChain);
@@ -56,10 +60,19 @@ public abstract class AbstractJUnitTestClassProcessor<T extends AbstractJUnitSpe
 
     protected abstract Action<String> createTestExecutor(Actor resultProcessorActor);
 
+    protected void runTests(Runnable runnable) {
+        testRetryer.runTests(runnable);
+    }
+
     @Override
-    public void processTestClass(TestClassRunInfo testClass) {
+    public void processTestClass(final TestClassRunInfo testClass) {
         LOGGER.debug("Executing test class {}", testClass.getTestClassName());
-        executor.execute(testClass.getTestClassName());
+        runTests(new Runnable() {
+            @Override
+            public void run() {
+                executor.execute(testClass.getTestClassName());
+            }
+        });
     }
 
     @Override

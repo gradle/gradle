@@ -22,6 +22,7 @@ import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class UntilFailureTestClassProcessor implements TestClassProcessor {
     private final FrameworkTestClassProcessor processor;
@@ -36,7 +37,7 @@ public class UntilFailureTestClassProcessor implements TestClassProcessor {
 
     @Override
     public void startProcessing(TestResultProcessor resultProcessor) {
-        processor.startProcessing(new UntilFailureTestResultProcessor(hasAnyTestFailed, resultProcessor));
+        processor.startProcessing(new UntilFailureTestResultProcessor(new AtomicLong(), resultProcessor));
     }
 
     @Override

@@ -21,6 +21,7 @@ import org.gradle.api.internal.tasks.testing.FrameworkTestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
+import org.gradle.api.internal.tasks.testing.retrying.OnWorkerTestRetryer;
 import org.gradle.internal.actor.Actor;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.id.IdGenerator;
@@ -56,6 +57,7 @@ public class TestNGTestClassProcessor implements FrameworkTestClassProcessor {
     private ClassLoader applicationClassLoader;
     private Actor resultProcessorActor;
     private TestResultProcessor resultProcessor;
+    private final OnWorkerTestRetryer testRetryer;
 
     public TestNGTestClassProcessor(File testReportDir, TestNGSpec options, List<File> suiteFiles, IdGenerator<?> idGenerator, Clock clock, ActorFactory actorFactory) {
         this.testReportDir = testReportDir;
@@ -64,11 +66,13 @@ public class TestNGTestClassProcessor implements FrameworkTestClassProcessor {
         this.idGenerator = idGenerator;
         this.clock = clock;
         this.actorFactory = actorFactory;
+        this.testRetryer = null;
     }
 
     @Override
     public void startProcessing(TestResultProcessor resultProcessor) {
         // Wrap the processor in an actor, to make it thread-safe
+        resultProcessor = testRetryer.createAttachedResultProcessor(resultProcessor);
         resultProcessorActor = actorFactory.createBlockingActor(resultProcessor);
         this.resultProcessor = resultProcessorActor.getProxy(TestResultProcessor.class);
         applicationClassLoader = Thread.currentThread().getContextClassLoader();
@@ -86,7 +90,20 @@ public class TestNGTestClassProcessor implements FrameworkTestClassProcessor {
 
     @Override
     public void stop() {
-        resultProcessorActor.stop();
+        try {
+            testRetryer.runTests(newTestRunnable());
+        } finally {
+            resultProcessorActor.stop();
+        }
+    }
+
+    private Runnable newTestRunnable() {
+        return new Runnable() {
+            @Override
+            public void run() {
+                runTests();
+            }
+        };
     }
 
     @Override
