@@ -79,7 +79,9 @@ class ContinuousBuildActionExecutorTest extends ConcurrentSpec {
     def executorService = Executors.newCachedThreadPool()
     def fileSystemIsWatchingAnyLocations = true
     def fileSystemWatchingInformation = Stub(FileSystemWatchingInformation) {
-        isWatchingAnyLocations() >> fileSystemIsWatchingAnyLocations
+        isWatchingAnyLocations() >> {
+            fileSystemIsWatchingAnyLocations
+        }
     }
 
     def executer = executer()
@@ -267,6 +269,37 @@ class ContinuousBuildActionExecutorTest extends ConcurrentSpec {
         lastLogLine == "{failure}Exiting continuous build as no executed tasks declared file system inputs.{normal}"
     }
 
+    def "exits if Gradle is not watching anything"() {
+        given:
+        continuousBuildEnabled()
+        buildDeclaresInputs()
+        fileSystemIsWatchingAnyLocations = false
+
+        when:
+        executeBuild()
+        then:
+        lastLogLine == "{failure}Exiting continuous build as Gradle does not watch any file system locations.{normal}"
+    }
+
+    def "does not exit if there was a file events although Gradle is not watching anything anymore"() {
+        given:
+        continuousBuildEnabled()
+        buildDeclaresInputsAndTriggersChange()
+        fileSystemIsWatchingAnyLocations = false
+
+        when:
+        def runningBuild = startBuild()
+
+        then:
+        conditions.eventually {
+            rebuiltBecauseOfChange()
+        }
+
+        cleanup:
+        cancellationToken.cancel()
+        buildExits(runningBuild)
+    }
+
     private void buildExits(Future<?> runningBuild) {
         runningBuild.get(1, TimeUnit.SECONDS)
     }
@@ -286,6 +319,18 @@ class ContinuousBuildActionExecutorTest extends ConcurrentSpec {
             @Override
             BuildActionRunner.Result execute(BuildAction action, BuildSessionContext context) {
                 declareInput(file)
+                return BuildActionRunner.Result.of(null)
+            }
+        }
+        executer = executer()
+    }
+
+    private void buildDeclaresInputsAndTriggersChange() {
+        delegate = new BuildSessionActionExecutor() {
+            @Override
+            BuildActionRunner.Result execute(BuildAction action, BuildSessionContext context) {
+                declareInput(file)
+                changeListeners.broadcastChange(FileWatcherRegistry.Type.MODIFIED, file.toPath())
                 return BuildActionRunner.Result.of(null)
             }
         }

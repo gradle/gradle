@@ -179,7 +179,7 @@ public class ContinuousBuildActionExecutor implements BuildSessionActionExecutor
                 if (buildInputs.isEmpty()) {
                     logger.println().withStyle(StyledTextOutput.Style.Failure).println("Exiting continuous build as no executed tasks declared file system inputs.");
                     return lastResult;
-                } else if (!fileSystemWatchingInformation.isWatchingAnyLocations()) {
+                } else if (!continuousBuildTriggerHandler.hasBeenTriggered() && !fileSystemWatchingInformation.isWatchingAnyLocations()) {
                     logger.println().withStyle(StyledTextOutput.Style.Failure).println("Exiting continuous build as Gradle does not watch any file system locations.");
                     return lastResult;
                 } else {
