@@ -245,6 +245,10 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
             disambiguateWithAttribute(a);
             if (remaining.cardinality() == 0) {
                 return;
+            } else if (remaining.cardinality() == 1) {
+                if (schema.getDisambiguatingAttributes().contains(getAttribute(a))) {
+                    return;
+                }
             }
         }
     }

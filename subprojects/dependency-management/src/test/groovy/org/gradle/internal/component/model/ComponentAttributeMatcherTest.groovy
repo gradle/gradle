@@ -693,7 +693,7 @@ class ComponentAttributeMatcherTest extends Specification {
 
         @Override
         List<Attribute<?>> sortedByPrecedence(Set<Attribute<?>> requested) {
-            return requested
+            return new ArrayList<>(requested)
         }
 
         @Override

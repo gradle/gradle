@@ -55,6 +55,7 @@ public abstract class JavaEcosystemSupport {
         configureTargetPlatform(attributesSchema);
         configureTargetEnvironment(attributesSchema);
         configureConsumerDescriptors((DescribableAttributesSchema) attributesSchema);
+        attributesSchema.attributePrecedence(Usage.USAGE_ATTRIBUTE, TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, Bundling.BUNDLING_ATTRIBUTE);
     }
 
     private static void configureConsumerDescriptors(DescribableAttributesSchema attributesSchema) {

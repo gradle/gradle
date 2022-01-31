@@ -19,7 +19,6 @@ package org.gradle.api.internal.attributes;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Ordering;
 import org.gradle.api.Action;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
@@ -309,7 +308,16 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
 
         @Override
         public List<Attribute<?>> sortedByPrecedence(Set<Attribute<?>> requested) {
-            return Ordering.explicit(new ArrayList<>(getDisambiguatingAttributes())).sortedCopy(requested);
+            List<Attribute<?>> sorted = new ArrayList<>(requested.size());
+            List<Attribute<?>> remaining = new ArrayList<>(requested);
+            for (Attribute<?> preferredAttribute : getDisambiguatingAttributes()) {
+                if (requested.contains(preferredAttribute)) {
+                    sorted.add(preferredAttribute);
+                    remaining.remove(preferredAttribute);
+                }
+            }
+            sorted.addAll(remaining);
+            return sorted;
         }
 
         @Override
