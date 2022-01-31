@@ -135,7 +135,6 @@ dependencies {
         succeeds 'resolve'
     }
 
-    @ToBeFixedForConfigurationCache
     def 'rule cache properly differentiates inputs'() {
         repository {
             'org.test:projectA:1.0'()
@@ -184,7 +183,6 @@ dependencies {
         outputContains('Rule B executed - saw changing true')
     }
 
-    @ToBeFixedForConfigurationCache
     def 'can cache rules with service injection'() {
         repository {
             'org.test:projectA:1.0'()

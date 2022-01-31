@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 
 class TestSuitesDependenciesIntegrationTest extends AbstractIntegrationSpec {
+    private versionCatalog = file('gradle', 'libs.versions.toml')
 
     def 'suites do not share dependencies by default'() {
         given:
@@ -269,4 +270,230 @@ class TestSuitesDependenciesIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'checkConfiguration'
     }
 
+    def 'user can add dependencies to the implementation, compileOnly and runtimeOnly configurations of a suite via a Version Catalog'() {
+        given:
+        buildFile << """
+        plugins {
+          id 'java'
+        }
+
+        ${mavenCentralRepository()}
+
+        testing {
+            suites {
+                integTest(JvmTestSuite) {
+                    dependencies {
+                        implementation libs.guava
+                        compileOnly libs.commons.lang3
+                        runtimeOnly libs.mysql.connector
+                    }
+                }
+            }
+        }
+
+        tasks.named('check') {
+            dependsOn testing.suites.integTest
+        }
+
+        tasks.register('checkConfiguration') {
+            dependsOn test, integTest
+            doLast {
+                def integTestCompileClasspathFileNames = configurations.integTestCompileClasspath.files*.name
+                def integTestRuntimeClasspathFileNames = configurations.integTestRuntimeClasspath.files*.name
+
+                assert integTestCompileClasspathFileNames.containsAll('guava-30.1.1-jre.jar')
+                assert integTestRuntimeClasspathFileNames.containsAll('guava-30.1.1-jre.jar')
+                assert integTestCompileClasspathFileNames.containsAll('commons-lang3-3.11.jar')
+                assert !integTestRuntimeClasspathFileNames.containsAll('commons-lang3-3.11.jar')
+                assert !integTestCompileClasspathFileNames.containsAll('mysql-connector-java-6.0.6.jar')
+                assert integTestRuntimeClasspathFileNames.containsAll('mysql-connector-java-6.0.6.jar')
+            }
+        }
+        """
+
+        versionCatalog = file('gradle', 'libs.versions.toml') << """
+        [versions]
+        guava = "30.1.1-jre"
+        commons-lang3 = "3.11"
+        mysql-connector = "6.0.6"
+
+        [libraries]
+        guava = { module = "com.google.guava:guava", version.ref = "guava" }
+        commons-lang3 = { module = "org.apache.commons:commons-lang3", version.ref = "commons-lang3" }
+        mysql-connector = { module = "mysql:mysql-connector-java", version.ref = "mysql-connector" }
+        """.stripIndent(8)
+
+        expect:
+        succeeds 'checkConfiguration'
+    }
+
+    def 'user can add dependencies using a Version Catalog bundle to a suite '() {
+        given:
+        buildFile << """
+        plugins {
+          id 'java'
+        }
+
+        ${mavenCentralRepository()}
+
+        testing {
+            suites {
+                integTest(JvmTestSuite) {
+                    dependencies {
+                        implementation libs.bundles.groovy
+                    }
+                }
+            }
+        }
+
+        tasks.named('check') {
+            dependsOn testing.suites.integTest
+        }
+
+        tasks.register('checkConfiguration') {
+            dependsOn test, integTest
+            doLast {
+                def integTestCompileClasspathFileNames = configurations.integTestCompileClasspath.files*.name
+                def integTestRuntimeClasspathFileNames = configurations.integTestRuntimeClasspath.files*.name
+
+                assert integTestCompileClasspathFileNames.containsAll('groovy-json-3.0.5.jar', 'groovy-nio-3.0.5.jar', 'groovy-3.0.5.jar')
+                assert integTestRuntimeClasspathFileNames.containsAll('groovy-json-3.0.5.jar', 'groovy-nio-3.0.5.jar', 'groovy-3.0.5.jar')
+            }
+        }
+        """
+
+        versionCatalog = file('gradle', 'libs.versions.toml') << """
+        [versions]
+        groovy = "3.0.5"
+
+        [libraries]
+        groovy-core = { module = "org.codehaus.groovy:groovy", version.ref = "groovy" }
+        groovy-json = { module = "org.codehaus.groovy:groovy-json", version.ref = "groovy" }
+        groovy-nio = { module = "org.codehaus.groovy:groovy-nio", version.ref = "groovy" }
+        commons-lang3 = { group = "org.apache.commons", name = "commons-lang3", version = { strictly = "[3.8, 4.0[", prefer="3.9" } }
+
+        [bundles]
+        groovy = ["groovy-core", "groovy-json", "groovy-nio"]
+        """.stripIndent(8)
+
+        expect:
+        succeeds 'checkConfiguration'
+    }
+
+    def 'user can add dependencies using a Version Catalog with a hierarchy of aliases to a suite '() {
+        given:
+        buildFile << """
+        plugins {
+          id 'java'
+        }
+
+        ${mavenCentralRepository()}
+
+        testing {
+            suites {
+                integTest(JvmTestSuite) {
+                    dependencies {
+                        implementation libs.commons
+                        implementation libs.commons.collections
+                        runtimeOnly libs.commons.io
+                        runtimeOnly libs.commons.io.csv
+                    }
+                }
+            }
+        }
+
+        tasks.named('check') {
+            dependsOn testing.suites.integTest
+        }
+
+        tasks.register('checkConfiguration') {
+            dependsOn test, integTest
+            doLast {
+                def integTestCompileClasspathFileNames = configurations.integTestCompileClasspath.files*.name
+                def integTestRuntimeClasspathFileNames = configurations.integTestRuntimeClasspath.files*.name
+
+                assert integTestCompileClasspathFileNames.containsAll('commons-lang3-3.12.0.jar', 'commons-collections4-4.4.jar')
+                assert integTestRuntimeClasspathFileNames.containsAll('commons-lang3-3.12.0.jar', 'commons-collections4-4.4.jar', 'commons-io-2.11.0.jar', 'commons-csv-1.9.0.jar')
+            }
+        }
+        """
+
+        versionCatalog = file('gradle', 'libs.versions.toml') << """
+        [versions]
+        commons-lang = "3.12.0"
+        commons-collections = "4.4"
+        commons-io = "2.11.0"
+        commons-io-csv = "1.9.0"
+
+        [libraries]
+        commons = { group = "org.apache.commons", name = "commons-lang3", version.ref = "commons-lang" }
+        commons-collections = { group = "org.apache.commons", name = "commons-collections4", version.ref = "commons-collections" }
+        commons-io = { group = "commons-io", name = "commons-io", version.ref = "commons-io" }
+        commons-io-csv = { group = "org.apache.commons", name = "commons-csv", version.ref = "commons-io-csv" }
+        """.stripIndent(8)
+
+        expect:
+        succeeds 'checkConfiguration'
+    }
+
+    def 'user can add dependencies using a Version Catalog defined programmatically to a suite '() {
+        given:
+        buildFile << """
+        plugins {
+          id 'java'
+        }
+
+        ${mavenCentralRepository()}
+
+        testing {
+            suites {
+                integTest(JvmTestSuite) {
+                    dependencies {
+                        implementation libs.guava
+                        compileOnly libs.commons.lang3
+                        runtimeOnly libs.mysql.connector
+                    }
+                }
+            }
+        }
+
+        tasks.named('check') {
+            dependsOn testing.suites.integTest
+        }
+
+        tasks.register('checkConfiguration') {
+            dependsOn test, integTest
+            doLast {
+                def integTestCompileClasspathFileNames = configurations.integTestCompileClasspath.files*.name
+                def integTestRuntimeClasspathFileNames = configurations.integTestRuntimeClasspath.files*.name
+
+                assert integTestCompileClasspathFileNames.containsAll('guava-30.1.1-jre.jar')
+                assert integTestRuntimeClasspathFileNames.containsAll('guava-30.1.1-jre.jar')
+                assert integTestCompileClasspathFileNames.containsAll('commons-lang3-3.11.jar')
+                assert !integTestRuntimeClasspathFileNames.containsAll('commons-lang3-3.11.jar')
+                assert !integTestCompileClasspathFileNames.containsAll('mysql-connector-java-6.0.6.jar')
+                assert integTestRuntimeClasspathFileNames.containsAll('mysql-connector-java-6.0.6.jar')
+            }
+        }
+        """
+
+        settingsFile << """
+        dependencyResolutionManagement {
+            versionCatalogs {
+                libs {
+                    version('guava', '30.1.1-jre')
+                    version('commons-lang3', '3.11')
+                    version('mysql-connector', '6.0.6')
+
+                    library('guava', 'com.google.guava', 'guava').versionRef('guava')
+                    library('commons-lang3', 'org.apache.commons', 'commons-lang3').versionRef('commons-lang3')
+                    library('mysql-connector', 'mysql', 'mysql-connector-java').versionRef('mysql-connector')
+                }
+            }
+        }
+        """.stripIndent(8)
+
+        expect:
+        succeeds 'checkConfiguration'
+    }
 }

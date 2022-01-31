@@ -2,6 +2,13 @@ plugins {
     id("gradlebuild.distribution.implementation-java")
 }
 
+description = """This project contains most of the dependency management logic of Gradle:
+    |* the resolution engine,
+    |* how to retrieve and process dependencies and their metadata,
+    |* the dependency locking and verification implementations.
+    |
+    |DSL facing APIs are to be found in 'core-api'""".trimMargin()
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":enterprise-operations"))
@@ -23,6 +30,7 @@ dependencies {
     implementation(project(":snapshots"))
     implementation(project(":execution"))
     implementation(project(":security"))
+    implementation(project(":wrapper-shared"))
 
     implementation(libs.slf4jApi)
     implementation(libs.groovy)
@@ -94,6 +102,9 @@ dependencies {
 
     testRuntimeOnly(project(":distributions-core")) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
+    }
+    integTestImplementation(project(":launcher")) {
+        because("Daemon fixtures need DaemonRegistry")
     }
     integTestDistributionRuntimeOnly(project(":distributions-basics"))
     crossVersionTestDistributionRuntimeOnly(project(":distributions-core"))

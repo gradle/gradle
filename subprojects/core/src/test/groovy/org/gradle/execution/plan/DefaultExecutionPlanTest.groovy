@@ -31,7 +31,6 @@ import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.util.Path
 import org.gradle.util.internal.TextUtil
 import spock.lang.Issue
-import spock.lang.Unroll
 
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
 import static org.gradle.util.internal.TextUtil.toPlatformLineSeparators
@@ -40,6 +39,7 @@ import static org.gradle.util.internal.WrapUtil.toList
 class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
     DefaultExecutionPlan executionPlan
     def workerLease = Mock(WorkerLeaseRegistry.WorkerLease)
+    int order = 0
 
     def setup() {
         def taskNodeFactory = new TaskNodeFactory(thisBuild, Stub(DocumentationRegistry), Stub(BuildTreeWorkGraphController))
@@ -97,15 +97,14 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         Task d = task("d")
 
         when:
-        executionPlan.addEntryTasks(toList(c, b))
-        executionPlan.addEntryTasks(toList(d, a))
-        executionPlan.determineExecutionPlan()
+        addToGraph(toList(c, b))
+        addToGraph(toList(d, a))
+        populateGraph()
 
         then:
         executes(b, c, a, d)
     }
 
-    @Unroll
     def "schedules #orderingRule task dependencies in name order"() {
         given:
         Task a = task("a")
@@ -131,9 +130,9 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         Task e = task("e", dependsOn: [b, d])
 
         when:
-        executionPlan.addEntryTasks(toList(c))
-        executionPlan.addEntryTasks(toList(e))
-        executionPlan.determineExecutionPlan()
+        addToGraph(toList(c))
+        addToGraph(toList(e))
+        populateGraph()
 
         then:
         executes(a, b, c, d, e)
@@ -152,16 +151,15 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         executes(a, b, c, d)
     }
 
-    @Unroll
     def "#orderingRule ordering is honoured for tasks added separately to graph"() {
         Task a = task("a")
         Task b = task("b", dependsOn: [a])
         Task c = task("c", (orderingRule): [b])
 
         when:
-        executionPlan.addEntryTasks([c])
-        executionPlan.addEntryTasks([b])
-        executionPlan.determineExecutionPlan()
+        addToGraph([c])
+        addToGraph([b])
+        populateGraph()
 
         then:
         executes(a, b, c)
@@ -170,7 +168,6 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         orderingRule << ['mustRunAfter', 'shouldRunAfter']
     }
 
-    @Unroll
     def "#orderingRule ordering is honoured for dependencies"() {
         Task b = task("b")
         Task a = task("a", (orderingRule): [b])
@@ -232,7 +229,6 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         executes(e, x, a, b, c, f, d, build)
     }
 
-    @Unroll
     def "#orderingRule does not pull in tasks that are not in the graph"() {
         Task a = task("a")
         Task b = task("b", (orderingRule): [a])
@@ -324,9 +320,8 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         Task finalized = task("finalized", finalizedBy: [finalizer], didWork: false)
 
         when:
-        executionPlan.addEntryTasks([finalized])
-        executionPlan.addEntryTasks([dependsOnFinalizer])
-        executionPlan.determineExecutionPlan()
+        addToGraph([finalized])
+        addToGraphAndPopulate([dependsOnFinalizer])
 
         then:
         executes(finalized, finalizerDependency, finalizer, dependsOnFinalizer)
@@ -410,7 +405,6 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         executes(finalized1, finalized2, f1, dep, f2, df1, df2)
     }
 
-    @Unroll
     def "finalizer tasks run as soon as possible for tasks that #orderingRule finalized tasks"() {
         Task finalizer = task("finalizer")
         Task finalized = task("finalized", finalizedBy: [finalizer])
@@ -426,7 +420,6 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         orderingRule << ['mustRunAfter', 'shouldRunAfter']
     }
 
-    @Unroll
     def "finalizer tasks run as soon as possible but after its #orderingRule tasks"() {
         Task finalizer = createTask("finalizer")
         Task finalized = task("finalized", finalizedBy: [finalizer])
@@ -492,11 +485,11 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         Task c = task("c", dependsOn: [b])
         Task d = task("d", dependsOn: [c])
         relationships(a, mustRunAfter: [c])
-        executionPlan.addEntryTasks([d])
+        addToGraph([d])
 
         when:
-        executionPlan.addEntryTasks([a])
-        executionPlan.determineExecutionPlan()
+        addToGraph([a])
+        populateGraph()
 
         then:
         def e = thrown CircularReferenceException
@@ -698,7 +691,6 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         failures == [failure]
     }
 
-    @Unroll
     def "continues to return tasks when failure handler does not abort execution and tasks are #orderingRule dependent"() {
         def failures = []
         RuntimeException failure = new RuntimeException()
@@ -780,7 +772,6 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         filtered(a)
     }
 
-    @Unroll
     def "does not build graph for or execute filtered tasks reachable via #orderingRule task ordering"() {
         given:
         Task a = filteredTask("a")
@@ -854,8 +845,16 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         return node
     }
 
+    private void addToGraph(List tasks) {
+        executionPlan.addEntryTasks(tasks, order++)
+    }
+
     private void addToGraphAndPopulate(List tasks) {
-        executionPlan.addEntryTasks(tasks)
+        addToGraph(tasks)
+        populateGraph()
+    }
+
+    private void populateGraph() {
         executionPlan.determineExecutionPlan()
     }
 
@@ -916,6 +915,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
 
     private void relationships(Map options, TaskInternal task) {
         dependsOn(task, options.dependsOn ?: [])
+        task.lifecycleDependencies >> taskDependencyResolvingTo(task, options.dependsOn ?: [])
         mustRunAfter(task, options.mustRunAfter ?: [])
         shouldRunAfter(task, options.shouldRunAfter ?: [])
         finalizedBy(task, options.finalizedBy ?: [])

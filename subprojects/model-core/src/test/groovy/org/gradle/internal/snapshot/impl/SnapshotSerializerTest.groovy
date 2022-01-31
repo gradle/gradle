@@ -18,6 +18,7 @@ package org.gradle.internal.snapshot.impl
 
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSet
+import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.serialize.InputStreamBackedDecoder
 import org.gradle.internal.serialize.OutputStreamBackedEncoder
@@ -31,7 +32,7 @@ class SnapshotSerializerTest extends Specification {
     def encoder = new OutputStreamBackedEncoder(output)
 
     @Subject
-            serializer = new SnapshotSerializer()
+        serializer = new SnapshotSerializer(Mock(ClassLoaderHierarchyHasher))
 
     def "serializes serialized properties"() {
         def original = snapshot("x".bytes)
@@ -162,7 +163,7 @@ class SnapshotSerializerTest extends Specification {
     }
 
     def "serializes map properties"() {
-        def builder = ImmutableList.<MapEntrySnapshot<ValueSnapshot>>builder()
+        def builder = ImmutableList.<MapEntrySnapshot<ValueSnapshot>> builder()
         builder.add(new MapEntrySnapshot<ValueSnapshot>(string("123"), integer(123)))
         builder.add(new MapEntrySnapshot<ValueSnapshot>(string("456"), list(integer(-12), integer(12))))
         def original = new MapValueSnapshot(builder.build())
@@ -240,8 +241,8 @@ class SnapshotSerializerTest extends Specification {
         return new StringValueSnapshot(value)
     }
 
-    private SerializedValueSnapshot snapshot(byte[] value) {
-        return new SerializedValueSnapshot(HashCode.fromInt(123), value)
+    private JavaSerializedValueSnapshot snapshot(byte[] value) {
+        return new JavaSerializedValueSnapshot(HashCode.fromInt(123), value)
     }
 
     private ValueSnapshot getWritten() {

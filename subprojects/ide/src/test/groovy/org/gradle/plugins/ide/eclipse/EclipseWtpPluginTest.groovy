@@ -23,7 +23,6 @@ import org.gradle.plugins.ide.eclipse.model.WbProperty
 import org.gradle.plugins.ide.eclipse.model.WbResource
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import spock.lang.Issue
-import spock.lang.Unroll
 
 class EclipseWtpPluginTest extends AbstractProjectBuilderSpec {
 
@@ -201,7 +200,6 @@ class EclipseWtpPluginTest extends AbstractProjectBuilderSpec {
         project.eclipse.wtp.component.resources == [new WbResource('/', 'foo'), new WbResource('/common', 'common')]
     }
 
-    @Unroll
     def 'applyToEarProject in order #plugs should have web project and classpath task'() {
         when:
         plugs.each { p ->

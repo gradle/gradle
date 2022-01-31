@@ -19,12 +19,12 @@ package org.gradle.api.internal.tasks.execution;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
-import org.gradle.api.execution.TaskActionListener;
-import org.gradle.api.execution.TaskExecutionListener;
+import org.gradle.api.execution.internal.TaskInputsListeners;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputsInternal;
+import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileOperations;
@@ -53,7 +53,6 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.exceptions.MultiCauseException;
-import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.OutputSnapshotter;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkValidationContext;
@@ -91,11 +90,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RELEASE_AND_REACQUIRE_PROJECT_LOCKS;
 import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RELEASE_PROJECT_LOCKS;
 
+@SuppressWarnings("deprecation")
 public class TaskExecution implements UnitOfWork {
     private static final Logger LOGGER = LoggerFactory.getLogger(TaskExecution.class);
     private static final SnapshotTaskInputsBuildOperationType.Details SNAPSHOT_TASK_INPUTS_DETAILS = new SnapshotTaskInputsBuildOperationType.Details() {
@@ -105,11 +106,10 @@ public class TaskExecution implements UnitOfWork {
     private final TaskExecutionContext context;
     private final boolean emitLegacySnapshottingOperations;
 
-    private final TaskActionListener actionListener;
+    private final org.gradle.api.execution.TaskActionListener actionListener;
     private final AsyncWorkTracker asyncWorkTracker;
     private final BuildOperationExecutor buildOperationExecutor;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
-    private final EmptySourceTaskSkipper emptySourceTaskSkipper;
     private final ExecutionHistoryStore executionHistoryStore;
     private final FileCollectionFactory fileCollectionFactory;
     private final FileOperations fileOperations;
@@ -117,24 +117,25 @@ public class TaskExecution implements UnitOfWork {
     private final ListenerManager listenerManager;
     private final ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry;
     private final TaskCacheabilityResolver taskCacheabilityResolver;
+    private final TaskInputsListeners taskInputsListeners;
 
     public TaskExecution(
         TaskInternal task,
         TaskExecutionContext context,
         boolean emitLegacySnapshottingOperations,
 
-        TaskActionListener actionListener,
+        org.gradle.api.execution.TaskActionListener actionListener,
         AsyncWorkTracker asyncWorkTracker,
         BuildOperationExecutor buildOperationExecutor,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
-        EmptySourceTaskSkipper emptySourceTaskSkipper,
         ExecutionHistoryStore executionHistoryStore,
         FileCollectionFactory fileCollectionFactory,
         FileOperations fileOperations,
         InputFingerprinter inputFingerprinter,
         ListenerManager listenerManager,
         ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry,
-        TaskCacheabilityResolver taskCacheabilityResolver
+        TaskCacheabilityResolver taskCacheabilityResolver,
+        TaskInputsListeners taskInputsListeners
     ) {
         this.task = task;
         this.context = context;
@@ -143,7 +144,6 @@ public class TaskExecution implements UnitOfWork {
         this.actionListener = actionListener;
         this.asyncWorkTracker = asyncWorkTracker;
         this.buildOperationExecutor = buildOperationExecutor;
-        this.emptySourceTaskSkipper = emptySourceTaskSkipper;
         this.executionHistoryStore = executionHistoryStore;
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
         this.fileCollectionFactory = fileCollectionFactory;
@@ -152,6 +152,7 @@ public class TaskExecution implements UnitOfWork {
         this.listenerManager = listenerManager;
         this.reservedFileSystemLocationRegistry = reservedFileSystemLocationRegistry;
         this.taskCacheabilityResolver = taskCacheabilityResolver;
+        this.taskInputsListeners = taskInputsListeners;
     }
 
     @Override
@@ -198,7 +199,7 @@ public class TaskExecution implements UnitOfWork {
     }
 
     private void executeActions(TaskInternal task, @Nullable InputChangesInternal inputChanges) {
-        boolean hasTaskListener = listenerManager.hasListeners(TaskActionListener.class) || listenerManager.hasListeners(TaskExecutionListener.class);
+        boolean hasTaskListener = listenerManager.hasListeners(org.gradle.api.execution.TaskActionListener.class) || listenerManager.hasListeners(org.gradle.api.execution.TaskExecutionListener.class);
         Iterator<InputChangesAwareTaskAction> actions = new ArrayList<>(task.getTaskActions()).iterator();
         while (actions.hasNext()) {
             InputChangesAwareTaskAction action = actions.next();
@@ -370,14 +371,14 @@ public class TaskExecution implements UnitOfWork {
         DeprecationMessageBuilder<?> builder;
         if (isDestinationDir && task instanceof Copy) {
             builder = DeprecationLogger.deprecateAction("Cannot access a file in the destination directory (see --info log for details). Copying to a directory which contains unreadable content")
-                .withAdvice("Use the method Copy.ignoreExistingContentInDestinationDir().");
+                .withAdvice("Declare the task as untracked by using Task.doNotTrackState().");
         } else if (isDestinationDir && task instanceof Sync) {
             builder = DeprecationLogger.deprecateAction("Cannot access a file in the destination directory (see --info log for details). Syncing to a directory which contains unreadable content")
-                .withAdvice("Use a Copy task with Copy.ignoreExistingContentInDestinationDir() instead.");
+                .withAdvice("Use a Copy task with Task.doNotTrackState() instead.");
         } else {
             builder = DeprecationLogger.deprecateAction(String.format("Cannot access %s property '%s' of %s (see --info log for details). Accessing unreadable inputs or outputs",
                     propertyType, propertyName, getDisplayName()))
-                .withAdvice("Declare the property as untracked.");
+                .withAdvice("Declare the task as untracked by using Task.doNotTrackState().");
 
         }
         builder
@@ -477,12 +478,22 @@ public class TaskExecution implements UnitOfWork {
     }
 
     @Override
-    public Optional<ExecutionOutcome> skipIfInputsEmpty(ImmutableSortedMap<String, FileSystemSnapshot> previousOutputFiles) {
-        TaskProperties properties = context.getTaskProperties();
-        FileCollection inputFiles = properties.getInputFiles();
-        FileCollection sourceFiles = properties.getSourceFiles();
-        boolean hasSourceFiles = properties.hasSourceFiles();
-        return emptySourceTaskSkipper.skipIfEmptySources(task, hasSourceFiles, inputFiles, sourceFiles, previousOutputFiles);
+    public void broadcastRelevantFileSystemInputs(boolean hasEmptySources) {
+        taskInputsListeners.broadcastFileSystemInputsOf(task, new CompositeFileCollection() {
+            @Override
+            public String getDisplayName() {
+                return TaskExecution.this.getDisplayName() + " relevant file inputs";
+            }
+
+            @Override
+            protected void visitChildren(Consumer<FileCollectionInternal> visitor) {
+                for (InputFilePropertySpec filePropertySpec : context.getTaskProperties().getInputFileProperties()) {
+                    if (!hasEmptySources || filePropertySpec.isSkipWhenEmpty()) {
+                        visitor.accept(filePropertySpec.getPropertyFiles());
+                    }
+                }
+            }
+        });
     }
 
     @Override

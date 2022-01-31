@@ -17,7 +17,6 @@
 package org.gradle.api.services;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 
 import javax.inject.Inject;
 
@@ -42,7 +41,6 @@ import javax.inject.Inject;
  * @param <T> The type of parameters used by the service.
  * @since 6.1
  */
-@Incubating
 public interface BuildService<T extends BuildServiceParameters> {
     /**
      * Returns the parameters of this service. You should not implement this method, but instead leave it abstract.

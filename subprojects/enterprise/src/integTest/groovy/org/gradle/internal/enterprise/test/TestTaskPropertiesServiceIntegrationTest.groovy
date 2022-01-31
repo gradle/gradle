@@ -92,7 +92,8 @@ class TestTaskPropertiesServiceIntegrationTest extends AbstractIntegrationSpec {
                 enabled = false
             }
         """
-        file('src/test/java/TestClass.java') << """
+        file('src/test/java/org/example/TestClass.java') << """
+            package org.example;
             public class TestClass {}
         """
 
@@ -129,7 +130,13 @@ class TestTaskPropertiesServiceIntegrationTest extends AbstractIntegrationSpec {
                 jvmArgs.contains('-Dkey=value')
                 environment.KEY == 'VALUE'
             }
-            candidateClassFiles.collect { new File(it as String) } == [file('build/classes/java/test/TestClass.class')]
+            with(candidateClassFiles, List) {
+                size() == 1
+                with(first(), Map) {
+                    file == file("build/classes/java/test/org/example/TestClass.class").absolutePath
+                    relativePath == "org/example/TestClass.class"
+                }
+            }
             with(inputFileProperties, List) {
                 !empty
                 with(it.find { it instanceof Map && it['propertyName'] == 'stableClasspath' }, Map) {

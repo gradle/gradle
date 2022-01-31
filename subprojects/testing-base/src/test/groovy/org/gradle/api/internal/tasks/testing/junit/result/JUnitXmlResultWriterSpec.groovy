@@ -23,7 +23,6 @@ import org.gradle.integtests.fixtures.TestResultOutputAssociation
 import org.gradle.internal.SystemProperties
 import spock.lang.Issue
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import static java.util.Collections.emptyList
 import static org.gradle.api.tasks.testing.TestOutputEvent.Destination.StdErr
@@ -194,7 +193,6 @@ class JUnitXmlResultWriterSpec extends Specification {
             .assertTestFailed("some failing test")
     }
 
-    @Unroll
     @Issue("gradle/gradle#11445")
     def "writes #writtenName as class display name when #displayName is specified"() {
         TestClassResult result = new TestClassResult(1, "com.foo.FooTest", displayName, startTime)

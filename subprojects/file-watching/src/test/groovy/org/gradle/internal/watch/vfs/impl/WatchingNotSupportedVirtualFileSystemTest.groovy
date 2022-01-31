@@ -21,13 +21,11 @@ import org.gradle.internal.snapshot.CaseSensitivity
 import org.gradle.internal.snapshot.SnapshotHierarchy
 import org.gradle.internal.vfs.impl.DefaultSnapshotHierarchy
 import org.gradle.internal.vfs.impl.VfsRootReference
+import org.gradle.internal.watch.registry.WatchMode
 import org.gradle.internal.watch.vfs.VfsLogging
 import org.gradle.internal.watch.vfs.WatchLogging
-import org.gradle.internal.watch.vfs.WatchMode
 import spock.lang.Specification
-import spock.lang.Unroll
 
-@Unroll
 class WatchingNotSupportedVirtualFileSystemTest extends Specification {
     def emptySnapshotHierarchy = DefaultSnapshotHierarchy.empty(CaseSensitivity.CASE_SENSITIVE)
     def nonEmptySnapshotHierarchy = Stub(SnapshotHierarchy) {

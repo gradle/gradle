@@ -16,7 +16,6 @@
 
 package org.gradle.internal.enterprise.test;
 
-import java.io.File;
 import java.util.stream.Stream;
 
 public interface TestTaskProperties {
@@ -29,7 +28,7 @@ public interface TestTaskProperties {
 
     TestTaskForkOptions getForkOptions();
 
-    Stream<File> getCandidateClassFiles();
+    Stream<CandidateClassFile> getCandidateClassFiles();
 
     Stream<InputFileProperty> getInputFileProperties();
 

@@ -54,7 +54,7 @@ abstract class AdHocPerformanceScenario(os: Os) : BuildType({
                 param("env.JPROFILER_HOME", "C:\\Program Files\\jprofiler\\jprofiler11.1.4")
             }
             else -> {
-                profilerParam("jfr")
+                profilerParam("async-profiler")
                 param("env.FG_HOME_DIR", "/opt/FlameGraph")
                 param("env.PATH", "%env.PATH%:/opt/swift/4.2.3/usr/bin:/opt/swift/4.2.4-RELEASE-ubuntu18.04/usr/bin")
                 param("env.HP_HOME_DIR", "/opt/honest-profiler")
@@ -93,7 +93,7 @@ fun ParametrizedWithType.profilerParam(defaultProfiler: String) {
         defaultProfiler,
         display = ParameterDisplay.PROMPT,
         allowEmpty = false,
-        description = "Command line option for the performance test task to enable profiling. For example `jfr` and `async-profiler`. Use `none` for benchmarking only."
+        description = "Command line option for the performance test task to enable profiling. For example `async-profiler`, `async-profiler-heap`, `async-profiler-all` or `jfr`. Use `none` for benchmarking only."
     )
 }
 

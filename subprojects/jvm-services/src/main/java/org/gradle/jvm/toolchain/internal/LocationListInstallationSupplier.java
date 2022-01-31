@@ -39,7 +39,7 @@ public class LocationListInstallationSupplier implements InstallationSupplier {
 
     @Override
     public Set<InstallationLocation> get() {
-        final Provider<String> property = factory.gradleProperty(PROPERTY_NAME).forUseAtConfigurationTime();
+        final Provider<String> property = factory.gradleProperty(PROPERTY_NAME);
         return property.map(paths -> asInstallations(paths)).orElse(Collections.emptySet()).get();
     }
 

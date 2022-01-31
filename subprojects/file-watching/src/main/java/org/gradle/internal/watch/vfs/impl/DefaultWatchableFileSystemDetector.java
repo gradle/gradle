@@ -23,6 +23,7 @@ import org.gradle.internal.watch.vfs.WatchableFileSystemDetector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.util.stream.Stream;
 
 public class DefaultWatchableFileSystemDetector implements WatchableFileSystemDetector {
@@ -56,7 +57,7 @@ public class DefaultWatchableFileSystemDetector implements WatchableFileSystemDe
     }
 
     @Override
-    public Stream<FileSystemInfo> detectUnsupportedFileSystems() {
+    public Stream<File> detectUnsupportedFileSystems() {
         return fileSystems.getFileSystems().stream()
             .filter(fileSystem -> {
                 LOGGER.debug("Detected {}: {} from {} (remote: {})",
@@ -70,6 +71,7 @@ public class DefaultWatchableFileSystemDetector implements WatchableFileSystemDe
                     return true;
                 }
                 return !SUPPORTED_FILE_SYSTEM_TYPES.contains(fileSystem.getFileSystemType());
-            });
+            })
+            .map(FileSystemInfo::getMountPoint);
     }
 }

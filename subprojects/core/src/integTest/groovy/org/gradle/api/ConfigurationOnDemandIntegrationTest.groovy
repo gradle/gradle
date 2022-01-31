@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.ProjectLifecycleFixture
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
+import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.junit.Rule
 import spock.lang.IgnoreIf
 import spock.lang.Issue
@@ -535,6 +536,7 @@ task printExt {
 
     @ToBeFixedForConfigurationCache(because = "runs the dependencies task")
     @Issue("https://github.com/gradle/gradle/issues/18460")
+    @IntegrationTestTimeout(value = 60, onlyIf = { GradleContextualExecuter.embedded })
     def "can query dependencies with configure on demand enabled"() {
         def subprojects = ["a", "b"]
         multiProjectBuild("outputRegistry", subprojects)

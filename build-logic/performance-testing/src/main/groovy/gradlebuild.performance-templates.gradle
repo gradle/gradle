@@ -14,8 +14,15 @@
  * limitations under the License.
  */
 
-import gradlebuild.performance.generator.tasks.*
-import org.gradle.api.file.FileSystemOperations
+import gradlebuild.performance.generator.tasks.BuildBuilderGenerator
+import gradlebuild.performance.generator.tasks.CppMultiProjectGeneratorTask
+import gradlebuild.performance.generator.tasks.JavaExecProjectGeneratorTask
+import gradlebuild.performance.generator.tasks.JvmProjectGeneratorTask
+import gradlebuild.performance.generator.tasks.KtsProjectGeneratorTask
+import gradlebuild.performance.generator.tasks.MonolithicNativeProjectGeneratorTask
+import gradlebuild.performance.generator.tasks.NativeProjectGeneratorTask
+import gradlebuild.performance.generator.tasks.NativeProjectWithDepsGeneratorTask
+import gradlebuild.performance.generator.tasks.RemoteProject
 
 import static gradlebuild.basics.BuildEnvironmentKt.repoRoot
 
@@ -386,22 +393,22 @@ performanceTest.registerTestProject("bigSwiftApp", BuildBuilderGenerator) {
 }
 
 // === Android ===
-performanceTest.registerTestProject("largeAndroidBuild", RemoteProject) {
+performanceTest.registerAndroidTestProject("largeAndroidBuild", RemoteProject) {
     remoteUri = 'https://github.com/gradle/perf-android-large.git'
     // From android-41 branch
     ref = "b3964ffea18ef5d280b5b493c5c7b8d8b986056c"
 }
 
-performanceTest.registerTestProject("santaTrackerAndroidBuild", RemoteProject) {
+performanceTest.registerAndroidTestProject("santaTrackerAndroidBuild", RemoteProject) {
     remoteUri = 'https://github.com/gradle/santa-tracker-android.git'
     // Pinned from main branch
-    ref = 'c26e2b8aa5c34758934009f1d5b0334f7fc2db5a'
+    ref = '1513dc23b6026c000f80b872b4346b1ba0f6dfa1'
     doLast {
         addGoogleServicesJson(outputDirectory)
     }
 }
 
-performanceTest.registerTestProject("uberMobileApp", RemoteProject) {
+performanceTest.registerAndroidTestProject("uberMobileApp", RemoteProject) {
     remoteUri = 'https://github.com/gradle/android-build-eval.git'
     subdirectory = 'mobile_app1'
     // Pinned from PR https://github.com/uber-common/android-build-eval/pull/17

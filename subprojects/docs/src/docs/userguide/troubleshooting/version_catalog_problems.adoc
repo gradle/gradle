@@ -63,9 +63,9 @@ Version catalog supports the simplified `group:artifact:version` notation.
 If you are using the `Settings` DSL to create a catalog, you can use the `to` method in different flavors:
 
 ```groovy
-alias("some-alias").to("com.mycompany:some-lib:1.1")
+library("some-alias", "com.mycompany:some-lib:1.1").withoutVersion()
 // or
-alias("some-alias").to("com.mycompany", "some-lib").version("1.1")
+library("some-alias", "com.mycompany", "some-lib").version("1.1")
 ```
 
 If you are using TOML files to create a catalog, you can use one of the following notations:
@@ -155,3 +155,11 @@ This error indicates that the dependency notation associated with a plugin alias
 The TOML version catalog supports the simplified `plugin.id:version` notation when declaring a plugin alias.
 
 Therefore this usually means that you have a notation which consists of a string, but which doesn't separate the plugin id from the plugin version using a semicolon.
+
+[[alias_not_finished]]
+== Alias not finished
+
+This error indicates that an alias builder was created, but never registered with the catalog. This is usually because
+you didn't call `.version()` or `.withoutVersion()` on the builder.
+
+The solution is to call whichever version method is appropriate.

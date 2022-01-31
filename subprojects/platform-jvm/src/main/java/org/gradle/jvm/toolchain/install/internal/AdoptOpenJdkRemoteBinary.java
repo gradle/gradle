@@ -44,7 +44,7 @@ public class AdoptOpenJdkRemoteBinary {
         this.systemInfo = systemInfo;
         this.operatingSystem = operatingSystem;
         this.downloader = downloader;
-        rootUrl = providerFactory.gradleProperty("org.gradle.jvm.toolchain.install.adoptopenjdk.baseUri").forUseAtConfigurationTime();
+        rootUrl = providerFactory.gradleProperty("org.gradle.jvm.toolchain.install.adoptopenjdk.baseUri");
     }
 
     public Optional<File> download(JavaToolchainSpec spec, File destinationFile) {
@@ -57,7 +57,7 @@ public class AdoptOpenJdkRemoteBinary {
     }
 
     public boolean canProvideMatchingJdk(JavaToolchainSpec spec) {
-        final boolean matchesLanguageVersion = getLanguageVersion(spec).canCompileOrRun(8);
+        final boolean matchesLanguageVersion = determineLanguageVersion(spec).canCompileOrRun(8);
         boolean j9Requested = spec.getImplementation().get() == JvmImplementation.J9;
         boolean matchesVendor = matchesVendor(spec, j9Requested);
         return matchesLanguageVersion && matchesVendor;
@@ -88,7 +88,7 @@ public class AdoptOpenJdkRemoteBinary {
 
     private URI constructUri(JavaToolchainSpec spec) {
         return URI.create(getServerBaseUri() +
-            "v3/binary/latest/" + getLanguageVersion(spec).toString() +
+            "v3/binary/latest/" + determineLanguageVersion(spec).toString() +
             "/" +
             determineReleaseState() +
             "/" +
@@ -113,8 +113,17 @@ public class AdoptOpenJdkRemoteBinary {
         return "hotspot";
     }
 
+    private String determineVendor(JavaToolchainSpec spec) {
+        DefaultJvmVendorSpec vendorSpec = (DefaultJvmVendorSpec) spec.getVendor().get();
+        if (vendorSpec == DefaultJvmVendorSpec.any()) {
+            return "adoptium";
+        } else {
+            return vendorSpec.toString().toLowerCase();
+        }
+    }
+
     public String toFilename(JavaToolchainSpec spec) {
-        return String.format("adoptopenjdk-%s-%s-%s.%s", getLanguageVersion(spec).toString(), determineArch(), determineOs(), determineFileExtension());
+        return String.format("%s-%s-%s-%s-%s.%s", determineVendor(spec), determineLanguageVersion(spec), determineArch(), determineImplementation(spec), determineOs(), determineFileExtension());
     }
 
     private String determineFileExtension() {
@@ -124,7 +133,7 @@ public class AdoptOpenJdkRemoteBinary {
         return "tar.gz";
     }
 
-    private JavaLanguageVersion getLanguageVersion(JavaToolchainSpec spec) {
+    private JavaLanguageVersion determineLanguageVersion(JavaToolchainSpec spec) {
         return spec.getLanguageVersion().get();
     }
 

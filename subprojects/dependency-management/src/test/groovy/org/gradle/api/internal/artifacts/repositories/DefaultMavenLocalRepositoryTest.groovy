@@ -27,7 +27,6 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.filestore.DefaultArtifactIdentifierFileStore
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
 import org.gradle.internal.component.external.model.maven.MutableMavenModuleResolveMetadata
-import org.gradle.internal.isolation.IsolatableFactory
 import org.gradle.internal.resource.ExternalResourceRepository
 import org.gradle.internal.resource.local.FileResourceRepository
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
@@ -63,7 +62,7 @@ class DefaultMavenLocalRepositoryTest extends Specification {
             authenticationContainer,
             fileResourceRepository,
             mavenMetadataFactory,
-            (IsolatableFactory) SnapshotTestUtil.valueSnapshotter(),
+            SnapshotTestUtil.isolatableFactory(),
             TestUtil.objectFactory(),
             urlArtifactRepositoryFactory,
             TestUtil.checksumService

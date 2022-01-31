@@ -2,6 +2,8 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
+description = "Tooling API model builders for native builds"
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":core-api"))

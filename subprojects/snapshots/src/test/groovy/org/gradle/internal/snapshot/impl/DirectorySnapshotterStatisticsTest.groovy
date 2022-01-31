@@ -169,6 +169,6 @@ class DirectorySnapshotterStatisticsTest extends Specification {
     }
 
     private snapshot(File root) {
-        directorySnapshotter.snapshot(root.absolutePath, null, new AtomicBoolean())
+        directorySnapshotter.snapshot(root.absolutePath, null, new AtomicBoolean()) {}
     }
 }

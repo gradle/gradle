@@ -105,6 +105,9 @@
                 <td>onlyIf</td>
             </tr>
             <tr>
+                <td>doNotTrackState</td>
+            </tr>
+            <tr>
                 <td>doFirst</td>
             </tr>
             <tr>
@@ -118,6 +121,9 @@
             </tr>
             <tr>
                 <td>setProperty</td>
+            </tr>
+            <tr>
+                <td>usesService</td>
             </tr>
         </table>
     </section>

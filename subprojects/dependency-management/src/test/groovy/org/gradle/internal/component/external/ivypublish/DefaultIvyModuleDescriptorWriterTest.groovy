@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.external.ivypublish
 
+import groovy.xml.XmlSlurper
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier

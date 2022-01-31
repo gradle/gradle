@@ -246,14 +246,56 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
         }
 
         private void visitUnvisitedDirectories() {
-            DirectorySnapshot unvisited = unvisitedDirectories.poll();
-            while (unvisited != null) {
-                this.path = unvisited.getAbsolutePath();
-                this.name = unvisited.getName();
-                this.hash = null;
-                visitor.preDirectory(this);
-                unvisited = unvisitedDirectories.poll();
+            DirectorySnapshot unvisited;
+            while ((unvisited = unvisitedDirectories.poll()) != null) {
+                visitor.preDirectory(new DirectoryVisitState(unvisited, this));
             }
+        }
+    }
+
+    private static class DirectoryVisitState implements VisitState {
+        private final VisitState delegate;
+        private final DirectorySnapshot directorySnapshot;
+
+        public DirectoryVisitState(DirectorySnapshot unvisited, VisitState delegate) {
+            this.directorySnapshot = unvisited;
+            this.delegate = delegate;
+        }
+
+        @Override
+        public String getPath() {
+            return directorySnapshot.getAbsolutePath();
+        }
+
+        @Override
+        public String getName() {
+            return directorySnapshot.getName();
+        }
+
+        @Override
+        public byte[] getHashBytes() {
+            throw new UnsupportedOperationException("Cannot query hash for directories");
+        }
+
+        @Override
+        public String getPropertyName() {
+            return delegate.getPropertyName();
+        }
+
+        @Override
+        public byte[] getPropertyHashBytes() {
+            return delegate.getPropertyHashBytes();
+        }
+
+        @SuppressWarnings("deprecation")
+        @Override
+        public String getPropertyNormalizationStrategyName() {
+            return delegate.getPropertyNormalizationStrategyName();
+        }
+
+        @Override
+        public Set<String> getPropertyAttributes() {
+            return delegate.getPropertyAttributes();
         }
     }
 
@@ -572,8 +614,10 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
             .put(IgnoredPathInputNormalizer.class, FINGERPRINTING_STRATEGY_IGNORED_PATH)
             .build();
 
+        @SuppressWarnings("deprecation")
         private static final Map<DirectorySensitivity, FilePropertyAttribute> BY_DIRECTORY_SENSITIVITY = Maps.immutableEnumMap(ImmutableMap.<DirectorySensitivity, FilePropertyAttribute>builder()
             .put(DirectorySensitivity.DEFAULT, DIRECTORY_SENSITIVITY_DEFAULT)
+            .put(DirectorySensitivity.UNSPECIFIED, DIRECTORY_SENSITIVITY_DEFAULT)
             .put(DirectorySensitivity.IGNORE_DIRECTORIES, DIRECTORY_SENSITIVITY_IGNORE_DIRECTORIES)
             .build());
 

@@ -50,7 +50,7 @@ The JVM Test Suite plugin adds the following task to the project:
 `test` — link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test]::
 _Depends on_: `testClasses` from the `java` plugin, and all tasks which produce the test runtime classpath
 +
-Runs the tests using JUnit by default but can be configured for other frameworks.
+Runs the tests using the framework configured for the default test suite.
 
 Additional instances of link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] tasks will be automatically created for each test suite added via the `testing` extension.
 
@@ -79,6 +79,16 @@ In the future, other properties may be specified in the test suite which may inf
 
 The `Test` task associated with the target inherits its name from the suite.  Other properties of the `Test` task are configurable.
 
+==== Test Suite Type ====
+Each test suite must be assigned a type.
+Types can be used to group related test suites across multiple Gradle projects within a build.
+
+The type of a test suite can be configured using the suites's link:{groovyDslPath}/org.gradle.api.plugins.jvm.JvmTestSuite.html#getTestType[test type property].
+The type *must be unique* across all test suites in the same Gradle project.
+By convention, the type is set to the name of the test suite, converted to dash-case - with the exception of the built-in test suite, which uses the value link:{groovyDslPath}/org.gradle.api.attributes.TestSuiteType.html#UNIT_TEST['unit-test'].
+
+Common values are available as constants in link:{groovyDslPath}/org.gradle.api.attributes.TestSuiteType.html[TestSuiteType].
+
 [[sec:jvm_test_suite_examples]]
 [discrete]
 == Configuration Examples
@@ -92,9 +102,9 @@ include::sample[dir="snippets/testing/test-suite-plugin/kotlin",files="build.gra
 ====
 
 <1> Configure all test suites for this project.
-<2> Configure the built-in `test` suite.  This suite is automatically created for backwards compatibility.  By convention, the built-in `test` suite will use JUnit4.
-<3> Declare this test suite uses JUnit Jupiter.  The framework's dependencies are automatically included.  It is not necessary to explicitly name or configure the built-in `test` suite if JUnit4 is desired.
-<4> Define a new suite called `integrationTest`.
+<2> Configure the built-in `test` suite.  This suite is automatically created for backwards compatibility.  You *must* specify a testing framework to use in order to run these tests (e.g. JUnit 4, JUnit Jupiter).  This suite is the only suite that will automatically have access to the production source's `implementation` dependencies, all other suites must explicitly declare these.
+<3> Declare this test suite uses JUnit Jupiter.  The framework's dependencies are automatically included.  It is always necessary to explicitly configure the built-in `test` suite even if JUnit4 is desired.
+<4> Define a new suite called `integrationTest`.  Note that all suites other than the built-in `test` suite will by convention work as if `useJUnitJupiter()` was called.  You do *not* have to explicitly configure the testing framework on these additional suites, unless you wish to change to another framework.
 <5> Add a dependency on the production code of the project to the `integrationTest` suite targets.  By convention, only the built-in `test` suite will automatically have a dependency on the production code of the project.
 <6> Configure all targets of this suite.  By convention, test suite targets have no relationship to other `Test` tasks.  This example shows that the slower integration test suite targets should run after all targets of the `test` suite are complete.
 <7> Configure the `check` task to depend on all `integrationTest` targets.  By convention, test suite targets are not associated with the `check` task.
@@ -143,6 +153,15 @@ include::sample[dir="snippets/testing/test-suite-configure-source-dir/kotlin",fi
 <3> Configure the `java` SourceDirectorySet of the test suite.
 <4> Overwrite the `srcDirs` property, replacing the conventional `src/integrationTest/java` location with `src/it/java`.
 
+== Configure the type of a test suite
+
+====
+include::sample[dir="snippets/testing/test-suite-configure-type/groovy",files="build.gradle[tags=configure-type]"]
+include::sample[dir="snippets/testing/test-suite-configure-type/kotlin",files="build.gradle.kts[tags=configure-type]"]
+====
+
+<1> This suite would use a type value of 'secondary-test' by default.  This explicitly sets the type to 'integration-test'.
+
 == Configure the `Test` task for a test suite
 ====
 include::sample[dir="snippets/testing/test-suite-configure-source-dir/groovy",files="build.gradle[tags=configure-test-task]"]
@@ -156,7 +175,7 @@ include::sample[dir="snippets/testing/test-suite-configure-source-dir/kotlin",fi
 
 == Differences between similar methods on link:{groovyDslPath}/org.gradle.api.plugins.jvm.JvmTestSuite.html[JvmTestSuite] and link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] task types
 
-Instances of JvmTestSuite have methods link:{javadocPath}org/gradle/api/plugins/jvm/JvmTestSuite.html#useJUnit[useJUnit()] and link:{javadocPath}org/gradle/api/plugins/jvm/JvmTestSuite.html#useJUnitJupiter[useJUnitJupiter()], which are similar in name to methods on the link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] task type:  link:{javadocPath}/org/gradle/api/tasks/testing/Test.html#useJUnit[useJUnit()] and link:{javadocPath}/org/gradle/api/tasks/testing/Test.html#useJUnitPlatform[useJUnitPlatform()].  However, there are important differences.
+Instances of JvmTestSuite have methods link:{javadocPath}/org/gradle/api/plugins/jvm/JvmTestSuite.html#useJUnit--[useJUnit()] and link:{javadocPath}/org/gradle/api/plugins/jvm/JvmTestSuite.html#useJUnitJupiter--[useJUnitJupiter()], which are similar in name to methods on the link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] task type:  link:{javadocPath}/org/gradle/api/tasks/testing/Test.html#useJUnit--[useJUnit()] and link:{javadocPath}/org/gradle/api/tasks/testing/Test.html#useJUnitPlatform--[useJUnitPlatform()].  However, there are important differences.
 
 Unlike the methods on the link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] task, link:{groovyDslPath}/org.gradle.api.plugins.jvm.JvmTestSuite.html[JvmTestSuite] methods perform two additional pieces of configuration:
 
@@ -166,3 +185,33 @@ Unlike the methods on the link:{groovyDslPath}/org.gradle.api.tasks.testing.Test
 An example of this behavior is shown in the first configuration example above, <<#sec:configuring_the_built_in_test_suite,Configuring the built-in `test` suite>>.
 
 Note that unlike the link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] task, the aforementioned methods on link:{groovyDslPath}/org.gradle.api.plugins.jvm.JvmTestSuite.html[JvmTestSuite] do not accept a closure or action for configuring the framework.  These framework configuration options can be set on the individual targets.
+
+[[sec:outgoing_variants]]
+== Outgoing Variants
+Each test suite creates an outgoing variant containing its test execution results.  These variants are designed for consumption by the <<test_report_aggregation_plugin#test_report_aggregation_plugin, Test Report Aggregation Plugin>>.
+
+The attributes will resemble the following.  User-configurable attributes are highlighted below the sample.
+
+.outgoingVariants task output
+[source,text]
+----
+--------------------------------------------------
+Variant testResultsElementsForTest (i)
+--------------------------------------------------
+Description = Directory containing binary results of running tests for the test Test Suite's test target.
+
+Capabilities
+    - org.gradle.sample:list:1.0.2 (default capability)
+Attributes
+    - org.gradle.category              = verification
+    - org.gradle.testsuite.name        = test           // <1>
+    - org.gradle.testsuite.target.name = test           // <2>
+    - org.gradle.testsuite.type        = unit-test      // <3>
+    - org.gradle.verificationtype      = test-results
+
+Artifacts
+    - build/test-results/test/binary (artifactType = directory)
+----
+<1> TestSuiteName attribute; value is derived from link:{javadocPath}/org/gradle/api/plugins/jvm/JvmTestSuite.html#getName--[JvmTestSuite#getName()].
+<2> TestSuiteTargetName attribute; value is derived from link:{javadocPath}/org/gradle/api/plugins/jvm/JvmTestSuiteTarget.html#getName--[JvmTestSuiteTarget#getName()].
+<3> TestSuiteType attribute; value is derived from link:{javadocPath}/org/gradle/api/plugins/jvm/JvmTestSuite.html#getTestType--[JvmTestSuite#getTestType()].

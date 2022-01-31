@@ -23,7 +23,6 @@ import org.gradle.performance.annotations.Scenario
 import org.gradle.profiler.BuildContext
 import org.gradle.profiler.BuildMutator
 import org.gradle.profiler.InvocationSettings
-import spock.lang.Unroll
 
 import java.nio.file.Files
 
@@ -37,7 +36,7 @@ class JavaConfigurationCachePerformanceTest extends AbstractCrossVersionPerforma
 
     def setup() {
         stateDirectory = temporaryFolder.file(".gradle/configuration-cache")
-        runner.targetVersions = ["7.4-20211011231946+0000"]
+        runner.targetVersions = ["7.5-20220107231310+0000"]
         runner.minimumBaseVersion = "6.6"
     }
 
@@ -48,7 +47,6 @@ class JavaConfigurationCachePerformanceTest extends AbstractCrossVersionPerforma
         @Scenario(type = PER_DAY, operatingSystems = [LINUX], testProjects = ["largeJavaMultiProjectNoBuildSrc"], iterationMatcher = "assemble storing configuration cache state with cold daemon"),
         @Scenario(type = PER_DAY, operatingSystems = [LINUX], testProjects = ["largeJavaMultiProjectNoBuildSrc"], iterationMatcher = "assemble loading configuration cache state with hot daemon")
     ])
-    @Unroll
     def "assemble #action configuration cache state with #daemon daemon"() {
         given:
         runner.tasksToRun = ["assemble"]

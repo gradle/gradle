@@ -21,7 +21,7 @@ import gradlebuild.modules.model.License
 abstract class ExternalModulesExtension {
 
     val groovyVersion = "4.0.0-beta-1"
-    val kotlinVersion = "1.5.31"
+    val kotlinVersion = "1.6.10"
 
     fun futureKotlin(module: String) = "org.jetbrains.kotlin:kotlin-$module:$kotlinVersion"
 
@@ -95,6 +95,7 @@ abstract class ExternalModulesExtension {
     val julToSlf4j = "org.slf4j:jul-to-slf4j"
     val junit = "junit:junit"
     val junit5Vintage = "org.junit.vintage:junit-vintage-engine"
+    val junit5JupiterApi = "org.junit.jupiter:junit-jupiter-api"
     val junitPlatform = "org.junit.platform:junit-platform-launcher"
     val jzlib = "com.jcraft:jzlib"
     val kryo = "com.esotericsoftware.kryo:kryo"
@@ -121,6 +122,7 @@ abstract class ExternalModulesExtension {
     val testng = "org.testng:testng"
     val tomlj = "org.tomlj:tomlj"
     val trove4j = "org.jetbrains.intellij.deps:trove4j"
+    val jna = "net.java.dev.jna:jna"
     val agp = "com.android.tools.build:gradle"
     val xbeanReflect = "org.apache.xbean:xbean-reflect"
     val xerces = "xerces:xercesImpl"
@@ -229,6 +231,7 @@ abstract class ExternalModulesExtension {
         julToSlf4j to License.MIT,
         junit to License.EPL,
         junit5Vintage to License.EPL,
+        junit5JupiterApi to License.EPL,
         junitPlatform to License.EPL,
         jzlib to License.BSDStyle,
         kryo to License.BSD3,

@@ -3,6 +3,8 @@ plugins {
     application
 }
 
+description = "Collection of test fixtures for Android performance tests, internal use only"
+
 repositories {
     google()
 }

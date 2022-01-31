@@ -29,7 +29,6 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.hamcrest.CoreMatchers
 import spock.lang.IgnoreIf
 import spock.lang.Issue
-import spock.lang.Unroll
 
 import javax.annotation.Nonnull
 import java.util.regex.Pattern
@@ -86,7 +85,7 @@ project(':common') {
 
 project(':lib') {
     dependencies {
-        implementation providers.gradleProperty('useOldDependencyVersion').forUseAtConfigurationTime().map { 'org.slf4j:slf4j-api:1.7.24' }.orElse('org.slf4j:slf4j-api:1.7.25')
+        implementation providers.gradleProperty('useOldDependencyVersion').map { 'org.slf4j:slf4j-api:1.7.24' }.orElse('org.slf4j:slf4j-api:1.7.25')
         implementation project(':common')
     }
 }
@@ -816,7 +815,7 @@ project(':common') {
         assertTransformationsExecuted()
 
         when:
-        run ":app:resolveGreen", "-PcommonOutputDir=out"
+        run ":app:resolveGreen", "-DcommonOutputDir=out"
 
         then: // new path, should re-run
         result.assertTasksNotSkipped(":common:producer")
@@ -826,14 +825,14 @@ project(':common') {
         )
 
         when:
-        run ":app:resolveGreen", "-PcommonOutputDir=out"
+        run ":app:resolveGreen", "-DcommonOutputDir=out"
 
         then: // no changes, should be up-to-date
         result.assertTasksNotSkipped()
         assertTransformationsExecuted()
 
         when:
-        run ":app:resolveGreen", "-PcommonOutputDir=out", "-PcommonFileName=common-blue.jar"
+        run ":app:resolveGreen", "-DcommonOutputDir=out", "-DcommonFileName=common-blue.jar"
 
         then: // new name, should re-run
         result.assertTasksNotSkipped(":common:producer", ":app:resolveGreen")
@@ -843,14 +842,14 @@ project(':common') {
         )
 
         when:
-        run ":app:resolveGreen", "-PcommonOutputDir=out", "-PcommonFileName=common-blue.jar"
+        run ":app:resolveGreen", "-DcommonOutputDir=out", "-DcommonFileName=common-blue.jar"
 
         then: // no changes, should be up-to-date
         result.assertTasksNotSkipped()
         assertTransformationsExecuted()
 
         when:
-        run ":app:resolveGreen", "-PcommonOutputDir=out", "-PcommonFileName=common-blue.jar", "-PcommonContent=new"
+        run ":app:resolveGreen", "-DcommonOutputDir=out", "-DcommonFileName=common-blue.jar", "-DcommonContent=new"
 
         then: // new content, should re-run
         result.assertTasksNotSkipped(":common:producer", ":app:resolveGreen")
@@ -919,7 +918,7 @@ abstract class NoneTransform implements TransformAction<TransformParameters.None
         assertTransformationsExecuted()
 
         when:
-        run ":app:resolveGreen", "-PcommonOutputDir=out"
+        run ":app:resolveGreen", "-DcommonOutputDir=out"
 
         then: // new path, should skip consumer
         result.assertTasksNotSkipped(":common:producer")
@@ -928,7 +927,7 @@ abstract class NoneTransform implements TransformAction<TransformParameters.None
         )
 
         when:
-        run ":app:resolveGreen", "-PcommonOutputDir=out", "-PcommonFileName=common-blue.jar"
+        run ":app:resolveGreen", "-DcommonOutputDir=out", "-DcommonFileName=common-blue.jar"
 
         then: // new name, should skip consumer
         result.assertTasksNotSkipped(":common:producer", ":app:resolveGreen")
@@ -937,14 +936,14 @@ abstract class NoneTransform implements TransformAction<TransformParameters.None
         )
 
         when:
-        run ":app:resolveGreen", "-PcommonOutputDir=out", "-PcommonFileName=common-blue.jar"
+        run ":app:resolveGreen", "-DcommonOutputDir=out", "-DcommonFileName=common-blue.jar"
 
         then: // no changes, should be up-to-date
         result.assertTasksNotSkipped()
         assertTransformationsExecuted()
 
         when:
-        run ":app:resolveGreen", "-PcommonOutputDir=out", "-PcommonFileName=common-blue.jar", "-PcommonContent=new"
+        run ":app:resolveGreen", "-DcommonOutputDir=out", "-DcommonFileName=common-blue.jar", "-DcommonContent=new"
 
         then: // new content, should re-run
         result.assertTasksNotSkipped(":common:producer", ":app:resolveGreen")
@@ -961,7 +960,6 @@ abstract class NoneTransform implements TransformAction<TransformParameters.None
         assertTransformationsExecuted()
     }
 
-    @Unroll
     def "can attach @#classpathAnnotation.simpleName to dependencies property"() {
         given:
         setupBuildWithNoSteps {
@@ -1016,7 +1014,7 @@ abstract class ClasspathTransform implements TransformAction<TransformParameters
         assertTransformationsExecuted()
 
         when:
-        run ":app:resolveGreen", "-PcommonOutputDir=out"
+        run ":app:resolveGreen", "-DcommonOutputDir=out"
 
         then: // new path, should skip consumer
         result.assertTasksNotSkipped(":common:producer")
@@ -1025,7 +1023,7 @@ abstract class ClasspathTransform implements TransformAction<TransformParameters
         )
 
         when:
-        run ":app:resolveGreen", "-PcommonOutputDir=out", "-PcommonFileName=common-blue.jar"
+        run ":app:resolveGreen", "-DcommonOutputDir=out", "-DcommonFileName=common-blue.jar"
 
         then: // new name, should skip consumer
         result.assertTasksNotSkipped(":common:producer", ":app:resolveGreen")
@@ -1034,14 +1032,14 @@ abstract class ClasspathTransform implements TransformAction<TransformParameters
         )
 
         when:
-        run ":app:resolveGreen", "-PcommonOutputDir=out", "-PcommonFileName=common-blue.jar"
+        run ":app:resolveGreen", "-DcommonOutputDir=out", "-DcommonFileName=common-blue.jar"
 
         then: // no changes, should be up-to-date
         result.assertTasksNotSkipped()
         assertTransformationsExecuted()
 
         when:
-        run ":app:resolveGreen", "-PcommonOutputDir=out", "-PcommonFileName=common-blue.jar", "-PcommonContent=new"
+        run ":app:resolveGreen", "-DcommonOutputDir=out", "-DcommonFileName=common-blue.jar", "-DcommonContent=new"
 
         then: // new content, should re-run
         result.assertTasksNotSkipped(":common:producer", ":app:resolveGreen")
@@ -1201,6 +1199,39 @@ abstract class ClasspathTransform implements TransformAction<TransformParameters
         output.count('Transforming') == 0
         output.contains("result = [lib2-5.6.jar.txt, lib1-1.2.jar.txt]")
         output.contains("result = [lib2-5.6.jar.txt, lib1-1.3.jar.txt]")
+    }
+
+    def "transform does not receive artifacts for dependencies referenced only via a constraint"() {
+        setupBuildWithSingleStep()
+        buildFile("""
+            project(":common") {
+                dependencies {
+                    constraints {
+                        implementation project(":lib")
+                        implementation 'unknown:unknown:1.3'
+                    }
+                }
+            }
+            project(":lib") {
+                dependencies {
+                    constraints {
+                        implementation project(":common")
+                    }
+                }
+            }
+        """)
+
+        when:
+        run ":app:resolve"
+
+        then:
+        assertTransformationsExecuted(
+            singleStep('slf4j-api-1.7.25.jar'),
+            singleStep('hamcrest-core-1.3.jar'),
+            singleStep('junit-4.11.jar', 'hamcrest-core-1.3.jar'),
+            singleStep('common.jar'),
+            singleStep('lib.jar', 'common.jar', 'slf4j-api-1.7.25.jar'),
+        )
     }
 
     def "reuses result of transform of external dependency with different upstream dependencies when transform does not consume upstream dependencies"() {

@@ -39,7 +39,7 @@ class BeanCodec : Codec<Any> {
         }
     }
 
-    override suspend fun ReadContext.decode(): Any? =
+    override suspend fun ReadContext.decode(): Any =
         decodePreservingIdentity { id ->
             val beanType = readClass()
             val generated = readBoolean()

@@ -17,7 +17,6 @@
 package org.gradle.launcher
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.IgnoreIf
@@ -227,7 +226,6 @@ task check {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/1001")
-    @ToBeFixedForConfigurationCache(because = "Init scripts don't have access to providers yet")
     @IgnoreIf({ GradleContextualExecuter.embedded })
     def "system properties from gradle.properties are available to init scripts for buildSrc"() {
         given:

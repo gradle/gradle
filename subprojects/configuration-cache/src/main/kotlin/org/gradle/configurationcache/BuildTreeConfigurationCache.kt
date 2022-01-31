@@ -17,15 +17,22 @@
 package org.gradle.configurationcache
 
 import org.gradle.internal.buildtree.BuildTreeWorkGraph
+import org.gradle.internal.component.local.model.LocalComponentMetadata
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
+import org.gradle.util.Path
 
 
 @ServiceScope(Scopes.BuildTree::class)
 interface BuildTreeConfigurationCache {
     /**
+     * Determines whether the cache entry can be loaded or needs to be stored or updated.
+     */
+    fun initializeCacheEntry()
+
+    /**
      * Loads the scheduled tasks from cache, if available, or else runs the given function to schedule the tasks and then
-     * writes the result to cache.
+     * writes the result to the cache.
      */
     fun loadOrScheduleRequestedTasks(graph: BuildTreeWorkGraph, scheduler: (BuildTreeWorkGraph) -> Unit)
 
@@ -36,9 +43,21 @@ interface BuildTreeConfigurationCache {
     fun maybePrepareModel(action: () -> Unit)
 
     /**
-     * Loads the cached model, if available, or else runs the given function to create it and then writes the result to cache.
+     * Loads the cached model, if available, or else runs the given function to create it and then writes the result to the cache.
      */
     fun <T : Any> loadOrCreateModel(creator: () -> T): T
+
+    /**
+     * Loads a cached intermediate model, if available, or else runs the given function to create it and then writes the result to the cache.
+     *
+     * @param identityPath The project for which the model should be created, or null for a build scoped model.
+     */
+    fun <T> loadOrCreateIntermediateModel(identityPath: Path?, modelName: String, creator: () -> T?): T?
+
+    /**
+     * Loads cached dependency resolution metadata for the given project, if available, or else runs the given function to create it and then writes the result to the cache.
+     */
+    fun loadOrCreateProjectMetadata(identityPath: Path, creator: () -> LocalComponentMetadata): LocalComponentMetadata
 
     /**
      * Flushes any remaining state to the cache and closes any resources

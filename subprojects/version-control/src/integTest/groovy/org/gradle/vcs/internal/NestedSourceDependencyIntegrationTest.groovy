@@ -233,6 +233,7 @@ class NestedSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @ToBeFixedForConfigurationCache
+    @IgnoreIf({ GradleContextualExecuter.isParallel() })
     def "prefers a source mapping defined in the root build to one defined in a nested build when they differ only by plugins"() {
         given:
         def pluginBuilder = new PluginBuilder(file("plugin"))

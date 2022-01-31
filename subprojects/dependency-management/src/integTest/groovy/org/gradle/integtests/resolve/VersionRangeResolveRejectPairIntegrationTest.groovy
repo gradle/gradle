@@ -19,7 +19,6 @@ package org.gradle.integtests.resolve
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios
 import spock.lang.IgnoreIf
-import spock.lang.Unroll
 
 @IgnoreIf({
     // This test is very expensive. Ideally we shouldn't need an integration test here, but lack the
@@ -28,7 +27,6 @@ import spock.lang.Unroll
     !GradleContextualExecuter.embedded
 })
 class VersionRangeResolveRejectPairIntegrationTest extends AbstractVersionRangeResolveIntegrationTest {
-    @Unroll
     def "resolve reject pair #permutation"() {
         given:
         def candidates = permutation.candidates

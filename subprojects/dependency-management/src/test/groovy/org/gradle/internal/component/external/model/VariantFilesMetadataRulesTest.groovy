@@ -43,7 +43,6 @@ import org.gradle.util.SnapshotTestUtil
 import org.gradle.util.TestUtil
 import spock.lang.Shared
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
 
@@ -57,7 +56,7 @@ class VariantFilesMetadataRulesTest extends Specification {
     @Shared defaultVariant
 
     private DefaultAttributesSchema createSchema() {
-        def schema = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory(), SnapshotTestUtil.valueSnapshotter())
+        def schema = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
         DependencyManagementTestUtil.platformSupport().configureSchema(schema)
         GradlePluginVariantsSupport.configureSchema(schema)
         JavaEcosystemSupport.configureSchema(schema, TestUtil.objectFactory())
@@ -95,7 +94,6 @@ class VariantFilesMetadataRulesTest extends Specification {
         metadata
     }
 
-    @Unroll
     def "variant file metadata rules are evaluated once and lazily for #metadataType metadata"() {
         given:
         def rule = Mock(Action)
@@ -127,7 +125,6 @@ class VariantFilesMetadataRulesTest extends Specification {
         "gradle"     | gradleComponentMetadata()
     }
 
-    @Unroll
     def "variant file metadata rules are not evaluated if their variant is not selected for #metadataType metadata"() {
         given:
         def rule = Mock(Action)
@@ -146,7 +143,6 @@ class VariantFilesMetadataRulesTest extends Specification {
         "gradle"     | gradleComponentMetadata()
     }
 
-    @Unroll
     def "new variant can be added to #metadataType metadata"() {
         when:
         metadata.getVariantMetadataRules().addVariant("new-variant", "runtime", false)
@@ -169,12 +165,11 @@ class VariantFilesMetadataRulesTest extends Specification {
 
         where:
         metadataType | metadata                       | initialVariantCount
-        "maven"      | mavenComponentMetadata('dep')  | 6 // default derivation strategy for maven
+        "maven"      | mavenComponentMetadata('dep')  | 8 // default derivation strategy for maven
         "ivy"        | ivyComponentMetadata('dep')    | 0 // there is no derivation strategy for ivy
         "gradle"     | gradleComponentMetadata('dep') | 1 // 'runtime' added in test setup
     }
 
-    @Unroll
     def "new variant can be added to #metadataType metadata without base"() {
         when:
         metadata.getVariantMetadataRules().addVariant("new-variant")
@@ -191,12 +186,11 @@ class VariantFilesMetadataRulesTest extends Specification {
 
         where:
         metadataType | metadata                       | initialVariantCount
-        "maven"      | mavenComponentMetadata('dep')  | 6 // default derivation strategy for maven
+        "maven"      | mavenComponentMetadata('dep')  | 8 // default derivation strategy for maven
         "ivy"        | ivyComponentMetadata('dep')    | 0 // there is no derivation strategy for ivy
         "gradle"     | gradleComponentMetadata('dep') | 1 // 'runtime' added in test setup
     }
 
-    @Unroll
     def "base variant metadata rules are not evaluated if the new variant is not selected for #metadataType metadata"() {
         given:
         def rule = Mock(Action)
@@ -229,7 +223,6 @@ class VariantFilesMetadataRulesTest extends Specification {
         "gradle"     | gradleComponentMetadata()
     }
 
-    @Unroll
     def "throws error for non-existing base in #metadataType metadata"() {
         when:
         metadata.getVariantMetadataRules().addVariant("new-variant", "not-exist", false)
@@ -247,7 +240,6 @@ class VariantFilesMetadataRulesTest extends Specification {
         "gradle"     | gradleComponentMetadata('dep') | 'Variant'
     }
 
-    @Unroll
     def "does not add a variant for non-existing base in #metadataType metadata if lenient"() {
         given:
         def rule = Mock(Action)
@@ -266,12 +258,11 @@ class VariantFilesMetadataRulesTest extends Specification {
 
         where:
         metadataType | metadata                       | initialVariantCount
-        "maven"      | mavenComponentMetadata('dep')  | 6 // default derivation strategy for maven
+        "maven"      | mavenComponentMetadata('dep')  | 8 // default derivation strategy for maven
         "ivy"        | ivyComponentMetadata('dep')    | 0 // there is no derivation strategy for ivy
         "gradle"     | gradleComponentMetadata('dep') | 1 // 'runtime' added in test setup
     }
 
-    @Unroll
     def "variant file metadata rules can add files to #metadataType metadata"() {
         given:
         def rule = { MutableVariantFilesMetadata files ->
@@ -304,7 +295,6 @@ class VariantFilesMetadataRulesTest extends Specification {
         "gradle"     | gradleComponentMetadata()
     }
 
-    @Unroll
     def "variant file metadata rules can remove files from #metadataType metadata"() {
         given:
         def rule = { MutableVariantFilesMetadata files ->

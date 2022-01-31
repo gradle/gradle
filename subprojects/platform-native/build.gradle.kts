@@ -2,6 +2,8 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
+description = "Plugins, tasks and compiler infrastructure for compiling/linking code"
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":logging"))

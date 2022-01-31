@@ -16,11 +16,14 @@
 
 package org.gradle.integtests.fixtures
 
+import groovy.xml.XmlSlurper
 import groovy.xml.slurpersupport.GPathResult
 import org.gradle.test.fixtures.file.TestFile
 import org.hamcrest.Matcher
 
-import static org.hamcrest.CoreMatchers.*
+import static org.hamcrest.CoreMatchers.hasItems
+import static org.hamcrest.CoreMatchers.not
+import static org.hamcrest.MatcherAssert.assertThat
 
 class TestNGExecutionResult implements TestExecutionResult {
     private final TestFile projectDir
@@ -94,7 +97,7 @@ class TestNGExecutionResult implements TestExecutionResult {
     }
 
     private void parseResults() {
-        resultsXml = new groovy.xml.XmlSlurper().parse(xmlReportFile().assertIsFile())
+        resultsXml = new XmlSlurper().parse(xmlReportFile().assertIsFile())
     }
 
     private TestFile xmlReportFile() {

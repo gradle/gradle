@@ -25,11 +25,9 @@ import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor
 import org.gradle.tooling.internal.protocol.events.InternalOperationStartedProgressEvent
 import org.gradle.tooling.internal.protocol.events.InternalTaskDescriptor
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class BuildProgressListenerAdapterTest extends Specification {
 
-    @Unroll
     def "adapter can subscribe to progress events of types #operationTypes"() {
         given:
         Map<OperationType, List<ProgressListener>> listeners = operationTypes.collectEntries {

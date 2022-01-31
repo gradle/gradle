@@ -146,6 +146,8 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         file("build/reports/checkstyle/main.xml").assertContents(containsClass("org.gradle.Class1"))
     }
 
+    // on parallel executer, there might be checkstyleMain/checkstyleTest running in parallel, resulting in non-deterministic result
+    @IgnoreIf({ GradleContextualExecuter.parallel })
     def "can suppress console output"() {
         def message = "Name 'class1' must match pattern"
 

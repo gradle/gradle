@@ -19,7 +19,6 @@ import com.google.common.collect.Maps;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.initialization.DefaultProjectDescriptor;
@@ -249,11 +248,28 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
             return identityPath.getParent() == null ? null : projectsByPath.get(identityPath.getParent());
         }
 
+        @Nullable
+        @Override
+        public ProjectState getBuildParent() {
+            if (descriptor.getParent() != null) {
+                // Identity path of parent can be different to identity path parent, if the names are tweaked in the settings file
+                // Ideally they would be exactly the same, always
+                Path parentPath = owner.calculateIdentityPathForProject(descriptor.getParent().path());
+                ProjectStateImpl parentState = projectsByPath.get(parentPath);
+                if (parentState == null) {
+                    throw new IllegalStateException("Parent project " + parentPath + " is not registered for project " + identityPath);
+                }
+                return parentState;
+            } else {
+                return null;
+            }
+        }
+
         @Override
         public Set<ProjectState> getChildProjects() {
             Set<ProjectState> children = new TreeSet<>(Comparator.comparing(ProjectState::getIdentityPath));
-            for (ProjectDescriptor child : descriptor.getChildren()) {
-                children.add(projectsByPath.get(identityPath.child(child.getName())));
+            for (DefaultProjectDescriptor child : descriptor.children()) {
+                children.add(projectsByPath.get(owner.calculateIdentityPathForProject(child.path())));
             }
             return children;
         }
@@ -284,13 +300,10 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
                 if (this.project != null) {
                     throw new IllegalStateException(String.format("The project object for project %s has already been attached.", getIdentityPath()));
                 }
-                ProjectInternal parent;
-                if (projectPath.equals(Path.ROOT)) {
-                    parent = null;
-                } else {
-                    parent = projectsByPath.get(identityPath.getParent()).getMutableModel();
-                }
-                this.project = projectFactory.createProject(owner.getMutableModel(), descriptor, this, parent, selfClassLoaderScope, baseClassLoaderScope);
+
+                ProjectState parent = getBuildParent();
+                ProjectInternal parentModel = parent == null ? null : parent.getMutableModel();
+                this.project = projectFactory.createProject(owner.getMutableModel(), descriptor, this, parentModel, selfClassLoaderScope, baseClassLoaderScope);
             }
         }
 
@@ -306,6 +319,11 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
 
         @Override
         public void ensureConfigured() {
+            // Need to configure intermediate parent projects for configure-on-demand
+            ProjectState parent = getBuildParent();
+            if (parent != null) {
+                parent.ensureConfigured();
+            }
             synchronized (this) {
                 getMutableModel().evaluate();
             }

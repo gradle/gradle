@@ -17,6 +17,8 @@
 package util
 
 import common.BuildToolBuildJvm
+import common.JvmVendor
+import common.JvmVersion
 import common.Os
 import common.applyDefaultSettings
 import common.buildToolGradleParameters
@@ -42,7 +44,7 @@ class RerunFlakyTest(os: Os) : BuildType({
     val testNameParameterName = "testName"
     val testTaskOptionsParameterName = "testTaskOptions"
     val daemon = true
-    applyDefaultSettings(os, BuildToolBuildJvm, 30)
+    applyDefaultSettings(os, BuildToolBuildJvm, 0)
     val extraParameters = functionalTestExtraParameters("RerunFlakyTest", os, "%$testJvmVersionParameter%", "%$testJvmVendorParameter%")
     val parameters = (
         buildToolGradleParameters(daemon) +
@@ -83,17 +85,17 @@ class RerunFlakyTest(os: Os) : BuildType({
         )
         text(
             testJvmVersionParameter,
-            "11",
+            JvmVersion.java11.major.toString(),
             display = ParameterDisplay.PROMPT,
             allowEmpty = false,
             description = "Java version to run the test with"
         )
-        text(
+        select(
             testJvmVendorParameter,
-            "openjdk",
+            JvmVendor.adoptiumopenjdk.name,
             display = ParameterDisplay.PROMPT,
-            allowEmpty = false,
-            description = "Java vendor to run the test with"
+            description = "Java vendor to run the test with",
+            options = JvmVendor.values().map { it.displayName to it.name }
         )
         text(
             testTaskOptionsParameterName,

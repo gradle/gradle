@@ -19,6 +19,10 @@ package gradlebuild.testcleanup.extension
 import org.gradle.api.provider.Property
 
 
-abstract class TestFileCleanUpExtension {
-    abstract val reportOnly: Property<Boolean>
+/**
+ *  An extension for project build script to configure whether the leftover files should be treated:
+ *  report only, or a failure.
+ */
+interface TestFileCleanUpExtension {
+    val reportOnly: Property<Boolean>
 }

@@ -87,7 +87,7 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements Val
         file("buildSrc/src/main/java/${changedClassName}.java") << javaClass(changedClassName, lambdaWritingFile("ACTION", "changed"))
         buildFile << """
             task myTask(type: TaskWithActionProperty) {
-                action = providers.gradleProperty("changed").forUseAtConfigurationTime().isPresent()
+                action = providers.gradleProperty("changed").isPresent()
                     ? ${changedClassName}.ACTION
                     : ${originalClassName}.ACTION
             }
@@ -139,7 +139,7 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements Val
         buildFile << """
             task myTask(type: TaskWithActionProperty) {
                 outputs.cacheIf { true }
-                action = providers.gradleProperty("anonymous").forUseAtConfigurationTime().isPresent()
+                action = providers.gradleProperty("anonymous").isPresent()
                     ? ${anonymousClassName}.ACTION
                     : ${lambdaClassName}.ACTION
             }
@@ -242,7 +242,7 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements Val
         buildFile << script <<
             """
             myTask.doLast(
-                providers.gradleProperty("changed").forUseAtConfigurationTime().isPresent()
+                providers.gradleProperty("changed").isPresent()
                     ? LambdaActionChanged.ACTION
                     : LambdaActionOriginal.ACTION
             )
@@ -285,7 +285,7 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements Val
         buildFile << script <<
             """
             myTask.doLast(
-                providers.gradleProperty("anonymous").forUseAtConfigurationTime().isPresent()
+                providers.gradleProperty("anonymous").isPresent()
                     ? AnonymousAction.ACTION
                     : LambdaAction.ACTION
             )

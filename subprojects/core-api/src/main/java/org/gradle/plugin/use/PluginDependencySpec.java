@@ -68,7 +68,7 @@ public interface PluginDependencySpec {
     @Incubating
     default PluginDependencySpec version(Provider<String> version) {
         // providers used in plugins block are necessarily at configuration time
-        return this.version(version.forUseAtConfigurationTime().get());
+        return this.version(version.get());
     }
 
     /**

@@ -20,7 +20,9 @@ import common.Os
 import common.VersionedSettingsBranch
 import configurations.BaseGradleBuildType
 import configurations.PerformanceTest
+import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildStep
+import jetbrains.buildServer.configs.kotlin.v2019_2.DslContext
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.GradleBuildStep
 import model.CIBuildModel
 import model.JsonBasedGradleSubprojectProvider
@@ -36,6 +38,12 @@ import org.junit.jupiter.api.Test
 import java.io.File
 
 class PerformanceTestBuildTypeTest {
+    init {
+        // Set the project id here, so we can use methods on the DslContext
+        DslContext.projectId = AbsoluteId("Gradle_Master")
+        DslContext.addParameters("Branch" to "master")
+    }
+
     private
     val buildModel = CIBuildModel(
         projectId = "Gradle_Check",
@@ -47,8 +55,9 @@ class PerformanceTestBuildTypeTest {
     @Test
     fun `create correct PerformanceTest build type`() {
         val performanceTest = PerformanceTest(
-            buildModel, Stage(
-                StageNames.READY_FOR_MERGE,
+            buildModel,
+            Stage(
+                StageNames.PULL_REQUEST_FEEDBACK,
                 specificBuilds = listOf(
                     SpecificBuild.BuildDistributions,
                     SpecificBuild.Gradleception,
@@ -56,7 +65,7 @@ class PerformanceTestBuildTypeTest {
                 ),
                 functionalTests = listOf(
                     TestCoverage(1, TestType.platform, Os.LINUX, JvmVersion.java8),
-                    TestCoverage(2, TestType.platform, Os.WINDOWS, JvmVersion.java11, vendor = JvmVendor.openjdk)
+                    TestCoverage(2, TestType.platform, Os.WINDOWS, JvmVersion.java11, vendor = JvmVendor.adoptiumopenjdk)
                 ),
                 performanceTests = listOf(PerformanceTestCoverage(1, PerformanceTestType.per_commit, Os.LINUX))
             ),
@@ -73,15 +82,18 @@ class PerformanceTestBuildTypeTest {
                 "KILL_GRADLE_PROCESSES",
                 "GRADLE_RUNNER",
                 "CHECK_CLEAN_M2_ANDROID_USER_HOME"
-            ), performanceTest.steps.items.map(BuildStep::name)
+            ),
+            performanceTest.steps.items.map(BuildStep::name)
         )
 
         val expectedRunnerParams = listOf(
             "-PperformanceBaselines=%performance.baselines%",
             "-PtestJavaVersion=8",
             "-PtestJavaVendor=oracle",
+            "-PautoDownloadAndroidStudio=true",
+            "-PrunAndroidStudioInHeadlessMode=true",
             "-Porg.gradle.java.installations.auto-download=false",
-            "\"-Porg.gradle.java.installations.paths=%linux.java8.oracle.64bit%,%linux.java11.openjdk.64bit%,%linux.java15.openjdk.64bit%,%linux.java16.openjdk.64bit%,%linux.java17.openjdk.64bit%,%linux.java18.openjdk.64bit%\"",
+            "\"-Porg.gradle.java.installations.paths=%linux.java8.oracle.64bit%,%linux.java11.adoptiumopenjdk.64bit%,%linux.java17.adoptiumopenjdk.64bit%,%linux.java18.adoptiumopenjdk.64bit%\"",
             "\"-Porg.gradle.performance.branchName=%teamcity.build.branch%\"",
             "\"-Porg.gradle.performance.db.url=%performance.db.url%\"",
             "\"-Porg.gradle.performance.db.username=%performance.db.username%\"",
@@ -90,18 +102,21 @@ class PerformanceTestBuildTypeTest {
             "-Dorg.gradle.internal.plugins.portal.url.override=%gradle.plugins.portal.url%",
             "-s",
             "--no-configuration-cache",
+            "%additional.gradle.parameters%",
             "--daemon",
             "--continue",
             "\"-Dscan.tag.PerformanceTest\""
         )
 
         assertEquals(
-            (listOf(
-                "clean",
-                ":performance:largeTestProjectPerformanceTest --channel %performance.channel% ",
-                ":performance:smallTestProjectPerformanceTest --channel %performance.channel% ",
-                "extraParameters"
-            ) + expectedRunnerParams).joinToString(" "),
+            (
+                listOf(
+                    "clean",
+                    ":performance:largeTestProjectPerformanceTest --channel %performance.channel% ",
+                    ":performance:smallTestProjectPerformanceTest --channel %performance.channel% ",
+                    "extraParameters"
+                ) + expectedRunnerParams
+                ).joinToString(" "),
             performanceTest.getGradleStep("GRADLE_RUNNER").gradleParams!!.trim()
         )
         assertEquals(BuildStep.ExecutionMode.DEFAULT, performanceTest.getGradleStep("GRADLE_RUNNER").executionMode)

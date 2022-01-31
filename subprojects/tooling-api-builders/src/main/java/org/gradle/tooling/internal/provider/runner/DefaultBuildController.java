@@ -184,6 +184,7 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
     }
 
     private ProjectState findProject(BuildState build, GradleProjectIdentity projectIdentity) {
+        build.ensureProjectsLoaded();
         return build.getProjects().getProject(Path.path(projectIdentity.getProjectPath()));
     }
 

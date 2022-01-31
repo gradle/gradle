@@ -294,17 +294,34 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         taskGraph.allTasks.empty
     }
 
-    def "discards tasks after execute"() {
+    def "retains all tasks list after execute until next execution"() {
         Task a = task("a")
         Task b = task("b", a)
+        Task c = task("c")
 
         when:
-        populateAndExecute([b])
+        executionPlan.addEntryTasks([b])
+        executionPlan.determineExecutionPlan()
+        taskGraph.populate(executionPlan)
+        taskGraph.allTasks
+        taskGraph.execute(executionPlan, failures)
+
+        then:
+        // tests existing behaviour, not desired behaviour
+        !taskGraph.hasTask(":a")
+        !taskGraph.hasTask(a)
+        taskGraph.allTasks == [a, b]
+
+        when:
+        def plan2 = newExecutionPlan()
+        plan2.addEntryTasks([c])
+        plan2.determineExecutionPlan()
+        taskGraph.populate(plan2)
 
         then:
         !taskGraph.hasTask(":a")
         !taskGraph.hasTask(a)
-        taskGraph.allTasks.isEmpty()
+        taskGraph.allTasks == [c]
     }
 
     def "can execute multiple times"() {
@@ -605,6 +622,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
 
     def addDependencies(Task task, Task... dependsOn) {
         _ * task.taskDependencies >> taskDependencyResolvingTo(task, dependsOn as List)
+        _ * task.lifecycleDependencies >> taskDependencyResolvingTo(task, dependsOn as List)
         _ * task.finalizedBy >> taskDependencyResolvingTo(task, [])
         _ * task.shouldRunAfter >> taskDependencyResolvingTo(task, [])
         _ * task.mustRunAfter >> taskDependencyResolvingTo(task, [])
@@ -621,6 +639,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
             rethrowFailure() >> { throw failure }
         }
         _ * mock.taskDependencies >> Stub(TaskDependency)
+        _ * mock.lifecycleDependencies >> Stub(TaskDependency)
         _ * mock.finalizedBy >> Stub(TaskDependency)
         _ * mock.mustRunAfter >> Stub(TaskDependency)
         _ * mock.shouldRunAfter >> Stub(TaskDependency)

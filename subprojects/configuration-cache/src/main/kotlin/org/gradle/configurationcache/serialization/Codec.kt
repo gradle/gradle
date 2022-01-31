@@ -94,7 +94,7 @@ interface IsolateContext {
 
     val isolate: Isolate
 
-    var trace: PropertyTrace
+    val trace: PropertyTrace
 
     fun onProblem(problem: PropertyProblem)
 }
@@ -144,10 +144,14 @@ interface ReadIsolate : Isolate {
 }
 
 
-interface MutableIsolateContext {
+interface MutableIsolateContext : IsolateContext {
+    override var trace: PropertyTrace
+
     fun push(codec: Codec<Any?>)
     fun push(owner: IsolateOwner, codec: Codec<Any?>)
     fun pop()
+
+    suspend fun forIncompatibleType(action: suspend () -> Unit)
 }
 
 
@@ -197,14 +201,14 @@ inline fun <T : MutableIsolateContext, R> T.withCodec(codec: Codec<Any?>, block:
 
 
 internal
-inline fun <T : IsolateContext, R> T.withBeanTrace(beanType: Class<*>, action: () -> R): R =
+inline fun <T : MutableIsolateContext, R> T.withBeanTrace(beanType: Class<*>, action: () -> R): R =
     withPropertyTrace(PropertyTrace.Bean(beanType, trace)) {
         action()
     }
 
 
 internal
-inline fun <T : IsolateContext, R> T.withPropertyTrace(trace: PropertyTrace, block: T.() -> R): R {
+inline fun <T : MutableIsolateContext, R> T.withPropertyTrace(trace: PropertyTrace, block: T.() -> R): R {
     val previousTrace = this.trace
     this.trace = trace
     try {

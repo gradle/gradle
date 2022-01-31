@@ -24,6 +24,7 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.logging.Logger
 import org.gradle.api.provider.ValueSource
 import org.gradle.api.provider.ValueSourceParameters
+import org.gradle.configurationcache.CheckedFingerprint
 import org.gradle.configurationcache.problems.PropertyProblem
 import org.gradle.configurationcache.problems.PropertyTrace
 import org.gradle.configurationcache.serialization.Codec
@@ -229,10 +230,15 @@ class ConfigurationCacheFingerprintCheckerTest {
             write(null)
         }
 
-        return readContext.runReadOperation {
+        val checkedFingerprint = readContext.runReadOperation {
             ConfigurationCacheFingerprintChecker(host).run {
-                checkFingerprint()
+                checkBuildScopedFingerprint()
             }
+        }
+        return when (checkedFingerprint) {
+            is CheckedFingerprint.Valid -> null
+            is CheckedFingerprint.EntryInvalid -> checkedFingerprint.reason
+            else -> throw IllegalArgumentException()
         }
     }
 
@@ -302,6 +308,9 @@ class ConfigurationCacheFingerprintCheckerTest {
             undefined()
 
         override fun pop(): Unit =
+            undefined()
+
+        override suspend fun forIncompatibleType(action: suspend () -> Unit) =
             undefined()
 
         override fun writeNullableString(value: CharSequence?): Unit =
@@ -399,6 +408,9 @@ class ConfigurationCacheFingerprintCheckerTest {
             undefined()
 
         override fun pop(): Unit =
+            undefined()
+
+        override suspend fun forIncompatibleType(action: suspend () -> Unit) =
             undefined()
 
         override fun readInt(): Int =

@@ -17,7 +17,6 @@
 package org.gradle.buildinit.plugins
 
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
-import spock.lang.Unroll
 
 class GroovyApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
 
@@ -27,7 +26,6 @@ class GroovyApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
     @Override
     String subprojectName() { 'app' }
 
-    @Unroll
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'groovy-application', '--dsl', scriptDsl.id)
@@ -55,7 +53,6 @@ class GroovyApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    @Unroll
     def "creates sample source using spock instead of junit with #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'groovy-application', '--test-framework', 'spock', '--dsl', scriptDsl.id)
@@ -77,7 +74,6 @@ class GroovyApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    @Unroll
     def "specifying TestNG is not supported with #scriptDsl build scripts"() {
         when:
         fails('init', '--type', 'groovy-application', '--test-framework', 'testng', '--dsl', scriptDsl.id)
@@ -90,7 +86,6 @@ class GroovyApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    @Unroll
     def "creates sample source with package and #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'groovy-application', '--package', 'my.app', '--dsl', scriptDsl.id)
@@ -118,7 +113,6 @@ class GroovyApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    @Unroll
     def "creates build using test suites with #scriptDsl build scripts when using --incubating"() {
         def dslFixture = dslFixtureFor(scriptDsl)
 
@@ -149,7 +143,6 @@ class GroovyApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    @Unroll
     def "source generation is skipped when groovy sources detected with #scriptDsl build scripts"() {
         setup:
         subprojectDir.file("src/main/groovy/org/acme/SampleMain.groovy") << """

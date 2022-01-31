@@ -18,7 +18,6 @@ package org.gradle.integtests.resolve.locking
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import spock.lang.Unroll
 
 class LockingInteractionsIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
@@ -97,7 +96,6 @@ dependencies {
         lockfileFixture.verifyLockfile('lockedConf', [])
     }
 
-    @Unroll
     @ToBeFixedForConfigurationCache
     def "can lock when using latest.#level"() {
         mavenRepo.module('org', 'bar', '1.0').publish()
@@ -142,7 +140,6 @@ dependencies {
         'integration' | '1.0-SNAPSHOT'
     }
 
-    @Unroll
     @ToBeFixedForConfigurationCache
     def "can write lock when using #version"() {
         mavenRepo.module('org', 'bar', '1.0').publish()
@@ -232,7 +229,6 @@ dependencies {
         succeeds 'dependencies'
     }
 
-    @Unroll
     @ToBeFixedForConfigurationCache
     def "can update a single lock entry when using #version"() {
         ['bar', 'baz', 'foo'].each { artifactId ->

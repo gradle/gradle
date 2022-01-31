@@ -18,7 +18,6 @@ package org.gradle.internal.execution.history.changes
 
 
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class TrivialChangeDetectorTest extends Specification {
     def itemComparator = Mock(TrivialChangeDetector.ItemComparator)
@@ -120,7 +119,6 @@ class TrivialChangeDetectorTest extends Specification {
         0 * _
     }
 
-    @Unroll
     def "too many elements are delegated (#current.size() current vs #previous.size() previous items)"() {
         when:
         detector.visitChangesSince(previous, current, "test", visitor)

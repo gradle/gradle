@@ -3,6 +3,10 @@ plugins {
     id("gradlebuild.update-init-template-versions")
 }
 
+description = """This project contains the Build Init plugin, which is automatically applied to the root project of every build, and provides the init and wrapper tasks.
+
+This project should NOT be used as an implementation dependency anywhere (except when building a Gradle distribution)."""
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":logging"))
@@ -17,6 +21,7 @@ dependencies {
     implementation(project(":resources"))
     implementation(project(":workers"))
     implementation(project(":wrapper"))
+    implementation(project(":wrapper-shared"))
     implementation(project(":testing-base"))
 
     implementation(libs.groovy)

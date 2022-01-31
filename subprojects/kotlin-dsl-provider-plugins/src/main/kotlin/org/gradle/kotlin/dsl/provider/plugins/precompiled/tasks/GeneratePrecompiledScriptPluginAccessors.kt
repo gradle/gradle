@@ -21,9 +21,7 @@ import org.gradle.api.GradleException
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.ProjectLayout
-import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.StartParameterInternal
-import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.provider.Property
@@ -328,7 +326,7 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
             controller.withEmptyBuild { settings ->
                 Try.ofFailable {
                     val gradle = settings.gradle
-                    val baseScope = coreAndPluginsScopeOf(gradle).createChild("accessors-classpath").apply {
+                    val baseScope = classLoaderScopeRegistry.coreAndPluginsScope.createChild("accessors-classpath").apply {
                         // we export the build logic classpath to the base scope here so that all referenced plugins
                         // can be resolved in the root project scope created below.
                         export(buildLogicClassPath)
@@ -380,10 +378,6 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
         override fun newInstance(): StartParameterInternal = throw UnsupportedOperationException()
         override fun newBuild(): StartParameterInternal = throw UnsupportedOperationException()
     }
-
-    private
-    fun coreAndPluginsScopeOf(gradle: GradleInternal): ClassLoaderScope =
-        gradle.serviceOf<ClassLoaderScopeRegistry>().coreAndPluginsScope
 
     private
     fun buildLogicClassPath(): ClassPath =

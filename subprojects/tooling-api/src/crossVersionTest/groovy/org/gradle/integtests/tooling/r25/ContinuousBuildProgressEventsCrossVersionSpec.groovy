@@ -19,7 +19,6 @@ package org.gradle.integtests.tooling.r25
 import org.gradle.integtests.tooling.fixture.ContinuousBuildToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.tooling.BuildLauncher
-import spock.lang.Ignore
 
 class ContinuousBuildProgressEventsCrossVersionSpec extends ContinuousBuildToolingApiSpecification {
 
@@ -29,7 +28,6 @@ class ContinuousBuildProgressEventsCrossVersionSpec extends ContinuousBuildTooli
         launcher.addProgressListener(events)
     }
 
-    @Ignore("https://github.com/gradle/gradle-private/issues/3462")
     def "client can receive appropriate logging and progress events for subsequent builds"() {
         when:
         def javaSrcFile = sourceDir.file("Thing.java") << 'public class Thing {}'

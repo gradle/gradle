@@ -17,11 +17,9 @@
 package org.gradle.internal.snapshot
 
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
 
-@Unroll
 class VfsRelativePathTest extends Specification {
 
     def "convert absolute path '#absolutePath' to relative path '#relativePath'"() {
@@ -38,6 +36,7 @@ class VfsRelativePathTest extends Specification {
         '/a'                   | 'a'
         '/a/b/c'               | 'a/b/c'
         '/a/b/c/'              | 'a/b/c'
+        ''                     | ''
     }
 
     def "'#relativePath' fromChild '#child' is '#result'"() {

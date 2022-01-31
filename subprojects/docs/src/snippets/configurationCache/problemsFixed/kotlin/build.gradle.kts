@@ -19,8 +19,6 @@ abstract class MyCopyTask : DefaultTask() { // <1>
 tasks.register<MyCopyTask>("someTask") {
     val projectDir = layout.projectDirectory
     source.set(projectDir.dir("source"))
-    destination.set(projectDir.dir(
-        providers.systemProperty("someDestination").forUseAtConfigurationTime().get() // <4>
-    ))
+    destination.set(projectDir.dir(System.getProperty("someDestination")))
 }
 // end::fixed[]

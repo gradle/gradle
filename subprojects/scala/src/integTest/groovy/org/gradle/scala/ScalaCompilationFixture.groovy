@@ -19,6 +19,7 @@ package org.gradle.scala
 import org.gradle.api.plugins.scala.ScalaBasePlugin
 import org.gradle.integtests.fixtures.ScalaCoverage
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.internal.VersionNumber
 
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepository
 
@@ -27,6 +28,7 @@ class ScalaCompilationFixture {
     final ScalaClass basicClassSource
     final ScalaClass classDependingOnBasicClassSource
     final ScalaClass independentClassSource
+    final ScalaClass extraClass
     final String sourceSet
     String scalaVersion
     String zincVersion
@@ -68,6 +70,11 @@ class ScalaCompilationFixture {
             'class Other',
             'class Other(val some: String)'
         )
+        extraClass = new ScalaClass(
+            'City',
+            'class City',
+            'class City(val name: String)'
+        )
     }
 
     def buildScript() {
@@ -81,7 +88,7 @@ class ScalaCompilationFixture {
             }
 
             dependencies {
-                implementation "org.scala-lang:scala-library:${scalaVersion}"
+                implementation "${scalaDependency}"
             }
 
             sourceSets {
@@ -97,10 +104,22 @@ class ScalaCompilationFixture {
         """.stripIndent()
     }
 
+    String getScalaDependency() {
+        if (VersionNumber.parse(scalaVersion) < VersionNumber.parse('3.0')) {
+            return "org.scala-lang:scala-library:${scalaVersion}"
+        } else {
+            return "org.scala-lang:scala3-library_3:${scalaVersion}"
+        }
+    }
+
     void baseline() {
         basicClassSource.create()
         classDependingOnBasicClassSource.create()
         independentClassSource.create()
+    }
+
+    void extra() {
+        extraClass.create()
     }
 
     List<ScalaClass> getAll() {

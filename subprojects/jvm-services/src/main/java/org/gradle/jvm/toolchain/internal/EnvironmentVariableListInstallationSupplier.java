@@ -38,7 +38,7 @@ public class EnvironmentVariableListInstallationSupplier implements Installation
 
     @Override
     public Set<InstallationLocation> get() {
-        final Provider<String> property = factory.gradleProperty("org.gradle.java.installations.fromEnv").forUseAtConfigurationTime();
+        final Provider<String> property = factory.gradleProperty("org.gradle.java.installations.fromEnv");
         if (property.isPresent()) {
             final String listOfEnvironmentVariables = property.get();
             return Arrays.stream(listOfEnvironmentVariables.split(","))
@@ -62,7 +62,7 @@ public class EnvironmentVariableListInstallationSupplier implements Installation
     }
 
     private Provider<String> environmentVariableValue(String environmentVariable) {
-        return factory.environmentVariable(environmentVariable.trim()).forUseAtConfigurationTime();
+        return factory.environmentVariable(environmentVariable.trim());
     }
 
 

@@ -22,7 +22,6 @@ import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
 import org.gradle.profiler.BuildContext
 import org.gradle.profiler.BuildMutator
-import spock.lang.Unroll
 
 import static org.gradle.performance.annotations.ScenarioType.PER_COMMIT
 import static org.gradle.performance.results.OperatingSystem.LINUX
@@ -33,11 +32,10 @@ import static org.gradle.performance.results.OperatingSystem.LINUX
 class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def setup() {
-        runner.targetVersions = ["7.2-20210720234250+0000"]
+        runner.targetVersions = ["7.4-20211214223504+0000"]
         runner.minimumBaseVersion = "4.0"
     }
 
-    @Unroll
     def "build with #parallelWorkers parallel workers"() {
         given:
         runner.tasksToRun = ['build']
@@ -63,7 +61,6 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerforman
         @Scenario(type = PER_COMMIT, operatingSystems = [LINUX], testProjects = ["mediumNativeMonolithic"], iterationMatcher = ".*(header|source) file.*"),
         @Scenario(type = PER_COMMIT, operatingSystems = [LINUX], testProjects = ["smallNativeMonolithic"], iterationMatcher = ".*build file.*")
     ])
-    @Unroll
     def "build with #changeType file change"() {
         given:
         runner.tasksToRun = ['build']

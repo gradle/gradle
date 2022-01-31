@@ -23,7 +23,7 @@ class UndeclaredBuildInputsKotlinSettingsScriptIntegrationTest extends AbstractU
     }
 
     @Override
-    void buildLogicApplication(SystemPropertyRead read) {
+    void buildLogicApplication(BuildInputRead read) {
         settingsKotlinFile << """
             println("apply = " + ${read.kotlinExpression})
 

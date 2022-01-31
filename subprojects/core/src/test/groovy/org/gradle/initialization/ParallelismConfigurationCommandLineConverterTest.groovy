@@ -19,7 +19,6 @@ import org.gradle.cli.CommandLineArgumentException
 import org.gradle.concurrent.ParallelismConfiguration
 import org.gradle.internal.concurrent.DefaultParallelismConfiguration
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class ParallelismConfigurationCommandLineConverterTest extends Specification {
     final def converter = new ParallelismBuildOptions().commandLineConverter()
@@ -57,7 +56,6 @@ class ParallelismConfigurationCommandLineConverterTest extends Specification {
         result.maxWorkerCount == Runtime.getRuntime().availableProcessors()
     }
 
-    @Unroll
     def "converts invalid max workers (#value)"() {
         when:
         convert("--max-workers", value);

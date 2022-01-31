@@ -375,7 +375,6 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
         );
         getTestDirectory().createDir("sub").file("build.gradle").writelns("task thing");
 
-        executer.expectDocumentedDeprecationWarning("Subproject ':sub' has location '" + file("sub").getAbsolutePath() + "' which is outside of the project root. This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#deprecated_flat_project_structure");
         inDirectory(settingsDir).withTasks("thing").run().assertTasksExecuted(":sub:thing");
     }
 

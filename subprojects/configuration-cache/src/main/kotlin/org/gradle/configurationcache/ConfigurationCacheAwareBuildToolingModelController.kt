@@ -18,7 +18,6 @@ package org.gradle.configurationcache
 
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectState
-import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprintController
 import org.gradle.internal.build.BuildToolingModelController
 import org.gradle.tooling.provider.model.internal.ToolingModelScope
 import java.util.function.Function
@@ -27,7 +26,7 @@ import java.util.function.Function
 internal
 class ConfigurationCacheAwareBuildToolingModelController(
     private val delegate: BuildToolingModelController,
-    private val controller: ConfigurationCacheFingerprintController
+    private val cache: BuildTreeConfigurationCache
 ) : BuildToolingModelController {
     override fun getConfiguredModel(): GradleInternal = delegate.configuredModel
 
@@ -41,24 +40,18 @@ class ConfigurationCacheAwareBuildToolingModelController(
 
     private
     fun wrap(scope: ToolingModelScope): ToolingModelScope {
-        val target = scope.target
-        return if (target == null) {
-            scope
-        } else {
-            ProjectModelScope(scope, target, controller)
-        }
+        return CachingToolingModelScope(scope, cache)
     }
 
     private
-    class ProjectModelScope(
-        val delegate: ToolingModelScope,
-        private val target: ProjectState,
-        val controller: ConfigurationCacheFingerprintController
+    class CachingToolingModelScope(
+        private val delegate: ToolingModelScope,
+        private val cache: BuildTreeConfigurationCache
     ) : ToolingModelScope {
-        override fun getTarget() = target
+        override fun getTarget() = delegate.target
 
-        override fun getModel(modelName: String, parameterFactory: Function<Class<*>, Any>?): Any {
-            return controller.collectFingerprintForProject(target.identityPath) {
+        override fun getModel(modelName: String, parameterFactory: Function<Class<*>, Any>?): Any? {
+            return cache.loadOrCreateIntermediateModel(target?.identityPath, modelName) {
                 delegate.getModel(modelName, parameterFactory)
             }
         }

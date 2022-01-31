@@ -37,12 +37,14 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
         configurationCacheRun(":assemble")
 
         then:
-        noExceptionThrown()
+        fixture.assertStateStored {
+            projectsConfigured(":", ":libs", ":libs:a")
+        }
 
         when:
         configurationCacheRun(":assemble")
 
         then:
-        noExceptionThrown()
+        fixture.assertStateLoaded()
     }
 }

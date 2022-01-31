@@ -86,7 +86,7 @@ public class GroovyCompile extends AbstractCompile implements HasCompileOptions 
     private FileCollection groovyClasspath;
     private final ConfigurableFileCollection astTransformationClasspath;
     private final CompileOptions compileOptions;
-    private final GroovyCompileOptions groovyCompileOptions = new GroovyCompileOptions();
+    private final GroovyCompileOptions groovyCompileOptions = getProject().getObjects().newInstance(GroovyCompileOptions.class);
     private final FileCollection stableSources = getProject().files((Callable<FileTree>) this::getSource);
     private final Property<JavaLauncher> javaLauncher;
     private File previousCompilationDataFile;
@@ -194,7 +194,8 @@ public class GroovyCompile extends AbstractCompile implements HasCompileOptions 
      */
     @SkipWhenEmpty
     @IgnoreEmptyDirectories
-    @PathSensitive(PathSensitivity.RELATIVE) // Java source files are supported, too. Therefore we should care about the relative path.
+    // Java source files are supported, too. Therefore, we should care about the relative path.
+    @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
     protected FileCollection getStableSources() {
         return stableSources;

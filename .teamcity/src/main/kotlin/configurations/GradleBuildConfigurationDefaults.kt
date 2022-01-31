@@ -1,6 +1,7 @@
 package configurations
 
 import common.Os
+import common.VersionedSettingsBranch
 import common.applyDefaultSettings
 import common.buildToolGradleParameters
 import common.checkCleanM2AndAndroidUserHome
@@ -70,22 +71,22 @@ fun BuildFeatures.publishBuildStatusToGithub(model: CIBuildModel) {
     }
 }
 
-fun BuildFeatures.triggeredOnPullRequests(model: CIBuildModel) {
+fun BuildFeatures.enablePullRequestFeature() {
     pullRequests {
-        vcsRootExtId = "Gradle_Branches_GradlePersonalBranches"
+        vcsRootExtId = "GradleBuildTooBranches"
         provider = github {
             authType = token {
-                token = "%github.bot-gradle.token%"
+                token = "%github.bot-teamcity.token%"
             }
-            filterAuthorRole = PullRequests.GitHubRoleFilter.MEMBER
-            filterTargetBranch = model.branch.branchFilter()
+            filterAuthorRole = PullRequests.GitHubRoleFilter.EVERYBODY
+            filterTargetBranch = "+:refs/heads/${VersionedSettingsBranch.fromDslContext().branchName}"
         }
     }
 }
 
 fun BuildFeatures.publishBuildStatusToGithub() {
     commitStatusPublisher {
-        vcsRootExtId = "Gradle_Branches_GradlePersonalBranches"
+        vcsRootExtId = "GradleBuildTooBranches"
         publisher = github {
             githubUrl = "https://api.github.com"
             authType = personalToken {
@@ -130,7 +131,7 @@ fun BuildType.attachFileLeakDetector() {
             executionMode = BuildStep.ExecutionMode.ALWAYS
             scriptContent = """
             "%windows.java11.openjdk.64bit%\bin\java" gradle/AttachAgentToDaemon.java
-        """.trimIndent()
+            """.trimIndent()
         }
     }
 }
@@ -156,7 +157,17 @@ fun BuildType.dumpOpenFiles() {
     }
 }
 
-fun applyDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTasks: String, notQuick: Boolean = false, os: Os = Os.LINUX, extraParameters: String = "", timeout: Int = 90, extraSteps: BuildSteps.() -> Unit = {}, daemon: Boolean = true) {
+fun applyDefaults(
+    model: CIBuildModel,
+    buildType: BaseGradleBuildType,
+    gradleTasks: String,
+    notQuick: Boolean = false,
+    os: Os = Os.LINUX,
+    extraParameters: String = "",
+    timeout: Int = 90,
+    daemon: Boolean = true,
+    extraSteps: BuildSteps.() -> Unit = {}
+) {
     buildType.applyDefaultSettings(os, timeout = timeout)
 
     buildType.killProcessStep("KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS", daemon)

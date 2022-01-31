@@ -19,8 +19,10 @@ package org.gradle.api.plugins
 import org.gradle.api.internal.component.BuildableJavaComponent
 import org.gradle.api.internal.component.ComponentRegistry
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.InspectsOutgoingVariants
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
-class JavaPluginIntegrationTest extends AbstractIntegrationSpec {
+class JavaPluginIntegrationTest extends AbstractIntegrationSpec implements InspectsOutgoingVariants {
 
     def appliesBasePluginsAndAddsConventionObject() {
         given:
@@ -44,4 +46,195 @@ class JavaPluginIntegrationTest extends AbstractIntegrationSpec {
         succeeds "expect"
     }
 
+    @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
+    def "Java plugin adds outgoing variant for main source set"() {
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+            """
+
+        expect:
+        succeeds "outgoingVariants"
+
+        outputContains("""
+            --------------------------------------------------
+            Variant mainSourceElements (i)
+            --------------------------------------------------
+            Description = List of source directories contained in the Main SourceSet.
+
+            Capabilities
+                - :${getTestDirectory().getName()}:unspecified (default capability)
+            Attributes
+                - org.gradle.category            = verification
+                - org.gradle.dependency.bundling = external
+                - org.gradle.verificationtype    = main-sources
+
+            Artifacts
+                - src${File.separator}main${File.separator}java (artifactType = directory)
+                - src${File.separator}main${File.separator}resources (artifactType = directory)
+            """.stripIndent())
+
+        and:
+        hasIncubatingVariantsLegend()
+    }
+
+    @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
+    def "Java plugin adds outgoing variant for main source set containing additional directories"() {
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            sourceSets.main.java.srcDir 'src/more/java'
+            """
+        file("src/more/java").createDir()
+
+        expect:
+        succeeds "outgoingVariants"
+
+        outputContains("""
+            --------------------------------------------------
+            Variant mainSourceElements (i)
+            --------------------------------------------------
+            Description = List of source directories contained in the Main SourceSet.
+
+            Capabilities
+                - :${getTestDirectory().getName()}:unspecified (default capability)
+            Attributes
+                - org.gradle.category            = verification
+                - org.gradle.dependency.bundling = external
+                - org.gradle.verificationtype    = main-sources
+
+            Artifacts
+                - src${File.separator}main${File.separator}java (artifactType = directory)
+                - src${File.separator}more${File.separator}java (artifactType = directory)
+                - src${File.separator}main${File.separator}resources (artifactType = directory)
+            """.stripIndent())
+
+        and:
+        hasIncubatingVariantsLegend()
+    }
+
+    def "mainSourceElements can be consumed by another task via Dependency Management"() {
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            // A resolvable configuration to collect source data
+            def sourceElementsConfig = configurations.create("sourceElements") {
+                visible = true
+                canBeResolved = true
+                canBeConsumed = false
+                attributes {
+                    attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.VERIFICATION))
+                    attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objects.named(VerificationType.class, VerificationType.MAIN_SOURCES))
+                }
+            }
+
+            dependencies {
+                sourceElements project
+            }
+
+            def expectedResolvedFiles = [project.file("src/main/resources"), project.file("src/main/java")]
+
+            def testResolve = tasks.register('testResolve') {
+                doLast {
+                    assert sourceElementsConfig.getResolvedConfiguration().getFiles().containsAll(expectedResolvedFiles)
+                }
+            }
+            """.stripIndent()
+
+        file("src/main/java/com/example/MyClass.java") << """
+            package com.example;
+
+            public class MyClass {
+                public void hello() {
+                    System.out.println("Hello");
+                }
+            }
+            """.stripIndent()
+
+        expect:
+        succeeds('testResolve')
+    }
+
+    def "mainSourceElements can be consumed by another task in a different project via Dependency Management"() {
+        def subADir = createDir("subA")
+        def buildFileA = subADir.file("build.gradle") << """
+            plugins {
+                id 'java'
+            }
+            """.stripIndent()
+
+        subADir.file("src/test/java/com/exampleA/MyClassA.java") << """
+            package com.exampleA;
+
+            public class MyClassA {
+                public void hello() {
+                    System.out.println("Hello");
+                }
+            }
+            """.stripIndent()
+
+        def subBDir = createDir("subB")
+        def buildFileB = subBDir.file("build.gradle") << """
+            plugins {
+                id 'java'
+            }
+            """.stripIndent()
+
+        subBDir.file("src/test/java/com/exampleB/MyClassB.java") << """
+            package com.exampleB;
+
+            public class MyClassB {
+                public void hello() {
+                    System.out.println("Hello");
+                }
+            }
+            """.stripIndent()
+
+        settingsFile << """
+            include ':subA'
+            include ':subB'
+            """.stripIndent()
+
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            dependencies {
+                implementation project(':subA')
+                implementation project(':subB')
+            }
+
+            // A resolvable configuration to collect JaCoCo coverage data
+            def sourceElementsConfig = configurations.create("sourceElements") {
+                visible = true
+                canBeResolved = true
+                canBeConsumed = false
+                extendsFrom(configurations.implementation)
+                attributes {
+                    attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.VERIFICATION))
+                    attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objects.named(VerificationType, VerificationType.MAIN_SOURCES))
+                }
+            }
+
+            def expectedResolvedFiles = [project(':subA').file("src/main/resources"),
+                                         project(':subA').file("src/main/java"),
+                                         project(':subB').file("src/main/resources"),
+                                         project(':subB').file("src/main/java")]
+
+            def testResolve = tasks.register('testResolve') {
+                doLast {
+                    assert sourceElementsConfig.getResolvedConfiguration().getFiles().containsAll(expectedResolvedFiles)
+                }
+            }
+            """.stripIndent()
+
+        expect:
+        succeeds('testResolve')
+    }
 }

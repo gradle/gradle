@@ -46,7 +46,7 @@ Note that the location of the Gradle user home may have been changed beforehand 
 The following properties can be used to configure the Gradle build environment:
 
 `org.gradle.caching=(true,false)`::
-When set to true, Gradle will reuse task outputs from any previous build, when possible, resulting is much faster builds. Learn more about <<build_cache.adoc#build_cache, using the build cache>>.
+When set to true, Gradle will reuse task outputs from any previous build, when possible, resulting in much faster builds. Learn more about <<build_cache.adoc#build_cache, using the build cache>>.
 _By default, the build cache is *not* enabled._
 
 `org.gradle.caching.debug=(true,false)`::
@@ -72,6 +72,18 @@ _Default is `10800000` (3 hours)._
 `org.gradle.debug=(true,false)`::
 When set to `true`, Gradle will run the build with remote debugging enabled, listening on port 5005. Note that this is the equivalent of adding `-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005` to the JVM command line and will suspend the virtual machine until a debugger is attached.
 _Default is `false`._
+
+`org.gradle.debug.port=(port number)`::
+Specifies the port number to listen on when debug is enabled.
+_Default is `5005`._
+
+`org.gradle.debug.server=(true,false)`::
+If set to `true` and debugging is enabled, Gradle will run the build with the socket-attach mode of the debugger. Otherwise, the socket-listen mode is used.
+_Default is `true`._
+
+`org.gradle.debug.suspend=(true,false)`::
+When set to `true` and debugging is enabled, the JVM running Gradle will suspend until a debugger is attached.
+_Default is `true`._
 
 `org.gradle.java.home=(path to JDK home)`::
 Specifies the Java home for the Gradle build process. The value can be set to either a `jdk` or `jre` location, however, depending on what your build does, using a JDK is safer. This does not affect the version of Java used to launch the Gradle client VM (<<#sec:gradle_environment_variables, see Environment variables>>).
@@ -109,6 +121,13 @@ _Default is `summary`._
 `org.gradle.workers.max=(max # of worker processes)`::
 When configured, Gradle will use a maximum of the given number of workers. See also <<command_line_interface.adoc#sec:command_line_performance, performance command-line options>>.
 _Default is number of CPU processors._
+
+`org.gradle.logging.stacktrace=(internal,all,full)`::
+Specifies whether stacktraces should be displayed as part of the build result upon an exception. See also the <<command_line_interface.adoc#sec:command_line_debugging, --stacktrace command-line option>>.
+When set to `internal`, a stacktrace is present in the output only in case of internal exceptions.
+When set to `all` or `full`, a stacktrace is present in the output for all exceptions and build failures.
+Using `full` doesn't truncate the stacktrace, which leads to a much more verbose output.
+_Default is `internal`._
 
 The following example demonstrates usage of various properties.
 
@@ -215,7 +234,7 @@ The `JAVA_OPTS` environment variable controls the command line client, which is 
 
 .Changing JVM settings for the client VM
 ----
-JAVA_OPTS="-Xmx64m -XX:MaxPermSize=64m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8"
+JAVA_OPTS="-Xmx64m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8"
 ----
 
 [NOTE]
@@ -281,6 +300,7 @@ systemProp.https.proxyHost=www.somehost.org
 systemProp.https.proxyPort=8080
 systemProp.https.proxyUser=userid
 systemProp.https.proxyPassword=password
+# NOTE: this is not a typo.
 systemProp.http.nonProxyHosts=*.nonproxyrepos.com|localhost
 ----
 

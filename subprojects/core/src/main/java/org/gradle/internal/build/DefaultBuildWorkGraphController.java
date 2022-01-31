@@ -20,6 +20,7 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.composite.internal.IncludedBuildTaskResource;
+import org.gradle.composite.internal.TaskIdentifier;
 import org.gradle.execution.plan.BuildWorkPlan;
 import org.gradle.execution.plan.TaskNode;
 import org.gradle.execution.plan.TaskNodeFactory;
@@ -47,15 +48,12 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
     }
 
     @Override
-    public ExportedTaskNode locateTask(TaskInternal task) {
-        DefaultExportedTaskNode node = doLocate(task.getPath());
-        node.maybeBindTask(task);
+    public ExportedTaskNode locateTask(TaskIdentifier taskIdentifier) {
+        DefaultExportedTaskNode node = doLocate(taskIdentifier);
+        if (taskIdentifier instanceof TaskIdentifier.TaskBasedTaskIdentifier) {
+            node.maybeBindTask(((TaskIdentifier.TaskBasedTaskIdentifier) taskIdentifier).getTask());
+        }
         return node;
-    }
-
-    @Override
-    public ExportedTaskNode locateTask(String taskPath) {
-        return doLocate(taskPath);
     }
 
     @Override
@@ -69,8 +67,8 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
         }
     }
 
-    private DefaultExportedTaskNode doLocate(String taskPath) {
-        return nodesByPath.computeIfAbsent(taskPath, DefaultExportedTaskNode::new);
+    private DefaultExportedTaskNode doLocate(TaskIdentifier taskIdentifier) {
+        return nodesByPath.computeIfAbsent(taskIdentifier.getTaskPath(), taskPath -> new DefaultExportedTaskNode(taskPath, taskIdentifier.getOrdinal()));
     }
 
     @Nullable
@@ -110,7 +108,7 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
             }
             projectStateRegistry.withMutableStateOfAllProjects(() -> {
                 createPlan();
-                controller.populateWorkGraph(plan, taskGraph -> taskGraph.addEntryTasks(tasks));
+                controller.populateWorkGraph(plan, workGraph -> workGraph.addEntryTasks(tasks));
             });
             return true;
         }
@@ -162,15 +160,22 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
     private class DefaultExportedTaskNode implements ExportedTaskNode {
         final String taskPath;
         TaskNode taskNode;
+        int ordinal;
 
-        DefaultExportedTaskNode(String taskPath) {
+        DefaultExportedTaskNode(String taskPath, int ordinal) {
             this.taskPath = taskPath;
+            this.ordinal = ordinal;
+        }
+
+        @Override
+        public int getOrdinal() {
+            return ordinal;
         }
 
         void maybeBindTask(TaskInternal task) {
             synchronized (lock) {
                 if (taskNode == null) {
-                    taskNode = taskNodeFactory.getOrCreateNode(task);
+                    taskNode = taskNodeFactory.getOrCreateNode(task, ordinal);
                 }
             }
         }
@@ -183,7 +188,7 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
                     if (task == null) {
                         throw new IllegalStateException("Task '" + taskPath + "' was never scheduled for execution.");
                     }
-                    taskNode = taskNodeFactory.getOrCreateNode(task);
+                    taskNode = taskNodeFactory.getOrCreateNode(task, ordinal);
                 }
                 return taskNode.getTask();
             }
@@ -198,7 +203,7 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
                         // Assume not scheduled yet
                         return IncludedBuildTaskResource.State.Waiting;
                     }
-                    taskNode = taskNodeFactory.getOrCreateNode(task);
+                    taskNode = taskNodeFactory.getOrCreateNode(task, ordinal);
                 }
                 if (taskNode.isExecuted() && taskNode.isSuccessful()) {
                     return IncludedBuildTaskResource.State.Success;

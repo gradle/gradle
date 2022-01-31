@@ -25,11 +25,9 @@ class AntlrSpecFactoryTest extends Specification {
     private AntlrSpecFactory factory = new AntlrSpecFactory()
     private FileCollection sourceSetDirectories = Mock()
 
-    def setup(){
-        1 * sourceSetDirectories.getFiles() >> []
-    }
     def tracePropertiesAddedToArgumentList() {
         when:
+        sourceSetDirectoriesAreEmptySet()
         AntlrTask task = Mock()
 
         _ * task.outputDirectory >> destFile()
@@ -48,8 +46,26 @@ class AntlrSpecFactoryTest extends Specification {
         spec.arguments.contains("-traceTreeWalker")
     }
 
+    def sourceSetDirectoriesNull() {
+        when:
+        AntlrTask task = Mock()
+
+        _ * task.outputDirectory >> destFile()
+        _ * task.getArguments() >> []
+        _ * task.isTrace() >> true
+        _ * task.isTraceLexer() >> true
+        _ * task.isTraceParser() >> true
+        _ * task.isTraceTreeWalker() >> true
+
+        def spec = factory.create(task, [] as Set, null)
+
+        then:
+        spec.inputDirectories.isEmpty()
+    }
+
     def customTraceArgumentsOverrideProperties() {
         when:
+        sourceSetDirectoriesAreEmptySet()
         AntlrTask task = Mock()
         _ * task.outputDirectory >> destFile()
         _ * task.getArguments() >> ["-trace", "-traceLexer", "-traceParser", "-traceTreeWalker"]
@@ -65,6 +81,7 @@ class AntlrSpecFactoryTest extends Specification {
 
     def traceArgumentsDoNotDuplicateTrueTraceProperties() {
         when:
+        sourceSetDirectoriesAreEmptySet()
         AntlrTask task = Mock()
         _ * task.outputDirectory >> destFile()
         _ * task.getArguments() >> ["-trace", "-traceLexer", "-traceParser", "-traceTreeWalker"]
@@ -80,6 +97,10 @@ class AntlrSpecFactoryTest extends Specification {
         spec.arguments.count { it == "-traceLexer" } == 1
         spec.arguments.count { it == "-traceParser" } == 1
         spec.arguments.count { it == "-traceTreeWalker" } == 1
+    }
+
+    private void sourceSetDirectoriesAreEmptySet() {
+        1 * sourceSetDirectories.getFiles() >> []
     }
 
     def destFile() {

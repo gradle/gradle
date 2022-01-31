@@ -2,6 +2,8 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
+description = "Implementation for interacting with repositories over HTTP"
+
 dependencies {
     api(project(":resources"))
     implementation(project(":base-services"))

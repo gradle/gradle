@@ -66,7 +66,10 @@ import java.lang.reflect.Modifier.isStatic
  * - validations registered via [ObjectInputStream.registerValidation] are simply ignored;
  * - the `readObjectNoData` method, if present, is never invoked;
  */
-class JavaObjectSerializationCodec : EncodingProducer, Decoding {
+internal
+class JavaObjectSerializationCodec(
+    private val lookup: JavaSerializationEncodingLookup
+) : EncodingProducer, Decoding {
 
     private
     val readResolveMethod = MethodCache { isReadResolve() }
@@ -76,34 +79,8 @@ class JavaObjectSerializationCodec : EncodingProducer, Decoding {
 
     override fun encodingForType(type: Class<*>): Encoding? =
         type.takeIf { Serializable::class.java.isAssignableFrom(it) }?.let { serializableType ->
-            val candidates = serializableType.allMethods()
-            writeReplaceEncodingFor(candidates)
-                ?: readResolveEncodingFor(candidates)
-                ?: writeObjectEncodingFor(candidates)
-                ?: readObjectEncodingFor(candidates)
+            lookup.encodingFor(serializableType)
         }
-
-    private
-    fun writeReplaceEncodingFor(candidates: List<Method>) =
-        writeReplaceMethodFrom(candidates)
-            ?.let(::WriteReplaceEncoding)
-
-    private
-    fun readResolveEncodingFor(candidates: List<Method>) =
-        readResolveMethodFrom(candidates)
-            ?.let { ReadResolveEncoding }
-
-    private
-    fun writeObjectEncodingFor(candidates: List<Method>): Encoding? =
-        writeObjectMethodHierarchyFrom(candidates)
-            .takeIf { it.isNotEmpty() }
-            ?.let(::WriteObjectEncoding)
-
-    private
-    fun readObjectEncodingFor(candidates: List<Method>): Encoding? =
-        readObjectMethodHierarchyFrom(candidates)
-            .takeIf { it.isNotEmpty() }
-            ?.let { ReadObjectEncoding }
 
     override suspend fun ReadContext.decode(): Any? =
         decodePreservingIdentity { id ->
@@ -150,7 +127,7 @@ class JavaObjectSerializationCodec : EncodingProducer, Decoding {
     fun ReadContext.objectInputStreamAdapterFor(bean: Any, beanStateReader: BeanStateReader): ObjectInputStreamAdapter =
         ObjectInputStreamAdapter(bean, beanStateReader, this)
 
-    private
+    internal
     class WriteObjectEncoding(private val writeObject: List<Method>) : EncodingProvider<Any> {
         override suspend fun WriteContext.encode(value: Any) {
             encodePreservingIdentityOf(value) {
@@ -186,7 +163,7 @@ class JavaObjectSerializationCodec : EncodingProducer, Decoding {
             }
     }
 
-    private
+    internal
     object ReadObjectEncoding : Encoding {
         override suspend fun WriteContext.encode(value: Any) {
             encodePreservingIdentityOf(value) {
@@ -196,7 +173,7 @@ class JavaObjectSerializationCodec : EncodingProducer, Decoding {
         }
     }
 
-    private
+    internal
     class WriteReplaceEncoding(private val writeReplace: Method) : EncodingProvider<Any> {
         override suspend fun WriteContext.encode(value: Any) {
             encodePreservingIdentityOf(value) {
@@ -207,7 +184,7 @@ class JavaObjectSerializationCodec : EncodingProducer, Decoding {
         }
     }
 
-    private
+    internal
     object ReadResolveEncoding : Encoding {
         override suspend fun WriteContext.encode(value: Any) {
             encodePreservingIdentityOf(value) {
@@ -232,32 +209,6 @@ class JavaObjectSerializationCodec : EncodingProducer, Decoding {
             else -> readResolve.invoke(bean)
         }
 
-    private
-    fun readResolveMethodFrom(candidates: List<Method>) =
-        candidates.find {
-            it.isReadResolve()
-        }
-
-    private
-    fun writeReplaceMethodFrom(candidates: List<Method>) =
-        candidates.firstAccessibleMatchingMethodOrNull {
-            !isStatic(modifiers)
-                && parameterCount == 0
-                && returnType == java.lang.Object::class.java
-                && name == "writeReplace"
-        }
-
-    private
-    fun Method.isReadResolve() =
-        !isStatic(modifiers)
-            && parameterCount == 0
-            && returnType == java.lang.Object::class.java
-            && name == "readResolve"
-
-    private
-    fun writeObjectMethodHierarchyFrom(candidates: List<Method>) = candidates
-        .serializationMethodHierarchy("writeObject", ObjectOutputStream::class.java)
-
     /**
      * Caches the computed `readObject` method hierarchies during decoding because [ReadContext.decode] might
      * be called multiple times for the same type.
@@ -267,25 +218,35 @@ class JavaObjectSerializationCodec : EncodingProducer, Decoding {
         readObjectHierarchy.computeIfAbsent(type) {
             readObjectMethodHierarchyFrom(it.allMethods())
         }
-
-    private
-    fun readObjectMethodHierarchyFrom(candidates: List<Method>): List<Method> = candidates
-        .serializationMethodHierarchy("readObject", ObjectInputStream::class.java)
-
-    private
-    fun Iterable<Method>.serializationMethodHierarchy(methodName: String, parameterType: Class<*>): List<Method> =
-        filter { method ->
-            method.run {
-                isPrivate(modifiers)
-                    && parameterCount == 1
-                    && returnType == Void.TYPE
-                    && name == methodName
-                    && parameterTypes[0].isAssignableFrom(parameterType)
-            }
-        }.onEach { serializationMethod ->
-            serializationMethod.isAccessible = true
-        }.reversed()
 }
+
+
+internal
+fun Method.isReadResolve() =
+    !isStatic(modifiers)
+        && parameterCount == 0
+        && returnType == java.lang.Object::class.java
+        && name == "readResolve"
+
+
+internal
+fun readObjectMethodHierarchyFrom(candidates: List<Method>): List<Method> = candidates
+    .serializationMethodHierarchy("readObject", ObjectInputStream::class.java)
+
+
+internal
+fun Iterable<Method>.serializationMethodHierarchy(methodName: String, parameterType: Class<*>): List<Method> =
+    filter { method ->
+        method.run {
+            isPrivate(modifiers)
+                && parameterCount == 1
+                && returnType == Void.TYPE
+                && name == methodName
+                && parameterTypes[0].isAssignableFrom(parameterType)
+        }
+    }.onEach { serializationMethod ->
+        serializationMethod.isAccessible = true
+    }.reversed()
 
 
 private

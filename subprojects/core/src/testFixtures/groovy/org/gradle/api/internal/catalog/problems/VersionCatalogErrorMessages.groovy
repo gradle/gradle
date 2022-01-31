@@ -69,6 +69,10 @@ trait VersionCatalogErrorMessages {
         buildMessage(UnexpectedFormatVersion, VersionCatalogProblemId.UNSUPPORTED_FORMAT_VERSION, spec)
     }
 
+    String aliasNotFinished(@DelegatesTo(value = AliasNotFinished, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+        buildMessage(AliasNotFinished, VersionCatalogProblemId.ALIAS_NOT_FINISHED, spec)
+    }
+
     String missingCatalogFile(@DelegatesTo(value = MissingCatalogFile, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
         buildMessage(MissingCatalogFile, VersionCatalogProblemId.CATALOG_FILE_DOES_NOT_EXIST, spec)
     }
@@ -140,7 +144,7 @@ trait VersionCatalogErrorMessages {
     static class NameClash extends InCatalog<NameClash> {
         private List<String> aliases = []
         private String getterName
-        private String kind = 'aliases'
+        private String kind = 'library aliases'
 
         NameClash inConflict(String... aliases) {
             Collections.addAll(this.aliases, aliases)
@@ -159,7 +163,7 @@ trait VersionCatalogErrorMessages {
 
         @Override
         String build() {
-            """${intro}  - Problem: In version catalog ${catalog}, dependency ${kind} ${aliases.join(' and ')} are mapped to the same accessor name ${getterName}().
+            """${intro}  - Problem: In version catalog ${catalog}, ${kind} ${aliases.join(' and ')} are mapped to the same accessor name ${getterName}().
 
     Reason: A name clash was detected.
 
@@ -361,7 +365,7 @@ ${solution}
 
     static class InvalidAliasNotation extends InCatalog<InvalidAliasNotation> {
         String alias
-        String kind = 'alias'
+        String kind = 'library'
         String notation
 
         InvalidAliasNotation() {
@@ -386,11 +390,11 @@ ${solution}
 
         @Override
         String build() {
-            """${intro}  - Problem: In version catalog ${catalog}, invalid ${kind} '${notation}' name.
+            """${intro}  - Problem: In version catalog ${catalog}, invalid ${kind} alias '${notation}'.
 
-    Reason: ${kind.capitalize()} names must match the following regular expression: [a-z]([a-zA-Z0-9_.\\-])+.
+    Reason: ${kind.capitalize()} aliases must match the following regular expression: [a-z]([a-zA-Z0-9_.\\-])+.
 
-    Possible solution: Make sure the name matches the [a-z]([a-zA-Z0-9_.\\-])+ regular expression.
+    Possible solution: Make sure the alias matches the [a-z]([a-zA-Z0-9_.\\-])+ regular expression.
 
     ${documentation}"""
         }
@@ -423,6 +427,35 @@ ${solution}
     Reason: This version of Gradle only supports format version ${expected}.
 
     Possible solution: Try to upgrade to a newer version of Gradle which supports the catalog format version ${unsupported}.
+
+    ${documentation}"""
+        }
+    }
+
+    static class AliasNotFinished extends InCatalog<AliasNotFinished> {
+
+        String alias
+
+        AliasNotFinished() {
+            intro = """Invalid catalog definition:
+"""
+        }
+
+        AliasNotFinished alias(String v) {
+            this.alias = v
+            this
+        }
+
+
+        @Override
+        String build() {
+            """${intro}  - Problem: In version catalog ${catalog}, dependency alias builder '${alias}' was not finished.
+
+    Reason: A version was not set or explicitly declared as not wanted.
+
+    Possible solutions:
+      1. Call `.version()` to give the alias a version.
+      2. Call `.withoutVersion()` to explicitly declare that the alias should not have a version.
 
     ${documentation}"""
         }

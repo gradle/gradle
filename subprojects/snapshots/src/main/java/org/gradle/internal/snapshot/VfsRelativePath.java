@@ -57,7 +57,7 @@ public class VfsRelativePath {
     }
 
     private static String normalizeRoot(String absolutePath) {
-        if (absolutePath.equals("/")) {
+        if (absolutePath.isEmpty() || absolutePath.equals("/")) {
             return absolutePath;
         }
         return isFileSeparator(absolutePath.charAt(absolutePath.length() - 1))
@@ -101,6 +101,13 @@ public class VfsRelativePath {
         return relativeChildPath.isEmpty()
             ? this
             : suffixStartingFrom(relativeChildPath.length() + 1);
+    }
+
+    /**
+     * Whether this is an empty relative path, denoting the current location.
+     */
+    public boolean isEmpty() {
+        return absolutePath.length() == offset;
     }
 
     public int length() {

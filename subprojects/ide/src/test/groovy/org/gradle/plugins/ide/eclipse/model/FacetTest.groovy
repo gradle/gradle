@@ -15,6 +15,7 @@
  */
 package org.gradle.plugins.ide.eclipse.model
 
+import groovy.xml.XmlParser
 import org.gradle.plugins.ide.eclipse.model.Facet.FacetType
 import spock.lang.Specification
 

@@ -22,6 +22,7 @@ import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
 import org.gradle.api.internal.plugins.PluginAwareInternal
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.cache.CacheOpenException
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.internal.ScriptSourceHasher
@@ -148,7 +149,7 @@ class StandardKotlinScriptEvaluator(
     inner class InterpreterHost : Interpreter.Host {
 
         override fun pluginAccessorsFor(scriptHost: KotlinScriptHost<*>): ClassPath =
-            (scriptHost.target as? Project)?.let {
+            (scriptHost.target as? ProjectInternal)?.let {
                 val pluginAccessorClassPathGenerator = it.serviceOf<PluginAccessorClassPathGenerator>()
                 pluginAccessorClassPathGenerator.pluginSpecBuildersClassPath(it).bin
             } ?: ClassPath.EMPTY
@@ -199,7 +200,7 @@ class StandardKotlinScriptEvaluator(
             )
         }
 
-        override fun applyBasePluginsTo(project: Project) {
+        override fun applyBasePluginsTo(project: ProjectInternal) {
             kotlinScriptBasePluginsApplicator
                 .apply(project)
         }

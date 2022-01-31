@@ -33,6 +33,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRe
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.ArtifactVerificationOperation;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.DefaultKeyServers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.DependencyVerificationOverride;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.utils.PGPUtils;
 import org.gradle.api.internal.artifacts.verification.DependencyVerificationException;
 import org.gradle.api.internal.artifacts.verification.model.ChecksumKind;
 import org.gradle.api.internal.artifacts.verification.model.IgnoredKey;
@@ -436,6 +437,13 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
         }
     }
 
+    @Override
+    public boolean wasAlreadyProcessed(ModuleComponentArtifactIdentifier artifact, String repositoryId) {
+        // Since writing to a file is done rarely and this is called only to avoid resolving
+        // artifacts again when already cached, there is not much penalty to not do any check here
+        return false;
+    }
+
     private void addPgp(ModuleComponentArtifactIdentifier id, ArtifactKind kind, File mainFile, Factory<File> signatureFile) {
         PgpEntry entry = new PgpEntry(id, kind, mainFile, signatureFile);
         synchronized (entriesToBeWritten) {
@@ -529,10 +537,9 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
                     PGPPublicKey pk = pks.next();
                     String keyType = pk.isMasterKey() ? "pub" : "sub";
                     out.write((keyType + "    " + SecuritySupport.toLongIdHexString(pk.getKeyID()).toUpperCase() + "\n").getBytes(StandardCharsets.US_ASCII));
-                    Iterator<String> userIDs = pk.getUserIDs();
-                    while (userIDs.hasNext()) {
+                    List<String> userIDs = PGPUtils.getUserIDs(pk);
+                    for(String uid : userIDs) {
                         hasUid = true;
-                        String uid = userIDs.next();
                         out.write(("uid    " + uid + "\n").getBytes(StandardCharsets.US_ASCII));
                     }
                     if (hasUid) {

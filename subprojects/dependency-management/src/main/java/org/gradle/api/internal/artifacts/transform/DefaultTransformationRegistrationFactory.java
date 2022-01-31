@@ -30,7 +30,6 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileLookup;
-import org.gradle.api.internal.tasks.properties.ContentTracking;
 import org.gradle.api.internal.tasks.properties.FileParameterUtils;
 import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
@@ -219,6 +218,7 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
         private DirectorySensitivity directorySensitivity = DirectorySensitivity.DEFAULT;
         private LineEndingSensitivity lineEndingSensitivity = LineEndingSensitivity.DEFAULT;
 
+        @SuppressWarnings("deprecation")
         @Override
         public void visitInputFileProperty(
             String propertyName,
@@ -229,11 +229,12 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
             boolean incremental,
             @Nullable Class<? extends FileNormalizer> fileNormalizer,
             PropertyValue value,
-            InputFilePropertyType filePropertyType,
-            ContentTracking contentTracking
+            InputFilePropertyType filePropertyType
         ) {
             this.normalizer = fileNormalizer;
-            this.directorySensitivity = directorySensitivity;
+            this.directorySensitivity = directorySensitivity == DirectorySensitivity.UNSPECIFIED
+                ? DirectorySensitivity.DEFAULT
+                : directorySensitivity;
             this.lineEndingSensitivity = lineEndingSensitivity;
         }
     }

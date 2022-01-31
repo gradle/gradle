@@ -39,6 +39,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.logging.util.Log4jBannedVersion;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.resource.ResourceLocation;
@@ -98,9 +99,6 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
     @Override
     public DependencyHandler getDependencies() {
         defineConfiguration();
-        if (dependencyHandler == null) {
-            dependencyHandler = dependencyResolutionServices.getDependencyHandler();
-        }
         return dependencyHandler;
     }
 
@@ -128,6 +126,9 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
         if (configContainer == null) {
             configContainer = dependencyResolutionServices.getConfigurationContainer();
         }
+        if (dependencyHandler == null) {
+            dependencyHandler = dependencyResolutionServices.getDependencyHandler();
+        }
         if (classpathConfiguration == null) {
             classpathConfiguration = configContainer.create(CLASSPATH_CONFIGURATION);
             // should ideally reuse the `JvmEcosystemUtilities` but this code is too low level
@@ -139,6 +140,11 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
             attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, instantiator.named(Bundling.class, Bundling.EXTERNAL));
             attributes.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, Integer.parseInt(JavaVersion.current().getMajorVersion()));
             attributes.attribute(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE, instantiator.named(GradlePluginApiVersion.class, GradleVersion.current().getVersion()));
+
+            classpathConfiguration.getDependencyConstraints().add(dependencyHandler.getConstraints().create(Log4jBannedVersion.LOG4J2_CORE_COORDINATES, constraint -> constraint.version(version -> {
+                version.require(Log4jBannedVersion.LOG4J2_CORE_REQUIRED_VERSION);
+                version.reject(Log4jBannedVersion.LOG4J2_CORE_VULNERABLE_VERSION_RANGE);
+            })));
         }
     }
 

@@ -25,7 +25,6 @@ import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionAdapter;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
-import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.internal.BuildScopeListenerRegistrationListener;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
@@ -39,6 +38,7 @@ import org.gradle.execution.plan.NodeExecutor;
 import org.gradle.execution.plan.PlanExecutor;
 import org.gradle.execution.plan.TaskNode;
 import org.gradle.internal.Cast;
+import org.gradle.internal.InternalListener;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -58,6 +58,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+@SuppressWarnings("deprecation")
 @NonNullApi
 public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultTaskExecutionGraph.class);
@@ -66,7 +67,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     private final List<NodeExecutor> nodeExecutors;
     private final GradleInternal gradleInternal;
     private final ListenerBroadcast<TaskExecutionGraphListener> graphListeners;
-    private final ListenerBroadcast<TaskExecutionListener> taskListeners;
+    private final ListenerBroadcast<org.gradle.api.execution.TaskExecutionListener> taskListeners;
     private final BuildScopeListenerRegistrationListener buildScopeListenerRegistrationListener;
     private final ProjectStateRegistry projectStateRegistry;
     private final ServiceRegistry globalServices;
@@ -83,7 +84,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         ListenerBuildOperationDecorator listenerBuildOperationDecorator,
         GradleInternal gradleInternal,
         ListenerBroadcast<TaskExecutionGraphListener> graphListeners,
-        ListenerBroadcast<TaskExecutionListener> taskListeners,
+        ListenerBroadcast<org.gradle.api.execution.TaskExecutionListener> taskListeners,
         BuildScopeListenerRegistrationListener buildScopeListenerRegistrationListener,
         ProjectStateRegistry projectStateRegistry,
         ServiceRegistry globalServices
@@ -126,6 +127,8 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         }
         try (ProjectExecutionServiceRegistry projectExecutionServices = new ProjectExecutionServiceRegistry(globalServices)) {
             executeWithServices(projectExecutionServices, failures);
+        } finally {
+            executionPlan = ExecutionPlan.EMPTY;
         }
     }
 
@@ -138,19 +141,15 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
 
     private void executeWithServices(ProjectExecutionServiceRegistry projectExecutionServices, Collection<? super Throwable> failures) {
         Timer clock = Time.startTimer();
-        try {
-            planExecutor.process(
-                executionPlan,
-                failures,
-                new BuildOperationAwareExecutionAction(
-                    buildOperationExecutor.getCurrentOperation(),
-                    new InvokeNodeExecutorsAction(nodeExecutors, projectExecutionServices)
-                )
-            );
-            LOGGER.debug("Timing: Executing the DAG took {}", clock.getElapsed());
-        } finally {
-            populate(ExecutionPlan.EMPTY);
-        }
+        planExecutor.process(
+            executionPlan,
+            failures,
+            new BuildOperationAwareExecutionAction(
+                buildOperationExecutor.getCurrentOperation(),
+                new InvokeNodeExecutorsAction(nodeExecutors, projectExecutionServices)
+            )
+        );
+        LOGGER.debug("Timing: Executing the DAG took {}", clock.getElapsed());
     }
 
     @Override
@@ -194,13 +193,13 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     }
 
     @Override
-    public void addTaskExecutionListener(TaskExecutionListener listener) {
+    public void addTaskExecutionListener(org.gradle.api.execution.TaskExecutionListener listener) {
         notifyListenerRegistration("TaskExecutionGraph.addTaskExecutionListener", listener);
         taskListeners.add(listener);
     }
 
     @Override
-    public void removeTaskExecutionListener(TaskExecutionListener listener) {
+    public void removeTaskExecutionListener(org.gradle.api.execution.TaskExecutionListener listener) {
         taskListeners.remove(listener);
     }
 
@@ -239,6 +238,9 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     }
 
     private void notifyListenerRegistration(String registrationPoint, Object listener) {
+        if (listener instanceof InternalListener) {
+            return;
+        }
         buildScopeListenerRegistrationListener.onBuildScopeListenerRegistration(
             listener,
             registrationPoint,

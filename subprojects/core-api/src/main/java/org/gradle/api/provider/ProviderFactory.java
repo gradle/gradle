@@ -27,6 +27,9 @@ import org.gradle.api.file.RegularFile;
 import org.gradle.api.initialization.Settings;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.process.ExecOutput;
+import org.gradle.process.ExecSpec;
+import org.gradle.process.JavaExecSpec;
 
 import java.util.concurrent.Callable;
 import java.util.function.BiFunction;
@@ -57,9 +60,6 @@ public interface ProviderFactory {
     /**
      * Creates a {@link Provider} whose value is fetched from the environment variable with the given name.
      *
-     * The returned provider cannot be queried at configuration time but can produce a configuration time provider
-     * via {@link Provider#forUseAtConfigurationTime()}.
-     *
      * @param variableName The name of the environment variable.
      * @return The provider. Never returns null.
      * @since 6.1
@@ -68,9 +68,6 @@ public interface ProviderFactory {
 
     /**
      * Creates a {@link Provider} whose value is fetched from the environment variable with the given name.
-     *
-     * The returned provider cannot be queried at configuration time but can produce a configuration time provider
-     * via {@link Provider#forUseAtConfigurationTime()}.
      *
      * @param variableName The provider for the name of the environment variable; when the given provider has no value, the returned provider has no value.
      * @return The provider. Never returns null.
@@ -81,9 +78,6 @@ public interface ProviderFactory {
     /**
      * Creates a {@link Provider} whose value is fetched from system properties using the given property name.
      *
-     * The returned provider cannot be queried at configuration time but can produce a configuration time provider
-     * via {@link Provider#forUseAtConfigurationTime()}.
-     *
      * @param propertyName the name of the system property
      * @return the provider for the system property, never returns null
      * @since 6.1
@@ -92,9 +86,6 @@ public interface ProviderFactory {
 
     /**
      * Creates a {@link Provider} whose value is fetched from system properties using the given property name.
-     *
-     * The returned provider cannot be queried at configuration time but can produce a configuration time provider
-     * via {@link Provider#forUseAtConfigurationTime()}.
      *
      * @param propertyName the name of the system property
      * @return the provider for the system property, never returns null
@@ -105,9 +96,6 @@ public interface ProviderFactory {
     /**
      * Creates a {@link Provider} whose value is fetched from the Gradle property of the given name.
      *
-     * The returned provider cannot be queried at configuration time but can produce a configuration time provider
-     * via {@link Provider#forUseAtConfigurationTime()}.
-     *
      * @param propertyName the name of the Gradle property
      * @return the provider for the Gradle property, never returns null
      * @since 6.2
@@ -116,9 +104,6 @@ public interface ProviderFactory {
 
     /**
      * Creates a {@link Provider} whose value is fetched from the Gradle property of the given name.
-     *
-     * The returned provider cannot be queried at configuration time but can produce a configuration time provider
-     * via {@link Provider#forUseAtConfigurationTime()}.
      *
      * @param propertyName the name of the Gradle property
      * @return the provider for the Gradle property, never returns null
@@ -159,10 +144,43 @@ public interface ProviderFactory {
     FileContents fileContents(Provider<RegularFile> file);
 
     /**
-     * Creates a {@link Provider} whose value is obtained from the given {@link ValueSource}.
+     * Allows lazy access to the output of the external process.
      *
-     * The returned provider cannot be queried at configuration time but can produce a configuration time provider
-     * via {@link Provider#forUseAtConfigurationTime()}.
+     * When the process output is read at configuration time it is considered as an input to the
+     * configuration model. Consequent builds will re-execute the process to obtain the output and
+     * check if the cached model is still up-to-date.
+     *
+     * The process input and output streams cannot be configured.
+     *
+     *
+     * @param action the configuration of the external process with the output stream
+     * pre-configured.
+     * @return an interface that allows lazy access to the process' output.
+     * @since 7.5
+     */
+    @Incubating
+    ExecOutput exec(Action<? super ExecSpec> action);
+
+    /**
+     * Allows lazy access to the output of the external java process.
+     *
+     * When the process output is read at configuration time it is considered as an input to the
+     * configuration model. Consequent builds will re-execute the process to obtain the output and
+     * check if the cached model is still up-to-date.
+     *
+     * The process input and output streams cannot be configured.
+     *
+     * @param action the configuration of the external process with the output stream
+     * pre-configured.
+     * @return an interface that allows lazy access to the process' output.
+     *
+     * @since 7.5
+     */
+    @Incubating
+    ExecOutput javaexec(Action<? super JavaExecSpec> action);
+
+    /**
+     * Creates a {@link Provider} whose value is obtained from the given {@link ValueSource}.
      *
      * @param valueSourceType the type of the {@link ValueSource}
      * @param configuration action to configure the parameters to the given {@link ValueSource}

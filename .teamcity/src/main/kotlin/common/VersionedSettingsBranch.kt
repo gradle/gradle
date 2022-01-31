@@ -7,10 +7,13 @@ data class VersionedSettingsBranch(val branchName: String, val enableTriggers: B
     companion object {
         private
         const val MASTER_BRANCH = "master"
+
         private
         const val RELEASE_BRANCH = "release"
+
         private
         const val EXPERIMENTAL_BRANCH = "experimental"
+
         private
         val mainBranches = setOf(MASTER_BRANCH, RELEASE_BRANCH)
 
@@ -20,7 +23,7 @@ data class VersionedSettingsBranch(val branchName: String, val enableTriggers: B
             if (branch.contains("placeholder-1")) {
                 return VersionedSettingsBranch(MASTER_BRANCH, true)
             }
-            return VersionedSettingsBranch(branch.toLowerCase(), mainBranches.contains(branch.toLowerCase()))
+            return VersionedSettingsBranch(branch.lowercase(), mainBranches.contains(branch.lowercase()))
         }
     }
 

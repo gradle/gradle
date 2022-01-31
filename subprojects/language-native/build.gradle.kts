@@ -2,6 +2,8 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
+description = "Plugins and domain objects for building different native languages"
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":messaging"))

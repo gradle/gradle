@@ -30,12 +30,12 @@ class ClientShutdownCrossVersionSpec extends ToolingApiSpecification {
 
     def setup() {
         toolingApi.requireIsolatedToolingApi()
+        toolingApi.requireIsolatedUserHome()
     }
 
     def cleanup() {
         toolingApi.close()
     }
-
 
     def "can shutdown tooling API session when no operations have been executed"() {
         given:

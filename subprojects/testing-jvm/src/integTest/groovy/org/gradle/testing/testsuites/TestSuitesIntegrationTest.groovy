@@ -24,6 +24,8 @@ import org.gradle.api.tasks.testing.junit.JUnitOptions
 import org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
+import spock.lang.Issue
 
 class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
     def "new test suites adds appropriate test tasks"() {
@@ -399,7 +401,8 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         succeeds("checkConfiguration")
     }
 
-    def "test framework may not be changed once options have been used with test suites"() {
+    // TODO: Test Framework Selection - Revert this to may NOT in Gradle 8
+    def "test framework MAY be changed once options have been used with test suites"() {
         buildFile << """
             plugins {
                 id 'java'
@@ -427,14 +430,14 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
             integrationTest {
                 useTestNG()
             }
-            
+
             check.dependsOn testing.suites
         """
 
-        when:
-        fails("check")
-        then:
-        failure.assertHasCause("The value for task ':integrationTest' property 'testFrameworkProperty' is final and cannot be changed any further.")
+        executer.expectDeprecationWarning("Accessing test options prior to setting test framework has been deprecated. This is scheduled to be removed in Gradle 8.0.")
+
+        expect:
+        succeeds("check")
     }
 
     // This checks for backwards compatibility with builds that may rely on this
@@ -470,8 +473,11 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
+        executer.expectDeprecationWarning("Accessing test options prior to setting test framework has been deprecated. This is scheduled to be removed in Gradle 8.0.")
+        executer.expectDeprecationWarning("Accessing test options prior to setting test framework has been deprecated. This is scheduled to be removed in Gradle 8.0.")
+
         when:
-        run "test"
+        succeeds( "test")
 
         then:
         executedAndNotSkipped(":test")
@@ -518,11 +524,189 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                     }
                 }
             }
-            
+
             check.dependsOn testing.suites
         """
 
         expect:
         succeeds("check")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/18622")
+    def "custom Test tasks eagerly realized prior to Java and Test Suite plugin application do not fail to be configured when combined with test suites"() {
+        buildFile << """
+            tasks.withType(Test) {
+                // realize all test tasks
+            }
+            tasks.register("mytest", Test)
+            apply plugin: 'java'
+
+            repositories {
+                ${mavenCentralRepository()}
+            }
+
+            testing {
+                suites {
+                    test {
+                        useJUnit()
+                    }
+                }
+            }
+"""
+        file('src/test/java/example/UnitTest.java') << '''
+            package example;
+
+            import org.junit.Assert;
+            import org.junit.Test;
+
+            public class UnitTest {
+                @Test
+                public void unitTest() {
+                    Assert.assertTrue(true);
+                }
+            }
+        '''
+        expect:
+        succeeds("mytest")
+        def unitTestResults = new JUnitXmlTestExecutionResult(testDirectory, 'build/test-results/mytest')
+        unitTestResults.assertTestClassesExecuted('example.UnitTest')
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/18622")
+    def "custom Test tasks still function if java plugin is never applied to create sourcesets"() {
+       buildFile << """
+            tasks.withType(Test) {
+                // realize all test tasks
+            }
+
+            def customClassesDir = file('src/custom/java')
+            tasks.register("mytest", Test) {
+                // Must ensure a base dir is set here
+                testClassesDirs = files(customClassesDir)
+            }
+
+            task assertNoTestClasses {
+                inputs.files mytest.testClassesDirs
+
+                doLast {
+                    assert inputs.files.contains(customClassesDir)
+                }
+            }
+        """
+        expect:
+        succeeds("mytest", "assertNoTestClasses")
+    }
+
+    def "multiple getTestingFramework() calls on a test suite return same instance"() {
+        given:
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            def first = testing.suites.test.getVersionedTestingFramework()
+            def second = testing.suites.test.getVersionedTestingFramework()
+
+            tasks.register('assertSameFrameworkInstance') {
+                doLast {
+                    assert first === second
+                }
+            }""".stripIndent()
+
+        expect:
+        succeeds("assertSameFrameworkInstance")
+    }
+
+    def "multiple getTestingFramework() calls on a test suite return same instance even when calling useJUnit"() {
+        given:
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            def first = testing.suites.test.getVersionedTestingFramework()
+
+            testing {
+                suites {
+                    test {
+                        useJUnit()
+                    }
+                }
+            }
+
+            def second = testing.suites.test.getVersionedTestingFramework()
+
+            tasks.register('assertSameFrameworkInstance') {
+                doLast {
+                    assert first === second
+                }
+            }""".stripIndent()
+
+        expect:
+        succeeds("assertSameFrameworkInstance")
+    }
+
+    def "multiple getTestingFramework() calls on a test suite return same instance even after toggling testing framework"() {
+        given:
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            def first = testing.suites.test.getVersionedTestingFramework()
+
+            testing.suites.test.useJUnit()
+            testing.suites.test.useTestNG()
+            testing.suites.test.useJUnit()
+
+            def second = testing.suites.test.getVersionedTestingFramework()
+
+            tasks.register('assertSameFrameworkInstance') {
+                doLast {
+                    assert first === second
+                }
+            }""".stripIndent()
+
+        expect:
+        succeeds("assertSameFrameworkInstance")
+    }
+
+    def "the default test suite does NOT use JUnit 4 by default"() {
+        given: "a build which uses the default test suite and doesn't specify a testing framework"
+        file("build.gradle") << """
+            plugins {
+                id 'java-library'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing {
+                suites {
+                    test {
+                        // Empty
+                    }
+                }
+            }
+        """
+
+        and: "containing a test which uses Junit 4"
+        file("src/test/java/org/test/MyTest.java") << """
+            package org.test;
+
+            import org.junit.Test;
+            import org.junit.Assert;
+
+            public class MyTest {
+                @Test
+                public void testSomething() {
+                    Assert.assertEquals(1, MyFixture.calculateSomething());
+                }
+            }
+        """
+
+        expect: "does NOT compile due to a missing dependency"
+        fails( "test")
+        failure.assertHasErrorOutput("Compilation failed; see the compiler error output for details.")
+        failure.assertHasErrorOutput("error: package org.junit does not exist")
     }
 }

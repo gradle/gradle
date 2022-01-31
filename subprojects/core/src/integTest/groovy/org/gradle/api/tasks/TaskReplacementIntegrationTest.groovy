@@ -18,7 +18,6 @@ package org.gradle.api.tasks
 
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Unroll
 
 class TaskReplacementIntegrationTest extends AbstractIntegrationSpec {
 
@@ -34,7 +33,6 @@ class TaskReplacementIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    @Unroll
     def "can replace an unrealized task when #description"() {
         buildFile << """
             tasks.register("foo", First)
@@ -52,7 +50,6 @@ class TaskReplacementIntegrationTest extends AbstractIntegrationSpec {
         "using create(overwrite)" | 'create(name: "foo", type: Second, overwrite: true)'
     }
 
-    @Unroll
     def "throws exception when replacing an unrealized task a second time when #description"() {
         buildFile << """
             tasks.register("foo", First)
@@ -70,7 +67,6 @@ class TaskReplacementIntegrationTest extends AbstractIntegrationSpec {
         "using create(overwrite)" | 'create(name: "foo", type: Third, overwrite: true)'
     }
 
-    @Unroll
     def "throws exception when replacing an eagerly created task when #description"() {
         buildFile << """
             tasks.create("foo", First)
@@ -98,7 +94,6 @@ class TaskReplacementIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Replacing an existing task that may have already been used by other plugins is not supported.  Use a different name for this task ('foo').")
     }
 
-    @Unroll
     def "throws exception when replacing a task with an unrelated type when #description"() {
         buildFile << """
             class CustomTask extends DefaultTask {}
@@ -118,7 +113,6 @@ class TaskReplacementIntegrationTest extends AbstractIntegrationSpec {
         "using create(overwrite)" | 'create(name: "foo", type: UnrelatedCustomTask, overwrite: true)'
     }
 
-    @Unroll
     def "throws exception when replacing a task with more restrictive type when #description"() {
         buildFile << """
             class CustomTask extends DefaultTask {}
@@ -169,7 +163,6 @@ class TaskReplacementIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'help'
     }
 
-    @Unroll
     def "throws exception when replacing non-existent task when #description"() {
         buildFile << """
             tasks.${api}

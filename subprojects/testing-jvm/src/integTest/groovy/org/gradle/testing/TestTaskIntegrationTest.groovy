@@ -24,7 +24,6 @@ import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Issue
-import spock.lang.Unroll
 
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4_LATEST
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE_JUPITER
@@ -101,7 +100,6 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         classFormat(classFile('java', 'test', 'MyTest.class')) == 53
     }
 
-    @Unroll
     def "test task does not hang if maxParallelForks is greater than max-workers (#maxWorkers)"() {
         given:
         def maxParallelForks = maxWorkers + 1
@@ -238,7 +236,6 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         succeeds("help")
     }
 
-    @Unroll
     def "reports failure of TestExecuter regardless of filters"() {
         given:
         file('src/test/java/MyTest.java') << standaloneTestClass()
@@ -285,6 +282,149 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         extraArgs << [[], ["--tests", "MyTest"]]
     }
 
+    def "options set prior to setting same test framework will warn and have no effect"() {
+        ignoreWhenJUnitPlatform()
+
+        given:
+        file('src/test/java/MyTest.java') << standaloneTestClass()
+
+        settingsFile << "rootProject.name = 'Sample'"
+        buildFile << """apply plugin: 'java'
+
+            ${mavenCentralRepository()}
+            dependencies {
+                testImplementation 'junit:junit:${JUnitCoverage.NEWEST}'
+            }
+
+            test {
+                options {
+                    excludeCategories = ["Slow"]
+                }
+                useJUnit()
+            }
+
+            tasks.register('verifyTestOptions') {
+                doLast {
+                    assert tasks.getByName("test").getOptions().getClass() == JUnitOptions
+                    assert !tasks.getByName("test").getOptions().getExcludeCategories().contains("Slow")
+                }
+            }
+        """.stripIndent()
+
+        executer.expectDeprecationWarning("Accessing test options prior to setting test framework has been deprecated.")
+
+        expect:
+        succeeds("test", "verifyTestOptions", "--warn")
+    }
+
+    def "options set prior to changing test framework will produce additional warning and have no effect"() {
+        ignoreWhenJUnitPlatform()
+
+        given:
+        file('src/test/java/MyTest.java') << junitJupiterStandaloneTestClass()
+
+        settingsFile << "rootProject.name = 'Sample'"
+        buildFile << """apply plugin: 'java'
+
+            ${mavenCentralRepository()}
+            dependencies {
+                testImplementation 'org.junit.jupiter:junit-jupiter:${JUnitCoverage.LATEST_JUPITER_VERSION}'
+            }
+
+            test {
+                options {
+                    excludeCategories = ["Slow"]
+                }
+            }
+
+            test {
+                useJUnitPlatform()
+            }
+
+            tasks.register('verifyTestOptions') {
+                doLast {
+                    assert tasks.getByName("test").getOptions().getClass() == JUnitPlatformOptions
+                }
+            }
+        """.stripIndent()
+
+        executer.expectDeprecationWarning("Accessing test options prior to setting test framework has been deprecated.")
+
+        when:
+        succeeds("test", "verifyTestOptions", "--warn")
+
+        then:
+        outputContains("Test framework is changing from 'JUnitTestFramework', previous option configuration would not be applicable.")
+    }
+
+    def "options accessed and not explicitly configured prior to setting test framework will also warn"() {
+        given:
+        file('src/test/java/MyTest.java') << junitJupiterStandaloneTestClass()
+
+        settingsFile << "rootProject.name = 'Sample'"
+        buildFile << """
+            import org.gradle.api.internal.tasks.testing.*
+
+            apply plugin: 'java'
+
+            ${mavenCentralRepository()}
+            dependencies {
+                testImplementation 'org.junit.jupiter:junit-jupiter:${JUnitCoverage.LATEST_JUPITER_VERSION}'
+            }
+
+            def options = test.getOptions()
+
+            test {
+                useJUnitPlatform()
+            }
+
+            tasks.register('verifyTestOptions') {
+                doLast {
+                    assert options.getClass() == JUnitOptions
+                    assert tasks.getByName("test").getOptions().getClass() == JUnitPlatformOptions
+                }
+            }
+        """.stripIndent()
+
+        executer.expectDeprecationWarning("Accessing test options prior to setting test framework has been deprecated.")
+
+        expect:
+        succeeds("test", "verifyTestOptions", "--warn")
+    }
+
+    def "options configured after setting test framework works"() {
+        given:
+        file('src/test/java/MyTest.java') << junitJupiterStandaloneTestClass()
+
+        settingsFile << "rootProject.name = 'Sample'"
+        buildFile << """
+            import org.gradle.api.internal.tasks.testing.*
+
+            apply plugin: 'java'
+
+            ${mavenCentralRepository()}
+            dependencies {
+                testImplementation 'org.junit.jupiter:junit-jupiter:${JUnitCoverage.LATEST_JUPITER_VERSION}'
+            }
+
+            test {
+                useJUnitPlatform()
+                options {
+                    excludeTags = ["Slow"]
+                }
+            }
+
+            tasks.register('verifyTestOptions') {
+                doLast {
+                    assert tasks.getByName("test").getOptions().getExcludeTags().contains("Slow")
+                }
+            }
+        """.stripIndent()
+
+        expect:
+        succeeds("test", "verifyTestOptions", "--warn")
+    }
+
     private static String standaloneTestClass() {
         return testClass('MyTest')
     }
@@ -298,6 +438,24 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
                public void test() {
                   System.out.println(System.getProperty("java.version"));
                   Assert.assertEquals(1,1);
+               }
+            }
+        """.stripIndent()
+    }
+
+    private static String junitJupiterStandaloneTestClass() {
+        return junitJupiterTestClass('MyTest')
+    }
+
+    private static String junitJupiterTestClass(String className) {
+        return """
+            import org.junit.jupiter.api.*;
+
+            public class $className {
+               @Test
+               public void test() {
+                  System.out.println(System.getProperty("java.version"));
+                  Assertions.assertEquals(1,1);
                }
             }
         """.stripIndent()

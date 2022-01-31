@@ -147,7 +147,7 @@ include::sample[dir="snippets/developingPlugins/customTask/kotlin",files="build.
 
 Let's assume that you'll also want to do something with the value of `serverUrl` once captured.
 In many cases the exposed extension property is directly mapped to a task property that actually uses the value when performing work.
-To avoid evaluation order problems you should use link:{user-manual}lazy_configuration.html#lazy_properties[the public API `Property`] which was introduced in Gradle 4.0.
+To avoid evaluation order problems you should use <<lazy_configuration#lazy_properties,the public API `Property`>> which was introduced in Gradle 4.0.
 
 Let's have a look at the internals of the plugin `BinaryRepositoryVersionPlugin` to give you a better idea.
 The plugin creates the extension of type `BinaryRepositoryExtension` and maps the extension property `serverUrl` to the task property `serverUrl.`

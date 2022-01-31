@@ -24,6 +24,7 @@ import org.bouncycastle.bcpg.sig.KeyFlags
 import org.bouncycastle.crypto.generators.RSAKeyPairGenerator
 import org.bouncycastle.crypto.params.RSAKeyGenerationParameters
 import org.bouncycastle.openpgp.PGPKeyRingGenerator
+import org.bouncycastle.openpgp.PGPObjectFactory
 import org.bouncycastle.openpgp.PGPPublicKey
 import org.bouncycastle.openpgp.PGPPublicKeyRing
 import org.bouncycastle.openpgp.PGPPublicKeyRingCollection
@@ -31,6 +32,7 @@ import org.bouncycastle.openpgp.PGPSecretKey
 import org.bouncycastle.openpgp.PGPSecretKeyRing
 import org.bouncycastle.openpgp.PGPSecretKeyRingCollection
 import org.bouncycastle.openpgp.PGPSignatureSubpacketGenerator
+import org.bouncycastle.openpgp.PGPUtil
 import org.bouncycastle.openpgp.bc.BcPGPPublicKeyRingCollection
 import org.bouncycastle.openpgp.bc.BcPGPSecretKeyRingCollection
 import org.bouncycastle.openpgp.operator.bc.BcKeyFingerprintCalculator
@@ -46,6 +48,8 @@ import org.gradle.security.internal.SecuritySupport
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
 import java.security.SecureRandom
+
+import static java.util.Objects.requireNonNull
 
 @CompileStatic
 class SigningFixtures {
@@ -101,12 +105,46 @@ class SigningFixtures {
         return publicKey
     }
 
+    static PGPSecretKey readAsciiArmoredSecretKey(String resource) {
+        requireNonNull(SigningFixtures.class.getResource(resource), "Resource '$resource' does not exist.")
+        PGPSecretKey secretKey = null
+        SigningFixtures.class.getResource(resource).withInputStream { input ->
+            try (InputStream decoderStream = PGPUtil.getDecoderStream(input)) {
+                PGPObjectFactory objectFactory = new PGPObjectFactory(
+                    decoderStream, new BcKeyFingerprintCalculator())
+                PGPSecretKeyRing ring = (PGPSecretKeyRing) objectFactory.nextObject()
+                secretKey = ring.getSecretKey()
+            }
+        }
+        return secretKey
+    }
+
+    static PGPPublicKey readAsciiArmoredPublicKey(String resource) {
+        requireNonNull(SigningFixtures.class.getResource(resource), "Resource '$resource' does not exist.")
+        PGPPublicKey publicKey = null
+        SigningFixtures.class.getResource(resource).withInputStream { input ->
+            try (InputStream decoderStream = PGPUtil.getDecoderStream(input)) {
+                PGPObjectFactory objectFactory = new PGPObjectFactory(
+                    decoderStream, new BcKeyFingerprintCalculator())
+                PGPPublicKeyRing ring = (PGPPublicKeyRing) objectFactory.nextObject()
+                publicKey = ring.getPublicKey()
+            }
+        }
+        return publicKey
+    }
+
     static void writeValidPublicKeyTo(File file) {
         file.newOutputStream().withCloseable { stream ->
             new ArmoredOutputStream(stream).withCloseable {
                 Holder.VALID_KEYRING.publicKey.encode(it)
             }
         }
+    }
+
+    static SimpleKeyRing createSimpleKeyRingFromResource(String publicKeyResource, String secretKeyResource, String name = "gradle", String password = "secret") {
+        def secretKey = readAsciiArmoredSecretKey(secretKeyResource)
+        def publicKey = readAsciiArmoredPublicKey(publicKeyResource)
+        new SimpleKeyRing(name, secretKey, publicKey, password)
     }
 
     static SimpleKeyRing createSimpleKeyRing(File directory, String name = "gradle", String userId = "test-user@gradle.com", String password = "secret", int keySize = 1024) {

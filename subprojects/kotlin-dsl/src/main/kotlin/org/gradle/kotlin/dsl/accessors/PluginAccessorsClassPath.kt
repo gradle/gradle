@@ -93,7 +93,7 @@ class PluginAccessorClassPathGenerator @Inject constructor(
     private val inputFingerprinter: InputFingerprinter,
     private val workspaceProvider: KotlinDslWorkspaceProvider
 ) {
-    fun pluginSpecBuildersClassPath(project: Project): AccessorsClassPath = project.rootProject.let { rootProject ->
+    fun pluginSpecBuildersClassPath(project: ProjectInternal): AccessorsClassPath = project.owner.owner.projects.rootProject.mutableModel.let { rootProject ->
 
         rootProject.getOrCreateProperty("gradleKotlinDsl.pluginAccessorsClassPath") {
             val buildSrcClassLoaderScope = baseClassLoaderScopeOf(rootProject)

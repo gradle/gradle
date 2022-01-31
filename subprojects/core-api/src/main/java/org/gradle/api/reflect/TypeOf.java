@@ -17,6 +17,7 @@
 package org.gradle.api.reflect;
 
 import com.google.common.base.Function;
+import org.gradle.api.Incubating;
 import org.gradle.internal.Cast;
 import org.gradle.model.internal.type.ModelType;
 
@@ -241,6 +242,17 @@ public abstract class TypeOf<T> {
      */
     public String getSimpleName() {
         return type.getDisplayName();
+    }
+
+    /**
+     * Fully Qualified name.
+     *
+     * @return this type's FQN
+     * @since 7.4
+     */
+    @Incubating
+    public String getFullyQualifiedName() {
+        return type.getName();
     }
 
     /**

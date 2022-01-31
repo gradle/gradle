@@ -16,23 +16,21 @@
 
 rootProject.name = "catalog"
 
-enableFeaturePreview("VERSION_CATALOGS")
-
 dependencyResolutionManagement {
     repositories {
         mavenCentral()
     }
 }
 
-if (providers.systemProperty("create1").forUseAtConfigurationTime().getOrNull() != null) {
+if (providers.systemProperty("create1").getOrNull() != null) {
     // tag::simple_catalog[]
     dependencyResolutionManagement {
         versionCatalogs {
             create("libs") {
-                alias("groovy-core").to("org.codehaus.groovy:groovy:3.0.5")
-                alias("groovy-json").to("org.codehaus.groovy:groovy-json:3.0.5")
-                alias("groovy-nio").to("org.codehaus.groovy:groovy-nio:3.0.5")
-                alias("commons-lang3").to("org.apache.commons", "commons-lang3").version {
+                library("groovy-core", "org.codehaus.groovy:groovy:3.0.5")
+                library("groovy-json", "org.codehaus.groovy:groovy-json:3.0.5")
+                library("groovy-nio", "org.codehaus.groovy:groovy-nio:3.0.5")
+                library("commons-lang3", "org.apache.commons", "commons-lang3").version {
                     strictly("[3.8, 4.0[")
                     prefer("3.9")
                 }
@@ -42,17 +40,17 @@ if (providers.systemProperty("create1").forUseAtConfigurationTime().getOrNull() 
     // end::simple_catalog[]
 }
 
-if (providers.systemProperty("create2").forUseAtConfigurationTime().getOrNull() != null) {
+if (providers.systemProperty("create2").getOrNull() != null) {
     // tag::catalog_with_versions[]
     dependencyResolutionManagement {
         versionCatalogs {
             create("libs") {
                 version("groovy", "3.0.5")
                 version("checkstyle", "8.37")
-                alias("groovy-core").to("org.codehaus.groovy", "groovy").versionRef("groovy")
-                alias("groovy-json").to("org.codehaus.groovy", "groovy-json").versionRef("groovy")
-                alias("groovy-nio").to("org.codehaus.groovy", "groovy-nio").versionRef("groovy")
-                alias("commons-lang3").to("org.apache.commons", "commons-lang3").version {
+                library("groovy-core", "org.codehaus.groovy", "groovy").versionRef("groovy")
+                library("groovy-json", "org.codehaus.groovy", "groovy-json").versionRef("groovy")
+                library("groovy-nio", "org.codehaus.groovy", "groovy-nio").versionRef("groovy")
+                library("commons-lang3", "org.apache.commons", "commons-lang3").version {
                     strictly("[3.8, 4.0[")
                     prefer("3.9")
                 }
@@ -62,17 +60,17 @@ if (providers.systemProperty("create2").forUseAtConfigurationTime().getOrNull() 
     // end::catalog_with_versions[]
 }
 
-if (providers.systemProperty("create3").forUseAtConfigurationTime().getOrNull() != null) {
+if (providers.systemProperty("create3").getOrNull() != null) {
     // tag::catalog_with_bundle[]
     dependencyResolutionManagement {
         versionCatalogs {
             create("libs") {
                 version("groovy", "3.0.5")
                 version("checkstyle", "8.37")
-                alias("groovy-core").to("org.codehaus.groovy", "groovy").versionRef("groovy")
-                alias("groovy-json").to("org.codehaus.groovy", "groovy-json").versionRef("groovy")
-                alias("groovy-nio").to("org.codehaus.groovy", "groovy-nio").versionRef("groovy")
-                alias("commons-lang3").to("org.apache.commons", "commons-lang3").version {
+                library("groovy-core", "org.codehaus.groovy", "groovy").versionRef("groovy")
+                library("groovy-json", "org.codehaus.groovy", "groovy-json").versionRef("groovy")
+                library("groovy-nio", "org.codehaus.groovy", "groovy-nio").versionRef("groovy")
+                library("commons-lang3", "org.apache.commons", "commons-lang3").version {
                     strictly("[3.8, 4.0[")
                     prefer("3.9")
                 }
@@ -83,12 +81,12 @@ if (providers.systemProperty("create3").forUseAtConfigurationTime().getOrNull() 
     // end::catalog_with_bundle[]
 }
 
-if (providers.systemProperty("create4").forUseAtConfigurationTime().getOrNull() != null) {
+if (providers.systemProperty("create4").getOrNull() != null) {
     // tag::catalog_with_plugin[]
     dependencyResolutionManagement {
         versionCatalogs {
             create("libs") {
-                alias("jmh").toPluginId("me.champeau.jmh").version("0.6.5")
+                plugin("jmh", "me.champeau.jmh").version("0.6.5")
             }
         }
     }
@@ -98,10 +96,10 @@ if (providers.systemProperty("create4").forUseAtConfigurationTime().getOrNull() 
             named("libs") {
                 version("groovy", "3.0.5")
                 version("checkstyle", "8.37")
-                alias("groovy-core").to("org.codehaus.groovy", "groovy").versionRef("groovy")
-                alias("groovy-json").to("org.codehaus.groovy", "groovy-json").versionRef("groovy")
-                alias("groovy-nio").to("org.codehaus.groovy", "groovy-nio").versionRef("groovy")
-                alias("commons-lang3").to("org.apache.commons", "commons-lang3").version {
+                library("groovy-core", "org.codehaus.groovy", "groovy").versionRef("groovy")
+                library("groovy-json", "org.codehaus.groovy", "groovy-json").versionRef("groovy")
+                library("groovy-nio", "org.codehaus.groovy", "groovy-nio").versionRef("groovy")
+                library("commons-lang3", "org.apache.commons", "commons-lang3").version {
                     strictly("[3.8, 4.0[")
                     prefer("3.9")
                 }
@@ -110,3 +108,15 @@ if (providers.systemProperty("create4").forUseAtConfigurationTime().getOrNull() 
         }
     }
 }
+
+// tag::extra_catalog[]
+dependencyResolutionManagement {
+    versionCatalogs {
+        create("testLibs") {
+            val junit5 = version("junit5", "5.7.1")
+            library("junit-api", "org.junit.jupiter", "junit-jupiter-api").version(junit5)
+            library("junit-engine", "org.junit.jupiter", "junit-jupiter-engine").version(junit5)
+        }
+    }
+}
+// end::extra_catalog[]

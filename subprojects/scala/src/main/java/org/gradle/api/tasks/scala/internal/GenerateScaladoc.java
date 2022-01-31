@@ -16,10 +16,12 @@
 
 package org.gradle.api.tasks.scala.internal;
 
+import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.file.RegularFile;
 import org.gradle.internal.process.ArgWriter;
 import org.gradle.workers.WorkAction;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -33,6 +35,9 @@ public abstract class GenerateScaladoc implements WorkAction<ScaladocParameters>
         ScaladocParameters parameters = getParameters();
         Path optionsFile = parameters.getOptionsFile().map(RegularFile::getAsFile).map(File::toPath).getOrNull();
         try {
+            getFileSystemOperations().delete(spec -> spec.delete(parameters.getOutputDirectory()));
+            parameters.getOutputDirectory().get().getAsFile().mkdirs();
+
             List<String> args = generateArgList(parameters, optionsFile);
             invokeScalaDoc(args, parameters.getIsScala3().get());
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
@@ -79,4 +84,7 @@ public abstract class GenerateScaladoc implements WorkAction<ScaladocParameters>
         Object scaladoc = scaladocClass.getDeclaredConstructor().newInstance();
         process.invoke(scaladoc, new Object[]{args.toArray(new String[0])});
     }
+
+    @Inject
+    public abstract FileSystemOperations getFileSystemOperations();
 }

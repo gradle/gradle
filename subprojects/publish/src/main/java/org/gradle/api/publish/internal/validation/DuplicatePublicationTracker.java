@@ -18,6 +18,7 @@ package org.gradle.api.publish.internal.validation;
 
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
+import org.gradle.api.Project;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -28,9 +29,9 @@ import java.net.URI;
 
 public class DuplicatePublicationTracker {
     private final static Logger LOG = Logging.getLogger(DuplicatePublicationTracker.class);
-    private final Multimap<String, PublicationInternal<?>> published = LinkedHashMultimap.create();
+    private final Multimap<String, PublicationWithProject> published = LinkedHashMultimap.create();
 
-    public synchronized void checkCanPublish(PublicationInternal<?> publication, @Nullable URI repositoryLocation, String repositoryName) {
+    public synchronized void checkCanPublish(Project project, PublicationInternal<?> publication, @Nullable URI repositoryLocation, String repositoryName) {
         // Don't track publications to repositories configured without a base URL
         if (repositoryLocation == null) {
             return;
@@ -38,19 +39,27 @@ public class DuplicatePublicationTracker {
 
         String repositoryKey = normalizeLocation(repositoryLocation);
 
-        if (published.get(repositoryKey).contains(publication)) {
+        PublicationWithProject publicationWithProject = new PublicationWithProject(project.getDisplayName(), publication);
+        if (published.get(repositoryKey).contains(publicationWithProject)) {
             LOG.warn("Publication '" + publication.getCoordinates() + "' is published multiple times to the same location. It is likely that repository '" + repositoryName + "' is duplicated.");
             return;
         }
 
         ModuleVersionIdentifier projectIdentity = publication.getCoordinates();
-        for (PublicationInternal<?> previousPublication : published.get(repositoryKey)) {
-            if (previousPublication.getCoordinates().equals(projectIdentity)) {
-                LOG.warn("Multiple publications with coordinates '" + publication.getCoordinates() + "' are published to repository '" + repositoryName + "'. The publications will overwrite each other!");
+        for (PublicationWithProject previousPublicationWithProject : published.get(repositoryKey)) {
+            if (previousPublicationWithProject.getPublication().getCoordinates().equals(projectIdentity)) {
+                String firstPublication = previousPublicationWithProject.toString();
+                String secondPublication = publicationWithProject.toString();
+                if (secondPublication.compareTo(firstPublication) < 0) {
+                    String temp = firstPublication;
+                    firstPublication = secondPublication;
+                    secondPublication = temp;
+                }
+                LOG.warn("Multiple publications with coordinates '" + publication.getCoordinates() + "' are published to repository '" + repositoryName + "'. The publications " + firstPublication + " and " + secondPublication + " will overwrite each other!");
             }
         }
 
-        published.put(repositoryKey, publication);
+        published.put(repositoryKey, publicationWithProject);
     }
 
     private String normalizeLocation(URI location) {

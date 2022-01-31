@@ -18,11 +18,9 @@ package org.gradle.model.internal.manage.schema.extract
 
 import org.gradle.model.internal.type.ModelType;
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class PrimitiveTypesTest extends Specification {
 
-    @Unroll
     def "#type is not primitive"() {
         expect:
         !PrimitiveTypes.isPrimitiveType(ModelType.of(type))
@@ -39,7 +37,6 @@ class PrimitiveTypesTest extends Specification {
         Double    | _
     }
 
-    @Unroll
     def "#type is primitive"() {
         expect:
         PrimitiveTypes.isPrimitiveType(ModelType.of(type))
@@ -56,7 +53,6 @@ class PrimitiveTypesTest extends Specification {
         double  | _
     }
 
-    @Unroll
     def "primitive #type default value is #value"() {
         expect:
         PrimitiveTypes.defaultValueOf(ModelType.of(type)) == value

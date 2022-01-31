@@ -17,7 +17,6 @@ package org.gradle.internal.component.local.model
 
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import static org.gradle.util.Matchers.strictlyEquals
 
@@ -61,7 +60,6 @@ class DefaultLibraryBinaryIdentifierTest extends Specification {
         t.message == 'variant cannot be null'
     }
 
-    @Unroll
     def "can compare with other instance (#projectPath,#libraryName,#variant)"() {
         expect:
         LibraryBinaryIdentifier defaultBuildComponentIdentifier1 = new DefaultLibraryBinaryIdentifier(':myProjectPath1', 'myLib', 'api')

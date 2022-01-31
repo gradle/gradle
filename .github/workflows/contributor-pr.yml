@@ -7,12 +7,19 @@ on:
   pull_request:
     branches:
       - master
-  
+
+concurrency:
+  # On master/release, we don't want any jobs cancelled so the sha is used to name the group
+  # On PR branches, we cancel the job if new commits are pushed
+  group: ${{ (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/release' ) && format('contributor-pr-base-{0}', github.sha) || format('contributor-pr-{0}', github.ref) }}
+  cancel-in-progress: true
+
+
 env:
   # Set the GRADLE_ENTERPRISE_ACCESS_KEY so that Gradle Build Scans are generated
   GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
-  # Enable debub for the `gradle-build-action` cache operations
-  CACHE_DEBUG_ENABLED: true
+  # Enable debug for the `gradle-build-action` cache operations
+  GRADLE_BUILD_ACTION_CACHE_DEBUG_ENABLED: true
 
 jobs:
   build:
@@ -45,19 +52,12 @@ jobs:
           arguments: |
               compileAll
               --no-configuration-cache
+              -DdisableLocalCache=true
               ${{ steps.determine-sys-prop-args.outputs.sys-prop-args }}
-      - name: "Comment build scan url"
-        uses: actions/github-script@v5
-        if: github.event_name == 'pull_request' && failure()
+      - uses: actions/upload-artifact@v2
         with:
-          github-token: ${{secrets.GITHUB_TOKEN}}
-          script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: '❌ ${{ github.workflow }} failed: ${{ steps.gradle.outputs.build-scan-url }}'
-            })
+          name: build-receipt.properties
+          path: subprojects/base-services/build/generated-resources/build-receipt/org/gradle/build-receipt.properties
     outputs:
       matrix: ${{ steps.setup-matrix.outputs.matrix }}
       sys-prop-args: ${{ steps.determine-sys-prop-args.outputs.sys-prop-args }}
@@ -74,6 +74,10 @@ jobs:
         with:
           distribution: temurin
           java-version: 11
+      - uses: actions/download-artifact@v2
+        with:
+          name: build-receipt.properties
+          path: incoming-distributions/build-receipt.properties
       - name: ./gradlew sanityCheck
         id: gradle
         uses: gradle/gradle-build-action@v2
@@ -82,19 +86,8 @@ jobs:
           arguments: |
               sanityCheck
               --no-configuration-cache
+              -DdisableLocalCache=true
               ${{ needs.build.outputs.sys-prop-args }}
-      - name: "Comment build scan url"
-        uses: actions/github-script@v5
-        if: github.event_name == 'pull_request' && failure()
-        with:
-          github-token: ${{secrets.GITHUB_TOKEN}}
-          script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: '❌ ${{ github.workflow }} failed: ${{ steps.gradle.outputs.build-scan-url }}'
-            })
 
   unit-test:
     name: "${{ matrix.bucket.name }} (Unit Test)"
@@ -112,6 +105,10 @@ jobs:
         with:
           distribution: temurin
           java-version: 11
+      - uses: actions/download-artifact@v2
+        with:
+          name: build-receipt.properties
+          path: incoming-distributions/build-receipt.properties
       - name: ./gradlew test
         id: gradle
         uses: gradle/gradle-build-action@v2
@@ -120,4 +117,6 @@ jobs:
           arguments: |
               ${{ matrix.bucket.tasks }}
               --no-configuration-cache
+              -DdisableLocalCache=true
+              -PflakyTests=exclude
               ${{ needs.build.outputs.sys-prop-args }}

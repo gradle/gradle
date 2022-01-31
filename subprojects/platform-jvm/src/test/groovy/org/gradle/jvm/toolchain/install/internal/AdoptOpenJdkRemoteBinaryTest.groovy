@@ -28,14 +28,12 @@ import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.TempDir
-import spock.lang.Unroll
 
 class AdoptOpenJdkRemoteBinaryTest extends Specification {
 
     @TempDir
     public File temporaryFolder
 
-    @Unroll
     def "generates url for jdk #jdkVersion on #operatingSystemName (#architecture)"() {
         given:
         def spec = newSpec(jdkVersion)
@@ -64,10 +62,9 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         13         | "Solaris"           | SystemInfo.Architecture.i386    | "/13/ga/solaris/x32/jdk/hotspot/normal/adoptopenjdk"
     }
 
-    @Unroll
     def "generates filename for jdk #jdkVersion on #operatingSystemName (#architecture)"() {
         given:
-        def spec = newSpec(jdkVersion)
+        def spec = newSpec(jdkVersion, implementation, vendor)
         def systemInfo = Mock(SystemInfo)
         systemInfo.architecture >> architecture
         def operatingSystem = OperatingSystem.forName(operatingSystemName)
@@ -80,20 +77,19 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         filename == expectedFilename
 
         where:
-        jdkVersion | operatingSystemName | architecture                    | expectedFilename
-        11         | "Windows"           | SystemInfo.Architecture.amd64   | "adoptopenjdk-11-x64-windows.zip"
-        12         | "Windows"           | SystemInfo.Architecture.i386    | "adoptopenjdk-12-x32-windows.zip"
-        13         | "Windows"           | SystemInfo.Architecture.aarch64 | "adoptopenjdk-13-aarch64-windows.zip"
-        11         | "Linux"             | SystemInfo.Architecture.amd64   | "adoptopenjdk-11-x64-linux.tar.gz"
-        12         | "Linux"             | SystemInfo.Architecture.i386    | "adoptopenjdk-12-x32-linux.tar.gz"
-        13         | "Linux"             | SystemInfo.Architecture.aarch64 | "adoptopenjdk-13-aarch64-linux.tar.gz"
-        11         | "Mac OS X"          | SystemInfo.Architecture.amd64   | "adoptopenjdk-11-x64-mac.tar.gz"
-        12         | "Darwin"            | SystemInfo.Architecture.i386    | "adoptopenjdk-12-x32-mac.tar.gz"
-        13         | "OSX"               | SystemInfo.Architecture.aarch64 | "adoptopenjdk-13-aarch64-mac.tar.gz"
-        13         | "Solaris"           | SystemInfo.Architecture.i386    | "adoptopenjdk-13-x32-solaris.tar.gz"
+        jdkVersion | operatingSystemName | architecture                    | implementation         | vendor                    | expectedFilename
+        11         | "Windows"           | SystemInfo.Architecture.amd64   | null                   | null                      | "adoptium-11-x64-hotspot-windows.zip"
+        12         | "Windows"           | SystemInfo.Architecture.i386    | JvmImplementation.J9   | JvmVendorSpec.IBM_SEMERU  | "ibm_semeru-12-x32-openj9-windows.zip"
+        13         | "Windows"           | SystemInfo.Architecture.aarch64 | null                   | null                      | "adoptium-13-aarch64-hotspot-windows.zip"
+        11         | "Linux"             | SystemInfo.Architecture.amd64   | null                   | JvmVendorSpec.ADOPTIUM    | "adoptium-11-x64-hotspot-linux.tar.gz"
+        12         | "Linux"             | SystemInfo.Architecture.i386    | null                   | null                      | "adoptium-12-x32-hotspot-linux.tar.gz"
+        13         | "Linux"             | SystemInfo.Architecture.aarch64 | JvmImplementation.J9   | null                      | "adoptium-13-aarch64-openj9-linux.tar.gz"
+        11         | "Mac OS X"          | SystemInfo.Architecture.amd64   | null                   | JvmVendorSpec.IBM_SEMERU  | "ibm_semeru-11-x64-openj9-mac.tar.gz"
+        12         | "Darwin"            | SystemInfo.Architecture.i386    | null                   | null                      | "adoptium-12-x32-hotspot-mac.tar.gz"
+        13         | "OSX"               | SystemInfo.Architecture.aarch64 | null                   | null                      | "adoptium-13-aarch64-hotspot-mac.tar.gz"
+        13         | "Solaris"           | SystemInfo.Architecture.i386    | null                   | JvmVendorSpec.APPLE       | "apple-13-x32-hotspot-solaris.tar.gz"
     }
 
-    @Unroll
     def "uses configured base uri #customBaseUrl if available"() {
         given:
         def spec = newSpec()
@@ -130,7 +126,6 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         1 * downloader.download(URI.create("https://api.adoptopenjdk.net/v3/binary/latest/12/ga/mac/x64/jdk/hotspot/normal/adoptopenjdk"), _)
     }
 
-    @Unroll
     def "skips downloading unsupported java version #javaVersion"() {
         given:
         def spec = newSpec(javaVersion)
@@ -149,7 +144,6 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         javaVersion << [5, 6, 7]
     }
 
-    @Unroll
     def "skips downloading unsupported vendor #vendor"() {
         given:
         def spec = newSpec(8)
@@ -169,7 +163,6 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         vendor << [JvmVendorSpec.AMAZON, JvmVendorSpec.IBM]
     }
 
-    @Unroll
     def "downloads with matching vendor spec using #vendor"() {
         given:
         def spec = newSpec(12)
@@ -209,9 +202,11 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         1 * downloader.download(URI.create("https://api.adoptopenjdk.net/v3/binary/latest/12/ga/mac/x64/jdk/openj9/normal/adoptopenjdk"), _)
     }
 
-    def newSpec(int jdkVersion = 11) {
+    def newSpec(int jdkVersion = 11, JvmImplementation implementation = null, JvmVendorSpec vendor = null) {
         def spec = new DefaultToolchainSpec(TestUtil.objectFactory())
         spec.languageVersion.set(JavaLanguageVersion.of(jdkVersion))
+        spec.implementation.set(implementation)
+        spec.vendor.set(vendor)
         spec
     }
 

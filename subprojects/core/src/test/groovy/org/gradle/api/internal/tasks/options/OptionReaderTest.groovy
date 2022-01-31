@@ -20,6 +20,7 @@ import org.gradle.api.Project
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.options.Option
 import org.gradle.api.tasks.options.OptionValues
+import spock.lang.Issue
 import spock.lang.Specification
 
 class OptionReaderTest extends Specification {
@@ -227,6 +228,79 @@ class OptionReaderTest extends Specification {
         then:
         e = thrown(OptionValidationException)
         e.message == "No description set on option 'field' at for class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$TestClass8'."
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/18496")
+    def "handles abstract classes with interfaces"() {
+        when:
+        List<OptionDescriptor> options = reader.getOptions(new AbstractTestClassWithInterface() {
+            @Override
+            Property<String> getStringValue() {
+                throw new UnsupportedOperationException()
+            }
+        })
+        then:
+        options.size() == 2
+
+        options[0].name == "objectValue"
+        options[0].description == "object value"
+        options[0].argumentType == String
+        options[0].availableValues == [] as Set<String>
+
+        options[1].name == "stringValue"
+        options[1].description == "string value"
+        options[1].argumentType == String
+        options[1].availableValues == [] as Set<String>
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/18496")
+    def "handles abstract classes with interfaces with same method but different option names"() {
+        when:
+        List<OptionDescriptor> options = reader.getOptions(new AbstractTestClassWithTwoInterfacesWithSameMethod() {
+            @Override
+            Property<String> getStringValue() {
+                throw new UnsupportedOperationException()
+            }
+        })
+        then:
+        options.size() == 3
+
+        options[0].name == "objectValue"
+        options[0].description == "object value"
+        options[0].argumentType == String
+        options[0].availableValues == [] as Set<String>
+
+        options[1].name == "stringValue"
+        options[1].description == "string value"
+        options[1].argumentType == String
+        options[1].availableValues == [] as Set<String>
+
+        options[2].name == "stringValue1"
+        options[2].description == "string value 1"
+        options[2].argumentType == String
+        options[2].availableValues == [] as Set<String>
+    }
+
+    public interface TestInterface {
+        @Option(option = "stringValue", description = "string value")
+        public Property<String> getStringValue();
+    }
+
+    public interface TestInterfaceWithSameFunctionButDifferentOptionName {
+        @Option(option = "stringValue1", description = "string value 1")
+        public Property<String> getStringValue();
+    }
+
+    public static abstract class AbstractTestClassWithInterface implements TestInterface {
+        @Option(option = "objectValue", description = "object value")
+        public void setObjectValue(Object value) {
+        }
+    }
+
+    public static abstract class AbstractTestClassWithTwoInterfacesWithSameMethod implements TestInterface, TestInterfaceWithSameFunctionButDifferentOptionName {
+        @Option(option = "objectValue", description = "object value")
+        public void setObjectValue(Object value) {
+        }
     }
 
     public static class TestClassWithSetters {

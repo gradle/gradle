@@ -24,7 +24,7 @@ import org.gradle.internal.state.ManagedFactory
 import org.gradle.util.TestUtil
 import org.gradle.util.internal.TextUtil
 import org.spockframework.util.Assert
-import spock.lang.Unroll
+import spock.lang.Issue
 
 class MapPropertySpec extends PropertySpec<Map<String, String>> {
 
@@ -459,6 +459,7 @@ The value of this property is derived from: <source>""")
         assertValueIs([:])
     }
 
+    @Issue('gradle/gradle#11036')
     def "throws NullPointerException when provider returns map with null key to property"() {
         given:
         property.putAll(Providers.of(Collections.singletonMap(null, 'value')))
@@ -467,9 +468,11 @@ The value of this property is derived from: <source>""")
         property.get()
 
         then:
-        thrown NullPointerException
+        def e = thrown NullPointerException
+        e.message == 'Cannot get the value of a property of type java.util.Map with key type java.lang.String as the source contains a null key.'
     }
 
+    @Issue('gradle/gradle#11036')
     def "throws NullPointerException when provider returns map with null value to property"() {
         given:
         property.putAll(Providers.of(['k': null]))
@@ -478,7 +481,8 @@ The value of this property is derived from: <source>""")
         property.get()
 
         then:
-        thrown NullPointerException
+        def e = thrown NullPointerException
+        e.message == 'Cannot get the value of a property of type java.util.Map with value type java.lang.String as the source contains a null value for key "k".'
     }
 
     def "throws NullPointerException when adding an entry with a null key to the property"() {
@@ -878,6 +882,20 @@ The value of this property is derived from: <source>""")
         e.message == "Cannot query the value of this provider because it has no value available."
     }
 
+    @Issue('gradle/gradle#11036')
+    def "getting key set from provider throws NullPointerException if property has null key"() {
+        given:
+        property.putAll(Providers.of(Collections.singletonMap(null, 'value')))
+        def keySetProvider = property.keySet()
+
+        when:
+        keySetProvider.get()
+
+        then:
+        def e = thrown(NullPointerException)
+        e.message == 'Cannot get the value of a property of type java.util.Set with element type java.lang.String as the source value contains a null element.'
+    }
+
     def "keySet provider tracks value of property"() {
         when:
         def keySetProvider = property.keySet()
@@ -995,7 +1013,6 @@ The value of this property is derived from: <source>""")
         result2 == [k1: "value"]
     }
 
-    @Unroll
     def "finalizes upstream properties when value read using #method and disallow unsafe reads"() {
         def a = property()
         def b = property()

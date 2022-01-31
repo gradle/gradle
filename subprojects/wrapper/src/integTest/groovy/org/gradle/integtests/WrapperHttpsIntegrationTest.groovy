@@ -55,7 +55,7 @@ class WrapperHttpsIntegrationTest extends AbstractWrapperIntegrationSpec {
 
     task echoProperty {
         doLast {
-            println "fooD=" + project.properties["fooD"]
+            println "fooD=" + project.findProperty("fooD")
         }
     }
 """

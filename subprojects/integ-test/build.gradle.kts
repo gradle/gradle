@@ -2,6 +2,8 @@ plugins {
     id("gradlebuild.internal.java")
 }
 
+description = "Integration tests which don't fit anywhere else - should probably be split up"
+
 dependencies {
     integTestImplementation(project(":base-services"))
     integTestImplementation(project(":enterprise-operations"))

@@ -20,6 +20,7 @@ import org.gradle.api.logging.Logging
 import org.gradle.configurationcache.ConfigurationCacheAction
 import org.gradle.configurationcache.ConfigurationCacheAction.LOAD
 import org.gradle.configurationcache.ConfigurationCacheAction.STORE
+import org.gradle.configurationcache.ConfigurationCacheAction.UPDATE
 import org.gradle.configurationcache.ConfigurationCacheKey
 import org.gradle.configurationcache.ConfigurationCacheProblemsException
 import org.gradle.configurationcache.TooManyConfigurationCacheProblemsException
@@ -34,6 +35,7 @@ import java.util.function.Consumer
 
 
 @ServiceScope(Scopes.BuildTree::class)
+internal
 class ConfigurationCacheProblems(
 
     private
@@ -49,7 +51,6 @@ class ConfigurationCacheProblems(
     val listenerManager: ListenerManager
 
 ) : ProblemsListener, ProblemReporter, AutoCloseable {
-
     private
     val summarizer = ConfigurationCacheProblemsSummary()
 
@@ -63,7 +64,16 @@ class ConfigurationCacheProblems(
     var isFailingBuildDueToSerializationError = false
 
     private
-    var cacheAction: ConfigurationCacheAction? = null
+    var reusedProjects = 0
+
+    private
+    var updatedProjects = 0
+
+    private
+    var hasIncompatibleTypes = false
+
+    private
+    lateinit var cacheAction: ConfigurationCacheAction
 
     private
     var invalidateStoredState: (() -> Unit)? = null
@@ -76,13 +86,9 @@ class ConfigurationCacheProblems(
         listenerManager.removeListener(postBuildHandler)
     }
 
-    fun storing(invalidateState: () -> Unit) {
-        cacheAction = STORE
+    fun action(action: ConfigurationCacheAction, invalidateState: () -> Unit) {
+        cacheAction = action
         invalidateStoredState = invalidateState
-    }
-
-    fun loading() {
-        cacheAction = LOAD
     }
 
     fun failingBuildDueToSerializationError() {
@@ -90,8 +96,27 @@ class ConfigurationCacheProblems(
         isFailOnProblems = false
     }
 
+    fun projectStateStats(reusedProjects: Int, updatedProjects: Int) {
+        this.reusedProjects = reusedProjects
+        this.updatedProjects = updatedProjects
+    }
+
+    override fun forIncompatibleType(): ProblemsListener {
+        hasIncompatibleTypes = true
+        return object : ProblemsListener {
+            override fun onProblem(problem: PropertyProblem) {
+                onProblem(problem, ProblemSeverity.Warn)
+            }
+        }
+    }
+
     override fun onProblem(problem: PropertyProblem) {
-        if (summarizer.onProblem(problem)) {
+        onProblem(problem, ProblemSeverity.Failure)
+    }
+
+    private
+    fun onProblem(problem: PropertyProblem, severity: ProblemSeverity) {
+        if (summarizer.onProblem(problem, severity)) {
             report.onProblem(problem)
         }
     }
@@ -100,22 +125,33 @@ class ConfigurationCacheProblems(
         return "configuration-cache"
     }
 
+    /**
+     * Writes the report to the given [reportDir] if any [diagnostics][DiagnosticKind] have
+     * been reported in which case a warning is also logged with the location of the report.
+     */
     override fun report(reportDir: File, validationFailures: Consumer<in Throwable>) {
         val summary = summarizer.get()
-        val problemCount = summary.problemCount
-        if (problemCount == 0) {
-            return
-        }
-        val hasTooManyProblems = problemCount > startParameter.maxProblems
-        if (cacheAction == STORE && (isFailOnProblems || hasTooManyProblems)) {
+        val failDueToProblems = summary.failureCount > 0 && isFailOnProblems
+        val discardStateDueToProblems = (summary.problemCount > 0 || hasIncompatibleTypes) && isFailOnProblems
+        val hasTooManyProblems = summary.problemCount > startParameter.maxProblems
+        val discardState = discardStateDueToProblems || hasTooManyProblems
+        if (cacheAction != LOAD && discardState) {
             // Invalidate stored state if problems fail the build
             requireNotNull(invalidateStoredState).invoke()
         }
-        val cacheActionText = cacheAction.summaryText()
+
         val outputDirectory = outputDirectoryFor(reportDir)
-        val htmlReportFile = report.writeReportFileTo(outputDirectory, cacheActionText, problemCount)
+        val cacheActionText = cacheAction.summaryText()
+        val requestedTasks = startParameter.requestedTasksOrDefault()
+        val htmlReportFile = report.writeReportFileTo(outputDirectory, cacheActionText, requestedTasks, summary.problemCount)
+        if (htmlReportFile == null) {
+            // there was nothing to report
+            require(summary.problemCount == 0)
+            return
+        }
+
         when {
-            isFailOnProblems -> {
+            failDueToProblems -> {
                 // TODO - always include this as a build failure;
                 //  currently it is disabled when a serialization problem happens
                 validationFailures.accept(
@@ -138,12 +174,16 @@ class ConfigurationCacheProblems(
     }
 
     private
-    fun ConfigurationCacheAction?.summaryText() =
+    fun ConfigurationCacheAction.summaryText() =
         when (this) {
-            null -> "storing"
             LOAD -> "reusing"
             STORE -> "storing"
+            UPDATE -> "updating"
         }
+
+    private
+    fun ConfigurationCacheStartParameter.requestedTasksOrDefault() =
+        requestedTaskNames.takeIf { it.isNotEmpty() }?.joinToString(" ") ?: "default tasks"
 
     private
     fun outputDirectoryFor(buildDir: File): File =
@@ -157,15 +197,21 @@ class ConfigurationCacheProblems(
         override fun beforeComplete() {
             val problemCount = summarizer.get().problemCount
             val hasProblems = problemCount > 0
+            val discardStateDueToProblems = (problemCount > 0 || hasIncompatibleTypes) && isFailOnProblems
             val hasTooManyProblems = problemCount > startParameter.maxProblems
-            val problemCountString = if (problemCount == 1) "1 problem" else "$problemCount problems"
+            val problemCountString = problemCount.counter("problem")
+            val reusedProjectsString = reusedProjects.counter("project")
+            val updatedProjectsString = updatedProjects.counter("project")
             when {
                 isFailingBuildDueToSerializationError && !hasProblems -> log("Configuration cache entry discarded.")
                 isFailingBuildDueToSerializationError -> log("Configuration cache entry discarded with {}.", problemCountString)
-                cacheAction == STORE && isFailOnProblems && hasProblems -> log("Configuration cache entry discarded with {}.", problemCountString)
+                cacheAction == STORE && discardStateDueToProblems && !hasProblems -> log("Configuration cache entry discarded.")
+                cacheAction == STORE && discardStateDueToProblems -> log("Configuration cache entry discarded with {}.", problemCountString)
                 cacheAction == STORE && hasTooManyProblems -> log("Configuration cache entry discarded with too many problems ({}).", problemCountString)
                 cacheAction == STORE && !hasProblems -> log("Configuration cache entry stored.")
                 cacheAction == STORE -> log("Configuration cache entry stored with {}.", problemCountString)
+                cacheAction == UPDATE && !hasProblems -> log("Configuration cache entry updated for {}, {} up-to-date.", updatedProjectsString, reusedProjectsString)
+                cacheAction == UPDATE -> log("Configuration cache entry updated for {} with {}, {} up-to-date.", updatedProjectsString, problemCountString, reusedProjectsString)
                 cacheAction == LOAD && !hasProblems -> log("Configuration cache entry reused.")
                 cacheAction == LOAD -> log("Configuration cache entry reused with {}.", problemCountString)
                 hasTooManyProblems -> log("Too many configuration cache problems found ({}).", problemCountString)
@@ -182,4 +228,13 @@ class ConfigurationCacheProblems(
 
     private
     val logger = Logging.getLogger(ConfigurationCacheProblems::class.java)
+
+    private
+    fun Int.counter(singular: String, plural: String = "${singular}s"): String {
+        return when (this) {
+            0 -> "no $plural"
+            1 -> "1 $singular"
+            else -> "$this $plural"
+        }
+    }
 }

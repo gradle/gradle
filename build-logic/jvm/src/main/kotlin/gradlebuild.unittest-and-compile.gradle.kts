@@ -16,8 +16,18 @@
 
 import com.gradle.enterprise.gradleplugin.testdistribution.internal.TestDistributionExtensionInternal
 import gradlebuild.basics.BuildEnvironment
+import gradlebuild.basics.FlakyTestStrategy
+import gradlebuild.basics.flakyTestStrategy
+import gradlebuild.basics.isExperimentalTestFilteringEnabled
+import gradlebuild.basics.maxParallelForks
+import gradlebuild.basics.maxTestDistributionPartitionSecond
+import gradlebuild.basics.rerunAllTests
 import gradlebuild.basics.tasks.ClasspathManifest
 import gradlebuild.basics.testDistributionEnabled
+import gradlebuild.basics.testJavaVendor
+import gradlebuild.basics.testJavaVersion
+import gradlebuild.basics.testing.excludeSpockAnnotation
+import gradlebuild.basics.testing.includeSpockAnnotation
 import gradlebuild.filterEnvironmentVariables
 import gradlebuild.jvm.argumentproviders.CiEnvironmentProvider
 import gradlebuild.jvm.extension.UnitTestAndCompileExtension
@@ -48,9 +58,9 @@ tasks.registerCITestDistributionLifecycleTasks()
 fun configureCompile() {
     java.toolchain {
         languageVersion.set(JavaLanguageVersion.of(11))
-        // Do not force AdoptOpenJDK vendor for M1 Macs
+        // Do not force Adoptium vendor for M1 Macs
         if (!OperatingSystem.current().toString().contains("aarch64")) {
-            vendor.set(JvmVendorSpec.ADOPTOPENJDK)
+            vendor.set(JvmVendorSpec.ADOPTIUM)
         }
     }
 
@@ -172,21 +182,36 @@ fun configureJarTasks() {
     }
 }
 
-fun getPropertyFromAnySource(propertyName: String): Provider<String> {
-    return providers.gradleProperty(propertyName).forUseAtConfigurationTime()
-        .orElse(providers.systemProperty(propertyName).forUseAtConfigurationTime())
-        .orElse(providers.environmentVariable(propertyName).forUseAtConfigurationTime())
+fun Test.jvmVersionForTest(): JavaLanguageVersion {
+    return JavaLanguageVersion.of(project.testJavaVersion)
 }
 
-fun Test.jvmVersionForTest(): JavaLanguageVersion {
-    return JavaLanguageVersion.of(getPropertyFromAnySource("testJavaVersion").getOrElse(JavaVersion.current().majorVersion))
+fun Test.configureSpock() {
+    systemProperty("spock.configuration", "GradleBuildSpockConfig.groovy")
+}
+
+fun Test.configureFlakyTest() {
+    when (project.flakyTestStrategy) {
+        FlakyTestStrategy.INCLUDE -> {}
+        FlakyTestStrategy.EXCLUDE -> {
+            excludeSpockAnnotation("org.gradle.test.fixtures.Flaky")
+            (options as JUnitPlatformOptions).excludeTags("org.gradle.test.fixtures.Flaky")
+        }
+        FlakyTestStrategy.ONLY -> {
+            // Note there is an issue: https://github.com/spockframework/spock/issues/1288
+            // JUnit Platform `includeTags` works before Spock engine, thus excludes all spock tests.
+            // As a workaround, we tag all non-spock integration tests and use `includeTags(none() | Flaky)` here.
+            (options as JUnitPlatformOptions).includeTags("none() | org.gradle.test.fixtures.Flaky")
+            includeSpockAnnotation("org.gradle.test.fixtures.Flaky")
+        }
+    }
 }
 
 fun Test.configureJvmForTest() {
     jvmArgumentProviders.add(CiEnvironmentProvider(this))
     val launcher = project.javaToolchains.launcherFor {
         languageVersion.set(jvmVersionForTest())
-        getPropertyFromAnySource("testJavaVendor").map {
+        project.testJavaVendor.map {
             when (it.toLowerCase()) {
                 "oracle" -> vendor.set(JvmVendorSpec.ORACLE)
                 "openjdk" -> vendor.set(JvmVendorSpec.ADOPTOPENJDK)
@@ -214,6 +239,22 @@ fun Test.isUnitTest() = listOf("test", "writePerformanceScenarioDefinitions", "w
 
 fun Test.usesEmbeddedExecuter() = name.startsWith("embedded")
 
+fun Test.configureRerun() {
+    if (project.rerunAllTests.isPresent) {
+        doNotTrackState("All tests should re-run")
+    }
+}
+
+fun Test.determineMaxRetries() = when {
+    project.flakyTestStrategy == FlakyTestStrategy.ONLY -> 4
+    else -> 2
+}
+
+fun Test.determineMaxFailures() = when {
+    project.flakyTestStrategy == FlakyTestStrategy.ONLY -> Integer.MAX_VALUE
+    else -> 10
+}
+
 fun configureTests() {
     normalization {
         runtimeClasspath {
@@ -234,9 +275,10 @@ fun configureTests() {
         val testName = name
 
         if (BuildEnvironment.isCiServer) {
+            configureRerun()
             retry {
-                maxRetries.convention(1)
-                maxFailures.set(10)
+                maxRetries.convention(determineMaxRetries())
+                maxFailures.set(determineMaxFailures())
             }
             doFirst {
                 logger.lifecycle("maxParallelForks for '$path' is $maxParallelForks")
@@ -244,6 +286,8 @@ fun configureTests() {
         }
 
         useJUnitPlatform()
+        configureSpock()
+        configureFlakyTest()
 
         if (project.enableExperimentalTestFiltering() && !isUnitTest()) {
             distribution {
@@ -254,7 +298,7 @@ fun configureTests() {
             }
         }
 
-        if (project.testDistributionEnabled() && !isUnitTest()) {
+        if (project.testDistributionEnabled && !isUnitTest()) {
             println("Remote test distribution has been enabled for $testName")
 
             distribution {
@@ -292,16 +336,6 @@ fun removeTeamcityTempProperty() {
 }
 
 fun Project.enableExperimentalTestFiltering() = !setOf("build-scan-performance", "configuration-cache", "kotlin-dsl", "performance", "smoke-test", "soak").contains(name) && isExperimentalTestFilteringEnabled
-
-val Project.isExperimentalTestFilteringEnabled
-    get() = providers.systemProperty("gradle.internal.testselection.enabled").forUseAtConfigurationTime().getOrElse("false").toBoolean()
-
-// Controls the test distribution partition size. The test classes smaller than this value will be merged into a "partition"
-val Project.maxTestDistributionPartitionSecond: Long?
-    get() = providers.systemProperty("testDistributionPartitionSizeInSeconds").forUseAtConfigurationTime().orNull?.toLong()
-
-val Project.maxParallelForks: Int
-    get() = (findProperty("maxParallelForks")?.toString()?.toInt() ?: 4) * (if (System.getenv("BUILD_AGENT_VARIANT") == "AX41") 2 else 1)
 
 /**
  * Test lifecycle tasks that correspond to CIBuildModel.TestType (see .teamcity/Gradle_Check/model/CIBuildModel.kt).

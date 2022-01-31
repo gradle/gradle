@@ -68,52 +68,65 @@ class ApplyDefaultConfigurationTest {
     fun `can apply defaults to configurations`() {
         applyDefaults(buildModel, buildType, "myTask")
 
-        assertEquals(listOf(
-            "KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS",
-            "GRADLE_RUNNER",
-            "CHECK_CLEAN_M2_ANDROID_USER_HOME"
-        ), steps.items.map(BuildStep::name))
+        assertEquals(
+            listOf(
+                "KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS",
+                "GRADLE_RUNNER",
+                "CHECK_CLEAN_M2_ANDROID_USER_HOME"
+            ),
+            steps.items.map(BuildStep::name)
+        )
         assertEquals(expectedRunnerParam(), getGradleStep("GRADLE_RUNNER").gradleParams)
     }
 
     @ParameterizedTest
-    @CsvSource(value = [
-        "myParam, true,  '--daemon'",
-        "''     , true,  '--daemon'",
-        "myParam, false, '--no-daemon'",
-        "''     , false, '--no-daemon'"
-    ])
+    @CsvSource(
+        value = [
+            "myParam, true,  '--daemon'",
+            "''     , true,  '--daemon'",
+            "myParam, false, '--no-daemon'",
+            "''     , false, '--no-daemon'"
+        ]
+    )
     fun `can apply defaults to linux test configurations`(extraParameters: String, daemon: Boolean, expectedDaemonParam: String) {
         applyTestDefaults(buildModel, buildType, "myTask", extraParameters = extraParameters, daemon = daemon)
 
-        assertEquals(listOf(
-            "KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS",
-            "GRADLE_RUNNER",
-            "KILL_PROCESSES_STARTED_BY_GRADLE",
-            "CHECK_CLEAN_M2_ANDROID_USER_HOME"
-        ), steps.items.map(BuildStep::name))
+        assertEquals(
+            listOf(
+                "KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS",
+                "GRADLE_RUNNER",
+                "KILL_PROCESSES_STARTED_BY_GRADLE",
+                "CHECK_CLEAN_M2_ANDROID_USER_HOME"
+            ),
+            steps.items.map(BuildStep::name)
+        )
         verifyGradleRunnerParams(extraParameters, expectedDaemonParam)
     }
 
     @ParameterizedTest
-    @CsvSource(value = [
-        "myParam, true,  '--daemon'",
-        "''     , true,  '--daemon'",
-        "myParam, false, '--no-daemon'",
-        "''     , false, '--no-daemon'"
-    ])
+    @CsvSource(
+        value = [
+            "myParam, true,  '--daemon'",
+            "''     , true,  '--daemon'",
+            "myParam, false, '--no-daemon'",
+            "''     , false, '--no-daemon'"
+        ]
+    )
     fun `can apply defaults to windows test configurations`(extraParameters: String, daemon: Boolean, expectedDaemonParam: String) {
         applyTestDefaults(buildModel, buildType, "myTask", os = Os.WINDOWS, extraParameters = extraParameters, daemon = daemon)
 
-        assertEquals(listOf(
-            "ATTACH_FILE_LEAK_DETECTOR",
-            "KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS",
-            "GRADLE_RUNNER",
-            "SET_BUILD_SUCCESS_ENV",
-            "DUMP_OPEN_FILES_ON_FAILURE",
-            "KILL_PROCESSES_STARTED_BY_GRADLE",
-            "CHECK_CLEAN_M2_ANDROID_USER_HOME"
-        ), steps.items.map(BuildStep::name))
+        assertEquals(
+            listOf(
+                "ATTACH_FILE_LEAK_DETECTOR",
+                "KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS",
+                "GRADLE_RUNNER",
+                "SET_BUILD_SUCCESS_ENV",
+                "DUMP_OPEN_FILES_ON_FAILURE",
+                "KILL_PROCESSES_STARTED_BY_GRADLE",
+                "CHECK_CLEAN_M2_ANDROID_USER_HOME"
+            ),
+            steps.items.map(BuildStep::name)
+        )
         verifyGradleRunnerParams(extraParameters, expectedDaemonParam, Os.WINDOWS)
     }
 
@@ -130,9 +143,9 @@ class ApplyDefaultConfigurationTest {
 
     private
     fun expectedRunnerParam(daemon: String = "--daemon", extraParameters: String = "", os: Os = Os.LINUX): String {
-        val linuxPaths = "-Porg.gradle.java.installations.paths=%linux.java8.oracle.64bit%,%linux.java11.openjdk.64bit%,%linux.java15.openjdk.64bit%,%linux.java16.openjdk.64bit%,%linux.java17.openjdk.64bit%,%linux.java18.openjdk.64bit%"
-        val windowsPaths = "-Porg.gradle.java.installations.paths=%windows.java8.oracle.64bit%,%windows.java11.openjdk.64bit%,%windows.java15.openjdk.64bit%,%windows.java16.openjdk.64bit%,%windows.java17.openjdk.64bit%,%windows.java18.openjdk.64bit%"
+        val linuxPaths = "-Porg.gradle.java.installations.paths=%linux.java8.oracle.64bit%,%linux.java11.adoptiumopenjdk.64bit%,%linux.java17.adoptiumopenjdk.64bit%,%linux.java18.adoptiumopenjdk.64bit%"
+        val windowsPaths = "-Porg.gradle.java.installations.paths=%windows.java8.oracle.64bit%,%windows.java11.adoptiumopenjdk.64bit%,%windows.java17.adoptiumopenjdk.64bit%,%windows.java18.adoptiumopenjdk.64bit%"
         val expectedInstallationPaths = if (os == Os.WINDOWS) windowsPaths else linuxPaths
-        return "-Dorg.gradle.workers.max=%maxParallelForks% -PmaxParallelForks=%maxParallelForks% -Dorg.gradle.internal.plugins.portal.url.override=%gradle.plugins.portal.url% -s --no-configuration-cache $daemon --continue $extraParameters \"-Dscan.tag.Check\" \"-Dscan.tag.\" -PteamCityBuildId=%teamcity.build.id% \"$expectedInstallationPaths\" -Porg.gradle.java.installations.auto-download=false"
+        return "-Dorg.gradle.workers.max=%maxParallelForks% -PmaxParallelForks=%maxParallelForks% -Dorg.gradle.internal.plugins.portal.url.override=%gradle.plugins.portal.url% -s --no-configuration-cache %additional.gradle.parameters% $daemon --continue $extraParameters \"-Dscan.tag.Check\" \"-Dscan.tag.\" -PteamCityBuildId=%teamcity.build.id% \"$expectedInstallationPaths\" -Porg.gradle.java.installations.auto-download=false"
     }
 }

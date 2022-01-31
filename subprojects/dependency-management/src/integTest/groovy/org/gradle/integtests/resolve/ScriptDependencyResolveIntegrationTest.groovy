@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import spock.lang.Issue
 
@@ -88,5 +89,77 @@ rootProject.name = 'testproject'
         expect:
         fails "help"
         failureHasCause("Conflict(s) found for the following module(s):")
+    }
+
+    @ToBeFixedForConfigurationCache(because = ":buildEnvironment")
+    @Issue("gradle/gradle#19300")
+    def 'carries implicit constraint for log4j-core'() {
+        given:
+        mavenRepo().module('org.apache.logging.log4j', 'log4j-core', '2.17.1').publish()
+
+        and:
+        settingsFile << """
+            buildscript {
+                repositories { maven { url "${mavenRepo().uri}" } }
+                dependencies {
+                    classpath "org.apache.logging.log4j:log4j-core"
+                }
+            }
+
+            rootProject.name = 'testproject'
+        """
+
+        buildFile << """
+            buildscript {
+                repositories { maven { url "${mavenRepo().uri}" } }
+                dependencies {
+                    classpath "org.apache.logging.log4j:log4j-core"
+                }
+            }
+        """
+
+        expect:
+        succeeds 'buildEnvironment'
+        outputContains('org.apache.logging.log4j:log4j-core:{require 2.17.1; reject [2.0, 2.17.1)} -> 2.17.1 (c)')
+    }
+
+    @Issue("gradle/gradle#19300")
+    def 'fails if build attempts to force vulnerable log4j-core'() {
+        given:
+        settingsFile << """
+            rootProject.name = 'testproject'
+        """
+
+        buildFile << """
+            buildscript {
+                repositories { maven { url "${mavenRepo().uri}" } }
+                dependencies {
+                    classpath "org.apache.logging.log4j:log4j-core:2.14.1!!"
+                }
+            }
+        """
+
+        expect:
+        fails 'help'
+        failureCauseContains('Cannot find a version of \'org.apache.logging.log4j:log4j-core\' that satisfies the version constraints')
+    }
+
+    @ToBeFixedForConfigurationCache(because = ":buildEnvironment")
+    @Issue("gradle/gradle#19300")
+    def 'allows to upgrade log4j to 3.x one day'() {
+        given:
+        mavenRepo().module('org.apache.logging.log4j', 'log4j-core', '3.1.0').publish()
+        buildFile << """
+            buildscript {
+                repositories { maven { url "${mavenRepo().uri}" } }
+                dependencies {
+                    classpath "org.apache.logging.log4j:log4j-core:3.1.0"
+                }
+            }
+        """
+
+        expect:
+        succeeds 'buildEnvironment'
+        outputContains('org.apache.logging.log4j:log4j-core:{require 2.17.1; reject [2.0, 2.17.1)} -> 3.1.0 (c)')
     }
 }

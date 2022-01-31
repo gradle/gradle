@@ -23,13 +23,7 @@ import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest {
 
-    // TODO:configuration-cache remove once fixed upstream
-    @Override
-    protected int maxConfigurationCacheProblems() {
-        return 150
-    }
-
-    @UnsupportedWithConfigurationCache(iterationMatchers = [AGP_4_0_ITERATION_MATCHER, AGP_4_1_ITERATION_MATCHER])
+    @UnsupportedWithConfigurationCache(iterationMatchers = [AGP_NO_CC_ITERATION_MATCHER])
     def "check deprecation warnings produced by building Santa Tracker (agp=#agpVersion)"() {
 
         given:
@@ -49,7 +43,7 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
         agpVersion << TESTED_AGP_VERSIONS
     }
 
-    @UnsupportedWithConfigurationCache(iterationMatchers = [AGP_4_0_ITERATION_MATCHER, AGP_4_1_ITERATION_MATCHER])
+    @UnsupportedWithConfigurationCache(iterationMatchers = [AGP_NO_CC_ITERATION_MATCHER])
     def "incremental Java compilation works for Santa Tracker (agp=#agpVersion)"() {
 
         given:
@@ -86,7 +80,7 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
         agpVersion << TESTED_AGP_VERSIONS
     }
 
-    @UnsupportedWithConfigurationCache(iterationMatchers = [AGP_4_0_ITERATION_MATCHER, AGP_4_1_ITERATION_MATCHER, AGP_4_2_ITERATION_MATCHER])
+    @UnsupportedWithConfigurationCache(iterationMatchers = [AGP_NO_CC_ITERATION_MATCHER])
     def "can lint Santa-Tracker (agp=#agpVersion)"() {
 
         given:
@@ -97,12 +91,16 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
         setupCopyOfSantaTracker(checkoutDir)
 
         when:
-        def runner = runnerForLocationExpectingLintDeprecations(checkoutDir, true, agpVersion, "lintDebug",
+        def runner = runnerForLocationExpectingLintDeprecations(
+            checkoutDir, true, agpVersion,
             [
-                "wearable-2.3.0.jar (com.google.android.wearable:wearable:2.3.0)",
                 "kotlin-android-extensions-runtime-${kotlinVersion}.jar (org.jetbrains.kotlin:kotlin-android-extensions-runtime:${kotlinVersion})",
                 "appcompat-1.0.2.aar (androidx.appcompat:appcompat:1.0.2)"
-            ])
+            ],
+            "common:lintDebug", "playgames:lintDebug", "doodles-lib:lintDebug"
+        )
+        // Use --continue so that a deterministic set of tasks runs when some tasks fail
+        runner.withArguments(runner.arguments + "--continue")
         def result = runner.buildAndFail()
 
         then:
@@ -110,13 +108,16 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
         result.output.contains("Lint found errors in the project; aborting build.")
 
         when:
-        result = runnerForLocationExpectingLintDeprecations(checkoutDir, false, agpVersion, "lintDebug",
+        runner = runnerForLocationExpectingLintDeprecations(
+            checkoutDir, false, agpVersion,
             [
-                "wearable-2.3.0.jar (com.google.android.wearable:wearable:2.3.0)",
                 "kotlin-android-extensions-runtime-${kotlinVersion}.jar (org.jetbrains.kotlin:kotlin-android-extensions-runtime:${kotlinVersion})",
                 "appcompat-1.0.2.aar (androidx.appcompat:appcompat:1.0.2)"
-            ])
-            .buildAndFail()
+            ],
+            "common:lintDebug", "playgames:lintDebug", "doodles-lib:lintDebug"
+        )
+        runner.withArguments(runner.arguments + "--continue")
+        result = runner.buildAndFail()
 
         then:
         assertConfigurationCacheStateLoaded()
@@ -126,8 +127,8 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
         agpVersion << TESTED_AGP_VERSIONS
     }
 
-    private SmokeTestGradleRunner runnerForLocationExpectingLintDeprecations(File location, boolean isCleanBuild, String agpVersion, String task, List<String> artifacts) {
-        SmokeTestGradleRunner runner = isCleanBuild ? runnerForLocationMaybeExpectingWorkerExecutorDeprecation(location, agpVersion, task) : runnerForLocation(location, agpVersion, task)
+    private SmokeTestGradleRunner runnerForLocationExpectingLintDeprecations(File location, boolean isCleanBuild, String agpVersion, List<String> artifacts, String... tasks) {
+        SmokeTestGradleRunner runner = isCleanBuild ? runnerForLocationMaybeExpectingWorkerExecutorDeprecation(location, agpVersion, tasks) : runnerForLocation(location, agpVersion, tasks)
         artifacts.each { artifact ->
             runner.expectLegacyDeprecationWarningIf(
                 agpVersion.startsWith("4.1"),
@@ -138,6 +139,12 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
                     "Please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/validation_problems.html#unresolvable_input for more details about this problem. " +
                     "This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0. " +
                     "Execution optimizations are disabled to ensure correctness. See https://docs.gradle.org/${GradleVersion.current().version}/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
+        }
+        if (agpVersion.startsWith("4.") || agpVersion.startsWith("7.0.") || agpVersion.startsWith("7.1.")) {
+            expectAgpFileTreeDeprecationWarnings(runner, "compileDebugAidl", "compileDebugRenderscript")
+        }
+        if (agpVersion.startsWith("7.0.") || agpVersion.startsWith("7.1.")) {
+            expectAgpFileTreeDeprecationWarnings(runner, "stripDebugDebugSymbols", "bundleLibResDebug")
         }
         return runner
     }

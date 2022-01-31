@@ -18,10 +18,11 @@ package org.gradle.internal.enterprise.test.impl;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.file.EmptyFileVisitor;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.TaskPropertyUtils;
-import org.gradle.api.internal.tasks.properties.ContentTracking;
 import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
 import org.gradle.api.internal.tasks.properties.OutputFilePropertyType;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
@@ -32,6 +33,7 @@ import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.TestFrameworkOptions;
 import org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions;
+import org.gradle.internal.enterprise.test.CandidateClassFile;
 import org.gradle.internal.enterprise.test.InputFileProperty;
 import org.gradle.internal.enterprise.test.OutputFileProperty;
 import org.gradle.internal.enterprise.test.TestTaskFilters;
@@ -90,8 +92,7 @@ public class DefaultTestTaskPropertiesService implements TestTaskPropertiesServi
                 boolean incremental,
                 @Nullable Class<? extends FileNormalizer> fileNormalizer,
                 PropertyValue value,
-                InputFilePropertyType filePropertyType,
-                ContentTracking contentTracking
+                InputFilePropertyType filePropertyType
             ) {
                 FileCollection files = resolveLeniently(value);
                 inputFileProperties.add(new DefaultInputFileProperty(propertyName, files));
@@ -101,7 +102,6 @@ public class DefaultTestTaskPropertiesService implements TestTaskPropertiesServi
             public void visitOutputFileProperty(
                 String propertyName,
                 boolean optional,
-                ContentTracking contentTracking,
                 PropertyValue value,
                 OutputFilePropertyType filePropertyType
             ) {
@@ -117,10 +117,21 @@ public class DefaultTestTaskPropertiesService implements TestTaskPropertiesServi
             task.getForkEvery(),
             collectFilters(task),
             collectForkOptions(task),
-            task.getCandidateClassFiles(),
+            collectCandidateClassFiles(task),
             inputFileProperties.build(),
             outputFileProperties.build()
         );
+    }
+
+    private ImmutableList<CandidateClassFile> collectCandidateClassFiles(Test task) {
+        ImmutableList.Builder<CandidateClassFile> builder = ImmutableList.builder();
+        task.getCandidateClassFiles().visit(new EmptyFileVisitor() {
+            @Override
+            public void visitFile(FileVisitDetails fileDetails) {
+                builder.add(new DefaultCandidateClassFile(fileDetails.getFile(), fileDetails.getPath()));
+            }
+        });
+        return builder.build();
     }
 
     private FileCollection resolveLeniently(PropertyValue value) {

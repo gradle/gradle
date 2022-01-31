@@ -44,3 +44,34 @@ eclipse.wtp.facet.file.withXml { provider ->
     provider.asNode().fixed.find { it.@facet == 'jst.java' }.@facet = 'jst2.java'
 }
 // end::wtp-with-xml[]
+
+sourceSets {
+    integTest
+}
+
+configurations {
+    functional
+}
+
+eclipse {
+    classpath {
+        plusConfigurations += [configurations.functional]
+    }
+}
+
+// tag::test-sources[]
+eclipse {
+    classpath {
+        testSourceSets = testSourceSets.get() + [sourceSets.integTest]
+        testConfigurations = testConfigurations.get() + [configurations.functional]
+    }
+}
+// end::test-sources[]
+
+// tag::test-fixtures[]
+eclipse {
+    classpath {
+        containsTestFixtures = true
+    }
+}
+// end::test-fixtures[]

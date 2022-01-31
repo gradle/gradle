@@ -19,11 +19,9 @@ package org.gradle.api.internal.changedetection.state
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import spock.lang.Issue
-import spock.lang.Unroll
 
 import java.nio.file.Files
 
-@Unroll
 class UpToDateIntegTest extends AbstractIntegrationSpec {
 
     def "empty output directories created automatically are part of up-to-date checking"() {
@@ -126,7 +124,7 @@ public abstract class CreateEmptyDirectory extends DefaultTask {
         buildFile << '''
             task customTask(type: CustomTask) {
                 outputFile = file("$buildDir/outputFile")
-                content = providers.gradleProperty('content').forUseAtConfigurationTime().getOrElse(null)
+                content = providers.gradleProperty('content').getOrElse(null)
             }
 
             class CustomTask extends DefaultTask {
@@ -262,5 +260,45 @@ public abstract class CreateEmptyDirectory extends DefaultTask {
         run "customTask"
         then:
         executedAndNotSkipped(":customTask")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/19353")
+    def "file changes are recognized when file length does not change with #inputAnnotation"() {
+        buildFile << """
+            abstract class FilePrinter extends DefaultTask {
+                $inputAnnotation
+                abstract $inputType getInput()
+
+                @OutputFile
+                abstract RegularFileProperty getOutputFile()
+
+                @TaskAction
+                void doWork() {
+                    println $inputToPrint
+                }
+            }
+            tasks.register("printFile", FilePrinter) {
+                input = file("$inputPath")
+                outputFile = layout.buildDirectory.file("output/output.txt")
+            }
+        """
+        def inputFile = file("input/input.txt")
+        inputFile.text = "[0] Hello World!"
+        def originalInputFileLength = inputFile.length()
+
+        expect:
+        (1..4).each {
+            def givenText = "[$it] Hello World!"
+            inputFile.text = givenText
+            run "printFile"
+            executedAndNotSkipped(":printFile")
+            outputContains(givenText)
+            assert originalInputFileLength == inputFile.length()
+        }
+
+        where:
+        inputAnnotation   | inputType             | inputPath         | inputToPrint
+        "@InputDirectory" | "DirectoryProperty"   | "input"           | "getInput().file('input.txt').get().asFile.text"
+        "@InputFile"      | "RegularFileProperty" | "input/input.txt" | "getInput().get().asFile.text"
     }
 }
