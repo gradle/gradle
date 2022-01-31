@@ -65,16 +65,12 @@ class JavaSystemPropertiesProxySettingsTest extends Specification {
         settings("proxyHost", prop, null).getProxy("host").port == value
 
         where:
-        prop      | value
-        null      | 80
-        ""        | 80
-        " "       | 80
-        "notInt"  | 80
-        "0"       | 0
-        "111"     | 111
-        "  111  " | 111
-        "  111"   | 111
-        "111  "   | 111
+        prop     | value
+        null     | 80
+        ""       | 80
+        "notInt" | 80
+        "0"      | 0
+        "111"    | 111
     }
 
     def "uses specified proxy user and password"() {
@@ -91,9 +87,33 @@ class JavaSystemPropertiesProxySettingsTest extends Specification {
         null   | "anything" | null      | null
     }
 
+    def "trims system properties"() {
+        given:
+        System.setProperty("test.proxyHost", " test.hostname ")
+        System.setProperty("test.proxyPort", " 100 ")
+        System.setProperty("test.proxyUser", " test-user ")
+        System.setProperty("test.proxyPassword", " test-password ")
+        System.setProperty("test.nonProxyHosts", " test-host1|test-host2 | test-host3 ")
+
+        when:
+        def properties = new TestSystemProperties("test", 80)
+
+        then:
+        properties.getProxy().host == "test.hostname"
+        properties.getProxy().port == 100
+        properties.getProxy().credentials.username == "test-user"
+        properties.getProxy().credentials.password == "test-password"
+        properties.getProxy("test-host1") == null
+        properties.getProxy("test-host2") == null
+        properties.getProxy("test-host3") == null
+    }
+
     class TestSystemProperties extends JavaSystemPropertiesProxySettings {
+        TestSystemProperties(String propertyPrefix, int defaultPort) {
+            super(propertyPrefix, defaultPort)
+        }
         TestSystemProperties(String proxyHost, String proxyPortString, String proxyUser, String proxyPassword, String nonProxyHostsString) {
-            super('http', 80, proxyHost, proxyPortString, proxyUser, proxyPassword, nonProxyHostsString);
+            super('http', 80, proxyHost, proxyPortString, proxyUser, proxyPassword, nonProxyHostsString)
         }
     }
 }
