@@ -502,29 +502,7 @@ Extended Configurations
         doesNotPromptForRerunToFindMoreConfigurations()
     }
 
-    @Ignore // TODO: remove, the JSON expectation would need to be set for this
     @ToBeFixedForConfigurationCache(because = ":resolvableConfigurations")
-    def "can write json report to default file"() {
-        given:
-        buildFile << """
-            plugins {
-                id 'java'
-            }
-
-            resolvableConfigurations {
-                reports.json.required = true
-            }
-        """.stripIndent()
-
-        when:
-        succeeds ':resolvableConfigurations'
-
-        then:
-        def outputFile = file('build/reports/configuration/resolvableConfigurations.json')
-        outputFile.assertExists()
-        outputFile.assertContents(containsNormalizedString("{ json: 'Yea!  This is full of JSON!' }"))
-    }
-
     def "compatibility rules are printed if present"() {
         given: "A compatibility rule applying to the alphabetically first named attribute in the list"
         buildFile << """
@@ -575,6 +553,7 @@ The following Attributes have compatibility rules defined.
         doesNotHaveIncubatingLegend()
     }
 
+    @ToBeFixedForConfigurationCache(because = ":resolvableConfigurations")
     def "disambiguation rules are printed if present"() {
         given: "A disambiguation rule applying to the alphabetically first named attribute in the list"
         buildFile << """
