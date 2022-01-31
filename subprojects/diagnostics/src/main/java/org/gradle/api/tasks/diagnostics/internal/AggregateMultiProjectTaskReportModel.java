@@ -25,26 +25,25 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static java.util.stream.Stream.empty;
+import static java.util.stream.Stream.of;
 
 public class AggregateMultiProjectTaskReportModel implements TaskReportModel {
     private final List<TaskReportModel> projects = new ArrayList<>();
     private SetMultimap<String, TaskDetails> groups;
     private final boolean mergeTasksWithSameName;
     private final boolean detail;
-    private final List<String> reportedGroups;
+    private final List<String> groupsOfInterest;
 
     public AggregateMultiProjectTaskReportModel(boolean mergeTasksWithSameName, boolean detail, String group, List<String> groups) {
         this.mergeTasksWithSameName = mergeTasksWithSameName;
         this.detail = detail;
-
-        List<String> tmpGroups = new ArrayList<>();
-        if (!Strings.isNullOrEmpty(group)) {
-            tmpGroups.add(group.toLowerCase());
-        }
-        if (!groups.isEmpty()) {
-            tmpGroups.addAll(groups.stream().map(String::toLowerCase).collect(Collectors.toList()));
-        }
-        this.reportedGroups = tmpGroups.isEmpty() ? null : new ArrayList<>(tmpGroups);
+        this.groupsOfInterest = Stream.concat(isNullOrEmpty(group) ? empty() : of(group), groups.stream())
+                .map(String::toLowerCase)
+                .collect(Collectors.toList());
     }
 
     public void add(TaskReportModel project) {
@@ -76,7 +75,7 @@ public class AggregateMultiProjectTaskReportModel implements TaskReportModel {
         if (Strings.isNullOrEmpty(group)) {
             return detail;
         } else {
-            return this.reportedGroups == null || this.reportedGroups.contains(group.toLowerCase());
+            return groupsOfInterest.isEmpty() || groupsOfInterest.contains(group.toLowerCase());
         }
     }
 
