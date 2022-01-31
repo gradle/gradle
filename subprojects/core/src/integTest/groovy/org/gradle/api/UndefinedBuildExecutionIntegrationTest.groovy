@@ -16,7 +16,6 @@
 
 package org.gradle.api
 
-
 import org.gradle.cache.internal.BuildScopeCacheDir
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
@@ -94,9 +93,20 @@ class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private void assertNoProjectCaches(TestFile dir) {
-        def contents = (dir.list()?.findAll { !(it in ["caches", "native"]) })
-        printFileTree(dir)
-        assert !contents
+        def dirContents = dir.list()
+        if (dirContents) {
+            printFileTree(dir)
+        }
+        // caches: Gradle user home caches, not present in project .gradle caches directory
+        // native: unpacked native platform libraries, not present in project .gradle caches directory
+        // .tmp: Temporary folder for worker classpath files and configuration caching report intermediate files, not present in project .gradle caches directory
+        def filteredContents = (dirContents?.findAll { !(it in ["caches", "native", ".tmp"]) })
+        assert !filteredContents
+
+        def tmpDir = dir.file(".tmp")
+        if (tmpDir.exists()) {
+            tmpDir.assertIsEmptyDir()
+        }
     }
 
     private void printFileTree(File dir) {
