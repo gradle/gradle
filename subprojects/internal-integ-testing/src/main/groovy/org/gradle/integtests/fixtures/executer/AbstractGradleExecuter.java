@@ -98,6 +98,7 @@ import static org.gradle.integtests.fixtures.executer.OutputScrapingExecutionRes
 import static org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServiceRegistry.REUSE_USER_HOME_SERVICES;
 import static org.gradle.util.internal.CollectionUtils.collect;
 import static org.gradle.util.internal.CollectionUtils.join;
+import static org.gradle.util.internal.DefaultGradleVersion.VERSION_OVERRIDE_VAR;
 
 public abstract class AbstractGradleExecuter implements GradleExecuter, ResettableExpectations {
 
@@ -183,9 +184,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     private final MutableActionSet<GradleExecuter> beforeExecute = new MutableActionSet<>();
     private ImmutableActionSet<GradleExecuter> afterExecute = ImmutableActionSet.empty();
 
-    protected final TestDirectoryProvider testDirectoryProvider;
     protected final GradleVersion gradleVersion;
+    protected final TestDirectoryProvider testDirectoryProvider;
     protected final GradleDistribution distribution;
+    private GradleVersion gradleVersionOverride;
 
     private boolean debug = Boolean.getBoolean(DEBUG_SYSPROP);
     private boolean debugLauncher = Boolean.getBoolean(LAUNCHER_DEBUG_SYSPROP);
@@ -395,6 +397,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         if (!checkDaemonCrash) {
             executer.noDaemonCrashChecks();
         }
+        if (gradleVersionOverride != null) {
+            executer.withGradleVersionOverride(gradleVersionOverride);
+        }
 
         executer.startBuildProcessInDebugger(debug);
         executer.startLauncherInDebugger(debugLauncher);
@@ -477,6 +482,12 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     }
 
     @Override
+    public GradleExecuter withGradleVersionOverride(GradleVersion gradleVersion) {
+        this.gradleVersionOverride = gradleVersion;
+        return this;
+    }
+
+    @Override
     public GradleExecuter requireOwnGradleUserHomeDir() {
         return withGradleUserHomeDir(testDirectoryProvider.getTestDirectory().file("user-home"));
     }
@@ -490,6 +501,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
         GradleInvocation gradleInvocation = new GradleInvocation();
         gradleInvocation.environmentVars.putAll(environmentVars);
+        if (gradleVersionOverride != null) {
+            gradleInvocation.environmentVars.put(VERSION_OVERRIDE_VAR, gradleVersionOverride.getVersion());
+        }
         if (!useOnlyRequestedJvmOpts) {
             gradleInvocation.buildJvmArgs.addAll(getImplicitBuildJvmArgs());
         }
@@ -909,13 +923,18 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
     private void cleanupIsolatedDaemons() {
         List<DaemonLogsAnalyzer> analyzers = new ArrayList<>();
+        List<GradleVersion> versions = (gradleVersionOverride != null)
+            ? ImmutableList.of(gradleVersion, gradleVersionOverride)
+            : ImmutableList.of(gradleVersion);
         for (File dir : isolatedDaemonBaseDirs) {
-            try {
-                DaemonLogsAnalyzer analyzer = new DaemonLogsAnalyzer(dir, gradleVersion.getVersion());
-                analyzers.add(analyzer);
-                analyzer.killAll();
-            } catch (Exception e) {
-                getLogger().warn("Problem killing isolated daemons of Gradle version " + gradleVersion + " in " + dir, e);
+            for (GradleVersion version : versions) {
+                try {
+                    DaemonLogsAnalyzer analyzer = new DaemonLogsAnalyzer(dir, version.getVersion());
+                    analyzers.add(analyzer);
+                    analyzer.killAll();
+                } catch (Exception e) {
+                    getLogger().warn("Problem killing isolated daemons of Gradle version " + version + " in " + dir, e);
+                }
             }
         }
 
@@ -1424,7 +1443,13 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
     @Override
     public GradleExecuter expectDocumentedDeprecationWarning(String warning) {
-        return expectDeprecationWarning(warning.replace("https://docs.gradle.org/current/", "https://docs.gradle.org/" + GradleVersion.current().getVersion() + "/"));
+        String pattern = "https://docs.gradle.org/current/";
+        String replacement = "https://docs.gradle.org/" + GradleVersion.current().getVersion() + "/";
+        String expectedWarning = warning.replace(pattern, replacement);
+        if (warning.equals(expectedWarning)) {
+            throw new IllegalArgumentException("Documented deprecation warning must reference '" + pattern + "'.");
+        }
+        return expectDeprecationWarning(expectedWarning);
     }
 
     @Override

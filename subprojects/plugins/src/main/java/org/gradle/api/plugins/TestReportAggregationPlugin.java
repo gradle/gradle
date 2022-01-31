@@ -65,30 +65,29 @@ public abstract class TestReportAggregationPlugin implements Plugin<Project> {
 
         ObjectFactory objects = project.getObjects();
 
-        // prepare testReportDir with a reasonable default, but override with JavaPluginExtension#testReportDir if available
-        final DirectoryProperty testReportDir = objects.directoryProperty().convention(reporting.getBaseDirectory().dir(TestingBasePlugin.TESTS_DIR_NAME));
-        JavaPluginExtension javaPluginExtension = project.getExtensions().findByType(JavaPluginExtension.class);
-        if (javaPluginExtension != null) {
-            testReportDir.set(javaPluginExtension.getTestReportDir());
-        }
+        final DirectoryProperty testReportDirectory = objects.directoryProperty().convention(reporting.getBaseDirectory().dir(TestingBasePlugin.TESTS_DIR_NAME));
+        // prepare testReportDirectory with a reasonable default, but override with JavaPluginExtension#testReportDirectory if available
+        project.getPlugins().withId("java-base", plugin -> {
+            JavaPluginExtension javaPluginExtension = project.getExtensions().getByType(JavaPluginExtension.class);
+            testReportDirectory.convention(javaPluginExtension.getTestReportDir());
+        });
 
-        // iterate and configure each user-specified report, creating a <reportName>ExecutionData configuration for each
+        // iterate and configure each user-specified report, creating a <reportName>Results configuration for each
         reporting.getReports().withType(AggregateTestReport.class).configureEach(report -> {
+            // A resolvable configuration to collect test results; typically named "testResults"
+            Configuration testResultsConf = project.getConfigurations().create(report.getName() + "Results");
+            testResultsConf.extendsFrom(testAggregation);
+            testResultsConf.setDescription(String.format("Supplies test result data to the %s.  External library dependencies may appear as resolution failures, but this is expected behavior.", report.getName()));
+            testResultsConf.setVisible(false);
+            testResultsConf.setCanBeConsumed(false);
+            testResultsConf.setCanBeResolved(true);
+            testResultsConf.attributes(attributes -> {
+                attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.VERIFICATION));
+                attributes.attributeProvider(TestSuiteType.TEST_SUITE_TYPE_ATTRIBUTE, report.getTestType().map(tt -> objects.named(TestSuiteType.class, tt)));
+                attributes.attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objects.named(VerificationType.class, VerificationType.TEST_RESULTS));
+            });
+
             report.getReportTask().configure(task -> {
-
-                // A resolvable configuration to collect test results; typically named "testResults"
-                Configuration testResultsConf = project.getConfigurations().create(report.getName() + "Results");
-                testResultsConf.extendsFrom(testAggregation);
-                testResultsConf.setDescription(String.format("Supplies test result data to the %s.  External library dependencies may appear as resolution failures, but this is expected behavior.", report.getName()));
-                testResultsConf.setVisible(false);
-                testResultsConf.setCanBeConsumed(false);
-                testResultsConf.setCanBeResolved(true);
-                testResultsConf.attributes(attributes -> {
-                    attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.VERIFICATION));
-                    attributes.attributeProvider(TestSuiteType.TEST_SUITE_TYPE_ATTRIBUTE, report.getTestType().map(tt -> objects.named(TestSuiteType.class, tt)));
-                    attributes.attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objects.named(VerificationType.class, VerificationType.TEST_RESULTS));
-                });
-
                 Callable<FileCollection> testResults = () ->
                     testResultsConf.getIncoming().artifactView(view -> {
                         view.componentFilter(id -> id instanceof ProjectComponentIdentifier);
@@ -96,7 +95,7 @@ public abstract class TestReportAggregationPlugin implements Plugin<Project> {
                     }).getFiles();
 
                 task.getTestResults().from(testResults);
-                task.getDestinationDirectory().convention(testReportDir.dir(report.getTestType().map(tt -> tt + "/aggregated-results")));
+                task.getDestinationDirectory().convention(testReportDirectory.dir(report.getTestType().map(tt -> tt + "/aggregated-results")));
             });
         });
 

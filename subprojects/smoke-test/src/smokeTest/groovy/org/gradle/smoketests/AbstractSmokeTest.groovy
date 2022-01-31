@@ -129,7 +129,7 @@ abstract class AbstractSmokeTest extends Specification {
         static errorProne = "2.0.2"
 
         // https://plugins.gradle.org/plugin/com.google.protobuf
-        static protobufPlugin = "0.8.17"
+        static protobufPlugin = "0.8.18"
         static protobufTools = "3.17.1"
 
         // https://plugins.gradle.org/plugin/org.gradle.test-retry
@@ -171,7 +171,7 @@ abstract class AbstractSmokeTest extends Specification {
 
         // https://plugins.gradle.org/plugin/org.jetbrains.kotlin.plugin.allopen
         // https://plugins.gradle.org/plugin/org.jetbrains.kotlin.plugin.spring
-        static kotlinPlugins = Versions.of("1.4.21-2", "1.4.31", "1.5.31", "1.6.0")
+        static kotlinPlugins = Versions.of("1.4.21-2", "1.4.31", "1.5.31", "1.6.0", "1.6.10")
 
         // https://plugins.gradle.org/plugin/com.moowork.grunt
         // https://plugins.gradle.org/plugin/com.moowork.gulp

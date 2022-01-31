@@ -2,6 +2,8 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
+description = "Contains project diagnostics or report tasks, e.g. help, project report, dependency report and similar"
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":functional"))

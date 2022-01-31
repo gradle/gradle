@@ -3,6 +3,8 @@ plugins {
     id("gradlebuild.jmh")
 }
 
+description = "Implementation of build cache controller and factories"
+
 dependencies {
     api(project(":build-cache-base"))
     api(project(":snapshots"))

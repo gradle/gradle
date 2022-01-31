@@ -22,7 +22,6 @@ import org.gradle.api.Project
 import org.gradle.api.file.Directory
 import org.gradle.api.provider.Provider
 import org.gradle.internal.os.OperatingSystem
-import java.io.ByteArrayOutputStream
 
 
 fun Project.repoRoot() = layout.projectDirectory.parentOrRoot()
@@ -50,27 +49,28 @@ fun Project.currentGitBranch() = git(layout.projectDirectory, "rev-parse", "--ab
 fun Project.currentGitCommit() = git(layout.projectDirectory, "rev-parse", "HEAD")
 
 
+@Suppress("UnstableApiUsage")
 private
-fun Project.git(checkoutDir: Directory, vararg args: String): Provider<String> = provider {
-    val execOutput = ByteArrayOutputStream()
-    val execResult = exec {
+fun Project.git(checkoutDir: Directory, vararg args: String): Provider<String> {
+    val execOutput = providers.exec {
         workingDir = checkoutDir.asFile
         isIgnoreExitValue = true
         commandLine = listOf("git", *args)
         if (OperatingSystem.current().isWindows) {
             commandLine = listOf("cmd", "/c") + commandLine
         }
-        standardOutput = execOutput
     }
-    when {
-        execResult.exitValue == 0 -> String(execOutput.toByteArray()).trim()
-        checkoutDir.asFile.resolve(".git/HEAD").exists() -> {
-            // Read commit id directly from filesystem
-            val headRef = checkoutDir.asFile.resolve(".git/HEAD").readText()
-                .replace("ref: ", "").trim()
-            checkoutDir.asFile.resolve(".git/$headRef").readText().trim()
+    return execOutput.result.zip(execOutput.standardOutput.asBytes) { execResult, output ->
+        when {
+            execResult.exitValue == 0 -> String(output).trim()
+            checkoutDir.asFile.resolve(".git/HEAD").exists() -> {
+                // Read commit id directly from filesystem
+                val headRef = checkoutDir.asFile.resolve(".git/HEAD").readText()
+                    .replace("ref: ", "").trim()
+                checkoutDir.asFile.resolve(".git/$headRef").readText().trim()
+            }
+            else -> "<unknown>" // It's a source distribution, we don't know.
         }
-        else -> "<unknown>" // It's a source distribution, we don't know.
     }
 }
 
@@ -99,6 +99,9 @@ object BuildEnvironment {
         "CODEQL_RUNNER"
     )
 
+    private
+    val architecture = System.getProperty("os.arch").toLowerCase()
+
     val isCiServer = CI_ENVIRONMENT_VARIABLE in System.getenv()
     val isTravis = "TRAVIS" in System.getenv()
     val isJenkins = "JENKINS_HOME" in System.getenv()
@@ -111,6 +114,9 @@ object BuildEnvironment {
     val jvm = org.gradle.internal.jvm.Jvm.current()
     val javaVersion = JavaVersion.current()
     val isWindows = OperatingSystem.current().isWindows
+    val isLinux = OperatingSystem.current().isLinux
+    val isMacOsX = OperatingSystem.current().isMacOsX
+    val isIntel: Boolean = architecture == "x86_64" || architecture == "x86"
     val isSlowInternetConnection
         get() = System.getProperty("slow.internet.connection", "false")!!.toBoolean()
     val agentNum: Int

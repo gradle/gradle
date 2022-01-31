@@ -24,12 +24,12 @@ import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.internal.vfs.impl.AbstractVirtualFileSystem;
 import org.gradle.internal.vfs.impl.VfsRootReference;
+import org.gradle.internal.watch.registry.WatchMode;
 import org.gradle.internal.watch.vfs.BuildFinishedFileSystemWatchingBuildOperationType;
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem;
 import org.gradle.internal.watch.vfs.BuildStartedFileSystemWatchingBuildOperationType;
 import org.gradle.internal.watch.vfs.VfsLogging;
 import org.gradle.internal.watch.vfs.WatchLogging;
-import org.gradle.internal.watch.vfs.WatchMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,7 +52,12 @@ public class WatchingNotSupportedVirtualFileSystem extends AbstractVirtualFileSy
     }
 
     @Override
-    public boolean afterBuildStarted(WatchMode watchMode, VfsLogging vfsLogging, WatchLogging watchLogging, BuildOperationRunner buildOperationRunner) {
+    public boolean afterBuildStarted(
+        WatchMode watchMode,
+        VfsLogging vfsLogging,
+        WatchLogging watchLogging,
+        BuildOperationRunner buildOperationRunner
+    ) {
         if (watchMode == WatchMode.ENABLED) {
             LOGGER.warn("Watching the file system is not supported.");
         }
@@ -77,7 +82,13 @@ public class WatchingNotSupportedVirtualFileSystem extends AbstractVirtualFileSy
     }
 
     @Override
-    public void beforeBuildFinished(WatchMode watchMode, VfsLogging vfsLogging, WatchLogging watchLogging, BuildOperationRunner buildOperationRunner, int maximumNumberOfWatchedHierarchies) {
+    public void beforeBuildFinished(
+        WatchMode watchMode,
+        VfsLogging vfsLogging,
+        WatchLogging watchLogging,
+        BuildOperationRunner buildOperationRunner,
+        int maximumNumberOfWatchedHierarchies
+    ) {
         rootReference.update(vfsRoot -> buildOperationRunner.call(new CallableBuildOperation<SnapshotHierarchy>() {
             @Override
             public SnapshotHierarchy call(BuildOperationContext context) {

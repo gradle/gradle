@@ -246,7 +246,7 @@ public class ThingTest {
         skipped ':jacocoTestReport'
     }
 
-    def "fails report task if only some of the execution data files do not exist"() {
+    def "does not fail report task if some of the execution data files do not exist"() {
         given:
         def execFileName = 'unknown.exec'
         buildFile << """
@@ -256,12 +256,12 @@ public class ThingTest {
         """
 
         when:
-        fails 'test', 'jacocoTestReport'
+        succeeds 'test', 'jacocoTestReport'
 
         then:
         executedAndNotSkipped(':test')
         executed(':jacocoTestReport')
-        failure.assertHasCause("Unable to read execution data file ${new File(testDirectory, execFileName)}")
+        htmlReport().exists()
     }
 
     def "coverage data is aggregated from many tests"() {

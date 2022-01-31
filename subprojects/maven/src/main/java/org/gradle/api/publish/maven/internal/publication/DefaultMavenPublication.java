@@ -33,13 +33,13 @@ import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.artifacts.PublishException;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.CompositeDomainObjectSet;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
@@ -79,6 +79,7 @@ import org.gradle.api.publish.maven.internal.dependencies.DefaultMavenProjectDep
 import org.gradle.api.publish.maven.internal.dependencies.MavenDependencyInternal;
 import org.gradle.api.publish.maven.internal.publisher.MavenNormalizedPublication;
 import org.gradle.api.publish.maven.internal.publisher.MutableMavenProjectIdentity;
+import org.gradle.api.publish.maven.internal.validation.MavenPublicationErrorChecker;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.Cast;
@@ -158,6 +159,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     private SingleOutputTaskMavenArtifact moduleMetadataArtifact;
     private TaskProvider<? extends Task> moduleDescriptorGenerator;
     private SoftwareComponentInternal component;
+    private final DocumentationRegistry documentationRegistry;
     private boolean isPublishWithOriginalFileName;
     private boolean alias;
     private boolean populated;
@@ -172,7 +174,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         ObjectFactory objectFactory, ProjectDependencyPublicationResolver projectDependencyResolver, FileCollectionFactory fileCollectionFactory,
         ImmutableAttributesFactory immutableAttributesFactory,
         CollectionCallbackActionDecorator collectionCallbackActionDecorator, VersionMappingStrategyInternal versionMappingStrategy,
-        PlatformSupport platformSupport) {
+        PlatformSupport platformSupport, DocumentationRegistry documentationRegistry) {
         this.name = name;
         this.projectDependencyResolver = projectDependencyResolver;
         this.projectIdentity = projectIdentity;
@@ -184,6 +186,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         derivedArtifacts = new DefaultPublicationArtifactSet<>(MavenArtifact.class, "derived artifacts for " + name, fileCollectionFactory, collectionCallbackActionDecorator);
         publishableArtifacts = new CompositePublicationArtifactSet<>(MavenArtifact.class, Cast.uncheckedCast(new PublicationArtifactSet<?>[]{mainArtifacts, metadataArtifacts, derivedArtifacts}));
         pom = instantiator.newInstance(DefaultMavenPom.class, this, instantiator, objectFactory);
+        this.documentationRegistry = documentationRegistry;
     }
 
     @Override
@@ -292,6 +295,8 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         if (component == null) {
             return;
         }
+        MavenPublicationErrorChecker.checkForUnpublishableAttributes(component, documentationRegistry);
+
         PublicationWarningsCollector publicationWarningsCollector = new PublicationWarningsCollector(LOG, UNSUPPORTED_FEATURE, INCOMPATIBLE_FEATURE, PUBLICATION_WARNING_FOOTER, "suppressPomMetadataWarningsFor");
         Set<ArtifactKey> seenArtifacts = Sets.newHashSet();
         Set<PublishedDependency> seenDependencies = Sets.newHashSet();
@@ -769,7 +774,8 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
 
     @Override
     public PublishedFile getPublishedFile(final PublishArtifact source) {
-        checkThatArtifactIsPublishedUnmodified(source);
+        populateFromComponent();
+        MavenPublicationErrorChecker.checkThatArtifactIsPublishedUnmodified(source, mainArtifacts);
         final String publishedUrl = getPublishedUrl(source);
         final String publishedName = isPublishWithOriginalFileName ? source.getFile().getName() : publishedUrl;
         return new PublishedFile() {
@@ -791,28 +797,6 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         String version = getMavenProjectIdentity().getVersion().get();
         String status = MavenVersionUtils.inferStatusFromVersionNumber(version);
         return immutableAttributesFactory.of(ProjectInternal.STATUS_ATTRIBUTE, status);
-    }
-
-    /*
-     * When the artifacts declared in a component are modified for publishing (name/classifier/extension), then the
-     * Maven publication no longer represents the underlying java component. Instead of
-     * publishing incorrect metadata, we fail any attempt to publish the module metadata.
-     *
-     * In the long term, we will likely prevent any modification of artifacts added from a component. Instead, we will
-     * make it easier to modify the component(s) produced by a project, allowing the
-     * published metadata to accurately reflect the local component metadata.
-     */
-    private void checkThatArtifactIsPublishedUnmodified(PublishArtifact source) {
-        populateFromComponent();
-        for (MavenArtifact mavenArtifact : mainArtifacts) {
-            if (source.getFile().equals(mavenArtifact.getFile())
-                && source.getExtension().equals(mavenArtifact.getExtension())
-                && Strings.nullToEmpty(source.getClassifier()).equals(Strings.nullToEmpty(mavenArtifact.getClassifier()))) {
-                return;
-            }
-        }
-
-        throw new PublishException("Cannot publish module metadata where component artifacts are modified.");
     }
 
     private String getPublishedUrl(PublishArtifact source) {

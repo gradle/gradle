@@ -18,6 +18,7 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import spock.lang.Issue
 
 class TaskDependencyInferenceIntegrationTest extends AbstractIntegrationSpec implements TasksWithInputsAndOutputs {
     def "dependency declared using task provider implies dependency on task"() {
@@ -891,6 +892,30 @@ The following types/formats are supported:
             }
             tasks.register("b", InputTask) {
                 inValue = task.output.map { it.asFile.text as Integer }
+                outFile = file("out.txt")
+            }
+        """
+
+        when:
+        run("b")
+
+        then:
+        result.assertTasksExecuted(":a", ":b")
+        file("out.txt").text == "22"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/19252")
+    @ToBeFixedForConfigurationCache
+    def "input property with value of mapped task provider output implies dependency on the task"() {
+        taskTypeWithOutputFileProperty()
+        taskTypeWithIntInputProperty()
+        buildFile << """
+            def taskProvider = tasks.register("a", FileProducer) {
+                output = file("file.txt")
+                content = "12"
+            }
+            tasks.register("b", InputTask) {
+                inValue = taskProvider.map { it.output.get().asFile.text as Integer }
                 outFile = file("out.txt")
             }
         """

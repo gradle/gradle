@@ -57,7 +57,7 @@ public class SourceFoldersCreator {
                 return classpath.getProject().relativePath(input);
             }
         };
-        List<SourceFolder> sourceFolders = projectRelativeFolders(classpath.getSourceSets(), provideRelativePath, classpath.getDefaultOutputDir());
+        List<SourceFolder> sourceFolders = configureProjectRelativeFolders(classpath.getSourceSets(), classpath.getTestSourceSets().getOrElse(Collections.emptySet()), provideRelativePath, classpath.getDefaultOutputDir());
 
         return collectRegularAndExternalSourceFolders(sourceFolders, new Function<Pair<Collection<SourceFolder>, Collection<SourceFolder>>, List<SourceFolder>>() {
             @Override
@@ -107,7 +107,7 @@ public class SourceFoldersCreator {
         return collector.apply(Pair.of(regularSourceFolders, dedupedExternalSourceFolders));
     }
 
-    private List<SourceFolder> projectRelativeFolders(Iterable<SourceSet> sourceSets, Function<File, String> provideRelativePath, File defaultOutputDir) {
+    private List<SourceFolder> configureProjectRelativeFolders(Iterable<SourceSet> sourceSets, Collection<SourceSet> testSourceSets, Function<File, String> provideRelativePath, File defaultOutputDir) {
         String defaultOutputPath = PathUtil.normalizePath(provideRelativePath.apply(defaultOutputDir));
         ArrayList<SourceFolder> entries = Lists.newArrayList();
         List<SourceSet> sortedSourceSets = sortSourceSetsAsPerUsualConvention(sourceSets);
@@ -126,7 +126,7 @@ public class SourceFoldersCreator {
                     folder.setExcludes(getExcludesForTree(sourceSet, tree));
                     folder.setOutput(sourceSetOutputPaths.get(sourceSet));
                     addScopeAttributes(folder, sourceSet, sourceSetUsages);
-                    addSourceSetAttribute(sourceSet, folder);
+                    addSourceSetAttributeIfNeeded(sourceSet, folder, testSourceSets);
                     entries.add(folder);
                 }
             }
@@ -217,13 +217,9 @@ public class SourceFoldersCreator {
         return true;
     }
 
-    private void addSourceSetAttribute(SourceSet sourceSet, SourceFolder folder) {
-        // Using the test sources feature introduced in Eclipse Photon
-        String name = sourceSet.getName();
-        if (!SourceSet.MAIN_SOURCE_SET_NAME.equals(name)) {
-            if (SourceSet.TEST_SOURCE_SET_NAME.equals(name) || folder.getPath().toLowerCase().contains("test")) {
-                folder.getEntryAttributes().put(EclipsePluginConstants.TEST_SOURCES_ATTRIBUTE_KEY, EclipsePluginConstants.TEST_SOURCES_ATTRIBUTE_VALUE);
-            }
+    private void addSourceSetAttributeIfNeeded(SourceSet sourceSet, SourceFolder folder, Collection<SourceSet> testSourceSets) {
+        if (testSourceSets.contains(sourceSet)) {
+            folder.getEntryAttributes().put(EclipsePluginConstants.TEST_SOURCES_ATTRIBUTE_KEY, EclipsePluginConstants.TEST_SOURCES_ATTRIBUTE_VALUE);
         }
     }
 

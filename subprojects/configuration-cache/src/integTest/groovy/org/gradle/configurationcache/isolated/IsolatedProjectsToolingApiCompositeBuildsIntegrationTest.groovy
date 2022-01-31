@@ -221,11 +221,12 @@ class IsolatedProjectsToolingApiCompositeBuildsIntegrationTest extends AbstractI
         model3[1].message == "It works from project :libs:a"
 
         and:
-        fixture.assertStateRecreated {
+        fixture.assertStateUpdated {
             fileChanged("libs/build.gradle")
             projectConfigured(":plugins")
             projectsConfigured(":libs:a", ":libs:b") // TODO - should not be configured, but this currently happens to calculate the dependency substitutions
             modelsCreated(":libs")
+            modelsReused(":", ":plugins", ":libs:a", ":libs:b")
         }
     }
 }

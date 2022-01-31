@@ -28,10 +28,10 @@ import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.service.scopes.VirtualFileSystemServices;
 import org.gradle.internal.snapshot.impl.DirectorySnapshotterStatistics;
 import org.gradle.internal.watch.options.FileSystemWatchingSettingsFinalizedProgressDetails;
+import org.gradle.internal.watch.registry.WatchMode;
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem;
 import org.gradle.internal.watch.vfs.VfsLogging;
 import org.gradle.internal.watch.vfs.WatchLogging;
-import org.gradle.internal.watch.vfs.WatchMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -100,7 +100,12 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
             }
         }
 
-        boolean actuallyWatching = virtualFileSystem.afterBuildStarted(watchFileSystemMode, verboseVfsLogging, debugWatchLogging, buildOperationRunner);
+        boolean actuallyWatching = virtualFileSystem.afterBuildStarted(
+            watchFileSystemMode,
+            verboseVfsLogging,
+            debugWatchLogging,
+            buildOperationRunner
+        );
         LOGGER.info("File system watching is {}", actuallyWatching ? "active" : "inactive");
         //noinspection Convert2Lambda
         eventEmitter.emitNowForCurrent(new FileSystemWatchingSettingsFinalizedProgressDetails() {
@@ -109,12 +114,23 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
                 return actuallyWatching;
             }
         });
+        if (action.getStartParameter().isContinuous()) {
+            if (!actuallyWatching) {
+                throw new IllegalStateException("Continuous build does not work when file system watching is disabled");
+            }
+        }
 
         try {
             return delegate.run(action, buildController);
         } finally {
             int maximumNumberOfWatchedHierarchies = VirtualFileSystemServices.getMaximumNumberOfWatchedHierarchies(startParameter);
-            virtualFileSystem.beforeBuildFinished(watchFileSystemMode, verboseVfsLogging, debugWatchLogging, buildOperationRunner, maximumNumberOfWatchedHierarchies);
+            virtualFileSystem.beforeBuildFinished(
+                watchFileSystemMode,
+                verboseVfsLogging,
+                debugWatchLogging,
+                buildOperationRunner,
+                maximumNumberOfWatchedHierarchies
+            );
             if (verboseVfsLogging == VfsLogging.VERBOSE) {
                 logVfsStatistics("during current build", statStatisticsCollector, fileHasherStatisticsCollector, directorySnapshotterStatisticsCollector);
             }

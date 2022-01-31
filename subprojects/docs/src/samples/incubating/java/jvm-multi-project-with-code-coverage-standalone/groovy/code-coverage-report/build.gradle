@@ -8,17 +8,19 @@ repositories {
 }
 
 dependencies {
-    jacocoAggregation project(':application') // <1>
+    jacocoAggregation project(':application') // <.>
 }
 
+// tag::create_report[]
 reporting {
     reports {
-        testCodeCoverageReport(JacocoCoverageReport) { // <2>
-            testType = TestSuiteType.UNIT_TESTS
+        testCodeCoverageReport(JacocoCoverageReport) { // <.>
+            testType = TestSuiteType.UNIT_TEST
         }
     }
 }
+// end::create_report[]
 
-tasks.named("check") {
-    dependsOn tasks.named('testCodeCoverageReport', JacocoReport) // <3>
+tasks.named('check') {
+    dependsOn tasks.named('testCodeCoverageReport', JacocoReport) // <.>
 }

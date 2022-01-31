@@ -8,17 +8,19 @@ repositories {
 }
 
 dependencies {
-    jacocoAggregation(project(":application")) // <1>
+    jacocoAggregation(project(":application")) // <.>
 }
 
+// tag::create_report[]
 reporting {
     reports {
-        val testCodeCoverageReport by creating(JacocoCoverageReport::class) { // <2>
-            testType.set(TestSuiteType.UNIT_TESTS)
+        val testCodeCoverageReport by creating(JacocoCoverageReport::class) { // <.>
+            testType.set(TestSuiteType.UNIT_TEST)
         }
     }
 }
+// end::create_report[]
 
 tasks.check {
-    dependsOn(tasks.named<JacocoReport>("testCodeCoverageReport")) // <3>
+    dependsOn(tasks.named<JacocoReport>("testCodeCoverageReport")) // <.>
 }

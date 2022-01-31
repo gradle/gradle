@@ -21,31 +21,24 @@ import net.rubygrapefruit.platform.file.FileEvents;
 import net.rubygrapefruit.platform.file.FileWatchEvent;
 import net.rubygrapefruit.platform.internal.jni.WindowsFileEventFunctions;
 import net.rubygrapefruit.platform.internal.jni.WindowsFileEventFunctions.WindowsFileWatcher;
-import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.watch.registry.FileWatcherProbeRegistry;
 import org.gradle.internal.watch.registry.FileWatcherUpdater;
-import org.gradle.internal.watch.vfs.WatchableFileSystemDetector;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.util.concurrent.BlockingQueue;
 import java.util.function.Predicate;
 
 import static org.gradle.internal.watch.registry.impl.HierarchicalFileWatcherUpdater.FileSystemLocationToWatchValidator.NO_VALIDATION;
 
 public class WindowsFileWatcherRegistryFactory extends AbstractFileWatcherRegistryFactory<WindowsFileEventFunctions, WindowsFileWatcher> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(WindowsFileWatcherRegistryFactory.class);
 
     // 64 kB is the limit for SMB drives
     // See https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-readdirectorychangesw#remarks:~:text=ERROR_INVALID_PARAMETER
     private static final int BUFFER_SIZE = 64 * 1024;
 
     public WindowsFileWatcherRegistryFactory(
-        WatchableFileSystemDetector watchableFileSystemDetector,
         Predicate<String> watchFilter
     ) throws NativeIntegrationUnavailableException {
-        super(FileEvents.get(WindowsFileEventFunctions.class), watchableFileSystemDetector, watchFilter);
+        super(FileEvents.get(WindowsFileEventFunctions.class), watchFilter);
     }
 
     @Override
@@ -61,14 +54,6 @@ public class WindowsFileWatcherRegistryFactory extends AbstractFileWatcherRegist
         FileWatcherProbeRegistry probeRegistry,
         WatchableHierarchies watchableHierarchies
     ) {
-        return new HierarchicalFileWatcherUpdater(watcher, NO_VALIDATION, probeRegistry, watchableHierarchies, root -> invalidateMovedPaths(watcher, root));
-    }
-
-    private static SnapshotHierarchy invalidateMovedPaths(WindowsFileWatcher watcher, SnapshotHierarchy root) {
-        for (File movedPath : watcher.stopWatchingMovedPaths()) {
-            LOGGER.info("Dropping VFS state for moved path {}", movedPath.getAbsolutePath());
-            root = root.invalidate(movedPath.getAbsolutePath(), SnapshotHierarchy.NodeDiffListener.NOOP);
-        }
-        return root;
+        return new HierarchicalFileWatcherUpdater(watcher, NO_VALIDATION, probeRegistry, watchableHierarchies, root -> watcher.stopWatchingMovedPaths());
     }
 }

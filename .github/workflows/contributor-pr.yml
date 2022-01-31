@@ -8,6 +8,13 @@ on:
     branches:
       - master
 
+concurrency:
+  # On master/release, we don't want any jobs cancelled so the sha is used to name the group
+  # On PR branches, we cancel the job if new commits are pushed
+  group: ${{ (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/release' ) && format('contributor-pr-base-{0}', github.sha) || format('contributor-pr-{0}', github.ref) }}
+  cancel-in-progress: true
+
+
 env:
   # Set the GRADLE_ENTERPRISE_ACCESS_KEY so that Gradle Build Scans are generated
   GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
@@ -47,6 +54,10 @@ jobs:
               --no-configuration-cache
               -DdisableLocalCache=true
               ${{ steps.determine-sys-prop-args.outputs.sys-prop-args }}
+      - uses: actions/upload-artifact@v2
+        with:
+          name: build-receipt.properties
+          path: subprojects/base-services/build/generated-resources/build-receipt/org/gradle/build-receipt.properties
     outputs:
       matrix: ${{ steps.setup-matrix.outputs.matrix }}
       sys-prop-args: ${{ steps.determine-sys-prop-args.outputs.sys-prop-args }}
@@ -63,6 +74,10 @@ jobs:
         with:
           distribution: temurin
           java-version: 11
+      - uses: actions/download-artifact@v2
+        with:
+          name: build-receipt.properties
+          path: incoming-distributions/build-receipt.properties
       - name: ./gradlew sanityCheck
         id: gradle
         uses: gradle/gradle-build-action@v2
@@ -90,6 +105,10 @@ jobs:
         with:
           distribution: temurin
           java-version: 11
+      - uses: actions/download-artifact@v2
+        with:
+          name: build-receipt.properties
+          path: incoming-distributions/build-receipt.properties
       - name: ./gradlew test
         id: gradle
         uses: gradle/gradle-build-action@v2
@@ -99,4 +118,5 @@ jobs:
               ${{ matrix.bucket.tasks }}
               --no-configuration-cache
               -DdisableLocalCache=true
+              -PflakyTests=exclude
               ${{ needs.build.outputs.sys-prop-args }}

@@ -21,9 +21,9 @@ import org.gradle.internal.snapshot.CaseSensitivity
 import org.gradle.internal.snapshot.SnapshotHierarchy
 import org.gradle.internal.vfs.impl.DefaultSnapshotHierarchy
 import org.gradle.internal.vfs.impl.VfsRootReference
+import org.gradle.internal.watch.registry.WatchMode
 import org.gradle.internal.watch.vfs.VfsLogging
 import org.gradle.internal.watch.vfs.WatchLogging
-import org.gradle.internal.watch.vfs.WatchMode
 import spock.lang.Specification
 
 class WatchingNotSupportedVirtualFileSystemTest extends Specification {

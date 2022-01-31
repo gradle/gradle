@@ -42,6 +42,11 @@ class ConfigurationCacheBuildTreeLifecycleControllerFactory(
     val vintageFactory = VintageBuildTreeLifecycleControllerFactory(buildModelParameters, taskGraph, buildOperationExecutor, projectLeaseRegistry, stateTransitionControllerFactory)
 
     override fun createRootBuildController(targetBuild: BuildLifecycleController, workExecutor: BuildTreeWorkExecutor, finishExecutor: BuildTreeFinishExecutor): BuildTreeLifecycleController {
+        // Some temporary wiring: the cache implementation is still scoped to the root build rather than the build tree
+        cache.attachRootBuild(targetBuild.gradle.services.get())
+
+        cache.initializeCacheEntry()
+
         // Currently, apply the decoration only to the root build, as the cache implementation is still scoped to the root build (that is, it assumes it is only applied to the root build)
         return createController(true, targetBuild, workExecutor, finishExecutor)
     }
@@ -70,11 +75,6 @@ class ConfigurationCacheBuildTreeLifecycleControllerFactory(
             ConfigurationCacheAwareFinishExecutor(finishExecutor, cache)
         } else {
             finishExecutor
-        }
-
-        // Some temporary wiring: the cache implementation is still scoped to the root build rather than the build tree
-        if (applyCaching) {
-            cache.attachRootBuild(targetBuild.gradle.services.get())
         }
 
         return DefaultBuildTreeLifecycleController(targetBuild, taskGraph, workPreparer, workExecutor, modelCreator, finisher, stateTransitionControllerFactory)

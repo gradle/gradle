@@ -39,11 +39,12 @@ Note that you should not implement the link:{javadocPath}/org/gradle/api/service
 
 A build service implementation must be thread-safe, as it will potentially be used by multiple tasks concurrently.
 
+[[using_a_build_service_from_a_task]]
 == Using a build service from a task
 
 To use a build service from a task, add a property to the task of type `Property<MyServiceType>` and mark the property as `@Internal`.
 Using a service with any other annotation is currently not supported. For example, it is currently not possible
-to mark a service as an input to a task.
+to mark a service as an input to a task. It is also important to declare the association between the task and the service via the link:{javadocPath}/org/gradle/api/Task.html#usesService-org.gradle.api.provider.Provider-[Task.usesService] method so Gradle can properly honor the build service lifecycle and its usage constraints.
 
 Here is an example of a task that uses the previous service:
 
@@ -93,6 +94,8 @@ Currently, it is not possible to use a build service with a worker API action th
 
 You can constrain concurrent execution when you register the service, by using the `Property` object returned from link:{javadocPath}/org/gradle/api/services/BuildServiceSpec.html#getMaxParallelUsages--[BuildServiceSpec.getMaxParallelUsages()].
 When this property has no value, which is the default, Gradle does not constrain access to the service. When this property has a value > 0, Gradle will allow no more than the specified number of tasks to use the service concurrently.
+*IMPORTANT*: For the constraint to take effect the build service must be registered with the using tasks via
+link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:usesService(org.gradle.api.provider.Provider)[Task.usesService(Provider<? extends BuildService<?>>)]
 
 [[operation_listener]]
 == Receiving information about task execution

@@ -65,6 +65,12 @@ public interface TaskInternal extends Task, Configurable<Task> {
     Optional<String> getReasonNotToTrackState();
 
     @Internal
+    boolean isCompatibleWithConfigurationCache();
+
+    @Internal
+    Optional<String> getReasonTaskIsIncompatibleWithConfigurationCache();
+
+    @Internal
     StandardOutputCapture getStandardOutputCapture();
 
     @Override

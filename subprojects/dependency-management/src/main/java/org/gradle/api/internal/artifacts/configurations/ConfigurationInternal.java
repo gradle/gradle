@@ -82,7 +82,15 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
      */
     void beforeLocking(Action<? super ConfigurationInternal> action);
 
+    boolean isCanBeMutated();
+
     void preventFromFurtherMutation();
+
+    /**
+     * Reports whether this configuration uses {@link org.gradle.api.Incubating Incubating} attributes types, such as {@link org.gradle.api.attributes.Category#VERIFICATION}.
+     * @return
+     */
+    boolean isIncubating();
 
     /**
      * Gets the complete set of exclude rules including those contributed by

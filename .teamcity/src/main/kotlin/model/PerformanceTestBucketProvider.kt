@@ -74,7 +74,7 @@ class StatisticsBasedPerformanceTestBucketProvider(private val model: CIBuildMod
                 duration.entries
                     .filter { (key, _) -> key != "testProject" }
                     .map { (osString, timeInMs) ->
-                        val os = Os.valueOf(osString.toUpperCase(Locale.US))
+                        val os = Os.valueOf(osString.uppercase(Locale.US))
                         val performanceTestDuration = PerformanceTestDuration(scenario, timeInMs as Int)
                         os to (testProject to performanceTestDuration)
                     }
@@ -97,7 +97,7 @@ class StatisticsBasedPerformanceTestBucketProvider(private val model: CIBuildMod
                 val coverage = (groupObj["coverage"] as JSONObject).map { entry ->
                     val performanceTestType = PerformanceTestType.valueOf(entry.key as String)
                     performanceTestType to (entry.value as JSONArray).map {
-                        Os.valueOf((it as String).toUpperCase(Locale.US))
+                        Os.valueOf((it as String).uppercase(Locale.US))
                     }.toSet()
                 }.toMap()
                 PerformanceTestGroup(testProject, coverage)
@@ -162,7 +162,7 @@ interface PerformanceTestBucket {
 }
 
 data class TestProjectDuration(val testProject: String, val scenarioDurations: List<PerformanceTestDuration>) {
-    val totalTime: Int = scenarioDurations.sumBy { it.durationInMs }
+    val totalTime: Int = scenarioDurations.sumOf { it.durationInMs }
 
     fun split(expectedBucketNumber: Int): List<PerformanceTestBucket> {
         return if (expectedBucketNumber == 1 || scenarioDurations.size == 1) {

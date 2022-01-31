@@ -19,9 +19,21 @@ package org.gradle.plugin.use.resolve.internal;
 import org.gradle.api.Action;
 import org.gradle.plugin.use.PluginId;
 
+import javax.annotation.Nullable;
+
 /**
  * The result of attempting to resolve a plugin to a classpath.
  */
 public interface PluginResolution extends Action<PluginResolveContext> {
     PluginId getPluginId();
+
+    /**
+     * The resolved plugin version, if known.
+     *
+     * @return The resolved plugin version, or null if the plugin version is not known.
+     */
+    @Nullable
+    default String getPluginVersion() {
+        return null;
+    }
 }

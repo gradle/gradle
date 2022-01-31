@@ -88,7 +88,7 @@ fun BuildType.applyDefaultSettings(os: Os = Os.LINUX, buildJvm: Jvm = BuildToolB
     }
 
     vcs {
-        root(AbsoluteId("Gradle_Branches_GradlePersonalBranches"))
+        root(AbsoluteId("GradleBuildTooBranches"))
         checkoutMode = CheckoutMode.ON_AGENT
         branchFilter = branchesFilterExcluding()
     }
@@ -118,7 +118,7 @@ fun BuildType.applyDefaultSettings(os: Os = Os.LINUX, buildJvm: Jvm = BuildToolB
     }
 }
 
-fun javaHome(jvm: Jvm, os: Os) = "%${os.name.toLowerCase()}.${jvm.version}.${jvm.vendor}.64bit%"
+fun javaHome(jvm: Jvm, os: Os) = "%${os.name.lowercase()}.${jvm.version}.${jvm.vendor}.64bit%"
 
 fun BuildType.paramsForBuildToolBuild(buildJvm: Jvm = BuildToolBuildJvm, os: Os) {
     params {
@@ -183,7 +183,7 @@ fun Dependencies.compileAllDependency(compileAllId: String) {
 
 fun functionalTestExtraParameters(buildScanTag: String, os: Os, testJvmVersion: String, testJvmVendor: String): String {
     val buildScanValues = mapOf(
-        "coverageOs" to os.name.toLowerCase(),
+        "coverageOs" to os.name.lowercase(),
         "coverageJvmVendor" to testJvmVendor,
         "coverageJvmVersion" to "java$testJvmVersion"
     )

@@ -38,6 +38,7 @@ import org.gradle.internal.file.impl.DefaultFileMetadata;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.snapshot.DirectorySnapshot;
+import org.gradle.internal.snapshot.DirectorySnapshotBuilder;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot.FileSystemLocationSnapshotVisitor;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
@@ -70,7 +71,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static org.gradle.internal.file.FileMetadata.AccessType.DIRECT;
-import static org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder.EmptyDirectoryHandlingStrategy.INCLUDE_EMPTY_DIRS;
+import static org.gradle.internal.snapshot.DirectorySnapshotBuilder.EmptyDirectoryHandlingStrategy.INCLUDE_EMPTY_DIRS;
 
 /**
  * Packages build cache entries to a POSIX TAR file.
@@ -276,7 +277,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
     private TarArchiveEntry unpackDirectoryTree(TarArchiveInputStream input, TarArchiveEntry rootEntry, Map<String, FileSystemLocationSnapshot> snapshots, AtomicLong entries, File treeRoot, String treeName) throws IOException {
         RelativePathParser parser = new RelativePathParser(rootEntry.getName());
 
-        MerkleDirectorySnapshotBuilder builder = MerkleDirectorySnapshotBuilder.noSortingRequired();
+        DirectorySnapshotBuilder builder = MerkleDirectorySnapshotBuilder.noSortingRequired();
         builder.enterDirectory(DIRECT, stringInterner.intern(treeRoot.getAbsolutePath()), stringInterner.intern(treeRoot.getName()), INCLUDE_EMPTY_DIRS);
 
         TarArchiveEntry entry;

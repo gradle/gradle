@@ -18,7 +18,6 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.api.execution.internal.TaskInputsListener;
 import org.gradle.api.execution.internal.TaskInputsListeners;
-import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.deployment.internal.Deployment;
 import org.gradle.deployment.internal.DeploymentInternal;
@@ -26,27 +25,27 @@ import org.gradle.deployment.internal.DeploymentRegistryInternal;
 import org.gradle.execution.CancellableOperationManager;
 import org.gradle.execution.DefaultCancellableOperationManager;
 import org.gradle.execution.PassThruCancellableOperationManager;
+import org.gradle.execution.plan.BuildInputHierarchy;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.initialization.ContinuousExecutionGate;
 import org.gradle.initialization.DefaultContinuousExecutionGate;
 import org.gradle.internal.buildevents.BuildStartedTime;
+import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.filewatch.DefaultFileWatcherEventListener;
-import org.gradle.internal.filewatch.FileSystemChangeWaiter;
-import org.gradle.internal.filewatch.FileSystemChangeWaiterFactory;
-import org.gradle.internal.filewatch.FileWatcherEventListener;
+import org.gradle.internal.file.Stat;
 import org.gradle.internal.filewatch.PendingChangesListener;
 import org.gradle.internal.filewatch.SingleFirePendingChangesListener;
 import org.gradle.internal.invocation.BuildAction;
-import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.internal.session.BuildSessionContext;
 import org.gradle.internal.session.BuildSessionActionExecutor;
+import org.gradle.internal.session.BuildSessionContext;
+import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.time.Clock;
+import org.gradle.internal.watch.vfs.FileChangeListeners;
 import org.gradle.util.internal.DisconnectableInputStream;
 
 import java.util.function.Supplier;
@@ -54,6 +53,7 @@ import java.util.function.Supplier;
 public class ContinuousBuildActionExecutor implements BuildSessionActionExecutor {
     private final BuildSessionActionExecutor delegate;
     private final TaskInputsListeners inputsListeners;
+    private final FileChangeListeners fileChangeListeners;
     private final BuildRequestMetaData requestMetaData;
     private final OperatingSystem operatingSystem;
     private final BuildCancellationToken cancellationToken;
@@ -61,13 +61,14 @@ public class ContinuousBuildActionExecutor implements BuildSessionActionExecutor
     private final ListenerManager listenerManager;
     private final BuildStartedTime buildStartedTime;
     private final Clock clock;
-    private final FileSystemChangeWaiterFactory changeWaiterFactory;
+    private final Stat stat;
+    private final CaseSensitivity caseSensitivity;
     private final ExecutorFactory executorFactory;
     private final StyledTextOutput logger;
 
     public ContinuousBuildActionExecutor(
-        FileSystemChangeWaiterFactory changeWaiterFactory,
         TaskInputsListeners inputsListeners,
+        FileChangeListeners fileChangeListeners,
         StyledTextOutputFactory styledTextOutputFactory,
         ExecutorFactory executorFactory,
         BuildRequestMetaData requestMetaData,
@@ -76,18 +77,22 @@ public class ContinuousBuildActionExecutor implements BuildSessionActionExecutor
         ListenerManager listenerManager,
         BuildStartedTime buildStartedTime,
         Clock clock,
+        Stat stat,
+        CaseSensitivity caseSensitivity,
         BuildSessionActionExecutor delegate
     ) {
         this.inputsListeners = inputsListeners;
+        this.fileChangeListeners = fileChangeListeners;
         this.requestMetaData = requestMetaData;
         this.cancellationToken = cancellationToken;
         this.deploymentRegistry = deploymentRegistry;
         this.listenerManager = listenerManager;
         this.buildStartedTime = buildStartedTime;
         this.clock = clock;
+        this.stat = stat;
+        this.caseSensitivity = caseSensitivity;
         this.operatingSystem = OperatingSystem.current();
         this.executorFactory = executorFactory;
-        this.changeWaiterFactory = changeWaiterFactory;
         this.logger = styledTextOutputFactory.create(ContinuousBuildActionExecutor.class, LogLevel.QUIET);
         this.delegate = delegate;
     }
@@ -139,29 +144,37 @@ public class ContinuousBuildActionExecutor implements BuildSessionActionExecutor
     private BuildActionRunner.Result executeMultipleBuilds(BuildAction action, BuildRequestMetaData requestContext, BuildSessionContext buildSession,
                                                            BuildCancellationToken cancellationToken, CancellableOperationManager cancellableOperationManager, ContinuousExecutionGate continuousExecutionGate) {
         BuildActionRunner.Result lastResult;
+        PendingChangesListener pendingChangesListener = listenerManager.getBroadcaster(PendingChangesListener.class);
         while (true) {
-            PendingChangesListener pendingChangesListener = listenerManager.getBroadcaster(PendingChangesListener.class);
-            final FileSystemChangeWaiter waiter = changeWaiterFactory.createChangeWaiter(new SingleFirePendingChangesListener(pendingChangesListener), cancellationToken, continuousExecutionGate);
+            BuildInputHierarchy buildInputs = new BuildInputHierarchy(caseSensitivity, stat);
+            ContinuousBuildTriggerHandler continuousBuildTriggerHandler = new ContinuousBuildTriggerHandler(
+                cancellationToken,
+                continuousExecutionGate
+            );
+            SingleFirePendingChangesListener singleFirePendingChangesListener = new SingleFirePendingChangesListener(pendingChangesListener);
+            FileEventCollector fileEventCollector = new FileEventCollector(buildInputs, () -> {
+                continuousBuildTriggerHandler.notifyFileChangeArrived();
+                singleFirePendingChangesListener.onPendingChanges();
+            });
             try {
-                lastResult = executeBuildAndAccumulateInputs(action, waiter, buildSession);
+                fileChangeListeners.addListener(fileEventCollector);
+                lastResult = executeBuildAndAccumulateInputs(action, new AccumulateBuildInputsListener(buildInputs), buildSession);
 
-                if (!waiter.isWatching()) {
+                if (buildInputs.isEmpty()) {
                     logger.println().withStyle(StyledTextOutput.Style.Failure).println("Exiting continuous build as no executed tasks declared file system inputs.");
                     return lastResult;
                 } else {
                     cancellableOperationManager.monitorInput(operationToken -> {
-                        FileWatcherEventListener reporter = new DefaultFileWatcherEventListener();
-                        waiter.wait(
-                            () -> logger.println().println("Waiting for changes to input files of tasks..." + determineExitHint(requestContext)),
-                            reporter
+                        continuousBuildTriggerHandler.wait(
+                            () -> logger.println().println("Waiting for changes to input files of tasks..." + determineExitHint(requestContext))
                         );
                         if (!operationToken.isCancellationRequested()) {
-                            reporter.reportChanges(logger);
+                            fileEventCollector.reportChanges(logger);
                         }
                     });
                 }
             } finally {
-                waiter.stop();
+                fileChangeListeners.removeListener(fileEventCollector);
             }
 
             if (cancellationToken.isCancellationRequested()) {
@@ -194,11 +207,11 @@ public class ContinuousBuildActionExecutor implements BuildSessionActionExecutor
 
     private BuildActionRunner.Result executeBuildAndAccumulateInputs(
         BuildAction action,
-        FileSystemChangeWaiter waiter,
+        TaskInputsListener taskInputsListener,
         BuildSessionContext buildSession
     ) {
         return withTaskInputsListener(
-            (task, fileSystemInputs) -> waiter.watch(FileSystemSubset.of(fileSystemInputs)),
+            taskInputsListener,
             () -> delegate.execute(action, buildSession)
         );
     }

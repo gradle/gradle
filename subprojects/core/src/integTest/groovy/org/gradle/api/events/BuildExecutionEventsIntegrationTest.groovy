@@ -16,12 +16,68 @@
 
 package org.gradle.api.events
 
+import org.gradle.api.execution.TaskActionListener
+import org.gradle.api.execution.TaskExecutionListener
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 
 class BuildExecutionEventsIntegrationTest extends AbstractIntegrationSpec {
+    @UnsupportedWithConfigurationCache(because = "tests listener behaviour")
+    def "nags when #type is registered via #path and feature preview is enabled"() {
+        settingsFile """
+            enableFeaturePreview 'STABLE_CONFIGURATION_CACHE'
+        """
+        buildFile """
+            def taskExecutionListener = new TaskExecutionListener() {
+                void beforeExecute(Task task) { }
+                void afterExecute(Task task, TaskState state) { }
+            }
+            def taskActionListener = new TaskActionListener() {
+                void beforeActions(Task task) { }
+                void afterActions(Task task) { }
+            }
+            $path($listener)
+            task broken
+        """
 
-    @UnsupportedWithConfigurationCache
+        when:
+        executer.expectDocumentedDeprecationWarning("Listener registration using ${registrationPoint}() has been deprecated. This will fail with an error in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_execution_events")
+        run("broken")
+
+        then:
+        noExceptionThrown()
+
+        where:
+        type                  | listener                | path                                        | registrationPoint
+        TaskExecutionListener | "taskExecutionListener" | "gradle.addListener"                        | "Gradle.addListener"
+        TaskExecutionListener | "taskExecutionListener" | "gradle.taskGraph.addTaskExecutionListener" | "TaskExecutionGraph.addTaskExecutionListener"
+        TaskActionListener    | "taskActionListener"    | "gradle.addListener"                        | "Gradle.addListener"
+    }
+
+    @UnsupportedWithConfigurationCache(because = "tests listener behaviour")
+    def "nags when task execution hook #path is used and feature preview is enabled"() {
+        settingsFile """
+            enableFeaturePreview 'STABLE_CONFIGURATION_CACHE'
+        """
+        buildFile """
+            $path { }
+            task broken
+        """
+
+        when:
+        executer.expectDocumentedDeprecationWarning("Listener registration using ${registrationPoint}() has been deprecated. This will fail with an error in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_execution_events")
+        run("broken")
+
+        then:
+        noExceptionThrown()
+
+        where:
+        path                          | registrationPoint
+        "gradle.taskGraph.beforeTask" | "TaskExecutionGraph.beforeTask"
+        "gradle.taskGraph.afterTask"  | "TaskExecutionGraph.afterTask"
+    }
+
+    @UnsupportedWithConfigurationCache(because = "tests listener behaviour")
     def "events passed to any task execution listener are synchronised"() {
         settingsFile << "include 'a', 'b', 'c'"
         buildFile """

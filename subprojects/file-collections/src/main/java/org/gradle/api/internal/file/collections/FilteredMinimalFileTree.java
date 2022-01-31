@@ -19,8 +19,6 @@ package org.gradle.api.internal.file.collections;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
-import org.gradle.api.internal.file.FileCollectionInternal;
-import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternFilterable;
@@ -60,23 +58,8 @@ public class FilteredMinimalFileTree implements MinimalFileTree, FileSystemMirro
     }
 
     @Override
-    public void visitStructure(FileCollectionStructureVisitor visitor, FileTreeInternal owner) {
-        tree.visitStructure(new FileCollectionStructureVisitor() {
-            @Override
-            public boolean startVisit(FileCollectionInternal.Source source, FileCollectionInternal fileCollection) {
-                throw new IllegalStateException();
-            }
-
-            @Override
-            public VisitType prepareForVisit(FileCollectionInternal.Source source) {
-                return visitor.prepareForVisit(source);
-            }
-
-            @Override
-            public void visitCollection(FileCollectionInternal.Source source, Iterable<File> contents) {
-                visitor.visitGenericFileTree(owner, FilteredMinimalFileTree.this);
-            }
-
+    public void visitStructure(MinimalFileTreeStructureVisitor visitor, FileTreeInternal owner) {
+        tree.visitStructure(new MinimalFileTreeStructureVisitor() {
             @Override
             public void visitGenericFileTree(FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
                 visitor.visitGenericFileTree(owner, FilteredMinimalFileTree.this);

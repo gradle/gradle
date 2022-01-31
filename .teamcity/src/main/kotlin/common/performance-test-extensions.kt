@@ -42,6 +42,8 @@ fun performanceTestCommandLine(task: String, baselines: String, extraParameters:
     "-PperformanceBaselines=$baselines",
     "-PtestJavaVersion=${os.perfTestJavaVersion.major}",
     "-PtestJavaVendor=${os.perfTestJavaVendor}",
+    "-PautoDownloadAndroidStudio=true",
+    "-PrunAndroidStudioInHeadlessMode=true",
     "-Porg.gradle.java.installations.auto-download=false",
     os.javaInstallationLocations()
 ) + listOf(
@@ -99,7 +101,7 @@ private fun BuildSteps.cleanBuildLogicBuild(buildDir: String) {
     // This means that we need to clean buildSrc before running for the first time on the subst drive
     // and before running the first time on the original location again.
     gradleWrapper {
-        name = "CLEAN_${buildDir.toUpperCase().replace("[:/%.]".toRegex(), "_")}"
+        name = "CLEAN_${buildDir.uppercase().replace("[:/%.]".toRegex(), "_")}"
         tasks = "clean"
         workingDir = buildDir
         executionMode = BuildStep.ExecutionMode.ALWAYS

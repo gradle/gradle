@@ -52,8 +52,14 @@ class EclipseClasspathFixture {
         return this.classpath.classpathentry.findAll{ it.@kind == 'src' && !it.@path.startsWith('/') }.collect { it.@path }
     }
 
-    List<String> getProjects() {
-        return this.classpath.classpathentry.findAll { it.@kind == 'src' && it.@path.startsWith('/') }.collect { it.@path }
+    List<EclipseProjectDependency> getProjects() {
+        return this.classpath.classpathentry.findAll { it.@kind == 'src' && it.@path.startsWith('/') }.collect { new EclipseProjectDependency(it) }
+    }
+
+    EclipseProjectDependency project(String name) {
+        def matches = projects.findAll { it.name == name }
+        assert matches.size() == 1
+        return matches[0]
     }
 
     void assertHasLibs(String... jarNames) {
@@ -61,7 +67,7 @@ class EclipseClasspathFixture {
     }
 
     EclipseLibrary lib(String jarName) {
-        def matches = libs.findAll { it.jarName == jarName } + vars.findAll { it.jarName == jarName }
+        def matches = libs.findAll { it.jarName.contains(jarName) } + vars.findAll { it.jarName == jarName }
         assert matches.size() == 1
         return matches[0]
     }
@@ -97,6 +103,16 @@ class EclipseClasspathFixture {
 
         void assertHasNoAttribute(String key, String value) {
             assert !entry.attributes.attribute.find { it.@name == key && it.@value == value }
+        }
+    }
+
+    class EclipseProjectDependency extends EclipseClasspathEntry {
+        EclipseProjectDependency(Node entry) {
+            super(entry)
+        }
+
+        String getName() {
+            return entry.@path.substring(1)
         }
     }
 

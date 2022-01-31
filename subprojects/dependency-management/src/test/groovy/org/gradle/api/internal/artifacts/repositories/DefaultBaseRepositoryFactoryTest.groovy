@@ -34,7 +34,6 @@ import org.gradle.api.internal.filestore.DefaultArtifactIdentifierFileStore
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry
 import org.gradle.internal.authentication.DefaultAuthenticationSchemeRegistry
-import org.gradle.internal.isolation.IsolatableFactory
 import org.gradle.internal.resource.cached.DefaultExternalResourceFileStore
 import org.gradle.internal.resource.local.FileResourceRepository
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
@@ -63,7 +62,7 @@ class DefaultBaseRepositoryFactoryTest extends Specification {
     final DefaultBaseRepositoryFactory factory = new DefaultBaseRepositoryFactory(
             localMavenRepoLocator, fileResolver, fileCollectionFactory, transportFactory, locallyAvailableResourceFinder,
             artifactIdentifierFileStore, externalResourceFileStore, pomParser, metadataParser, authenticationSchemeRegistry, ivyContextManager, moduleIdentifierFactory,
-            TestUtil.instantiatorFactory(), Mock(FileResourceRepository), mavenMetadataFactory, ivyMetadataFactory, SnapshotTestUtil.valueSnapshotter() as IsolatableFactory, TestUtil.objectFactory(),
+            TestUtil.instantiatorFactory(), Mock(FileResourceRepository), mavenMetadataFactory, ivyMetadataFactory, SnapshotTestUtil.isolatableFactory(), TestUtil.objectFactory(),
             CollectionCallbackActionDecorator.NOOP,
             urlArtifactRepositoryFactory,
             TestUtil.checksumService,

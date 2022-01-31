@@ -22,20 +22,16 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.performance.results.GradleProfilerReporter;
 import org.gradle.performance.results.MeasuredOperationList;
 import org.gradle.performance.results.OutputDirSelector;
-import org.gradle.profiler.BenchmarkResultCollector;
 import org.gradle.profiler.BuildInvoker;
 import org.gradle.profiler.InvocationSettings;
 import org.gradle.profiler.Logging;
 import org.gradle.profiler.MavenScenarioDefinition;
 import org.gradle.profiler.MavenScenarioInvoker;
-import org.gradle.profiler.ScenarioDefinition;
 import org.gradle.profiler.result.BuildInvocationResult;
-import org.gradle.profiler.result.Sample;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -59,20 +55,15 @@ public class MavenBuildExperimentRunner extends AbstractBuildExperimentRunner {
 
         try {
             MavenScenarioInvoker scenarioInvoker = new MavenScenarioInvoker();
-            AtomicInteger iterationCount = new AtomicInteger(0);
             Logging.setupLogging(workingDirectory);
 
             Consumer<BuildInvocationResult> scenarioReporter = getResultCollector().scenario(
                 scenarioDefinition,
                 scenarioInvoker.samplesFor(invocationSettings, scenarioDefinition)
             );
-            scenarioInvoker.run(scenarioDefinition, invocationSettings, new BenchmarkResultCollector() {
-                @Override
-                public <S extends ScenarioDefinition, T extends BuildInvocationResult> Consumer<T> scenario(S scenario, List<Sample<? super T>> samples) {
-                    return (Consumer<T>) consumerFor(scenarioDefinition, iterationCount, results, scenarioReporter);
-                }
-            });
-        } catch (IOException | InterruptedException e) {
+            Consumer<BuildInvocationResult> resultConsumer = consumerFor(scenarioDefinition, results, scenarioReporter);
+            scenarioInvoker.run(scenarioDefinition, invocationSettings, resultConsumer);
+        } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         } finally {
             try {

@@ -225,7 +225,7 @@
       }
     } ]
   }, {
-    "testId" : "org.gradle.performance.regression.android.RealLifeAndroidStudioMockupPerformanceTest.get IDE model for Android Studio",
+    "testId" : "org.gradle.performance.regression.android.RealLifeAndroidStudioPerformanceTest.run Android Studio sync",
     "groups" : [ {
       "testProject" : "largeAndroidBuild",
       "coverage" : {
@@ -365,6 +365,14 @@
       "testProject" : "archivePerformanceProject",
       "coverage" : {
         "per_day" : [ "linux" ]
+      }
+    } ]
+  }, {
+    "testId" : "org.gradle.performance.regression.corefeature.ArchiveTreePerformanceTest.visiting zip trees",
+    "groups" : [ {
+      "testProject" : "archivePerformanceProject",
+      "coverage" : {
+        "per_commit" : [ "linux" ]
       }
     } ]
   }, {
@@ -635,6 +643,24 @@
       }
     } ]
   }, {
+    "testId" : "org.gradle.performance.regression.java.JavaConfigurationPerformanceTest.configure",
+    "groups" : [ {
+      "testProject" : "largeJavaMultiProject",
+      "coverage" : {
+        "per_commit" : [ "linux" ]
+      }
+    }, {
+      "testProject" : "largeJavaMultiProjectKotlinDsl",
+      "coverage" : {
+        "per_commit" : [ "linux" ]
+      }
+    }, {
+      "testProject" : "largeMonolithicJavaProject",
+      "coverage" : {
+        "per_commit" : [ "linux" ]
+      }
+    } ]
+  }, {
     "testId" : "org.gradle.performance.regression.java.JavaDependencyReportPerformanceTest.generate dependency report",
     "groups" : [ {
       "testProject" : "largeJavaMultiProject",
@@ -699,6 +725,22 @@
       "testProject" : "largeMonolithicJavaProject",
       "coverage" : {
         "per_day" : [ "linux" ]
+      }
+    } ]
+  }, {
+    "testId" : "org.gradle.performance.regression.java.JavaIDEModelPerformanceTest.get IDE model for Eclipse",
+    "groups" : [ {
+      "testProject" : "largeJavaMultiProject",
+      "coverage" : {
+        "per_commit" : [ "linux" ]
+      }
+    } ]
+  }, {
+    "testId" : "org.gradle.performance.regression.java.JavaIDEModelPerformanceTest.get IDE model for IDEA",
+    "groups" : [ {
+      "testProject" : "largeJavaMultiProject",
+      "coverage" : {
+        "per_commit" : [ "linux" ]
       }
     } ]
   }, {

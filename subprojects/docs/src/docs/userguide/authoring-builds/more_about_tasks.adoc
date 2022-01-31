@@ -1133,7 +1133,7 @@ Gradle automatically handles up-to-date checks for output files and directories,
 Perhaps it’s an update to a web service or a database table.
 Or sometimes you have a task which should always run.
 
-That’s where the `doNoTrackState()` method on `Task` comes in.
+That’s where the `doNotTrackState()` method on `Task` comes in.
 One can use this to disable up-to-date checks completely for a task, like so:
 
 .Ignoring up-to-date checks
@@ -1162,7 +1162,7 @@ If you are writing your own task that always should run, then you can also use t
 Sometimes you want to integrate an external tool like Git or Npm, both of which do their own up-to-date checking.
 In that case it doesn't make much sense for Gradle to also do up-to-date checks.
 You can disable Gradle's up-to-date checks by using the `@link:{javadocPath}/org/gradle/api/tasks/UntrackedTask.html[UntrackedTask]` annotation on the task wrapping the tool.
-Alternatively, you can use the runtime API method `@link:{groovyDslDoc}/org.gradle.api.Task.html#org.gradle.api.Task:doNotTrackState(java.lang.String)[Task.doNotTrackState()]`.
+Alternatively, you can use the runtime API method `link:{groovyDslDoc}/org.gradle.api.Task.html#org.gradle.api.Task:doNotTrackState(java.lang.String)[Task.doNotTrackState()]`.
 
 For example, let's say you want to implement a task which clones a Git repository.
 
@@ -1354,7 +1354,7 @@ include::{snippetsPath}/tasks/finalizers/tests/taskFinalizers.out[]
 ----
 ====
 
-Finalizer tasks will be executed even if the finalized task fails.
+Finalizer tasks will be executed even if the finalized task fails or if the finalized task is considered up to date.
 
 .Task finalizer for a failing task
 ====
@@ -1367,8 +1367,6 @@ include::sample[dir="snippets/tasks/finalizersWithFailure/kotlin",files="build.g
 include::{snippetsPath}/tasks/finalizersWithFailure/tests-groovy/taskFinalizersWithFailureGroovy.out[]
 ----
 ====
-
-On the other hand, finalizer tasks are not executed if the finalized task didn't do any work, for example if it is considered up to date or if a dependent task fails.
 
 Finalizer tasks are useful in situations where the build creates a resource that has to be cleaned up regardless of the build failing or succeeding. An example of such a resource is a web container that is started before an integration test task and which should be always shut down, even if some of the tests fail.
 
