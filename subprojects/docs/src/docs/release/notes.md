@@ -76,7 +76,7 @@ See [the documentation](userguide/eclipse_plugin.html#sec:test-sources) for more
 
 ### Continuous build is responsive on Windows and macOS
 
-Continuous Build allows you to automatically re-execute the requested tasks when task inputs change.
+Continuous Build allows you to automatically re-execute the build with the same requested tasks when inputs change.
 This allows for continuous feedback during development.
 
 Since Java 9, continuous build did not work very well on Windows and macOS.
