@@ -30,7 +30,7 @@ public class AntlrSpecFactory {
     public AntlrSpec create(AntlrTask antlrTask, Set<File> grammarFiles, FileCollection sourceSetDirectories) {
         List<String> arguments = Lists.newLinkedList(antlrTask.getArguments());
 
-        if (antlrTask.isTrace() && !arguments.contains("-trace")) {
+        if (antlrTask.getTrace().get() && !arguments.contains("-trace")) {
             arguments.add("-trace");
         }
         if (antlrTask.isTraceLexer() && !arguments.contains("-traceLexer")) {
@@ -49,6 +49,6 @@ public class AntlrSpecFactory {
             sourceSetDirectoriesFiles = sourceSetDirectories.getFiles();
         }
 
-        return new AntlrSpec(arguments, grammarFiles, sourceSetDirectoriesFiles, antlrTask.getOutputDirectory(), antlrTask.getMaxHeapSize());
+        return new AntlrSpec(arguments, grammarFiles, sourceSetDirectoriesFiles, antlrTask.getOutputDirectory().get().getAsFile(), antlrTask.getMaxHeapSize());
     }
 }

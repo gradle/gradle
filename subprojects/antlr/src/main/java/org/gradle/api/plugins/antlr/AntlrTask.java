@@ -17,6 +17,7 @@
 package org.gradle.api.plugins.antlr;
 
 import org.gradle.api.NonNullApi;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileType;
@@ -27,6 +28,7 @@ import org.gradle.api.plugins.antlr.internal.AntlrSourceGenerationException;
 import org.gradle.api.plugins.antlr.internal.AntlrSpec;
 import org.gradle.api.plugins.antlr.internal.AntlrSpecFactory;
 import org.gradle.api.plugins.antlr.internal.AntlrWorkerManager;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.IgnoreEmptyDirectories;
@@ -60,9 +62,8 @@ import java.util.concurrent.Callable;
  */
 @NonNullApi
 @CacheableTask
-public class AntlrTask extends SourceTask {
+public abstract class AntlrTask extends SourceTask {
 
-    private boolean trace;
     private boolean traceLexer;
     private boolean traceParser;
     private boolean traceTreeWalker;
@@ -70,22 +71,19 @@ public class AntlrTask extends SourceTask {
 
     private FileCollection antlrClasspath;
 
-    private File outputDirectory;
     private String maxHeapSize;
     private FileCollection sourceSetDirectories;
     private final FileCollection stableSources = getProject().files((Callable<Object>) this::getSource);
+
+    public AntlrTask() {
+        getTrace().convention(false);
+    }
 
     /**
      * Specifies that all rules call {@code traceIn}/{@code traceOut}.
      */
     @Input
-    public boolean isTrace() {
-        return trace;
-    }
-
-    public void setTrace(boolean trace) {
-        this.trace = trace;
-    }
+    public abstract Property<Boolean> getTrace();
 
     /**
      * Specifies that all lexer rules call {@code traceIn}/{@code traceOut}.
@@ -158,18 +156,7 @@ public class AntlrTask extends SourceTask {
      * @return The output directory.
      */
     @OutputDirectory
-    public File getOutputDirectory() {
-        return outputDirectory;
-    }
-
-    /**
-     * Specifies the directory to generate the parser source files into.
-     *
-     * @param outputDirectory The output directory. Must not be null.
-     */
-    public void setOutputDirectory(File outputDirectory) {
-        this.outputDirectory = outputDirectory;
-    }
+    public abstract DirectoryProperty getOutputDirectory();
 
     /**
      * Returns the classpath containing the Ant ANTLR task implementation.
@@ -222,7 +209,7 @@ public class AntlrTask extends SourceTask {
             }
             if (rebuildRequired) {
                 try {
-                    getDeleter().ensureEmptyDirectory(outputDirectory);
+                    getDeleter().ensureEmptyDirectory(getOutputDirectory().get().getAsFile());
                 } catch (IOException ex) {
                     throw new UncheckedIOException(ex);
                 }
