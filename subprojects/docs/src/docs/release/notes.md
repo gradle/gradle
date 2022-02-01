@@ -80,10 +80,10 @@ Continuous Build allows you to automatically re-execute the requested tasks when
 This allows for continuous feedback during development.
 
 Since Java 9, continuous build did not work very well on Windows and macOS.
-It took up to 10 seconds to pick up a change and trigger a build.
+It could take up to 10 seconds to pick up a change and trigger a build.
 
 Now, continuous build uses the same infrastructure as Gradle's [file system watching](userguide/gradle_daemon.html#sec:daemon_watch_fs) to detect changes.
-This means that Gradle picks up changes nearly instantly on Windows, macOS and Linux.
+This means that Gradle picks up changes nearly instantly on all platforms and file systems where file system watching is supported.
 
 For more information see the section on [continuous build](userguide/command_line_interface.html#sec:continuous_build) in the user manual.
 
