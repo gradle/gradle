@@ -123,6 +123,7 @@ data class CIBuildModel(
         Stage(
             StageNames.HISTORICAL_PERFORMANCE,
             trigger = Trigger.weekly,
+            runsIndependent = true,
             performanceTests = listOf(
                 PerformanceTestCoverage(3, PerformanceTestType.historical, Os.LINUX, numberOfBuckets = 60, oldUuid = "PerformanceTestHistoricalLinux"),
                 PerformanceTestCoverage(4, PerformanceTestType.flakinessDetection, Os.LINUX, numberOfBuckets = 60, oldUuid = "PerformanceTestFlakinessDetectionLinux"),
