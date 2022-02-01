@@ -120,6 +120,7 @@ public class TaskReportTask extends ConventionReportTask {
      *
      * @since 7.5
      */
+    @Incubating
     @Option(option = "groups", description = "Show tasks for specific groups (can be used multiple times to specify multiple groups).")
     public void setDisplayGroups(List<String> groups) {
         if (this.groups == null) {
