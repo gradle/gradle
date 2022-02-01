@@ -9,6 +9,7 @@ We would like to thank the following community members for their contributions t
 [kiwi-oss](https://github.com/kiwi-oss),
 [Stefan Neuhaus](https://github.com/stefanneuhaus),
 [George Thomas](https://github.com/smoothreggae)
+[Anja Papatola](https://github.com/apalopta)
 <!-- 
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
@@ -108,6 +109,18 @@ See the [ResolvableConfigurations](https://docs.gradle.org/current/dsl/org.gradl
 
 When defining secondary variants, there is a new [ConfigurationVariant](https://docs.gradle.org/current/javadoc/org/gradle/api/artifacts/ConfigurationVariant.html#getDescription--) method available to supply a note or description for the variant.
 These descriptions will be printed by the `outgoingVariants` report and defaults have been added for existing secondary variants produced by the Java plugin.
+### Continuous build is responsive on Windows and macOS
+
+Continuous Build allows you to automatically re-execute the build with the same requested tasks when inputs change.
+This allows for continuous feedback during development.
+
+Since Java 9, continuous build did not work very well on Windows and macOS.
+It could take up to 10 seconds to pick up a change and trigger a build.
+
+Now, continuous build uses the same infrastructure as Gradle's [file system watching](userguide/gradle_daemon.html#sec:daemon_watch_fs) to detect changes.
+This means that Gradle picks up changes nearly instantly on all platforms and file systems where file system watching is supported.
+
+For more information see the section on [continuous build](userguide/command_line_interface.html#sec:continuous_build) in the user manual.
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
