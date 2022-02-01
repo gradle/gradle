@@ -947,6 +947,11 @@
             <pgp value="2c1708ea05adf6966c32d6454a1bac7f1e3b89b3"/>
          </artifact>
       </component>
+      <component group="org.abego.treelayout" name="org.abego.treelayout.core" version="1.0.3">
+         <artifact name="org.abego.treelayout.core-1.0.3.jar">
+            <pgp value="d790f72ea8fd39551012b62dcf9f3090ce4cb752"/>
+         </artifact>
+      </component>
       <component group="org.antlr" name="antlr4-runtime" version="4.5.2-1">
          <artifact name="antlr4-runtime-4.5.2-1.jar">
             <pgp value="d54a395b5cf3f86eb45f6e426b1b008864323b92"/>
@@ -980,6 +985,11 @@
       <component group="org.apache.ivy" name="ivy" version="2.3.0">
          <artifact name="ivy-2.3.0.jar">
             <pgp value="9c60c6b3a5a9df8fedd299d65be0ba8cb80602ae"/>
+         </artifact>
+      </component>
+      <component group="org.apache.ivy" name="ivy" version="2.5.0">
+         <artifact name="ivy-2.5.0.jar">
+            <pgp value="8da70c00df7af1b0d2f9dc74ddbcc1270a29d081"/>
          </artifact>
       </component>
       <component group="org.apache.maven" name="maven-model" version="3.0.4">
