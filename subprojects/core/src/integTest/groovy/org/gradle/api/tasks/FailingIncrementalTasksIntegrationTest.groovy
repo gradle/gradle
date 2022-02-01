@@ -62,11 +62,11 @@ class FailingIncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
                 @Inject
                 abstract ProjectLayout getLayout()
 
-                @InputDirectory File sourceDir
+                @Incremental @InputDirectory File sourceDir
                 @OutputDirectory File destinationDir
 
                 @TaskAction
-                void process(IncrementalTaskInputs inputs) {
+                void process(InputChanges inputs) {
                     def outputTxt = layout.projectDirectory.file("\$destinationDir/output.txt").asFile
                     outputTxt.text = "output"
                     def modifyOutputs = providers.gradleProperty('modifyOutputs').orNull
@@ -100,7 +100,6 @@ class FailingIncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
                 destinationDir = file("build")
             }
         """
-        executer.expectDocumentedDeprecationWarning """IncrementalTaskInputs has been deprecated. This is scheduled to be removed in Gradle 8.0. On method 'IncrementalTask.process' use 'org.gradle.work.InputChanges' instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#incremental_task_inputs_deprecation"""
         succeeds "incrementalTask", "-PexpectIncremental=false"
 
         file("src/input-change.txt") << "input"
