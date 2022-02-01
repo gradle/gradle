@@ -619,7 +619,7 @@ If the build is being executed via the Tooling API, the build can be cancelled u
 Under some circumstances continuous build may not detect changes to inputs.
 
 [[sec:continuous_build_missing_files]]
-==== Adding new root input directories
+==== Creating input directories
 
 Sometimes, creating an input directory that was previously missing does not trigger a build, due to the way file system watching works.
 For example, creating the `src/main/java` directory may not trigger a build.
