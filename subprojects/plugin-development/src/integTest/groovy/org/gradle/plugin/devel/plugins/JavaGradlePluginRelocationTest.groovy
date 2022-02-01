@@ -82,6 +82,14 @@ class JavaGradlePluginRelocationTest extends AbstractProjectRelocationIntegratio
                         exclude group: 'org.codehaus.groovy'
                     }
                 }
+
+                tasks.withType(GroovyCompile).configureEach {
+                    groovyOptions.forkOptions.jvmArgs = ["-Dspock.iKnowWhatImDoing.disableGroovyVersionCheck=true"]
+                }
+
+                tasks.withType(Test).configureEach {
+                    systemProperty "spock.iKnowWhatImDoing.disableGroovyVersionCheck", "true"
+                }
             """
         }
 
