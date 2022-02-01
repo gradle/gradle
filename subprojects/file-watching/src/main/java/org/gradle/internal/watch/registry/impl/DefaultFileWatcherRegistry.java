@@ -20,7 +20,6 @@ import net.rubygrapefruit.platform.file.FileWatchEvent;
 import net.rubygrapefruit.platform.file.FileWatcher;
 import net.rubygrapefruit.platform.internal.jni.AbstractFileEventFunctions;
 import net.rubygrapefruit.platform.internal.jni.NativeLogger;
-import org.gradle.internal.file.FileHierarchySet;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.watch.registry.FileWatcherRegistry;
@@ -141,7 +140,7 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
 
     @Override
     public boolean isWatchingAnyLocations() {
-        return !fileWatcherUpdater.getWatchedFiles().equals(FileHierarchySet.empty());
+        return !fileWatcherUpdater.getWatchedFiles().isEmpty();
     }
 
     @Override
