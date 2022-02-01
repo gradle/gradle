@@ -117,8 +117,10 @@ public class TaskReportTask extends ConventionReportTask {
     /**
      * Add a specific task group to be displayed.
      * Same functionality as the '--group' option, but unlike '--group', '--groups' can be chained.
+     *
+     * @since 7.5
      */
-    @Option(option = "groups", description = "Show tasks for a specific group.")
+    @Option(option = "groups", description = "Show tasks for specific groups (can be used multiple times to specify multiple groups).")
     public void setDisplayGroups(List<String> groups) {
         if (this.groups == null) {
             this.groups = new ArrayList<>();
@@ -130,6 +132,8 @@ public class TaskReportTask extends ConventionReportTask {
      * Returns the task groups to be displayed.
      *
      * Task groups can be added via command-line option '--groups'.
+     *
+     * @since 7.5
      */
     @Incubating
     @Console
