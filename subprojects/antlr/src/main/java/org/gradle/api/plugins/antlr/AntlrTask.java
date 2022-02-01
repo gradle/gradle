@@ -28,6 +28,7 @@ import org.gradle.api.plugins.antlr.internal.AntlrSourceGenerationException;
 import org.gradle.api.plugins.antlr.internal.AntlrSpec;
 import org.gradle.api.plugins.antlr.internal.AntlrSpecFactory;
 import org.gradle.api.plugins.antlr.internal.AntlrWorkerManager;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
@@ -133,22 +134,13 @@ public abstract class AntlrTask extends SourceTask {
         this.maxHeapSize = maxHeapSize;
     }
 
-    public void setArguments(List<String> arguments) {
-        if (arguments != null) {
-            this.arguments = arguments;
-        }
-    }
-
-
     /**
      * List of command-line arguments passed to the antlr process
      *
      * @return The antlr command-line arguments
      */
     @Input
-    public List<String> getArguments() {
-        return arguments;
-    }
+    public abstract ListProperty<String> getArguments();
 
     /**
      * Returns the directory to generate the parser source files into.
