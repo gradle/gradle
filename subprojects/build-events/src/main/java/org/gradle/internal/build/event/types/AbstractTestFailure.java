@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,45 +17,42 @@ package org.gradle.internal.build.event.types;
 
 import org.gradle.tooling.internal.protocol.InternalFailure;
 
-import java.io.PrintWriter;
 import java.io.Serializable;
-import java.io.StringWriter;
-import java.util.Collections;
 import java.util.List;
 
-public class DefaultFailure implements Serializable, InternalFailure {
+public class AbstractTestFailure implements Serializable {
 
     private final String message;
     private final String description;
-    private final InternalFailure cause;
+    private final List<? extends InternalFailure> causes;
+    private final String className;
+    private final String stacktrace;
 
-    protected DefaultFailure(String message, String description, InternalFailure cause) {
+    protected AbstractTestFailure(String message, String description, List<? extends InternalFailure> causes, String className, String stacktrace) {
         this.message = message;
         this.description = description;
-        this.cause = cause;
+        this.causes = causes;
+        this.className = className;
+        this.stacktrace = stacktrace;
     }
 
-    @Override
     public String getMessage() {
         return message;
     }
 
-    @Override
     public String getDescription() {
         return description;
     }
 
-    @Override
-    public List<? extends InternalFailure> getCauses() {
-        return cause == null ? Collections.emptyList() : Collections.singletonList(cause);
+    public String getClassName() {
+        return className;
     }
 
-    public static InternalFailure fromThrowable(Throwable t) {
-        StringWriter out = new StringWriter();
-        PrintWriter wrt = new PrintWriter(out);
-        t.printStackTrace(wrt);
-        Throwable cause = t.getCause();
-        InternalFailure causeFailure = cause != null && cause != t ? fromThrowable(cause) : null;
-        return new DefaultFailure(t.getMessage(), out.toString(), causeFailure);
+    public String getStacktrace() {
+        return stacktrace;
+    }
+
+    public List<? extends InternalFailure> getCauses() {
+        return causes;
     }
 }
