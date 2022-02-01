@@ -32,7 +32,9 @@ import org.gradle.internal.action.ConfigurableRule
 import org.gradle.internal.action.DefaultConfigurableRules
 import org.gradle.internal.action.InstantiatingAction
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
+import org.gradle.internal.component.external.model.FixedComponentArtifacts
 import org.gradle.internal.component.external.model.MetadataSourcedComponentArtifacts
+import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata
 import org.gradle.internal.component.external.model.maven.MavenModuleResolveMetadata
@@ -63,6 +65,39 @@ class MavenResolverTest extends Specification {
     def "uses artifacts from variant metadata"() {
         given:
         variant.requiresMavenArtifactDiscovery() >> false
+
+        when:
+        resolver.getLocalAccess().resolveModuleArtifacts(module, variant, result)
+
+        then:
+        1 * result.resolved(_) >> { args ->
+            assert args[0] instanceof MetadataSourcedComponentArtifacts
+        }
+    }
+
+    def "resolve to empty when module is relocated"() {
+        given:
+        module.variants >> ImmutableList.of()
+        module.relocated >> true
+        variant.requiresMavenArtifactDiscovery() >> true
+
+        when:
+        resolver.getLocalAccess().resolveModuleArtifacts(module, variant, result)
+
+        then:
+        1 * result.resolved(_) >> { args ->
+            assert args[0] instanceof FixedComponentArtifacts
+            assert args[0].artifacts.isEmpty()
+        }
+    }
+
+    def "resolve metadata when module's packaging is jar"() {
+        given:
+        module.variants >> ImmutableList.of()
+        module.knownJarPackaging >> true
+        ModuleComponentArtifactMetadata artifact = Mock(ModuleComponentArtifactMetadata)
+        module.artifact('jar', 'jar', null) >> artifact
+        variant.requiresMavenArtifactDiscovery() >> true
 
         when:
         resolver.getLocalAccess().resolveModuleArtifacts(module, variant, result)
