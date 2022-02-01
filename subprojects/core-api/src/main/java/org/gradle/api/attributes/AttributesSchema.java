@@ -17,6 +17,7 @@
 package org.gradle.api.attributes;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 
 import java.util.Set;
 
@@ -70,5 +71,14 @@ public interface AttributesSchema {
      */
     boolean hasAttribute(Attribute<?> key);
 
+    /**
+     * Registers the order of precedence of attributes when resolving ambiguity.
+     * <p>
+     * Note that this clears any previously set precedence.
+     * </p>
+     * @param attributes the attributes in order
+     * @since 7.5
+     */
+    @Incubating
     void attributePrecedence(Attribute<?>... attributes);
 }
