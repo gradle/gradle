@@ -95,6 +95,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
+import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.base.Preconditions.checkState;
 import static org.gradle.util.internal.ConfigureUtil.configureUsing;
 
@@ -160,8 +161,6 @@ import static org.gradle.util.internal.ConfigureUtil.configureUsing;
 @CacheableTask
 public class Test extends AbstractTestTask implements JavaForkOptions, PatternFilterable {
 
-    private static final long DEFAULT_RETRY_UNTIL_FAILURE_COUNT = 1;
-
     private final JavaForkOptions forkOptions;
     private final ModularitySpec modularity;
     private final Property<JavaLauncher> javaLauncher;
@@ -173,11 +172,11 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     private final Property<TestFramework> testFramework;
     private boolean userHasConfiguredTestFramework;
     private boolean optionsAccessed;
+    private final Property<Long> retryUntilFailure;
 
     private boolean scanForTestClasses = true;
     private long forkEvery;
     private int maxParallelForks = 1;
-    private long untilFailureRetryCount = DEFAULT_RETRY_UNTIL_FAILURE_COUNT;
     private TestExecuter<JvmTestExecutionSpec> testExecuter;
 
     public Test() {
@@ -197,6 +196,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         modularity = getObjectFactory().newInstance(DefaultModularitySpec.class);
         javaLauncher = getObjectFactory().property(JavaLauncher.class);
         testFramework = getObjectFactory().property(TestFramework.class).convention(new JUnitTestFramework(this, (DefaultTestFilter) getFilter()));
+        retryUntilFailure = getObjectFactory().property(Long.class);
     }
 
     @Inject
@@ -645,7 +645,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         boolean testIsModule = javaModuleDetector.isModule(modularity.getInferModulePath().get(), getTestClassesDirs());
         FileCollection classpath = javaModuleDetector.inferClasspath(testIsModule, stableClasspath);
         FileCollection modulePath = javaModuleDetector.inferModulePath(testIsModule, stableClasspath);
-        return new JvmTestExecutionSpec(getTestFramework(), classpath, modulePath, getCandidateClassFiles(), isScanForTestClasses(), getTestClassesDirs(), getPath(), getIdentityPath(), getForkEvery(), javaForkOptions, getMaxParallelForks(), getPreviousFailedTestClasses(), getUntilFailureRetryCount());
+        return new JvmTestExecutionSpec(getTestFramework(), classpath, modulePath, getCandidateClassFiles(), isScanForTestClasses(), getTestClassesDirs(), getPath(), getIdentityPath(), getForkEvery(), javaForkOptions, getMaxParallelForks(), getPreviousFailedTestClasses(), 0);
     }
 
     private void validateToolchainConfiguration() {
@@ -697,7 +697,10 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
 
     @Override
     protected boolean shouldFailFast() {
-        return getUntilFailureRetryCount() > DEFAULT_RETRY_UNTIL_FAILURE_COUNT || super.shouldFailFast();
+        if (getRetryUntilFailureCount().isPresent()) {
+            return getRetryUntilFailureCount().get() > 1;
+        }
+        return super.shouldFailFast();
     }
 
     @Override
@@ -1075,7 +1078,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      * @since 4.6
      */
     public void useJUnitPlatform(Action<? super JUnitPlatformOptions> testFrameworkConfigure) {
-        useTestFramework(new JUnitPlatformTestFramework((DefaultTestFilter) getFilter()), testFrameworkConfigure);
+        useTestFramework(new JUnitPlatformTestFramework(this, (DefaultTestFilter) getFilter()), testFrameworkConfigure);
     }
 
     /**
@@ -1186,25 +1189,8 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      */
     @Internal
     @Incubating
-    public long getUntilFailureRetryCount() {
-        return untilFailureRetryCount;
-    }
-
-    /**
-     * Sets the maximum number of test runs to be executed before first failure occurs.
-     * <p>
-     * By default, Gradle runs tests just once, but with this property you can specify that Gradle runs tests until a failure occurs.
-     * </p>
-     *
-     * @param untilFailureRetryCount The maximum number of test runs.
-     * @since 7.5
-     */
-    @Incubating
-    public void setUntilFailureRetryCount(long untilFailureRetryCount) {
-        if (untilFailureRetryCount < 1) {
-            throw new IllegalArgumentException("Cannot set untilFailureRetryCount to a value less than 1.");
-        }
-        this.untilFailureRetryCount = untilFailureRetryCount;
+    public Property<Long> getRetryUntilFailureCount() {
+        return retryUntilFailure;
     }
 
     /**
@@ -1212,11 +1198,15 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      *
      * @since 7.5
      */
-    @SuppressWarnings("unused")
     @Incubating
+    @SuppressWarnings("unused")
     @Option(option = "retry-until-failure", description = "Runs the tests until failure occurs.")
-    public void setUntilFailureRetryCountOption(@Nullable String untilFailureRetryCount) {
-        setUntilFailureRetryCount(untilFailureRetryCount == null ? -1 : Long.parseLong(untilFailureRetryCount));
+    public void setRetryUntilFailureCountOption(@Nullable String retryUntilFailureCountOption) {
+        long retryUntilFailureCount = Long.parseLong(firstNonNull(retryUntilFailureCountOption, "0"));
+        if (retryUntilFailureCount < 1) {
+            throw new IllegalArgumentException("Cannot set retry-until-failure to a value less than 1.");
+        }
+        getRetryUntilFailureCount().set(retryUntilFailureCount);
     }
 
     /**

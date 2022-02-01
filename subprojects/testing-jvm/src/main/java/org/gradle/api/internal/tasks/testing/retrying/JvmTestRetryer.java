@@ -14,25 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.testing.junitplatform;
+package org.gradle.api.internal.tasks.testing.retrying;
 
-import org.gradle.testing.fixture.AbstractJvmRunUntilFailureIntegrationSpec
+import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 
-import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUPITER_VERSION
+public interface JvmTestRetryer {
 
-class JUnitPlatformRunUntilFailureIntegrationTest extends AbstractJvmRunUntilFailureIntegrationSpec {
-    @Override
-    String testAnnotationClass() {
-        'org.junit.jupiter.api.Test'
-    }
+    /**
+     * Decorates test result processor with a new test processor that listens to test failures
+     */
+    TestResultProcessor decorateTestResultProcessor(TestResultProcessor other);
 
-    @Override
-    String testDependency() {
-        "org.junit.jupiter:junit-jupiter:$LATEST_JUPITER_VERSION"
-    }
-
-    @Override
-    String testFrameworkConfiguration() {
-        'test { useJUnitPlatform() }'
-    }
+    /**
+     * Runs tests until they fail
+     */
+    void retryUntilFailure(Runnable runnable);
 }

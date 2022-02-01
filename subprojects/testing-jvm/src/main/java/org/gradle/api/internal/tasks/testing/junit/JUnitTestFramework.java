@@ -17,11 +17,12 @@
 package org.gradle.api.internal.tasks.testing.junit;
 
 import org.gradle.api.Action;
-import org.gradle.api.internal.tasks.testing.FrameworkTestClassProcessor;
+import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestFramework;
-import org.gradle.api.internal.tasks.testing.WorkerFrameworkTestClassProcessorFactory;
+import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.api.internal.tasks.testing.detection.ClassFileExtractionManager;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
+import org.gradle.api.internal.tasks.testing.retrying.JvmRetrySpecProvider;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.junit.JUnitOptions;
 import org.gradle.internal.actor.ActorFactory;
@@ -41,19 +42,23 @@ public class JUnitTestFramework implements TestFramework {
     private JUnitOptions options;
     private JUnitDetector detector;
     private final DefaultTestFilter filter;
+    private final JvmRetrySpecProvider retrySpecProvider;
 
     public JUnitTestFramework(Test testTask, DefaultTestFilter filter) {
         this.filter = filter;
         options = new JUnitOptions();
         detector = new JUnitDetector(new ClassFileExtractionManager(testTask.getTemporaryDirFactory()));
+        retrySpecProvider = JvmRetrySpecProvider.of(testTask);
     }
 
     @Override
-    public WorkerFrameworkTestClassProcessorFactory getProcessorFactory() {
+    public WorkerTestClassProcessorFactory getProcessorFactory() {
         return new TestClassProcessorFactoryImpl(new JUnitSpec(
             options.getIncludeCategories(), options.getExcludeCategories(),
             filter.getIncludePatterns(), filter.getExcludePatterns(),
-            filter.getCommandLineIncludePatterns()));
+            filter.getCommandLineIncludePatterns(),
+            retrySpecProvider.get()
+        ));
     }
 
     @Override
@@ -94,7 +99,7 @@ public class JUnitTestFramework implements TestFramework {
         detector = null;
     }
 
-    private static class TestClassProcessorFactoryImpl implements WorkerFrameworkTestClassProcessorFactory, Serializable {
+    private static class TestClassProcessorFactoryImpl implements WorkerTestClassProcessorFactory, Serializable {
         private final JUnitSpec spec;
 
         public TestClassProcessorFactoryImpl(JUnitSpec spec) {
@@ -102,7 +107,7 @@ public class JUnitTestFramework implements TestFramework {
         }
 
         @Override
-        public FrameworkTestClassProcessor create(ServiceRegistry serviceRegistry) {
+        public TestClassProcessor create(ServiceRegistry serviceRegistry) {
             return new JUnitTestClassProcessor(spec, serviceRegistry.get(IdGenerator.class), serviceRegistry.get(ActorFactory.class), serviceRegistry.get(Clock.class));
         }
     }

@@ -16,11 +16,13 @@
 
 package org.gradle.api.internal.tasks.testing.testng;
 
+import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
+import org.gradle.api.internal.tasks.testing.retrying.JvmRetrySpec;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.testing.testng.TestNGOptions;
+
 import java.io.Serializable;
 import java.util.Set;
-
-import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
-import org.gradle.api.tasks.testing.testng.TestNGOptions;
 
 public class TestNGSpec implements Serializable {
     private static final long serialVersionUID = 1;
@@ -39,8 +41,9 @@ public class TestNGSpec implements Serializable {
     private final String configFailurePolicy;
     private final boolean preserveOrder;
     private final boolean groupByInstances;
+    private final JvmRetrySpec retrySpec;
 
-    public TestNGSpec(TestNGOptions options, DefaultTestFilter filter) {
+    public TestNGSpec(TestNGOptions options, DefaultTestFilter filter, JvmRetrySpec retrySpec) {
         this.defaultSuiteName = options.getSuiteName();
         this.defaultTestName = options.getTestName();
         this.parallel = options.getParallel();
@@ -55,6 +58,7 @@ public class TestNGSpec implements Serializable {
         this.configFailurePolicy = options.getConfigFailurePolicy();
         this.preserveOrder = options.getPreserveOrder();
         this.groupByInstances = options.getGroupByInstances();
+        this.retrySpec = retrySpec;
     }
 
     public Set<String> getListeners() {
@@ -111,5 +115,9 @@ public class TestNGSpec implements Serializable {
 
     public boolean getGroupByInstances() {
         return groupByInstances;
+    }
+
+    public JvmRetrySpec getRetrySpec() {
+        return retrySpec;
     }
 }

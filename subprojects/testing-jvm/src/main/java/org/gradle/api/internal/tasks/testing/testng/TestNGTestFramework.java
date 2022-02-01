@@ -21,12 +21,13 @@ import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.plugins.DslObject;
-import org.gradle.api.internal.tasks.testing.FrameworkTestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassLoaderFactory;
+import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestFramework;
-import org.gradle.api.internal.tasks.testing.WorkerFrameworkTestClassProcessorFactory;
+import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.api.internal.tasks.testing.detection.ClassFileExtractionManager;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
+import org.gradle.api.internal.tasks.testing.retrying.JvmRetrySpecProvider;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.tasks.testing.Test;
@@ -55,6 +56,7 @@ public class TestNGTestFramework implements TestFramework {
     private final String testTaskPath;
     private final FileCollection testTaskClasspath;
     private final Factory<File> testTaskTemporaryDir;
+    private final JvmRetrySpecProvider retrySpecProvider;
     private transient ClassLoader testClassLoader;
 
     @UsedByScanPlugin("test-retry")
@@ -65,6 +67,7 @@ public class TestNGTestFramework implements TestFramework {
         this.testTaskClasspath = classpath;
         this.testTaskTemporaryDir = testTask.getTemporaryDirFactory();
         options = objects.newInstance(TestNGOptions.class);
+        this.retrySpecProvider = JvmRetrySpecProvider.of(testTask);
         conventionMapOutputDirectory(options, testTask.getReports().getHtml());
         detector = new TestNGDetector(new ClassFileExtractionManager(testTask.getTemporaryDirFactory()));
     }
@@ -79,12 +82,12 @@ public class TestNGTestFramework implements TestFramework {
     }
 
     @Override
-    public WorkerFrameworkTestClassProcessorFactory getProcessorFactory() {
+    public WorkerTestClassProcessorFactory getProcessorFactory() {
         verifyConfigFailurePolicy();
         verifyPreserveOrder();
         verifyGroupByInstances();
         List<File> suiteFiles = options.getSuites(testTaskTemporaryDir.create());
-        TestNGSpec spec = new TestNGSpec(options, filter);
+        TestNGSpec spec = new TestNGSpec(options, filter, retrySpecProvider.get());
         return new TestClassProcessorFactoryImpl(this.options.getOutputDirectory(), spec, suiteFiles);
     }
 
@@ -164,7 +167,7 @@ public class TestNGTestFramework implements TestFramework {
         detector = null;
     }
 
-    private static class TestClassProcessorFactoryImpl implements WorkerFrameworkTestClassProcessorFactory, Serializable {
+    private static class TestClassProcessorFactoryImpl implements WorkerTestClassProcessorFactory, Serializable {
         private final File testReportDir;
         private final TestNGSpec options;
         private final List<File> suiteFiles;
@@ -176,7 +179,7 @@ public class TestNGTestFramework implements TestFramework {
         }
 
         @Override
-        public FrameworkTestClassProcessor create(ServiceRegistry serviceRegistry) {
+        public TestClassProcessor create(ServiceRegistry serviceRegistry) {
             return new TestNGTestClassProcessor(testReportDir, options, suiteFiles, serviceRegistry.get(IdGenerator.class), serviceRegistry.get(Clock.class), serviceRegistry.get(ActorFactory.class));
         }
     }

@@ -14,13 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.testing.retrying;
+package org.gradle.testing.junit
 
-import org.gradle.api.internal.tasks.testing.TestResultProcessor;
+import org.gradle.testing.fixture.AbstractJvmRetryUntilFailureIntegrationSpec
 
-public interface OnWorkerTestRetryer {
+class JUnitRetryUntilFailureIntegrationTest extends AbstractJvmRetryUntilFailureIntegrationSpec {
+    @Override
+    String testAnnotationClass() {
+        'org.junit.Test'
+    }
 
-    TestResultProcessor createAttachedResultProcessor(TestResultProcessor other);
+    @Override
+    String testDependency() {
+        'junit:junit:4.13'
+    }
 
-    void runTests(Runnable runnable);
+    @Override
+    String testFrameworkConfiguration() {
+        ''
+    }
 }

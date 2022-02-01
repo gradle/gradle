@@ -17,11 +17,12 @@
 package org.gradle.api.internal.tasks.testing.testng;
 
 import org.gradle.api.GradleException;
-import org.gradle.api.internal.tasks.testing.FrameworkTestClassProcessor;
+import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
-import org.gradle.api.internal.tasks.testing.retrying.OnWorkerTestRetryer;
+import org.gradle.api.internal.tasks.testing.retrying.DefaultJvmTestRetryer;
+import org.gradle.api.internal.tasks.testing.retrying.JvmTestRetryer;
 import org.gradle.internal.actor.Actor;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.id.IdGenerator;
@@ -46,7 +47,7 @@ import java.util.Set;
 
 import static org.gradle.api.tasks.testing.testng.TestNGOptions.DEFAULT_CONFIG_FAILURE_POLICY;
 
-public class TestNGTestClassProcessor implements FrameworkTestClassProcessor {
+public class TestNGTestClassProcessor implements TestClassProcessor {
     private final List<Class<?>> testClasses = new ArrayList<Class<?>>();
     private final File testReportDir;
     private final TestNGSpec options;
@@ -57,7 +58,7 @@ public class TestNGTestClassProcessor implements FrameworkTestClassProcessor {
     private ClassLoader applicationClassLoader;
     private Actor resultProcessorActor;
     private TestResultProcessor resultProcessor;
-    private final OnWorkerTestRetryer testRetryer;
+    private JvmTestRetryer testRetryer;
 
     public TestNGTestClassProcessor(File testReportDir, TestNGSpec options, List<File> suiteFiles, IdGenerator<?> idGenerator, Clock clock, ActorFactory actorFactory) {
         this.testReportDir = testReportDir;
@@ -66,13 +67,13 @@ public class TestNGTestClassProcessor implements FrameworkTestClassProcessor {
         this.idGenerator = idGenerator;
         this.clock = clock;
         this.actorFactory = actorFactory;
-        this.testRetryer = null;
     }
 
     @Override
     public void startProcessing(TestResultProcessor resultProcessor) {
         // Wrap the processor in an actor, to make it thread-safe
-        resultProcessor = testRetryer.createAttachedResultProcessor(resultProcessor);
+        this.testRetryer = new DefaultJvmTestRetryer(options.getRetrySpec());
+        resultProcessor = testRetryer.decorateTestResultProcessor(resultProcessor);
         resultProcessorActor = actorFactory.createBlockingActor(resultProcessor);
         this.resultProcessor = resultProcessorActor.getProxy(TestResultProcessor.class);
         applicationClassLoader = Thread.currentThread().getContextClassLoader();
@@ -91,19 +92,15 @@ public class TestNGTestClassProcessor implements FrameworkTestClassProcessor {
     @Override
     public void stop() {
         try {
-            testRetryer.runTests(newTestRunnable());
+            testRetryer.retryUntilFailure(new Runnable() {
+                @Override
+                public void run() {
+                    runTests();
+                }
+            });
         } finally {
             resultProcessorActor.stop();
         }
-    }
-
-    private Runnable newTestRunnable() {
-        return new Runnable() {
-            @Override
-            public void run() {
-                runTests();
-            }
-        };
     }
 
     @Override
@@ -111,8 +108,7 @@ public class TestNGTestClassProcessor implements FrameworkTestClassProcessor {
         throw new UnsupportedOperationException("stopNow() should not be invoked on remote worker TestClassProcessor");
     }
 
-    @Override
-    public void runTests() {
+    private void runTests() {
         TestNG testNg = new TestNG();
         testNg.setOutputDirectory(testReportDir.getAbsolutePath());
         testNg.setDefaultSuiteName(options.getDefaultSuiteName());

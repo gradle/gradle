@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal.tasks.testing.junit;
 
+import org.gradle.api.internal.tasks.testing.retrying.JvmRetrySpec;
+
 import java.util.Set;
 
 public class JUnitSpec extends AbstractJUnitSpec {
@@ -26,9 +28,10 @@ public class JUnitSpec extends AbstractJUnitSpec {
         Set<String> excludeCategories,
         Set<String> includedTests,
         Set<String> excludedTests,
-        Set<String> includedTestsCommandLine
+        Set<String> includedTestsCommandLine,
+        JvmRetrySpec retrySpec
     ) {
-        super(includedTests, excludedTests, includedTestsCommandLine);
+        super(includedTests, excludedTests, includedTestsCommandLine, retrySpec);
         this.includeCategories = includeCategories;
         this.excludeCategories = excludeCategories;
     }

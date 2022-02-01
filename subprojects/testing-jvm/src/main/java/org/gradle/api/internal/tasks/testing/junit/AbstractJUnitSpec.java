@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal.tasks.testing.junit;
 
+import org.gradle.api.internal.tasks.testing.retrying.JvmRetrySpec;
+
 import java.io.Serializable;
 import java.util.Set;
 
@@ -22,15 +24,18 @@ public abstract class AbstractJUnitSpec implements Serializable {
     private final Set<String> includedTests;
     private final Set<String> excludedTests;
     private final Set<String> includedTestsCommandLine;
+    private final JvmRetrySpec retrySpec;
 
     public AbstractJUnitSpec(
         Set<String> includedTests,
         Set<String> excludedTests,
-        Set<String> includedTestsCommandLine
+        Set<String> includedTestsCommandLine,
+        JvmRetrySpec retrySpec
     ) {
         this.includedTests = includedTests;
         this.excludedTests = excludedTests;
         this.includedTestsCommandLine = includedTestsCommandLine;
+        this.retrySpec = retrySpec;
     }
 
     public Set<String> getIncludedTests() {
@@ -43,5 +48,9 @@ public abstract class AbstractJUnitSpec implements Serializable {
 
     public Set<String> getIncludedTestsCommandLine() {
         return includedTestsCommandLine;
+    }
+
+    public JvmRetrySpec getRetrySpec() {
+        return retrySpec;
     }
 }

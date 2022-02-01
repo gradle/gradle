@@ -16,6 +16,8 @@
 package org.gradle.api.internal.tasks.testing.junitplatform;
 
 import org.gradle.api.internal.tasks.testing.junit.AbstractJUnitSpec;
+import org.gradle.api.internal.tasks.testing.retrying.JvmRetrySpec;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions;
 
 import java.util.ArrayList;
@@ -28,9 +30,14 @@ public class JUnitPlatformSpec extends AbstractJUnitSpec {
     private final Set<String> includeTags;
     private final Set<String> excludeTags;
 
-    public JUnitPlatformSpec(JUnitPlatformOptions options, Set<String> includedTests,
-                             Set<String> excludedTests, Set<String> includedTestsCommandLine) {
-        super(includedTests, excludedTests, includedTestsCommandLine);
+    public JUnitPlatformSpec(
+        JUnitPlatformOptions options,
+        Set<String> includedTests,
+        Set<String> excludedTests,
+        Set<String> includedTestsCommandLine,
+        JvmRetrySpec retrySpec
+    ) {
+        super(includedTests, excludedTests, includedTestsCommandLine, retrySpec);
         this.includeEngines = options.getIncludeEngines();
         this.excludeEngines = options.getExcludeEngines();
         this.includeTags = options.getIncludeTags();

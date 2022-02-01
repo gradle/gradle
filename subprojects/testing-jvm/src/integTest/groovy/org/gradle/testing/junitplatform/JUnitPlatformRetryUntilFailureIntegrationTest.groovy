@@ -14,27 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.testing.testng
+package org.gradle.testing.junitplatform;
 
-import org.gradle.testing.fixture.AbstractJvmRunUntilFailureIntegrationSpec
+import org.gradle.testing.fixture.AbstractJvmRetryUntilFailureIntegrationSpec
 
-class TestNGRunUntilFailureIntegrationTest extends AbstractJvmRunUntilFailureIntegrationSpec {
+import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUPITER_VERSION
+
+class JUnitPlatformRetryUntilFailureIntegrationTest extends AbstractJvmRetryUntilFailureIntegrationSpec {
     @Override
     String testAnnotationClass() {
-        'org.testng.annotations.Test'
+        'org.junit.jupiter.api.Test'
     }
 
     @Override
     String testDependency() {
-        'org.testng:testng:6.9.13.6'
+        "org.junit.jupiter:junit-jupiter:$LATEST_JUPITER_VERSION"
     }
 
     @Override
     String testFrameworkConfiguration() {
-        """
-            tasks.withType(Test) {
-                useTestNG()
-            }
-        """
+        'test { useJUnitPlatform() }'
     }
 }

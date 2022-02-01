@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.testing.junit;
 
 import org.gradle.api.Action;
-import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.results.AttachParentTestResultProcessor;
 import org.gradle.internal.actor.Actor;
@@ -25,13 +24,7 @@ import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.time.Clock;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class JUnitTestClassProcessor extends AbstractJUnitTestClassProcessor<JUnitSpec> {
-
-    private List<String> classNames;
-    private Action<String> executor;
 
     public JUnitTestClassProcessor(JUnitSpec spec, IdGenerator<?> idGenerator, ActorFactory actorFactory, Clock clock) {
         super(spec, idGenerator, actorFactory, clock);
@@ -49,20 +42,7 @@ public class JUnitTestClassProcessor extends AbstractJUnitTestClassProcessor<JUn
         TestClassExecutionListener threadSafeTestClassListener = resultProcessorActor.getProxy(TestClassExecutionListener.class);
 
         JUnitTestEventAdapter junitEventAdapter = new JUnitTestEventAdapter(threadSafeResultProcessor, clock, idGenerator);
-        classNames = new ArrayList<String>();
-        executor = new JUnitTestClassExecutor(Thread.currentThread().getContextClassLoader(), spec, junitEventAdapter, threadSafeTestClassListener);
-        return executor;
+        return new JUnitTestClassExecutor(Thread.currentThread().getContextClassLoader(), spec, junitEventAdapter, threadSafeTestClassListener);
     }
 
-    @Override
-    public void processTestClass(TestClassRunInfo testClass) {
-        classNames.add(testClass.getTestClassName());
-    }
-
-    @Override
-    public void runTests() {
-        for (String className : classNames) {
-            executor.execute(className);
-        }
-    }
 }

@@ -14,16 +14,27 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.testing;
+package org.gradle.testing.testng
 
-/**
- * A TestClassProcessor for executing tests for a specific test framework.
- */
-public interface FrameworkTestClassProcessor extends TestClassProcessor {
-    /**
-     * Runs all the tests.
-     *
-     * This is called after the processTestClass() and before stop() method.
-     */
-    void runTests();
+import org.gradle.testing.fixture.AbstractJvmRetryUntilFailureIntegrationSpec
+
+class TestNGRetryUntilFailureIntegrationTest extends AbstractJvmRetryUntilFailureIntegrationSpec {
+    @Override
+    String testAnnotationClass() {
+        'org.testng.annotations.Test'
+    }
+
+    @Override
+    String testDependency() {
+        'org.testng:testng:6.9.13.6'
+    }
+
+    @Override
+    String testFrameworkConfiguration() {
+        """
+            tasks.withType(Test) {
+                useTestNG()
+            }
+        """
+    }
 }

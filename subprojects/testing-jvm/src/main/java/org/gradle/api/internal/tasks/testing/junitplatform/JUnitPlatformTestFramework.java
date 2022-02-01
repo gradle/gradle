@@ -19,11 +19,13 @@ package org.gradle.api.internal.tasks.testing.junitplatform;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
-import org.gradle.api.internal.tasks.testing.FrameworkTestClassProcessor;
+import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestFramework;
-import org.gradle.api.internal.tasks.testing.WorkerFrameworkTestClassProcessorFactory;
+import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.api.internal.tasks.testing.detection.TestFrameworkDetector;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
+import org.gradle.api.internal.tasks.testing.retrying.JvmRetrySpecProvider;
+import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.actor.ActorFactory;
@@ -44,20 +46,24 @@ import java.util.List;
 public class JUnitPlatformTestFramework implements TestFramework {
     private final JUnitPlatformOptions options;
     private final DefaultTestFilter filter;
+    private final JvmRetrySpecProvider retrySpecProvider;
 
-    public JUnitPlatformTestFramework(DefaultTestFilter filter) {
+    public JUnitPlatformTestFramework(Test testTask, DefaultTestFilter filter) {
         this.filter = filter;
         this.options = new JUnitPlatformOptions();
+        this.retrySpecProvider = JvmRetrySpecProvider.of(testTask);
     }
 
     @Override
-    public WorkerFrameworkTestClassProcessorFactory getProcessorFactory() {
+    public WorkerTestClassProcessorFactory getProcessorFactory() {
         if (!JavaVersion.current().isJava8Compatible()) {
             throw new UnsupportedJavaRuntimeException("Running JUnit Platform requires Java 8+, please configure your test java executable with Java 8 or higher.");
         }
         return new JUnitPlatformTestClassProcessorFactory(new JUnitPlatformSpec(options,
             filter.getIncludePatterns(), filter.getExcludePatterns(),
-            filter.getCommandLineIncludePatterns()));
+            filter.getCommandLineIncludePatterns(),
+            retrySpecProvider.get()
+        ));
     }
 
     @Override
@@ -90,7 +96,7 @@ public class JUnitPlatformTestFramework implements TestFramework {
         // this test framework doesn't hold any state
     }
 
-    static class JUnitPlatformTestClassProcessorFactory implements WorkerFrameworkTestClassProcessorFactory, Serializable {
+    static class JUnitPlatformTestClassProcessorFactory implements WorkerTestClassProcessorFactory, Serializable {
         private final JUnitPlatformSpec spec;
 
         JUnitPlatformTestClassProcessorFactory(JUnitPlatformSpec spec) {
@@ -98,14 +104,14 @@ public class JUnitPlatformTestFramework implements TestFramework {
         }
 
         @Override
-        public FrameworkTestClassProcessor create(ServiceRegistry serviceRegistry) {
+        public TestClassProcessor create(ServiceRegistry serviceRegistry) {
             try {
                 IdGenerator<?> idGenerator = serviceRegistry.get(IdGenerator.class);
                 Clock clock = serviceRegistry.get(Clock.class);
                 ActorFactory actorFactory = serviceRegistry.get(ActorFactory.class);
                 Class<?> clazz = getClass().getClassLoader().loadClass("org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestClassProcessor");
                 Constructor<?> constructor = clazz.getConstructor(JUnitPlatformSpec.class, IdGenerator.class, ActorFactory.class, Clock.class);
-                return (FrameworkTestClassProcessor) constructor.newInstance(spec, idGenerator, actorFactory, clock);
+                return (TestClassProcessor) constructor.newInstance(spec, idGenerator, actorFactory, clock);
             } catch (Exception e) {
                 throw UncheckedException.throwAsUncheckedException(e);
             }

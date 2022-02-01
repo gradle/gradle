@@ -72,13 +72,8 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
 
     @Override
     public void stop() {
-        runTests(() -> testClassExecutor.processAllTestClasses());
+        retryUntilFailure(() -> testClassExecutor.processAllTestClasses());
         super.stop();
-    }
-
-    @Override
-    public void runTests() {
-//        testClassExecutor.processAllTestClasses();
     }
 
     private class CollectAllTestClassesExecutor implements Action<String> {
