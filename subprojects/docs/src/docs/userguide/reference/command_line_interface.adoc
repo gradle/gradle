@@ -604,7 +604,7 @@ In order to incorporate build logic changes, the continuous build must be restar
 
 Continuous build uses file system watching to detect changes to the inputs.
 If file system watching does not work on your system, then continuous build won't work either.
-Especially, continuous build does not work when using `--no-daemon`.
+In particular, continuous build does not work when using `--no-daemon`.
 See <<gradle_daemon.adoc#sec:daemon_watch_fs,Watching the file system>> for more information.
 
 === Terminating Continuous Build
@@ -616,20 +616,19 @@ If the build is being executed via the Tooling API, the build can be cancelled u
 [[continuous_build_limitations]]
 === Limitations
 
-Under some circumstances continuous build will not detect changes to inputs.
+Under some circumstances continuous build may not detect changes to inputs.
 
 [[sec:continuous_build_missing_files]]
 ==== Adding new root input directories
 
-Sometimes, adding root input directories does not trigger a build, due to the way file system watching works.
-For example, when adding the `src/main/java` directory, Gradle may not trigger a build.
-Similarly, if the input is a <<working_with_files.adoc#filtering_files,filtered file tree>>, Gradle may not detect the addition of the first file matching the filter.
+Sometimes, creating an input directory that was previously missing does not trigger a build, due to the way file system watching works.
+For example, creating the `src/main/java` directory may not trigger a build.
+Similarly, if the input is a <<working_with_files.adoc#filtering_files,filtered file tree>> and no files are matching the filter, the creation of matching files may not trigger a build.
 
 [[sec:continuous_build_untracked]]
 ==== Inputs of untracked tasks
 
-Gradle will only watch for changes of inputs of tasks if it captures their state.
-That means changes to the inputs of <<more_about_tasks.adoc#sec:disable-state-tracking,untracked tasks>> or tasks that have no outputs will not trigger a build.
+Changes to the inputs of <<more_about_tasks.adoc#sec:disable-state-tracking,untracked tasks>> or tasks that have no outputs may not trigger a build.
 
 [[sec:continuous_build_project_dir]]
 ==== Changes to files outside of project directories
@@ -654,7 +653,7 @@ In other cases, you can use `--info` logging to find the task that is out-of-dat
 [[sec:changes_to_symbolic_links]]
 ==== Changes to symbolic links
 
-In general, Gradle will not detect changes to symbolic links or to files in the target of symbolic links.
+In general, Gradle will not detect changes to symbolic links or to files referenced via symbolic links.
 
 [[sec:changes_to_build_logic_are_not_considered]]
 ==== Changes to build logic are not considered
