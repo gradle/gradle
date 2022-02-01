@@ -22,6 +22,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionAware;
+import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.services.BuildService;
@@ -798,4 +799,11 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      */
     @Incubating
     void usesService(Provider<? extends BuildService<?>> service);
+
+    /**
+     * The container of extensions.
+     */
+    @Internal
+    @Override
+    ExtensionContainer getExtensions();
 }
