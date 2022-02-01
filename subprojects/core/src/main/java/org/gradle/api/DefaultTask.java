@@ -60,6 +60,11 @@ public class DefaultTask extends org.gradle.api.internal.AbstractTask implements
     }
 
     @Override
+    public final String getName() {
+        return super.getName();
+    }
+
+    @Override
     public List<Action<? super Task>> getActions() {
         return super.getActions();
     }
