@@ -28,7 +28,7 @@ import java.util.Set;
 public class AntlrSpecFactory {
 
     public AntlrSpec create(AntlrTask antlrTask, Set<File> grammarFiles, FileCollection sourceSetDirectories) {
-        List<String> arguments = Lists.newLinkedList(antlrTask.getArguments());
+        List<String> arguments = Lists.newLinkedList(antlrTask.getArguments().get());
 
         if (antlrTask.getTrace().get() && !arguments.contains("-trace")) {
             arguments.add("-trace");

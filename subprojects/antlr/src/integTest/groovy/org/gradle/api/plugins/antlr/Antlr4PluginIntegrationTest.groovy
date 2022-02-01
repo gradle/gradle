@@ -59,7 +59,7 @@ class Antlr4PluginIntegrationTest extends AbstractAntlrIntegrationTest {
         buildFile << """
         project(":grammar-builder") {
             generateGrammarSource {
-                arguments << "-lib" << "src/main/antlr/org/acme"
+                arguments.addAll("-lib", "src/main/antlr/org/acme")
             }
         }
         """
