@@ -29,8 +29,8 @@ import org.gradle.work.DisableCachingByDefault;
  * A task which reports the configurations of a project which can be resolved on the command line.
  *
  * This is useful for determining which attributes are associated with the resolvable
- * configurations being used to resolve a project's dependencies and predict which variants of
- * dependencies will be resolved.
+ * configurations being used to resolve a project's dependencies.  The output can help predict which variant of
+ * each dependency will be resolved.
  *
  * @since 7.5
  */
