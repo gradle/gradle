@@ -240,7 +240,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     @Internal
     @Override
-    public String getName() {
+    public final String getName() {
         return identity.name;
     }
 

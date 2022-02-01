@@ -181,6 +181,8 @@ public interface Task extends Comparable<Task>, ExtensionAware {
     /**
      * <p>Returns the name of this task. The name uniquely identifies the task within its {@link Project}.</p>
      *
+     * <p>This method should never be implemented by a custom Task.</p>
+     *
      * @return The name of the task. Never returns null.
      */
     @Internal
