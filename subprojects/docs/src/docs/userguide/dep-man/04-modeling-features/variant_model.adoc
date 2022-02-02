@@ -205,7 +205,7 @@ For example, the secondary variant `classes` from `apiElements` is what allows G
 
 === The Resolvable Configurations Report
 
-Gradle also offers a complimentary report task called `resolvableConfigurations` that displays the _resolvable_ configurations of a project, which are those which can have dependencies added and be resolved.  The report will list their attributes and any configurations that they extend.  It will also list a summary of any attributes which will be affected by <<variant_attributes.doc#sec:abm_compatibility_rules, Compatibility Rules>> or <<variant_attributes.doc#sec:abm_disambiguation_rules, Disambiguation Rules>> during resolution.
+Gradle also offers a complimentary report task called `resolvableConfigurations` that displays the _resolvable_ configurations of a project, which are those which can have dependencies added and be resolved.  The report will list their attributes and any configurations that they extend.  It will also list a summary of any attributes which will be affected by <<variant_attributes.adoc#sec:abm_compatibility_rules, Compatibility Rules>> or <<variant_attributes.adoc#sec:abm_disambiguation_rules, Disambiguation Rules>> during resolution.
 
 By default, `resolvableConfigurations` prints information about all purely resolvable configurations.
 These are configurations that are marked resolvable but *not* marked consumable.
