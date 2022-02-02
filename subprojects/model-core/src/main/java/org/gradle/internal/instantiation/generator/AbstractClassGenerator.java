@@ -388,9 +388,10 @@ abstract class AbstractClassGenerator implements ClassGenerator {
     }
 
     private static boolean isLazyAttachProperty(PropertyMetadata property) {
-        // Property is read only and getter is not final, so attach owner lazily when queried
+        // Non-final property or property with non-final getter, so attach owner lazily when queried
         // This should apply to all 'managed' types however only the Provider types and @Nested value current implement OwnerAware
-        return property.isReadOnly() && !property.getOverridableGetters().isEmpty() && (Provider.class.isAssignableFrom(property.getType()) || property.hasAnnotation(Nested.class));
+        return (!property.isReadOnly() || !property.getOverridableGetters().isEmpty())
+            && (Provider.class.isAssignableFrom(property.getType()) || property.hasAnnotation(Nested.class));
     }
 
     private static boolean isNameProperty(PropertyMetadata property) {

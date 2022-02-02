@@ -809,4 +809,46 @@ project.extensions.create("some", SomeExtension)
         then:
         executedAndNotSkipped(":producer", ":consumer")
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/13623")
+    def "setter for property doesn't cause drop of task dependency"() {
+        buildFile """
+            abstract class Producer extends DefaultTask {
+                private DirectoryProperty foo
+
+                @Inject
+                Producer(ObjectFactory objectFactory) {
+                    foo = objectFactory.directoryProperty()
+                }
+
+                @OutputDirectory
+                DirectoryProperty getFoo() { return foo }
+
+                void setFoo(File foo) { throw RuntimeException("") }
+
+                @TaskAction
+                void produce() { print("Producer ran") }
+            }
+
+            abstract class Consumer extends DefaultTask {
+                @InputDirectory
+                abstract DirectoryProperty getFoo()
+
+                @TaskAction
+                void consume() { print("Consumer ran") }
+            }
+
+            def producer = tasks.register('producer', Producer) {
+                foo.set(project.layout.buildDir.dir('fooDir'))
+            }
+
+            tasks.register('consumer', Consumer) {
+                foo = producer.flatMap { it.foo }
+            }
+        """
+        expect:
+        succeeds("consumer")
+        outputContains("Producer ran")
+        outputContains("Consumer ran")
+    }
 }
