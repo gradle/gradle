@@ -66,7 +66,9 @@ public class TablePrinter {
             ).mapToInt(String::length).max().orElse(0);
         }
 
-        printRow(output.withStyle(Header), colWidths, headers, ' ');
+        output.style(Header);
+        printRow(output, colWidths, headers, ' ');
+        output.style(Normal);
         // Print the separator row
         printRow(
             output, colWidths,
@@ -74,7 +76,9 @@ public class TablePrinter {
             '-'
         );
         for (Row row : rows) {
-            printRow(output.withStyle(row.style), colWidths, row.text, ' ');
+            output.style(row.style);
+            printRow(output, colWidths, row.text, ' ');
+            output.style(Normal);
         }
     }
 
