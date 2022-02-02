@@ -46,16 +46,6 @@ public class StyledTable {
         this.rows = ImmutableList.copyOf(rows);
     }
 
-    public static final class Row {
-        public final List<String> text;
-        public final StyledTextOutput.Style style;
-
-        public Row(List<String> text, StyledTextOutput.Style style) {
-            this.text = ImmutableList.copyOf(text);
-            this.style = style;
-        }
-    }
-
     public void print(StyledTextOutput output) {
         int[] colWidths = new int[headers.size()];
         for (int i = 0; i < headers.size(); i++) {
@@ -92,5 +82,15 @@ public class StyledTable {
         }
         output.withStyle(Normal).text(padChar + "|");
         output.println();
+    }
+
+    public static final class Row {
+        public final List<String> text;
+        public final StyledTextOutput.Style style;
+
+        public Row(List<String> text, StyledTextOutput.Style style) {
+            this.text = ImmutableList.copyOf(text);
+            this.style = style;
+        }
     }
 }
