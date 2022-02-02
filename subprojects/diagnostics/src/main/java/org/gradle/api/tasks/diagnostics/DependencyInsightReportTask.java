@@ -38,6 +38,8 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.diagnostics.internal.ConfigurationFinder;
+import org.gradle.api.tasks.diagnostics.internal.dependencies.AttributeMatchDetails;
+import org.gradle.api.tasks.diagnostics.internal.dependencies.MatchType;
 import org.gradle.api.tasks.diagnostics.internal.dsl.DependencyResultSpecNotationConverter;
 import org.gradle.api.tasks.diagnostics.internal.graph.DependencyGraphsRenderer;
 import org.gradle.api.tasks.diagnostics.internal.graph.NodeRenderer;
@@ -72,6 +74,7 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.Failure;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Header;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Identifier;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Info;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Normal;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Success;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
 
@@ -306,7 +309,6 @@ public class DependencyInsightReportTask extends DefaultTask {
         return selectedDependencies;
     }
 
-
     private AttributeMatchDetails match(Attribute<?> actualAttribute, @Nullable Object actualValue, AttributeContainer requestedAttributes) {
         for (Attribute<?> requested : requestedAttributes.keySet()) {
             Object requestedValue = requestedAttributes.getAttribute(requested);
@@ -334,27 +336,6 @@ public class DependencyInsightReportTask extends DefaultTask {
     private enum SelectionReasonOutput {
         DEPENDENCY,
         VARIANT,
-    }
-
-    private static class AttributeMatchDetails {
-        private final MatchType matchType;
-        @Nullable
-        private final Attribute<?> requested;
-        @Nullable
-        private final Object requestedValue;
-
-        private AttributeMatchDetails(MatchType matchType, @Nullable Attribute<?> requested, @Nullable Object requestedValue) {
-            this.matchType = matchType;
-            this.requested = requested;
-            this.requestedValue = requestedValue;
-        }
-    }
-
-    private enum MatchType {
-        NOT_REQUESTED,
-        INCOMPATIBLE,
-        DIFFERENT_VALUE,
-        REQUESTED,
     }
 
     private class RootDependencyRenderer implements NodeRenderer {
@@ -424,22 +405,22 @@ public class DependencyInsightReportTask extends DefaultTask {
                 .map(ResolvedVariantResult::getDisplayName)
                 .collect(Collectors.toSet());
             if (showAllVariants) {
+                out.style(Header);
                 out.println();
-                out.withStyle(Header).text("-------------------");
-                out.println();
-                out.withStyle(Header).text("Selected Variant(s)");
-                out.println();
-                out.withStyle(Header).text("-------------------");
+                out.text("-------------------").println();
+                out.text("Selected Variant(s)").println();
+                out.text("-------------------");
+                out.style(Normal);
             }
             for (ResolvedVariantResult variant : dependency.getResolvedVariants()) {
                 printVariant(out, dependency, variant, true);
             }
             if (showAllVariants) {
-                out.withStyle(Header).text("---------------------");
-                out.println();
-                out.withStyle(Header).text("Unselected Variant(s)");
-                out.println();
-                out.withStyle(Header).text("---------------------");
+                out.style(Header);
+                out.text("---------------------").println();
+                out.text("Unselected Variant(s)").println();
+                out.text("---------------------");
+                out.style(Normal);
                 for (ResolvedVariantResult variant : dependency.getAllVariants()) {
                     if (selectedVariantNames.contains(variant.getDisplayName())) {
                         continue;
@@ -496,7 +477,7 @@ public class DependencyInsightReportTask extends DefaultTask {
             List<Attribute<?>> requestedAttributes = new ArrayList<>();
             for (Attribute<?> attribute : attributes.keySet()) {
                 AttributeMatchDetails details = match(attribute, attributes.getAttribute(attribute), requested);
-                if (details.matchType != MatchType.NOT_REQUESTED) {
+                if (details.matchType() != MatchType.NOT_REQUESTED) {
                     bothAttributes.put(attribute, details);
                 } else {
                     providedAttributes.add(attribute);
@@ -504,7 +485,7 @@ public class DependencyInsightReportTask extends DefaultTask {
             }
             for (Attribute<?> attribute : requested.keySet()) {
                 // If it's not in the matches, it's only in the requested attributes
-                if (bothAttributes.values().stream().map(d -> d.requested).noneMatch(Predicate.isEqual(attribute))) {
+                if (bothAttributes.values().stream().map(AttributeMatchDetails::requested).noneMatch(Predicate.isEqual(attribute))) {
                     requestedAttributes.add(attribute);
                 }
             }
@@ -535,10 +516,10 @@ public class DependencyInsightReportTask extends DefaultTask {
                     .add(
                         entry.getKey().getName(),
                         providedValue == null ? "" : providedValue.toString(),
-                        String.valueOf(entry.getValue().requestedValue)
+                        String.valueOf(entry.getValue().requestedValue())
                     );
                 StyledTextOutput.Style style;
-                switch (match.matchType) {
+                switch (match.matchType()) {
                     case REQUESTED:
                         style = Success;
                         break;
@@ -550,10 +531,10 @@ public class DependencyInsightReportTask extends DefaultTask {
                         style = StyledTextOutput.Style.Error;
                         break;
                     default:
-                        throw new IllegalStateException("Unknown match type: " + match.matchType);
+                        throw new IllegalStateException("Unknown match type: " + match.matchType());
                 }
                 if (!selected) {
-                    text.add(match.matchType == MatchType.INCOMPATIBLE ? "Incompatible" : "Compatible");
+                    text.add(match.matchType() == MatchType.INCOMPATIBLE ? "Incompatible" : "Compatible");
                 }
                 rows.add(new TablePrinter.Row(text.build(), style));
             }
