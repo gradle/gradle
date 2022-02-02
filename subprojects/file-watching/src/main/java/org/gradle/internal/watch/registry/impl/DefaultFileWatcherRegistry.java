@@ -139,6 +139,11 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
     }
 
     @Override
+    public boolean isWatchingAnyLocations() {
+        return !fileWatcherUpdater.getWatchedFiles().isEmpty();
+    }
+
+    @Override
     public void registerWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root) {
         fileWatcherUpdater.registerWatchableHierarchy(watchableHierarchy, root);
     }

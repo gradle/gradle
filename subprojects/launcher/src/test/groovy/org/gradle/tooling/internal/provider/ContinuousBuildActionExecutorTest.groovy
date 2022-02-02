@@ -42,6 +42,7 @@ import org.gradle.internal.session.BuildSessionContext
 import org.gradle.internal.snapshot.CaseSensitivity
 import org.gradle.internal.time.Time
 import org.gradle.internal.watch.registry.FileWatcherRegistry
+import org.gradle.internal.watch.vfs.FileSystemWatchingInformation
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.util.internal.DisconnectableInputStream
 import spock.lang.Timeout
@@ -76,6 +77,12 @@ class ContinuousBuildActionExecutorTest extends ConcurrentSpec {
     def buildSessionContext = Mock(BuildSessionContext)
     def textOutputFactory = new TestStyledTextOutputFactory()
     def executorService = Executors.newCachedThreadPool()
+    def fileSystemIsWatchingAnyLocations = true
+    def fileSystemWatchingInformation = Stub(FileSystemWatchingInformation) {
+        isWatchingAnyLocations() >> {
+            fileSystemIsWatchingAnyLocations
+        }
+    }
 
     def executer = executer()
 
@@ -262,6 +269,37 @@ class ContinuousBuildActionExecutorTest extends ConcurrentSpec {
         lastLogLine == "{failure}Exiting continuous build as no executed tasks declared file system inputs.{normal}"
     }
 
+    def "exits if Gradle is not watching anything"() {
+        given:
+        continuousBuildEnabled()
+        buildDeclaresInputs()
+        fileSystemIsWatchingAnyLocations = false
+
+        when:
+        executeBuild()
+        then:
+        lastLogLine == "{failure}Exiting continuous build as Gradle does not watch any file system locations.{normal}"
+    }
+
+    def "does not exit if there was a file events although Gradle is not watching anything anymore"() {
+        given:
+        continuousBuildEnabled()
+        buildDeclaresInputsAndTriggersChange()
+        fileSystemIsWatchingAnyLocations = false
+
+        when:
+        def runningBuild = startBuild()
+
+        then:
+        conditions.eventually {
+            rebuiltBecauseOfChange()
+        }
+
+        cleanup:
+        cancellationToken.cancel()
+        buildExits(runningBuild)
+    }
+
     private void buildExits(Future<?> runningBuild) {
         runningBuild.get(1, TimeUnit.SECONDS)
     }
@@ -281,6 +319,18 @@ class ContinuousBuildActionExecutorTest extends ConcurrentSpec {
             @Override
             BuildActionRunner.Result execute(BuildAction action, BuildSessionContext context) {
                 declareInput(file)
+                return BuildActionRunner.Result.of(null)
+            }
+        }
+        executer = executer()
+    }
+
+    private void buildDeclaresInputsAndTriggersChange() {
+        delegate = new BuildSessionActionExecutor() {
+            @Override
+            BuildActionRunner.Result execute(BuildAction action, BuildSessionContext context) {
+                declareInput(file)
+                changeListeners.broadcastChange(FileWatcherRegistry.Type.MODIFIED, file.toPath())
                 return BuildActionRunner.Result.of(null)
             }
         }
@@ -335,6 +385,20 @@ class ContinuousBuildActionExecutorTest extends ConcurrentSpec {
     }
 
     private ContinuousBuildActionExecutor executer() {
-        new ContinuousBuildActionExecutor(inputsListeners, changeListeners, textOutputFactory, executorFactory, requestContext, cancellationToken, deploymentRegistry, userHomeListenerManager.createChild(Scopes.BuildSession), buildExecutionTimer, Time.clock(), TestFiles.fileSystem(), CaseSensitivity.CASE_SENSITIVE, delegate)
+        new ContinuousBuildActionExecutor(
+            inputsListeners,
+            changeListeners,
+            textOutputFactory,
+            executorFactory,
+            requestContext,
+            cancellationToken,
+            deploymentRegistry,
+            userHomeListenerManager.createChild(Scopes.BuildSession),
+            buildExecutionTimer,
+            Time.clock(),
+            TestFiles.fileSystem(),
+            CaseSensitivity.CASE_SENSITIVE,
+            fileSystemWatchingInformation,
+            delegate)
     }
 }

@@ -32,6 +32,7 @@ public class ContinuousBuildTriggerHandler {
     private final CountDownLatch cancellationArrived = new CountDownLatch(1);
     private final long quietPeriod;
     private volatile long lastChangeAt = monotonicClockMillis();
+    private volatile boolean changeArrived;
 
     public ContinuousBuildTriggerHandler(
         BuildCancellationToken cancellationToken,
@@ -72,7 +73,12 @@ public class ContinuousBuildTriggerHandler {
         }
     }
 
+    public boolean hasBeenTriggered() {
+        return changeArrived;
+    }
+
     public void notifyFileChangeArrived() {
+        changeArrived = true;
         lastChangeAt = monotonicClockMillis();
         changeOrCancellationArrived.countDown();
     }
