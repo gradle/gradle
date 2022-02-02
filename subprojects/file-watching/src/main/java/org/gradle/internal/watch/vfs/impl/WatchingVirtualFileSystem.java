@@ -38,6 +38,7 @@ import org.gradle.internal.watch.vfs.BuildFinishedFileSystemWatchingBuildOperati
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem;
 import org.gradle.internal.watch.vfs.BuildStartedFileSystemWatchingBuildOperationType;
 import org.gradle.internal.watch.vfs.FileChangeListeners;
+import org.gradle.internal.watch.vfs.FileSystemWatchingInformation;
 import org.gradle.internal.watch.vfs.FileSystemWatchingStatistics;
 import org.gradle.internal.watch.vfs.VfsLogging;
 import org.gradle.internal.watch.vfs.WatchLogging;
@@ -57,7 +58,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
 
-public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem implements BuildLifecycleAwareVirtualFileSystem, Closeable {
+public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem implements BuildLifecycleAwareVirtualFileSystem, FileSystemWatchingInformation, Closeable {
     private static final Logger LOGGER = LoggerFactory.getLogger(WatchingVirtualFileSystem.class);
     private static final String FILE_WATCHING_ERROR_MESSAGE_DURING_BUILD = "Unable to watch the file system for changes";
     private static final String FILE_WATCHING_ERROR_MESSAGE_AT_END_OF_BUILD = "Gradle was unable to watch the file system for changes";
@@ -322,6 +323,15 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
             closeUnderLock();
             return currentRoot.empty();
         }
+    }
+
+    @Override
+    public boolean isWatchingAnyLocations() {
+        FileWatcherRegistry watchRegistry = this.watchRegistry;
+        if (watchRegistry != null) {
+            return watchRegistry.isWatchingAnyLocations();
+        }
+        return false;
     }
 
     private static class FilterChangesToOutputsChangesHandler implements FileWatcherRegistry.ChangeHandler {

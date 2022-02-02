@@ -17,9 +17,11 @@
 package org.gradle.normalization
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.internal.TextUtil
+import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 import java.util.jar.Attributes
@@ -348,6 +350,35 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         succeeds project.customTask
         then:
         executedAndNotSkipped(project.customTask)
+    }
+
+    @IgnoreIf({ AvailableJavaHomes.differentJdk == null })
+    def "property ordering is consistent"() {
+        def differentJdk = AvailableJavaHomes.differentJdk
+        def project = new ProjectWithRuntimeClasspathNormalization(Api.RUNTIME)
+        (1..100).each { index ->
+            buildFile << """
+                normalization {
+                    runtimeClasspath {
+                        properties('**/$index/foo.properties') {
+                            ignoreProperty '${IGNORE_ME}'
+                        }
+                    }
+                }
+            """
+        }
+
+        when:
+        withBuildCache().succeeds project.customTask
+        then:
+        executedAndNotSkipped(project.customTask)
+
+        when:
+        run "clean"
+        executer.withJavaHome(differentJdk.javaHome)
+        withBuildCache().succeeds project.customTask
+        then:
+        skipped(project.customTask)
     }
 
     def "properties files are normalized against changes to whitespace, order and comments"() {

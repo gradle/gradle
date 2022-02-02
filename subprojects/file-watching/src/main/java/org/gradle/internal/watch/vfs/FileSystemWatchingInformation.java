@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification;
 
-import org.gradle.internal.Factory;
-import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
+package org.gradle.internal.watch.vfs;
 
-import java.io.File;
-
-public interface ArtifactVerificationOperation {
-    void onArtifact(ArtifactKind kind, ModuleComponentArtifactIdentifier artifact, File mainFile, Factory<File> signatureFile, String repositoryName, String repositoryId);
-
-    enum ArtifactKind {
-        METADATA,
-        REGULAR
-    }
+public interface FileSystemWatchingInformation {
+    boolean isWatchingAnyLocations();
 }
