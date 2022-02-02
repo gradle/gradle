@@ -277,40 +277,6 @@ class JavaEcosystemAttributeMatcherTest extends Specification {
         matches == [ apiElements9 ]
     }
 
-//    def "querying for java api"() {
-//        def requested = attributes(Usage.JAVA_API, LibraryElements.CLASSES, 9)
-//
-//        def usageCandidates = [
-//            Usage.JAVA_API,
-//            Usage.JAVA_RUNTIME,
-//        ]
-//        def libraryElementsCandidates = [
-//                // LibraryElements.CLASSES,
-//                LibraryElements.JAR,
-//        ]
-//        def targetJvmCandidates = [
-//                8, 9, 11
-//        ]
-//
-//        def candidates = [usageCandidates, libraryElementsCandidates, targetJvmCandidates].combinations { List combination ->
-//            attributes(combination[0] as String, combination[1] as String, combination[2] as int)
-//        }
-//
-//        candidates.add(attributes(Usage.JAVA_RUNTIME, LibraryElements.CLASSES, 8))
-//        candidates.add(attributes(Usage.JAVA_RUNTIME, LibraryElements.CLASSES, 9))
-//        candidates.add(attributes(Usage.JAVA_RUNTIME, LibraryElements.CLASSES, 11))
-//
-//        candidates.each { println it }
-//
-//        when:
-//        def matches = matcher.match(selectionSchema, candidates, requested, null, explanationBuilder)
-//
-//        println "matches"
-//        matches.each { println it }
-//        then:
-//        true
-//    }
-
     private static AttributeContainerInternal attributes(String usage, String libraryElements, int targetJvm) {
         return attributes(
                 (Usage.USAGE_ATTRIBUTE): named(Usage, usage),

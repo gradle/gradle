@@ -25,6 +25,7 @@ import org.gradle.api.attributes.AttributeDisambiguationRule;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.attributes.Bundling;
+import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.CompatibilityCheckDetails;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.attributes.LibraryElements;
@@ -55,7 +56,14 @@ public abstract class JavaEcosystemSupport {
         configureTargetPlatform(attributesSchema);
         configureTargetEnvironment(attributesSchema);
         configureConsumerDescriptors((DescribableAttributesSchema) attributesSchema);
-        attributesSchema.attributePrecedence(Usage.USAGE_ATTRIBUTE, TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, Bundling.BUNDLING_ATTRIBUTE);
+        attributesSchema.attributePrecedence(
+                Category.CATEGORY_ATTRIBUTE,
+                Usage.USAGE_ATTRIBUTE,
+                TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE,
+                LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE,
+                Bundling.BUNDLING_ATTRIBUTE,
+                TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE
+        );
     }
 
     private static void configureConsumerDescriptors(DescribableAttributesSchema attributesSchema) {

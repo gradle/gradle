@@ -17,8 +17,6 @@
 package org.gradle.api.internal.attributes;
 
 import com.google.common.base.Objects;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
@@ -40,6 +38,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -48,14 +47,14 @@ import java.util.Set;
 public class DefaultAttributesSchema implements AttributesSchemaInternal, AttributesSchema {
     private final ComponentAttributeMatcher componentAttributeMatcher;
     private final InstantiatorFactory instantiatorFactory;
-    private final Map<Attribute<?>, AttributeMatchingStrategy<?>> strategies = Maps.newHashMap();
-    private final Map<String, Attribute<?>> attributesByName = Maps.newHashMap();
+    private final Map<Attribute<?>, AttributeMatchingStrategy<?>> strategies = new HashMap<>();
+    private final Map<String, Attribute<?>> attributesByName = new HashMap<>();
 
     private final DefaultAttributeMatcher matcher;
     private final IsolatableFactory isolatableFactory;
-    private final Map<ExtraAttributesEntry, Attribute<?>[]> extraAttributesCache = Maps.newHashMap();
-    private final List<AttributeDescriber> consumerAttributeDescribers = Lists.newArrayList();
-    private final List<Attribute<?>> precedence = Lists.newArrayList();
+    private final Map<ExtraAttributesEntry, Attribute<?>[]> extraAttributesCache = new HashMap<>();
+    private final List<AttributeDescriber> consumerAttributeDescribers = new ArrayList<>();
+    private final List<Attribute<?>> precedence = new ArrayList<>();
 
     public DefaultAttributesSchema(ComponentAttributeMatcher componentAttributeMatcher, InstantiatorFactory instantiatorFactory, IsolatableFactory isolatableFactory) {
         this.componentAttributeMatcher = componentAttributeMatcher;
@@ -192,9 +191,11 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
 
     private class MergedSchema implements AttributeSelectionSchema {
         private final AttributesSchemaInternal producerSchema;
-
+        private final Set<Attribute<?>> combinedPrecedence = new LinkedHashSet<>();
         MergedSchema(AttributesSchemaInternal producerSchema) {
             this.producerSchema = producerSchema;
+            combinedPrecedence.addAll(precedence);
+            combinedPrecedence.addAll(producerSchema.getAttributePrecedence());
         }
 
         @Override
@@ -310,22 +311,24 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
         public List<Attribute<?>> sortedByPrecedence(Set<Attribute<?>> requested) {
             List<Attribute<?>> sorted = new ArrayList<>(requested.size());
             List<Attribute<?>> remaining = new ArrayList<>(requested);
+            // Add all attributes that have a higher precedence in the order they appear
+            // in the precedence list
             for (Attribute<?> preferredAttribute : getDisambiguatingAttributes()) {
                 if (requested.contains(preferredAttribute)) {
                     sorted.add(preferredAttribute);
                     remaining.remove(preferredAttribute);
                 }
             }
+            // sorted now contains any requested attribute in the order they appear in
+            // the combinedPrecedence set
+            // Add all remaining attributes in whatever order they came in
             sorted.addAll(remaining);
             return sorted;
         }
 
         @Override
         public Set<Attribute<?>> getDisambiguatingAttributes() {
-            Set<Attribute<?>> combined = new LinkedHashSet<>();
-            combined.addAll(precedence);
-            combined.addAll(producerSchema.getAttributePrecedence());
-            return combined;
+            return combinedPrecedence;
         }
 
         @Override

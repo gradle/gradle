@@ -72,9 +72,11 @@ public interface AttributesSchema {
     boolean hasAttribute(Attribute<?> key);
 
     /**
-     * Registers the order of precedence of attributes when resolving ambiguity.
+     * Registers the order of precedence of attributes when resolving ambiguity. Attributes listed first have the highest precedence.
+     *
+     * By default, there is no explicit precedence between attributes.
      * <p>
-     * Note that this clears any previously set precedence.
+     * Note that this clears any previously set attribute precedence.
      * </p>
      * @param attributes the attributes in order
      * @since 7.5
