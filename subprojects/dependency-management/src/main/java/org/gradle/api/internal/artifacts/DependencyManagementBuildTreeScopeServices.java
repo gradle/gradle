@@ -17,10 +17,13 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.StartParameter;
+import org.gradle.api.internal.artifacts.failure.ResolutionFailuresListener;
+import org.gradle.api.internal.artifacts.failure.ResolutionFailuresReporter;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.StartParameterResolutionOverride;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.ResolutionResultsStoreFactory;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.initialization.layout.BuildLayout;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
 
 import java.io.File;
@@ -41,5 +44,13 @@ class DependencyManagementBuildTreeScopeServices {
         File rootDirectory = buildLayout.getRootDirectory();
         File gradleDir = new File(rootDirectory, "gradle");
         return new StartParameterResolutionOverride(startParameter, gradleDir);
+    }
+
+    ResolutionFailuresListener createResolutionFailuresListener() {
+        return new ResolutionFailuresListener();
+    }
+
+    ResolutionFailuresReporter createResolutionFailuresReporter(ServiceRegistry services) {
+        return new ResolutionFailuresReporter(services);
     }
 }

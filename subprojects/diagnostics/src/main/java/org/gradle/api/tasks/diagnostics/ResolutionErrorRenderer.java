@@ -17,29 +17,29 @@ package org.gradle.api.tasks.diagnostics;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
-import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
-import org.gradle.api.file.Directory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.VersionConflictException;
 import org.gradle.api.specs.Spec;
-import org.gradle.api.tasks.diagnostics.internal.dependencies.HtmlResolutionErrorRenderer;
 import org.gradle.internal.Pair;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.locking.LockOutOfDateException;
 import org.gradle.internal.logging.text.StyledTextOutput;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.util.List;
-import java.util.stream.Collectors;
 
+/**
+ * This class is deprecated and will be removed in a future version.
+ *
+ * It is being replaced
+ * by a new resolution error reporting mechanism.  See {@link org.gradle.api.internal.artifacts.failure.ResolutionFailuresListener ResolutionFailuresListener}
+ * and {@link org.gradle.api.internal.artifacts.failure.ResolutionFailuresReporter ResolutionFailuresListener}.
+ */
+@Deprecated
 class ResolutionErrorRenderer implements Action<Throwable> {
     private final Spec<DependencyResult> dependencySpec;
     private final List<ErrorAction> errorActions = Lists.newArrayListWithExpectedSize(1);
@@ -101,25 +101,9 @@ class ResolutionErrorRenderer implements Action<Throwable> {
 
     }
 
-    public void renderErrors(StyledTextOutput output, Directory outputDirectory) {
+    public void renderErrors(StyledTextOutput output) {
         for (Action<StyledTextOutput> errorAction : errorActions) {
             errorAction.execute(output);
-        }
-
-        final File reportFile = outputDirectory.file("resolution-errors.html").getAsFile();
-        try {
-            reportFile.getParentFile().mkdirs();
-            reportFile.createNewFile();
-        } catch (IOException e) {
-            throw new GradleException("Error creating report file: '" + reportFile + "'", e);
-        }
-
-        try (final FileWriter writer = new FileWriter(reportFile)) {
-            final HtmlResolutionErrorRenderer htmlRenderer = new HtmlResolutionErrorRenderer();
-            final List<Throwable> errors = errorActions.stream().map(a -> a.getException()).collect(Collectors.toList());
-            htmlRenderer.render(errors, writer);
-        } catch (IOException e) {
-            throw new GradleException("Error writing report file: '" + reportFile + "'", e);
         }
     }
 

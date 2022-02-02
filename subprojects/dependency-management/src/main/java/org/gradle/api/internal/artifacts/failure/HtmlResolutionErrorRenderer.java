@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.diagnostics.internal.dependencies;
+package org.gradle.api.internal.artifacts.failure;
 
-import org.gradle.api.artifacts.ResolveException;
 import org.gradle.reporting.ReportRenderer;
 
 import java.io.IOException;

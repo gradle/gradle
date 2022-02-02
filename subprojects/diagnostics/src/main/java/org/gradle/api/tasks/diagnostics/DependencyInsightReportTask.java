@@ -29,6 +29,7 @@ import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.artifacts.configurations.ResolvableDependenciesInternal;
+import org.gradle.api.internal.artifacts.failure.ResolutionFailuresListener;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
@@ -248,14 +249,12 @@ public class DependencyInsightReportTask extends DefaultTask {
         assertValidTaskConfiguration(configuration);
 
         StyledTextOutput output = getTextOutputFactory().create(getClass());
-        ResolutionErrorRenderer errorHandler = new ResolutionErrorRenderer(dependencySpec);
-        Set<DependencyResult> selectedDependencies = selectDependencies(configuration, errorHandler);
+        Set<DependencyResult> selectedDependencies = selectDependencies(configuration);
 
         if (selectedDependencies.isEmpty()) {
             output.println("No dependencies matching given input were found in " + configuration);
             return;
         }
-        errorHandler.renderErrors(output, getProject().getLayout().getBuildDirectory().dir("reports/resolution-errors/html").get());
         renderSelectedDependencies(configuration, output, selectedDependencies);
         renderBuildScanHint(output);
     }
@@ -294,9 +293,10 @@ public class DependencyInsightReportTask extends DefaultTask {
         }
     }
 
-    private Set<DependencyResult> selectDependencies(Configuration configuration, ResolutionErrorRenderer errorHandler) {
+    private Set<DependencyResult> selectDependencies(Configuration configuration) {
+        ResolutionFailuresListener failuresListener = getServices().get(ResolutionFailuresListener.class);
         ResolvableDependenciesInternal incoming = (ResolvableDependenciesInternal) configuration.getIncoming();
-        ResolutionResult result = incoming.getResolutionResult(errorHandler);
+        ResolutionResult result = incoming.getResolutionResult(failuresListener::logError);
 
         final Set<DependencyResult> selectedDependencies = new LinkedHashSet<>();
         result.allDependencies(dependencyResult -> {
