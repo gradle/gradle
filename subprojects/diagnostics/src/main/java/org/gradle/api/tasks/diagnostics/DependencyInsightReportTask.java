@@ -509,31 +509,34 @@ public class DependencyInsightReportTask extends DefaultTask {
                 }
             }
 
-            List<String> header = new ArrayList<>(ImmutableList.of("Name", "Provided", "Requested"));
+            ImmutableList.Builder<String> header = ImmutableList. <String>builder()
+                .add("Name", "Provided", "Requested");
             if (!selected) {
                 header.add("Compatibility");
             }
-            List<TablePrinter.Row> rows = new ArrayList<>();
+            ImmutableList.Builder<TablePrinter.Row> rows = ImmutableList.builder();
             for (Attribute<?> attribute : providedAttributes) {
                 Object providedValue = attributes.getAttribute(attribute);
-                List<String> text = new ArrayList<>(ImmutableList.of(
-                    attribute.getName(),
-                    providedValue == null ? "" : providedValue.toString(),
-                    ""
-                ));
+                ImmutableList.Builder<String> text = ImmutableList.<String>builder()
+                    .add(
+                        attribute.getName(),
+                        providedValue == null ? "" : providedValue.toString(),
+                        ""
+                    );
                 if (!selected) {
                     text.add("Compatible");
                 }
-                rows.add(new TablePrinter.Row(text, Info));
+                rows.add(new TablePrinter.Row(text.build(), Info));
             }
             for (Map.Entry<Attribute<?>, AttributeMatchDetails> entry : bothAttributes.entrySet()) {
                 Object providedValue = attributes.getAttribute(entry.getKey());
                 AttributeMatchDetails match = entry.getValue();
-                List<String> text = new ArrayList<>(ImmutableList.of(
-                    entry.getKey().getName(),
-                    providedValue == null ? "" : providedValue.toString(),
-                    String.valueOf(entry.getValue().requestedValue)
-                ));
+                ImmutableList.Builder<String> text = ImmutableList.<String>builder()
+                    .add(
+                        entry.getKey().getName(),
+                        providedValue == null ? "" : providedValue.toString(),
+                        String.valueOf(entry.getValue().requestedValue)
+                    );
                 StyledTextOutput.Style style;
                 switch (match.matchType) {
                     case REQUESTED:
@@ -552,22 +555,23 @@ public class DependencyInsightReportTask extends DefaultTask {
                 if (!selected) {
                     text.add(match.matchType == MatchType.INCOMPATIBLE ? "Incompatible" : "Compatible");
                 }
-                rows.add(new TablePrinter.Row(text, style));
+                rows.add(new TablePrinter.Row(text.build(), style));
             }
             for (Attribute<?> attribute : requestedAttributes) {
                 Object requestedValue = requested.getAttribute(attribute);
-                List<String> text = new ArrayList<>(ImmutableList.of(
-                    attribute.getName(),
-                    "",
-                    String.valueOf(requestedValue)
-                ));
+                ImmutableList.Builder<String> text = ImmutableList.<String>builder()
+                    .add(
+                        attribute.getName(),
+                        "",
+                        String.valueOf(requestedValue)
+                    );
                 if (!selected) {
                     text.add("Compatible");
                 }
-                rows.add(new TablePrinter.Row(text, Info));
+                rows.add(new TablePrinter.Row(text.build(), Info));
             }
 
-            new TablePrinter(Strings.repeat(" ", 4), header, rows).print(out);
+            new TablePrinter(Strings.repeat(" ", 4), header.build(), rows.build()).print(out);
         }
 
         private void writeFoundAttributes(StyledTextOutput out, AttributeContainer attributes) {
