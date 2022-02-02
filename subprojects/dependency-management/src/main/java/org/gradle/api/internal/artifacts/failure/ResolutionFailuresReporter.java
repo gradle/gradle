@@ -16,9 +16,10 @@
 
 package org.gradle.api.internal.artifacts.failure;
 
+import com.google.common.base.Strings;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.ResolvableDependencies;
+import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
@@ -28,6 +29,7 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.locking.LockOutOfDateException;
 import org.gradle.internal.logging.text.StyledTextOutput;
+import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -45,10 +47,11 @@ import java.util.stream.Collectors;
 @ServiceScope(Scopes.BuildTree.class)
 public class ResolutionFailuresReporter implements ProblemReporter {
     private final ServiceRegistry services;
-    private ResolvableDependencies currentResolution = null;
+    private final StyledTextOutputFactory styledTextOutputFactory;
 
-    public ResolutionFailuresReporter(ServiceRegistry services) {
+    public ResolutionFailuresReporter(ServiceRegistry services, StyledTextOutputFactory styledTextOutputFactory) {
         this.services = services;
+        this.styledTextOutputFactory = styledTextOutputFactory;
     }
 
     @Override
@@ -59,7 +62,23 @@ public class ResolutionFailuresReporter implements ProblemReporter {
     // This method exists for THIS class to REPORT any additional problems it knows about to the given consumer
     @Override
     public void report(File reportDir, Consumer<? super Throwable> validationFailures) {
+        List<Throwable> errors = getErrors();
+
         File reportFile = new File(reportDir, "reports/dependency-resolution/resolution-failure-report.html");
+        writeHtmlReport(reportFile, errors);
+
+        StyledTextOutput output = styledTextOutputFactory.create(ResolutionFailuresReporter.class);
+        renderErrorsToConsole(output, errors, reportFile);
+
+        validationFailures.accept(new GradleException("Dependency resolution failed. See " + reportFile.getAbsolutePath() + " for details."));
+    }
+
+    private List<Throwable> getErrors() {
+        ResolutionFailuresListener failuresListener = services.get(ResolutionFailuresListener.class);
+        return failuresListener.getErrors().entrySet().stream().sorted(Comparator.comparing(e -> e.getKey().getName())).map(Map.Entry::getValue).collect(Collectors.toList());
+    }
+
+    private void writeHtmlReport(File reportFile, List<Throwable> errors) {
         try {
             reportFile.getParentFile().mkdirs();
             reportFile.createNewFile();
@@ -69,19 +88,22 @@ public class ResolutionFailuresReporter implements ProblemReporter {
 
         try (final FileWriter writer = new FileWriter(reportFile)) {
             final HtmlResolutionErrorRenderer htmlRenderer = new HtmlResolutionErrorRenderer();
-            htmlRenderer.render(getErrors(), writer);
+            htmlRenderer.render(errors, writer);
         } catch (IOException e) {
             throw new GradleException("Error writing report file: '" + reportFile + "'", e);
         }
     }
 
-    private List<Throwable> getErrors() {
-        ResolutionFailuresListener failuresListener = services.get(ResolutionFailuresListener.class);
-        return failuresListener.getErrors().entrySet().stream().sorted(Comparator.comparing(e -> e.getKey().getName())).map(Map.Entry::getValue).collect(Collectors.toList());
-    }
-
-    public void renderErrorsToConsole(StyledTextOutput output) {
-        getErrors().forEach(e -> renderResolutionError(e, output));
+    private void renderErrorsToConsole(StyledTextOutput output, List<Throwable> errors,  File reportFile) {
+        String title = "Dependency Resolution Failures";
+        String line = Strings.repeat("-", title.length());
+        output.withStyle(StyledTextOutput.Style.FailureHeader)
+            .println("")
+            .println(line)
+            .println(title)
+            .println(line);
+        output.style(StyledTextOutput.Style.Failure);
+        errors.forEach(e -> renderResolutionError(e, output));
     }
 
     private void renderResolutionError(Throwable cause, StyledTextOutput output) {
@@ -89,11 +111,17 @@ public class ResolutionFailuresReporter implements ProblemReporter {
             renderConflict((VersionConflictException) cause, output);
         } else if (cause instanceof LockOutOfDateException) {
             renderOutOfDateLocks((LockOutOfDateException) cause, output);
+        } else if (cause instanceof ResolveException) {
+            renderResolveException((ResolveException) cause, output);
         } else {
             // Fallback to failing the task in case we don't know anything special
             // about the error
             throw UncheckedException.throwAsUncheckedException(cause);
         }
+    }
+
+    private void renderResolveException(ResolveException cause, StyledTextOutput output) {
+        output.println(cause.getMessage());
     }
 
     private void renderOutOfDateLocks(final LockOutOfDateException cause, StyledTextOutput output) {
