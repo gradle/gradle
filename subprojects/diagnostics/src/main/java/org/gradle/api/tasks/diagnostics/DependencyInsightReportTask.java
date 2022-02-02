@@ -456,7 +456,10 @@ public class DependencyInsightReportTask extends DefaultTask {
             out.withStyle(Description).text("  Attributes:");
             out.println();
             if (task.enabledSelectionReasonOutputs.contains(SelectionReasonOutput.VARIANT)) {
-                createAttributeTable(attributes, requested, selected).print(out);
+                new StyledTable.Renderer().render(
+                    createAttributeTable(attributes, requested, selected),
+                    out
+                );
             } else {
                 writeFoundAttributes(out, attributes);
             }

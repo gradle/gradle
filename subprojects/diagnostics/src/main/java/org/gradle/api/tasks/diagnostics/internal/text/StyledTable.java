@@ -19,6 +19,7 @@ package org.gradle.api.tasks.diagnostics.internal.text;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import org.gradle.internal.logging.text.StyledTextOutput;
+import org.gradle.reporting.ReportRenderer;
 
 import java.util.List;
 import java.util.stream.IntStream;
@@ -46,44 +47,6 @@ public class StyledTable {
         this.rows = ImmutableList.copyOf(rows);
     }
 
-    public void print(StyledTextOutput output) {
-        int[] colWidths = new int[headers.size()];
-        for (int i = 0; i < headers.size(); i++) {
-            int finalI = i;
-            colWidths[i] = Stream.concat(
-                    Stream.of(headers.get(i)),
-                    rows.stream().map(row -> row.text.get(finalI))
-            ).mapToInt(String::length).max().orElse(0);
-        }
-
-        output.style(Header);
-        printRow(output, colWidths, headers, ' ');
-        output.style(Normal);
-        // Print the separator row
-        printRow(
-            output, colWidths,
-            IntStream.range(0, colWidths.length).mapToObj(i -> "").collect(ImmutableList.toImmutableList()),
-            '-'
-        );
-        for (Row row : rows) {
-            output.style(row.style);
-            printRow(output, colWidths, row.text, ' ');
-            output.style(Normal);
-        }
-    }
-
-    private void printRow(StyledTextOutput output, int[] colWidths, List<String> row, char padChar) {
-        output.withStyle(Normal).text(indent + "|" + padChar);
-        for (int i = 0; i < row.size(); i++) {
-            output.text(Strings.padEnd(row.get(i), colWidths[i], padChar));
-            if (i < row.size() - 1) {
-                output.withStyle(Normal).text(padChar + "|" + padChar);
-            }
-        }
-        output.withStyle(Normal).text(padChar + "|");
-        output.println();
-    }
-
     public static final class Row {
         public final List<String> text;
         public final StyledTextOutput.Style style;
@@ -91,6 +54,47 @@ public class StyledTable {
         public Row(List<String> text, StyledTextOutput.Style style) {
             this.text = ImmutableList.copyOf(text);
             this.style = style;
+        }
+    }
+
+    public static final class Renderer extends ReportRenderer<StyledTable, StyledTextOutput> {
+        @Override
+        public void render(StyledTable model, StyledTextOutput output) {
+            int[] colWidths = new int[model.headers.size()];
+            for (int i = 0; i < model.headers.size(); i++) {
+                int finalI = i;
+                colWidths[i] = Stream.concat(
+                    Stream.of(model.headers.get(i)),
+                    model.rows.stream().map(row -> row.text.get(finalI))
+                ).mapToInt(String::length).max().orElse(0);
+            }
+
+            output.style(Header);
+            printRow(model, output, colWidths, model.headers, ' ');
+            output.style(Normal);
+            // Print the separator row
+            printRow(
+                model, output, colWidths,
+                IntStream.range(0, colWidths.length).mapToObj(i -> "").collect(ImmutableList.toImmutableList()),
+                '-'
+            );
+            for (Row row : model.rows) {
+                output.style(row.style);
+                printRow(model, output, colWidths, row.text, ' ');
+                output.style(Normal);
+            }
+        }
+
+        private void printRow(StyledTable model, StyledTextOutput output, int[] colWidths, List<String> row, char padChar) {
+            output.withStyle(Normal).text(model.indent + "|" + padChar);
+            for (int i = 0; i < row.size(); i++) {
+                output.text(Strings.padEnd(row.get(i), colWidths[i], padChar));
+                if (i < row.size() - 1) {
+                    output.withStyle(Normal).text(padChar + "|" + padChar);
+                }
+            }
+            output.withStyle(Normal).text(padChar + "|");
+            output.println();
         }
     }
 }
