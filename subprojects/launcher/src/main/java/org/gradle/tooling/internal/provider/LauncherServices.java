@@ -212,6 +212,7 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
             BuildRequestMetaData buildRequestMetaData,
             GradleEnterprisePluginManager gradleEnterprisePluginManager,
             BuildLifecycleAwareVirtualFileSystem virtualFileSystem,
+            DeploymentRegistryInternal deploymentRegistry,
             StatStatistics.Collector statStatisticsCollector,
             FileHasherStatistics.Collector fileHasherStatisticsCollector,
             DirectorySnapshotterStatistics.Collector directorySnapshotterStatisticsCollector,
@@ -227,6 +228,7 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                     new FileSystemWatchingBuildActionRunner(
                         eventEmitter,
                         virtualFileSystem,
+                        deploymentRegistry,
                         statStatisticsCollector,
                         fileHasherStatisticsCollector,
                         directorySnapshotterStatisticsCollector,
