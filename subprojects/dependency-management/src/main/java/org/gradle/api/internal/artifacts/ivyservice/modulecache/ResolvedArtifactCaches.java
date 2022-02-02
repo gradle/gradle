@@ -62,6 +62,7 @@ public class ResolvedArtifactCaches implements Stoppable {
     @Override
     public void stop() {
         cachePerRepo.clear();
+        cachePerRepoWithVerification.clear();
     }
 
     private static class ResolvedArtifactCacheProvidingModuleComponentRepository extends BaseModuleComponentRepository {
