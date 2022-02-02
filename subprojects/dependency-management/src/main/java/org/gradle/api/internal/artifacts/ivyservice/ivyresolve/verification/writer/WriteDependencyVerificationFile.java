@@ -437,13 +437,6 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
         }
     }
 
-    @Override
-    public boolean wasAlreadyProcessed(ModuleComponentArtifactIdentifier artifact, String repositoryId) {
-        // Since writing to a file is done rarely and this is called only to avoid resolving
-        // artifacts again when already cached, there is not much penalty to not do any check here
-        return false;
-    }
-
     private void addPgp(ModuleComponentArtifactIdentifier id, ArtifactKind kind, File mainFile, Factory<File> signatureFile) {
         PgpEntry entry = new PgpEntry(id, kind, mainFile, signatureFile);
         synchronized (entriesToBeWritten) {

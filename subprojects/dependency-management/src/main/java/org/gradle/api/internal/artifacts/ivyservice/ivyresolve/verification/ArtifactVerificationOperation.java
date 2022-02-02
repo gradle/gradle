@@ -22,7 +22,6 @@ import java.io.File;
 
 public interface ArtifactVerificationOperation {
     void onArtifact(ArtifactKind kind, ModuleComponentArtifactIdentifier artifact, File mainFile, Factory<File> signatureFile, String repositoryName, String repositoryId);
-    boolean wasAlreadyProcessed(ModuleComponentArtifactIdentifier artifact, String repositoryId);
 
     enum ArtifactKind {
         METADATA,
