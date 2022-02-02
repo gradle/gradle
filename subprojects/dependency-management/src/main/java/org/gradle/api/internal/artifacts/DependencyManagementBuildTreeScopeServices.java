@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.StartParameterRes
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.ResolutionResultsStoreFactory;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.initialization.layout.BuildLayout;
+import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
 
@@ -46,8 +47,10 @@ class DependencyManagementBuildTreeScopeServices {
         return new StartParameterResolutionOverride(startParameter, gradleDir);
     }
 
-    ResolutionFailuresListener createResolutionFailuresListener() {
-        return new ResolutionFailuresListener();
+    ResolutionFailuresListener createResolutionFailuresListener(ListenerManager listenerManager) {
+        ResolutionFailuresListener listener = new ResolutionFailuresListener();
+        listenerManager.addListener(listener);
+        return listener;
     }
 
     ResolutionFailuresReporter createResolutionFailuresReporter(ServiceRegistry services) {

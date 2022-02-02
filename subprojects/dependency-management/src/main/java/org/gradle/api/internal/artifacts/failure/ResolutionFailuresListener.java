@@ -41,7 +41,7 @@ public class ResolutionFailuresListener implements DependencyResolutionListener 
 
     @Override
     public void afterResolve(ResolvableDependencies dependencies) {
-        currentResolution = null;
+        currentResolution.set(null);
     }
 
     public void logError(Throwable t) {
