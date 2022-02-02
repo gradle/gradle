@@ -105,6 +105,7 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
     }
 
     @Override
+    @Deprecated
     public ResolvedVariantResult getVariant() {
         if (selectedVariants.isEmpty()) {
             return new DefaultResolvedVariantResult(componentId, Describables.of("<empty>"), ImmutableAttributes.EMPTY, Collections.emptyList(), null);

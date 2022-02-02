@@ -69,6 +69,7 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.AlternativeSuccess;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Description;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Failure;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Header;
@@ -551,6 +552,8 @@ public class DependencyInsightReportTask extends DefaultTask {
                     style = Success;
                     break;
                 case DIFFERENT_VALUE:
+                    style = AlternativeSuccess;
+                    break;
                 case NOT_REQUESTED:
                     style = Info;
                     break;
