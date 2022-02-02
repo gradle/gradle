@@ -54,10 +54,6 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
         ModuleVersionIdentifier moduleVersion, ComponentSelectionReason selectionReason, ComponentIdentifier componentId,
         List<ResolvedVariantResult> selectedVariants, List<ResolvedVariantResult> allVariants, String repositoryName
     ) {
-        assert moduleVersion != null;
-        assert selectionReason != null;
-        assert selectedVariants != null;
-
         this.moduleVersion = moduleVersion;
         this.selectionReason = selectionReason;
         this.componentId = componentId;
@@ -109,7 +105,6 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
     }
 
     @Override
-    @SuppressWarnings("deprecation")
     public ResolvedVariantResult getVariant() {
         if (selectedVariants.isEmpty()) {
             return new DefaultResolvedVariantResult(componentId, Describables.of("<empty>"), ImmutableAttributes.EMPTY, Collections.emptyList(), null);
