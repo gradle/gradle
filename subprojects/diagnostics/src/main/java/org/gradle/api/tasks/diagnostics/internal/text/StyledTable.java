@@ -30,12 +30,12 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.Normal;
 /**
  * Simple utility for printing a table.
  */
-public class TablePrinter {
+public class StyledTable {
     private final String indent;
     private final List<String> headers;
     private final List<Row> rows;
 
-    public TablePrinter(String indent, List<String> headers, List<Row> rows) {
+    public StyledTable(String indent, List<String> headers, List<Row> rows) {
         for (int i = 0; i < rows.size(); i++) {
             if (rows.get(i).text.size() != headers.size()) {
                 throw new IllegalArgumentException("Headers and row " + i + " must have the same number of columns.");

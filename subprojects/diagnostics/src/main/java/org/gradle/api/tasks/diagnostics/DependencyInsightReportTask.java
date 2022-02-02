@@ -46,7 +46,7 @@ import org.gradle.api.tasks.diagnostics.internal.graph.NodeRenderer;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.Section;
 import org.gradle.api.tasks.diagnostics.internal.insight.DependencyInsightReporter;
-import org.gradle.api.tasks.diagnostics.internal.text.TablePrinter;
+import org.gradle.api.tasks.diagnostics.internal.text.StyledTable;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.initialization.StartParameterBuildOptions;
 import org.gradle.internal.graph.GraphRenderer;
@@ -268,8 +268,7 @@ public class DependencyInsightReportTask extends DefaultTask {
         boolean showDepSelectionReasons = getEnabledSelectionReasonOutputs().contains(SelectionReasonOutput.DEPENDENCY);
         DependencyInsightReporter reporter = new DependencyInsightReporter(getVersionSelectorScheme(), getVersionComparator(), getVersionParser(), showDepSelectionReasons);
         Collection<RenderableDependency> itemsToRender = reporter.convertToRenderableItems(selectedDependencies, isShowSinglePathToDependency());
-        boolean showVariantSelectionReasons = getEnabledSelectionReasonOutputs().contains(SelectionReasonOutput.VARIANT);
-        RootDependencyRenderer rootRenderer = new RootDependencyRenderer(configuration, getAttributesFactory(), isShowingAllVariants(), showVariantSelectionReasons);
+        RootDependencyRenderer rootRenderer = new RootDependencyRenderer(this, configuration, getAttributesFactory());
         ReplaceProjectWithConfigurationNameRenderer dependenciesRenderer = new ReplaceProjectWithConfigurationNameRenderer(configuration);
         DependencyGraphsRenderer dependencyGraphRenderer = new DependencyGraphsRenderer(output, renderer, rootRenderer, dependenciesRenderer);
         dependencyGraphRenderer.setShowSinglePath(showSinglePathToDependency);
@@ -338,17 +337,15 @@ public class DependencyInsightReportTask extends DefaultTask {
         VARIANT,
     }
 
-    private class RootDependencyRenderer implements NodeRenderer {
+    private static final class RootDependencyRenderer implements NodeRenderer {
+        private final DependencyInsightReportTask task;
         private final Configuration configuration;
         private final ImmutableAttributesFactory attributesFactory;
-        private final boolean showAllVariants;
-        private final boolean showSelectionReasons;
 
-        public RootDependencyRenderer(Configuration configuration, ImmutableAttributesFactory attributesFactory, boolean showAllVariants, boolean showSelectionReasons) {
+        public RootDependencyRenderer(DependencyInsightReportTask task, Configuration configuration, ImmutableAttributesFactory attributesFactory) {
+            this.task = task;
             this.configuration = configuration;
             this.attributesFactory = attributesFactory;
-            this.showAllVariants = showAllVariants;
-            this.showSelectionReasons = showSelectionReasons;
         }
 
         @Override
@@ -404,7 +401,7 @@ public class DependencyInsightReportTask extends DefaultTask {
                 .stream()
                 .map(ResolvedVariantResult::getDisplayName)
                 .collect(Collectors.toSet());
-            if (showAllVariants) {
+            if (task.isShowingAllVariants()) {
                 out.style(Header);
                 out.println();
                 out.text("-------------------").println();
@@ -415,7 +412,7 @@ public class DependencyInsightReportTask extends DefaultTask {
             for (ResolvedVariantResult variant : dependency.getResolvedVariants()) {
                 printVariant(out, dependency, variant, true);
             }
-            if (showAllVariants) {
+            if (task.isShowingAllVariants()) {
                 out.style(Header);
                 out.text("---------------------").println();
                 out.text("Unselected Variant(s)").println();
@@ -458,101 +455,126 @@ public class DependencyInsightReportTask extends DefaultTask {
         private void writeAttributeBlock(StyledTextOutput out, AttributeContainer attributes, AttributeContainer requested, boolean selected) {
             out.withStyle(Description).text("  Attributes:");
             out.println();
-            if (showSelectionReasons) {
-                writeAttributeTable(out, attributes, requested, selected);
+            if (task.enabledSelectionReasonOutputs.contains(SelectionReasonOutput.VARIANT)) {
+                createAttributeTable(attributes, requested, selected).print(out);
             } else {
                 writeFoundAttributes(out, attributes);
             }
         }
 
-        private void writeAttributeTable(
-            StyledTextOutput out, AttributeContainer attributes, AttributeContainer requested, boolean selected
-        ) {
-            // Bucket attributes into three groups:
-            // 1. Attributes that are only in the variant
-            // 2. Attributes that are both in the variant and requested by the configuration
-            // 3. Attributes that are only in the requested configuration
+        private static final class AttributeBuckets {
             List<Attribute<?>> providedAttributes = new ArrayList<>();
             Map<Attribute<?>, AttributeMatchDetails> bothAttributes = new LinkedHashMap<>();
             List<Attribute<?>> requestedAttributes = new ArrayList<>();
-            for (Attribute<?> attribute : attributes.keySet()) {
-                AttributeMatchDetails details = match(attribute, attributes.getAttribute(attribute), requested);
-                if (details.matchType() != MatchType.NOT_REQUESTED) {
-                    bothAttributes.put(attribute, details);
-                } else {
-                    providedAttributes.add(attribute);
-                }
-            }
-            for (Attribute<?> attribute : requested.keySet()) {
-                // If it's not in the matches, it's only in the requested attributes
-                if (bothAttributes.values().stream().map(AttributeMatchDetails::requested).noneMatch(Predicate.isEqual(attribute))) {
-                    requestedAttributes.add(attribute);
-                }
-            }
+        }
 
+        private StyledTable createAttributeTable(AttributeContainer attributes, AttributeContainer requested, boolean selected) {
             ImmutableList.Builder<String> header = ImmutableList. <String>builder()
                 .add("Name", "Provided", "Requested");
             if (!selected) {
                 header.add("Compatibility");
             }
-            ImmutableList.Builder<TablePrinter.Row> rows = ImmutableList.builder();
-            for (Attribute<?> attribute : providedAttributes) {
-                Object providedValue = attributes.getAttribute(attribute);
-                ImmutableList.Builder<String> text = ImmutableList.<String>builder()
-                    .add(
-                        attribute.getName(),
-                        providedValue == null ? "" : providedValue.toString(),
-                        ""
-                    );
-                if (!selected) {
-                    text.add("Compatible");
-                }
-                rows.add(new TablePrinter.Row(text.build(), Info));
-            }
-            for (Map.Entry<Attribute<?>, AttributeMatchDetails> entry : bothAttributes.entrySet()) {
-                Object providedValue = attributes.getAttribute(entry.getKey());
-                AttributeMatchDetails match = entry.getValue();
-                ImmutableList.Builder<String> text = ImmutableList.<String>builder()
-                    .add(
-                        entry.getKey().getName(),
-                        providedValue == null ? "" : providedValue.toString(),
-                        String.valueOf(entry.getValue().requestedValue())
-                    );
-                StyledTextOutput.Style style;
-                switch (match.matchType()) {
-                    case REQUESTED:
-                        style = Success;
-                        break;
-                    case DIFFERENT_VALUE:
-                    case NOT_REQUESTED:
-                        style = Info;
-                        break;
-                    case INCOMPATIBLE:
-                        style = StyledTextOutput.Style.Error;
-                        break;
-                    default:
-                        throw new IllegalStateException("Unknown match type: " + match.matchType());
-                }
-                if (!selected) {
-                    text.add(match.matchType() == MatchType.INCOMPATIBLE ? "Incompatible" : "Compatible");
-                }
-                rows.add(new TablePrinter.Row(text.build(), style));
-            }
-            for (Attribute<?> attribute : requestedAttributes) {
-                Object requestedValue = requested.getAttribute(attribute);
-                ImmutableList.Builder<String> text = ImmutableList.<String>builder()
-                    .add(
-                        attribute.getName(),
-                        "",
-                        String.valueOf(requestedValue)
-                    );
-                if (!selected) {
-                    text.add("Compatible");
-                }
-                rows.add(new TablePrinter.Row(text.build(), Info));
-            }
 
-            new TablePrinter(Strings.repeat(" ", 4), header.build(), rows.build()).print(out);
+            ImmutableList<StyledTable.Row> rows = buildRows(attributes, requested, selected);
+
+            return new StyledTable(Strings.repeat(" ", 4), header.build(), rows);
+        }
+
+        private ImmutableList<StyledTable.Row> buildRows(AttributeContainer attributes, AttributeContainer requested, boolean selected) {
+            AttributeBuckets buckets = bucketAttributes(attributes, requested);
+
+            ImmutableList.Builder<StyledTable.Row> rows = ImmutableList.builder();
+            for (Attribute<?> attribute : buckets.providedAttributes) {
+                rows.add(createProvidedRow(attributes, selected, attribute));
+            }
+            for (Map.Entry<Attribute<?>, AttributeMatchDetails> entry : buckets.bothAttributes.entrySet()) {
+                rows.add(createMatchBasedRow(attributes, selected, entry));
+            }
+            for (Attribute<?> attribute : buckets.requestedAttributes) {
+                rows.add(createRequestedRow(requested, selected, attribute));
+            }
+            return rows.build();
+        }
+
+        private AttributeBuckets bucketAttributes(AttributeContainer attributes, AttributeContainer requested) {
+            // Bucket attributes into three groups:
+            // 1. Attributes that are only in the variant
+            // 2. Attributes that are both in the variant and requested by the configuration
+            // 3. Attributes that are only in the requested configuration
+            AttributeBuckets buckets = new AttributeBuckets();
+            for (Attribute<?> attribute : attributes.keySet()) {
+                AttributeMatchDetails details = task.match(attribute, attributes.getAttribute(attribute), requested);
+                if (details.matchType() != MatchType.NOT_REQUESTED) {
+                    buckets.bothAttributes.put(attribute, details);
+                } else {
+                    buckets.providedAttributes.add(attribute);
+                }
+            }
+            for (Attribute<?> attribute : requested.keySet()) {
+                // If it's not in the matches, it's only in the requested attributes
+                if (buckets.bothAttributes.values().stream().map(AttributeMatchDetails::requested).noneMatch(Predicate.isEqual(attribute))) {
+                    buckets.requestedAttributes.add(attribute);
+                }
+            }
+            return buckets;
+        }
+
+        private StyledTable.Row createProvidedRow(AttributeContainer attributes, boolean selected, Attribute<?> attribute) {
+            Object providedValue = attributes.getAttribute(attribute);
+            ImmutableList.Builder<String> text = ImmutableList.<String>builder()
+                .add(
+                    attribute.getName(),
+                    providedValue == null ? "" : providedValue.toString(),
+                    ""
+                );
+            if (!selected) {
+                text.add("Compatible");
+            }
+            return new StyledTable.Row(text.build(), Info);
+        }
+
+        private StyledTable.Row createMatchBasedRow(AttributeContainer attributes, boolean selected, Map.Entry<Attribute<?>, AttributeMatchDetails> entry) {
+            Object providedValue = attributes.getAttribute(entry.getKey());
+            AttributeMatchDetails match = entry.getValue();
+            ImmutableList.Builder<String> text = ImmutableList.<String>builder()
+                .add(
+                    entry.getKey().getName(),
+                    providedValue == null ? "" : providedValue.toString(),
+                    String.valueOf(entry.getValue().requestedValue())
+                );
+            StyledTextOutput.Style style;
+            switch (match.matchType()) {
+                case REQUESTED:
+                    style = Success;
+                    break;
+                case DIFFERENT_VALUE:
+                case NOT_REQUESTED:
+                    style = Info;
+                    break;
+                case INCOMPATIBLE:
+                    style = StyledTextOutput.Style.Error;
+                    break;
+                default:
+                    throw new IllegalStateException("Unknown match type: " + match.matchType());
+            }
+            if (!selected) {
+                text.add(match.matchType() == MatchType.INCOMPATIBLE ? "Incompatible" : "Compatible");
+            }
+            return new StyledTable.Row(text.build(), style);
+        }
+
+        private StyledTable.Row createRequestedRow(AttributeContainer requested, boolean selected, Attribute<?> attribute) {
+            Object requestedValue = requested.getAttribute(attribute);
+            ImmutableList.Builder<String> text = ImmutableList.<String>builder()
+                .add(
+                    attribute.getName(),
+                    "",
+                    String.valueOf(requestedValue)
+                );
+            if (!selected) {
+                text.add("Compatible");
+            }
+            return new StyledTable.Row(text.build(), Info);
         }
 
         private void writeFoundAttributes(StyledTextOutput out, AttributeContainer attributes) {
