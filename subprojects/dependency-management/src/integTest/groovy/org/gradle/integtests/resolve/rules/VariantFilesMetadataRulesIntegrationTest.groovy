@@ -665,7 +665,7 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
         applyFileRule | extension | not
         true          | 'jar'     | ''
         false         | 'jar'     | 'not'
-        true          | 'notJar'  | ''
+        false         | 'notJar'  | ''
         false         | 'notJar'  | 'not'
     }
 }

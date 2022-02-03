@@ -33,6 +33,7 @@ import org.gradle.internal.action.DefaultConfigurableRules
 import org.gradle.internal.action.InstantiatingAction
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.FixedComponentArtifacts
+import org.gradle.internal.component.external.model.MetadataSourcedAllVariantsComponentArtifacts
 import org.gradle.internal.component.external.model.MetadataSourcedComponentArtifacts
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
@@ -64,7 +65,7 @@ class MavenResolverTest extends Specification {
 
     def "uses artifacts from variant metadata"() {
         given:
-        variant.requiresMavenArtifactDiscovery() >> false
+        module.hasVariants() >> true
 
         when:
         resolver.getLocalAccess().resolveModuleArtifacts(module, variant, result)
@@ -72,6 +73,20 @@ class MavenResolverTest extends Specification {
         then:
         1 * result.resolved(_) >> { args ->
             assert args[0] instanceof MetadataSourcedComponentArtifacts
+        }
+    }
+
+    def "uses artifacts from all variant metadata, even when POM declares JAR packaging"() {
+        given:
+        module.hasVariants() >> false
+        module.isKnownJarPackaging() >> true
+
+        when:
+        resolver.getLocalAccess().resolveModuleArtifacts(module, variant, result)
+
+        then:
+        1 * result.resolved(_) >> { args ->
+            assert args[0] instanceof MetadataSourcedAllVariantsComponentArtifacts
         }
     }
 
@@ -104,7 +119,7 @@ class MavenResolverTest extends Specification {
 
         then:
         1 * result.resolved(_) >> { args ->
-            assert args[0] instanceof MetadataSourcedComponentArtifacts
+            assert args[0] instanceof MetadataSourcedAllVariantsComponentArtifacts
         }
     }
 
