@@ -23,14 +23,12 @@ import org.gradle.api.attributes.AttributeDisambiguationRule
 import org.gradle.api.attributes.CompatibilityCheckDetails
 import org.gradle.api.attributes.MultipleCandidatesDetails
 import org.gradle.internal.component.model.ComponentAttributeMatcher
-import org.gradle.util.AttributeTestUtil
 import org.gradle.util.SnapshotTestUtil
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class DefaultAttributesSchemaTest extends Specification {
     def schema = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
-    def factory = AttributeTestUtil.attributesFactory()
 
     def "can create an attribute of scalar type #type"() {
         when:
@@ -339,7 +337,54 @@ class DefaultAttributesSchemaTest extends Specification {
         best == [value1] as Set
     }
 
-    interface Flavor extends Named {}
+    def "precedence order can be set"() {
+        when:
+        schema.attributeDisambiguationPrecedence(Attribute.of("a", Flavor), Attribute.of("b", String), Attribute.of("c", ConcreteNamed))
+        then:
+        schema.attributeDisambiguationPrecedence*.name == [ "a", "b", "c" ]
+        when:
+        schema.setAttributeDisambiguationPrecedence(Attribute.of("c", ConcreteNamed))
+        then:
+        schema.attributeDisambiguationPrecedence*.name == [ "c" ]
+        when:
+        schema.attributeDisambiguationPrecedence(Attribute.of("a", Flavor))
+        then:
+        schema.attributeDisambiguationPrecedence*.name == [ "c", "a" ]
+    }
+
+    def "precedence order cannot be changed for the same attribute"() {
+        when:
+        schema.attributeDisambiguationPrecedence(Attribute.of("a", Flavor), Attribute.of("b", String), Attribute.of("c", ConcreteNamed))
+
+        schema.attributeDisambiguationPrecedence(Attribute.of("c", ConcreteNamed))
+        schema.attributeDisambiguationPrecedence(Attribute.of("b", String))
+        schema.attributeDisambiguationPrecedence(Attribute.of("a", Flavor))
+        then:
+        schema.attributeDisambiguationPrecedence*.name == [ "a", "b", "c" ]
+    }
+
+    def "precedence order can be combined with producer"() {
+        def producer = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
+        when:
+        producer.attributeDisambiguationPrecedence(Attribute.of("a", Flavor), Attribute.of("x", String))
+        schema.attributeDisambiguationPrecedence(Attribute.of("a", Flavor), Attribute.of("b", String))
+        then:
+        schema.mergeWith(producer).disambiguatingAttributes*.name == [ "a", "b", "x" ]
+    }
+
+    def "precedence order is honored"() {
+        schema.attributeDisambiguationPrecedence(Attribute.of("a", Flavor), Attribute.of("b", String), Attribute.of("c", ConcreteNamed))
+        def requested = [
+                Attribute.of("x", String), // attribute that doesn't have a precedence
+                Attribute.of("c", ConcreteNamed), // attribute that has a lower precedence than the next one
+                Attribute.of("a", Flavor), // attribute with the highest precedence
+                Attribute.of("z", String) // attribute that doesn't have a precedence
+        ] as Set
+        expect:
+        schema.mergeWith(EmptySchema.INSTANCE).sortedByPrecedence(requested)*.name == ["a", "c", "x", "z"]
+    }
+
+    static interface Flavor extends Named {}
 
     enum MyEnum {
         FOO,
