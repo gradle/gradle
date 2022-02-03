@@ -54,8 +54,8 @@ public class DslDocRenderer {
         Map<Object, Object> options = new HashMap<>();
         options.put("classMetadata", classMetaData);
         List<PropertyMetaData> declaredProperties = classMetaData.getAllProperties().stream()
-            .filter(property -> !property.getGetter().getAnnotationTypeNames().contains(Inject.class.getName()))
-            .filter(property -> !property.getGetter().getAnnotationTypeNames().contains("org.gradle.internal.documentation.NoDslDoc"))
+            .filter(property -> !(property.isReadable() && property.getGetter().getAnnotationTypeNames().contains(Inject.class.getName())))
+            .filter(property -> !(property.isReadable()  && property.getGetter().getAnnotationTypeNames().contains("org.gradle.internal.documentation.NoDslDoc")))
             .sorted(Comparator.comparing(PropertyMetaData::getName))
             .collect(Collectors.toList());
         Set<MethodMetaData> gettersAndSetters = declaredProperties.stream()
