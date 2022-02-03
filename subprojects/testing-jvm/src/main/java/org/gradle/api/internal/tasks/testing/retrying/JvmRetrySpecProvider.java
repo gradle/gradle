@@ -30,10 +30,10 @@ public class JvmRetrySpecProvider {
     }
 
     public JvmRetrySpec get() {
-        return JvmRetrySpec.of(retryUntilFailureCount.get(), retryUntilStoppedCount != null ? retryUntilStoppedCount.get() : null);
+        return JvmRetrySpec.of(retryUntilFailureCount, retryUntilStoppedCount);
     }
 
     public static JvmRetrySpecProvider of(Test task) {
-        return new JvmRetrySpecProvider(task.getRetryUntilFailureCount(), null);
+        return new JvmRetrySpecProvider(task.getRetryUntilFailureCount(), task.getRetryUntilStoppedCount());
     }
 }

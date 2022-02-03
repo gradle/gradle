@@ -16,34 +16,31 @@
 
 package org.gradle.api.internal.tasks.testing.retrying;
 
-import org.gradle.api.internal.tasks.testing.junit.AbstractJUnitSpec;
+import org.gradle.api.provider.Provider;
 
-import javax.annotation.Nullable;
 import java.io.Serializable;
-
-import static com.google.common.base.MoreObjects.firstNonNull;
 
 public class JvmRetrySpec implements Serializable {
 
     private final long maxRetries;
-    private final boolean stopAfterFailure;
+    private final boolean forceStopAfterFailure;
 
-    private JvmRetrySpec(long maxRetries, boolean stopAfterFailure) {
+    private JvmRetrySpec(long maxRetries, boolean forceStopAfterFailure) {
         this.maxRetries = maxRetries;
-        this.stopAfterFailure = stopAfterFailure;
+        this.forceStopAfterFailure = forceStopAfterFailure;
     }
 
     public long getMaxRetries() {
         return maxRetries;
     }
 
-    public boolean isStopAfterFailure() {
-        return stopAfterFailure;
+    public boolean isForceStopAfterFailure() {
+        return forceStopAfterFailure;
     }
 
-    static JvmRetrySpec of(@Nullable Long retryUntilFailureCount, @Nullable Long retryUntilStoppedCount) {
-        long maxRetries = firstNonNull(retryUntilFailureCount != null ? retryUntilFailureCount : retryUntilStoppedCount, 1L);
-        boolean stopAfterFailure = retryUntilFailureCount != null;
+    static JvmRetrySpec of(Provider<Long> retryUntilFailureCount, Provider<Long> retryUntilStoppedCount) {
+        long maxRetries = retryUntilFailureCount.isPresent() ? retryUntilFailureCount.get() : retryUntilStoppedCount.getOrElse(1L);
+        boolean stopAfterFailure = retryUntilFailureCount.isPresent();
         return new JvmRetrySpec(maxRetries, stopAfterFailure);
     }
 }

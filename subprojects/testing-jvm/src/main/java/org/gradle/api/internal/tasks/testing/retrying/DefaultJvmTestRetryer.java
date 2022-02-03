@@ -28,7 +28,7 @@ public class DefaultJvmTestRetryer implements JvmTestRetryer {
 
     public DefaultJvmTestRetryer(JvmRetrySpec retrySpec) {
         this.maxRetryCount = Math.max(retrySpec.getMaxRetries(), 1);
-        this.stopAfterFailure = retrySpec.isStopAfterFailure();
+        this.stopAfterFailure = retrySpec.isForceStopAfterFailure();
         this.hasAnyTestFail = new AtomicBoolean();
     }
 

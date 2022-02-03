@@ -172,7 +172,8 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     private final Property<TestFramework> testFramework;
     private boolean userHasConfiguredTestFramework;
     private boolean optionsAccessed;
-    private final Property<Long> retryUntilFailure;
+    private final Property<Long> retryUntilFailureCount;
+    private final Property<Long> retryUntilStoppedCount;
 
     private boolean scanForTestClasses = true;
     private long forkEvery;
@@ -196,7 +197,8 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         modularity = getObjectFactory().newInstance(DefaultModularitySpec.class);
         javaLauncher = getObjectFactory().property(JavaLauncher.class);
         testFramework = getObjectFactory().property(TestFramework.class).convention(new JUnitTestFramework(this, (DefaultTestFilter) getFilter()));
-        retryUntilFailure = getObjectFactory().property(Long.class);
+        retryUntilFailureCount = getObjectFactory().property(Long.class);
+        retryUntilStoppedCount = getObjectFactory().property(Long.class);
     }
 
     @Inject
@@ -1183,6 +1185,33 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     /**
+     * Return until stopped count
+     *
+     * @since 7.5
+     */
+    @Internal
+    @Incubating
+    public Property<Long> getRetryUntilStoppedCount() {
+        return retryUntilStoppedCount;
+    }
+
+    /**
+     * Command line options to set until failure run count
+     *
+     * @since 7.5
+     */
+    @Incubating
+    @SuppressWarnings("unused")
+    @Option(option = "retry-until-stopped", description = "Runs the tests until stopped.")
+    public void setRetryUntilStoppedCountOption(@Nullable String retryUntilStoppedCountOption) {
+        long retryUntilStoppedCount = Long.parseLong(firstNonNull(retryUntilStoppedCountOption, "0"));
+        if (retryUntilStoppedCount < 1) {
+            throw new IllegalArgumentException("Cannot set retry-until-failure to a value less than 1.");
+        }
+        getRetryUntilStoppedCount().set(retryUntilStoppedCount);
+    }
+
+    /**
      * Return until failure count
      *
      * @since 7.5
@@ -1190,7 +1219,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     @Internal
     @Incubating
     public Property<Long> getRetryUntilFailureCount() {
-        return retryUntilFailure;
+        return retryUntilFailureCount;
     }
 
     /**
