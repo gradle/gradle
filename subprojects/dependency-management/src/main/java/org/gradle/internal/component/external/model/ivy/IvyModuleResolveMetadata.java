@@ -71,4 +71,13 @@ public interface IvyModuleResolveMetadata extends ModuleComponentResolveMetadata
     IvyModuleResolveMetadata withDynamicConstraintVersions();
 
     ImmutableList<IvyDependencyDescriptor> getDependencies();
+
+    /**
+     * Ivy descriptors do not express variants on their own
+     * @return always false
+     */
+    @Override
+    default boolean hasVariants() {
+        return false;
+    }
 }

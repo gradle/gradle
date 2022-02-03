@@ -65,6 +65,13 @@ public interface ModuleComponentResolveMetadata extends ComponentResolveMetadata
      */
     ImmutableList<? extends ComponentVariant> getVariants();
 
+    /**
+     * @return true if component has variants, false otherwise
+     */
+    default boolean hasVariants() {
+        return !getVariants().isEmpty();
+    }
+
     @Nullable
     ImmutableAttributesFactory getAttributesFactory();
 
