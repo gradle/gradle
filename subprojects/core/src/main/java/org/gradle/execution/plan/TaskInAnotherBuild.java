@@ -23,6 +23,7 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.composite.internal.BuildTreeWorkGraphController;
 import org.gradle.composite.internal.IncludedBuildTaskResource;
+import org.gradle.composite.internal.TaskIdentifier;
 import org.gradle.internal.Actions;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.util.Path;
@@ -34,21 +35,25 @@ import java.util.List;
 public class TaskInAnotherBuild extends TaskNode {
     public static TaskInAnotherBuild of(
         TaskInternal task,
-        BuildTreeWorkGraphController taskGraph
+        BuildTreeWorkGraphController taskGraph,
+        int ordinal
     ) {
         BuildIdentifier targetBuild = buildIdentifierOf(task);
-        IncludedBuildTaskResource taskResource = taskGraph.locateTask(targetBuild, task);
-        return new TaskInAnotherBuild(task.getIdentityPath(), task.getPath(), targetBuild, taskResource);
+        TaskIdentifier taskIdentifier = TaskIdentifier.of(targetBuild, task, ordinal);
+        IncludedBuildTaskResource taskResource = taskGraph.locateTask(taskIdentifier);
+        return new TaskInAnotherBuild(task.getIdentityPath(), task.getPath(), targetBuild, taskResource, ordinal);
     }
 
     public static TaskInAnotherBuild of(
         String taskPath,
         BuildIdentifier targetBuild,
-        BuildTreeWorkGraphController taskGraph
+        BuildTreeWorkGraphController taskGraph,
+        int ordinal
     ) {
-        IncludedBuildTaskResource taskResource = taskGraph.locateTask(targetBuild, taskPath);
+        TaskIdentifier taskIdentifier = TaskIdentifier.of(targetBuild, taskPath, ordinal);
+        IncludedBuildTaskResource taskResource = taskGraph.locateTask(taskIdentifier);
         Path taskIdentityPath = Path.path(targetBuild.getName()).append(Path.path(taskPath));
-        return new TaskInAnotherBuild(taskIdentityPath, taskPath, targetBuild, taskResource);
+        return new TaskInAnotherBuild(taskIdentityPath, taskPath, targetBuild, taskResource, ordinal);
     }
 
     protected IncludedBuildTaskResource.State state = IncludedBuildTaskResource.State.Waiting;
@@ -57,7 +62,8 @@ public class TaskInAnotherBuild extends TaskNode {
     private final BuildIdentifier targetBuild;
     private final IncludedBuildTaskResource target;
 
-    protected TaskInAnotherBuild(Path taskIdentityPath, String taskPath, BuildIdentifier targetBuild, IncludedBuildTaskResource target) {
+    protected TaskInAnotherBuild(Path taskIdentityPath, String taskPath, BuildIdentifier targetBuild, IncludedBuildTaskResource target, int ordinal) {
+        super(ordinal);
         this.taskIdentityPath = taskIdentityPath;
         this.taskPath = taskPath;
         this.targetBuild = targetBuild;

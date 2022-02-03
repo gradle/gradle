@@ -82,7 +82,7 @@ abstract class ProjectStateStore<K, V>(
         }
     }
 
-    fun visitReusedProjects(consumer: Consumer<Path>) {
+    fun visitProjects(reusedProjects: Consumer<Path>, updatedProjects: Consumer<Path>) {
         val currentProjects = currentValues.keys.mapNotNull { projectPathForKey(it) }
         val previousProjects = HashSet<Path>()
         for (key in previousValues.keys) {
@@ -93,7 +93,9 @@ abstract class ProjectStateStore<K, V>(
         }
         for (path in currentProjects) {
             if (previousProjects.contains(path)) {
-                consumer.accept(path)
+                reusedProjects.accept(path)
+            } else {
+                updatedProjects.accept(path)
             }
         }
     }
@@ -101,8 +103,13 @@ abstract class ProjectStateStore<K, V>(
     fun loadOrCreateValue(key: K, creator: () -> V): V {
         val addressOfCached = locateCachedValue(key)
         if (addressOfCached != null) {
-            return valuesStore.read(addressOfCached)
+            try {
+                return valuesStore.read(addressOfCached)
+            } catch (e: Exception) {
+                throw RuntimeException("Could not load entry for $key", e)
+            }
         }
+        // TODO - should protect from concurrent creation
         val value = creator()
         val address = valuesStore.write(value)
         currentValues[key] = address

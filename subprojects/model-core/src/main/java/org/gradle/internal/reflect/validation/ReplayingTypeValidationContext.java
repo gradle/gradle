@@ -41,13 +41,4 @@ public class ReplayingTypeValidationContext implements TypeValidationContext {
     public void replay(@Nullable String ownerProperty, TypeValidationContext target) {
         problems.forEach(problem -> problem.accept(ownerProperty, target));
     }
-
-    @Nullable
-    private static String combineParents(@Nullable String grandParentProperty, @Nullable String parentProperty) {
-        return grandParentProperty == null
-            ? parentProperty
-            : parentProperty == null
-            ? grandParentProperty
-            : grandParentProperty + "." + parentProperty;
-    }
 }

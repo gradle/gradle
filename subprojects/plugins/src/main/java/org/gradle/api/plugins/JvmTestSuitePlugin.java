@@ -55,7 +55,7 @@ import java.util.Map;
  * </ul>
  *
  * @since 7.3
- * @see <a href="https://docs.gradle.org/current/userguide/test_suite_plugin.html">Test Suite plugin reference</a>
+ * @see <a href="https://docs.gradle.org/current/userguide/jvm_test_suite_plugin.html">Test Suite plugin reference</a>
  */
 @Incubating
 public class JvmTestSuitePlugin implements Plugin<Project> {
@@ -107,13 +107,14 @@ public class JvmTestSuitePlugin implements Plugin<Project> {
 
         testSuites.withType(JvmTestSuite.class).configureEach(suite -> {
             suite.getTargets().configureEach(target -> {
-                addTestReusltsVariant(project, suite, target);
+                addTestResultsVariant(project, suite, target);
             });
         });
     }
 
-    private void addTestReusltsVariant(Project project, JvmTestSuite suite, JvmTestSuiteTarget target) {
+    private void addTestResultsVariant(Project project, JvmTestSuite suite, JvmTestSuiteTarget target) {
         final Configuration variant = project.getConfigurations().create(TEST_RESULTS_ELEMENTS_VARIANT_PREFIX + StringUtils.capitalize(target.getName()));
+        variant.setDescription("Directory containing binary results of running tests for the " + suite.getName() + " Test Suite's " + target.getName() + " target.");
         variant.setVisible(false);
         variant.setCanBeResolved(false);
         variant.setCanBeConsumed(true);

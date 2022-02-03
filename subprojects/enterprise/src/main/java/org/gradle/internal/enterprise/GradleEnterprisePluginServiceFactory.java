@@ -16,8 +16,6 @@
 
 package org.gradle.internal.enterprise;
 
-import org.gradle.internal.scan.UsedByScanPlugin;
-
 import java.io.Serializable;
 
 /**
@@ -25,7 +23,6 @@ import java.io.Serializable;
  *
  * Gradle is responsible for creating the service via this factory for each build invocation.
  */
-@UsedByScanPlugin("implemented by plugin")
 public interface GradleEnterprisePluginServiceFactory extends Serializable {
 
     /**

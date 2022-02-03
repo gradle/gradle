@@ -17,6 +17,7 @@
 package org.gradle.api.provider
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Issue
 
 class MapPropertyIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
@@ -607,6 +608,26 @@ task thing {
 
         expect:
         succeeds('verify')
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/11036')
+    def "fails with precise error message when property is a map literal with null values"() {
+        given:
+        buildFile << """
+            verify {
+                prop = [${key}: ${value}]
+            }
+        """
+
+        expect:
+        fails('verify')
+        failureCauseContains(message)
+
+        where:
+        key         | value         || message
+        '(null)'    | "'someValue'" || 'Cannot get the value of a property of type java.util.Map with key type java.lang.String as the source contains a null key.'
+        "'someKey'" | 'null'        || 'Cannot get the value of a property of type java.util.Map with value type java.lang.String as the source contains a null value for key "someKey".'
+        '(null)'    | 'null'        || 'Cannot get the value of a property of type java.util.Map with key type java.lang.String as the source contains a null key.'
     }
 
     def "fails when property with no value is queried"() {

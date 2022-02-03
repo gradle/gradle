@@ -19,12 +19,13 @@ package org.gradle.testing.jacoco.plugins
 import org.gradle.api.Project
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.InspectsOutgoingVariants
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testing.jacoco.plugins.fixtures.JacocoReportFixture
 import org.gradle.testing.jacoco.plugins.fixtures.JavaProjectUnderTest
 
-class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
+class JacocoPluginIntegrationTest extends AbstractIntegrationSpec implements InspectsOutgoingVariants {
 
     private final JavaProjectUnderTest javaProjectUnderTest = new JavaProjectUnderTest(testDirectory)
     private static final String REPORTING_BASE = "${Project.DEFAULT_BUILD_DIR_NAME}/${ReportingExtension.DEFAULT_REPORTS_DIR_NAME}"
@@ -156,8 +157,10 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         def resultsExecPath = new TestFile(getTestDirectory(), 'build/jacoco/test.exec').getRelativePathFromBase()
         outputContains("""
             --------------------------------------------------
-            Variant coverageDataElementsForTest
+            Variant coverageDataElementsForTest (i)
             --------------------------------------------------
+            Description = Binary data file containing results of Jacoco test coverage reporting for the test Test Suite's test target.
+
             Capabilities
                 - :Test:unspecified (default capability)
             Attributes
@@ -169,6 +172,9 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
 
             Artifacts
                 - $resultsExecPath (artifactType = binary)""".stripIndent())
+
+        and:
+        hasIncubatingVariantsLegend()
     }
 
     @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
@@ -195,8 +201,10 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         def resultsExecPath = new TestFile(getTestDirectory(), 'build/jacoco/integrationTest.exec').getRelativePathFromBase()
         outputContains("""
             --------------------------------------------------
-            Variant coverageDataElementsForIntegrationTest
+            Variant coverageDataElementsForIntegrationTest (i)
             --------------------------------------------------
+            Description = Binary data file containing results of Jacoco test coverage reporting for the integrationTest Test Suite's integrationTest target.
+
             Capabilities
                 - :Test:unspecified (default capability)
             Attributes
@@ -208,6 +216,9 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
 
             Artifacts
                 - $resultsExecPath (artifactType = binary)""".stripIndent())
+
+        and:
+        hasIncubatingVariantsLegend()
     }
 
     def "Jacoco coverage data can be consumed by another task via Dependency Management"() {

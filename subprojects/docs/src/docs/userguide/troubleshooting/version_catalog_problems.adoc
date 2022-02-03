@@ -63,9 +63,9 @@ Version catalog supports the simplified `group:artifact:version` notation.
 If you are using the `Settings` DSL to create a catalog, you can use the `to` method in different flavors:
 
 ```groovy
-alias("some-alias").to("com.mycompany:some-lib:1.1").withoutVersion()
+library("some-alias", "com.mycompany:some-lib:1.1").withoutVersion()
 // or
-alias("some-alias").to("com.mycompany", "some-lib").version("1.1")
+library("some-alias", "com.mycompany", "some-lib").version("1.1")
 ```
 
 If you are using TOML files to create a catalog, you can use one of the following notations:

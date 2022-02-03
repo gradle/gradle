@@ -9,25 +9,25 @@ import common.functionalTestExtraParameters
 import common.functionalTestParameters
 import common.gradleWrapper
 import common.killProcessStep
+import common.toCapitalized
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildStep
 import model.CIBuildModel
 import model.Stage
 import model.StageNames
 
 class FlakyTestQuarantine(model: CIBuildModel, stage: Stage, os: Os) : BaseGradleBuildType(stage = stage, init = {
-    id("${model.projectId}_FlakyQuarantine_${os.name.lowercase().capitalize()}")
-    name = "Flaky Test Quarantine - ${os.name.lowercase().capitalize()}"
+    id("${model.projectId}_FlakyQuarantine_${os.name.lowercase().toCapitalized()}")
+    name = "Flaky Test Quarantine - ${os.name.lowercase().toCapitalized()}"
     description = "Run all flaky tests skipped multiple times"
 
-    applyDefaultSettings(os, BuildToolBuildJvm, 60)
+    applyDefaultSettings(os, BuildToolBuildJvm, 180)
 
     val testsWithOs = model.stages.filter {
         it.stageName in listOf(
             StageNames.QUICK_FEEDBACK_LINUX_ONLY,
             StageNames.QUICK_FEEDBACK,
-            StageNames.READY_FOR_MERGE,
+            StageNames.PULL_REQUEST_FEEDBACK,
             StageNames.READY_FOR_NIGHTLY,
-            StageNames.READY_FOR_RELEASE,
         )
     }.flatMap { it.functionalTests }.filter { it.os == os }
 
@@ -35,7 +35,7 @@ class FlakyTestQuarantine(model: CIBuildModel, stage: Stage, os: Os) : BaseGradl
         val extraParameters = functionalTestExtraParameters("FlakyTestQuarantine", os, testCoverage.testJvmVersion.major.toString(), testCoverage.vendor.name)
         val parameters = (
             buildToolGradleParameters(true) +
-                listOf("-PflakyTestQuarantine") +
+                listOf("-PflakyTests=only", "-x", "test") +
                 listOf(extraParameters) +
                 functionalTestParameters(os)
             ).joinToString(separator = " ")
@@ -53,4 +53,6 @@ class FlakyTestQuarantine(model: CIBuildModel, stage: Stage, os: Os) : BaseGradl
     steps {
         checkCleanM2AndAndroidUserHome(os)
     }
+
+    applyDefaultDependencies(model, this, true)
 })

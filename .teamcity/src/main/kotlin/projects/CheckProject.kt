@@ -1,6 +1,7 @@
 package projects
 
 import common.failedTestArtifactDestination
+import configurations.PerformanceTestsPass
 import configurations.StagePasses
 import jetbrains.buildServer.configs.kotlin.v2019_2.ParameterDisplay
 import jetbrains.buildServer.configs.kotlin.v2019_2.Project
@@ -43,12 +44,15 @@ class CheckProject(
     }
 
     var prevStage: Stage? = null
+    val previousPerformanceTestPasses: MutableList<PerformanceTestsPass> = mutableListOf()
     model.stages.forEach { stage ->
-        val stageProject = StageProject(model, functionalTestBucketProvider, performanceTestBucketProvider, stage)
+        val stageProject = StageProject(model, functionalTestBucketProvider, performanceTestBucketProvider, stage, previousPerformanceTestPasses)
         val stagePasses = StagePasses(model, stage, prevStage, stageProject)
         buildType(stagePasses)
         subProject(stageProject)
+
         prevStage = stage
+        previousPerformanceTestPasses.addAll(stageProject.performanceTests)
     }
 
     buildTypesOrder = buildTypes

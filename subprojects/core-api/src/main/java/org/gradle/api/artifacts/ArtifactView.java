@@ -16,6 +16,7 @@
 
 package org.gradle.api.artifacts;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.attributes.HasConfigurableAttributes;
@@ -85,5 +86,15 @@ public interface ArtifactView extends HasAttributes {
          */
         ViewConfiguration lenient(boolean lenient);
 
+        /**
+         * When invoked, this view will disregard existing attributes of its parent configuration and re-resolve the artifacts
+         * using only the attributes in the view's attribute container.
+         *
+         * <p>This behavior cannot be unset on a particular view once this method is invoked.
+         *
+         * @since 7.5
+         */
+        @Incubating
+        ViewConfiguration withVariantReselection();
     }
 }

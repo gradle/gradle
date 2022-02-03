@@ -103,11 +103,7 @@ public class OutgoingVariantsReportTask extends DefaultTask {
         // makes sure the configuration is complete before reporting
         cnf.preventFromFurtherMutation();
         Formatter tree = new Formatter(output);
-        String name = cnf.getName();
-        if (cnf.isCanBeResolved()) {
-            name += " (l)";
-            legend.hasLegacyConfigurations = true;
-        }
+        String name = buildNameWithIndicators(cnf, legend);
         header("Variant " + name, output);
         String description = cnf.getDescription();
         if (description != null) {
@@ -123,6 +119,19 @@ public class OutgoingVariantsReportTask extends DefaultTask {
         if (formatPublications(cnf, tree, legend)) {
             tree.println();
         }
+    }
+
+    private String buildNameWithIndicators(ConfigurationInternal cnf, Legend legend) {
+        String name = cnf.getName();
+        if (cnf.isCanBeResolved()) {
+            name += " (l)";
+            legend.hasLegacyConfigurations = true;
+        }
+        if (cnf.isIncubating()) {
+            name += " (i)";
+            legend.hasIncubatingConfigurations = true;
+        }
+        return name;
     }
 
     private void header(String text, StyledTextOutput output) {
@@ -238,6 +247,7 @@ public class OutgoingVariantsReportTask extends DefaultTask {
     private static class Legend {
         private boolean hasPublications;
         private boolean hasLegacyConfigurations;
+        private boolean hasIncubatingConfigurations;
 
         void print(StyledTextOutput output) {
             StyledTextOutput info = output.style(StyledTextOutput.Style.Info);
@@ -246,6 +256,9 @@ public class OutgoingVariantsReportTask extends DefaultTask {
             }
             if (hasLegacyConfigurations) {
                 info.println("(l) Legacy or deprecated configuration. Those are variants created for backwards compatibility which are both resolvable and consumable.");
+            }
+            if (hasIncubatingConfigurations) {
+                info.println("(i) Configuration uses incubating attributes such as Category.VERIFICATION.");
             }
             if (hasPublications) {
                 info.text("(*) Secondary variants are variants created via the ")

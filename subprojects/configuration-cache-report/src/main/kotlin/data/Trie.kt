@@ -32,7 +32,7 @@ value class Trie<T>(
 
     val entries: Sequence<Pair<T, Trie<T>>>
         get() = nestedMaps.asSequence().map { (label, subTrie) ->
-            label to Trie<T>(subTrie.uncheckedCast())
+            label to Trie(subTrie.uncheckedCast())
         }
 
     val size: Int

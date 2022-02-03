@@ -24,14 +24,18 @@ import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.plugin.use.PluginId;
 
+import javax.annotation.Nullable;
+
 public class ClassPathPluginResolution implements PluginResolution {
 
     private final PluginId pluginId;
+    private final String pluginVersion;
     private final ClassLoaderScope parent;
     private final PluginInspector pluginInspector;
 
-    public ClassPathPluginResolution(PluginId pluginId, ClassLoaderScope parent, PluginInspector pluginInspector) {
+    public ClassPathPluginResolution(PluginId pluginId, String pluginVersion, ClassLoaderScope parent, PluginInspector pluginInspector) {
         this.pluginId = pluginId;
+        this.pluginVersion = pluginVersion;
         this.parent = parent;
         this.pluginInspector = pluginInspector;
     }
@@ -39,6 +43,12 @@ public class ClassPathPluginResolution implements PluginResolution {
     @Override
     public PluginId getPluginId() {
         return pluginId;
+    }
+
+    @Nullable
+    @Override
+    public String getPluginVersion() {
+        return pluginVersion;
     }
 
     @Override

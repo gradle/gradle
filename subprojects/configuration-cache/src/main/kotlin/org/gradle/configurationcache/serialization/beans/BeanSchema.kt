@@ -23,15 +23,13 @@ import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.internal.IConventionAware
 import org.gradle.api.internal.TaskInternal
-
 import org.gradle.configurationcache.problems.DisableConfigurationCacheFieldTypeCheck
 import org.gradle.configurationcache.problems.PropertyKind
-import org.gradle.configurationcache.serialization.IsolateContext
+import org.gradle.configurationcache.serialization.MutableIsolateContext
 import org.gradle.configurationcache.serialization.Workarounds
 import org.gradle.configurationcache.serialization.logUnsupported
 import org.gradle.internal.instantiation.generator.AsmBackedClassGenerator
 import org.gradle.internal.reflect.ClassInspector
-
 import java.lang.reflect.AccessibleObject
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier.isStatic
@@ -115,7 +113,7 @@ data class RelevantField(
 
 
 internal
-fun IsolateContext.reportUnsupportedFieldType(
+fun MutableIsolateContext.reportUnsupportedFieldType(
     unsupportedType: KClass<*>,
     action: String,
     fieldName: String,

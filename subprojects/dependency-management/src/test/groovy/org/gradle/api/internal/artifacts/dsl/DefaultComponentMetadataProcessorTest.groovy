@@ -179,7 +179,7 @@ class DefaultComponentMetadataProcessorTest extends Specification {
     private SpecConfigurableRule addRuleForModuleWithParams(String notation, Object... params) {
         metadataRuleContainer.addClassRule(new SpecConfigurableRule(DefaultConfigurableRule.of(TestComponentMetadataRuleWithArgs, {
             it.params(params)
-        } as Action<ActionConfiguration>, SnapshotTestUtil.valueSnapshotter()), new DefaultComponentMetadataHandler.ModuleVersionIdentifierSpec(moduleIdentifierNotationParser.parseNotation(notation))))
+        } as Action<ActionConfiguration>, SnapshotTestUtil.isolatableFactory()), new DefaultComponentMetadataHandler.ModuleVersionIdentifierSpec(moduleIdentifierNotationParser.parseNotation(notation))))
     }
 
     private DefaultMutableIvyModuleResolveMetadata ivyMetadata() {

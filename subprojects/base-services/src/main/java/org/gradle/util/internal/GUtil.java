@@ -153,6 +153,7 @@ public class GUtil {
         }
         return true;
     }
+
     /**
      * Prefer {@link #getOrDefault(Object, Factory)} if the value is expensive to compute or
      * would trigger early configuration.
@@ -570,5 +571,4 @@ public class GUtil {
         final String scheme = url.getScheme();
         return !"http".equalsIgnoreCase(scheme);
     }
-
 }

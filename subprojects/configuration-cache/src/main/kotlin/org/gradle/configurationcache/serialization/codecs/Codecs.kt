@@ -170,7 +170,7 @@ class Codecs(
 
         bind(IsolatedManagedValueCodec(managedFactoryRegistry))
         bind(IsolatedImmutableManagedValueCodec(managedFactoryRegistry))
-        bind(IsolatedSerializedValueSnapshotCodec)
+        bind(IsolatedJavaSerializedValueSnapshotCodec)
         bind(IsolatedArrayCodec)
         bind(IsolatedSetCodec)
         bind(IsolatedListCodec)
@@ -208,7 +208,6 @@ class Codecs(
         providerTypes(propertyFactory, filePropertyFactory, valueSourceProviderFactory, buildStateRegistry)
         fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory, artifactSetConverter, fileOperations, fileFactory, patternSetFactory)
 
-        bind(BuildIdentifierSerializer())
         bind(TaskInAnotherBuildCodec(includedTaskGraph))
 
         bind(DefaultResolvableArtifactCodec(calculatedValueContainerFactory))
@@ -220,6 +219,7 @@ class Codecs(
         bind(TaskNodeCodec(userTypesCodec, taskNodeFactory))
         bind(DelegatingCodec<TransformationNode>(userTypesCodec))
         bind(ActionNodeCodec(userTypesCodec))
+        bind(OrdinalNodeCodec())
 
         bind(NotImplementedCodec)
     }.build()
@@ -312,5 +312,7 @@ class Codecs(
         bind(UrlCodec)
 
         javaTimeTypes()
+
+        bind(BuildIdentifierSerializer())
     }
 }

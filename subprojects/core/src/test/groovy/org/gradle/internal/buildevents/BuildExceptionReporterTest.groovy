@@ -25,6 +25,7 @@ import org.gradle.api.logging.configuration.LoggingConfiguration
 import org.gradle.api.logging.configuration.ShowStacktrace
 import org.gradle.execution.MultipleBuildFailures
 import org.gradle.initialization.BuildClientMetaData
+import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.exceptions.FailureResolutionAware
 import org.gradle.internal.exceptions.LocationAwareException
@@ -37,8 +38,9 @@ class BuildExceptionReporterTest extends Specification {
     final TestStyledTextOutput output = new TestStyledTextOutput()
     final StyledTextOutputFactory factory = Mock()
     final BuildClientMetaData clientMetaData = Mock()
+    final GradleEnterprisePluginManager gradleEnterprisePluginManager = Mock()
     final LoggingConfiguration configuration = new DefaultLoggingConfiguration()
-    final BuildExceptionReporter reporter = new BuildExceptionReporter(factory, configuration, clientMetaData)
+    final BuildExceptionReporter reporter = new BuildExceptionReporter(factory, configuration, clientMetaData, gradleEnterprisePluginManager)
 
     def setup() {
         factory.create(BuildExceptionReporter.class, LogLevel.ERROR) >> output
@@ -71,7 +73,7 @@ class BuildExceptionReporterTest extends Specification {
 '''
     }
 
-    def "suggests to use --scan even if option was on command line"() {
+    def "does not suggest to use --scan if option was on command line"() {
         GradleException exception = new GradleException("<message>");
 
         def result = result(exception)
@@ -81,6 +83,7 @@ class BuildExceptionReporterTest extends Specification {
                 isNoBuildScan() >> false
             }
         }
+        gradleEnterprisePluginManager.isPresent() >> true
 
         expect:
         reporter.buildFinished(result)
@@ -93,13 +96,12 @@ class BuildExceptionReporterTest extends Specification {
 * Try:
 {info}> {normal}Run with {userinput}--stacktrace{normal} option to get the stack trace.
 {info}> {normal}Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output.
-{info}> {normal}Run with {userinput}--scan{normal} to get full insights.
 
 * Get more help at {userinput}https://help.gradle.org{normal}
 '''
     }
 
-    def "suggests to use --scan if --no-scan is on command line"() {
+    def "does not suggest to use --scan if --no-scan is on command line"() {
         GradleException exception = new GradleException("<message>");
 
         def result = result(exception)
@@ -109,6 +111,7 @@ class BuildExceptionReporterTest extends Specification {
                 isNoBuildScan() >> true
             }
         }
+        gradleEnterprisePluginManager.isPresent() >> true
 
         expect:
         reporter.buildFinished(result)
@@ -121,7 +124,6 @@ class BuildExceptionReporterTest extends Specification {
 * Try:
 {info}> {normal}Run with {userinput}--stacktrace{normal} option to get the stack trace.
 {info}> {normal}Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output.
-{info}> {normal}Run with {userinput}--scan{normal} to get full insights.
 
 * Get more help at {userinput}https://help.gradle.org{normal}
 '''

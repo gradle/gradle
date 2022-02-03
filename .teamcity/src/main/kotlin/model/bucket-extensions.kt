@@ -46,7 +46,7 @@ fun <T, R> splitIntoBuckets(
         return listOf(smallElementAggregateFunction(list))
     }
 
-    val expectedBucketSize = list.sumBy(toIntFunction) / expectedBucketNumber
+    val expectedBucketSize = list.sumOf(toIntFunction) / expectedBucketNumber
 
     val largestElement = list.removeFirst()!!
 

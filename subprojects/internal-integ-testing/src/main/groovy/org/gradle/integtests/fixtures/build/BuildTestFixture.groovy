@@ -49,7 +49,7 @@ class BuildTestFixture {
         this
     }
 
-    def populate(String projectName, @DelegatesTo(BuildTestFile) Closure cl) {
+    def populate(String projectName, @DelegatesTo(value = BuildTestFile, strategy = Closure.DELEGATE_FIRST) Closure cl) {
         def project = buildInRootDir ? new BuildTestFile(getRootDir(), projectName) : new BuildTestFile(getRootDir().file(projectName), projectName)
         project.settingsFile << """
                     rootProject.name = '${projectName}'
@@ -58,7 +58,7 @@ class BuildTestFixture {
         project
     }
 
-    def singleProjectBuild(String projectName, @DelegatesTo(BuildTestFile) Closure cl = {}) {
+    def singleProjectBuild(String projectName, @DelegatesTo(value = BuildTestFile, strategy = Closure.DELEGATE_FIRST) Closure cl = {}) {
         def project = populate(projectName) {
             buildFile << """
                     group = 'org.test'
@@ -70,11 +70,11 @@ class BuildTestFixture {
         return project
     }
 
-    def multiProjectBuild(String projectName, List<String> subprojects, @DelegatesTo(BuildTestFile) Closure cl = {}) {
+    def multiProjectBuild(String projectName, List<String> subprojects, @DelegatesTo(value = BuildTestFile, strategy = Closure.DELEGATE_FIRST) Closure cl = {}) {
         multiProjectBuild(projectName, subprojects, CompiledLanguage.JAVA, cl)
     }
 
-    def multiProjectBuild(String projectName, List<String> subprojects, CompiledLanguage language, @DelegatesTo(BuildTestFile) Closure cl = {}) {
+    def multiProjectBuild(String projectName, List<String> subprojects, CompiledLanguage language, @DelegatesTo(value = BuildTestFile, strategy = Closure.DELEGATE_FIRST) Closure cl = {}) {
         def rootMulti = populate(projectName) {
             subprojects.each {
                 settingsFile << "include '$it'\n"

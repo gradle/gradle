@@ -268,94 +268,6 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
         }
     }
 
-    def "#usage property from properties file used as build logic input"() {
-
-        given:
-        def configurationCache = newConfigurationCacheFixture()
-        buildKotlinFile """
-
-            import org.gradle.api.provider.*
-
-            abstract class PropertyFromPropertiesFile : ValueSource<String, PropertyFromPropertiesFile.Parameters> {
-
-                interface Parameters : ValueSourceParameters {
-
-                    @get:InputFile
-                    val propertiesFile: RegularFileProperty
-
-                    @get:Input
-                    val propertyName: Property<String>
-                }
-
-                override fun obtain(): String? = parameters.run {
-                    propertiesFile.get().asFile.takeIf { it.isFile }?.inputStream()?.use {
-                        java.util.Properties().apply { load(it) }
-                    }?.get(propertyName.get()) as String?
-                }
-            }
-
-            val isCi: Provider<String> = providers.of(PropertyFromPropertiesFile::class) {
-                parameters {
-                    propertiesFile.set(layout.projectDirectory.file("local.properties"))
-                    propertyName.set("ci")
-                }
-            }
-
-            if ($expression) {
-                tasks.register("run") {
-                    doLast { println("ON CI") }
-                }
-            } else {
-                tasks.register("run") {
-                    doLast { println("NOT CI") }
-                }
-            }
-        """
-
-        when: "running without a file present"
-        configurationCacheRun "run"
-
-        then:
-        output.count("NOT CI") == 1
-        configurationCache.assertStateStored()
-
-        when: "running with an empty file"
-        file("local.properties") << ""
-        configurationCacheRun "run"
-
-        then:
-        output.count("NOT CI") == 1
-        configurationCache.assertStateLoaded()
-
-        when: "running with the property present in the file"
-        file("local.properties") << "ci=true"
-        configurationCacheRun "run"
-
-        then:
-        output.count("ON CI") == 1
-        configurationCache.assertStateStored()
-
-        when: "running after changing the file without changing the property value"
-        file("local.properties") << "\nunrelated.properties=foo"
-        configurationCacheRun "run"
-
-        then:
-        output.count("ON CI") == 1
-        configurationCache.assertStateLoaded()
-
-        when: "running after changing the property value"
-        file("local.properties").text = "ci=false"
-        configurationCacheRun "run"
-
-        then:
-        output.count("NOT CI") == 1
-        configurationCache.assertStateStored()
-
-        where:
-        expression                                     | usage
-        'isCi.map(String::toBoolean).getOrElse(false)' | 'mapped'
-        'isCi.getOrElse("false") != "false"'           | 'raw'
-    }
 
     def "#kind property used as task and build logic input"() {
 
@@ -453,6 +365,103 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
 
         then:
         output.count("ThreadPoolSize = 3") == 1
+        configurationCache.assertStateLoaded()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/19658")
+    def "map orElse chain used as task input"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile '''
+            abstract class PrintValueTask extends DefaultTask {
+
+                @Input
+                abstract Property<String> getValue();
+
+                @TaskAction
+                void printValue() {
+                    println("*" + value.get() + "*")
+                }
+            }
+
+            def chain = providers
+                .systemProperty("foo")
+                .orElse(providers.systemProperty("bar"))
+                .map { "foo | bar = $it" }
+                .orElse(providers.systemProperty("baz"))
+                .map { "($it)" }
+
+            tasks.register("ok", PrintValueTask.class) { task ->
+                task.value = chain
+            }
+        '''
+
+        when:
+        configurationCacheRun 'ok', '-Dfoo=foo'
+
+        then:
+        outputContains "*(foo | bar = foo)*"
+        configurationCache.assertStateStored()
+
+        when:
+        configurationCacheRun 'ok', '-Dbar=bar'
+
+        then:
+        outputContains "*(foo | bar = bar)*"
+        configurationCache.assertStateLoaded()
+
+        when:
+        configurationCacheRun 'ok', '-Dbaz=baz'
+
+        then:
+        outputContains "*(baz)*"
+        configurationCache.assertStateLoaded()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/19649")
+    def "zip orElse chain used as task input"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile '''
+            def userProvider = providers.gradleProperty("ci").map { "" }.orElse(providers.systemProperty("user"))
+            def versionMajorProvider = providers.gradleProperty("versionMajor").orElse("1")
+            def versionMinorProvider = providers.gradleProperty("versionMinor").orElse("2")
+            def versionNameProvider = versionMajorProvider
+                .zip(versionMinorProvider) { major, minor ->
+                    "$major.$minor"
+                }
+                .zip(userProvider) { prev, user ->
+                    "$prev-$user"
+                }
+
+            abstract class PrintVersionName extends DefaultTask {
+
+                @Input
+                abstract Property<String> getVersionName()
+
+                @TaskAction
+                def printVersionName() {
+                    println('*' + versionName.get() + '*')
+                }
+            }
+
+            tasks.register("ok", PrintVersionName.class) {
+                versionName = versionNameProvider
+            }
+        '''
+
+        when:
+        configurationCacheRun 'ok', '-Duser=alice'
+
+        then:
+        outputContains '*1.2-alice*'
+        configurationCache.assertStateStored()
+
+        when:
+        configurationCacheRun 'ok', '-Duser=bob'
+
+        then:
+        outputContains '*1.2-bob*'
         configurationCache.assertStateLoaded()
     }
 
@@ -726,62 +735,6 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
         operator    | operatorType       | usage
         "getOrElse" | "String"           | "build logic input"
         "orElse"    | "Provider<String>" | "task input"
-    }
-
-    def "can define and use custom value source in a Groovy script"() {
-
-        given:
-        def configurationCache = newConfigurationCacheFixture()
-        buildFile.text = """
-
-            import org.gradle.api.provider.*
-
-            abstract class IsSystemPropertySet implements ValueSource<Boolean, Parameters> {
-                interface Parameters extends ValueSourceParameters {
-                    Property<String> getPropertyName()
-                }
-                @Override Boolean obtain() {
-                    System.getProperties().get(parameters.getPropertyName().get()) != null
-                }
-            }
-
-            def isCi = providers.of(IsSystemPropertySet) {
-                parameters {
-                    propertyName = "ci"
-                }
-            }
-            if (isCi.get()) {
-                tasks.register("build") {
-                    doLast { println("ON CI") }
-                }
-            } else {
-                tasks.register("build") {
-                    doLast { println("NOT CI") }
-                }
-            }
-        """
-
-        when:
-        configurationCacheRun "build"
-
-        then:
-        output.count("NOT CI") == 1
-        configurationCache.assertStateStored()
-
-        when:
-        configurationCacheRun "build"
-
-        then:
-        output.count("NOT CI") == 1
-        configurationCache.assertStateLoaded()
-
-        when:
-        configurationCacheRun "build", "-Dci=true"
-
-        then:
-        output.count("ON CI") == 1
-        output.contains("because a build logic input of type 'IsSystemPropertySet' has changed")
-        configurationCache.assertStateStored()
     }
 
     def "mapped systemProperty in producer task"() {

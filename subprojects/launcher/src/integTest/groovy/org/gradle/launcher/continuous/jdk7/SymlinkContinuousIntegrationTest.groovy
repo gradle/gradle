@@ -17,7 +17,6 @@
 package org.gradle.launcher.continuous.jdk7
 
 import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -31,11 +30,19 @@ class SymlinkContinuousIntegrationTest extends AbstractContinuousIntegrationTest
         def baseDir = file("src").createDir()
         def sourceFile = baseDir.file("A")
         sourceFile.text = "original"
-        def symlink = baseDir.createDir("linkdir").file("link")
+
+        def linkdir = baseDir.createDir("linkdir")
+        def symlink = linkdir.file("link")
+        // Since we remove symlinks at the end of the build from the VFS, we
+        // need an existing sibling of the symlink to ensure the parent directory of
+        // the symlink is watched between builds.
+        linkdir.file("existing").createFile()
         buildFile << """
     task echo {
         def symlink = file("${symlink.toURI()}")
         inputs.files symlink
+        inputs.files "src/linkdir/existing"
+        outputs.file "build/outputs"
         doLast {
             println "text: " + (symlink.exists() ? symlink.text:"missing")
         }
@@ -50,13 +57,13 @@ class SymlinkContinuousIntegrationTest extends AbstractContinuousIntegrationTest
         when: "symlink is deleted"
         symlink.delete()
         then:
-        succeeds()
+        buildTriggeredAndSucceeded()
         executedAndNotSkipped(":echo")
         output.contains("text: missing")
         when: "symlink is created"
         Files.createSymbolicLink(Paths.get(symlink.toURI()), Paths.get(sourceFile.toURI()))
         then:
-        succeeds()
+        buildTriggeredAndSucceeded()
         executedAndNotSkipped(":echo")
         output.contains("text: original")
         when: "changes made to target of symlink"
@@ -74,11 +81,19 @@ class SymlinkContinuousIntegrationTest extends AbstractContinuousIntegrationTest
         def targetDir = baseDir.file("target").createDir()
         targetDir.files("A", "B")*.createFile()
 
-        def symlink = baseDir.createDir("linkdir").file("link")
+        def linkdir = baseDir.createDir("linkdir")
+        def symlink = linkdir.file("link")
+        // Since we remove symlinks at the end of the build from the VFS, we
+        // need an existing non-symlink sibling of the symlink to ensure the parent directory of
+        // the symlink is watched between builds.
+        linkdir.file("existing").createFile()
+
         buildFile << """
     task echo {
         def symlink = files("${symlink.toURI()}")
         inputs.files symlink
+        inputs.files "src/linkdir/existing"
+        outputs.files "build/output"
         doLast {
             println "isEmpty: " + symlink.isEmpty()
         }
@@ -92,13 +107,7 @@ class SymlinkContinuousIntegrationTest extends AbstractContinuousIntegrationTest
         when: "symlink is deleted"
         symlink.delete()
         then:
-        // OSX uses a polling implementation, so changes to links are detectable
-        if (OperatingSystem.current().isMacOsX()) {
-            succeeds()
-        } else {
-            // Other OS's do not produce filesystem events for deleted symlinks
-            noBuildTriggered()
-        }
+        buildTriggeredAndSucceeded()
         when: "changes made to target of symlink"
         Files.createSymbolicLink(Paths.get(symlink.toURI()), Paths.get(targetDir.toURI()))
         targetDir.file("C").createFile()

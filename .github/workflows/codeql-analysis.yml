@@ -42,8 +42,9 @@ jobs:
 
     # Install and setup JDK 11
     - name: Setup JDK 11
-      uses: actions/setup-java@v1
+      uses: actions/setup-java@v2
       with:
+        distribution: temurin
         java-version: 11
 
     # Initializes the CodeQL tools for scanning.

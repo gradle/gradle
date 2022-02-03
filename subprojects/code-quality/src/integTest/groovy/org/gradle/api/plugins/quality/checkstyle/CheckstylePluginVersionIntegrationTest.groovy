@@ -18,7 +18,6 @@ package org.gradle.api.plugins.quality.checkstyle
 
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.integtests.fixtures.executer.AbstractGradleExecuter
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.quality.integtest.fixtures.CheckstyleCoverage
 import org.gradle.util.Matchers
@@ -155,17 +154,6 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         badCode()
         fails("check")
         failure.assertHasErrorOutput(message)
-        if (GradleContextualExecuter.parallel) {
-            /*
-             otherwise the next `fails()` throws exception
-            	at org.gradle.integtests.fixtures.executer.OutputScrapingExecutionFailure.assertResultVisited(OutputScrapingExecutionFailure.java:302)
-	            at org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.beforeBuildSetup(AbstractGradleExecuter.java:1189)
-	            at org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.runWithFailure(AbstractGradleExecuter.java:1168)
-	            at org.gradle.integtests.fixtures.AbstractIntegrationSpec.fails(AbstractIntegrationSpec.groovy:421)
-	            at org.gradle.api.plugins.quality.checkstyle.CheckstylePluginVersionIntegrationTest.can suppress console output [7.0](CheckstylePluginVersionIntegrationTest.groovy:162)
-             */
-            ((AbstractGradleExecuter) executer.ignoreCleanupAssertions()).cleanup()
-        }
 
         when:
         buildFile << "checkstyle { showViolations = false }"

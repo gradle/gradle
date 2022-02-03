@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.tooling.fixture
 
+@TargetGradleVersion("<7.5")
 class ContinuousBuildCrossVersionToolingApiSpecificationRetryTest extends ContinuousBuildToolingApiSpecification {
 
     def iteration = 0

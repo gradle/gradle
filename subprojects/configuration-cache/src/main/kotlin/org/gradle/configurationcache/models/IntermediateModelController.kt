@@ -39,7 +39,7 @@ internal
 class IntermediateModelController(
     private val host: DefaultConfigurationCache.Host,
     private val cacheIO: ConfigurationCacheIO,
-    val store: ConfigurationCacheStateStore,
+    store: ConfigurationCacheStateStore,
     private val cacheFingerprintController: ConfigurationCacheFingerprintController
 ) : ProjectStateStore<ModelKey, IntermediateModel>(store, StateType.IntermediateModels) {
     override fun projectPathForKey(key: ModelKey) = key.identityPath

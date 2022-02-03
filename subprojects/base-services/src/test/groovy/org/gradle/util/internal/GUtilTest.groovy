@@ -258,12 +258,12 @@ class GUtilTest extends Specification {
         endsWith(CharBuffer.wrap(a), CharBuffer.wrap(b)) == a.endsWith(b)
 
         where:
-        a           | b
-        "foo"       | "fo"
-        "foo"       | "oo"
-        "fo"        | "foo"
-        "foo"       | ""
-        ""          | "foo"
+        a     | b
+        "foo" | "fo"
+        "foo" | "oo"
+        "fo"  | "foo"
+        "foo" | ""
+        ""    | "foo"
     }
 
     static enum TestEnum {
@@ -278,7 +278,6 @@ class GUtilTest extends Specification {
         ENUM_4_1,
         STANDARD_OUT
     }
-
 
     def "identifies insecure urls"() {
         expect:

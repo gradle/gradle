@@ -15,12 +15,10 @@
  */
 rootProject.name = "platform"
 
-enableFeaturePreview("VERSION_CATALOGS")
-
 dependencyResolutionManagement {
     versionCatalogs {
         create("libs") {
-            alias("mylib").to("org:mylib:1.0")
+            library("mylib", "org:mylib:1.0")
         }
     }
 }

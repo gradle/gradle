@@ -26,30 +26,42 @@ import org.gradle.api.internal.provider.sources.FileBytesValueSource;
 import org.gradle.api.internal.provider.sources.FileTextValueSource;
 import org.gradle.api.internal.provider.sources.GradlePropertyValueSource;
 import org.gradle.api.internal.provider.sources.SystemPropertyValueSource;
+import org.gradle.api.internal.provider.sources.process.DefaultExecOutput;
+import org.gradle.api.internal.provider.sources.process.ProcessOutputProviderFactory;
+import org.gradle.api.internal.provider.sources.process.ProcessOutputValueSource;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.provider.ValueSource;
 import org.gradle.api.provider.ValueSourceParameters;
 import org.gradle.api.provider.ValueSourceSpec;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.process.ExecOutput;
+import org.gradle.process.ExecSpec;
+import org.gradle.process.JavaExecSpec;
 
 import javax.annotation.Nullable;
 import java.util.concurrent.Callable;
 import java.util.function.BiFunction;
 
 public class DefaultProviderFactory implements ProviderFactory {
+    @Nullable
+    private final ValueSourceProviderFactory valueSourceProviderFactory;
+    @Nullable
+    private final ProcessOutputProviderFactory processOutputProviderFactory;
 
     private final CredentialsProviderFactory credentialsProviderFactory;
 
-    @Nullable
-    private final ValueSourceProviderFactory valueSourceProviderFactory;
-
     public DefaultProviderFactory() {
-        this(null, null);
+        this(null, null, null);
     }
 
-    public DefaultProviderFactory(@Nullable ValueSourceProviderFactory valueSourceProviderFactory, @Nullable ListenerManager listenerManager) {
+    public DefaultProviderFactory(
+        @Nullable ValueSourceProviderFactory valueSourceProviderFactory,
+        @Nullable ProcessOutputProviderFactory processOutputProviderFactory,
+        @Nullable ListenerManager listenerManager
+    ) {
         this.valueSourceProviderFactory = valueSourceProviderFactory;
+        this.processOutputProviderFactory = processOutputProviderFactory;
         this.credentialsProviderFactory = new CredentialsProviderFactory(this);
         if (listenerManager != null) {
             listenerManager.addListener(credentialsProviderFactory);
@@ -131,6 +143,22 @@ public class DefaultProviderFactory implements ProviderFactory {
                 );
             }
         };
+    }
+
+    @Override
+    public ExecOutput exec(Action<? super ExecSpec> action) {
+        if (processOutputProviderFactory == null) {
+            throw new UnsupportedOperationException();
+        }
+        return new DefaultExecOutput(of(ProcessOutputValueSource.class, spec -> processOutputProviderFactory.configureParametersForExec(spec.getParameters(), action)));
+    }
+
+    @Override
+    public ExecOutput javaexec(Action<? super JavaExecSpec> action) {
+        if (processOutputProviderFactory == null) {
+            throw new UnsupportedOperationException();
+        }
+        return new DefaultExecOutput(of(ProcessOutputValueSource.class, spec -> processOutputProviderFactory.configureParametersForJavaExec(spec.getParameters(), action)));
     }
 
     @Override

@@ -39,6 +39,19 @@ kotlin {
     }
 }
 
+rootProject.run {
+    // Force NodeJS version for Apple Silicon compatibility
+    plugins.withType<org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin> {
+        the<org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension>().nodeVersion = "16.13.2"
+    }
+    // Move yarn.lock to the build directory, out of VCS control
+    plugins.withType<org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlugin> {
+        configure<org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension> {
+            lockFileDirectory = layout.buildDirectory.file("kotlin-js-store").get().asFile
+        }
+    }
+}
+
 tasks {
     withType<KotlinJsCompile>().configureEach {
         kotlinOptions {

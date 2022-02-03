@@ -13,7 +13,6 @@ dependencies {
     performanceTestImplementation(project(":model-core"))
     performanceTestImplementation(project(":core-api"))
     performanceTestImplementation(project(":build-option"))
-    performanceTestImplementation(project(":internal-android-performance-testing"))
     performanceTestImplementation(libs.slf4jApi)
     performanceTestImplementation(libs.commonsIo)
     performanceTestImplementation(libs.commonsCompress)

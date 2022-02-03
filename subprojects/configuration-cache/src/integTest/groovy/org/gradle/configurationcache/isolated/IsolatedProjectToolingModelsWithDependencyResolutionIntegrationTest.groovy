@@ -93,11 +93,12 @@ class IsolatedProjectToolingModelsWithDependencyResolutionIntegrationTest extend
         model3[3].message == "project :d classpath = 0"
 
         and:
-        fixture.assertStateRecreated {
+        fixture.assertStateUpdated {
             fileChanged("a/build.gradle")
             projectConfigured(":buildSrc")
             projectConfigured(":")
             modelsCreated(":a")
+            modelsReused(":", ":b", ":c", ":d")
         }
     }
 
@@ -148,8 +149,7 @@ class IsolatedProjectToolingModelsWithDependencyResolutionIntegrationTest extend
         model2[2].message == "project :c classpath = 0"
 
         and:
-        fixture.assertStateLoaded {
-        }
+        fixture.assertStateLoaded()
 
         when:
         file("a/build.gradle") << """
@@ -167,13 +167,13 @@ class IsolatedProjectToolingModelsWithDependencyResolutionIntegrationTest extend
         model3[2].message == "project :c classpath = 0"
 
         and:
-        fixture.assertStateRecreated {
+        fixture.assertStateUpdated {
             fileChanged("a/build.gradle")
             projectConfigured(":buildSrc")
             projectConfigured(":")
-            // TODO - should skip this
             projectConfigured(":b") // has not been consumed by project dependency previously, but is now
             modelsCreated(":a")
+            modelsReused(":", ":b", ":c")
         }
 
         when:
@@ -187,8 +187,7 @@ class IsolatedProjectToolingModelsWithDependencyResolutionIntegrationTest extend
         model4[2].message == "project :c classpath = 0"
 
         and:
-        fixture.assertStateLoaded {
-        }
+        fixture.assertStateLoaded()
 
         when:
         file("a/build.gradle") << """
@@ -204,11 +203,12 @@ class IsolatedProjectToolingModelsWithDependencyResolutionIntegrationTest extend
         model5[2].message == "project :c classpath = 0"
 
         and:
-        fixture.assertStateRecreated {
+        fixture.assertStateUpdated {
             fileChanged("a/build.gradle")
             projectConfigured(":buildSrc")
             projectConfigured(":")
             modelsCreated(":a")
+            modelsReused(":", ":b", ":c")
         }
     }
 
@@ -262,8 +262,7 @@ class IsolatedProjectToolingModelsWithDependencyResolutionIntegrationTest extend
         model2[2].message == "project :c classpath = 0"
 
         and:
-        fixture.assertStateLoaded {
-        }
+        fixture.assertStateLoaded()
 
         when:
         file("a/build.gradle") << """
@@ -281,13 +280,13 @@ class IsolatedProjectToolingModelsWithDependencyResolutionIntegrationTest extend
         model3[2].message == "project :c classpath = 0"
 
         and:
-        fixture.assertStateRecreated {
+        fixture.assertStateUpdated {
             fileChanged("a/build.gradle")
             projectConfigured(":buildSrc")
             projectConfigured(":")
-            // TODO - should skip this
             projectConfigured(":b") // has not been consumed by project dependency previously, but is now
             modelsCreated(":a")
+            modelsReused(":", ":b", ":c")
         }
 
         when:
@@ -301,8 +300,7 @@ class IsolatedProjectToolingModelsWithDependencyResolutionIntegrationTest extend
         model4[2].message == "project :c classpath = 0"
 
         and:
-        fixture.assertStateLoaded {
-        }
+        fixture.assertStateLoaded()
 
         when:
         file("a/build.gradle") << """
@@ -318,11 +316,12 @@ class IsolatedProjectToolingModelsWithDependencyResolutionIntegrationTest extend
         model5[2].message == "project :c classpath = 0"
 
         and:
-        fixture.assertStateRecreated {
+        fixture.assertStateUpdated {
             fileChanged("a/build.gradle")
             projectConfigured(":buildSrc")
             projectConfigured(":")
             modelsCreated(":a")
+            modelsReused(":", ":b", ":c")
         }
     }
 
@@ -379,8 +378,7 @@ class IsolatedProjectToolingModelsWithDependencyResolutionIntegrationTest extend
         model2[2].message == "project :c classpath = 0"
 
         and:
-        fixture.assertStateLoaded {
-        }
+        fixture.assertStateLoaded()
 
         when:
         file("a/build.gradle").replace('implementation(project(":b"))', "")
@@ -395,11 +393,12 @@ class IsolatedProjectToolingModelsWithDependencyResolutionIntegrationTest extend
         model3[2].message == "project :c classpath = 0"
 
         and:
-        fixture.assertStateRecreated {
+        fixture.assertStateUpdated {
             fileChanged("a/build.gradle")
             projectConfigured(":buildSrc")
             projectConfigured(":")
             modelsCreated(":a")
+            modelsReused(":", ":b", ":c")
         }
 
         when:
@@ -413,8 +412,7 @@ class IsolatedProjectToolingModelsWithDependencyResolutionIntegrationTest extend
         model4[2].message == "project :c classpath = 0"
 
         and:
-        fixture.assertStateLoaded {
-        }
+        fixture.assertStateLoaded()
 
         when:
         file("a/build.gradle") << """
@@ -430,11 +428,12 @@ class IsolatedProjectToolingModelsWithDependencyResolutionIntegrationTest extend
         model5[2].message == "project :c classpath = 0"
 
         and:
-        fixture.assertStateRecreated {
+        fixture.assertStateUpdated {
             fileChanged("a/build.gradle")
             projectConfigured(":buildSrc")
             projectConfigured(":")
             modelsCreated(":a")
+            modelsReused(":", ":b", ":c")
         }
     }
 
@@ -491,8 +490,7 @@ class IsolatedProjectToolingModelsWithDependencyResolutionIntegrationTest extend
         model2[2].message == "project :c classpath = 0"
 
         and:
-        fixture.assertStateLoaded {
-        }
+        fixture.assertStateLoaded()
 
         when:
         file("c/build.gradle") << """
@@ -508,11 +506,12 @@ class IsolatedProjectToolingModelsWithDependencyResolutionIntegrationTest extend
         model3[2].message == "project :c classpath = 0"
 
         and:
-        fixture.assertStateRecreated {
+        fixture.assertStateUpdated {
             fileChanged("c/build.gradle")
             projectConfigured(":buildSrc")
             projectConfigured(":")
             modelsCreated(":a", ":b", ":c")
+            modelsReused(":")
         }
 
         when:
@@ -542,11 +541,12 @@ class IsolatedProjectToolingModelsWithDependencyResolutionIntegrationTest extend
         model5[2].message == "project :c classpath = 0"
 
         and:
-        fixture.assertStateRecreated {
+        fixture.assertStateUpdated {
             fileChanged("b/build.gradle")
             projectConfigured(":buildSrc")
             projectConfigured(":")
             modelsCreated(":a", ":b")
+            modelsReused(":", ":c")
         }
     }
 
@@ -631,12 +631,13 @@ class IsolatedProjectToolingModelsWithDependencyResolutionIntegrationTest extend
         model3[3].message == "project :d classpath = 0"
 
         and:
-        fixture.assertStateRecreated {
+        fixture.assertStateUpdated {
             fileChanged("a/build.gradle")
             projectConfigured(":buildSrc")
             projectConfigured(":")
             projectConfigured(":d")
             modelsCreated(":a", ":b", ":c")
+            modelsReused(":", ":d")
         }
     }
 }

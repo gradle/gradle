@@ -44,6 +44,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
         val allInitScripts: List<File>
         val startParameterProperties: Map<String, Any?>
         val buildStartTime: Long
+        val invalidateCoupledProjects: Boolean
         fun gradleProperty(propertyName: String): String?
         fun fingerprintOf(fileCollection: FileCollectionInternal): HashCode
         fun hashCodeOf(file: File): HashCode?
@@ -96,10 +97,12 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                     target.consumedBy(consumer)
                 }
                 is ProjectSpecificFingerprint.CoupledProjects -> {
-                    val referrer = projects.entryFor(input.referringProject)
-                    val target = projects.entryFor(input.targetProject)
-                    target.consumedBy(referrer)
-                    referrer.consumedBy(target)
+                    if (host.invalidateCoupledProjects) {
+                        val referrer = projects.entryFor(input.referringProject)
+                        val target = projects.entryFor(input.targetProject)
+                        target.consumedBy(referrer)
+                        referrer.consumedBy(target)
+                    }
                 }
                 else -> throw IllegalStateException("Unexpected configuration cache fingerprint: $input")
             }

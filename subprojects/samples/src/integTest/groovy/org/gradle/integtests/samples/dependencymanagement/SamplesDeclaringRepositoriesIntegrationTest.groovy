@@ -38,9 +38,9 @@ class SamplesDeclaringRepositoriesIntegrationTest extends AbstractIntegrationSpe
         succeeds('copyLibs')
 
         then:
-        sample.dir.file("$dsl/build/libs/commons-2.0.0.jar").isFile()
+        sample.dir.file("$dsl/build/libs/jboss-system-4.2.2.GA.jar").isFile()
 
         where:
-        dsl << ['groovy']
+        dsl << ['groovy', 'kotlin']
     }
 }

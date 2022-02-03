@@ -57,7 +57,8 @@ public interface ValueSourceProviderFactory {
     interface Listener {
 
         <T, P extends ValueSourceParameters> void valueObtained(
-            ObtainedValue<T, P> obtainedValue
+            ObtainedValue<T, P> obtainedValue,
+            ValueSource<T, P> source
         );
 
         interface ObtainedValue<T, P extends ValueSourceParameters> {
