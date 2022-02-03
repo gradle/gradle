@@ -33,6 +33,6 @@ public class ResolveException extends DefaultMultiCauseException {
     }
 
     private static String buildMessage(String resolveContext) {
-        return String.format("Could not resolve all dependencies for %s.", resolveContext);
+        return String.format("Could not resolve all dependencies for: %s.", resolveContext);
     }
 }

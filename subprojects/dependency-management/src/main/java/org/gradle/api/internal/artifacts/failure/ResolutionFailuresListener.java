@@ -27,6 +27,13 @@ import javax.annotation.concurrent.ThreadSafe;
 import java.util.IdentityHashMap;
 import java.util.Map;
 
+/**
+ * A listener that logs dependencies which experience resolution failures.
+ *
+ * Thread-safe, in case multiple threads are resolving dependencies simultaneously.
+ *
+ * @since 7.5
+ */
 @ThreadSafe
 @ServiceScope(Scopes.BuildTree.class)
 public class ResolutionFailuresListener implements DependencyResolutionListener {

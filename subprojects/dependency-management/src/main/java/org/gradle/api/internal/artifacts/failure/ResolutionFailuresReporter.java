@@ -16,21 +16,13 @@
 
 package org.gradle.api.internal.artifacts.failure;
 
-import com.google.common.base.Strings;
 import org.gradle.api.GradleException;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolveException;
-import org.gradle.api.artifacts.component.ComponentSelector;
-import org.gradle.api.artifacts.result.DependencyResult;
-import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.VersionConflictException;
 import org.gradle.internal.Pair;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.locking.LockOutOfDateException;
-import org.gradle.internal.logging.text.StyledTextOutput;
-import org.gradle.internal.logging.text.StyledTextOutputFactory;
-import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.problems.buildtree.ProblemReporter;
@@ -44,14 +36,18 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+/**
+ * Reports resolution failures to the user by writing detailed info to an HTML report, and throwing an exception containing
+ * a quick summary.
+ *
+ * @since 7.5
+ */
 @ServiceScope(Scopes.BuildTree.class)
-public class ResolutionFailuresReporter implements ProblemReporter {
-    private final ServiceRegistry services;
-    private final StyledTextOutputFactory styledTextOutputFactory;
+public final class ResolutionFailuresReporter implements ProblemReporter {
+    private final ResolutionFailuresListener failuresListener;
 
-    public ResolutionFailuresReporter(ServiceRegistry services, StyledTextOutputFactory styledTextOutputFactory) {
-        this.services = services;
-        this.styledTextOutputFactory = styledTextOutputFactory;
+    public ResolutionFailuresReporter(ResolutionFailuresListener failuresListener) {
+        this.failuresListener = failuresListener;
     }
 
     @Override
@@ -59,7 +55,6 @@ public class ResolutionFailuresReporter implements ProblemReporter {
         return "resolution failures";
     }
 
-    // This method exists for THIS class to REPORT any additional problems it knows about to the given consumer
     @Override
     public void report(File reportDir, Consumer<? super Throwable> validationFailures) {
         List<Throwable> errors = getErrors();
@@ -67,25 +62,19 @@ public class ResolutionFailuresReporter implements ProblemReporter {
         File reportFile = new File(reportDir, "reports/dependency-resolution/resolution-failure-report.html");
         writeHtmlReport(reportFile, errors);
 
-        StyledTextOutput output = styledTextOutputFactory.create(ResolutionFailuresReporter.class);
-        renderErrorsToConsole(output, errors, reportFile);
-
-        validationFailures.accept(new GradleException("Dependency resolution failed. See " + reportFile.getAbsolutePath() + " for details."));
+        String summary = buildFailureSummary(errors, reportFile);
+        validationFailures.accept(new GradleException(summary));
     }
 
     private List<Throwable> getErrors() {
-        ResolutionFailuresListener failuresListener = services.get(ResolutionFailuresListener.class);
-        return failuresListener.getErrors().entrySet().stream().sorted(Comparator.comparing(e -> e.getKey().getName())).map(Map.Entry::getValue).collect(Collectors.toList());
+        return failuresListener.getErrors().entrySet().stream()
+                .sorted(Comparator.comparing(e -> e.getKey().getName()))
+                .map(Map.Entry::getValue)
+                .collect(Collectors.toList());
     }
 
     private void writeHtmlReport(File reportFile, List<Throwable> errors) {
-        try {
-            reportFile.getParentFile().mkdirs();
-            reportFile.createNewFile();
-        } catch (IOException e) {
-            throw new GradleException("Error creating report file: '" + reportFile + "'", e);
-        }
-
+        reportFile.getParentFile().mkdirs();
         try (final FileWriter writer = new FileWriter(reportFile)) {
             final HtmlResolutionErrorRenderer htmlRenderer = new HtmlResolutionErrorRenderer();
             htmlRenderer.render(errors, writer);
@@ -94,74 +83,38 @@ public class ResolutionFailuresReporter implements ProblemReporter {
         }
     }
 
-    private void renderErrorsToConsole(StyledTextOutput output, List<Throwable> errors,  File reportFile) {
-        String title = "Dependency Resolution Failures";
-        String line = Strings.repeat("-", title.length());
-        output.withStyle(StyledTextOutput.Style.FailureHeader)
-            .println("")
-            .println(line)
-            .println(title)
-            .println(line);
-        output.style(StyledTextOutput.Style.Failure);
-        errors.forEach(e -> renderResolutionError(e, output));
+    private String buildFailureSummary(List<Throwable> errors, File reportFile) {
+        String summarizedErrors = errors.stream()
+                .map(this::summarizeResolutionError)
+                .map(s -> "- " + s)
+                .collect(Collectors.joining("\n"));
+        String reportLink = String.format("See %s for details.", new ConsoleRenderer().asClickableFileUrl(reportFile));
+        return String.format("Dependency resolution failed.\n\n%s\n\n%s", summarizedErrors, reportLink);
     }
 
-    private void renderResolutionError(Throwable cause, StyledTextOutput output) {
+    private String summarizeResolutionError(Throwable cause) {
         if (cause instanceof VersionConflictException) {
-            renderConflict((VersionConflictException) cause, output);
+            return summarizeConflict((VersionConflictException) cause);
         } else if (cause instanceof LockOutOfDateException) {
-            renderOutOfDateLocks((LockOutOfDateException) cause, output);
+            return summarizeOutOfDateLocks((LockOutOfDateException) cause);
         } else if (cause instanceof ResolveException) {
-            renderResolveException((ResolveException) cause, output);
-        } else {
-            // Fallback to failing the task in case we don't know anything special
-            // about the error
+            return summarizeResolveFailure((ResolveException) cause);
+        } else { // Fallback to failing the task in case we don't know anything special about the error
             throw UncheckedException.throwAsUncheckedException(cause);
         }
     }
 
-    private void renderResolveException(ResolveException cause, StyledTextOutput output) {
-        output.println(cause.getMessage());
+    private String summarizeResolveFailure(ResolveException cause) {
+        return cause.getMessage();
     }
 
-    private void renderOutOfDateLocks(final LockOutOfDateException cause, StyledTextOutput output) {
-        List<String> errors = cause.getErrors();
-        output.text("The dependency locks are out-of-date:");
-        output.println();
-        for (String error : errors) {
-            output.text("   - " + error);
-            output.println();
-        }
-        output.println();
+    private String summarizeOutOfDateLocks(final LockOutOfDateException cause) {
+        return "The dependency locks are out-of-date.";
     }
 
-    private void renderConflict(final VersionConflictException conflict, StyledTextOutput output) {
-        output.text("Dependency resolution failed because of conflict(s) on the following module(s):");
-        output.println();
-        for (Pair<List<? extends ModuleVersionIdentifier>, String> identifierStringPair : conflict.getConflicts()) {
-            output.text("   - ");
-            output.withStyle(StyledTextOutput.Style.Error).text(identifierStringPair.getRight());
-            output.println();
-        }
-        output.println();
-    }
-
-    private DependencyResult asDependencyResult(final ModuleVersionIdentifier versionIdentifier) {
-        return new DependencyResult() {
-            @Override
-            public ComponentSelector getRequested() {
-                return DefaultModuleComponentSelector.newSelector(versionIdentifier.getModule(), versionIdentifier.getVersion());
-            }
-
-            @Override
-            public ResolvedComponentResult getFrom() {
-                return null;
-            }
-
-            @Override
-            public boolean isConstraint() {
-                return false;
-            }
-        };
+    private String summarizeConflict(final VersionConflictException cause) {
+        return cause.getConflicts().stream()
+                .map(Pair::getRight)
+                .collect(Collectors.joining(", ", "\"Dependency resolution failed because of conflict(s) on the following module(s): ", "."));
     }
 }

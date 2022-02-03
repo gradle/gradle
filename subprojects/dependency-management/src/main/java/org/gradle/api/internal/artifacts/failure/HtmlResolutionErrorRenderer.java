@@ -16,6 +16,12 @@
 
 package org.gradle.api.internal.artifacts.failure;
 
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.ResolveException;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.VersionConflictException;
+import org.gradle.internal.Pair;
+import org.gradle.internal.locking.LockOutOfDateException;
+import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.reporting.ReportRenderer;
 
 import java.io.IOException;
@@ -46,5 +52,32 @@ public final class HtmlResolutionErrorRenderer extends ReportRenderer<List<Throw
         } catch (IOException ex) {
             ex.printStackTrace();
         }
+    }
+
+
+    private void renderResolveException(ResolveException cause, StyledTextOutput output) {
+        output.println(cause.getMessage());
+    }
+
+    private void renderOutOfDateLocks(final LockOutOfDateException cause, StyledTextOutput output) {
+        List<String> errors = cause.getErrors();
+        output.text("The dependency locks are out-of-date:");
+        output.println();
+        for (String error : errors) {
+            output.text("   - " + error);
+            output.println();
+        }
+        output.println();
+    }
+
+    private void renderConflict(final VersionConflictException conflict, StyledTextOutput output) {
+        output.text("Dependency resolution failed because of conflict(s) on the following module(s):");
+        output.println();
+        for (Pair<List<? extends ModuleVersionIdentifier>, String> identifierStringPair : conflict.getConflicts()) {
+            output.text("   - ");
+            output.withStyle(StyledTextOutput.Style.Error).text(identifierStringPair.getRight());
+            output.println();
+        }
+        output.println();
     }
 }

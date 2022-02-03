@@ -24,8 +24,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.Resoluti
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.logging.text.StyledTextOutputFactory;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
 
 import java.io.File;
@@ -54,7 +52,7 @@ class DependencyManagementBuildTreeScopeServices {
         return listener;
     }
 
-    ResolutionFailuresReporter createResolutionFailuresReporter(ServiceRegistry services, StyledTextOutputFactory styledTextOutputFactory) {
-        return new ResolutionFailuresReporter(services, styledTextOutputFactory);
+    ResolutionFailuresReporter createResolutionFailuresReporter(ResolutionFailuresListener listener) {
+        return new ResolutionFailuresReporter(listener);
     }
 }
