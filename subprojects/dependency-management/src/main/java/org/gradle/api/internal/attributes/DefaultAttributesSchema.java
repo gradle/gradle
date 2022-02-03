@@ -198,6 +198,7 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
         private final AttributesSchemaInternal producerSchema;
         private final Set<Attribute<?>> combinedPrecedence = new LinkedHashSet<>();
         MergedSchema(AttributesSchemaInternal producerSchema) {
+            assert producerSchema != null;
             this.producerSchema = producerSchema;
             combinedPrecedence.addAll(precedence);
             combinedPrecedence.addAll(producerSchema.getAttributeDisambiguationPrecedence());
