@@ -97,7 +97,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         assertConfigurationCacheStateStored()
 
         when: 'up-to-date build'
-        result = buildMaybeExpectingFileTreeDeprecations(runner, agpVersion)
+        result = buildMaybeExpectingDeprecationWarnings(runner, agpVersion)
 
         then:
         result.task(':app:compileDebugJavaWithJavac').outcome == TaskOutcome.UP_TO_DATE
@@ -141,7 +141,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
     }
 
     private static BuildResult buildMaybeExpectingWorkerExecutorDeprecation(SmokeTestGradleRunner runner, String agpVersion) {
-        return buildMaybeExpectingFileTreeDeprecations(
+        return buildMaybeExpectingDeprecationWarnings(
             runner.expectLegacyDeprecationWarningIf(agpVersion.startsWith('4.1'),
                 "The WorkerExecutor.submit() method has been deprecated. " +
                     "This is scheduled to be removed in Gradle 8.0. Please use the noIsolation(), classLoaderIsolation() or processIsolation() method instead. " +
@@ -149,8 +149,9 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
             , agpVersion)
     }
 
-    private static BuildResult buildMaybeExpectingFileTreeDeprecations(SmokeTestGradleRunner runner, String agpVersion) {
+    private static BuildResult buildMaybeExpectingDeprecationWarnings(SmokeTestGradleRunner runner, String agpVersion) {
         expectAgpFileTreeDeprecations(agpVersion, runner)
+        expectIncrementalTaskInputsDeprecation(agpVersion, runner)
         return runner.build()
     }
 

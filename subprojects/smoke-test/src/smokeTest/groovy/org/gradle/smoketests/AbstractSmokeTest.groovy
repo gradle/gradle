@@ -36,6 +36,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
 import org.gradle.util.GradleVersion
+import org.gradle.util.internal.VersionNumber
 import spock.lang.Specification
 import spock.lang.TempDir
 
@@ -345,6 +346,21 @@ abstract class AbstractSmokeTest extends Specification {
             expectAgpFileTreeDeprecationWarnings(runner, "mergeDebugNativeLibs")
         }
         return runner
+    }
+
+    protected static SmokeTestGradleRunner expectIncrementalTaskInputsDeprecation(String agpVersion, SmokeTestGradleRunner runner) {
+        return runner.expectDeprecationWarning(incrementalTaskInputsWarning(agpVersion), "TODO: Create issue")
+    }
+
+    protected static String incrementalTaskInputsWarning(String agpVersionString) {
+        def agpVersion = VersionNumber.parse(agpVersionString)
+        def method = agpVersion < VersionNumber.parse("4.2")
+            ? 'taskAction$gradle'
+            : 'taskAction$gradle_core'
+        return "IncrementalTaskInputs has been deprecated. " +
+            "This is scheduled to be removed in Gradle 8.0. " +
+            "On method 'IncrementalTask.${method}' use 'org.gradle.work.InputChanges' instead. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#incremental_task_inputs_deprecation"
     }
 
     protected static void expectAgpFileTreeDeprecationWarnings(SmokeTestGradleRunner runner, String... tasks) {
