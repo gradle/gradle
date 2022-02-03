@@ -23,7 +23,9 @@ import org.junit.Assume
 
 import java.util.regex.Pattern
 
-import static org.gradle.test.fixtures.junitplatform.JUnitPlatformTestRewriter.*
+import static org.gradle.test.fixtures.junitplatform.JUnitPlatformTestRewriter.replaceCategoriesWithTags
+import static org.gradle.test.fixtures.junitplatform.JUnitPlatformTestRewriter.rewriteWithJupiter
+import static org.gradle.test.fixtures.junitplatform.JUnitPlatformTestRewriter.rewriteWithVintage
 
 /**
  * To avoid rework when testing JUnit Platform (a.k.a JUnit 5), we'd like to reuse previous test cases in following aspects:
@@ -38,7 +40,7 @@ import static org.gradle.test.fixtures.junitplatform.JUnitPlatformTestRewriter.*
  */
 abstract class JUnitMultiVersionIntegrationSpec extends MultiVersionIntegrationSpec {
     // JUnit 5's test case name contains parentheses which might break test assertion, e.g. testMethod() PASSED -> testMethod PASSED
-    private static final Pattern TEST_CASE_RESULT_PATTERN = ~/(.*)(\w+)\(\) (PASSED|FAILED|SKIPPED|STANDARD_OUT)/
+    static final Pattern TEST_CASE_RESULT_PATTERN = ~/(.*)(\w+)\(\) (PASSED|FAILED|SKIPPED|STANDARD_OUT)/
 
     def setup() {
         executer.withRepositoryMirrors()
