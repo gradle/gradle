@@ -21,13 +21,14 @@ Switch your build to use Gradle @version@ by updating your wrapper:
 
 `./gradlew wrapper --gradle-version=@version@`
 
-See the [Gradle 7.x upgrade guide](userguide/upgrading_version_7.html#changes_@baseVersion@) to learn about deprecations, breaking changes and other considerations when upgrading to Gradle @version@. 
+See the [Gradle 7.x upgrade guide](userguide/upgrading_version_7.html#changes_@baseVersion@) to learn about deprecations, breaking changes and other considerations when upgrading to Gradle @version@.
 
 For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).
 
-<!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. --> 
 
-<!-- 
+<!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. -->
+
+<!--
 
 ================== TEMPLATE ==============================
 
@@ -44,7 +45,7 @@ Example:
 > HIGHLIGHT the usecase or existing problem the feature solves
 > EXPLAIN how the new release addresses that problem or use case
 > PROVIDE a screenshot or snippet illustrating the new feature, if applicable
-> LINK to the full documentation for more details 
+> LINK to the full documentation for more details
 
 ================== END TEMPLATE ==========================
 
@@ -75,6 +76,39 @@ Note, that these changes improve the [Buildship](https://eclipse.org/buildship) 
 
 See [the documentation](userguide/eclipse_plugin.html#sec:test-sources) for more details.
 
+### Improved Diagnostic Reports for dependency resolution
+
+#### Outgoing Variants
+
+The `outgoingVariants` report has been improved to present information more clearly and consistently:
+
+- New messages when using `--all` and `--variant` options to better describe results (or the lack thereof)
+- Classifier printed next to Artifacts if available
+- Capabilities, Attributes, Artifacts lists all fully sorted
+- Rich Console output coloring improved to highlight important information
+
+See the [OutgoingVariantsReport](https://docs.gradle.org/current/dsl/org.gradle.api.tasks.diagnostics.OutgoingVariantsReport.html) DSL reference for more details.
+
+#### Resolvable Configurations
+
+There is a new `resolvableConfigurations` report available which will display information about all configurations in a project which can be resolved.  This report compliments `outgoingVariants` and will include the following information:
+
+- Description, Attributes and (directly) extended Configurations
+- A `--recursive` option flag can be set to display all configurations which are extended transitively
+- Attributes affected by Compatibility or Disambiguation rules during resolution listed
+- A `--configuration` option can limit this report to a single configuration
+- A `--all` option flag can be set to include legacy configurations which are both resolvable and consumable, these will be hidden by default
+-
+See the [ResolvableConfigurations](https://docs.gradle.org/current/dsl/org.gradle.api.tasks.diagnostics.ResolvableConfigurations.html) DSL reference for more details.
+
+#### Dependency Insights
+
+[**TO BE ADDED**]
+
+### Description Available on Secondary Variants
+
+When defining secondary variants, there is a new [ConfigurationVariant](https://docs.gradle.org/current/javadoc/org/gradle/api/artifacts/ConfigurationVariant.html#getDescription--) method available to supply a note or description for the variant.
+These descriptions will be printed by the `outgoingVariants` report and defaults have been added for existing secondary variants produced by the Java plugin.
 ### Continuous build is responsive on Windows and macOS
 
 Continuous Build allows you to automatically re-execute the build with the same requested tasks when inputs change.
@@ -100,6 +134,8 @@ See the User Manual section on the “[Feature Lifecycle](userguide/feature_life
 
 The following are the features that have been promoted in this Gradle release.
 
+- The [TargetJvmEnvironmant](https://docs.gradle.org/current/javadoc/org/gradle/api/attributes/java/TargetJvmEnvironmant.html) interface is now stable.
+
 <!--
 ### Example promoted
 -->
@@ -116,7 +152,7 @@ We love getting contributions from the Gradle community. For information on cont
 
 ## Reporting problems
 
-If you find a problem with this release, please file a bug on [GitHub Issues](https://github.com/gradle/gradle/issues) adhering to our issue guidelines. 
+If you find a problem with this release, please file a bug on [GitHub Issues](https://github.com/gradle/gradle/issues) adhering to our issue guidelines.
 If you're not sure you're encountering a bug, please use the [forum](https://discuss.gradle.org/c/help-discuss).
 
 We hope you will build happiness with Gradle, and we look forward to your feedback via [Twitter](https://twitter.com/gradle) or on [GitHub](https://github.com/gradle).

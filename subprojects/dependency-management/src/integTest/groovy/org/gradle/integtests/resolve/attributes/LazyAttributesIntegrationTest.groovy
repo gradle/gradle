@@ -49,10 +49,11 @@ class LazyAttributesIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds "outgoingVariants"
-        outputContains("""
+        result.groupedOutput.task(':outgoingVariants').assertOutputContains("""
             --------------------------------------------------
             Variant sample
             --------------------------------------------------
+
             Capabilities
                 - :TestProject:unspecified (default capability)
             Attributes
