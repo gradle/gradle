@@ -40,6 +40,7 @@ dependencies {
     implementation(libs.commonsIo)
     implementation(libs.httpcore)
     implementation(libs.inject)
+    implementation(libs.jsoup)
     implementation(libs.gson)
     implementation(libs.ant)
     implementation(libs.ivy)

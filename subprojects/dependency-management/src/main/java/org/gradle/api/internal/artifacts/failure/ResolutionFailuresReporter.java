@@ -28,8 +28,6 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.problems.buildtree.ProblemReporter;
 
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -74,13 +72,8 @@ public final class ResolutionFailuresReporter implements ProblemReporter {
     }
 
     private void writeHtmlReport(File reportFile, List<Throwable> errors) {
-        reportFile.getParentFile().mkdirs();
-        try (final FileWriter writer = new FileWriter(reportFile)) {
-            final HtmlResolutionErrorRenderer htmlRenderer = new HtmlResolutionErrorRenderer();
-            htmlRenderer.render(errors, writer);
-        } catch (IOException e) {
-            throw new GradleException("Error writing report file: '" + reportFile + "'", e);
-        }
+        HtmlResolutionFailureReport htmlReport = new HtmlResolutionFailureReport(reportFile);
+        htmlReport.writeReport(errors);
     }
 
     private String buildFailureSummary(List<Throwable> errors, File reportFile) {
