@@ -951,6 +951,194 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
         }
     }
 
+    def "multiple platform deselection - reselection does not leave pending constraints in graph"() {
+        given:
+        def depsPlatform = mavenHttpRepo.module('org.test', 'deps', '1.0').withModuleMetadata().withoutDefaultVariants()
+            .withVariant('apiElements') {
+                useDefaultArtifacts = false
+                attribute(Usage.USAGE_ATTRIBUTE.name, Usage.JAVA_API)
+                attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
+                constraint('org.test', 'dep', '1.0')
+            }
+            .withVariant('runtimeElements') {
+                useDefaultArtifacts = false
+                attribute(Usage.USAGE_ATTRIBUTE.name, Usage.JAVA_RUNTIME)
+                attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
+                constraint('org.test', 'dep', '1.0')
+            }.publish()
+        def extPlatform = mavenHttpRepo.module('org.test', 'platform', '1.0').withModuleMetadata().withoutDefaultVariants()
+            .withVariant('apiElements') {
+                useDefaultArtifacts = false
+                attribute(Usage.USAGE_ATTRIBUTE.name, Usage.JAVA_API)
+                attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
+                constraint('commons', 'other', '2.0')
+                constraint('commons', 'commons', '2.0')
+                dependsOn('jack', 'bom', '1.0') {
+                    endorseStrictVersions = true
+                    attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
+                }
+                dependsOn('spring', 'bom', '2.0') {
+                    endorseStrictVersions = true
+                    attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
+                }
+            }
+            .withVariant('runtimeElements') {
+                useDefaultArtifacts = false
+                attribute(Usage.USAGE_ATTRIBUTE.name, Usage.JAVA_RUNTIME)
+                attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
+                constraint('commons', 'other', '2.0')
+                constraint('commons', 'commons', '2.0')
+                dependsOn('jack', 'bom', '1.0') {
+                    endorseStrictVersions = true
+                    attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
+                }
+                dependsOn('spring', 'bom', '2.0') {
+                    endorseStrictVersions = true
+                    attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
+                }
+            }.publish()
+        def springBom = mavenHttpRepo.module('spring', 'bom', '2.0').withModuleMetadata().withoutDefaultVariants()
+            .withVariant('apiElements') {
+                useDefaultArtifacts = false
+                attribute(Usage.USAGE_ATTRIBUTE.name, Usage.JAVA_API)
+                attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
+                constraint('spring', 'core', '2.0')
+            }
+            .withVariant('runtimeElements') {
+                useDefaultArtifacts = false
+                attribute(Usage.USAGE_ATTRIBUTE.name, Usage.JAVA_RUNTIME)
+                attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
+                constraint('spring', 'core', '2.0')
+            }.publish()
+        def jackBom = mavenHttpRepo.module('jack', 'bom', '1.0').withModuleMetadata().withoutDefaultVariants()
+            .withVariant('apiElements') {
+                useDefaultArtifacts = false
+                attribute(Usage.USAGE_ATTRIBUTE.name, Usage.JAVA_API)
+                attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
+                constraint('jack', 'db', '1.0')
+            }
+            .withVariant('runtimeElements') {
+                useDefaultArtifacts = false
+                attribute(Usage.USAGE_ATTRIBUTE.name, Usage.JAVA_RUNTIME)
+                attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
+                constraint('jack', 'db', '1.0')
+            }.publish()
+        def jack2Bom = mavenHttpRepo.module('jack', 'bom', '2.0').withModuleMetadata().withoutDefaultVariants()
+            .withVariant('apiElements') {
+                useDefaultArtifacts = false
+                attribute(Usage.USAGE_ATTRIBUTE.name, Usage.JAVA_API)
+                attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
+                constraint('jack', 'db', '2.0')
+            }
+            .withVariant('runtimeElements') {
+                useDefaultArtifacts = false
+                attribute(Usage.USAGE_ATTRIBUTE.name, Usage.JAVA_RUNTIME)
+                attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
+                constraint('jack', 'db', '2.0')
+            }.publish()
+        def depSwag = mavenHttpRepo.module('org.test', 'swag', '1.0').withModuleMetadata()
+            .withVariant('runtime') {
+                dependsOn('jack', 'db', '2.0')
+                dependsOn('org.test', 'swag-int', '1.0')
+            }.publish()
+        def depJackDb = mavenHttpRepo.module('jack', 'db', '2.0').withModuleMetadata()
+            .withVariant('runtime') {
+                dependsOn('jack', 'bom', '2.0') {
+                    attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
+                }
+            }.publish()
+        def depSwagInt = mavenHttpRepo.module('org.test', 'swag-int', '1.0').withModuleMetadata()
+            .withVariant('runtime') {
+                dependsOn('org.test', 'swag-core', '1.0')
+            }.publish()
+        def depSwagCore = mavenHttpRepo.module('org.test', 'swag-core', '1.0').withModuleMetadata()
+            .withVariant('runtime') {
+                dependsOn('commons', 'commons', '1.0')
+                dependsOn('jack', 'db', '2.0')
+            }.publish()
+        def dep = mavenHttpRepo.module('org.test', 'dep', '1.0').withModuleMetadata()
+            .withVariant('runtime') {
+                dependsOn('spring', 'core', '1.0')
+            }.publish()
+        def depCommons = mavenHttpRepo.module('commons', 'commons', '1.0').withModuleMetadata().publish()
+        def depCommons2 = mavenHttpRepo.module('commons', 'commons', '2.0').withModuleMetadata().publish()
+        def depCommonsOther = mavenHttpRepo.module('commons', 'other', '2.0').withModuleMetadata().publish()
+        def depSpring = mavenHttpRepo.module('spring', 'core', '1.0').withModuleMetadata()
+            .withVariant('runtime') {
+                dependsOn('commons', 'other', '2.0')
+            }.publish()
+        def depSpring2 = mavenHttpRepo.module('spring', 'core', '2.0').withModuleMetadata().publish()
+
+        depsPlatform.allowAll()
+        extPlatform.allowAll()
+        springBom.allowAll()
+        jackBom.allowAll()
+        jack2Bom.allowAll()
+        depSwag.allowAll()
+        depJackDb.allowAll()
+        depSwagInt.allowAll()
+        depSwagCore.allowAll()
+        dep.allowAll()
+        depCommons.allowAll()
+        depCommons2.allowAll()
+        depCommonsOther.allowAll()
+        depSpring.allowAll()
+        depSpring2.allowAll()
+
+        buildFile << """
+            configurations {
+                conf.dependencies.clear()
+            }
+
+            dependencies {
+                conf 'org.test:dep'
+                conf 'org.test:swag:1.0'
+                conf(platform('org.test:deps:1.0'))
+                conf(platform('org.test:platform:1.0'))
+            }
+"""
+        checkConfiguration("conf")
+        resolve.expectDefaultConfiguration("runtime")
+
+        when:
+        succeeds 'checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", "org.test:test:1.9") {
+                edge('org.test:dep', 'org.test:dep:1.0') {
+                    edge('spring:core:1.0', 'spring:core:2.0')
+                }
+                module('org.test:swag:1.0') {
+                    module('jack:db:2.0') {
+                        module('jack:bom:2.0') {
+                            noArtifacts()
+                            constraint('jack:db:2.0')
+                        }
+                    }
+                    module('org.test:swag-int:1.0') {
+                        module('org.test:swag-core:1.0') {
+                            edge('commons:commons:1.0', 'commons:commons:2.0')
+                            module('jack:db:2.0')
+                        }
+                    }
+                }
+                module('org.test:deps:1.0') {
+                    noArtifacts()
+                    constraint('org.test:dep:1.0')
+                }
+                module('org.test:platform:1.0') {
+                    noArtifacts()
+                    edge('jack:bom:1.0', 'jack:bom:2.0')
+                    module('spring:bom:2.0') {
+                        noArtifacts()
+                        constraint('spring:core:2.0')
+                    }
+                    constraint('commons:commons:2.0')
+                }
+            }
+        }
+    }
 
     private void checkConfiguration(String configuration) {
         resolve = new ResolveTestFixture(buildFile, configuration)
