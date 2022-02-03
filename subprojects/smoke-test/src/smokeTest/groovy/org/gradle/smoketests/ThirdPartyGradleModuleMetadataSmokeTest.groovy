@@ -137,6 +137,7 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
                 "Please use the destinationDirectory property instead. " +
                 "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#compile_task_wiring",
                 "https://youtrack.jetbrains.com/issue/KT-46019")
+            .expectLegacyDeprecationWarning("IncrementalTaskInputs has been deprecated. This is scheduled to be removed in Gradle 8.0. On method 'AbstractKotlinCompile.execute' use 'org.gradle.work.InputChanges' instead. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#incremental_task_inputs_deprecation")
         expectAgpFileTreeDeprecationWarnings(runner, "compileDebugAidl", "mergeDebugNativeLibs", "stripDebugDebugSymbols", "compileDebugRenderscript")
         runner.build()
     }
