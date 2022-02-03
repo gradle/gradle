@@ -19,6 +19,7 @@ package org.gradle.api.attributes;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 
+import java.util.Collection;
 import java.util.Set;
 
 /**
@@ -72,15 +73,36 @@ public interface AttributesSchema {
     boolean hasAttribute(Attribute<?> key);
 
     /**
-     * Registers the order of precedence of attributes when resolving ambiguity. Attributes listed first have the highest precedence.
-     *
-     * By default, there is no explicit precedence between attributes.
+     * Adds attributes to the precedence order. Attributes listed first have higher precedence.
      * <p>
-     * Note that this clears any previously set attribute precedence.
-     * </p>
+     * The attributes will be added to any existing precedence order. If an attribute has already been added, adding it again
+     * will not lower its precedence.
+     *
+     * @param attributes the attributes in order
+     *
+     * @since 7.5
+     * @see #setAttributePrecedence(Attribute[])
+     */
+    @Incubating
+    void attributePrecedence(Attribute<?>... attributes);
+
+    /**
+     * Sets the order of precedence of attributes when resolving ambiguity. Attributes listed first have higher precedence.
+     * <p>
+     * By default, there is no explicit precedence between attributes and all attributes must be considered when disambiguating.
+     *
      * @param attributes the attributes in order
      * @since 7.5
      */
     @Incubating
-    void attributePrecedence(Attribute<?>... attributes);
+    void setAttributePrecedence(Attribute<?>... attributes);
+
+    /**
+     * Returns the order that attributes should be considered when resolving ambiguity.
+     *
+     * @return attributes in precedence order
+     * @since 7.5
+     */
+    @Incubating
+    Collection<Attribute<?>> getAttributePrecedence();
 }

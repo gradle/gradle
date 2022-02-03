@@ -21,6 +21,7 @@ import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.internal.component.model.AttributeMatcher;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -95,8 +96,13 @@ public class EmptySchema implements AttributesSchemaInternal {
     }
 
     @Override
-    public List<Attribute<?>> getAttributePrecedence() {
-        return Collections.emptyList();
+    public void setAttributePrecedence(Attribute<?>... attributes) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Collection<Attribute<?>> getAttributePrecedence() {
+        return Collections.emptySet();
     }
 
     private static class DoNothingCompatibilityRule implements CompatibilityRule<Object> {

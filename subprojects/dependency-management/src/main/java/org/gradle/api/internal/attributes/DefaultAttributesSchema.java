@@ -54,12 +54,12 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
     private final IsolatableFactory isolatableFactory;
     private final Map<ExtraAttributesEntry, Attribute<?>[]> extraAttributesCache = new HashMap<>();
     private final List<AttributeDescriber> consumerAttributeDescribers = new ArrayList<>();
-    private final List<Attribute<?>> precedence = new ArrayList<>();
+    private final Set<Attribute<?>> precedence = new LinkedHashSet<>();
 
     public DefaultAttributesSchema(ComponentAttributeMatcher componentAttributeMatcher, InstantiatorFactory instantiatorFactory, IsolatableFactory isolatableFactory) {
         this.componentAttributeMatcher = componentAttributeMatcher;
         this.instantiatorFactory = instantiatorFactory;
-        matcher = new DefaultAttributeMatcher(componentAttributeMatcher, mergeWith(EmptySchema.INSTANCE));
+        this.matcher = new DefaultAttributeMatcher(componentAttributeMatcher, mergeWith(EmptySchema.INSTANCE));
         this.isolatableFactory = isolatableFactory;
     }
 
@@ -145,12 +145,17 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
 
     @Override
     public void attributePrecedence(Attribute<?>... attributes) {
+        precedence.addAll(Arrays.asList(attributes));
+    }
+
+    @Override
+    public void setAttributePrecedence(Attribute<?>... attributes) {
         precedence.clear();
         precedence.addAll(Arrays.asList(attributes));
     }
 
     @Override
-    public List<Attribute<?>> getAttributePrecedence() {
+    public Collection<Attribute<?>> getAttributePrecedence() {
         return precedence;
     }
 
