@@ -22,6 +22,7 @@ import org.gradle.api.file.ProjectLayout
 import org.gradle.api.internal.tasks.testing.DefaultTestClassRunInfo
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter
+import org.gradle.api.internal.tasks.testing.retrying.JvmRetrySpec
 import org.gradle.api.tasks.testing.TestResult.ResultType
 import org.gradle.api.tasks.testing.testng.TestNGOptions
 import org.gradle.internal.actor.TestActorFactory
@@ -51,7 +52,7 @@ class TestNGTestClassProcessorTest extends Specification {
             getAsFile() >> dir.testDirectory
         }
     }
-    def options = Spy(TestNGSpec, constructorArgs:[new TestNGOptions(layout), new DefaultTestFilter()])
+    def options = Spy(TestNGSpec, constructorArgs:[new TestNGOptions(layout), new DefaultTestFilter(), Stub(JvmRetrySpec)])
 
     @Subject classProcessor = new TestNGTestClassProcessor(dir.testDirectory, options, [], new LongIdGenerator(), Time.clock(), new TestActorFactory())
 
@@ -60,7 +61,6 @@ class TestNGTestClassProcessorTest extends Specification {
         for (String c : clazz*.name) {
             classProcessor.processTestClass(new DefaultTestClassRunInfo(c))
         }
-        classProcessor.runTests()
         classProcessor.stop()
     }
 

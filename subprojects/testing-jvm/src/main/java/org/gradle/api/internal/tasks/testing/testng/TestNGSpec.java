@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.testing.testng;
 
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.internal.tasks.testing.retrying.JvmRetrySpec;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.testing.testng.TestNGOptions;
 
 import java.io.Serializable;

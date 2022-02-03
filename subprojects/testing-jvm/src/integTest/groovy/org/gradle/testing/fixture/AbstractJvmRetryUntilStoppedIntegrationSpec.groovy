@@ -57,7 +57,7 @@ abstract class AbstractJvmRetryUntilStoppedIntegrationSpec extends AbstractInteg
         retryUntilStoppedCount << [1, 5, 10]
     }
 
-    def "runs tests #retryUntilStoppedCount times with failure"() {
+    def "runs tests #retryUntilStoppedCount times with #expectedFailedTests failed tests"() {
         given:
         buildFile.text = initBuildFile()
         buildFile << "test { retryUntilStoppedCount.set(${retryUntilStoppedCount}L) }"
@@ -68,14 +68,14 @@ abstract class AbstractJvmRetryUntilStoppedIntegrationSpec extends AbstractInteg
 
         then:
         def result = new DefaultTestExecutionResult(testDirectory)
-        result.testClass(failingClassName).assertTestCount(retryUntilStoppedCount, retryUntilStoppedCount - failOnRun + 1, 0)
+        result.testClass(failingClassName).assertTestCount(retryUntilStoppedCount, expectedFailedTests, 0)
 
         where:
-        retryUntilStoppedCount | failOnRun
-        10                     | 1
-        10                     | 3
-        10                     | 5
-        10                     | 10
+        retryUntilStoppedCount | failOnRun | expectedFailedTests
+        10                     | 1         | 10
+        10                     | 3         | 8
+        10                     | 5         | 6
+        10                     | 10        | 1
     }
 
     String initBuildFile() {

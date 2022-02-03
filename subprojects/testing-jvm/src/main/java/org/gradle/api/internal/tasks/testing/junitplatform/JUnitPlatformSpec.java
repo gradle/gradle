@@ -17,7 +17,6 @@ package org.gradle.api.internal.tasks.testing.junitplatform;
 
 import org.gradle.api.internal.tasks.testing.junit.AbstractJUnitSpec;
 import org.gradle.api.internal.tasks.testing.retrying.JvmRetrySpec;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions;
 
 import java.util.ArrayList;

@@ -378,7 +378,7 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
     }
 
     protected ExecutionResult succeeds(String... tasks) {
-        result = executer.withTasks(*tasks).withArgument("--info").run()
+        result = executer.withTasks(*tasks).run()
         return result
     }
 
