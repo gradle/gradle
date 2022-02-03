@@ -42,7 +42,12 @@ class KotlinPluginAndroidKotlinDSLSmokeTest extends AbstractSmokeTest {
 
         when:
         def runner = createRunner(workers, 'clean', ':app:testDebugUnitTestCoverage')
-        def result = useAgpVersion(androidPluginVersion, runner).build()
+        def result = useAgpVersion(androidPluginVersion, runner)
+            .expectLegacyDeprecationWarningIf(kotlinPluginVersion < "1.4.31", deprecationOfConfigurationAsDependency())
+            .expectLegacyDeprecationWarningIf(workers && kotlinPluginVersion < "1.5.0", deprecationOfWorkerSubmit())
+            .expectLegacyDeprecationWarningIf(androidPluginVersion < "7.2.0", deprecationOfFileTreeForEmptySources("sourceFiles"))
+            .expectLegacyDeprecationWarningIf(androidPluginVersion < "7.2.0", deprecationOfFileTreeForEmptySources("sourceDirs"))
+            .build()
 
         then:
         result.task(':app:testDebugUnitTestCoverage').outcome == SUCCESS
