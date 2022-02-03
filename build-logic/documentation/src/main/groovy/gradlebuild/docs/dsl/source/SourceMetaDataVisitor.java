@@ -16,6 +16,7 @@
 package gradlebuild.docs.dsl.source;
 
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.PackageDeclaration;
 import com.github.javaparser.ast.body.AnnotationDeclaration;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
@@ -146,13 +147,16 @@ public class SourceMetaDataVisitor extends VoidVisitorAdapter<ClassMetaDataRepos
 
         String rawCommentText = getJavadocComment(methodDeclaration);
         TypeMetaData returnType = extractTypeName(methodDeclaration.getType());
+        if (!getCurrentClass().isInterface() && methodDeclaration.getModifiers().stream().noneMatch(modifier -> modifier.getKeyword() == Modifier.Keyword.PUBLIC)) {
+            return;
+        }
         MethodMetaData methodMetaData = getCurrentClass().addMethod(name, returnType, rawCommentText);
 
         findAnnotations(methodDeclaration, methodMetaData);
         extractParameters(methodDeclaration, methodMetaData);
 
         Matcher matcher = GETTER_METHOD_NAME.matcher(name);
-        if (matcher.matches()) {
+        if (matcher.matches() && methodMetaData.getParameters().isEmpty()) {
             int startName = matcher.start(2);
             String propName = name.substring(startName, startName + 1).toLowerCase() + name.substring(startName + 1);
             PropertyMetaData property = getCurrentClass().addReadableProperty(propName, returnType, rawCommentText, methodMetaData);

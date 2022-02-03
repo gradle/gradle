@@ -18,6 +18,7 @@ package org.gradle.plugins.ide.api;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.internal.MutableActionSet;
+import org.gradle.internal.documentation.NoDslDoc;
 import org.gradle.util.internal.ConfigureUtil;
 
 /**
@@ -31,6 +32,7 @@ public class FileContentMerger {
     private MutableActionSet whenMerged = new MutableActionSet();
     private MutableActionSet beforeMerged = new MutableActionSet();
 
+    @NoDslDoc
     public MutableActionSet getWhenMerged() {
         return whenMerged;
     }

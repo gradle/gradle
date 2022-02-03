@@ -26,7 +26,9 @@ import org.w3c.dom.Text;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 
+import javax.inject.Inject;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class ClassDocPropertiesBuilder extends ModelBuilderSupport {
     private final JavadocConverter javadocConverter;
@@ -70,6 +72,12 @@ public class ClassDocPropertiesBuilder extends ModelBuilderSupport {
 
         //adding the properties from the super class onto the inheriting class
         Map<String, PropertyDoc> props = new TreeMap<String, PropertyDoc>();
+        Set<String> unusedPropertyNames = classDoc.getClassMetaData().getAllProperties().stream()
+            .filter(property -> property.getGetter() != null)
+            .filter(property -> !property.getGetter().getAnnotationTypeNames().contains(Inject.class.getName()))
+            .filter(property -> !property.getGetter().getAnnotationTypeNames().contains("org.gradle.internal.documentation.NoDslDoc"))
+            .map(PropertyMetaData::getName)
+            .collect(Collectors.toSet());
         List<ClassDoc> superTypes = classDoc.getSuperTypes();
         for (ClassDoc superType : superTypes) {
             LOG.info("Getting properties for {}", superType.getName());
@@ -85,6 +93,7 @@ public class ClassDocPropertiesBuilder extends ModelBuilderSupport {
                     }
                 }
 
+                unusedPropertyNames.remove(propertyDoc.getName());
                 props.put(propertyDoc.getName(), propertyDoc.forClass(classDoc, additionalValues.values()));
             }
         }
@@ -123,9 +132,13 @@ public class ClassDocPropertiesBuilder extends ModelBuilderSupport {
                 throw new RuntimeException(String.format("Docbook content for '%s.%s' does not contain a description paragraph.", classDoc.getName(), propName));
             }
 
+            unusedPropertyNames.remove(propName);
             props.put(propName, propertyDoc);
         }
 
+        if (!unusedPropertyNames.isEmpty()) {
+            listener.warning("Properties not used in DSL documentation for class " + classDoc.getName() + ": " + unusedPropertyNames);
+        }
         for (PropertyDoc propertyDoc : props.values()) {
             classDoc.addClassProperty(propertyDoc);
         }

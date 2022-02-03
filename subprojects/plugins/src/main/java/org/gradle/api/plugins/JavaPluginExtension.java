@@ -25,6 +25,7 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.java.archives.Manifest;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.tasks.SourceSetContainer;
+import org.gradle.internal.documentation.NoDslDoc;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 
 /**
@@ -127,6 +128,7 @@ public interface JavaPluginExtension {
      *
      * @since 6.4
      */
+    @NoDslDoc
     ModularitySpec getModularity();
 
     /**
@@ -260,5 +262,6 @@ public interface JavaPluginExtension {
      *
      * @since 7.1
      */
+    @NoDslDoc
     boolean getAutoTargetJvmDisabled();
 }

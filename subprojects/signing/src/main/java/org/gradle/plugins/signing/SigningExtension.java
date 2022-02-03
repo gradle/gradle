@@ -32,6 +32,7 @@ import org.gradle.api.publish.PublicationArtifact;
 import org.gradle.api.publish.internal.PublicationInternal;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.Cast;
+import org.gradle.internal.documentation.NoDslDoc;
 import org.gradle.plugins.signing.internal.SignOperationInternal;
 import org.gradle.plugins.signing.signatory.Signatory;
 import org.gradle.plugins.signing.signatory.SignatoryProvider;
@@ -104,6 +105,7 @@ public class SigningExtension {
         });
     }
 
+    @NoDslDoc
     public final Project getProject() {
         return project;
     }
@@ -211,6 +213,7 @@ public class SigningExtension {
         this.signatureTypes = signatureTypes;
     }
 
+    @NoDslDoc
     public SignatureTypeProvider getSignatureTypes() {
         return signatureTypes;
     }
@@ -272,6 +275,7 @@ public class SigningExtension {
     /**
      * The configuration that signature artifacts are added to.
      */
+    @NoDslDoc
     public Configuration getConfiguration() {
         return configuration;
     }
@@ -551,6 +555,7 @@ public class SigningExtension {
         return project.getObjects();
     }
 
+    @NoDslDoc
     public SignatoryProvider getSignatories() {
         return signatories;
     }

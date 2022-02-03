@@ -18,6 +18,7 @@ package org.gradle.plugins.ide.api;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.internal.PropertiesTransformer;
+import org.gradle.internal.documentation.NoDslDoc;
 import org.gradle.util.internal.ClosureBackedAction;
 
 import java.util.Properties;
@@ -36,6 +37,7 @@ public class PropertiesFileContentMerger extends FileContentMerger {
         this.transformer = transformer;
     }
 
+    @NoDslDoc
     public PropertiesTransformer getTransformer() {
         return transformer;
     }

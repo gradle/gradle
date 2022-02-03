@@ -242,6 +242,15 @@ public class ClassMetaData extends AbstractLanguageElement implements Serializab
         return propertyNames;
     }
 
+    public Set<PropertyMetaData> getAllProperties() {
+        Set<PropertyMetaData> propertyNames = new HashSet<>(declaredProperties.values());
+        ClassMetaData superClass = getSuperClass();
+        if (superClass != null) {
+            propertyNames.addAll(superClass.getAllProperties());
+        }
+        return propertyNames;
+    }
+
     private PropertyMetaData getProperty(String name) {
         PropertyMetaData property = declaredProperties.get(name);
         if (property == null) {

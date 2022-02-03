@@ -19,6 +19,7 @@ import groovy.lang.Closure;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Internal;
+import org.gradle.internal.documentation.NoDslDoc;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
@@ -98,6 +99,7 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
      *
      * @return Object representing the naming strategy.
      */
+    @NoDslDoc
     Namer<T> getNamer();
 
     /**
@@ -107,6 +109,7 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
      *
      * @return The objects. Returns an empty map if this collection is empty.
      */
+    @NoDslDoc
     SortedMap<String, T> getAsMap();
 
     /**
@@ -116,6 +119,7 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
      *
      * @return The names. Returns an empty set if this collection is empty.
      */
+    @NoDslDoc
     SortedSet<String> getNames();
 
     /**
@@ -134,6 +138,7 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
      * @return The object with the given name. Never returns null.
      * @throws UnknownDomainObjectException when there is no such object in this collection.
      */
+    @NoDslDoc
     T getByName(String name) throws UnknownDomainObjectException;
 
     /**
@@ -167,6 +172,7 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
      * @return The object with the given name. Never returns null.
      * @throws UnknownDomainObjectException when there is no such object in this collection.
      */
+    @NoDslDoc
     T getAt(String name) throws UnknownDomainObjectException;
 
     /**
@@ -203,6 +209,7 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
      *
      * @return The rules, in the order they will be applied.
      */
+    @NoDslDoc
     List<Rule> getRules();
 
     /**
@@ -273,6 +280,7 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
      *
      * @since 4.10
      */
+    @NoDslDoc
     @Internal
     NamedDomainObjectCollectionSchema getCollectionSchema();
 }

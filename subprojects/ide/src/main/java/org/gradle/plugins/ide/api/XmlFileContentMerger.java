@@ -18,6 +18,7 @@ package org.gradle.plugins.ide.api;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.XmlProvider;
+import org.gradle.internal.documentation.NoDslDoc;
 import org.gradle.internal.xml.XmlTransformer;
 
 /**
@@ -35,6 +36,7 @@ public class XmlFileContentMerger extends FileContentMerger {
         this.xmlTransformer = xmlTransformer;
     }
 
+    @NoDslDoc
     public XmlTransformer getXmlTransformer() {
         return xmlTransformer;
     }

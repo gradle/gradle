@@ -19,6 +19,7 @@ package org.gradle.plugins.ide.eclipse.model;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
+import org.gradle.internal.documentation.NoDslDoc;
 import org.gradle.plugins.ide.api.PropertiesFileContentMerger;
 import org.gradle.util.internal.ConfigureUtil;
 
@@ -131,6 +132,7 @@ public class EclipseJdt {
      * <p>
      * For example see docs for {@link EclipseJdt}
      */
+    @NoDslDoc
     public String getJavaRuntimeName() {
         return javaRuntimeName;
     }

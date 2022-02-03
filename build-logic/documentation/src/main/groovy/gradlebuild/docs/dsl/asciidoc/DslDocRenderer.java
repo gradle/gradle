@@ -28,6 +28,7 @@ import groovy.lang.Writable;
 import groovy.text.SimpleTemplateEngine;
 import groovy.text.Template;
 
+import javax.inject.Inject;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
@@ -52,14 +53,19 @@ public class DslDocRenderer {
         Template template = new SimpleTemplateEngine().createTemplate(getClass().getResource("class_template.adoc"));
         Map<Object, Object> options = new HashMap<>();
         options.put("classMetadata", classMetaData);
-        List<PropertyMetaData> declaredProperties = new ArrayList<>(classMetaData.getDeclaredProperties());
-        declaredProperties.sort(Comparator.comparing(PropertyMetaData::getName));
-        Set<MethodMetaData> gettersAndSetters = classMetaData.getDeclaredProperties().stream()
+        List<PropertyMetaData> declaredProperties = classMetaData.getAllProperties().stream()
+            .filter(property -> !property.getGetter().getAnnotationTypeNames().contains(Inject.class.getName()))
+            .filter(property -> !property.getGetter().getAnnotationTypeNames().contains("org.gradle.internal.documentation.NoDslDoc"))
+            .sorted(Comparator.comparing(PropertyMetaData::getName))
+            .collect(Collectors.toList());
+        Set<MethodMetaData> gettersAndSetters = declaredProperties.stream()
             .flatMap(property -> Stream.of(property.getGetter(), property.getSetter()))
             .filter(Objects::nonNull)
             .collect(Collectors.toSet());
         List<MethodMetaData> declaredMethods = classMetaData.getDeclaredMethods()
             .stream()
+            .filter(method -> !method.getAnnotationTypeNames().contains(Inject.class.getName()))
+            .filter(method -> !method.getAnnotationTypeNames().contains("org.gradle.internal.documentation.NoDslDoc"))
             .filter(method -> !gettersAndSetters.contains(method)).sorted(Comparator.comparing(MethodMetaData::getName)).collect(Collectors.toList());
         options.put("declaredMethods", declaredMethods);
         options.put("declaredProperties", declaredProperties);

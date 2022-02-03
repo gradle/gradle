@@ -17,6 +17,7 @@
 package org.gradle.api.plugins;
 
 import org.gradle.api.Project;
+import org.gradle.internal.documentation.NoDslDoc;
 
 import java.io.File;
 
@@ -39,5 +40,6 @@ public abstract class WarPluginConvention {
 
     public abstract void setWebAppDirName(String webAppDirName);
 
+    @NoDslDoc
     public abstract Project getProject();
 }

@@ -30,6 +30,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.compile.JavaCompile;
+import org.gradle.internal.documentation.NoDslDoc;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
@@ -184,6 +185,7 @@ public class EclipseClasspath {
      * <p>
      * See {@link EclipseClasspath} for an example.
      */
+    @NoDslDoc
     public Iterable<SourceSet> getSourceSets() {
         return sourceSets;
     }
@@ -374,6 +376,7 @@ public class EclipseClasspath {
         file.getWhenMerged().execute(xmlClasspath);
     }
 
+    @NoDslDoc
     public FileReferenceFactory getFileReferenceFactory() {
         FileReferenceFactory referenceFactory = new FileReferenceFactory();
         for (Map.Entry<String, File> entry : pathVariables.entrySet()) {
@@ -388,6 +391,7 @@ public class EclipseClasspath {
      *
      * @since 6.8
      */
+    @NoDslDoc
     @Incubating
     public Property<Boolean> getContainsTestFixtures() {
         return containsTestFixtures;

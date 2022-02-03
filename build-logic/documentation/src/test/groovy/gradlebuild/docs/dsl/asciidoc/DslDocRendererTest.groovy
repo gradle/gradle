@@ -17,6 +17,10 @@
 package gradlebuild.docs.dsl.asciidoc
 
 import com.github.javaparser.JavaParser
+import gradlebuild.docs.dsl.docbook.BasicJavadocLexer
+import gradlebuild.docs.dsl.docbook.HtmlToXmlJavadocLexer
+import gradlebuild.docs.dsl.docbook.JavadocLexer
+import gradlebuild.docs.dsl.docbook.JavadocScanner
 import gradlebuild.docs.dsl.source.SourceMetaDataVisitor
 import gradlebuild.docs.dsl.source.model.ClassMetaData
 import gradlebuild.docs.model.SimpleClassMetaDataRepository
@@ -47,5 +51,44 @@ public class MyClass {
         println(writer.toString())
         then:
         writer.toString().contains("MyClass")
+    }
+
+    def "parses Javadoc"() {
+        JavadocLexer lexer = new HtmlToXmlJavadocLexer(new BasicJavadocLexer(new JavadocScanner("""
+     * Creates a {@code Provider} implementation based on the provided value.
+     *
+     * <pre>
+     * files "\$buildDir/classes" {
+     *     builtBy 'compile'
+     * }
+     * </pre>
+     *
+     *
+     * <ul>
+     *    <li>First
+     *          <ul>
+     *          <li>Inner1</li>
+     *          <li>Inner2</li>
+     *          </ul>
+     *    <li>Outer</li>
+     * </ul>
+     *
+     * @param value The {@code java.util.concurrent.Callable} use to calculate the value.
+     * @return The provider. Never returns null.
+     * @throws org.gradle.api.InvalidUserDataException If the provided value is null.
+     * @see org.gradle.api.provider.ProviderFactory#provider(Callable)
+     * @since 4.0
+""")))
+
+        def builder = new StringBuilder()
+        DslDocRenderer.AsciidocGeneratingTokenVisitor visitor = new DslDocRenderer.AsciidocGeneratingTokenVisitor(builder);
+        visitor.addHandler(new DslDocRenderer.PreHandler(builder));
+        DslDocRenderer.UlHandler ulHandler = new DslDocRenderer.UlHandler(builder);
+        visitor.addHandler(ulHandler);
+        visitor.addHandler(new DslDocRenderer.LiHandler(ulHandler, builder));
+        lexer.visit(visitor)
+
+        expect:
+        builder.toString() == "a"
     }
 }

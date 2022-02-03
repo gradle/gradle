@@ -45,6 +45,7 @@ import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.HasInternalProtocol;
+import org.gradle.internal.documentation.NoDslDoc;
 import org.gradle.normalization.InputNormalizationHandler;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
@@ -309,6 +310,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     /**
      * Returns a human-consumable display name for this project.
      */
+    @NoDslDoc
     String getDisplayName();
 
     /**
@@ -627,6 +629,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * just this project.
      * @return A map from project to a set of tasks.
      */
+    @NoDslDoc
     Map<Project, Set<Task>> getAllTasks(boolean recursive);
 
     /**
@@ -640,6 +643,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * just this project.
      * @return The set of tasks. Returns an empty set if no such tasks exist in this project.
      */
+    @NoDslDoc
     Set<Task> getTasksByName(String name, boolean recursive);
 
     /**
@@ -971,6 +975,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @since 4.0
      */
+    @NoDslDoc
     ProviderFactory getProviders();
 
     /**
@@ -978,6 +983,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @since 4.0
      */
+    @NoDslDoc
     ObjectFactory getObjects();
 
     /**
@@ -985,6 +991,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @since 4.1
      */
+    @NoDslDoc
     ProjectLayout getLayout();
 
     /**
@@ -1266,6 +1273,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * <p>Returns the nesting level of a project in a multi-project hierarchy. For single project builds this is always
      * 0. In a multi-project hierarchy 0 is returned for the root project.</p>
      */
+    @NoDslDoc
     int getDepth();
 
     /**
@@ -1733,6 +1741,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @return The components for this project.
      */
+    @NoDslDoc
     SoftwareComponentContainer getComponents();
 
     /**

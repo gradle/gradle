@@ -19,6 +19,7 @@ package org.gradle.api.plugins;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.provider.Property;
+import org.gradle.internal.documentation.NoDslDoc;
 
 /**
  * Configuration for a Java application, defining how to assemble the application.
@@ -68,6 +69,7 @@ public interface JavaApplication {
      *
      * @deprecated Use {@link #getMainClass()} instead.
      */
+    @NoDslDoc
     @Deprecated
     @ReplacedBy("mainClass")
     String getMainClassName();

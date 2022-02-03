@@ -22,6 +22,7 @@ import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.internal.documentation.NoDslDoc;
 
 import java.io.File;
 import java.util.concurrent.Callable;
@@ -106,6 +107,7 @@ public class ReportingExtension {
      *
      * @since 4.4
      */
+    @NoDslDoc
     public DirectoryProperty getBaseDirectory() {
         return baseDirectory;
     }
@@ -123,6 +125,7 @@ public class ReportingExtension {
     }
 
     // TODO this doesn't belong here, that java plugin should add an extension to this guy with this
+    @NoDslDoc
     public String getApiDocTitle() {
         Object version = project.getVersion();
         if (Project.DEFAULT_VERSION.equals(version)) {

@@ -24,6 +24,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.internal.documentation.NoDslDoc;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 
@@ -252,6 +253,7 @@ public class EclipseModel {
      * @return the tasks names
      * @since 5.4
      */
+    @NoDslDoc
     public TaskDependency getSynchronizationTasks() {
         return synchronizationTasks;
     }
@@ -276,6 +278,7 @@ public class EclipseModel {
      * @since 5.4
      */
 
+    @NoDslDoc
     public TaskDependency getAutoBuildTasks() {
         return autoBuildTasks;
     }

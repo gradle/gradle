@@ -18,6 +18,7 @@ package org.gradle.api.plugins;
 
 import org.gradle.api.Project;
 import org.gradle.api.file.CopySpec;
+import org.gradle.internal.documentation.NoDslDoc;
 
 /**
  * <p>The {@link Convention} used for configuring the {@link ApplicationPlugin}.</p>
@@ -92,5 +93,6 @@ public abstract class ApplicationPluginConvention {
 
     public abstract void setApplicationDistribution(CopySpec applicationDistribution);
 
+    @NoDslDoc
     public abstract Project getProject();
 }

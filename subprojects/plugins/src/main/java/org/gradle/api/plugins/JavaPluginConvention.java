@@ -22,6 +22,7 @@ import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.java.archives.Manifest;
 import org.gradle.api.tasks.SourceSetContainer;
+import org.gradle.internal.documentation.NoDslDoc;
 
 import java.io.File;
 
@@ -161,6 +162,7 @@ public abstract class JavaPluginConvention {
      */
     public abstract SourceSetContainer getSourceSets();
 
+    @NoDslDoc
     public abstract ProjectInternal getProject();
 
     /**
@@ -182,5 +184,6 @@ public abstract class JavaPluginConvention {
      *
      * @since 5.3
      */
+    @NoDslDoc
     public abstract boolean getAutoTargetJvmDisabled();
 }

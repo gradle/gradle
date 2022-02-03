@@ -17,6 +17,7 @@
 package org.gradle.api.plugins;
 
 import org.gradle.api.Project;
+import org.gradle.internal.documentation.NoDslDoc;
 
 import java.io.File;
 import java.util.Set;
@@ -40,5 +41,6 @@ public abstract class ProjectReportsPluginConvention {
      */
     public abstract File getProjectReportDir();
 
+    @NoDslDoc
     public abstract Set<Project> getProjects();
 }

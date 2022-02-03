@@ -19,6 +19,7 @@ package org.gradle.caching.http;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.caching.configuration.AbstractBuildCache;
+import org.gradle.internal.documentation.NoDslDoc;
 
 import javax.annotation.Nullable;
 import java.net.URI;
@@ -94,6 +95,7 @@ public class HttpBuildCache extends AbstractBuildCache {
     /**
      * Returns the credentials used to access the HTTP cache backend.
      */
+    @NoDslDoc
     public HttpBuildCacheCredentials getCredentials() {
         return credentials;
     }

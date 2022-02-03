@@ -18,6 +18,7 @@ package org.gradle.api.plugins;
 
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.internal.documentation.NoDslDoc;
 
 /**
  * An extension used for {@link BasePlugin}.
@@ -51,6 +52,7 @@ public interface BasePluginExtension {
      *
      * @deprecated Use {@link #getDistsDirectory()}. This method is scheduled for removal in Gradle 8.0.
      */
+    @NoDslDoc
     @Deprecated
     String getDistsDirName();
 
@@ -67,6 +69,7 @@ public interface BasePluginExtension {
      *
      * @deprecated Use {@link #getLibsDirectory()}. This method is scheduled for removal in Gradle 8.0.
      */
+    @NoDslDoc
     @Deprecated
     String getLibsDirName();
 
@@ -83,6 +86,7 @@ public interface BasePluginExtension {
      *
      * @deprecated Use {@link #getArchivesName()}. This method is scheduled for removal in Gradle 8.0.
      */
+    @NoDslDoc
     @Deprecated
     String getArchivesBaseName();
 
