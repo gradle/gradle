@@ -80,6 +80,7 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
     private final List<Attribute<?>> requestedAttributes;
     private final BitSet compatible;
     private final Object[] requestedAttributeValues;
+    private final int lastSortedRequestedAttributeIndex;
 
     private int candidateWithLongestMatch;
     private int lengthOfLongestMatch;
@@ -97,6 +98,7 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
             candidateAttributeSets[i] = ((AttributeContainerInternal) this.candidates.get(i).getAttributes()).asImmutable();
         }
         this.requestedAttributes = schema.sortedByPrecedence(requested.keySet());
+        this.lastSortedRequestedAttributeIndex = schema.getDisambiguatingAttributes().size() - 1;
         requestedAttributeValues = new Object[(1 + candidates.size()) * requestedAttributes.size()];
         compatible = new BitSet(candidates.size());
         compatible.set(0, candidates.size());
@@ -245,14 +247,12 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
             disambiguateWithAttribute(a);
             if (remaining.cardinality() == 0) {
                 return;
-            } else if (remaining.cardinality() == 1) {
+            } else if (remaining.cardinality() == 1 && lastSortedRequestedAttributeIndex >= 0 && a < lastSortedRequestedAttributeIndex) {
                 // If we're down to one candidate and the attribute has a known precedence,
                 // we can stop now and choose this candidate as the match.
                 // If the attribute does not have a known precedence, then we cannot stop
                 // until we've disambiguated all of the attributes.
-                if (schema.getDisambiguatingAttributes().contains(getAttribute(a))) {
-                    return;
-                }
+                return;
             }
         }
     }
