@@ -144,18 +144,18 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
     }
 
     @Override
-    public void attributePrecedence(Attribute<?>... attributes) {
+    public void attributeDisambiguationPrecedence(Attribute<?>... attributes) {
         precedence.addAll(Arrays.asList(attributes));
     }
 
     @Override
-    public void setAttributePrecedence(Attribute<?>... attributes) {
+    public void setAttributeDisambiguationPrecedence(Attribute<?>... attributes) {
         precedence.clear();
         precedence.addAll(Arrays.asList(attributes));
     }
 
     @Override
-    public Collection<Attribute<?>> getAttributePrecedence() {
+    public Collection<Attribute<?>> getAttributeDisambiguationPrecedence() {
         return precedence;
     }
 
@@ -200,7 +200,7 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
         MergedSchema(AttributesSchemaInternal producerSchema) {
             this.producerSchema = producerSchema;
             combinedPrecedence.addAll(precedence);
-            combinedPrecedence.addAll(producerSchema.getAttributePrecedence());
+            combinedPrecedence.addAll(producerSchema.getAttributeDisambiguationPrecedence());
         }
 
         @Override

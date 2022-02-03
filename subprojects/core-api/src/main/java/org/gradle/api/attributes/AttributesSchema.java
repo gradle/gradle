@@ -81,10 +81,10 @@ public interface AttributesSchema {
      * @param attributes the attributes in order
      *
      * @since 7.5
-     * @see #setAttributePrecedence(Attribute[])
+     * @see #setAttributeDisambiguationPrecedence(Attribute[])
      */
     @Incubating
-    void attributePrecedence(Attribute<?>... attributes);
+    void attributeDisambiguationPrecedence(Attribute<?>... attributes);
 
     /**
      * Sets the order of precedence of attributes when resolving ambiguity. Attributes listed first have higher precedence.
@@ -95,7 +95,7 @@ public interface AttributesSchema {
      * @since 7.5
      */
     @Incubating
-    void setAttributePrecedence(Attribute<?>... attributes);
+    void setAttributeDisambiguationPrecedence(Attribute<?>... attributes);
 
     /**
      * Returns the order that attributes should be considered when resolving ambiguity.
@@ -104,5 +104,5 @@ public interface AttributesSchema {
      * @since 7.5
      */
     @Incubating
-    Collection<Attribute<?>> getAttributePrecedence();
+    Collection<Attribute<?>> getAttributeDisambiguationPrecedence();
 }

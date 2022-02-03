@@ -56,7 +56,7 @@ public abstract class JavaEcosystemSupport {
         configureTargetPlatform(attributesSchema);
         configureTargetEnvironment(attributesSchema);
         configureConsumerDescriptors((DescribableAttributesSchema) attributesSchema);
-        attributesSchema.attributePrecedence(
+        attributesSchema.attributeDisambiguationPrecedence(
                 Category.CATEGORY_ATTRIBUTE,
                 Usage.USAGE_ATTRIBUTE,
                 TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE,

@@ -91,17 +91,17 @@ public class EmptySchema implements AttributesSchemaInternal {
     }
 
     @Override
-    public void attributePrecedence(Attribute<?>... attribute) {
+    public void attributeDisambiguationPrecedence(Attribute<?>... attribute) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void setAttributePrecedence(Attribute<?>... attributes) {
+    public void setAttributeDisambiguationPrecedence(Attribute<?>... attributes) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public Collection<Attribute<?>> getAttributePrecedence() {
+    public Collection<Attribute<?>> getAttributeDisambiguationPrecedence() {
         return Collections.emptySet();
     }
 
