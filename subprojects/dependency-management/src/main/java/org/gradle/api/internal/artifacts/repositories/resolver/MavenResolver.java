@@ -226,7 +226,7 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
         protected void resolveModuleArtifacts(MavenModuleResolveMetadata module, ConfigurationMetadata variant, BuildableComponentArtifactsResolveResult result) {
             if (module.isRelocated()) {
                 result.resolved(new FixedComponentArtifacts(Collections.emptyList()));
-            } else if (module.hasVariants()) {
+            } else if (module.hasVariants() && !module.isPomPackaging()) {
                 result.resolved(new MetadataSourcedComponentArtifacts());
             } else if (module.isKnownJarPackaging()) {
                 result.resolved(new MetadataSourcedAllVariantsComponentArtifacts());
