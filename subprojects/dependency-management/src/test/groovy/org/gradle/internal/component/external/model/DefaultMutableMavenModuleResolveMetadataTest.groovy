@@ -107,7 +107,7 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         immutable.getConfiguration("compile").artifacts.size() == 1
         immutable.getConfiguration("runtime").artifacts.size() == 1
         immutable.getConfiguration("default").artifacts.size() == 1
-        immutable.getConfiguration("master").artifacts.empty
+        immutable.getConfiguration("master").artifacts.size() == 1
 
         and:
         def copy = immutable.asMutable()
@@ -124,7 +124,7 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         immutable2.getConfiguration("compile").artifacts.size() == 1
         immutable2.getConfiguration("runtime").artifacts.size() == 1
         immutable2.getConfiguration("default").artifacts.size() == 1
-        immutable2.getConfiguration("master").artifacts.empty
+        immutable2.getConfiguration("master").artifacts.size() == 1
     }
 
     def "can override values from descriptor"() {
