@@ -290,7 +290,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
     static SmokeTestGradleRunner runnerFor(AbstractSmokeTest smokeTest, boolean workers, VersionNumber kotlinVersion, String... tasks) {
         if (kotlinVersion.getMinor() < 5 && JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_16)) {
             String kotlinOpts = "-Dkotlin.daemon.jvm.options=--add-exports=java.base/sun.nio.ch=ALL-UNNAMED,--add-opens=java.base/java.util=ALL-UNNAMED"
-            return runnerFor(smokeTest, workers, kotlinOpts + tasks)
+            return runnerFor(smokeTest, workers, kotlinOpts, *tasks)
         }
         runnerFor(smokeTest, workers, tasks)
     }

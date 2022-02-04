@@ -23,6 +23,7 @@ import org.gradle.testkit.runner.internal.DefaultGradleRunner
 import org.slf4j.LoggerFactory
 
 import javax.annotation.Nullable
+import java.util.function.Consumer
 
 class SmokeTestGradleRunner extends GradleRunner {
     private static final LOGGER = LoggerFactory.getLogger(SmokeTestGradleRunner)
@@ -111,6 +112,11 @@ class SmokeTestGradleRunner extends GradleRunner {
     SmokeTestGradleRunner ignoreDeprecationWarnings(String reason) {
         LOGGER.warn("Ignoring deprecation warnings because: {}", reason)
         ignoreDeprecationWarnings = true
+        return this
+    }
+
+    SmokeTestGradleRunner apply(Consumer<SmokeTestGradleRunner> function) {
+        function.accept(this)
         return this
     }
 

@@ -24,7 +24,7 @@ import org.gradle.util.internal.VersionNumber
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
-class KotlinPluginAndroidGroovyDSLSmokeTest extends AbstractSmokeTest {
+class KotlinPluginAndroidGroovyDSLSmokeTest extends AbstractSmokeTest implements WithDeprecations {
 
     @UnsupportedWithConfigurationCache(iterationMatchers = [KGP_NO_CC_ITERATION_MATCHER, AGP_NO_CC_ITERATION_MATCHER])
     def "kotlin android on android-kotlin-example (kotlin=#kotlinPluginVersion, agp=#androidPluginVersion, workers=#workers)"(String kotlinPluginVersion, String androidPluginVersion, boolean workers) {
@@ -44,12 +44,10 @@ class KotlinPluginAndroidGroovyDSLSmokeTest extends AbstractSmokeTest {
 
         when:
         def runner = createRunner(workers, kotlinPluginVersion, 'clean', ':app:testDebugUnitTestCoverage')
-        def result = useAgpVersion(androidPluginVersion, runner)
-            .expectLegacyDeprecationWarningIf(kotlinPluginVersion < "1.4.31", deprecationOfConfigurationAsDependency())
-            .expectLegacyDeprecationWarningIf(workers && kotlinPluginVersion < "1.5.0", deprecationOfWorkerSubmit())
-            .expectLegacyDeprecationWarningIf(androidPluginVersion < "7.2.0", deprecationOfFileTreeForEmptySources("sourceFiles"))
-            .expectLegacyDeprecationWarningIf(androidPluginVersion < "7.2.0", deprecationOfFileTreeForEmptySources("sourceDirs"))
-            .build()
+        def result = useAgpVersion(androidPluginVersion, runner).apply {
+            expectKotlinDeprecationWarnings(it, workers, kotlinPluginVersion)
+            expectAndroidFileTreeForEmptySourcesDeprecationWarnings(it, androidPluginVersion, "sourceFiles", "sourceDirs")
+        }.build()
 
         then:
         result.task(':app:testDebugUnitTestCoverage').outcome == SUCCESS

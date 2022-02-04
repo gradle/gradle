@@ -44,7 +44,7 @@ import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRep
 import static org.gradle.test.fixtures.dsl.GradleDsl.GROOVY
 import static org.gradle.test.fixtures.server.http.MavenHttpPluginRepository.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY
 
-abstract class AbstractSmokeTest extends Specification {
+abstract class AbstractSmokeTest extends Specification implements WithDeprecations {
 
     protected static final AndroidGradlePluginVersions AGP_VERSIONS = new AndroidGradlePluginVersions()
     protected static final String AGP_NO_CC_ITERATION_MATCHER = ".*agp=4\\..*"
@@ -335,19 +335,6 @@ abstract class AbstractSmokeTest extends Specification {
             "This is scheduled to be removed in Gradle 8.0. " +
             "Annotate the property ${propertyName} with @IgnoreEmptyDirectories or remove @SkipWhenEmpty. " +
             "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#empty_directories_file_tree"
-    }
-
-    protected static String deprecationOfConfigurationAsDependency() {
-        return "Adding a Configuration as a dependency is a confusing behavior which isn't recommended. " +
-            "This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0. " +
-            "If you're interested in inheriting the dependencies from the Configuration you are adding, you should use Configuration#extendsFrom instead. " +
-            "See https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.api.artifacts.Configuration.html#org.gradle.api.artifacts.Configuration:extendsFrom(org.gradle.api.artifacts.Configuration[]) for more details."
-    }
-
-    protected static String deprecationOfWorkerSubmit() {
-        return "The WorkerExecutor.submit() method has been deprecated. This is scheduled to be removed in Gradle 8.0. " +
-            "Please use the noIsolation(), classLoaderIsolation() or processIsolation() method instead. " +
-            "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_5.html#method_workerexecutor_submit_is_deprecated for more details."
     }
 
     protected static SmokeTestGradleRunner expectAgpFileTreeDeprecations(String agpVersion, SmokeTestGradleRunner runner) {
