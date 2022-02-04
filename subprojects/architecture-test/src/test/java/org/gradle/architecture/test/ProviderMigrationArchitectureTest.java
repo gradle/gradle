@@ -38,6 +38,7 @@ import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameEn
 import static com.tngtech.archunit.core.domain.JavaMember.Predicates.declaredIn;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
+import static org.gradle.architecture.test.ArchUnitFixture.freeze;
 import static org.gradle.architecture.test.ArchUnitFixture.public_api_methods;
 
 @AnalyzeClasses(packages = "org.gradle")
@@ -52,7 +53,7 @@ public class ProviderMigrationArchitectureTest {
 
     @SuppressWarnings("deprecation")
     @ArchTest
-    public static final ArchRule public_api_task_properties_are_providers = methods()
+    public static final ArchRule public_api_task_properties_are_providers = freeze(methods()
         .that(are(public_api_methods))
         .and(are(declaredIn(assignableTo(Task.class))))
         .and(are(getters))
@@ -62,11 +63,11 @@ public class ProviderMigrationArchitectureTest {
         .and().areNotAnnotatedWith(Inject.class)
         .and().doNotHaveRawReturnType(TextResource.class)
         .and().doNotHaveRawReturnType(assignableTo(FileCollection.class))
-        .should().haveRawReturnType(assignableTo(Provider.class));
+        .should().haveRawReturnType(assignableTo(Provider.class)));
 
     @SuppressWarnings("deprecation")
     @ArchTest
-    public static final ArchRule public_api_task_file_properties_are_configurable_file_collections = methods()
+    public static final ArchRule public_api_task_file_properties_are_configurable_file_collections = freeze(methods()
         .that(are(public_api_methods))
         .and(are(declaredIn(assignableTo(Task.class))))
         .and(are(getters))
@@ -75,11 +76,11 @@ public class ProviderMigrationArchitectureTest {
         .and().areNotDeclaredIn(AbstractTask.class)
         .and().areNotAnnotatedWith(Inject.class)
         .and().haveRawReturnType(assignableTo(FileCollection.class))
-        .should().haveRawReturnType(assignableTo(ConfigurableFileCollection.class));
+        .should().haveRawReturnType(assignableTo(ConfigurableFileCollection.class)));
 
     @SuppressWarnings("deprecation")
     @ArchTest
-    public static final ArchRule public_api_task_properties_should_not_use_text_resources = methods()
+    public static final ArchRule public_api_task_properties_should_not_use_text_resources = freeze(methods()
         .that(are(public_api_methods))
         .and(are(declaredIn(assignableTo(Task.class))))
         .and(are(getters))
@@ -87,15 +88,15 @@ public class ProviderMigrationArchitectureTest {
         .and().areNotDeclaredIn(DefaultTask.class)
         .and().areNotDeclaredIn(AbstractTask.class)
         .and().areNotAnnotatedWith(Inject.class)
-        .should().notHaveRawReturnType(TextResource.class);
+        .should().notHaveRawReturnType(TextResource.class));
 
     @SuppressWarnings("deprecation")
     @ArchTest
-    public static final ArchRule public_api_extension_properties_are_providers = methods()
+    public static final ArchRule public_api_extension_properties_are_providers = freeze(methods()
         .that(are(public_api_methods))
         .and(are(not(declaredIn(assignableTo(Task.class)))))
         .and(are(declaredIn(simpleNameEndingWith("Extension"))))
         .and(are(getters))
         .and().areNotAnnotatedWith(Inject.class)
-        .should().haveRawReturnType(assignableTo(Provider.class));
+        .should().haveRawReturnType(assignableTo(Provider.class)));
 }
