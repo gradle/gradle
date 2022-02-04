@@ -13,6 +13,7 @@ dependencies {
     testImplementation(project(":model-core"))
     testImplementation(project(":file-temp"))
     testImplementation(project(":core"))
+    testImplementation(libs.inject)
 
     testImplementation(libs.archunitJunit5)
     testImplementation(libs.guava)
@@ -20,6 +21,10 @@ dependencies {
     testImplementation("org.assertj:assertj-core:3.16.1")
 
     testRuntimeOnly(project(":distributions-full"))
+}
+
+strictCompile {
+    ignoreDeprecations()
 }
 
 tasks.test {
