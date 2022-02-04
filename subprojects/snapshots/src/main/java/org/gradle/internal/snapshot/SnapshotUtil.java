@@ -78,7 +78,7 @@ public class SnapshotUtil {
 
             @Override
             public ReadOnlyFileSystemNode handleAsAncestorOfChild(String childPath, T child) {
-                // TODO: This is not correct, it should be a node with the child at targetPath.fromChild(childPath).
+                // TODO: This is not correct, it should be a node with the child at targetPath.pathFromChild(childPath).
                 return child;
             }
 
