@@ -29,11 +29,6 @@ import static org.junit.Assume.assumeFalse
 
 class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements ValidationMessageChecker {
 
-    static SmokeTestGradleRunner runnerFor(AbstractSmokeTest smokeTest, boolean workers, String... tasks) {
-        smokeTest.runner(tasks + ["--parallel", "-Pkotlin.parallel.tasks.in.project=$workers"] as String[])
-            .forwardOutput()
-    }
-
     private static final VersionNumber KOTLIN_VERSION_USING_NEW_TRANSFORMS_API = VersionNumber.parse('1.4.20')
     private static final VersionNumber KOTLIN_VERSION_USING_NEW_WORKERS_API = VersionNumber.parse('1.5.0')
     private static final String ARTIFACT_TRANSFORM_DEPRECATION_WARNING =
@@ -217,12 +212,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
     }
 
     private SmokeTestGradleRunner runner(boolean workers, VersionNumber kotlinVersion, String... tasks) {
-        if (kotlinVersion.getMinor() < 5 && JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_16)) {
-            return KotlinPluginSmokeTest.runnerFor(this, workers, "-Dkotlin.daemon.jvm.options=" +
-                "--add-exports=java.base/sun.nio.ch=ALL-UNNAMED," +
-                "--add-opens=java.base/java.util=ALL-UNNAMED", *tasks)
-        }
-        return KotlinPluginSmokeTest.runnerFor(this, workers, *tasks)
+        return runnerFor(this, workers, kotlinVersion, tasks)
     }
 
     @Override
@@ -290,6 +280,19 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
                 }
             """
         }
+    }
+
+    static SmokeTestGradleRunner runnerFor(AbstractSmokeTest smokeTest, boolean workers, String... tasks) {
+        smokeTest.runner(tasks + ["--parallel", "-Pkotlin.parallel.tasks.in.project=$workers"] as String[])
+            .forwardOutput()
+    }
+
+    static SmokeTestGradleRunner runnerFor(AbstractSmokeTest smokeTest, boolean workers, VersionNumber kotlinVersion, String... tasks) {
+        if (kotlinVersion.getMinor() < 5 && JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_16)) {
+            String kotlinOpts = "-Dkotlin.daemon.jvm.options=--add-exports=java.base/sun.nio.ch=ALL-UNNAMED,--add-opens=java.base/java.util=ALL-UNNAMED"
+            return runnerFor(smokeTest, workers, kotlinOpts + tasks)
+        }
+        runnerFor(smokeTest, workers, tasks)
     }
 
     private static boolean isAndroidKotlinPlugin(String pluginId) {

@@ -16,9 +16,11 @@
 
 package org.gradle.smoketests
 
+
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.android.AndroidHome
 import org.gradle.testkit.runner.GradleRunner
+import org.gradle.util.internal.VersionNumber
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
@@ -29,7 +31,6 @@ class KotlinPluginAndroidGroovyDSLSmokeTest extends AbstractSmokeTest {
         given:
         AndroidHome.assertIsSet()
         AGP_VERSIONS.assumeCurrentJavaVersionIsSupportedBy(androidPluginVersion)
-        KOTLIN_VERSIONS.assumeCurrentJavaVersionIsSupportedBy(kotlinPluginVersion)
         useSample("android-kotlin-example")
 
         def buildFileName = "build.gradle"
@@ -42,7 +43,7 @@ class KotlinPluginAndroidGroovyDSLSmokeTest extends AbstractSmokeTest {
         }
 
         when:
-        def runner = createRunner(workers, 'clean', ':app:testDebugUnitTestCoverage')
+        def runner = createRunner(workers, kotlinPluginVersion, 'clean', ':app:testDebugUnitTestCoverage')
         def result = useAgpVersion(androidPluginVersion, runner)
             .expectLegacyDeprecationWarningIf(kotlinPluginVersion < "1.4.31", deprecationOfConfigurationAsDependency())
             .expectLegacyDeprecationWarningIf(workers && kotlinPluginVersion < "1.5.0", deprecationOfWorkerSubmit())
@@ -73,7 +74,7 @@ class KotlinPluginAndroidGroovyDSLSmokeTest extends AbstractSmokeTest {
         ].combinations()
     }
 
-    private GradleRunner createRunner(boolean workers, String... tasks) {
-        return KotlinPluginSmokeTest.runnerFor(this, workers, *tasks)
+    private GradleRunner createRunner(boolean workers, String kotlinVersion, String... tasks) {
+        return KotlinPluginSmokeTest.runnerFor(this, workers, VersionNumber.parse(kotlinVersion), tasks)
     }
 }
