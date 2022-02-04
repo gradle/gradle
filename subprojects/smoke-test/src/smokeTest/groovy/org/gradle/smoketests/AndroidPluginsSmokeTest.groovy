@@ -83,7 +83,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         when: 'first build'
         def result = runner.apply {
             expectAndroidWorkerExecutionSubmitDeprecationWarning(it, agpVersion)
-            expectAndroidFileTreeForEmptySourcesDeprecationWarnings(it, agpVersion)
+            expectAllAndroidFileTreeForEmptySourcesDeprecationWarnings(it, agpVersion)
         }.build()
 
         then:
@@ -99,7 +99,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
 
         when: 'up-to-date build'
         result = runner.apply {
-            expectAndroidFileTreeForEmptySourcesDeprecationWarnings(it, agpVersion)
+            expectAllAndroidFileTreeForEmptySourcesDeprecationWarnings(it, agpVersion)
         }.build()
 
         then:
@@ -115,7 +115,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         abiChange.run()
         result = runner.apply {
             expectAndroidWorkerExecutionSubmitDeprecationWarning(it, agpVersion)
-            expectAndroidFileTreeForEmptySourcesDeprecationWarnings(it, agpVersion)
+            expectAllAndroidFileTreeForEmptySourcesDeprecationWarnings(it, agpVersion)
         }.build()
 
         then: 'dependent sources are recompiled'
@@ -131,7 +131,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         useAgpVersion(agpVersion, this.runner('clean')).build()
         result = runner.apply {
             expectAndroidWorkerExecutionSubmitDeprecationWarning(it, agpVersion)
-            expectAndroidFileTreeForEmptySourcesDeprecationWarnings(it, agpVersion)
+            expectAllAndroidFileTreeForEmptySourcesDeprecationWarnings(it, agpVersion)
         }.build()
 
         then:
@@ -149,7 +149,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         ].combinations()
     }
 
-    void expectAndroidFileTreeForEmptySourcesDeprecationWarnings(SmokeTestGradleRunner runner, String agpVersion) {
+    void expectAllAndroidFileTreeForEmptySourcesDeprecationWarnings(SmokeTestGradleRunner runner, String agpVersion) {
         expectAndroidFileTreeForEmptySourcesDeprecationWarnings(runner, agpVersion, "sourceFiles", "sourceDirs", "inputFiles", "resources", "projectNativeLibs")
     }
 

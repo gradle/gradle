@@ -131,14 +131,11 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
         artifacts.each { artifact ->
             expectAndroidLintPerVariantTaskAllInputsDeprecation(runner, agpVersion, artifact)
         }
-        runner.apply {
-            expectAndroidFileTreeForEmptySourcesDeprecationWarnings(it, agpVersion, "sourceFiles", "sourceDirs")
-        }
-        if (agpVersion.startsWith("7.0.") || agpVersion.startsWith("7.1.")) {
-            runner.apply {
-                expectAndroidFileTreeForEmptySourcesDeprecationWarnings(it, agpVersion, "inputFiles", "resources")
+        return runner.apply {
+            expectAndroidFileTreeForEmptySourcesDeprecationWarnings(runner, agpVersion, "sourceFiles", "sourceDirs")
+            if (agpVersion.startsWith("7.")) {
+                expectAndroidFileTreeForEmptySourcesDeprecationWarnings(runner, agpVersion, "inputFiles", "resources")
             }
         }
-        return runner
     }
 }

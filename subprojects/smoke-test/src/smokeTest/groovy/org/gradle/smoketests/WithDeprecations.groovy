@@ -17,11 +17,13 @@
 package org.gradle.smoketests
 
 
+import groovy.transform.SelfType
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.VersionNumber
 
 import java.util.function.Function
 
+@SelfType(AbstractSmokeTest)
 trait WithDeprecations {
 
     private static final VersionNumber KOTLIN_VERSION_USING_NEW_TRANSFORMS_API = VersionNumber.parse('1.4.20')
@@ -61,6 +63,11 @@ trait WithDeprecations {
         "Please use the mainClass property instead. Consult the upgrading guide for further information: " +
         "https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#java_exec_properties"
 
+    private static final String ABSTRACT_COMPILE_DESTINATION_DIR_DEPRECATION = "The AbstractCompile.destinationDir property has been deprecated. " +
+        "This is scheduled to be removed in Gradle 8.0. " +
+        "Please use the destinationDirectory property instead. " +
+        "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#compile_task_wiring"
+
     void expectKotlinConfigurationAsDependencyDeprecation(SmokeTestGradleRunner runner, String version) {
         VersionNumber kotlinVersionNumber = VersionNumber.parse(version)
         runner.expectLegacyDeprecationWarningIf(kotlinVersionNumber < KOTLIN_VERSION_WITHOUT_CONFIGURATION_DEPENDENCY, CONFIGURATION_AS_DEPENDENCY_DEPRECATION)
@@ -95,14 +102,13 @@ trait WithDeprecations {
         )
     }
 
-    void expectKotlinDestinationDirPropertyDeprecation(SmokeTestGradleRunner runner, String version) {
+    void expectKotlinCompileDestinationDirPropertyDeprecation(SmokeTestGradleRunner runner, String version) {
         VersionNumber versionNumber = VersionNumber.parse(version)
-        runner.expectLegacyDeprecationWarningIf(versionNumber >= VersionNumber.parse('1.5.20'),
-            "The AbstractCompile.destinationDir property has been deprecated. " +
-                "This is scheduled to be removed in Gradle 8.0. " +
-                "Please use the destinationDirectory property instead. " +
-                "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#compile_task_wiring"
-        )
+        runner.expectLegacyDeprecationWarningIf(versionNumber >= VersionNumber.parse('1.5.20'), ABSTRACT_COMPILE_DESTINATION_DIR_DEPRECATION)
+    }
+
+    void expectKotlinJsCompileDestinationDirPropertyDeprecation(SmokeTestGradleRunner runner, String version) {
+        runner.expectDeprecationWarning(ABSTRACT_COMPILE_DESTINATION_DIR_DEPRECATION, "https://youtrack.jetbrains.com/issue/KT-46019")
     }
 
     void expectAndroidFileTreeForEmptySourcesDeprecationWarnings(SmokeTestGradleRunner runner, String agpVersion, String... properties) {
