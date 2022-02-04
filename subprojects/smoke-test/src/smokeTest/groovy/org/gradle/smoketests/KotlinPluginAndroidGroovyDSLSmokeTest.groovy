@@ -43,9 +43,12 @@ class KotlinPluginAndroidGroovyDSLSmokeTest extends AbstractSmokeTest implements
         }
 
         when:
-        def runner = createRunner(workers, kotlinPluginVersion, 'clean', ':app:testDebugUnitTestCoverage')
+        def runner = createRunner(workers, kotlinPluginVersion, 'clean', ":app:testDebugUnitTestCoverage")
         def result = useAgpVersion(androidPluginVersion, runner).apply {
-            expectKotlinDeprecationWarnings(it, workers, kotlinPluginVersion)
+            expectKotlinConfigurationAsDependencyDeprecation(runner, kotlinPluginVersion)
+            expectKotlinArchiveNameDeprecation(runner, kotlinPluginVersion)
+            expectKotlinArtifactTransformDeprecation(runner, kotlinPluginVersion)
+            expectKotlinWorkerSubmitDeprecation(runner, workers, kotlinPluginVersion)
             expectAndroidFileTreeForEmptySourcesDeprecationWarnings(it, androidPluginVersion, "sourceFiles", "sourceDirs")
         }.build()
 

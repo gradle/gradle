@@ -137,8 +137,9 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
                 "Please use the destinationDirectory property instead. " +
                 "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#compile_task_wiring",
                 "https://youtrack.jetbrains.com/issue/KT-46019")
-        expectAgpFileTreeDeprecationWarnings(runner, "compileDebugAidl", "mergeDebugNativeLibs", "stripDebugDebugSymbols", "compileDebugRenderscript")
-        runner.build()
+        runner.apply {
+            expectAndroidFileTreeForEmptySourcesDeprecationWarnings(it, "sourceFiles", "sourceDirs", "inputFiles", "projectNativeLibs")
+        }.build()
     }
 
     private BuildResult consumer(String runTask) {

@@ -20,7 +20,6 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
-import org.gradle.util.GradleVersion
 import org.gradle.util.internal.VersionNumber
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
@@ -28,16 +27,6 @@ import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
 import static org.junit.Assume.assumeFalse
 
 class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements ValidationMessageChecker {
-
-    private static final VersionNumber KOTLIN_VERSION_USING_NEW_TRANSFORMS_API = VersionNumber.parse('1.4.20')
-    private static final VersionNumber KOTLIN_VERSION_USING_NEW_WORKERS_API = VersionNumber.parse('1.5.0')
-    private static final String ARTIFACT_TRANSFORM_DEPRECATION_WARNING =
-        "Registering artifact transforms extending ArtifactTransform has been deprecated. " +
-            "This is scheduled to be removed in Gradle 8.0. Implement TransformAction instead. " +
-            "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/artifact_transforms.html for more details."
-    private static final ARCHIVE_NAME_DEPRECATION_WARNING = "The AbstractArchiveTask.archiveName property has been deprecated. " +
-        "This is scheduled to be removed in Gradle 8.0. Please use the archiveFileName property instead. " +
-        "See https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.api.tasks.bundling.AbstractArchiveTask.html#org.gradle.api.tasks.bundling.AbstractArchiveTask:archiveName for more details."
 
     @UnsupportedWithConfigurationCache(iterationMatchers = KGP_NO_CC_ITERATION_MATCHER)
     def 'kotlin jvm (kotlin=#version, workers=#workers)'() {
@@ -47,28 +36,22 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
         def versionNumber = VersionNumber.parse(version)
 
         when:
-        def result = runner(workers, versionNumber, 'run')
-            .expectLegacyDeprecationWarningIf(workers && versionNumber < KOTLIN_VERSION_USING_NEW_WORKERS_API,
-                "The WorkerExecutor.submit() method has been deprecated. " +
-                    "This is scheduled to be removed in Gradle 8.0. Please use the noIsolation(), classLoaderIsolation() or processIsolation() method instead. " +
-                    "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_5.html#method_workerexecutor_submit_is_deprecated for more details."
-            )
-            .expectLegacyDeprecationWarningIf(versionNumber < KOTLIN_VERSION_USING_NEW_TRANSFORMS_API,
-                ARTIFACT_TRANSFORM_DEPRECATION_WARNING
-            )
-            .expectLegacyDeprecationWarningIf(versionNumber.minor == 3, ARCHIVE_NAME_DEPRECATION_WARNING)
-            .build()
+        def result = runner(workers, versionNumber, 'run').apply {
+            expectKotlinWorkerSubmitDeprecation(it, workers, version)
+            expectKotlinArtifactTransformDeprecation(it, version)
+            expectKotlinArchiveNameDeprecation(it, version)
+        }.build()
 
         then:
         result.task(':compileKotlin').outcome == SUCCESS
         assert result.output.contains("Hello world!")
 
         when:
-        result = runner(workers, versionNumber, 'run')
-            .expectLegacyDeprecationWarningIf(!GradleContextualExecuter.configCache && versionNumber < KOTLIN_VERSION_USING_NEW_TRANSFORMS_API,
-                ARTIFACT_TRANSFORM_DEPRECATION_WARNING
-            )
-            .build()
+        result = runner(workers, versionNumber, 'run').apply {
+            if (!GradleContextualExecuter.configCache) {
+                expectKotlinArtifactTransformDeprecation(it, version)
+            }
+        }.build()
 
 
         then:
@@ -91,26 +74,13 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
         def versionNumber = VersionNumber.parse(version)
 
         when:
-        def result = runner(workers, versionNumber, 'compileKotlin2Js')
-            .expectLegacyDeprecationWarningIf(workers && versionNumber < KOTLIN_VERSION_USING_NEW_WORKERS_API,
-                "The WorkerExecutor.submit() method has been deprecated. " +
-                    "This is scheduled to be removed in Gradle 8.0. Please use the noIsolation(), classLoaderIsolation() or processIsolation() method instead. " +
-                    "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_5.html#method_workerexecutor_submit_is_deprecated for more details."
-            )
-            .expectLegacyDeprecationWarningIf(versionNumber >= VersionNumber.parse('1.4.0'),
-                "The `kotlin2js` Gradle plugin has been deprecated."
-            )
-            .expectLegacyDeprecationWarningIf(versionNumber >= VersionNumber.parse('1.5.20'),
-                "Project property 'kotlin.parallel.tasks.in.project' is deprecated."
-            )
-            .expectLegacyDeprecationWarningIf(versionNumber >= VersionNumber.parse('1.5.20'),
-                "The AbstractCompile.destinationDir property has been deprecated. " +
-                    "This is scheduled to be removed in Gradle 8.0. " +
-                    "Please use the destinationDirectory property instead. " +
-                    "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#compile_task_wiring"
-            )
-            .expectLegacyDeprecationWarningIf(versionNumber.minor == 3, ARCHIVE_NAME_DEPRECATION_WARNING)
-            .build()
+        def result = runner(workers, versionNumber, 'compileKotlin2Js').apply {
+            expectKotlinWorkerSubmitDeprecation(it, workers, version)
+            expectKotlin2JsPluginDeprecation(it, version)
+            expectKotlinParallelTasksDeprecation(it, version)
+            expectKotlinDestinationDirPropertyDeprecation(it, version)
+            expectKotlinArchiveNameDeprecation(it, version)
+        }.build()
 
         then:
         result.task(':compileKotlin2Js').outcome == SUCCESS
@@ -153,11 +123,10 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
         def versionNumber = VersionNumber.parse(kotlinVersion)
 
         when:
-        def result = runner(false, versionNumber, 'compileJava')
-            .expectLegacyDeprecationWarningIf(versionNumber < KOTLIN_VERSION_USING_NEW_TRANSFORMS_API, ARTIFACT_TRANSFORM_DEPRECATION_WARNING)
-            .expectLegacyDeprecationWarningIf(versionNumber.minor == 3, ARCHIVE_NAME_DEPRECATION_WARNING)
-            .build()
-
+        def result = runner(false, versionNumber, 'compileJava').apply {
+            expectKotlinArtifactTransformDeprecation(it, kotlinVersion)
+            expectKotlinArchiveNameDeprecation(it, kotlinVersion)
+        }.build()
 
         then:
         result.task(':compileJava').outcome == SUCCESS
@@ -192,17 +161,19 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
         def versionNumber = VersionNumber.parse(kotlinVersion)
 
         when:
-        def result = runner(false, versionNumber, 'build')
-            .expectLegacyDeprecationWarningIf(versionNumber < KOTLIN_VERSION_USING_NEW_TRANSFORMS_API, ARTIFACT_TRANSFORM_DEPRECATION_WARNING)
-            .build()
+        def result = runner(false, versionNumber, 'build').apply {
+            expectKotlinArtifactTransformDeprecation(it, kotlinVersion)
+        }.build()
 
         then:
         result.task(':compileKotlin').outcome == SUCCESS
 
         when:
-        result = runner(false, versionNumber, 'build')
-            .expectLegacyDeprecationWarningIf(!GradleContextualExecuter.configCache && VersionNumber.parse(kotlinVersion) < KOTLIN_VERSION_USING_NEW_TRANSFORMS_API, ARTIFACT_TRANSFORM_DEPRECATION_WARNING)
-            .build()
+        result = runner(false, versionNumber, 'build').apply {
+            if (!GradleContextualExecuter.configCache) {
+                expectKotlinArtifactTransformDeprecation(it, kotlinVersion)
+            }
+        }.build()
 
         then:
         result.task(':compileKotlin').outcome == UP_TO_DATE

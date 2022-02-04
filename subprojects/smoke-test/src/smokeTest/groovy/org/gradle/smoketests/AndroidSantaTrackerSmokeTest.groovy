@@ -140,11 +140,13 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
                     "This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0. " +
                     "Execution optimizations are disabled to ensure correctness. See https://docs.gradle.org/${GradleVersion.current().version}/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
         }
-        if (agpVersion.startsWith("4.") || agpVersion.startsWith("7.0.") || agpVersion.startsWith("7.1.")) {
-            expectAgpFileTreeDeprecationWarnings(runner, "compileDebugAidl", "compileDebugRenderscript")
+        runner.apply {
+            expectAndroidFileTreeForEmptySourcesDeprecationWarnings(it, agpVersion, "sourceFiles", "sourceDirs")
         }
         if (agpVersion.startsWith("7.0.") || agpVersion.startsWith("7.1.")) {
-            expectAgpFileTreeDeprecationWarnings(runner, "stripDebugDebugSymbols", "bundleLibResDebug")
+            runner.apply {
+                expectAndroidFileTreeForEmptySourcesDeprecationWarnings(it, agpVersion, "inputFiles", "resources")
+            }
         }
         return runner
     }
