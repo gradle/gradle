@@ -39,15 +39,16 @@ class ConfigurationCacheFileTreeIntegrationTest extends AbstractConfigurationCac
             }
 
             tasks.register('ok', PrintInputs) {
-                def patternSet = new org.gradle.api.tasks.util.PatternSet().include('**/*.txt')
-                inputFiles.from(
-                    fileTree(dir: 'src', include: '**/*.*')
-                        .$pattern
-                )
+                def patternSet = new org.gradle.api.tasks.util.PatternSet().include('**/*.ok')
+                inputFiles.from($fileTree.$pattern)
             }
         """
-        createDir('src') {
-            file('foo.txt').write('')
+        def srcDir = createDir('src') {
+            file('foo.ok').write('')
+            file('foo.fail').write('')
+        }
+        if (isZip) {
+            srcDir.zipTo(file('src.zip'))
         }
 
         and:
@@ -57,27 +58,45 @@ class ConfigurationCacheFileTreeIntegrationTest extends AbstractConfigurationCac
         configurationCacheRun 'ok'
 
         then:
-        outputContains '*foo.txt*'
+        outputContains '*foo.ok*'
+        outputDoesNotContain '*foo.fail*'
 
         when: 'a new input appears!'
-        file('src/bar.txt').write('')
+        file('src/bar.ok').write('')
+        if (isZip) {
+            srcDir.zipTo(file('src.zip'))
+        }
 
         and:
         configurationCacheRun 'ok'
 
         then:
-        outputContains '*bar.txt*'
+        outputContains '*bar.ok*'
+        outputDoesNotContain '*foo.fail*'
 
         and:
         configurationCache.assertStateLoaded()
 
         where:
-        pattern                                              | _
-        'filter { it.file }'                                 | _
-        'matching(patternSet)'                               | _
-        'matching(patternSet).filter { it.file }'            | _
-        'matching(patternSet).asFileTree.filter { it.file }' | _
-        'filter { it.file }.asFileTree'                      | _
-        'filter { it.file }.asFileTree.matching(patternSet)' | _
+        [pattern, fileTree] << [fileTreeOperators(), fileTrees()].combinations()
+        isZip = fileTree.toString().startsWith('zip')
+    }
+
+    private List<String> fileTrees() {
+        [
+            "fileTree(dir: 'src', include: '**/*.*')",
+            "zipTree('src.zip')",
+        ]
+    }
+
+    private ArrayList<String> fileTreeOperators() {
+        [
+            'filter { it.path.endsWith "ok" }',
+            'matching(patternSet)',
+            'matching(patternSet).filter { it.file }',
+            'matching(patternSet).asFileTree.filter { it.file }',
+            'filter { it.path.endsWith "ok" }.asFileTree',
+            'filter { it.file }.asFileTree.matching(patternSet)',
+        ]
     }
 }
