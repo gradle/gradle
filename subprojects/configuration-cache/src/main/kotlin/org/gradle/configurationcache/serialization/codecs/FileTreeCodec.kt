@@ -59,6 +59,10 @@ class FilteredFileTreeSpec(val tree: FileTreeInternal, val patterns: PatternSet)
 
 
 private
+class FilteredMinimalFileTreeSpec(val tree: FileTreeSpec, val patterns: PatternSet) : FileTreeSpec()
+
+
+private
 class WrappedFileCollectionTreeSpec(val collection: AbstractFileCollection) : FileTreeSpec()
 
 
@@ -172,6 +176,7 @@ class FileTreeCodec(
     fun fromSpec(spec: FileTreeSpec): FileTreeInternal = when (spec) {
         is AdaptedFileTreeSpec -> fileCollectionFactory.treeOf(spec.tree)
         is FilteredFileTreeSpec -> spec.tree.matching(spec.patterns)
+        is FilteredMinimalFileTreeSpec -> fromSpec(spec.tree).matching(spec.patterns)
         is WrappedFileCollectionTreeSpec -> spec.collection.asFileTree
         is DirectoryTreeSpec -> fileCollectionFactory.treeOf(directoryFileTreeFactory.create(spec.file, spec.patterns))
         is GeneratedTreeSpec -> spec.spec.run {
@@ -190,8 +195,7 @@ class FileTreeCodec(
         // TODO - deal with tree that is not backed by a file
         is ZipFileTree -> ZipTreeSpec(tree.backingFileProvider)
         is TarFileTree -> TarTreeSpec(tree.backingFileProvider)
-        // TODO - capture the patterns
-        is FilteredMinimalFileTree -> toSpecOrNull(tree.tree)
+        is FilteredMinimalFileTree -> toSpecOrNull(tree.tree)?.let { FilteredMinimalFileTreeSpec(it, tree.patterns) }
         is GeneratedSingletonFileTree -> GeneratedTreeSpec(tree.toSpec())
         is DirectoryFileTree -> DirectoryTreeSpec(tree.dir, tree.patternSet)
         else -> null

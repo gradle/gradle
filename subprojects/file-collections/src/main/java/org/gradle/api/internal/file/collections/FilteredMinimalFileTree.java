@@ -44,6 +44,10 @@ public class FilteredMinimalFileTree implements MinimalFileTree, FileSystemMirro
         return tree;
     }
 
+    public PatternSet getPatterns() {
+        return patterns;
+    }
+
     @Override
     public DirectoryFileTree getMirror() {
         DirectoryFileTree mirror = tree.getMirror();
