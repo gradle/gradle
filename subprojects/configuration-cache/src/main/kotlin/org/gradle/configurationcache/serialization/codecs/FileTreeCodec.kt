@@ -55,6 +55,10 @@ class AdaptedFileTreeSpec(val tree: MinimalFileTree) : FileTreeSpec()
 
 
 private
+class FilteredFileTreeSpec(val tree: FileTreeInternal, val patterns: PatternSet) : FileTreeSpec()
+
+
+private
 class WrappedFileCollectionTreeSpec(val collection: AbstractFileCollection) : FileTreeSpec()
 
 
@@ -118,10 +122,18 @@ class FileTreeCodec(
                 roots.add(WrappedFileCollectionTreeSpec(fileCollection.collection))
                 false
             }
-            fileCollection is FilteredFileTree && fileCollection.patterns.isEmpty -> {
-                // Optimize a common case, where fileCollection.asFileTree.matching(emptyPatterns) is used, eg in SourceTask and in CopySpec
-                // Skip applying the filters to the tree
-                fileCollection.tree.visitStructure(this)
+            fileCollection is FilteredFileTree -> {
+                when {
+                    // Optimize a common case, where fileCollection.asFileTree.matching(emptyPatterns) is used,
+                    // e.g. in SourceTask and in CopySpec.
+                    // Skip applying the filters to the tree
+                    fileCollection.patterns.isEmpty -> {
+                        fileCollection.tree.visitStructure(this)
+                    }
+                    else -> {
+                        roots.add(FilteredFileTreeSpec(fileCollection.tree, fileCollection.patterns))
+                    }
+                }
                 false
             }
             else -> {
@@ -159,6 +171,7 @@ class FileTreeCodec(
     private
     fun fromSpec(spec: FileTreeSpec): FileTreeInternal = when (spec) {
         is AdaptedFileTreeSpec -> fileCollectionFactory.treeOf(spec.tree)
+        is FilteredFileTreeSpec -> spec.tree.matching(spec.patterns)
         is WrappedFileCollectionTreeSpec -> spec.collection.asFileTree
         is DirectoryTreeSpec -> fileCollectionFactory.treeOf(directoryFileTreeFactory.create(spec.file, spec.patterns))
         is GeneratedTreeSpec -> spec.spec.run {

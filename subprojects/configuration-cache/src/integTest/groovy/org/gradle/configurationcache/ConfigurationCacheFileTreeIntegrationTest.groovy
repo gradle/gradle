@@ -66,23 +66,18 @@ class ConfigurationCacheFileTreeIntegrationTest extends AbstractConfigurationCac
         configurationCacheRun 'ok'
 
         then:
-        if (lazy) {
-            outputContains '*bar.txt*'
-        } else {
-            // TODO: file collection was evaluated eagerly, new input is missing
-            outputDoesNotContain '*bar.txt*'
-        }
+        outputContains '*bar.txt*'
 
         and:
         configurationCache.assertStateLoaded()
 
         where:
-        pattern                                              | lazy
-        'filter { it.file }'                                 | true
-        'matching(patternSet)'                               | true
-        'matching(patternSet).filter { it.file }'            | true
-        'matching(patternSet).asFileTree.filter { it.file }' | true
-        'filter { it.file }.asFileTree'                      | true
-        'filter { it.file }.asFileTree.matching(patternSet)' | false
+        pattern                                              | _
+        'filter { it.file }'                                 | _
+        'matching(patternSet)'                               | _
+        'matching(patternSet).filter { it.file }'            | _
+        'matching(patternSet).asFileTree.filter { it.file }' | _
+        'filter { it.file }.asFileTree'                      | _
+        'filter { it.file }.asFileTree.matching(patternSet)' | _
     }
 }
