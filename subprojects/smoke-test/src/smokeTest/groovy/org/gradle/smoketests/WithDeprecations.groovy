@@ -123,6 +123,19 @@ trait WithDeprecations {
         runner.expectLegacyDeprecationWarningIf(agpVersionNumber.getBaseVersion() < AGP_VERSION_WITH_FIXED_NEW_WORKERS_API, WORKER_SUBMIT_DEPRECATION)
     }
 
+    void expectAndroidLintPerVariantTaskAllInputsDeprecation(SmokeTestGradleRunner runner, String agpVersion, String artifact) {
+        runner.expectLegacyDeprecationWarningIf(
+            agpVersion.startsWith("4.1"),
+            "In plugin 'com.android.internal.version-check' type 'com.android.build.gradle.tasks.LintPerVariantTask' property 'allInputs' cannot be resolved:  " +
+                "Cannot convert the provided notation to a File or URI: $artifact. " +
+                "The following types/formats are supported:  - A String or CharSequence path, for example 'src/main/java' or '/usr/include'. - A String or CharSequence URI, for example 'file:/usr/include'. - A File instance. - A Path instance. - A Directory instance. - A RegularFile instance. - A URI or URL instance. - A TextResource instance. " +
+                "Reason: An input file collection couldn't be resolved, making it impossible to determine task inputs. " +
+                "Please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/validation_problems.html#unresolvable_input for more details about this problem. " +
+                "This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0. " +
+                "Execution optimizations are disabled to ensure correctness. See https://docs.gradle.org/${GradleVersion.current().version}/userguide/more_about_tasks.html#sec:up_to_date_checks for more details."
+        )
+    }
+
     void expectAsciiDocDeprecationWarnings(SmokeTestGradleRunner smokeTestGradleRunner) {
         smokeTestGradleRunner
             .expectDeprecationWarning(JAVAEXEC_SET_MAIN_DEPRECATION, "https://github.com/asciidoctor/asciidoctor-gradle-plugin/issues/602")
