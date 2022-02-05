@@ -658,8 +658,8 @@ class ComponentAttributeMatcherTest extends Specification {
         }
 
         @Override
-        List<Attribute<?>> sortedByPrecedence(ImmutableAttributes requested) {
-            return new ArrayList<>(requested.keySet())
+        PrecedenceResult orderByPrecedence(ImmutableAttributes requested) {
+            return new PrecedenceResult(new ArrayList<>(requested.keySet()), -1)
         }
 
         @Override

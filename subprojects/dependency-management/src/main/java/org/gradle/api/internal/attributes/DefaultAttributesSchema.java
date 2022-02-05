@@ -332,7 +332,7 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
         }
 
         @Override
-        public List<Attribute<?>> sortedByPrecedence(ImmutableAttributes requested) {
+        public PrecedenceResult orderByPrecedence(ImmutableAttributes requested) {
             Map<String, Attribute<?>> remaining = new LinkedHashMap<>();
             for (Attribute<?> attribute : requested.keySet()) {
                 remaining.put(attribute.getName(), attribute);
@@ -351,8 +351,9 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
             // sorted now contains any requested attribute in the order they appear in
             // the combinedPrecedence set
             // Add all remaining attributes in whatever order they came in
+            int index = sorted.size() - 1;
             sorted.addAll(remaining.values());
-            return sorted;
+            return new PrecedenceResult(sorted, index);
         }
 
         @Override

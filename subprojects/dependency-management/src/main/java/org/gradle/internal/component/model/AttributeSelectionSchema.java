@@ -36,7 +36,24 @@ public interface AttributeSelectionSchema {
 
     Attribute<?>[] collectExtraAttributes(ImmutableAttributes[] candidates, ImmutableAttributes requested);
 
-    List<Attribute<?>> sortedByPrecedence(ImmutableAttributes requested);
+    class PrecedenceResult {
+        private final List<Attribute<?>> attributes;
+        private final int index;
+
+        public PrecedenceResult(List<Attribute<?>> attributes, int index) {
+            this.attributes = attributes;
+            this.index = index;
+        }
+
+        public List<Attribute<?>> getAttributes() {
+            return attributes;
+        }
+
+        public int getLastAttributeIndexWithKnownPrecedence() {
+            return index;
+        }
+    }
+    PrecedenceResult orderByPrecedence(ImmutableAttributes requested);
 
     Collection<Attribute<?>> getDisambiguatingAttributes();
 }
