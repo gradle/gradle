@@ -151,7 +151,7 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
     @Override
     public void setAttributeDisambiguationPrecedence(Attribute<?>... attributes) {
         precedence.clear();
-        precedence.addAll(Arrays.asList(attributes));
+        attributeDisambiguationPrecedence(attributes);
     }
 
     @Override
