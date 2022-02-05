@@ -20,6 +20,7 @@ import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 
 import javax.annotation.Nullable;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -35,7 +36,7 @@ public interface AttributeSelectionSchema {
 
     Attribute<?>[] collectExtraAttributes(ImmutableAttributes[] candidates, ImmutableAttributes requested);
 
-    List<Attribute<?>> sortedByPrecedence(Set<Attribute<?>> requested);
+    List<Attribute<?>> sortedByPrecedence(ImmutableAttributes requested);
 
-    Set<Attribute<?>> getDisambiguatingAttributes();
+    Collection<Attribute<?>> getDisambiguatingAttributes();
 }

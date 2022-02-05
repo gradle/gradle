@@ -658,12 +658,12 @@ class ComponentAttributeMatcherTest extends Specification {
         }
 
         @Override
-        List<Attribute<?>> sortedByPrecedence(Set<Attribute<?>> requested) {
-            return new ArrayList<>(requested)
+        List<Attribute<?>> sortedByPrecedence(ImmutableAttributes requested) {
+            return new ArrayList<>(requested.keySet())
         }
 
         @Override
-        Set<Attribute<?>> getDisambiguatingAttributes() {
+        Collection<Attribute<?>> getDisambiguatingAttributes() {
             return []
         }
     }
