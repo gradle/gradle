@@ -47,19 +47,19 @@ class DefaultAttributesSchemaTest extends Specification {
         ]
     }
 
-    def "can create an attribute of scalar type #type.name[]"() {
+    def "can create an attribute of array type #type"() {
         when:
-        Attribute.of('foo', Eval.me("${type.name}[]"))
+        Attribute.of('foo', type)
 
         then:
         noExceptionThrown()
 
         where:
         type << [
-            String,
-            Number,
-            MyEnum,
-            Flavor
+            String[].class,
+            Number[].class,
+            MyEnum[].class,
+            Flavor[].class
         ]
     }
 
