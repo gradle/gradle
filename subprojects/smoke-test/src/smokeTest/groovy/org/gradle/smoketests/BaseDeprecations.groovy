@@ -22,7 +22,7 @@ import org.gradle.util.internal.VersionNumber
 
 import java.util.function.Function
 
-class WithDeprecations {
+class BaseDeprecations {
 
     private static final VersionNumber KOTLIN_VERSION_USING_NEW_TRANSFORMS_API = VersionNumber.parse('1.4.20')
     private static final VersionNumber KOTLIN_VERSION_WITHOUT_CONFIGURATION_DEPENDENCY = VersionNumber.parse('1.4.31')
@@ -68,7 +68,7 @@ class WithDeprecations {
 
     final SmokeTestGradleRunner runner
 
-    WithDeprecations(SmokeTestGradleRunner runner) {
+    BaseDeprecations(SmokeTestGradleRunner runner) {
         this.runner = runner
     }
 

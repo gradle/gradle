@@ -114,7 +114,7 @@ class SmokeTestGradleRunner extends GradleRunner {
         return this
     }
 
-    def <U extends WithDeprecations, T> SmokeTestGradleRunner deprecations(
+    def <U extends BaseDeprecations, T> SmokeTestGradleRunner deprecations(
         @DelegatesTo.Target Class<U> deprecationClass,
         @DelegatesTo(
             genericTypeIndex = 0,
@@ -126,10 +126,10 @@ class SmokeTestGradleRunner extends GradleRunner {
 
     def <T> SmokeTestGradleRunner deprecations(
         @DelegatesTo(
-            value = WithDeprecations.class,
+            value = BaseDeprecations.class,
             strategy=Closure.DELEGATE_FIRST)
             Closure<T> closure) {
-        return deprecations(WithDeprecations, closure)
+        return deprecations(BaseDeprecations, closure)
     }
 
     private void verifyDeprecationWarnings(BuildResult result) {

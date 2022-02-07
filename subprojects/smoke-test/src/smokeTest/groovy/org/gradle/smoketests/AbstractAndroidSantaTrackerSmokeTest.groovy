@@ -71,7 +71,7 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
         }
     }
 
-    static class SantaTrackerDeprecations extends WithDeprecations {
+    static class SantaTrackerDeprecations extends BaseDeprecations {
         SantaTrackerDeprecations(SmokeTestGradleRunner runner) {
             super(runner)
         }

@@ -149,7 +149,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         ].combinations()
     }
 
-    static class AndroidDeprecations extends WithDeprecations {
+    static class AndroidDeprecations extends BaseDeprecations {
         AndroidDeprecations(SmokeTestGradleRunner runner) {
             super(runner)
         }
