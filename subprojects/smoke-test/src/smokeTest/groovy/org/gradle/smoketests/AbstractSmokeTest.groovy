@@ -43,7 +43,7 @@ import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRep
 import static org.gradle.test.fixtures.dsl.GradleDsl.GROOVY
 import static org.gradle.test.fixtures.server.http.MavenHttpPluginRepository.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY
 
-abstract class AbstractSmokeTest extends Specification implements WithDeprecations {
+abstract class AbstractSmokeTest extends Specification {
 
     protected static final AndroidGradlePluginVersions AGP_VERSIONS = new AndroidGradlePluginVersions()
     protected static final String AGP_NO_CC_ITERATION_MATCHER = ".*agp=4\\..*"

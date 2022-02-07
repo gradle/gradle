@@ -130,9 +130,9 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
         return setIllegalAccessPermitForJDK16KotlinCompilerDaemonOptions(runner('publish'))
             .withProjectDir(new File(testProjectDir, 'producer'))
             .forwardOutput()
-            .apply {
-                expectKotlinJsCompileDestinationDirPropertyDeprecation(it, kotlinVersion)
-                expectAndroidFileTreeForEmptySourcesDeprecationWarnings(it, agpVersion, "sourceFiles", "sourceDirs", "inputFiles", "projectNativeLibs")
+            .deprecations {
+                expectKotlinJsCompileDestinationDirPropertyDeprecation(kotlinVersion)
+                expectAndroidFileTreeForEmptySourcesDeprecationWarnings(agpVersion, "sourceFiles", "sourceDirs", "inputFiles", "projectNativeLibs")
             }.build()
     }
 

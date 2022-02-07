@@ -81,9 +81,9 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         ))
 
         when: 'first build'
-        def result = runner.apply {
-            expectAndroidWorkerExecutionSubmitDeprecationWarning(it, agpVersion)
-            expectAllAndroidFileTreeForEmptySourcesDeprecationWarnings(it, agpVersion)
+        def result = runner.deprecations(AndroidDeprecations) {
+            expectAndroidWorkerExecutionSubmitDeprecationWarning(agpVersion)
+            expectAllAndroidFileTreeForEmptySourcesDeprecationWarnings(agpVersion)
         }.build()
 
         then:
@@ -98,8 +98,8 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         assertConfigurationCacheStateStored()
 
         when: 'up-to-date build'
-        result = runner.apply {
-            expectAllAndroidFileTreeForEmptySourcesDeprecationWarnings(it, agpVersion)
+        result = runner.deprecations(AndroidDeprecations) {
+            expectAllAndroidFileTreeForEmptySourcesDeprecationWarnings(agpVersion)
         }.build()
 
         then:
@@ -113,9 +113,9 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
 
         when: 'abi change on library'
         abiChange.run()
-        result = runner.apply {
-            expectAndroidWorkerExecutionSubmitDeprecationWarning(it, agpVersion)
-            expectAllAndroidFileTreeForEmptySourcesDeprecationWarnings(it, agpVersion)
+        result = runner.deprecations(AndroidDeprecations) {
+            expectAndroidWorkerExecutionSubmitDeprecationWarning(agpVersion)
+            expectAllAndroidFileTreeForEmptySourcesDeprecationWarnings(agpVersion)
         }.build()
 
         then: 'dependent sources are recompiled'
@@ -129,9 +129,9 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
 
         when: 'clean re-build'
         useAgpVersion(agpVersion, this.runner('clean')).build()
-        result = runner.apply {
-            expectAndroidWorkerExecutionSubmitDeprecationWarning(it, agpVersion)
-            expectAllAndroidFileTreeForEmptySourcesDeprecationWarnings(it, agpVersion)
+        result = runner.deprecations(AndroidDeprecations) {
+            expectAndroidWorkerExecutionSubmitDeprecationWarning(agpVersion)
+            expectAllAndroidFileTreeForEmptySourcesDeprecationWarnings(agpVersion)
         }.build()
 
         then:
@@ -149,8 +149,14 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         ].combinations()
     }
 
-    void expectAllAndroidFileTreeForEmptySourcesDeprecationWarnings(SmokeTestGradleRunner runner, String agpVersion) {
-        expectAndroidFileTreeForEmptySourcesDeprecationWarnings(runner, agpVersion, "sourceFiles", "sourceDirs", "inputFiles", "resources", "projectNativeLibs")
+    static class AndroidDeprecations extends WithDeprecations {
+        AndroidDeprecations(SmokeTestGradleRunner runner) {
+            super(runner)
+        }
+
+        void expectAllAndroidFileTreeForEmptySourcesDeprecationWarnings(String agpVersion) {
+            expectAndroidFileTreeForEmptySourcesDeprecationWarnings(agpVersion, "sourceFiles", "sourceDirs", "inputFiles", "resources", "projectNativeLibs")
+        }
     }
 
     /**

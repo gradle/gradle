@@ -36,22 +36,24 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
         def versionNumber = VersionNumber.parse(version)
 
         when:
-        def result = runner(workers, versionNumber, 'run').apply {
-            expectKotlinWorkerSubmitDeprecation(it, workers, version)
-            expectKotlinArtifactTransformDeprecation(it, version)
-            expectKotlinArchiveNameDeprecation(it, version)
-        }.build()
+        def result = runner(workers, versionNumber, 'run')
+            .deprecations {
+                expectKotlinWorkerSubmitDeprecation(workers, version)
+                expectKotlinArtifactTransformDeprecation(version)
+                expectKotlinArchiveNameDeprecation(version)
+            }.build()
 
         then:
         result.task(':compileKotlin').outcome == SUCCESS
         assert result.output.contains("Hello world!")
 
         when:
-        result = runner(workers, versionNumber, 'run').apply {
-            if (!GradleContextualExecuter.configCache) {
-                expectKotlinArtifactTransformDeprecation(it, version)
-            }
-        }.build()
+        result = runner(workers, versionNumber, 'run')
+            .deprecations {
+                if (!GradleContextualExecuter.configCache) {
+                    expectKotlinArtifactTransformDeprecation(version)
+                }
+            }.build()
 
 
         then:
@@ -74,13 +76,14 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
         def versionNumber = VersionNumber.parse(version)
 
         when:
-        def result = runner(workers, versionNumber, 'compileKotlin2Js').apply {
-            expectKotlinWorkerSubmitDeprecation(it, workers, version)
-            expectKotlin2JsPluginDeprecation(it, version)
-            expectKotlinParallelTasksDeprecation(it, version)
-            expectKotlinCompileDestinationDirPropertyDeprecation(it, version)
-            expectKotlinArchiveNameDeprecation(it, version)
-        }.build()
+        def result = runner(workers, versionNumber, 'compileKotlin2Js')
+            .deprecations {
+                expectKotlinWorkerSubmitDeprecation(workers, version)
+                expectKotlin2JsPluginDeprecation(version)
+                expectKotlinParallelTasksDeprecation(version)
+                expectKotlinCompileDestinationDirPropertyDeprecation(version)
+                expectKotlinArchiveNameDeprecation(version)
+            }.build()
 
         then:
         result.task(':compileKotlin2Js').outcome == SUCCESS
@@ -123,10 +126,11 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
         def versionNumber = VersionNumber.parse(kotlinVersion)
 
         when:
-        def result = runner(false, versionNumber, 'compileJava').apply {
-            expectKotlinArtifactTransformDeprecation(it, kotlinVersion)
-            expectKotlinArchiveNameDeprecation(it, kotlinVersion)
-        }.build()
+        def result = runner(false, versionNumber, 'compileJava')
+            .deprecations {
+                expectKotlinArtifactTransformDeprecation(kotlinVersion)
+                expectKotlinArchiveNameDeprecation(kotlinVersion)
+            }.build()
 
         then:
         result.task(':compileJava').outcome == SUCCESS
@@ -161,19 +165,21 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
         def versionNumber = VersionNumber.parse(kotlinVersion)
 
         when:
-        def result = runner(false, versionNumber, 'build').apply {
-            expectKotlinArtifactTransformDeprecation(it, kotlinVersion)
-        }.build()
+        def result = runner(false, versionNumber, 'build')
+            .deprecations {
+                expectKotlinArtifactTransformDeprecation(kotlinVersion)
+            }.build()
 
         then:
         result.task(':compileKotlin').outcome == SUCCESS
 
         when:
-        result = runner(false, versionNumber, 'build').apply {
-            if (!GradleContextualExecuter.configCache) {
-                expectKotlinArtifactTransformDeprecation(it, kotlinVersion)
-            }
-        }.build()
+        result = runner(false, versionNumber, 'build')
+            .deprecations {
+                if (!GradleContextualExecuter.configCache) {
+                    expectKotlinArtifactTransformDeprecation(kotlinVersion)
+                }
+            }.build()
 
         then:
         result.task(':compileKotlin').outcome == UP_TO_DATE

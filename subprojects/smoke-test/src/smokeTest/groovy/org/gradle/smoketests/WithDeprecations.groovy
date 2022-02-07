@@ -17,14 +17,12 @@
 package org.gradle.smoketests
 
 
-import groovy.transform.SelfType
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.VersionNumber
 
 import java.util.function.Function
 
-@SelfType(AbstractSmokeTest)
-trait WithDeprecations {
+class WithDeprecations {
 
     private static final VersionNumber KOTLIN_VERSION_USING_NEW_TRANSFORMS_API = VersionNumber.parse('1.4.20')
     private static final VersionNumber KOTLIN_VERSION_WITHOUT_CONFIGURATION_DEPENDENCY = VersionNumber.parse('1.4.31')
@@ -68,50 +66,56 @@ trait WithDeprecations {
         "Please use the destinationDirectory property instead. " +
         "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#compile_task_wiring"
 
-    void expectKotlinConfigurationAsDependencyDeprecation(SmokeTestGradleRunner runner, String version) {
+    final SmokeTestGradleRunner runner
+
+    WithDeprecations(SmokeTestGradleRunner runner) {
+        this.runner = runner
+    }
+
+    void expectKotlinConfigurationAsDependencyDeprecation(String version) {
         VersionNumber kotlinVersionNumber = VersionNumber.parse(version)
         runner.expectLegacyDeprecationWarningIf(kotlinVersionNumber < KOTLIN_VERSION_WITHOUT_CONFIGURATION_DEPENDENCY, CONFIGURATION_AS_DEPENDENCY_DEPRECATION)
     }
 
-    void expectKotlinArtifactTransformDeprecation(SmokeTestGradleRunner runner, String kotlinPluginVersion) {
+    void expectKotlinArtifactTransformDeprecation(String kotlinPluginVersion) {
         VersionNumber kotlinVersionNumber = VersionNumber.parse(kotlinPluginVersion)
         runner.expectLegacyDeprecationWarningIf(kotlinVersionNumber < KOTLIN_VERSION_USING_NEW_TRANSFORMS_API, ARTIFACT_TRANSFORM_DEPRECATION)
     }
 
-    void expectKotlinArchiveNameDeprecation(SmokeTestGradleRunner runner, String kotlinPluginVersion) {
+    void expectKotlinArchiveNameDeprecation(String kotlinPluginVersion) {
         VersionNumber kotlinVersionNumber = VersionNumber.parse(kotlinPluginVersion)
         runner.expectLegacyDeprecationWarningIf(kotlinVersionNumber.minor == 3, ARCHIVE_NAME_DEPRECATION)
     }
 
-    void expectKotlinWorkerSubmitDeprecation(SmokeTestGradleRunner runner, boolean workers, String kotlinPluginVersion) {
+    void expectKotlinWorkerSubmitDeprecation(boolean workers, String kotlinPluginVersion) {
         VersionNumber kotlinVersionNumber = VersionNumber.parse(kotlinPluginVersion)
         runner.expectLegacyDeprecationWarningIf(workers && kotlinVersionNumber < KOTLIN_VERSION_USING_NEW_WORKERS_API, WORKER_SUBMIT_DEPRECATION)
     }
 
-    void expectKotlin2JsPluginDeprecation(SmokeTestGradleRunner runner, String version) {
+    void expectKotlin2JsPluginDeprecation(String version) {
         VersionNumber versionNumber = VersionNumber.parse(version)
         runner.expectLegacyDeprecationWarningIf(versionNumber >= VersionNumber.parse('1.4.0'),
             "The `kotlin2js` Gradle plugin has been deprecated."
         )
     }
 
-    void expectKotlinParallelTasksDeprecation(SmokeTestGradleRunner runner, String version) {
+    void expectKotlinParallelTasksDeprecation(String version) {
         VersionNumber versionNumber = VersionNumber.parse(version)
         runner.expectLegacyDeprecationWarningIf(versionNumber >= VersionNumber.parse('1.5.20'),
             "Project property 'kotlin.parallel.tasks.in.project' is deprecated."
         )
     }
 
-    void expectKotlinCompileDestinationDirPropertyDeprecation(SmokeTestGradleRunner runner, String version) {
+    void expectKotlinCompileDestinationDirPropertyDeprecation(String version) {
         VersionNumber versionNumber = VersionNumber.parse(version)
         runner.expectLegacyDeprecationWarningIf(versionNumber >= VersionNumber.parse('1.5.20'), ABSTRACT_COMPILE_DESTINATION_DIR_DEPRECATION)
     }
 
-    void expectKotlinJsCompileDestinationDirPropertyDeprecation(SmokeTestGradleRunner runner, String version) {
+    void expectKotlinJsCompileDestinationDirPropertyDeprecation(String version) {
         runner.expectDeprecationWarning(ABSTRACT_COMPILE_DESTINATION_DIR_DEPRECATION, "https://youtrack.jetbrains.com/issue/KT-46019")
     }
 
-    void expectAndroidFileTreeForEmptySourcesDeprecationWarnings(SmokeTestGradleRunner runner, String agpVersion, String... properties) {
+    void expectAndroidFileTreeForEmptySourcesDeprecationWarnings(String agpVersion, String... properties) {
         VersionNumber agpVersionNumber = VersionNumber.parse(agpVersion)
         properties.each {
             if (it == "sourceFiles" || it == "sourceDirs" || it == "inputFiles") {
@@ -124,12 +128,12 @@ trait WithDeprecations {
         }
     }
 
-    void expectAndroidWorkerExecutionSubmitDeprecationWarning(SmokeTestGradleRunner runner, String agpVersion) {
+    void expectAndroidWorkerExecutionSubmitDeprecationWarning(String agpVersion) {
         VersionNumber agpVersionNumber = VersionNumber.parse(agpVersion)
         runner.expectLegacyDeprecationWarningIf(agpVersionNumber.getBaseVersion() < AGP_VERSION_WITH_FIXED_NEW_WORKERS_API, WORKER_SUBMIT_DEPRECATION)
     }
 
-    void expectAndroidLintPerVariantTaskAllInputsDeprecation(SmokeTestGradleRunner runner, String agpVersion, String artifact) {
+    void expectAndroidLintPerVariantTaskAllInputsDeprecation(String agpVersion, String artifact) {
         runner.expectLegacyDeprecationWarningIf(
             agpVersion.startsWith("4.1"),
             "In plugin 'com.android.internal.version-check' type 'com.android.build.gradle.tasks.LintPerVariantTask' property 'allInputs' cannot be resolved:  " +
@@ -142,9 +146,8 @@ trait WithDeprecations {
         )
     }
 
-    void expectAsciiDocDeprecationWarnings(SmokeTestGradleRunner smokeTestGradleRunner) {
-        smokeTestGradleRunner
-            .expectDeprecationWarning(JAVAEXEC_SET_MAIN_DEPRECATION, "https://github.com/asciidoctor/asciidoctor-gradle-plugin/issues/602")
-            .expectDeprecationWarning(FILE_TREE_FOR_EMPTY_SOURCES_DEPRECATION.apply("sourceFileTree"), "https://github.com/asciidoctor/asciidoctor-gradle-plugin/issues/629")
+    void expectAsciiDocDeprecationWarnings() {
+        runner.expectDeprecationWarning(JAVAEXEC_SET_MAIN_DEPRECATION, "https://github.com/asciidoctor/asciidoctor-gradle-plugin/issues/602")
+        runner.expectDeprecationWarning(FILE_TREE_FOR_EMPTY_SOURCES_DEPRECATION.apply("sourceFileTree"), "https://github.com/asciidoctor/asciidoctor-gradle-plugin/issues/629")
     }
 }

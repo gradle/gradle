@@ -128,13 +128,13 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
 
     private SmokeTestGradleRunner runnerForLocationExpectingLintDeprecations(File location, boolean isCleanBuild, String agpVersion, List<String> artifacts, String... tasks) {
         SmokeTestGradleRunner runner = isCleanBuild ? runnerForLocationMaybeExpectingWorkerExecutorDeprecation(location, agpVersion, tasks) : runnerForLocation(location, agpVersion, tasks)
-        artifacts.each { artifact ->
-            expectAndroidLintPerVariantTaskAllInputsDeprecation(runner, agpVersion, artifact)
-        }
-        return runner.apply {
-            expectAndroidFileTreeForEmptySourcesDeprecationWarnings(runner, agpVersion, "sourceFiles", "sourceDirs")
+        return runner.deprecations {
+            artifacts.each { artifact ->
+                expectAndroidLintPerVariantTaskAllInputsDeprecation(agpVersion, artifact)
+            }
+            expectAndroidFileTreeForEmptySourcesDeprecationWarnings(agpVersion, "sourceFiles", "sourceDirs")
             if (agpVersion.startsWith("7.")) {
-                expectAndroidFileTreeForEmptySourcesDeprecationWarnings(runner, agpVersion, "inputFiles", "resources")
+                expectAndroidFileTreeForEmptySourcesDeprecationWarnings(agpVersion, "inputFiles", "resources")
             }
         }
     }

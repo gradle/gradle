@@ -52,25 +52,33 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
     }
 
     protected BuildResult buildLocation(File projectDir, String agpVersion) {
-        return runnerForLocation(projectDir, agpVersion, "assembleDebug").apply {
-            expectAllFileTreeForEmptySourcesDeprecationWarnings(it, agpVersion)
-        }.build()
+        return runnerForLocation(projectDir, agpVersion, "assembleDebug")
+            .deprecations(SantaTrackerDeprecations) {
+                expectAllFileTreeForEmptySourcesDeprecationWarnings(agpVersion)
+            }.build()
     }
 
     protected BuildResult buildLocationMaybeExpectingWorkerExecutorDeprecation(File location, String agpVersion) {
-        return runnerForLocationMaybeExpectingWorkerExecutorDeprecation(location, agpVersion,"assembleDebug").apply {
-            expectAllFileTreeForEmptySourcesDeprecationWarnings(it, agpVersion)
-        }.build()
+        return runnerForLocationMaybeExpectingWorkerExecutorDeprecation(location, agpVersion,"assembleDebug")
+            .deprecations(SantaTrackerDeprecations) {
+                expectAllFileTreeForEmptySourcesDeprecationWarnings(agpVersion)
+            }.build()
     }
 
     protected SmokeTestGradleRunner runnerForLocationMaybeExpectingWorkerExecutorDeprecation(File location, String agpVersion, String... tasks) {
-        return runnerForLocation(location, agpVersion, tasks).apply {
-            expectAndroidWorkerExecutionSubmitDeprecationWarning(it, agpVersion)
+        return runnerForLocation(location, agpVersion, tasks).deprecations {
+            expectAndroidWorkerExecutionSubmitDeprecationWarning(agpVersion)
         }
     }
 
-    protected void expectAllFileTreeForEmptySourcesDeprecationWarnings(SmokeTestGradleRunner runner, String agpVersion) {
-        expectAndroidFileTreeForEmptySourcesDeprecationWarnings(runner, agpVersion, "sourceFiles", "sourceDirs", "inputFiles", "resources", "projectNativeLibs")
+    static class SantaTrackerDeprecations extends WithDeprecations {
+        SantaTrackerDeprecations(SmokeTestGradleRunner runner) {
+            super(runner)
+        }
+
+        void expectAllFileTreeForEmptySourcesDeprecationWarnings(String agpVersion) {
+            expectAndroidFileTreeForEmptySourcesDeprecationWarnings(agpVersion, "sourceFiles", "sourceDirs", "inputFiles", "resources", "projectNativeLibs")
+        }
     }
 
     protected BuildResult cleanLocation(File projectDir, String agpVersion) {

@@ -42,8 +42,8 @@ class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
             """.stripIndent()
 
         when:
-        runner('asciidoc').apply {
-            expectAsciiDocDeprecationWarnings(it)
+        runner('asciidoc').deprecations {
+            expectAsciiDocDeprecationWarnings()
         }.build()
 
         then:

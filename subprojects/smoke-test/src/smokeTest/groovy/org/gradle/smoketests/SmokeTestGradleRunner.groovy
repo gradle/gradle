@@ -23,7 +23,6 @@ import org.gradle.testkit.runner.internal.DefaultGradleRunner
 import org.slf4j.LoggerFactory
 
 import javax.annotation.Nullable
-import java.util.function.Consumer
 
 class SmokeTestGradleRunner extends GradleRunner {
     private static final LOGGER = LoggerFactory.getLogger(SmokeTestGradleRunner)
@@ -115,9 +114,22 @@ class SmokeTestGradleRunner extends GradleRunner {
         return this
     }
 
-    SmokeTestGradleRunner apply(Consumer<SmokeTestGradleRunner> function) {
-        function.accept(this)
+    def <U extends WithDeprecations, T> SmokeTestGradleRunner deprecations(
+        @DelegatesTo.Target Class<U> deprecationClass,
+        @DelegatesTo(
+            genericTypeIndex = 0,
+            strategy=Closure.DELEGATE_FIRST)
+            Closure<T> closure) {
+        deprecationClass.newInstance(this).tap(closure)
         return this
+    }
+
+    def <T> SmokeTestGradleRunner deprecations(
+        @DelegatesTo(
+            value = WithDeprecations.class,
+            strategy=Closure.DELEGATE_FIRST)
+            Closure<T> closure) {
+        return deprecations(WithDeprecations, closure)
     }
 
     private void verifyDeprecationWarnings(BuildResult result) {
