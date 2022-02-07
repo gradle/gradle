@@ -178,10 +178,6 @@ FeaturePreviews.Feature.values().forEach { feature ->
 
 fun remoteBuildCacheEnabled(settings: Settings) = settings.buildCache.remote?.isEnabled == true
 
-fun isAdoptOrAdoptiumOpenJDK() = true == System.getProperty("java.vendor")?.let { it.contains("AdoptOpenJDK") || it.contains("Adoptium") }
-
-fun isAdoptOrAdoptiumOpenJDK11() = isAdoptOrAdoptiumOpenJDK() && JavaVersion.current().isJava11
-
 fun getBuildJavaHome() = System.getProperty("java.home")
 
 gradle.settingsEvaluated {
@@ -189,11 +185,7 @@ gradle.settingsEvaluated {
         return@settingsEvaluated
     }
 
-    if (!isAdoptOrAdoptiumOpenJDK()) {
-        if (remoteBuildCacheEnabled(this)) {
-            throw GradleException("Remote cache is enabled, which requires AdoptOpenJDK 11 to perform this build. It's currently ${getBuildJavaHome()}.")
-        } else {
-            println("WARNING: you're running this build on ${getBuildJavaHome()}, which is not officially supported")
-        }
+    if (!JavaVersion.current().isJava11) {
+        throw GradleException("This build requires JDK 11. It's currently ${getBuildJavaHome()}. You can ignore this check by passing '-Dorg.gradle.ignoreBuildJavaVersionCheck'.")
     }
 }
