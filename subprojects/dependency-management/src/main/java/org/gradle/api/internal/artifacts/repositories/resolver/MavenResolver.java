@@ -29,7 +29,6 @@ import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.resources.MissingResourceException;
 import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.component.external.model.FixedComponentArtifacts;
-import org.gradle.internal.component.external.model.MetadataSourcedAllVariantsComponentArtifacts;
 import org.gradle.internal.component.external.model.MetadataSourcedComponentArtifacts;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
@@ -229,7 +228,7 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
             } else if (module.hasVariants() && !module.isPomPackaging()) {
                 result.resolved(new MetadataSourcedComponentArtifacts());
             } else if (module.isKnownJarPackaging()) {
-                result.resolved(new MetadataSourcedAllVariantsComponentArtifacts());
+                result.resolved(new MetadataSourcedComponentArtifacts());
             }
         }
 
