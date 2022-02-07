@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflict
 import org.gradle.internal.Pair;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.locking.LockOutOfDateException;
+import org.gradle.internal.resolve.ModuleVersionNotFoundException;
 import org.gradle.reporting.ReportRenderer;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -69,10 +70,16 @@ public final class HtmlResolutionFailureReportBodyRenderer extends ReportRendere
             failureMsg = buildOutOfDateLocksMsg((LockOutOfDateException) cause);
         } else if (cause instanceof ResolveException) {
             failureMsg = buildResolveFailureMsg((ResolveException) cause);
+        } else if (cause instanceof ModuleVersionNotFoundException) {
+            failureMsg = buildModuleVersionNotFoundMsg((ModuleVersionNotFoundException) cause);
         } else { // Fallback to failing the task in case we don't know anything special about the error
             throw UncheckedException.throwAsUncheckedException(cause);
         }
         return StringEscapeUtils.escapeHtml(failureMsg);
+    }
+
+    private String buildModuleVersionNotFoundMsg(ModuleVersionNotFoundException cause) {
+        return String.format("Could not find module: %s\n", cause.getSelector().toString());
     }
 
     private String buildResolveFailureMsg(ResolveException cause) {

@@ -338,38 +338,13 @@ org:leaf:1.0
         """
 
         when:
-        run "dependencyInsight", "--dependency", "leaf2", "--configuration", "conf"
+        fails "dependencyInsight", "--dependency", "leaf2", "--configuration", "conf"
 
         then:
-        outputContains """Dependency resolution failed because of conflict(s) on the following module(s):
-   - org:leaf2 between versions 2.5, 1.5 and 1.0
+        result.assertHasErrorOutput("""
+Dependency resolution failed.
 
-org:leaf2:2.5
-   variant "runtime" [
-      org.gradle.status          = release (not requested)
-      org.gradle.usage           = java-runtime (not requested)
-      org.gradle.libraryelements = jar (not requested)
-      org.gradle.category        = library (not requested)
-   ]
-   Selection reasons:
-      - By conflict resolution : between versions 2.5, 1.5 and 1.0
-
-org:leaf2:2.5
-\\--- org:toplevel3:1.0
-     \\--- conf
-
-org:leaf2:1.0 -> 2.5
-+--- org:middle1:1.0
-|    \\--- org:toplevel:1.0
-|         \\--- conf
-\\--- org:middle3:1.0
-     \\--- org:toplevel4:1.0
-          \\--- conf
-
-org:leaf2:1.5 -> 2.5
-\\--- org:toplevel2:1.0
-     \\--- conf
-"""
+- Could not resolve all dependencies for: configuration ':conf'.""")
     }
 
     @ToBeFixedForConfigurationCache(because = ":dependencyInsight")

@@ -495,7 +495,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                        BuildState currentBuild,
                                                        TransformedVariantFactory transformedVariantFactory,
                                                        DependencyVerificationOverride dependencyVerificationOverride,
-                                                       ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory) {
+                                                       ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
+                                                       ServiceRegistry services) {
             return new ErrorHandlingConfigurationResolver(
                 new ShortCircuitEmptyConfigurationResolver(
                     new DefaultConfigurationResolver(
@@ -522,7 +523,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                         currentBuild.getBuildIdentifier(),
                         new AttributeDesugaring(attributesFactory),
                         dependencyVerificationOverride,
-                        componentSelectionDescriptorFactory),
+                        componentSelectionDescriptorFactory,
+                        services),
                     componentIdentifierFactory,
                     moduleIdentifierFactory,
                     currentBuild.getBuildIdentifier()));

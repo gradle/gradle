@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
+import org.gradle.api.internal.artifacts.failure.ResolutionFailuresListener;
 import org.gradle.api.internal.artifacts.ivyservice.ResolvedArtifactCollectingVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.ResolvedFileCollectionVisitor;
 import org.gradle.api.internal.file.AbstractFileCollection;
@@ -24,6 +25,7 @@ import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -32,9 +34,11 @@ import java.util.Set;
 @ServiceScope(Scopes.BuildSession.class)
 public class ArtifactSetToFileCollectionFactory {
     private final BuildOperationExecutor buildOperationExecutor;
+    private final ServiceRegistry services;
 
-    public ArtifactSetToFileCollectionFactory(BuildOperationExecutor buildOperationExecutor) {
+    public ArtifactSetToFileCollectionFactory(BuildOperationExecutor buildOperationExecutor, ServiceRegistry services) {
         this.buildOperationExecutor = buildOperationExecutor;
+        this.services = services;
     }
 
     /**
@@ -55,7 +59,8 @@ public class ArtifactSetToFileCollectionFactory {
                 ResolvedFileCollectionVisitor collectingVisitor = new ResolvedFileCollectionVisitor(visitor);
                 ParallelResolveArtifactSet.wrap(artifacts, buildOperationExecutor).visit(collectingVisitor);
                 if (!collectingVisitor.getFailures().isEmpty()) {
-                    throw UncheckedException.throwAsUncheckedException(collectingVisitor.getFailures().iterator().next());
+                    ResolutionFailuresListener failuresListener = services.get(ResolutionFailuresListener.class);
+                    collectingVisitor.getFailures().forEach(failuresListener::logError);
                 }
             }
         };

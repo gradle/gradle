@@ -19,12 +19,11 @@ package org.gradle.api.internal.artifacts.failure;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.artifacts.DependencyResolutionListener;
 import org.gradle.api.artifacts.ResolvableDependencies;
+import org.gradle.internal.resolve.ModuleVersionNotFoundException;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-import javax.annotation.concurrent.GuardedBy;
-import javax.annotation.concurrent.ThreadSafe;
-import java.util.IdentityHashMap;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -34,32 +33,36 @@ import java.util.Map;
  *
  * @since 7.5
  */
-@ThreadSafe
 @ServiceScope(Scopes.BuildTree.class)
 public class ResolutionFailuresListener implements DependencyResolutionListener {
-    @GuardedBy("self") private final Map<ResolvableDependencies, Throwable> errors = new IdentityHashMap<>();
-
-    private ThreadLocal<ResolvableDependencies> currentResolution = new ThreadLocal<>();
+    private final Map<String, Throwable> errors = new HashMap<>();
+    private ResolvableDependencies currentResolution;
 
     @Override
     public void beforeResolve(ResolvableDependencies dependencies) {
-        currentResolution.set(dependencies);
+        currentResolution = dependencies;
     }
 
     @Override
     public void afterResolve(ResolvableDependencies dependencies) {
-        currentResolution.set(null);
+        currentResolution = null;
     }
 
     public void logError(Throwable t) {
-        synchronized (errors) {
-            errors.put(currentResolution.get(), t);
+        final String key;
+        if (t instanceof ModuleVersionNotFoundException) {
+            ModuleVersionNotFoundException mvnfe = (ModuleVersionNotFoundException) t;
+            key = mvnfe.getSelector().getDisplayName();
+        } else {
+            key = currentResolution.getName();
+        }
+
+        if (!errors.containsKey(key)) {
+            errors.put(key, t);
         }
     }
 
-    public Map<ResolvableDependencies, Throwable> getErrors() {
-        synchronized (errors) {
-            return ImmutableMap.copyOf(errors);
-        }
+    public Map<String, Throwable> getErrors() {
+        return ImmutableMap.copyOf(errors);
     }
 }

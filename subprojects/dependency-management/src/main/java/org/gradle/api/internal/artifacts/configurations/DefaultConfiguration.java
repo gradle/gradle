@@ -72,6 +72,7 @@ import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DependencyConstraintInternal;
+import org.gradle.api.internal.artifacts.failure.ResolutionFailuresListener;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration;
 import org.gradle.api.internal.artifacts.ivyservice.ResolvedArtifactCollectingVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.ResolvedFileCollectionVisitor;
@@ -127,6 +128,7 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.ModuleVersionNotFoundException;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.work.WorkerThreadRegistry;
 import org.gradle.util.Path;
@@ -244,6 +246,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private String consistentResolutionReason;
     private ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory;
     private final DefaultConfigurationFactory defaultConfigurationFactory;
+    private final ServiceRegistry services;
 
     /**
      * To create an instance, use {@link DefaultConfigurationFactory#create}.
@@ -270,8 +273,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         WorkerThreadRegistry workerThreadRegistry,
         DomainObjectCollectionFactory domainObjectCollectionFactory,
         CalculatedValueContainerFactory calculatedValueContainerFactory,
+        ServiceRegistry services,
         DefaultConfigurationFactory defaultConfigurationFactory
     ) {
+        this.services = services;
         this.userCodeApplicationContext = userCodeApplicationContext;
         this.projectStateRegistry = projectStateRegistry;
         this.workerThreadRegistry = workerThreadRegistry;
@@ -547,7 +552,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     private ConfigurationFileCollection fileCollectionFromSpec(Spec<? super Dependency> dependencySpec) {
-        return new ConfigurationFileCollection(new SelectedArtifactsProvider(), dependencySpec, configurationAttributes, Specs.satisfyAll(), false, false, new DefaultResolutionHost());
+        return new ConfigurationFileCollection(new SelectedArtifactsProvider(), dependencySpec, configurationAttributes, Specs.satisfyAll(), false, false, new DefaultResolutionHost(), services);
     }
 
     @Override
@@ -837,7 +842,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     public ExtraExecutionGraphDependenciesResolverFactory getDependenciesResolver() {
         if (dependenciesResolverFactory == null) {
             dependenciesResolverFactory = new DefaultExtraExecutionGraphDependenciesResolverFactory(new DefaultResolutionResultProvider(), domainObjectContext, calculatedValueContainerFactory,
-                (attributes, filter) -> new ConfigurationFileCollection(new SelectedArtifactsProvider(), Specs.satisfyAll(), attributes, filter, false, false, new DefaultResolutionHost()));
+                (attributes, filter) -> new ConfigurationFileCollection(new SelectedArtifactsProvider(), Specs.satisfyAll(), attributes, filter, false, false, new DefaultResolutionHost(), services));
         }
         return dependenciesResolverFactory;
     }
@@ -1434,6 +1439,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         private final ResolutionResultProvider<VisitedArtifactSet> resultProvider;
         private final ResolutionHost resolutionHost;
         private SelectedArtifactSet selectedArtifacts;
+        private ServiceRegistry services;
 
         private ConfigurationFileCollection(
             ResolutionResultProvider<VisitedArtifactSet> resultProvider,
@@ -1442,7 +1448,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             Spec<? super ComponentIdentifier> componentSpec,
             boolean lenient,
             boolean allowNoMatchingVariants,
-            ResolutionHost resolutionHost
+            ResolutionHost resolutionHost,
+            ServiceRegistry services
         ) {
             this.resultProvider = resultProvider;
             this.dependencySpec = dependencySpec;
@@ -1451,6 +1458,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             this.lenient = lenient;
             this.allowNoMatchingVariants = allowNoMatchingVariants;
             this.resolutionHost = resolutionHost;
+            this.services = services;
         }
 
         @Override
@@ -1473,7 +1481,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             ResolvedFileCollectionVisitor collectingVisitor = new ResolvedFileCollectionVisitor(visitor);
             getSelectedArtifacts().visitArtifacts(collectingVisitor, lenient);
             if (!lenient) {
-                resolutionHost.rethrowFailure("files", collectingVisitor.getFailures());
+                ResolutionFailuresListener failuresListener = services.get(ResolutionFailuresListener.class);
+                collectingVisitor.getFailures().forEach(failuresListener::logError);
             }
         }
 
@@ -1735,10 +1744,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
-    private ConfigurationArtifactCollection artifactCollection(AttributeContainerInternal attributes, Spec<? super ComponentIdentifier> componentFilter, boolean lenient, boolean allowNoMatchingVariants) {
+    private ConfigurationArtifactCollection artifactCollection(AttributeContainerInternal attributes, Spec<? super ComponentIdentifier> componentFilter, boolean lenient, boolean allowNoMatchingVariants, ServiceRegistry services) {
         ImmutableAttributes viewAttributes = attributes.asImmutable();
         DefaultResolutionHost failureHandler = new DefaultResolutionHost();
-        ConfigurationFileCollection files = new ConfigurationFileCollection(new SelectedArtifactsProvider(), Specs.satisfyAll(), viewAttributes, componentFilter, lenient, allowNoMatchingVariants, failureHandler);
+        ConfigurationFileCollection files = new ConfigurationFileCollection(new SelectedArtifactsProvider(), Specs.satisfyAll(), viewAttributes, componentFilter, lenient, allowNoMatchingVariants, failureHandler, services);
         return new ConfigurationArtifactCollection(files, lenient, failureHandler, calculatedValueContainerFactory);
     }
 
@@ -1805,7 +1814,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         @Override
         public ArtifactCollection getArtifacts() {
-            return artifactCollection(configurationAttributes, Specs.satisfyAll(), false, false);
+            return artifactCollection(configurationAttributes, Specs.satisfyAll(), false, false, services);
         }
 
         @Override
@@ -1862,13 +1871,13 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
             @Override
             public ArtifactCollection getArtifacts() {
-                return artifactCollection(viewAttributes, componentFilter, lenient, allowNoMatchingVariants);
+                return artifactCollection(viewAttributes, componentFilter, lenient, allowNoMatchingVariants, services);
             }
 
             @Override
             public FileCollection getFiles() {
                 // TODO maybe make detached configuration is flag is true
-                return new ConfigurationFileCollection(new SelectedArtifactsProvider(), Specs.satisfyAll(), viewAttributes, componentFilter, lenient, allowNoMatchingVariants, new DefaultResolutionHost());
+                return new ConfigurationFileCollection(new SelectedArtifactsProvider(), Specs.satisfyAll(), viewAttributes, componentFilter, lenient, allowNoMatchingVariants, new DefaultResolutionHost(), services);
             }
         }
 

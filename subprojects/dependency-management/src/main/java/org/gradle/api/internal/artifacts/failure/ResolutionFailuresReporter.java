@@ -23,6 +23,7 @@ import org.gradle.internal.Pair;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.locking.LockOutOfDateException;
 import org.gradle.internal.logging.ConsoleRenderer;
+import org.gradle.internal.resolve.ModuleVersionNotFoundException;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.problems.buildtree.ProblemReporter;
@@ -57,16 +58,18 @@ public final class ResolutionFailuresReporter implements ProblemReporter {
     public void report(File reportDir, Consumer<? super Throwable> validationFailures) {
         List<Throwable> errors = getErrors();
 
-        File reportFile = new File(reportDir, "reports/dependency-resolution/resolution-failure-report.html");
-        writeHtmlReport(reportFile, errors);
+        if (!errors.isEmpty()) {
+            File reportFile = new File(reportDir, "reports/dependency-resolution/resolution-failure-report.html");
+            writeHtmlReport(reportFile, errors);
 
-        String summary = buildFailureSummary(errors, reportFile);
-        validationFailures.accept(new GradleException(summary));
+            String summary = buildFailureSummary(errors, reportFile);
+            validationFailures.accept(new GradleException(summary));
+        }
     }
 
     private List<Throwable> getErrors() {
         return failuresListener.getErrors().entrySet().stream()
-                .sorted(Comparator.comparing(e -> e.getKey().getName()))
+                .sorted(Comparator.comparing(e -> e.getKey() == null ? "" : e.getKey()))
                 .map(Map.Entry::getValue)
                 .collect(Collectors.toList());
     }
@@ -92,9 +95,15 @@ public final class ResolutionFailuresReporter implements ProblemReporter {
             return summarizeOutOfDateLocks((LockOutOfDateException) cause);
         } else if (cause instanceof ResolveException) {
             return summarizeResolveFailure((ResolveException) cause);
+        } else if (cause instanceof ModuleVersionNotFoundException) {
+            return summarizeModuleVersionNotFoundMsg((ModuleVersionNotFoundException) cause);
         } else { // Fallback to failing the task in case we don't know anything special about the error
             throw UncheckedException.throwAsUncheckedException(cause);
         }
+    }
+
+    private String summarizeModuleVersionNotFoundMsg(ModuleVersionNotFoundException cause) {
+        return String.format("Could not find module: %s.", cause.getSelector().toString());
     }
 
     private String summarizeResolveFailure(ResolveException cause) {

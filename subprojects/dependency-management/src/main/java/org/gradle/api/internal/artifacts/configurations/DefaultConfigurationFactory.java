@@ -36,6 +36,7 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.work.WorkerThreadRegistry;
 
@@ -64,6 +65,7 @@ public class DefaultConfigurationFactory {
     private final WorkerThreadRegistry workerThreadRegistry;
     private final DomainObjectCollectionFactory domainObjectCollectionFactory;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
+    private final ServiceRegistry services;
 
     @Inject
     public DefaultConfigurationFactory(
@@ -81,7 +83,8 @@ public class DefaultConfigurationFactory {
         ProjectStateRegistry projectStateRegistry,
         WorkerThreadRegistry workerThreadRegistry,
         DomainObjectCollectionFactory domainObjectCollectionFactory,
-        CalculatedValueContainerFactory calculatedValueContainerFactory
+        CalculatedValueContainerFactory calculatedValueContainerFactory,
+        ServiceRegistry services
     ) {
         this.instantiator = instantiator;
         this.resolver = resolver;
@@ -99,6 +102,7 @@ public class DefaultConfigurationFactory {
         this.workerThreadRegistry = workerThreadRegistry;
         this.domainObjectCollectionFactory = domainObjectCollectionFactory;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
+        this.services = services;
     }
 
     /**
@@ -135,6 +139,7 @@ public class DefaultConfigurationFactory {
             workerThreadRegistry,
             domainObjectCollectionFactory,
             calculatedValueContainerFactory,
+            services,
             this
         );
     }
