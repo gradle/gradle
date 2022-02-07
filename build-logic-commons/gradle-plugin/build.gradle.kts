@@ -4,11 +4,6 @@ plugins {
 
 description = "Provides plugins used to create a Gradle plugin with Groovy or Kotlin DSL within build-logic builds"
 
-java {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
-}
-
 dependencies {
     implementation(project(":code-quality"))
     implementation(project(":build-scan"))
