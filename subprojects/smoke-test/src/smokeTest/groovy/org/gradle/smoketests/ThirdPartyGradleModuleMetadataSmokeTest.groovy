@@ -130,7 +130,7 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
         return setIllegalAccessPermitForJDK16KotlinCompilerDaemonOptions(runner('publish'))
             .withProjectDir(new File(testProjectDir, 'producer'))
             .forwardOutput()
-            .deprecations {
+            .deprecations(KotlinMultiPlatformDeprecations) {
                 expectKotlinJsCompileDestinationDirPropertyDeprecation(kotlinVersion)
                 expectAndroidFileTreeForEmptySourcesDeprecationWarnings(agpVersion, "sourceFiles", "sourceDirs", "inputFiles", "projectNativeLibs")
             }.build()
@@ -177,5 +177,11 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
         }
 
         moduleRoot
+    }
+
+    static class KotlinMultiPlatformDeprecations extends BaseDeprecations implements WithKotlinDeprecations, WithAndroidDeprecations {
+        KotlinMultiPlatformDeprecations(SmokeTestGradleRunner runner) {
+            super(runner)
+        }
     }
 }

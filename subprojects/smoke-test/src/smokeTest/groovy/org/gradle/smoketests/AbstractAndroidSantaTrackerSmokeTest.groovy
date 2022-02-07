@@ -66,12 +66,13 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
     }
 
     protected SmokeTestGradleRunner runnerForLocationMaybeExpectingWorkerExecutorDeprecation(File location, String agpVersion, String... tasks) {
-        return runnerForLocation(location, agpVersion, tasks).deprecations {
-            expectAndroidWorkerExecutionSubmitDeprecationWarning(agpVersion)
-        }
+        return runnerForLocation(location, agpVersion, tasks)
+            .deprecations(SantaTrackerDeprecations) {
+                expectAndroidWorkerExecutionSubmitDeprecationWarning(agpVersion)
+            }
     }
 
-    static class SantaTrackerDeprecations extends BaseDeprecations {
+    static class SantaTrackerDeprecations extends BaseDeprecations implements WithAndroidDeprecations {
         SantaTrackerDeprecations(SmokeTestGradleRunner runner) {
             super(runner)
         }

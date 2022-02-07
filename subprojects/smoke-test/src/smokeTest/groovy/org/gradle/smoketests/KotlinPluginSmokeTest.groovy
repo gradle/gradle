@@ -20,6 +20,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
+import org.gradle.util.GradleVersion
 import org.gradle.util.internal.VersionNumber
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
@@ -37,7 +38,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
 
         when:
         def result = runner(workers, versionNumber, 'run')
-            .deprecations {
+            .deprecations(KotlinDeprecations) {
                 expectKotlinWorkerSubmitDeprecation(workers, version)
                 expectKotlinArtifactTransformDeprecation(version)
                 expectKotlinArchiveNameDeprecation(version)
@@ -49,7 +50,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
 
         when:
         result = runner(workers, versionNumber, 'run')
-            .deprecations {
+            .deprecations(KotlinDeprecations) {
                 if (!GradleContextualExecuter.configCache) {
                     expectKotlinArtifactTransformDeprecation(version)
                 }
@@ -77,7 +78,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
 
         when:
         def result = runner(workers, versionNumber, 'compileKotlin2Js')
-            .deprecations {
+            .deprecations(KotlinDeprecations) {
                 expectKotlinWorkerSubmitDeprecation(workers, version)
                 expectKotlin2JsPluginDeprecation(version)
                 expectKotlinParallelTasksDeprecation(version)
@@ -127,7 +128,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
 
         when:
         def result = runner(false, versionNumber, 'compileJava')
-            .deprecations {
+            .deprecations(KotlinDeprecations) {
                 expectKotlinArtifactTransformDeprecation(kotlinVersion)
                 expectKotlinArchiveNameDeprecation(kotlinVersion)
             }.build()
@@ -166,7 +167,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
 
         when:
         def result = runner(false, versionNumber, 'build')
-            .deprecations {
+            .deprecations(KotlinDeprecations) {
                 expectKotlinArtifactTransformDeprecation(kotlinVersion)
             }.build()
 
@@ -175,7 +176,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
 
         when:
         result = runner(false, versionNumber, 'build')
-            .deprecations {
+            .deprecations(KotlinDeprecations) {
                 if (!GradleContextualExecuter.configCache) {
                     expectKotlinArtifactTransformDeprecation(kotlinVersion)
                 }
@@ -274,5 +275,45 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
 
     private static boolean isAndroidKotlinPlugin(String pluginId) {
         return pluginId.contains('android')
+    }
+
+    static class KotlinDeprecations extends BaseDeprecations implements WithKotlinDeprecations {
+        private static final VersionNumber KOTLIN_VERSION_USING_NEW_TRANSFORMS_API = VersionNumber.parse('1.4.20')
+        private static final String ARTIFACT_TRANSFORM_DEPRECATION =
+            "Registering artifact transforms extending ArtifactTransform has been deprecated. " +
+                "This is scheduled to be removed in Gradle 8.0. Implement TransformAction instead. " +
+                "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/artifact_transforms.html for more details."
+
+        private static final String ARCHIVE_NAME_DEPRECATION = "The AbstractArchiveTask.archiveName property has been deprecated. " +
+            "This is scheduled to be removed in Gradle 8.0. Please use the archiveFileName property instead. " +
+            "See https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.api.tasks.bundling.AbstractArchiveTask.html#org.gradle.api.tasks.bundling.AbstractArchiveTask:archiveName for more details."
+
+        KotlinDeprecations(SmokeTestGradleRunner runner) {
+            super(runner)
+        }
+
+        void expectKotlinArtifactTransformDeprecation(String kotlinPluginVersion) {
+            VersionNumber kotlinVersionNumber = VersionNumber.parse(kotlinPluginVersion)
+            runner.expectLegacyDeprecationWarningIf(kotlinVersionNumber < KOTLIN_VERSION_USING_NEW_TRANSFORMS_API, ARTIFACT_TRANSFORM_DEPRECATION)
+        }
+
+        void expectKotlinArchiveNameDeprecation(String kotlinPluginVersion) {
+            VersionNumber kotlinVersionNumber = VersionNumber.parse(kotlinPluginVersion)
+            runner.expectLegacyDeprecationWarningIf(kotlinVersionNumber.minor == 3, ARCHIVE_NAME_DEPRECATION)
+        }
+
+        void expectKotlin2JsPluginDeprecation(String version) {
+            VersionNumber versionNumber = VersionNumber.parse(version)
+            runner.expectLegacyDeprecationWarningIf(versionNumber >= VersionNumber.parse('1.4.0'),
+                "The `kotlin2js` Gradle plugin has been deprecated."
+            )
+        }
+
+        void expectKotlinParallelTasksDeprecation(String version) {
+            VersionNumber versionNumber = VersionNumber.parse(version)
+            runner.expectLegacyDeprecationWarningIf(versionNumber >= VersionNumber.parse('1.5.20'),
+                "Project property 'kotlin.parallel.tasks.in.project' is deprecated."
+            )
+        }
     }
 }
