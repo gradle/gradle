@@ -17,7 +17,7 @@
 package org.gradle.internal.watch
 
 import org.gradle.initialization.StartParameterBuildOptions
-import org.gradle.internal.watch.vfs.WatchMode
+import org.gradle.internal.watch.registry.WatchMode
 
 class EnableFileSystemWatchingIntegrationTest extends AbstractFileSystemWatchingIntegrationTest {
     private static final String ENABLED_MESSAGE = "Watching the file system is configured to be enabled"

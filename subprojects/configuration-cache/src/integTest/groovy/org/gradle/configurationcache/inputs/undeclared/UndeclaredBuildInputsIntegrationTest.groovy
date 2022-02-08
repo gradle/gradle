@@ -431,4 +431,124 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
         }
         outputContains("CI1 = defined")
     }
+
+    def "reports build logic reading files in #title"() {
+        def configurationCache = newConfigurationCacheFixture()
+        def inputFile = testDirectory.file("testInput.txt") << "some test input"
+
+        testDirectory.file(buildFileName) << code
+
+        when:
+        configurationCacheRun(":help")
+
+        then: "initial run has no errors but detects input"
+        configurationCache.assertStateStored()
+        problems.assertResultHasProblems(result) {
+            withInput("Build file '$buildFileName': file 'testInput.txt'")
+        }
+
+        when:
+        configurationCacheRun(":help")
+
+        then: "without changes in file the cache is reused"
+        configurationCache.assertStateLoaded()
+
+        when:
+        inputFile << "some other input"
+        configurationCacheRun(":help")
+
+        then: "changes in the file invalidate the cache"
+        configurationCache.assertStateStored()
+
+        where:
+        title                                    | buildFileName      | code
+        "Groovy with FileInputStream"            | "build.gradle"     | readFileWithFileInputStreamInGroovy()
+        "Groovy with FileInputStream descendant" | "build.gradle"     | readFileWithFileInputStreamDescendantInGroovy()
+        "Kotlin with FileInputStream"            | "build.gradle.kts" | readFileWithFileInputStreamInKotlin()
+        "Kotlin with FileInputStream descendant" | "build.gradle.kts" | readFileWithFileInputStreamDescendantInKotlin()
+    }
+
+    def "reading file in buildSrc task is not tracked"() {
+        def configurationCache = newConfigurationCacheFixture()
+        testDirectory.file("buildSrc/testInput.txt") << "some test input"
+
+        testDirectory.file("buildSrc/build.gradle") << """
+            def inputFile = file("testInput.txt")
+            def echoTask = tasks.register("echo") {
+                doLast {
+                    def fin = new FileInputStream(inputFile)
+                    try {
+                        System.out.bytes = fin.bytes
+                    } finally {
+                        fin.close()
+                    }
+                }
+            }
+            tasks.named("classes").configure {
+                dependsOn(echoTask)
+            }
+        """
+
+        buildFile << ""
+
+        when:
+        configurationCacheRun(":help")
+
+        then:
+        configurationCache.assertStateStored()
+        problems.assertResultHasProblems(result) {
+            withNoInputs()
+        }
+        outputContains("some test input")
+    }
+
+    private static String readFileWithFileInputStreamInGroovy() {
+        return """
+            def fin = new FileInputStream(file("testInput.txt"))
+            try {
+                System.out.bytes = fin.bytes
+            } finally {
+                fin.close()
+            }
+        """
+    }
+
+    private static String readFileWithFileInputStreamDescendantInGroovy() {
+        return """
+            class TestInputStream extends FileInputStream {
+                TestInputStream(String path) {
+                    super(new File(path))
+                }
+            }
+
+            def fin = new TestInputStream(file("testInput.txt").path)
+            try {
+                System.out.bytes = fin.bytes
+            } finally {
+                fin.close()
+            }
+        """
+    }
+
+    private static String readFileWithFileInputStreamInKotlin() {
+        return """
+            import java.io.*
+
+            FileInputStream(file("testInput.txt")).use {
+                it.copyTo(System.out)
+            }
+        """
+    }
+
+    private static String readFileWithFileInputStreamDescendantInKotlin() {
+        return """
+            import java.io.*
+
+            class TestInputStream(path: String) : FileInputStream(file(path)) {}
+
+            TestInputStream("testInput.txt").use {
+                it.copyTo(System.out)
+            }
+        """
+    }
 }

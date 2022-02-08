@@ -42,6 +42,8 @@ fun performanceTestCommandLine(task: String, baselines: String, extraParameters:
     "-PperformanceBaselines=$baselines",
     "-PtestJavaVersion=${os.perfTestJavaVersion.major}",
     "-PtestJavaVendor=${os.perfTestJavaVendor}",
+    "-PautoDownloadAndroidStudio=true",
+    "-PrunAndroidStudioInHeadlessMode=true",
     "-Porg.gradle.java.installations.auto-download=false",
     os.javaInstallationLocations()
 ) + listOf(

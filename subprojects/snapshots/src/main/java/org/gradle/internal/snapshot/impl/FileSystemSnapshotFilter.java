@@ -19,6 +19,7 @@ package org.gradle.internal.snapshot.impl;
 import com.google.common.collect.ImmutableList;
 import org.gradle.internal.RelativePathSupplier;
 import org.gradle.internal.snapshot.DirectorySnapshot;
+import org.gradle.internal.snapshot.DirectorySnapshotBuilder;
 import org.gradle.internal.snapshot.FileSystemLeafSnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot.FileSystemLocationSnapshotTransformer;
@@ -33,7 +34,7 @@ import org.gradle.internal.snapshot.SnapshottingFilter;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder.EmptyDirectoryHandlingStrategy.INCLUDE_EMPTY_DIRS;
+import static org.gradle.internal.snapshot.DirectorySnapshotBuilder.EmptyDirectoryHandlingStrategy.INCLUDE_EMPTY_DIRS;
 
 public class FileSystemSnapshotFilter {
 
@@ -41,7 +42,7 @@ public class FileSystemSnapshotFilter {
     }
 
     public static FileSystemSnapshot filterSnapshot(SnapshottingFilter.FileSystemSnapshotPredicate predicate, FileSystemSnapshot unfiltered) {
-        MerkleDirectorySnapshotBuilder builder = MerkleDirectorySnapshotBuilder.noSortingRequired();
+        DirectorySnapshotBuilder builder = MerkleDirectorySnapshotBuilder.noSortingRequired();
         AtomicBoolean hasBeenFiltered = new AtomicBoolean(false);
         unfiltered.accept(new RelativePathTracker(), new FilteringVisitor(predicate, builder, hasBeenFiltered));
         if (builder.getResult() == null) {
@@ -52,10 +53,10 @@ public class FileSystemSnapshotFilter {
 
     private static class FilteringVisitor implements RelativePathTrackingFileSystemSnapshotHierarchyVisitor {
         private final SnapshottingFilter.FileSystemSnapshotPredicate predicate;
-        private final MerkleDirectorySnapshotBuilder builder;
+        private final DirectorySnapshotBuilder builder;
         private final AtomicBoolean hasBeenFiltered;
 
-        public FilteringVisitor(SnapshottingFilter.FileSystemSnapshotPredicate predicate, MerkleDirectorySnapshotBuilder builder, AtomicBoolean hasBeenFiltered) {
+        public FilteringVisitor(SnapshottingFilter.FileSystemSnapshotPredicate predicate, DirectorySnapshotBuilder builder, AtomicBoolean hasBeenFiltered) {
             this.predicate = predicate;
             this.builder = builder;
             this.hasBeenFiltered = hasBeenFiltered;

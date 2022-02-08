@@ -16,15 +16,12 @@
 
 package org.gradle.internal.enterprise;
 
-import org.gradle.internal.scan.UsedByScanPlugin;
-
 /**
  * A service that provides the plugin service for the current build invocation.
  *
  * The plugin uses this to encapsulate its service in user facing code that may be cached.
  * This allows such cached code to use the plugin service for the current build when used from-cache.
  */
-@UsedByScanPlugin
 public interface GradleEnterprisePluginServiceRef {
 
     GradleEnterprisePluginService get();

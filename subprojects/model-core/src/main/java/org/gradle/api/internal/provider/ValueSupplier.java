@@ -433,6 +433,12 @@ public interface ValueSupplier {
     }
 
     class MissingExecutionTimeValue extends ExecutionTimeValue<Object> {
+
+        @Override
+        public String toString() {
+            return "missing";
+        }
+
         @Override
         public boolean isMissing() {
             return true;
@@ -461,6 +467,11 @@ public interface ValueSupplier {
         private FixedExecutionTimeValue(T value, boolean changingContent) {
             this.value = value;
             this.changingContent = changingContent;
+        }
+
+        @Override
+        public String toString() {
+            return String.format("fixed(%s)", value);
         }
 
         @Override
@@ -502,6 +513,11 @@ public interface ValueSupplier {
 
         private ChangingExecutionTimeValue(ProviderInternal<T> provider) {
             this.provider = provider;
+        }
+
+        @Override
+        public String toString() {
+            return String.format("changing(%s)", provider);
         }
 
         @Override

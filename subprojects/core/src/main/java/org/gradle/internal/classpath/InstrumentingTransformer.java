@@ -16,6 +16,7 @@
 
 package org.gradle.internal.classpath;
 
+import org.codehaus.groovy.runtime.ProcessGroovyMethods;
 import org.codehaus.groovy.runtime.callsite.CallSiteArray;
 import org.gradle.api.Action;
 import org.gradle.api.file.RelativePath;
@@ -29,6 +30,8 @@ import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.lang.invoke.CallSite;
 import java.lang.invoke.LambdaMetafactory;
 import java.lang.invoke.MethodHandles;
@@ -38,6 +41,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 
 import static org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL;
@@ -52,6 +56,7 @@ import static org.objectweb.asm.Opcodes.DUP;
 import static org.objectweb.asm.Opcodes.F_SAME;
 import static org.objectweb.asm.Opcodes.H_INVOKESTATIC;
 import static org.objectweb.asm.Opcodes.IFEQ;
+import static org.objectweb.asm.Opcodes.INVOKESPECIAL;
 import static org.objectweb.asm.Opcodes.INVOKESTATIC;
 import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
 import static org.objectweb.asm.Type.getMethodDescriptor;
@@ -63,7 +68,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
     /**
      * Decoration format. Increment this when making changes.
      */
-    private static final int DECORATION_FORMAT = 16;
+    private static final int DECORATION_FORMAT = 18;
 
     private static final Type SYSTEM_TYPE = getType(System.class);
     private static final Type STRING_TYPE = getType(String.class);
@@ -101,6 +106,72 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
     private static final String RETURN_OBJECT_FROM_SERIALIZED_LAMBDA = getMethodDescriptor(OBJECT_TYPE, SERIALIZED_LAMBDA_TYPE);
     private static final String RETURN_MAP = getMethodDescriptor(getType(Map.class));
     private static final String RETURN_MAP_FROM_STRING = getMethodDescriptor(getType(Map.class), STRING_TYPE);
+
+    private static final Type PROCESS_TYPE = getType(Process.class);
+    private static final Type PROCESS_BUILDER_TYPE = getType(ProcessBuilder.class);
+    private static final Type RUNTIME_TYPE = getType(Runtime.class);
+    private static final Type PROCESS_GROOVY_METHODS_TYPE = getType(ProcessGroovyMethods.class);
+    private static final Type STRING_ARRAY_TYPE = getType(String[].class);
+    private static final Type FILE_TYPE = getType(File.class);
+    private static final Type LIST_TYPE = getType(List.class);
+
+    // ProcessBuilder().start() -> start(ProcessBuilder, String)
+    private static final String RETURN_PROCESS = getMethodDescriptor(PROCESS_TYPE);
+    private static final String RETURN_PROCESS_FROM_PROCESS_BUILDER_STRING = getMethodDescriptor(PROCESS_TYPE, PROCESS_BUILDER_TYPE, STRING_TYPE);
+    // ProcessBuilder.startPipeline(List) -> startPipeline(List, String)
+    private static final String RETURN_LIST_FROM_LIST = getMethodDescriptor(LIST_TYPE, LIST_TYPE);
+    private static final String RETURN_LIST_FROM_LIST_STRING = getMethodDescriptor(LIST_TYPE, LIST_TYPE, STRING_TYPE);
+
+    // Runtime().exec(String) -> exec(Runtime, String, String)
+    // ProcessGroovyMethods.execute(String) -> execute(String, String)
+    private static final String RETURN_PROCESS_FROM_STRING = getMethodDescriptor(PROCESS_TYPE, STRING_TYPE);
+    private static final String RETURN_PROCESS_FROM_RUNTIME_STRING_STRING = getMethodDescriptor(PROCESS_TYPE, RUNTIME_TYPE, STRING_TYPE, STRING_TYPE);
+    private static final String RETURN_PROCESS_FROM_STRING_STRING = getMethodDescriptor(PROCESS_TYPE, STRING_TYPE, STRING_TYPE);
+    // Runtime().exec(String[]) -> exec(Runtime, String[], String)
+    // ProcessGroovyMethods.execute(String[]) -> execute(String[], String)
+    private static final String RETURN_PROCESS_FROM_STRING_ARRAY = getMethodDescriptor(PROCESS_TYPE, STRING_ARRAY_TYPE);
+    private static final String RETURN_PROCESS_FROM_RUNTIME_STRING_ARRAY_STRING = getMethodDescriptor(PROCESS_TYPE, RUNTIME_TYPE, STRING_ARRAY_TYPE, STRING_TYPE);
+    private static final String RETURN_PROCESS_FROM_STRING_ARRAY_STRING = getMethodDescriptor(PROCESS_TYPE, STRING_ARRAY_TYPE, STRING_TYPE);
+    // ProcessGroovyMethods.execute(List) -> execute(List, String)
+    private static final String RETURN_PROCESS_FROM_LIST = getMethodDescriptor(PROCESS_TYPE, LIST_TYPE);
+    private static final String RETURN_PROCESS_FROM_LIST_STRING = getMethodDescriptor(PROCESS_TYPE, LIST_TYPE, STRING_TYPE);
+    // Runtime().exec(String, String[]) -> exec(Runtume, String, String[], String)
+    private static final String RETURN_PROCESS_FROM_STRING_STRING_ARRAY = getMethodDescriptor(PROCESS_TYPE, STRING_TYPE, STRING_ARRAY_TYPE);
+    private static final String RETURN_PROCESS_FROM_RUNTIME_STRING_STRING_ARRAY_STRING = getMethodDescriptor(PROCESS_TYPE, RUNTIME_TYPE, STRING_TYPE, STRING_ARRAY_TYPE, STRING_TYPE);
+    // Runtime().exec(String[], String[]) -> exec(Runtume, String[], String[], String)
+    private static final String RETURN_PROCESS_FROM_STRING_ARRAY_STRING_ARRAY = getMethodDescriptor(PROCESS_TYPE, STRING_ARRAY_TYPE, STRING_ARRAY_TYPE);
+    private static final String RETURN_PROCESS_FROM_RUNTIME_STRING_ARRAY_STRING_ARRAY_STRING = getMethodDescriptor(PROCESS_TYPE, RUNTIME_TYPE, STRING_ARRAY_TYPE, STRING_ARRAY_TYPE, STRING_TYPE);
+    // Runtime().exec(String, String[], File) -> exec(Runtime, String, String[], File, String)
+    // ProcessGroovyMethods.execute(String, String[], File) -> execute(String, String[], File, String)
+    private static final String RETURN_PROCESS_FROM_STRING_STRING_ARRAY_FILE = getMethodDescriptor(PROCESS_TYPE, STRING_TYPE, STRING_ARRAY_TYPE, FILE_TYPE);
+    private static final String RETURN_PROCESS_FROM_RUNTIME_STRING_STRING_ARRAY_FILE_STRING = getMethodDescriptor(PROCESS_TYPE, RUNTIME_TYPE, STRING_TYPE, STRING_ARRAY_TYPE, FILE_TYPE, STRING_TYPE);
+    private static final String RETURN_PROCESS_FROM_STRING_STRING_ARRAY_FILE_STRING = getMethodDescriptor(PROCESS_TYPE, STRING_TYPE, STRING_ARRAY_TYPE, FILE_TYPE, STRING_TYPE);
+    // Runtime().exec(String[], String[], File) -> exec(Runtime, String[], String[], File, String)
+    // ProcessGroovyMethods.execute(String[], String[], File) -> execute(String[], String[], File, String)
+    private static final String RETURN_PROCESS_FROM_STRING_ARRAY_STRING_ARRAY_FILE = getMethodDescriptor(PROCESS_TYPE, STRING_ARRAY_TYPE, STRING_ARRAY_TYPE, FILE_TYPE);
+    private static final String RETURN_PROCESS_FROM_RUNTIME_STRING_ARRAY_STRING_ARRAY_FILE_STRING = getMethodDescriptor(
+        PROCESS_TYPE, RUNTIME_TYPE, STRING_ARRAY_TYPE, STRING_ARRAY_TYPE, FILE_TYPE, STRING_TYPE);
+    private static final String RETURN_PROCESS_FROM_STRING_ARRAY_STRING_ARRAY_FILE_STRING = getMethodDescriptor(PROCESS_TYPE, STRING_ARRAY_TYPE, STRING_ARRAY_TYPE, FILE_TYPE, STRING_TYPE);
+    // ProcessGroovyMethods.execute(List, String[], File) -> execute(List, String[], File, String)
+    private static final String RETURN_PROCESS_FROM_LIST_STRING_ARRAY_FILE = getMethodDescriptor(PROCESS_TYPE, LIST_TYPE, STRING_ARRAY_TYPE, FILE_TYPE);
+    private static final String RETURN_PROCESS_FROM_LIST_STRING_ARRAY_FILE_STRING = getMethodDescriptor(PROCESS_TYPE, LIST_TYPE, STRING_ARRAY_TYPE, FILE_TYPE, STRING_TYPE);
+    // ProcessGroovyMethods.execute(String, List, File) -> execute(String, List, File, String)
+    private static final String RETURN_PROCESS_FROM_STRING_LIST_FILE = getMethodDescriptor(PROCESS_TYPE, STRING_TYPE, LIST_TYPE, FILE_TYPE);
+    private static final String RETURN_PROCESS_FROM_STRING_LIST_FILE_STRING = getMethodDescriptor(PROCESS_TYPE, STRING_TYPE, LIST_TYPE, FILE_TYPE, STRING_TYPE);
+    // ProcessGroovyMethods.execute(String[], List, File) -> execute(String[], List, File, String)
+    private static final String RETURN_PROCESS_FROM_STRING_ARRAY_LIST_FILE = getMethodDescriptor(PROCESS_TYPE, STRING_ARRAY_TYPE, LIST_TYPE, FILE_TYPE);
+    private static final String RETURN_PROCESS_FROM_STRING_ARRAY_LIST_FILE_STRING = getMethodDescriptor(PROCESS_TYPE, STRING_ARRAY_TYPE, LIST_TYPE, FILE_TYPE, STRING_TYPE);
+    // ProcessGroovyMethods.execute(List, List, File) -> execute(List, List, File, String)
+    private static final String RETURN_PROCESS_FROM_LIST_LIST_FILE = getMethodDescriptor(PROCESS_TYPE, LIST_TYPE, LIST_TYPE, FILE_TYPE);
+    private static final String RETURN_PROCESS_FROM_LIST_LIST_FILE_STRING = getMethodDescriptor(PROCESS_TYPE, LIST_TYPE, LIST_TYPE, FILE_TYPE, STRING_TYPE);
+
+    private static final Type FILE_INPUT_STREAM_TYPE = getType(FileInputStream.class);
+    // FileInputStream(File) -> fileOpened(File, String)
+    private static final String RETURN_VOID_FROM_FILE = getMethodDescriptor(Type.VOID_TYPE, FILE_TYPE);
+    private static final String RETURN_VOID_FROM_FILE_STRING = getMethodDescriptor(Type.VOID_TYPE, FILE_TYPE, STRING_TYPE);
+    // FileInputStream(String) -> fileOpened(String, String)
+    private static final String RETURN_VOID_FROM_STRING = getMethodDescriptor(Type.VOID_TYPE, STRING_TYPE);
+    private static final String RETURN_VOID_FROM_STRING_STRING = getMethodDescriptor(Type.VOID_TYPE, STRING_TYPE, STRING_TYPE);
 
     private static final String LAMBDA_METAFACTORY_TYPE = getType(LambdaMetafactory.class).getInternalName();
     private static final String LAMBDA_METAFACTORY_METHOD_DESCRIPTOR = getMethodDescriptor(getType(CallSite.class), getType(MethodHandles.Lookup.class), STRING_TYPE, getType(MethodType.class), getType(Object[].class));
@@ -255,6 +326,12 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
             if (opcode == INVOKESTATIC && visitINVOKESTATIC(owner, name, descriptor)) {
                 return;
             }
+            if (opcode == INVOKEVIRTUAL && visitINVOKEVIRTUAL(owner, name, descriptor)) {
+                return;
+            }
+            if (opcode == INVOKESPECIAL && visitINVOKESPECIAL(owner, name, descriptor)) {
+                return;
+            }
             super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
         }
 
@@ -325,11 +402,122 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
                 _LDC(binaryClassNameOf(className));
                 _INVOKESTATIC(INSTRUMENTED_TYPE, "getBoolean", RETURN_PRIMITIVE_BOOLEAN_FROM_STRING_STRING);
                 return true;
+            } else if (owner.equals(PROCESS_GROOVY_METHODS_TYPE.getInternalName()) && name.equals("execute")) {
+                Optional<String> instrumentedDescriptor = getInstrumentedDescriptorForProcessGroovyMethodsExecuteDescriptor(descriptor);
+                if (!instrumentedDescriptor.isPresent()) {
+                    return false;
+                }
+                _LDC(binaryClassNameOf(className));
+                _INVOKESTATIC(INSTRUMENTED_TYPE, "execute", instrumentedDescriptor.get());
+                return true;
+            }
+            if (owner.equals(PROCESS_BUILDER_TYPE.getInternalName()) && name.equals("startPipeline") && descriptor.equals(RETURN_LIST_FROM_LIST)) {
+                _LDC(binaryClassNameOf(className));
+                _INVOKESTATIC(INSTRUMENTED_TYPE, "startPipeline", RETURN_LIST_FROM_LIST_STRING);
+                return true;
             } else if (owner.equals(className) && name.equals(CREATE_CALL_SITE_ARRAY_METHOD) && descriptor.equals(RETURN_CALL_SITE_ARRAY)) {
                 _INVOKESTATIC(className, INSTRUMENTED_CALL_SITE_METHOD, RETURN_CALL_SITE_ARRAY);
                 return true;
             }
             return false;
+        }
+
+        private boolean visitINVOKEVIRTUAL(String owner, String name, String descriptor) {
+            // Runtime.exec(...)
+            if (owner.equals(RUNTIME_TYPE.getInternalName()) && name.equals("exec")) {
+                Optional<String> instrumentedDescriptor = getInstrumentedDescriptorForRuntimeExecDescriptor(descriptor);
+                if (!instrumentedDescriptor.isPresent()) {
+                    return false;
+                }
+                _LDC(binaryClassNameOf(className));
+                _INVOKESTATIC(INSTRUMENTED_TYPE, "exec", instrumentedDescriptor.get());
+                return true;
+            }
+            if (owner.equals(PROCESS_BUILDER_TYPE.getInternalName())) {
+                if (name.equals("start") && descriptor.equals(RETURN_PROCESS)) {
+                    _LDC(binaryClassNameOf(className));
+                    _INVOKESTATIC(INSTRUMENTED_TYPE, "start", RETURN_PROCESS_FROM_PROCESS_BUILDER_STRING);
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private Optional<String> getInstrumentedDescriptorForProcessGroovyMethodsExecuteDescriptor(String descriptor) {
+            if (descriptor.equals(RETURN_PROCESS_FROM_STRING)) {
+                // execute(String)
+                return Optional.of(RETURN_PROCESS_FROM_STRING_STRING);
+            } else if (descriptor.equals(RETURN_PROCESS_FROM_STRING_ARRAY)) {
+                // execute(String[])
+                return Optional.of(RETURN_PROCESS_FROM_STRING_ARRAY_STRING);
+            } else if (descriptor.equals(RETURN_PROCESS_FROM_LIST)) {
+                // execute(List)
+                return Optional.of(RETURN_PROCESS_FROM_LIST_STRING);
+            } else if (descriptor.equals(RETURN_PROCESS_FROM_STRING_STRING_ARRAY_FILE)) {
+                // execute(String, String[], File)
+                return Optional.of(RETURN_PROCESS_FROM_STRING_STRING_ARRAY_FILE_STRING);
+            } else if (descriptor.equals(RETURN_PROCESS_FROM_STRING_ARRAY_STRING_ARRAY_FILE)) {
+                // execute(String[], String[], File)
+                return Optional.of(RETURN_PROCESS_FROM_STRING_ARRAY_STRING_ARRAY_FILE_STRING);
+            } else if (descriptor.equals(RETURN_PROCESS_FROM_LIST_STRING_ARRAY_FILE)) {
+                // execute(List, String[], File)
+                return Optional.of(RETURN_PROCESS_FROM_LIST_STRING_ARRAY_FILE_STRING);
+            } else if (descriptor.equals(RETURN_PROCESS_FROM_STRING_LIST_FILE)) {
+                // execute(String, List, File)
+                return Optional.of(RETURN_PROCESS_FROM_STRING_LIST_FILE_STRING);
+            } else if (descriptor.equals(RETURN_PROCESS_FROM_STRING_ARRAY_LIST_FILE)) {
+                // execute(String[], List, File)
+                return Optional.of(RETURN_PROCESS_FROM_STRING_ARRAY_LIST_FILE_STRING);
+            } else if (descriptor.equals(RETURN_PROCESS_FROM_LIST_LIST_FILE)) {
+                // execute(List, List, File)
+                return Optional.of(RETURN_PROCESS_FROM_LIST_LIST_FILE_STRING);
+            }
+            // It is some signature of ProcessGroovyMethods.execute that we don't know about.
+            return Optional.empty();
+        }
+
+        private Optional<String> getInstrumentedDescriptorForRuntimeExecDescriptor(String descriptor) {
+            if (descriptor.equals(RETURN_PROCESS_FROM_STRING)) {
+                return Optional.of(RETURN_PROCESS_FROM_RUNTIME_STRING_STRING);
+            } else if (descriptor.equals(RETURN_PROCESS_FROM_STRING_ARRAY)) {
+                return Optional.of(RETURN_PROCESS_FROM_RUNTIME_STRING_ARRAY_STRING);
+            } else if (descriptor.equals(RETURN_PROCESS_FROM_STRING_STRING_ARRAY)) {
+                return Optional.of(RETURN_PROCESS_FROM_RUNTIME_STRING_STRING_ARRAY_STRING);
+            } else if (descriptor.equals(RETURN_PROCESS_FROM_STRING_ARRAY_STRING_ARRAY)) {
+                return Optional.of(RETURN_PROCESS_FROM_RUNTIME_STRING_ARRAY_STRING_ARRAY_STRING);
+            } else if (descriptor.equals(RETURN_PROCESS_FROM_STRING_STRING_ARRAY_FILE)) {
+                return Optional.of(RETURN_PROCESS_FROM_RUNTIME_STRING_STRING_ARRAY_FILE_STRING);
+            } else if (descriptor.equals(RETURN_PROCESS_FROM_STRING_ARRAY_STRING_ARRAY_FILE)) {
+                return Optional.of(RETURN_PROCESS_FROM_RUNTIME_STRING_ARRAY_STRING_ARRAY_FILE_STRING);
+            }
+            // It is some signature of Runtime.exec that we don't know about.
+            return Optional.empty();
+        }
+
+        private boolean visitINVOKESPECIAL(String owner, String name, String descriptor) {
+            if (owner.equals(FILE_INPUT_STREAM_TYPE.getInternalName()) && name.equals("<init>")) {
+                Optional<String> instrumentedDescriptor = getInstrumentedDescriptorForFileInputStreamConstructor(descriptor);
+                if (instrumentedDescriptor.isPresent()) {
+                    // We are still calling the original constructor instead of replacing it with an instrumented method. The instrumented method is merely a notifier
+                    // there.
+                    _DUP();
+                    _LDC(binaryClassNameOf(className));
+                    _INVOKESTATIC(INSTRUMENTED_TYPE, "fileOpened", instrumentedDescriptor.get());
+                    _INVOKESPECIAL(owner, name, descriptor);
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private Optional<String> getInstrumentedDescriptorForFileInputStreamConstructor(String descriptor) {
+            if (descriptor.equals(RETURN_VOID_FROM_FILE)) {
+                return Optional.of(RETURN_VOID_FROM_FILE_STRING);
+            } else if (descriptor.equals(RETURN_VOID_FROM_STRING)) {
+                return Optional.of(RETURN_VOID_FROM_STRING_STRING);
+            }
+            // It is some signature of FileInputStream.<init> that we don't support.
+            return Optional.empty();
         }
 
         @Override
@@ -398,6 +586,10 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
          */
         protected void _F_SAME() {
             super.visitFrame(F_SAME, 0, new Object[0], 0, new Object[0]);
+        }
+
+        protected void _INVOKESPECIAL(String owner, String name, String descriptor) {
+            super.visitMethodInsn(INVOKESPECIAL, owner, name, descriptor, false);
         }
 
         protected void _INVOKESTATIC(Type owner, String name, String descriptor) {

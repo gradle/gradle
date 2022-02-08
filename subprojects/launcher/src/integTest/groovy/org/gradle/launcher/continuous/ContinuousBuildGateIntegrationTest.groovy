@@ -78,21 +78,21 @@ class ContinuousBuildGateIntegrationTest extends AbstractContinuousIntegrationTe
             class SimpleTask extends DefaultTask {
                 @InputFile
                 File inputFile = project.file("input.txt")
-                
+
                 @OutputFile
                 File outputFile = new File(project.buildDir, "output.txt")
-                
+
                 @TaskAction
                 void generate() {
                     outputFile.text = inputFile.text
-                } 
+                }
             }
-            
+
             def pendingChangesManager = gradle.services.get(${PendingChangesManager.canonicalName})
             pendingChangesManager.addListener new ${SingleFirePendingChangesListener.canonicalName}({
                 ${server.callFromBuild("pending")}
             } as ${PendingChangesListener.canonicalName})
-            
+
             task work(type: SimpleTask)
         """
 
@@ -124,7 +124,7 @@ class ContinuousBuildGateIntegrationTest extends AbstractContinuousIntegrationTe
         server.expect(server.get("command").send("stop"))
         then:
         // waits for build to start and finish
-        succeeds()
+        buildTriggeredAndSucceeded()
         // Change has been incorporated
         outputFile.text == "changed"
     }

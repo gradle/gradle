@@ -30,6 +30,48 @@ import static org.gradle.integtests.fixtures.configurationcache.ConfigurationCac
 @IgnoreIf({ GradleContextualExecuter.isNoDaemon() })
 class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
+    def "input files are reported with relative path"() {
+        given:
+        file('provider.txt').text = 'provider'
+        file('fis-path.txt').text = 'fis-path'
+        file('fis-file.txt').text = 'fis-file'
+        file('fis-abs.txt').text = 'fis-abs'
+        buildFile '''
+            providers.fileContents(layout.projectDirectory.file("provider.txt")).with { provider ->
+                println("provider = ${provider.asText.get()}")
+            }
+
+            new FileInputStream("fis-path.txt").withCloseable { fis ->
+                println("fis = ${fis.text}")
+            }
+
+            new FileInputStream(new File("fis-file.txt")).withCloseable { fis ->
+                println("fis = ${fis.text}")
+            }
+
+            new FileInputStream(file("fis-abs.txt")).withCloseable { fis ->
+                println("fis = ${fis.text}")
+            }
+        '''
+
+        when:
+        configurationCacheRun 'help'
+
+        then:
+        outputContains 'provider = provider'
+        outputContains 'fis = fis-path'
+        outputContains 'fis = fis-file'
+        outputContains 'fis = fis-abs'
+
+        and:
+        problems.assertResultHasProblems(result) {
+            withInput "Build file 'build.gradle': file 'provider.txt'"
+            withInput "Build file 'build.gradle': file 'fis-path.txt'"
+            withInput "Build file 'build.gradle': file 'fis-file.txt'"
+            withInput "Build file 'build.gradle': file 'fis-abs.txt'"
+        }
+    }
+
     @Ignore("wip: Currently failing on CI for unknown reason")
     def "report file is content addressable"() {
         given:
@@ -912,9 +954,9 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         configurationCacheFails("ok", "-DPROP=12")
 
         then:
-        outputContains("Configuration cache entry discarded with 16 problems")
+        outputContains("Configuration cache entry discarded with 17 problems")
         problems.assertFailureHasProblems(failure) {
-            totalProblemsCount = 16
+            totalProblemsCount = 17
             withInput("Script 'script.gradle': system property 'PROP'")
             withProblem("Script 'script.gradle': registration of listener on 'Gradle.buildFinished' is unsupported")
         }

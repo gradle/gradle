@@ -18,7 +18,7 @@ package org.gradle.internal.watch.registry.impl
 
 import net.rubygrapefruit.platform.file.FileWatcher
 import org.gradle.internal.watch.registry.FileWatcherUpdater
-import org.gradle.internal.watch.vfs.WatchMode
+import org.gradle.internal.watch.registry.WatchMode
 
 class NonHierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest {
 

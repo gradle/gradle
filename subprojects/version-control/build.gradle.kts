@@ -2,6 +2,8 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
+description = "Version control integration (with git) for source dependencies"
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":messaging"))
