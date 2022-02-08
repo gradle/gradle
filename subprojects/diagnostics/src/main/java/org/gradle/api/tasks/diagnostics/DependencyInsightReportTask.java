@@ -34,7 +34,9 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionC
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.provider.Property;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Internal;
@@ -51,9 +53,11 @@ import org.gradle.api.tasks.diagnostics.internal.insight.DependencyInsightReport
 import org.gradle.api.tasks.diagnostics.internal.text.StyledTable;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.initialization.StartParameterBuildOptions;
+import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.graph.GraphRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
+import org.gradle.internal.snapshot.impl.CoercingStringValueSnapshot;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.work.DisableCachingByDefault;
 
@@ -110,10 +114,16 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
 @DisableCachingByDefault(because = "Produces only non-cacheable console output")
 public class DependencyInsightReportTask extends DefaultTask {
 
+    private final NamedObjectInstantiator namedObjectInstantiator;
     private Configuration configuration;
     private Spec<DependencyResult> dependencySpec;
     private boolean showSinglePathToDependency;
     private final Property<Boolean> showingAllVariants = getProject().getObjects().property(Boolean.class);
+
+    @Inject
+    public DependencyInsightReportTask(NamedObjectInstantiator namedObjectInstantiator) {
+        this.namedObjectInstantiator = namedObjectInstantiator;
+    }
 
     /**
      * Selects the dependency (or dependencies if multiple matches found) to show the report for.
@@ -312,7 +322,12 @@ public class DependencyInsightReportTask extends DefaultTask {
         return selectedDependencies;
     }
 
+    @SuppressWarnings("unchecked")
     private AttributeMatchDetails match(Attribute<?> actualAttribute, @Nullable Object actualValue, AttributeContainer requestedAttributes) {
+        AttributesSchemaInternal schema = (AttributesSchemaInternal) getProject().getDependencies().getAttributesSchema();
+        // As far as I could tell, the only schema ever mixed in using withProducer is PreferJavaRuntimeVariant
+        // However, that only adds disambiguation rules, which don't apply here. So this should be sufficient:
+        AttributeMatcher matcher = schema.matcher();
         for (Attribute<?> requested : requestedAttributes.keySet()) {
             Object requestedValue = requestedAttributes.getAttribute(requested);
             if (requested.getName().equals(actualAttribute.getName())) {
@@ -329,8 +344,15 @@ public class DependencyInsightReportTask extends DefaultTask {
                         return new AttributeMatchDetails(MatchType.REQUESTED, requested, requestedValue);
                     }
                 }
-                // TODO report "compatible" vs "incompatible" different values (MatchType.INCOMPATIBLE)
-                return new AttributeMatchDetails(MatchType.DIFFERENT_VALUE, requested, requestedValue);
+                // Coerce into the requested value, this is extremely hacky but it works
+                if (requested.getType().isInstance(requestedValue) && actualValue instanceof String) {
+                    Object coerced = new CoercingStringValueSnapshot((String) actualValue, namedObjectInstantiator)
+                        .coerce(requested.getType());
+                    if (coerced != null && matcher.isMatching((Attribute<Object>) requested, coerced, requestedValue)) {
+                        return new AttributeMatchDetails(MatchType.DIFFERENT_VALUE, requested, requestedValue);
+                    }
+                }
+                return new AttributeMatchDetails(MatchType.INCOMPATIBLE, requested, requestedValue);
             }
         }
         return new AttributeMatchDetails(MatchType.NOT_REQUESTED, null, null);
@@ -552,7 +574,7 @@ public class DependencyInsightReportTask extends DefaultTask {
                     style = Info;
                     break;
                 case INCOMPATIBLE:
-                    style = StyledTextOutput.Style.Error;
+                    style = Failure;
                     break;
                 default:
                     throw new IllegalStateException("Unknown match type: " + match.matchType());
