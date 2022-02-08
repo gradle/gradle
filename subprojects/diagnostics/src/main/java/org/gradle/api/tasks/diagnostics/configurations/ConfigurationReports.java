@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.profile;
 
-import org.gradle.internal.service.scopes.EventScope;
-import org.gradle.internal.service.scopes.Scopes;
+package org.gradle.api.tasks.diagnostics.configurations;
 
-@EventScope(Scopes.Build.class)
-public interface ProfileListener {
-    void buildFinished(BuildProfile result);
+import org.gradle.api.Incubating;
+import org.gradle.api.reporting.ConfigurableReport;
+import org.gradle.api.reporting.ReportContainer;
+
+/**
+ * The reporting configuration for any {@link org.gradle.api.tasks.diagnostics.AbstractConfigurationReportTask}.
+ *
+ * @since 7.5
+ */
+@Incubating
+public interface ConfigurationReports extends ReportContainer<ConfigurableReport> {
+    // empty for now, additional report output formats can be added here
 }

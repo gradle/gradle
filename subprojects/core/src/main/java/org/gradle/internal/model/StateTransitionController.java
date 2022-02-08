@@ -35,7 +35,7 @@ import java.util.function.Supplier;
 public class StateTransitionController<T extends StateTransitionController.State> {
     private final DisplayName displayName;
     private final Synchronizer synchronizer;
-    // This structure is immutable, and this fields is mutated only by the thread that owns the lock
+    // This structure is immutable, and this field is mutated only by the thread that owns the lock
     private volatile CurrentState<T> state;
 
     public StateTransitionController(DisplayName displayName, T initialState, Synchronizer synchronizer) {
@@ -45,7 +45,7 @@ public class StateTransitionController<T extends StateTransitionController.State
     }
 
     /**
-     * Verifies that the current state is the given state. Ignores any transition in progress and failures of previous transitions.
+     * Verifies that the current state is the given state. Ignores any transition in progress and failures of previous operations.
      *
      * <p>You should try to not use this method, as it does not provide any thread safety for the code that follows the call.</p>
      */
@@ -57,13 +57,25 @@ public class StateTransitionController<T extends StateTransitionController.State
     }
 
     /**
-     * Verifies that the current state is not the given state. Ignores any transition in progress and failures of previous transitions.
+     * Verifies that the current state is not the given state. Ignores any transition in progress and failures of previous operations.
      *
      * <p>You should try to not use this method, as it does not provide any thread safety for the code that follows the call.</p>
      */
     public void assertNotInState(T forbidden) {
         if (state.state == forbidden) {
             throw new IllegalStateException(displayName.getCapitalizedDisplayName() + " should not be in state " + forbidden + ".");
+        }
+    }
+
+    /**
+     * Verifies that the current state is the given state or some later state. Ignores any transition in progress and failures of previous operations.
+     *
+     * <p>You should try to not use this method, as it does not provide any thread safety for the code that follows the call.</p>
+     */
+    public void assertInStateOrLater(T expected) {
+        CurrentState<T> current = state;
+        if (!current.hasSeenStateIgnoringTransitions(expected)) {
+            throw new IllegalStateException(displayName.getCapitalizedDisplayName() + " should be in state " + expected + " or later.");
         }
     }
 
@@ -101,8 +113,8 @@ public class StateTransitionController<T extends StateTransitionController.State
     }
 
     /**
-     * Runs the given action.
-     * Fails if the current state is not the given state or a previous operation has failed.
+     * Runs the given action, verifying the current state is the expected state.
+     * Fails if the current state is not the given state, the current thread is transitioning the state, or a previous operation has failed.
      * Blocks until other operations are complete.
      */
     public <S> S inState(T expected, Supplier<S> action) {
@@ -119,20 +131,8 @@ public class StateTransitionController<T extends StateTransitionController.State
     }
 
     /**
-     * Runs the given action.
-     * Fails if the current state is the given state or a previous operation has failed.
-     * Blocks until other operations are complete.
-     */
-    public void notInState(T forbidden, Runnable action) {
-        notInState(forbidden, () -> {
-            action.run();
-            return null;
-        });
-    }
-
-    /**
-     * Runs the given action.
-     * Fails if the current state is the given state or a previous operation has failed.
+     * Runs the given action, verifying the current state is not the forbidden state.
+     * Fails if the current state is the given state, the current thread is transitioning the state, or a previous operation has failed.
      * Blocks until other operations are complete.
      */
     public <S> S notInState(T forbidden, Supplier<S> action) {
@@ -150,7 +150,7 @@ public class StateTransitionController<T extends StateTransitionController.State
 
     /**
      * Transitions to the given "to" state.
-     * Fails if the current state is not the given "from" state or a previous operation has failed.
+     * Fails if the current state is not the given "from" state, the current thread is transitioning the state, or a previous operation has failed.
      * Blocks until other operations are complete.
      */
     public void transition(T fromState, T toState, Runnable action) {
@@ -159,7 +159,7 @@ public class StateTransitionController<T extends StateTransitionController.State
 
     /**
      * Transitions to the given "to" state.
-     * Fails if the current state is not the given "from" state or a previous operation has failed.
+     * Fails if the current state is not the given "from" state, the current thread is transitioning the state, or a previous operation has failed.
      * Blocks until other operations are complete.
      */
     public <S> S transition(T fromState, T toState, Supplier<? extends S> action) {
@@ -168,7 +168,7 @@ public class StateTransitionController<T extends StateTransitionController.State
 
     /**
      * Transitions to the given "to" state, returning any failure in the result object.
-     * Fails if the current state is not the given "from" state or if some other transition is happening or a previous transition has failed.
+     * Fails if the current state is not the given "from" state, the current thread is transitioning the state, or a previous operation has failed.
      */
     public ExecutionResult<Void> tryTransition(T fromState, T toState, Supplier<ExecutionResult<Void>> action) {
         return synchronizer.withLock(() -> doTransition(fromState, toState, action));
@@ -176,12 +176,21 @@ public class StateTransitionController<T extends StateTransitionController.State
 
     /**
      * Transitions to the given "to" state. Does nothing if the current state is the "to" state.
-     * Fails if the current state is not either of the given "to" or "from" state or a previous operation has failed.
+     * Fails if the current state is not either of the given "to" or "from" state, the current thread is currently transitioning the state, or a previous operation has failed.
      * Blocks until other operations are complete.
      */
     public void maybeTransition(T fromState, T toState, Runnable action) {
         synchronizer.withLock(() -> {
-            if (state.inState(toState)) {
+            if (state.inStateAndNotTransitioning(toState)) {
+                return;
+            }
+            doTransition(fromState, toState, action);
+        });
+    }
+
+    public void maybeTransitionIfNotCurrentlyTransitioning(T fromState, T toState, Runnable action) {
+        synchronizer.withLock(() -> {
+            if (state.inStateOrTransitioningTo(toState)) {
                 return;
             }
             doTransition(fromState, toState, action);
@@ -190,12 +199,12 @@ public class StateTransitionController<T extends StateTransitionController.State
 
     /**
      * Transitions to the given "to" state. Does nothing if the "to" state has already been transitioned to at some point in the past (but is not necessarily the current state).
-     * Fails if the current state is not the given "from" state or a previous operation has failed.
+     * Fails if the current state is not the given "from" state, the current thread is currently transitioning the state, or a previous operation has failed.
      * Blocks until other operations are complete.
      */
     public void transitionIfNotPreviously(T fromState, T toState, Runnable action) {
         synchronizer.withLock(() -> {
-            if (state.hasSeenState(toState)) {
+            if (state.hasSeenStateAndNotTransitioning(toState)) {
                 return;
             }
             doTransition(fromState, toState, action);
@@ -258,17 +267,17 @@ public class StateTransitionController<T extends StateTransitionController.State
 
         public abstract void assertInState(T expected);
 
-        public void assertNotInState(T forbidden) {
-            if (state == forbidden) {
-                throw new IllegalStateException(displayName.getCapitalizedDisplayName() + " should not be in state " + forbidden + ".");
-            }
-        }
+        public abstract void assertNotInState(T forbidden);
 
         public abstract void assertCanTransition(T fromState, T toState);
 
-        public abstract boolean inState(T toState);
+        public abstract boolean inStateAndNotTransitioning(T toState);
 
-        public abstract boolean hasSeenState(T toState);
+        public abstract boolean inStateOrTransitioningTo(T toState);
+
+        public abstract boolean hasSeenStateAndNotTransitioning(T toState);
+
+        public abstract boolean hasSeenStateIgnoringTransitions(T toState);
 
         public CurrentState<T> failed(ExecutionResult<?> failure) {
             return new Failed<>(displayName, state, failure);
@@ -311,6 +320,13 @@ public class StateTransitionController<T extends StateTransitionController.State
         }
 
         @Override
+        public void assertNotInState(T forbidden) {
+            if (state == forbidden) {
+                throw new IllegalStateException(displayName.getCapitalizedDisplayName() + " should not be in state " + forbidden + ".");
+            }
+        }
+
+        @Override
         public void assertCanTransition(T fromState, T toState) {
             if (state != fromState) {
                 throw new IllegalStateException("Can only transition " + displayName.getCapitalizedDisplayName() + " to state " + toState + " from state " + fromState + " however it is currently in state " + state + ".");
@@ -318,19 +334,29 @@ public class StateTransitionController<T extends StateTransitionController.State
         }
 
         @Override
-        public boolean inState(T toState) {
+        public boolean inStateAndNotTransitioning(T toState) {
             return state == toState;
         }
 
         @Override
-        public boolean hasSeenState(T toState) {
+        public boolean inStateOrTransitioningTo(T toState) {
+            return inStateAndNotTransitioning(toState);
+        }
+
+        @Override
+        public boolean hasSeenStateAndNotTransitioning(T toState) {
             if (state == toState) {
                 return true;
             }
             if (previous != null) {
-                return previous.hasSeenState(toState);
+                return previous.hasSeenStateAndNotTransitioning(toState);
             }
             return false;
+        }
+
+        @Override
+        public boolean hasSeenStateIgnoringTransitions(T toState) {
+            return hasSeenStateAndNotTransitioning(toState);
         }
 
         @Override
@@ -353,8 +379,16 @@ public class StateTransitionController<T extends StateTransitionController.State
         }
 
         @Override
-        public boolean inState(T toState) {
-            return false;
+        public boolean inStateAndNotTransitioning(T toState) {
+            throw new IllegalStateException("Expected " + displayName.getDisplayName() + " to be in state " + toState + " but is in state " + state + " and transitioning to " + targetState + ".");
+        }
+
+        @Override
+        public boolean inStateOrTransitioningTo(T toState) {
+            if (targetState == toState) {
+                return true;
+            }
+            throw new IllegalStateException("Expected " + displayName.getDisplayName() + " to be in state " + toState + " but is in state " + state + " and transitioning to " + targetState + ".");
         }
 
         @Override
@@ -364,10 +398,7 @@ public class StateTransitionController<T extends StateTransitionController.State
 
         @Override
         public void assertNotInState(T forbidden) {
-            if (targetState == forbidden) {
-                throw new IllegalStateException(displayName.getCapitalizedDisplayName() + " should not be in state " + forbidden + " but is in state " + state + " and transitioning to " + targetState + ".");
-            }
-            fromState.assertNotInState(forbidden);
+            throw new IllegalStateException(displayName.getCapitalizedDisplayName() + " should not be in state " + forbidden + " but is in state " + state + " and transitioning to " + targetState + ".");
         }
 
         @Override
@@ -380,8 +411,13 @@ public class StateTransitionController<T extends StateTransitionController.State
         }
 
         @Override
-        public boolean hasSeenState(T toState) {
-            return fromState.hasSeenState(toState);
+        public boolean hasSeenStateAndNotTransitioning(T toState) {
+            throw new IllegalStateException("Expected " + displayName.getDisplayName() + " to be in state " + toState + " or later but is in state " + state + " and transitioning to " + targetState + ".");
+        }
+
+        @Override
+        public boolean hasSeenStateIgnoringTransitions(T toState) {
+            return fromState.hasSeenStateIgnoringTransitions(toState);
         }
 
         @Override
@@ -401,27 +437,28 @@ public class StateTransitionController<T extends StateTransitionController.State
             this.failure = failure;
         }
 
-        public void assertNotFailed() {
+        public void throwFailure() {
             failure.rethrow();
         }
 
         @Override
         public void assertInState(T expected) {
-            assertNotFailed();
+            throwFailure();
         }
 
         @Override
         public void assertNotInState(T forbidden) {
-            assertNotFailed();
+            throwFailure();
         }
 
         @Override
         public void assertCanTransition(T fromState, T toState) {
-            assertNotFailed();
+            throwFailure();
         }
 
         @Override
-        public boolean hasSeenState(T toState) {
+        public boolean hasSeenStateAndNotTransitioning(T toState) {
+            throwFailure();
             return false;
         }
 
@@ -431,7 +468,20 @@ public class StateTransitionController<T extends StateTransitionController.State
         }
 
         @Override
-        public boolean inState(T toState) {
+        public boolean inStateAndNotTransitioning(T toState) {
+            throwFailure();
+            return false;
+        }
+
+        @Override
+        public boolean inStateOrTransitioningTo(T toState) {
+            throwFailure();
+            return false;
+        }
+
+        @Override
+        public boolean hasSeenStateIgnoringTransitions(T toState) {
+            throwFailure();
             return false;
         }
 

@@ -9,6 +9,8 @@ import model.StageNames.READY_FOR_RELEASE
 import model.TestCoverage
 import model.TestType
 
+const val functionalTestTag = "FunctionalTest"
+
 class FunctionalTest(
     model: CIBuildModel,
     id: String,
@@ -38,7 +40,7 @@ class FunctionalTest(
     applyTestDefaults(
         model, this, testTasks, notQuick = !testCoverage.isQuick, os = testCoverage.os,
         extraParameters = (
-            listOf(functionalTestExtraParameters("FunctionalTest", testCoverage.os, testCoverage.testJvmVersion.major.toString(), testCoverage.vendor.name)) +
+            listOf(functionalTestExtraParameters(functionalTestTag, testCoverage.os, testCoverage.testJvmVersion.major.toString(), testCoverage.vendor.name)) +
                 (if (enableTestDistribution) "-DenableTestDistribution=%enableTestDistribution% -DtestDistributionPartitionSizeInSeconds=%testDistributionPartitionSizeInSeconds%" else "") +
                 "-PflakyTests=${determineFlakyTestStrategy(stage)}" +
                 extraParameters

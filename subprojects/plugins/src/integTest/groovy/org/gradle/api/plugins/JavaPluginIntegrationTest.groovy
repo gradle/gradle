@@ -19,10 +19,10 @@ package org.gradle.api.plugins
 import org.gradle.api.internal.component.BuildableJavaComponent
 import org.gradle.api.internal.component.ComponentRegistry
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.InspectsOutgoingVariants
+import org.gradle.integtests.fixtures.InspectsConfigurationReport
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
-class JavaPluginIntegrationTest extends AbstractIntegrationSpec implements InspectsOutgoingVariants {
+class JavaPluginIntegrationTest extends AbstractIntegrationSpec implements InspectsConfigurationReport {
 
     def appliesBasePluginsAndAddsConventionObject() {
         given:
@@ -58,25 +58,23 @@ class JavaPluginIntegrationTest extends AbstractIntegrationSpec implements Inspe
         succeeds "outgoingVariants"
 
         outputContains("""
-            --------------------------------------------------
-            Variant mainSourceElements (i)
-            --------------------------------------------------
-            Description = List of source directories contained in the Main SourceSet.
+--------------------------------------------------
+Variant mainSourceElements (i)
+--------------------------------------------------
+List of source directories contained in the Main SourceSet.
 
-            Capabilities
-                - :${getTestDirectory().getName()}:unspecified (default capability)
-            Attributes
-                - org.gradle.category            = verification
-                - org.gradle.dependency.bundling = external
-                - org.gradle.verificationtype    = main-sources
-
-            Artifacts
-                - src${File.separator}main${File.separator}java (artifactType = directory)
-                - src${File.separator}main${File.separator}resources (artifactType = directory)
-            """.stripIndent())
+Capabilities
+    - :${getTestDirectory().getName()}:unspecified (default capability)
+Attributes
+    - org.gradle.category            = verification
+    - org.gradle.dependency.bundling = external
+    - org.gradle.verificationtype    = main-sources
+Artifacts
+    - src${File.separator}main${File.separator}java (artifactType = directory)
+    - src${File.separator}main${File.separator}resources (artifactType = directory)""")
 
         and:
-        hasIncubatingVariantsLegend()
+        hasIncubatingLegend()
     }
 
     @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
@@ -94,26 +92,24 @@ class JavaPluginIntegrationTest extends AbstractIntegrationSpec implements Inspe
         succeeds "outgoingVariants"
 
         outputContains("""
-            --------------------------------------------------
-            Variant mainSourceElements (i)
-            --------------------------------------------------
-            Description = List of source directories contained in the Main SourceSet.
+--------------------------------------------------
+Variant mainSourceElements (i)
+--------------------------------------------------
+List of source directories contained in the Main SourceSet.
 
-            Capabilities
-                - :${getTestDirectory().getName()}:unspecified (default capability)
-            Attributes
-                - org.gradle.category            = verification
-                - org.gradle.dependency.bundling = external
-                - org.gradle.verificationtype    = main-sources
-
-            Artifacts
-                - src${File.separator}main${File.separator}java (artifactType = directory)
-                - src${File.separator}more${File.separator}java (artifactType = directory)
-                - src${File.separator}main${File.separator}resources (artifactType = directory)
-            """.stripIndent())
+Capabilities
+    - :${getTestDirectory().getName()}:unspecified (default capability)
+Attributes
+    - org.gradle.category            = verification
+    - org.gradle.dependency.bundling = external
+    - org.gradle.verificationtype    = main-sources
+Artifacts
+    - src${File.separator}main${File.separator}java (artifactType = directory)
+    - src${File.separator}main${File.separator}resources (artifactType = directory)
+    - src${File.separator}more${File.separator}java (artifactType = directory)""")
 
         and:
-        hasIncubatingVariantsLegend()
+        hasIncubatingLegend()
     }
 
     def "mainSourceElements can be consumed by another task via Dependency Management"() {

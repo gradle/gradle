@@ -21,7 +21,6 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.testkit.runner.BuildResult
-import org.gradle.util.GradleVersion
 
 class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
 
@@ -46,7 +45,7 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
         replaceVariablesInBuildFile(
             kotlinVersion: kotlinVersion,
             androidPluginVersion: androidPluginVersion)
-        publish()
+        publish(kotlinVersion, androidPluginVersion)
 
         then:
         actualRepo.eachFileRecurse { actual ->
@@ -127,20 +126,16 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
         return runner
     }
 
-    private BuildResult publish() {
-        def runner = setIllegalAccessPermitForJDK16KotlinCompilerDaemonOptions(runner('publish'))
+    private BuildResult publish(String kotlinVersion, String agpVersion) {
+        return setIllegalAccessPermitForJDK16KotlinCompilerDaemonOptions(runner('publish'))
             .withProjectDir(new File(testProjectDir, 'producer'))
             .forwardOutput()
-        // this deprecation is coming from the Kotlin plugin
-            .expectDeprecationWarning("The AbstractCompile.destinationDir property has been deprecated. " +
-                "This is scheduled to be removed in Gradle 8.0. " +
-                "Please use the destinationDirectory property instead. " +
-                "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#compile_task_wiring",
-                "https://youtrack.jetbrains.com/issue/KT-46019")
-            .expectLegacyDeprecationWarning("IncrementalTaskInputs has been deprecated. This is scheduled to be removed in Gradle 8.0. On method 'AbstractKotlinCompile.execute' use 'org.gradle.work.InputChanges' instead. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#incremental_task_inputs_deprecation")
-        expectAgpFileTreeDeprecationWarnings(runner, "compileDebugAidl", "mergeDebugNativeLibs", "stripDebugDebugSymbols", "compileDebugRenderscript")
-        expectIncrementalTaskInputsDeprecation("4.2", runner)
-        runner.build()
+            .deprecations(KotlinMultiPlatformDeprecations) {
+                expectKotlinJsCompileDestinationDirPropertyDeprecation(kotlinVersion)
+                expectAndroidFileTreeForEmptySourcesDeprecationWarnings(agpVersion, "sourceFiles", "sourceDirs", "inputFiles", "projectNativeLibs")
+                expectKotlinIncrementalTaskInputsDeprecation(kotlinVersion)
+                expectAndroidIncrementalTaskInputsDeprecation(agpVersion)
+            }.build()
     }
 
     private BuildResult consumer(String runTask) {
@@ -184,5 +179,11 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
         }
 
         moduleRoot
+    }
+
+    static class KotlinMultiPlatformDeprecations extends BaseDeprecations implements WithKotlinDeprecations, WithAndroidDeprecations {
+        KotlinMultiPlatformDeprecations(SmokeTestGradleRunner runner) {
+            super(runner)
+        }
     }
 }

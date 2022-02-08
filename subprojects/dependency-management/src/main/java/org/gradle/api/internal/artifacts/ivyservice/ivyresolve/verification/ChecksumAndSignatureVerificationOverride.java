@@ -20,7 +20,6 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Queues;
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.artifacts.verification.DependencyVerificationMode;
@@ -70,7 +69,7 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
     private final ChecksumService checksumService;
     private final SignatureVerificationService signatureVerificationService;
     private final DependencyVerificationMode verificationMode;
-    private final Set<String> verificationQueries = Sets.newConcurrentHashSet();
+    private final Set<VerificationQuery> verificationQueries = Sets.newConcurrentHashSet();
     private final Deque<VerificationEvent> verificationEvents = Queues.newArrayDeque();
     private final AtomicBoolean closed = new AtomicBoolean();
     private final AtomicBoolean hasFatalFailure = new AtomicBoolean();
@@ -108,17 +107,12 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
 
     @Override
     public void onArtifact(ArtifactKind kind, ModuleComponentArtifactIdentifier artifact, File mainFile, Factory<File> signatureFile, String repositoryName, String repositoryId) {
-        if (verificationQueries.add(getVerificationQuery(artifact, repositoryId))) {
+        if (verificationQueries.add(new VerificationQuery(artifact, repositoryId))) {
             VerificationEvent event = new VerificationEvent(kind, artifact, mainFile, signatureFile, repositoryName);
             synchronized (verificationEvents) {
                 verificationEvents.add(event);
             }
         }
-    }
-
-    @Override
-    public boolean wasAlreadyProcessed(ModuleComponentArtifactIdentifier artifact, String repositoryId) {
-        return verificationQueries.contains(getVerificationQuery(artifact, repositoryId));
     }
 
     private void verifyConcurrently() {
@@ -230,9 +224,50 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
         signatureVerificationService.stop();
     }
 
-    private String getVerificationQuery(ModuleComponentArtifactIdentifier artifactIdentifier, String repositoryId) {
-        ModuleComponentIdentifier componentIdentifier = artifactIdentifier.getComponentIdentifier();
-        return componentIdentifier.getVersion() + ":" + componentIdentifier.getModule() + ":" + componentIdentifier.getGroup() + ":" + artifactIdentifier.getFileName() + ":" + repositoryId;
+    private static class VerificationQuery {
+        private final ModuleComponentArtifactIdentifier artifact;
+        private final String repositoryId;
+        private final int hashCode;
+
+        public VerificationQuery(ModuleComponentArtifactIdentifier artifact, String repositoryId) {
+            this.artifact = artifact;
+            this.repositoryId = repositoryId;
+            this.hashCode = precomputeHashCode(artifact, repositoryId);
+        }
+
+        private int precomputeHashCode(ModuleComponentArtifactIdentifier artifact, String repositoryId) {
+            int hashCode = artifact.getComponentIdentifier().hashCode();
+            hashCode = 31 * hashCode + artifact.getFileName().hashCode();
+            hashCode = 31 * hashCode + repositoryId.hashCode();
+            return hashCode;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            VerificationQuery that = (VerificationQuery) o;
+            if (hashCode != that.hashCode) {
+                return false;
+            }
+            if (!artifact.getComponentIdentifier().equals(that.artifact.getComponentIdentifier())) {
+                return false;
+            }
+            if (!artifact.getFileName().equals(that.artifact.getFileName())) {
+                return false;
+            }
+            return repositoryId.equals(that.repositoryId);
+        }
+
+        @Override
+        public int hashCode() {
+            return hashCode;
+        }
     }
 
     private static class VerificationEvent {

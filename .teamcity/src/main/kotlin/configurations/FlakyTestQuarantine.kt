@@ -35,9 +35,10 @@ class FlakyTestQuarantine(model: CIBuildModel, stage: Stage, os: Os) : BaseGradl
         val extraParameters = functionalTestExtraParameters("FlakyTestQuarantine", os, testCoverage.testJvmVersion.major.toString(), testCoverage.vendor.name)
         val parameters = (
             buildToolGradleParameters(true) +
-                listOf("-PflakyTests=only", "-x", "test") +
+                listOf("-PflakyTests=only") +
                 listOf(extraParameters) +
-                functionalTestParameters(os)
+                functionalTestParameters(os) +
+                listOf(buildScanTag(functionalTestTag))
             ).joinToString(separator = " ")
         steps {
             gradleWrapper {

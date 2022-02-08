@@ -31,6 +31,7 @@ import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.work.DefaultWorkerLeaseService
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.util.Path
+import org.gradle.util.TestUtil
 
 import static org.junit.Assert.assertTrue
 
@@ -121,7 +122,7 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == 'The project object for project :p1 has not been attached yet.'
+        e.message == 'Project :p1 should be in state Created or later.'
     }
 
     def "one thread can access state at a time"() {
@@ -727,6 +728,7 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
         build.calculateIdentityPathForProject(_) >> { Path path -> path }
         def services = new DefaultServiceRegistry()
         services.add(projectFactory)
+        services.add(TestUtil.stateTransitionControllerFactory())
         build.mutableModel >> Stub(GradleInternal) {
             getServices() >> services
         }

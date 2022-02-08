@@ -69,6 +69,8 @@ However, sometimes the term _configuration_ may leak into the DSL for historical
 [[sec:variant-visual]]
 == Visualizing variant information
 
+=== The Outgoing Variants Report
+
 Gradle offers a report task called `outgoingVariants` that displays the variants of a project, with their capabilities, attributes and artifacts.
 It is conceptually similar to the `dependencyInsight` <<viewing_debugging_dependencies.adoc#sec:identifying_reason_dependency_selection,reporting task>>.
 
@@ -87,27 +89,46 @@ Variant apiElements
 Description = API elements for main.
 
 Capabilities
-    - [default capability]
+    - new-java-library:lib:unspecified (default capability)
 Attributes
     - org.gradle.category            = library
     - org.gradle.dependency.bundling = external
-    - org.gradle.jvm.version         = 8
+    - org.gradle.jvm.version         = 11
     - org.gradle.libraryelements     = jar
     - org.gradle.usage               = java-api
-
 Artifacts
-    - build/libs/variant-report.jar (artifactType = jar)
+    - build/libs/lib.jar (artifactType = jar)
 
-Secondary variants (*)
-    - Variant : classes
-       - Attributes
-          - org.gradle.category            = library
-          - org.gradle.dependency.bundling = external
-          - org.gradle.jvm.version         = 8
-          - org.gradle.libraryelements     = classes
-          - org.gradle.usage               = java-api
-       - Artifacts
-          - build/classes/java/main (artifactType = java-classes-directory)
+Secondary Variants (*)
+
+    --------------------------------------------------
+    Secondary Variant classes
+    --------------------------------------------------
+        Description = Directories containing compiled class files for main.
+
+        Attributes
+            - org.gradle.category            = library
+            - org.gradle.dependency.bundling = external
+            - org.gradle.jvm.version         = 11
+            - org.gradle.libraryelements     = classes
+            - org.gradle.usage               = java-api
+        Artifacts
+            - build/classes/java/main (artifactType = java-classes-directory)
+
+--------------------------------------------------
+Variant mainSourceElements (i)
+--------------------------------------------------
+Description = List of source directories contained in the Main SourceSet.
+
+Capabilities
+    - new-java-library:lib:unspecified (default capability)
+Attributes
+    - org.gradle.category            = verification
+    - org.gradle.dependency.bundling = external
+    - org.gradle.verificationtype    = main-sources
+Artifacts
+    - src/main/java (artifactType = directory)
+    - src/main/resources (artifactType = directory)
 
 --------------------------------------------------
 Variant runtimeElements
@@ -115,38 +136,63 @@ Variant runtimeElements
 Description = Elements of runtime for main.
 
 Capabilities
-    - [default capability]
+    - new-java-library:lib:unspecified (default capability)
 Attributes
     - org.gradle.category            = library
     - org.gradle.dependency.bundling = external
-    - org.gradle.jvm.version         = 8
+    - org.gradle.jvm.version         = 11
     - org.gradle.libraryelements     = jar
     - org.gradle.usage               = java-runtime
-
 Artifacts
-    - build/libs/variant-report.jar (artifactType = jar)
+    - build/libs/lib.jar (artifactType = jar)
 
-Secondary variants (*)
-    - Variant : classes
-       - Attributes
-          - org.gradle.category            = library
-          - org.gradle.dependency.bundling = external
-          - org.gradle.jvm.version         = 8
-          - org.gradle.libraryelements     = classes
-          - org.gradle.usage               = java-runtime
-       - Artifacts
-          - build/classes/java/main (artifactType = java-classes-directory)
-    - Variant : resources
-       - Attributes
-          - org.gradle.category            = library
-          - org.gradle.dependency.bundling = external
-          - org.gradle.jvm.version         = 8
-          - org.gradle.libraryelements     = resources
-          - org.gradle.usage               = java-runtime
-       - Artifacts
-          - build/resources/main (artifactType = java-resources-directory)
+Secondary Variants (*)
 
+    --------------------------------------------------
+    Secondary Variant classes
+    --------------------------------------------------
+        Description = Directories containing compiled class files for main.
 
+        Attributes
+            - org.gradle.category            = library
+            - org.gradle.dependency.bundling = external
+            - org.gradle.jvm.version         = 11
+            - org.gradle.libraryelements     = classes
+            - org.gradle.usage               = java-runtime
+        Artifacts
+            - build/classes/java/main (artifactType = java-classes-directory)
+
+    --------------------------------------------------
+    Secondary Variant resources
+    --------------------------------------------------
+        Description = Directories containing the project's assembled resource files for use at runtime.
+
+        Attributes
+            - org.gradle.category            = library
+            - org.gradle.dependency.bundling = external
+            - org.gradle.jvm.version         = 11
+            - org.gradle.libraryelements     = resources
+            - org.gradle.usage               = java-runtime
+        Artifacts
+            - build/resources/main (artifactType = java-resources-directory)
+
+--------------------------------------------------
+Variant testResultsElementsForTest (i)
+--------------------------------------------------
+Description = Directory containing binary results of running tests for the test Test Suite's test target.
+
+Capabilities
+    - new-java-library:lib:unspecified (default capability)
+Attributes
+    - org.gradle.category              = verification
+    - org.gradle.testsuite.name        = test
+    - org.gradle.testsuite.target.name = test
+    - org.gradle.testsuite.type        = unit-test
+    - org.gradle.verificationtype      = test-results
+Artifacts
+    - build/test-results/test/binary (artifactType = directory)
+
+(i) Configuration uses incubating attributes such as Category.VERIFICATION.
 (*) Secondary variants are variants created via the Configuration#getOutgoing(): ConfigurationPublications API which also participate in selection, in addition to the configuration itself.
 ----
 
@@ -156,6 +202,138 @@ As they indicate, this is where the difference is made between what needs to be 
 
 It also shows _secondary_ variants, which are exclusive to Gradle projects and not published.
 For example, the secondary variant `classes` from `apiElements` is what allows Gradle to skip the JAR creation when compiling against a <<java_library_plugin.adoc#sec:java_library_classes_usage,`java-library` project>>.
+
+=== The Resolvable Configurations Report
+
+Gradle also offers a complimentary report task called `resolvableConfigurations` that displays the _resolvable_ configurations of a project, which are those which can have dependencies added and be resolved.  The report will list their attributes and any configurations that they extend.  It will also list a summary of any attributes which will be affected by <<variant_attributes.adoc#sec:abm_compatibility_rules, Compatibility Rules>> or <<variant_attributes.adoc#sec:abm_disambiguation_rules, Disambiguation Rules>> during resolution.
+
+By default, `resolvableConfigurations` prints information about all purely resolvable configurations.
+These are configurations that are marked resolvable but *not* marked consumable.
+Though some resolvable configurations are also marked consumable, these are legacy configurations that should *not* have dependencies added in build scripts.
+This report offers the optional parameter `--configuration <configurationName>` to select a single configuration to display.
+It also accepts the `--all` flag to include information about legacy and deprecated configurations.
+Finally, it accepts the `--recursive` flag to list in the extended configurations section those configurations which are extended _transitively_ rather than directly.
+
+Here is the output of the `resolvableConfigurations` task on a freshly generated `java-library` project:
+
+[listing]
+----
+> Task :resolvableConfigurations
+--------------------------------------------------
+Configuration annotationProcessor
+--------------------------------------------------
+Description = Annotation processors and their dependencies for source set 'main'.
+
+Attributes
+    - org.gradle.category            = library
+    - org.gradle.dependency.bundling = external
+    - org.gradle.jvm.environment     = standard-jvm
+    - org.gradle.libraryelements     = jar
+    - org.gradle.usage               = java-runtime
+
+--------------------------------------------------
+Configuration compileClasspath
+--------------------------------------------------
+Description = Compile classpath for source set 'main'.
+
+Attributes
+    - org.gradle.category            = library
+    - org.gradle.dependency.bundling = external
+    - org.gradle.jvm.environment     = standard-jvm
+    - org.gradle.jvm.version         = 11
+    - org.gradle.libraryelements     = classes
+    - org.gradle.usage               = java-api
+Extended Configurations
+    - compileOnly
+    - implementation
+
+--------------------------------------------------
+Configuration runtimeClasspath
+--------------------------------------------------
+Description = Runtime classpath of source set 'main'.
+
+Attributes
+    - org.gradle.category            = library
+    - org.gradle.dependency.bundling = external
+    - org.gradle.jvm.environment     = standard-jvm
+    - org.gradle.jvm.version         = 11
+    - org.gradle.libraryelements     = jar
+    - org.gradle.usage               = java-runtime
+Extended Configurations
+    - implementation
+    - runtimeOnly
+
+--------------------------------------------------
+Configuration testAnnotationProcessor
+--------------------------------------------------
+Description = Annotation processors and their dependencies for source set 'test'.
+
+Attributes
+    - org.gradle.category            = library
+    - org.gradle.dependency.bundling = external
+    - org.gradle.jvm.environment     = standard-jvm
+    - org.gradle.libraryelements     = jar
+    - org.gradle.usage               = java-runtime
+
+--------------------------------------------------
+Configuration testCompileClasspath
+--------------------------------------------------
+Description = Compile classpath for source set 'test'.
+
+Attributes
+    - org.gradle.category            = library
+    - org.gradle.dependency.bundling = external
+    - org.gradle.jvm.environment     = standard-jvm
+    - org.gradle.jvm.version         = 11
+    - org.gradle.libraryelements     = classes
+    - org.gradle.usage               = java-api
+Extended Configurations
+    - testCompileOnly
+    - testImplementation
+
+--------------------------------------------------
+Configuration testRuntimeClasspath
+--------------------------------------------------
+Description = Runtime classpath of source set 'test'.
+
+Attributes
+    - org.gradle.category            = library
+    - org.gradle.dependency.bundling = external
+    - org.gradle.jvm.environment     = standard-jvm
+    - org.gradle.jvm.version         = 11
+    - org.gradle.libraryelements     = jar
+    - org.gradle.usage               = java-runtime
+Extended Configurations
+    - testImplementation
+    - testRuntimeOnly
+
+--------------------------------------------------
+Compatibility Rules
+--------------------------------------------------
+Description = The following Attributes have compatibility rules defined.
+
+    - org.gradle.dependency.bundling
+    - org.gradle.jvm.environment
+    - org.gradle.jvm.version
+    - org.gradle.libraryelements
+    - org.gradle.plugin.api-version
+    - org.gradle.usage
+
+--------------------------------------------------
+Disambiguation Rules
+--------------------------------------------------
+Description = The following Attributes have disambiguation rules defined.
+
+    - org.gradle.category
+    - org.gradle.dependency.bundling
+    - org.gradle.jvm.environment
+    - org.gradle.jvm.version
+    - org.gradle.libraryelements
+    - org.gradle.plugin.api-version
+    - org.gradle.usage
+----
+
+From this you can see the two main configurations used to resolve dependencies, `compileClasspath` and `runtimeClasspath`, as well as their corresponding test configurations.
 
 [[sec:variant-aware-matching]]
 == Variant aware matching

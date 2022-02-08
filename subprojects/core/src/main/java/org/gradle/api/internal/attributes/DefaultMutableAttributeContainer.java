@@ -25,10 +25,13 @@ import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TreeMap;
 
 class DefaultMutableAttributeContainer implements AttributeContainerInternal {
     private final ImmutableAttributesFactory immutableAttributesFactory;
@@ -47,7 +50,15 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
 
     @Override
     public String toString() {
-        return asImmutable().toString();
+        final Map<Attribute<?>, Object> sorted = new TreeMap<>(Comparator.comparing(Attribute::getName));
+
+        state.keySet().forEach(key -> sorted.put(key, state.getAttribute(key)));
+        if (null != parent) {
+            parent.keySet().forEach(key -> sorted.put(key, parent.getAttribute(key)));
+        }
+        lazyAttributes.keySet().forEach(key -> sorted.put(key, lazyAttributes.get(key).toString()));
+
+        return sorted.toString();
     }
 
     @Override
@@ -74,6 +85,13 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
         assertAttributeValueIsNotNull(value);
         assertAttributeTypeIsValid(value.getClass(), key);
         state = immutableAttributesFactory.concat(state, key, value);
+        removeLazyAttributeIfPresent(key);
+    }
+
+    private <T> void removeLazyAttributeIfPresent(Attribute<T> key) {
+        if (lazyAttributes.containsKey(key)) {
+            lazyAttributes.remove(key);
+        }
     }
 
     @Override
@@ -89,7 +107,7 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
                 assertAttributeTypeIsValid(valueType, key);
             }
         }
-        addLazyAttribute(key, provider);
+        doInsertionLazy(key, provider);
         return this;
     }
 
@@ -199,29 +217,38 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
         return result;
     }
 
-    private <T> void addLazyAttribute(Attribute<T> key, Provider<? extends T> provider) {
+    private <T> void doInsertionLazy(Attribute<T> key, Provider<? extends T> provider) {
         if (lazyAttributes == Collections.EMPTY_MAP) {
             lazyAttributes = new LinkedHashMap<>(1);
         }
         lazyAttributes.put(key, provider);
+        removeAttributeIfPresent(key);
+    }
+
+    private <T> void removeAttributeIfPresent(Attribute<T> key) {
+        if (state.contains(key)) {
+            DefaultMutableAttributeContainer newState = new DefaultMutableAttributeContainer(immutableAttributesFactory, parent);
+            state.keySet().stream()
+                    .filter(k -> !k.equals(key))
+                    .forEach(k -> {
+                        @SuppressWarnings("unchecked") Attribute<Object> objectKey = (Attribute<Object>) k;
+                        newState.attribute(objectKey, Objects.requireNonNull(state.getAttribute(k)));
+                    });
+            state = newState.asImmutable();
+        }
     }
 
     private <T> T realizeLazyAttribute(Attribute<T> key) {
-        Provider<? extends T> provider = removeLazyAttribute(key);
-        final T value = provider.get();
-        attribute(key, value);
+        @SuppressWarnings("unchecked") final T value = (T) lazyAttributes.get(key).get();
+        doInsertion(key, value);
         return value;
     }
 
     private void realizeAllLazyAttributes() {
         if (!lazyAttributes.isEmpty()) {
-            lazyAttributes.forEach((key, value) -> doInsertion(Cast.uncheckedNonnullCast(key), (Object) value.get()));
-            lazyAttributes.clear();
+            // As doInsertion will remove an item from lazyAttributes, we can't iterate that collection directly here, or else we'll get ConcurrentModificationException
+            final Set<Attribute<?>> savedKeys = new HashSet<>(lazyAttributes.keySet());
+            savedKeys.forEach(key -> doInsertion(Cast.uncheckedNonnullCast(key), lazyAttributes.get(key).get()));
         }
-    }
-
-    private <T> Provider<? extends T> removeLazyAttribute(Attribute<T> key) {
-        // This can only be called once we know the key is in the lazyAttributes map
-        return Cast.uncheckedNonnullCast(lazyAttributes.remove(key));
     }
 }

@@ -30,6 +30,7 @@ import org.gradle.internal.build.BuildProjectRegistry;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.model.CalculatedModelValue;
 import org.gradle.internal.model.ModelContainer;
+import org.gradle.internal.model.StateTransitionControllerFactory;
 import org.gradle.internal.resources.ProjectLeaseRegistry;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.work.WorkerLeaseService;
@@ -96,7 +97,8 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
         String name = descriptor.getName();
         ProjectComponentIdentifier projectIdentifier = new DefaultProjectComponentIdentifier(owner.getBuildIdentifier(), identityPath, projectPath, name);
         IProjectFactory projectFactory = owner.getMutableModel().getServices().get(IProjectFactory.class);
-        ProjectStateImpl projectState = new ProjectStateImpl(owner, identityPath, projectPath, descriptor.getName(), projectIdentifier, descriptor, projectFactory);
+        StateTransitionControllerFactory stateTransitionControllerFactory = owner.getMutableModel().getServices().get(StateTransitionControllerFactory.class);
+        ProjectStateImpl projectState = new ProjectStateImpl(owner, identityPath, projectPath, descriptor.getName(), projectIdentifier, descriptor, projectFactory, stateTransitionControllerFactory);
         projectsByPath.put(identityPath, projectState);
         projectsById.put(projectIdentifier, projectState);
         projectRegistry.add(projectPath, projectState);
@@ -210,9 +212,18 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
         private final ResourceLock projectLock;
         private final ResourceLock taskLock;
         private final Set<Thread> canDoAnythingToThisProject = new CopyOnWriteArraySet<>();
-        private ProjectInternal project;
+        private final ProjectLifecycleController controller;
 
-        ProjectStateImpl(BuildState owner, Path identityPath, Path projectPath, String projectName, ProjectComponentIdentifier identifier, DefaultProjectDescriptor descriptor, IProjectFactory projectFactory) {
+        ProjectStateImpl(
+            BuildState owner,
+            Path identityPath,
+            Path projectPath,
+            String projectName,
+            ProjectComponentIdentifier identifier,
+            DefaultProjectDescriptor descriptor,
+            IProjectFactory projectFactory,
+            StateTransitionControllerFactory stateTransitionControllerFactory
+        ) {
             this.owner = owner;
             this.identityPath = identityPath;
             this.projectPath = projectPath;
@@ -222,6 +233,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
             this.projectFactory = projectFactory;
             this.projectLock = workerLeaseService.getProjectLock(owner.getIdentityPath(), identityPath);
             this.taskLock = workerLeaseService.getTaskExecutionLock(owner.getIdentityPath(), identityPath);
+            this.controller = new ProjectLifecycleController(getDisplayName(), stateTransitionControllerFactory);
         }
 
         @Override
@@ -296,25 +308,12 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
 
         @Override
         public void createMutableModel(ClassLoaderScope selfClassLoaderScope, ClassLoaderScope baseClassLoaderScope) {
-            synchronized (this) {
-                if (this.project != null) {
-                    throw new IllegalStateException(String.format("The project object for project %s has already been attached.", getIdentityPath()));
-                }
-
-                ProjectState parent = getBuildParent();
-                ProjectInternal parentModel = parent == null ? null : parent.getMutableModel();
-                this.project = projectFactory.createProject(owner.getMutableModel(), descriptor, this, parentModel, selfClassLoaderScope, baseClassLoaderScope);
-            }
+            controller.createMutableModel(descriptor, owner, this, selfClassLoaderScope, baseClassLoaderScope, projectFactory);
         }
 
         @Override
         public ProjectInternal getMutableModel() {
-            synchronized (this) {
-                if (project == null) {
-                    throw new IllegalStateException(String.format("The project object for project %s has not been attached yet.", getIdentityPath()));
-                }
-                return project;
-            }
+            return controller.getMutableModel();
         }
 
         @Override
@@ -324,19 +323,12 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
             if (parent != null) {
                 parent.ensureConfigured();
             }
-            synchronized (this) {
-                getMutableModel().evaluate();
-            }
+            controller.ensureSelfConfigured();
         }
 
         @Override
         public void ensureTasksDiscovered() {
-            synchronized (this) {
-                ProjectInternal project = getMutableModel();
-                project.evaluate();
-                project.getTasks().discoverTasks();
-                project.bindAllModelRules();
-            }
+            controller.ensureTasksDiscovered();
         }
 
         @Override

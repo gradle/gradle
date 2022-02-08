@@ -54,6 +54,7 @@ val unsupportedTasksPredicate: (Task) -> Boolean = { task: Task ->
         task.name.startsWith("userguide") -> true
         task.name.contains("Sample") -> true
         task.name.contains("Snippet") -> true
+        task.name == "samplesMultiPage" -> true
         task.typeSimpleName in listOf(
             "KtsProjectGeneratorTask",
             "JavaExecProjectGeneratorTask",

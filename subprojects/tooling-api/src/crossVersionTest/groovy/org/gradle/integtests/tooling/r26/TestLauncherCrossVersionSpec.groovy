@@ -163,11 +163,9 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
             withCancellation { cancellationToken ->
                 launchTests(connection, new TestResultHandler(), cancellationToken) { TestLauncher launcher ->
                     def testsToLaunch = testDescriptors("example.MyTest", null, ":secondTest")
-                    def arguments = ["-t"]
-                    ContinuousBuildToolingApiSpecification.addWatchFsArgumentIfNecessary(arguments, targetVersion)
                     launcher
                         .withTests(testsToLaunch.toArray(new TestOperationDescriptor[testsToLaunch.size()]))
-                        .withArguments(arguments)
+                        .withArguments("-t")
                 }
 
                 waitingForBuild()

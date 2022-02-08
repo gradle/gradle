@@ -59,6 +59,7 @@ import org.gradle.internal.time.Clock;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem;
 import org.gradle.internal.watch.vfs.FileChangeListeners;
+import org.gradle.internal.watch.vfs.FileSystemWatchingInformation;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.launcher.exec.BuildCompletionNotifyingBuildActionRunner;
 import org.gradle.launcher.exec.BuildExecuter;
@@ -171,7 +172,8 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
             BuildTreeModelControllerServices buildModelServices,
             WorkerLeaseService workerLeaseService,
             BuildLayoutValidator buildLayoutValidator,
-            FileSystem fileSystem
+            FileSystem fileSystem,
+            FileSystemWatchingInformation fileSystemWatchingInformation
         ) {
             CaseSensitivity caseSensitivity = fileSystem.isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE;
             return new SubscribableBuildActionExecutor(
@@ -191,6 +193,7 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                     clock,
                     fileSystem,
                     caseSensitivity,
+                    fileSystemWatchingInformation,
                     new RunAsWorkerThreadBuildActionExecutor(
                         workerLeaseService,
                         new RunAsBuildOperationBuildActionExecutor(
@@ -212,6 +215,7 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
             BuildRequestMetaData buildRequestMetaData,
             GradleEnterprisePluginManager gradleEnterprisePluginManager,
             BuildLifecycleAwareVirtualFileSystem virtualFileSystem,
+            DeploymentRegistryInternal deploymentRegistry,
             StatStatistics.Collector statStatisticsCollector,
             FileHasherStatistics.Collector fileHasherStatisticsCollector,
             DirectorySnapshotterStatistics.Collector directorySnapshotterStatisticsCollector,
@@ -227,6 +231,7 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                     new FileSystemWatchingBuildActionRunner(
                         eventEmitter,
                         virtualFileSystem,
+                        deploymentRegistry,
                         statStatisticsCollector,
                         fileHasherStatisticsCollector,
                         directorySnapshotterStatisticsCollector,
