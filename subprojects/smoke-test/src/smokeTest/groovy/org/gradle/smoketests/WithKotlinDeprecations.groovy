@@ -30,8 +30,12 @@ trait WithKotlinDeprecations {
         "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#compile_task_wiring"
 
     void expectKotlinWorkerSubmitDeprecation(boolean workers, String kotlinPluginVersion) {
+        runner.expectLegacyDeprecationWarningIf(workers && kotlinPluginUsesOldWorkerApi(kotlinPluginVersion), WORKER_SUBMIT_DEPRECATION)
+    }
+
+    boolean kotlinPluginUsesOldWorkerApi(String kotlinPluginVersion) {
         VersionNumber kotlinVersionNumber = VersionNumber.parse(kotlinPluginVersion)
-        runner.expectLegacyDeprecationWarningIf(workers && kotlinVersionNumber < KOTLIN_VERSION_USING_NEW_WORKERS_API, WORKER_SUBMIT_DEPRECATION)
+        kotlinVersionNumber < KOTLIN_VERSION_USING_NEW_WORKERS_API
     }
 
     void expectKotlinCompileDestinationDirPropertyDeprecation(String version) {

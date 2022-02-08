@@ -24,9 +24,13 @@ trait WithAndroidDeprecations {
     private static final VersionNumber AGP_VERSION_WITH_FIXED_SKIP_WHEN_EMPTY = VersionNumber.parse('7.2.0')
     private static final VersionNumber AGP_VERSION_WITH_FIXED_NEW_WORKERS_API = VersionNumber.parse('4.2')
 
-    void expectAndroidWorkerExecutionSubmitDeprecationWarning(String agpVersion) {
+    boolean androidPluginUsesOldWorkerApi(String agpVersion) {
         VersionNumber agpVersionNumber = VersionNumber.parse(agpVersion)
-        runner.expectLegacyDeprecationWarningIf(agpVersionNumber.getBaseVersion() < AGP_VERSION_WITH_FIXED_NEW_WORKERS_API, WORKER_SUBMIT_DEPRECATION)
+        agpVersionNumber < AGP_VERSION_WITH_FIXED_NEW_WORKERS_API
+    }
+
+    void expectAndroidWorkerExecutionSubmitDeprecationWarning(String agpVersion) {
+        runner.expectLegacyDeprecationWarningIf(androidPluginUsesOldWorkerApi(agpVersion), WORKER_SUBMIT_DEPRECATION)
     }
 
     void expectAndroidFileTreeForEmptySourcesDeprecationWarnings(String agpVersion, String... properties) {

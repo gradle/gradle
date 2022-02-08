@@ -45,18 +45,12 @@ class KotlinPluginAndroidGroovyDSLSmokeTest extends AbstractSmokeTest {
         def result = useAgpVersion(androidPluginVersion, runner)
             .deprecations(KotlinAndroidDeprecations) {
                 expectKotlinConfigurationAsDependencyDeprecation(kotlinPluginVersion)
-                expectKotlinWorkerSubmitDeprecation(workers, kotlinPluginVersion)
+                expectAndroidOrKotlinWorkerSubmitDeprecation(androidPluginVersion, workers, kotlinPluginVersion)
                 expectAndroidFileTreeForEmptySourcesDeprecationWarnings(androidPluginVersion, "sourceFiles", "sourceDirs")
             }.build()
 
         then:
         result.task(':app:testDebugUnitTestCoverage').outcome == SUCCESS
-
-        if (kotlinPluginVersion == TestedVersions.kotlin.latest()
-            && androidPluginVersion == TestedVersions.androidGradle.latest()) {
-            // TODO: re-enable once the Kotlin plugin fixes how it extends configurations
-            // expectNoDeprecationWarnings(result)
-        }
 
         where:
 // To run a specific combination, set the values here, uncomment the following four lines
