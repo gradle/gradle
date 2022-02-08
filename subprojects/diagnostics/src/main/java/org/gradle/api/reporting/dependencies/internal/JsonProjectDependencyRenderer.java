@@ -266,7 +266,7 @@ public class JsonProjectDependencyRenderer {
             }
         });
 
-        Collection<RenderableDependency> sortedDeps = new DependencyInsightReporter(versionSelectorScheme, versionComparator, versionParser, true).convertToRenderableItems(selectedDependencies, false);
+        Collection<RenderableDependency> sortedDeps = new DependencyInsightReporter(versionSelectorScheme, versionComparator, versionParser).convertToRenderableItems(selectedDependencies, false);
         return CollectionUtils.collect(sortedDeps, dependency -> {
             String name = replaceArrow(dependency.getName());
             LinkedHashMap<String, Object> map = new LinkedHashMap<>(5);

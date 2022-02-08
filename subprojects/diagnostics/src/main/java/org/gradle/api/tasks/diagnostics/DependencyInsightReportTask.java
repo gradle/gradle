@@ -20,6 +20,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.DefaultTask;
+import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.result.DependencyResult;
@@ -34,6 +35,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionP
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskAction;
@@ -59,7 +61,6 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -109,11 +110,10 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
 @DisableCachingByDefault(because = "Produces only non-cacheable console output")
 public class DependencyInsightReportTask extends DefaultTask {
 
-    private final Set<SelectionReasonOutput> enabledSelectionReasonOutputs = EnumSet.noneOf(SelectionReasonOutput.class);
     private Configuration configuration;
     private Spec<DependencyResult> dependencySpec;
     private boolean showSinglePathToDependency;
-    private boolean showingAllVariants;
+    private final Property<Boolean> showingAllVariants = getProject().getObjects().property(Boolean.class);
 
     /**
      * Selects the dependency (or dependencies if multiple matches found) to show the report for.
@@ -195,25 +195,29 @@ public class DependencyInsightReportTask extends DefaultTask {
         this.showSinglePathToDependency = showSinglePathToDependency;
     }
 
-    @Internal
-    public boolean isShowingAllVariants() {
-        return showingAllVariants;
+    /**
+     * Legacy option name for {@link #setShowSinglePathToDependency(boolean)}. This is not considered API, and should not be used.
+     *
+     * @since 7.5
+     * @deprecated should not be used, call {@link #setShowSinglePathToDependency(boolean)} instead
+     */
+    @Deprecated
+    @Incubating
+    @Option(option = "singlepath", description = "Show at most one path to each dependency")
+    public void setLegacyShowSinglePathToDependency(boolean showSinglePathToDependency) {
+        this.showSinglePathToDependency = showSinglePathToDependency;
     }
 
+    /**
+     * Show all variants of each displayed dependency.
+     *
+     * @since 7.5
+     */
     @Option(option = "all-variants", description = "Show all variants of each dependency")
-    public void setShowingAllVariants(boolean showingAllVariants) {
-        this.showingAllVariants = showingAllVariants;
-    }
-
+    @Incubating
     @Internal
-    public Set<SelectionReasonOutput> getEnabledSelectionReasonOutputs() {
-        return enabledSelectionReasonOutputs;
-    }
-
-    @Option(option = "reasons", description = "Enable the given selection reason output")
-    public void setEnabledSelectionReasonOutputs(List<SelectionReasonOutput> enabledSelectionReasonOutputs) {
-        this.enabledSelectionReasonOutputs.clear();
-        this.enabledSelectionReasonOutputs.addAll(enabledSelectionReasonOutputs);
+    public Property<Boolean> getShowingAllVariants() {
+        return showingAllVariants;
     }
 
     @Inject
@@ -266,8 +270,7 @@ public class DependencyInsightReportTask extends DefaultTask {
 
     private void renderSelectedDependencies(Configuration configuration, StyledTextOutput output, Set<DependencyResult> selectedDependencies) {
         GraphRenderer renderer = new GraphRenderer(output);
-        boolean showDepSelectionReasons = getEnabledSelectionReasonOutputs().contains(SelectionReasonOutput.DEPENDENCY);
-        DependencyInsightReporter reporter = new DependencyInsightReporter(getVersionSelectorScheme(), getVersionComparator(), getVersionParser(), showDepSelectionReasons);
+        DependencyInsightReporter reporter = new DependencyInsightReporter(getVersionSelectorScheme(), getVersionComparator(), getVersionParser());
         Collection<RenderableDependency> itemsToRender = reporter.convertToRenderableItems(selectedDependencies, isShowSinglePathToDependency());
         RootDependencyRenderer rootRenderer = new RootDependencyRenderer(this, configuration, getAttributesFactory());
         ReplaceProjectWithConfigurationNameRenderer dependenciesRenderer = new ReplaceProjectWithConfigurationNameRenderer(configuration);
@@ -331,11 +334,6 @@ public class DependencyInsightReportTask extends DefaultTask {
             }
         }
         return new AttributeMatchDetails(MatchType.NOT_REQUESTED, null, null);
-    }
-
-    private enum SelectionReasonOutput {
-        DEPENDENCY,
-        VARIANT,
     }
 
     private static final class RootDependencyRenderer implements NodeRenderer {
@@ -402,7 +400,7 @@ public class DependencyInsightReportTask extends DefaultTask {
                 .stream()
                 .map(ResolvedVariantResult::getDisplayName)
                 .collect(Collectors.toSet());
-            if (task.isShowingAllVariants()) {
+            if (task.getShowingAllVariants().get()) {
                 out.style(Header);
                 out.println();
                 out.text("-------------------").println();
@@ -413,7 +411,7 @@ public class DependencyInsightReportTask extends DefaultTask {
             for (ResolvedVariantResult variant : dependency.getResolvedVariants()) {
                 printVariant(out, dependency, variant, true);
             }
-            if (task.isShowingAllVariants()) {
+            if (task.getShowingAllVariants().get()) {
                 out.style(Header);
                 out.text("---------------------").println();
                 out.text("Unselected Variant(s)").println();
@@ -456,14 +454,10 @@ public class DependencyInsightReportTask extends DefaultTask {
         private void writeAttributeBlock(StyledTextOutput out, AttributeContainer attributes, AttributeContainer requested, boolean selected) {
             out.withStyle(Description).text("  Attributes:");
             out.println();
-            if (task.enabledSelectionReasonOutputs.contains(SelectionReasonOutput.VARIANT)) {
-                new StyledTable.Renderer().render(
-                    createAttributeTable(attributes, requested, selected),
-                    out
-                );
-            } else {
-                writeFoundAttributes(out, attributes);
-            }
+            new StyledTable.Renderer().render(
+                createAttributeTable(attributes, requested, selected),
+                out
+            );
         }
 
         private static final class AttributeBuckets {
@@ -473,7 +467,7 @@ public class DependencyInsightReportTask extends DefaultTask {
         }
 
         private StyledTable createAttributeTable(AttributeContainer attributes, AttributeContainer requested, boolean selected) {
-            ImmutableList.Builder<String> header = ImmutableList. <String>builder()
+            ImmutableList.Builder<String> header = ImmutableList.<String>builder()
                 .add("Name", "Provided", "Requested");
             if (!selected) {
                 header.add("Compatibility");
@@ -582,19 +576,6 @@ public class DependencyInsightReportTask extends DefaultTask {
             }
             return new StyledTable.Row(text.build(), Info);
         }
-
-        private void writeFoundAttributes(StyledTextOutput out, AttributeContainer attributes) {
-            int maxAttributeLen = attributes.keySet().stream()
-                .mapToInt(attr -> attr.getName().length())
-                .max()
-                .orElse(0);
-            for (Attribute<?> attribute : attributes.keySet()) {
-                Object actualValue = attributes.getAttribute(attribute);
-                out.withStyle(Description).text(Strings.repeat(" ", 4) + StringUtils.rightPad(attribute.getName(), maxAttributeLen) + " = " + actualValue);
-                out.println();
-            }
-        }
-
     }
 
     private static class ReplaceProjectWithConfigurationNameRenderer implements NodeRenderer {

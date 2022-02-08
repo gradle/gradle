@@ -53,7 +53,6 @@ public class DependencyInsightReporter {
     private final VersionSelectorScheme versionSelectorScheme;
     private final VersionComparator versionComparator;
     private final VersionParser versionParser;
-    private final boolean showSelectionReasons;
 
     private static final Transformer<DependencyEdge, DependencyResult> TO_EDGES = result -> {
         if (result instanceof UnresolvedDependencyResult) {
@@ -63,11 +62,10 @@ public class DependencyInsightReporter {
         }
     };
 
-    public DependencyInsightReporter(VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, VersionParser versionParser, boolean showSelectionReasons) {
+    public DependencyInsightReporter(VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, VersionParser versionParser) {
         this.versionSelectorScheme = versionSelectorScheme;
         this.versionComparator = versionComparator;
         this.versionParser = versionParser;
-        this.showSelectionReasons = showSelectionReasons;
     }
 
     public Collection<RenderableDependency> convertToRenderableItems(Collection<DependencyResult> dependencies, boolean singlePathToDependency) {
@@ -104,7 +102,7 @@ public class DependencyInsightReporter {
         List<Section> extraDetails = Lists.newArrayList();
 
         boolean displayFullReasonSection = reason.hasCustomDescriptions() || reasonSections.size() > 1;
-        if (showSelectionReasons && displayFullReasonSection) {
+        if (displayFullReasonSection) {
             reasonShortDescription = null;
             extraDetails.add(selectionReasonsSection);
         } else {
