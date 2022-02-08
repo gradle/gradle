@@ -448,14 +448,26 @@ public class DependencyInsightReportTask extends DefaultTask {
             }
         }
 
-        private void printVariant(StyledTextOutput out, RenderableDependency dependency, ResolvedVariantResult variant, boolean selected) {
-            out.println();
-            out.withStyle(Description).text("Variant \"" + variant.getDisplayName() + "\":");
-            out.println();
+        private void printVariant(
+            StyledTextOutput out, RenderableDependency dependency, ResolvedVariantResult variant, boolean selected
+        ) {
             AttributeContainer attributes = variant.getAttributes();
             AttributeContainer requested = getRequestedAttributes(configuration, dependency);
+            AttributeBuckets buckets = bucketAttributes(attributes, requested);
+
+            out.println().style(Normal).text("Variant ");
+
+            // Style the name based on whether it is selected or not.
+            if (selected) {
+                out.style(Success);
+            } else if (buckets.bothAttributes.values().stream().noneMatch(v -> v.matchType() == MatchType.INCOMPATIBLE)) {
+                out.style(AlternativeSuccess);
+            } else {
+                out.style(Failure);
+            }
+            out.text(variant.getDisplayName()).style(Normal).text(":").println();
             if (!attributes.isEmpty() || !requested.isEmpty()) {
-                writeAttributeBlock(out, attributes, requested, selected);
+                writeAttributeBlock(out, attributes, requested, buckets, selected);
             }
         }
 
@@ -473,11 +485,12 @@ public class DependencyInsightReportTask extends DefaultTask {
                     ((AttributeContainerInternal) dependencyAttributes).asImmutable());
         }
 
-        private void writeAttributeBlock(StyledTextOutput out, AttributeContainer attributes, AttributeContainer requested, boolean selected) {
-            out.withStyle(Description).text("  Attributes:");
-            out.println();
+        private void writeAttributeBlock(
+            StyledTextOutput out, AttributeContainer attributes, AttributeContainer requested,
+            AttributeBuckets buckets, boolean selected
+        ) {
             new StyledTable.Renderer().render(
-                createAttributeTable(attributes, requested, selected),
+                createAttributeTable(attributes, requested, buckets, selected),
                 out
             );
         }
@@ -488,21 +501,23 @@ public class DependencyInsightReportTask extends DefaultTask {
             List<Attribute<?>> requestedAttributes = new ArrayList<>();
         }
 
-        private StyledTable createAttributeTable(AttributeContainer attributes, AttributeContainer requested, boolean selected) {
+        private StyledTable createAttributeTable(
+            AttributeContainer attributes, AttributeContainer requested, AttributeBuckets buckets, boolean selected
+        ) {
             ImmutableList.Builder<String> header = ImmutableList.<String>builder()
-                .add("Name", "Provided", "Requested");
+                .add("Attribute Name", "Provided", "Requested");
             if (!selected) {
                 header.add("Compatibility");
             }
 
-            ImmutableList<StyledTable.Row> rows = buildRows(attributes, requested, selected);
+            ImmutableList<StyledTable.Row> rows = buildRows(attributes, requested, buckets, selected);
 
-            return new StyledTable(Strings.repeat(" ", 4), header.build(), rows);
+            return new StyledTable(Strings.repeat(" ", 2), header.build(), rows);
         }
 
-        private ImmutableList<StyledTable.Row> buildRows(AttributeContainer attributes, AttributeContainer requested, boolean selected) {
-            AttributeBuckets buckets = bucketAttributes(attributes, requested);
-
+        private ImmutableList<StyledTable.Row> buildRows(
+            AttributeContainer attributes, AttributeContainer requested, AttributeBuckets buckets, boolean selected
+        ) {
             ImmutableList.Builder<StyledTable.Row> rows = ImmutableList.builder();
             for (Attribute<?> attribute : buckets.providedAttributes) {
                 rows.add(createProvidedRow(attributes, selected, attribute));
