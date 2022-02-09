@@ -86,7 +86,7 @@ public class EmptySchema implements AttributesSchemaInternal {
 
     @Override
     public boolean hasAttribute(Attribute<?> key) {
-        throw new UnsupportedOperationException();
+        return false;
     }
 
     @Override

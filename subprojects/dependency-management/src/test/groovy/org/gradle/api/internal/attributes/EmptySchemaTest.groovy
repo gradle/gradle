@@ -23,6 +23,7 @@ class EmptySchemaTest extends Specification {
     def "has no attributes"() {
         expect:
         EmptySchema.INSTANCE.attributes.empty
+        !EmptySchema.INSTANCE.hasAttribute(Attribute.of(String))
     }
 
     def "has no precedence"() {
