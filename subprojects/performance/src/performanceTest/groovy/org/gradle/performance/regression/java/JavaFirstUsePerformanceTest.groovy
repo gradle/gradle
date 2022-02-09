@@ -33,7 +33,7 @@ import static org.gradle.performance.results.OperatingSystem.LINUX
 class JavaFirstUsePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def setup() {
-        runner.targetVersions = ["7.5-20220201231431+0000"]
+        runner.targetVersions = ["7.5-20220208231448+0000"]
     }
 
     def "first use"() {
