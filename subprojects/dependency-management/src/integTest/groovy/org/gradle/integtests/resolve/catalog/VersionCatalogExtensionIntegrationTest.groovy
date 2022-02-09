@@ -85,7 +85,7 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
 
         then: "extension is not regenerated"
         !operations.hasOperation("Executing generation of dependency accessors for libs")
-        outputContains 'Type-safe dependency accessors is an incubating feature.'
+        !outputContains 'Type-safe dependency accessors is an incubating feature.'
 
         where:
         notation << [
