@@ -17,7 +17,6 @@
 package org.gradle.execution;
 
 import org.gradle.StartParameter;
-import org.gradle.api.execution.internal.TaskInputsListeners;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.TaskExecutionModeResolver;
 import org.gradle.api.internal.changedetection.changes.DefaultTaskExecutionModeResolver;
@@ -110,7 +109,6 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         TaskExecutionGraphInternal taskExecutionGraph,
         org.gradle.api.execution.TaskExecutionListener taskExecutionListener,
         TaskExecutionModeResolver repository,
-        TaskInputsListeners taskInputsListeners,
         TaskListenerInternal taskListenerInternal,
         ExecutionEngine executionEngine,
         InputFingerprinter inputFingerprinter
@@ -133,8 +131,7 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
             listenerManager,
             reservedFileSystemLocationRegistry,
             fileCollectionFactory,
-            fileOperations,
-            taskInputsListeners
+            fileOperations
         );
         executer = new CleanupStaleOutputsExecuter(
             buildOperationExecutor,

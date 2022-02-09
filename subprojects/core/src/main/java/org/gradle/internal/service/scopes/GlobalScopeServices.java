@@ -17,8 +17,6 @@
 package org.gradle.internal.service.scopes;
 
 import com.google.common.collect.Iterables;
-import org.gradle.api.execution.internal.DefaultTaskInputsListeners;
-import org.gradle.api.execution.internal.TaskInputsListeners;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultClassPathProvider;
@@ -260,10 +258,6 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
 
     DomainObjectCollectionFactory createDomainObjectCollectionFactory(InstantiatorFactory instantiatorFactory, ServiceRegistry services) {
         return new DefaultDomainObjectCollectionFactory(instantiatorFactory, services, CollectionCallbackActionDecorator.NOOP, MutationGuards.identity());
-    }
-
-    TaskInputsListeners createTaskInputsListener(ListenerManager listenerManager) {
-        return new DefaultTaskInputsListeners(listenerManager);
     }
 
     @Override
