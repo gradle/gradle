@@ -67,7 +67,7 @@ class ContinuousBuildCrossVersionSpec extends ContinuousBuildToolingApiSpecifica
         project != null
         def logOutput = stdout.toString()
         !logOutput.contains(WAITING_MESSAGE)
-        !logOutput.contains("Exiting continuous build as no executed tasks declared file system inputs.")
+        !logOutput.contains("Exiting continuous build as Gradle did not detect any file system inputs.")
     }
 
 }

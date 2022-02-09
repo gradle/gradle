@@ -177,7 +177,7 @@ public class ContinuousBuildActionExecutor implements BuildSessionActionExecutor
                 lastResult = executeBuildAndAccumulateInputs(action, new AccumulateBuildInputsListener(buildInputs), buildSession);
 
                 if (buildInputs.isEmpty()) {
-                    logger.println().withStyle(StyledTextOutput.Style.Failure).println("Exiting continuous build as no executed tasks declared file system inputs.");
+                    logger.println().withStyle(StyledTextOutput.Style.Failure).println("Exiting continuous build as Gradle did not detect any file system inputs.");
                     return lastResult;
                 } else if (!continuousBuildTriggerHandler.hasBeenTriggered() && !fileSystemWatchingInformation.isWatchingAnyLocations()) {
                     logger.println().withStyle(StyledTextOutput.Style.Failure).println("Exiting continuous build as Gradle does not watch any file system locations.");
@@ -185,7 +185,7 @@ public class ContinuousBuildActionExecutor implements BuildSessionActionExecutor
                 } else {
                     cancellableOperationManager.monitorInput(operationToken -> {
                         continuousBuildTriggerHandler.wait(
-                            () -> logger.println().println("Waiting for changes to input files of tasks..." + determineExitHint(requestContext))
+                            () -> logger.println().println("Waiting for changes to input files..." + determineExitHint(requestContext))
                         );
                         if (!operationToken.isCancellationRequested()) {
                             fileEventCollector.reportChanges(logger);

@@ -87,7 +87,7 @@ abstract class TestLauncherSpec extends ToolingApiSpecification implements WithO
 
     void waitingForBuild() {
         ConcurrentTestUtil.poll(30) {
-            assert stdout.toString().contains("Waiting for changes to input files of tasks...");
+            assert stdout.toString().contains("Waiting for changes to input files...")
         }
         stdout.reset()
         stderr.reset()

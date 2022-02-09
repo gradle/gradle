@@ -266,7 +266,7 @@ class ContinuousBuildActionExecutorTest extends ConcurrentSpec {
         when:
         executeBuild()
         then:
-        lastLogLine == "{failure}Exiting continuous build as no executed tasks declared file system inputs.{normal}"
+        lastLogLine == "{failure}Exiting continuous build as Gradle did not detect any file system inputs.{normal}"
     }
 
     def "exits if Gradle is not watching anything"() {
@@ -338,12 +338,12 @@ class ContinuousBuildActionExecutorTest extends ConcurrentSpec {
     }
 
     private boolean waitingForChangesMessageAppears() {
-        return lastLogLine == "Waiting for changes to input files of tasks..."
+        return lastLogLine == "Waiting for changes to input files..."
     }
 
     private void reloadableDeploymentDetected() {
         assert logLines[-2] == "Reloadable deployment detected. Entering continuous build."
-        assert lastLogLine == "Waiting for changes to input files of tasks..."
+        assert lastLogLine == "Waiting for changes to input files..."
     }
 
     private void rebuiltBecauseOfChange() {

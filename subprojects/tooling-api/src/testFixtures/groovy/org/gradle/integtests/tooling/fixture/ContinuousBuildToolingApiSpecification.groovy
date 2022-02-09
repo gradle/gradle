@@ -44,7 +44,7 @@ import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
 @Retry(condition = { onContinuousBuildTimeout(instance, failure) }, mode = SETUP_FEATURE_CLEANUP, count = 2)
 abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecification {
 
-    public static final String WAITING_MESSAGE = "Waiting for changes to input files of tasks..."
+    public static final String WAITING_MESSAGE = "Waiting for changes to input files..."
     public static final String BUILD_CANCELLED = "Build cancelled."
     public static final String BUILD_CANCELLED_AND_STOPPED = "the build was canceled"
 
