@@ -64,7 +64,7 @@ public class DefaultIvyArtifactName implements IvyArtifactName {
     }
 
     public DefaultIvyArtifactName(String name, String type, @Nullable String extension, @Nullable String classifier) {
-        this(name, type, extension, null, false);
+        this(name, type, extension, classifier, false);
     }
 
     public DefaultIvyArtifactName(String name, String type, @Nullable String extension, @Nullable String classifier, boolean mustExist) {
