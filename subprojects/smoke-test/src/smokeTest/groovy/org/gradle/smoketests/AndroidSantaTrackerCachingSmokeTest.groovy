@@ -65,9 +65,9 @@ class AndroidSantaTrackerCachingSmokeTest extends AbstractAndroidSantaTrackerSmo
             : agpVersion.startsWith('4.2')
             ? AndroidPluginExpectations4.EXPECTED_RESULTS_4_2
             : agpVersion.startsWith('7.0')
-            ? AndroidPluginExpectations7_0.EXPECTED_RESULTS_7_0
+            ? AndroidPluginExpectations70.EXPECTED_RESULTS_7_0
             : agpVersion.startsWith('7.1')
-            ? AndroidPluginExpectations7_1.EXPECTED_RESULTS_7_1
+            ? AndroidPluginExpectations71.EXPECTED_RESULTS_7_1
             : agpVersion.startsWith('7.2')
             ? AndroidPluginExpectations.EXPECTED_RESULTS_7_2
             : AndroidPluginExpectations.EXPECTED_RESULTS_7_3
@@ -1360,7 +1360,7 @@ class AndroidPluginExpectations {
     ]
 }
 
-class AndroidPluginExpectations7_1 {
+class AndroidPluginExpectations71 {
 
     static final EXPECTED_RESULTS_7_1 = [
         ':cityquiz:assembleDebug': SUCCESS,
@@ -1987,7 +1987,7 @@ class AndroidPluginExpectations7_1 {
     ]
 }
 
-class AndroidPluginExpectations7_0 {
+class AndroidPluginExpectations70 {
 
     static final EXPECTED_RESULTS_7_0 = [
         ':cityquiz:assembleDebug': SUCCESS,
