@@ -17,6 +17,7 @@
 package org.gradle.internal.resource.transport.http
 
 import spock.lang.Specification
+import spock.util.environment.RestoreSystemProperties
 
 class JavaSystemPropertiesProxySettingsTest extends Specification {
 
@@ -87,6 +88,7 @@ class JavaSystemPropertiesProxySettingsTest extends Specification {
         null   | "anything" | null      | null
     }
 
+    @RestoreSystemProperties
     def "trims system properties"() {
         given:
         System.setProperty("test.proxyHost", " test.hostname ")
