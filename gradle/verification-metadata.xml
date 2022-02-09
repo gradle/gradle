@@ -238,6 +238,7 @@
             <trusting group="org.antlr" name="antlr4-runtime"/>
          </trusted-key>
          <trusted-key id="d9aa7402ba75f78720d975211d185615d0a84648" group="net.sf.saxon" name="Saxon-HE"/>
+         <trusted-key id="dc98224c6421a7a5bb87f346ed2378cd09a08cde" group="org.jline"/>
          <trusted-key id="dddee87612e9fb95f5c8d91e411063a3a0ffd119">
             <trusting group="commons-beanutils"/>
             <trusting group="org.apache-extras.beanshell"/>
@@ -254,6 +255,7 @@
          <trusted-key id="ea313384ca0eba950ea017e937890e298d9a2bfa">
             <trusting group="com.eed3si9n"/>
             <trusting group="org.scala-sbt"/>
+            <trusting group="org.scala-sbt.jline"/>
          </trusted-key>
          <trusted-key id="ec9430d24e1fc30468c773fdca1952b1e682d8a6" group="org.jodd"/>
          <trusted-key id="f254b35617dc255d9344bcfa873a8e86b4372146">
@@ -657,8 +659,8 @@
             <pgp value="6dd3b8c64ef75253beb2c53ad908a43fb7ec07ac"/>
          </artifact>
       </component>
-      <component group="com.swoval" name="file-tree-views" version="2.1.3">
-         <artifact name="file-tree-views-2.1.3.jar">
+      <component group="com.swoval" name="file-tree-views" version="2.1.7">
+         <artifact name="file-tree-views-2.1.7.jar">
             <pgp value="ee2cfeb6a2aecf44c781c5c3dcd5181297a43d24"/>
          </artifact>
       </component>
@@ -917,6 +919,11 @@
       <component group="net.rubygrapefruit" name="ansi-control-sequence-util" version="0.3">
          <artifact name="ansi-control-sequence-util-0.3.jar">
             <pgp value="5b131e826582cf79510daa11cd3e539f208832d0"/>
+         </artifact>
+      </component>
+      <component group="net.openhft" name="zero-allocation-hashing" version="0.10.1">
+         <artifact name="zero-allocation-hashing-0.10.1.jar">
+            <pgp value="cb3808e03cd602a6dc5b882552931f4b72b4f54c"/>
          </artifact>
       </component>
       <component group="net.sf.docbook" name="docbook-xsl" version="1.75.2">
