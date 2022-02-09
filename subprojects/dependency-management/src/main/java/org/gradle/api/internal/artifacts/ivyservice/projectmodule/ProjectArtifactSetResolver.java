@@ -59,13 +59,13 @@ public class ProjectArtifactSetResolver {
     public ArtifactSet resolveArtifacts(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier ownerId, ModuleSources moduleSources, ExcludeSpec exclusions, Set<? extends VariantResolveMetadata> variants, AttributesSchemaInternal schema, ArtifactTypeRegistry artifactTypeRegistry, ImmutableAttributes selectionAttributes) {
         ImmutableSet.Builder<ResolvedVariant> result = ImmutableSet.builderWithExpectedSize(variants.size());
         for (VariantResolveMetadata variant : variants) {
-            ResolvedVariant resolvedVariant = mapVariant(ownerId, moduleSources, exclusions, artifactTypeRegistry, variant);
+            ResolvedVariant resolvedVariant = mapVariant(componentIdentifier, ownerId, moduleSources, exclusions, artifactTypeRegistry, variant);
             result.add(resolvedVariant);
         }
         return DefaultArtifactSet.createFromVariants(componentIdentifier, result.build(), schema, selectionAttributes);
     }
 
-    private ResolvedVariant mapVariant(ModuleVersionIdentifier ownerId, ModuleSources moduleSources, ExcludeSpec exclusions, ArtifactTypeRegistry artifactTypeRegistry, VariantResolveMetadata variant) {
+    private ResolvedVariant mapVariant(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier ownerId, ModuleSources moduleSources, ExcludeSpec exclusions, ArtifactTypeRegistry artifactTypeRegistry, VariantResolveMetadata variant) {
         VariantResolveMetadata.Identifier identifier = variant.getIdentifier();
         if (identifier == null) {
             throw new IllegalArgumentException(String.format("Project variant %s does not have an identifier.", variant.asDescribable()));
@@ -76,10 +76,10 @@ public class ProjectArtifactSetResolver {
 
         if (exclusions.mayExcludeArtifacts()) {
             // Some artifact may be excluded, so do not reuse. It might be better to apply the exclusions and reuse if none of them apply
-            return DefaultArtifactSet.toResolvedVariant(variant, ownerId, moduleSources, exclusions, artifactResolver, allProjectArtifacts, variantAttributes, calculatedValueContainerFactory);
+            return DefaultArtifactSet.toResolvedVariant(componentIdentifier, variant, ownerId, moduleSources, exclusions, artifactResolver, allProjectArtifacts, variantAttributes, calculatedValueContainerFactory);
         }
 
         VariantWithOverloadAttributes key = new VariantWithOverloadAttributes(identifier, variantAttributes);
-        return allProjectVariants.computeIfAbsent(key, k -> DefaultArtifactSet.toResolvedVariant(variant, ownerId, moduleSources, exclusions, artifactResolver, allProjectArtifacts, variantAttributes, calculatedValueContainerFactory));
+        return allProjectVariants.computeIfAbsent(key, k -> DefaultArtifactSet.toResolvedVariant(componentIdentifier, variant, ownerId, moduleSources, exclusions, artifactResolver, allProjectArtifacts, variantAttributes, calculatedValueContainerFactory));
     }
 }
