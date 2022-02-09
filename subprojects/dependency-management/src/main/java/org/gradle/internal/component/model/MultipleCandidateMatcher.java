@@ -99,7 +99,7 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
         }
         AttributeSelectionSchema.PrecedenceResult precedenceResult = schema.orderByPrecedence(requested);
         this.requestedAttributes = precedenceResult.getAttributes();
-        this.lastRequestedAttributeWithKnownPrecedenceIndex = precedenceResult.getLastAttributeIndexWithKnownPrecedence();
+        this.lastRequestedAttributeWithKnownPrecedenceIndex = precedenceResult.getLastAttributeIndexWithKnownPrecedence().orElse(-1);
         this.requestedAttributeValues = new Object[(1 + candidates.size()) * this.requestedAttributes.size()];
         this.compatible = new BitSet(candidates.size());
         compatible.set(0, candidates.size());

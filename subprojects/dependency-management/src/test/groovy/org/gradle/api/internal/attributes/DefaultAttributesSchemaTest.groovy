@@ -403,8 +403,8 @@ class DefaultAttributesSchemaTest extends Specification {
         then:
         def result = schema.mergeWith(producer).orderByPrecedence(requested)
         result.attributes*.name == ["a", "c", "x", "z"]
-        result.lastAttributeIndexWithKnownPrecedence == 2
-        result.attributes[result.lastAttributeIndexWithKnownPrecedence].name == "x"
+        result.lastAttributeIndexWithKnownPrecedence.get() == 2
+        result.attributes[result.lastAttributeIndexWithKnownPrecedence.get()].name == "x"
     }
 
     def "precedence order is honored"() {
@@ -422,8 +422,8 @@ class DefaultAttributesSchemaTest extends Specification {
         expect:
         def result = schema.mergeWith(EmptySchema.INSTANCE).orderByPrecedence(requested)
         result.attributes*.name == ["a", "c", "x", "z"]
-        result.lastAttributeIndexWithKnownPrecedence == 1
-        result.attributes[result.lastAttributeIndexWithKnownPrecedence].name == "c"
+        result.lastAttributeIndexWithKnownPrecedence.get() == 1
+        result.attributes[result.lastAttributeIndexWithKnownPrecedence.get()].name == "c"
     }
 
     def "requested attributes are not sorted when there is no attribute precedence"() {
@@ -440,7 +440,7 @@ class DefaultAttributesSchemaTest extends Specification {
         expect:
         def result = schema.mergeWith(EmptySchema.INSTANCE).orderByPrecedence(requested)
         result.attributes*.name == ["x", "c", "a", "z"]
-        result.lastAttributeIndexWithKnownPrecedence == -1
+        result.lastAttributeIndexWithKnownPrecedence.empty
     }
 
     def "requested attributes are not sorted when there is a different set of attributes used for precedence"() {
@@ -459,7 +459,7 @@ class DefaultAttributesSchemaTest extends Specification {
         expect:
         def result = schema.mergeWith(EmptySchema.INSTANCE).orderByPrecedence(requested)
         result.attributes*.name == ["x", "c", "a", "z"]
-        result.lastAttributeIndexWithKnownPrecedence == -1
+        result.lastAttributeIndexWithKnownPrecedence.empty
     }
 
     static interface Flavor extends Named {}

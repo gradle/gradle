@@ -347,12 +347,18 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
                     sorted.add(requestedAttribute);
                 }
             }
-            // sorted now contains any requested attribute in the order they appear in
-            // the combinedPrecedence set
-            // Add all remaining attributes in whatever order they came in
-            int index = sorted.size() - 1;
-            sorted.addAll(remaining.values());
-            return new PrecedenceResult(sorted, index);
+            // If nothing was sorted, there were no appropriate disambiguating attributes to use
+            if (sorted.isEmpty()) {
+                sorted.addAll(remaining.values());
+                return new PrecedenceResult(sorted);
+            } else {
+                // sorted now contains any requested attribute in the order they appear in
+                // the combinedPrecedence set
+                // Add all remaining attributes in whatever order they came in
+                int index = sorted.size() - 1;
+                sorted.addAll(remaining.values());
+                return new PrecedenceResult(sorted, index);
+            }
         }
 
         @Override
