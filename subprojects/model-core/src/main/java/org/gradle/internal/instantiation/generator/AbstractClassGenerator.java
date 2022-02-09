@@ -64,7 +64,6 @@ import org.gradle.internal.reflect.PropertyAccessorType;
 import org.gradle.internal.reflect.PropertyDetails;
 import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.service.ServiceRegistry;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -372,14 +371,14 @@ abstract class AbstractClassGenerator implements ClassGenerator {
     }
 
     private static boolean isManagedProperty(PropertyMetadata property) {
-        // Property is read only and the type can be created
-        return property.isReadOnly() && (MANAGED_PROPERTY_TYPES.contains(property.getType()) || property.hasAnnotation(Nested.class));
+        // Property is readable and not directly writable and the type can be created
+        return property.isReadableAndNotDirectlyWritable() && (MANAGED_PROPERTY_TYPES.contains(property.getType()) || property.hasAnnotation(Nested.class));
     }
 
     private static boolean isEagerAttachProperty(PropertyMetadata property) {
-        // Property is read only and getter is final, so attach owner eagerly in constructor
+        // Property is readable and not directly writable and getter is final, so attach owner eagerly in constructor
         // This should apply to all 'managed' types however for backwards compatibility is applied only to property types
-        return property.isReadOnly() && !property.getMainGetter().shouldOverride() && isPropertyType(property.getType());
+        return property.isReadableAndNotDirectlyWritable() && !property.getMainGetter().shouldOverride() && isPropertyType(property.getType());
     }
 
     private static boolean isIneligibleForConventionMapping(PropertyMetadata property) {
@@ -389,9 +388,9 @@ abstract class AbstractClassGenerator implements ClassGenerator {
     }
 
     private static boolean isLazyAttachProperty(PropertyMetadata property) {
-        // Property is read only and getter is not final, so attach owner lazily when queried
+        // Property is readable and not directly writable and getter is not final, so attach owner lazily when queried
         // This should apply to all 'managed' types however only the Provider types and @Nested value current implement OwnerAware
-        return property.isReadOnly() && !property.getOverridableGetters().isEmpty() && (Provider.class.isAssignableFrom(property.getType()) || property.hasAnnotation(Nested.class));
+        return property.isReadableAndNotDirectlyWritable() && !property.getOverridableGetters().isEmpty() && (Provider.class.isAssignableFrom(property.getType()) || property.hasAnnotation(Nested.class));
     }
 
     private static boolean isNameProperty(PropertyMetadata property) {
@@ -624,19 +623,16 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             return isReadable() && !isWritable();
         }
 
+        public boolean isReadableAndNotDirectlyWritable() {
+            return isReadable() && setters.stream().noneMatch(method -> method.getParameterTypes()[0].equals(getType()));
+        }
+
         public boolean isReadable() {
             return mainGetter != null;
         }
 
         public boolean isWritable() {
-            return mainGetter != null
-                ? setters.stream().anyMatch(this::hasParameterWithGetterType)
-                : !setters.isEmpty();
-        }
-
-        private boolean hasParameterWithGetterType(@NotNull Method method) {
-            Class<?>[] parameterTypes = method.getParameterTypes();
-            return mainGetter != null && parameterTypes.length > 0 && parameterTypes[0].equals(mainGetter.getReturnType());
+            return !setters.isEmpty();
         }
 
         public boolean hasAnnotation(Class<? extends Annotation> type) {
