@@ -278,10 +278,10 @@ class JavaEcosystemAttributeMatcherTest extends Specification {
     }
 
     private static AttributeContainerInternal attributes(String usage, String libraryElements, Integer targetJvm) {
-        return AttributeTestUtil.attributes([
-                (Usage.USAGE_ATTRIBUTE.name): AttributeTestUtil.named(Usage, usage),
-                (TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE.name): targetJvm,
-                (LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE.name): AttributeTestUtil.named(LibraryElements, libraryElements)]
+        return AttributeTestUtil.attributesTyped(
+                (Usage.USAGE_ATTRIBUTE): AttributeTestUtil.named(Usage, usage),
+                (TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE): targetJvm,
+                (LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE): AttributeTestUtil.named(LibraryElements, libraryElements)
         )
     }
 }
