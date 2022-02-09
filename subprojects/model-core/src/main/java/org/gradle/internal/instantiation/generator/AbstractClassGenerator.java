@@ -64,6 +64,7 @@ import org.gradle.internal.reflect.PropertyAccessorType;
 import org.gradle.internal.reflect.PropertyDetails;
 import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.service.ServiceRegistry;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -388,10 +389,9 @@ abstract class AbstractClassGenerator implements ClassGenerator {
     }
 
     private static boolean isLazyAttachProperty(PropertyMetadata property) {
-        // Non-final property or property with non-final getter, so attach owner lazily when queried
+        // Property is read only and getter is not final, so attach owner lazily when queried
         // This should apply to all 'managed' types however only the Provider types and @Nested value current implement OwnerAware
-        return (!property.isReadOnly() || !property.getOverridableGetters().isEmpty())
-            && (Provider.class.isAssignableFrom(property.getType()) || property.hasAnnotation(Nested.class));
+        return property.isReadOnly() && !property.getOverridableGetters().isEmpty() && (Provider.class.isAssignableFrom(property.getType()) || property.hasAnnotation(Nested.class));
     }
 
     private static boolean isNameProperty(PropertyMetadata property) {
@@ -621,7 +621,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         }
 
         public boolean isReadOnly() {
-            return mainGetter != null && setters.isEmpty();
+            return isReadable() && !isWritable();
         }
 
         public boolean isReadable() {
@@ -629,7 +629,14 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         }
 
         public boolean isWritable() {
-            return !setters.isEmpty();
+            return mainGetter != null
+                ? setters.stream().anyMatch(this::hasParameterWithGetterType)
+                : !setters.isEmpty();
+        }
+
+        private boolean hasParameterWithGetterType(@NotNull Method method) {
+            Class<?>[] parameterTypes = method.getParameterTypes();
+            return mainGetter != null && parameterTypes.length > 0 && parameterTypes[0].equals(mainGetter.getReturnType());
         }
 
         public boolean hasAnnotation(Class<? extends Annotation> type) {
