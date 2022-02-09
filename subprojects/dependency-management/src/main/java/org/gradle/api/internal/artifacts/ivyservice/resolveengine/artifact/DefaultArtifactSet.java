@@ -290,7 +290,8 @@ public abstract class DefaultArtifactSet implements ArtifactSet, ResolvedVariant
         public File calculateValue(NodeExecutionContext context) {
             DefaultBuildableArtifactResolveResult result = new DefaultBuildableArtifactResolveResult();
             artifactResolver.resolveArtifact(artifact, moduleSources, result);
-            if (!result.isSuccessful() && !isJar() && !hasClassifier() && !isCriticalFailure(result.getFailure()) && id instanceof ModuleComponentIdentifier) {
+            // TODO get packaging using: moduleSources.getSource(MetadataFileSource.class).get().getArtifactFile() ?
+            if (!result.isSuccessful() && !artifact.getName().isMustExist() && !isJar() && !hasClassifier() && !isCriticalFailure(result.getFailure()) && id instanceof ModuleComponentIdentifier) {
               // Copy artifact to new DefaultModuleComponentArtifactMetadata; change type and/or extension to jar
               // Then retry resolution
               IvyArtifactName jarArtifact = new DefaultIvyArtifactName(artifact.getName().getName(), "jar", "jar", artifact.getName().getClassifier());

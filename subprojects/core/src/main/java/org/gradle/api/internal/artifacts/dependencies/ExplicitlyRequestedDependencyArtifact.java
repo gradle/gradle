@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,25 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.component.model;
+package org.gradle.api.internal.artifacts.dependencies;
 
-import javax.annotation.Nullable;
+public class ExplicitlyRequestedDependencyArtifact extends DefaultDependencyArtifact {
 
-/**
- * Represents the 'name' part of an Ivy artifact, independent of which module version the artifact might belong to.
- */
-public interface IvyArtifactName {
-    String getName();
-
-    String getType();
-
-    @Nullable
-    String getExtension();
-
-    @Nullable
-    String getClassifier();
-
-    default boolean isMustExist() {
-        return false;
+    public ExplicitlyRequestedDependencyArtifact(String name, String type, String extension, String classifier, String url) {
+        super(name, type, extension, classifier, url);
     }
+
 }

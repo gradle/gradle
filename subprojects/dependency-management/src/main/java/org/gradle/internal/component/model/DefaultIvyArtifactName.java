@@ -22,14 +22,15 @@ import org.gradle.util.internal.GUtil;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.Objects;
 
-import static com.google.common.base.Objects.equal;
 
 public class DefaultIvyArtifactName implements IvyArtifactName {
     private final String name;
     private final String type;
     private final String extension;
     private final String classifier;
+    private final boolean mustExist;
     private final int hashCode;
 
     public static DefaultIvyArtifactName forPublishArtifact(PublishArtifact publishArtifact) {
@@ -63,10 +64,15 @@ public class DefaultIvyArtifactName implements IvyArtifactName {
     }
 
     public DefaultIvyArtifactName(String name, String type, @Nullable String extension, @Nullable String classifier) {
+        this(name, type, extension, null, false);
+    }
+
+    public DefaultIvyArtifactName(String name, String type, @Nullable String extension, @Nullable String classifier, boolean mustExist) {
         this.name = name;
         this.type = type;
         this.extension = extension;
         this.classifier = classifier;
+        this.mustExist = mustExist;
         this.hashCode = computeHashCode();
     }
 
@@ -91,11 +97,7 @@ public class DefaultIvyArtifactName implements IvyArtifactName {
     }
 
     private int computeHashCode() {
-        int result = name.hashCode();
-        result = 31 * result + type.hashCode();
-        result = 31 * result + (extension != null ? extension.hashCode() : 0);
-        result = 31 * result + (classifier != null ? classifier.hashCode() : 0);
-        return result;
+        return Objects.hash(name, type, extension, classifier, mustExist);
     }
 
     @Override
@@ -107,10 +109,11 @@ public class DefaultIvyArtifactName implements IvyArtifactName {
             return false;
         }
         DefaultIvyArtifactName other = (DefaultIvyArtifactName) obj;
-        return equal(name, other.name)
-            && equal(type, other.type)
-            && equal(extension, other.extension)
-            && equal(classifier, other.classifier);
+        return Objects.equals(name, other.name)
+            && Objects.equals(type, other.type)
+            && Objects.equals(extension, other.extension)
+            && Objects.equals(classifier, other.classifier)
+            && Objects.equals(mustExist, other.mustExist);
     }
 
     @Override
@@ -131,5 +134,10 @@ public class DefaultIvyArtifactName implements IvyArtifactName {
     @Override
     public String getClassifier() {
         return classifier;
+    }
+
+    @Override
+    public boolean isMustExist() {
+        return mustExist;
     }
 }

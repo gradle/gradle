@@ -17,7 +17,7 @@ package org.gradle.api.internal.artifacts.dsl.dependencies;
 
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExternalDependency;
-import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyArtifact;
+import org.gradle.api.internal.artifacts.dependencies.ExplicitlyRequestedDependencyArtifact;
 
 public class ModuleFactoryHelper {
     public static void addExplicitArtifactsIfDefined(ExternalDependency moduleDependency, String artifactType, String classifier) {
@@ -30,7 +30,7 @@ public class ModuleFactoryHelper {
             moduleDependency.setTransitive(false);
         }
         if (actualArtifactType != null) {
-            moduleDependency.addArtifact(new DefaultDependencyArtifact(moduleDependency.getName(),
+            moduleDependency.addArtifact(new ExplicitlyRequestedDependencyArtifact(moduleDependency.getName(),
                     actualArtifactType, actualArtifactType, classifier, null));
         }
     }
