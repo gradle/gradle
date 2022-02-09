@@ -154,14 +154,14 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
     }
 
     @Override
-    public void setAttributeDisambiguationPrecedence(Attribute<?>... attributes) {
+    public void setAttributeDisambiguationPrecedence(Collection<Attribute<?>> attributes) {
         precedence.clear();
-        attributeDisambiguationPrecedence(attributes);
+        attributeDisambiguationPrecedence(attributes.toArray(new Attribute<?>[0]));
     }
 
     @Override
-    public Attribute<?>[] getAttributeDisambiguationPrecedence() {
-        return precedence.toArray(new Attribute<?>[0]);
+    public Collection<Attribute<?>> getAttributeDisambiguationPrecedence() {
+        return Collections.unmodifiableCollection(precedence);
     }
 
     private static class DefaultAttributeMatcher implements AttributeMatcher {

@@ -19,6 +19,7 @@ package org.gradle.api.attributes;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 
+import java.util.Collection;
 import java.util.Set;
 
 /**
@@ -75,12 +76,12 @@ public interface AttributesSchema {
      * Adds attributes to the precedence order. Attributes listed first have higher precedence.
      * <p>
      * The attributes will be added to any existing precedence order. If an attribute has already been added, adding it again
-     * will not lower its precedence.
+     * will fail.
      *
      * @param attributes the attributes in order
      *
      * @since 7.5
-     * @see #setAttributeDisambiguationPrecedence(Attribute[])
+     * @see #setAttributeDisambiguationPrecedence(Collection)
      */
     @Incubating
     void attributeDisambiguationPrecedence(Attribute<?>... attributes);
@@ -94,7 +95,7 @@ public interface AttributesSchema {
      * @since 7.5
      */
     @Incubating
-    void setAttributeDisambiguationPrecedence(Attribute<?>... attributes);
+    void setAttributeDisambiguationPrecedence(Collection<Attribute<?>> attributes);
 
     /**
      * Returns the order that attributes should be considered when resolving ambiguity.
@@ -103,5 +104,5 @@ public interface AttributesSchema {
      * @since 7.5
      */
     @Incubating
-    Attribute<?>[] getAttributeDisambiguationPrecedence();
+    Collection<Attribute<?>> getAttributeDisambiguationPrecedence();
 }

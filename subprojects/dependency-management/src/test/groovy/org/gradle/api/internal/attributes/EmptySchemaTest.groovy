@@ -28,7 +28,7 @@ class EmptySchemaTest extends Specification {
 
     def "has no precedence"() {
         expect:
-        EmptySchema.INSTANCE.attributeDisambiguationPrecedence.length == 0
+        EmptySchema.INSTANCE.attributeDisambiguationPrecedence.empty
     }
 
     def "cannot set precedence"() {
@@ -38,7 +38,7 @@ class EmptySchemaTest extends Specification {
         thrown(UnsupportedOperationException)
 
         when:
-        EmptySchema.INSTANCE.setAttributeDisambiguationPrecedence(Attribute.of("attribute", String))
+        EmptySchema.INSTANCE.setAttributeDisambiguationPrecedence([Attribute.of("attribute", String)])
         then:
         thrown(UnsupportedOperationException)
     }

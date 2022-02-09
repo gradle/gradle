@@ -344,7 +344,7 @@ class DefaultAttributesSchemaTest extends Specification {
         then:
         schema.attributeDisambiguationPrecedence*.name == [ "a", "b", "c" ]
         when:
-        schema.setAttributeDisambiguationPrecedence(Attribute.of("c", ConcreteNamed))
+        schema.attributeDisambiguationPrecedence = [Attribute.of("c", ConcreteNamed)]
         then:
         schema.attributeDisambiguationPrecedence*.name == [ "c" ]
         when:
