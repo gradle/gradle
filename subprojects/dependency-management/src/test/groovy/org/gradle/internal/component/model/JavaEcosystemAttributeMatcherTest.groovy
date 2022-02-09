@@ -16,7 +16,7 @@
 
 package org.gradle.internal.component.model
 
-import org.gradle.api.attributes.Attribute
+
 import org.gradle.api.attributes.LibraryElements
 import org.gradle.api.attributes.Usage
 import org.gradle.api.attributes.java.TargetJvmVersion
@@ -277,24 +277,11 @@ class JavaEcosystemAttributeMatcherTest extends Specification {
         matches == [ apiElements9 ]
     }
 
-    private static AttributeContainerInternal attributes(String usage, String libraryElements, int targetJvm) {
-        return attributes(
-                (Usage.USAGE_ATTRIBUTE): named(Usage, usage),
-                (TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE): targetJvm,
-                (LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE): named(LibraryElements, libraryElements),
+    private static AttributeContainerInternal attributes(String usage, String libraryElements, Integer targetJvm) {
+        return AttributeTestUtil.attributes([
+                (Usage.USAGE_ATTRIBUTE.name): AttributeTestUtil.named(Usage, usage),
+                (TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE.name): targetJvm,
+                (LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE.name): AttributeTestUtil.named(LibraryElements, libraryElements)]
         )
     }
-
-    private static named(Class type, String value) {
-        return TestUtil.objectFactory().named(type, value)
-    }
-
-    private static AttributeContainerInternal attributes(Map<Attribute, Object> attributes) {
-        def mutableAttributeContainer = AttributeTestUtil.attributesFactory().mutable()
-        attributes.each { Attribute key, Object value ->
-            mutableAttributeContainer.attribute(key, value)
-        }
-        return mutableAttributeContainer
-    }
-
 }

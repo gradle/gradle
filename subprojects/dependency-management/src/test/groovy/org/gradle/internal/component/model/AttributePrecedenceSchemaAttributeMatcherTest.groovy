@@ -98,7 +98,7 @@ class AttributePrecedenceSchemaAttributeMatcherTest extends Specification {
         def candidate4 = candidate("compatible", "best", "best")
         def candidate5 = candidate("compatible", "compatible", "best")
         def candidate6 = candidate("compatible", "compatible", "compatible")
-        def requested = attributes([(highest): "requested", (middle): "requested", (lowest): "requested"])
+        def requested = requested("requested", "requested","requested")
         expect:
         matcher.match(selectionSchema, [candidate1], requested, null, explanationBuilder) == [candidate1]
         matcher.match(selectionSchema, [candidate1, candidate2, candidate3, candidate4, candidate5, candidate6], requested, null, explanationBuilder) == [candidate1]
@@ -109,14 +109,10 @@ class AttributePrecedenceSchemaAttributeMatcherTest extends Specification {
         matcher.match(selectionSchema, [candidate6], requested, null, explanationBuilder) == [candidate6]
     }
 
-    private AttributeContainerInternal candidate(String highestValue, String middleValue, String lowestValue) {
-        return attributes([(highest): highestValue, (middle): middleValue, (lowest): lowestValue])
+    private static AttributeContainerInternal requested(String highestValue, String middleValue, String lowestValue) {
+        return candidate(highestValue, middleValue, lowestValue)
     }
-    private static AttributeContainerInternal attributes(Map<Attribute, Object> attributes) {
-        def mutableAttributeContainer = AttributeTestUtil.attributesFactory().mutable()
-        attributes.each { Attribute key, Object value ->
-            mutableAttributeContainer.attribute(key, value)
-        }
-        return mutableAttributeContainer
+    private static AttributeContainerInternal candidate(String highestValue, String middleValue, String lowestValue) {
+        return AttributeTestUtil.attributes([highest: highestValue, middle: middleValue, lowest: lowestValue])
     }
 }
