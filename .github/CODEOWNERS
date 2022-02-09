@@ -14,9 +14,9 @@ subprojects/normalization-java/     @gradle/execution @gradle/ge-test-distributi
 subprojects/snapshots/              @gradle/execution @gradle/ge-test-distribution
 
 # Gradle Enterprise
-subprojects/enterprise/             @ldaley @gradle/ge-test-distribution
-subprojects/enterprise-operations/  @facewindu
-subprojects/enterprise-workers/     @facewindu
+subprojects/enterprise/             @ldaley @gradle/ge-test-distribution @gradle/ge-build-insights
+subprojects/enterprise-operations/  @gradle/ge-build-insights
+subprojects/enterprise-workers/     @gradle/ge-build-insights
 
 # Testing
 subprojects/testing-junit-platform/ @gradle/ge-test-distribution
