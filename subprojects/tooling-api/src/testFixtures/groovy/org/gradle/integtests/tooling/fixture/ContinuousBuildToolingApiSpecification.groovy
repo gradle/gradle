@@ -29,6 +29,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.CancellationToken
 import org.gradle.tooling.ProjectConnection
+import org.gradle.util.GradleVersion
 import org.hamcrest.Matcher
 import org.junit.Assume
 import org.junit.Rule
@@ -181,9 +182,11 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
         println("Wait finishes: ${System.currentTimeMillis() - t0} ms")
         result = OutputScrapingExecutionResult.from(executionOutput.stdout, executionOutput.stderr)
 
-        // Wait for extra 10s to wait for unexpected file change events to finish
+        int waitingTimeInSeconds = usesNativeWatchers() ? 1 : 10
+
+        // Wait for a little bit longer for unexpected file change events to arrive
         // https://github.com/gradle/gradle-private/issues/2976
-        Thread.sleep(10 * 1000)
+        Thread.sleep(waitingTimeInSeconds * 1000)
     }
 
     private ExecutionOutput waitUntilOutputContains(Matcher<String> expectedMatcher) {
