@@ -342,10 +342,9 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
             // Add all attributes that have a higher precedence in the order they appear
             // in the precedence list
             for (Attribute<?> preferredAttribute : getDisambiguatingAttributes()) {
-                Attribute<?> requestedAttribute = remaining.get(preferredAttribute.getName());
+                Attribute<?> requestedAttribute = remaining.remove(preferredAttribute.getName());
                 if (requestedAttribute!=null) {
                     sorted.add(requestedAttribute);
-                    remaining.remove(preferredAttribute.getName());
                 }
             }
             // sorted now contains any requested attribute in the order they appear in
