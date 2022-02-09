@@ -104,17 +104,12 @@ class TestWorkerLeaseService implements WorkerLeaseService {
     }
 
     @Override
-    void withoutProjectLock(Runnable action) {
-        throw new UnsupportedOperationException()
-    }
-
-    @Override
     def <T> T runAsIsolatedTask(Factory<T> action) {
         return action.create()
     }
 
     @Override
-    WorkerLeaseRegistry.WorkerLease getWorkerLease() {
+    WorkerLease getWorkerLease() {
         return workerLease()
     }
 

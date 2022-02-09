@@ -78,12 +78,6 @@ public interface ProjectLeaseRegistry {
     void runAsIsolatedTask(Runnable action);
 
     /**
-     * This is used by the Gradle build, via Docbook2Xhtml. Remove this once it is updated to use a new nightly
-     */
-    @Deprecated
-    void withoutProjectLock(Runnable action);
-
-    /**
      * Allows the given code to access the mutable state of any project, regardless of which other threads may be accessing the project.
      *
      * DO NOT USE THIS METHOD. It is here to allow some very specific backwards compatibility.
