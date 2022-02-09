@@ -811,7 +811,7 @@ project.extensions.create("some", SomeExtension)
     }
 
     @Issue("https://github.com/gradle/gradle/issues/13623")
-    def "setter for property doesn't cause drop of task dependency"() {
+    def "setter for property with different type doesn't cause drop of task dependency"() {
         buildFile """
             abstract class Producer extends DefaultTask {
                 private DirectoryProperty foo
@@ -850,5 +850,35 @@ project.extensions.create("some", SomeExtension)
         succeeds("consumer")
         outputContains("Producer ran")
         outputContains("Consumer ran")
+    }
+
+    def "fails if property has setter with the same type"() {
+        buildFile """
+            abstract class Producer extends DefaultTask {
+
+                private DirectoryProperty foo
+
+                @Inject
+                Producer(ObjectFactory objectFactory) {
+                    foo = objectFactory.directoryProperty()
+                }
+
+                @OutputDirectory
+                DirectoryProperty getFoo() { return foo }
+
+                void setFoo(DirectoryProperty foo) { }
+
+                @TaskAction
+                void produce() { print("Producer ran") }
+            }
+
+            tasks.register('producer', Producer) {
+                foo = project.layout.buildDir.dir('fooDir')
+            }
+        """
+        expect:
+        fails("producer")
+        failure.assertThatDescription(containsNormalizedString("""A problem was found with the configuration of task ':producer' (type 'Producer').
+  - Type 'Producer' property 'foo' of mutable type 'org.gradle.api.file.DirectoryProperty' is writable."""))
     }
 }
