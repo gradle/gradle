@@ -146,7 +146,11 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
 
     @Override
     public void attributeDisambiguationPrecedence(Attribute<?>... attributes) {
-        precedence.addAll(Arrays.asList(attributes));
+        for (Attribute<?> attribute : attributes) {
+            if (!precedence.add(attribute)) {
+                throw new IllegalArgumentException(String.format("Attribute '%s' precedence has already been set.", attribute.getName()));
+            }
+        }
     }
 
     @Override
@@ -156,8 +160,8 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
     }
 
     @Override
-    public Collection<Attribute<?>> getAttributeDisambiguationPrecedence() {
-        return precedence;
+    public Attribute<?>[] getAttributeDisambiguationPrecedence() {
+        return precedence.toArray(new Attribute<?>[0]);
     }
 
     private static class DefaultAttributeMatcher implements AttributeMatcher {

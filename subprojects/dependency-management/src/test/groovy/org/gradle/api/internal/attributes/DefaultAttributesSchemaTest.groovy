@@ -356,12 +356,10 @@ class DefaultAttributesSchemaTest extends Specification {
     def "precedence order cannot be changed for the same attribute"() {
         when:
         schema.attributeDisambiguationPrecedence(Attribute.of("a", Flavor), Attribute.of("b", String), Attribute.of("c", ConcreteNamed))
-
-        schema.attributeDisambiguationPrecedence(Attribute.of("c", ConcreteNamed))
-        schema.attributeDisambiguationPrecedence(Attribute.of("b", String))
         schema.attributeDisambiguationPrecedence(Attribute.of("a", Flavor))
         then:
-        schema.attributeDisambiguationPrecedence*.name == [ "a", "b", "c" ]
+        def e = thrown(IllegalArgumentException)
+        e.message == "Attribute 'a' precedence has already been set."
     }
 
     def "precedence order can be combined with producer"() {

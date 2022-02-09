@@ -19,7 +19,6 @@ package org.gradle.api.attributes;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 
-import java.util.Collection;
 import java.util.Set;
 
 /**
@@ -104,5 +103,5 @@ public interface AttributesSchema {
      * @since 7.5
      */
     @Incubating
-    Collection<Attribute<?>> getAttributeDisambiguationPrecedence();
+    Attribute<?>[] getAttributeDisambiguationPrecedence();
 }

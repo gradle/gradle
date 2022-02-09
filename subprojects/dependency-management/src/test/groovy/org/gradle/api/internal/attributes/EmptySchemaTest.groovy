@@ -27,7 +27,7 @@ class EmptySchemaTest extends Specification {
 
     def "has no precedence"() {
         expect:
-        EmptySchema.INSTANCE.attributeDisambiguationPrecedence.empty
+        EmptySchema.INSTANCE.attributeDisambiguationPrecedence.length == 0
     }
 
     def "cannot set precedence"() {

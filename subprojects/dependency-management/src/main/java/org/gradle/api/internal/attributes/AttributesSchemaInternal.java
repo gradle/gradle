@@ -33,5 +33,4 @@ public interface AttributesSchemaInternal extends DescribableAttributesSchema {
     CompatibilityRule<Object> compatibilityRules(Attribute<?> attribute);
 
     DisambiguationRule<Object> disambiguationRules(Attribute<?> attribute);
-
 }
