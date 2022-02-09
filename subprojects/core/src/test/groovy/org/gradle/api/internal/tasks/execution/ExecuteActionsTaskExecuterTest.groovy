@@ -42,6 +42,7 @@ import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.exceptions.MultiCauseException
 import org.gradle.internal.execution.BuildOutputCleanupRegistry
 import org.gradle.internal.execution.OutputChangeListener
+import org.gradle.internal.execution.WorkInputListeners
 import org.gradle.internal.execution.WorkValidationContext
 import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinterRegistry
 import org.gradle.internal.execution.fingerprint.impl.DefaultInputFingerprinter
@@ -141,6 +142,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
 
     def actionListener = Stub(TaskActionListener)
     def outputChangeListener = Stub(OutputChangeListener)
+    def inputListeners = Stub(WorkInputListeners)
     def cancellationToken = new DefaultBuildCancellationToken()
     def changeDetector = new DefaultExecutionStateChangeDetector()
     def taskCacheabilityResolver = Mock(TaskCacheabilityResolver)
@@ -170,7 +172,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         new IdentityCacheStep<>(
         new AssignWorkspaceStep<>(
         new LoadPreviousExecutionStateStep<>(
-        new SkipEmptyWorkStep(outputChangeListener, outputsCleanerFactory,
+        new SkipEmptyWorkStep(outputChangeListener, inputListeners, outputsCleanerFactory,
         new CaptureStateBeforeExecutionStep<>(buildOperationExecutor, classloaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
         new ValidateStep<>(virtualFileSystem, validationWarningReporter,
         new ResolveCachingStateStep<>(buildCacheController, false,

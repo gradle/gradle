@@ -36,6 +36,7 @@ import org.gradle.internal.execution.BuildOutputCleanupRegistry;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.OutputSnapshotter;
+import org.gradle.internal.execution.WorkInputListeners;
 import org.gradle.internal.execution.history.ExecutionHistoryCacheAccess;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.OutputFilesRepository;
@@ -153,7 +154,7 @@ public class ExecutionGradleServices {
         Deleter deleter,
         ExecutionStateChangeDetector changeDetector,
         OutputChangeListener outputChangeListener,
-        OutputFilesRepository outputFilesRepository,
+        WorkInputListeners workInputListeners, OutputFilesRepository outputFilesRepository,
         OutputSnapshotter outputSnapshotter,
         OverlappingOutputDetector overlappingOutputDetector,
         TimeoutHandler timeoutHandler,
@@ -170,7 +171,7 @@ public class ExecutionGradleServices {
             new LoadPreviousExecutionStateStep<>(
             new MarkSnapshottingInputsStartedStep<>(
             new RemoveUntrackedExecutionStateStep<>(
-            new SkipEmptyWorkStep(outputChangeListener, skipEmptyWorkOutputsCleanerSupplier,
+            new SkipEmptyWorkStep(outputChangeListener, workInputListeners, skipEmptyWorkOutputsCleanerSupplier,
             new CaptureStateBeforeExecutionStep<>(buildOperationExecutor, classLoaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
             new ValidateStep<>(virtualFileSystem, validationWarningRecorder,
             new ResolveCachingStateStep<>(buildCacheController, gradleEnterprisePluginManager.isPresent(),

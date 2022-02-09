@@ -16,9 +16,7 @@
 
 package org.gradle.tooling.internal.provider
 
-import org.gradle.api.execution.internal.DefaultTaskInputsListeners
 import org.gradle.api.internal.StartParameterInternal
-import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.deployment.internal.Deployment
 import org.gradle.deployment.internal.DeploymentInternal
@@ -32,9 +30,11 @@ import org.gradle.integtests.fixtures.RedirectStdIn
 import org.gradle.internal.buildevents.BuildStartedTime
 import org.gradle.internal.buildtree.BuildActionRunner
 import org.gradle.internal.event.DefaultListenerManager
+import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.invocation.BuildAction
 import org.gradle.internal.logging.text.TestStyledTextOutputFactory
 import org.gradle.internal.service.scopes.DefaultFileChangeListeners
+import org.gradle.internal.service.scopes.DefaultWorkInputListeners
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.session.BuildSessionActionExecutor
@@ -66,7 +66,7 @@ class ContinuousBuildActionExecutorTest extends ConcurrentSpec {
     }
     def globalListenerManager = new DefaultListenerManager(Scope.Global)
     def userHomeListenerManager = globalListenerManager.createChild(Scopes.UserHome)
-    def inputsListeners = new DefaultTaskInputsListeners(globalListenerManager)
+    def inputListeners = new DefaultWorkInputListeners(globalListenerManager)
     def changeListeners = new DefaultFileChangeListeners(userHomeListenerManager)
     List<Deployment> deployments = []
     def continuousExecutionGate = new DefaultContinuousExecutionGate()
@@ -381,12 +381,12 @@ class ContinuousBuildActionExecutorTest extends ConcurrentSpec {
     }
 
     private void declareInput(File file) {
-        inputsListeners.broadcastFileSystemInputsOf(Mock(TaskInternal), TestFiles.fixed(file))
+        inputListeners.broadcastFileSystemInputsOf(Mock(UnitOfWork), TestFiles.fixed(file))
     }
 
     private ContinuousBuildActionExecutor executer() {
         new ContinuousBuildActionExecutor(
-            inputsListeners,
+            inputListeners,
             changeListeners,
             textOutputFactory,
             executorFactory,

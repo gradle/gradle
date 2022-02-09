@@ -43,6 +43,7 @@ import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.internal.execution.BuildOutputCleanupRegistry
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.TestExecutionHistoryStore
+import org.gradle.internal.execution.WorkInputListeners
 import org.gradle.internal.execution.fingerprint.InputFingerprinter
 import org.gradle.internal.execution.fingerprint.impl.DefaultFileCollectionFingerprinterRegistry
 import org.gradle.internal.execution.fingerprint.impl.DefaultInputFingerprinter
@@ -126,6 +127,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
     def outputFilesRepository = Stub(OutputFilesRepository) {
         isGeneratedByGradle(_ as File) >> true
     }
+    def workInputListeners = Stub(WorkInputListeners)
     def buildOutputCleanupRegistry = Mock(BuildOutputCleanupRegistry)
     def outputSnapshotter = new DefaultOutputSnapshotter(fileCollectionSnapshotter)
     def deleter = TestFiles.deleter()
@@ -142,6 +144,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         deleter,
         new DefaultExecutionStateChangeDetector(),
         outputChangeListener,
+        workInputListeners,
         outputFilesRepository,
         outputSnapshotter,
         new DefaultOverlappingOutputDetector(),

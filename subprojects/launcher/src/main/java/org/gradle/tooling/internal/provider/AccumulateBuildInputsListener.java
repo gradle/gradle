@@ -16,21 +16,21 @@
 
 package org.gradle.tooling.internal.provider;
 
-import org.gradle.api.execution.internal.TaskInputsListener;
-import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.execution.plan.BuildInputHierarchy;
+import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.WorkInputListener;
 
 import java.io.File;
 import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
 
-public class AccumulateBuildInputsListener implements TaskInputsListener {
+public class AccumulateBuildInputsListener implements WorkInputListener {
 
     private final BuildInputHierarchy buildInputHierarchy;
 
@@ -39,7 +39,7 @@ public class AccumulateBuildInputsListener implements TaskInputsListener {
     }
 
     @Override
-    public void onExecute(TaskInternal task, FileCollectionInternal fileSystemInputs) {
+    public void onExecute(UnitOfWork work, FileCollectionInternal fileSystemInputs) {
         Set<String> taskInputs = new LinkedHashSet<>();
         Set<FilteredTree> filteredFileTreeTaskInputs = new LinkedHashSet<>();
         fileSystemInputs.visitStructure(new FileCollectionStructureVisitor() {

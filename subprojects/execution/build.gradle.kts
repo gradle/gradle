@@ -11,6 +11,9 @@ dependencies {
     implementation(project(":core-api"))
     implementation(project(":functional"))
     implementation(project(":files"))
+    api(project(":file-collections")) {
+        because("WorkInputListener exposes FileCollectionInternal")
+    }
     implementation(project(":logging"))
     implementation(project(":messaging"))
     implementation(project(":model-core"))

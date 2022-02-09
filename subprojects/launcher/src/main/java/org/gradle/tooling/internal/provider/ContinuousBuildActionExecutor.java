@@ -16,8 +16,6 @@
 
 package org.gradle.tooling.internal.provider;
 
-import org.gradle.api.execution.internal.TaskInputsListener;
-import org.gradle.api.execution.internal.TaskInputsListeners;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.deployment.internal.Deployment;
 import org.gradle.deployment.internal.DeploymentInternal;
@@ -34,6 +32,8 @@ import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.execution.WorkInputListener;
+import org.gradle.internal.execution.WorkInputListeners;
 import org.gradle.internal.file.Stat;
 import org.gradle.internal.filewatch.PendingChangesListener;
 import org.gradle.internal.filewatch.SingleFirePendingChangesListener;
@@ -53,7 +53,7 @@ import java.util.function.Supplier;
 
 public class ContinuousBuildActionExecutor implements BuildSessionActionExecutor {
     private final BuildSessionActionExecutor delegate;
-    private final TaskInputsListeners inputsListeners;
+    private final WorkInputListeners inputsListeners;
     private final FileChangeListeners fileChangeListeners;
     private final BuildRequestMetaData requestMetaData;
     private final OperatingSystem operatingSystem;
@@ -69,7 +69,7 @@ public class ContinuousBuildActionExecutor implements BuildSessionActionExecutor
     private final StyledTextOutput logger;
 
     public ContinuousBuildActionExecutor(
-        TaskInputsListeners inputsListeners,
+        WorkInputListeners inputListeners,
         FileChangeListeners fileChangeListeners,
         StyledTextOutputFactory styledTextOutputFactory,
         ExecutorFactory executorFactory,
@@ -84,7 +84,7 @@ public class ContinuousBuildActionExecutor implements BuildSessionActionExecutor
         FileSystemWatchingInformation fileSystemWatchingInformation,
         BuildSessionActionExecutor delegate
     ) {
-        this.inputsListeners = inputsListeners;
+        this.inputsListeners = inputListeners;
         this.fileChangeListeners = fileChangeListeners;
         this.requestMetaData = requestMetaData;
         this.cancellationToken = cancellationToken;
@@ -226,16 +226,16 @@ public class ContinuousBuildActionExecutor implements BuildSessionActionExecutor
 
     private BuildActionRunner.Result executeBuildAndAccumulateInputs(
         BuildAction action,
-        TaskInputsListener taskInputsListener,
+        WorkInputListener inputListener,
         BuildSessionContext buildSession
     ) {
-        return withTaskInputsListener(
-            taskInputsListener,
+        return withInputListener(
+            inputListener,
             () -> delegate.execute(action, buildSession)
         );
     }
 
-    private <T> T withTaskInputsListener(TaskInputsListener listener, Supplier<T> supplier) {
+    private <T> T withInputListener(WorkInputListener listener, Supplier<T> supplier) {
         try {
             inputsListeners.addListener(listener);
             return supplier.get();

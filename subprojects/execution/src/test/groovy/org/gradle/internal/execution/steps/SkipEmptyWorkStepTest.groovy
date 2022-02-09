@@ -18,9 +18,11 @@ package org.gradle.internal.execution.steps
 
 import com.google.common.collect.ImmutableSet
 import com.google.common.collect.ImmutableSortedMap
+import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.UnitOfWork
+import org.gradle.internal.execution.WorkInputListeners
 import org.gradle.internal.execution.fingerprint.InputFingerprinter
 import org.gradle.internal.execution.fingerprint.impl.DefaultInputFingerprinter
 import org.gradle.internal.execution.history.OutputsCleaner
@@ -34,12 +36,23 @@ import static org.gradle.internal.execution.ExecutionOutcome.SHORT_CIRCUITED
 
 class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
     def outputChangeListener = Mock(OutputChangeListener)
+    Set<File> fileSystemInputs
+    def workInputListeners = Stub(WorkInputListeners) {
+        broadcastFileSystemInputsOf(work, _ as FileCollectionInternal) >> { UnitOfWork work, FileCollectionInternal files ->
+            fileSystemInputs = files.files
+        }
+    }
     def outputsCleaner = Mock(OutputsCleaner)
     def inputFingerprinter = Mock(InputFingerprinter)
     def fileCollectionSnapshotter = TestFiles.fileCollectionSnapshotter()
+    def primaryFileInputs = [new File("primary")] as Set
+    def regularFileInputs = [new File("regular")] as Set
+    def allFileInputs = (primaryFileInputs + regularFileInputs) as Set
+    def fileCollectionFactory = TestFiles.fileCollectionFactory()
 
     def step = new SkipEmptyWorkStep(
         outputChangeListener,
+        workInputListeners,
         { -> outputsCleaner },
         delegate)
 
@@ -48,7 +61,6 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
     def knownInputProperties = ImmutableSortedMap.<String, ValueSnapshot>of()
     def knownInputFileProperties = ImmutableSortedMap.<String, CurrentFileCollectionFingerprint>of()
     def sourceFileFingerprint = Mock(CurrentFileCollectionFingerprint)
-    boolean hasEmptySources
 
     @Override
     protected PreviousExecutionContext createContext() {
@@ -59,8 +71,15 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
     }
 
     def setup() {
-        _ * work.broadcastRelevantFileSystemInputs(_) >> { boolean hasEmptySources -> this.hasEmptySources = hasEmptySources }
         _ * work.inputFingerprinter >> inputFingerprinter
+        _ * work.visitRegularInputs(_) >> { InputFingerprinter.InputVisitor inputVisitor ->
+            inputVisitor.visitInputFileProperty("primary", InputFingerprinter.InputPropertyType.PRIMARY, Stub(InputFingerprinter.FileValueSupplier) {
+                getFiles() >> fileCollectionFactory.fixed(primaryFileInputs)
+            })
+            inputVisitor.visitInputFileProperty("regular", InputFingerprinter.InputPropertyType.NON_INCREMENTAL, Stub(InputFingerprinter.FileValueSupplier) {
+                getFiles() >> fileCollectionFactory.fixed(regularFileInputs)
+            })
+        }
     }
 
     def "delegates when work has no source properties"() {
@@ -92,7 +111,7 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
         }) >> delegateResult
         0 * _
 
-        !hasEmptySources
+        fileSystemInputs == allFileInputs
         result == delegateResult
     }
 
@@ -130,7 +149,7 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
         0 * _
 
         then:
-        !hasEmptySources
+        fileSystemInputs == allFileInputs
         result == delegateResult
     }
 
@@ -159,7 +178,7 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
         1 * sourceFileFingerprint.empty >> true
 
         then:
-        hasEmptySources
+        fileSystemInputs == primaryFileInputs
         result.executionResult.get().outcome == SHORT_CIRCUITED
         !result.afterExecutionState.present
     }
@@ -187,7 +206,7 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
         0 * _
 
         then:
-        hasEmptySources
+        fileSystemInputs == primaryFileInputs
         result.executionResult.get().outcome == outcome
         !result.afterExecutionState.present
 

@@ -74,8 +74,10 @@ import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.UntrackedTask;
 import org.gradle.api.tasks.options.OptionValues;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
+import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.DefaultTaskExecutionTracker;
 import org.gradle.internal.execution.TaskExecutionTracker;
+import org.gradle.internal.execution.WorkInputListeners;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.operations.BuildOperationAncestryTracker;
@@ -291,6 +293,10 @@ public class ExecutionGlobalServices {
 
     PropertyAnnotationHandler createNestedBeanPropertyAnnotationHandler() {
         return new NestedBeanAnnotationHandler();
+    }
+
+    WorkInputListeners createWorkInputListeners(ListenerManager listenerManager) {
+        return new DefaultWorkInputListeners(listenerManager);
     }
 
     public interface AnnotationHandlerRegistration {
