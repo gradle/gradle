@@ -22,7 +22,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.Set;
 
 public interface AttributeSelectionSchema {
@@ -39,23 +39,23 @@ public interface AttributeSelectionSchema {
 
     class PrecedenceResult {
         private final List<Attribute<?>> attributes;
-        private final Optional<Integer> index;
+        private final OptionalInt index;
 
         public PrecedenceResult(List<Attribute<?>> attributes, int index) {
             this.attributes = attributes;
-            this.index = Optional.of(index);
+            this.index = OptionalInt.of(index);
         }
 
         public PrecedenceResult(List<Attribute<?>> attributes) {
             this.attributes = attributes;
-            this.index = Optional.empty();
+            this.index = OptionalInt.empty();
         }
 
         public List<Attribute<?>> getAttributes() {
             return attributes;
         }
 
-        public Optional<Integer> getLastAttributeIndexWithKnownPrecedence() {
+        public OptionalInt getLastAttributeIndexWithKnownPrecedence() {
             return index;
         }
     }
