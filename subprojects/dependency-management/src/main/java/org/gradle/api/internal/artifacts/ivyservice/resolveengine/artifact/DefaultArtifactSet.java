@@ -65,6 +65,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.gradle.internal.resolve.ResolveExceptionAnalyzer.isCriticalFailure;
+
 /**
  * Contains zero or more variants of a particular component.
  */
@@ -288,7 +290,7 @@ public abstract class DefaultArtifactSet implements ArtifactSet, ResolvedVariant
         public File calculateValue(NodeExecutionContext context) {
             DefaultBuildableArtifactResolveResult result = new DefaultBuildableArtifactResolveResult();
             artifactResolver.resolveArtifact(artifact, moduleSources, result);
-            if (!result.isSuccessful() && id instanceof ModuleComponentIdentifier) {
+            if (!result.isSuccessful() && !isCriticalFailure(result.getFailure()) && id instanceof ModuleComponentIdentifier) {
               // Copy artifact to new DefaultModuleComponentArtifactMetadata; change type and/or extension to jar
               // Then retry resolution
               IvyArtifactName jarArtifact = new DefaultIvyArtifactName(artifact.getName().getName(), "jar", "jar", artifact.getName().getClassifier());
