@@ -20,6 +20,8 @@ import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.tasks.TaskDependency;
 
+import java.util.Optional;
+
 /**
  * Meta-data for an artifact that belongs to some component.
  */
@@ -43,4 +45,8 @@ public interface ComponentArtifactMetadata {
      * Collects the build dependencies of this artifact, which are required to build this artifact
      */
     TaskDependency getBuildDependencies();
+
+    default Optional<ComponentArtifactMetadata> getAlternativeArtifact() {
+        return Optional.empty();
+    }
 }

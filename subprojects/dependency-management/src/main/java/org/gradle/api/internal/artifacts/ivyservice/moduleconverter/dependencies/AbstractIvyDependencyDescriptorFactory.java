@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencie
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
-import org.gradle.api.internal.artifacts.dependencies.ExplicitlyRequestedDependencyArtifact;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
@@ -50,7 +49,7 @@ public abstract class AbstractIvyDependencyDescriptorFactory implements IvyDepen
         }
         ImmutableList.Builder<IvyArtifactName> names = ImmutableList.builder();
         for (DependencyArtifact dependencyArtifact : dependencyArtifacts) {
-            DefaultIvyArtifactName name = new DefaultIvyArtifactName(dependencyArtifact.getName(), dependencyArtifact.getType(), getExtension(dependencyArtifact), dependencyArtifact.getClassifier(), dependencyArtifact instanceof ExplicitlyRequestedDependencyArtifact);
+            DefaultIvyArtifactName name = new DefaultIvyArtifactName(dependencyArtifact.getName(), dependencyArtifact.getType(), getExtension(dependencyArtifact), dependencyArtifact.getClassifier());
             names.add(name);
         }
         return names.build();

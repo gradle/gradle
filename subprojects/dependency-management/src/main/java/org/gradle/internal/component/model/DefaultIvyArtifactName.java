@@ -30,7 +30,6 @@ public class DefaultIvyArtifactName implements IvyArtifactName {
     private final String type;
     private final String extension;
     private final String classifier;
-    private final boolean mustExist;
     private final int hashCode;
 
     public static DefaultIvyArtifactName forPublishArtifact(PublishArtifact publishArtifact) {
@@ -64,15 +63,10 @@ public class DefaultIvyArtifactName implements IvyArtifactName {
     }
 
     public DefaultIvyArtifactName(String name, String type, @Nullable String extension, @Nullable String classifier) {
-        this(name, type, extension, classifier, false);
-    }
-
-    public DefaultIvyArtifactName(String name, String type, @Nullable String extension, @Nullable String classifier, boolean mustExist) {
         this.name = name;
         this.type = type;
         this.extension = extension;
         this.classifier = classifier;
-        this.mustExist = mustExist;
         this.hashCode = computeHashCode();
     }
 
@@ -137,10 +131,5 @@ public class DefaultIvyArtifactName implements IvyArtifactName {
     @Override
     public String getClassifier() {
         return classifier;
-    }
-
-    @Override
-    public boolean isMustExist() {
-        return mustExist;
     }
 }

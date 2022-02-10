@@ -31,8 +31,4 @@ public interface IvyArtifactName {
 
     @Nullable
     String getClassifier();
-
-    default boolean isMustExist() {
-        return false;
-    }
 }

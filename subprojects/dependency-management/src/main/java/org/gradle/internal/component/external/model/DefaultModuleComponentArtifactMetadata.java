@@ -22,13 +22,22 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
+
+import java.util.Optional;
 
 public class DefaultModuleComponentArtifactMetadata implements ModuleComponentArtifactMetadata {
     private final DefaultModuleComponentArtifactIdentifier id;
+    private Optional<ComponentArtifactMetadata> alternativeArtifact = Optional.empty();
 
     public DefaultModuleComponentArtifactMetadata(ModuleComponentIdentifier componentIdentifier, IvyArtifactName artifact) {
         this(new DefaultModuleComponentArtifactIdentifier(componentIdentifier, artifact));
+    }
+
+    public DefaultModuleComponentArtifactMetadata(ModuleComponentIdentifier componentIdentifier, IvyArtifactName artifact, ComponentArtifactMetadata alternativeArtifact) {
+        this(new DefaultModuleComponentArtifactIdentifier(componentIdentifier, artifact));
+        this.alternativeArtifact = Optional.of(alternativeArtifact);
     }
 
     public DefaultModuleComponentArtifactMetadata(ModuleComponentArtifactIdentifier moduleComponentArtifactIdentifier) {
@@ -63,5 +72,10 @@ public class DefaultModuleComponentArtifactMetadata implements ModuleComponentAr
     @Override
     public TaskDependency getBuildDependencies() {
         return TaskDependencyInternal.EMPTY;
+    }
+
+    @Override
+    public Optional<ComponentArtifactMetadata> getAlternativeArtifact() {
+        return alternativeArtifact;
     }
 }

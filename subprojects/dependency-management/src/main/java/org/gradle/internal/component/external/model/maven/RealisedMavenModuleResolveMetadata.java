@@ -206,7 +206,8 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
             artifacts = ImmutableList.of(new DefaultModuleComponentArtifactMetadata(metadata.getId(), new DefaultIvyArtifactName(metadata.getId().getModule(), "jar", "jar")));
         } else if (KNOWN_SCOPES.contains(name)) {
             String type = metadata.getPackaging();
-            artifacts = ImmutableList.of(new DefaultModuleComponentArtifactMetadata(metadata.getId(), new DefaultIvyArtifactName(metadata.getId().getModule(), type, type)));
+            artifacts = ImmutableList.of(new DefaultModuleComponentArtifactMetadata(metadata.getId(), new DefaultIvyArtifactName(metadata.getId().getModule(), type, type),
+                    new DefaultModuleComponentArtifactMetadata(metadata.getId(), new DefaultIvyArtifactName(metadata.getId().getModule(), "jar", "jar"))));
         } else {
             artifacts = ImmutableList.of();
         }
