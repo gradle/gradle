@@ -38,7 +38,7 @@ class AttributeTestUtil {
         def attrs = ImmutableAttributes.EMPTY
         if (values) {
             values.each { String key, Object value ->
-                assert value.class.packageName.startsWith("java.lang")
+                assert value.class.package.name.startsWith("java.lang")
                 def attribute = Attribute.of(key, value.class)
                 attrs = attributesFactory().concat(attrs, attribute, value)
             }
