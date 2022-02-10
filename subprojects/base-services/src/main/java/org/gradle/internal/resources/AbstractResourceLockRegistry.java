@@ -16,44 +16,25 @@
 
 package org.gradle.internal.resources;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableList;
 import org.gradle.internal.Factory;
-import org.gradle.internal.UncheckedException;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ExecutionException;
 
 public abstract class AbstractResourceLockRegistry<K, T extends ResourceLock> implements ResourceLockRegistry, ResourceLockContainer {
-    private final Cache<K, T> resourceLocks = CacheBuilder.newBuilder().weakValues().build();
+    private final LockCache<K, T> resourceLocks;
     private final ConcurrentMap<Long, ThreadLockDetails> threadLocks = new ConcurrentHashMap<Long, ThreadLockDetails>();
-    private final ResourceLockCoordinationService coordinationService;
 
     public AbstractResourceLockRegistry(final ResourceLockCoordinationService coordinationService) {
-        this.coordinationService = coordinationService;
+        this.resourceLocks = new LockCache<K, T>(coordinationService, this);
     }
 
     protected T getOrRegisterResourceLock(final K key, final ResourceLockProducer<K, T> producer) {
-        try {
-            return resourceLocks.get(key, new Callable<T>() {
-                @Override
-                public T call() {
-                    return createResourceLock(key, producer);
-                }
-            });
-        } catch (ExecutionException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
-    }
-
-    protected T createResourceLock(final K key, final ResourceLockProducer<K, T> producer) {
-        return producer.create(key, coordinationService, this);
+        return resourceLocks.getOrRegisterResourceLock(key, producer);
     }
 
     @Override
@@ -85,7 +66,7 @@ public abstract class AbstractResourceLockRegistry<K, T extends ResourceLock> im
 
     @Override
     public boolean hasOpenLocks() {
-        for (ResourceLock resourceLock : resourceLocks.asMap().values()) {
+        for (ResourceLock resourceLock : resourceLocks.values()) {
             if (resourceLock.isLocked()) {
                 return true;
             }

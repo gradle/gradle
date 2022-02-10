@@ -158,13 +158,13 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Stoppable 
     }
 
     @Override
-    public ResourceLock getAllProjectsLock() {
-        return projectLockRegistry.getAllProjectsLock();
+    public ResourceLock getAllProjectsLock(Path buildIdentityPath) {
+        return projectLockRegistry.getAllProjectsLock(buildIdentityPath);
     }
 
     @Override
     public ResourceLock getProjectLock(Path buildIdentityPath, Path projectIdentityPath) {
-        return projectLockRegistry.getResourceLock(buildIdentityPath, projectIdentityPath);
+        return projectLockRegistry.getProjectLock(buildIdentityPath, projectIdentityPath);
     }
 
     @Override

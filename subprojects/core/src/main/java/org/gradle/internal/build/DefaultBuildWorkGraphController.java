@@ -18,7 +18,6 @@ package org.gradle.internal.build;
 
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.composite.internal.IncludedBuildTaskResource;
 import org.gradle.composite.internal.TaskIdentifier;
 import org.gradle.execution.plan.BuildWorkPlan;
@@ -35,15 +34,13 @@ import java.util.function.Consumer;
 
 public class DefaultBuildWorkGraphController implements BuildWorkGraphController {
     private final TaskNodeFactory taskNodeFactory;
-    private final ProjectStateRegistry projectStateRegistry;
     private final BuildLifecycleController controller;
     private final Map<String, DefaultExportedTaskNode> nodesByPath = new ConcurrentHashMap<>();
     private final Object lock = new Object();
     private DefaultBuildWorkGraph current;
 
-    public DefaultBuildWorkGraphController(TaskNodeFactory taskNodeFactory, ProjectStateRegistry projectStateRegistry, BuildLifecycleController controller) {
+    public DefaultBuildWorkGraphController(TaskNodeFactory taskNodeFactory, BuildLifecycleController controller) {
         this.taskNodeFactory = taskNodeFactory;
-        this.projectStateRegistry = projectStateRegistry;
         this.controller = controller;
     }
 
@@ -106,7 +103,7 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
             if (tasks.isEmpty()) {
                 return false;
             }
-            projectStateRegistry.withMutableStateOfAllProjects(() -> {
+            controller.getGradle().getOwner().getProjects().withMutableStateOfAllProjects(() -> {
                 createPlan();
                 controller.populateWorkGraph(plan, workGraph -> workGraph.addEntryTasks(tasks));
             });

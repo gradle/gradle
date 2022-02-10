@@ -353,7 +353,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
 
     private void fireWhenReady() {
         // We know that we're running single-threaded here, so we can use coarse grained project locks
-        projectStateRegistry.withMutableStateOfAllProjects(
+        gradleInternal.getOwner().getProjects().withMutableStateOfAllProjects(
             () -> buildOperationExecutor.run(
                 new NotifyTaskGraphWhenReady(DefaultTaskExecutionGraph.this, graphListeners.getSource(), gradleInternal)
             )

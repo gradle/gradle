@@ -24,9 +24,11 @@ import java.util.concurrent.Semaphore;
 
 public class SharedResourceLeaseRegistry extends AbstractResourceLockRegistry<String, SharedResourceLeaseRegistry.SharedResourceLease> {
     private final Map<String, Pair<Integer, Semaphore>> sharedResources = Maps.newConcurrentMap();
+    private final ResourceLockCoordinationService coordinationService;
 
     public SharedResourceLeaseRegistry(ResourceLockCoordinationService coordinationService) {
         super(coordinationService);
+        this.coordinationService = coordinationService;
     }
 
     public void registerSharedResource(String name, int leases) {
@@ -38,12 +40,7 @@ public class SharedResourceLeaseRegistry extends AbstractResourceLockRegistry<St
 
         // We don't want to cache lock instances here since it's valid for multiple threads to hold a lock on a given resource for a given number of leases.
         // For that reason we don't want to reuse lock instances, as it's very possible they can be concurrently held by multiple threads.
-        return createResourceLock(displayName, new ResourceLockProducer<String, SharedResourceLease>() {
-            @Override
-            public SharedResourceLease create(String displayName, ResourceLockCoordinationService coordinationService, ResourceLockContainer owner) {
-                return new SharedResourceLease(displayName, coordinationService, owner, sharedResource, leases);
-            }
-        });
+        return new SharedResourceLease(displayName, coordinationService, this, sharedResource, leases);
     }
 
     public class SharedResourceLease extends AbstractTrackedResourceLock {

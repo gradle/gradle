@@ -17,17 +17,21 @@
 package org.gradle.execution
 
 import org.gradle.api.internal.GradleInternal
-import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.execution.plan.ExecutionPlan
+import org.gradle.internal.build.BuildProjectRegistry
+import org.gradle.internal.build.BuildState
 import spock.lang.Specification
 
 class DefaultBuildConfigurationActionExecuterTest extends Specification {
     final GradleInternal gradleInternal = Mock()
     final ExecutionPlan executionPlan = Mock()
-    final ProjectStateRegistry projectStateRegistry = Stub()
 
     def setup() {
-        _ * projectStateRegistry.withMutableStateOfAllProjects(_) >> { Runnable r -> r.run() }
+        def projectRegistry = Stub(BuildProjectRegistry)
+        _ * gradleInternal.owner >> Stub(BuildState) {
+            getProjects() >> projectRegistry
+        }
+        _ * projectRegistry.withMutableStateOfAllProjects(_) >> { Runnable r -> r.run() }
     }
 
     def "select method calls configure method on first action"() {
@@ -35,14 +39,14 @@ class DefaultBuildConfigurationActionExecuterTest extends Specification {
         BuildConfigurationAction action2 = Mock()
 
         given:
-        def buildExecution = new DefaultBuildConfigurationActionExecuter([action1, action2], projectStateRegistry)
+        def buildExecution = new DefaultBuildConfigurationActionExecuter([action1, action2])
 
         when:
         buildExecution.select(gradleInternal, executionPlan)
 
         then:
         1 * action1.configure(!null)
-        0 * _._
+        0 * action2._
     }
 
     def "calls next action in chain when action calls proceed"() {
@@ -50,7 +54,7 @@ class DefaultBuildConfigurationActionExecuterTest extends Specification {
         BuildConfigurationAction action2 = Mock()
 
         given:
-        def buildExecution = new DefaultBuildConfigurationActionExecuter([action1, action2], projectStateRegistry)
+        def buildExecution = new DefaultBuildConfigurationActionExecuter([action1, action2])
 
         when:
         buildExecution.select(gradleInternal, executionPlan)
@@ -66,21 +70,20 @@ class DefaultBuildConfigurationActionExecuterTest extends Specification {
         BuildConfigurationAction action1 = Mock()
 
         given:
-        def buildExecution = new DefaultBuildConfigurationActionExecuter([action1], projectStateRegistry)
+        def buildExecution = new DefaultBuildConfigurationActionExecuter([action1])
 
         when:
         buildExecution.select(gradleInternal, executionPlan)
 
         then:
         1 * action1.configure(!null) >> { BuildExecutionContext context -> context.proceed() }
-        0 * _._
     }
 
     def "makes parameters available to actions"() {
         BuildConfigurationAction action1 = Mock()
 
         given:
-        def buildExecution = new DefaultBuildConfigurationActionExecuter([action1], projectStateRegistry)
+        def buildExecution = new DefaultBuildConfigurationActionExecuter([action1])
 
         when:
         buildExecution.select(gradleInternal, executionPlan)
@@ -100,7 +103,7 @@ class DefaultBuildConfigurationActionExecuterTest extends Specification {
         BuildConfigurationAction newTaskSelector = Mock()
 
 
-        def buildExecution = new DefaultBuildConfigurationActionExecuter([action1, action2], projectStateRegistry)
+        def buildExecution = new DefaultBuildConfigurationActionExecuter([action1, action2])
 
         when:
         buildExecution.setTaskSelectors([newTaskSelector])

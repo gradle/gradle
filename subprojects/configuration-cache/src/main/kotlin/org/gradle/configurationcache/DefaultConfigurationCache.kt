@@ -374,9 +374,9 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun writeConfigurationCacheState(stateFile: ConfigurationCacheStateFile) =
-        projectStateRegistry.withMutableStateOfAllProjects(
-            Factory { cacheIO.writeRootBuildStateTo(stateFile) }
-        )
+        host.currentBuild.gradle.owner.projects.withMutableStateOfAllProjects {
+            cacheIO.writeRootBuildStateTo(stateFile)
+        }
 
     private
     fun writeConfigurationCacheFingerprint(layout: ConfigurationCacheRepository.Layout, reusedProjects: Set<Path>) {
