@@ -21,7 +21,7 @@ import org.gradle.util.internal.VersionNumber
 
 @SelfType(BaseDeprecations)
 trait WithAndroidDeprecations {
-    private static final VersionNumber AGP_VERSION_WITH_FIXED_SKIP_WHEN_EMPTY = VersionNumber.parse('7.2.0')
+    private static final VersionNumber AGP_VERSION_WITH_FIXED_SKIP_WHEN_EMPTY = VersionNumber.parse('7.1.1')
     private static final VersionNumber AGP_VERSION_WITH_FIXED_NEW_WORKERS_API = VersionNumber.parse('4.2')
 
     boolean androidPluginUsesOldWorkerApi(String agpVersion) {
