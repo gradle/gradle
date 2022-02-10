@@ -39,6 +39,11 @@ class TestWorkerLeaseService implements WorkerLeaseService {
     }
 
     @Override
+    WorkerLeaseCompletion maybeStartWorker() {
+        throw new UnsupportedOperationException()
+    }
+
+    @Override
     ResourceLock getAllProjectsLock(Path buildIdentityPath) {
         throw new UnsupportedOperationException()
     }

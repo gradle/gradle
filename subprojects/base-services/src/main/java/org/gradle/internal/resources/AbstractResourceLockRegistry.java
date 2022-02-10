@@ -17,17 +17,17 @@
 package org.gradle.internal.resources;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 public abstract class AbstractResourceLockRegistry<K, T extends ResourceLock> implements ResourceLockRegistry, ResourceLockContainer {
     private final LockCache<K, T> resourceLocks;
-    private final ConcurrentMap<Long, ThreadLockDetails> threadLocks = new ConcurrentHashMap<Long, ThreadLockDetails>();
+    private final ConcurrentMap<Long, ThreadLockDetails<T>> threadLocks = new ConcurrentHashMap<Long, ThreadLockDetails<T>>();
 
     public AbstractResourceLockRegistry(final ResourceLockCoordinationService coordinationService) {
         this.resourceLocks = new LockCache<K, T>(coordinationService, this);
@@ -38,12 +38,12 @@ public abstract class AbstractResourceLockRegistry<K, T extends ResourceLock> im
     }
 
     @Override
-    public Collection<? extends ResourceLock> getResourceLocksByCurrentThread() {
+    public List<T> getResourceLocksByCurrentThread() {
         return ImmutableList.copyOf(detailsForCurrentThread().locks);
     }
 
     public <S> S whileDisallowingLockChanges(Factory<S> action) {
-        ThreadLockDetails lockDetails = detailsForCurrentThread();
+        ThreadLockDetails<T> lockDetails = detailsForCurrentThread();
         boolean previous = lockDetails.mayChange;
         lockDetails.mayChange = false;
         try {
@@ -54,7 +54,7 @@ public abstract class AbstractResourceLockRegistry<K, T extends ResourceLock> im
     }
 
     public <S> S allowUncontrolledAccessToAnyResource(Factory<S> factory) {
-        ThreadLockDetails lockDetails = detailsForCurrentThread();
+        ThreadLockDetails<T> lockDetails = detailsForCurrentThread();
         boolean previous = lockDetails.canAccessAnything;
         lockDetails.canAccessAnything = true;
         try {
@@ -76,23 +76,23 @@ public abstract class AbstractResourceLockRegistry<K, T extends ResourceLock> im
 
     @Override
     public void lockAcquired(ResourceLock resourceLock) {
-        ThreadLockDetails lockDetails = detailsForCurrentThread();
+        ThreadLockDetails<T> lockDetails = detailsForCurrentThread();
         if (!lockDetails.mayChange) {
             throw new IllegalStateException("This thread may not acquire more locks.");
         }
-        lockDetails.locks.add(resourceLock);
+        lockDetails.locks.add(Cast.<T>uncheckedCast(resourceLock));
     }
 
     public boolean holdsLock() {
-        ThreadLockDetails details = detailsForCurrentThread();
+        ThreadLockDetails<T> details = detailsForCurrentThread();
         return !details.locks.isEmpty();
     }
 
-    private ThreadLockDetails detailsForCurrentThread() {
+    private ThreadLockDetails<T> detailsForCurrentThread() {
         long id = Thread.currentThread().getId();
-        ThreadLockDetails lockDetails = threadLocks.get(id);
+        ThreadLockDetails<T> lockDetails = threadLocks.get(id);
         if (lockDetails == null) {
-            lockDetails = new ThreadLockDetails();
+            lockDetails = new ThreadLockDetails<T>();
             threadLocks.put(id, lockDetails);
         }
         return lockDetails;
@@ -100,7 +100,7 @@ public abstract class AbstractResourceLockRegistry<K, T extends ResourceLock> im
 
     @Override
     public void lockReleased(ResourceLock resourceLock) {
-        ThreadLockDetails lockDetails = threadLocks.get(Thread.currentThread().getId());
+        ThreadLockDetails<T> lockDetails = threadLocks.get(Thread.currentThread().getId());
         if (!lockDetails.mayChange) {
             throw new IllegalStateException("This thread may not release any locks.");
         }
@@ -108,7 +108,7 @@ public abstract class AbstractResourceLockRegistry<K, T extends ResourceLock> im
     }
 
     public boolean mayAttemptToChangeLocks() {
-        ThreadLockDetails details = detailsForCurrentThread();
+        ThreadLockDetails<T> details = detailsForCurrentThread();
         return details.mayChange && !details.canAccessAnything;
     }
 
@@ -120,10 +120,10 @@ public abstract class AbstractResourceLockRegistry<K, T extends ResourceLock> im
         T create(K key, ResourceLockCoordinationService coordinationService, ResourceLockContainer owner);
     }
 
-    private static class ThreadLockDetails {
+    private static class ThreadLockDetails<T extends ResourceLock> {
         // Only accessed by the thread itself, so does not require synchronization
         private boolean mayChange = true;
         private boolean canAccessAnything = false;
-        private final List<ResourceLock> locks = new ArrayList<ResourceLock>();
+        private final List<T> locks = new ArrayList<T>();
     }
 }

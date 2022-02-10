@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,23 @@
 
 package org.gradle.internal.resources;
 
-public interface SharedResource {
-    /**
-     * @return The maximum usage, or -1 when there is no limit.
-     */
-    int getMaxUsages();
+public class LeaseHolder {
+    private final int maxWorkerCount;
+    private int leasesInUse;
 
-    ResourceLock getResourceLock();
+    public LeaseHolder(int maxWorkerCount) {
+        this.maxWorkerCount = maxWorkerCount;
+    }
+
+    public boolean grantLease() {
+        if (leasesInUse >= maxWorkerCount) {
+            return false;
+        }
+        leasesInUse++;
+        return true;
+    }
+
+    public void releaseLease() {
+        leasesInUse--;
+    }
 }
