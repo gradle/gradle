@@ -67,7 +67,7 @@ class ContinuousBuildCrossVersionSpec extends ContinuousBuildToolingApiSpecifica
         project != null
         def logOutput = stdout.toString()
         !logOutput.contains(waitingMessage)
-        !logOutput.contains(getExitingContinuousBuildNoInputsDetectedMessage())
+        !logOutput.contains(exitingContinuousBuildNoInputsDetectedMessage)
     }
 
     private String getExitingContinuousBuildNoInputsDetectedMessage() {
