@@ -32,13 +32,21 @@ trait TestSnapshotFixture {
     private final Random pseudoRandom = new Random(1234)
 
     FileSystemLocationSnapshot directory(String absolutePath, FileMetadata.AccessType accessType = DIRECT, Long hashCode = null, List<FileSystemLocationSnapshot> children) {
-        new DirectorySnapshot(
+        def builder = MerkleDirectorySnapshotBuilder.sortingRequired()
+        builder.enterDirectory(
+            accessType,
             FilenameUtils.separatorsToSystem(absolutePath),
             FilenameUtils.getName(absolutePath),
-            accessType,
-            TestHashCodes.hashCodeFrom(hashCode ?: pseudoRandom.nextLong()),
-            children as List
+            DirectorySnapshotBuilder.EmptyDirectoryHandlingStrategy.INCLUDE_EMPTY_DIRS
         )
+        children.each { snapshot ->
+            if (snapshot instanceof DirectorySnapshot) {
+                builder.visitDirectory(snapshot)
+            } else {
+                builder.visitLeafElement(snapshot)
+            }
+        }
+        return builder.leaveDirectory()
     }
 
     FileSystemLocationSnapshot regularFile(String absolutePath, FileMetadata.AccessType accessType = DIRECT) {
