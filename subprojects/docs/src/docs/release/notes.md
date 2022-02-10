@@ -1,5 +1,14 @@
 The Gradle team is excited to announce Gradle @version@.
 
+This is the first patch release for Gradle 7.4.
+
+It fixes the following issues:
+* TODO Add fixed issues
+
+We recommend users upgrade to 7.4.1 instead of 7.4.
+
+----
+
 This release makes it easier to create a [single test report](#aggregation-tests) or [JaCoCo code coverage report](#aggregation-jacoco) across several projects.
 This release also includes several usability improvements, such as [marking additional test source directories as tests in IDEA](#idea-test-sources) and [better support for plugin version declarations in subprojects](#plugins-dsl).
 
