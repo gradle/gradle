@@ -42,7 +42,7 @@ public class DefaultIvyArtifactName implements IvyArtifactName {
                 name = publishArtifact.getFile().getName();
             }
             String classifier = GUtil.elvis(publishArtifact.getClassifier(), null);
-            return new DefaultIvyArtifactName(name, publishArtifact.getType(), publishArtifact.getExtension(), classifier);
+            return new DefaultIvyArtifactName(name, publishArtifact.getType(), publishArtifact.getExtension(), classifier, true);
         } catch (Exception e) {
             return null;
         }
