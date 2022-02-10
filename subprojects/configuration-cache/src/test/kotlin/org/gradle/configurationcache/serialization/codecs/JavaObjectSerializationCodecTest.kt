@@ -153,20 +153,6 @@ class JavaObjectSerializationCodecTest : AbstractUserTypeCodecTest() {
     }
 
     @Test
-    fun `preserves identity of java util logging Level`() {
-        verifyRoundtripOf({ java.util.logging.Level.INFO to java.util.logging.Level.WARNING}) {
-            assertThat(
-                it.first,
-                sameInstance(java.util.logging.Level.INFO)
-            )
-            assertThat(
-                it.second,
-                sameInstance(java.util.logging.Level.WARNING)
-            )
-        }
-    }
-
-    @Test
     fun `can handle multiple writeObject implementations in the hierarchy`() {
         verifyRoundtripOf({ MultiWriteObjectBean() }) { bean ->
             assertThat(
