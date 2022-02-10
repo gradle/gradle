@@ -47,6 +47,7 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
                     switch (disposition) {
                         case RETRY:
                             resourceLockState.releaseLocks();
+                            maybeNotifyStateChange(resourceLockState);
                             try {
                                 lock.wait();
                             } catch (InterruptedException e) {

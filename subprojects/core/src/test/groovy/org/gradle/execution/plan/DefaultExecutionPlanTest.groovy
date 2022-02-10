@@ -26,8 +26,6 @@ import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.composite.internal.BuildTreeWorkGraphController
 import org.gradle.internal.file.Stat
-import org.gradle.internal.resources.ResourceLockState
-import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.util.Path
 import org.gradle.util.internal.TextUtil
 import spock.lang.Issue
@@ -38,14 +36,12 @@ import static org.gradle.util.internal.WrapUtil.toList
 
 class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
     DefaultExecutionPlan executionPlan
-    def workerLease = Mock(WorkerLeaseRegistry.WorkerLease)
     int order = 0
 
     def setup() {
         def taskNodeFactory = new TaskNodeFactory(thisBuild, Stub(DocumentationRegistry), Stub(BuildTreeWorkGraphController))
         def dependencyResolver = new TaskDependencyResolver([new TaskNodeDependencyResolver(taskNodeFactory)])
         executionPlan = new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, dependencyResolver, nodeValidator, new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, Stub(Stat)), new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, Stub(Stat)))
-        _ * workerLease.tryLock() >> true
     }
 
     def "schedules tasks in dependency order"() {
@@ -878,7 +874,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
     List<Node> getExecutedNodes() {
         def nodes = []
         while (executionPlan.hasNodesRemaining()) {
-            def nextNode = executionPlan.selectNext(workerLease, Mock(ResourceLockState))
+            def nextNode = executionPlan.selectNext()
             assert nextNode != null
             if (!nextNode.isComplete()) {
                 nodes << nextNode
