@@ -29,6 +29,7 @@ import org.gradle.workers.WorkerExecutor
 import org.slf4j.Logger
 
 import javax.inject.Inject
+import java.util.logging.Level
 
 class ConfigurationCacheSupportedTypesIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
@@ -94,6 +95,7 @@ class ConfigurationCacheSupportedTypesIntegrationTest extends AbstractConfigurat
         Class.name                           | "SomeBean"                            | "class SomeBean"
         URL.name                             | "new URL('https://gradle.org/')"      | "https://gradle.org/"
         URI.name                             | "URI.create('https://gradle.org/')"   | "https://gradle.org/"
+        Level.name                           | "${Level.name}.INFO"                  | "INFO"
         "SomeEnum"                           | "SomeEnum.Two"                        | "Two"
         "SomeEnum[]"                         | "[SomeEnum.Two] as SomeEnum[]"        | "[Two]"
         "List<String>"                       | "['a', 'b', 'c']"                     | "[a, b, c]"
@@ -413,6 +415,7 @@ class ConfigurationCacheSupportedTypesIntegrationTest extends AbstractConfigurat
         "MapProperty<String, String>" | "objects.mapProperty(String, String)" | "[:]"                | [:]
         "MapProperty<String, String>" | "objects.mapProperty(String, String)" | "['abc': 'def']"     | ['abc': 'def']
         "MapProperty<String, String>" | "objects.mapProperty(String, String)" | "null"               | "null"
+        "Property<$Level.name>"       | "objects.property($Level.name)"       | "${Level.name}.INFO" | "INFO"
     }
 
     def "restores task fields whose value is FileCollection"() {
