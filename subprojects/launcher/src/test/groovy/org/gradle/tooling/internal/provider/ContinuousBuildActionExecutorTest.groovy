@@ -31,6 +31,8 @@ import org.gradle.internal.buildevents.BuildStartedTime
 import org.gradle.internal.buildtree.BuildActionRunner
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.execution.UnitOfWork
+import org.gradle.internal.execution.fingerprint.InputFingerprinter
+import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputVisitor
 import org.gradle.internal.invocation.BuildAction
 import org.gradle.internal.logging.text.TestStyledTextOutputFactory
 import org.gradle.internal.service.scopes.DefaultFileChangeListeners
@@ -381,7 +383,14 @@ class ContinuousBuildActionExecutorTest extends ConcurrentSpec {
     }
 
     private void declareInput(File file) {
-        inputListeners.broadcastFileSystemInputsOf(Mock(UnitOfWork), TestFiles.fixed(file))
+        def valueSupplier = Stub(InputFingerprinter.FileValueSupplier) {
+            getFiles() >> TestFiles.fixed(file)
+        }
+        inputListeners.broadcastFileSystemInputsOf(Stub(UnitOfWork) {
+            visitRegularInputs(_ as InputVisitor) >> { InputVisitor visitor ->
+                visitor.visitInputFileProperty("test", InputFingerprinter.InputPropertyType.PRIMARY, valueSupplier)
+            }
+        }, EnumSet.allOf(InputFingerprinter.InputPropertyType))
     }
 
     private ContinuousBuildActionExecutor executer() {

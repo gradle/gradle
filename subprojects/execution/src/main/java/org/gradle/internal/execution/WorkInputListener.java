@@ -16,10 +16,11 @@
 
 package org.gradle.internal.execution;
 
-import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.internal.execution.fingerprint.InputFingerprinter;
 import org.gradle.internal.service.scopes.EventScope;
 import org.gradle.internal.service.scopes.Scope.Global;
+
+import java.util.EnumSet;
 
 /**
  * Registered via {@link WorkInputListeners}.
@@ -27,13 +28,11 @@ import org.gradle.internal.service.scopes.Scope.Global;
 @EventScope(Global.class)
 public interface WorkInputListener {
     /**
-     * Called when the execution of the given work item is imminent, or would have been if the given file collection was not currently empty.
+     * Called when the execution of the given work item is imminent, or would have been if the primary inputs would not have been empty.
      * <p>
-     * The given files may not all of ${@link org.gradle.internal.execution.UnitOfWork#visitRegularInputs(InputFingerprinter.InputVisitor)},
-     * as only a subset of that collection may be relevant to the task execution.
      *
      * @param work the identity of the unit of work to be executed
-     * @param fileSystemInputs the file system inputs relevant to the task execution
+     * @param relevantTypes the file system inputs relevant to the task execution
      */
-    void onExecute(UnitOfWork work, FileCollectionInternal fileSystemInputs);
+    void onExecute(UnitOfWork work, EnumSet<InputFingerprinter.InputPropertyType> relevantTypes);
 }

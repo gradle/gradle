@@ -19,8 +19,6 @@ package org.gradle.internal.execution.steps;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.api.internal.file.CompositeFileCollection;
-import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.ExecutionOutcome;
@@ -49,9 +47,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.time.Duration;
+import java.util.EnumSet;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
@@ -257,24 +255,9 @@ public class SkipEmptyWorkStep implements Step<PreviousExecutionContext, Caching
     }
 
     private void broadcastWorkInputs(UnitOfWork work, boolean onlyPrimaryInputs) {
-        workInputListeners.broadcastFileSystemInputsOf(work, new CompositeFileCollection() {
-            @Override
-            public String getDisplayName() {
-                return work.getDisplayName() + " relevant file inputs";
-            }
-
-            @Override
-            protected void visitChildren(Consumer<FileCollectionInternal> visitor) {
-                work.visitRegularInputs(new InputFingerprinter.InputVisitor() {
-                    @Override
-                    public void visitInputFileProperty(String propertyName, InputFingerprinter.InputPropertyType type, InputFingerprinter.FileValueSupplier value) {
-                        if (!onlyPrimaryInputs || type == InputFingerprinter.InputPropertyType.PRIMARY) {
-                            visitor.accept((FileCollectionInternal) value.getFiles());
-                        }
-                    }
-                });
-            }
-        });
+        workInputListeners.broadcastFileSystemInputsOf(work, onlyPrimaryInputs
+            ? EnumSet.of(InputFingerprinter.InputPropertyType.PRIMARY)
+            : EnumSet.allOf(InputFingerprinter.InputPropertyType.class));
     }
 
     private boolean cleanPreviousTaskOutputs(Map<String, FileSystemSnapshot> outputFileSnapshots) {

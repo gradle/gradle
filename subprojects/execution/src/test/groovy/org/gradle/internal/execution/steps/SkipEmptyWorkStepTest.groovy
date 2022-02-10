@@ -18,7 +18,6 @@ package org.gradle.internal.execution.steps
 
 import com.google.common.collect.ImmutableSet
 import com.google.common.collect.ImmutableSortedMap
-import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.UnitOfWork
@@ -36,19 +35,12 @@ import static org.gradle.internal.execution.ExecutionOutcome.SHORT_CIRCUITED
 
 class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
     def outputChangeListener = Mock(OutputChangeListener)
-    Set<File> fileSystemInputs
-    def workInputListeners = Stub(WorkInputListeners) {
-        broadcastFileSystemInputsOf(work, _ as FileCollectionInternal) >> { UnitOfWork work, FileCollectionInternal files ->
-            fileSystemInputs = files.files
-        }
-    }
+    def workInputListeners = Mock(WorkInputListeners)
     def outputsCleaner = Mock(OutputsCleaner)
     def inputFingerprinter = Mock(InputFingerprinter)
     def fileCollectionSnapshotter = TestFiles.fileCollectionSnapshotter()
-    def primaryFileInputs = [new File("primary")] as Set
-    def regularFileInputs = [new File("regular")] as Set
-    def allFileInputs = (primaryFileInputs + regularFileInputs) as Set
-    def fileCollectionFactory = TestFiles.fileCollectionFactory()
+    def primaryFileInputs = EnumSet.of(InputFingerprinter.InputPropertyType.PRIMARY)
+    def allFileInputs = EnumSet.allOf(InputFingerprinter.InputPropertyType)
 
     def step = new SkipEmptyWorkStep(
         outputChangeListener,
@@ -72,14 +64,6 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
 
     def setup() {
         _ * work.inputFingerprinter >> inputFingerprinter
-        _ * work.visitRegularInputs(_) >> { InputFingerprinter.InputVisitor inputVisitor ->
-            inputVisitor.visitInputFileProperty("primary", InputFingerprinter.InputPropertyType.PRIMARY, Stub(InputFingerprinter.FileValueSupplier) {
-                getFiles() >> fileCollectionFactory.fixed(primaryFileInputs)
-            })
-            inputVisitor.visitInputFileProperty("regular", InputFingerprinter.InputPropertyType.NON_INCREMENTAL, Stub(InputFingerprinter.FileValueSupplier) {
-                getFiles() >> fileCollectionFactory.fixed(regularFileInputs)
-            })
-        }
     }
 
     def "delegates when work has no source properties"() {
@@ -109,9 +93,9 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
             it.inputProperties as Map == ["known": knownSnapshot]
             it.inputFileProperties as Map == ["known-file": knownFileFingerprint]
         }) >> delegateResult
+        1 * workInputListeners.broadcastFileSystemInputsOf(work, allFileInputs)
         0 * _
 
-        fileSystemInputs == allFileInputs
         result == delegateResult
     }
 
@@ -146,10 +130,10 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
             assert delegateContext.inputFileProperties as Map == ["known-file": knownFileFingerprint, "source-file": sourceFileFingerprint]
             return delegateResult
         }
+        1 * workInputListeners.broadcastFileSystemInputsOf(work, allFileInputs)
         0 * _
 
         then:
-        fileSystemInputs == allFileInputs
         result == delegateResult
     }
 
@@ -176,9 +160,9 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
 
         then:
         1 * sourceFileFingerprint.empty >> true
+        1 * workInputListeners.broadcastFileSystemInputsOf(work, primaryFileInputs)
 
         then:
-        fileSystemInputs == primaryFileInputs
         result.executionResult.get().outcome == SHORT_CIRCUITED
         !result.afterExecutionState.present
     }
@@ -203,10 +187,10 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
 
         and:
         1 * outputsCleaner.didWork >> didWork
+        1 * workInputListeners.broadcastFileSystemInputsOf(work, primaryFileInputs)
         0 * _
 
         then:
-        fileSystemInputs == primaryFileInputs
         result.executionResult.get().outcome == outcome
         !result.afterExecutionState.present
 

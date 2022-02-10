@@ -58,11 +58,14 @@ import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.internal.execution.TaskExecutionTracker
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.WorkInputListener
+import org.gradle.internal.execution.fingerprint.InputFingerprinter
+import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputVisitor
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.resource.local.FileResourceListener
 import org.gradle.internal.scripts.ScriptExecutionListener
 import org.gradle.util.Path
 import java.io.File
+import java.util.EnumSet
 
 
 internal
@@ -255,8 +258,8 @@ class ConfigurationCacheFingerprintWriter(
         }
     }
 
-    override fun onExecute(work: UnitOfWork, fileSystemInputs: FileCollectionInternal) {
-        captureWorkInputs(work, fileSystemInputs)
+    override fun onExecute(work: UnitOfWork, relevantTypes: EnumSet<InputFingerprinter.InputPropertyType>) {
+        captureWorkInputs(work, relevantTypes)
     }
 
     private
@@ -265,11 +268,20 @@ class ConfigurationCacheFingerprintWriter(
     }
 
     private
-    fun captureWorkInputs(work: UnitOfWork, fileSystemInputs: FileCollectionInternal) {
+    fun captureWorkInputs(work: UnitOfWork, relevantTypes: EnumSet<InputFingerprinter.InputPropertyType>) {
+        val simplifyingVisitor = SimplifyingFileCollectionStructureVisitor(directoryFileTreeFactory, fileCollectionFactory)
+        work.visitRegularInputs(object : InputVisitor {
+            override fun visitInputFileProperty(propertyName: String, type: InputFingerprinter.InputPropertyType, value: InputFingerprinter.FileValueSupplier) {
+                if (relevantTypes.contains(type)) {
+                    (value.files as FileCollectionInternal).visitStructure(simplifyingVisitor)
+                }
+            }
+        })
+        val fileSystemInputs = simplifyingVisitor.simplify()
         sink().write(
             ConfigurationCacheFingerprint.WorkInputs(
                 work.displayName,
-                simplify(fileSystemInputs),
+                fileSystemInputs,
                 host.fingerprintOf(fileSystemInputs)
             )
         )
@@ -312,28 +324,36 @@ class ConfigurationCacheFingerprintWriter(
     private
     fun sink(): Sink = projectForThread.get() ?: buildScopedSink
 
+    /**
+     * Transform the collection into a sequence of files or directory trees and remove dynamic behaviour
+     */
     private
-    fun simplify(source: FileCollectionInternal): FileCollectionInternal {
-        // Transform the collection into a sequence of files or directory trees and remove dynamic behaviour
+    class SimplifyingFileCollectionStructureVisitor(
+        private
+        val directoryFileTreeFactory: DirectoryFileTreeFactory,
+        private
+        val fileCollectionFactory: FileCollectionFactory
+    ) : FileCollectionStructureVisitor {
+        private
         val elements = mutableListOf<Any>()
-        source.visitStructure(object : FileCollectionStructureVisitor {
-            override fun visitCollection(source: FileCollectionInternal.Source, contents: Iterable<File>) {
-                elements.addAll(contents)
-            }
 
-            override fun visitGenericFileTree(fileTree: FileTreeInternal, sourceTree: FileSystemMirroringFileTree) {
-                elements.addAll(fileTree)
-            }
+        override fun visitCollection(source: FileCollectionInternal.Source, contents: Iterable<File>) {
+            elements.addAll(contents)
+        }
 
-            override fun visitFileTree(root: File, patterns: PatternSet, fileTree: FileTreeInternal) {
-                elements.add(directoryFileTreeFactory.create(root, patterns))
-            }
+        override fun visitGenericFileTree(fileTree: FileTreeInternal, sourceTree: FileSystemMirroringFileTree) {
+            elements.addAll(fileTree)
+        }
 
-            override fun visitFileTreeBackedByFile(file: File, fileTree: FileTreeInternal, sourceTree: FileSystemMirroringFileTree) {
-                elements.add(file)
-            }
-        })
-        return fileCollectionFactory.resolving(elements)
+        override fun visitFileTree(root: File, patterns: PatternSet, fileTree: FileTreeInternal) {
+            elements.add(directoryFileTreeFactory.create(root, patterns))
+        }
+
+        override fun visitFileTreeBackedByFile(file: File, fileTree: FileTreeInternal, sourceTree: FileSystemMirroringFileTree) {
+            elements.add(file)
+        }
+
+        fun simplify(): FileCollectionInternal = fileCollectionFactory.resolving(elements)
     }
 
     private

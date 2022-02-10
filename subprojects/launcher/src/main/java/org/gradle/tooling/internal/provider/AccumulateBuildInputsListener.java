@@ -24,8 +24,10 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.execution.plan.BuildInputHierarchy;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkInputListener;
+import org.gradle.internal.execution.fingerprint.InputFingerprinter;
 
 import java.io.File;
+import java.util.EnumSet;
 import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -39,32 +41,39 @@ public class AccumulateBuildInputsListener implements WorkInputListener {
     }
 
     @Override
-    public void onExecute(UnitOfWork work, FileCollectionInternal fileSystemInputs) {
+    public void onExecute(UnitOfWork work, EnumSet<InputFingerprinter.InputPropertyType> relevantTypes) {
         Set<String> taskInputs = new LinkedHashSet<>();
         Set<FilteredTree> filteredFileTreeTaskInputs = new LinkedHashSet<>();
-        fileSystemInputs.visitStructure(new FileCollectionStructureVisitor() {
+        work.visitRegularInputs(new InputFingerprinter.InputVisitor() {
             @Override
-            public void visitCollection(FileCollectionInternal.Source source, Iterable<File> contents) {
-                contents.forEach(location -> taskInputs.add(location.getAbsolutePath()));
-            }
+            public void visitInputFileProperty(String propertyName, InputFingerprinter.InputPropertyType type, InputFingerprinter.FileValueSupplier value) {
+                if (relevantTypes.contains(type)) {
+                    ((FileCollectionInternal) value.getFiles()).visitStructure(new FileCollectionStructureVisitor() {
+                        @Override
+                        public void visitCollection(FileCollectionInternal.Source source, Iterable<File> contents) {
+                            contents.forEach(location -> taskInputs.add(location.getAbsolutePath()));
+                        }
 
-            @Override
-            public void visitGenericFileTree(FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
-                fileTree.forEach(location -> taskInputs.add(location.getAbsolutePath()));
-            }
+                        @Override
+                        public void visitGenericFileTree(FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
+                            fileTree.forEach(location -> taskInputs.add(location.getAbsolutePath()));
+                        }
 
-            @Override
-            public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
-                if (patterns.isEmpty()) {
-                    taskInputs.add(root.getAbsolutePath());
-                } else {
-                    filteredFileTreeTaskInputs.add(new FilteredTree(root.getAbsolutePath(), patterns));
+                        @Override
+                        public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
+                            if (patterns.isEmpty()) {
+                                taskInputs.add(root.getAbsolutePath());
+                            } else {
+                                filteredFileTreeTaskInputs.add(new FilteredTree(root.getAbsolutePath(), patterns));
+                            }
+                        }
+
+                        @Override
+                        public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
+                            taskInputs.add(file.getAbsolutePath());
+                        }
+                    });
                 }
-            }
-
-            @Override
-            public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
-                taskInputs.add(file.getAbsolutePath());
             }
         });
         buildInputHierarchy.recordInputs(taskInputs);
