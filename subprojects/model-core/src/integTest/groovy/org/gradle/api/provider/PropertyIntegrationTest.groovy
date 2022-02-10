@@ -811,10 +811,10 @@ project.extensions.create("some", SomeExtension)
     }
 
     @Issue("https://github.com/gradle/gradle/issues/13623")
-    def "setter for property with different type doesn't cause drop of task dependency"() {
+    def "setter for #fieldModifier property with different type doesn't cause drop of task dependency"() {
         buildFile """
             abstract class Producer extends DefaultTask {
-                private DirectoryProperty foo
+                private $fieldModifier DirectoryProperty foo
 
                 @Inject
                 Producer(ObjectFactory objectFactory) {
@@ -848,7 +848,9 @@ project.extensions.create("some", SomeExtension)
         """
         expect:
         succeeds("consumer")
-        outputContains("Producer ran")
-        outputContains("Consumer ran")
+        executedAndNotSkipped(":producer", ":consumer")
+
+        where:
+        fieldModifier << ["", "final"]
     }
 }
