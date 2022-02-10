@@ -125,7 +125,6 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
                 models.add(model);
             }
             if (models.stream().anyMatch(DefaultVersionCatalog::isNotEmpty)) {
-                IncubationLogger.incubatingFeatureUsed("Type-safe dependency accessors");
                 for (DefaultVersionCatalog model : models) {
                     if (model.isNotEmpty()) {
                         writeDependenciesAccessors(model);
