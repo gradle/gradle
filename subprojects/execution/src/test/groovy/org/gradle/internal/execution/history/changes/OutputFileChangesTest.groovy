@@ -16,6 +16,7 @@
 
 package org.gradle.internal.execution.history.changes
 
+import com.google.common.collect.ImmutableSortedMap
 import org.apache.commons.io.FilenameUtils
 import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.TestSnapshotFixture
@@ -55,12 +56,36 @@ class OutputFileChangesTest extends Specification implements TestSnapshotFixture
         ) == [removed("one")]
     }
 
-    def "trivial absolute path change"() {
+    def "trivial file name change"() {
         expect:
         changes(
             regularFile("one", 0x1234),
             regularFile("two", 0x1234)
-        ) == [removed("one"), added("two")]
+        ) == []
+    }
+
+    def "trivial absolute path change with same name for existing files"() {
+        expect:
+        changes(
+            regularFile("root1/one", 0x1234),
+            regularFile("root2/one", 0x1234)
+        ) == []
+    }
+
+    def "trivial name change for directories"() {
+        expect:
+        changes(
+            directory("root1", [regularFile("root1/one", 0x1234)]),
+            directory("root2", [regularFile("root2/one", 0x1234)]),
+        ) == []
+    }
+
+    def "trivial name change for missing files"() {
+        expect:
+        changes(
+            missing("root1"),
+            missing("root2"),
+        ) == []
     }
 
     def "trivial content change"() {
@@ -88,14 +113,14 @@ class OutputFileChangesTest extends Specification implements TestSnapshotFixture
     def "deep addition"() {
         expect:
         changes(
-            directory("root", [
-                regularFile("root/one", 0x1234)
+            directory("root1", [
+                regularFile("root1/one", 0x1234)
             ]),
-            directory("root", [
-                regularFile("root/one", 0x1234),
-                regularFile("root/two", 0x2345)
+            directory("root2", [
+                regularFile("root2/one", 0x1234),
+                regularFile("root2/two", 0x2345)
             ])
-        ) == [added("root/two")]
+        ) == [added("root2/two")]
     }
 
     def "deep removal"() {
@@ -127,8 +152,9 @@ class OutputFileChangesTest extends Specification implements TestSnapshotFixture
 
     def changes(FileSystemSnapshot previousSnapshot, FileSystemSnapshot currentSnapshot) {
         def visitor = new CollectingChangeVisitor()
-        OutputFileChanges.COMPARE_STRATEGY.visitChangesSince(previousSnapshot, currentSnapshot, "test", visitor)
-        visitor.getChanges().toList()
+        def outputFileChanges = new OutputFileChanges(ImmutableSortedMap.of("test", previousSnapshot), ImmutableSortedMap.of("test", currentSnapshot))
+        outputFileChanges.accept(visitor)
+        visitor.getChanges().collect {new DescriptiveChange(it.message) }.toList()
     }
 
     def added(String path) {
