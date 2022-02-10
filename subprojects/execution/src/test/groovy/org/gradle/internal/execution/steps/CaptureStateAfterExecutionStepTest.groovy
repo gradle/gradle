@@ -32,7 +32,7 @@ import org.gradle.internal.snapshot.RegularFileSnapshot
 
 import java.time.Duration
 
-import static org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder.EmptyDirectoryHandlingStrategy.INCLUDE_EMPTY_DIRS
+import static org.gradle.internal.snapshot.DirectorySnapshotBuilder.EmptyDirectoryHandlingStrategy.INCLUDE_EMPTY_DIRS
 
 class CaptureStateAfterExecutionStepTest extends StepSpec<BeforeExecutionContext> {
 

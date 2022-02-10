@@ -741,7 +741,7 @@ class DefaultSnapshotHierarchyTest extends Specification {
     }
 
     private FileSystemLocationSnapshot snapshotDir(File dir) {
-        directorySnapshotter.snapshot(dir.absolutePath, null, new AtomicBoolean(false))
+        directorySnapshotter.snapshot(dir.absolutePath, null, new AtomicBoolean(false)) {}
     }
 
     private static FileSystemLocationSnapshot snapshotFile(File file) {

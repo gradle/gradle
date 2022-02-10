@@ -154,7 +154,12 @@ public class WorkerDaemonServer implements RequestHandler<TransportableActionExe
         }
 
         protected ExecFactory createExecFactory(ExecFactory execFactory, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, ObjectFactory objectFactory) {
-            return execFactory.forContext(fileResolver, fileCollectionFactory, instantiator, objectFactory);
+            return execFactory.forContext()
+                .withFileResolver(fileResolver)
+                .withFileCollectionFactory(fileCollectionFactory)
+                .withInstantiator(instantiator)
+                .withObjectFactory(objectFactory)
+                .build();
         }
 
         protected DefaultResourceHandler.Factory createResourceHandlerFactory() {

@@ -1,3 +1,0 @@
- - Aggregated test and JaCoCo reports
- - Marking additional test source directories as tests in IntelliJ
- - Support for Adoptium JDKs in Java toolchains

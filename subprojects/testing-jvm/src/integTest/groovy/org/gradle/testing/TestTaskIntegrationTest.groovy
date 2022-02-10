@@ -311,7 +311,7 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
             }
         """.stripIndent()
 
-        executer.expectDocumentedDeprecationWarning("Accessing test options prior to setting test framework has been deprecated.")
+        executer.expectDeprecationWarning("Accessing test options prior to setting test framework has been deprecated.")
 
         expect:
         succeeds("test", "verifyTestOptions", "--warn")
@@ -348,7 +348,7 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
             }
         """.stripIndent()
 
-        executer.expectDocumentedDeprecationWarning("Accessing test options prior to setting test framework has been deprecated.")
+        executer.expectDeprecationWarning("Accessing test options prior to setting test framework has been deprecated.")
 
         when:
         succeeds("test", "verifyTestOptions", "--warn")
@@ -386,7 +386,7 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
             }
         """.stripIndent()
 
-        executer.expectDocumentedDeprecationWarning("Accessing test options prior to setting test framework has been deprecated.")
+        executer.expectDeprecationWarning("Accessing test options prior to setting test framework has been deprecated.")
 
         expect:
         succeeds("test", "verifyTestOptions", "--warn")

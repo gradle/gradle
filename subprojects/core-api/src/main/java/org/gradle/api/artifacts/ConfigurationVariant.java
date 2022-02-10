@@ -17,9 +17,12 @@
 package org.gradle.api.artifacts;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.internal.HasInternalProtocol;
+
+import java.util.Optional;
 
 /**
  * Represents some variant of an outgoing configuration.
@@ -28,6 +31,13 @@ import org.gradle.internal.HasInternalProtocol;
  */
 @HasInternalProtocol
 public interface ConfigurationVariant extends Named, HasConfigurableAttributes<ConfigurationVariant> {
+    /**
+     * Returns an optional note describing this variant.
+     *
+     * @since 7.5
+     */
+    @Incubating
+    Optional<String> getDescription();
 
     /**
      * Returns the artifacts associated with this variant.

@@ -2,6 +2,8 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
+description = "Implementation of configuration model types and annotation metadata handling (Providers, software model, conventions)"
+
 dependencies {
     api(project(":core-api"))
     api(project(":problems"))

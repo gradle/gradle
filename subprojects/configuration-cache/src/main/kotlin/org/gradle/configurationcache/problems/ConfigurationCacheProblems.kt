@@ -105,10 +105,8 @@ class ConfigurationCacheProblems(
         hasIncompatibleTypes = true
         return object : ProblemsListener {
             override fun onProblem(problem: PropertyProblem) {
-                onProblem(problem, ProblemSeverity.Warn)
+                onProblem(problem, ProblemSeverity.Suppressed)
             }
-
-            override fun forIncompatibleType() = this
         }
     }
 
@@ -134,8 +132,8 @@ class ConfigurationCacheProblems(
     override fun report(reportDir: File, validationFailures: Consumer<in Throwable>) {
         val summary = summarizer.get()
         val failDueToProblems = summary.failureCount > 0 && isFailOnProblems
-        val discardStateDueToProblems = (summary.problemCount > 0 || hasIncompatibleTypes) && isFailOnProblems
-        val hasTooManyProblems = summary.problemCount > startParameter.maxProblems
+        val discardStateDueToProblems = discardStateDueToProblems(summary)
+        val hasTooManyProblems = hasTooManyProblems(summary)
         val discardState = discardStateDueToProblems || hasTooManyProblems
         if (cacheAction != LOAD && discardState) {
             // Invalidate stored state if problems fail the build
@@ -197,10 +195,11 @@ class ConfigurationCacheProblems(
         override fun afterStart() = Unit
 
         override fun beforeComplete() {
-            val problemCount = summarizer.get().problemCount
+            val summary = summarizer.get()
+            val problemCount = summary.problemCount
             val hasProblems = problemCount > 0
-            val discardStateDueToProblems = (problemCount > 0 || hasIncompatibleTypes) && isFailOnProblems
-            val hasTooManyProblems = problemCount > startParameter.maxProblems
+            val discardStateDueToProblems = discardStateDueToProblems(summary)
+            val hasTooManyProblems = hasTooManyProblems(summary)
             val problemCountString = problemCount.counter("problem")
             val reusedProjectsString = reusedProjects.counter("project")
             val updatedProjectsString = updatedProjects.counter("project")
@@ -222,6 +221,14 @@ class ConfigurationCacheProblems(
             }
         }
     }
+
+    private
+    fun discardStateDueToProblems(summary: Summary) =
+        (summary.problemCount > 0 || hasIncompatibleTypes) && isFailOnProblems
+
+    private
+    fun hasTooManyProblems(summary: Summary) =
+        summary.nonSuppressedProblemCount > startParameter.maxProblems
 
     private
     fun log(msg: String, vararg args: Any = emptyArray()) {

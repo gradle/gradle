@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.changedetection.state.FileHasherStatistics;
+import org.gradle.deployment.internal.DeploymentRegistryInternal;
 import org.gradle.initialization.StartParameterBuildOptions;
 import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
@@ -28,10 +29,10 @@ import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.service.scopes.VirtualFileSystemServices;
 import org.gradle.internal.snapshot.impl.DirectorySnapshotterStatistics;
 import org.gradle.internal.watch.options.FileSystemWatchingSettingsFinalizedProgressDetails;
+import org.gradle.internal.watch.registry.WatchMode;
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem;
 import org.gradle.internal.watch.vfs.VfsLogging;
 import org.gradle.internal.watch.vfs.WatchLogging;
-import org.gradle.internal.watch.vfs.WatchMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,6 +41,7 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
 
     private final BuildOperationProgressEventEmitter eventEmitter;
     private final BuildLifecycleAwareVirtualFileSystem virtualFileSystem;
+    private final DeploymentRegistryInternal deploymentRegistry;
     private final StatStatistics.Collector statStatisticsCollector;
     private final FileHasherStatistics.Collector fileHasherStatisticsCollector;
     private final DirectorySnapshotterStatistics.Collector directorySnapshotterStatisticsCollector;
@@ -49,6 +51,7 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
     public FileSystemWatchingBuildActionRunner(
         BuildOperationProgressEventEmitter eventEmitter,
         BuildLifecycleAwareVirtualFileSystem virtualFileSystem,
+        DeploymentRegistryInternal deploymentRegistry,
         StatStatistics.Collector statStatisticsCollector,
         FileHasherStatistics.Collector fileHasherStatisticsCollector,
         DirectorySnapshotterStatistics.Collector directorySnapshotterStatisticsCollector,
@@ -57,6 +60,7 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
     ) {
         this.eventEmitter = eventEmitter;
         this.virtualFileSystem = virtualFileSystem;
+        this.deploymentRegistry = deploymentRegistry;
         this.statStatisticsCollector = statStatisticsCollector;
         this.fileHasherStatisticsCollector = fileHasherStatisticsCollector;
         this.directorySnapshotterStatisticsCollector = directorySnapshotterStatisticsCollector;
@@ -77,6 +81,13 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
             : WatchLogging.NORMAL;
 
         LOGGER.info("Watching the file system is configured to be {}", watchFileSystemMode.getDescription());
+
+        boolean continuousBuild = startParameter.isContinuous() || !deploymentRegistry.getRunningDeployments().isEmpty();
+
+        if (continuousBuild && watchFileSystemMode == WatchMode.DEFAULT) {
+            // Try to watch as much as possible when using continuous build.
+            watchFileSystemMode = WatchMode.ENABLED;
+        }
         if (watchFileSystemMode.isEnabled()) {
             dropVirtualFileSystemIfRequested(startParameter, virtualFileSystem);
         }
@@ -100,6 +111,7 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
             }
         }
 
+        LOGGER.debug("Watching the file system computed to be {}", watchFileSystemMode.getDescription());
         boolean actuallyWatching = virtualFileSystem.afterBuildStarted(
             watchFileSystemMode,
             verboseVfsLogging,
@@ -114,6 +126,11 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
                 return actuallyWatching;
             }
         });
+        if (continuousBuild) {
+            if (!actuallyWatching) {
+                throw new IllegalStateException("Continuous build does not work when file system watching is disabled");
+            }
+        }
 
         try {
             return delegate.run(action, buildController);

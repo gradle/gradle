@@ -47,6 +47,7 @@ class ModelReportIntegrationTest extends AbstractIntegrationSpec {
                     prepareKotlinBuildScriptModel()
                     projects()
                     properties()
+                    resovableVariants()
                     tasks()
                     wrapper()
                 }
@@ -371,6 +372,12 @@ model {
           | Type:   \torg.gradle.api.tasks.diagnostics.PropertyReportTask
           | Value:  \ttask ':properties\'
           | Creator: \tProject.<init>.tasks.properties()
+          | Rules:
+             ⤷ copyToTaskContainer
+    + resolvableConfigurations
+          | Type:   \torg.gradle.api.tasks.diagnostics.ResolvableConfigurationsReportTask
+          | Value:  \ttask ':resolvableConfigurations\'
+          | Creator: \tProject.<init>.tasks.resolvableConfigurations()
           | Rules:
              ⤷ copyToTaskContainer
     + tasks

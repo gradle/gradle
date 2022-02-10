@@ -266,6 +266,13 @@
     "crossVersionTests": false
   },
   {
+    "dirName": "enterprise-logging",
+    "name": "enterprise-logging",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "dirName": "enterprise-operations",
     "name": "enterprise-operations",
     "unitTests": false,
@@ -508,6 +515,13 @@
     "name": "logging",
     "unitTests": true,
     "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "logging-api",
+    "name": "logging-api",
+    "unitTests": true,
+    "functionalTests": false,
     "crossVersionTests": false
   },
   {
@@ -807,8 +821,15 @@
   {
     "dirName": "wrapper",
     "name": "wrapper",
-    "unitTests": true,
+    "unitTests": false,
     "functionalTests": true,
     "crossVersionTests": true
+  },
+  {
+    "dirName": "wrapper-shared",
+    "name": "wrapper-shared",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
   }
 ]

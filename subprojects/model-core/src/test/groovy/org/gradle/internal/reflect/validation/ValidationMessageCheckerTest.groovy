@@ -264,7 +264,7 @@ Please refer to https://docs.gradle.org/current/userguide/validation_problems.ht
     @ValidationTestFor(
         ValidationProblemId.MISSING_ANNOTATION
     )
-    def "tests ouput of missingAnnotationMessage"() {
+    def "tests output of missingAnnotationMessage"() {
         when:
         render missingAnnotationMessage {
             type('Task').property('prop')

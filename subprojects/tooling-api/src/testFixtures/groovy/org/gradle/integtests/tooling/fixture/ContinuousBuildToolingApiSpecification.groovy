@@ -20,6 +20,7 @@ import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.integtests.fixtures.executer.UnexpectedBuildFailure
 import org.gradle.internal.os.OperatingSystem
@@ -29,22 +30,30 @@ import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.CancellationToken
 import org.gradle.tooling.ProjectConnection
 import org.hamcrest.Matcher
+import org.junit.Assume
 import org.junit.Rule
 import spock.lang.Retry
 import spock.lang.Timeout
 
-import static org.gradle.integtests.fixtures.RetryConditions.onBuildTimeout
+import static org.gradle.integtests.fixtures.RetryConditions.onContinuousBuildTimeout
 import static org.hamcrest.CoreMatchers.anyOf
 import static org.hamcrest.CoreMatchers.containsString
 import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
 
 @Timeout(180)
-@Retry(condition = { onBuildTimeout(instance, failure) }, mode = SETUP_FEATURE_CLEANUP, count = 2)
+@Retry(condition = { onContinuousBuildTimeout(instance, failure) }, mode = SETUP_FEATURE_CLEANUP, count = 2)
 abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecification {
 
     public static final String WAITING_MESSAGE = "Waiting for changes to input files of tasks..."
     public static final String BUILD_CANCELLED = "Build cancelled."
     public static final String BUILD_CANCELLED_AND_STOPPED = "the build was canceled"
+
+    // We have problems loading the file system watching library when starting a Gradle build via the tooling API in debug (= embedded) mode.
+    // The problem there is that Gradle then tries to load the native library in two different classloaders in the same JDK, which isn't allowed.
+    // We could try to fix this problems, though this is only a problem for testing.
+    static boolean canUseContinuousBuildViaToolingApi() {
+        return  !GradleContextualExecuter.embedded
+    }
 
     private static final boolean OS_IS_WINDOWS = OperatingSystem.current().isWindows()
 
@@ -62,8 +71,9 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
 
 
     def setup() {
+        Assume.assumeTrue("Unsupported for the embedded runner", canUseContinuousBuildViaToolingApi())
         buildFile.text = "apply plugin: 'java'\n"
-        sourceDir = file("src/main/java")
+        sourceDir = file("src/main/java").createDir()
     }
 
     @Override
@@ -107,7 +117,7 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
                 """.stripMargin()
 
                 BuildLauncher launcher = projectConnection.newBuild()
-                    .withArguments("--continuous", "-I", initScript.absolutePath)
+                    .withArguments(["--continuous", "-I", initScript.absolutePath])
                     .forTasks(tasks as String[])
                     .withCancellationToken(token)
 

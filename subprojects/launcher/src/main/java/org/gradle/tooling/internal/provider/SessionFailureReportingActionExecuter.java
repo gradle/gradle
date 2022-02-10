@@ -19,19 +19,17 @@ package org.gradle.tooling.internal.provider;
 import org.gradle.BuildResult;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.configuration.ShowStacktrace;
-import org.gradle.execution.WorkValidationWarningReporter;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.exception.DefaultExceptionAnalyser;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.initialization.exception.MultipleBuildFailuresExceptionAnalyser;
 import org.gradle.initialization.exception.StackTraceSanitizingExceptionAnalyser;
 import org.gradle.internal.buildevents.BuildLogger;
+import org.gradle.internal.buildevents.BuildLoggerFactory;
 import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.invocation.BuildAction;
-import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.service.scopes.Scopes;
-import org.gradle.internal.time.Clock;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
@@ -41,15 +39,11 @@ import org.gradle.launcher.exec.BuildActionResult;
  */
 public class SessionFailureReportingActionExecuter implements BuildActionExecuter<BuildActionParameters, BuildRequestContext> {
     private final BuildActionExecuter<BuildActionParameters, BuildRequestContext> delegate;
-    private final StyledTextOutputFactory styledTextOutputFactory;
-    private final Clock clock;
-    private final WorkValidationWarningReporter workValidationWarningReporter;
+    private final BuildLoggerFactory buildLoggerFactory;
 
-    public SessionFailureReportingActionExecuter(StyledTextOutputFactory styledTextOutputFactory, Clock clock, WorkValidationWarningReporter workValidationWarningReporter, BuildActionExecuter<BuildActionParameters, BuildRequestContext> delegate) {
-        this.styledTextOutputFactory = styledTextOutputFactory;
-        this.clock = clock;
-        this.workValidationWarningReporter = workValidationWarningReporter;
+    public SessionFailureReportingActionExecuter(BuildLoggerFactory buildLoggerFactory, BuildActionExecuter<BuildActionParameters, BuildRequestContext> delegate) {
         this.delegate = delegate;
+        this.buildLoggerFactory = buildLoggerFactory;
     }
 
     @Override
@@ -66,7 +60,7 @@ public class SessionFailureReportingActionExecuter implements BuildActionExecute
             }
             RuntimeException failure = exceptionAnalyser.transform(e);
             BuildStartedTime buildStartedTime = BuildStartedTime.startingAt(requestContext.getStartTime());
-            BuildLogger buildLogger = new BuildLogger(Logging.getLogger(BuildSessionLifecycleBuildActionExecuter.class), styledTextOutputFactory, action.getStartParameter(), requestContext, buildStartedTime, clock, workValidationWarningReporter);
+            BuildLogger buildLogger = buildLoggerFactory.create(Logging.getLogger(BuildSessionLifecycleBuildActionExecuter.class), action.getStartParameter(), buildStartedTime, requestContext);
             buildLogger.buildFinished(new BuildResult(null, failure));
             buildLogger.logResult(failure);
             return BuildActionResult.failed(failure);

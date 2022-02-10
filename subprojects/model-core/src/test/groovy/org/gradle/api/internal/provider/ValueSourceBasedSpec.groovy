@@ -25,6 +25,7 @@ import org.gradle.api.provider.ValueSourceSpec
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.snapshot.impl.DefaultIsolatableFactory
+import org.gradle.process.ExecOperations
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -36,11 +37,13 @@ abstract class ValueSourceBasedSpec extends Specification {
         TestUtil.managedFactoryRegistry()
     )
     def configurationTimeBarrier = Mock(ConfigurationTimeBarrier)
+    def execOperations = Mock(ExecOperations)
     def valueSourceProviderFactory = new DefaultValueSourceProviderFactory(
         listenerManager,
         TestUtil.instantiatorFactory(),
         isolatableFactory,
         Mock(GradleProperties),
+        execOperations,
         TestUtil.services()
     )
 

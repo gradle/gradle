@@ -79,6 +79,15 @@ class CrossVersionPerformanceResults extends PerformanceTestResult {
         }
     }
 
+    void assertCurrentVersionHasNotRegressedWithHighRelativeMedianDifference() {
+        if (hasRegressionChecks()) {
+            def slower = checkBaselineVersion({ it.significantlyFasterThan(current) && it.significantlyFasterByMedianThan(current) }, { it.getSpeedStatsAgainst(displayName, current) })
+            if (slower) {
+                throw new AssertionError(Object.cast(slower))
+            }
+        }
+    }
+
     private String checkBaselineVersion(Transformer<Boolean, BaselineVersion> fails, Transformer<String, BaselineVersion> provideMessage) {
         def failed = false
         def failure = new StringBuilder()

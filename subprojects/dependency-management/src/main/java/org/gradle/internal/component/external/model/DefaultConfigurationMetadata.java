@@ -254,6 +254,7 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
         private CapabilitiesMetadata capabilities;
         private ImmutableAttributes attributes;
         private ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts;
+        private boolean requiresMavenArtifactDiscovery = DefaultConfigurationMetadata.super.requiresMavenArtifactDiscovery();
 
         Builder withName(String name) {
             this.name = name;
@@ -262,6 +263,8 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
 
         public Builder withArtifacts(ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts) {
             this.artifacts = artifacts;
+            // when explicitly specifying artifacts, disable maven repo "probing"
+            this.requiresMavenArtifactDiscovery = false;
             return this;
         }
 
@@ -305,7 +308,7 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
                     lazyConfigDependencies(),
                     dependencyFilter,
                     capabilities == null ? DefaultConfigurationMetadata.this.getRawCapabilities() : capabilities,
-                    DefaultConfigurationMetadata.super.requiresMavenArtifactDiscovery(),
+                    requiresMavenArtifactDiscovery,
                     isExternalVariant()
             );
         }

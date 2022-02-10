@@ -24,6 +24,7 @@ import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.internal.DependencyClassPathProvider;
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.internal.ExternalProcessStartedListener;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.artifacts.DefaultModule;
@@ -65,6 +66,8 @@ import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.api.internal.provider.DefaultProviderFactory;
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory;
 import org.gradle.api.internal.provider.ValueSourceProviderFactory;
+import org.gradle.api.internal.provider.sources.process.ExecSpecFactory;
+import org.gradle.api.internal.provider.sources.process.ProcessOutputProviderFactory;
 import org.gradle.api.internal.resources.ApiTextResourceAdapter;
 import org.gradle.api.internal.resources.DefaultResourceHandler;
 import org.gradle.api.internal.tasks.TaskStatistics;
@@ -197,6 +200,8 @@ import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
 import org.gradle.process.internal.DefaultExecOperations;
+import org.gradle.process.internal.DefaultExecSpecFactory;
+import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.process.internal.ExecFactory;
 import org.gradle.tooling.provider.model.internal.BuildScopeToolingModelBuilderRegistryAction;
 import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry;
@@ -280,8 +285,15 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return fileCollectionFactory.withResolver(fileResolver);
     }
 
-    protected ExecFactory decorateExecFactory(ExecFactory parent, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, ObjectFactory objectFactory, JavaModuleDetector javaModuleDetector) {
-        return parent.forContext(fileResolver, fileCollectionFactory, instantiator, objectFactory, javaModuleDetector);
+    protected ExecFactory decorateExecFactory(ExecFactory parent, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, ObjectFactory objectFactory, JavaModuleDetector javaModuleDetector, ListenerManager listenerManager) {
+        return parent.forContext()
+            .withFileResolver(fileResolver)
+            .withFileCollectionFactory(fileCollectionFactory)
+            .withInstantiator(instantiator)
+            .withObjectFactory(objectFactory)
+            .withJavaModuleDetector(javaModuleDetector)
+            .withExternalProcessStartedListener(listenerManager.getBroadcaster(ExternalProcessStartedListener.class))
+            .build();
     }
 
     protected PublicBuildPath createPublicBuildPath(BuildState buildState) {
@@ -345,6 +357,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         IsolatableFactory isolatableFactory,
         ServiceRegistry services,
         GradleProperties gradleProperties,
+        ExecFactory execFactory,
         ListenerManager listenerManager
     ) {
         return new DefaultValueSourceProviderFactory(
@@ -352,16 +365,26 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             instantiatorFactory,
             isolatableFactory,
             gradleProperties,
+            new DefaultExecOperations(execFactory.forContext().withoutExternalProcessStartedListener().build()),
             services
         );
+    }
+
+    protected ExecSpecFactory createExecSpecFactory(ExecActionFactory execActionFactory) {
+        return new DefaultExecSpecFactory(execActionFactory);
+    }
+
+    protected ProcessOutputProviderFactory createProcessOutputProviderFactory(Instantiator instantiator, ExecSpecFactory execSpecFactory) {
+        return new ProcessOutputProviderFactory(instantiator, execSpecFactory);
     }
 
     protected ProviderFactory createProviderFactory(
         Instantiator instantiator,
         ValueSourceProviderFactory valueSourceProviderFactory,
+        ProcessOutputProviderFactory processOutputProviderFactory,
         ListenerManager listenerManager
     ) {
-        return instantiator.newInstance(DefaultProviderFactory.class, valueSourceProviderFactory, listenerManager);
+        return instantiator.newInstance(DefaultProviderFactory.class, valueSourceProviderFactory, processOutputProviderFactory, listenerManager);
     }
 
     protected ActorFactory createActorFactory() {

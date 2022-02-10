@@ -41,12 +41,14 @@ class VfsRelativePathTest extends Specification {
 
     def "'#relativePath' fromChild '#child' is '#result'"() {
         expect:
-        VfsRelativePath.of(relativePath).fromChild(child).asString == result
+        VfsRelativePath.of(relativePath).pathFromChild(child).asString == result
+        VfsRelativePath.of(child).pathToChild(relativePath) == result
 
         where:
         relativePath | child | result
         "a/b"        | "a"   | "b"
         "a/b"        | ""    | "a/b"
+        ""           | ""    | ""
     }
 
     def "'#relativePath / #offset' #verb a prefix of '#childPath'"() {
@@ -55,10 +57,23 @@ class VfsRelativePathTest extends Specification {
 
         where:
         relativePath | offset         | childPath | result
-        "a/b" | "a/".length()  | "a"     | false
-        "a/b" | "a/b".length() | "c"     | true
-        "a/b" | "a/".length()  | "b"     | true
-        "b"   | 0              | "b/c/d" | true
+        "a/b"        | "a/".length()  | "a"       | false
+        "a/b"        | "a/b".length() | "c"       | true
+        "a/b"        | "a/".length()  | "b"       | true
+        "b"          | 0              | "b/c/d"   | true
         verb = result ? "is" : "is not"
+    }
+
+    def "'#relativePath / #offset' #verb '#prefix' as a prefix"() {
+        expect:
+        VfsRelativePath.of(relativePath, offset).hasPrefix(prefix, CASE_SENSITIVE) == result
+
+        where:
+        relativePath | offset        | prefix | result
+        "a/b"        | "a/".length() | "a"    | false
+        "a/b"        | "a/".length() | ""     | true
+        "a/b"        | "a/".length() | "b"    | true
+        "a/b/c/d"    | "a/".length() | "b"    | true
+        verb = result ? "has" : "has not"
     }
 }

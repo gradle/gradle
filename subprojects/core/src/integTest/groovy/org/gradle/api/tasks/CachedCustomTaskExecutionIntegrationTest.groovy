@@ -832,8 +832,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         when:
         withBuildCache().run "invalid", "--info"
         then:
-        outputContains("""
-            |Caching disabled for task ':invalid' because:
+        outputContains("""|Caching disabled for task ':invalid' because:
             |  Caching has been disabled to ensure correctness. Please consult deprecation warnings for more details.
         """.stripMargin())
         executedAndNotSkipped(":invalid")

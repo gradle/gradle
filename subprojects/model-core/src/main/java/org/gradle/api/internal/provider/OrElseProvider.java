@@ -27,6 +27,11 @@ class OrElseProvider<T> extends AbstractMinimalProvider<T> {
         this.right = right;
     }
 
+    @Override
+    public String toString() {
+        return String.format("or(%s, %s)", left, right);
+    }
+
     @Nullable
     @Override
     public Class<T> getType() {

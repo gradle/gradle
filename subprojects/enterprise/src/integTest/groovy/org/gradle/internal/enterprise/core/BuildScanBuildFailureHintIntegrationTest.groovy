@@ -77,26 +77,19 @@ class BuildScanBuildFailureHintIntegrationTest extends AbstractIntegrationSpec {
         ["-$LogLevelOption.QUIET_SHORT_OPTION"]             | 'quiet'
     }
 
-    def "always renders hint for failing build if plugin was applied in plugins DSL and not requested for generation"() {
+    def "never renders hint for failing build if plugin was applied via command line argument and not requested for generation"() {
         given:
         buildFile << failingBuildFile()
 
         when:
-        fails(tasks as String[])
+        fails(DUMMY_TASK_AND_BUILD_SCAN as String[])
 
         then:
-        if (tasks == DUMMY_TASK_AND_BUILD_SCAN) {
-            fixture.appliedOnce(output)
-        }
-        failure.assertHasResolution(BUILD_SCAN_ERROR_MESSAGE_HINT)
-
-        where:
-        tasks                     | buildScanPublished
-        DUMMY_TASK_ONLY           | false
-        DUMMY_TASK_AND_BUILD_SCAN | true
+        fixture.appliedOnce(output)
+        failure.assertNotOutput(BUILD_SCAN_ERROR_MESSAGE_HINT)
     }
 
-    def "always renders hint for failing build if plugin was applied in buildscript and not requested for generation"() {
+    def "never renders hint for failing build if plugin was applied in plugins DSL and not requested for generation"() {
         given:
         settingsFile << fixture.plugins()
         buildFile << failingBuildFile()
@@ -106,12 +99,10 @@ class BuildScanBuildFailureHintIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         fixture.appliedOnce(output)
-        failure.assertHasResolution(BUILD_SCAN_ERROR_MESSAGE_HINT)
+        failure.assertNotOutput(BUILD_SCAN_ERROR_MESSAGE_HINT)
 
         where:
-        tasks                     | buildScanPublished
-        DUMMY_TASK_ONLY           | false
-        DUMMY_TASK_AND_BUILD_SCAN | true
+        tasks << [ DUMMY_TASK_ONLY, DUMMY_TASK_AND_BUILD_SCAN ]
     }
 
     static String failingBuildFile() {

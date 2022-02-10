@@ -6,6 +6,8 @@ plugins {
     id("gradlebuild.internal.java")
 }
 
+description = "Collection of test fixtures for integration tests, internal use only"
+
 dependencies {
     api(libs.jettyWebApp) {
         because("Part of the public API via HttpServer")

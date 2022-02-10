@@ -1,0 +1,48 @@
+name: add-to-dev-prod-project
+
+on:
+  issues:
+    types: [opened, labeled]
+  pull_request:
+    types: [opened, labeled]
+
+jobs:
+  add-to-dev-prod-project:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check label
+        if: (github.event.issue!=null && contains(github.event.issue.labels.*.name, '@dev-productivity')) || (github.event.pull_request!=null && contains(github.event.pull_request.labels.*.name, '@dev-productivity'))
+        run: echo 'HAS_DEV_PROD_LABEL=true' >> $GITHUB_ENV
+      - name: Get project data  
+        if: ${{ env.HAS_DEV_PROD_LABEL == 'true' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.BOT_GRADLE_GH_ORG_BOARD_ACCESS_TOKEN }}
+        run: |
+          gh api graphql -f query='
+            query($org: String!, $number: Int!) {
+              organization(login: $org){
+                projectNext(number: $number) {
+                  id
+                  fields(first:20) {
+                    nodes {
+                      id
+                    }
+                  }
+                }
+              }
+            }' -f org=gradle -F number=17 > project_data.json
+
+          echo 'PROJECT_ID='$(jq '.data.organization.projectNext.id' project_data.json) >> $GITHUB_ENV
+      - name: Add issue/PR to project
+        if: ${{ env.HAS_DEV_PROD_LABEL == 'true' }} 
+        env:
+          GITHUB_TOKEN: ${{ secrets.BOT_GRADLE_GH_ORG_BOARD_ACCESS_TOKEN }}
+        run: |
+          gh api graphql -f query='
+            mutation($project:ID!, $pr:ID!) {
+              addProjectNextItem(input: {projectId: $project, contentId: $pr}) {
+                projectNextItem {
+                  id
+                }
+              }
+            }' -f project=$PROJECT_ID -f pr=${{ github.event.pull_request.node_id }}

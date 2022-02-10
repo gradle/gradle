@@ -15,6 +15,7 @@ subprojects/snapshots/              @gradle/execution @gradle/ge-test-distributi
 
 # Gradle Enterprise
 subprojects/enterprise/             @ldaley @gradle/ge-test-distribution @gradle/ge-build-insights
+subprojects/enterprise-logging/     @gradle/ge-build-insights @marcphilipp
 subprojects/enterprise-operations/  @gradle/ge-build-insights
 subprojects/enterprise-workers/     @gradle/ge-build-insights
 

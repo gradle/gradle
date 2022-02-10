@@ -39,6 +39,7 @@ enum class DocumentationSection(val anchor: String) {
     NotYetImplementedTestKitJavaAgent("config_cache:not_yet_implemented:testkit_build_with_java_agent"),
     RequirementsBuildListeners("config_cache:requirements:build_listeners"),
     RequirementsDisallowedTypes("config_cache:requirements:disallowed_types"),
+    RequirementsExternalProcess("config_cache:requirements:external_processes"),
     RequirementsTaskAccess("config_cache:requirements:task_access"),
     RequirementsSysPropEnvVarRead("config_cache:requirements:reading_sys_props_and_env_vars"),
     RequirementsUseProjectDuringExecution("config_cache:requirements:use_project_during_execution")
