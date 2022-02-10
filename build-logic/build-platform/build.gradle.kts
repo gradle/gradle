@@ -8,9 +8,12 @@ description = "Provides a platform that constrains versions of external dependen
 val javaParserVersion = "3.18.0"
 val groovyVersion = "3.0.9"
 val asmVersion = "9.2"
+// To try out better kotlin compilation avoidance and incremental compilation
+// with -Pkotlin.incremental.useClasspathSnapshot=true
+val defaultBuildKotlinVersion = "1.6.20-M1"
 
 val kotlinVersion = providers.gradleProperty("buildKotlinVersion")
-    .getOrElse(embeddedKotlinVersion)
+    .getOrElse(defaultBuildKotlinVersion)
 
 dependencies {
     constraints {
