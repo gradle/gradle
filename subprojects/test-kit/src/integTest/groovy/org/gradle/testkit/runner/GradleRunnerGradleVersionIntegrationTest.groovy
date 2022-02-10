@@ -20,10 +20,10 @@ import org.gradle.api.Action
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.testkit.runner.fixtures.NonCrossVersion
-import org.gradle.util.internal.DistributionLocator
 import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.gradle.util.internal.DistributionLocator
 import spock.lang.Retry
 import spock.lang.Shared
 
@@ -46,7 +46,7 @@ class GradleRunnerGradleVersionIntegrationTest extends BaseGradleRunnerIntegrati
         testKitDaemons(GradleVersion.version(VERSION))
     }
 
-    def "execute build with different distribution types"(String version, Action<GradleRunner> configurer) {
+    def "execute build with different distribution types #type"(String version, Action<GradleRunner> configurer) {
         given:
         requireIsolatedTestKitDir = true
         buildFile << """
@@ -72,10 +72,10 @@ class GradleRunnerGradleVersionIntegrationTest extends BaseGradleRunnerIntegrati
         killDaemons(version)
 
         where:
-        version                      | configurer
-        buildContext.version.version | { if (!GradleContextualExecuter.embedded) { it.withGradleInstallation(buildContext.gradleHomeDir) }}
-        VERSION                      | { it.withGradleDistribution(locator.getDistributionFor(GradleVersion.version(VERSION))) }
-        VERSION                      | { it.withGradleVersion(VERSION) }
+        type         | version                      | configurer
+        "embedded"   | buildContext.version.version | { if (!GradleContextualExecuter.embedded) { it.withGradleInstallation(buildContext.gradleHomeDir) } }
+        "locator"    | VERSION                      | { it.withGradleDistribution(locator.getDistributionFor(GradleVersion.version(VERSION))) }
+        "production" | VERSION                      | { it.withGradleVersion(VERSION) }
     }
 
     def "distributions are not stored in the test kit dir"() {
