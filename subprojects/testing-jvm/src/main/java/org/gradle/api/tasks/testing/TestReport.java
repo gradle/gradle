@@ -177,7 +177,7 @@ public class TestReport extends DefaultTask {
      * </ul>
      *
      * <strong>This method will be {@code Deprecated} soon - use {@link #getTestResults()} and invoke {@link ConfigurableFileCollection#from(Object...)} instead,
-     * passing references to {@link Test#getBinaryResultsDirectory()} as arguments.</strong>
+     * passing references to {@link AbstractTestTask#getBinaryResultsDirectory()} as arguments.</strong>
      *
      * @param results The result objects.
      */
