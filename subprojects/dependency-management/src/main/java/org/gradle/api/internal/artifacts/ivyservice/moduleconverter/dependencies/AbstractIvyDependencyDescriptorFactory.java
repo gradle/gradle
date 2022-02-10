@@ -50,7 +50,6 @@ public abstract class AbstractIvyDependencyDescriptorFactory implements IvyDepen
         }
         ImmutableList.Builder<IvyArtifactName> names = ImmutableList.builder();
         for (DependencyArtifact dependencyArtifact : dependencyArtifacts) {
-            // TODO check if any are instanceof ExplicitDependencyArtifact, then set add'l ctor arg
             DefaultIvyArtifactName name = new DefaultIvyArtifactName(dependencyArtifact.getName(), dependencyArtifact.getType(), getExtension(dependencyArtifact), dependencyArtifact.getClassifier(), dependencyArtifact instanceof ExplicitlyRequestedDependencyArtifact);
             names.add(name);
         }

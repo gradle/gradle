@@ -22,8 +22,8 @@ import org.gradle.util.internal.GUtil;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.util.Objects;
 
+import static com.google.common.base.Objects.equal;
 
 public class DefaultIvyArtifactName implements IvyArtifactName {
     private final String name;
@@ -42,7 +42,7 @@ public class DefaultIvyArtifactName implements IvyArtifactName {
                 name = publishArtifact.getFile().getName();
             }
             String classifier = GUtil.elvis(publishArtifact.getClassifier(), null);
-            return new DefaultIvyArtifactName(name, publishArtifact.getType(), publishArtifact.getExtension(), classifier, true);
+            return new DefaultIvyArtifactName(name, publishArtifact.getType(), publishArtifact.getExtension(), classifier);
         } catch (Exception e) {
             return null;
         }
@@ -97,7 +97,11 @@ public class DefaultIvyArtifactName implements IvyArtifactName {
     }
 
     private int computeHashCode() {
-        return Objects.hash(name, type, extension, classifier, mustExist);
+        int result = name.hashCode();
+        result = 31 * result + type.hashCode();
+        result = 31 * result + (extension != null ? extension.hashCode() : 0);
+        result = 31 * result + (classifier != null ? classifier.hashCode() : 0);
+        return result;
     }
 
     @Override
@@ -109,11 +113,10 @@ public class DefaultIvyArtifactName implements IvyArtifactName {
             return false;
         }
         DefaultIvyArtifactName other = (DefaultIvyArtifactName) obj;
-        return Objects.equals(name, other.name)
-            && Objects.equals(type, other.type)
-            && Objects.equals(extension, other.extension)
-            && Objects.equals(classifier, other.classifier)
-            && Objects.equals(mustExist, other.mustExist);
+        return equal(name, other.name)
+            && equal(type, other.type)
+            && equal(extension, other.extension)
+            && equal(classifier, other.classifier);
     }
 
     @Override
