@@ -21,7 +21,7 @@ import org.gradle.internal.service.scopes.Scope.Global;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
- * Allows the registration of {@link WorkInputListener task inputs listeners}.
+ * Allows the registration of {@link WorkInputListener work input listeners}.
  */
 @ServiceScope(Global.class)
 public interface WorkInputListeners {
