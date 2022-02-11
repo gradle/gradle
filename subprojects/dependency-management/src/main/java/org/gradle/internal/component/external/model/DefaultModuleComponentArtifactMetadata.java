@@ -25,23 +25,28 @@ import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 
+import javax.annotation.Nullable;
 import java.util.Optional;
 
 public class DefaultModuleComponentArtifactMetadata implements ModuleComponentArtifactMetadata {
     private final DefaultModuleComponentArtifactIdentifier id;
-    private Optional<ComponentArtifactMetadata> alternativeArtifact = Optional.empty();
+    private final ComponentArtifactMetadata alternativeArtifact;
 
     public DefaultModuleComponentArtifactMetadata(ModuleComponentIdentifier componentIdentifier, IvyArtifactName artifact) {
-        this(new DefaultModuleComponentArtifactIdentifier(componentIdentifier, artifact));
+        this(componentIdentifier, artifact, null);
     }
 
-    public DefaultModuleComponentArtifactMetadata(ModuleComponentIdentifier componentIdentifier, IvyArtifactName artifact, ComponentArtifactMetadata alternativeArtifact) {
-        this(new DefaultModuleComponentArtifactIdentifier(componentIdentifier, artifact));
-        this.alternativeArtifact = Optional.of(alternativeArtifact);
+    public DefaultModuleComponentArtifactMetadata(ModuleComponentIdentifier componentIdentifier, IvyArtifactName artifact, @Nullable ComponentArtifactMetadata alternativeArtifact) {
+        this(new DefaultModuleComponentArtifactIdentifier(componentIdentifier, artifact), alternativeArtifact);
     }
 
     public DefaultModuleComponentArtifactMetadata(ModuleComponentArtifactIdentifier moduleComponentArtifactIdentifier) {
+        this(moduleComponentArtifactIdentifier, null);
+    }
+
+    public DefaultModuleComponentArtifactMetadata(ModuleComponentArtifactIdentifier moduleComponentArtifactIdentifier, @Nullable ComponentArtifactMetadata alternativeArtifact) {
         this.id = (DefaultModuleComponentArtifactIdentifier) moduleComponentArtifactIdentifier;
+        this.alternativeArtifact = alternativeArtifact;
     }
 
     @Override
@@ -76,6 +81,6 @@ public class DefaultModuleComponentArtifactMetadata implements ModuleComponentAr
 
     @Override
     public Optional<ComponentArtifactMetadata> getAlternativeArtifact() {
-        return alternativeArtifact;
+        return Optional.ofNullable(alternativeArtifact);
     }
 }
