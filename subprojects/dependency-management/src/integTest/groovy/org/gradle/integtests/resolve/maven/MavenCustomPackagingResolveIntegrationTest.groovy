@@ -119,7 +119,7 @@ class MavenCustomPackagingResolveIntegrationTest extends AbstractHttpDependencyR
 
         when:
         remote.pom.expectGet()
-        // HEAD call is intentionally omitted, as variants will be derived from metadata
+        remote.artifact.expectHead()
         remote.artifact.expectGet()
 
         run("remote")
