@@ -203,15 +203,25 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
     static ImmutableList<? extends ModuleComponentArtifactMetadata> getArtifactsForConfiguration(DefaultMavenModuleResolveMetadata metadata, String name) {
         ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts;
         if (metadata.isKnownJarPackaging()) {
-            artifacts = ImmutableList.of(new DefaultModuleComponentArtifactMetadata(metadata.getId(), new DefaultIvyArtifactName(metadata.getId().getModule(), "jar", "jar")));
+            artifacts = ImmutableList.of(createJarArtifactMetadata(metadata.getId()));
         } else if (KNOWN_SCOPES.contains(name)) {
             String type = metadata.getPackaging();
             artifacts = ImmutableList.of(new DefaultModuleComponentArtifactMetadata(metadata.getId(), new DefaultIvyArtifactName(metadata.getId().getModule(), type, type),
-                    new DefaultModuleComponentArtifactMetadata(metadata.getId(), new DefaultIvyArtifactName(metadata.getId().getModule(), "jar", "jar"))));
+                createJarArtifactMetadata(metadata.getId())));
         } else {
             artifacts = ImmutableList.of();
         }
         return artifacts;
+    }
+
+    /**
+     * Convenience method to create metadata specific to the jar artifact for a given component
+     *
+     * @param id the source component's metadata, from which a jar artifact will be derived
+     * @return a copy of the component's metadata which expects an artifact with type and extension of {@code jar}
+     */
+    private static ModuleComponentArtifactMetadata createJarArtifactMetadata(ModuleComponentIdentifier id) {
+        return new DefaultModuleComponentArtifactMetadata(id, new DefaultIvyArtifactName(id.getModule(), "jar", "jar"));
     }
 
     private static ImmutableList<ModuleDependencyMetadata> filterDependencies(ModuleComponentIdentifier componentId, ConfigurationMetadata config, ImmutableList<MavenDependencyDescriptor> dependencies) {
