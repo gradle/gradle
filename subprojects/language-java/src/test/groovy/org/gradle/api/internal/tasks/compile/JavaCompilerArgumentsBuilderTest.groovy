@@ -15,13 +15,14 @@
  */
 package org.gradle.api.internal.tasks.compile
 
+
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.JavaVersion
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.internal.GUtil
 import org.gradle.util.TestUtil
+import org.gradle.util.internal.GUtil
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -186,6 +187,20 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
 
         expect:
         builder.build() == ["-bootclasspath", "lib1.jar${File.pathSeparator}lib2.jar"] + defaultOptions
+    }
+
+    def "fails generating -bootclasspath option when concatenated files"() {
+        def compileOptions = new CompileOptions(TestUtil.objectFactory())
+        def filePath = ["lib1.jar", "lib2.jar"].join(File.pathSeparator)
+        compileOptions.bootstrapClasspath = TestFiles.fixed(new File(filePath))
+        spec.compileOptions = compileOptions
+
+        when:
+        builder.build()
+
+        then:
+        def thrown = thrown(InvalidUserDataException)
+        thrown.message == "Provided bootstrapClasspath contains a concatenation of files instead of a single file. Problematic files are: $filePath"
     }
 
     def "generates -extdirs option"() {

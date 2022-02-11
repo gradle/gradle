@@ -905,6 +905,26 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         succeeds "-Pjava8", "clean", "compileJava"
     }
 
+    @Requires(TestPrecondition.JDK8_OR_EARLIER)
+    // bootclasspath has been removed in Java 9+
+    def "fails if bootclasspath is provided as a path instead of a single file"() {
+        def jre = AvailableJavaHomes.getBestJre()
+        def bootClasspath = TextUtil.escapeString(jre.absolutePath) + "/lib/rt.jar${File.pathSeparator}someotherpath"
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+            tasks.withType(JavaCompile) {
+                options.bootstrapClasspath = project.layout.files("$bootClasspath")
+            }
+        """
+        file('src/main/java/Foo.java') << 'public class Foo {}'
+
+        expect:
+        fails "compileJava"
+        failure.assertHasErrorOutput "Provided bootstrapClasspath contains a concatenation of files instead of a single file. Problematic files are: ${bootClasspath}"
+    }
+
     def "deletes empty packages dirs"() {
         given:
         buildFile << """

@@ -17,10 +17,12 @@ package org.gradle.javadoc
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 import spock.lang.Issue
 
@@ -292,6 +294,26 @@ Joe!""")
 
         expect:
         succeeds("javadoc")
+    }
+
+    @Requires(TestPrecondition.JDK8_OR_EARLIER)
+    // bootclasspath has been removed in Java 9+
+    def "fails if bootclasspath is provided as a path instead of a single file"() {
+        def jre = AvailableJavaHomes.getBestJre()
+        def bootClasspath = TextUtil.escapeString(jre.absolutePath) + "/lib/rt.jar${File.pathSeparator}someotherpath"
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+            javadoc {
+                options.bootClasspath = [file("$bootClasspath")]
+            }
+        """
+        writeSourceFile()
+
+        expect:
+        fails "javadoc"
+        failure.assertHasErrorOutput "Provided bootClasspath contains a concatenation of files instead of a single file. Problematic files are: ${bootClasspath}"
     }
 
     private TestFile writeSourceFile() {
