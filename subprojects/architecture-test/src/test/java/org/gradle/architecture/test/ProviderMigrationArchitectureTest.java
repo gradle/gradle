@@ -21,8 +21,10 @@ import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
+import org.gradle.StartParameter;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Task;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.AbstractTask;
@@ -41,6 +43,7 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
 import static org.gradle.architecture.test.ArchUnitFixture.freeze;
 import static org.gradle.architecture.test.ArchUnitFixture.public_api_methods;
 
+@SuppressWarnings("deprecation")
 @AnalyzeClasses(packages = "org.gradle")
 public class ProviderMigrationArchitectureTest {
     private static final DescribedPredicate<JavaMethod> getters = new DescribedPredicate<JavaMethod>("getters") {
@@ -50,6 +53,42 @@ public class ProviderMigrationArchitectureTest {
             return accessorType == PropertyAccessorType.GET_GETTER || accessorType == PropertyAccessorType.IS_GETTER;
         }
     };
+
+    private static final DescribedPredicate<JavaMethod> haveSetters = new DescribedPredicate<JavaMethod>("setters") {
+        @Override
+        public boolean apply(JavaMethod input) {
+            PropertyAccessorType accessorType = PropertyAccessorType.fromName(input.getName());
+            String propertyNameFromGetter = accessorType.propertyNameFor(input.getName());
+            return input.getOwner().getAllMethods().stream()
+                .filter(method -> PropertyAccessorType.fromName(method.getName()) == PropertyAccessorType.SETTER)
+                .anyMatch(method -> PropertyAccessorType.SETTER.propertyNameFor(method.getName()).equals(propertyNameFromGetter));
+        }
+    };
+
+    @ArchTest
+    public static final ArchRule mutable_public_api_properties_should_be_providers = methods()
+        .that(are(public_api_methods))
+        .and(not(declaredIn(assignableTo(Task.class))))
+        .and(are(getters))
+        .and(haveSetters)
+        .and().areNotAnnotatedWith(Inject.class)
+        .and().areNotDeclaredIn(StartParameter.class)
+        .and().areNotDeclaredIn(Configuration.class)
+        .and().areNotDeclaredIn(ConfigurableFileCollection.class)
+        .and().areNotDeclaredIn(FileCollection.class)
+        .and().doNotHaveRawReturnType(TextResource.class)
+        .and().doNotHaveRawReturnType(assignableTo(FileCollection.class))
+        .should().haveRawReturnType(assignableTo(Provider.class));
+
+    @ArchTest
+    public static final ArchRule mutable_public_api_properties_should_be_file_collections = methods()
+        .that(are(public_api_methods))
+        .and(not(declaredIn(assignableTo(Task.class))))
+        .and(are(getters))
+        .and(haveSetters)
+        .and().areNotAnnotatedWith(Inject.class)
+        .and().haveRawReturnType(assignableTo(FileCollection.class))
+        .should().haveRawReturnType(assignableTo(ConfigurableFileCollection.class));
 
     @SuppressWarnings("deprecation")
     @ArchTest
@@ -90,7 +129,6 @@ public class ProviderMigrationArchitectureTest {
         .and().areNotAnnotatedWith(Inject.class)
         .should().notHaveRawReturnType(TextResource.class));
 
-    @SuppressWarnings("deprecation")
     @ArchTest
     public static final ArchRule public_api_extension_properties_are_providers = freeze(methods()
         .that(are(public_api_methods))
