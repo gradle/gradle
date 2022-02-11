@@ -39,7 +39,6 @@ import org.gradle.internal.component.external.model.ModuleComponentResolveMetada
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata
 import org.gradle.internal.component.external.model.maven.MavenModuleResolveMetadata
 import org.gradle.internal.component.model.ComponentOverrideMetadata
-import org.gradle.internal.component.model.ConfigurationMetadata
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResult
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult
@@ -52,7 +51,6 @@ import spock.lang.Specification
 
 class MavenResolverTest extends Specification {
     def module = Mock(MavenModuleResolveMetadata)
-    def variant = Mock(ConfigurationMetadata)
     def result = Mock(BuildableComponentArtifactsResolveResult)
     def transport = Stub(RepositoryTransport)
     def resolver = resolver()
@@ -67,7 +65,7 @@ class MavenResolverTest extends Specification {
         module.hasVariants() >> true
 
         when:
-        resolver.getLocalAccess().resolveModuleArtifacts(module, variant, result)
+        resolver.getLocalAccess().resolveModuleArtifacts(module, result)
 
         then:
         1 * result.resolved(_) >> { args ->
@@ -81,7 +79,7 @@ class MavenResolverTest extends Specification {
         module.isKnownJarPackaging() >> true
 
         when:
-        resolver.getLocalAccess().resolveModuleArtifacts(module, variant, result)
+        resolver.getLocalAccess().resolveModuleArtifacts(module, result)
 
         then:
         1 * result.resolved(_) >> { args ->
@@ -96,7 +94,7 @@ class MavenResolverTest extends Specification {
         variant.requiresMavenArtifactDiscovery() >> true
 
         when:
-        resolver.getLocalAccess().resolveModuleArtifacts(module, variant, result)
+        resolver.getLocalAccess().resolveModuleArtifacts(module, result)
 
         then:
         1 * result.resolved(_) >> { args ->
@@ -114,7 +112,7 @@ class MavenResolverTest extends Specification {
         variant.requiresMavenArtifactDiscovery() >> true
 
         when:
-        resolver.getLocalAccess().resolveModuleArtifacts(module, variant, result)
+        resolver.getLocalAccess().resolveModuleArtifacts(module, result)
 
         then:
         1 * result.resolved(_) >> { args ->
