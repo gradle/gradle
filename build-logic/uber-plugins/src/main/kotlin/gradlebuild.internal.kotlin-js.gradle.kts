@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import gradlebuild.basics.yarnpkgMirrorUrl
 import org.jetbrains.kotlin.gradle.dsl.KotlinJsCompile
 import org.jetbrains.kotlin.gradle.plugin.KotlinJsCompilerType
 
@@ -36,6 +37,14 @@ kotlin {
             }
         }
         binaries.executable()
+    }
+}
+
+rootProject.run {
+    yarnpkgMirrorUrl.orNull?.let { mirrorUrl ->
+        tasks.withType<org.jetbrains.kotlin.gradle.targets.js.npm.tasks.KotlinNpmInstallTask>().configureEach {
+            args += listOf("--registry", mirrorUrl)
+        }
     }
 }
 
