@@ -158,7 +158,7 @@ public enum JavaVersion {
      *
      * @return The version of the current JVM.
      */
-public static JavaVersion current() {
+    public static JavaVersion current() {
         if (currentJavaVersion == null) {
             currentJavaVersion = toVersion(System.getProperty("java.version"));
         }
