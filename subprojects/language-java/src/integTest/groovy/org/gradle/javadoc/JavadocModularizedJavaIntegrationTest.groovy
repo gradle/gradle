@@ -59,7 +59,6 @@ class JavadocModularizedJavaIntegrationTest extends AbstractIntegrationSpec {
                 withJavadocJar()
             }
         """
-        writeSourceFiles()
 
         expect:
         succeeds("javadoc")
@@ -79,7 +78,6 @@ class JavadocModularizedJavaIntegrationTest extends AbstractIntegrationSpec {
                 exclude("test/internal")
             }
         """
-        writeSourceFiles()
 
         expect:
         succeeds("javadoc")
