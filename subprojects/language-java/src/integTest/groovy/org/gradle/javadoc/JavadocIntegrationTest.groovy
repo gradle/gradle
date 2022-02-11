@@ -25,12 +25,10 @@ import org.junit.Rule
 import spock.lang.Issue
 
 class JavadocIntegrationTest extends AbstractIntegrationSpec {
-    @Rule
-    TestResources testResources = new TestResources(temporaryFolder)
+    @Rule TestResources testResources = new TestResources(temporaryFolder)
 
     @Issue("GRADLE-1563")
-    @Requires(TestPrecondition.JDK8_OR_EARLIER)
-    // JDK 9 requires an @Deprecated annotation that breaks this same test on Java 7 on Windows.
+    @Requires(TestPrecondition.JDK8_OR_EARLIER)  // JDK 9 requires an @Deprecated annotation that breaks this same test on Java 7 on Windows.
     def handlesTagsAndTaglets() {
         when:
         run("javadoc")
@@ -62,8 +60,7 @@ class JavadocIntegrationTest extends AbstractIntegrationSpec {
 
         writeSourceFile()
 
-        when:
-        run("javadoc", "-i")
+        when: run("javadoc", "-i")
         then:
         file("build/docs/javadoc/Foo.html").text.contains("""Hey Joe!""")
     }
@@ -104,8 +101,7 @@ class JavadocIntegrationTest extends AbstractIntegrationSpec {
         file('build/docs/javadoc/Foo.html').text.contains('myHeader')
     }
 
-    @Requires([TestPrecondition.NOT_WINDOWS, TestPrecondition.JDK8_OR_EARLIER])
-    // JDK 9 Breaks multiline -header arguments.
+    @Requires([TestPrecondition.NOT_WINDOWS, TestPrecondition.JDK8_OR_EARLIER])  // JDK 9 Breaks multiline -header arguments.
     @Issue("GRADLE-3099")
     def "writes multiline header"() {
         buildFile << """
@@ -118,8 +114,7 @@ Joe! -->
 
         writeSourceFile()
 
-        when:
-        run("javadoc", "-i")
+        when: run("javadoc", "-i")
         then:
         file("build/docs/javadoc/Foo.html").text.contains("""Hey
 Joe!""")
@@ -159,7 +154,7 @@ Joe!""")
         when:
         run "javadoc"
         then:
-        executedAndNotSkipped(":javadoc")
+        executedAndNotSkipped( ":javadoc")
 
         when:
         run "javadoc"
