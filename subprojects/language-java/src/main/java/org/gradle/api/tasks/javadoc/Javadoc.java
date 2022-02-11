@@ -60,6 +60,7 @@ import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.gradle.util.internal.GUtil.isTrue;
 
@@ -145,6 +146,17 @@ public class Javadoc extends SourceTask {
         JavaModuleDetector javaModuleDetector = getJavaModuleDetector();
         options.classpath(new ArrayList<>(javaModuleDetector.inferClasspath(isModule, getClasspath()).getFiles()));
         options.modulePath(new ArrayList<>(javaModuleDetector.inferModulePath(isModule, getClasspath()).getFiles()));
+
+        if (isModule) {
+            List<File> sourceDirectories = getSource()
+                .getFiles()
+                .stream()
+                .map(File::getParentFile)
+                .distinct()
+                .sorted()
+                .collect(Collectors.toList());
+            options.setSourcePath(sourceDirectories);
+        }
 
         if (!isTrue(options.getWindowTitle()) && isTrue(getTitle())) {
             options.windowTitle(getTitle());

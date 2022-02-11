@@ -106,6 +106,25 @@ public interface MinimalJavadocOptions {
      */
     MinimalJavadocOptions modulePath(List<File> classpath);
 
+    /**
+     * The --source-path.
+     *
+     * @since 7.5
+     */
+    void setSourcePath(List<File> sourcePath);
+
+    /**
+     * The --source-path.
+     *
+     * @since 7.5
+     */
+    @Internal
+    List<File> getSourcePath();
+
+    MinimalJavadocOptions sourcePath(List<File> sourcePath);
+
+    MinimalJavadocOptions sourcePath(File... sourcePath);
+
     MinimalJavadocOptions classpath(List<File> classpath);
 
     MinimalJavadocOptions classpath(File... classpath);
