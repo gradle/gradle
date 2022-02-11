@@ -20,6 +20,7 @@ import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
+import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.result.DependencyResult;
@@ -109,7 +110,13 @@ public class DependencyInsightReportTask extends DefaultTask {
     private String configurationDescription;
     private AttributeContainer configurationAttributes;
 
+    /**
+     * The root component of the dependency graph to be inspected.
+     *
+     * @since 7.5
+     */
     @Input
+    @Incubating
     public Property<ResolvedComponentResult> getRootComponentProperty() {
         if (!rootComponentProperty.isPresent()) {
             assertValidTaskConfiguration();
