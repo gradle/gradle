@@ -91,7 +91,6 @@ class MavenResolverTest extends Specification {
         given:
         module.variants >> ImmutableList.of()
         module.relocated >> true
-        variant.requiresMavenArtifactDiscovery() >> true
 
         when:
         resolver.getLocalAccess().resolveModuleArtifacts(module, result)
@@ -109,7 +108,6 @@ class MavenResolverTest extends Specification {
         module.knownJarPackaging >> true
         ModuleComponentArtifactMetadata artifact = Mock(ModuleComponentArtifactMetadata)
         module.artifact('jar', 'jar', null) >> artifact
-        variant.requiresMavenArtifactDiscovery() >> true
 
         when:
         resolver.getLocalAccess().resolveModuleArtifacts(module, result)

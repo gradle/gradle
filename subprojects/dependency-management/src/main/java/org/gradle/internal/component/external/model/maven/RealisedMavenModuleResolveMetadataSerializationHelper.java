@@ -39,7 +39,6 @@ import org.gradle.internal.component.external.model.ModuleComponentArtifactMetad
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.external.model.RealisedConfigurationMetadata;
-import org.gradle.internal.component.external.model.UrlBackedArtifactMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
@@ -143,8 +142,7 @@ public class RealisedMavenModuleResolveMetadataSerializationHelper extends Abstr
             ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts = readFiles(decoder, metadata.getId());
 
             RealisedConfigurationMetadata configurationMetadata = new RealisedConfigurationMetadata(metadata.getId(), configurationName, configuration.isTransitive(), configuration.isVisible(),
-                hierarchy, artifacts, ImmutableList.of(), attributes, capabilities,
-                artifacts.stream().noneMatch(a -> a instanceof UrlBackedArtifactMetadata), false, isExternalVariant);
+                hierarchy, artifacts, ImmutableList.of(), attributes, capabilities, false, isExternalVariant);
             ImmutableList<ModuleDependencyMetadata> dependencies = readDependencies(decoder, metadata, configurationMetadata, deduplicationDependencyCache);
             configurationMetadata.setDependencies(dependencies);
             configurations.put(configurationName, configurationMetadata);
@@ -220,7 +218,6 @@ public class RealisedMavenModuleResolveMetadataSerializationHelper extends Abstr
             ImmutableList.copyOf(excludeMetadata),
             attributes,
             immutableCapabilities,
-            artifacts.stream().noneMatch(a -> a instanceof UrlBackedArtifactMetadata),
             false,
             isExternalVariant
         );

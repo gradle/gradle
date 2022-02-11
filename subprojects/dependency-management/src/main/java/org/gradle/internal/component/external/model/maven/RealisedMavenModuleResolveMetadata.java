@@ -98,7 +98,6 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
                         derivedVariant.getExcludes(),
                         derivedVariant.getAttributes(),
                         (ImmutableCapabilities) derivedVariant.getCapabilities(),
-                        derivedVariant.requiresMavenArtifactDiscovery(),
                         dependencies,
                         false,
                         derivedVariant.isExternalVariant()
@@ -172,7 +171,7 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
         List<? extends DependencyMetadata> dependenciesMetadata = variantMetadataRules.applyDependencyMetadataRules(variant, dependencies);
         ImmutableList<? extends ModuleComponentArtifactMetadata> artifactsMetadata = variantMetadataRules.applyVariantFilesMetadataRulesToArtifacts(variant, artifacts, id);
         boolean mavenArtifactDiscovery = artifactsMetadata == artifacts;
-        return createConfiguration(id, configurationName, transitive, visible, hierarchy, artifactsMetadata, dependenciesMetadata, variantAttributes, ImmutableCapabilities.of(capabilitiesMetadata.getCapabilities()), mavenArtifactDiscovery, addedByRule, isExternalVariant);
+        return createConfiguration(id, configurationName, transitive, visible, hierarchy, artifactsMetadata, dependenciesMetadata, variantAttributes, ImmutableCapabilities.of(capabilitiesMetadata.getCapabilities()), addedByRule, isExternalVariant);
     }
 
     private static RealisedConfigurationMetadata createConfiguration(DefaultMavenModuleResolveMetadata metadata, String configurationName) {
@@ -181,23 +180,24 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
         ImmutableSet<String> hierarchy = LazyToRealisedModuleComponentResolveMetadataHelper.constructHierarchy(configuration, configurationDefinitions);
         return createConfiguration(metadata.getId(), configurationName, configuration.isTransitive(), configuration.isVisible(), hierarchy,
             getArtifactsForConfiguration(metadata, configurationName), ((ModuleConfigurationMetadata) metadata.getConfiguration(configurationName)).getDependencies(),
-            metadata.getAttributes(), ImmutableCapabilities.EMPTY, true, false, metadata.isExternalVariant());
+            metadata.getAttributes(), ImmutableCapabilities.EMPTY, false, metadata.isExternalVariant());
     }
 
-    private static RealisedConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId,
-                                                                     String name,
-                                                                     boolean transitive,
-                                                                     boolean visible,
-                                                                     ImmutableSet<String> hierarchy,
-                                                                     ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts,
-                                                                     List<? extends DependencyMetadata> dependencies,
-                                                                     ImmutableAttributes attributes,
-                                                                     ImmutableCapabilities capabilities,
-                                                                     boolean mavenArtifactDiscovery,
-                                                                     boolean addedByRule,
-                                                                     boolean isExternalVariant) {
+    private static RealisedConfigurationMetadata createConfiguration(
+            ModuleComponentIdentifier componentId,
+            String name,
+            boolean transitive,
+            boolean visible,
+            ImmutableSet<String> hierarchy,
+            ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts,
+            List<? extends DependencyMetadata> dependencies,
+            ImmutableAttributes attributes,
+            ImmutableCapabilities capabilities,
+            boolean addedByRule,
+            boolean isExternalVariant
+    ) {
         ImmutableList<ModuleDependencyMetadata> asImmutable = ImmutableList.copyOf(Cast.<List<ModuleDependencyMetadata>>uncheckedCast(dependencies));
-        return new RealisedConfigurationMetadata(componentId, name, transitive, visible, hierarchy, artifacts, ImmutableList.of(), attributes, capabilities, mavenArtifactDiscovery, asImmutable, addedByRule, isExternalVariant);
+        return new RealisedConfigurationMetadata(componentId, name, transitive, visible, hierarchy, artifacts, ImmutableList.of(), attributes, capabilities, asImmutable, addedByRule, isExternalVariant);
     }
 
     static ImmutableList<? extends ModuleComponentArtifactMetadata> getArtifactsForConfiguration(DefaultMavenModuleResolveMetadata metadata, String name) {
