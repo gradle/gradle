@@ -23,6 +23,32 @@ import spock.lang.Issue
 
 class JavadocModularizedJavaIntegrationTest extends AbstractIntegrationSpec {
 
+    def setup() {
+        file('src/main/java/module-info.java') << """
+            module test {
+                exports test;
+            }
+        """
+        file("src/main/java/test/Test.java") << """
+            package test;
+
+            import test.internal.TestInternal;
+
+            public class Test {
+                public void doSomething() {
+                    TestInternal.doSomething();
+                }
+            }
+        """
+        file("src/main/java/test/internal/TestInternal.java") << """
+            package test.internal;
+
+            public class TestInternal {
+                public static void doSomething() { }
+            }
+        """
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/19726")
     @Requires(TestPrecondition.JDK9_OR_LATER)
     def "can build javadoc from modularized java"() {
@@ -57,32 +83,6 @@ class JavadocModularizedJavaIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds("javadoc")
-    }
-
-    private def writeSourceFiles() {
-        file('src/main/java/module-info.java') << """
-            module test {
-                exports test;
-            }
-        """
-        file("src/main/java/test/Test.java") << """
-            package test;
-
-            import test.internal.TestInternal;
-
-            public class Test {
-                public void doSomething() {
-                    TestInternal.doSomething();
-                }
-            }
-        """
-        file("src/main/java/test/internal/TestInternal.java") << """
-            package test.internal;
-
-            public class TestInternal {
-                public static void doSomething() { }
-            }
-        """
     }
 
 }
