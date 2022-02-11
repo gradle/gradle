@@ -147,6 +147,8 @@ public class Javadoc extends SourceTask {
         options.classpath(new ArrayList<>(javaModuleDetector.inferClasspath(isModule, getClasspath()).getFiles()));
         options.modulePath(new ArrayList<>(javaModuleDetector.inferModulePath(isModule, getClasspath()).getFiles()));
 
+        // If modularized JavaDoc is needed, we need to add the source paths - the file listing is not enough alone
+        // See #19726 for more
         if (isModule) {
             List<File> sourceDirectories = getSource()
                 .getFiles()
