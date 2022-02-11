@@ -108,6 +108,7 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         immutable.getConfiguration("runtime").artifacts.size() == 1
         immutable.getConfiguration("default").artifacts.size() == 1
         immutable.getConfiguration("master").artifacts.size() == 1
+        !immutable.getConfiguration("unknown")
 
         and:
         def copy = immutable.asMutable()
@@ -125,6 +126,19 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         immutable2.getConfiguration("runtime").artifacts.size() == 1
         immutable2.getConfiguration("default").artifacts.size() == 1
         immutable2.getConfiguration("master").artifacts.size() == 1
+        !immutable.getConfiguration("unknown")
+
+        when: 'metadata has non-standard packaging'
+        copy.packaging = 'hk2-jar'
+
+        then: 'master configuration has no artifacts'
+        def immutable3 = copy.asImmutable()
+        immutable3.packaging == 'hk2-jar'
+        immutable3.getConfiguration("compile").artifacts.size() == 1
+        immutable3.getConfiguration("runtime").artifacts.size() == 1
+        immutable3.getConfiguration("default").artifacts.size() == 1
+        immutable3.getConfiguration("master").artifacts.empty
+        !immutable.getConfiguration("unknown")
     }
 
     def "can override values from descriptor"() {
