@@ -41,6 +41,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.diagnostics.internal.ConfigurationFinder;
 import org.gradle.api.tasks.diagnostics.internal.dsl.DependencyResultSpecNotationConverter;
@@ -116,11 +117,10 @@ public class DependencyInsightReportTask extends DefaultTask {
      * @since 7.5
      */
     @Input
+    @Optional
     @Incubating
     public Property<ResolvedComponentResult> getRootComponentProperty() {
-        if (!rootComponentProperty.isPresent()) {
-            assertValidTaskConfiguration();
-            Configuration configuration = getConfiguration();
+        if (!rootComponentProperty.isPresent() && configuration != null && dependencySpec != null) {
             configurationName = configuration.getName();
             configurationDescription = configuration.toString();
             configurationAttributes = configuration.getAttributes();
@@ -244,6 +244,7 @@ public class DependencyInsightReportTask extends DefaultTask {
 
     @TaskAction
     public void report() {
+        assertValidTaskConfiguration();
         ResolvedComponentResult rootComponent = getRootComponentProperty().get();
 
         StyledTextOutput output = getTextOutputFactory().create(getClass());
@@ -278,7 +279,7 @@ public class DependencyInsightReportTask extends DefaultTask {
     }
 
     private void assertValidTaskConfiguration() {
-        if (getConfiguration() == null) {
+        if (configurationName == null) {
             throw new InvalidUserDataException("Dependency insight report cannot be generated because the input configuration was not specified. "
                 + "\nIt can be specified from the command line, e.g: '" + getPath() + " --configuration someConf --dependency someDep'");
         }
