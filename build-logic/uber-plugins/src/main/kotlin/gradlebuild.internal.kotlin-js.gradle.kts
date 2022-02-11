@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import gradlebuild.basics.yarnpkgMirrorUrl
 import org.jetbrains.kotlin.gradle.dsl.KotlinJsCompile
 import org.jetbrains.kotlin.gradle.plugin.KotlinJsCompilerType
 
@@ -48,6 +49,12 @@ rootProject.run {
     plugins.withType<org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlugin> {
         configure<org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension> {
             lockFileDirectory = layout.buildDirectory.file("kotlin-js-store").get().asFile
+        }
+    }
+
+    yarnpkgMirrorUrl.orNull?.let { mirrorUrl ->
+        tasks.withType<org.jetbrains.kotlin.gradle.targets.js.npm.tasks.KotlinNpmInstallTask>().configureEach {
+            args += listOf("--registry", mirrorUrl)
         }
     }
 }
