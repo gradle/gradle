@@ -1160,7 +1160,7 @@ class GradleModuleMetadataWriterTest extends Specification {
 """
     }
 
-    // fixing a problem reported in https://github.com/gradle/gradle/issues/19769
+    @Issue("https://github.com/gradle/gradle/issues/19769")
     def "writes different components for different publications"() {
         def writer = new StringWriter()
 
