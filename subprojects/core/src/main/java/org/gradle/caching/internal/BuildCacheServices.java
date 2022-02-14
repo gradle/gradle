@@ -44,7 +44,6 @@ import org.gradle.internal.file.FileException;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.instantiation.InstantiatorFactory;
-import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.nativeintegration.network.HostnameLookup;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -130,7 +129,6 @@ public final class BuildCacheServices extends AbstractPluginServiceRegistry {
                 HostnameLookup hostnameLookup
             ) {
                 return new OriginMetadataFactory(
-                    Lazy.synchronizing().of(() -> gradleInternal.getRootProject().getRootDir()),
                     SystemProperties.getInstance().getUserName(),
                     OperatingSystem.current().getName(),
                     buildInvocationScopeId.getId().asString(),
