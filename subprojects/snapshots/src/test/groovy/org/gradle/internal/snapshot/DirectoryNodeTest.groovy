@@ -135,7 +135,7 @@ class DirectoryNodeTest extends AbstractFileSystemNodeWithChildrenTest<FileSyste
         setupTest(vfsSpec)
 
         when:
-        FileSystemLocationSnapshot foundSnapshot = initialRoot.getNode(searchedPath, CASE_SENSITIVE) as FileSystemLocationSnapshot
+        FileSystemLocationSnapshot foundSnapshot = initialRoot.getNode(searchedPath, CASE_SENSITIVE).get() as FileSystemLocationSnapshot
         then:
         foundSnapshot.type == FileType.Missing
         foundSnapshot.absolutePath == searchedPath.absolutePath
@@ -162,7 +162,7 @@ class DirectoryNodeTest extends AbstractFileSystemNodeWithChildrenTest<FileSyste
         setupTest(vfsSpec)
 
         when:
-        FileSystemLocationSnapshot foundSnapshot = initialRoot.getNode(searchedPath, CASE_SENSITIVE) as FileSystemLocationSnapshot
+        FileSystemLocationSnapshot foundSnapshot = initialRoot.getNode(searchedPath, CASE_SENSITIVE).get() as FileSystemLocationSnapshot
         then:
         foundSnapshot == selectedChild
         interaction { noMoreInteractions() }
@@ -193,7 +193,7 @@ class DirectoryNodeTest extends AbstractFileSystemNodeWithChildrenTest<FileSyste
         def grandChild = Mock(FileSystemLocationSnapshot)
 
         when:
-        FileSystemLocationSnapshot foundSnapshot = initialRoot.getNode(searchedPath, CASE_SENSITIVE) as FileSystemLocationSnapshot
+        FileSystemLocationSnapshot foundSnapshot = initialRoot.getNode(searchedPath, CASE_SENSITIVE).get() as FileSystemLocationSnapshot
         then:
         foundSnapshot == grandChild
         interaction {
@@ -226,12 +226,12 @@ class DirectoryNodeTest extends AbstractFileSystemNodeWithChildrenTest<FileSyste
         setupTest(vfsSpec)
 
         when:
-        FileSystemLocationSnapshot foundSnapshot = initialRoot.getNode(searchedPath, CASE_SENSITIVE) as FileSystemLocationSnapshot
+        FileSystemLocationSnapshot foundSnapshot = initialRoot.getNode(searchedPath, CASE_SENSITIVE).get() as FileSystemLocationSnapshot
         then:
         foundSnapshot.type == FileType.Missing
         foundSnapshot.absolutePath == searchedPath.absolutePath
         interaction {
-            getDescendantNodeOfSelectedChild(ReadOnlyFileSystemNode.EMPTY)
+            getDescendantNodeOfSelectedChild(null)
             noMoreInteractions()
         }
 

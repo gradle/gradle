@@ -258,7 +258,7 @@ abstract class AbstractIncompleteFileSystemNodeTest<T extends FileSystemNode> ex
         when:
         def resultRoot = initialRoot.getNode(searchedPath, CASE_SENSITIVE)
         then:
-        resultRoot == ReadOnlyFileSystemNode.EMPTY
+        !resultRoot.present
         interaction { noMoreInteractions() }
 
         where:
@@ -272,7 +272,7 @@ abstract class AbstractIncompleteFileSystemNodeTest<T extends FileSystemNode> ex
         def resultRoot = initialRoot.getNode(searchedPath, CASE_SENSITIVE)
 
         then:
-        resultRoot == selectedChild
+        resultRoot.get() == selectedChild
         interaction {
             noMoreInteractions()
         }
@@ -321,7 +321,7 @@ abstract class AbstractIncompleteFileSystemNodeTest<T extends FileSystemNode> ex
         when:
         def resultRoot = initialRoot.getNode(searchedPath, CASE_SENSITIVE)
         then:
-        resultRoot == selectedChild
+        resultRoot.get() == selectedChild
 
         interaction {
             noMoreInteractions()
@@ -366,12 +366,12 @@ abstract class AbstractIncompleteFileSystemNodeTest<T extends FileSystemNode> ex
 
     def "querying for descendant of child #vfsSpec.selectedChildPath queries the child (#vfsSpec)"() {
         setupTest(vfsSpec)
-        def descendantNode = Mock(ReadOnlyFileSystemNode)
+        def descendantNode = Mock(FileSystemNode)
 
         when:
         def resultRoot = initialRoot.getNode(searchedPath, CASE_SENSITIVE)
         then:
-        resultRoot == descendantNode
+        resultRoot.get() == descendantNode
         interaction {
             getDescendantNodeOfSelectedChild(descendantNode)
             noMoreInteractions()
