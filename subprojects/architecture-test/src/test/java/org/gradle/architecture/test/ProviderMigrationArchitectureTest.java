@@ -17,6 +17,7 @@
 package org.gradle.architecture.test;
 
 import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
@@ -54,7 +55,7 @@ public class ProviderMigrationArchitectureTest {
         }
     };
 
-    private static final DescribedPredicate<JavaMethod> haveSetters = new DescribedPredicate<JavaMethod>("setters") {
+    private static final DescribedPredicate<JavaMethod> haveSetters = new DescribedPredicate<JavaMethod>("have mutable property") {
         @Override
         public boolean apply(JavaMethod input) {
             PropertyAccessorType accessorType = PropertyAccessorType.fromName(input.getName());
@@ -65,12 +66,21 @@ public class ProviderMigrationArchitectureTest {
         }
     };
 
+    private static final DescribedPredicate<JavaClass> haveMutableProperty = new DescribedPredicate<JavaClass>("getters") {
+        @Override
+        public boolean apply(JavaClass input) {
+            return input.getAllMethods().stream()
+                .filter(getters::apply)
+                .anyMatch(haveSetters::apply);
+        }
+    };
+
     @ArchTest
     public static final ArchRule mutable_public_api_properties_should_be_providers = freeze(methods()
         .that(are(public_api_methods))
         .and(not(declaredIn(assignableTo(Task.class))))
+        .and(are(declaredIn(haveMutableProperty)))
         .and(are(getters))
-        .and(haveSetters)
         .and().areNotAnnotatedWith(Inject.class)
         .and().areNotDeclaredIn(StartParameter.class)
         .and().areNotDeclaredIn(Configuration.class)
