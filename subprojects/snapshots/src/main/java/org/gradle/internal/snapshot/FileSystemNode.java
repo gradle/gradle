@@ -23,6 +23,21 @@ import java.util.Optional;
  * Any snapshot in the tree of the virtual file system.
  */
 public interface FileSystemNode extends ReadOnlyFileSystemNode {
+    /**
+     * The snapshot information at this node.
+     *
+     * {@link Optional#empty()} if no information is available.
+     */
+    Optional<MetadataSnapshot> getSnapshot();
+
+    /*
+     * Gets a snapshot from the current node with relative path filePath.substring(offset).
+     *
+     * When calling this method, the caller needs to make sure the snapshot is a child of this node.
+     */
+    Optional<MetadataSnapshot> getSnapshot(VfsRelativePath relativePath, CaseSensitivity caseSensitivity);
+
+    ReadOnlyFileSystemNode getNode(VfsRelativePath relativePath, CaseSensitivity caseSensitivity);
 
     /**
      * Stores information to the virtual file system that we have learned about.
