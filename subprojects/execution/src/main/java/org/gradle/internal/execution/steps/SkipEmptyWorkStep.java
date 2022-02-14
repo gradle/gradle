@@ -25,6 +25,7 @@ import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.ExecutionResult;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.WorkInputListeners;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.fingerprint.InputFingerprinter;
@@ -46,6 +47,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.time.Duration;
+import java.util.EnumSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -55,15 +57,18 @@ public class SkipEmptyWorkStep implements Step<PreviousExecutionContext, Caching
     private static final Logger LOGGER = LoggerFactory.getLogger(SkipEmptyWorkStep.class);
 
     private final OutputChangeListener outputChangeListener;
+    private final WorkInputListeners workInputListeners;
     private final Supplier<OutputsCleaner> outputsCleanerSupplier;
     private final Step<? super PreviousExecutionContext, ? extends CachingResult> delegate;
 
     public SkipEmptyWorkStep(
         OutputChangeListener outputChangeListener,
+        WorkInputListeners workInputListeners,
         Supplier<OutputsCleaner> outputsCleanerSupplier,
         Step<? super PreviousExecutionContext, ? extends CachingResult> delegate
     ) {
         this.outputChangeListener = outputChangeListener;
+        this.workInputListeners = workInputListeners;
         this.outputsCleanerSupplier = outputsCleanerSupplier;
         this.delegate = delegate;
     }
@@ -155,7 +160,7 @@ public class SkipEmptyWorkStep implements Step<PreviousExecutionContext, Caching
         }
         Duration duration = skipOutcome == ExecutionOutcome.SHORT_CIRCUITED ? Duration.ZERO : Duration.ofMillis(timer.getElapsedMillis());
 
-        work.broadcastRelevantFileSystemInputs(true);
+        broadcastWorkInputs(work, true);
 
         return new CachingResult() {
             @Override
@@ -245,8 +250,14 @@ public class SkipEmptyWorkStep implements Step<PreviousExecutionContext, Caching
     }
 
     private CachingResult executeWithNoEmptySources(UnitOfWork work, PreviousExecutionContext context) {
-        work.broadcastRelevantFileSystemInputs(false);
+        broadcastWorkInputs(work, false);
         return delegate.execute(work, context);
+    }
+
+    private void broadcastWorkInputs(UnitOfWork work, boolean onlyPrimaryInputs) {
+        workInputListeners.broadcastFileSystemInputsOf(work, onlyPrimaryInputs
+            ? EnumSet.of(InputFingerprinter.InputPropertyType.PRIMARY)
+            : EnumSet.allOf(InputFingerprinter.InputPropertyType.class));
     }
 
     private boolean cleanPreviousTaskOutputs(Map<String, FileSystemSnapshot> outputFileSnapshots) {

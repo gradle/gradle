@@ -16,9 +16,7 @@
 
 package org.gradle.tooling.internal.provider
 
-import org.gradle.api.execution.internal.DefaultTaskInputsListeners
 import org.gradle.api.internal.StartParameterInternal
-import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.deployment.internal.Deployment
 import org.gradle.deployment.internal.DeploymentInternal
@@ -32,9 +30,13 @@ import org.gradle.integtests.fixtures.RedirectStdIn
 import org.gradle.internal.buildevents.BuildStartedTime
 import org.gradle.internal.buildtree.BuildActionRunner
 import org.gradle.internal.event.DefaultListenerManager
+import org.gradle.internal.execution.UnitOfWork
+import org.gradle.internal.execution.fingerprint.InputFingerprinter
+import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputVisitor
 import org.gradle.internal.invocation.BuildAction
 import org.gradle.internal.logging.text.TestStyledTextOutputFactory
 import org.gradle.internal.service.scopes.DefaultFileChangeListeners
+import org.gradle.internal.service.scopes.DefaultWorkInputListeners
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.session.BuildSessionActionExecutor
@@ -66,7 +68,7 @@ class ContinuousBuildActionExecutorTest extends ConcurrentSpec {
     }
     def globalListenerManager = new DefaultListenerManager(Scope.Global)
     def userHomeListenerManager = globalListenerManager.createChild(Scopes.UserHome)
-    def inputsListeners = new DefaultTaskInputsListeners(globalListenerManager)
+    def inputListeners = new DefaultWorkInputListeners(globalListenerManager)
     def changeListeners = new DefaultFileChangeListeners(userHomeListenerManager)
     List<Deployment> deployments = []
     def continuousExecutionGate = new DefaultContinuousExecutionGate()
@@ -266,7 +268,7 @@ class ContinuousBuildActionExecutorTest extends ConcurrentSpec {
         when:
         executeBuild()
         then:
-        lastLogLine == "{failure}Exiting continuous build as no executed tasks declared file system inputs.{normal}"
+        lastLogLine == "{failure}Exiting continuous build as Gradle did not detect any file system inputs.{normal}"
     }
 
     def "exits if Gradle is not watching anything"() {
@@ -338,12 +340,12 @@ class ContinuousBuildActionExecutorTest extends ConcurrentSpec {
     }
 
     private boolean waitingForChangesMessageAppears() {
-        return lastLogLine == "Waiting for changes to input files of tasks..."
+        return lastLogLine == "Waiting for changes to input files..."
     }
 
     private void reloadableDeploymentDetected() {
         assert logLines[-2] == "Reloadable deployment detected. Entering continuous build."
-        assert lastLogLine == "Waiting for changes to input files of tasks..."
+        assert lastLogLine == "Waiting for changes to input files..."
     }
 
     private void rebuiltBecauseOfChange() {
@@ -381,12 +383,19 @@ class ContinuousBuildActionExecutorTest extends ConcurrentSpec {
     }
 
     private void declareInput(File file) {
-        inputsListeners.broadcastFileSystemInputsOf(Mock(TaskInternal), TestFiles.fixed(file))
+        def valueSupplier = Stub(InputFingerprinter.FileValueSupplier) {
+            getFiles() >> TestFiles.fixed(file)
+        }
+        inputListeners.broadcastFileSystemInputsOf(Stub(UnitOfWork) {
+            visitRegularInputs(_ as InputVisitor) >> { InputVisitor visitor ->
+                visitor.visitInputFileProperty("test", InputFingerprinter.InputPropertyType.PRIMARY, valueSupplier)
+            }
+        }, EnumSet.allOf(InputFingerprinter.InputPropertyType))
     }
 
     private ContinuousBuildActionExecutor executer() {
         new ContinuousBuildActionExecutor(
-            inputsListeners,
+            inputListeners,
             changeListeners,
             textOutputFactory,
             executorFactory,

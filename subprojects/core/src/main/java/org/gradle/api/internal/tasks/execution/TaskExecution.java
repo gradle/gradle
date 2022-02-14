@@ -19,12 +19,10 @@ package org.gradle.api.internal.tasks.execution;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
-import org.gradle.api.execution.internal.TaskInputsListeners;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputsInternal;
-import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileOperations;
@@ -90,7 +88,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RELEASE_AND_REACQUIRE_PROJECT_LOCKS;
@@ -117,7 +114,6 @@ public class TaskExecution implements UnitOfWork {
     private final ListenerManager listenerManager;
     private final ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry;
     private final TaskCacheabilityResolver taskCacheabilityResolver;
-    private final TaskInputsListeners taskInputsListeners;
 
     public TaskExecution(
         TaskInternal task,
@@ -134,8 +130,7 @@ public class TaskExecution implements UnitOfWork {
         InputFingerprinter inputFingerprinter,
         ListenerManager listenerManager,
         ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry,
-        TaskCacheabilityResolver taskCacheabilityResolver,
-        TaskInputsListeners taskInputsListeners
+        TaskCacheabilityResolver taskCacheabilityResolver
     ) {
         this.task = task;
         this.context = context;
@@ -152,7 +147,6 @@ public class TaskExecution implements UnitOfWork {
         this.listenerManager = listenerManager;
         this.reservedFileSystemLocationRegistry = reservedFileSystemLocationRegistry;
         this.taskCacheabilityResolver = taskCacheabilityResolver;
-        this.taskInputsListeners = taskInputsListeners;
     }
 
     @Override
@@ -475,25 +469,6 @@ public class TaskExecution implements UnitOfWork {
             typeValidationContext
         ));
         context.getValidationAction().validate(context.getTaskExecutionMode().isTaskHistoryMaintained(), typeValidationContext);
-    }
-
-    @Override
-    public void broadcastRelevantFileSystemInputs(boolean hasEmptySources) {
-        taskInputsListeners.broadcastFileSystemInputsOf(task, new CompositeFileCollection() {
-            @Override
-            public String getDisplayName() {
-                return TaskExecution.this.getDisplayName() + " relevant file inputs";
-            }
-
-            @Override
-            protected void visitChildren(Consumer<FileCollectionInternal> visitor) {
-                for (InputFilePropertySpec filePropertySpec : context.getTaskProperties().getInputFileProperties()) {
-                    if (!hasEmptySources || filePropertySpec.isSkipWhenEmpty()) {
-                        visitor.accept(filePropertySpec.getPropertyFiles());
-                    }
-                }
-            }
-        });
     }
 
     @Override

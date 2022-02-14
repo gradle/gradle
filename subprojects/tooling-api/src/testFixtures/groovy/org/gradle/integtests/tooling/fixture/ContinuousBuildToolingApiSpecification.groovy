@@ -29,6 +29,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.CancellationToken
 import org.gradle.tooling.ProjectConnection
+import org.gradle.util.GradleVersion
 import org.hamcrest.Matcher
 import org.junit.Assume
 import org.junit.Rule
@@ -44,9 +45,26 @@ import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
 @Retry(condition = { onContinuousBuildTimeout(instance, failure) }, mode = SETUP_FEATURE_CLEANUP, count = 2)
 abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecification {
 
-    public static final String WAITING_MESSAGE = "Waiting for changes to input files of tasks..."
     public static final String BUILD_CANCELLED = "Build cancelled."
     public static final String BUILD_CANCELLED_AND_STOPPED = "the build was canceled"
+
+    static String getWaitingMessage(GradleVersion targetVersion) {
+        return usesNativeWatchers(targetVersion)
+            ? "Waiting for changes to input files..."
+            : "Waiting for changes to input files of tasks..."
+    }
+
+    static boolean usesNativeWatchers(GradleVersion targetVersion) {
+        return targetVersion.baseVersion >= GradleVersion.version("7.5")
+    }
+
+    String getWaitingMessage() {
+        return getWaitingMessage(targetVersion)
+    }
+
+    boolean usesNativeWatchers() {
+        return usesNativeWatchers(targetVersion)
+    }
 
     // We have problems loading the file system watching library when starting a Gradle build via the tooling API in debug (= embedded) mode.
     // The problem there is that Gradle then tries to load the native library in two different classloaders in the same JDK, which isn't allowed.
@@ -160,13 +178,15 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
 
     private void waitForBuild() {
         long t0 = System.currentTimeMillis()
-        ExecutionOutput executionOutput = waitUntilOutputContains containsString(WAITING_MESSAGE)
+        ExecutionOutput executionOutput = waitUntilOutputContains containsString(waitingMessage)
         println("Wait finishes: ${System.currentTimeMillis() - t0} ms")
         result = OutputScrapingExecutionResult.from(executionOutput.stdout, executionOutput.stderr)
 
-        // Wait for extra 10s to wait for unexpected file change events to finish
+        int waitingTimeInSeconds = usesNativeWatchers() ? 1 : 10
+
+        // Wait for a little bit longer for unexpected file change events to arrive
         // https://github.com/gradle/gradle-private/issues/2976
-        Thread.sleep(10 * 1000)
+        Thread.sleep(waitingTimeInSeconds * 1000)
     }
 
     private ExecutionOutput waitUntilOutputContains(Matcher<String> expectedMatcher) {

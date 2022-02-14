@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.execution
 import com.google.common.collect.ImmutableSortedMap
 import com.google.common.collect.ImmutableSortedSet
 import org.gradle.api.execution.TaskActionListener
-import org.gradle.api.execution.internal.TaskInputsListeners
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.TaskInternal
@@ -42,6 +41,7 @@ import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.exceptions.MultiCauseException
 import org.gradle.internal.execution.BuildOutputCleanupRegistry
 import org.gradle.internal.execution.OutputChangeListener
+import org.gradle.internal.execution.WorkInputListeners
 import org.gradle.internal.execution.WorkValidationContext
 import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinterRegistry
 import org.gradle.internal.execution.fingerprint.impl.DefaultInputFingerprinter
@@ -141,6 +141,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
 
     def actionListener = Stub(TaskActionListener)
     def outputChangeListener = Stub(OutputChangeListener)
+    def inputListeners = Stub(WorkInputListeners)
     def cancellationToken = new DefaultBuildCancellationToken()
     def changeDetector = new DefaultExecutionStateChangeDetector()
     def taskCacheabilityResolver = Mock(TaskCacheabilityResolver)
@@ -161,7 +162,6 @@ class ExecuteActionsTaskExecuterTest extends Specification {
     def deleter = deleter()
     def validationWarningReporter = Stub(ValidateStep.ValidationWarningRecorder)
     def buildOutputCleanupRegistry = Stub(BuildOutputCleanupRegistry)
-    def taskInputsListeners = Stub(TaskInputsListeners)
     def outputsCleanerFactory = { new OutputsCleaner(deleter, buildOutputCleanupRegistry.&isOutputOwnedByBuild, buildOutputCleanupRegistry.&isOutputOwnedByBuild) } as Supplier<OutputsCleaner>
 
     // @formatter:off
@@ -170,7 +170,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         new IdentityCacheStep<>(
         new AssignWorkspaceStep<>(
         new LoadPreviousExecutionStateStep<>(
-        new SkipEmptyWorkStep(outputChangeListener, outputsCleanerFactory,
+        new SkipEmptyWorkStep(outputChangeListener, inputListeners, outputsCleanerFactory,
         new CaptureStateBeforeExecutionStep<>(buildOperationExecutor, classloaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
         new ValidateStep<>(virtualFileSystem, validationWarningReporter,
         new ResolveCachingStateStep<>(buildCacheController, false,
@@ -199,8 +199,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         listenerManager,
         reservedFileSystemLocationRegistry,
         fileCollectionFactory,
-        fileOperations,
-        taskInputsListeners
+        fileOperations
     )
 
     def setup() {
