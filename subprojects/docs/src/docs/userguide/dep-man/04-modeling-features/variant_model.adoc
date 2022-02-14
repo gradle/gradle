@@ -73,7 +73,7 @@ There are no restrictions on the number of variants a component can define.
 Usually, a component has at least an implementation variant, but it could also expose test fixtures, documentation or source code.
 A component may also expose _different variants_ for different consumers for the same usage. For example, when compiling, a component could have different headers for Linux vs Windows vs macOS.
 
-Gradle performs _variant aware selection_ by matching the attributes requested by the consumer against attributes defined by the producer.
+Gradle performs _variant aware selection_ by matching the attributes requested by the consumer against attributes defined by the producer. The <<variant_attributes.adoc#sec:abm_algorithm, selection algorithm>> is detailed in another section.
 
 [NOTE]
 ====
