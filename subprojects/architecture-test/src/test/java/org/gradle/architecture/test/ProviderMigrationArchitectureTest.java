@@ -66,7 +66,7 @@ public class ProviderMigrationArchitectureTest {
     };
 
     @ArchTest
-    public static final ArchRule mutable_public_api_properties_should_be_providers = methods()
+    public static final ArchRule mutable_public_api_properties_should_be_providers = freeze(methods()
         .that(are(public_api_methods))
         .and(not(declaredIn(assignableTo(Task.class))))
         .and(are(getters))
@@ -78,17 +78,17 @@ public class ProviderMigrationArchitectureTest {
         .and().areNotDeclaredIn(FileCollection.class)
         .and().doNotHaveRawReturnType(TextResource.class)
         .and().doNotHaveRawReturnType(assignableTo(FileCollection.class))
-        .should().haveRawReturnType(assignableTo(Provider.class));
+        .should().haveRawReturnType(assignableTo(Provider.class)));
 
     @ArchTest
-    public static final ArchRule mutable_public_api_properties_should_be_file_collections = methods()
+    public static final ArchRule mutable_public_api_properties_should_be_file_collections = freeze(methods()
         .that(are(public_api_methods))
         .and(not(declaredIn(assignableTo(Task.class))))
         .and(are(getters))
         .and(haveSetters)
         .and().areNotAnnotatedWith(Inject.class)
         .and().haveRawReturnType(assignableTo(FileCollection.class))
-        .should().haveRawReturnType(assignableTo(ConfigurableFileCollection.class));
+        .should().haveRawReturnType(assignableTo(ConfigurableFileCollection.class)));
 
     @SuppressWarnings("deprecation")
     @ArchTest
