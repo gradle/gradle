@@ -125,11 +125,11 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
                         }
                         System.exit(0);
                     } catch (org.gradle.tooling.GradleConnectionException e) {
-                        e.printStackTrace();
                         if (allowUnusable && e.getCause()!=null && e.getCause().getClass().getSimpleName().equals("NoUsableDaemonFoundException")) {
                             System.out.println("Daemon registry is in a bad state and we cannot connect to the daemon.");
                             System.exit(0);
                         } else {
+                            e.printStackTrace();
                             System.exit(1);                                
                         }
                     } catch (Exception e) {
