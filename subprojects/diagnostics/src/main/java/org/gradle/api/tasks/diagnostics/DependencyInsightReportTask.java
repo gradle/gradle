@@ -120,7 +120,8 @@ public class DependencyInsightReportTask extends DefaultTask {
     @Optional
     @Incubating
     public Property<ResolvedComponentResult> getRootComponentProperty() {
-        if (!rootComponentProperty.isPresent() && configuration != null && dependencySpec != null) {
+        Configuration configuration = getConfiguration();
+        if (!rootComponentProperty.isPresent() && configuration != null && getDependencySpec() != null) {
             configurationName = configuration.getName();
             configurationDescription = configuration.toString();
             configurationAttributes = configuration.getAttributes();
