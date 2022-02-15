@@ -186,7 +186,7 @@ public class Javadoc extends SourceTask {
             .filter(path -> path.contains(File.pathSeparator))
             .collect(Collectors.toList());
         if (!filesAsPaths.isEmpty()) {
-            throw new InvalidUserDataException("Provided bootClasspath contains a concatenation of files instead of a single file. Problematic files are: " + String.join(", ", filesAsPaths));
+            throw new InvalidUserDataException("Provided bootClasspath contains a concatenation of files instead of a single file. Problematic files are: " + String.join(", ", filesAsPaths) + ".");
         }
     }
 

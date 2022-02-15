@@ -26,6 +26,8 @@ import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 import spock.lang.Issue
 
+import java.nio.file.Paths
+
 class JavadocIntegrationTest extends AbstractIntegrationSpec {
     @Rule TestResources testResources = new TestResources(temporaryFolder)
 
@@ -314,7 +316,7 @@ Joe!""")
 
         expect:
         fails "javadoc"
-        failure.assertHasErrorOutput "Provided bootClasspath contains a concatenation of files instead of a single file. Problematic files are: ${bootClasspath}"
+        failure.assertHasErrorOutput "Provided bootClasspath contains a concatenation of files instead of a single file. Problematic files are: ${Paths.get(bootClasspath)}."
     }
 
     private TestFile writeSourceFile() {

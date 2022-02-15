@@ -26,6 +26,8 @@ import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 import spock.lang.Issue
 
+import java.nio.file.Paths
+
 class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
@@ -923,7 +925,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         fails "compileJava"
-        failure.assertHasErrorOutput "Provided bootstrapClasspath contains a concatenation of files instead of a single file. Problematic files are: ${bootClasspath}"
+        failure.assertHasErrorOutput "Provided bootstrapClasspath contains a concatenation of files instead of a single file. Problematic files are: ${Paths.get(bootClasspath)}."
     }
 
     def "deletes empty packages dirs"() {

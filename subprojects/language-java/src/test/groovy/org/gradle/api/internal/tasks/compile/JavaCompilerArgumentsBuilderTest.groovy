@@ -27,6 +27,8 @@ import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification
 
+import java.nio.file.Paths
+
 import static org.gradle.api.internal.tasks.compile.JavaCompilerArgumentsBuilder.USE_UNSHARED_COMPILER_TABLE_OPTION
 
 class JavaCompilerArgumentsBuilderTest extends Specification {
@@ -202,7 +204,7 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
 
         then:
         def thrown = thrown(InvalidUserDataException)
-        thrown.message == "Provided bootstrapClasspath contains a concatenation of files instead of a single file. Problematic files are: $filePath"
+        thrown.message == "Provided bootstrapClasspath contains a concatenation of files instead of a single file. Problematic files are: ${Paths.get(filePath)}."
     }
 
     def "generates -extdirs option"() {

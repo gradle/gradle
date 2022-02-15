@@ -233,7 +233,7 @@ public class JavaCompilerArgumentsBuilder {
         if (filesAsPaths.isEmpty()) {
             return Joiner.on(File.pathSeparatorChar).join(files);
         }
-        throw new InvalidUserDataException("Provided bootstrapClasspath contains a concatenation of files instead of a single file. Problematic files are: " + String.join(", ", filesAsPaths));
+        throw new InvalidUserDataException("Provided bootstrapClasspath contains a concatenation of files instead of a single file. Problematic files are: " + String.join(", ", filesAsPaths) + ".");
     }
 
     private void addSourcePathArg(List<String> compilerArgs, MinimalJavaCompileOptions compileOptions) {
