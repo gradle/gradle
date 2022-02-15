@@ -147,7 +147,6 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec implements Ins
         errorOutput.contains("JaCoCo destination file must not be null if output type is FILE")
     }
 
-    @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
     def "jacoco plugin adds outgoing variants for default test suite"() {
         settingsFile << "rootProject.name = 'Test'"
 
@@ -177,7 +176,6 @@ Artifacts
         hasIncubatingLegend()
     }
 
-    @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
     def "jacoco plugin adds outgoing variants for custom test suite"() {
         settingsFile << "rootProject.name = 'Test'"
 

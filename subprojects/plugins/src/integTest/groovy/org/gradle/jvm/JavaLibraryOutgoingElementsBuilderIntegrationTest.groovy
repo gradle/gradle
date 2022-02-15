@@ -18,7 +18,6 @@ package org.gradle.jvm
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class JavaLibraryOutgoingElementsBuilderIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
@@ -50,7 +49,6 @@ class JavaLibraryOutgoingElementsBuilderIntegrationTest extends AbstractIntegrat
         """
     }
 
-    @ToBeFixedForConfigurationCache(because = "outgoing variants report isn't compatible")
     def "configures an additional outgoing variant (#scenario, #capability)"() {
         buildFile << """
             def shadowJar = tasks.register("shadowJar", Jar) {
@@ -113,7 +111,6 @@ Artifacts
         capability = cgroup == null ? 'com.acme:mylib:1.4 (default capability)' : "${cgroup}:${cname}:${cversion}".replaceAll(/'/, '')
     }
 
-    @ToBeFixedForConfigurationCache(because = "outgoing variants report isn't compatible")
     def "can configure an additional outgoing variant from a source set (with classes dir=#classesDir)"() {
         buildFile << """
             sourceSets {
@@ -179,7 +176,6 @@ Secondary Variants (*)
         classesDir << [false, true]
     }
 
-    @ToBeFixedForConfigurationCache(because = "outgoing variants report isn't compatible")
     def "can configure an outgoing elements configuration for documentation"() {
         buildFile << """
             def userguide = tasks.register('userguide') {

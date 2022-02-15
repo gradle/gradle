@@ -23,7 +23,6 @@ import org.gradle.test.fixtures.file.TestFile
 
 class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec implements InspectsConfigurationReport {
 
-    @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
     def "JVM Test Suites plugin adds outgoing variants for default test suite"() {
         settingsFile << "rootProject.name = 'Test'"
 
@@ -66,7 +65,6 @@ Artifacts
         hasIncubatingLegend()
     }
 
-    @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
     def "JVM Test Suites plugin adds outgoing variants for custom test suite"() {
         settingsFile << "rootProject.name = 'Test'"
 
