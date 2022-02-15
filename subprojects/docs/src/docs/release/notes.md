@@ -9,8 +9,9 @@ We would like to thank the following community members for their contributions t
 [Lieven Vaneeckhaute](https://github.com/denshade),
 [kiwi-oss](https://github.com/kiwi-oss),
 [Stefan Neuhaus](https://github.com/stefanneuhaus),
-[George Thomas](https://github.com/smoothreggae)
-[Anja Papatola](https://github.com/apalopta)
+[George Thomas](https://github.com/smoothreggae),
+[Anja Papatola](https://github.com/apalopta),
+[Björn Kautler](https://github.com/Vampire)
 <!-- 
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
