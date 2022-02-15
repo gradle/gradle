@@ -24,6 +24,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.gradle.util.internal.GUtil
 import org.junit.Rule
+import spock.lang.Issue
 import spock.lang.Specification
 
 import static org.gradle.api.internal.tasks.compile.JavaCompilerArgumentsBuilder.USE_UNSHARED_COMPILER_TABLE_OPTION
@@ -189,6 +190,7 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
         builder.build() == ["-bootclasspath", "lib1.jar${File.pathSeparator}lib2.jar"] + defaultOptions
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/19817")
     def "fails generating -bootclasspath option when concatenated files"() {
         def compileOptions = new CompileOptions(TestUtil.objectFactory())
         def filePath = ["lib1.jar", "lib2.jar"].join(File.pathSeparator)

@@ -296,8 +296,9 @@ Joe!""")
         succeeds("javadoc")
     }
 
-    @Requires(TestPrecondition.JDK8_OR_EARLIER)
     // bootclasspath has been removed in Java 9+
+    @Requires(TestPrecondition.JDK8_OR_EARLIER)
+    @Issue("https://github.com/gradle/gradle/issues/19817")
     def "fails if bootclasspath is provided as a path instead of a single file"() {
         def jre = AvailableJavaHomes.getBestJre()
         def bootClasspath = TextUtil.escapeString(jre.absolutePath) + "/lib/rt.jar${File.pathSeparator}someotherpath"
