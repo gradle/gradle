@@ -6,12 +6,16 @@ on:
   pull_request:
     types: [opened, labeled]
 
+env:
+  GITHUB_TOKEN: ${{ secrets.BOT_GRADLE_GH_ORG_BOARD_ACCESS_TOKEN }}
+
 jobs:
   add-to-dev-prod-project:
     runs-on: ubuntu-latest
     steps:
-      - name: Check label
+      - name: Add to devprod project
         if: (github.event.issue!=null && contains(github.event.issue.labels.*.name, '@dev-productivity')) || (github.event.pull_request!=null && contains(github.event.pull_request.labels.*.name, '@dev-productivity'))
-        env:
-          GITHUB_TOKEN: ${{ secrets.BOT_GRADLE_GH_ORG_BOARD_ACCESS_TOKEN }}
         run: curl -s https://raw.githubusercontent.com/gradle/gradle/master/.github/workflows/add-to-github-project.sh | bash -s 17 ${{ github.event.pull_request.node_id }}
+      - name: Add to execution project
+        if: (github.event.issue!=null && contains(github.event.issue.labels.*.name, '@execution')) || (github.event.pull_request!=null && contains(github.event.pull_request.labels.*.name, '@execution'))
+        run: curl -s https://raw.githubusercontent.com/gradle/gradle/master/.github/workflows/add-to-github-project.sh | bash -s 24 ${{ github.event.pull_request.node_id }}
