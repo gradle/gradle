@@ -53,6 +53,7 @@ import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -65,6 +66,7 @@ import static org.gradle.internal.component.external.model.maven.DefaultMavenMod
  * @see DefaultMavenModuleResolveMetadata
  */
 public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleComponentResolveMetadata implements MavenModuleResolveMetadata {
+    private static final Set<String> KNOWN_SCOPES = ImmutableSet.of(MavenScope.Compile.getLowerName(), MavenScope.Test.getLowerName(), MavenScope.Runtime.getLowerName(), "default");
 
     /**
      * Factory method to transform a {@link DefaultMavenModuleResolveMetadata}, which is lazy, in a realised version.
@@ -200,13 +202,26 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
 
     static ImmutableList<? extends ModuleComponentArtifactMetadata> getArtifactsForConfiguration(DefaultMavenModuleResolveMetadata metadata, String name) {
         ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts;
-        if (name.equals("compile") || name.equals("runtime") || name.equals("default") || name.equals("test")) {
-            String type = metadata.isKnownJarPackaging() ? "jar" :  metadata.getPackaging();
-            artifacts = ImmutableList.of(new DefaultModuleComponentArtifactMetadata(metadata.getId(), new DefaultIvyArtifactName(metadata.getId().getModule(), type, type)));
+        if (metadata.isKnownJarPackaging()) {
+            artifacts = ImmutableList.of(createJarArtifactMetadata(metadata.getId()));
+        } else if (KNOWN_SCOPES.contains(name)) {
+            String type = metadata.getPackaging();
+            artifacts = ImmutableList.of(new DefaultModuleComponentArtifactMetadata(metadata.getId(), new DefaultIvyArtifactName(metadata.getId().getModule(), type, type),
+                createJarArtifactMetadata(metadata.getId())));
         } else {
             artifacts = ImmutableList.of();
         }
         return artifacts;
+    }
+
+    /**
+     * Convenience method to create metadata specific to the jar artifact for a given component
+     *
+     * @param id the source component's metadata, from which a jar artifact will be derived
+     * @return a copy of the component's metadata which expects an artifact with type and extension of {@code jar}
+     */
+    private static ModuleComponentArtifactMetadata createJarArtifactMetadata(ModuleComponentIdentifier id) {
+        return new DefaultModuleComponentArtifactMetadata(id, new DefaultIvyArtifactName(id.getModule(), "jar", "jar"));
     }
 
     private static ImmutableList<ModuleDependencyMetadata> filterDependencies(ModuleComponentIdentifier componentId, ConfigurationMetadata config, ImmutableList<MavenDependencyDescriptor> dependencies) {

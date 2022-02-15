@@ -223,13 +223,12 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
     private class MavenLocalRepositoryAccess extends LocalRepositoryAccess {
         @Override
         protected void resolveModuleArtifacts(MavenModuleResolveMetadata module, ConfigurationMetadata variant, BuildableComponentArtifactsResolveResult result) {
-            if (!variant.requiresMavenArtifactDiscovery()) {
+            if (module.isRelocated()) {
+                result.resolved(new FixedComponentArtifacts(Collections.emptyList()));
+            } else if (module.hasVariants() && !module.isPomPackaging()) {
                 result.resolved(new MetadataSourcedComponentArtifacts());
             } else if (module.isKnownJarPackaging()) {
-                ModuleComponentArtifactMetadata artifact = module.artifact("jar", "jar", null);
-                result.resolved(new FixedComponentArtifacts(ImmutableSet.of(artifact)));
-            } else if (module.isRelocated()) {
-                result.resolved(new FixedComponentArtifacts(Collections.emptyList()));
+                result.resolved(new MetadataSourcedComponentArtifacts());
             }
         }
 
