@@ -19,7 +19,6 @@ package org.gradle.api.tasks.diagnostics
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.InspectsConfigurationReport
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class ResolvableConfigurationsReportTaskIntegrationTest extends AbstractIntegrationSpec implements InspectsConfigurationReport {
     def setup() {
@@ -28,14 +27,12 @@ class ResolvableConfigurationsReportTaskIntegrationTest extends AbstractIntegrat
         """
     }
 
-    @ToBeFixedForConfigurationCache(because = ":resolvableConfigurations")
     def "if no configurations present in project, task reports complete absence"() {
         expect:
         succeeds ':resolvableConfigurations'
         reportsCompleteAbsenceOfResolvableConfigurations()
     }
 
-    @ToBeFixedForConfigurationCache(because = ":resolvableConfigurations")
     def "if only consumable configurations present, task reports complete absence"() {
         given:
         buildFile << """
@@ -51,7 +48,6 @@ class ResolvableConfigurationsReportTaskIntegrationTest extends AbstractIntegrat
         reportsCompleteAbsenceOfResolvableConfigurations()
     }
 
-    @ToBeFixedForConfigurationCache(because = ":resolvableConfigurations")
     def "if only legacy configuration present, and --all not specified, task produces empty report and prompts for rerun"() {
         given:
         buildFile << """
@@ -68,7 +64,6 @@ class ResolvableConfigurationsReportTaskIntegrationTest extends AbstractIntegrat
         promptsForRerunToFindMoreConfigurations()
     }
 
-    @ToBeFixedForConfigurationCache(because = ":resolvableConfigurations")
     def "if only legacy configuration present, task reports it if --all flag is set"() {
         given:
         buildFile << """
@@ -95,7 +90,6 @@ My custom legacy configuration""")
         doesNotPromptForRerunToFindMoreConfigurations()
     }
 
-    @ToBeFixedForConfigurationCache(because = ":resolvableConfigurations")
     def "if single resolvable configuration with no attributes or artifacts present, task reports it"() {
         given:
         buildFile << """
@@ -122,7 +116,6 @@ My custom configuration
         doesNotPromptForRerunToFindMoreConfigurations()
     }
 
-    @ToBeFixedForConfigurationCache(because = ":resolvableConfigurations")
     def "if single resolvable configuration present with attributes, task reports it and them"() {
         given:
         buildFile << """
@@ -160,7 +153,6 @@ Attributes
         doesNotPromptForRerunToFindMoreConfigurations()
     }
 
-    @ToBeFixedForConfigurationCache(because = ":resolvableConfigurations")
     def "If multiple resolvable configurations present with attributes, task reports them all, sorted alphabetically"() {
         given:
         buildFile << """
@@ -216,7 +208,6 @@ Attributes
         doesNotPromptForRerunToFindMoreConfigurations()
     }
 
-    @ToBeFixedForConfigurationCache(because = ":resolvableConfigurations")
     def "reports resolvable configurations of a Java Library with module dependencies"() {
         given:
         buildFile << """
@@ -328,7 +319,6 @@ Extended Configurations
         doesNotHaveIncubatingLegend()
     }
 
-    @ToBeFixedForConfigurationCache(because = ":resolvableConfigurations")
     def "reports resolvable configurations of a Java Library with module dependencies if --all flag is set"() {
         given:
         buildFile << """
@@ -454,14 +444,12 @@ Extended Configurations
         doesNotHaveIncubatingLegend()
     }
 
-    @ToBeFixedForConfigurationCache(because = ":resolvableConfigurations")
     def "specifying a missing config with no configs produces empty report"() {
         expect:
         succeeds ':resolvableConfigurations', '--configuration', 'missing'
         reportsCompleteAbsenceOfResolvableConfigurations()
     }
 
-    @ToBeFixedForConfigurationCache(because = ":resolvableConfigurations")
     def "specifying a missing config produces empty report"() {
         given:
         buildFile << """
@@ -478,7 +466,6 @@ Extended Configurations
         doesNotPromptForRerunToFindMoreConfigurations()
     }
 
-    @ToBeFixedForConfigurationCache(because = ":resolvableConfigurations")
     def "specifying a missing config with --all and legacy configs available produces empty report and no suggestion"() {
         given:
         buildFile << """
@@ -501,7 +488,6 @@ Extended Configurations
         doesNotPromptForRerunToFindMoreConfigurations()
     }
 
-    @ToBeFixedForConfigurationCache(because = ":resolvableConfigurations")
     def "compatibility rules are printed if present"() {
         given: "A compatibility rule applying to the alphabetically first named attribute in the list"
         buildFile << """
@@ -552,7 +538,6 @@ The following Attributes have compatibility rules defined.
         doesNotHaveIncubatingLegend()
     }
 
-    @ToBeFixedForConfigurationCache(because = ":resolvableConfigurations")
     def "disambiguation rules are printed if present"() {
         given: "A disambiguation rule applying to the alphabetically first named attribute in the list"
         buildFile << """
@@ -605,7 +590,6 @@ The following Attributes have disambiguation rules defined.
         doesNotHaveIncubatingLegend()
     }
 
-    @ToBeFixedForConfigurationCache(because = ":resolvableConfigurations")
     def "specifying --recursive includes transitively extended configurations"() {
         given:
         buildFile << """
@@ -658,7 +642,6 @@ Extended Configurations
         hasTransitiveLegend()
     }
 
-    @ToBeFixedForConfigurationCache(because = ":resolvableConfigurations")
     def "not specifying --recursive does not includes transitively extended configurations"() {
         given:
         buildFile << """
@@ -710,7 +693,6 @@ Extended Configurations
         doesNotHaveTransitiveLegend()
     }
 
-    @ToBeFixedForConfigurationCache(because = ":resolvableConfigurations")
     def "specifying --recursive with no transitively extended configurations does not print legend"() {
         given:
         buildFile << """
