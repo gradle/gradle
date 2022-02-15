@@ -19,7 +19,6 @@ package org.gradle.api.tasks.diagnostics
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.InspectsConfigurationReport
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class OutgoingVariantsReportTaskIntegrationTest extends AbstractIntegrationSpec implements InspectsConfigurationReport {
     def setup() {
@@ -28,14 +27,12 @@ class OutgoingVariantsReportTaskIntegrationTest extends AbstractIntegrationSpec 
         """
     }
 
-    @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
     def "if no configurations present in project, task reports complete absence"() {
         expect:
         succeeds ':outgoingVariants'
         reportsCompleteAbsenceOfResolvableVariants()
     }
 
-    @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
     def "if only resolvable configurations present, task reports complete absence"() {
         given:
         buildFile << """
@@ -51,7 +48,6 @@ class OutgoingVariantsReportTaskIntegrationTest extends AbstractIntegrationSpec 
         reportsCompleteAbsenceOfResolvableVariants()
     }
 
-    @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
     def "if only legacy configuration present, and --all not specified, task produces empty report and prompts for rerun"() {
         given:
         buildFile << """
@@ -68,7 +64,6 @@ class OutgoingVariantsReportTaskIntegrationTest extends AbstractIntegrationSpec 
         promptsForRerunToFindMoreVariants()
     }
 
-    @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
     def "if only legacy configuration present, task reports it if --all flag is set"() {
         given:
         buildFile << """
@@ -95,7 +90,6 @@ My custom legacy configuration""")
         doesNotPromptForRerunToFindMoreConfigurations()
     }
 
-    @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
     def "if single outgoing variant with no attributes or artifacts present, task reports it"() {
         given:
         buildFile << """
@@ -121,7 +115,6 @@ My custom configuration
         doesNotPromptForRerunToFindMoreVariants()
     }
 
-    @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
     def "if single outgoing variant present with attributes, task reports it and them"() {
         given:
         buildFile << """
@@ -160,7 +153,6 @@ Attributes
         doesNotPromptForRerunToFindMoreVariants()
     }
 
-    @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
     def "If multiple outgoing variants present with attributes, task reports them all, sorted alphabetically"() {
         given:
         buildFile << """
@@ -219,7 +211,6 @@ Attributes
         doesNotPromptForRerunToFindMoreVariants()
     }
 
-    @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
     def "reports outgoing variants of a Java Library"() {
         buildFile << """
             plugins { id 'java-library' }
@@ -352,7 +343,6 @@ Artifacts
         hasSecondaryVariantsLegend()
     }
 
-    @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
     def "reports outgoing variants of a Java Library with documentation"() {
         buildFile << """
             plugins { id 'java-library' }
@@ -520,7 +510,6 @@ Artifacts
         hasSecondaryVariantsLegend()
     }
 
-    @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
     def "reports outgoing variants of a Java Library with documentation including test data variants"() {
         buildFile << """
             plugins { id 'java-library' }
@@ -690,7 +679,6 @@ Artifacts
         hasIncubatingLegend()
     }
 
-    @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
     def "reports a single outgoing variant of a Java Library"() {
         buildFile << """
             plugins { id 'java-library' }
@@ -757,7 +745,6 @@ Secondary Variants (*)
         hasSecondaryVariantsLegend()
     }
 
-    @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
     def "can show all variants"() {
         buildFile << """
             plugins { id 'java-library' }
@@ -913,7 +900,6 @@ Artifacts
         hasSecondaryVariantsLegend()
     }
 
-    @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
     def "can show all variants including test data variants"() {
         buildFile << """
             plugins { id 'java-library' }
@@ -1068,7 +1054,6 @@ Artifacts
         hasSecondaryVariantsLegend()
     }
 
-    @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
     def "prints explicit capabilities"() {
         buildFile << """
             plugins { id 'java-library' }
@@ -1094,7 +1079,6 @@ Capabilities
 """)
     }
 
-    @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
     def "reports artifacts without explicit type"() {
         buildFile << """
             plugins { id 'java-library' }
@@ -1169,7 +1153,6 @@ Secondary Variants (*)
         hasSecondaryVariantsLegend()
     }
 
-    @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
     def "variants using custom VERIFICATION_TYPE attribute values are reported as incubating"() {
         buildFile << """
             plugins { id 'java-library' }
@@ -1323,7 +1306,6 @@ Artifacts
         hasIncubatingLegend()
     }
 
-    @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
     def "custom artifact with classifier is printed"() {
         given:
         buildFile << """
