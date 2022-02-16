@@ -78,7 +78,6 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     private final Set<Node> entryNodes = new LinkedHashSet<>();
     private final NodeMapping nodeMapping = new NodeMapping();
     private final List<Node> executionQueue = new LinkedList<>();
-    private final Set<ResourceLock> projectLocks = new HashSet<>();
     private final FailureCollector failureCollector = new FailureCollector();
     private final String displayName;
     private final TaskNodeFactory taskNodeFactory;
@@ -354,11 +353,6 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                     dependency.getMutationInfo().consumingNodes.add(node);
                 }
 
-                ResourceLock projectLock = node.getProjectToLock();
-                if (projectLock != null) {
-                    projectLocks.add(projectLock);
-                }
-
                 // Add any finalizers to the queue
                 for (Node finalizer : node.getFinalizers()) {
                     if (!visitingNodes.containsKey(finalizer)) {
@@ -610,11 +604,6 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     @Override
     @Nullable
     public Node selectNext() {
-        if (allProjectsLocked()) {
-            // TODO - this is incorrect. We can still run nodes that don't need a project lock
-            return null;
-        }
-
         for (Iterator<Node> iterator = dependenciesWhichRequireMonitoring.iterator(); iterator.hasNext();) {
             Node node = iterator.next();
             if (node.isComplete()) {
@@ -741,15 +730,6 @@ public class DefaultExecutionPlan implements ExecutionPlan {
             destroyableHierarchy.recordNodeAccessingLocations(node, mutations.destroyablePaths);
         }
         return mutations;
-    }
-
-    private boolean allProjectsLocked() {
-        for (ResourceLock lock : projectLocks) {
-            if (!lock.isLocked()) {
-                return false;
-            }
-        }
-        return !projectLocks.isEmpty();
     }
 
     private boolean canRunWithCurrentlyExecutedNodes(MutationInfo mutations) {
