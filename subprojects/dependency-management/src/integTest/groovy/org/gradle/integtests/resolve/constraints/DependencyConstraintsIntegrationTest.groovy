@@ -724,7 +724,6 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
         }
     }
 
-    @ToBeFixedForConfigurationCache(because = "broken file collection")
     void 'dependency constraint on failed variant resolution needs to be in the right state'() {
         mavenRepo.module('org', 'bar', '1.0').publish()
         writeSpec {
@@ -751,7 +750,6 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
         outputContains("org:bar: FAILED")
     }
 
-    @ToBeFixedForConfigurationCache(because = "broken file collection")
     void 'multiple dependency constraints on single module are all taken into account (#one then #two)'() {
         def bar10 = mavenRepo.module('org', 'bar', '1.0').publish()
         def bar20 = mavenRepo.module('org', 'bar', '2.0').publish()
