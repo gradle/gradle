@@ -17,6 +17,7 @@
 package org.gradle.api.internal;
 
 import org.gradle.StartParameter;
+import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption;
 import org.gradle.internal.buildoption.BuildOption;
@@ -200,5 +201,9 @@ public class StartParameterInternal extends StartParameter {
 
     public Duration getContinuousBuildQuietPeriod() {
         return continuousBuildQuietPeriod;
+    }
+
+    public ParallelismConfiguration getParallelismConfiguration() {
+        return this.parallelismConfiguration;
     }
 }

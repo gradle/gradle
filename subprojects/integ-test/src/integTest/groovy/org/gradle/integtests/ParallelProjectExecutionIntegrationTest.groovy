@@ -21,11 +21,14 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 import spock.lang.IgnoreIf
+import spock.lang.Unroll
 
-@IgnoreIf({GradleContextualExecuter.parallel}) // no point, always runs in parallel
+@IgnoreIf({ GradleContextualExecuter.parallel })
+// no point, always runs in parallel
 public class ParallelProjectExecutionIntegrationTest extends AbstractIntegrationSpec {
 
-    @Rule public final BlockingHttpServer blockingServer = new BlockingHttpServer()
+    @Rule
+    public final BlockingHttpServer blockingServer = new BlockingHttpServer()
 
     def setup() {
         blockingServer.start()
@@ -45,12 +48,40 @@ allprojects {
     }
 }
 """
-        executer.withArgument('--parallel')
-        executer.withArgument('--max-workers=3') // needs to be set to the maximum number of expectConcurrentExecution() calls
         executer.withArgument('--info')
     }
 
-    def "executes dependency project targets concurrently"() {
+    def configureParallelism(String config) {
+        def maxWorkers = 3 // needs to be set to the maximum number of expectConcurrentExecution() calls
+        switch (config) {
+            case 'arguments': {
+                executer.withArgument('--parallel')
+                executer.withArgument("--max-workers=$maxWorkers")
+                break
+            }
+            case 'settings': {
+                settingsFile << """
+gradle.startParameter.parallelProjectExecutionEnabled = true
+gradle.startParameter.maxWorkerCount = $maxWorkers
+"""
+                break
+            }
+            case 'settingsEvaluated': {
+                settingsFile << """
+gradle.settingsEvaluated {
+    gradle.startParameter.parallelProjectExecutionEnabled = true
+    gradle.startParameter.maxWorkerCount = $maxWorkers
+}
+"""
+                break
+            }
+            default: throw new IllegalArgumentException("Unknown config $config")
+        }
+    }
+
+    @Unroll
+    def "executes dependency project targets concurrently when configured with #config"() {
+        configureParallelism(config)
         projectDependency from: 'a', to: ['b', 'c', 'd']
 
         expect:
@@ -58,10 +89,16 @@ allprojects {
         blockingServer.expect(':a:pingServer')
 
         run ':a:pingServer'
+
+        where:
+        config          | _
+        'arguments'     | _
+        'settings'      | _
+        'settingsEvaluated' | _
     }
 
-    def "executes dependency project targets concurrently where possible"() {
-
+    def "executes dependency project targets concurrently where possible when configured with #config"() {
+        configureParallelism(config)
         projectDependency from: 'a', to: ['b', 'c']
         projectDependency from: 'b', to: ['d']
         projectDependency from: 'c', to: ['d']
@@ -72,9 +109,16 @@ allprojects {
         blockingServer.expect(':a:pingServer')
 
         run ':a:pingServer'
+
+        where:
+        config          | _
+        'arguments'     | _
+        'settings'      | _
+        'settingsEvaluated' | _
     }
 
-    def "project dependency a->[b,c] and both b & c fail"() {
+    def "project dependency a->[b,c] and both b & c fail when configured with #config"() {
+        configureParallelism(config)
         projectDependency from: 'a', to: ['b', 'c']
         failingBuild 'b'
         failingBuild 'c'
@@ -87,9 +131,16 @@ allprojects {
         then:
         failure.assertHasCause('b failed')
         failure.assertHasCause('c failed')
+
+        where:
+        config          | _
+        'arguments'     | _
+        'settings'      | _
+        'settingsEvaluated' | _
     }
 
-    def "tasks are executed when they are ready and not necessarily alphabetically"() {
+    def "tasks are executed when they are ready and not necessarily alphabetically when configured with #config"() {
+        configureParallelism(config)
         buildFile << """
             tasks.getByPath(':b:pingA').dependsOn(':a:pingA')
             tasks.getByPath(':b:pingC').dependsOn([':b:pingA', ':b:pingB'])
@@ -102,9 +153,16 @@ allprojects {
         blockingServer.expect(':b:pingC')
 
         run 'b:pingC'
+
+        where:
+        config          | _
+        'arguments'     | _
+        'settings'      | _
+        'settingsEvaluated' | _
     }
 
-    def "finalizer tasks are run in parallel"() {
+    def "finalizer tasks are run in parallel when configured with #config"() {
+        configureParallelism(config)
         buildFile << """
             tasks.getByPath(':c:ping').dependsOn ":a:ping", ":b:ping"
             tasks.getByPath(':d:ping').finalizedBy ":c:ping"
@@ -116,9 +174,16 @@ allprojects {
         blockingServer.expect(':c:ping')
 
         run 'd:ping'
+
+        where:
+        config          | _
+        'arguments'     | _
+        'settings'      | _
+        'settingsEvaluated' | _
     }
 
-    void 'tasks with should run after ordering rules are preferred when running over an idle worker thread'() {
+    void 'tasks with should run after ordering rules are preferred when running over an idle worker thread when configured with #config'() {
+        configureParallelism(config)
         buildFile << """
             tasks.getByPath(':a:pingA').shouldRunAfter(':b:pingB')
             tasks.getByPath(':b:pingB').dependsOn(':b:pingA')
@@ -129,6 +194,12 @@ allprojects {
         blockingServer.expect(':b:pingB')
 
         run 'a:pingA', 'b:pingB'
+
+        where:
+        config          | _
+        'arguments'     | _
+        'settings'      | _
+        'settingsEvaluated' | _
     }
 
     def projectDependency(def link) {

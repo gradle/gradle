@@ -66,7 +66,6 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     public static final File DEFAULT_GRADLE_USER_HOME = new BuildLayoutParameters().getGradleUserHomeDir();
 
     private final DefaultLoggingConfiguration loggingConfiguration = new DefaultLoggingConfiguration();
-    private final DefaultParallelismConfiguration parallelismConfiguration = new DefaultParallelismConfiguration();
     private List<TaskExecutionRequest> taskRequests = new ArrayList<>();
     private Set<String> excludedTaskNames = new LinkedHashSet<>();
     private boolean buildProjectDependencies = true;
@@ -99,6 +98,8 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     private DependencyVerificationMode verificationMode = DependencyVerificationMode.STRICT;
     private boolean isRefreshKeys;
     private boolean isExportKeys;
+
+    protected final DefaultParallelismConfiguration parallelismConfiguration = new DefaultParallelismConfiguration();
 
     /**
      * {@inheritDoc}

@@ -57,7 +57,7 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Stoppable 
     public static final String PROJECT_LOCK_STATS_PROPERTY = "org.gradle.internal.project.lock.stats";
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultWorkerLeaseService.class);
 
-    private final int maxWorkerCount;
+    private final ParallelismConfiguration parallelismConfiguration;
     private final ResourceLockCoordinationService coordinationService;
     private final TaskExecutionLockRegistry taskLockRegistry;
     private final ProjectLockRegistry projectLockRegistry;
@@ -65,17 +65,17 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Stoppable 
     private final ProjectLockStatisticsImpl projectLockStatistics = new ProjectLockStatisticsImpl();
 
     public DefaultWorkerLeaseService(ResourceLockCoordinationService coordinationService, ParallelismConfiguration parallelismConfiguration) {
-        this.maxWorkerCount = parallelismConfiguration.getMaxWorkerCount();
+        this.parallelismConfiguration = parallelismConfiguration;
         this.coordinationService = coordinationService;
-        this.projectLockRegistry = new ProjectLockRegistry(coordinationService, parallelismConfiguration.isParallelProjectExecutionEnabled());
+        this.projectLockRegistry = new ProjectLockRegistry(coordinationService, parallelismConfiguration);
         this.taskLockRegistry = new TaskExecutionLockRegistry(coordinationService, projectLockRegistry);
         this.workerLeaseLockRegistry = new WorkerLeaseLockRegistry(coordinationService);
-        LOGGER.info("Using {} worker leases.", maxWorkerCount);
+        LOGGER.info("Using {} worker leases.", parallelismConfiguration.getMaxWorkerCount());
     }
 
     @Override
     public int getMaxWorkerCount() {
-        return maxWorkerCount;
+        return parallelismConfiguration.getMaxWorkerCount();
     }
 
     @Override
@@ -370,7 +370,7 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Stoppable 
     }
 
     private class WorkerLeaseLockRegistry extends AbstractResourceLockRegistry<String, DefaultWorkerLease> {
-        private final LeaseHolder root = new LeaseHolder(maxWorkerCount);
+        private final LeaseHolder root = new LeaseHolder(getMaxWorkerCount());
 
         WorkerLeaseLockRegistry(ResourceLockCoordinationService coordinationService) {
             super(coordinationService);

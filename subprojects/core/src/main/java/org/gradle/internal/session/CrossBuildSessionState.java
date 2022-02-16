@@ -19,13 +19,13 @@ package org.gradle.internal.session;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultCollectionCallbackActionDecorator;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.configuration.internal.DefaultListenerBuildOperationDecorator;
 import org.gradle.configuration.internal.DefaultUserCodeApplicationContext;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.internal.concurrent.DefaultParallelismConfiguration;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
@@ -103,7 +103,7 @@ public class CrossBuildSessionState implements Closeable {
         }
 
         ParallelismConfiguration createParallelismConfiguration() {
-            return new DefaultParallelismConfiguration(startParameter.isParallelProjectExecutionEnabled(), startParameter.getMaxWorkerCount());
+            return ((StartParameterInternal)startParameter).getParallelismConfiguration();
         }
 
         BuildOperationExecutor createBuildOperationExecutor(
