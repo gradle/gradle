@@ -141,11 +141,10 @@ public class DirectorySnapshot extends AbstractFileSystemLocationSnapshot {
     }
 
     @Override
-    protected ReadOnlyFileSystemNode getChildNode(VfsRelativePath targetPath, CaseSensitivity caseSensitivity) {
-        ReadOnlyFileSystemNode childNode = SnapshotUtil.getChild(children, targetPath, caseSensitivity);
-        return childNode == ReadOnlyFileSystemNode.EMPTY
-            ? missingSnapshotForAbsolutePath(targetPath.getAbsolutePath())
-            : childNode;
+    protected FileSystemNode getChildNode(VfsRelativePath targetPath, CaseSensitivity caseSensitivity) {
+        Optional<FileSystemNode> childNode = SnapshotUtil.getChild(children, targetPath, caseSensitivity);
+        return childNode
+            .orElseGet(() -> missingSnapshotForAbsolutePath(targetPath.getAbsolutePath()));
     }
 
     @Override

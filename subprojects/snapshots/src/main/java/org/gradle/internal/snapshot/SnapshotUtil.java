@@ -24,7 +24,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
-import java.util.stream.Stream;
 
 public class SnapshotUtil {
 
@@ -70,26 +69,26 @@ public class SnapshotUtil {
         });
     }
 
-    public static <T extends FileSystemNode> ReadOnlyFileSystemNode getChild(ChildMap<T> children, VfsRelativePath targetPath, CaseSensitivity caseSensitivity) {
-        return children.withNode(targetPath, caseSensitivity, new ChildMap.NodeHandler<T, ReadOnlyFileSystemNode>() {
+    public static <T extends FileSystemNode> Optional<FileSystemNode> getChild(ChildMap<T> children, VfsRelativePath targetPath, CaseSensitivity caseSensitivity) {
+        return children.withNode(targetPath, caseSensitivity, new ChildMap.NodeHandler<T, Optional<FileSystemNode>>() {
             @Override
-            public ReadOnlyFileSystemNode handleAsDescendantOfChild(VfsRelativePath pathInChild, T child) {
+            public Optional<FileSystemNode> handleAsDescendantOfChild(VfsRelativePath pathInChild, T child) {
                 return child.getNode(pathInChild, caseSensitivity);
             }
 
             @Override
-            public ReadOnlyFileSystemNode handleAsAncestorOfChild(String childPath, T child) {
-                return new SingleChildReadOnlyFileSystemNode(targetPath.pathToChild(childPath), child);
+            public Optional<FileSystemNode> handleAsAncestorOfChild(String childPath, T child) {
+                return Optional.of(child);
             }
 
             @Override
-            public ReadOnlyFileSystemNode handleExactMatchWithChild(T child) {
-                return child;
+            public Optional<FileSystemNode> handleExactMatchWithChild(T child) {
+                return Optional.of(child);
             }
 
             @Override
-            public ReadOnlyFileSystemNode handleUnrelatedToAnyChild() {
-                return ReadOnlyFileSystemNode.EMPTY;
+            public Optional<FileSystemNode> handleUnrelatedToAnyChild() {
+                return Optional.empty();
             }
         });
     }
@@ -104,44 +103,5 @@ public class SnapshotUtil {
             return SnapshotVisitResult.SKIP_SUBTREE;
         });
         return builder.build();
-    }
-
-    private static class SingleChildReadOnlyFileSystemNode implements ReadOnlyFileSystemNode {
-        private final String relativePath;
-        private final FileSystemNode child;
-
-        public SingleChildReadOnlyFileSystemNode(String relativePath, FileSystemNode child) {
-            this.relativePath = relativePath;
-            this.child = child;
-        }
-
-        @Override
-        public Optional<MetadataSnapshot> getSnapshot(VfsRelativePath targetPath, CaseSensitivity caseSensitivity) {
-            return SnapshotUtil.getMetadataFromChildren(getChildren(), targetPath, caseSensitivity, Optional::empty);
-        }
-
-        @Override
-        public boolean hasDescendants() {
-            return child.hasDescendants();
-        }
-
-        @Override
-        public ReadOnlyFileSystemNode getNode(VfsRelativePath relativePath, CaseSensitivity caseSensitivity) {
-            return getChild(getChildren(), relativePath, caseSensitivity);
-        }
-
-        @Override
-        public Optional<MetadataSnapshot> getSnapshot() {
-            return Optional.empty();
-        }
-
-        @Override
-        public Stream<FileSystemLocationSnapshot> rootSnapshots() {
-            return child.rootSnapshots();
-        }
-
-        private SingletonChildMap<FileSystemNode> getChildren() {
-            return new SingletonChildMap<>(relativePath, child);
-        }
     }
 }
