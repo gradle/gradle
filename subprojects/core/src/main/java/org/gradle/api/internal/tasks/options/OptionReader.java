@@ -23,6 +23,7 @@ import org.gradle.api.tasks.options.OptionValues;
 import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.util.internal.CollectionUtils;
 
+import javax.annotation.Nullable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -70,6 +71,7 @@ public class OptionReader {
                     throw new OptionValidationException(String.format("@Option '%s' linked to multiple elements in class '%s'.",
                         optionElement.getOptionName(), target.getClass().getName()));
                 }
+                continue;
             }
             processedOptionElements.put(optionElement.getOptionName(), signature);
             JavaMethod<Object, Collection> optionValueMethodForOption = getOptionValueMethodForOption(optionValueMethods, optionElement);
@@ -104,9 +106,10 @@ public class OptionReader {
 
     private static final class OptionElementAndSignature {
         final OptionElement element;
+        @Nullable
         final MethodSignature signature;
 
-        OptionElementAndSignature(OptionElement element, MethodSignature signature) {
+        OptionElementAndSignature(OptionElement element, @Nullable MethodSignature signature) {
             this.element = element;
             this.signature = signature;
         }

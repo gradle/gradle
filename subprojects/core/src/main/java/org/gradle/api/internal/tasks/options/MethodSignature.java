@@ -23,7 +23,7 @@ import java.util.Objects;
 /**
  * A representation of a method signature. Contains the method name, erased parameter types and erased return type.
  */
-public class MethodSignature {
+public final class MethodSignature {
     public static MethodSignature from(Method method) {
         return new MethodSignature(method.getName(), MethodType.methodType(
             method.getReturnType(),
@@ -34,16 +34,16 @@ public class MethodSignature {
     private final String methodName;
     private final MethodType methodType;
 
-    public MethodSignature(String methodName, MethodType methodType) {
+    private MethodSignature(String methodName, MethodType methodType) {
         this.methodName = methodName;
         this.methodType = methodType;
     }
 
-    public String getMethodName() {
+    public String methodName() {
         return methodName;
     }
 
-    public MethodType getMethodType() {
+    public MethodType methodType() {
         return methodType;
     }
 

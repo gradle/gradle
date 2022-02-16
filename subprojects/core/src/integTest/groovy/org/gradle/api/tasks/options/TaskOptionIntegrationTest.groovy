@@ -358,6 +358,12 @@ Options
 
         then:
         result.assertTaskExecuted(':myTask').assertOutputContains('Serial: 4321')
+
+        when:
+        succeeds('myTask', '--serialNumber=4321', '--serial=1234')
+
+        then:
+        result.assertTaskExecuted(':myTask').assertOutputContains('Serial: 4321')
     }
 
     def "options from interfaces with same method defined twice with same name should work"() {
@@ -366,7 +372,7 @@ Options
             interface MyInterface {
               @Option(
                 option = 'serial',
-                description = 'Target the device with given serial'
+                description = 'Target the device with given serial (this is the first)'
               )
               @Optional
               @Input
@@ -376,7 +382,7 @@ Options
             interface MyInterface1 {
               @Option(
                 option = 'serial',
-                description = 'Target the device with given serial'
+                description = 'Target the device with given serial (this is the second)'
               )
               @Optional
               @Input
@@ -398,6 +404,13 @@ Options
 
         then:
         result.assertTaskExecuted(':myTask').assertOutputContains('Serial: 1234')
+
+        when:
+        succeeds('help', '--task', 'myTask')
+
+        then:
+        result.assertOutputContains("this is the first")
+        result.assertNotOutput("this is the second")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/19868")
