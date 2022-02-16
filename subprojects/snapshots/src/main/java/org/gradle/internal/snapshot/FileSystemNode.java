@@ -31,7 +31,6 @@ public interface FileSystemNode {
      */
     Optional<MetadataSnapshot> getSnapshot();
 
-
     boolean hasDescendants();
 
     /**
