@@ -263,6 +263,47 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
         }
     }
 
+    def "tasks from same project do not run in parallel even when tasks do undeclared dependency resolution"() {
+        given:
+        executer.beforeExecute {
+            withArgument("--parallel")
+        }
+        withParallelThreads(3)
+
+        buildFile("""
+            allprojects {
+                apply plugin: 'java-library'
+            }
+            project(":b") {
+                dependencies {
+                    implementation project(":a")
+                }
+
+                task undeclared {
+                    doLast {
+                        ${blockingServer.callFromBuild("before-resolve")}
+                        configurations.runtimeClasspath.files.each { }
+                        ${blockingServer.callFromBuild("after-resolve")}
+                    }
+                }
+                task other {
+                    doLast {
+                        ${blockingServer.callFromBuild("other")}
+                    }
+                }
+            }
+        """)
+
+        when:
+        blockingServer.expect("before-resolve")
+        blockingServer.expect("after-resolve")
+        blockingServer.expect("other")
+        run("undeclared", "other")
+
+        then:
+        noExceptionThrown()
+    }
+
     def "tasks are not run in parallel if there are tasks without async work running in a different project without --parallel"() {
         given:
         withParallelThreads(3)

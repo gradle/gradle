@@ -50,7 +50,7 @@ public final class ValuedVfsHierarchy<T> {
     }
 
     public boolean isEmpty() {
-        return children.isEmpty();
+        return children.isEmpty() && values.isEmpty();
     }
 
     /**
@@ -91,10 +91,10 @@ public final class ValuedVfsHierarchy<T> {
             public String handleAsAncestorOfChild(String childPathFromAncestor, ValuedVfsHierarchy<T> child) {
                 visitor.visitChildren(
                     child.getValues(),
-                    () -> childPathFromAncestor.substring(location.length() + 1));
+                    () -> location.pathToChild(childPathFromAncestor));
                 child.visitAllChildren((nodes, relativePath) ->
                     visitor.visitChildren(nodes, () -> joinRelativePaths(
-                        childPathFromAncestor.substring(location.length() + 1),
+                        location.pathToChild(childPathFromAncestor),
                         relativePath.get())
                     ));
                 return "";
@@ -156,7 +156,9 @@ public final class ValuedVfsHierarchy<T> {
 
             @Override
             public ValuedVfsHierarchy<T> handleAsAncestorOfChild(String childPath, ValuedVfsHierarchy<T> child) {
-                ChildMap<ValuedVfsHierarchy<T>> singletonChild = ChildMapFactory.childMapFromSorted(ImmutableList.of(new ChildMap.Entry<>(VfsRelativePath.of(childPath).suffixStartingFrom(location.length() + 1).getAsString(), child)));
+                ChildMap<ValuedVfsHierarchy<T>> singletonChild = ChildMapFactory.childMapFromSorted(ImmutableList.of(
+                    new ChildMap.Entry<>(location.pathToChild(childPath), child)
+                ));
                 return new ValuedVfsHierarchy<>(PersistentList.of(value), singletonChild, caseSensitivity);
             }
 

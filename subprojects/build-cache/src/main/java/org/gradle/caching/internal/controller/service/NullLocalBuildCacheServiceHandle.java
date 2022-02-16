@@ -16,12 +16,13 @@
 
 package org.gradle.caching.internal.controller.service;
 
-import org.gradle.api.Action;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.local.internal.LocalBuildCacheService;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.Optional;
+import java.util.function.Function;
 
 public class NullLocalBuildCacheServiceHandle implements LocalBuildCacheServiceHandle {
 
@@ -37,13 +38,8 @@ public class NullLocalBuildCacheServiceHandle implements LocalBuildCacheServiceH
     }
 
     @Override
-    public boolean canLoad() {
-        return false;
-    }
-
-    @Override
-    public void load(BuildCacheKey key, Action<? super File> reader) {
-        throw new UnsupportedOperationException();
+    public Optional<BuildCacheLoadResult> maybeLoad(BuildCacheKey key, Function<File, BuildCacheLoadResult> unpackFunction) {
+        return Optional.empty();
     }
 
     @Override
@@ -52,8 +48,8 @@ public class NullLocalBuildCacheServiceHandle implements LocalBuildCacheServiceH
     }
 
     @Override
-    public void store(BuildCacheKey key, File file) {
-        throw new UnsupportedOperationException();
+    public boolean maybeStore(BuildCacheKey key, File file) {
+        return false;
     }
 
     @Override

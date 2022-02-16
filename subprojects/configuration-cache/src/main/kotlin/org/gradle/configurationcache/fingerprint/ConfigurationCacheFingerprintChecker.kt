@@ -140,11 +140,11 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
     private
     fun check(input: ConfigurationCacheFingerprint): InvalidationReason? {
         when (input) {
-            is ConfigurationCacheFingerprint.TaskInputs -> input.run {
+            is ConfigurationCacheFingerprint.WorkInputs -> input.run {
                 val currentFingerprint = host.fingerprintOf(fileSystemInputs)
                 if (currentFingerprint != fileSystemInputsFingerprint) {
                     // TODO: summarize what has changed (see https://github.com/gradle/configuration-cache/issues/282)
-                    return "an input to task '$taskPath' has changed"
+                    return "an input to $workDisplayName has changed"
                 }
             }
             is ConfigurationCacheFingerprint.InputFile -> input.run {

@@ -2,6 +2,8 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
+description = "Implementation of build event services and build event types (work item, tasks, tests, configuration, etc)"
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":messaging"))

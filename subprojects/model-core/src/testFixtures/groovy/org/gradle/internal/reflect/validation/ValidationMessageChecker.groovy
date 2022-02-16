@@ -259,12 +259,26 @@ trait ValidationMessageChecker {
     @ValidationTestFor(
         ValidationProblemId.CANNOT_WRITE_OUTPUT
     )
-    String cannotWriteToFile(@DelegatesTo(value = CannotWriteToFile, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
+    String cannotWriteFileToDirectory(@DelegatesTo(value = CannotWriteToFile, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
         def config = display(CannotWriteToFile, 'cannot_write_output', spec)
-        config.description("is not writable because '${config.file}' ${config.reason}")
+
+        def cannotWriteToFile = config.description("is not writable because '${config.file}' ${config.reason}")
             .reason("Cannot write a file to a location pointing at a directory")
             .solution("Configure '${config.property}' to point to a file, not a directory")
-            .render()
+            .solution("Annotate '${config.property}' with @OutputDirectory instead of @OutputFiles.")
+        cannotWriteToFile.render()
+    }
+
+    @ValidationTestFor(
+        ValidationProblemId.CANNOT_WRITE_OUTPUT
+    )
+    String cannotCreateParentDirectories(@DelegatesTo(value = CannotWriteToFile, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
+        def config = display(CannotWriteToFile, 'cannot_write_output', spec)
+
+        def cannotWriteToFile = config.description("is not writable because '${config.file}' ${config.reason}")
+            .reason("Cannot create parent directories that are existing as file")
+            .solution("Configure '${config.property}' to point to the correct location")
+        cannotWriteToFile.render()
     }
 
     @ValidationTestFor(

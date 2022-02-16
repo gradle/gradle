@@ -23,15 +23,16 @@ import org.gradle.internal.UncheckedException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import static org.gradle.internal.filewatch.DefaultFileSystemChangeWaiterFactory.QUIET_PERIOD_SYSPROP;
-
 public class ContinuousBuildTriggerHandler {
+    public static final String QUIET_PERIOD_SYSPROP = "org.gradle.internal.filewatch.quietperiod";
+
     private final BuildCancellationToken cancellationToken;
     private final ContinuousExecutionGate continuousExecutionGate;
     private final CountDownLatch changeOrCancellationArrived = new CountDownLatch(1);
     private final CountDownLatch cancellationArrived = new CountDownLatch(1);
     private final long quietPeriod;
     private volatile long lastChangeAt = monotonicClockMillis();
+    private volatile boolean changeArrived;
 
     public ContinuousBuildTriggerHandler(
         BuildCancellationToken cancellationToken,
@@ -72,7 +73,12 @@ public class ContinuousBuildTriggerHandler {
         }
     }
 
+    public boolean hasBeenTriggered() {
+        return changeArrived;
+    }
+
     public void notifyFileChangeArrived() {
+        changeArrived = true;
         lastChangeAt = monotonicClockMillis();
         changeOrCancellationArrived.countDown();
     }

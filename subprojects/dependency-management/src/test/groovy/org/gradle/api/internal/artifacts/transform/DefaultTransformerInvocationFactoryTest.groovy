@@ -33,7 +33,6 @@ import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.FileNormalizer
-import org.gradle.caching.internal.controller.BuildCacheCommandFactory
 import org.gradle.caching.internal.controller.BuildCacheController
 import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.internal.Try
@@ -43,6 +42,7 @@ import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.internal.execution.BuildOutputCleanupRegistry
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.TestExecutionHistoryStore
+import org.gradle.internal.execution.WorkInputListeners
 import org.gradle.internal.execution.fingerprint.InputFingerprinter
 import org.gradle.internal.execution.fingerprint.impl.DefaultFileCollectionFingerprinterRegistry
 import org.gradle.internal.execution.fingerprint.impl.DefaultInputFingerprinter
@@ -121,16 +121,15 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
     def buildCacheController = Stub(BuildCacheController)
     def buildInvocationScopeId = new BuildInvocationScopeId(UniqueId.generate())
     def cancellationToken = new DefaultBuildCancellationToken()
-    def buildCacheCommandFactory = Stub(BuildCacheCommandFactory)
     def outputChangeListener = { affectedOutputPaths -> fileSystemAccess.write(affectedOutputPaths, {}) } as OutputChangeListener
     def outputFilesRepository = Stub(OutputFilesRepository) {
         isGeneratedByGradle(_ as File) >> true
     }
+    def workInputListeners = Stub(WorkInputListeners)
     def buildOutputCleanupRegistry = Mock(BuildOutputCleanupRegistry)
     def outputSnapshotter = new DefaultOutputSnapshotter(fileCollectionSnapshotter)
     def deleter = TestFiles.deleter()
     def executionEngine = new ExecutionGradleServices().createExecutionEngine(
-        buildCacheCommandFactory,
         buildCacheController,
         cancellationToken,
         buildInvocationScopeId,
@@ -142,6 +141,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         deleter,
         new DefaultExecutionStateChangeDetector(),
         outputChangeListener,
+        workInputListeners,
         outputFilesRepository,
         outputSnapshotter,
         new DefaultOverlappingOutputDetector(),

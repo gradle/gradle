@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.internal.provider;
 
-import org.gradle.api.execution.internal.TaskInputsListeners;
 import org.gradle.api.internal.changedetection.state.FileHasherStatistics;
 import org.gradle.deployment.internal.DeploymentRegistryInternal;
 import org.gradle.execution.WorkValidationWarningReporter;
@@ -38,10 +37,8 @@ import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.execution.WorkInputListeners;
 import org.gradle.internal.file.StatStatistics;
-import org.gradle.internal.filewatch.DefaultFileSystemChangeWaiterFactory;
-import org.gradle.internal.filewatch.FileSystemChangeWaiterFactory;
-import org.gradle.internal.filewatch.FileWatcherFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
@@ -62,6 +59,7 @@ import org.gradle.internal.time.Clock;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem;
 import org.gradle.internal.watch.vfs.FileChangeListeners;
+import org.gradle.internal.watch.vfs.FileSystemWatchingInformation;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.launcher.exec.BuildCompletionNotifyingBuildActionRunner;
 import org.gradle.launcher.exec.BuildExecuter;
@@ -127,10 +125,6 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
             return new BuildLoggerFactory(styledTextOutputFactory, workValidationWarningReporter, Time.clock(), null);
         }
 
-        FileSystemChangeWaiterFactory createFileSystemChangeWaiterFactory(FileWatcherFactory fileWatcherFactory) {
-            return new DefaultFileSystemChangeWaiterFactory(fileWatcherFactory);
-        }
-
         ExecuteBuildActionRunner createExecuteBuildActionRunner() {
             return new ExecuteBuildActionRunner();
         }
@@ -164,7 +158,7 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
             ListenerManager listenerManager,
             BuildOperationListenerManager buildOperationListenerManager,
             BuildOperationExecutor buildOperationExecutor,
-            TaskInputsListeners inputsListeners,
+            WorkInputListeners workListeners,
             FileChangeListeners fileChangeListeners,
             StyledTextOutputFactory styledTextOutputFactory,
             BuildRequestMetaData requestMetaData,
@@ -178,7 +172,8 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
             BuildTreeModelControllerServices buildModelServices,
             WorkerLeaseService workerLeaseService,
             BuildLayoutValidator buildLayoutValidator,
-            FileSystem fileSystem
+            FileSystem fileSystem,
+            FileSystemWatchingInformation fileSystemWatchingInformation
         ) {
             CaseSensitivity caseSensitivity = fileSystem.isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE;
             return new SubscribableBuildActionExecutor(
@@ -186,7 +181,7 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                 buildOperationListenerManager,
                 listenerFactory, eventConsumer,
                 new ContinuousBuildActionExecutor(
-                    inputsListeners,
+                    workListeners,
                     fileChangeListeners,
                     styledTextOutputFactory,
                     executorFactory,
@@ -198,6 +193,7 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                     clock,
                     fileSystem,
                     caseSensitivity,
+                    fileSystemWatchingInformation,
                     new RunAsWorkerThreadBuildActionExecutor(
                         workerLeaseService,
                         new RunAsBuildOperationBuildActionExecutor(
@@ -219,6 +215,7 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
             BuildRequestMetaData buildRequestMetaData,
             GradleEnterprisePluginManager gradleEnterprisePluginManager,
             BuildLifecycleAwareVirtualFileSystem virtualFileSystem,
+            DeploymentRegistryInternal deploymentRegistry,
             StatStatistics.Collector statStatisticsCollector,
             FileHasherStatistics.Collector fileHasherStatisticsCollector,
             DirectorySnapshotterStatistics.Collector directorySnapshotterStatisticsCollector,
@@ -234,6 +231,7 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                     new FileSystemWatchingBuildActionRunner(
                         eventEmitter,
                         virtualFileSystem,
+                        deploymentRegistry,
                         statStatisticsCollector,
                         fileHasherStatisticsCollector,
                         directorySnapshotterStatisticsCollector,

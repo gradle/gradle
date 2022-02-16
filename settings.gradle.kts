@@ -55,6 +55,7 @@ include("api-metadata")
 include("base-services")
 include("base-services-groovy")
 include("worker-services")
+include("logging-api")
 include("logging")
 include("process-services")
 include("jvm-services")
@@ -138,6 +139,7 @@ include("security")
 include("normalization-java")
 include("enterprise")
 include("enterprise-operations")
+include("enterprise-logging")
 include("enterprise-workers")
 include("build-operations")
 include("problems")
@@ -171,5 +173,19 @@ for (project in rootProject.children) {
 FeaturePreviews.Feature.values().forEach { feature ->
     if (feature.isActive) {
         enableFeaturePreview(feature.name)
+    }
+}
+
+fun remoteBuildCacheEnabled(settings: Settings) = settings.buildCache.remote?.isEnabled == true
+
+fun getBuildJavaHome() = System.getProperty("java.home")
+
+gradle.settingsEvaluated {
+    if ("true" == System.getProperty("org.gradle.ignoreBuildJavaVersionCheck")) {
+        return@settingsEvaluated
+    }
+
+    if (!JavaVersion.current().isJava11) {
+        throw GradleException("This build requires JDK 11. It's currently ${getBuildJavaHome()}. You can ignore this check by passing '-Dorg.gradle.ignoreBuildJavaVersionCheck'.")
     }
 }

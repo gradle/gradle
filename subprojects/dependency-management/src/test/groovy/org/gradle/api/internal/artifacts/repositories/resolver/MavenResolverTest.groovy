@@ -64,7 +64,21 @@ class MavenResolverTest extends Specification {
 
     def "uses artifacts from variant metadata"() {
         given:
-        variant.requiresMavenArtifactDiscovery() >> false
+        module.hasVariants() >> true
+
+        when:
+        resolver.getLocalAccess().resolveModuleArtifacts(module, variant, result)
+
+        then:
+        1 * result.resolved(_) >> { args ->
+            assert args[0] instanceof MetadataSourcedComponentArtifacts
+        }
+    }
+
+    def "uses artifacts from all variant metadata, even when POM declares JAR packaging"() {
+        given:
+        module.hasVariants() >> false
+        module.isKnownJarPackaging() >> true
 
         when:
         resolver.getLocalAccess().resolveModuleArtifacts(module, variant, result)
@@ -91,7 +105,7 @@ class MavenResolverTest extends Specification {
         }
     }
 
-    def "resolve artifact when module's packaging is jar"() {
+    def "resolve metadata when module's packaging is jar"() {
         given:
         module.variants >> ImmutableList.of()
         module.knownJarPackaging >> true
@@ -104,8 +118,7 @@ class MavenResolverTest extends Specification {
 
         then:
         1 * result.resolved(_) >> { args ->
-            assert args[0] instanceof FixedComponentArtifacts
-            assert args[0].artifacts == [artifact]
+            assert args[0] instanceof MetadataSourcedComponentArtifacts
         }
     }
 

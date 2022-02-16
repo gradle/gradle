@@ -264,7 +264,7 @@ Please refer to https://docs.gradle.org/current/userguide/validation_problems.ht
     @ValidationTestFor(
         ValidationProblemId.MISSING_ANNOTATION
     )
-    def "tests ouput of missingAnnotationMessage"() {
+    def "tests output of missingAnnotationMessage"() {
         when:
         render missingAnnotationMessage {
             type('Task').property('prop')
@@ -563,7 +563,7 @@ Please refer to https://docs.gradle.org/current/userguide/validation_problems.ht
         def ancestor = dummyLocation('/tmp/foo')
 
         when:
-        render cannotWriteToFile {
+        render cannotWriteFileToDirectory {
             type('Writer').property('output')
             file(location)
             isNotFile()
@@ -576,13 +576,15 @@ Type 'Writer' property 'output' is not writable because '${location}' is not a f
 
 Reason: Cannot write a file to a location pointing at a directory.
 
-Possible solution: Configure 'output' to point to a file, not a directory.
+Possible solutions:
+  1. Configure 'output' to point to a file, not a directory.
+  2. Annotate 'output' with @OutputDirectory instead of @OutputFiles.
 
 Please refer to https://docs.gradle.org/current/userguide/validation_problems.html#cannot_write_output for more details about this problem.
 """
 
         when:
-        render cannotWriteToFile {
+        render cannotCreateParentDirectories {
             type('Writer').property('output')
             file(location)
             ancestorIsNotDirectory(ancestor)
@@ -593,9 +595,9 @@ Please refer to https://docs.gradle.org/current/userguide/validation_problems.ht
         outputEquals """
 Type 'Writer' property 'output' is not writable because '${location}' ancestor '${ancestor}' is not a directory.
 
-Reason: Cannot write a file to a location pointing at a directory.
+Reason: Cannot create parent directories that are existing as file.
 
-Possible solution: Configure 'output' to point to a file, not a directory.
+Possible solution: Configure 'output' to point to the correct location.
 
 Please refer to https://docs.gradle.org/current/userguide/validation_problems.html#cannot_write_output for more details about this problem.
 """

@@ -35,11 +35,12 @@ public abstract class JavaSystemPropertiesProxySettings implements HttpProxySett
 
     public JavaSystemPropertiesProxySettings(String propertyPrefix, int defaultPort) {
         this(propertyPrefix, defaultPort,
-                System.getProperty(propertyPrefix + ".proxyHost"),
-                System.getProperty(propertyPrefix + ".proxyPort"),
-                System.getProperty(propertyPrefix + ".proxyUser"),
-                System.getProperty(propertyPrefix + ".proxyPassword"),
-                System.getProperty(propertyPrefix + ".nonProxyHosts"));
+            getAndTrimSystemProperty(propertyPrefix + ".proxyHost"),
+            getAndTrimSystemProperty(propertyPrefix + ".proxyPort"),
+            getAndTrimSystemProperty(propertyPrefix + ".proxyUser"),
+            getAndTrimSystemProperty(propertyPrefix + ".proxyPassword"),
+            getAndTrimSystemProperty(propertyPrefix + ".nonProxyHosts")
+        );
     }
 
     JavaSystemPropertiesProxySettings(String propertyPrefix, int defaultPort, String proxyHost, String proxyPortString, String proxyUser, String proxyPassword, String nonProxyHostsString) {
@@ -61,8 +62,8 @@ public abstract class JavaSystemPropertiesProxySettings implements HttpProxySett
             return Integer.parseInt(proxyPortString);
         } catch (NumberFormatException e) {
             String key = propertyPrefix + ".proxyPort";
-            LOGGER.warn("Invalid value for java system property '{}': {}. Default port '{}' will be used.",
-                    key, System.getProperty(key), defaultPort);
+            LOGGER.warn("Invalid value for java system property '{}': '{}'. Value is not a valid number. Default port '{}' will be used.",
+                key, proxyPortString, defaultPort);
             return defaultPort;
         }
     }
@@ -75,7 +76,7 @@ public abstract class JavaSystemPropertiesProxySettings implements HttpProxySett
         LOGGER.debug("Found java system property 'http.nonProxyHosts': {}. Will ignore proxy settings for these hosts.", nonProxyHostsString);
         List<Pattern> patterns = new ArrayList<Pattern>();
         for (String nonProxyHost : nonProxyHostsString.split("\\|")) {
-            patterns.add(createHostMatcher(nonProxyHost));
+            patterns.add(createHostMatcher(nonProxyHost.trim()));
         }
         return patterns;
     }
@@ -118,5 +119,10 @@ public abstract class JavaSystemPropertiesProxySettings implements HttpProxySett
 
     public int getDefaultPort() {
         return defaultPort;
+    }
+
+    private static String getAndTrimSystemProperty(String key) {
+        String value = System.getProperty(key);
+        return value != null ? value.trim() : null;
     }
 }

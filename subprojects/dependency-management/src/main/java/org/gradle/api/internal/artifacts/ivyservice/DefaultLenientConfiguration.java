@@ -45,6 +45,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.Tran
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResultsLoader;
 import org.gradle.api.internal.artifacts.transform.ArtifactTransforms;
 import org.gradle.api.internal.artifacts.transform.VariantSelector;
+import org.gradle.api.internal.artifacts.verification.DependencyVerificationException;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
@@ -87,6 +88,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
 
     // Selected for the configuration
     private SelectedArtifactResults artifactsForThisConfiguration;
+    private DependencyVerificationException dependencyVerificationException;
 
     public DefaultLenientConfiguration(ConfigurationInternal configuration, Set<UnresolvedDependency> unresolvedDependencies, VisitedArtifactsResults artifactResults, VisitedFileDependencyResults fileDependencyResults, TransientConfigurationResultsLoader transientConfigurationResultsLoader, ArtifactTransforms artifactTransforms, BuildOperationExecutor buildOperationExecutor, DependencyVerificationOverride dependencyVerificationOverride) {
         this.configuration = configuration;
@@ -240,7 +242,18 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
             @Override
             public void run(BuildOperationContext context) {
                 visitArtifacts(dependencySpec, artifactResults, fileDependencyResults, visitor);
-                dependencyVerificationOverride.artifactsAccessed(configuration.getDisplayName());
+                // With input validation, we sometimes may suppress this exception and not see it on second time
+                // Caching it takes care of this
+                if (dependencyVerificationException != null) {
+                    throw dependencyVerificationException;
+                } else {
+                    try {
+                        dependencyVerificationOverride.artifactsAccessed(configuration.getDisplayName());
+                    } catch (DependencyVerificationException e) {
+                        dependencyVerificationException = e;
+                        throw e;
+                    }
+                }
                 context.setResult(RESULT);
             }
 

@@ -18,6 +18,9 @@ package org.gradle.internal.snapshot
 
 import org.gradle.internal.file.FileType
 
+import java.util.stream.Collectors
+import java.util.stream.Stream
+
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
 
 abstract class AbstractIncompleteFileSystemNodeTest<T extends FileSystemNode> extends AbstractFileSystemNodeWithChildrenTest<T, FileSystemNode> {
@@ -236,8 +239,7 @@ abstract class AbstractIncompleteFileSystemNodeTest<T extends FileSystemNode> ex
     }
 
     def storeDescendantOfSelectedChild(MetadataSnapshot snapshot, FileSystemNode updatedChild) {
-        def descendantOffset = selectedChildPath.length() + 1
-        1 * selectedChild.store(searchedPath.suffixStartingFrom(descendantOffset), CASE_SENSITIVE, snapshot, diffListener) >> updatedChild
+        1 * selectedChild.store(searchedPath.pathFromChild(selectedChildPath), CASE_SENSITIVE, snapshot, diffListener) >> updatedChild
     }
 
     def "querying the snapshot for non-existing child #vfsSpec.searchedPath finds nothings (#vfsSpec)"() {
@@ -266,17 +268,39 @@ abstract class AbstractIncompleteFileSystemNodeTest<T extends FileSystemNode> ex
         vfsSpec << (NO_COMMON_PREFIX + COMMON_PREFIX).findAll { allowEmptyChildren || !it.childPaths.empty}
     }
 
-    def "querying for parent of child #vfsSpec.searchedPath finds adapted child (#vfsSpec)"() {
+    def "querying for parent #vfsSpec.searchedPath of child #vfsSpec.selectedChildPath finds adapted child (#vfsSpec)"() {
         setupTest(vfsSpec)
+        def expectedSnapshot = Mock(MetadataSnapshot)
+        def newPathToChild = VfsRelativePath.of(searchedPath.pathToChild(selectedChildPath))
 
         when:
         def resultRoot = initialRoot.getNode(searchedPath, CASE_SENSITIVE)
+
         then:
-        resultRoot == selectedChild
+        resultRoot.getNode(newPathToChild, CASE_SENSITIVE) == selectedChild
+        !resultRoot.snapshot.present
+        !resultRoot.getSnapshot(VfsRelativePath.of(""), CASE_SENSITIVE).present
         interaction {
-//            1 * selectedChild.withPathToParent(selectedChildPathFromCommonPrefix) >> selectedChild
             noMoreInteractions()
         }
+
+        when:
+        def rootSnapshots = resultRoot.rootSnapshots().collect(Collectors.toList())
+        then:
+        1 * selectedChild.rootSnapshots() >> Stream.of(expectedSnapshot)
+        rootSnapshots == [expectedSnapshot]
+
+        when:
+        def hasDescendants = resultRoot.hasDescendants()
+        then:
+        1 * selectedChild.hasDescendants() >> true
+        hasDescendants
+
+        when:
+        def snapshotFromChild = resultRoot.getSnapshot(newPathToChild, CASE_SENSITIVE)
+        then:
+        1 * selectedChild.snapshot >> Optional.of(expectedSnapshot)
+        snapshotFromChild.get() == expectedSnapshot
 
         where:
         vfsSpec << IS_PREFIX_OF_CHILD

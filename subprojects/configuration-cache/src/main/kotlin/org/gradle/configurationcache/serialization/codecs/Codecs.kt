@@ -310,6 +310,7 @@ class Codecs(
         bind(EnumCodec)
         bind(RegexpPatternCodec)
         bind(UrlCodec)
+        bind(LevelCodec)
 
         javaTimeTypes()
 

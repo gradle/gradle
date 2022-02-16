@@ -282,6 +282,11 @@ public abstract class DefaultArtifactSet implements ArtifactSet, ResolvedVariant
         public File calculateValue(NodeExecutionContext context) {
             DefaultBuildableArtifactResolveResult result = new DefaultBuildableArtifactResolveResult();
             artifactResolver.resolveArtifact(artifact, moduleSources, result);
+            if (!result.isSuccessful() && artifact.getAlternativeArtifact().isPresent()) {
+                DefaultBuildableArtifactResolveResult alternative = new DefaultBuildableArtifactResolveResult();
+                artifactResolver.resolveArtifact(artifact.getAlternativeArtifact().get(), moduleSources, alternative);
+                return alternative.getResult();
+            }
             return result.getResult();
         }
     }

@@ -18,6 +18,7 @@ package org.gradle.configurationcache.problems
 
 import com.google.common.collect.Ordering
 import io.usethesource.capsule.Set
+import org.gradle.api.Task
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.configurationcache.extensions.capitalized
 import org.gradle.internal.logging.ConsoleRenderer
@@ -39,7 +40,15 @@ const val maxCauses = 5
 
 
 internal
-enum class ProblemSeverity { Warn, Failure }
+enum class ProblemSeverity {
+    Warn,
+    Failure,
+
+    /**
+     * A problem produced by a task marked as [notCompatibleWithConfigurationCache][Task.notCompatibleWithConfigurationCache].
+     */
+    Suppressed
+}
 
 
 internal
@@ -70,6 +79,11 @@ class Summary private constructor(
      */
     val failureCount: Int,
 
+    /**
+     * Total number of [suppressed][ProblemSeverity.Suppressed] problems.
+     */
+    val suppressedCount: Int,
+
     private
     val uniqueProblems: Set.Immutable<UniquePropertyProblem>,
 
@@ -79,21 +93,27 @@ class Summary private constructor(
 ) {
     companion object {
         val empty = Summary(
-            0,
-            0,
-            Set.Immutable.of(),
-            emptyList(),
-            false
+            problemCount = 0,
+            failureCount = 0,
+            suppressedCount = 0,
+            uniqueProblems = Set.Immutable.of(),
+            causes = emptyList(),
+            overflowed = false
         )
     }
+
+    val nonSuppressedProblemCount: Int
+        get() = problemCount - suppressedCount
 
     fun insert(problem: PropertyProblem, severity: ProblemSeverity): Summary {
         val newProblemCount = problemCount + 1
         val newFailureCount = if (severity == ProblemSeverity.Failure) failureCount + 1 else failureCount
+        val newSuppressedCount = if (severity == ProblemSeverity.Suppressed) suppressedCount + 1 else suppressedCount
         if (overflowed || newProblemCount > maxReportedProblems) {
             return Summary(
                 newProblemCount,
                 newFailureCount,
+                newSuppressedCount,
                 uniqueProblems,
                 causes,
                 true
@@ -108,6 +128,7 @@ class Summary private constructor(
         return Summary(
             newProblemCount,
             newFailureCount,
+            newSuppressedCount,
             newUniqueProblems,
             newCauses,
             false

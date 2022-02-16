@@ -18,7 +18,6 @@ package org.gradle.api.plugins.quality.pmd
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 
 class PmdPluginDependenciesIntegrationTest extends AbstractIntegrationSpec {
 
@@ -76,9 +75,6 @@ class PmdPluginDependenciesIntegrationTest extends AbstractIntegrationSpec {
         expect:
         fails("check")
         failure.assertHasCause("Incremental analysis only supports PMD 6.0.0 and newer. Please upgrade from PMD 5.1.1 or disable incremental analysis.")
-        if (GradleContextualExecuter.isParallel()) {
-            failure.assertHasFailures(2)
-        }
     }
 
 

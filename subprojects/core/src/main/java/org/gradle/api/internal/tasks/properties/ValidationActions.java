@@ -21,6 +21,7 @@ import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.internal.GeneratedSubclass;
 import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.internal.reflect.problems.ValidationProblemId;
+import org.gradle.internal.reflect.validation.PropertyProblemBuilder;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
 import org.gradle.model.internal.type.ModelType;
 
@@ -84,13 +85,13 @@ public enum ValidationActions implements ValidationAction {
             validateNotInReservedFileSystemLocation(propertyName, context, file);
             if (file.exists()) {
                 if (file.isDirectory()) {
-                    reportCannotWriteToFile(propertyName, context, "'" + file + "' is not a file");
+                    reportCannotWriteFileToDirectory(propertyName, context, file);
                 }
                 // else, assume we can write to anything that exists and is not a directory
             } else {
                 for (File candidate = file.getParentFile(); candidate != null && !candidate.isDirectory(); candidate = candidate.getParentFile()) {
                     if (candidate.exists() && !candidate.isDirectory()) {
-                        reportCannotWriteToFile(propertyName, context, "'" + file + "' ancestor '" + candidate + "' is not a directory");
+                        reportCannotCreateParentDirectories(propertyName, context, file, candidate);
                         break;
                     }
                 }
@@ -183,18 +184,32 @@ public enum ValidationActions implements ValidationAction {
         );
     }
 
-    private static void reportCannotWriteToFile(String propertyName, TaskValidationContext context, String cause) {
-        context.visitPropertyProblem(problem ->
-            problem.withId(ValidationProblemId.CANNOT_WRITE_OUTPUT)
-                .reportAs(ERROR)
-                .forProperty(propertyName)
-                .withDescription(() -> "is not writable because " + cause)
-                .happensBecause(() -> "Cannot write a file to a location pointing at a directory")
-                .addPossibleSolution(() -> "Configure '" + propertyName + "' to point to a file, not a directory")
-                .documentedAt("validation_problems", "cannot_write_output")
+    private static void reportCannotWriteFileToDirectory(String propertyName, TaskValidationContext context, File file) {
+        context.visitPropertyProblem(problem -> {
+                PropertyProblemBuilder problemBuilder = problem.withId(ValidationProblemId.CANNOT_WRITE_OUTPUT)
+                    .reportAs(ERROR)
+                    .forProperty(propertyName)
+                    .withDescription(() -> "is not writable because '" + file + "' is not a file")
+                    .happensBecause(() -> "Cannot write a file to a location pointing at a directory")
+                    .addPossibleSolution(() -> "Configure '" + propertyName + "' to point to a file, not a directory")
+                    .addPossibleSolution(() -> "Annotate '" + propertyName + "' with @OutputDirectory instead of @OutputFiles")
+                    .documentedAt("validation_problems", "cannot_write_output");
+            }
         );
     }
 
+    private static void reportCannotCreateParentDirectories(String propertyName, TaskValidationContext context, File file, File ancestor) {
+        context.visitPropertyProblem(problem -> {
+                PropertyProblemBuilder problemBuilder = problem.withId(ValidationProblemId.CANNOT_WRITE_OUTPUT)
+                    .reportAs(ERROR)
+                    .forProperty(propertyName)
+                    .withDescription(() -> "is not writable because '" + file + "' ancestor '" + ancestor + "' is not a directory")
+                    .happensBecause(() -> "Cannot create parent directories that are existing as file")
+                    .addPossibleSolution(() -> "Configure '" + propertyName + "' to point to the correct location")
+                    .documentedAt("validation_problems", "cannot_write_output");
+            }
+        );
+    }
 
     private static String actualKindOf(File input) {
         if (input.isFile()) {

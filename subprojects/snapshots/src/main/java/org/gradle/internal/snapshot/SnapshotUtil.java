@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 public class SnapshotUtil {
 
@@ -78,8 +79,7 @@ public class SnapshotUtil {
 
             @Override
             public ReadOnlyFileSystemNode handleAsAncestorOfChild(String childPath, T child) {
-                // TODO: This is not correct, it should be a node with the child at targetPath.fromChild(childPath).
-                return child;
+                return new SingleChildReadOnlyFileSystemNode(targetPath.pathToChild(childPath), child);
             }
 
             @Override
@@ -104,5 +104,44 @@ public class SnapshotUtil {
             return SnapshotVisitResult.SKIP_SUBTREE;
         });
         return builder.build();
+    }
+
+    private static class SingleChildReadOnlyFileSystemNode implements ReadOnlyFileSystemNode {
+        private final String relativePath;
+        private final FileSystemNode child;
+
+        public SingleChildReadOnlyFileSystemNode(String relativePath, FileSystemNode child) {
+            this.relativePath = relativePath;
+            this.child = child;
+        }
+
+        @Override
+        public Optional<MetadataSnapshot> getSnapshot(VfsRelativePath targetPath, CaseSensitivity caseSensitivity) {
+            return SnapshotUtil.getMetadataFromChildren(getChildren(), targetPath, caseSensitivity, Optional::empty);
+        }
+
+        @Override
+        public boolean hasDescendants() {
+            return child.hasDescendants();
+        }
+
+        @Override
+        public ReadOnlyFileSystemNode getNode(VfsRelativePath relativePath, CaseSensitivity caseSensitivity) {
+            return getChild(getChildren(), relativePath, caseSensitivity);
+        }
+
+        @Override
+        public Optional<MetadataSnapshot> getSnapshot() {
+            return Optional.empty();
+        }
+
+        @Override
+        public Stream<FileSystemLocationSnapshot> rootSnapshots() {
+            return child.rootSnapshots();
+        }
+
+        private SingletonChildMap<FileSystemNode> getChildren() {
+            return new SingletonChildMap<>(relativePath, child);
+        }
     }
 }
