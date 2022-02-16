@@ -33,7 +33,6 @@ import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.FileNormalizer
-import org.gradle.caching.internal.controller.BuildCacheCommandFactory
 import org.gradle.caching.internal.controller.BuildCacheController
 import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.internal.Try
@@ -122,7 +121,6 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
     def buildCacheController = Stub(BuildCacheController)
     def buildInvocationScopeId = new BuildInvocationScopeId(UniqueId.generate())
     def cancellationToken = new DefaultBuildCancellationToken()
-    def buildCacheCommandFactory = Stub(BuildCacheCommandFactory)
     def outputChangeListener = { affectedOutputPaths -> fileSystemAccess.write(affectedOutputPaths, {}) } as OutputChangeListener
     def outputFilesRepository = Stub(OutputFilesRepository) {
         isGeneratedByGradle(_ as File) >> true
@@ -132,7 +130,6 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
     def outputSnapshotter = new DefaultOutputSnapshotter(fileCollectionSnapshotter)
     def deleter = TestFiles.deleter()
     def executionEngine = new ExecutionGradleServices().createExecutionEngine(
-        buildCacheCommandFactory,
         buildCacheController,
         cancellationToken,
         buildInvocationScopeId,

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.internal.controller;
+package org.gradle.caching.internal.controller.service;
 
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.caching.BuildCacheKey;
-import org.gradle.caching.internal.CacheableEntity;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 
-import java.time.Duration;
-import java.util.Map;
+public interface BuildCacheLoadResult {
+    long getArtifactEntryCount();
 
-public interface BuildCacheCommandFactory {
-    BuildCacheLoadCommand<LoadMetadata> createLoad(BuildCacheKey cacheKey, CacheableEntity entity);
+    OriginMetadata getOriginMetadata();
 
-    BuildCacheStoreCommand createStore(BuildCacheKey cacheKey, CacheableEntity entity, Map<String, ? extends FileSystemSnapshot> snapshots, Duration executionTime);
-
-    interface LoadMetadata {
-        OriginMetadata getOriginMetadata();
-        ImmutableSortedMap<String, FileSystemSnapshot> getResultingSnapshots();
-    }
+    ImmutableSortedMap<String, FileSystemSnapshot> getResultingSnapshots();
 }

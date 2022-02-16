@@ -20,10 +20,13 @@ import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.BuildCacheService;
 
 import javax.annotation.Nullable;
+import java.io.File;
+import java.util.Optional;
+import java.util.function.Function;
 
-public class NullBuildCacheServiceHandle implements BuildCacheServiceHandle {
+public class NullRemoteBuildCacheServiceHandle implements RemoteBuildCacheServiceHandle {
 
-    public static final BuildCacheServiceHandle INSTANCE = new NullBuildCacheServiceHandle();
+    public static final RemoteBuildCacheServiceHandle INSTANCE = new NullRemoteBuildCacheServiceHandle();
 
     @Nullable
     @Override
@@ -37,8 +40,8 @@ public class NullBuildCacheServiceHandle implements BuildCacheServiceHandle {
     }
 
     @Override
-    public void load(BuildCacheKey key, LoadTarget loadTarget) {
-        throw new UnsupportedOperationException();
+    public Optional<BuildCacheLoadResult> maybeLoad(BuildCacheKey key, File toFile, Function<File, BuildCacheLoadResult> unpackFunction) {
+        return Optional.empty();
     }
 
     @Override
@@ -47,13 +50,12 @@ public class NullBuildCacheServiceHandle implements BuildCacheServiceHandle {
     }
 
     @Override
-    public void store(BuildCacheKey key, StoreTarget storeTarget) {
-        throw new UnsupportedOperationException();
+    public boolean maybeStore(BuildCacheKey key, File file) {
+        return false;
     }
 
     @Override
     public void close() {
 
     }
-
 }

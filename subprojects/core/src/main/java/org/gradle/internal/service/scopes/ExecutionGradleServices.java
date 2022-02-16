@@ -23,7 +23,6 @@ import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.scopes.BuildScopedCache;
-import org.gradle.caching.internal.controller.BuildCacheCommandFactory;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.execution.plan.DefaultPlanExecutor;
@@ -142,7 +141,6 @@ public class ExecutionGradleServices {
     }
 
     public ExecutionEngine createExecutionEngine(
-        BuildCacheCommandFactory buildCacheCommandFactory,
         BuildCacheController buildCacheController,
         BuildCancellationToken cancellationToken,
         BuildInvocationScopeId buildInvocationScopeId,
@@ -180,7 +178,7 @@ public class ExecutionGradleServices {
             new SkipUpToDateStep<>(
             new RecordOutputsStep<>(outputFilesRepository,
             new StoreExecutionStateStep<>(
-            new BuildCacheStep(buildCacheController, buildCacheCommandFactory, deleter, outputChangeListener,
+            new BuildCacheStep(buildCacheController, deleter, outputChangeListener,
             new BroadcastChangingOutputsStep<>(outputChangeListener,
             new CaptureStateAfterExecutionStep<>(buildOperationExecutor, buildInvocationScopeId.getId(), outputSnapshotter,
             new CreateOutputsStep<>(

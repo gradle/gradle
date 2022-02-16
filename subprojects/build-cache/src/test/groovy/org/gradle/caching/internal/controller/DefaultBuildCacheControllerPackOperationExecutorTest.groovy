@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,43 +14,54 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.internal.controller.impl
+package org.gradle.caching.internal.controller
 
 import groovy.transform.Immutable
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.caching.BuildCacheKey
 import org.gradle.caching.internal.CacheableEntity
+import org.gradle.caching.internal.controller.operations.PackOperationResult
+import org.gradle.caching.internal.controller.operations.UnpackOperationResult
 import org.gradle.caching.internal.origin.OriginMetadata
 import org.gradle.caching.internal.origin.OriginMetadataFactory
 import org.gradle.caching.internal.origin.OriginReader
 import org.gradle.caching.internal.origin.OriginWriter
 import org.gradle.caching.internal.packaging.BuildCacheEntryPacker
-import org.gradle.internal.file.FileMetadata.AccessType
+import org.gradle.internal.file.FileMetadata
 import org.gradle.internal.file.TreeType
 import org.gradle.internal.file.impl.DefaultFileMetadata
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.operations.BuildOperationContext
+import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.operations.CallableBuildOperation
+import org.gradle.internal.operations.RunnableBuildOperation
 import org.gradle.internal.snapshot.DirectorySnapshot
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.internal.snapshot.SnapshotVisitorUtil
 import org.gradle.internal.vfs.FileSystemAccess
-import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
 import java.time.Duration
 
+import static org.gradle.caching.internal.controller.DefaultBuildCacheController.PackOperationExecutor
 import static org.gradle.internal.file.TreeType.DIRECTORY
 import static org.gradle.internal.file.TreeType.FILE
 
-@CleanupTestDirectory
-class DefaultBuildCacheCommandFactoryTest extends Specification {
+class DefaultBuildCacheControllerPackOperationExecutorTest extends Specification {
+
+    @Rule
+    TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
+
     def packer = Mock(BuildCacheEntryPacker)
     def originFactory = Mock(OriginMetadataFactory)
     def fileSystemAccess = Mock(FileSystemAccess)
     def stringInterner = new StringInterner()
-    def commandFactory = new DefaultBuildCacheCommandFactory(packer, originFactory, fileSystemAccess, stringInterner)
+    def buildOperationContext = Mock(BuildOperationContext)
+    def buildOperationExecutor = Mock(BuildOperationExecutor)
+    PackOperationExecutor packOperationExecutor = new PackOperationExecutor(buildOperationExecutor, fileSystemAccess, packer, originFactory, stringInterner)
 
     def key = Mock(BuildCacheKey)
 
@@ -58,36 +69,34 @@ class DefaultBuildCacheCommandFactoryTest extends Specification {
     def originReader = Mock(OriginReader)
     def originWriter = Mock(OriginWriter)
 
-    @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
-
-    def "load invokes unpacker and fingerprints trees"() {
+    def "unpack invokes unpacker and fingerprints trees"() {
         def outputFile = temporaryFolder.file("output.txt")
         def outputDir = temporaryFolder.file("outputDir")
         def outputDirFile = outputDir.file("file.txt")
-        def input = Mock(InputStream)
+        def input = temporaryFolder.createFile("input")
         def entity = entity(
             prop("outputDir", DIRECTORY, outputDir),
             prop("outputFile", FILE, outputFile)
         )
-        def load = commandFactory.createLoad(key, entity)
 
-        def outputFileSnapshot = new RegularFileSnapshot(outputFile.absolutePath, outputFile.name, HashCode.fromInt(234), DefaultFileMetadata.file(15, 234, AccessType.DIRECT))
+        def outputFileSnapshot = new RegularFileSnapshot(outputFile.absolutePath, outputFile.name, HashCode.fromInt(234), DefaultFileMetadata.file(15, 234, FileMetadata.AccessType.DIRECT))
         def fileSnapshots = [
-            outputDir: new DirectorySnapshot(outputDir.getAbsolutePath(), outputDir.name, AccessType.DIRECT, HashCode.fromInt(456), [
-                new RegularFileSnapshot(outputDirFile.getAbsolutePath(), outputDirFile.name, HashCode.fromInt(123), DefaultFileMetadata.file(46, 123, AccessType.DIRECT))
+            outputDir: new DirectorySnapshot(outputDir.getAbsolutePath(), outputDir.name, FileMetadata.AccessType.DIRECT, HashCode.fromInt(456), [
+                new RegularFileSnapshot(outputDirFile.getAbsolutePath(), outputDirFile.name, HashCode.fromInt(123), DefaultFileMetadata.file(46, 123, FileMetadata.AccessType.DIRECT))
             ]),
             outputFile: outputFileSnapshot
         ]
 
         when:
-        def result = load.load(input)
+        def result = packOperationExecutor.unpack(key, entity, input)
 
         then:
+        1 * buildOperationExecutor.call(_) >> { CallableBuildOperation action -> action.call(buildOperationContext)}
         1 * originFactory.createReader(entity) >> originReader
         1 * fileSystemAccess.write([outputDir.absolutePath, outputFile.absolutePath], _)
 
         then:
-        1 * packer.unpack(entity, input, originReader) >> new BuildCacheEntryPacker.UnpackResult(originMetadata, 123L, fileSnapshots)
+        1 * packer.unpack(entity, _ as InputStream, originReader) >> new BuildCacheEntryPacker.UnpackResult(originMetadata, 123L, fileSnapshots)
 
         then:
         1 * fileSystemAccess.record(_ as DirectorySnapshot) >> { FileSystemLocationSnapshot snapshot  ->
@@ -101,29 +110,34 @@ class DefaultBuildCacheCommandFactoryTest extends Specification {
         }
 
         then:
+        1 * buildOperationContext.setResult(_) >> { args ->
+            assert (args[0] as UnpackOperationResult).archiveEntryCount == 123
+        }
+
+        then:
         result.artifactEntryCount == 123
-        result.metadata.originMetadata == originMetadata
-        result.metadata.resultingSnapshots.keySet() as List == ["outputDir", "outputFile"]
-        SnapshotVisitorUtil.getAbsolutePaths(result.metadata.resultingSnapshots["outputFile"], true) == [outputFile.absolutePath]
-        SnapshotVisitorUtil.getAbsolutePaths(result.metadata.resultingSnapshots["outputDir"], true) == [outputDir.absolutePath, outputDirFile.absolutePath]
+        result.originMetadata == originMetadata
+        result.resultingSnapshots.keySet() as List == ["outputDir", "outputFile"]
+        SnapshotVisitorUtil.getAbsolutePaths(result.resultingSnapshots["outputFile"], true) == [outputFile.absolutePath]
+        SnapshotVisitorUtil.getAbsolutePaths(result.resultingSnapshots["outputDir"], true) == [outputDir.absolutePath, outputDirFile.absolutePath]
         0 * _
     }
 
     def "after failed unpacking error is propagated and output is not removed"() {
-        def input = Mock(InputStream)
+        def input = temporaryFolder.createFile("input")
         def outputFile = temporaryFolder.file("output.txt")
         def entity = this.entity(prop("output", FILE, outputFile))
-        def command = commandFactory.createLoad(key, entity)
 
         when:
-        command.load(input)
+        packOperationExecutor.unpack(key, entity, input)
 
         then:
+        1 * buildOperationExecutor.call(_) >> { CallableBuildOperation action -> action.call(buildOperationContext)}
         1 * originFactory.createReader(entity) >> originReader
         1 * fileSystemAccess.write([outputFile.absolutePath], _)
 
         then:
-        1 * packer.unpack(entity, input, originReader) >> {
+        1 * packer.unpack(entity, _ as InputStream, originReader) >> {
             outputFile << "partially extracted output fil..."
             throw new RuntimeException("unpacking error")
         }
@@ -135,23 +149,29 @@ class DefaultBuildCacheCommandFactoryTest extends Specification {
         0 * _
     }
 
-    def "store invokes packer"() {
-        def output = Mock(OutputStream)
+    def "pack invokes packer"() {
+        def output = temporaryFolder.createFile("output")
         def entity = entity(prop("output"))
         def outputSnapshots = Mock(Map)
-        def command = commandFactory.createStore(key, entity, outputSnapshots, Duration.ofMillis(421L))
 
         when:
-        def result = command.store(output)
+        packOperationExecutor.pack(output, key, entity, outputSnapshots, Duration.ofMillis(421L))
 
         then:
+        1 * buildOperationExecutor.run(_) >> { RunnableBuildOperation action -> action.run(buildOperationContext)}
         1 * originFactory.createWriter(entity, Duration.ofMillis(421L)) >> originWriter
 
         then:
-        1 * packer.pack(entity, outputSnapshots, output, originWriter) >> new BuildCacheEntryPacker.PackResult(123)
+        1 * packer.pack(entity, outputSnapshots, _ as OutputStream, originWriter) >> new BuildCacheEntryPacker.PackResult(123)
 
         then:
-        result.artifactEntryCount == 123
+        1 * buildOperationContext.setResult(_) >> { args ->
+            def packResult = args[0] as PackOperationResult
+            assert packResult.archiveEntryCount == 123
+            assert packResult.archiveSize == output.size()
+        }
+
+        then:
         0 * _
     }
 

@@ -23,10 +23,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
+import java.io.File;
+import java.util.Optional;
+import java.util.function.Function;
 
-public class BaseBuildCacheServiceHandle implements BuildCacheServiceHandle {
+public class BaseRemoteBuildCacheServiceHandle implements RemoteBuildCacheServiceHandle {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(OpFiringBuildCacheServiceHandle.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(OpFiringRemoteBuildCacheServiceHandle.class);
 
     protected final BuildCacheService service;
 
@@ -37,7 +40,7 @@ public class BaseBuildCacheServiceHandle implements BuildCacheServiceHandle {
 
     private boolean disabled;
 
-    public BaseBuildCacheServiceHandle(
+    public BaseRemoteBuildCacheServiceHandle(
         BuildCacheService service,
         boolean push,
         BuildCacheServiceRole role,
@@ -63,14 +66,19 @@ public class BaseBuildCacheServiceHandle implements BuildCacheServiceHandle {
     }
 
     @Override
-    public final void load(BuildCacheKey key, LoadTarget loadTarget) {
+    public final Optional<BuildCacheLoadResult> maybeLoad(BuildCacheKey key, File loadTargetFile, Function<File, BuildCacheLoadResult> unpackFunction) {
+        if (!canLoad()) {
+            return Optional.empty();
+        }
         String description = "Load entry " + key.getDisplayName() + " from " + role.getDisplayName() + " build cache";
         LOGGER.debug(description);
+        LoadTarget loadTarget = new LoadTarget(loadTargetFile);
         try {
             loadInner(description, key, loadTarget);
         } catch (Exception e) {
             failure("load", "from", key, e);
         }
+        return maybeUnpack(loadTarget, unpackFunction);
     }
 
     protected void loadInner(String description, BuildCacheKey key, LoadTarget loadTarget) {
@@ -81,19 +89,31 @@ public class BaseBuildCacheServiceHandle implements BuildCacheServiceHandle {
         service.load(key, entryReader);
     }
 
+    private Optional<BuildCacheLoadResult> maybeUnpack(LoadTarget loadTarget, Function<File, BuildCacheLoadResult> unpackFunction) {
+        if (loadTarget.isLoaded()) {
+            return Optional.ofNullable(unpackFunction.apply(loadTarget.getFile()));
+        }
+        return Optional.empty();
+    }
+
     @Override
     public boolean canStore() {
         return pushEnabled && !disabled;
     }
 
     @Override
-    public final void store(BuildCacheKey key, StoreTarget storeTarget) {
+    public final boolean maybeStore(BuildCacheKey key, File file) {
+        if (!canStore()) {
+            return false;
+        }
         String description = "Store entry " + key.getDisplayName() + " in " + role.getDisplayName() + " build cache";
         LOGGER.debug(description);
         try {
-            storeInner(description, key, storeTarget);
+            storeInner(description, key, new StoreTarget(file));
+            return true;
         } catch (Exception e) {
             failure("store", "in", key, e);
+            return false;
         }
     }
 

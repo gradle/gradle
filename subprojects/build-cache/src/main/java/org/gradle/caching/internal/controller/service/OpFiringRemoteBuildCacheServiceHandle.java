@@ -32,11 +32,11 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import java.io.IOException;
 import java.io.InputStream;
 
-public class OpFiringBuildCacheServiceHandle extends BaseBuildCacheServiceHandle {
+public class OpFiringRemoteBuildCacheServiceHandle extends BaseRemoteBuildCacheServiceHandle {
 
     private final BuildOperationExecutor buildOperationExecutor;
 
-    public OpFiringBuildCacheServiceHandle(BuildCacheService service, boolean push, BuildCacheServiceRole role, BuildOperationExecutor buildOperationExecutor, boolean logStackTraces, boolean disableOnError) {
+    public OpFiringRemoteBuildCacheServiceHandle(BuildCacheService service, boolean push, BuildCacheServiceRole role, BuildOperationExecutor buildOperationExecutor, boolean logStackTraces, boolean disableOnError) {
         super(service, push, role, logStackTraces, disableOnError);
         this.buildOperationExecutor = buildOperationExecutor;
     }
@@ -68,7 +68,7 @@ public class OpFiringBuildCacheServiceHandle extends BaseBuildCacheServiceHandle
         buildOperationExecutor.run(new RunnableBuildOperation() {
             @Override
             public void run(BuildOperationContext context) {
-                OpFiringBuildCacheServiceHandle.super.storeInner(description, key, storeTarget);
+                OpFiringRemoteBuildCacheServiceHandle.super.storeInner(description, key, storeTarget);
                 context.setResult(storeTarget.isStored() ? StoreOperationResult.STORED : StoreOperationResult.NOT_STORED);
             }
 
