@@ -37,11 +37,7 @@ public abstract class TaskNode extends Node {
     private final NavigableSet<Node> shouldSuccessors = Sets.newTreeSet();
     private final NavigableSet<Node> finalizers = Sets.newTreeSet();
     private final NavigableSet<Node> finalizingSuccessors = Sets.newTreeSet();
-    private int ordinal;
-
-    public TaskNode(int ordinal) {
-        this.ordinal = ordinal;
-    }
+    private int ordinal = UNKNOWN_ORDINAL;
 
     @Override
     public boolean doCheckDependenciesComplete() {

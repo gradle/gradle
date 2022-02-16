@@ -172,6 +172,6 @@ class DefaultIncludedBuildTaskGraphTest extends ConcurrentSpec {
     }
 
     static TaskIdentifier taskIdentifier(BuildIdentifier id, String taskPath) {
-        return TaskIdentifier.of(id, taskPath, TaskNode.UNKNOWN_ORDINAL)
+        return TaskIdentifier.of(id, taskPath)
     }
 }

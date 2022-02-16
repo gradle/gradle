@@ -65,7 +65,7 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
     }
 
     private DefaultExportedTaskNode doLocate(TaskIdentifier taskIdentifier) {
-        return nodesByPath.computeIfAbsent(taskIdentifier.getTaskPath(), taskPath -> new DefaultExportedTaskNode(taskPath, taskIdentifier.getOrdinal()));
+        return nodesByPath.computeIfAbsent(taskIdentifier.getTaskPath(), DefaultExportedTaskNode::new);
     }
 
     @Nullable
@@ -157,22 +157,15 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
     private class DefaultExportedTaskNode implements ExportedTaskNode {
         final String taskPath;
         TaskNode taskNode;
-        int ordinal;
 
-        DefaultExportedTaskNode(String taskPath, int ordinal) {
+        DefaultExportedTaskNode(String taskPath) {
             this.taskPath = taskPath;
-            this.ordinal = ordinal;
-        }
-
-        @Override
-        public int getOrdinal() {
-            return ordinal;
         }
 
         void maybeBindTask(TaskInternal task) {
             synchronized (lock) {
                 if (taskNode == null) {
-                    taskNode = taskNodeFactory.getOrCreateNode(task, ordinal);
+                    taskNode = taskNodeFactory.getOrCreateNode(task);
                 }
             }
         }
@@ -185,7 +178,7 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
                     if (task == null) {
                         throw new IllegalStateException("Task '" + taskPath + "' was never scheduled for execution.");
                     }
-                    taskNode = taskNodeFactory.getOrCreateNode(task, ordinal);
+                    taskNode = taskNodeFactory.getOrCreateNode(task);
                 }
                 return taskNode.getTask();
             }
@@ -200,7 +193,7 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
                         // Assume not scheduled yet
                         return IncludedBuildTaskResource.State.Waiting;
                     }
-                    taskNode = taskNodeFactory.getOrCreateNode(task, ordinal);
+                    taskNode = taskNodeFactory.getOrCreateNode(task);
                 }
                 if (taskNode.isExecuted() && taskNode.isSuccessful()) {
                     return IncludedBuildTaskResource.State.Success;

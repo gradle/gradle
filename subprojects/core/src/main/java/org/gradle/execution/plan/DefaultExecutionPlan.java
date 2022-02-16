@@ -150,7 +150,8 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         final Deque<Node> queue = new ArrayDeque<>();
 
         for (Task task : sorted(tasks)) {
-            TaskNode node = taskNodeFactory.getOrCreateNode(task, ordinal);
+            TaskNode node = taskNodeFactory.getOrCreateNode(task);
+            node.maybeSetOrdinal(ordinal);
             if (node.isMustNotRun()) {
                 requireWithDependencies(node);
             } else if (filter.isSatisfiedBy(task)) {

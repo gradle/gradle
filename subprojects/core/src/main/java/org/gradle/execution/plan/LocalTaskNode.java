@@ -51,8 +51,7 @@ public class LocalTaskNode extends TaskNode {
     private List<? extends ResourceLock> resourceLocks;
     private TaskProperties taskProperties;
 
-    public LocalTaskNode(TaskInternal task, WorkValidationContext workValidationContext, int ordinal) {
-        super(ordinal);
+    public LocalTaskNode(TaskInternal task, WorkValidationContext workValidationContext) {
         this.task = task;
         this.validationContext = workValidationContext;
     }
