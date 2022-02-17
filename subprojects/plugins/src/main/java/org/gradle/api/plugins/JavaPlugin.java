@@ -337,11 +337,19 @@ public class JavaPlugin implements Plugin<Project> {
     }
 
     private TaskProvider<Jar> registerJarTaskFor(Project project, JavaPluginExtension pluginExtension) {
-        return project.getTasks().register(JAR_TASK_NAME, Jar.class, jar -> {
+        TaskProvider<Jar> jarTaskProvider = project.getTasks().register(JAR_TASK_NAME, Jar.class);
+        jarTaskProvider.configure(jar -> {
             jar.setDescription("Assembles a jar archive containing the main classes.");
             jar.setGroup(BasePlugin.BUILD_GROUP);
             jar.from(mainSourceSetOf(pluginExtension).getOutput());
         });
+
+        // Prefer to run jar tasks prior to test tasks, this might offer a small performance improvement for common usage
+        project.getTasks().withType(Test.class).configureEach(test -> {
+            test.shouldRunAfter(project.getTasks().withType(Jar.class));
+        });
+
+        return jarTaskProvider;
     }
 
     private static SourceSet mainSourceSetOf(JavaPluginExtension pluginExtension) {

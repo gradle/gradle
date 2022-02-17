@@ -42,9 +42,7 @@ import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
-import org.gradle.api.tasks.TaskCollection;
 import org.gradle.api.tasks.TaskProvider;
-import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.GroovyCompile;
 import org.gradle.api.tasks.compile.JavaCompile;
@@ -338,10 +336,6 @@ public class JavaBasePlugin implements Plugin<Project> {
 
     private void configureTest(final Project project, final JavaPluginExtension javaPluginExtension) {
         project.getTasks().withType(Test.class).configureEach(test -> configureTestDefaults(test, project, javaPluginExtension));
-        project.getTasks().withType(Jar.class).configureEach(jar -> {
-            TaskCollection<Test> testTasks = project.getTasks().withType(Test.class);
-            testTasks.forEach(test -> test.shouldRunAfter(jar));
-        });
     }
 
     private void configureTestDefaults(final Test test, Project project, final JavaPluginExtension javaPluginExtension) {
