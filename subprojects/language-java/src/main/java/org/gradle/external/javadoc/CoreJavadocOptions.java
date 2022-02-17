@@ -342,13 +342,13 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
     @Override
     public MinimalJavadocOptions sourcePath(List<File> sourcePath) {
         this.sourcePath.getValue().addAll(sourcePath);
-        return null;
+        return this;
     }
 
     @Override
     public MinimalJavadocOptions sourcePath(File... sourcePath) {
         this.sourcePath.getValue().addAll(Arrays.asList(sourcePath));
-        return null;
+        return this;
     }
 
     @Override
