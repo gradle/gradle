@@ -344,18 +344,6 @@ Artifacts
 
             dependencies {
                 testImplementation 'junit:junit:4.13'
-            }
-
-            jar {
-                doLast {
-                    assert !tasks.getByName("test").getState().executed
-                }
-            }
-
-            test {
-                doLast {
-                    assert tasks.getByName("jar").getState().executed
-                }
             }""".stripIndent()
 
         file("src/main/java/com/example/SampleClass.java") << """
@@ -384,10 +372,11 @@ Artifacts
 
         expect:
         succeeds "test", "jar"
+        result.assertTaskOrder(":jar", ":test")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/19914")
-    def "when project B depends on A, running tests in B should cause A's jar task to run prior to A's tests"() {
+    def "when project B depends on A, running tests in B should cause As jar task to run prior to As tests"() {
         given:
         settingsFile << """
             include ':subA'
@@ -406,18 +395,6 @@ Artifacts
 
             dependencies {
                 testImplementation 'junit:junit:4.13'
-            }
-
-            jar {
-                doLast {
-                    assert !tasks.getByName("test").getState().executed
-                }
-            }
-
-            test {
-                doLast {
-                    assert tasks.getByName("jar").getState().executed
-                }
             }""".stripIndent()
 
 
@@ -431,7 +408,7 @@ Artifacts
             }
             """.stripIndent()
 
-        file(subADir, "src/test/java/com/exampleA/SampleTestA.java") << """
+        subADir.file("src/test/java/com/exampleA/SampleTestA.java") << """
             package com.exampleA;
 
             import org.junit.Test;
@@ -474,7 +451,7 @@ Artifacts
             }
             """.stripIndent()
 
-        file(subBDir, "src/test/java/com/exampleB/SampleTestB.java") << """
+        subBDir.file("src/test/java/com/exampleB/SampleTestB.java") << """
             package com.exampleB;
 
             import org.junit.Test;
@@ -490,5 +467,7 @@ Artifacts
 
         expect:
         succeeds ":subB:test"
+        result.assertTaskOrder(":subA:jar", ":subB:test")
+        result.assertTaskNotExecuted(":subA:test")
     }
 }
