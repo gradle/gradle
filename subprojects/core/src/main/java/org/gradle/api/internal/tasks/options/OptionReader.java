@@ -136,7 +136,12 @@ public class OptionReader {
                 continue;
             }
 
-            interfacesToCheck.addAll(Arrays.asList(type.getInterfaces()));
+            // Add the interfaces so we visit them depth-first
+            Class<?>[] interfaces = type.getInterfaces();
+            for (int i = interfaces.length - 1; i >= 0; i--) {
+                Class<?> interfaceType = interfaces[i];
+                interfacesToCheck.addFirst(interfaceType);
+            }
 
             allOptionElements.addAll(getMethodAnnotations(type));
         }
