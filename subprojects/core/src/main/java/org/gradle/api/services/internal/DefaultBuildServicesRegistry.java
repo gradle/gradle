@@ -188,8 +188,8 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
         }
 
         @Override
-        public ResourceLock getResourceLock(int usages) {
-            return leaseRegistry.getResourceLock(name, usages);
+        public ResourceLock getResourceLock() {
+            return leaseRegistry.getResourceLock(name);
         }
     }
 

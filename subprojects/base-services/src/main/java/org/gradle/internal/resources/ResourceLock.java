@@ -38,9 +38,9 @@ public interface ResourceLock extends Describable {
     boolean isLockedByCurrentThread();
 
     /**
-     * Attempt to lock this resource.  Does not block.
+     * Attempt to lock this resource, if not already.  Does not block.
      *
-     * @return true if resource was locked, false otherwise.
+     * @return true if resource is now locked, false otherwise.
      */
     boolean tryLock();
 

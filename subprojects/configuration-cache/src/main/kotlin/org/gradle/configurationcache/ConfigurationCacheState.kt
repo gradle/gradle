@@ -419,10 +419,12 @@ class ConfigurationCacheState(
             when {
                 buildTreeState.storedBuilds.store(buildDefinition) -> {
                     writeBoolean(true)
-                    includedGradle.serviceOf<ConfigurationCacheIO>().writeIncludedBuildStateTo(
-                        stateFileFor(buildDefinition),
-                        buildTreeState
-                    )
+                    target.projects.withMutableStateOfAllProjects {
+                        includedGradle.serviceOf<ConfigurationCacheIO>().writeIncludedBuildStateTo(
+                            stateFileFor(buildDefinition),
+                            buildTreeState
+                        )
+                    }
                 }
                 else -> {
                     writeBoolean(false)

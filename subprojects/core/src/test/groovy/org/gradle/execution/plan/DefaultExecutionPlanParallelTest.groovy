@@ -32,7 +32,6 @@ import org.gradle.api.tasks.OutputFiles
 import org.gradle.api.tasks.TaskAction
 import org.gradle.composite.internal.BuildTreeWorkGraphController
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
-import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.Path
@@ -49,10 +48,8 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
     int ordinal = 0
 
     DefaultExecutionPlan executionPlan
-    def lease = Stub(WorkerLeaseRegistry.WorkerLease)
 
     def setup() {
-        _ * lease.tryLock() >> true
         def taskNodeFactory = new TaskNodeFactory(project.gradle, Stub(DocumentationRegistry), Stub(BuildTreeWorkGraphController))
         def dependencyResolver = new TaskDependencyResolver([new TaskNodeDependencyResolver(taskNodeFactory)])
         executionPlan = new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, dependencyResolver, nodeValidator, new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, fs), new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, fs))
@@ -1007,7 +1004,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
     private TaskNode selectNextTaskNode() {
         def nextTaskNode
         recordLocks {
-            nextTaskNode = executionPlan.selectNext(lease, resourceLockState)
+            nextTaskNode = executionPlan.selectNext()
         }
         // ignore nodes that aren't tasks
         if (nextTaskNode != null && !(nextTaskNode instanceof TaskNode)) {

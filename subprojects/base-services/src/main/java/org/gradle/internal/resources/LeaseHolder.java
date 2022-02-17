@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,23 @@
 
 package org.gradle.internal.resources;
 
-class AllProjectsLock extends ExclusiveAccessResourceLock {
-    public AllProjectsLock(String displayName, ResourceLockCoordinationService coordinationService, ResourceLockContainer owner) {
-        super(displayName, coordinationService, owner);
+public class LeaseHolder {
+    private final int maxWorkerCount;
+    private int leasesInUse;
+
+    public LeaseHolder(int maxWorkerCount) {
+        this.maxWorkerCount = maxWorkerCount;
     }
 
-    @Override
-    protected boolean canAcquire() {
-        // TODO - should block while some other thread holds a project lock
+    public boolean grantLease() {
+        if (leasesInUse >= maxWorkerCount) {
+            return false;
+        }
+        leasesInUse++;
         return true;
+    }
+
+    public void releaseLease() {
+        leasesInUse--;
     }
 }
