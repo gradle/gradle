@@ -47,7 +47,7 @@ import java.lang.annotation.Target;
  * </p>
  * <p>
  * When the option names are equal, the description and method linked to the option will be the one in the
- * base class (if present), followed by super-classes, and finally interfaces, in depth-first declaration order.
+ * base class (if present), followed by super-classes, and finally interfaces, in an unspecified order.
  * </p>
  * <p>
  * When the option names are unequal, the order described above is used when setting the option's value.
