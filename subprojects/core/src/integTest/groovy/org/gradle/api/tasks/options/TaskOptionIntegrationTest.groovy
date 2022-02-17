@@ -409,8 +409,8 @@ Options
         succeeds('help', '--task', 'myTask')
 
         then:
-        result.assertOutputContains("this is the first")
-        result.assertNotOutput("this is the second")
+        outputContains("this is the first")
+        outputDoesNotContain("this is the second")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/19868")
