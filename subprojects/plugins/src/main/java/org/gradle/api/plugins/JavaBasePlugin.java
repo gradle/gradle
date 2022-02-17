@@ -340,7 +340,7 @@ public class JavaBasePlugin implements Plugin<Project> {
         project.getTasks().withType(Test.class).configureEach(test -> configureTestDefaults(test, project, javaPluginExtension));
         project.getTasks().withType(Jar.class).configureEach(jar -> {
             TaskCollection<Test> testTasks = project.getTasks().withType(Test.class);
-            testTasks.forEach(test -> jar.shouldRunAfter(test));
+            testTasks.forEach(test -> test.shouldRunAfter(jar));
         });
     }
 
