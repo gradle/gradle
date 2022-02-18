@@ -533,7 +533,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         DependencyResolutionServices createDependencyResolutionServices(ServiceRegistry services) {
-            return new DefaultDependencyResolutionServices(services, domainObjectContext);
+            return new DefaultDependencyResolutionServices(services);
         }
 
         ArtifactResolutionQueryFactory createArtifactResolutionQueryFactory(ConfigurationContainerInternal configurationContainer,
@@ -575,11 +575,9 @@ public class DefaultDependencyManagementServices implements DependencyManagement
     private static class DefaultDependencyResolutionServices implements DependencyResolutionServices {
 
         private final ServiceRegistry services;
-        private final DomainObjectContext domainObjectContext;
 
-        private DefaultDependencyResolutionServices(ServiceRegistry services, DomainObjectContext domainObjectContext) {
+        private DefaultDependencyResolutionServices(ServiceRegistry services) {
             this.services = services;
-            this.domainObjectContext = domainObjectContext;
         }
 
         @Override
