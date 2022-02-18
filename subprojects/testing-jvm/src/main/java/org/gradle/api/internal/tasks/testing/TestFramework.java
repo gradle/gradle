@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.testing.detection.TestFrameworkDetector;
+import org.gradle.api.internal.tasks.testing.retrying.JvmRetrySpec;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.testing.TestFrameworkOptions;
@@ -47,7 +48,7 @@ public interface TestFramework extends Closeable {
      * method is called to create the test processor.
      */
     @Internal
-    WorkerTestClassProcessorFactory getProcessorFactory();
+    WorkerTestClassProcessorFactory getProcessorFactory(JvmRetrySpec retrySpec);
 
     /**
      * Returns an action which is used to perform some framework specific worker process configuration. This action is

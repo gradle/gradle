@@ -32,6 +32,7 @@ import org.gradle.api.internal.tasks.testing.processors.PatternMatchTestClassPro
 import org.gradle.api.internal.tasks.testing.processors.RestartEveryNTestClassProcessor;
 import org.gradle.api.internal.tasks.testing.processors.RunPreviousFailedFirstTestClassProcessor;
 import org.gradle.api.internal.tasks.testing.processors.TestMainAction;
+import org.gradle.api.internal.tasks.testing.retrying.JvmRetrySpec;
 import org.gradle.api.internal.tasks.testing.worker.ForkingTestClassProcessor;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -80,7 +81,8 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
     @Override
     public void execute(final JvmTestExecutionSpec testExecutionSpec, TestResultProcessor testResultProcessor) {
         final TestFramework testFramework = testExecutionSpec.getTestFramework();
-        final WorkerTestClassProcessorFactory testInstanceFactory = testFramework.getProcessorFactory();
+        final JvmRetrySpec retrySpec = testExecutionSpec.getRetrySpec();
+        final WorkerTestClassProcessorFactory testInstanceFactory = testFramework.getProcessorFactory(retrySpec);
         final Set<File> classpath = ImmutableSet.copyOf(testExecutionSpec.getClasspath());
         final Set<File> modulePath = ImmutableSet.copyOf(testExecutionSpec.getModulePath());
         final List<String> testWorkerImplementationModules = testFramework.getTestWorkerImplementationModules();

@@ -38,6 +38,7 @@ import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework;
 import org.gradle.api.internal.tasks.testing.junit.result.TestClassResult;
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultSerializer;
 import org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestFramework;
+import org.gradle.api.internal.tasks.testing.retrying.JvmRetrySpec;
 import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework;
 import org.gradle.api.internal.tasks.testing.worker.TestWorker;
 import org.gradle.api.jvm.ModularitySpec;
@@ -647,7 +648,8 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         boolean testIsModule = javaModuleDetector.isModule(modularity.getInferModulePath().get(), getTestClassesDirs());
         FileCollection classpath = javaModuleDetector.inferClasspath(testIsModule, stableClasspath);
         FileCollection modulePath = javaModuleDetector.inferModulePath(testIsModule, stableClasspath);
-        return new JvmTestExecutionSpec(getTestFramework(), classpath, modulePath, getCandidateClassFiles(), isScanForTestClasses(), getTestClassesDirs(), getPath(), getIdentityPath(), getForkEvery(), javaForkOptions, getMaxParallelForks(), getPreviousFailedTestClasses(), 0);
+        JvmRetrySpec retrySpec = JvmRetrySpec.of(getRetryUntilFailureCount().getOrNull(), getRetryUntilStoppedCount().getOrNull());
+        return new JvmTestExecutionSpec(getTestFramework(), classpath, modulePath, getCandidateClassFiles(), isScanForTestClasses(), getTestClassesDirs(), getPath(), getIdentityPath(), getForkEvery(), javaForkOptions, getMaxParallelForks(), getPreviousFailedTestClasses(), retrySpec);
     }
 
     private void validateToolchainConfiguration() {
@@ -1080,7 +1082,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      * @since 4.6
      */
     public void useJUnitPlatform(Action<? super JUnitPlatformOptions> testFrameworkConfigure) {
-        useTestFramework(new JUnitPlatformTestFramework(this, (DefaultTestFilter) getFilter()), testFrameworkConfigure);
+        useTestFramework(new JUnitPlatformTestFramework((DefaultTestFilter) getFilter()), testFrameworkConfigure);
     }
 
     /**

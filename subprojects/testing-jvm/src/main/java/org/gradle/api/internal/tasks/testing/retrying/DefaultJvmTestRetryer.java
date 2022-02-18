@@ -22,19 +22,19 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class DefaultJvmTestRetryer implements JvmTestRetryer {
 
-    private final AtomicBoolean hasAnyTestFail;
+    private final AtomicBoolean hasAnyTestFailed;
     private final long maxRetryCount;
-    private final boolean stopAfterFailure;
+    private final boolean stopRetryingAfterFailure;
 
     public DefaultJvmTestRetryer(JvmRetrySpec retrySpec) {
         this.maxRetryCount = Math.max(retrySpec.getMaxRetries(), 1);
-        this.stopAfterFailure = retrySpec.isForceStopAfterFailure();
-        this.hasAnyTestFail = new AtomicBoolean();
+        this.stopRetryingAfterFailure = retrySpec.isStopRetryingAfterFailure();
+        this.hasAnyTestFailed = new AtomicBoolean();
     }
 
     @Override
     public TestResultProcessor decorateTestResultProcessor(TestResultProcessor other) {
-        return new JvmTestRetryerResultProcessor(hasAnyTestFail, other);
+        return new JvmTestRetryerResultProcessor(hasAnyTestFailed, other);
     }
 
     @Override
@@ -46,10 +46,10 @@ public class DefaultJvmTestRetryer implements JvmTestRetryer {
     }
 
     private boolean shouldRetry(long executions) {
-        return executions > 0 && !hasAnyTestFailed();
+        return executions > 0 && !shouldStopRetryingDueToFailure();
     }
 
-    private boolean hasAnyTestFailed() {
-        return stopAfterFailure && hasAnyTestFail.get();
+    private boolean shouldStopRetryingDueToFailure() {
+        return stopRetryingAfterFailure && hasAnyTestFailed.get();
     }
 }

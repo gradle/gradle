@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.testing.testng
 
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter
+import org.gradle.api.internal.tasks.testing.retrying.JvmRetrySpec
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.testing.Test
 import org.gradle.api.tasks.testing.testng.TestNGOptions
@@ -41,7 +42,7 @@ public class TestNGTestFrameworkTest extends Specification {
     void "creates test class processor"() {
         when:
         def framework = createFramework()
-        def processor = framework.getProcessorFactory().create(Mock(ServiceRegistry))
+        def processor = framework.getProcessorFactory(Mock(JvmRetrySpec)).create(Mock(ServiceRegistry))
 
         then:
         processor instanceof TestNGTestClassProcessor

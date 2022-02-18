@@ -24,8 +24,7 @@ import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.api.internal.tasks.testing.detection.TestFrameworkDetector;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
-import org.gradle.api.internal.tasks.testing.retrying.JvmRetrySpecProvider;
-import org.gradle.api.tasks.testing.Test;
+import org.gradle.api.internal.tasks.testing.retrying.JvmRetrySpec;
 import org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.actor.ActorFactory;
@@ -46,23 +45,21 @@ import java.util.List;
 public class JUnitPlatformTestFramework implements TestFramework {
     private final JUnitPlatformOptions options;
     private final DefaultTestFilter filter;
-    private final JvmRetrySpecProvider retrySpecProvider;
 
-    public JUnitPlatformTestFramework(Test testTask, DefaultTestFilter filter) {
+    public JUnitPlatformTestFramework(DefaultTestFilter filter) {
         this.filter = filter;
         this.options = new JUnitPlatformOptions();
-        this.retrySpecProvider = JvmRetrySpecProvider.of(testTask);
     }
 
     @Override
-    public WorkerTestClassProcessorFactory getProcessorFactory() {
+    public WorkerTestClassProcessorFactory getProcessorFactory(JvmRetrySpec retrySpec) {
         if (!JavaVersion.current().isJava8Compatible()) {
             throw new UnsupportedJavaRuntimeException("Running JUnit Platform requires Java 8+, please configure your test java executable with Java 8 or higher.");
         }
         return new JUnitPlatformTestClassProcessorFactory(new JUnitPlatformSpec(options,
             filter.getIncludePatterns(), filter.getExcludePatterns(),
             filter.getCommandLineIncludePatterns(),
-            retrySpecProvider.get()
+            retrySpec
         ));
     }
 

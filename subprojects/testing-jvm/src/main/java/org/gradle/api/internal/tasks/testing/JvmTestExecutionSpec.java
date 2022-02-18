@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
+import org.gradle.api.internal.tasks.testing.retrying.JvmRetrySpec;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.util.Path;
@@ -40,7 +41,7 @@ public class JvmTestExecutionSpec implements TestExecutionSpec {
     private final JavaForkOptions javaForkOptions;
     private final int maxParallelForks;
     private final Set<String> previousFailedTestClasses;
-    private final long untilFailureRetryCount;
+    private final JvmRetrySpec retrySpec;
 
     @UsedByScanPlugin("test-retry <= 1.1.3")
     public JvmTestExecutionSpec(TestFramework testFramework, Iterable<? extends File> classpath, FileTree candidateClassFiles, boolean scanForTestClasses, FileCollection testClassesDirs, String path, Path identityPath, long forkEvery, JavaForkOptions javaForkOptions, int maxParallelForks, Set<String> previousFailedTestClasses) {
@@ -49,10 +50,10 @@ public class JvmTestExecutionSpec implements TestExecutionSpec {
 
     @UsedByScanPlugin("test-retry")
     public JvmTestExecutionSpec(TestFramework testFramework, Iterable<? extends File> classpath, Iterable<? extends File>  modulePath, FileTree candidateClassFiles, boolean scanForTestClasses, FileCollection testClassesDirs, String path, Path identityPath, long forkEvery, JavaForkOptions javaForkOptions, int maxParallelForks, Set<String> previousFailedTestClasses) {
-        this(testFramework, classpath, Collections.<File>emptyList(), candidateClassFiles, scanForTestClasses, testClassesDirs, path, identityPath, forkEvery, javaForkOptions, maxParallelForks, previousFailedTestClasses, 1);
+        this(testFramework, classpath, Collections.<File>emptyList(), candidateClassFiles, scanForTestClasses, testClassesDirs, path, identityPath, forkEvery, javaForkOptions, maxParallelForks, previousFailedTestClasses, JvmRetrySpec.noRetries());
     }
 
-    public JvmTestExecutionSpec(TestFramework testFramework, Iterable<? extends File> classpath, Iterable<? extends File>  modulePath, FileTree candidateClassFiles, boolean scanForTestClasses, FileCollection testClassesDirs, String path, Path identityPath, long forkEvery, JavaForkOptions javaForkOptions, int maxParallelForks, Set<String> previousFailedTestClasses, long untilFailureRetryCount) {
+    public JvmTestExecutionSpec(TestFramework testFramework, Iterable<? extends File> classpath, Iterable<? extends File>  modulePath, FileTree candidateClassFiles, boolean scanForTestClasses, FileCollection testClassesDirs, String path, Path identityPath, long forkEvery, JavaForkOptions javaForkOptions, int maxParallelForks, Set<String> previousFailedTestClasses, JvmRetrySpec retrySpec) {
         this.testFramework = testFramework;
         this.classpath = classpath;
         this.modulePath = modulePath;
@@ -65,7 +66,7 @@ public class JvmTestExecutionSpec implements TestExecutionSpec {
         this.javaForkOptions = javaForkOptions;
         this.maxParallelForks = maxParallelForks;
         this.previousFailedTestClasses = previousFailedTestClasses;
-        this.untilFailureRetryCount = untilFailureRetryCount;
+        this.retrySpec = retrySpec;
     }
 
     public TestFramework getTestFramework() {
@@ -105,8 +106,8 @@ public class JvmTestExecutionSpec implements TestExecutionSpec {
         return forkEvery;
     }
 
-    public long getUntilFailureRetryCount() {
-        return untilFailureRetryCount;
+    public JvmRetrySpec getRetrySpec() {
+        return retrySpec;
     }
 
     @UsedByScanPlugin("test-distribution")

@@ -22,7 +22,7 @@ import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.api.internal.tasks.testing.detection.ClassFileExtractionManager;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
-import org.gradle.api.internal.tasks.testing.retrying.JvmRetrySpecProvider;
+import org.gradle.api.internal.tasks.testing.retrying.JvmRetrySpec;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.junit.JUnitOptions;
 import org.gradle.internal.actor.ActorFactory;
@@ -42,22 +42,20 @@ public class JUnitTestFramework implements TestFramework {
     private JUnitOptions options;
     private JUnitDetector detector;
     private final DefaultTestFilter filter;
-    private final JvmRetrySpecProvider retrySpecProvider;
 
     public JUnitTestFramework(Test testTask, DefaultTestFilter filter) {
         this.filter = filter;
         options = new JUnitOptions();
         detector = new JUnitDetector(new ClassFileExtractionManager(testTask.getTemporaryDirFactory()));
-        retrySpecProvider = JvmRetrySpecProvider.of(testTask);
     }
 
     @Override
-    public WorkerTestClassProcessorFactory getProcessorFactory() {
+    public WorkerTestClassProcessorFactory getProcessorFactory(JvmRetrySpec retrySpec) {
         return new TestClassProcessorFactoryImpl(new JUnitSpec(
             options.getIncludeCategories(), options.getExcludeCategories(),
             filter.getIncludePatterns(), filter.getExcludePatterns(),
             filter.getCommandLineIncludePatterns(),
-            retrySpecProvider.get()
+            retrySpec
         ));
     }
 

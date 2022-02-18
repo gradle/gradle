@@ -72,13 +72,7 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
 
     @Override
     public void stop() {
-        //noinspection Convert2Lambda
-        retryUntilFailure(new Runnable() {
-            @Override
-            public void run() {
-                testClassExecutor.processAllTestClasses();
-            }
-        });
+        retryUntilFailure(() -> testClassExecutor.processAllTestClasses());
         super.stop();
     }
 

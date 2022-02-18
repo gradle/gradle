@@ -16,31 +16,40 @@
 
 package org.gradle.api.internal.tasks.testing.retrying;
 
-import org.gradle.api.provider.Provider;
-
+import javax.annotation.Nullable;
 import java.io.Serializable;
 
 public class JvmRetrySpec implements Serializable {
 
     private final long maxRetries;
-    private final boolean forceStopAfterFailure;
+    private final boolean stopRetryingAfterFailure;
 
-    private JvmRetrySpec(long maxRetries, boolean forceStopAfterFailure) {
+    private JvmRetrySpec(long maxRetries, boolean stopRetryingAfterFailure) {
         this.maxRetries = maxRetries;
-        this.forceStopAfterFailure = forceStopAfterFailure;
+        this.stopRetryingAfterFailure = stopRetryingAfterFailure;
     }
 
     public long getMaxRetries() {
         return maxRetries;
     }
 
-    public boolean isForceStopAfterFailure() {
-        return forceStopAfterFailure;
+    public boolean isStopRetryingAfterFailure() {
+        return stopRetryingAfterFailure;
     }
 
-    static JvmRetrySpec of(Provider<Long> retryUntilFailureCount, Provider<Long> retryUntilStoppedCount) {
-        long maxRetries = retryUntilFailureCount.isPresent() ? retryUntilFailureCount.get() : retryUntilStoppedCount.getOrElse(1L);
-        boolean stopAfterFailure = retryUntilFailureCount.isPresent();
-        return new JvmRetrySpec(maxRetries, stopAfterFailure);
+    /**
+     * Due to Java6 compatibility we can't accept Provider here, so we use Long.
+     */
+    public static JvmRetrySpec of(@Nullable Long retryUntilFailureCount, @Nullable Long retryUntilStoppedCount) {
+        if (retryUntilFailureCount != null) {
+            return new JvmRetrySpec(retryUntilFailureCount, true);
+        } else if (retryUntilStoppedCount != null) {
+            return new JvmRetrySpec(retryUntilStoppedCount, false);
+        }
+        return noRetries();
+    }
+
+    public static JvmRetrySpec noRetries() {
+        return new JvmRetrySpec(1, false);
     }
 }

@@ -27,7 +27,7 @@ import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.api.internal.tasks.testing.detection.ClassFileExtractionManager;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
-import org.gradle.api.internal.tasks.testing.retrying.JvmRetrySpecProvider;
+import org.gradle.api.internal.tasks.testing.retrying.JvmRetrySpec;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.tasks.testing.Test;
@@ -56,7 +56,6 @@ public class TestNGTestFramework implements TestFramework {
     private final String testTaskPath;
     private final FileCollection testTaskClasspath;
     private final Factory<File> testTaskTemporaryDir;
-    private final JvmRetrySpecProvider retrySpecProvider;
     private transient ClassLoader testClassLoader;
 
     @UsedByScanPlugin("test-retry")
@@ -67,7 +66,6 @@ public class TestNGTestFramework implements TestFramework {
         this.testTaskClasspath = classpath;
         this.testTaskTemporaryDir = testTask.getTemporaryDirFactory();
         options = objects.newInstance(TestNGOptions.class);
-        this.retrySpecProvider = JvmRetrySpecProvider.of(testTask);
         conventionMapOutputDirectory(options, testTask.getReports().getHtml());
         detector = new TestNGDetector(new ClassFileExtractionManager(testTask.getTemporaryDirFactory()));
     }
@@ -82,12 +80,12 @@ public class TestNGTestFramework implements TestFramework {
     }
 
     @Override
-    public WorkerTestClassProcessorFactory getProcessorFactory() {
+    public WorkerTestClassProcessorFactory getProcessorFactory(JvmRetrySpec retrySpec) {
         verifyConfigFailurePolicy();
         verifyPreserveOrder();
         verifyGroupByInstances();
         List<File> suiteFiles = options.getSuites(testTaskTemporaryDir.create());
-        TestNGSpec spec = new TestNGSpec(options, filter, retrySpecProvider.get());
+        TestNGSpec spec = new TestNGSpec(options, filter, retrySpec);
         return new TestClassProcessorFactoryImpl(this.options.getOutputDirectory(), spec, suiteFiles);
     }
 

@@ -153,7 +153,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
                             return frameworkLookup.computeIfAbsent(vtf.type, f -> new JUnitTestFramework(task, (DefaultTestFilter) task.getFilter()));
                         case JUNIT_JUPITER: // fall-through
                         case SPOCK:
-                            return frameworkLookup.computeIfAbsent(vtf.type, f -> new JUnitPlatformTestFramework(task, (DefaultTestFilter) task.getFilter()));
+                            return frameworkLookup.computeIfAbsent(vtf.type, f -> new JUnitPlatformTestFramework((DefaultTestFilter) task.getFilter()));
                         case TESTNG:
                             return frameworkLookup.computeIfAbsent(vtf.type, f -> new TestNGTestFramework(task, task.getClasspath(), (DefaultTestFilter) task.getFilter(), getObjectFactory()));
                         default:
