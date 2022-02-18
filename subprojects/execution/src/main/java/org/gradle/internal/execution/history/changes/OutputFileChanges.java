@@ -16,6 +16,7 @@
 
 package org.gradle.internal.execution.history.changes;
 
+import org.gradle.internal.RelativePathSupplier;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.impl.DefaultFileSystemLocationFingerprint;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
@@ -80,15 +81,18 @@ public class OutputFileChanges implements ChangeContainer {
         RelativePathTracker pathTracker = new RelativePathTracker();
         roots.accept(pathTracker,
             (snapshot, relativePath) -> {
-                result.put(snapshot.getAbsolutePath(),
-                    new DefaultFileSystemLocationFingerprint(
-                        relativePath.toRelativePath(),
-                        snapshot.getType(),
-                        snapshot.getHash()
-                    ));
+                result.put(snapshot.getAbsolutePath(), createFingerprint(relativePath, snapshot));
                 return SnapshotVisitResult.CONTINUE;
             }
         );
         return result;
+    }
+
+    private DefaultFileSystemLocationFingerprint createFingerprint(RelativePathSupplier relativePath, FileSystemLocationSnapshot snapshot) {
+        return new DefaultFileSystemLocationFingerprint(
+            relativePath.toRelativePath(),
+            snapshot.getType(),
+            snapshot.getHash()
+        );
     }
 }
