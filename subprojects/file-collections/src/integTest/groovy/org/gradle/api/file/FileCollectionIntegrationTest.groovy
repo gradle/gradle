@@ -472,4 +472,28 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
         "dirsFromFilteredFcMappedElements" | "dirs from filtered FC elements mapped"
         "dirsFromFcElementsSetFiltered"    | "dirs from FC elements set filtered"
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/19817")
+    def "nag user when concatenation of files is used for path instead of single files"() {
+        given:
+        def givenFile = file("files/file0.txt${File.pathSeparator}files/dir1")
+
+        and:
+        buildFile """
+            def files = files("${givenFile.path}")
+            tasks.register("getAsPath") {
+                doLast {
+                    println files.asPath
+                }
+            }
+        """
+
+        when:
+        run "getAsPath"
+
+        then:
+        executer.expectDeprecationWarning("FileCollection 'file collection' that is being mapped to a path contains already concatenated files instead of a collection of single files." +
+            " This can lead to uncontrolled failures. Problematic concatenations are: ${givenFile.path}." +
+            " This will fail with an error in Gradle 8.0. Add files to a collection as single files instead of manually concatenating them.")
+    }
 }

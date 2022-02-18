@@ -36,6 +36,7 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.PatternSets;
 import org.gradle.internal.Factory;
 import org.gradle.internal.MutableBoolean;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.util.internal.GUtil;
 
@@ -47,6 +48,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 public abstract class AbstractFileCollection implements FileCollectionInternal {
     protected final Factory<PatternSet> patternSetFactory;
@@ -175,7 +177,27 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
 
     @Override
     public String getAsPath() {
+        showGetAsPathDeprecationWarning();
         return GUtil.asPath(this);
+    }
+
+    private void showGetAsPathDeprecationWarning() {
+        List<String> filesAsPaths = this.getFiles().stream()
+            .map(File::getPath)
+            .filter(path -> path.contains(File.pathSeparator))
+            .collect(Collectors.toList());
+        if (!filesAsPaths.isEmpty()) {
+            DeprecationLogger.deprecateBehaviour(String.format(
+                    "FileCollection '%s' that is being mapped to a path contains already concatenated files instead of a collection of single files." +
+                        " This can lead to uncontrolled failures. Problematic concatenations are: %s.",
+                    getDisplayName(),
+                    String.join(", ", filesAsPaths))
+                )
+                .withAdvice("Add files to a collection as single files instead of manually concatenating them.")
+                .willBecomeAnErrorInGradle8()
+                .undocumented()
+                .nagUser();
+        }
     }
 
     @Override
