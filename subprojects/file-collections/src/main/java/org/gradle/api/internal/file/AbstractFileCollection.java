@@ -187,15 +187,17 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
             .filter(path -> path.contains(File.pathSeparator))
             .collect(Collectors.toList());
         if (!filesAsPaths.isEmpty()) {
+            String displayedFilePaths = filesAsPaths.stream().map(path -> "'" + path + "'").collect(Collectors.joining(","));
             DeprecationLogger.deprecateBehaviour(String.format(
-                    "FileCollection '%s' that is being mapped to a path contains already concatenated files instead of a collection of single files." +
-                        " This can lead to uncontrolled failures. Problematic concatenations are: %s.",
+                    "Converting files to a classpath string when their paths contain the path separator '%s' has been deprecated." +
+                        " The path separator is not a valid element of a file path. Problematic paths in '%s' are: %s.",
+                    File.pathSeparator,
                     getDisplayName(),
-                    String.join(", ", filesAsPaths))
-                )
-                .withAdvice("Add files to a collection as single files instead of manually concatenating them.")
+                    displayedFilePaths
+                ))
+                .withAdvice("Add the individual files to the file collection instead.")
                 .willBecomeAnErrorInGradle8()
-                .undocumented()
+                .withUpgradeGuideSection(7, "file_collection_to_classpath")
                 .nagUser();
         }
     }

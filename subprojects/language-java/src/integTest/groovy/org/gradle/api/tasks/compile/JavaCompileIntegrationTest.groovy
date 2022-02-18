@@ -924,9 +924,10 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         file('src/main/java/Foo.java') << 'public class Foo {}'
 
         expect:
-        executer.expectDeprecationWarning("Converting files to a classpath string when their paths contain the path separator %s has been deprecated." +
-            " The path separator is not a valid element of a file path. Problematic paths in 'file collection' are '${Paths.get(bootClasspath)}'." +
-            " This will fail with an error in Gradle 8.0. Add the individual files to the file collection instead.")
+        executer.expectDocumentedDeprecationWarning("Converting files to a classpath string when their paths contain the path separator '${File.pathSeparator}' has been deprecated." +
+            " The path separator is not a valid element of a file path. Problematic paths in 'file collection' are: '${Paths.get(bootClasspath)}'." +
+            " This will fail with an error in Gradle 8.0. Add the individual files to the file collection instead." +
+            " Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#file_collection_to_classpath")
         succeeds "compileJava"
     }
 

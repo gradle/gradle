@@ -55,6 +55,15 @@ eclipse {
 
 Alternatively, you can adjust or remove classpath attributes in the `eclipse.classpath.file.whenMerged { }` block.
 
+=== Deprecations
+
+[[file_collection_to_classpath]]
+==== Converting files to a classpath where paths contain file separator
+Gradle 7.5+ until 8.0 will emit a deprecation warning when using
+`@link:{javadocPath}/javadoc/org/gradle/api/file/FileCollection.html#getAsPath--[FileCollection.getPath()]` for files with paths that contain a path separator. Allowing paths with the path separator can, in some cases, result in an uncontrolled failure of the build.
+
+In Gradle 8.0 and later this will be an error.
+
 [[changes_7.4]]
 == Upgrading from 7.3 and earlier
 

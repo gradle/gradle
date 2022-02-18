@@ -486,9 +486,10 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
         """
 
         expect:
-        executer.expectDeprecationWarning("FileCollection 'file collection' that is being mapped to a path contains already concatenated files instead of a collection of single files." +
-            " This can lead to uncontrolled failures. Problematic concatenations are: ${givenFile.path}." +
-            " This will fail with an error in Gradle 8.0. Add files to a collection as single files instead of manually concatenating them.")
+        executer.expectDocumentedDeprecationWarning("Converting files to a classpath string when their paths contain the path separator '${File.pathSeparator}' has been deprecated." +
+            " The path separator is not a valid element of a file path. Problematic paths in 'file collection' are: '${givenFile.path}'." +
+            " This will fail with an error in Gradle 8.0. Add the individual files to the file collection instead." +
+            " Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#file_collection_to_classpath")
         succeeds "getAsPath"
     }
 }
