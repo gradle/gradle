@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.testing.junit;
 
-import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
@@ -29,6 +28,8 @@ import org.gradle.internal.time.Clock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
+
 public abstract class AbstractJUnitTestClassProcessor<T extends AbstractJUnitSpec> implements TestClassProcessor {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractJUnitTestClassProcessor.class);
 
@@ -37,7 +38,7 @@ public abstract class AbstractJUnitTestClassProcessor<T extends AbstractJUnitSpe
     protected final Clock clock;
     private final ActorFactory actorFactory;
     private Actor resultProcessorActor;
-    private Action<String> executor;
+    private JUnitFrameworkTestExecutor executor;
     private JvmTestRetryer testRetryer;
 
     public AbstractJUnitTestClassProcessor(T spec, IdGenerator<?> idGenerator, ActorFactory actorFactory, Clock clock) {
@@ -59,30 +60,34 @@ public abstract class AbstractJUnitTestClassProcessor<T extends AbstractJUnitSpe
 
     protected abstract TestResultProcessor createResultProcessorChain(TestResultProcessor resultProcessor);
 
-    protected abstract Action<String> createTestExecutor(Actor resultProcessorActor);
+    protected abstract JUnitFrameworkTestExecutor createTestExecutor(Actor resultProcessorActor);
 
     @Override
     public void processTestClass(final TestClassRunInfo testClass) {
         LOGGER.debug("Executing test class {}", testClass.getTestClassName());
-        retryUntilFailure(new Runnable() {
-            @Override
-            public void run() {
-                executor.execute(testClass.getTestClassName());
-            }
-        });
-    }
-
-    protected void retryUntilFailure(Runnable runnable) {
-        testRetryer.retryUntilFailure(runnable);
+        executor.processTestClass(testClass.getTestClassName());
     }
 
     @Override
     public void stop() {
+        testRetryer.retryUntilFailure(new Runnable() {
+            @Override
+            public void run() {
+                executor.runAllTestClasses();
+            }
+        });
         resultProcessorActor.stop();
     }
 
     @Override
     public void stopNow() {
         throw new UnsupportedOperationException("stopNow() should not be invoked on remote worker TestClassProcessor");
+    }
+
+    public interface JUnitFrameworkTestExecutor {
+
+        void processTestClass(@Nonnull String testClassName);
+
+        void runAllTestClasses();
     }
 }

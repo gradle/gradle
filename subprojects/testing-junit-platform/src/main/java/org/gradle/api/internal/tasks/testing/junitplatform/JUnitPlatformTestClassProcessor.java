@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.testing.junitplatform;
 
-import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
 import org.gradle.api.internal.tasks.testing.junit.AbstractJUnitTestClassProcessor;
@@ -52,7 +51,6 @@ import static org.junit.platform.launcher.TagFilter.excludeTags;
 import static org.junit.platform.launcher.TagFilter.includeTags;
 
 public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProcessor<JUnitPlatformSpec> {
-    private CollectAllTestClassesExecutor testClassExecutor;
 
     public JUnitPlatformTestClassProcessor(JUnitPlatformSpec spec, IdGenerator<?> idGenerator, ActorFactory actorFactory, Clock clock) {
         super(spec, idGenerator, actorFactory, clock);
@@ -64,19 +62,12 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
     }
 
     @Override
-    protected Action<String> createTestExecutor(Actor resultProcessorActor) {
+    protected JUnitFrameworkTestExecutor createTestExecutor(Actor resultProcessorActor) {
         TestResultProcessor threadSafeResultProcessor = resultProcessorActor.getProxy(TestResultProcessor.class);
-        testClassExecutor = new CollectAllTestClassesExecutor(threadSafeResultProcessor);
-        return testClassExecutor;
+        return new CollectAllTestClassesExecutor(threadSafeResultProcessor);
     }
 
-    @Override
-    public void stop() {
-        retryUntilFailure(() -> testClassExecutor.processAllTestClasses());
-        super.stop();
-    }
-
-    private class CollectAllTestClassesExecutor implements Action<String> {
+    private class CollectAllTestClassesExecutor implements JUnitFrameworkTestExecutor {
         private final List<Class<?>> testClasses = new ArrayList<>();
         private final TestResultProcessor resultProcessor;
 
@@ -85,7 +76,7 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
         }
 
         @Override
-        public void execute(@Nonnull String testClassName) {
+        public void processTestClass(@Nonnull String testClassName) {
             Class<?> klass = loadClass(testClassName);
             if (isInnerClass(klass) || isNestedClassInsideEnclosedRunner(klass)) {
                 return;
@@ -93,7 +84,8 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
             testClasses.add(klass);
         }
 
-        private void processAllTestClasses() {
+        @Override
+        public void runAllTestClasses() {
             Launcher launcher = LauncherFactory.create();
             launcher.registerTestExecutionListeners(new JUnitPlatformTestExecutionListener(resultProcessor, clock, idGenerator));
             launcher.execute(createLauncherDiscoveryRequest(testClasses));

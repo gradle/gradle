@@ -1208,7 +1208,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     public void setRetryUntilStoppedCountOption(@Nullable String retryUntilStoppedCountOption) {
         long retryUntilStoppedCount = Long.parseLong(firstNonNull(retryUntilStoppedCountOption, "0"));
         if (retryUntilStoppedCount < 1) {
-            throw new IllegalArgumentException("Cannot set retry-until-failure to a value less than 1.");
+            throw new IllegalArgumentException("Cannot set retry-until-stopped to a value less than 1.");
         }
         getRetryUntilStoppedCount().set(retryUntilStoppedCount);
     }

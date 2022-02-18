@@ -16,13 +16,9 @@
 
 package org.gradle.api.internal.tasks.testing.junit;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-
-import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
+import org.gradle.api.internal.tasks.testing.junit.AbstractJUnitTestClassProcessor.JUnitFrameworkTestExecutor;
 import org.gradle.internal.concurrent.ThreadSafe;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.Description;
@@ -35,11 +31,17 @@ import org.junit.runner.manipulation.NoTestsRemainException;
 import org.junit.runner.notification.RunListener;
 import org.junit.runner.notification.RunNotifier;
 
-public class JUnitTestClassExecutor implements Action<String> {
+import javax.annotation.Nonnull;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+
+public class JUnitTestClassExecutor implements JUnitFrameworkTestExecutor {
     private final ClassLoader applicationClassLoader;
     private final RunListener listener;
     private final JUnitSpec options;
     private final TestClassExecutionListener executionListener;
+    private final List<String> testClassNames;
 
     public JUnitTestClassExecutor(ClassLoader applicationClassLoader, JUnitSpec spec, RunListener listener, TestClassExecutionListener executionListener) {
         assert executionListener instanceof ThreadSafe;
@@ -47,23 +49,39 @@ public class JUnitTestClassExecutor implements Action<String> {
         this.listener = listener;
         this.options = spec;
         this.executionListener = executionListener;
+        this.testClassNames = new ArrayList<String>();
     }
 
     @Override
-    public void execute(String testClassName) {
+    public void processTestClass(@Nonnull String testClassName) {
+        testClassNames.add(testClassName);
+    }
+
+    @Override
+    public void runAllTestClasses() {
+        for (String testClassName : testClassNames) {
+            runTestClass(testClassName);
+        }
+    }
+
+    private void runTestClass(String testClassName) {
         executionListener.testClassStarted(testClassName);
 
         Throwable failure = null;
+        String threadName = Thread.currentThread().getName();
         try {
-            runTestClass(testClassName);
+            doRunTestClass(testClassName);
         } catch (Throwable throwable) {
             failure = throwable;
+        } finally {
+            // Reset the thread name if the action changes it (e.g. if a test sets the thread name without resetting it afterwards)
+            Thread.currentThread().setName(threadName);
         }
 
         executionListener.testClassFinished(failure);
     }
 
-    private void runTestClass(String testClassName) throws ClassNotFoundException {
+    private void doRunTestClass(String testClassName) throws ClassNotFoundException {
         final Class<?> testClass = Class.forName(testClassName, false, applicationClassLoader);
         if (isNestedClassInsideEnclosedRunner(testClass)) {
             return;
