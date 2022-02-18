@@ -78,7 +78,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class DefaultDependenciesAccessors implements DependenciesAccessors {
-    private final static String SUPPORTED_PROJECT_NAMES = "[a-zA-Z]([A-Za-z0-9\\-_])*";
+    private final static String SUPPORTED_PROJECT_NAMES = "[a-zA-Z]([A-Za-z0-9\\-_@])*";
     private final static Pattern SUPPORTED_PATTERN = Pattern.compile(SUPPORTED_PROJECT_NAMES);
     private final static String ACCESSORS_PACKAGE = "org.gradle.accessors.dm";
     private final static String ACCESSORS_CLASSNAME_PREFIX = "LibrariesFor";
