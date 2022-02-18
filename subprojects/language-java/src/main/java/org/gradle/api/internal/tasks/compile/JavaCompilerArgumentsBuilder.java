@@ -28,7 +28,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 public class JavaCompilerArgumentsBuilder {
@@ -175,9 +174,10 @@ public class JavaCompilerArgumentsBuilder {
             args.add("-encoding");
             args.add(compileOptions.getEncoding());
         }
-        if (!compileOptions.getBootClasspath().isEmpty()) {
+        String bootClasspath = compileOptions.getBootClasspath();
+        if (bootClasspath != null) { //TODO: move bootclasspath to platform
             args.add("-bootclasspath");
-            args.add(getBootClasspathAsPath(compileOptions.getBootClasspath()));
+            args.add(bootClasspath);
         }
         if (compileOptions.getExtensionDirs() != null) {
             args.add("-extdirs");
@@ -223,17 +223,6 @@ public class JavaCompilerArgumentsBuilder {
         performance of compilation.
         Using this option leads to significant performance improvements when using daemon and compiling java sources with JDK7 and JDK8.*/
         args.add(USE_UNSHARED_COMPILER_TABLE_OPTION);
-    }
-
-    private String getBootClasspathAsPath(Set<File> files) {
-        List<String> filesAsPaths = files.stream()
-            .map(File::getPath)
-            .filter(path -> path.contains(File.pathSeparator))
-            .collect(Collectors.toList());
-        if (filesAsPaths.isEmpty()) {
-            return Joiner.on(File.pathSeparatorChar).join(files);
-        }
-        throw new InvalidUserDataException("Provided bootstrapClasspath contains a concatenation of files instead of a single file. Problematic files are: " + String.join(", ", filesAsPaths) + ".");
     }
 
     private void addSourcePathArg(List<String> compilerArgs, MinimalJavaCompileOptions compileOptions) {

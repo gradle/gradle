@@ -26,8 +26,6 @@ import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 import spock.lang.Issue
 
-import java.nio.file.Paths
-
 class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
@@ -905,27 +903,6 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasErrorOutput "Main.java:8: error: cannot find symbol"
 
         succeeds "-Pjava8", "clean", "compileJava"
-    }
-
-    // bootclasspath has been removed in Java 9+
-    @Requires(TestPrecondition.JDK8_OR_EARLIER)
-    @Issue("https://github.com/gradle/gradle/issues/19817")
-    def "fails if bootclasspath is provided as a path instead of a single file"() {
-        def jre = AvailableJavaHomes.getBestJre()
-        def bootClasspath = TextUtil.escapeString(jre.absolutePath) + "/lib/rt.jar${File.pathSeparator}someotherpath"
-        buildFile << """
-            plugins {
-                id 'java'
-            }
-            tasks.withType(JavaCompile) {
-                options.bootstrapClasspath = project.layout.files("$bootClasspath")
-            }
-        """
-        file('src/main/java/Foo.java') << 'public class Foo {}'
-
-        expect:
-        fails "compileJava"
-        failure.assertHasErrorOutput "Provided bootstrapClasspath contains a concatenation of files instead of a single file. Problematic files are: ${Paths.get(bootClasspath)}."
     }
 
     def "deletes empty packages dirs"() {

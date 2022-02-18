@@ -25,15 +25,13 @@ import org.gradle.api.tasks.compile.DebugOptions;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.Serializable;
-import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 public class MinimalJavaCompileOptions implements Serializable {
     private List<File> sourcepath;
     private List<String> compilerArgs;
     private String encoding;
-    private Set<File> bootClasspath;
+    private String bootClasspath;
     private String extensionDirs;
     private MinimalJavaCompilerDaemonForkOptions forkOptions;
     private DebugOptions debugOptions;
@@ -56,7 +54,7 @@ public class MinimalJavaCompileOptions implements Serializable {
         this.sourcepath = sourcepath == null ? null : ImmutableList.copyOf(sourcepath.getFiles());
         this.compilerArgs = Lists.newArrayList(compileOptions.getAllCompilerArgs());
         this.encoding = compileOptions.getEncoding();
-        this.bootClasspath = compileOptions.getBootstrapClasspath() != null ? compileOptions.getBootstrapClasspath().getFiles() : Collections.emptySet();
+        this.bootClasspath = getAsPath(compileOptions.getBootstrapClasspath());
         this.extensionDirs = compileOptions.getExtensionDirs();
         this.forkOptions = new MinimalJavaCompilerDaemonForkOptions(compileOptions.getForkOptions());
         this.debugOptions = compileOptions.getDebugOptions();
@@ -70,6 +68,11 @@ public class MinimalJavaCompileOptions implements Serializable {
         this.headerOutputDirectory = compileOptions.getHeaderOutputDirectory().getAsFile().getOrNull();
         this.javaModuleVersion = compileOptions.getJavaModuleVersion().getOrNull();
         this.javaModuleMainClass = compileOptions.getJavaModuleMainClass().getOrNull();
+    }
+
+    @Nullable
+    private static String getAsPath(@Nullable FileCollection files) {
+        return files == null ? null : files.getAsPath();
     }
 
     public List<File> getSourcepath() {
@@ -97,8 +100,12 @@ public class MinimalJavaCompileOptions implements Serializable {
         this.encoding = encoding;
     }
 
-    public Set<File> getBootClasspath() {
+    public String getBootClasspath() {
         return bootClasspath;
+    }
+
+    public void setBootClasspath(String bootClasspath) {
+        this.bootClasspath = bootClasspath;
     }
 
     public String getExtensionDirs() {

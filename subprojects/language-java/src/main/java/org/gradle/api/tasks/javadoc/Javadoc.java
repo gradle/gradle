@@ -18,7 +18,6 @@ package org.gradle.api.tasks.javadoc;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.ProjectLayout;
@@ -61,7 +60,6 @@ import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.gradle.util.internal.GUtil.isTrue;
 
@@ -147,10 +145,6 @@ public class Javadoc extends SourceTask {
         JavaModuleDetector javaModuleDetector = getJavaModuleDetector();
         options.classpath(new ArrayList<>(javaModuleDetector.inferClasspath(isModule, getClasspath()).getFiles()));
         options.modulePath(new ArrayList<>(javaModuleDetector.inferModulePath(isModule, getClasspath()).getFiles()));
-        if (options.getBootClasspath() != null) {
-            validateBootClasspathAsPath(options.getBootClasspath());
-        }
-
 
         if (!isTrue(options.getWindowTitle()) && isTrue(getTitle())) {
             options.windowTitle(getTitle());
@@ -178,16 +172,6 @@ public class Javadoc extends SourceTask {
         options.setSourceNames(sourceNames());
 
         executeExternalJavadoc(options);
-    }
-
-    private void validateBootClasspathAsPath(List<File> files) {
-        List<String> filesAsPaths = files.stream()
-            .map(File::getAbsolutePath)
-            .filter(path -> path.contains(File.pathSeparator))
-            .collect(Collectors.toList());
-        if (!filesAsPaths.isEmpty()) {
-            throw new InvalidUserDataException("Provided bootClasspath contains a concatenation of files instead of a single file. Problematic files are: " + String.join(", ", filesAsPaths) + ".");
-        }
     }
 
     private boolean isModule() {
