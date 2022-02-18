@@ -47,7 +47,6 @@ public interface TestFramework extends Closeable {
      * org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory#create(org.gradle.internal.service.ServiceRegistry)}
      * method is called to create the test processor.
      */
-    @Internal
     WorkerTestClassProcessorFactory getProcessorFactory(JvmRetrySpec retrySpec);
 
     /**
