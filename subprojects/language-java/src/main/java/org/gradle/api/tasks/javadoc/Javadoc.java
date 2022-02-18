@@ -42,6 +42,7 @@ import org.gradle.api.tasks.javadoc.internal.JavadocSpec;
 import org.gradle.api.tasks.javadoc.internal.JavadocToolAdapter;
 import org.gradle.external.javadoc.MinimalJavadocOptions;
 import org.gradle.external.javadoc.StandardJavadocDocletOptions;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
@@ -60,6 +61,7 @@ import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.gradle.util.internal.GUtil.isTrue;
 
@@ -145,6 +147,9 @@ public class Javadoc extends SourceTask {
         JavaModuleDetector javaModuleDetector = getJavaModuleDetector();
         options.classpath(new ArrayList<>(javaModuleDetector.inferClasspath(isModule, getClasspath()).getFiles()));
         options.modulePath(new ArrayList<>(javaModuleDetector.inferModulePath(isModule, getClasspath()).getFiles()));
+        if (options.getBootClasspath() != null) {
+            maybeShowDeprecationWarningForBootClasspath(options.getBootClasspath());
+        }
 
         if (!isTrue(options.getWindowTitle()) && isTrue(getTitle())) {
             options.windowTitle(getTitle());
@@ -172,6 +177,24 @@ public class Javadoc extends SourceTask {
         options.setSourceNames(sourceNames());
 
         executeExternalJavadoc(options);
+    }
+
+    private void maybeShowDeprecationWarningForBootClasspath(List<File> files) {
+        List<String> filesAsPaths = files.stream()
+            .map(File::getAbsolutePath)
+            .filter(path -> path.contains(File.pathSeparator))
+            .collect(Collectors.toList());
+        if (!filesAsPaths.isEmpty()) {
+            DeprecationLogger.deprecateBehaviour(String.format(
+                    "Bootclasspath of Javadoc task contains already concatenated files instead of a collection of single files." +
+                        " This can lead to uncontrolled failures. Problematic concatenations are: %s.",
+                    String.join(", ", filesAsPaths))
+                )
+                .withAdvice("Add files to a collection as single files instead of manually concatenating them.")
+                .willBecomeAnErrorInGradle8()
+                .undocumented()
+                .nagUser();
+        }
     }
 
     private boolean isModule() {
