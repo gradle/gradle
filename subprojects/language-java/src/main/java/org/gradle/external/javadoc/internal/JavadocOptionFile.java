@@ -146,4 +146,10 @@ public class JavadocOptionFile {
     public JavadocOptionFileOption<List<List<String>>> addMultilineMultiValueOption(String option) {
         return addOption(new MultilineMultiValueJavadocOptionFileOption(option, Lists.<List<String>>newArrayList(), " "));
     }
+
+    public Map<String, String> stringifyOptionsToMap() {
+        Map<String, String> result = new LinkedHashMap<>(options.size());
+        options.forEach((key, value) -> result.put(key, String.valueOf(value.getValue())));
+        return result;
+    }
 }

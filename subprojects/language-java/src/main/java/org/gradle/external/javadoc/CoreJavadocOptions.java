@@ -16,6 +16,8 @@
 
 package org.gradle.external.javadoc;
 
+import org.gradle.api.Incubating;
+import org.gradle.api.tasks.Input;
 import org.gradle.external.javadoc.internal.JavadocOptionFile;
 import org.gradle.external.javadoc.internal.JavadocOptionFileOptionInternal;
 import org.gradle.external.javadoc.internal.JavadocOptionFileOptionInternalAdapter;
@@ -29,6 +31,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Provides the core Javadoc Options. That is, provides the options which are not doclet specific.
@@ -700,5 +703,17 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
 
     public JavadocOptionFileOption<File> addFileOption(String option, File value) {
         return optionFile.addFileOption(option, value);
+    }
+
+    /**
+     * This method exists so that changing any options to the Javadoc task causes it to be re-run.
+     *
+     * @return the complete list of options, converted to strings
+     * @since 7.5
+     */
+    @Incubating
+    @Input
+    protected Map<String, String> getFullOptions() {
+        return optionFile.stringifyOptionsToMap();
     }
 }

@@ -294,6 +294,106 @@ Joe!""")
         succeeds("javadoc")
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/4841")
+    def "adding custom javadoc options makes task out-of-date"() {
+        given: "a javadoc task without custom options"
+        buildFile << """
+            task javadoc(type: Javadoc) {
+                destinationDir = file("build/javadoc")
+                source "src/main/java"
+                options {
+                    author()
+                }
+            }
+        """
+
+        writeSourceFile()
+
+        when: "running the task the first time, it is executed and succeeds"
+        run "javadoc"
+        then:
+        executedAndNotSkipped( ":javadoc")
+
+        when: "running the task the second time after adding a custom option, it is executed and succeeds and NOT marked UP-TO-DATE"
+        buildFile.text = """
+            task javadoc(type: Javadoc) {
+                destinationDir = file("build/javadoc")
+                source "src/main/java"
+                options {
+                    author()
+                    addBooleanOption 'html5', true
+                }
+            }
+        """
+        run "javadoc"
+        then:
+        executedAndNotSkipped(":javadoc")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/4841")
+    def "changing custom javadoc options makes task out-of-date"() {
+        given: "a javadoc task with a custom options"
+        buildFile << """
+            task javadoc(type: Javadoc) {
+                destinationDir = file("build/javadoc")
+                source "src/main/java"
+                options {
+                    author()
+                    addBooleanOption 'html4', true
+                }
+            }
+        """
+
+        writeSourceFile()
+
+        when: "running the task the first time, it is executed and succeeds"
+        run "javadoc"
+        then:
+        executedAndNotSkipped( ":javadoc")
+
+        when: "running the task the second time after changing the custom option, it is executed and succeeds and NOT marked UP-TO-DATE"
+        buildFile.text = """
+            task javadoc(type: Javadoc) {
+                destinationDir = file("build/javadoc")
+                source "src/main/java"
+                options {
+                    author()
+                    addBooleanOption 'html5', true
+                }
+            }
+        """
+        run "javadoc"
+        then:
+        executedAndNotSkipped(":javadoc")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/4841")
+    def "unchanged custom javadoc option does not make task out-of-date"() {
+        given: "a javadoc task with a custom options"
+        buildFile << """
+            task javadoc(type: Javadoc) {
+                destinationDir = file("build/javadoc")
+                source "src/main/java"
+                options {
+                    author()
+                    addBooleanOption 'html4', true
+                }
+            }
+        """
+
+        writeSourceFile()
+
+        when: "running the task the first time, it is executed and succeeds"
+        run "javadoc"
+        then:
+        executedAndNotSkipped( ":javadoc")
+
+        when: "running the task the second time it is UP-TO-DATE"
+        run "javadoc"
+        then:
+        skipped(":javadoc")
+    }
+
     private TestFile writeSourceFile() {
         file("src/main/java/Foo.java") << "public class Foo {}"
     }
