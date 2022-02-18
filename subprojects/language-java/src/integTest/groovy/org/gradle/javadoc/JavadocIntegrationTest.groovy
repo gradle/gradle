@@ -17,16 +17,12 @@ package org.gradle.javadoc
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 import spock.lang.Issue
-
-import java.nio.file.Paths
 
 class JavadocIntegrationTest extends AbstractIntegrationSpec {
     @Rule TestResources testResources = new TestResources(temporaryFolder)
@@ -300,28 +296,5 @@ Joe!""")
 
     private TestFile writeSourceFile() {
         file("src/main/java/Foo.java") << "public class Foo {}"
-    }
-
-    // bootclasspath has been removed in Java 9+
-    @Requires(TestPrecondition.JDK8_OR_EARLIER)
-    @Issue("https://github.com/gradle/gradle/issues/19817")
-    def "fails if bootclasspath is provided as a path instead of a single file"() {
-        def jre = AvailableJavaHomes.getBestJre()
-        def bootClasspath = TextUtil.escapeString(jre.absolutePath) + "/lib/rt.jar${File.pathSeparator}someotherpath"
-        buildFile << """
-            plugins {
-                id 'java'
-            }
-            javadoc {
-                options.bootClasspath = [file("$bootClasspath")]
-            }
-        """
-        writeSourceFile()
-
-        expect:
-        executer.expectDeprecationWarning("Bootclasspath of Javadoc task contains already concatenated files instead of a collection of single files." +
-            " This can lead to uncontrolled failures. Problematic concatenations are: ${Paths.get(bootClasspath)}." +
-            " This will fail with an error in Gradle 8.0. Add files to a collection as single files instead of manually concatenating them.")
-        succeeds "javadoc"
     }
 }
