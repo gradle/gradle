@@ -21,7 +21,7 @@ import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 
 public abstract class AbstractFingerprintCompareStrategy extends CompareStrategy<FileCollectionFingerprint, FileSystemLocationFingerprint> implements FingerprintCompareStrategy {
 
-    protected static final ChangeFactory<FileSystemLocationFingerprint> FINGERPRINT_CHANGE_FACTORY = new ChangeFactory<FileSystemLocationFingerprint>() {
+    public static final ChangeFactory<FileSystemLocationFingerprint> FINGERPRINT_CHANGE_FACTORY = new ChangeFactory<FileSystemLocationFingerprint>() {
         @Override
         public Change added(String path, String propertyTitle, FileSystemLocationFingerprint current) {
             return DefaultFileChange.added(path, propertyTitle, current.getType(), current.getNormalizedPath());

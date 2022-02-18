@@ -16,20 +16,13 @@
 
 package org.gradle.internal.execution.history.changes;
 
-import org.gradle.internal.RelativePathSupplier;
-import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
-import org.gradle.internal.fingerprint.impl.DefaultFileSystemLocationFingerprint;
-import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-import org.gradle.internal.snapshot.RelativePathTracker;
-import org.gradle.internal.snapshot.SnapshotVisitResult;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.SortedMap;
 
 public class OutputFileChanges implements ChangeContainer {
 
+    private static final OutputChangeDetector OUTPUT_CHANGE_DETECTOR = new OutputChangeDetector(NormalizedPathChangeDetector.INSTANCE);
     private final SortedMap<String, FileSystemSnapshot> previous;
     private final SortedMap<String, FileSystemSnapshot> current;
 
@@ -53,46 +46,9 @@ public class OutputFileChanges implements ChangeContainer {
 
             @Override
             public boolean updated(String property, FileSystemSnapshot previous, FileSystemSnapshot current) {
-                if (previous == current) {
-                    return true;
-                }
-                if (previous != FileSystemSnapshot.EMPTY && current != FileSystemSnapshot.EMPTY) {
-                    FileSystemLocationSnapshot previousSnapshot = (FileSystemLocationSnapshot) previous;
-                    FileSystemLocationSnapshot currentSnapshot = (FileSystemLocationSnapshot) current;
-                    if (previousSnapshot.getHash().equals(currentSnapshot.getHash())) {
-                        return true;
-                    }
-                }
-
-                Map<String, FileSystemLocationFingerprint> previousFingerprint = collectFingerprints(previous);
-                Map<String, FileSystemLocationFingerprint> currentFingerprint = collectFingerprints(current);
-
-                return NormalizedPathChangeDetector.INSTANCE.visitChangesSince(
-                    previousFingerprint,
-                    currentFingerprint,
-                    "Output property '" + property + "'",
-                    visitor);
+                String propertyTitle = "Output property '" + property + "'";
+                return OUTPUT_CHANGE_DETECTOR.visitChangesSince(previous, current, propertyTitle, visitor);
             }
         });
-    }
-
-    private Map<String, FileSystemLocationFingerprint> collectFingerprints(FileSystemSnapshot roots) {
-        Map<String, FileSystemLocationFingerprint> result = new LinkedHashMap<>();
-        RelativePathTracker pathTracker = new RelativePathTracker();
-        roots.accept(pathTracker,
-            (snapshot, relativePath) -> {
-                result.put(snapshot.getAbsolutePath(), createFingerprint(relativePath, snapshot));
-                return SnapshotVisitResult.CONTINUE;
-            }
-        );
-        return result;
-    }
-
-    private DefaultFileSystemLocationFingerprint createFingerprint(RelativePathSupplier relativePath, FileSystemLocationSnapshot snapshot) {
-        return new DefaultFileSystemLocationFingerprint(
-            relativePath.toRelativePath(),
-            snapshot.getType(),
-            snapshot.getHash()
-        );
     }
 }
