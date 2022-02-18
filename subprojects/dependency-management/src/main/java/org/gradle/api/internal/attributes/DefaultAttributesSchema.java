@@ -201,29 +201,9 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
 
     private class MergedSchema implements AttributeSelectionSchema {
         private final AttributesSchemaInternal producerSchema;
-        private final Map<String, Attribute<?>> combinedPrecedence;
-        MergedSchema(AttributesSchemaInternal producerSchema) {
-            assert producerSchema != null;
-            this.producerSchema = producerSchema;
 
-            // When merging schemas precedences, we need to take care to eliminate duplicate attributes with the same name.
-            //
-            // e.g., If an attribute is defined in the consumer schema with a name of foo and a type of String
-            // and the attribute is defined in the producer schema with the name of foo and type of FooAttribute,
-            // these could appear to be two different attributes.
-            //
-            // Precedence order is determined by attribute name, so with these precedences:
-            // consumer = [ A:StrongType, B:StrongType ]
-            // producer = [ X:String, A:String ]
-            // We will get:
-            // combinedPrecedence = [ A:StrongType, B:StrongType, X:String ]
-            this.combinedPrecedence = new LinkedHashMap<>();
-            for (Attribute<?> attribute : precedence) {
-                combinedPrecedence.put(attribute.getName(), attribute);
-            }
-            for (Attribute<?> attribute : producerSchema.getAttributeDisambiguationPrecedence()) {
-                combinedPrecedence.putIfAbsent(attribute.getName(), attribute);
-            }
+        MergedSchema(AttributesSchemaInternal producerSchema) {
+            this.producerSchema = producerSchema;
         }
 
         @Override
@@ -338,17 +318,23 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
         @Override
         public PrecedenceResult orderByPrecedence(ImmutableAttributes requested) {
             Map<String, Attribute<?>> remaining = new LinkedHashMap<>();
-            for (Attribute<?> attribute : requested.keySet()) {
-                remaining.put(attribute.getName(), attribute);
+            for (Attribute<?> requestedAttribute : requested.keySet()) {
+                remaining.put(requestedAttribute.getName(), requestedAttribute);
             }
             List<Attribute<?>> sorted = new ArrayList<>(remaining.size());
 
             // Add all attributes that have a higher precedence in the order they appear
-            // in the precedence list
-            for (Attribute<?> preferredAttribute : getDisambiguatingAttributes()) {
-                Attribute<?> requestedAttribute = remaining.remove(preferredAttribute.getName());
-                if (requestedAttribute!=null) {
-                    sorted.add(requestedAttribute);
+            // in the precedence list from the consumer
+            for (Attribute<?> preferredAttribute : precedence) {
+                if (requested.contains(preferredAttribute)) {
+                    sorted.add(remaining.remove(preferredAttribute.getName()));
+                }
+            }
+            // Add all attributes that have a higher precedence in the order they appear
+            // in the precedence list from the producer
+            for (Attribute<?> preferredAttribute : producerSchema.getAttributeDisambiguationPrecedence()) {
+                if (remaining.containsKey(preferredAttribute.getName()) && requested.contains(preferredAttribute)) {
+                    sorted.add(remaining.remove(preferredAttribute.getName()));
                 }
             }
             // If nothing was sorted, there were no appropriate disambiguating attributes to use
@@ -363,11 +349,6 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
                 sorted.addAll(remaining.values());
                 return new PrecedenceResult(sorted, index);
             }
-        }
-
-        @Override
-        public Collection<Attribute<?>> getDisambiguatingAttributes() {
-            return combinedPrecedence.values();
         }
 
         @Override

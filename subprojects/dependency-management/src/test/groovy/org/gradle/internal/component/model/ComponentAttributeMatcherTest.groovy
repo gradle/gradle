@@ -661,10 +661,5 @@ class ComponentAttributeMatcherTest extends Specification {
         PrecedenceResult orderByPrecedence(ImmutableAttributes requested) {
             return new PrecedenceResult(new ArrayList<>(requested.keySet()))
         }
-
-        @Override
-        Collection<Attribute<?>> getDisambiguatingAttributes() {
-            return []
-        }
     }
 }
