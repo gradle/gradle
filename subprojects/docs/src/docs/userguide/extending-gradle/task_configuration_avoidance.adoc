@@ -15,16 +15,25 @@
 [[task_configuration_avoidance]]
 = Task Configuration Avoidance
 
-This chapter provides an introduction to "configuration avoidance" when dealing with tasks and explains some guidelines for migrating your build to use the configuration avoidance APIs effectively. The API described here co-exists with an existing API that will be replaced with our usual deprecation process over several major releases.  As of Gradle 5.1, we recommend that the configuration avoidance APIs be used whenever tasks are created by custom plugins.
+This chapter provides an introduction to "configuration avoidance" when dealing with tasks and explains some guidelines for migrating your build to use the configuration avoidance APIs effectively.
+The API described here co-exists with an existing API that will be replaced with our usual deprecation process over several major releases.
+As of Gradle 5.1, we recommend that the configuration avoidance APIs be used whenever tasks are created by custom plugins.
 
 [[sec:how_does_it_work]]
 == How does the configuration avoidance API work?
 
-In a nutshell, the API allows builds to avoid the cost of creating and configuring tasks during Gradle's configuration phase when those tasks will never be executed.  For example, when running a compile task, other unrelated tasks, like code quality, testing and publishing tasks, will not be executed, so any time spent creating and configuring those tasks is unnecessary.  The configuration avoidance API avoids configuring tasks if they will not be needed during the course of a build, which can have a significant impact on total configuration time.
+In a nutshell, the API allows builds to avoid the cost of creating and configuring tasks during Gradle's configuration phase when those tasks will never be executed.
+For example, when running a compile task, other unrelated tasks, like code quality, testing and publishing tasks, will not be executed, so any time spent creating and configuring those tasks is unnecessary.
+The configuration avoidance API avoids configuring tasks if they will not be needed during the course of a build, which can have a significant impact on total configuration time.
 
-To avoid creating and configuring tasks, we say that a task is "registered" but not created.  When a task is in this state, it is known to the build, it can be configured, and references to it can be passed around, but the task object itself has not actually been created, and none of its configuration actions have been executed.  It will remain in this state until something in the build needs the instantiated task object (for instance if the task is executed on the command line or the task is a dependency of a task executed on the command line).  If the task object is never needed, then the task will remain in the registered state, and the cost of creating and configuring the task will be avoided.
+To avoid creating and configuring tasks, we say that a task is "registered" but not created.
+When a task is in this state, it is known to the build, it can be configured, and references to it can be passed around, but the task object itself has not actually been created, and none of its configuration actions have been executed.
+It will remain in this state until something in the build needs the instantiated task object (for instance if the task is executed on the command line or the task is a dependency of a task executed on the command line).
+If the task object is never needed, then the task will remain in the registered state, and the cost of creating and configuring the task will be avoided.
 
-In Gradle, you register a task using link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#register-java.lang.String-[TaskContainer.register(java.lang.String)]. There are variations of this method that allow providing a task type and/or an action for modifying the task configuration. Instead of returning a task instance, the `register(...)` method returns a link:{javadocPath}/org/gradle/api/tasks/TaskProvider.html[TaskProvider], which is a reference to the task that can be used in many places where a normal task object might be used (for example when creating task dependencies).
+In Gradle, you register a task using link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#register-java.lang.String-[TaskContainer.register(java.lang.String)].
+There are variations of this method that allow providing a task type and/or an action for modifying the task configuration.
+Instead of returning a task instance, the `register(...)` method returns a link:{javadocPath}/org/gradle/api/tasks/TaskProvider.html[TaskProvider], which is a reference to the task that can be used in many places where a normal task object might be used (for example when creating task dependencies).
 
 [[sec:task_configuration_avoidance_guidelines]]
 == Guidelines
@@ -34,28 +43,61 @@ In Gradle, you register a task using link:{javadocPath}/org/gradle/api/tasks/Tas
 
 Effective task configuration avoidance requires build authors to change instances of link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#create-java.lang.String-[TaskContainer.create(java.lang.String)] to link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#register-java.lang.String-[TaskContainer.register(java.lang.String)].
 
-Older versions of Gradle only support the `create(...)` API. The `create(...)` API eagerly creates and configures tasks when it is called and should be avoided.
+Older versions of Gradle only support the `create(...)` API.
+The `create(...)` API eagerly creates and configures tasks when it is called and should be avoided.
 
-Using `register(...)` alone may not be enough to avoid all task configuration completely. You may need to change other code that configures tasks by name or by type, as explained in the following sections.
+Using `register(...)` alone may not be enough to avoid all task configuration completely.
+You may need to change other code that configures tasks by name or by type, as explained in the following sections.
 
 [[sec:how_do_i_defer_configuration]]
 === How do I defer task configuration?
 
-Eager APIs like link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#all-org.gradle.api.Action-[DomainObjectCollection.all(org.gradle.api.Action)] and link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#withType-java.lang.Class-org.gradle.api.Action-[DomainObjectCollection.withType(java.lang.Class, org.gradle.api.Action)] will immediately create and configure any registered tasks. To defer task configuration, you will need to migrate to a configuration avoidance API equivalent. See the <<#sec:old_vs_new_configuration_api_overview,table below>> to identify the alternative.
+Eager APIs like link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#all-org.gradle.api.Action-[DomainObjectCollection.all(org.gradle.api.Action)] and link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#withType-java.lang.Class-org.gradle.api.Action-[DomainObjectCollection.withType(java.lang.Class, org.gradle.api.Action)] will immediately create and configure any registered tasks.
+To defer task configuration, you will need to migrate to a configuration avoidance API equivalent.
+See the <<#sec:old_vs_new_configuration_api_overview,table below>> to identify the alternative.
 
 [[sec:how_do_i_reference_a_task]]
 === How do I reference a task without creating/configuring it?
 
-Instead of referencing a task object, you can work with a registered task via a link:{javadocPath}/org/gradle/api/tasks/TaskProvider.html[TaskProvider] object.  A link:{javadocPath}/org/gradle/api/tasks/TaskProvider.html[TaskProvider] can be obtained in several ways including when calling link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#register-java.lang.String-[TaskContainer.register(java.lang.String)] or using the link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#named-java.lang.String-[TaskCollection.named(java.lang.String)] method.
+Instead of referencing a task object, you can work with a registered task via a link:{javadocPath}/org/gradle/api/tasks/TaskProvider.html[TaskProvider] object.
+A link:{javadocPath}/org/gradle/api/tasks/TaskProvider.html[TaskProvider] can be obtained in several ways including when calling link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#register-java.lang.String-[TaskContainer.register(java.lang.String)] or using the link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#named-java.lang.String-[TaskCollection.named(java.lang.String)] method.
 
-Calling link:{javadocPath}/org/gradle/api/provider/Provider.html#get--[Provider.get()] or looking up a task by name with link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#getByName-java.lang.String-[TaskCollection.getByName(java.lang.String)] will cause the task to be created and configured. Methods like link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:dependsOn(java.lang.Object++[]++)[Task.dependsOn(java.lang.Object...)] and link:{javadocPath}/org/gradle/api/file/ConfigurableFileCollection.html#builtBy-java.lang.Object++...++-[ConfigurableFileCollection.builtBy(java.lang.Object++...++)] work with link:{javadocPath}/org/gradle/api/tasks/TaskProvider.html[TaskProvider] in the same way as link:{groovyDslPath}/org.gradle.api.Task.html[Task], so you do not need to unwrap a `Provider` for explicit dependencies to continue to work.
+Calling link:{javadocPath}/org/gradle/api/provider/Provider.html#get--[Provider.get()] or looking up a task by name with link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#getByName-java.lang.String-[TaskCollection.getByName(java.lang.String)] will cause the task to be created and configured.
+Methods like link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:dependsOn(java.lang.Object++[]++)[Task.dependsOn(java.lang.Object...)] and link:{javadocPath}/org/gradle/api/file/ConfigurableFileCollection.html#builtBy-java.lang.Object++...++-[ConfigurableFileCollection.builtBy(java.lang.Object++...++)] work with link:{javadocPath}/org/gradle/api/tasks/TaskProvider.html[TaskProvider] in the same way as link:{groovyDslPath}/org.gradle.api.Task.html[Task], so you do not need to unwrap a `Provider` for explicit dependencies to continue to work.
 
-If you are configuring a task by name, you will need to use the configuration avoidance equivalent. See the <<#sec:old_vs_new_configuration_api_overview,table below>> to identify the alternative.
+If you are configuring a task by name, you will need to use the configuration avoidance equivalent.
+See the <<#sec:old_vs_new_configuration_api_overview,table below>> to identify the alternative.
 
 [[sec:how_do_i_get_a_task]]
 === How to get an instance of a Task?
 
-In the event you still need to get access to a Task instance, you can use link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#named-java.lang.String-[TaskCollection.named(java.lang.String)] and call link:{javadocPath}/org/gradle/api/provider/Provider.html#get--[Provider.get()].  This will cause the task to be created/configured, but everything should work as it has with the eager APIs.
+In the event you still need to get access to a Task instance, you can use link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#named-java.lang.String-[TaskCollection.named(java.lang.String)] and call link:{javadocPath}/org/gradle/api/provider/Provider.html#get--[Provider.get()].
+This will cause the task to be created/configured, but everything should work as it has with the eager APIs.
+
+[[sec:how_do_i_order_tasks]]
+=== How do I order tasks?
+
+In case, when task relationships needs to be established (`dependsOn`, `finalizedBy`, `mustRunAfter`, `shouldRunAfter`), configuration avoidance can also help to avoid configuring tasks.
+Calling these methods alone _will not cause task creation_, but it's important to understand their effects, as it might seem that they do so.
+
+[NOTE]
+====
+Calling these methods alone will _not_ cause task creation.
+They only declare relationships.
+====
+
+link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:mustRunAfter(java.lang.Object++[]++)[Task.mustRunAfter(...)] and link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:shouldRunAfter(java.lang.Object++[]++)[Task.shouldRunAfter(...)] represent soft relationships.
+These relationships will _order_ execution between the related tasks, but only if they exist in the same execution.
+They will not, in any context, cause task creation.
+
+link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:dependsOn(java.lang.Object++[]++)[Task.dependsOn(...)] and link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:finalizedBy(java.lang.Object++[]++)[Task.finalizedBy(...)] represent strong relationships.
+These relationships will _force_ a task to be at least configured, but the same applies as before: calling these methods will not result in task creation.
+What's important is to understand in which context they will cause an effect:
+
+- If a task is _not_ executed (regardless if it was created with link:{groovyDslPath}/org.gradle.api.tasks.TaskContainer.html#org.gradle.api.tasks.TaskContainer:register(java.lang.String)[Task.register(...)]
+or link:{groovyDslPath}/org.gradle.api.tasks.TaskContainer.html#org.gradle.api.tasks.TaskContainer:create(java.lang.String)[Task.create(...)]), the defined relationships will not trigger any task creation.
+- If a task _is_ executed, all strongly associated tasks need to be created and configured, as they might have other `dependsOn` or `finalizedBy` relationships.
+This will happen transitively, until there is a task without strong relationships.
 
 [[sec:task_configuration_avoidance_migration_guidelines]]
 == Migration Guide
@@ -65,6 +107,7 @@ We also cover some <<#sec:task_configuration_avoidance_troubleshooting, troubles
 
 [[sec:task_configuration_avoidance_general]]
 === General
+
 1. [[task_configuration_avoidance_guideline_use_help_task]] **Use `help` task as a benchmark during the migration.**
 The `help` task is the perfect candidate to benchmark your migration process.
 In a build that uses only the configuration avoidance API, https://scans.gradle.com/s/o7qmlmmrsfxz4/performance/configuration?openScriptsAndPlugins=WzFd[a build scan would show no tasks created immediately or created during configuration], and only the tasks that were actually executed would be created.
@@ -88,6 +131,7 @@ tasks.register("verificationTask") { verificationTask ->
 }
 ----
 =====
+
 [.multi-language-sample]
 =====
 [source,kotlin]
@@ -102,6 +146,7 @@ tasks.register("verificationTask") {
 ----
 =====
 ====
+
 Executing the `gradle check` task should execute `verificationTask`, but with this example, it won't.
 This is because the dependency between `verificationTask` and `check` only happens when `verificationTask` is realized.
 To avoid issues like this, you must only modify the task associated with the configuration action.
@@ -122,6 +167,7 @@ check.configure {
 }
 ----
 =====
+
 [.multi-language-sample]
 =====
 [source,kotlin]
@@ -136,6 +182,7 @@ check {
 ----
 =====
 ====
+
 In the future, Gradle will consider this sort of anti-pattern an error and will produce an exception.
 
 3. [[task_configuration_avoidance_guideline_prefer_small_incremental_change]] **Prefer small incremental changes.**
@@ -157,21 +204,23 @@ Although the task name is available on the `TaskProvider`, effort should be made
 Eagerly realizing some tasks may cause a cascade of other tasks to be realized.
 Using `TaskProvider` helps create an indirection that protects against transitive realization.
 
-8. Some APIs may be disallowed if you try to access them from the new API's configuration blocks. For example,
+8. Some APIs may be disallowed if you try to access them from the new API's configuration blocks.
+For example,
 link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:afterEvaluate(org.gradle.api.Action)[`Project.afterEvaluate()`]
-cannot be called when configuring a task registered with the new API. Since `afterEvaluate` is used to delay configuring a `Project`, mixing delayed configuration
-with the new API can cause errors that are hard to diagnose because tasks registered with the new API are not always configured, but an `afterEvaluate` block
-may be expected to always execute.
+cannot be called when configuring a task registered with the new API.
+Since `afterEvaluate` is used to delay configuring a `Project`, mixing delayed configuration with the new API can cause errors that are hard to diagnose because tasks registered with the new API are not always configured, but an `afterEvaluate` block may be expected to always execute.
 
 [[sec:task_configuration_avoidance_migration_steps]]
 === Migration Steps
+
 The first part of the migration process is to go through the code and manually migrate eager task creation and configuration to use configuration avoidance APIs.
 The following explores the recommended steps for a successful migration.
 While going through these steps, keep in mind <<#sec:task_configuration_avoidance_general, the guidelines>> above.
 
 [NOTE]
 ====
-Using the new API in a plugin will require users to use Gradle 4.9 or later. Plugin authors should refer to <<#sec:task_configuration_avoidance_backward_compatibility_migration>> section.
+Using the new API in a plugin will require users to use Gradle 4.9 or later.
+Plugin authors should refer to <<#sec:task_configuration_avoidance_backward_compatibility_migration>> section.
 ====
 
 1. **Migrate task configuration that affects all tasks (`tasks.all {}`) or subsets by type (`tasks.withType(...) {}`).**
@@ -185,52 +234,55 @@ This also includes <<#task_configuration_avoidance_pitfalls_hidden_eager_task_re
 3. **Migrate tasks creation to `register(...)`.**
 At this point, you should change anywhere that you are creating tasks to instead register those tasks.
 
-
 For all steps above, be aware of the <<#sec:task_configuration_avoidance_pitfalls, common pitfalls around deferred configuration>>.
 
-After making these changes, you should see improvement in the number of tasks that are eagerly created at configuration time.  Use <<#sec:task_configuration_avoidance_troubleshooting, build scans>> to understand what tasks are still being created eagerly and where this is happening.
+After making these changes, you should see improvement in the number of tasks that are eagerly created at configuration time.
+Use <<#sec:task_configuration_avoidance_troubleshooting, build scans>> to understand what tasks are still being created eagerly and where this is happening.
 
 [[sec:task_configuration_avoidance_troubleshooting]]
 === Troubleshooting
+
 * **What tasks are being realized?**
 As we keep developing the feature, more reporting, and troubleshooting information will be made available to answer this question.
 In the meantime, https://gradle.com/enterprise/releases/2018.3#reduce-configuration-time-by-leveraging-task-creation-avoidance[build scan is the best way to answer this question].
 Follow these steps:
 
-  a. https://scans.gradle.com/[Create a build scan].
-  Execute the Gradle command using the `--scan` flag.
+a. https://scans.gradle.com/[Create a build scan].
+Execute the Gradle command using the `--scan` flag.
 
-  b. Navigate to the configuration performance tab.
+b. Navigate to the configuration performance tab.
 +
 .Navigate to configuration performance tab in build scan
 image::taskConfigurationAvoidance-navigate-to-performance.png[]
 +
-    1. Navigate to the performance card from the left side menu.
-    2. Navigate to the configuration tab from the top of the performance card.
+1. Navigate to the performance card from the left side menu.
+2. Navigate to the configuration tab from the top of the performance card.
 
-  c. All the information requires will be presented.
+c. All the information requires will be presented.
 +
 .Configuration performance tab in build scan annotated
 image::taskConfigurationAvoidance-performance-annotated.png[]
 +
-    1. Total tasks present when each task is created or not.
-      - "Created immediately" represents tasks that were created using the eager task APIs.
-      - "Created during configuration" represents tasks that were created using the configuration avoidance APIs, but were realized explicitly (via `TaskProvider#get()`) or implicitly using the eager task query APIs.
-      - Both "Created immediately" and "Created during configuration" numbers are considered the "bad" numbers that should be minimized as much as possible.
-      - "Created during task graph calculation" represents the tasks created when building the execution task graph.
-      Ideally, this number would be equal to the number of tasks executed.
-      - "Not created" represents the tasks that were avoided in this build session.
+1. Total tasks present when each task is created or not.
+- "Created immediately" represents tasks that were created using the eager task APIs.
+- "Created during configuration" represents tasks that were created using the configuration avoidance APIs, but were realized explicitly (via `TaskProvider#get()`) or implicitly using the eager task query APIs.
+- Both "Created immediately" and "Created during configuration" numbers are considered the "bad" numbers that should be minimized as much as possible.
+- "Created during task graph calculation" represents the tasks created when building the execution task graph.
+Ideally, this number would be equal to the number of tasks executed.
+- "Not created" represents the tasks that were avoided in this build session.
 
-    2. The next section helps answer the question of where a task was realized. For each script, plugin or lifecycle callback, the last column represents the tasks that were created either immediately or during configuration.
-    Ideally, this column should be empty.
+2. The next section helps answer the question of where a task was realized.
+For each script, plugin or lifecycle callback, the last column represents the tasks that were created either immediately or during configuration.
+Ideally, this column should be empty.
 
-    3. Focusing on a script, plugin, or lifecycle callback will show a break down of the tasks that were created.
+3. Focusing on a script, plugin, or lifecycle callback will show a break down of the tasks that were created.
 
 [[sec:task_configuration_avoidance_pitfalls]]
 === Pitfalls
 
 * [[task_configuration_avoidance_pitfalls_hidden_eager_task_realization]] **Beware of the hidden eager task realization.**
-There are many ways that a task can be configured eagerly.  For example, configuring a task using the task name and a DSL block will cause the task to immediately be created:
+There are many ways that a task can be configured eagerly.
+For example, configuring a task using the task name and a DSL block will cause the task to immediately be created:
 +
 [source,groovy]
 ----
@@ -253,7 +305,8 @@ tasks.named("someTask").configure {
 }
 ----
 +
-Similarly, Gradle has syntactic sugar that allows tasks to be referenced by name without an explicit query method.  This can also cause the task to be immediately created:
+Similarly, Gradle has syntactic sugar that allows tasks to be referenced by name without an explicit query method.
+This can also cause the task to be immediately created:
 +
 [source,groovy]
 ----
@@ -268,8 +321,8 @@ task anEagerTask {
 +
 There are several ways this premature creation can be avoided:
 
-  - **Use a `TaskProvider` variable.**
-  Useful when the task is referenced multiple times in the same build script.
+- **Use a `TaskProvider` variable.**
+Useful when the task is referenced multiple times in the same build script.
 +
 ====
 [.multi-language-sample]
@@ -283,6 +336,7 @@ task anEagerTask {
 }
 ----
 =====
+
 [.multi-language-sample]
 =====
 [source,kotlin]
@@ -296,7 +350,7 @@ task("anEagerTask") {
 =====
 ====
 
-    - **Migrate the consumer task to the new API.**
+- **Migrate the consumer task to the new API.**
 +
 [source,groovy]
 ----
@@ -307,8 +361,8 @@ tasks.register("anEagerTask") {
 }
 ----
 
-    - **Lookup the task lazily.**
-    Useful when the tasks are not created by the same plugin.
+- **Lookup the task lazily.**
+Useful when the tasks are not created by the same plugin.
 +
 ====
 [.multi-language-sample]
@@ -322,6 +376,7 @@ task anEagerTask {
 }
 ----
 =====
+
 [.multi-language-sample]
 =====
 [source,kotlin]
@@ -344,7 +399,8 @@ This section describes two ways to keep your plugin backward compatible with old
 
 [NOTE]
 ====
-Although backward compatibility is good for users, we still recommended to upgrade to newer Gradle releases in a timely manner. This will reduce your maintenance burden.
+Although backward compatibility is good for users, we still recommended to upgrade to newer Gradle releases in a timely manner.
+This will reduce your maintenance burden.
 ====
 
 The first method to maintain compatibility is to compile your plugin against the Gradle 4.9 API and conditionally call the right APIs with Groovy (https://github.com/melix/jmh-gradle-plugin/blob/a034aa88805b7a06fa9c5a825d573554b2aa23e2/src/main/groovy/me/champeau/gradle/JMHPlugin.groovy#L289-L296[example]).
@@ -364,7 +420,7 @@ It is highly recommended to have cross-version test coverage using <<test_kit.ad
 * Some APIs may be restricted when accessed in a configuration action registered via the configuration avoidance methods.
 ====
 
-[cols="a,a", options="header"]
+[cols="a,a",options="header"]
 |===
 | Old vs New API
 | Description
