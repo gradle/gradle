@@ -84,7 +84,6 @@ We also cover some <<#sec:task_configuration_avoidance_troubleshooting, troubles
 
 [[sec:task_configuration_avoidance_general]]
 === General
-
 1. [[task_configuration_avoidance_guideline_use_help_task]] **Use `help` task as a benchmark during the migration.**
 The `help` task is the perfect candidate to benchmark your migration process.
 In a build that uses only the configuration avoidance API, https://scans.gradle.com/s/o7qmlmmrsfxz4/performance/configuration?openScriptsAndPlugins=WzFd[a build scan would show no tasks created immediately or created during configuration], and only the tasks that were actually executed would be created.
@@ -303,7 +302,6 @@ task anEagerTask {
 }
 ----
 =====
-
 [.multi-language-sample]
 =====
 [source,kotlin]
