@@ -25,6 +25,7 @@ import org.gradle.api.attributes.AttributeDisambiguationRule;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.attributes.Bundling;
+import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.CompatibilityCheckDetails;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.attributes.LibraryElements;
@@ -36,6 +37,7 @@ import org.gradle.api.internal.ReusableAction;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.DescribableAttributesSchema;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.plugins.ExtensionAware;
 
 import javax.inject.Inject;
 import java.util.Optional;
@@ -49,12 +51,26 @@ public abstract class JavaEcosystemSupport {
     private static final String DEPRECATED_JAVA_RUNTIME_JARS = Usage.JAVA_RUNTIME_JARS;
 
     public static void configureSchema(AttributesSchema attributesSchema, final ObjectFactory objectFactory) {
+        if (attributesSchema instanceof ExtensionAware) {
+            if (((ExtensionAware)attributesSchema).getExtensions().getExtraProperties().has(JavaEcosystemSupport.class.getCanonicalName())) {
+                return;
+            }
+            ((ExtensionAware)attributesSchema).getExtensions().getExtraProperties().set(JavaEcosystemSupport.class.getCanonicalName(), "schema defined");
+        }
         configureUsage(attributesSchema, objectFactory);
         configureLibraryElements(attributesSchema, objectFactory);
         configureBundling(attributesSchema);
         configureTargetPlatform(attributesSchema);
         configureTargetEnvironment(attributesSchema);
         configureConsumerDescriptors((DescribableAttributesSchema) attributesSchema);
+        attributesSchema.attributeDisambiguationPrecedence(
+                Category.CATEGORY_ATTRIBUTE,
+                Usage.USAGE_ATTRIBUTE,
+                TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE,
+                LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE,
+                Bundling.BUNDLING_ATTRIBUTE,
+                TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE
+        );
     }
 
     private static void configureConsumerDescriptors(DescribableAttributesSchema attributesSchema) {
