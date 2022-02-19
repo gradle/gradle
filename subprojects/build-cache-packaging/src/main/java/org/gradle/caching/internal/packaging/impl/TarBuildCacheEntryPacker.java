@@ -35,7 +35,6 @@ import org.gradle.internal.file.FileType;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.file.impl.DefaultFileMetadata;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.DirectorySnapshotBuilder;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
@@ -88,24 +87,23 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
 
     private static final Charset ENCODING = StandardCharsets.UTF_8;
     private static final String METADATA_PATH = "METADATA";
+    private static final String MD5_PAX_HEADER = "MD5";
+    private static final HashCode METADATA_HASH = HashCode.fromBytes(new byte[] {0, 0, 0, 0});
     private static final Pattern TREE_PATH = Pattern.compile("(missing-)?tree-([^/]+)(?:/(.*))?");
     private static final int BUFFER_SIZE = 64 * 1024;
     private static final ThreadLocal<byte[]> COPY_BUFFERS = ThreadLocal.withInitial(() -> new byte[BUFFER_SIZE]);
 
     private final TarPackerFileSystemSupport fileSystemSupport;
     private final FilePermissionAccess filePermissionAccess;
-    private final StreamHasher streamHasher;
     private final Interner<String> stringInterner;
 
     public TarBuildCacheEntryPacker(
-        TarPackerFileSystemSupport fileSystemSupport,
-        FilePermissionAccess filePermissionAccess,
-        StreamHasher streamHasher,
-        Interner<String> stringInterner
+            TarPackerFileSystemSupport fileSystemSupport,
+            FilePermissionAccess filePermissionAccess,
+            Interner<String> stringInterner
     ) {
         this.fileSystemSupport = fileSystemSupport;
         this.filePermissionAccess = filePermissionAccess;
-        this.streamHasher = streamHasher;
         this.stringInterner = stringInterner;
     }
 
@@ -130,7 +128,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
     private void packMetadata(OriginWriter writeMetadata, TarArchiveOutputStream tarOutput) throws IOException {
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         writeMetadata.execute(output);
-        createTarEntry(METADATA_PATH, output.size(), null, UnixPermissions.FILE_FLAG | UnixPermissions.DEFAULT_FILE_PERM, tarOutput);
+        createTarEntry(METADATA_PATH, output.size(), METADATA_HASH, UnixPermissions.FILE_FLAG | UnixPermissions.DEFAULT_FILE_PERM, tarOutput);
         tarOutput.write(output.toByteArray());
         tarOutput.closeArchiveEntry();
     }
@@ -155,13 +153,18 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
         return packingVisitor.getPackedEntryCount();
     }
 
-    private static void createTarEntry(String path, long size, @Nullable HashCode hash, int mode, TarArchiveOutputStream tarOutput) throws IOException {
+    private static void createTarEntry(String path, long size, HashCode hash, int mode, TarArchiveOutputStream tarOutput) throws IOException {
         TarArchiveEntry entry = new TarArchiveEntry(path, true);
         entry.setSize(size);
         entry.setMode(mode);
-        if (hash!=null) {
-            entry.addPaxHeader("MD5", hash.toString());
-        }
+        entry.addPaxHeader(MD5_PAX_HEADER, hash.toString());
+        tarOutput.putArchiveEntry(entry);
+    }
+
+    private static void createTarEntryWithoutContent(String path, int mode, TarArchiveOutputStream tarOutput) throws IOException {
+        TarArchiveEntry entry = new TarArchiveEntry(path, true);
+        entry.setSize(0);
+        entry.setMode(mode);
         tarOutput.putArchiveEntry(entry);
     }
 
@@ -267,11 +270,16 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
 
     private RegularFileSnapshot unpackFile(TarArchiveInputStream input, TarArchiveEntry entry, File file, String fileName) throws IOException {
         try (OutputStream output = new FileOutputStream(file)) {
-            IOUtils.copyLarge(input, output);
+            IOUtils.copyLarge(input, output, COPY_BUFFERS.get());
             chmodUnpackedFile(entry, file);
             String internedAbsolutePath = stringInterner.intern(file.getAbsolutePath());
             String internedFileName = stringInterner.intern(fileName);
-            return new RegularFileSnapshot(internedAbsolutePath, internedFileName, HashCode.fromString(entry.getExtraPaxHeader("MD5")), DefaultFileMetadata.file(entry.getRealSize(), file.lastModified(), DIRECT));
+            String md5PaxHeaderValue = entry.getExtraPaxHeader(MD5_PAX_HEADER);
+            if (md5PaxHeaderValue == null) {
+                throw new IllegalStateException("Cached entry format error, Missing " + MD5_PAX_HEADER + " metadata for " + fileName + " build cache entry");
+            }
+            HashCode contentHash = HashCode.fromString(md5PaxHeaderValue);
+            return new RegularFileSnapshot(internedAbsolutePath, internedFileName, contentHash, DefaultFileMetadata.file(entry.getRealSize(), file.lastModified(), DIRECT));
         }
     }
 
@@ -414,7 +422,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
 
         private void storeMissingTree(String treePath, TarArchiveOutputStream tarOutput) {
             try {
-                createTarEntry("missing-" + treePath, 0, null, UnixPermissions.FILE_FLAG | UnixPermissions.DEFAULT_FILE_PERM, tarOutput);
+                createTarEntryWithoutContent("missing-" + treePath, UnixPermissions.FILE_FLAG | UnixPermissions.DEFAULT_FILE_PERM, tarOutput);
                 tarOutput.closeArchiveEntry();
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
@@ -423,7 +431,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
 
         private void storeDirectoryEntry(String path, int mode, TarArchiveOutputStream tarOutput) {
             try {
-                createTarEntry(path + "/", 0, null, UnixPermissions.DIR_FLAG | mode, tarOutput);
+                createTarEntryWithoutContent(path + "/", UnixPermissions.DIR_FLAG | mode, tarOutput);
                 tarOutput.closeArchiveEntry();
             } catch (IOException e) {
                 throw new UncheckedIOException(e);

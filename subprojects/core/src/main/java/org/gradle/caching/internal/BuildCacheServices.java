@@ -42,7 +42,6 @@ import org.gradle.internal.SystemProperties;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.FileException;
 import org.gradle.internal.hash.ChecksumService;
-import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.nativeintegration.network.HostnameLookup;
@@ -114,13 +113,12 @@ public final class BuildCacheServices extends AbstractPluginServiceRegistry {
             }
 
             BuildCacheEntryPacker createResultPacker(
-                TarPackerFileSystemSupport fileSystemSupport,
-                FileSystem fileSystem,
-                StreamHasher fileHasher,
-                StringInterner stringInterner
+                    TarPackerFileSystemSupport fileSystemSupport,
+                    FileSystem fileSystem,
+                    StringInterner stringInterner
             ) {
                 return new GZipBuildCacheEntryPacker(
-                    new TarBuildCacheEntryPacker(fileSystemSupport, new FilePermissionsAccessAdapter(fileSystem), fileHasher, stringInterner));
+                    new TarBuildCacheEntryPacker(fileSystemSupport, new FilePermissionsAccessAdapter(fileSystem), stringInterner));
             }
 
             OriginMetadataFactory createOriginMetadataFactory(
