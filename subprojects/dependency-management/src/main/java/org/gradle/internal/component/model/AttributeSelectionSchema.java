@@ -20,8 +20,8 @@ import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 
 import javax.annotation.Nullable;
-import java.util.List;
-import java.util.OptionalInt;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Set;
 
 public interface AttributeSelectionSchema {
@@ -37,25 +37,24 @@ public interface AttributeSelectionSchema {
     Attribute<?>[] collectExtraAttributes(ImmutableAttributes[] candidates, ImmutableAttributes requested);
 
     class PrecedenceResult {
-        private final List<Attribute<?>> attributes;
-        private final OptionalInt index;
+        private final Collection<Integer> sortedIndices;
+        private final Collection<Integer> unsortedIndices;
 
-        public PrecedenceResult(List<Attribute<?>> attributes, int index) {
-            this.attributes = attributes;
-            this.index = OptionalInt.of(index);
+        public PrecedenceResult(Collection<Integer> sortedIndices, Collection<Integer> unsortedIndices) {
+            this.sortedIndices = sortedIndices;
+            this.unsortedIndices = unsortedIndices;
         }
 
-        public PrecedenceResult(List<Attribute<?>> attributes) {
-            this.attributes = attributes;
-            this.index = OptionalInt.empty();
+        public PrecedenceResult(Collection<Integer> unsortedIndices) {
+            this(Collections.emptyList(), unsortedIndices);
         }
 
-        public List<Attribute<?>> getAttributes() {
-            return attributes;
+        public Collection<Integer> getSortedOrder() {
+            return sortedIndices;
         }
 
-        public OptionalInt getLastAttributeIndexWithKnownPrecedence() {
-            return index;
+        public Collection<Integer> getUnsortedOrder() {
+            return unsortedIndices;
         }
     }
     PrecedenceResult orderByPrecedence(ImmutableAttributes requested);

@@ -27,6 +27,9 @@ import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.util.AttributeTestUtil
 import spock.lang.Specification
 
+import java.util.stream.Collectors
+import java.util.stream.IntStream
+
 import static org.gradle.util.AttributeTestUtil.attributes
 import static org.gradle.util.TestUtil.objectFactory
 
@@ -659,7 +662,7 @@ class ComponentAttributeMatcherTest extends Specification {
 
         @Override
         PrecedenceResult orderByPrecedence(ImmutableAttributes requested) {
-            return new PrecedenceResult(new ArrayList<>(requested.keySet()))
+            return new PrecedenceResult(IntStream.range(0, requested.keySet().size()).boxed().collect(Collectors.toList()))
         }
     }
 }

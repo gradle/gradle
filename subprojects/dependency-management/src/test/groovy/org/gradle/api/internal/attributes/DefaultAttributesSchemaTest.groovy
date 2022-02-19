@@ -386,9 +386,8 @@ class DefaultAttributesSchemaTest extends Specification {
 
         then:
         def result = schema.mergeWith(producer).orderByPrecedence(requested)
-        result.attributes*.name == ["a", "c", "x", "z"]
-        result.lastAttributeIndexWithKnownPrecedence.getAsInt() == 2
-        result.attributes[result.lastAttributeIndexWithKnownPrecedence.getAsInt()].name == "x"
+        result.sortedOrder == [2, 1, 0]
+        result.unsortedOrder as List == [3]
     }
 
     def "precedence order is honored with merged schema when producer has attributes with the same name"() {
@@ -416,9 +415,8 @@ class DefaultAttributesSchemaTest extends Specification {
 
         then:
         def result = schema.mergeWith(producer).orderByPrecedence(requested)
-        result.attributes*.name == ["c", "x", "a", "z"]
-        result.lastAttributeIndexWithKnownPrecedence.getAsInt() == 2
-        result.attributes[result.lastAttributeIndexWithKnownPrecedence.getAsInt()].name == "a"
+        result.sortedOrder == [1, 0, 2]
+        result.unsortedOrder as List == [3]
     }
 
     def "precedence order is honored"() {
@@ -440,9 +438,8 @@ class DefaultAttributesSchemaTest extends Specification {
         )
         expect:
         def result = schema.mergeWith(EmptySchema.INSTANCE).orderByPrecedence(requested)
-        result.attributes*.name == ["a", "c", "x", "z"]
-        result.lastAttributeIndexWithKnownPrecedence.getAsInt() == 1
-        result.attributes[result.lastAttributeIndexWithKnownPrecedence.getAsInt()].name == "c"
+        result.sortedOrder == [2, 1]
+        result.unsortedOrder as List == [0, 3]
     }
 
     def "requested attributes are not sorted when there is no attribute precedence"() {
@@ -458,8 +455,8 @@ class DefaultAttributesSchemaTest extends Specification {
         )
         expect:
         def result = schema.mergeWith(EmptySchema.INSTANCE).orderByPrecedence(requested)
-        result.attributes*.name == ["x", "c", "a", "z"]
-        !result.lastAttributeIndexWithKnownPrecedence.isPresent()
+        result.sortedOrder == []
+        result.unsortedOrder as List == [0, 1, 2, 3]
     }
 
     def "requested attributes are not sorted when there is a different set of attributes used for precedence"() {
@@ -477,8 +474,8 @@ class DefaultAttributesSchemaTest extends Specification {
         )
         expect:
         def result = schema.mergeWith(EmptySchema.INSTANCE).orderByPrecedence(requested)
-        result.attributes*.name == ["x", "c", "a", "z"]
-        !result.lastAttributeIndexWithKnownPrecedence.isPresent()
+        result.sortedOrder == []
+        result.unsortedOrder as List == [0, 1, 2, 3]
     }
 
     static interface Flavor extends Named {}

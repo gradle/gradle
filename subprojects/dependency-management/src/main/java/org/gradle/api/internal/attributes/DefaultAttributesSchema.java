@@ -44,6 +44,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class DefaultAttributesSchema implements AttributesSchemaInternal, AttributesSchema {
     private final ComponentAttributeMatcher componentAttributeMatcher;
@@ -317,37 +319,39 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
 
         @Override
         public PrecedenceResult orderByPrecedence(ImmutableAttributes requested) {
-            Map<String, Attribute<?>> remaining = new LinkedHashMap<>();
-            for (Attribute<?> requestedAttribute : requested.keySet()) {
-                remaining.put(requestedAttribute.getName(), requestedAttribute);
-            }
-            List<Attribute<?>> sorted = new ArrayList<>(remaining.size());
-
-            // Add all attributes that have a higher precedence in the order they appear
-            // in the precedence list from the consumer
-            for (Attribute<?> preferredAttribute : precedence) {
-                if (requested.contains(preferredAttribute)) {
-                    sorted.add(remaining.remove(preferredAttribute.getName()));
-                }
-            }
-            // Add all attributes that have a higher precedence in the order they appear
-            // in the precedence list from the producer
-            for (Attribute<?> preferredAttribute : producerSchema.getAttributeDisambiguationPrecedence()) {
-                if (remaining.containsKey(preferredAttribute.getName()) && requested.contains(preferredAttribute)) {
-                    sorted.add(remaining.remove(preferredAttribute.getName()));
-                }
-            }
-            // If nothing was sorted, there were no appropriate disambiguating attributes to use
-            if (sorted.isEmpty()) {
-                sorted.addAll(remaining.values());
-                return new PrecedenceResult(sorted);
+            if (precedence.isEmpty() && producerSchema.getAttributeDisambiguationPrecedence().isEmpty()) {
+                // if no attribute precedence has been set anywhere, we can just iterate in order
+                return new PrecedenceResult(IntStream.range(0, requested.keySet().size()).boxed().collect(Collectors.toList()));
             } else {
-                // sorted now contains any requested attribute in the order they appear in
-                // the combinedPrecedence set
-                // Add all remaining attributes in whatever order they came in
-                int index = sorted.size() - 1;
-                sorted.addAll(remaining.values());
-                return new PrecedenceResult(sorted, index);
+                // Populate requested attribute -> position in requested attribute list
+                final Map<String, Integer> remaining = new LinkedHashMap<>();
+                int position = 0;
+                for (Attribute<?> requestedAttribute : requested.keySet()) {
+                    remaining.put(requestedAttribute.getName(), position++);
+                }
+                List<Integer> sorted = new ArrayList<>(remaining.size());
+
+                // Add attribute index to sorted in the order of precedence by the consumer
+                for (Attribute<?> preferredAttribute : precedence) {
+                    if (requested.contains(preferredAttribute)) {
+                        sorted.add(remaining.remove(preferredAttribute.getName()));
+                    }
+                }
+                // Add attribute index to sorted in the order of precedence by the producer
+                for (Attribute<?> preferredAttribute : producerSchema.getAttributeDisambiguationPrecedence()) {
+                    if (remaining.containsKey(preferredAttribute.getName()) && requested.contains(preferredAttribute)) {
+                        sorted.add(remaining.remove(preferredAttribute.getName()));
+                    }
+                }
+                // If nothing was sorted, there were no attributes in the request that matched any attribute precedences
+                if (sorted.isEmpty()) {
+                    // Iterate in order
+                    return new PrecedenceResult(remaining.values());
+                } else {
+                    // sorted now contains any requested attribute indices in the order they appear in
+                    // the consumer and producer's attribute precedences
+                    return new PrecedenceResult(sorted, remaining.values());
+                }
             }
         }
 

@@ -80,7 +80,6 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
     private final List<Attribute<?>> requestedAttributes;
     private final BitSet compatible;
     private final Object[] requestedAttributeValues;
-    private final int lastRequestedAttributeWithKnownPrecedenceIndex;
 
     private int candidateWithLongestMatch;
     private int lengthOfLongestMatch;
@@ -97,9 +96,7 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
         for (int i = 0; i < candidates.size(); i++) {
             candidateAttributeSets[i] = ((AttributeContainerInternal) this.candidates.get(i).getAttributes()).asImmutable();
         }
-        AttributeSelectionSchema.PrecedenceResult precedenceResult = schema.orderByPrecedence(requested);
-        this.requestedAttributes = precedenceResult.getAttributes();
-        this.lastRequestedAttributeWithKnownPrecedenceIndex = precedenceResult.getLastAttributeIndexWithKnownPrecedence().orElse(-1);
+        this.requestedAttributes = requested.keySet().asList();
         this.requestedAttributeValues = new Object[(1 + candidates.size()) * this.requestedAttributes.size()];
         this.compatible = new BitSet(candidates.size());
         compatible.set(0, candidates.size());
@@ -244,15 +241,33 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
     }
 
     private void disambiguateWithRequestedAttributeValues() {
-        for (int a = 0; a < requestedAttributes.size(); a++) {
+        // We need to take the existing requested attributes and sort them in "precedence" order
+        // This returns a structure that tells us the order of requestedAttributes by their index in
+        // requestedAttributes.
+        //
+        // If the requested attributes are [ A, B, C ]
+        // If the attribute precedence is [ C, A ]
+        // The indices are [ A: 0, B: 1, C: 2 ]
+        // The sorted indices are [ 2, 0 ]
+        // The unsorted indices are [ 1 ]
+        //
+        final AttributeSelectionSchema.PrecedenceResult precedenceResult = schema.orderByPrecedence(requested);
+
+        for (int a : precedenceResult.getSortedOrder()) {
             disambiguateWithAttribute(a);
             if (remaining.cardinality() == 0) {
                 return;
-            } else if (remaining.cardinality() == 1 && a <= lastRequestedAttributeWithKnownPrecedenceIndex) {
+            } else if (remaining.cardinality() == 1) {
                 // If we're down to one candidate and the attribute has a known precedence,
                 // we can stop now and choose this candidate as the match.
-                // If the attribute does not have a known precedence, then we cannot stop
-                // until we've disambiguated all of the attributes.
+                return;
+            }
+        }
+        // If the attribute does not have a known precedence, then we cannot stop
+        // until we've disambiguated all of the attributes.
+        for (int a : precedenceResult.getUnsortedOrder()) {
+            disambiguateWithAttribute(a);
+            if (remaining.cardinality() == 0) {
                 return;
             }
         }
