@@ -37,7 +37,6 @@ import org.gradle.api.internal.ReusableAction;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.DescribableAttributesSchema;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.plugins.ExtensionAware;
 
 import javax.inject.Inject;
 import java.util.Optional;
@@ -51,12 +50,6 @@ public abstract class JavaEcosystemSupport {
     private static final String DEPRECATED_JAVA_RUNTIME_JARS = Usage.JAVA_RUNTIME_JARS;
 
     public static void configureSchema(AttributesSchema attributesSchema, final ObjectFactory objectFactory) {
-        if (attributesSchema instanceof ExtensionAware) {
-            if (((ExtensionAware)attributesSchema).getExtensions().getExtraProperties().has(JavaEcosystemSupport.class.getCanonicalName())) {
-                return;
-            }
-            ((ExtensionAware)attributesSchema).getExtensions().getExtraProperties().set(JavaEcosystemSupport.class.getCanonicalName(), "schema defined");
-        }
         configureUsage(attributesSchema, objectFactory);
         configureLibraryElements(attributesSchema, objectFactory);
         configureBundling(attributesSchema);

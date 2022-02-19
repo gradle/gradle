@@ -56,6 +56,7 @@ public class PluginDependencyResolutionServices implements DependencyResolutionS
     private DependencyResolutionServices getDependencyResolutionServices() {
         if (dependencyResolutionServices == null) {
             dependencyResolutionServices = factory.create();
+            JavaEcosystemSupport.configureSchema(dependencyResolutionServices.getAttributesSchema(), dependencyResolutionServices.getObjectFactory());
         }
         return dependencyResolutionServices;
     }
@@ -111,12 +112,10 @@ public class PluginDependencyResolutionServices implements DependencyResolutionS
         public void prepareForPluginResolution() {
             synchronized (lock) {
                 if (repositories == null) {
-                    DependencyResolutionServices dependencyResolutionServices = getDependencyResolutionServices();
                     RepositoryHandler pluginRepositories = getResolveRepositoryHandler();
                     if (pluginRepositories.isEmpty()) {
                         pluginRepositories.gradlePluginPortal();
                     }
-                    JavaEcosystemSupport.configureSchema(dependencyResolutionServices.getAttributesSchema(), dependencyResolutionServices.getObjectFactory());
                     repositories = pluginRepositories.stream().map(PluginArtifactRepository::new).collect(Collectors.toList());
                     pluginRepositories.whenObjectAdded(artifactRepository -> {
                         synchronized (lock) {
