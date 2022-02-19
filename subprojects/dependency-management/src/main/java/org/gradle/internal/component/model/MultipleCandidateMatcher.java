@@ -36,7 +36,7 @@ import java.util.Set;
  * <p>
  * <ol>
  * <li>
- * For each candidate, check whether its attribute values are compatible (according to the {@link AttributeSelectionSchema)} with the values that were requested.
+ * For each candidate, check whether its attribute values are compatible (according to the {@link AttributeSelectionSchema}) with the values that were requested.
  * Any missing or extra attributes on the candidate are ignored at this point. If there are 0 or 1 compatible candidates after this, return that as the result.
  * </li>
  * <li>
@@ -61,11 +61,11 @@ import java.util.Set;
  * <p>
  * Implementation notes:
  *
- * For matching and disambiguating the requested values, we keep a table of values to avoid recomputing them. The table has one row for each candidate and one column for each attribute.
+ * <p>For matching and disambiguating the requested values, we keep a table of values to avoid recomputing them. The table has one row for each candidate and one column for each attribute.
  * The cells contain the values of the candidate for the given attribute. The first row contains the requested values. This table is packed into a single flat array in order to reduce
  * memory usage and increase data locality.
  *
- * The information which candidates are compatible and which candidates are still valid during disambiguation is kept in two {@link BitSet}s. The nth bit is set if the nth candidate
+ * <p>The information which candidates are compatible and which candidates are still valid during disambiguation is kept in two {@link BitSet}s. The nth bit is set if the nth candidate
  * is compatible. The longest match is kept using two integers, one containing the length of the match, the other containing the index of the candidate that was the longest.
  *
  * </p>
