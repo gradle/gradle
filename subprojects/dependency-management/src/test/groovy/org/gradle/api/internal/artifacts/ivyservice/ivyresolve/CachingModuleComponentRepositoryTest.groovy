@@ -149,10 +149,10 @@ class CachingModuleComponentRepositoryTest extends Specification {
         def result = new DefaultBuildableComponentArtifactsResolveResult()
 
         when:
-        repo.localAccess.resolveArtifacts(component, variant, result)
+        repo.localAccess.resolveArtifacts(component, result)
 
         then:
-        realLocalAccess.resolveArtifacts(component, variant, result) >> {
+        realLocalAccess.resolveArtifacts(component, result) >> {
             result.resolved(Stub(ComponentArtifacts))
         }
         0 * _
