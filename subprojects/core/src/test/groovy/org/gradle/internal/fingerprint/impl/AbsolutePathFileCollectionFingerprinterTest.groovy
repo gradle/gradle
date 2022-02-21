@@ -63,21 +63,21 @@ class AbsolutePathFileCollectionFingerprinterTest extends Specification {
         def fingerprint = fingerprinter.fingerprint(files(file, dir, noExist))
 
         then:
-        fingerprint.fingerprints.keySet().collect { new File(it) } == [file, dir, dir2, file2, noExist]
+        fingerprint.fingerprints.keySet().collect { new File(it) } == [file, dir, dir2, file2]
     }
 
     def "retains order of elements in the snapshot"() {
         given:
         TestFile file = tmpDir.createFile('file1')
-        TestFile file2 = tmpDir.file('file2')
-        TestFile file3 = tmpDir.file('file3')
+        TestFile noExist = tmpDir.file('file2')
+        TestFile file3 = tmpDir.createDir('file3')
         TestFile file4 = tmpDir.createFile('file4')
 
         when:
-        def fingerprint = fingerprinter.fingerprint(files(file, file2, file3, file4))
+        def fingerprint = fingerprinter.fingerprint(files(file, noExist, file3, file4))
 
         then:
-        fingerprint.fingerprints.keySet().collect { new File(it) } == [file, file2, file3, file4]
+        fingerprint.fingerprints.keySet().collect { new File(it) } == [file, file3, file4]
     }
 
     def generatesEventWhenFileAdded() {

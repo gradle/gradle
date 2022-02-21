@@ -84,7 +84,7 @@ class PathNormalizationStrategyTest extends Specification {
         def fingerprints = collectFingerprints(IgnoredPathFingerprintingStrategy.DEFAULT)
         expect:
         allFilesToFingerprint.each { file ->
-            if (file.isFile() || !file.exists()) {
+            if (file.isFile()) {
                 assert fingerprints[file] == IGNORED
             } else {
                 assert fingerprints[file] == null
@@ -97,11 +97,12 @@ class PathNormalizationStrategyTest extends Specification {
         def expectedFingerprintedFiles = getAllFilesToFingerprint(strategy.directorySensitivity)
         expectedFingerprintedFiles.size() == fingerprints.size()
         expect:
-        (expectedFingerprintedFiles - emptyRootDir - resources).each { file ->
+        (expectedFingerprintedFiles - emptyRootDir - resources - missingFile).each { file ->
             assert fingerprints[file] == file.name
         }
         fingerprints[emptyRootDir] == rootDirectoryFingerprintFor(strategy.directorySensitivity)
         fingerprints[resources] == rootDirectoryFingerprintFor(strategy.directorySensitivity)
+        fingerprints[missingFile] == null
 
         where:
         strategy << [
@@ -135,10 +136,11 @@ class PathNormalizationStrategyTest extends Specification {
         def fingerprints = collectFingerprints(strategy)
         expect:
         def allFilesToFingerprint = getAllFilesToFingerprint(strategy.directorySensitivity)
-        allFilesToFingerprint.each { file ->
+        (allFilesToFingerprint - missingFile).each { file ->
             assert fingerprints[file] == file.absolutePath
         }
-        fingerprints.size() == allFilesToFingerprint.size()
+        fingerprints[missingFile] == null
+        fingerprints.size() == allFilesToFingerprint.size() - 1
 
         where:
         strategy << [
