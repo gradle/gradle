@@ -121,7 +121,7 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         fails("clean", "customTask")
-        failureHasCause(~/Failed to load cache entry $CACHE_KEY_PATTERN for task ':customTask': Remote build cache load exception: Not in GZIP format/)
+        failureHasCause(~/Failed to load cache entry $CACHE_KEY_PATTERN for task ':customTask': Could not load from remote cache: Not in GZIP format/)
 
         and:
         localCache.listCacheFiles().empty
@@ -154,7 +154,7 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         fails("clean", "customTask")
-        failureHasCause(~/Failed to load cache entry $CACHE_KEY_PATTERN for task ':customTask': Local build cache load exception: Unexpected end of ZLIB input stream/)
+        failureHasCause(~/Failed to load cache entry $CACHE_KEY_PATTERN for task ':customTask': Could not load from local cache: Unexpected end of ZLIB input stream/)
         errorOutput.contains("Caused by: java.io.EOFException: Unexpected end of ZLIB input stream")
         localCache.listCacheFailedFiles().size() == 1
 
