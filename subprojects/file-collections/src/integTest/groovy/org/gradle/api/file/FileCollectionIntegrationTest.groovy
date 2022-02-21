@@ -477,7 +477,7 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
     def "nag user when concatenation of files is used for path instead of single files"() {
         def givenFile = file("files/file0.txt${File.pathSeparator}files/dir1")
         buildFile """
-            def files = files("${givenFile.path}")
+            def files = files('${givenFile.path}')
             tasks.register("getAsPath") {
                 doLast {
                     println files.asPath
