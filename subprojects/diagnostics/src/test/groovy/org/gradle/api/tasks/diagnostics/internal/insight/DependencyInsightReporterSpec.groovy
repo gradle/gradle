@@ -46,7 +46,7 @@ class DependencyInsightReporterSpec extends Specification {
     def versionSelectorScheme = new DefaultVersionSelectorScheme(versionComparator, versionParser)
 
     @Subject
-    def reporter = new DependencyInsightReporter(versionSelectorScheme, versionComparator, versionParser, true)
+    def reporter = new DependencyInsightReporter(versionSelectorScheme, versionComparator, versionParser)
 
     def "sorts dependencies"() {
         def dependencies = [dep("a", "x", "1.0", "2.0"), dep("a", "x", "1.5", "2.0"), dep("b", "a", "5.0"), dep("a", "z", "1.0"), dep("a", "x", "2.0")]

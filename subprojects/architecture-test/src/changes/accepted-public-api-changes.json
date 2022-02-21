@@ -7,12 +7,21 @@
             "changes": [
                 "Method is now abstract"
             ]
-        }, {
+        },
+        {
             "type": "org.gradle.api.tasks.diagnostics.OutgoingVariantsReportTask",
             "member": "Method org.gradle.api.tasks.diagnostics.OutgoingVariantsReportTask.getVariantName()",
             "acceptation": "Task semantics are changing anyways, task type is now abstract",
             "changes": [
                 "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.DependencyInsightReportTask",
+            "member": "Constructor org.gradle.api.tasks.diagnostics.DependencyInsightReportTask()",
+            "acceptation": "Added injected parameter, since all tasks are created via a factory this should not break anything",
+            "changes": [
+                "Constructor has been removed"
             ]
         }
     ]

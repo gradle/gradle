@@ -406,7 +406,7 @@ public class DependencyInsightReportTask extends DefaultTask {
 
         private void printSection(StyledTextOutput out, Section extraDetail, int depth) {
             out.println();
-            String indent = StringUtils.leftPad("", 3 * depth) + (depth > 1 ? "- " : "");
+            String indent = StringUtils.leftPad("", 2 * depth) + (depth > 1 ? "- " : "");
             String appendix = extraDetail.getChildren().isEmpty() ? "" : ":";
             String description = StringUtils.trim(extraDetail.getDescription());
             String padding = "\n" + StringUtils.leftPad("", indent.length());
@@ -429,6 +429,7 @@ public class DependencyInsightReportTask extends DefaultTask {
                 out.text("Selected Variant(s)").println();
                 out.text("-------------------");
                 out.style(Normal);
+                out.println();
             }
             for (ResolvedVariantResult variant : dependency.getResolvedVariants()) {
                 printVariant(out, dependency, variant, true);
@@ -455,7 +456,7 @@ public class DependencyInsightReportTask extends DefaultTask {
             AttributeContainer requested = getRequestedAttributes(configuration, dependency);
             AttributeBuckets buckets = bucketAttributes(attributes, requested);
 
-            out.println().style(Normal).text("Variant ");
+            out.println().style(Normal).text("  Variant ");
 
             // Style the name based on whether it is selected or not.
             if (selected) {
@@ -512,7 +513,7 @@ public class DependencyInsightReportTask extends DefaultTask {
 
             ImmutableList<StyledTable.Row> rows = buildRows(attributes, requested, buckets, selected);
 
-            return new StyledTable(Strings.repeat(" ", 2), header.build(), rows);
+            return new StyledTable(Strings.repeat(" ", 4), header.build(), rows);
         }
 
         private ImmutableList<StyledTable.Row> buildRows(

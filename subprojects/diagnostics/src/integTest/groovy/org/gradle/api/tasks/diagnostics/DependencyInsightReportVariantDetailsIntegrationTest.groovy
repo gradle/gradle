@@ -16,10 +16,13 @@
 
 package org.gradle.api.tasks.diagnostics
 
+import com.google.common.base.Strings
 import org.gradle.api.JavaVersion
+import org.gradle.api.tasks.diagnostics.internal.text.StyledTable
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
+import org.gradle.internal.logging.text.StyledTextOutput
 
 class DependencyInsightReportVariantDetailsIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
@@ -53,23 +56,27 @@ class DependencyInsightReportVariantDetailsIntegrationTest extends AbstractInteg
 
         then:
         outputContains """project :$expectedProject
-   variant "$expectedVariant" [
-      org.gradle.category            = library
-      org.gradle.dependency.bundling = external
-      $expectedAttributes
-      org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
-
-      Requested attributes not found in the selected variant:
-         org.gradle.jvm.environment     = standard-jvm
-   ]
+  Variant $expectedVariant:
+${StyledTableUtil.toString(new StyledTable(
+    Strings.repeat(' ', 4),
+    ["Attribute Name", "Provided", "Requested"],
+    [
+        new StyledTable.Row(["org.gradle.category", "library", "library"], StyledTextOutput.Style.Normal),
+        new StyledTable.Row(["org.gradle.dependency.bundling", "external", "external"], StyledTextOutput.Style.Normal),
+        new StyledTable.Row(["org.gradle.usage", usage, usage], StyledTextOutput.Style.Normal),
+        new StyledTable.Row(["org.gradle.libraryelements", "jar", requestedLibraryElements], StyledTextOutput.Style.Normal),
+        new StyledTable.Row(["org.gradle.jvm.version", JavaVersion.current().toString(), JavaVersion.current().toString()], StyledTextOutput.Style.Normal),
+        new StyledTable.Row(["org.gradle.jvm.environment", "", "standard-jvm"], StyledTextOutput.Style.Normal),
+    ]
+))}
 
 project :$expectedProject
 \\--- $configuration"""
 
         where:
-        configuration      | expectedProject | expectedVariant   | expectedAttributes
-        'compileClasspath' | 'b'             | 'apiElements'     | 'org.gradle.usage               = java-api\n      org.gradle.libraryelements     = jar (compatible with: classes)'
-        'runtimeClasspath' | 'c'             | 'runtimeElements' | 'org.gradle.usage               = java-runtime\n      org.gradle.libraryelements     = jar'
+        configuration      | expectedProject | expectedVariant   | usage          | requestedLibraryElements
+        'compileClasspath' | 'b'             | 'apiElements'     | 'java-api'     | 'classes'
+        'runtimeClasspath' | 'c'             | 'runtimeElements' | 'java-runtime' | 'jar'
     }
 
     @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
@@ -105,19 +112,18 @@ project :$expectedProject
 
         then:
         outputContains """org.test:leaf:1.0
-   variant "api" [
-      org.gradle.usage               = java-api
-      org.gradle.category            = library
-      org.gradle.libraryelements     = jar (compatible with: classes)
-      org.gradle.test                = published attribute (not requested)
-      org.gradle.status              = release (not requested)
-
-      Requested attributes not found in the selected variant:
-         org.gradle.dependency.bundling = external
-         org.gradle.jvm.environment     = standard-jvm
-         org.gradle.blah                = something
-         org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
-   ]
+  Variant api:
+    | Attribute Name                 | Provided            | Requested    |
+    |--------------------------------|---------------------|--------------|
+    | org.gradle.test                | published attribute |              |
+    | org.gradle.status              | release             |              |
+    | org.gradle.usage               | java-api            | java-api     |
+    | org.gradle.category            | library             | library      |
+    | org.gradle.libraryelements     | jar                 | classes      |
+    | org.gradle.dependency.bundling |                     | external     |
+    | org.gradle.jvm.environment     |                     | standard-jvm |
+    | org.gradle.blah                |                     | something    |
+    | org.gradle.jvm.version         |                     | ${JavaVersion.current().majorVersion.padRight("standard-jvm".length())} |
 
 org.test:leaf:1.0
 \\--- org.test:a:1.0
@@ -174,6 +180,7 @@ org:middle:1.0 FAILED
                 conf 'org:top:1.0'
             }
             task insight(type: DependencyInsightReportTask) {
+                showingAllVariants = false
                 setDependencySpec { it.requested.module == 'leaf' }
                 configuration = configurations.conf
             }
@@ -185,12 +192,13 @@ org:middle:1.0 FAILED
         then:
         output.contains """
 org:leaf:1.0
-   variant "runtime" [
-      org.gradle.status          = release (not requested)
-      org.gradle.usage           = java-runtime (not requested)
-      org.gradle.libraryelements = jar (not requested)
-      org.gradle.category        = library (not requested)
-   ]
+  Variant runtime:
+    | Attribute Name             | Provided     | Requested |
+    |----------------------------|--------------|-----------|
+    | org.gradle.status          | release      |           |
+    | org.gradle.usage           | java-runtime |           |
+    | org.gradle.libraryelements | jar          |           |
+    | org.gradle.category        | library      |           |
 
 org:leaf:1.0
 \\--- org:top:1.0
@@ -217,6 +225,7 @@ org:leaf:1.0
                 conf 'org:top:1.0'
             }
             task insight(type: DependencyInsightReportTask) {
+                showingAllVariants = false
                 setDependencySpec { it.requested.module == 'leaf' }
                 configuration = configurations.conf
             }
@@ -227,14 +236,14 @@ org:leaf:1.0
 
         then:
         output.contains """org:leaf:1.0
-   variant "runtime" [
-      org.gradle.status          = release (not requested)
-      org.gradle.usage           = java-runtime (not requested)
-      org.gradle.libraryelements = jar (not requested)
-      org.gradle.category        = library (not requested)
-      Requested attributes not found in the selected variant:
-         usage                      = dummy
-   ]
+  Variant runtime:
+    | Attribute Name             | Provided     | Requested |
+    |----------------------------|--------------|-----------|
+    | org.gradle.status          | release      |           |
+    | org.gradle.usage           | java-runtime |           |
+    | org.gradle.libraryelements | jar          |           |
+    | org.gradle.category        | library      |           |
+    | usage                      |              | dummy     |
 
 org:leaf:1.0
 \\--- org:top:1.0
@@ -291,25 +300,27 @@ org:leaf:1.0
         then:
         outputContains """
 org:testA:1.0
-   variant "runtime" [
-      custom                     = dep_value
-      org.gradle.status          = release (not requested)
-      org.gradle.usage           = java-runtime (not requested)
-      org.gradle.libraryelements = jar (not requested)
-      org.gradle.category        = library (not requested)
-   ]
+  Variant runtime:
+    | Attribute Name             | Provided     | Requested |
+    |----------------------------|--------------|-----------|
+    | org.gradle.status          | release      |           |
+    | org.gradle.usage           | java-runtime |           |
+    | org.gradle.libraryelements | jar          |           |
+    | org.gradle.category        | library      |           |
+    | custom                     | dep_value    | dep_value |
 
 org:testA:1.0
 \\--- conf
 
 org:testB:1.0
-   variant "runtime" [
-      custom                     = dep_value
-      org.gradle.status          = release (not requested)
-      org.gradle.usage           = java-runtime (not requested)
-      org.gradle.libraryelements = jar (not requested)
-      org.gradle.category        = library (not requested)
-   ]
+  Variant runtime:
+    | Attribute Name             | Provided     | Requested |
+    |----------------------------|--------------|-----------|
+    | org.gradle.status          | release      |           |
+    | org.gradle.usage           | java-runtime |           |
+    | org.gradle.libraryelements | jar          |           |
+    | org.gradle.category        | library      |           |
+    | custom                     | dep_value    | dep_value |
 
 org:testB:+ -> 1.0
 \\--- conf

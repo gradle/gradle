@@ -72,16 +72,23 @@ public class StyledTable {
             output.style(Header);
             printRow(model, output, colWidths, model.headers, ' ');
             output.style(Normal);
+            output.println();
             // Print the separator row
             printRow(
                 model, output, colWidths,
                 IntStream.range(0, colWidths.length).mapToObj(i -> "").collect(ImmutableList.toImmutableList()),
                 '-'
             );
-            for (Row row : model.rows) {
+            output.println();
+            List<Row> rowList = model.rows;
+            for (int i = 0; i < rowList.size(); i++) {
+                Row row = rowList.get(i);
                 output.style(row.style);
                 printRow(model, output, colWidths, row.text, ' ');
                 output.style(Normal);
+                if (i < rowList.size() - 1) {
+                    output.println();
+                }
             }
         }
 
@@ -94,7 +101,6 @@ public class StyledTable {
                 }
             }
             output.withStyle(Normal).text(padChar + "|");
-            output.println();
         }
     }
 }

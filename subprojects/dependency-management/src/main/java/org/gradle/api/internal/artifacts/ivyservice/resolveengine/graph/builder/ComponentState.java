@@ -47,8 +47,11 @@ import org.gradle.internal.resolve.result.DefaultBuildableComponentResolveResult
 import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 /**
@@ -274,14 +277,34 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
 
     @Override
     public List<ResolvedVariantResult> getResolvedVariants() {
-        return nodes.stream()
-            .filter(NodeState::isSelected)
-            .map(NodeState::getResolvedVariant)
+        return getResolvedVariantsStream()
             .collect(ImmutableList.toImmutableList());
     }
 
     @Override
     public List<ResolvedVariantResult> getAllVariants() {
+        // Without mixing in resolved variants here, we don't return all variants selected in the case of project dependencies.
+        // Additionally, we wouldn't have the external variants that we get from getResolvedVariants().
+        // TODO: Figure out why the variants from getVariantsForGraphTraversal() are different in the case of project dependencies.
+        return Stream.concat(getResolvedVariantsStream(), getOtherVariantsStream())
+            // Make sure it's unique by display name.
+            .filter(new Predicate<ResolvedVariantResult>() {
+                private final Set<String> seen = new HashSet<>();
+                @Override
+                public boolean test(ResolvedVariantResult resolvedVariantResult) {
+                    return seen.add(resolvedVariantResult.getDisplayName());
+                }
+            })
+            .collect(ImmutableList.toImmutableList());
+    }
+
+    private Stream<ResolvedVariantResult> getResolvedVariantsStream() {
+        return nodes.stream()
+            .filter(NodeState::isSelected)
+            .map(NodeState::getResolvedVariant);
+    }
+
+    private Stream<ResolvedVariantResult> getOtherVariantsStream() {
         if (metadata.getVariantsForGraphTraversal().isPresent()) {
             return metadata.getVariantsForGraphTraversal().get().stream()
                 .flatMap(primary -> primary.getVariants().stream())
@@ -299,8 +322,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
                         capabilities,
                         null
                     );
-                })
-                .collect(ImmutableList.toImmutableList());
+                });
         }
         // Fall-back if there's no graph data
         return nodes.stream()
@@ -314,8 +336,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
                         ImmutableList.of(),
                         null
                     ))
-            )
-            .collect(ImmutableList.toImmutableList());
+            );
     }
 
     @Override
