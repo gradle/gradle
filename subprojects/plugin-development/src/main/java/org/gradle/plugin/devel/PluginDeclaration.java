@@ -17,13 +17,14 @@
 package org.gradle.plugin.devel;
 
 import com.google.common.base.Objects;
+import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 
 import javax.annotation.Nullable;
 import java.io.Serializable;
+import java.util.Collection;
+import java.util.Collections;
 
-
-//TODO version - could be different from main artifact's version
 /**
  * Describes a Gradle plugin under development.
  *
@@ -36,6 +37,7 @@ public class PluginDeclaration implements Named, Serializable {
     private String implementationClass;
     private String displayName;
     private String description;
+    private Collection<String> tags;
 
     public PluginDeclaration(String name) {
         this.name = name;
@@ -112,19 +114,49 @@ public class PluginDeclaration implements Named, Serializable {
         this.description = description;
     }
 
+    /**
+     * Returns the tags for this plugin declaration.
+     *
+     * <p>Tags are used when publishing this plugin to repositories that support tagging plugins,
+     * for example the <a href="http://plugins.gradle.org">Gradle Plugin Portal</a>.
+     *
+     * @since 7.5
+     */
+    @Incubating
+    public Collection<String> getTags() {
+        if (tags == null) {
+            return Collections.emptyList();
+        }
+        return tags;
+    }
+
+    /**
+     * Set the tags for this plugin declaration. Tags describe the categories this plugin covers.
+     *
+     * <p>Tags are used when publishing this plugin to repositories that support tagging plugins,
+     * for example the <a href="http://plugins.gradle.org">Gradle Plugin Portal</a>.
+     *
+     * @since 7.5
+     */
+    @Incubating
+    public void setTags(Collection<String> tags) {
+        this.tags = tags;
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (obj instanceof PluginDeclaration) {
             PluginDeclaration other = (PluginDeclaration) obj;
             return Objects.equal(name, other.name)
-                && Objects.equal(id, other.id)
-                && Objects.equal(implementationClass, other.implementationClass);
+                    && Objects.equal(id, other.id)
+                    && Objects.equal(implementationClass, other.implementationClass)
+                    && Objects.equal(tags, other.tags);
         }
         return false;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(name, id, implementationClass);
+        return Objects.hashCode(name, id, implementationClass, tags);
     }
 }
