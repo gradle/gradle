@@ -590,8 +590,8 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         when:
         withBuildCache().fails "customTask"
         then:
-        failureHasCause(~/Failed to store cache entry $CACHE_KEY_PATTERN for task ':customTask': Could not pack tree 'output'.*/)
         def expectedMessage = message.replace("PATH", file("build/output").path)
+        failureHasCause(~/Failed to store cache entry $CACHE_KEY_PATTERN for task ':customTask': Could not pack tree 'output': $expectedMessage/)
         errorOutput.contains "Could not pack tree 'output': $expectedMessage"
 
         where:
