@@ -17,6 +17,7 @@
 package org.gradle.internal.fingerprint.impl;
 
 import com.google.common.collect.ImmutableMap;
+import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintHashingStrategy;
@@ -63,6 +64,9 @@ public class AbsolutePathFingerprintingStrategy extends AbstractDirectorySensiti
         roots.accept(new RootTrackingFileSystemSnapshotHierarchyVisitor() {
             @Override
             public SnapshotVisitResult visitEntry(FileSystemLocationSnapshot snapshot, boolean isRoot) {
+                if (isRoot && snapshot.getType() == FileType.Missing) {
+                    return SnapshotVisitResult.CONTINUE;
+                }
                 String absolutePath = snapshot.getAbsolutePath();
                 if (processedEntries.add(absolutePath) && getDirectorySensitivity().shouldFingerprint(snapshot)) {
                     HashCode normalizedContentHash = getNormalizedContentHash(snapshot, normalizedContentHasher);
