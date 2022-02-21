@@ -16,13 +16,10 @@
 
 package org.gradle.integtests.resolve.derived
 
-
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import spock.lang.IgnoreIf
-
-import static org.gradle.api.internal.artifacts.dsl.DefaultComponentMetadataProcessor.FORCE_REALIZE
 
 @IgnoreIf({ GradleContextualExecuter.configCache }) // ResolvedArtifactResult as task input
 class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -356,10 +353,7 @@ class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyRes
 
         succeeds( "resolveSources")
     }
-    // endregion
 
-    // region Without Gradle Module Metadata
-    @IgnoreIf({ FORCE_REALIZE })
     def "direct has no GMM and no sources or javadoc jars"() {
         transitive.publish()
         direct.publish()
@@ -385,7 +379,6 @@ class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyRes
         succeeds( 'resolveSources', 'resolveJavadoc')
     }
 
-    @IgnoreIf({ FORCE_REALIZE })
     def "direct has no GMM and has sources jar"() {
         direct.withSourceAndJavadoc()
         transitive.withSourceAndJavadoc()
@@ -410,7 +403,6 @@ class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyRes
         succeeds("resolveSources")
     }
 
-    @IgnoreIf({ FORCE_REALIZE })
     def "direct has no GMM and has javadoc jar"() {
         direct.withSourceAndJavadoc()
         transitive.withSourceAndJavadoc()
@@ -435,7 +427,6 @@ class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyRes
         succeeds("resolveJavadoc")
     }
 
-    @IgnoreIf({ FORCE_REALIZE })
     def "direct has no GMM and has both sources and javadoc jars"() {
         direct.withSourceAndJavadoc()
         transitive.withSourceAndJavadoc()
@@ -476,7 +467,6 @@ class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyRes
         succeeds( 'resolveJavadoc')
     }
 
-    @IgnoreIf({ FORCE_REALIZE })
     def "direct has no GMM and no sources jar and transitive has no GMM and has sources jar"() {
         transitive.withSourceAndJavadoc()
         transitive.publish()
