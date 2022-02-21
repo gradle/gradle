@@ -58,9 +58,13 @@ Add the {publishplugin} to the `plugins` block.
 include::sample[dir="snippets/developingPlugins/publishingPlugins/groovy",files="build.gradle[tags=plugins_block]"]
 include::sample[dir="snippets/developingPlugins/publishingPlugins/kotlin",files="build.gradle.kts[tags=plugins_block]"]
 ====
-<1> Use the <<java_gradle_plugin.adoc#java_gradle_plugin,Java Gradle Plugin Development Plugin>>, which comes with the Gradle distribution, to author your Gradle plugin.
-<2> Use the <<publishing_maven.adoc#publishing_maven, Maven Publish Plugin>> to generate the published metadata for your plugin
-<3> The latest version of the {publishplugin} can be found on the https://plugins.gradle.org/plugin/com.gradle.plugin-publish[{portal}].
+The latest version of the {publishplugin} can be found on the https://plugins.gradle.org/plugin/com.gradle.plugin-publish[{portal}].
+
+NOTE: Since version 1.0.0 the Plugin Publish Plugin automatically applies the
+<<java_gradle_plugin.adoc#java_gradle_plugin,Java Gradle Plugin Development Plugin>> (assists in developing Gradle plugins) and the
+<<publishing_maven.adoc#publishing_maven, Maven Publish Plugin>> (generates plugin publication metadata).
+If using older versions of the Plugin Publish Plugin, these helper plugins need to be applied explicitly.
+
 
 == Configure the {publishplugin}
 
@@ -73,7 +77,8 @@ include::sample[dir="snippets/developingPlugins/publishingPlugins/kotlin",files=
 ====
 <1> Set the website for your plugin's project.
 <2> Provide the source repository URI so that others can find it if they want to contribute.
-<3> Set the tags to be used for all plugins unless overridden in the `plugins` block.
+<3> Set the human-readable description for all plugins unless overridden in the `gradlePlugins` block.
+<4> Set the tags to be used for all plugins unless overridden in the `gradlePlugins` block.
 
 Now specify the details of the plugin.
 This is done in a `plugins` block within the `gradlePlugin` block.
@@ -100,11 +105,13 @@ include::sample[dir="snippets/developingPlugins/publishingPlugins/kotlin",files=
 <4> The name for each plugin block does not affect the plugin configuration, but needs to be unique for each plugin provided.
 <5> Set the unique `id` of the plugin.
 <6> Set the plugin name in human-readable form.
-<7> Set a description that will be displayed on the portal. it provides useful information to people would mightwant to use your plugin.
-    Please give careful thought to the value of this property.
+<7> Set a description that will be displayed on the portal. It provides useful information to people who might want to use your plugin.
+    Overrides any description provided for all plugins at the plugin bundle level.
+<8> Specifies the categories your plugin covers. Makes the plugin more likely to be discovered by people needing its functionality.
+    Overrides any tags provided for all plugins at the plugin bundle level.
 
-NOTE: If you are publishing multiple plugins, please note that it's possible to use custom tags and a custom version per plugin using the `pluginBundle` block.
-Please refer to the {plugin-reference-documentation} for an example.
+NOTE: The ability to specify custom tags per plugin was only added in Gradle 7.5. When using an older version of Gradle the same result
+can be achieved by using the `pluginTags` map in the `pluginBundle` block. Please refer to the {plugin-reference-documentation} for an example.
 
 Think about what would be the correct metadata for your plugin and fill in the template appropriately.
 Here is an example of the `pluginBundle` configuration that you can use for the Greeting Plugin example:
@@ -115,6 +122,7 @@ Here is an example of the `pluginBundle` configuration that you can use for the 
 pluginBundle {
     website = 'https://www.gradle.org/'
     vcsUrl = 'https://github.com/gradle/greeting-plugin-example'
+    description = 'Template for people to start their own plugin adventure'
     tags = ['example', 'template']
 }
 
@@ -123,7 +131,6 @@ gradlePlugin {
         greetingsPlugin {
             id = 'org.example.greeting'
             displayName = 'Greeting Plugin'
-            description = 'Template for people to start their own plugin adventure'
             implementationClass = 'org.example.greeting.GreetingPlugin'
         }
     }
@@ -135,6 +142,7 @@ gradlePlugin {
 pluginBundle {
     website = "https://www.gradle.org/"
     vcsUrl = "https://github.com/gradle/greeting-plugin-example"
+    description = "Template for people to start their own plugin adventure"
     tags = listOf("example", "template")
 }
 
@@ -143,7 +151,6 @@ gradlePlugin {
         create("greetingsPlugin") {
             id = "org.example.greeting"
             displayName = "Greeting Plugin"
-            description = "Template for people to start their own plugin adventure"
             implementationClass = "org.example.greeting.GreetingPlugin"
         }
     }
@@ -157,7 +164,6 @@ As a second example of plugin configuration, consider the https://plugins.gradle
 pluginBundle {
     website = 'https://github.com/ysb33r/gradleTest'
     vcsUrl = 'https://github.com/ysb33r/gradleTest.git'
-    tags = ['testing', 'integrationTesting', 'compatibility']
 }
 gradlePlugin {
     plugins {
@@ -165,6 +171,7 @@ gradlePlugin {
             id = 'org.ysb33r.gradletest'
             displayName = 'Plugin for compatibility testing of Gradle plugins'
             description = 'A plugin that helps you test your plugin against a variety of Gradle versions'
+            tags = ['testing', 'integrationTesting', 'compatibility']
             implementationClass = 'org.ysb33r.gradle.gradletest.GradleTestPlugin'
         }
     }
@@ -176,7 +183,6 @@ gradlePlugin {
 pluginBundle {
     website = "https://github.com/ysb33r/gradleTest"
     vcsUrl = "https://github.com/ysb33r/gradleTest.git"
-    tags = listOf("testing", "integrationTesting", "compatibility")
 }
 gradlePlugin {
     plugins {
@@ -184,6 +190,7 @@ gradlePlugin {
             id = "org.ysb33r.gradletest"
             displayName = "Plugin for compatibility testing of Gradle plugins"
             description = "A plugin that helps you test your plugin against a variety of Gradle versions"
+            tags = listOf("testing", "integrationTesting", "compatibility")
             implementationClass = "org.ysb33r.gradle.gradletest.GradleTestPlugin"
         }
     }
