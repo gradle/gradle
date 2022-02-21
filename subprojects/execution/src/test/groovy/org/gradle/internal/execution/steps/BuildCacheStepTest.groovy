@@ -125,7 +125,7 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
 
         then:
         def ex = thrown Exception
-        ex.message == "Failed to load cache entry 30a042b90a for job ':test': unpack failure"
+        ex.message == "Failed to load cache entry $cacheKeyHashCode for job ':test': unpack failure"
         ex.cause == failure
 
         interaction { withValidCacheKey() }
@@ -217,7 +217,7 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
 
         then:
         def ex = thrown Exception
-        ex.message == "Failed to store cache entry 30a042b90a for job ':test': store failure"
+        ex.message == "Failed to store cache entry $cacheKeyHashCode for job ':test': store failure"
         ex.cause == failure
 
         interaction { withValidCacheKey() }
