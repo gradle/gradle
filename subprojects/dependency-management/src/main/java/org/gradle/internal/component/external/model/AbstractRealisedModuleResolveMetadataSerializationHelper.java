@@ -63,7 +63,6 @@ public abstract class AbstractRealisedModuleResolveMetadataSerializationHelper {
         this.moduleIdentifierFactory = moduleIdentifierFactory;
     }
 
-
     protected AttributeContainerSerializer getAttributeContainerSerializer() {
         return attributeContainerSerializer;
     }
@@ -141,13 +140,30 @@ public abstract class AbstractRealisedModuleResolveMetadataSerializationHelper {
             String extension = decoder.readNullableString();
             String classifier = decoder.readNullableString();
             String timestamp = decoder.readNullableString();
+
             String version;
             ModuleComponentIdentifier cid = componentIdentifier;
             if (timestamp != null) {
                 version = decoder.readString();
                 cid = new MavenUniqueSnapshotComponentIdentifier(componentIdentifier.getModuleIdentifier(), version, timestamp);
             }
-            artifacts.add(new DefaultModuleComponentArtifactMetadata(cid, new DefaultIvyArtifactName(name, type, extension, classifier)));
+
+            boolean alternativeArtifact = decoder.readBoolean();
+            DefaultIvyArtifactName alternative = null;
+            if (alternativeArtifact) {
+                String altName = decoder.readString();
+                String altType = decoder.readString();
+                String altExtension = decoder.readNullableString();
+                String altClassifier = decoder.readNullableString();
+                alternative = new DefaultIvyArtifactName(altName, altType, altExtension, altClassifier);
+            }
+            
+            if (alternativeArtifact) {
+                artifacts.add(new DefaultModuleComponentArtifactMetadata(cid, new DefaultIvyArtifactName(name, type, extension, classifier),
+                        new DefaultModuleComponentArtifactMetadata(cid, alternative)));
+            } else {
+                artifacts.add(new DefaultModuleComponentArtifactMetadata(cid, new DefaultIvyArtifactName(name, type, extension, classifier)));
+            }
         }
         int filesCount = decoder.readSmallInt();
         for (int i = 0; i < filesCount; i++) {
@@ -190,10 +206,7 @@ public abstract class AbstractRealisedModuleResolveMetadataSerializationHelper {
         for (ComponentArtifactMetadata artifact : artifacts) {
             if (!(artifact instanceof UrlBackedArtifactMetadata)) {
                 IvyArtifactName artifactName = artifact.getName();
-                encoder.writeString(artifactName.getName());
-                encoder.writeString(artifactName.getType());
-                encoder.writeNullableString(artifactName.getExtension());
-                encoder.writeNullableString(artifactName.getClassifier());
+                writeIvyArtifactName(encoder, artifactName);
                 ComponentIdentifier componentId = artifact.getComponentId();
                 if (componentId instanceof MavenUniqueSnapshotComponentIdentifier) {
                     MavenUniqueSnapshotComponentIdentifier uid = (MavenUniqueSnapshotComponentIdentifier) componentId;
@@ -201,6 +214,10 @@ public abstract class AbstractRealisedModuleResolveMetadataSerializationHelper {
                     encoder.writeString(uid.getSnapshotVersion());
                 } else {
                     encoder.writeNullableString(null);
+                }
+                encoder.writeBoolean(artifact.getAlternativeArtifact().isPresent());
+                if (artifact.getAlternativeArtifact().isPresent()) {
+                    writeIvyArtifactName(encoder, artifact.getAlternativeArtifact().get().getName());
                 }
             }
         }
@@ -211,6 +228,13 @@ public abstract class AbstractRealisedModuleResolveMetadataSerializationHelper {
                 encoder.writeString(((UrlBackedArtifactMetadata) file).getRelativeUrl());
             }
         }
+    }
+
+    private void writeIvyArtifactName(Encoder encoder, IvyArtifactName artifactName) throws IOException {
+        encoder.writeString(artifactName.getName());
+        encoder.writeString(artifactName.getType());
+        encoder.writeNullableString(artifactName.getExtension());
+        encoder.writeNullableString(artifactName.getClassifier());
     }
 
     protected abstract void writeDependencies(Encoder encoder, ConfigurationMetadata configuration, Map<ExternalDependencyDescriptor, Integer> deduplicationDependencyCache) throws IOException;
@@ -270,10 +294,7 @@ public abstract class AbstractRealisedModuleResolveMetadataSerializationHelper {
             encoder.writeBoolean(false);
         } else {
             encoder.writeBoolean(true);
-            encoder.writeString(artifact.getName());
-            encoder.writeString(artifact.getType());
-            encoder.writeNullableString(artifact.getExtension());
-            encoder.writeNullableString(artifact.getClassifier());
+            writeIvyArtifactName(encoder, artifact);
         }
     }
 
