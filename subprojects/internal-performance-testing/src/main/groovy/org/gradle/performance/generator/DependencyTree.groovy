@@ -103,7 +103,7 @@ class DependencyTree {
         this
     }
 
-    DependencyTree calculateProjectDependencies() {
+    DependencyTree calculateProjectDependencies(List<Integer> projectDependencies) {
         (0..classDependencyTrees.size() - 1).each {
             placeNode(it, PROJECTS_ON_LEVEL, projectDependencyTree, parentToChildProjectIds)
         }
@@ -132,6 +132,18 @@ class DependencyTree {
                 projectIndex++
             }
         }
+
+        for (int parentProjectId = 0; parentProjectId < classDependencyTrees.size(); parentProjectId++) {
+            for (int projectDependency : projectDependencies) {
+                if (projectDependency != parentProjectId) {
+                    List<Integer> projectDeps = parentToChildProjectIds.get(parentProjectId);
+                    if (!projectDeps.contains(projectDependency)) {
+                        projectDeps.add(projectDependency)
+                    }
+                }
+            }
+        }
+
         this
     }
 

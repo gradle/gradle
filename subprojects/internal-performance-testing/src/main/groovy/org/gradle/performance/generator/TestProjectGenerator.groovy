@@ -49,7 +49,7 @@ class TestProjectGenerator {
                 dependencyTree.calculateClassDependencies(subProjectNumber, sourceFileRangeStart, sourceFileRangeEnd)
             }
         }
-        dependencyTree.calculateProjectDependencies()
+        dependencyTree.calculateProjectDependencies(config.apiDependencies)
     }
 
     def generateProjects(File outputBaseDir, DependencyTree dependencyTree) {

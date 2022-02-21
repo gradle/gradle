@@ -99,6 +99,14 @@ enum JavaTestProjectGenerator {
         .withCompilerMemory('256m')
         .assembleChangeFile()
         .create()),
+    MEDIUM_JAVA_MULTI_PROJECT_WITH_DEPENDENCY_ON_PROJECT_0(new TestProjectGeneratorConfigurationBuilder("mediumJavaMultiProjectWithProject0Dep")
+        .withSourceFiles(100)
+        .withSubProjects(100)
+        .withApiDependencies([0])
+        .withDaemonMemory('512m')
+        .withCompilerMemory('256m')
+        .assembleChangeFile()
+        .create()),
     MEDIUM_JAVA_COMPOSITE_BUILD(new TestProjectGeneratorConfigurationBuilder("mediumJavaCompositeBuild", "mediumJavaMultiProject")
         .withSourceFiles(100)
         .withSubProjects(100)
