@@ -59,6 +59,7 @@ Alternatively, you can adjust or remove classpath attributes in the `eclipse.cla
 
 [[file_collection_to_classpath]]
 ==== Converting files to a classpath where paths contain file separator
+
 Java has the concept of a path separator which is used to separate individual paths in a list of paths, for example in a classpath string.
 The individual paths must not contain the path separator.
 Consequently, using
