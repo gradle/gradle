@@ -180,7 +180,7 @@ public class DefaultProviderFactory implements ProviderFactory {
     }
 
     @Override
-    public <A, B, R> Provider<R> zip(Provider<A> left, Provider<B> right, BiFunction<A, B, R> combiner) {
+    public <A, B, R> Provider<R> zip(Provider<A> left, Provider<B> right, BiFunction<? super A, ? super B, ? extends R> combiner) {
         return new BiProvider<>(left, right, combiner);
     }
 
