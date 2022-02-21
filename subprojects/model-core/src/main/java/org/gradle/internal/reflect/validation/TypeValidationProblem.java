@@ -15,7 +15,7 @@
  */
 package org.gradle.internal.reflect.validation;
 
-import org.gradle.internal.reflect.problems.ValidationProblemId;
+import org.gradle.problems.ValidationProblemId;
 import org.gradle.problems.BaseProblem;
 import org.gradle.problems.Solution;
 

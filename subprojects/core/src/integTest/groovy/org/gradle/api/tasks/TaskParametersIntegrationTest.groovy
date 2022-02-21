@@ -27,7 +27,7 @@ import org.gradle.integtests.fixtures.TestBuildCache
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.Actions
-import org.gradle.internal.reflect.problems.ValidationProblemId
+import org.gradle.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.reflect.validation.ValidationTestFor
 import spock.lang.Issue

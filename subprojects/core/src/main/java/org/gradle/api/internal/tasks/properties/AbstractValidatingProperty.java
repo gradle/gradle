@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks.properties;
 
 import org.gradle.api.internal.tasks.TaskValidationContext;
-import org.gradle.internal.reflect.problems.ValidationProblemId;
+import org.gradle.api.internal.validation.CoreValidationProblemId;
 import org.gradle.internal.reflect.validation.Severity;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.util.internal.DeferredUtil;
@@ -37,7 +37,7 @@ public abstract class AbstractValidatingProperty implements ValidatingProperty {
 
     public static void reportValueNotSet(String propertyName, TypeValidationContext context) {
         context.visitPropertyProblem(problem -> {
-            problem.withId(ValidationProblemId.VALUE_NOT_SET)
+            problem.withId(CoreValidationProblemId.VALUE_NOT_SET)
                 .reportAs(Severity.ERROR)
                 .forProperty(propertyName)
                 .withDescription("doesn't have a configured value")

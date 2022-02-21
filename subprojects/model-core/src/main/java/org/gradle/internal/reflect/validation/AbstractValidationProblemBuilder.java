@@ -19,7 +19,7 @@ import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.internal.Cast;
-import org.gradle.internal.reflect.problems.ValidationProblemId;
+import org.gradle.problems.ValidationProblemId;
 import org.gradle.plugin.use.PluginId;
 import org.gradle.problems.Solution;
 

@@ -27,7 +27,7 @@ import org.gradle.api.internal.tasks.properties.PropertyVisitor
 import org.gradle.api.internal.tasks.properties.ValidationActions
 import org.gradle.api.tasks.Optional
 import org.gradle.internal.reflect.PropertyMetadata
-import org.gradle.internal.reflect.problems.ValidationProblemId
+import org.gradle.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationTestFor
 import spock.lang.Specification
 

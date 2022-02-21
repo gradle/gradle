@@ -20,12 +20,12 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.tasks.properties.BeanPropertyContext;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
+import org.gradle.api.internal.validation.CoreValidationProblemId;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.reflect.AnnotationCategory;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.reflect.PropertyMetadata;
-import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.model.internal.type.ModelType;
 
@@ -68,7 +68,7 @@ public class InputPropertyAnnotationHandler implements PropertyAnnotationHandler
             || java.nio.file.Path.class.isAssignableFrom(valueType)
             || FileCollection.class.isAssignableFrom(valueType)) {
             validationContext.visitPropertyProblem(problem ->
-                problem.withId(ValidationProblemId.INCORRECT_USE_OF_INPUT_ANNOTATION)
+                problem.withId(CoreValidationProblemId.INCORRECT_USE_OF_INPUT_ANNOTATION)
                     .forProperty(propertyMetadata.getPropertyName())
                     .reportAs(ERROR)
                     .withDescription(() -> String.format("has @Input annotation used on property of type '%s'", ModelType.of(valueType).getDisplayName()))
@@ -81,7 +81,7 @@ public class InputPropertyAnnotationHandler implements PropertyAnnotationHandler
         }
         if (valueType.isPrimitive() && propertyMetadata.isAnnotationPresent(Optional.class)) {
             validationContext.visitPropertyProblem(problem ->
-                problem.withId(ValidationProblemId.CANNOT_USE_OPTIONAL_ON_PRIMITIVE_TYPE)
+                problem.withId(CoreValidationProblemId.CANNOT_USE_OPTIONAL_ON_PRIMITIVE_TYPE)
                     .reportAs(ERROR)
                     .forProperty(propertyMetadata.getPropertyName())
                     .withDescription(() -> "of type " + valueType.getName() + " shouldn't be annotated with @Optional")

@@ -21,6 +21,7 @@ import org.gradle.api.internal.tasks.properties.FileParameterUtils;
 import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
+import org.gradle.api.internal.validation.CoreValidationProblemId;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.ClasspathNormalizer;
 import org.gradle.api.tasks.CompileClasspath;
@@ -34,7 +35,6 @@ import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
 import org.gradle.internal.reflect.PropertyMetadata;
-import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.reflect.validation.Severity;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.work.Incremental;
@@ -96,7 +96,7 @@ public abstract class AbstractInputFilePropertyAnnotationHandler implements Prop
         if (!propertyMetadata.hasAnnotationForCategory(NORMALIZATION)) {
             validationContext.visitPropertyProblem(problem -> {
                 String propertyName = propertyMetadata.getPropertyName();
-                problem.withId(ValidationProblemId.MISSING_NORMALIZATION_ANNOTATION)
+                problem.withId(CoreValidationProblemId.MISSING_NORMALIZATION_ANNOTATION)
                     .reportAs(Severity.ERROR)
                     .onlyAffectsCacheableWork()
                     .forProperty(propertyName)

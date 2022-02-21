@@ -15,7 +15,9 @@
  */
 package org.gradle.api.internal.catalog.problems;
 
-public enum VersionCatalogProblemId {
+import org.gradle.problems.ValidationProblemId;
+
+public enum VersionCatalogProblemId implements ValidationProblemId {
     ACCESSOR_NAME_CLASH,
     CATALOG_FILE_DOES_NOT_EXIST,
     INVALID_ALIAS_NOTATION,
@@ -30,5 +32,10 @@ public enum VersionCatalogProblemId {
     UNDEFINED_VERSION_REFERENCE,
     UNSUPPORTED_FILE_FORMAT,
     UNSUPPORTED_FORMAT_VERSION,
-    ALIAS_NOT_FINISHED,
+    ALIAS_NOT_FINISHED;
+
+    @Override
+    public String getId() {
+        return name();
+    }
 }

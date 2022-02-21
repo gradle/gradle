@@ -15,6 +15,6 @@
  */
 package org.gradle.problems;
 
-public interface WithId<ID extends Enum<ID>> {
+public interface WithId<ID extends ValidationProblemId> {
     ID getId();
 }

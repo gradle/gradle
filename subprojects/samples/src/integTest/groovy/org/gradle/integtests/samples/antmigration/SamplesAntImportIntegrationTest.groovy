@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.MissingTaskDependenciesFixture
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UsesSample
-import org.gradle.internal.reflect.problems.ValidationProblemId
+import org.gradle.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.junit.Rule
 

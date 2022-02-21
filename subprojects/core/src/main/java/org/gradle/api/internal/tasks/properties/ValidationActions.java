@@ -20,7 +20,7 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.internal.GeneratedSubclass;
 import org.gradle.api.internal.tasks.TaskValidationContext;
-import org.gradle.internal.reflect.problems.ValidationProblemId;
+import org.gradle.api.internal.validation.CoreValidationProblemId;
 import org.gradle.internal.reflect.validation.PropertyProblemBuilder;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
 import org.gradle.model.internal.type.ModelType;
@@ -135,7 +135,7 @@ public enum ValidationActions implements ValidationAction {
     private static void reportMissingInput(TaskValidationContext context, String kind, String propertyName, File input) {
         context.visitPropertyProblem(problem -> {
             String lowerKind = kind.toLowerCase();
-            problem.withId(ValidationProblemId.INPUT_FILE_DOES_NOT_EXIST)
+            problem.withId(CoreValidationProblemId.INPUT_FILE_DOES_NOT_EXIST)
                 .forProperty(propertyName)
                 .reportAs(ERROR)
                 .withDescription(() -> "specifies " + lowerKind + " '" + input + "' which doesn't exist")
@@ -149,7 +149,7 @@ public enum ValidationActions implements ValidationAction {
     private static void reportUnexpectedInputKind(TaskValidationContext context, String kind, String propertyName, File input) {
         context.visitPropertyProblem(problem -> {
             String lowerKind = kind.toLowerCase();
-            problem.withId(ValidationProblemId.UNEXPECTED_INPUT_FILE_TYPE)
+            problem.withId(CoreValidationProblemId.UNEXPECTED_INPUT_FILE_TYPE)
                 .forProperty(propertyName)
                 .reportAs(ERROR)
                 .withDescription(() -> lowerKind + " '" + input + "' is not a " + lowerKind)
@@ -162,7 +162,7 @@ public enum ValidationActions implements ValidationAction {
 
     private static void reportCannotWriteToDirectory(String propertyName, TaskValidationContext context, File directory, String cause) {
         context.visitPropertyProblem(problem ->
-            problem.withId(ValidationProblemId.CANNOT_WRITE_OUTPUT)
+            problem.withId(CoreValidationProblemId.CANNOT_WRITE_OUTPUT)
                 .reportAs(ERROR)
                 .forProperty(propertyName)
                 .withDescription(() -> "is not writable because " + cause)
@@ -174,7 +174,7 @@ public enum ValidationActions implements ValidationAction {
 
     private static void reportFileTreeWithFileRoot(String propertyName, TaskValidationContext context, File directory) {
         context.visitPropertyProblem(problem ->
-            problem.withId(ValidationProblemId.CANNOT_WRITE_OUTPUT)
+            problem.withId(CoreValidationProblemId.CANNOT_WRITE_OUTPUT)
                 .reportAs(ERROR)
                 .forProperty(propertyName)
                 .withDescription(() -> "is not writable because '" + directory + "' is not a directory")
@@ -186,7 +186,7 @@ public enum ValidationActions implements ValidationAction {
 
     private static void reportCannotWriteFileToDirectory(String propertyName, TaskValidationContext context, File file) {
         context.visitPropertyProblem(problem -> {
-                PropertyProblemBuilder problemBuilder = problem.withId(ValidationProblemId.CANNOT_WRITE_OUTPUT)
+                PropertyProblemBuilder problemBuilder = problem.withId(CoreValidationProblemId.CANNOT_WRITE_OUTPUT)
                     .reportAs(ERROR)
                     .forProperty(propertyName)
                     .withDescription(() -> "is not writable because '" + file + "' is not a file")
@@ -200,7 +200,7 @@ public enum ValidationActions implements ValidationAction {
 
     private static void reportCannotCreateParentDirectories(String propertyName, TaskValidationContext context, File file, File ancestor) {
         context.visitPropertyProblem(problem -> {
-                PropertyProblemBuilder problemBuilder = problem.withId(ValidationProblemId.CANNOT_WRITE_OUTPUT)
+                PropertyProblemBuilder problemBuilder = problem.withId(CoreValidationProblemId.CANNOT_WRITE_OUTPUT)
                     .reportAs(ERROR)
                     .forProperty(propertyName)
                     .withDescription(() -> "is not writable because '" + file + "' ancestor '" + ancestor + "' is not a directory")
@@ -224,7 +224,7 @@ public enum ValidationActions implements ValidationAction {
     private static void validateNotInReservedFileSystemLocation(String propertyName, TaskValidationContext context, File location) {
         if (context.isInReservedFileSystemLocation(location)) {
             context.visitPropertyProblem(problem ->
-                problem.withId(ValidationProblemId.CANNOT_WRITE_TO_RESERVED_LOCATION)
+                problem.withId(CoreValidationProblemId.CANNOT_WRITE_TO_RESERVED_LOCATION)
                     .forProperty(propertyName)
                     .reportAs(ERROR)
                     .withDescription(() -> "points to '" + location + "' which is managed by Gradle")
@@ -249,7 +249,7 @@ public enum ValidationActions implements ValidationAction {
             doValidate(propertyName, value, context);
         } catch (UnsupportedNotationException unsupportedNotationException) {
             context.visitPropertyProblem(problem -> {
-                    problem.withId(ValidationProblemId.UNSUPPORTED_NOTATION)
+                    problem.withId(CoreValidationProblemId.UNSUPPORTED_NOTATION)
                         .forProperty(propertyName)
                         .reportAs(ERROR)
                         .withDescription(() -> "has unsupported value '" + value + "'")

@@ -23,6 +23,7 @@ import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.tasks.properties.annotations.AbstractOutputPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.TypeAnnotationHandler;
+import org.gradle.api.internal.validation.CoreValidationProblemId;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.CompileClasspath;
 import org.gradle.api.tasks.InputFiles;
@@ -33,7 +34,6 @@ import org.gradle.internal.reflect.PropertyMetadata;
 import org.gradle.internal.reflect.annotations.PropertyAnnotationMetadata;
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadata;
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadataStore;
-import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.reflect.validation.ReplayingTypeValidationContext;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 
@@ -109,7 +109,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
             Class<? extends Annotation> propertyType = determinePropertyType(typeAnnotation, normalizationAnnotation);
             if (propertyType == null) {
                 validationContext.visitPropertyProblem(problem ->
-                    problem.withId(ValidationProblemId.MISSING_ANNOTATION)
+                    problem.withId(CoreValidationProblemId.MISSING_ANNOTATION)
                         .forProperty(propertyAnnotationMetadata.getPropertyName())
                         .reportAs(ERROR)
                         .withDescription(() -> "is missing " + displayName)
@@ -124,7 +124,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
             PropertyAnnotationHandler annotationHandler = propertyAnnotationHandlers.get(propertyType);
             if (annotationHandler == null) {
                 validationContext.visitPropertyProblem(problem ->
-                    problem.withId(ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT)
+                    problem.withId(CoreValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT)
                         .forProperty(propertyAnnotationMetadata.getPropertyName())
                         .reportAs(ERROR)
                         .withDescription(() -> String.format("is annotated with invalid property type @%s", propertyType.getSimpleName()))
@@ -145,7 +145,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                 Class<? extends Annotation> annotationType = entry.getValue().annotationType();
                 if (!allowedModifiersForPropertyType.contains(annotationCategory)) {
                     validationContext.visitPropertyProblem(problem ->
-                        problem.withId(ValidationProblemId.INCOMPATIBLE_ANNOTATIONS)
+                        problem.withId(CoreValidationProblemId.INCOMPATIBLE_ANNOTATIONS)
                             .forProperty(propertyAnnotationMetadata.getPropertyName())
                             .reportAs(ERROR)
                             .withDescription(() -> "is annotated with @" + annotationType.getSimpleName() + " but that is not allowed for '" + propertyType.getSimpleName() + "' properties")
@@ -155,7 +155,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                             .documentedAt("validation_problems", "incompatible_annotations"));
                 } else if (!allowedPropertyModifiers.contains(annotationType)) {
                     validationContext.visitPropertyProblem(problem ->
-                        problem.withId(ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT)
+                        problem.withId(CoreValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT)
                             .forProperty(propertyAnnotationMetadata.getPropertyName())
                             .reportAs(ERROR)
                             .withDescription(() -> String.format("is annotated with invalid modifier @%s", annotationType.getSimpleName()))

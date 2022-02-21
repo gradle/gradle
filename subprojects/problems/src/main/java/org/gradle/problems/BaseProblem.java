@@ -21,7 +21,7 @@ import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-public class BaseProblem<ID extends Enum<ID>, SEVERITY extends Enum<SEVERITY>, CONTEXT> implements Problem<ID, SEVERITY, CONTEXT> {
+public class BaseProblem<ID extends ValidationProblemId, SEVERITY extends Enum<SEVERITY>, CONTEXT> implements Problem<ID, SEVERITY, CONTEXT> {
     private final ID id;
     private final SEVERITY severity;
     private final CONTEXT context;

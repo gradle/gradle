@@ -28,8 +28,8 @@ import org.gradle.internal.execution.WorkValidationException;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.PreviousExecutionState;
+import org.gradle.internal.execution.validation.ExecutionValidationProblemId;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.reflect.validation.Severity;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.internal.reflect.validation.ValidationProblemBuilder;
@@ -221,7 +221,7 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
     private <T extends ValidationProblemBuilder<T>> T configureImplementationValidationProblem(ValidationProblemBuilder<T> problem) {
         return problem
             .typeIsIrrelevantInErrorMessage()
-            .withId(ValidationProblemId.UNKNOWN_IMPLEMENTATION)
+            .withId(ExecutionValidationProblemId.UNKNOWN_IMPLEMENTATION)
             .reportAs(Severity.WARNING)
             .documentedAt("validation_problems", "implementation_unknown");
     }

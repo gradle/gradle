@@ -15,13 +15,13 @@
  */
 package org.gradle.api.internal.tasks.properties.annotations;
 
+import org.gradle.api.internal.validation.CoreValidationProblemId;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
-import static org.gradle.internal.reflect.problems.ValidationProblemId.INVALID_USE_OF_TYPE_ANNOTATION;
 import static org.gradle.internal.reflect.validation.Severity.ERROR;
 
 public class TypeAnnotationHandlerSupport {
@@ -33,7 +33,7 @@ public class TypeAnnotationHandlerSupport {
         visitor.visitTypeProblem(problem ->
             problem.forType(classWithAnnotationAttached)
                 .reportAs(ERROR)
-                .withId(INVALID_USE_OF_TYPE_ANNOTATION)
+                .withId(CoreValidationProblemId.INVALID_USE_OF_TYPE_ANNOTATION)
                 .withDescription(() -> "is incorrectly annotated with @" + annotationType.getSimpleName())
                 .happensBecause(() -> String.format("This annotation only makes sense on %s types", Arrays.stream(appliesOnlyTo)
                     .map(Class::getSimpleName)

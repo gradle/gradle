@@ -40,7 +40,7 @@ import org.gradle.internal.execution.WorkValidationExceptionChecker
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.JavaReflectionUtil
 import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore
-import org.gradle.internal.reflect.problems.ValidationProblemId
+import org.gradle.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.internal.service.ServiceRegistryBuilder

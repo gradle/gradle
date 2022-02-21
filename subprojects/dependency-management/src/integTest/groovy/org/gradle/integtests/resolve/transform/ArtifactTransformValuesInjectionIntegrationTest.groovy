@@ -22,6 +22,8 @@ import org.gradle.api.artifacts.transform.InputArtifactDependencies
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.file.ProjectLayout
+import org.gradle.api.internal.artifacts.validation.ArtifactValidationProblemId
+import org.gradle.api.internal.validation.CoreValidationProblemId
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
@@ -42,7 +44,7 @@ import org.gradle.api.tasks.UntrackedTask
 import org.gradle.api.tasks.options.OptionValues
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.internal.reflect.problems.ValidationProblemId
+import org.gradle.internal.reflect.annotations.TypeMetadataValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.process.ExecOperations
@@ -304,12 +306,12 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
     }
 
     @ValidationTestFor([
-        ValidationProblemId.MISSING_NORMALIZATION_ANNOTATION,
-        ValidationProblemId.CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY,
-        ValidationProblemId.VALUE_NOT_SET,
-        ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT,
-        ValidationProblemId.MISSING_ANNOTATION,
-        ValidationProblemId.INCOMPATIBLE_ANNOTATIONS
+        CoreValidationProblemId.MISSING_NORMALIZATION_ANNOTATION,
+        ArtifactValidationProblemId.CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY,
+        CoreValidationProblemId.VALUE_NOT_SET,
+        CoreValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT,
+        CoreValidationProblemId.MISSING_ANNOTATION,
+        CoreValidationProblemId.INCOMPATIBLE_ANNOTATIONS
     ])
     def "transform parameters are validated for input output annotations"() {
         settingsFile << """
@@ -445,7 +447,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
     }
 
     @ValidationTestFor(
-        ValidationProblemId.INVALID_USE_OF_TYPE_ANNOTATION
+        CoreValidationProblemId.INVALID_USE_OF_TYPE_ANNOTATION
     )
     def "transform parameters type cannot use caching annotations"() {
         settingsFile << """
@@ -495,7 +497,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
     }
 
     @ValidationTestFor(
-        ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT
+        CoreValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT
     )
     def "transform parameters type cannot use annotation @#ann.simpleName"() {
         settingsFile << """
@@ -590,11 +592,11 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
     }
 
     @ValidationTestFor([
-        ValidationProblemId.MISSING_NORMALIZATION_ANNOTATION,
-        ValidationProblemId.CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY,
-        ValidationProblemId.CONFLICTING_ANNOTATIONS,
-        ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT,
-        ValidationProblemId.MISSING_ANNOTATION
+        CoreValidationProblemId.MISSING_NORMALIZATION_ANNOTATION,
+        ArtifactValidationProblemId.CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY,
+        TypeMetadataValidationProblemId.CONFLICTING_ANNOTATIONS,
+        CoreValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT,
+        CoreValidationProblemId.MISSING_ANNOTATION
     ])
     def "transform action is validated for input output annotations"() {
         settingsFile << """
@@ -665,7 +667,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
     }
 
     @ValidationTestFor(
-        ValidationProblemId.INVALID_USE_OF_TYPE_ANNOTATION
+        CoreValidationProblemId.INVALID_USE_OF_TYPE_ANNOTATION
     )
     def "transform action type cannot use @#ann.simpleName"() {
         settingsFile << """
@@ -703,7 +705,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
     }
 
     @ValidationTestFor(
-        ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT
+        CoreValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT
     )
     def "transform action type cannot use annotation @#ann.simpleName"() {
         settingsFile << """
@@ -988,7 +990,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
     }
 
     @ValidationTestFor(
-        ValidationProblemId.INVALID_USE_OF_TYPE_ANNOTATION
+        CoreValidationProblemId.INVALID_USE_OF_TYPE_ANNOTATION
     )
     def "task implementation cannot use cacheable transform annotation"() {
         expectReindentedValidationMessage()
@@ -1010,7 +1012,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
     }
 
     @ValidationTestFor(
-        ValidationProblemId.INVALID_USE_OF_TYPE_ANNOTATION
+        CoreValidationProblemId.INVALID_USE_OF_TYPE_ANNOTATION
     )
     def "task @Nested bean cannot use cacheable annotations"() {
         expectReindentedValidationMessage()

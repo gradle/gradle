@@ -16,8 +16,8 @@
 
 package org.gradle.api.tasks
 
+import org.gradle.api.internal.validation.CoreValidationProblemId
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.reflect.validation.ValidationTestFor
 
@@ -29,7 +29,7 @@ class DirectorySensitivityErrorHandlingIntegrationSpec extends AbstractIntegrati
     }
 
     @ValidationTestFor(
-        ValidationProblemId.INCOMPATIBLE_ANNOTATIONS
+        CoreValidationProblemId.INCOMPATIBLE_ANNOTATIONS
     )
     def "fails when @IgnoreEmptyDirectories is applied to an #nonDirectoryInput.annotation annotation"() {
         createAnnotatedInputFileTask(nonDirectoryInput)
@@ -60,7 +60,7 @@ class DirectorySensitivityErrorHandlingIntegrationSpec extends AbstractIntegrati
     }
 
     @ValidationTestFor(
-        ValidationProblemId.INCOMPATIBLE_ANNOTATIONS
+        CoreValidationProblemId.INCOMPATIBLE_ANNOTATIONS
     )
     def "fails when @IgnoreEmptyDirectories is applied to an #output.annotation annotation"() {
         createAnnotatedOutputFileTask(output)

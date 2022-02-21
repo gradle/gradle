@@ -16,8 +16,8 @@
 
 package org.gradle.plugin.devel.tasks
 
+import org.gradle.api.internal.validation.CoreValidationProblemId
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.util.internal.GUtil
@@ -37,7 +37,7 @@ class PluginUnderTestMetadataIntegrationTest extends AbstractIntegrationSpec imp
     }
 
     @ValidationTestFor(
-        ValidationProblemId.VALUE_NOT_SET
+        CoreValidationProblemId.VALUE_NOT_SET
     )
     def "fails the task for null plugin classpath and output directory"() {
         given:

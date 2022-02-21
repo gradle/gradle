@@ -50,7 +50,7 @@ import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.reflect.DefaultTypeValidationContext
 import org.gradle.internal.reflect.PropertyMetadata
 import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore
-import org.gradle.internal.reflect.problems.ValidationProblemId
+import org.gradle.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.TypeValidationContext
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.reflect.validation.ValidationTestFor

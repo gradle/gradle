@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,29 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.reflect.problems;
 
-public enum ValidationProblemId {
-    // A problem id used only for test purposes
-    TEST_PROBLEM,
+package org.gradle.api.internal.validation;
 
-    // Now every time you add a new validation problem, you need
-    // to assign it an id, so that it can be referenced in tests
-    INVALID_USE_OF_TYPE_ANNOTATION,
-    MISSING_NORMALIZATION_ANNOTATION,
+import org.gradle.problems.ValidationProblemId;
+
+public enum CoreValidationProblemId implements ValidationProblemId {
     VALUE_NOT_SET,
-    CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY,
-    ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT,
-    IGNORED_ANNOTATIONS_ON_FIELD,
-    IGNORED_ANNOTATIONS_ON_METHOD,
-    MUTABLE_TYPE_WITH_SETTER,
-    REDUNDANT_GETTERS,
-    PRIVATE_GETTER_MUST_NOT_BE_ANNOTATED,
-    IGNORED_PROPERTY_MUST_NOT_BE_ANNOTATED,
-    CONFLICTING_ANNOTATIONS,
     ANNOTATION_INVALID_IN_CONTEXT,
     MISSING_ANNOTATION,
     INCOMPATIBLE_ANNOTATIONS,
+    INVALID_USE_OF_TYPE_ANNOTATION,
+    MISSING_NORMALIZATION_ANNOTATION,
     INCORRECT_USE_OF_INPUT_ANNOTATION,
     UNRESOLVABLE_INPUT,
     IMPLICIT_DEPENDENCY,
@@ -45,6 +34,10 @@ public enum ValidationProblemId {
     CANNOT_WRITE_TO_RESERVED_LOCATION,
     UNSUPPORTED_NOTATION,
     CANNOT_USE_OPTIONAL_ON_PRIMITIVE_TYPE,
-    UNKNOWN_IMPLEMENTATION,
-    NOT_CACHEABLE_WITHOUT_REASON
+    NOT_CACHEABLE_WITHOUT_REASON;
+
+    @Override
+    public String getId() {
+        return name();
+    }
 }

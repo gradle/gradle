@@ -17,7 +17,8 @@
 package org.gradle.internal.reflect.validation
 
 import groovy.transform.CompileStatic
-import org.gradle.internal.reflect.problems.ValidationProblemId
+import org.gradle.internal.reflect.annotations.TypeMetadataValidationProblemId
+import org.gradle.problems.ValidationProblemId
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.TextUtil
 import spock.lang.Specification
@@ -312,7 +313,7 @@ Please refer to https://docs.gradle.org/current/userguide/validation_problems.ht
     }
 
     @ValidationTestFor(
-        ValidationProblemId.INCOMPATIBLE_ANNOTATIONS
+        TypeMetadataValidationProblemId.INCOMPATIBLE_ANNOTATIONS
     )
     def "tests output of incompatibleAnnotations"() {
         when:

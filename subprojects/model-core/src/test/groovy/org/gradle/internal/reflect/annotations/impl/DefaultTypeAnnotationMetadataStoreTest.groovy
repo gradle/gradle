@@ -24,7 +24,7 @@ import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.reflect.AnnotationCategory
 import org.gradle.internal.reflect.DefaultTypeValidationContext
-import org.gradle.internal.reflect.problems.ValidationProblemId
+import org.gradle.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.reflect.validation.ValidationTestFor
 import spock.lang.Issue

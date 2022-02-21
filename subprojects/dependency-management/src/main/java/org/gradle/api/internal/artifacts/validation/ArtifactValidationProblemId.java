@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.reflect.validation
+package org.gradle.api.internal.artifacts.validation;
 
+import org.gradle.problems.ValidationProblemId;
 
-import java.lang.annotation.ElementType
-import java.lang.annotation.Retention
-import java.lang.annotation.RetentionPolicy
-import java.lang.annotation.Target
-/**
- * Used on tests to indicate that they are testing a particular
- * validation problem.
- */
-@Retention(RetentionPolicy.SOURCE)
-@Target([ElementType.METHOD, ElementType.TYPE])
-@interface ValidationTestFor {
-    def value();
+public enum ArtifactValidationProblemId implements ValidationProblemId {
+    CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY,
+    ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT;
+
+    @Override
+    public String getId() {
+        return name();
+    }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.reflect.validation
+package org.gradle.internal.reflect.annotations;
 
+import org.gradle.problems.ValidationProblemId;
 
-import java.lang.annotation.ElementType
-import java.lang.annotation.Retention
-import java.lang.annotation.RetentionPolicy
-import java.lang.annotation.Target
-/**
- * Used on tests to indicate that they are testing a particular
- * validation problem.
- */
-@Retention(RetentionPolicy.SOURCE)
-@Target([ElementType.METHOD, ElementType.TYPE])
-@interface ValidationTestFor {
-    def value();
+public enum TypeMetadataValidationProblemId implements ValidationProblemId {
+    IGNORED_ANNOTATIONS_ON_FIELD,
+    IGNORED_ANNOTATIONS_ON_METHOD,
+    MUTABLE_TYPE_WITH_SETTER,
+    REDUNDANT_GETTERS,
+    PRIVATE_GETTER_MUST_NOT_BE_ANNOTATED,
+    IGNORED_PROPERTY_MUST_NOT_BE_ANNOTATED,
+    CONFLICTING_ANNOTATIONS;
+
+    @Override
+    public String getId() {
+        return name();
+    }
 }

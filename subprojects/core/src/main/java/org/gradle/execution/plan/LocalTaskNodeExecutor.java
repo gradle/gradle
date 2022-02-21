@@ -27,9 +27,9 @@ import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.execution.DefaultTaskExecutionContext;
+import org.gradle.api.internal.validation.CoreValidationProblemId;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.reflect.validation.Severity;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.util.internal.TextUtil;
@@ -127,7 +127,7 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
                         throw e;
                     } else {
                         validationContext.visitPropertyProblem(problem ->
-                            problem.withId(ValidationProblemId.UNRESOLVABLE_INPUT)
+                            problem.withId(CoreValidationProblemId.UNRESOLVABLE_INPUT)
                                 .forProperty(spec.getPropertyName())
                                 .reportAs(Severity.WARNING)
                                 .withDescription(() -> String.format("cannot be resolved:%n%s%n", TextUtil.indent(e.getMessage(), "  ")))
@@ -222,7 +222,7 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
 
     private void collectValidationProblem(Node producer, Node consumer, TypeValidationContext validationContext, String consumerProducerPath) {
         validationContext.visitPropertyProblem(problem ->
-            problem.withId(ValidationProblemId.IMPLICIT_DEPENDENCY)
+            problem.withId(CoreValidationProblemId.IMPLICIT_DEPENDENCY)
                 .reportAs(Severity.WARNING)
                 .withDescription(() -> "Gradle detected a problem with the following location: '" + consumerProducerPath + "'")
                 .happensBecause(() -> String.format("Task '%s' uses this output of task '%s' without declaring an explicit or implicit dependency. "

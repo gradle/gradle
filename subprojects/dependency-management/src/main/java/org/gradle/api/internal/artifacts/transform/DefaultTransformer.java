@@ -29,6 +29,7 @@ import org.gradle.api.artifacts.transform.VariantTransformConfigurationException
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
+import org.gradle.api.internal.artifacts.validation.ArtifactValidationProblemId;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileLookup;
@@ -75,7 +76,6 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.reflect.DefaultTypeValidationContext;
-import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.reflect.validation.Severity;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.internal.service.ServiceLookup;
@@ -190,7 +190,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
         if (cacheable) {
             if (normalizer == AbsolutePathInputNormalizer.class) {
                 validationContext.visitPropertyProblem(problem ->
-                    problem.withId(ValidationProblemId.CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY)
+                    problem.withId(ArtifactValidationProblemId.CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY)
                         .reportAs(Severity.ERROR)
                         .forProperty(propertyName)
                         .withDescription("is declared to be sensitive to absolute paths")
@@ -345,7 +345,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
                     OutputFilePropertyType filePropertyType
                 ) {
                     validationContext.visitPropertyProblem(problem ->
-                        problem.withId(ValidationProblemId.ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT)
+                        problem.withId(ArtifactValidationProblemId.ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT)
                             .reportAs(Severity.ERROR)
                             .forProperty(propertyName)
                             .withDescription("declares an output")
