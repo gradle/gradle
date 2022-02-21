@@ -26,6 +26,8 @@ import spock.lang.Issue
 import java.util.function.Consumer
 import java.util.function.Predicate
 
+import static org.gradle.util.internal.TextUtil.escapeString
+
 class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
 
     private static final String CACHE_KEY_PATTERN = "[0-9a-f]+"
@@ -41,7 +43,6 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
     def "fails build when packing archive fails"() {
         when:
         file("input.txt") << "data"
-        def outputFolder = file('build/output')
 
         // Just a way to induce a packing error, i.e. corrupt/partial archive
         buildFile << """
@@ -51,8 +52,8 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
                 outputs.file "build/output" withPropertyName "output"
                 outputs.cacheIf { true }
                 doLast {
-                  mkdir('${outputFolder}')
-                  file('${outputFolder}/output.txt').text = file('input.txt').text
+                  mkdir('build/output')
+                  file('build/output/output.txt').text = file('input.txt').text
                 }
             }
         """
@@ -60,7 +61,7 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
         then:
         fails "customTask"
 
-        failureHasCause(~/Failed to store cache entry $CACHE_KEY_PATTERN for task ':customTask': Could not pack tree 'output': Expected '${outputFolder}' to be a file/)
+        failureHasCause(~/Failed to store cache entry $CACHE_KEY_PATTERN for task ':customTask': Could not pack tree 'output': Expected '${escapeString(file('build/output'))}' to be a file/)
         errorOutput =~ /Could not pack tree 'output'/
         localCache.empty
         localCache.listCacheTempFiles().empty
@@ -69,7 +70,6 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
     def "archive is not pushed to remote when packing fails"() {
         when:
         file("input.txt") << "data"
-        def outputFolder = file('build/output')
         settingsFile << remoteCache.remoteCacheConfiguration()
 
         // Just a way to induce a packing error, i.e. corrupt/partial archive
@@ -80,8 +80,8 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
                 outputs.file "build/output" withPropertyName "output"
                 outputs.cacheIf { true }
                 doLast {
-                  mkdir('${outputFolder}')
-                  file('${outputFolder}/output.txt').text = file('input.txt').text
+                  mkdir('build/output')
+                  file('build/output/output.txt').text = file('input.txt').text
                 }
             }
         """
@@ -90,7 +90,7 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
         fails "customTask"
 
         remoteCache.empty
-        failureHasCause(~/Failed to store cache entry $CACHE_KEY_PATTERN for task ':customTask': Could not pack tree 'output': Expected '${outputFolder}' to be a file/)
+        failureHasCause(~/Failed to store cache entry $CACHE_KEY_PATTERN for task ':customTask': Could not pack tree 'output': Expected '${escapeString(file('build/output'))}' to be a file/)
         errorOutput =~ /${RuntimeException.name}: Could not pack tree 'output'/
     }
 
