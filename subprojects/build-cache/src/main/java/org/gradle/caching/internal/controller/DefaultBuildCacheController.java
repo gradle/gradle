@@ -131,7 +131,7 @@ public class DefaultBuildCacheController implements BuildCacheController {
         try {
             return local.maybeLoad(key, file -> packExecutor.unpack(key, entity, file));
         } catch (Exception e) {
-            throw new GradleException("Build cache entry " + key.getHashCode() + " from local build cache is invalid", e);
+            throw new GradleException("Local build cache load exception: " + e.getMessage(), e);
         }
     }
 
@@ -145,7 +145,7 @@ public class DefaultBuildCacheController implements BuildCacheController {
             try {
                 remoteResult = remote.maybeLoad(key, file, f -> packExecutor.unpack(key, entity, f));
             } catch (Exception e) {
-                throw BuildCacheLoadException.forLocalCache(key.getHashCode(), e);
+                throw new GradleException("Remote build cache load exception: " + e.getMessage(), e);
             }
             if (remoteResult.isPresent()) {
                 local.maybeStore(key, file);

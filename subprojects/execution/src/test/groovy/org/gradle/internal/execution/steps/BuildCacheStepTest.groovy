@@ -19,7 +19,6 @@ package org.gradle.internal.execution.steps
 import org.gradle.caching.BuildCacheKey
 import org.gradle.caching.internal.CacheableEntity
 import org.gradle.caching.internal.controller.BuildCacheController
-import org.gradle.caching.internal.controller.BuildCacheLoadException
 import org.gradle.caching.internal.controller.service.BuildCacheLoadResult
 import org.gradle.caching.internal.origin.OriginMetadata
 import org.gradle.internal.Try
@@ -119,13 +118,14 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
     def "fails after #exceptionName unpack failure with descriptive error"() {
         def loadedOutputFile = file("output.txt")
         def loadedOutputDir = file("output")
+        def failure = new RuntimeException("unpack failure")
 
         when:
         step.execute(work, context)
 
         then:
         def ex = thrown Exception
-        ex.message == "Failed to load cache entry $cacheKeyHashCode from $cacheName for job ':test': unpack failure"
+        ex.message == "Failed to load cache entry 30a042b90a for job ':test': unpack failure"
         ex.cause == failure
 
         interaction { withValidCacheKey() }
@@ -141,11 +141,6 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
 
         then:
         0 * _
-
-        where:
-        exceptionName             | failure                                                                            | cacheName
-        "RuntimeException"        | new RuntimeException("unpack failure")                                             | "build cache"
-        "BuildCacheLoadException" | BuildCacheLoadException.forRemoteCache("", new RuntimeException("unpack failure")) | "remote build cache"
     }
 
     def "does not store untracked result in cache"() {

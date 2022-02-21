@@ -22,7 +22,6 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.CacheableEntity;
 import org.gradle.caching.internal.controller.BuildCacheController;
-import org.gradle.caching.internal.controller.BuildCacheLoadException;
 import org.gradle.caching.internal.controller.service.BuildCacheLoadResult;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Try;
@@ -121,25 +120,16 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExec
                 })
                 .orElseGet(() -> executeAndStoreInCache(cacheableWork, cacheKey, context))
             )
-            .getOrMapFailure(loadFailure -> mapAndThrowFailure(work, cacheKey, loadFailure));
-    }
-
-    private AfterExecutionResult mapAndThrowFailure(UnitOfWork work, BuildCacheKey cacheKey, Throwable loadFailure) {
-        String cacheName = "build cache";
-        String loadFailureMessage = loadFailure.getMessage();
-        if (loadFailure instanceof BuildCacheLoadException) {
-            cacheName = ((BuildCacheLoadException) loadFailure).getCacheName();
-            loadFailureMessage = loadFailure.getCause().getMessage();
-        }
-        throw new RuntimeException(
-            String.format("Failed to load cache entry %s from %s for %s: %s",
-                cacheKey.getHashCode(),
-                cacheName,
-                work.getDisplayName(),
-                loadFailureMessage
-            ),
-            loadFailure
-        );
+            .getOrMapFailure(loadFailure -> {
+                throw new RuntimeException(
+                    String.format("Failed to load cache entry %s for %s: %s",
+                        cacheKey.getHashCode(),
+                        work.getDisplayName(),
+                        loadFailure.getMessage()
+                    ),
+                    loadFailure
+                );
+            });
     }
 
     private void cleanLocalState(File workspace, UnitOfWork work) {

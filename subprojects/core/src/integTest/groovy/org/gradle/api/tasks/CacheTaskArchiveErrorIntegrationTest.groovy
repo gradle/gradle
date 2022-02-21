@@ -26,9 +26,9 @@ import spock.lang.Issue
 import java.util.function.Consumer
 import java.util.function.Predicate
 
-import static org.gradle.util.Matchers.matchesRegexp
-
 class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
+
+    private static final String CACHE_KEY_PATTERN = "[0-9a-f]+"
 
     def localCache = new TestBuildCache(file("local-cache"))
     def remoteCache = new TestBuildCache(file("remote-cache"))
@@ -59,7 +59,7 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
         then:
         fails "customTask"
 
-        failureHasCause(matchesRegexp("Failed to store cache entry [0-9a-z]+ for task ':customTask': Could not pack tree 'output'.*"))
+        failureHasCause(~/Failed to store cache entry $CACHE_KEY_PATTERN for task ':customTask': Could not pack tree 'output'.*/)
         errorOutput =~ /Could not pack tree 'output'/
         localCache.empty
         localCache.listCacheTempFiles().empty
@@ -88,7 +88,7 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
         fails "customTask"
 
         remoteCache.empty
-        failureHasCause(matchesRegexp("Failed to store cache entry [0-9a-z]+ for task ':customTask': Could not pack tree 'output'.*"))
+        failureHasCause(~/Failed to store cache entry $CACHE_KEY_PATTERN for task ':customTask': Could not pack tree 'output'.*/)
         errorOutput =~ /${RuntimeException.name}: Could not pack tree 'output'/
     }
 
@@ -119,7 +119,7 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         fails("clean", "customTask")
-        failureHasCause(matchesRegexp("Failed to load cache entry [0-9a-z]+ from remote build cache for task ':customTask': Not in GZIP format"))
+        failureHasCause(~/Failed to load cache entry $CACHE_KEY_PATTERN for task ':customTask': Remote build cache load exception: Not in GZIP format/)
 
         and:
         localCache.listCacheFiles().empty
@@ -152,7 +152,7 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         fails("clean", "customTask")
-        failureHasCause(matchesRegexp("Failed to load cache entry [0-9a-z]+ from local build cache for task ':customTask': Unexpected end of ZLIB input stream"))
+        failureHasCause(~/Failed to load cache entry $CACHE_KEY_PATTERN for task ':customTask': Local build cache load exception: Unexpected end of ZLIB input stream/)
         errorOutput.contains("Caused by: java.io.EOFException: Unexpected end of ZLIB input stream")
         localCache.listCacheFailedFiles().size() == 1
 
@@ -220,7 +220,7 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
         when:
         fails "producesLink"
         then:
-        failureHasCause(matchesRegexp("Failed to store cache entry [0-9a-z]+ for task ':producesLink': Could not pack tree 'outputDirectory'.*"))
+        failureHasCause(~/Failed to store cache entry $CACHE_KEY_PATTERN for task ':producesLink': Could not pack tree 'outputDirectory'.*/)
         errorOutput.contains("Couldn't read content of file '${link}'")
     }
 
