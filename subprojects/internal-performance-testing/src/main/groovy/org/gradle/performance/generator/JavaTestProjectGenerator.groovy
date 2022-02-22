@@ -99,12 +99,12 @@ enum JavaTestProjectGenerator {
         .withCompilerMemory('256m')
         .assembleChangeFile()
         .create()),
-    MEDIUM_JAVA_MULTI_PROJECT_WITH_DEPENDENCY_ON_PROJECT_0(new TestProjectGeneratorConfigurationBuilder("mediumJavaMultiProjectWithProject0Dep")
-        .withSourceFiles(100)
+    MEDIUM_JAVA_MULTI_PROJECT_WITH_API_PROJECT_DEPENDENCIES(new TestProjectGeneratorConfigurationBuilder("mediumJavaMultiProjectWithAPIProjectDependencies")
+        .withSourceFiles(1000)
         .withSubProjects(100)
-        .withApiDependencies([0])
-        .withDaemonMemory('512m')
-        .withCompilerMemory('256m')
+        .withApiDependencies([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+        .withDaemonMemory('5120m')
+        .withCompilerMemory('2560m')
         .assembleChangeFile()
         .create()),
     MEDIUM_JAVA_COMPOSITE_BUILD(new TestProjectGeneratorConfigurationBuilder("mediumJavaCompositeBuild", "mediumJavaMultiProject")

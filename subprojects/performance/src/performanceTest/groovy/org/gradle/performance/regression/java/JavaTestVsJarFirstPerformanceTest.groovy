@@ -29,12 +29,12 @@ class JavaTestVsJarFirstPerformanceTest extends AbstractCrossVersionPerformanceT
     }
 
     @RunFor([
-            @Scenario(type = PER_DAY, operatingSystems = [LINUX], testProjects = ["mediumJavaMultiProjectWithProject0Dep"])
+            @Scenario(type = PER_DAY, operatingSystems = [LINUX], testProjects = ["mediumJavaMultiProjectWithAPIProjectDependencies"])
     ])
     def "test is faster with running jar first"() {
         given:
-        runner.warmUpRuns = 5
-        runner.runs = 10
+        runner.warmUpRuns = 10
+        runner.runs = 50
         runner.tasksToRun = ['clean', 'test']
 
         when:
