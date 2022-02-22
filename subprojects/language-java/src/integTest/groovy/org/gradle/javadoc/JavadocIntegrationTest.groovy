@@ -16,11 +16,9 @@
 package org.gradle.javadoc
 
 import org.gradle.api.JavaVersion
-import org.gradle.api.attributes.java.TargetJvmVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
