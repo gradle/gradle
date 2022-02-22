@@ -263,5 +263,5 @@ public interface ProviderFactory {
      *
      * @since 6.6
      */
-    <A, B, R> Provider<R> zip(Provider<A> first, Provider<B> second, BiFunction<A, B, R> combiner);
+    <A, B, R> Provider<R> zip(Provider<A> first, Provider<B> second, BiFunction<? super A, ? super B, ? extends R> combiner);
 }
