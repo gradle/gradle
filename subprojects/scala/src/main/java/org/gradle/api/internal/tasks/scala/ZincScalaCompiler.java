@@ -39,8 +39,8 @@ import sbt.internal.inc.ScalaInstance;
 import sbt.internal.inc.Stamper;
 import scala.Option;
 import scala.Some;
-import scala.collection.JavaConverters;
 import scala.collection.immutable.Set;
+import scala.jdk.javaapi.CollectionConverters;
 import xsbti.T2;
 import xsbti.VirtualFile;
 import xsbti.VirtualFileRef;
@@ -233,7 +233,7 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec> {
             if (result.isEmpty()) {
                 return Option.empty();
             } else {
-                return new Some<>(JavaConverters.asScalaBuffer(result).toSet());
+                return new Some<>(CollectionConverters.asScala(result).toSet());
             }
         }
 
