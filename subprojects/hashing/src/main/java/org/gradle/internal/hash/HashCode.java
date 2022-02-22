@@ -28,21 +28,16 @@ import java.math.BigInteger;
  * An immutable hash code. Must be 4-255 bytes long.
  * Inspired by the Google Guava project – https://github.com/google/guava.
  */
-public class HashCode implements Serializable, Comparable<HashCode> {
+public abstract class HashCode implements Serializable, Comparable<HashCode> {
     private static final int MIN_NUMBER_OF_BYTES = 4;
     private static final int MAX_NUMBER_OF_BYTES = 255;
     private static final char[] HEX_DIGITS = "0123456789abcdef".toCharArray();
 
-    private final byte[] bytes;
-
-    private long hashCode;
-
-    private HashCode(byte[] bytes) {
-        this.bytes = bytes;
+    private HashCode() {
     }
 
     static HashCode fromBytesNoCopy(byte[] bytes) {
-        return new HashCode(bytes);
+        return new ByteArrayBackedHashCode(bytes);
     }
 
     public static HashCode fromBytes(byte[] bytes) {
@@ -95,85 +90,31 @@ public class HashCode implements Serializable, Comparable<HashCode> {
         throw new IllegalArgumentException("Illegal hexadecimal character: " + ch);
     }
 
-    public int length() {
-        return bytes.length;
-    }
+    public abstract int length();
 
-    public byte[] toByteArray() {
-        return bytes.clone();
-    }
+    public abstract byte[] toByteArray();
 
     @Override
-    public int hashCode() {
-        if (hashCode == 0) {
-            hashCode = (bytes[0] & 0xFF)
-                | ((bytes[1] & 0xFF) << 8)
-                | ((bytes[2] & 0xFF) << 16)
-                | ((bytes[3] & 0xFF) << 24)
-                // Make sure it's always > 0 but without affecting the lower 32 bits
-                | (1L << 32);
-        }
-        return (int) hashCode;
-    }
+    public abstract int hashCode();
 
     @Override
-    public boolean equals(@Nullable Object obj) {
-        if (obj == this) {
-            return true;
-        }
-
-        if (obj == null || obj.getClass() != HashCode.class) {
-            return false;
-        }
-
-        byte[] a = bytes;
-        byte[] b = ((HashCode) obj).bytes;
-        int length = a.length;
-
-        if (b.length != length) {
-            return false;
-        }
-
-        for (int i = 0; i < length; i++) {
-            if (a[i] != b[i]) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    @Override
-    public int compareTo(@Nonnull HashCode o) {
-        byte[] bytes2 = o.bytes;
-        int result;
-        int len1 = bytes.length;
-        int len2 = bytes2.length;
-        int length = Math.min(len1, len2);
-        for (int idx = 0; idx < length; idx++) {
-            result = bytes[idx] - bytes2[idx];
-            if (result != 0) {
-                return result;
-            }
-        }
-        return len1 - len2;
-    }
+    public abstract boolean equals(@Nullable Object obj);
 
     @Override
     public String toString() {
-        StringBuilder sb = toStringBuilder(2 * bytes.length);
+        StringBuilder sb = toStringBuilder(2 * length(), bytes());
         return sb.toString();
     }
 
     public String toZeroPaddedString(int length) {
-        StringBuilder sb = toStringBuilder(length);
+        StringBuilder sb = toStringBuilder(length, bytes());
         while (sb.length() < length) {
             sb.insert(0, '0');
         }
         return sb.toString();
     }
 
-    private StringBuilder toStringBuilder(int capacity) {
+    private static StringBuilder toStringBuilder(int capacity, byte[] bytes) {
         StringBuilder sb = new StringBuilder(capacity);
         for (byte b : bytes) {
             sb.append(HEX_DIGITS[(b >> 4) & 0xf]).append(HEX_DIGITS[b & 0xf]);
@@ -182,11 +123,97 @@ public class HashCode implements Serializable, Comparable<HashCode> {
     }
 
     public String toCompactString() {
-        return new BigInteger(1, bytes).toString(36);
+        return new BigInteger(1, bytes()).toString(36);
     }
 
     // Package private accessor used by MessageDigestHasher.putHash()
-    void appendToHasher(PrimitiveHasher hasher) {
-        hasher.putBytes(bytes);
+    abstract void appendToHasher(PrimitiveHasher hasher);
+
+    abstract byte[] bytes();
+
+    static class ByteArrayBackedHashCode extends HashCode {
+        private final byte[] bytes;
+        private long hashCode;
+
+        public ByteArrayBackedHashCode(byte[] bytes) {
+            this.bytes = bytes;
+        }
+
+        @Override
+        public int length() {
+            return bytes.length;
+        }
+
+        @Override
+        byte[] bytes() {
+            return bytes;
+        }
+
+        @Override
+        public byte[] toByteArray() {
+            return bytes.clone();
+        }
+
+        @Override
+        void appendToHasher(PrimitiveHasher hasher) {
+            hasher.putBytes(bytes);
+        }
+
+        @Override
+        public int hashCode() {
+            if (hashCode == 0) {
+                hashCode = (bytes[0] & 0xFF)
+                    | ((bytes[1] & 0xFF) << 8)
+                    | ((bytes[2] & 0xFF) << 16)
+                    | ((bytes[3] & 0xFF) << 24)
+                    // Make sure it's always > 0 but without affecting the lower 32 bits
+                    | (1L << 32);
+            }
+            return (int) hashCode;
+        }
+
+        @Override
+        public boolean equals(@Nullable Object obj) {
+            if (obj == this) {
+                return true;
+            }
+
+            if (obj == null || obj.getClass() != ByteArrayBackedHashCode.class) {
+                return false;
+            }
+
+            byte[] a = bytes;
+            byte[] b = ((ByteArrayBackedHashCode) obj).bytes;
+            int length = a.length;
+
+            if (b.length != length) {
+                return false;
+            }
+
+            for (int i = 0; i < length; i++) {
+                if (a[i] != b[i]) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        @Override
+        public int compareTo(@Nonnull HashCode o) {
+            byte[] a = this.bytes;
+            byte[] b = o.bytes();
+            int result;
+            int len1 = a.length;
+            int len2 = b.length;
+            int length = Math.min(len1, len2);
+            for (int idx = 0; idx < length; idx++) {
+                result = a[idx] - b[idx];
+                if (result != 0) {
+                    return result;
+                }
+            }
+            return len1 - len2;
+        }
     }
 }
