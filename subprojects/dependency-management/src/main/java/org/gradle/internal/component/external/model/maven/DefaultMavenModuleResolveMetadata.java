@@ -29,14 +29,12 @@ import org.gradle.internal.component.external.descriptor.MavenScope;
 import org.gradle.internal.component.external.model.AbstractLazyModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.ConfigurationBoundExternalDependencyMetadata;
 import org.gradle.internal.component.external.model.DefaultConfigurationMetadata;
-import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.external.model.VariantDerivationStrategy;
 import org.gradle.internal.component.external.model.VariantMetadataRules;
 import org.gradle.internal.component.model.ConfigurationMetadata;
-import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleSources;
 
@@ -94,7 +92,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
     @Override
     protected DefaultConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableSet<String> parents, VariantMetadataRules componentMetadataRules) {
         ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts = getArtifactsForConfiguration(name);
-        final DefaultConfigurationMetadata configuration = new DefaultConfigurationMetadata(componentId, name, transitive, visible, parents, artifacts, componentMetadataRules, ImmutableList.of(), getAttributes(), true, false);
+        final DefaultConfigurationMetadata configuration = new DefaultConfigurationMetadata(componentId, name, transitive, visible, parents, artifacts, componentMetadataRules, ImmutableList.of(), getAttributes(), false);
         configuration.setConfigDependenciesFactory(new Factory<List<ModuleDependencyMetadata>>() {
             @Nullable
             @Override
@@ -134,14 +132,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
     }
 
     private ImmutableList<? extends ModuleComponentArtifactMetadata> getArtifactsForConfiguration(String name) {
-        ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts;
-        if (name.equals("compile") || name.equals("runtime") || name.equals("default") || name.equals("test")) {
-            String type = isKnownJarPackaging() ? "jar" : packaging;
-            artifacts = ImmutableList.of(new DefaultModuleComponentArtifactMetadata(getId(), new DefaultIvyArtifactName(getId().getModule(), type, type)));
-        } else {
-            artifacts = ImmutableList.of();
-        }
-        return artifacts;
+        return RealisedMavenModuleResolveMetadata.getArtifactsForConfiguration(this, name);
     }
 
     private ImmutableList<ModuleDependencyMetadata> filterDependencies(DefaultConfigurationMetadata config) {

@@ -26,6 +26,7 @@ import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.remote.ObjectConnection
 import org.gradle.internal.work.WorkerLeaseRegistry
+import org.gradle.internal.work.WorkerThreadRegistry
 import org.gradle.process.JavaForkOptions
 import org.gradle.process.internal.ExecException
 import org.gradle.process.internal.JavaExecHandleBuilder
@@ -37,7 +38,7 @@ import spock.lang.Subject
 
 class ForkingTestClassProcessorTest extends Specification {
     WorkerLeaseRegistry.WorkerLeaseCompletion workerLease = Mock(WorkerLeaseRegistry.WorkerLeaseCompletion)
-    WorkerLeaseRegistry workerLeaseRegistry = Mock(WorkerLeaseRegistry)
+    WorkerThreadRegistry workerLeaseRegistry = Mock(WorkerThreadRegistry)
     WorkerProcessBuilder workerProcessBuilder = Mock(WorkerProcessBuilder)
     WorkerProcess workerProcess = Mock(WorkerProcess)
     ModuleRegistry moduleRegistry = Mock(ModuleRegistry)

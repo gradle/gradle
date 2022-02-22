@@ -53,6 +53,7 @@ import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -65,6 +66,7 @@ import static org.gradle.internal.component.external.model.maven.DefaultMavenMod
  * @see DefaultMavenModuleResolveMetadata
  */
 public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleComponentResolveMetadata implements MavenModuleResolveMetadata {
+    private static final Set<String> KNOWN_SCOPES = ImmutableSet.of(MavenScope.Compile.getLowerName(), MavenScope.Test.getLowerName(), MavenScope.Runtime.getLowerName(), "default");
 
     /**
      * Factory method to transform a {@link DefaultMavenModuleResolveMetadata}, which is lazy, in a realised version.
@@ -96,7 +98,6 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
                         derivedVariant.getExcludes(),
                         derivedVariant.getAttributes(),
                         (ImmutableCapabilities) derivedVariant.getCapabilities(),
-                        derivedVariant.requiresMavenArtifactDiscovery(),
                         dependencies,
                         false,
                         derivedVariant.isExternalVariant()
@@ -170,7 +171,7 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
         List<? extends DependencyMetadata> dependenciesMetadata = variantMetadataRules.applyDependencyMetadataRules(variant, dependencies);
         ImmutableList<? extends ModuleComponentArtifactMetadata> artifactsMetadata = variantMetadataRules.applyVariantFilesMetadataRulesToArtifacts(variant, artifacts, id);
         boolean mavenArtifactDiscovery = artifactsMetadata == artifacts;
-        return createConfiguration(id, configurationName, transitive, visible, hierarchy, artifactsMetadata, dependenciesMetadata, variantAttributes, ImmutableCapabilities.of(capabilitiesMetadata.getCapabilities()), mavenArtifactDiscovery, addedByRule, isExternalVariant);
+        return createConfiguration(id, configurationName, transitive, visible, hierarchy, artifactsMetadata, dependenciesMetadata, variantAttributes, ImmutableCapabilities.of(capabilitiesMetadata.getCapabilities()), addedByRule, isExternalVariant);
     }
 
     private static RealisedConfigurationMetadata createConfiguration(DefaultMavenModuleResolveMetadata metadata, String configurationName) {
@@ -179,34 +180,48 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
         ImmutableSet<String> hierarchy = LazyToRealisedModuleComponentResolveMetadataHelper.constructHierarchy(configuration, configurationDefinitions);
         return createConfiguration(metadata.getId(), configurationName, configuration.isTransitive(), configuration.isVisible(), hierarchy,
             getArtifactsForConfiguration(metadata, configurationName), ((ModuleConfigurationMetadata) metadata.getConfiguration(configurationName)).getDependencies(),
-            metadata.getAttributes(), ImmutableCapabilities.EMPTY, true, false, metadata.isExternalVariant());
+            metadata.getAttributes(), ImmutableCapabilities.EMPTY, false, metadata.isExternalVariant());
     }
 
-    private static RealisedConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId,
-                                                                     String name,
-                                                                     boolean transitive,
-                                                                     boolean visible,
-                                                                     ImmutableSet<String> hierarchy,
-                                                                     ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts,
-                                                                     List<? extends DependencyMetadata> dependencies,
-                                                                     ImmutableAttributes attributes,
-                                                                     ImmutableCapabilities capabilities,
-                                                                     boolean mavenArtifactDiscovery,
-                                                                     boolean addedByRule,
-                                                                     boolean isExternalVariant) {
+    private static RealisedConfigurationMetadata createConfiguration(
+            ModuleComponentIdentifier componentId,
+            String name,
+            boolean transitive,
+            boolean visible,
+            ImmutableSet<String> hierarchy,
+            ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts,
+            List<? extends DependencyMetadata> dependencies,
+            ImmutableAttributes attributes,
+            ImmutableCapabilities capabilities,
+            boolean addedByRule,
+            boolean isExternalVariant
+    ) {
         ImmutableList<ModuleDependencyMetadata> asImmutable = ImmutableList.copyOf(Cast.<List<ModuleDependencyMetadata>>uncheckedCast(dependencies));
-        return new RealisedConfigurationMetadata(componentId, name, transitive, visible, hierarchy, artifacts, ImmutableList.of(), attributes, capabilities, mavenArtifactDiscovery, asImmutable, addedByRule, isExternalVariant);
+        return new RealisedConfigurationMetadata(componentId, name, transitive, visible, hierarchy, artifacts, ImmutableList.of(), attributes, capabilities, asImmutable, addedByRule, isExternalVariant);
     }
 
     static ImmutableList<? extends ModuleComponentArtifactMetadata> getArtifactsForConfiguration(DefaultMavenModuleResolveMetadata metadata, String name) {
         ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts;
-        if (name.equals("compile") || name.equals("runtime") || name.equals("default") || name.equals("test")) {
-            String type = metadata.isKnownJarPackaging() ? "jar" :  metadata.getPackaging();
-            artifacts = ImmutableList.of(new DefaultModuleComponentArtifactMetadata(metadata.getId(), new DefaultIvyArtifactName(metadata.getId().getModule(), type, type)));
+        if (metadata.isKnownJarPackaging()) {
+            artifacts = ImmutableList.of(createJarArtifactMetadata(metadata.getId()));
+        } else if (KNOWN_SCOPES.contains(name)) {
+            String type = metadata.getPackaging();
+            artifacts = ImmutableList.of(new DefaultModuleComponentArtifactMetadata(metadata.getId(), new DefaultIvyArtifactName(metadata.getId().getModule(), type, type),
+                createJarArtifactMetadata(metadata.getId())));
         } else {
             artifacts = ImmutableList.of();
         }
         return artifacts;
+    }
+
+    /**
+     * Convenience method to create metadata specific to the jar artifact for a given component
+     *
+     * @param id the source component's metadata, from which a jar artifact will be derived
+     * @return a copy of the component's metadata which expects an artifact with type and extension of {@code jar}
+     */
+    private static ModuleComponentArtifactMetadata createJarArtifactMetadata(ModuleComponentIdentifier id) {
+        return new DefaultModuleComponentArtifactMetadata(id, new DefaultIvyArtifactName(id.getModule(), "jar", "jar"));
     }
 
     private static ImmutableList<ModuleDependencyMetadata> filterDependencies(ModuleComponentIdentifier componentId, ConfigurationMetadata config, ImmutableList<MavenDependencyDescriptor> dependencies) {

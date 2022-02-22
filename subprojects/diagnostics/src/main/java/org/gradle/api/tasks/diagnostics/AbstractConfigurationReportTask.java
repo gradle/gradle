@@ -38,6 +38,7 @@ import org.gradle.api.tasks.diagnostics.internal.configurations.renderer.Console
 import org.gradle.api.tasks.diagnostics.internal.configurations.spec.AbstractConfigurationReportSpec;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
+import org.gradle.internal.serialization.Cached;
 import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.work.DisableCachingByDefault;
 
@@ -56,6 +57,7 @@ import java.io.FileWriter;
 @DisableCachingByDefault(because = "Produces only non-cacheable console output")
 public abstract class AbstractConfigurationReportTask extends DefaultTask implements Reporting<ConfigurationReports> {
     private final ConfigurationReports reports;
+    private final Cached<ConfigurationReportModel> reportModel = Cached.of(this::createReportModel);
 
     @Inject protected abstract ObjectFactory getObjectFactory();
     @Inject protected abstract StyledTextOutputFactory getTextOutputFactory();
@@ -104,12 +106,16 @@ public abstract class AbstractConfigurationReportTask extends DefaultTask implem
         return reports;
     }
 
+    private ConfigurationReportModel createReportModel() {
+        return buildReportModel(getProject());
+    }
+
     @TaskAction
     public final void report() {
         final AbstractConfigurationReportSpec reportSpec = buildReportSpec();
-        final ConfigurationReportModel reportModel = buildReportModel(getProject());
+        final ConfigurationReportModel model = reportModel.get();
 
-        reportToConsole(reportSpec, reportModel);
+        reportToConsole(reportSpec, model);
     }
 
     private void reportToFile(SingleFileReport report, AbstractConfigurationReportSpec reportSpec, ConfigurationReportModel reportModel) {
@@ -119,7 +125,7 @@ public abstract class AbstractConfigurationReportTask extends DefaultTask implem
         try (FileWriter fw = new FileWriter(outputFile)) {
             renderer.render(reportModel, fw);
         } catch (Exception e) {
-            throw new GradleException("Failed to write '" + report.getName() +  "' report to " + outputFile, e);
+            throw new GradleException("Failed to write '" + report.getName() + "' report to " + outputFile, e);
         }
     }
 

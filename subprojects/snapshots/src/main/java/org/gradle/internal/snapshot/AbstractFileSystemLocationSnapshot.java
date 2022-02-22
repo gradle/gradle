@@ -90,11 +90,11 @@ public abstract class AbstractFileSystemLocationSnapshot implements FileSystemLo
     }
 
     @Override
-    public ReadOnlyFileSystemNode getNode(VfsRelativePath relativePath, CaseSensitivity caseSensitivity) {
-        return getChildNode(relativePath, caseSensitivity);
+    public Optional<FileSystemNode> getNode(VfsRelativePath relativePath, CaseSensitivity caseSensitivity) {
+        return Optional.of(getChildNode(relativePath, caseSensitivity));
     }
 
-    protected ReadOnlyFileSystemNode getChildNode(VfsRelativePath relativePath, CaseSensitivity caseSensitivity) {
+    protected FileSystemNode getChildNode(VfsRelativePath relativePath, CaseSensitivity caseSensitivity) {
         return missingSnapshotForAbsolutePath(relativePath.getAbsolutePath());
     }
 

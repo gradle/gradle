@@ -35,7 +35,6 @@ import org.gradle.internal.component.external.model.ModuleComponentArtifactMetad
 import org.gradle.internal.component.external.model.maven.MavenModuleResolveMetadata;
 import org.gradle.internal.component.external.model.maven.MutableMavenModuleResolveMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
-import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.component.model.MutableModuleSources;
 import org.gradle.internal.hash.ChecksumService;
@@ -222,14 +221,13 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
 
     private class MavenLocalRepositoryAccess extends LocalRepositoryAccess {
         @Override
-        protected void resolveModuleArtifacts(MavenModuleResolveMetadata module, ConfigurationMetadata variant, BuildableComponentArtifactsResolveResult result) {
-            if (!variant.requiresMavenArtifactDiscovery()) {
+        protected void resolveModuleArtifacts(MavenModuleResolveMetadata module, BuildableComponentArtifactsResolveResult result) {
+            if (module.isRelocated()) {
+                result.resolved(new FixedComponentArtifacts(Collections.emptyList()));
+            } else if (module.hasVariants() && !module.isPomPackaging()) {
                 result.resolved(new MetadataSourcedComponentArtifacts());
             } else if (module.isKnownJarPackaging()) {
-                ModuleComponentArtifactMetadata artifact = module.artifact("jar", "jar", null);
-                result.resolved(new FixedComponentArtifacts(ImmutableSet.of(artifact)));
-            } else if (module.isRelocated()) {
-                result.resolved(new FixedComponentArtifacts(Collections.emptyList()));
+                result.resolved(new MetadataSourcedComponentArtifacts());
             }
         }
 
@@ -246,7 +244,7 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
 
     private class MavenRemoteRepositoryAccess extends RemoteRepositoryAccess {
         @Override
-        protected void resolveModuleArtifacts(MavenModuleResolveMetadata module, ConfigurationMetadata variant, BuildableComponentArtifactsResolveResult result) {
+        protected void resolveModuleArtifacts(MavenModuleResolveMetadata module, BuildableComponentArtifactsResolveResult result) {
             if (module.isPomPackaging()) {
                 result.resolved(new FixedComponentArtifacts(findOptionalArtifacts(module, "jar", null)));
             } else {

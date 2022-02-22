@@ -64,8 +64,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         ].combinations()
     }
 
-    // TODO re-enable this test with AGP 7.3 once a version supporting CC is released
-    @UnsupportedWithConfigurationCache(iterationMatchers = [AGP_NO_CC_ITERATION_MATCHER, ".*agp=7\\.3\\..*"])
+    @UnsupportedWithConfigurationCache(iterationMatchers = AGP_NO_CC_ITERATION_MATCHER)
     def "android library and application APK assembly (agp=#agpVersion, ide=#ide)"() {
 
         given:

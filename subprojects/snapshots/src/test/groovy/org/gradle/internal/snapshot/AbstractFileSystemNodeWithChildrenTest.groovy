@@ -122,8 +122,8 @@ abstract class AbstractFileSystemNodeWithChildrenTest<NODE extends FileSystemNod
         1 * selectedChild.getSnapshot(searchedPath.pathFromChild(selectedChildPath), CASE_SENSITIVE) >> Optional.ofNullable(foundSnapshot)
     }
 
-    def getDescendantNodeOfSelectedChild(ReadOnlyFileSystemNode foundNode) {
-        1 * selectedChild.getNode(searchedPath.pathFromChild(selectedChildPath), CASE_SENSITIVE) >> foundNode
+    def getDescendantNodeOfSelectedChild(@Nullable FileSystemNode foundNode) {
+        1 * selectedChild.getNode(searchedPath.pathFromChild(selectedChildPath), CASE_SENSITIVE) >> Optional.ofNullable(foundNode)
     }
 
     def invalidateDescendantOfSelectedChild(@Nullable FileSystemNode invalidatedChild) {

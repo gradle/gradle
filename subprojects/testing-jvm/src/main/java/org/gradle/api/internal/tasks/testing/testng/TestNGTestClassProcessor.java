@@ -38,6 +38,7 @@ import org.testng.ITestListener;
 import org.testng.TestNG;
 
 import java.io.File;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -109,7 +110,11 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
         if (options.getThreadCount() > 0) {
             testNg.setThreadCount(options.getThreadCount());
         }
-        invokeVerifiedMethod(testNg, "setConfigFailurePolicy", String.class, options.getConfigFailurePolicy(), DEFAULT_CONFIG_FAILURE_POLICY);
+
+        Class<?> configFailurePolicyArgType = getConfigFailurePolicyArgType(testNg);
+        Object configFailurePolicyArgValue = getConfigFailurePolicyArgValue(testNg);
+
+        invokeVerifiedMethod(testNg, "setConfigFailurePolicy", configFailurePolicyArgType, configFailurePolicyArgValue, DEFAULT_CONFIG_FAILURE_POLICY);
         invokeVerifiedMethod(testNg, "setPreserveOrder", boolean.class, options.getPreserveOrder(), false);
         invokeVerifiedMethod(testNg, "setGroupByInstances", boolean.class, options.getGroupByInstances(), false);
         testNg.setUseDefaultListeners(options.getUseDefaultListeners());
@@ -139,6 +144,52 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
         }
         testNg.addListener((Object) adaptListener(new TestNGTestResultProcessorAdapter(resultProcessor, idGenerator, clock)));
         testNg.run();
+    }
+
+    /**
+     * The setter for configFailurePolicy has a different signature depending on TestNG version.  This method uses reflection to
+     * detect the API and return a reference to the correct argument type.
+     * <ul>
+     *     <li>When TestNG &gt;= 6.9.12, {@link TestNG#setConfigFailurePolicy(org.testng.xml.XmlSuite$FailurePolicy)}</li>
+     *     <li>When TestNG &lt; 6.9.12, {@link TestNG#setConfigFailurePolicy(String)}</li>
+     * </ul></li>
+     *
+     * @param testNg the TestNG instance
+     * @return String.class or org.testng.xml.XmlSuite$FailurePolicy.class
+     */
+    private Class<?> getConfigFailurePolicyArgType(TestNG testNg) {
+        Class<?> failurePolicy;
+        try {
+            failurePolicy = Class.forName("org.testng.xml.XmlSuite$FailurePolicy", false, testNg.getClass().getClassLoader());
+        } catch (ClassNotFoundException e) {
+            // new API not found; fallback to legacy String argument
+            failurePolicy = String.class;
+        }
+        return failurePolicy;
+    }
+
+    /**
+     * The setter for configFailurePolicy has a different signature depending on TestNG version.  This method uses reflection to
+     * detect the API.  If not {@link String}, coerce the spec's string value to the expected enum value using {@link XmlSuite$FailurePolicy#getValidPolicy(String)}
+     * <ul>
+     *     <li>When TestNG &gt;= 6.9.12, {@link TestNG#setConfigFailurePolicy(org.testng.xml.XmlSuite$FailurePolicy)}</li>
+     *     <li>When TestNG &lt; 6.9.12, {@link TestNG#setConfigFailurePolicy(String)}</li>
+     * </ul></li>
+     *
+     * @param testNg the TestNG instance
+     * @return Arg value; might be a String or an enum value of org.testng.xml.XmlSuite$FailurePolicy.class
+     */
+    private Object getConfigFailurePolicyArgValue(TestNG testNg) {
+        Object configFailurePolicyArgValue;
+        try {
+            Class<?> failurePolicy = Class.forName("org.testng.xml.XmlSuite$FailurePolicy", false, testNg.getClass().getClassLoader());
+            Method getValidPolicy = failurePolicy.getMethod("getValidPolicy", String.class);
+            configFailurePolicyArgValue = getValidPolicy.invoke(null, options.getConfigFailurePolicy());
+        } catch (Exception e) {
+            // unable to invoke new API method; fallback to legacy String value
+            configFailurePolicyArgValue = options.getConfigFailurePolicy();
+        }
+        return configFailurePolicyArgValue;
     }
 
     private void invokeVerifiedMethod(TestNG testNg, String methodName, Class<?> paramClass, Object value, Object defaultValue) {

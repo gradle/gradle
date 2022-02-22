@@ -36,7 +36,7 @@ import java.util.Set;
  * <p>
  * <ol>
  * <li>
- * For each candidate, check whether its attribute values are compatible (according to the {@link AttributeSelectionSchema)} with the values that were requested.
+ * For each candidate, check whether its attribute values are compatible (according to the {@link AttributeSelectionSchema}) with the values that were requested.
  * Any missing or extra attributes on the candidate are ignored at this point. If there are 0 or 1 compatible candidates after this, return that as the result.
  * </li>
  * <li>
@@ -61,11 +61,11 @@ import java.util.Set;
  * <p>
  * Implementation notes:
  *
- * For matching and disambiguating the requested values, we keep a table of values to avoid recomputing them. The table has one row for each candidate and one column for each attribute.
+ * <p>For matching and disambiguating the requested values, we keep a table of values to avoid recomputing them. The table has one row for each candidate and one column for each attribute.
  * The cells contain the values of the candidate for the given attribute. The first row contains the requested values. This table is packed into a single flat array in order to reduce
  * memory usage and increase data locality.
  *
- * The information which candidates are compatible and which candidates are still valid during disambiguation is kept in two {@link BitSet}s. The nth bit is set if the nth candidate
+ * <p>The information which candidates are compatible and which candidates are still valid during disambiguation is kept in two {@link BitSet}s. The nth bit is set if the nth candidate
  * is compatible. The longest match is kept using two integers, one containing the length of the match, the other containing the index of the candidate that was the longest.
  *
  * </p>
@@ -97,8 +97,8 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
             candidateAttributeSets[i] = ((AttributeContainerInternal) this.candidates.get(i).getAttributes()).asImmutable();
         }
         this.requestedAttributes = requested.keySet().asList();
-        requestedAttributeValues = new Object[(1 + candidates.size()) * requestedAttributes.size()];
-        compatible = new BitSet(candidates.size());
+        this.requestedAttributeValues = new Object[(1 + candidates.size()) * this.requestedAttributes.size()];
+        this.compatible = new BitSet(candidates.size());
         compatible.set(0, candidates.size());
     }
 
@@ -241,7 +241,31 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
     }
 
     private void disambiguateWithRequestedAttributeValues() {
-        for (int a = 0; a < requestedAttributes.size(); a++) {
+        // We need to take the existing requested attributes and sort them in "precedence" order
+        // This returns a structure that tells us the order of requestedAttributes by their index in
+        // requestedAttributes.
+        //
+        // If the requested attributes are [ A, B, C ]
+        // If the attribute precedence is [ C, A ]
+        // The indices are [ A: 0, B: 1, C: 2 ]
+        // The sorted indices are [ 2, 0 ]
+        // The unsorted indices are [ 1 ]
+        //
+        final AttributeSelectionSchema.PrecedenceResult precedenceResult = schema.orderByPrecedence(requested);
+
+        for (int a : precedenceResult.getSortedOrder()) {
+            disambiguateWithAttribute(a);
+            if (remaining.cardinality() == 0) {
+                return;
+            } else if (remaining.cardinality() == 1) {
+                // If we're down to one candidate and the attribute has a known precedence,
+                // we can stop now and choose this candidate as the match.
+                return;
+            }
+        }
+        // If the attribute does not have a known precedence, then we cannot stop
+        // until we've disambiguated all of the attributes.
+        for (int a : precedenceResult.getUnsortedOrder()) {
             disambiguateWithAttribute(a);
             if (remaining.cardinality() == 0) {
                 return;

@@ -72,6 +72,9 @@ public abstract class Node implements Comparable<Node> {
         return state != ExecutionState.NOT_REQUIRED && state != ExecutionState.UNKNOWN;
     }
 
+    /**
+     * Is this node ready to execute? Note: does not consider the dependencies of the node.
+     */
     public boolean isReady() {
         return state == ExecutionState.SHOULD_RUN || state == ExecutionState.MUST_RUN;
     }
@@ -84,6 +87,10 @@ public abstract class Node implements Comparable<Node> {
         return state == ExecutionState.EXECUTING;
     }
 
+    /**
+     * Is it possible for this node to run? Returns {@code true} if this node definitely will not run, {@code false} if it is possible
+     * for the node to run.
+     */
     public boolean isComplete() {
         return state == ExecutionState.EXECUTED
             || state == ExecutionState.SKIPPED

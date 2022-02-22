@@ -31,7 +31,7 @@ import static org.gradle.performance.results.OperatingSystem.LINUX
 class SwiftBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
     def setup() {
         runner.minimumBaseVersion = '4.6'
-        runner.targetVersions = ["7.4-20211214223504+0000"]
+        runner.targetVersions = ["7.4.1-20220211002507+0000"]
     }
 
     def "up-to-date assemble (swift)"() {

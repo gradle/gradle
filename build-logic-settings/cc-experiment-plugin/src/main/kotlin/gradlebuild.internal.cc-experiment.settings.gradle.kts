@@ -72,6 +72,7 @@ val unsupportedTasksPredicate: (Task) -> Boolean = { task: Task ->
         task.name == "login" -> true
 
         // Kotlin/JS
+        // https://youtrack.jetbrains.com/issue/KT-50881
         task.name in listOf("generateExternals") -> true
 
         // JMH plugin

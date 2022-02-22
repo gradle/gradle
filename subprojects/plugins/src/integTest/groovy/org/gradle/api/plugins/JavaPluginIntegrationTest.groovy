@@ -20,7 +20,6 @@ import org.gradle.api.internal.component.BuildableJavaComponent
 import org.gradle.api.internal.component.ComponentRegistry
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.InspectsConfigurationReport
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class JavaPluginIntegrationTest extends AbstractIntegrationSpec implements InspectsConfigurationReport {
 
@@ -46,7 +45,6 @@ class JavaPluginIntegrationTest extends AbstractIntegrationSpec implements Inspe
         succeeds "expect"
     }
 
-    @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
     def "Java plugin adds outgoing variant for main source set"() {
         buildFile << """
             plugins {
@@ -77,7 +75,6 @@ Artifacts
         hasIncubatingLegend()
     }
 
-    @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
     def "Java plugin adds outgoing variant for main source set containing additional directories"() {
         buildFile << """
             plugins {

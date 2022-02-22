@@ -157,11 +157,6 @@ class AbstractVariantBackedConfigurationMetadata implements ModuleConfigurationM
     }
 
     @Override
-    public boolean requiresMavenArtifactDiscovery() {
-        return false;
-    }
-
-    @Override
     public ImmutableList<? extends ComponentArtifactMetadata> getArtifacts() {
         return variant.getArtifacts();
     }

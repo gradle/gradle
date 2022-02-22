@@ -10,6 +10,7 @@ public abstract class Instrument extends DefaultTask {
 
     @SkipWhenEmpty
     @IgnoreEmptyDirectories
+    @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
     public abstract ConfigurableFileCollection getClassFiles();
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,25 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.api.execution.internal;
+package org.gradle.internal.execution;
 
-import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.file.FileCollectionInternal;
+import org.gradle.internal.execution.fingerprint.InputFingerprinter;
 import org.gradle.internal.service.scopes.Scope.Global;
 import org.gradle.internal.service.scopes.ServiceScope;
 
+import java.util.EnumSet;
+
 /**
- * Allows the registration of {@link TaskInputsListener task inputs listeners}.
+ * Allows the registration of {@link WorkInputListener work input listeners}.
  */
 @ServiceScope(Global.class)
-public interface TaskInputsListeners {
-
+public interface WorkInputListeners {
     /**
-     * Registers the listener with the build, the listener can be unregistered with {@link #removeListener(TaskInputsListener)}.
+     * Registers the listener with the build, the listener can be unregistered with {@link #removeListener(WorkInputListener)}.
      */
-    void addListener(TaskInputsListener listener);
+    void addListener(WorkInputListener listener);
 
-    void removeListener(TaskInputsListener listener);
+    void removeListener(WorkInputListener listener);
 
-    void broadcastFileSystemInputsOf(TaskInternal task, FileCollectionInternal fileSystemInputs);
+    void broadcastFileSystemInputsOf(UnitOfWork work, EnumSet<InputFingerprinter.InputPropertyType> relevantTypes);
 }

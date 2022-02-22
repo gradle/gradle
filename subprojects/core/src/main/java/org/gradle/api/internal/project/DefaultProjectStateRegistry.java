@@ -77,7 +77,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
     private DefaultBuildProjectRegistry getBuildProjectRegistry(BuildState owner) {
         DefaultBuildProjectRegistry buildProjectRegistry = projectsByBuild.get(owner.getBuildIdentifier());
         if (buildProjectRegistry == null) {
-            buildProjectRegistry = new DefaultBuildProjectRegistry(owner);
+            buildProjectRegistry = new DefaultBuildProjectRegistry(owner, workerLeaseService);
             projectsByBuild.put(owner.getBuildIdentifier(), buildProjectRegistry);
         }
         return buildProjectRegistry;
@@ -141,32 +141,18 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
     }
 
     @Override
-    public void withMutableStateOfAllProjects(Runnable runnable) {
-        withMutableStateOfAllProjects(Factories.toFactory(runnable));
-    }
-
-    @Override
-    public <T> T withMutableStateOfAllProjects(Factory<T> factory) {
-        ResourceLock allProjectsLock = workerLeaseService.getAllProjectsLock();
-        Collection<? extends ResourceLock> locks = workerLeaseService.getCurrentProjectLocks();
-        if (locks.contains(allProjectsLock)) {
-            // Holds the lock so run the action
-            return factory.create();
-        }
-        return workerLeaseService.withLocks(Collections.singletonList(allProjectsLock), () -> workerLeaseService.withoutLocks(locks, factory));
-    }
-
-    @Override
     public <T> T allowUncontrolledAccessToAnyProject(Factory<T> factory) {
         return workerLeaseService.allowUncontrolledAccessToAnyProject(factory);
     }
 
     private static class DefaultBuildProjectRegistry implements BuildProjectRegistry {
         private final BuildState owner;
+        private final WorkerLeaseService workerLeaseService;
         private final Map<Path, ProjectStateImpl> projectsByPath = Maps.newLinkedHashMap();
 
-        public DefaultBuildProjectRegistry(BuildState owner) {
+        public DefaultBuildProjectRegistry(BuildState owner, WorkerLeaseService workerLeaseService) {
             this.owner = owner;
+            this.workerLeaseService = workerLeaseService;
         }
 
         public void add(Path projectPath, ProjectStateImpl projectState) {
@@ -199,6 +185,22 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
             projects.addAll(projectsByPath.values());
             return projects;
         }
+
+        @Override
+        public void withMutableStateOfAllProjects(Runnable runnable) {
+            withMutableStateOfAllProjects(Factories.toFactory(runnable));
+        }
+
+        @Override
+        public <T> T withMutableStateOfAllProjects(Factory<T> factory) {
+            ResourceLock allProjectsLock = workerLeaseService.getAllProjectsLock(owner.getIdentityPath());
+            Collection<? extends ResourceLock> locks = workerLeaseService.getCurrentProjectLocks();
+            if (locks.contains(allProjectsLock)) {
+                // Holds the lock so run the action
+                return factory.create();
+            }
+            return workerLeaseService.withLocks(Collections.singletonList(allProjectsLock), () -> workerLeaseService.withoutLocks(locks, factory));
+        }
     }
 
     private class ProjectStateImpl implements ProjectState {
@@ -209,6 +211,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
         private final IProjectFactory projectFactory;
         private final BuildState owner;
         private final Path identityPath;
+        private final ResourceLock allProjectsLock;
         private final ResourceLock projectLock;
         private final ResourceLock taskLock;
         private final Set<Thread> canDoAnythingToThisProject = new CopyOnWriteArraySet<>();
@@ -231,6 +234,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
             this.identifier = identifier;
             this.descriptor = descriptor;
             this.projectFactory = projectFactory;
+            this.allProjectsLock = workerLeaseService.getAllProjectsLock(owner.getIdentityPath());
             this.projectLock = workerLeaseService.getProjectLock(owner.getIdentityPath(), identityPath);
             this.taskLock = workerLeaseService.getTaskExecutionLock(owner.getIdentityPath(), identityPath);
             this.controller = new ProjectLifecycleController(getDisplayName(), stateTransitionControllerFactory);
@@ -363,7 +367,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
             }
 
             Collection<? extends ResourceLock> currentLocks = workerLeaseService.getCurrentProjectLocks();
-            if (currentLocks.contains(projectLock) || currentLocks.contains(workerLeaseService.getAllProjectsLock())) {
+            if (currentLocks.contains(projectLock) || currentLocks.contains(allProjectsLock)) {
                 // if we already hold the project lock for this project
                 if (currentLocks.size() == 1) {
                     // the lock for this project is the only lock we hold, can run the function
@@ -407,7 +411,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
                 return true;
             }
             Collection<? extends ResourceLock> locks = workerLeaseService.getCurrentProjectLocks();
-            return locks.contains(projectLock) || locks.contains(workerLeaseService.getAllProjectsLock());
+            return locks.contains(projectLock) || locks.contains(allProjectsLock);
         }
 
         @Override

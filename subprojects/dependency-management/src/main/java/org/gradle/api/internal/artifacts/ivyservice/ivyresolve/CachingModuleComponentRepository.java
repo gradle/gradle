@@ -45,7 +45,6 @@ import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
-import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.component.model.MutableModuleSources;
 import org.gradle.internal.hash.HashCode;
@@ -258,9 +257,9 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         }
 
         @Override
-        public void resolveArtifacts(ComponentResolveMetadata component, ConfigurationMetadata variant, BuildableComponentArtifactsResolveResult result) {
+        public void resolveArtifacts(ComponentResolveMetadata component, BuildableComponentArtifactsResolveResult result) {
             // First try to determine the artifacts in-memory (e.g using the metadata): don't use the cache in this case
-            delegate.getLocalAccess().resolveArtifacts(component, variant, result);
+            delegate.getLocalAccess().resolveArtifacts(component, result);
             if (result.hasResult()) {
                 return;
             }
@@ -453,8 +452,8 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         }
 
         @Override
-        public void resolveArtifacts(ComponentResolveMetadata component, ConfigurationMetadata variant, BuildableComponentArtifactsResolveResult result) {
-            delegate.getRemoteAccess().resolveArtifacts(component, variant, result);
+        public void resolveArtifacts(ComponentResolveMetadata component, BuildableComponentArtifactsResolveResult result) {
+            delegate.getRemoteAccess().resolveArtifacts(component, result);
 
             if (result.getFailure() == null) {
                 FixedComponentArtifacts artifacts = (FixedComponentArtifacts) result.getResult();

@@ -31,7 +31,7 @@ class DeprecationCreationPerformanceTest extends AbstractCrossVersionPerformance
         given:
         runner.tasksToRun = ['help']
         runner.minimumBaseVersion = '6.3'
-        runner.targetVersions = ["7.4-20211214223504+0000"]
+        runner.targetVersions = ["7.4.1-20220211002507+0000"]
         when:
         def result = runner.run()
 
