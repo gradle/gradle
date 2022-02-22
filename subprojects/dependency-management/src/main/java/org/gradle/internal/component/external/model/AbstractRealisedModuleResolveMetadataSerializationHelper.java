@@ -157,12 +157,17 @@ public abstract class AbstractRealisedModuleResolveMetadataSerializationHelper {
                 String altClassifier = decoder.readNullableString();
                 alternative = new DefaultIvyArtifactName(altName, altType, altExtension, altClassifier);
             }
-            
-            if (alternativeArtifact) {
-                artifacts.add(new DefaultModuleComponentArtifactMetadata(cid, new DefaultIvyArtifactName(name, type, extension, classifier),
-                        new DefaultModuleComponentArtifactMetadata(cid, alternative)));
+            boolean optional = decoder.readBoolean();
+
+            if (optional) {
+                artifacts.add(new ModuleComponentOptionalArtifactMetadata(cid, new DefaultIvyArtifactName(name, type, extension, classifier)));
             } else {
-                artifacts.add(new DefaultModuleComponentArtifactMetadata(cid, new DefaultIvyArtifactName(name, type, extension, classifier)));
+                if (alternativeArtifact) {
+                    artifacts.add(new DefaultModuleComponentArtifactMetadata(cid, new DefaultIvyArtifactName(name, type, extension, classifier),
+                            new DefaultModuleComponentArtifactMetadata(cid, alternative)));
+                } else {
+                    artifacts.add(new DefaultModuleComponentArtifactMetadata(cid, new DefaultIvyArtifactName(name, type, extension, classifier)));
+                }
             }
         }
         int filesCount = decoder.readSmallInt();
@@ -219,6 +224,7 @@ public abstract class AbstractRealisedModuleResolveMetadataSerializationHelper {
                 if (artifact.getAlternativeArtifact().isPresent()) {
                     writeIvyArtifactName(encoder, artifact.getAlternativeArtifact().get().getName());
                 }
+                encoder.writeBoolean(artifact.isOptionalArtifact());
             }
         }
         encoder.writeSmallInt(fileArtifactsCount);
