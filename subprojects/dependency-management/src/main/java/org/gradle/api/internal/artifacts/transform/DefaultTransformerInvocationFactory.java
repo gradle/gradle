@@ -71,6 +71,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
     private static final CachingDisabledReason NOT_CACHEABLE = new CachingDisabledReason(CachingDisabledReasonCategory.NOT_CACHEABLE, "Caching not enabled.");
     private static final String INPUT_ARTIFACT_PROPERTY_NAME = "inputArtifact";
     private static final String INPUT_ARTIFACT_PATH_PROPERTY_NAME = "inputArtifactPath";
+    private static final String INPUT_ARTIFACT_NAME_PROPERTY_NAME = "inputArtifactName";
     private static final String INPUT_ARTIFACT_SNAPSHOT_PROPERTY_NAME = "inputArtifactSnapshot";
     private static final String DEPENDENCIES_PROPERTY_NAME = "inputArtifactDependencies";
     private static final String SECONDARY_INPUTS_HASH_PROPERTY_NAME = "inputPropertiesHash";
@@ -222,6 +223,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         @Override
         public Identity identify(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs) {
             return new ImmutableTransformationWorkspaceIdentity(
+                identityInputs.get(INPUT_ARTIFACT_NAME_PROPERTY_NAME),
                 identityInputs.get(INPUT_ARTIFACT_PATH_PROPERTY_NAME),
                 identityInputs.get(INPUT_ARTIFACT_SNAPSHOT_PROPERTY_NAME),
                 identityInputs.get(SECONDARY_INPUTS_HASH_PROPERTY_NAME),
@@ -363,6 +365,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         public void visitIdentityInputs(InputVisitor visitor) {
             // Emulate secondary inputs as a single property for now
             visitor.visitInputProperty(SECONDARY_INPUTS_HASH_PROPERTY_NAME, transformer::getSecondaryInputHash);
+            visitor.visitInputProperty(INPUT_ARTIFACT_NAME_PROPERTY_NAME, inputArtifact::getName);
             visitor.visitInputFileProperty(DEPENDENCIES_PROPERTY_NAME, NON_INCREMENTAL,
                 new FileValueSupplier(
                     dependencies,
@@ -411,12 +414,14 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
     }
 
     private static class ImmutableTransformationWorkspaceIdentity implements UnitOfWork.Identity {
+        private final ValueSnapshot inputArtifactName;
         private final ValueSnapshot inputArtifactPath;
         private final ValueSnapshot inputArtifactSnapshot;
         private final ValueSnapshot secondaryInputSnapshot;
         private final HashCode dependenciesHash;
 
-        public ImmutableTransformationWorkspaceIdentity(ValueSnapshot inputArtifactPath, ValueSnapshot inputArtifactSnapshot, ValueSnapshot secondaryInputSnapshot, HashCode dependenciesHash) {
+        public ImmutableTransformationWorkspaceIdentity(ValueSnapshot inputArtifactName, ValueSnapshot inputArtifactPath, ValueSnapshot inputArtifactSnapshot, ValueSnapshot secondaryInputSnapshot, HashCode dependenciesHash) {
+            this.inputArtifactName = inputArtifactName;
             this.inputArtifactPath = inputArtifactPath;
             this.inputArtifactSnapshot = inputArtifactSnapshot;
             this.secondaryInputSnapshot = secondaryInputSnapshot;
@@ -426,6 +431,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         @Override
         public String getUniqueId() {
             Hasher hasher = Hashing.newHasher();
+            inputArtifactName.appendToHasher(hasher);
             inputArtifactPath.appendToHasher(hasher);
             inputArtifactSnapshot.appendToHasher(hasher);
             secondaryInputSnapshot.appendToHasher(hasher);
@@ -444,6 +450,9 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
 
             ImmutableTransformationWorkspaceIdentity that = (ImmutableTransformationWorkspaceIdentity) o;
 
+            if (!inputArtifactName.equals(that.inputArtifactName)) {
+                return false;
+            }
             if (!inputArtifactPath.equals(that.inputArtifactPath)) {
                 return false;
             }
@@ -459,6 +468,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         @Override
         public int hashCode() {
             int result = inputArtifactPath.hashCode();
+            result = 31 * result + inputArtifactName.hashCode();
             result = 31 * result + inputArtifactSnapshot.hashCode();
             result = 31 * result + secondaryInputSnapshot.hashCode();
             result = 31 * result + dependenciesHash.hashCode();
