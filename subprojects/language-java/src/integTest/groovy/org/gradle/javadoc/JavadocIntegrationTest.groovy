@@ -16,9 +16,11 @@
 package org.gradle.javadoc
 
 import org.gradle.api.JavaVersion
+import org.gradle.api.attributes.java.TargetJvmVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
@@ -321,6 +323,43 @@ Joe!""")
                 source "src/main/java"
                 options {
                     author()
+                    addBooleanOption 'Xdoclint', true
+                }
+            }
+        """
+        run "javadoc"
+        then:
+        executedAndNotSkipped(":javadoc")
+    }
+
+    @Requires(TestPrecondition.JDK9_OR_LATER)
+    @Issue("https://github.com/gradle/gradle/issues/4841")
+    def "adding custom javadoc options makes task out-of-date with html5 option"() {
+        given: "a javadoc task without custom options"
+        buildFile << """
+            task javadoc(type: Javadoc) {
+                destinationDir = file("build/javadoc")
+                source "src/main/java"
+                options {
+                    author()
+                }
+            }
+        """
+
+        writeSourceFile()
+
+        when: "running the task the first time, it is executed and succeeds"
+        run "javadoc"
+        then:
+        executedAndNotSkipped( ":javadoc")
+
+        when: "running the task the second time after adding a custom option, it is executed and succeeds and NOT marked UP-TO-DATE"
+        buildFile.text = """
+            task javadoc(type: Javadoc) {
+                destinationDir = file("build/javadoc")
+                source "src/main/java"
+                options {
+                    author()
                     addBooleanOption 'html5', true
                 }
             }
@@ -330,6 +369,7 @@ Joe!""")
         executedAndNotSkipped(":javadoc")
     }
 
+    @Requires(TestPrecondition.JDK9_OR_LATER)
     @Issue("https://github.com/gradle/gradle/issues/4841")
     def "changing the value of a custom javadoc options makes task out-of-date"() {
         given: "a javadoc task with a custom options"
@@ -367,6 +407,7 @@ Joe!""")
         executedAndNotSkipped(":javadoc")
     }
 
+    @Requires(TestPrecondition.JDK9_OR_LATER)
     @Issue("https://github.com/gradle/gradle/issues/4841")
     def "changing which custom javadoc options are available makes task out-of-date"() {
         given: "a javadoc task with a custom options"
@@ -404,6 +445,7 @@ Joe!""")
         executedAndNotSkipped(":javadoc")
     }
 
+    @Requires(TestPrecondition.JDK9_OR_LATER)
     @Issue("https://github.com/gradle/gradle/issues/4841")
     def "unchanged custom javadoc option does not make task out-of-date"() {
         given: "a javadoc task with a custom options"
