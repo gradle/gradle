@@ -28,6 +28,7 @@ import org.gradle.cache.scopes.GlobalScopedCache;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.resource.ExternalResourceRepository;
 import org.gradle.internal.service.scopes.Scopes;
@@ -54,7 +55,7 @@ import static org.gradle.security.internal.SecuritySupport.toLongIdHexString;
 @ServiceScope(Scopes.Build.class)
 public class DefaultSignatureVerificationServiceFactory implements SignatureVerificationServiceFactory {
 
-    private static final HashCode NO_KEYRING_FILE_HASH = HashCode.fromInt(Boolean.hashCode(false));
+    private static final HashCode NO_KEYRING_FILE_HASH = Hashing.signature(DefaultSignatureVerificationServiceFactory.class);
 
     private final RepositoryTransportFactory transportFactory;
     private final GlobalScopedCache cacheRepository;
