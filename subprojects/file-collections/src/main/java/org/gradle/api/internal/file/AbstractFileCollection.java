@@ -36,6 +36,7 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.PatternSets;
 import org.gradle.internal.Factory;
 import org.gradle.internal.MutableBoolean;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.util.internal.GUtil;
 
@@ -47,6 +48,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 public abstract class AbstractFileCollection implements FileCollectionInternal {
     protected final Factory<PatternSet> patternSetFactory;
@@ -175,7 +177,29 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
 
     @Override
     public String getAsPath() {
+        showGetAsPathDeprecationWarning();
         return GUtil.asPath(this);
+    }
+
+    private void showGetAsPathDeprecationWarning() {
+        List<String> filesAsPaths = this.getFiles().stream()
+            .map(File::getPath)
+            .filter(path -> path.contains(File.pathSeparator))
+            .collect(Collectors.toList());
+        if (!filesAsPaths.isEmpty()) {
+            String displayedFilePaths = filesAsPaths.stream().map(path -> "'" + path + "'").collect(Collectors.joining(","));
+            DeprecationLogger.deprecateBehaviour(String.format(
+                    "Converting files to a classpath string when their paths contain the path separator '%s' has been deprecated." +
+                        " The path separator is not a valid element of a file path. Problematic paths in '%s' are: %s.",
+                    File.pathSeparator,
+                    getDisplayName(),
+                    displayedFilePaths
+                ))
+                .withAdvice("Add the individual files to the file collection instead.")
+                .willBecomeAnErrorInGradle8()
+                .withUpgradeGuideSection(7, "file_collection_to_classpath")
+                .nagUser();
+        }
     }
 
     @Override

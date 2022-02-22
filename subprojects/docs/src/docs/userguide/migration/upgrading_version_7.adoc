@@ -55,6 +55,17 @@ eclipse {
 
 Alternatively, you can adjust or remove classpath attributes in the `eclipse.classpath.file.whenMerged { }` block.
 
+=== Deprecations
+
+[[file_collection_to_classpath]]
+==== Converting files to a classpath where paths contain file separator
+
+Java has the concept of a path separator which is used to separate individual paths in a list of paths, for example in a classpath string.
+The individual paths must not contain the path separator.
+Consequently, using
+`@link:{javadocPath}/javadoc/org/gradle/api/file/FileCollection.html#getAsPath--[FileCollection.getAsPath()]` for files with paths that contain a path separator has been deprecated, and it will be an error in Gradle 8.0 and later.
+Using a file collection with paths which contain a path separator may lead to incorrect builds, since Gradle doesn't find the files as inputs, or even to build failures when the path containing the path separator is illegal on the operating system.
+
 [[changes_7.4]]
 == Upgrading from 7.3 and earlier
 
