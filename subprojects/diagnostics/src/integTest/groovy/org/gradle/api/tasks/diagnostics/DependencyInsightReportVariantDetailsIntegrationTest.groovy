@@ -19,6 +19,7 @@ package org.gradle.api.tasks.diagnostics
 import com.google.common.base.Strings
 import org.gradle.api.JavaVersion
 import org.gradle.api.tasks.diagnostics.internal.text.StyledTable
+import org.gradle.api.tasks.diagnostics.internal.text.StyledTableUtil
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.internal.logging.text.StyledTextOutput

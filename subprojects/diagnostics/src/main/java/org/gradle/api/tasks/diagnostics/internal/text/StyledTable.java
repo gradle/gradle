@@ -39,7 +39,7 @@ public class StyledTable {
     public StyledTable(String indent, List<String> headers, List<Row> rows) {
         for (int i = 0; i < rows.size(); i++) {
             if (rows.get(i).text.size() != headers.size()) {
-                throw new IllegalArgumentException("Headers and row " + i + " must have the same number of columns.");
+                throw new IllegalArgumentException("Header and row " + i + " must have the same number of columns");
             }
         }
         this.indent = indent;

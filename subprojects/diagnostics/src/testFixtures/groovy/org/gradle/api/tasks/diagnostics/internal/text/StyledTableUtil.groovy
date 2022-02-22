@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.diagnostics;
+package org.gradle.api.tasks.diagnostics.internal.text;
 
-import org.gradle.api.tasks.diagnostics.internal.text.StyledTable;
 import org.gradle.internal.logging.text.TestStyledTextOutput;
 
 /**
- * Utility for testing output from {@link StyledTable}
+ * Utility for testing output from {@link StyledTable}.
  */
-public class StyledTableUtil {
-    public static String toString(StyledTable table) {
+class StyledTableUtil {
+    static String toString(StyledTable table) {
         TestStyledTextOutput output = new TestStyledTextOutput().ignoreStyle();
         new StyledTable.Renderer().render(table, output);
         return output.getValue();
