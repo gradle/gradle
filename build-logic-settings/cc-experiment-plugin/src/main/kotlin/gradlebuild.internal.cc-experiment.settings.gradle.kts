@@ -55,6 +55,8 @@ val unsupportedTasksPredicate: (Task) -> Boolean = { task: Task ->
         task.name.contains("Sample") -> true
         task.name.contains("Snippet") -> true
         task.name == "samplesMultiPage" -> true
+        // Changes to accepted-public-api-changes.json are not detected
+        task.name == "checkBinaryCompatibility" -> true
         task.typeSimpleName in listOf(
             "KtsProjectGeneratorTask",
             "JavaExecProjectGeneratorTask",
