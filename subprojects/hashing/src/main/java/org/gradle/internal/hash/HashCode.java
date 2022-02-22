@@ -256,14 +256,14 @@ public abstract class HashCode implements Serializable, Comparable<HashCode> {
         @Override
         public int hashCode() {
             if (hashCode == 0) {
-                hashCode = (bytes[0] & 0xFF)
+                hashCode = (int) ((bytes[0] & 0xFF)
                     | ((bytes[1] & 0xFF) << 8)
                     | ((bytes[2] & 0xFF) << 16)
                     | ((bytes[3] & 0xFF) << 24)
                     // Make sure it's always > 0 but without affecting the lower 32 bits
-                    | (1L << 32);
+                    | (1L << 32));
             }
-            return (int) hashCode;
+            return hashCode;
         }
 
         @Override
