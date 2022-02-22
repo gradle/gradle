@@ -184,8 +184,8 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
                 spec.setSourceCompatibility(getSourceCompatibility().get());
                 isSourceOrTargetConfigured = true;
             }
-            if (super.getTargetCompatibility() != null) {
-                spec.setTargetCompatibility(getTargetCompatibility());
+            if (getTargetCompatibility().isPresent()) {
+                spec.setTargetCompatibility(getTargetCompatibility().get());
                 isSourceOrTargetConfigured = true;
             }
             if (!isSourceOrTargetConfigured) {
@@ -195,7 +195,7 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
             }
         } else {
             spec.setSourceCompatibility(getSourceCompatibility().getOrNull());
-            spec.setTargetCompatibility(getTargetCompatibility());
+            spec.setTargetCompatibility(getTargetCompatibility().getOrNull());
         }
     }
 

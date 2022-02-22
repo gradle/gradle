@@ -144,23 +144,12 @@ public abstract class AbstractCompile extends SourceTask {
     public abstract Property<String> getSourceCompatibility();
 
     /**
-     * Returns the target JVM to generate the {@code .class} files for.
+     * The target JVM to generate the {@code .class} files for.
      *
      * @return The target JVM.
      */
     @Input
-    public String getTargetCompatibility() {
-        return targetCompatibility;
-    }
-
-    /**
-     * Sets the target JVM to generate the {@code .class} files for.
-     *
-     * @param targetCompatibility The target JVM. Must not be null.
-     */
-    public void setTargetCompatibility(String targetCompatibility) {
-        this.targetCompatibility = targetCompatibility;
-    }
+    public abstract Property<String> getTargetCompatibility();
 
     /**
      * Convention to fall back to the 'destinationDir' output for backwards compatibility with plugins that extend AbstractCompile and override the deprecated methods.

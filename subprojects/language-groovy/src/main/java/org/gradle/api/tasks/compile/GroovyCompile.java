@@ -292,8 +292,8 @@ public abstract class GroovyCompile extends AbstractCompile implements HasCompil
                 spec.setSourceCompatibility(getSourceCompatibility().get());
                 isSourceOrTargetConfigured = true;
             }
-            if (super.getTargetCompatibility() != null) {
-                spec.setTargetCompatibility(getTargetCompatibility());
+            if (getTargetCompatibility().isPresent()) {
+                spec.setTargetCompatibility(getTargetCompatibility().get());
                 isSourceOrTargetConfigured = true;
             }
             if (!isSourceOrTargetConfigured) {
@@ -303,7 +303,7 @@ public abstract class GroovyCompile extends AbstractCompile implements HasCompil
             }
         } else {
             spec.setSourceCompatibility(getSourceCompatibility().getOrNull());
-            spec.setTargetCompatibility(getTargetCompatibility());
+            spec.setTargetCompatibility(getTargetCompatibility().getOrNull());
         }
     }
 
