@@ -128,6 +128,7 @@ public class DependencyInsightReportTask extends DefaultTask {
     private String configurationName;
     private String configurationDescription;
     private AttributeContainer configurationAttributes;
+    private final AttributesSchemaInternal attributesSchema = (AttributesSchemaInternal) getProject().getDependencies().getAttributesSchema();
 
     @Inject
     protected NamedObjectInstantiator getNamedObjectInstantiator() {
@@ -143,8 +144,7 @@ public class DependencyInsightReportTask extends DefaultTask {
     @Optional
     @Incubating
     public Property<ResolvedComponentResult> getRootComponentProperty() {
-        Configuration configuration = getConfiguration();
-        if (!rootComponentProperty.isPresent() && configuration != null && getDependencySpec() != null) {
+        if (!rootComponentProperty.isPresent() && configuration != null && dependencySpec != null) {
             configurationName = configuration.getName();
             configurationDescription = configuration.toString();
             configurationAttributes = configuration.getAttributes();
@@ -159,9 +159,8 @@ public class DependencyInsightReportTask extends DefaultTask {
      * Selects the dependency (or dependencies if multiple matches found) to show the report for.
      */
     @Internal
-    @Nullable
     public Spec<DependencyResult> getDependencySpec() {
-        return dependencySpec;
+        return Objects.requireNonNull(dependencySpec, "Dependency spec not set");
     }
 
     /**
@@ -193,9 +192,8 @@ public class DependencyInsightReportTask extends DefaultTask {
      * Configuration to look the dependency in
      */
     @Internal
-    @Nullable
     public Configuration getConfiguration() {
-        return configuration;
+        return Objects.requireNonNull(configuration, "Configuration not set");
     }
 
     /**
@@ -368,11 +366,10 @@ public class DependencyInsightReportTask extends DefaultTask {
 
     @SuppressWarnings("unchecked")
     private AttributeMatchDetails match(Attribute<?> actualAttribute, @Nullable Object actualValue, AttributeContainer requestedAttributes) {
-        AttributesSchemaInternal schema = (AttributesSchemaInternal) getProject().getDependencies().getAttributesSchema();
         // This is technically not quite right. Project dependencies can influence the matcher as well.
         // However, finding a way to feed that into this matcher is a bit of a pain. It would be better if this
         // information (the AttributeMatchDetails) was instead returned from the dependency resolution result.
-        AttributeMatcher matcher = schema.matcher();
+        AttributeMatcher matcher = attributesSchema.matcher();
         for (Attribute<?> requested : requestedAttributes.keySet()) {
             Object requestedValue = requestedAttributes.getAttribute(requested);
             if (requested.getName().equals(actualAttribute.getName())) {
