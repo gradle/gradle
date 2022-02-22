@@ -213,7 +213,7 @@ public abstract class HashCode implements Serializable, Comparable<HashCode> {
 
     static class ByteArrayBackedHashCode extends HashCode {
         private final byte[] bytes;
-        private long hashCode;
+        private int hashCode;
 
         public ByteArrayBackedHashCode(byte[] bytes) {
             this.bytes = bytes;
