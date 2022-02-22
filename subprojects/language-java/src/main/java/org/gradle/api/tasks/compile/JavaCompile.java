@@ -347,8 +347,8 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
                     spec.setSourceCompatibility(getSourceCompatibility().get());
                     isSourceOrTargetConfigured = true;
                 }
-                if (super.getTargetCompatibility() != null) {
-                    spec.setTargetCompatibility(getTargetCompatibility());
+                if (getTargetCompatibility().isPresent()) {
+                    spec.setTargetCompatibility(getTargetCompatibility().get());
                     isSourceOrTargetConfigured = true;
                 }
                 if (!isSourceOrTargetConfigured) {
@@ -365,7 +365,7 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
         } else if (compileOptions.getRelease().isPresent()) {
             spec.setRelease(compileOptions.getRelease().get());
         } else {
-            spec.setTargetCompatibility(getTargetCompatibility());
+            spec.setTargetCompatibility(getTargetCompatibility().getOrNull());
             spec.setSourceCompatibility(getSourceCompatibility().getOrNull());
         }
         spec.setCompileOptions(compileOptions);

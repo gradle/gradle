@@ -275,8 +275,7 @@ public class JavaBasePlugin implements Plugin<Project> {
     private void configureCompileDefaults(final Project project, final DefaultJavaPluginExtension javaExtension) {
         project.getTasks().withType(AbstractCompile.class).configureEach(compile -> {
             compile.getSourceCompatibility().convention(project.provider(determineCompatibility(compile, javaExtension, javaExtension::getSourceCompatibility, javaExtension::getRawSourceCompatibility)));
-            ConventionMapping conventionMapping = compile.getConventionMapping();
-            conventionMapping.map("targetCompatibility", determineCompatibility(compile, javaExtension, javaExtension::getTargetCompatibility, javaExtension::getRawTargetCompatibility));
+            compile.getTargetCompatibility().convention(project.provider(determineCompatibility(compile, javaExtension, javaExtension::getTargetCompatibility, javaExtension::getRawTargetCompatibility)));
         });
     }
 
