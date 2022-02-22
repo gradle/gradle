@@ -17,14 +17,16 @@
 package org.gradle.internal.reflect.validation
 
 import groovy.transform.CompileStatic
+import org.gradle.api.internal.artifacts.validation.ArtifactValidationProblemId
+import org.gradle.api.internal.validation.CoreValidationProblemId
+import org.gradle.integtests.fixtures.validation.TestValidationProblemId
+import org.gradle.internal.execution.validation.ExecutionValidationProblemId
 import org.gradle.internal.reflect.annotations.TypeMetadataValidationProblemId
-import org.gradle.problems.ValidationProblemId
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.TextUtil
 import spock.lang.Specification
 
 import java.util.regex.Pattern
-
 /**
  * This test renders exactly what a user would see when a validation message is printed
  */
@@ -33,7 +35,7 @@ class ValidationMessageCheckerTest extends Specification implements ValidationMe
     private VerificationFixture condition
 
     @ValidationTestFor(
-        ValidationProblemId.VALUE_NOT_SET
+        CoreValidationProblemId.VALUE_NOT_SET
     )
     def "tests output of missingValueMessage"() {
         when:
@@ -75,7 +77,7 @@ Please refer to https://docs.gradle.org/current/userguide/validation_problems.ht
     }
 
     @ValidationTestFor(
-        ValidationProblemId.IGNORED_ANNOTATIONS_ON_METHOD
+        TypeMetadataValidationProblemId.IGNORED_ANNOTATIONS_ON_METHOD
     )
     def "tests outputof methodShouldNotBeAnnotatedMessage"() {
         when:
@@ -102,7 +104,7 @@ Please refer to https://docs.gradle.org/current/userguide/validation_problems.ht
     }
 
     @ValidationTestFor(
-        ValidationProblemId.PRIVATE_GETTER_MUST_NOT_BE_ANNOTATED
+        TypeMetadataValidationProblemId.PRIVATE_GETTER_MUST_NOT_BE_ANNOTATED
     )
     def "tests outputof privateGetterAnnotatedMessage"() {
         when:
@@ -127,7 +129,7 @@ Please refer to https://docs.gradle.org/current/userguide/validation_problems.ht
     }
 
     @ValidationTestFor(
-        ValidationProblemId.IGNORED_PROPERTY_MUST_NOT_BE_ANNOTATED
+        TypeMetadataValidationProblemId.IGNORED_PROPERTY_MUST_NOT_BE_ANNOTATED
     )
     def "tests outputof ignoredAnnotatedPropertyMessage"() {
         when:
@@ -153,7 +155,7 @@ Please refer to https://docs.gradle.org/current/userguide/validation_problems.ht
     }
 
     @ValidationTestFor(
-        ValidationProblemId.CONFLICTING_ANNOTATIONS
+        TypeMetadataValidationProblemId.CONFLICTING_ANNOTATIONS
     )
     def "tests outputof conflictingAnnotationsMessage"() {
         when:
@@ -176,7 +178,7 @@ Please refer to https://docs.gradle.org/current/userguide/validation_problems.ht
     }
 
     @ValidationTestFor(
-        ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT
+        CoreValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT
     )
     def "tests output of annotationInvalidInContext"() {
         when:
@@ -237,7 +239,7 @@ Possible solutions:
     }
 
     @ValidationTestFor(
-        ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT
+        CoreValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT
     )
     def "tests output of modifierAnnotationInvalidInContext"() {
         when:
@@ -263,7 +265,7 @@ Please refer to https://docs.gradle.org/current/userguide/validation_problems.ht
     }
 
     @ValidationTestFor(
-        ValidationProblemId.MISSING_ANNOTATION
+        CoreValidationProblemId.MISSING_ANNOTATION
     )
     def "tests output of missingAnnotationMessage"() {
         when:
@@ -288,7 +290,7 @@ Please refer to https://docs.gradle.org/current/userguide/validation_problems.ht
     }
 
     @ValidationTestFor(
-        ValidationProblemId.IGNORED_ANNOTATIONS_ON_FIELD
+        TypeMetadataValidationProblemId.IGNORED_ANNOTATIONS_ON_FIELD
     )
     def "tests output of ignoredAnnotationOnField"() {
         when:
@@ -313,7 +315,7 @@ Please refer to https://docs.gradle.org/current/userguide/validation_problems.ht
     }
 
     @ValidationTestFor(
-        TypeMetadataValidationProblemId.INCOMPATIBLE_ANNOTATIONS
+        CoreValidationProblemId.INCOMPATIBLE_ANNOTATIONS
     )
     def "tests output of incompatibleAnnotations"() {
         when:
@@ -337,7 +339,7 @@ Please refer to https://docs.gradle.org/current/userguide/validation_problems.ht
     }
 
     @ValidationTestFor(
-        ValidationProblemId.INCORRECT_USE_OF_INPUT_ANNOTATION
+        CoreValidationProblemId.INCORRECT_USE_OF_INPUT_ANNOTATION
     )
     def "tests output of incorrectUseOfInputAnnotation"() {
         when:
@@ -363,7 +365,7 @@ Please refer to https://docs.gradle.org/current/userguide/validation_problems.ht
     }
 
     @ValidationTestFor(
-        ValidationProblemId.MISSING_NORMALIZATION_ANNOTATION
+        CoreValidationProblemId.MISSING_NORMALIZATION_ANNOTATION
     )
     def "tests output of missingNormalizationStrategy"() {
         when:
@@ -386,7 +388,7 @@ Please refer to https://docs.gradle.org/current/userguide/validation_problems.ht
     }
 
     @ValidationTestFor(
-        ValidationProblemId.UNRESOLVABLE_INPUT
+        CoreValidationProblemId.UNRESOLVABLE_INPUT
     )
     def "tests output of unresolvableInput"() {
         when:
@@ -409,7 +411,7 @@ Please refer to https://docs.gradle.org/current/userguide/validation_problems.ht
     }
 
     @ValidationTestFor(
-        ValidationProblemId.IMPLICIT_DEPENDENCY
+        CoreValidationProblemId.IMPLICIT_DEPENDENCY
     )
     def "tests output of implicitDependency"() {
         def location = new File(".").absoluteFile
@@ -437,7 +439,7 @@ Please refer to https://docs.gradle.org/current/userguide/validation_problems.ht
     }
 
     @ValidationTestFor(
-        ValidationProblemId.INPUT_FILE_DOES_NOT_EXIST
+        CoreValidationProblemId.INPUT_FILE_DOES_NOT_EXIST
     )
     def "tests output of inputDoesNotExist"() {
         def location = dummyLocation()
@@ -483,7 +485,7 @@ Please refer to https://docs.gradle.org/current/userguide/validation_problems.ht
     }
 
     @ValidationTestFor(
-        ValidationProblemId.UNEXPECTED_INPUT_FILE_TYPE
+        CoreValidationProblemId.UNEXPECTED_INPUT_FILE_TYPE
     )
     def "tests output of unexpectedInputType"() {
         def location = new File(".").absoluteFile
@@ -511,7 +513,7 @@ Please refer to https://docs.gradle.org/current/userguide/validation_problems.ht
     }
 
     @ValidationTestFor(
-        ValidationProblemId.CANNOT_WRITE_OUTPUT
+        CoreValidationProblemId.CANNOT_WRITE_OUTPUT
     )
     def "tests output of cannotWriteToDir"() {
         def location = dummyLocation('/tmp/foo/bar')
@@ -557,7 +559,7 @@ Please refer to https://docs.gradle.org/current/userguide/validation_problems.ht
     }
 
     @ValidationTestFor(
-        ValidationProblemId.CANNOT_WRITE_OUTPUT
+        CoreValidationProblemId.CANNOT_WRITE_OUTPUT
     )
     def "tests output of cannotWriteToFile"() {
         def location = dummyLocation('/tmp/foo/bar')
@@ -605,7 +607,7 @@ Please refer to https://docs.gradle.org/current/userguide/validation_problems.ht
     }
 
     @ValidationTestFor(
-        ValidationProblemId.CANNOT_WRITE_TO_RESERVED_LOCATION
+        CoreValidationProblemId.CANNOT_WRITE_TO_RESERVED_LOCATION
     )
     def "tests output of cannotWriteToReservedLocation"() {
         def reserved = dummyLocation()
@@ -630,7 +632,7 @@ Please refer to https://docs.gradle.org/current/userguide/validation_problems.ht
     }
 
     @ValidationTestFor(
-        ValidationProblemId.CANNOT_WRITE_OUTPUT
+        CoreValidationProblemId.CANNOT_WRITE_OUTPUT
     )
     def "tests output of cannotCreateRootOfFileTree"() {
         def location = dummyLocation('/tmp/foo/bar')
@@ -655,7 +657,7 @@ Please refer to https://docs.gradle.org/current/userguide/validation_problems.ht
     }
 
     @ValidationTestFor(
-        ValidationProblemId.UNSUPPORTED_NOTATION
+        CoreValidationProblemId.UNSUPPORTED_NOTATION
     )
     def "tests output of unsupportedNotation"() {
         when:
@@ -682,7 +684,7 @@ Please refer to https://docs.gradle.org/current/userguide/validation_problems.ht
     }
 
     @ValidationTestFor(
-        ValidationProblemId.INVALID_USE_OF_TYPE_ANNOTATION
+        CoreValidationProblemId.INVALID_USE_OF_TYPE_ANNOTATION
     )
     def "tests output of invalidUseOfCacheableAnnotation"() {
         when:
@@ -706,7 +708,7 @@ Please refer to https://docs.gradle.org/current/userguide/validation_problems.ht
     }
 
     @ValidationTestFor(
-        ValidationProblemId.CANNOT_USE_OPTIONAL_ON_PRIMITIVE_TYPE
+        CoreValidationProblemId.CANNOT_USE_OPTIONAL_ON_PRIMITIVE_TYPE
     )
     def "tests output of optionalOnPrimitive"() {
         when:
@@ -731,7 +733,7 @@ Please refer to https://docs.gradle.org/current/userguide/validation_problems.ht
     }
 
     @ValidationTestFor(
-        ValidationProblemId.REDUNDANT_GETTERS
+        TypeMetadataValidationProblemId.REDUNDANT_GETTERS
     )
     def "tests output of redundantGetters"() {
         when:
@@ -755,7 +757,7 @@ Please refer to https://docs.gradle.org/current/userguide/validation_problems.ht
     }
 
     @ValidationTestFor(
-        ValidationProblemId.MUTABLE_TYPE_WITH_SETTER
+        TypeMetadataValidationProblemId.MUTABLE_TYPE_WITH_SETTER
     )
     def "tests output of mutableSetter"() {
         when:
@@ -778,7 +780,7 @@ Please refer to https://docs.gradle.org/current/userguide/validation_problems.ht
     }
 
     @ValidationTestFor(
-        ValidationProblemId.CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY
+        ArtifactValidationProblemId.CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY
     )
     def "tests output of invalidUseOfAbsoluteSensitivity"() {
         when:
@@ -800,7 +802,7 @@ Please refer to https://docs.gradle.org/current/userguide/validation_problems.ht
     }
 
     @ValidationTestFor(
-        ValidationProblemId.UNKNOWN_IMPLEMENTATION
+        ExecutionValidationProblemId.UNKNOWN_IMPLEMENTATION
     )
     def "tests output of unknown implementation of nested property implemented by lambda"() {
         when:
@@ -822,7 +824,7 @@ Please refer to https://docs.gradle.org/current/userguide/validation_problems.ht
     }
 
     @ValidationTestFor(
-        ValidationProblemId.UNKNOWN_IMPLEMENTATION
+        ExecutionValidationProblemId.UNKNOWN_IMPLEMENTATION
     )
     def "tests output of unknown implementation of additional task action implemented by lambda"() {
         when:
@@ -844,7 +846,7 @@ Please refer to https://docs.gradle.org/current/userguide/validation_problems.ht
     }
 
     @ValidationTestFor(
-        ValidationProblemId.UNKNOWN_IMPLEMENTATION
+        ExecutionValidationProblemId.UNKNOWN_IMPLEMENTATION
     )
     def "tests output of unknown implementation with unknown classloader"() {
         when:
@@ -866,7 +868,7 @@ Please refer to https://docs.gradle.org/current/userguide/validation_problems.ht
     }
 
     @ValidationTestFor(
-        ValidationProblemId.NOT_CACHEABLE_WITHOUT_REASON
+        CoreValidationProblemId.NOT_CACHEABLE_WITHOUT_REASON
     )
     def "tests output of task without non-cacheable reason"() {
         when:
@@ -891,7 +893,7 @@ Please refer to https://docs.gradle.org/current/userguide/validation_problems.ht
     }
 
     @ValidationTestFor(
-        ValidationProblemId.NOT_CACHEABLE_WITHOUT_REASON
+        CoreValidationProblemId.NOT_CACHEABLE_WITHOUT_REASON
     )
     def "tests output of transform action without non-cacheable reason"() {
         when:
@@ -915,7 +917,7 @@ Please refer to https://docs.gradle.org/current/userguide/validation_problems.ht
     }
 
     @ValidationTestFor(
-        ValidationProblemId.TEST_PROBLEM
+        TestValidationProblemId.TEST_PROBLEM
     )
     def "tests output of dummyValidationProblem"() {
         when:
@@ -930,7 +932,7 @@ Reason: Some reason.
     }
 
     @ValidationTestFor(
-        ValidationProblemId.TEST_PROBLEM
+        TestValidationProblemId.TEST_PROBLEM
     )
     def "displays plugin id when available"() {
         when:
