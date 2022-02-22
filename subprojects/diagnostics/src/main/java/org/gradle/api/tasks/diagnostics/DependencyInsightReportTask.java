@@ -59,6 +59,7 @@ import org.gradle.api.tasks.diagnostics.internal.text.StyledTable;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.initialization.StartParameterBuildOptions;
 import org.gradle.internal.component.model.AttributeMatcher;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.graph.GraphRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
@@ -245,6 +246,11 @@ public class DependencyInsightReportTask extends DefaultTask {
     @Deprecated
     @Option(option = "singlepath", description = "Show at most one path to each dependency")
     public void setLegacyShowSinglePathToDependency(boolean showSinglePathToDependency) {
+        DeprecationLogger.deprecate("--singlepath")
+            .withAdvice("Use --single-path instead.")
+            .willBeRemovedInGradle8()
+            .withUpgradeGuideSection(7, "dependencyinsight_singlepath")
+            .nagUser();
         this.showSinglePathToDependency = showSinglePathToDependency;
     }
 

@@ -280,7 +280,7 @@ org:leaf:1.0
 """
 
         when:
-        run "dependencyInsight", "--dependency", "leaf", "--configuration", "conf", "--singlepath"
+        run "dependencyInsight", "--dependency", "leaf", "--configuration", "conf", "--single-path"
 
         then:
         outputContains """
