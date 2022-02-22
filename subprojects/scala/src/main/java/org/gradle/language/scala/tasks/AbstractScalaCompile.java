@@ -180,8 +180,8 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
         JavaInstallationMetadata toolchain = getToolchain();
         if (toolchain != null) {
             boolean isSourceOrTargetConfigured = false;
-            if (super.getSourceCompatibility() != null) {
-                spec.setSourceCompatibility(getSourceCompatibility());
+            if (getSourceCompatibility().isPresent()) {
+                spec.setSourceCompatibility(getSourceCompatibility().get());
                 isSourceOrTargetConfigured = true;
             }
             if (super.getTargetCompatibility() != null) {
@@ -194,7 +194,7 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
                 spec.setTargetCompatibility(languageVersion);
             }
         } else {
-            spec.setSourceCompatibility(getSourceCompatibility());
+            spec.setSourceCompatibility(getSourceCompatibility().getOrNull());
             spec.setTargetCompatibility(getTargetCompatibility());
         }
     }

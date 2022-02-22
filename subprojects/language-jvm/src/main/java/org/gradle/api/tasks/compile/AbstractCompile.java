@@ -20,6 +20,7 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.model.ReplacedBy;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
@@ -39,7 +40,6 @@ import java.util.concurrent.Callable;
 public abstract class AbstractCompile extends SourceTask {
     private final DirectoryProperty destinationDirectory;
     private FileCollection classpath;
-    private String sourceCompatibility;
     private String targetCompatibility;
 
     public AbstractCompile() {
@@ -136,23 +136,12 @@ public abstract class AbstractCompile extends SourceTask {
     }
 
     /**
-     * Returns the Java language level to use to compile the source files.
+     * The Java language level to use to compile the source files.
      *
      * @return The source language level.
      */
     @Input
-    public String getSourceCompatibility() {
-        return sourceCompatibility;
-    }
-
-    /**
-     * Sets the Java language level to use to compile the source files.
-     *
-     * @param sourceCompatibility The source language level. Must not be null.
-     */
-    public void setSourceCompatibility(String sourceCompatibility) {
-        this.sourceCompatibility = sourceCompatibility;
-    }
+    public abstract Property<String> getSourceCompatibility();
 
     /**
      * Returns the target JVM to generate the {@code .class} files for.
