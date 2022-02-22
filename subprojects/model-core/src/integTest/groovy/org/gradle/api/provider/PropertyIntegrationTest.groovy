@@ -16,7 +16,6 @@
 
 package org.gradle.api.provider
 
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
@@ -378,11 +377,11 @@ assert custom.prop.get() == "value 4"
         given:
         buildFile << """
 class SomeExtension {
-    final Property<String> prop
+    final Property<Boolean> prop
 
     @javax.inject.Inject
     SomeExtension(ObjectFactory objects) {
-        prop = objects.property(String)
+        prop = objects.property(Boolean)
     }
 }
 
@@ -444,56 +443,56 @@ task wrongConventionRuntimeValueType {
 
         then:
         failure.assertHasDescription("Execution failed for task ':wrongValueTypeDsl'.")
-        failure.assertHasCause("Cannot set the value of extension 'custom' property 'prop' of type java.lang.String using an instance of type java.lang.Integer.")
+        failure.assertHasCause("Cannot set the value of extension 'custom' property 'prop' of type java.lang.Boolean using an instance of type java.lang.Integer.")
 
         when:
         fails("wrongValueTypeApi")
 
         then:
         failure.assertHasDescription("Execution failed for task ':wrongValueTypeApi'.")
-        failure.assertHasCause("Cannot set the value of extension 'custom' property 'prop' of type java.lang.String using an instance of type java.lang.Integer.")
+        failure.assertHasCause("Cannot set the value of extension 'custom' property 'prop' of type java.lang.Boolean using an instance of type java.lang.Integer.")
 
         when:
         fails("wrongPropertyTypeDsl")
 
         then:
         failure.assertHasDescription("Execution failed for task ':wrongPropertyTypeDsl'.")
-        failure.assertHasCause("Cannot set the value of extension 'custom' property 'prop' of type java.lang.String using a provider of type java.lang.Integer.")
+        failure.assertHasCause("Cannot set the value of extension 'custom' property 'prop' of type java.lang.Boolean using a provider of type java.lang.Integer.")
 
         when:
         fails("wrongPropertyTypeApi")
 
         then:
         failure.assertHasDescription("Execution failed for task ':wrongPropertyTypeApi'.")
-        failure.assertHasCause("Cannot set the value of extension 'custom' property 'prop' of type java.lang.String using a provider of type java.lang.Integer.")
+        failure.assertHasCause("Cannot set the value of extension 'custom' property 'prop' of type java.lang.Boolean using a provider of type java.lang.Integer.")
 
         when:
         fails("wrongRuntimeType")
 
         then:
         failure.assertHasDescription("Execution failed for task ':wrongRuntimeType'.")
-        failure.assertHasCause("Cannot get the value of extension 'custom' property 'prop' of type java.lang.String as the provider associated with this property returned a value of type java.lang.Integer.")
+        failure.assertHasCause("Cannot get the value of extension 'custom' property 'prop' of type java.lang.Boolean as the provider associated with this property returned a value of type java.lang.Integer.")
 
         when:
         fails("wrongConventionValueType")
 
         then:
         failure.assertHasDescription("Execution failed for task ':wrongConventionValueType'.")
-        failure.assertHasCause("Cannot set the value of extension 'custom' property 'prop' of type java.lang.String using an instance of type java.lang.Integer.")
+        failure.assertHasCause("Cannot set the value of extension 'custom' property 'prop' of type java.lang.Boolean using an instance of type java.lang.Integer.")
 
         when:
         fails("wrongConventionPropertyType")
 
         then:
         failure.assertHasDescription("Execution failed for task ':wrongConventionPropertyType'.")
-        failure.assertHasCause("Cannot set the value of extension 'custom' property 'prop' of type java.lang.String using a provider of type java.lang.Integer.")
+        failure.assertHasCause("Cannot set the value of extension 'custom' property 'prop' of type java.lang.Boolean using a provider of type java.lang.Integer.")
 
         when:
         fails("wrongConventionRuntimeValueType")
 
         then:
         failure.assertHasDescription("Execution failed for task ':wrongConventionRuntimeValueType'.")
-        failure.assertHasCause("Cannot get the value of extension 'custom' property 'prop' of type java.lang.String as the provider associated with this property returned a value of type java.lang.Integer.")
+        failure.assertHasCause("Cannot get the value of extension 'custom' property 'prop' of type java.lang.Boolean as the provider associated with this property returned a value of type java.lang.Integer.")
     }
 
     def "fails when specialized factory method is not used"() {

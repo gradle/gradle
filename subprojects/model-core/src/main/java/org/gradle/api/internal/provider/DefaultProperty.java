@@ -59,7 +59,11 @@ public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? e
         if (object instanceof Provider) {
             set(Cast.<Provider<T>>uncheckedNonnullCast(object));
         } else {
-            set(Cast.<T>uncheckedNonnullCast(object));
+            if (object != null && type.isAssignableFrom(String.class) && !(object instanceof String)) {
+                set(Cast.<T>uncheckedNonnullCast(String.valueOf(object)));
+            } else {
+                set(Cast.<T>uncheckedNonnullCast(object));
+            }
         }
     }
 
