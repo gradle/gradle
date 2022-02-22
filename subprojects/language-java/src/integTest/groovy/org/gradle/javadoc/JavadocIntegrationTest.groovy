@@ -467,12 +467,14 @@ Joe!""")
         when: "running the task the first time, it is executed and succeeds"
         run "javadoc"
         then:
-        executedAndNotSkipped( ":javadoc")
+        executedAndNotSkipped(":javadoc")
 
         when: "running the task the second time it is UP-TO-DATE"
         run "javadoc"
         then:
         skipped(":javadoc")
+    }
+
     // bootclasspath has been removed in Java 9+
     @Requires(TestPrecondition.JDK8_OR_EARLIER)
     @Issue("https://github.com/gradle/gradle/issues/19817")
