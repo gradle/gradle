@@ -16,6 +16,7 @@
 
 package org.gradle.internal.hash;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
 
@@ -37,7 +38,12 @@ public abstract class HashCode implements Serializable, Comparable<HashCode> {
     }
 
     static HashCode fromBytesNoCopy(byte[] bytes) {
-        return new ByteArrayBackedHashCode(bytes);
+        switch (bytes.length) {
+            case 16:
+                return new HashCode128(bytes);
+            default:
+                return new ByteArrayBackedHashCode(bytes);
+        }
     }
 
     public static HashCode fromBytes(byte[] bytes) {
@@ -48,11 +54,13 @@ public abstract class HashCode implements Serializable, Comparable<HashCode> {
         return fromBytesNoCopy(bytes.clone());
     }
 
+    @VisibleForTesting
     public static HashCode fromInt(int value) {
         byte[] bytes = Ints.toByteArray(value); // Big-endian
         return fromBytesNoCopy(bytes);
     }
 
+    @VisibleForTesting
     public static HashCode fromLong(long value) {
         byte[] bytes = Longs.toByteArray(value); // Big-endian
         return fromBytesNoCopy(bytes);
@@ -131,6 +139,78 @@ public abstract class HashCode implements Serializable, Comparable<HashCode> {
 
     abstract byte[] bytes();
 
+    static class HashCode128 extends HashCode {
+        private final long bits1;
+        private final long bits2;
+
+        public HashCode128(byte[] bytes) {
+            if (bytes.length != 16) {
+                throw new IllegalArgumentException("Must be 32 bytes");
+            }
+            this.bits1 = bytesToLong(bytes, 0);
+            this.bits2 = bytesToLong(bytes, 8);
+        }
+
+        @Override
+        public int length() {
+            return 16;
+        }
+
+        @Override
+        byte[] bytes() {
+            return toByteArray();
+        }
+
+        @Override
+        public byte[] toByteArray() {
+            byte[] bytes = new byte[16];
+            longToBytes(bits1, bytes, 0);
+            longToBytes(bits2, bytes, 8);
+            return bytes;
+        }
+
+        @Override
+        void appendToHasher(PrimitiveHasher hasher) {
+            hasher.putLong(bits1);
+            hasher.putLong(bits2);
+        }
+
+        @Override
+        public int hashCode() {
+            return (int) bits1;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || o.getClass() != HashCode128.class) {
+                return false;
+            }
+
+            HashCode128 other = (HashCode128) o;
+
+            return bits1 == other.bits1 && bits2 == other.bits2;
+        }
+
+        @Override
+        public int compareTo(HashCode o) {
+            if (o.getClass() != HashCode128.class) {
+                return HashCode.compareBytes(bytes(), o.bytes());
+            }
+
+            HashCode128 other = (HashCode128) o;
+
+            int result = compareLong(bits1, other.bits1);
+            if (result == 0) {
+                result = compareLong(bits2, other.bits2);
+            }
+
+            return result;
+        }
+    }
+
     static class ByteArrayBackedHashCode extends HashCode {
         private final byte[] bytes;
         private long hashCode;
@@ -201,19 +281,49 @@ public abstract class HashCode implements Serializable, Comparable<HashCode> {
 
         @Override
         public int compareTo(@Nonnull HashCode o) {
-            byte[] a = this.bytes;
-            byte[] b = o.bytes();
-            int result;
-            int len1 = a.length;
-            int len2 = b.length;
-            int length = Math.min(len1, len2);
-            for (int idx = 0; idx < length; idx++) {
-                result = a[idx] - b[idx];
-                if (result != 0) {
-                    return result;
-                }
-            }
-            return len1 - len2;
+            return compareBytes(bytes, o.bytes());
         }
+    }
+
+    // TODO Replace with Long.compare() after migrating off of Java 6
+    private static int compareLong(long a, long b) {
+        return (a < b) ? -1 : ((a == b) ? 0 : 1);
+    }
+
+    private static int compareBytes(byte[] a, byte[] b) {
+        int result;
+        int len1 = a.length;
+        int len2 = b.length;
+        int length = Math.min(len1, len2);
+        for (int idx = 0; idx < length; idx++) {
+            result = a[idx] - b[idx];
+            if (result != 0) {
+                return result;
+            }
+        }
+        return len1 - len2;
+    }
+
+
+    private static long bytesToLong(byte[] bytes, int offset) {
+        return (long) (bytes[offset] & 0xFF)
+            | (long) (bytes[offset + 1] & 0xFF) << 8
+            | (long) (bytes[offset + 2] & 0xFF) << 16
+            | (long) (bytes[offset + 3] & 0xFF) << 24
+            | (long) (bytes[offset + 4] & 0xFF) << 32
+            | (long) (bytes[offset + 5] & 0xFF) << 40
+            | (long) (bytes[offset + 6] & 0xFF) << 48
+            | (long) (bytes[offset + 7] & 0xFF) << 56;
+    }
+
+    private static void longToBytes(long value, byte[] bytes, int offset) {
+        bytes[offset] = (byte) (value & 0xFF);
+        bytes[offset + 1] = (byte) ((value >>> 8) & 0xFF);
+        bytes[offset + 2] = (byte) ((value >>> 16) & 0xFF);
+        bytes[offset + 3] = (byte) ((value >>> 24) & 0xFF);
+        bytes[offset + 4] = (byte) ((value >>> 32) & 0xFF);
+        bytes[offset + 5] = (byte) ((value >>> 40) & 0xFF);
+        bytes[offset + 6] = (byte) ((value >>> 48) & 0xFF);
+        bytes[offset + 7] = (byte) ((value >>> 56) & 0xFF);
     }
 }
