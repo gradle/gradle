@@ -220,10 +220,10 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         project.sourceSets.create('custom')
 
         then:
-        project.tasks.compileJava.getSourceCompatibility() == Jvm.current().javaVersion.majorVersion
-        project.tasks.compileJava.getTargetCompatibility() == Jvm.current().javaVersion.majorVersion
-        project.tasks.compileCustomJava.getSourceCompatibility() == Jvm.current().javaVersion.majorVersion
-        project.tasks.compileCustomJava.getTargetCompatibility() == Jvm.current().javaVersion.majorVersion
+        project.tasks.compileJava.getSourceCompatibility().get() == Jvm.current().javaVersion.majorVersion
+        project.tasks.compileJava.getTargetCompatibility().get() == Jvm.current().javaVersion.majorVersion
+        project.tasks.compileCustomJava.getSourceCompatibility().get() == Jvm.current().javaVersion.majorVersion
+        project.tasks.compileCustomJava.getTargetCompatibility().get() == Jvm.current().javaVersion.majorVersion
     }
 
     def "wires toolchain for test if toolchain is configured"() {
@@ -261,11 +261,12 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         when:
         def javaCompileTask = project.tasks.named("compileJava", JavaCompile).get()
 
-        javaCompileTask.sourceCompatibility // accessing the property throws
-
+        javaCompileTask.sourceCompatibility.get() // accessing the property throws
 
         then:
-        def error = thrown(InvalidUserDataException)
+        def queryException = thrown(RuntimeException)
+        def error = queryException.cause
+        error instanceof InvalidUserDataException
         error.message == 'The new Java toolchain feature cannot be used at the project level in combination with source and/or target compatibility'
     }
 
@@ -363,7 +364,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
 
         then:
         def compile = project.task('customCompile', type: JavaCompile)
-        compile.sourceCompatibility == project.sourceCompatibility.toString()
+        compile.sourceCompatibility.get() == project.sourceCompatibility.toString()
 
         def test = project.task('customTest', type: Test.class)
         test.workingDir == project.projectDir
