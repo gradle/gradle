@@ -152,7 +152,10 @@ public class GradlePluginDevelopmentExtension {
     /**
      * Whether the plugin should automatically configure the publications for the plugins.
      * @return true if publishing should be automated, false otherwise
+     *
+     * @deprecated non-automatic publishing of plugins will no longer be supported
      */
+    @Deprecated
     public boolean isAutomatedPublishing() {
         return automatedPublishing;
     }
@@ -160,7 +163,10 @@ public class GradlePluginDevelopmentExtension {
     /**
      * Configures whether the plugin should automatically configure the publications for the plugins.
      * @param automatedPublishing whether to automated publication
+     *
+     * @deprecated non-automatic publishing of plugins will no longer be supported
      */
+    @Deprecated
     public void setAutomatedPublishing(boolean automatedPublishing) {
         this.automatedPublishing = automatedPublishing;
     }
