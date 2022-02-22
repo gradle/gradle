@@ -82,9 +82,9 @@ class RepositoryChainArtifactResolver implements ArtifactResolver, OriginArtifac
         ModuleComponentRepository sourceRepository = findSourceRepository(component.getSources());
         // First try to determine the artifacts locally before going remote
         DefaultBuildableComponentArtifactsResolveResult result = new DefaultBuildableComponentArtifactsResolveResult();
-        sourceRepository.getLocalAccess().resolveArtifacts(component, configuration, result);
+        sourceRepository.getLocalAccess().resolveArtifacts(component, result);
         if (!result.hasResult()) {
-            sourceRepository.getRemoteAccess().resolveArtifacts(component, configuration, result);
+            sourceRepository.getRemoteAccess().resolveArtifacts(component, result);
         }
         if (result.hasResult()) {
             return result.getResult().getArtifactsFor(component, configuration, this, sourceRepository.getArtifactCache(), artifactTypeRegistry, exclusions, overriddenAttributes, calculatedValueContainerFactory);

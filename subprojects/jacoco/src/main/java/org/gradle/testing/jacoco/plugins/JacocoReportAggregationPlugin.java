@@ -95,7 +95,7 @@ public abstract class JacocoReportAggregationPlugin implements Plugin<Project> {
         reporting.getReports().registerBinding(JacocoCoverageReport.class, DefaultJacocoCoverageReport.class);
 
         // iterate and configure each user-specified report, creating a <reportName>ExecutionData configuration for each
-        reporting.getReports().withType(JacocoCoverageReport.class).configureEach(report -> {
+        reporting.getReports().withType(JacocoCoverageReport.class).all(report -> {
             // A resolvable configuration to collect JaCoCo coverage data; typically named "testCodeCoverageReportExecutionData"
             Configuration executionDataConf = project.getConfigurations().create(report.getName() + "ExecutionData");
             executionDataConf.extendsFrom(jacocoAggregation);
@@ -127,7 +127,7 @@ public abstract class JacocoReportAggregationPlugin implements Plugin<Project> {
 
             TestingExtension testing = project.getExtensions().getByType(TestingExtension.class);
             ExtensiblePolymorphicDomainObjectContainer<TestSuite> testSuites = testing.getSuites();
-            testSuites.withType(JvmTestSuite.class).configureEach(testSuite -> {
+            testSuites.withType(JvmTestSuite.class).all(testSuite -> {
                 reporting.getReports().create(testSuite.getName() + "CodeCoverageReport", JacocoCoverageReport.class, report -> {
                     report.getTestType().convention(testSuite.getTestType());
                 });

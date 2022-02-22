@@ -70,8 +70,8 @@ class RepositoryChainArtifactResolverTest extends Specification {
         _ * component.getSources() >> ImmutableModuleSources.of(repo2Source)
         1 * repo2.artifactCache >> [:]
         1 * repo2.getLocalAccess() >> localAccess2
-        1 * localAccess2.resolveArtifacts(component, configuration, _) >> {
-            it[2].resolved(artifacts)
+        1 * localAccess2.resolveArtifacts(component, _) >> {
+            it[1].resolved(artifacts)
         }
         1 * artifacts.getArtifactsFor(component, configuration, resolver, [:], artifactTypeRegistry, exclusion, ImmutableAttributes.EMPTY, _) >> artifactSet
         0 * _._
@@ -94,10 +94,10 @@ class RepositoryChainArtifactResolverTest extends Specification {
         _ * component.getSources() >> ImmutableModuleSources.of(repo2Source)
         1 * repo2.artifactCache >> [:]
         1 * repo2.getLocalAccess() >> localAccess2
-        1 * localAccess2.resolveArtifacts(component, configuration, _)
+        1 * localAccess2.resolveArtifacts(component, _)
         1 * repo2.getRemoteAccess() >> remoteAccess2
-        1 * remoteAccess2.resolveArtifacts(component, configuration, _) >> {
-            it[2].resolved(artifacts)
+        1 * remoteAccess2.resolveArtifacts(component, _) >> {
+            it[1].resolved(artifacts)
         }
         1 * artifacts.getArtifactsFor(component, configuration, resolver, [:], artifactTypeRegistry, exclusion, ImmutableAttributes.EMPTY, _) >> artifactSet
         0 * _._

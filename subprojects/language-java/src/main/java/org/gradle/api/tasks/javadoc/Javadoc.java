@@ -145,6 +145,10 @@ public class Javadoc extends SourceTask {
         JavaModuleDetector javaModuleDetector = getJavaModuleDetector();
         options.classpath(new ArrayList<>(javaModuleDetector.inferClasspath(isModule, getClasspath()).getFiles()));
         options.modulePath(new ArrayList<>(javaModuleDetector.inferModulePath(isModule, getClasspath()).getFiles()));
+        if (options.getBootClasspath() != null && !options.getBootClasspath().isEmpty()) {
+            // Added so JavaDoc has the same behavior as JavaCompile regarding the bootClasspath
+            getProjectLayout().files(options.getBootClasspath()).getAsPath();
+        }
 
         if (!isTrue(options.getWindowTitle()) && isTrue(getTitle())) {
             options.windowTitle(getTitle());

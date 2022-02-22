@@ -516,11 +516,6 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
         }
 
         @Override
-        public boolean requiresMavenArtifactDiscovery() {
-            return false;
-        }
-
-        @Override
         public boolean isExternalVariant() {
             return false;
         }

@@ -44,18 +44,19 @@ public abstract class AbstractConfigurationMetadata implements ModuleConfigurati
     private final ImmutableList<ExcludeMetadata> excludes;
     private final ImmutableAttributes attributes;
     private final ImmutableCapabilities capabilities;
-    private final boolean mavenArtifactDiscovery;
     private final boolean externalVariant;
 
     // Should be final, and set in constructor
     private ImmutableList<ModuleDependencyMetadata> configDependencies;
     private Factory<List<ModuleDependencyMetadata>> configDependenciesFactory;
 
-    AbstractConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible,
-                                  ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts, ImmutableSet<String> hierarchy,
-                                  ImmutableList<ExcludeMetadata> excludes, ImmutableAttributes attributes,
-                                  ImmutableList<ModuleDependencyMetadata> configDependencies, ImmutableCapabilities capabilities,
-                                  boolean mavenArtifactDiscovery, boolean externalVariant) {
+    AbstractConfigurationMetadata(
+            ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible,
+            ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts, ImmutableSet<String> hierarchy,
+            ImmutableList<ExcludeMetadata> excludes, ImmutableAttributes attributes,
+            ImmutableList<ModuleDependencyMetadata> configDependencies, ImmutableCapabilities capabilities,
+            boolean externalVariant
+    ) {
 
         this.componentId = componentId;
         this.name = name;
@@ -67,17 +68,17 @@ public abstract class AbstractConfigurationMetadata implements ModuleConfigurati
         this.attributes = attributes;
         this.configDependencies = configDependencies;
         this.capabilities = capabilities;
-        this.mavenArtifactDiscovery = mavenArtifactDiscovery;
         this.externalVariant = externalVariant;
     }
 
-    AbstractConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible,
-                                  ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts, ImmutableSet<String> hierarchy,
-                                  ImmutableList<ExcludeMetadata> excludes, ImmutableAttributes attributes,
-                                  Factory<List<ModuleDependencyMetadata>> configDependenciesFactory,
-                                  ImmutableCapabilities capabilities,
-                                  boolean mavenArtifactDiscovery,
-                                  boolean externalVariant) {
+    AbstractConfigurationMetadata(
+            ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible,
+            ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts, ImmutableSet<String> hierarchy,
+            ImmutableList<ExcludeMetadata> excludes, ImmutableAttributes attributes,
+            Factory<List<ModuleDependencyMetadata>> configDependenciesFactory,
+            ImmutableCapabilities capabilities,
+            boolean externalVariant
+    ) {
 
         this.componentId = componentId;
         this.name = name;
@@ -89,7 +90,6 @@ public abstract class AbstractConfigurationMetadata implements ModuleConfigurati
         this.attributes = attributes;
         this.configDependenciesFactory = configDependenciesFactory;
         this.capabilities = capabilities;
-        this.mavenArtifactDiscovery = mavenArtifactDiscovery;
         this.externalVariant = externalVariant;
     }
 
@@ -187,11 +187,6 @@ public abstract class AbstractConfigurationMetadata implements ModuleConfigurati
     @Override
     public CapabilitiesMetadata getCapabilities() {
         return capabilities;
-    }
-
-    @Override
-    public boolean requiresMavenArtifactDiscovery() {
-        return mavenArtifactDiscovery;
     }
 
     ImmutableList<ModuleDependencyMetadata> getConfigDependencies() {

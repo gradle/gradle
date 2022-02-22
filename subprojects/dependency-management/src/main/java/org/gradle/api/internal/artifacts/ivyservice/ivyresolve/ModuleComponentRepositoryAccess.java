@@ -23,7 +23,6 @@ import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
-import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
@@ -53,7 +52,7 @@ public interface ModuleComponentRepositoryAccess {
     /**
      * Resolves a set of artifacts belonging to the given component. Any failures are packaged up in the result.
      */
-    void resolveArtifacts(ComponentResolveMetadata component, ConfigurationMetadata variant, BuildableComponentArtifactsResolveResult result);
+    void resolveArtifacts(ComponentResolveMetadata component, BuildableComponentArtifactsResolveResult result);
 
     /**
      * Resolves a set of artifacts belonging to the given component, with the type specified. Any failures are packaged up in the result.

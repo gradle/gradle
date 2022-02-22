@@ -39,7 +39,11 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
     def buildCacheController = Mock(BuildCacheController)
 
     def beforeExecutionState = Stub(BeforeExecutionState)
-    def cacheKey = Stub(BuildCacheKey)
+
+    def cacheKeyHashCode = "30a042b90a"
+    def cacheKey = Stub(BuildCacheKey) {
+        hashCode >> cacheKeyHashCode
+    }
     def loadMetadata = Mock(BuildCacheLoadResult)
     def deleter = Mock(Deleter)
     def outputChangeListener = Mock(OutputChangeListener)
@@ -111,17 +115,17 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
         0 * _
     }
 
-    def "fails after unpack failure"() {
-        def failure = new RuntimeException("unpack failure")
+    def "fails after #exceptionName unpack failure with descriptive error"() {
         def loadedOutputFile = file("output.txt")
         def loadedOutputDir = file("output")
+        def failure = new RuntimeException("unpack failure")
 
         when:
         step.execute(work, context)
 
         then:
         def ex = thrown Exception
-        ex.message == "Failed to load cache entry for job ':test'"
+        ex.message == "Failed to load cache entry $cacheKeyHashCode for job ':test': unpack failure"
         ex.cause == failure
 
         interaction { withValidCacheKey() }
@@ -213,7 +217,7 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
 
         then:
         def ex = thrown Exception
-        ex.message == "Failed to store cache entry for job ':test'"
+        ex.message == "Failed to store cache entry $cacheKeyHashCode for job ':test': store failure"
         ex.cause == failure
 
         interaction { withValidCacheKey() }
