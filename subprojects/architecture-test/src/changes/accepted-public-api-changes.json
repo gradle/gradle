@@ -1,3 +1,71 @@
 {
-    "acceptedApiChanges": []
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.api.plugins.antlr.AntlrTask",
+            "member": "Class org.gradle.api.plugins.antlr.AntlrTask",
+            "acceptation": "Converted to Provider API",
+            "changes": [
+                "Class is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.antlr.AntlrTask",
+            "member": "Method org.gradle.api.plugins.antlr.AntlrTask.getArguments()",
+            "acceptation": "Converted to Provider API",
+            "changes": [
+                "Method return type has changed",
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.antlr.AntlrTask",
+            "member": "Method org.gradle.api.plugins.antlr.AntlrTask.getOutputDirectory()",
+            "acceptation": "Converted to Provider API",
+            "changes": [
+                "Method return type has changed",
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.antlr.AntlrTask",
+            "member": "Method org.gradle.api.plugins.antlr.AntlrTask.getTrace()",
+            "acceptation": "Converted to Provider API",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS",
+                "Abstract method has been added to this class"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.antlr.AntlrTask",
+            "member": "Method org.gradle.api.plugins.antlr.AntlrTask.isTrace()",
+            "acceptation": "Converted to Provider API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.antlr.AntlrTask",
+            "member": "Method org.gradle.api.plugins.antlr.AntlrTask.setArguments(java.util.List)",
+            "acceptation": "Converted to Provider API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.antlr.AntlrTask",
+            "member": "Method org.gradle.api.plugins.antlr.AntlrTask.setOutputDirectory(java.io.File)",
+            "acceptation": "Converted to Provider API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.antlr.AntlrTask",
+            "member": "Method org.gradle.api.plugins.antlr.AntlrTask.setTrace(boolean)",
+            "acceptation": "Converted to Provider API",
+            "changes": [
+                "Method has been removed"
+            ]
+        }
+    ]
 }
