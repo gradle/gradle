@@ -16,5 +16,11 @@
 
 package org.gradle.execution.plan;
 
+import java.util.function.Consumer;
+
 public interface BuildWorkPlan {
+    /**
+     * Invokes the given action when a task completes (as per {@link Node#isComplete()}). Does nothing for tasks that have already completed.
+     */
+    void onComplete(Consumer<LocalTaskNode> handler);
 }

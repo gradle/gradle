@@ -63,6 +63,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import static com.google.common.collect.Lists.newLinkedList;
@@ -95,8 +96,9 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     private final Set<Node> filteredNodes = newIdentityHashSet();
     private final Set<Node> producedButNotYetConsumed = newIdentityHashSet();
     private final Map<Pair<Node, Node>, Boolean> reachableCache = new HashMap<>();
-    private final List<Node> dependenciesWhichRequireMonitoring = new ArrayList<>();
     private final OrdinalNodeAccess ordinalNodeAccess = new OrdinalNodeAccess();
+    private Consumer<LocalTaskNode> completionHandler = localTaskNode -> {
+    };
     private boolean maybeNodesReady;
 
     private boolean buildCancelled;
@@ -196,7 +198,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                 // Have not seen this node before - add its dependencies to the head of the queue and leave this
                 // node in the queue
                 // Make sure it has been configured
-                node.prepareForExecution();
+                node.prepareForExecution(this::monitoredNodeReady);
                 node.resolveDependencies(dependencyResolver, targetNode -> {
                     if (!visiting.contains(targetNode)) {
                         queue.addFirst(targetNode);
@@ -287,7 +289,6 @@ public class DefaultExecutionPlan implements ExecutionPlan {
             })
         );
         int visitingSegmentCounter = nodeQueue.size();
-        Set<Node> dependenciesWhichRequireMonitoring = new HashSet<>();
 
         HashMultimap<Node, Integer> visitingNodes = HashMultimap.create();
         Deque<GraphEdge> walkedShouldRunAfterEdges = new ArrayDeque<>();
@@ -303,9 +304,6 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                 nodeQueue.removeFirst();
                 visitingNodes.remove(node, currentSegment);
                 maybeRemoveProcessedShouldRunAfterEdge(walkedShouldRunAfterEdges, node);
-                if (node.requiresMonitoring()) {
-                    dependenciesWhichRequireMonitoring.add(node);
-                }
                 continue;
             }
 
@@ -346,9 +344,6 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                 visitingNodes.remove(node, currentSegment);
                 path.pop();
                 nodeMapping.add(node);
-                if (node.requiresMonitoring()) {
-                    dependenciesWhichRequireMonitoring.add(node);
-                }
 
                 for (Node dependency : node.getDependencySuccessors()) {
                     dependency.getMutationInfo().consumingNodes.add(node);
@@ -370,13 +365,11 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         nodeMapping.addAll(ordinalNodeAccess.getAllNodes());
         executionQueue.clear();
         dependencyResolver.clear();
-        nodeMapping.removeIf(Node::requiresMonitoring);
         executionQueue.addAll(nodeMapping);
 
         for (Node node : executionQueue) {
             maybeNodesReady |= node.updateAllDependenciesComplete() && node.isReady();
         }
-        this.dependenciesWhichRequireMonitoring.addAll(dependenciesWhichRequireMonitoring);
     }
 
     private void createOrdinalRelationships(Node node) {
@@ -549,6 +542,15 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     }
 
     @Override
+    public void onComplete(Consumer<LocalTaskNode> handler) {
+        Consumer<LocalTaskNode> previous = this.completionHandler;
+        this.completionHandler = node -> {
+            previous.accept(node);
+            handler.accept(node);
+        };
+    }
+
+    @Override
     public Set<Task> getTasks() {
         return nodeMapping.getTasks();
     }
@@ -572,13 +574,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     @Override
     public List<Node> getScheduledNodesPlusDependencies() {
         Set<Node> nodes = nodeMapping.nodes;
-        ImmutableList.Builder<Node> builder = ImmutableList.builder();
-        for (Node node : dependenciesWhichRequireMonitoring) {
-            if (!nodes.contains(node)) {
-                builder.add(node);
-            }
-        }
-        return builder.addAll(nodes).build();
+        return ImmutableList.copyOf(nodes);
     }
 
     @Override
@@ -605,14 +601,6 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     @Override
     @Nullable
     public Node selectNext() {
-        for (Iterator<Node> iterator = dependenciesWhichRequireMonitoring.iterator(); iterator.hasNext();) {
-            Node node = iterator.next();
-            if (node.isComplete()) {
-                LOGGER.debug("Monitored node {} completed", node);
-                updateAllDependenciesCompleteForPredecessors(node);
-                iterator.remove();
-            }
-        }
         if (!maybeNodesReady) {
             return null;
         }
@@ -835,6 +823,14 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         }
 
         updateAllDependenciesCompleteForPredecessors(node);
+
+        if (node instanceof LocalTaskNode) {
+            completionHandler.accept((LocalTaskNode) node);
+        }
+    }
+
+    private void monitoredNodeReady(Node node) {
+        maybeNodesReady = true;
     }
 
     @Override

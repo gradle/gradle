@@ -55,9 +55,6 @@ public class OrdinalNode extends Node implements SelfExecutingNode {
     public void rethrowNodeFailure() { }
 
     @Override
-    public void prepareForExecution() { }
-
-    @Override
     public void resolveDependencies(TaskDependencyResolver dependencyResolver, Action<Node> processHardSuccessor) { }
 
     @Override
@@ -67,16 +64,6 @@ public class OrdinalNode extends Node implements SelfExecutingNode {
 
     @Override
     public void resolveMutations() { }
-
-    @Override
-    public boolean isPublicNode() {
-        return false;
-    }
-
-    @Override
-    public boolean requiresMonitoring() {
-        return false;
-    }
 
     @Nullable
     @Override

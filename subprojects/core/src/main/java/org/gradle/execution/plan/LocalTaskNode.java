@@ -99,6 +99,11 @@ public class LocalTaskNode extends TaskNode {
     }
 
     @Override
+    public boolean isPublicNode() {
+        return true;
+    }
+
+    @Override
     public Action<? super Task> getPostAction() {
         return postAction;
     }
@@ -123,7 +128,7 @@ public class LocalTaskNode extends TaskNode {
     }
 
     @Override
-    public void prepareForExecution() {
+    public void prepareForExecution(Action<Node> monitor) {
         ((TaskContainerInternal) task.getProject().getTasks()).prepareForExecution(task);
     }
 
@@ -149,11 +154,6 @@ public class LocalTaskNode extends TaskNode {
         for (Node targetNode : getShouldRunAfter(dependencyResolver)) {
             addShouldSuccessor(targetNode);
         }
-    }
-
-    @Override
-    public boolean requiresMonitoring() {
-        return false;
     }
 
     private void addFinalizerNode(TaskNode finalizerNode) {

@@ -16,11 +16,9 @@
 
 package org.gradle.composite.internal
 
-
 import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.internal.build.BuildState
-import org.gradle.execution.plan.TaskNode
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.build.BuildWorkGraph
 import org.gradle.internal.build.BuildWorkGraphController

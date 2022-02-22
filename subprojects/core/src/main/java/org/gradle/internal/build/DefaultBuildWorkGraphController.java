@@ -16,11 +16,13 @@
 
 package org.gradle.internal.build;
 
+import com.google.common.util.concurrent.Runnables;
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.composite.internal.IncludedBuildTaskResource;
 import org.gradle.composite.internal.TaskIdentifier;
 import org.gradle.execution.plan.BuildWorkPlan;
+import org.gradle.execution.plan.LocalTaskNode;
 import org.gradle.execution.plan.TaskNode;
 import org.gradle.execution.plan.TaskNodeFactory;
 
@@ -121,6 +123,14 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
             if (plan == null) {
                 controller.prepareToScheduleTasks();
                 plan = controller.newWorkGraph();
+                plan.onComplete(this::nodeComplete);
+            }
+        }
+
+        private void nodeComplete(LocalTaskNode node) {
+            DefaultExportedTaskNode exportedNode = nodesByPath.get(node.getTask().getPath());
+            if (exportedNode != null) {
+                exportedNode.fireCompleted();
             }
         }
 
@@ -157,6 +167,7 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
     private class DefaultExportedTaskNode implements ExportedTaskNode {
         final String taskPath;
         TaskNode taskNode;
+        Runnable action = Runnables.doNothing();
 
         DefaultExportedTaskNode(String taskPath) {
             this.taskPath = taskPath;
@@ -167,6 +178,17 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
                 if (taskNode == null) {
                     taskNode = taskNodeFactory.getOrCreateNode(task);
                 }
+            }
+        }
+
+        @Override
+        public void onComplete(Runnable action) {
+            synchronized (lock) {
+                Runnable previous = this.action;
+                this.action = () -> {
+                    previous.run();
+                    action.run();
+                };
             }
         }
 
@@ -210,6 +232,13 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
         public boolean shouldSchedule() {
             synchronized (lock) {
                 return taskNode == null || !taskNode.isRequired();
+            }
+        }
+
+        public void fireCompleted() {
+            synchronized (lock) {
+                action.run();
+                action = Runnables.doNothing();
             }
         }
     }

@@ -25,6 +25,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 
 /**
  * Represents a graph of dependent work items, returned in execution order.
@@ -114,6 +115,11 @@ public interface ExecutionPlan extends Describable {
         }
 
         @Override
+        public void onComplete(Consumer<LocalTaskNode> handler) {
+            throw new IllegalStateException();
+        }
+
+        @Override
         public boolean allNodesComplete() {
             return true;
         }
@@ -194,4 +200,9 @@ public interface ExecutionPlan extends Describable {
      * Returns the number of work items in the plan.
      */
     int size();
+
+    /**
+     * Invokes the given action when a task completes (as per {@link Node#isComplete()}). Does nothing for tasks that have already completed.
+     */
+    void onComplete(Consumer<LocalTaskNode> handler);
 }

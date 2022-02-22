@@ -21,6 +21,7 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.composite.internal.BuildTreeWorkGraphController;
 import org.gradle.composite.internal.IncludedBuildTaskResource;
 import org.gradle.composite.internal.TaskIdentifier;
@@ -32,7 +33,7 @@ import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 
-public class TaskInAnotherBuild extends TaskNode {
+public class TaskInAnotherBuild extends TaskNode implements SelfExecutingNode {
     public static TaskInAnotherBuild of(
         TaskInternal task,
         BuildTreeWorkGraphController taskGraph
@@ -82,8 +83,9 @@ public class TaskInAnotherBuild extends TaskNode {
     }
 
     @Override
-    public void prepareForExecution() {
+    public void prepareForExecution(Action<Node> monitor) {
         target.queueForExecution();
+        target.onComplete(() -> monitor.execute(this));
     }
 
     @Nullable
@@ -108,12 +110,11 @@ public class TaskInAnotherBuild extends TaskNode {
 
     @Override
     public Throwable getNodeFailure() {
-        throw new UnsupportedOperationException();
+        return null;
     }
 
     @Override
     public void rethrowNodeFailure() {
-        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -133,31 +134,19 @@ public class TaskInAnotherBuild extends TaskNode {
     }
 
     @Override
-    public boolean requiresMonitoring() {
-        return true;
-    }
-
-    @Override
-    public boolean isSuccessful() {
+    public boolean allDependenciesSuccessful() {
         return state == IncludedBuildTaskResource.State.Success;
     }
 
     @Override
-    public boolean isVerificationFailure() {
-        return false;
-    }
-
-    @Override
-    public boolean isFailed() {
-        return state == IncludedBuildTaskResource.State.Failed;
-    }
-
-    @Override
-    public boolean isComplete() {
-        if (super.isComplete() || state.isComplete()) {
+    public boolean isReady() {
+        // This node is ready to "execute" when the task in the other build has completed
+        if (!super.isReady()) {
+            return false;
+        }
+        if (state.isComplete()) {
             return true;
         }
-
         state = target.getTaskState();
         return state.isComplete();
     }
@@ -179,6 +168,11 @@ public class TaskInAnotherBuild extends TaskNode {
     @Override
     public void resolveMutations() {
         // Assume for now that no task in the consuming build will destroy the outputs of this task or overlaps with this task
+    }
+
+    @Override
+    public void execute(NodeExecutionContext context) {
+        // This node does not do anything itself
     }
 
     private static BuildIdentifier buildIdentifierOf(TaskInternal task) {
