@@ -122,8 +122,11 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExec
             )
             .getOrMapFailure(loadFailure -> {
                 throw new RuntimeException(
-                    String.format("Failed to load cache entry for %s",
-                        work.getDisplayName()),
+                    String.format("Failed to load cache entry %s for %s: %s",
+                        cacheKey.getHashCode(),
+                        work.getDisplayName(),
+                        loadFailure.getMessage()
+                    ),
                     loadFailure
                 );
             });
@@ -166,8 +169,10 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExec
             }
         } catch (Exception e) {
             throw new RuntimeException(
-                String.format("Failed to store cache entry for %s",
-                    work.getDisplayName()),
+                String.format("Failed to store cache entry %s for %s: %s",
+                    cacheKey.getHashCode(),
+                    work.getDisplayName(),
+                    e.getMessage()),
                 e);
         }
     }
