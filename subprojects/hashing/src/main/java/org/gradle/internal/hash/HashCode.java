@@ -185,8 +185,8 @@ public class HashCode implements Serializable, Comparable<HashCode> {
         return new BigInteger(1, bytes).toString(36);
     }
 
-    // Package private accessor used by MessageDigestHasher.putHash for performance reasons
-    byte[] getBytes() {
-        return bytes;
+    // Package private accessor used by MessageDigestHasher.putHash()
+    void appendToHasher(PrimitiveHasher hasher) {
+        hasher.putBytes(bytes);
     }
 }

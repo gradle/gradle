@@ -340,7 +340,7 @@ public class Hashing {
 
         @Override
         public void putHash(HashCode hashCode) {
-            putBytes(hashCode.getBytes());
+            hashCode.appendToHasher(this);
         }
 
         @Override
