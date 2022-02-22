@@ -29,7 +29,7 @@ import org.gradle.api.artifacts.transform.VariantTransformConfigurationException
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
-import org.gradle.api.internal.artifacts.validation.ArtifactValidationProblemId;
+import org.gradle.model.internal.reflect.problems.ArtifactValidationProblemId;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileLookup;

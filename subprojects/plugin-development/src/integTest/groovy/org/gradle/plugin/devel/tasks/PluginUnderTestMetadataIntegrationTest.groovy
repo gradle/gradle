@@ -16,7 +16,7 @@
 
 package org.gradle.plugin.devel.tasks
 
-import org.gradle.api.internal.validation.CoreValidationProblemId
+import org.gradle.model.internal.reflect.problems.CoreValidationProblemId
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.reflect.validation.ValidationTestFor

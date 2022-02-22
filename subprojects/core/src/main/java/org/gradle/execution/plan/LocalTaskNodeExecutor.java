@@ -27,7 +27,7 @@ import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.execution.DefaultTaskExecutionContext;
-import org.gradle.api.internal.validation.CoreValidationProblemId;
+import org.gradle.model.internal.reflect.problems.CoreValidationProblemId;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.reflect.validation.Severity;

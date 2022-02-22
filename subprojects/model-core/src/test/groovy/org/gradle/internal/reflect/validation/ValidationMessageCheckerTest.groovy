@@ -17,11 +17,11 @@
 package org.gradle.internal.reflect.validation
 
 import groovy.transform.CompileStatic
-import org.gradle.api.internal.artifacts.validation.ArtifactValidationProblemId
-import org.gradle.api.internal.validation.CoreValidationProblemId
-import org.gradle.integtests.fixtures.validation.TestValidationProblemId
-import org.gradle.internal.execution.validation.ExecutionValidationProblemId
-import org.gradle.internal.reflect.annotations.TypeMetadataValidationProblemId
+import org.gradle.model.internal.reflect.problems.ArtifactValidationProblemId
+import org.gradle.model.internal.reflect.problems.CoreValidationProblemId
+import org.gradle.model.internal.reflect.problems.TestValidationProblemId
+import org.gradle.model.internal.reflect.problems.ExecutionValidationProblemId
+import org.gradle.model.internal.reflect.problems.TypeMetadataValidationProblemId
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.TextUtil
 import spock.lang.Specification

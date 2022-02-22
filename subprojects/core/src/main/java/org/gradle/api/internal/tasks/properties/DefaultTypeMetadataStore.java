@@ -23,7 +23,7 @@ import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.tasks.properties.annotations.AbstractOutputPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.TypeAnnotationHandler;
-import org.gradle.api.internal.validation.CoreValidationProblemId;
+import org.gradle.model.internal.reflect.problems.CoreValidationProblemId;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.CompileClasspath;
 import org.gradle.api.tasks.InputFiles;

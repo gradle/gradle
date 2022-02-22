@@ -20,7 +20,7 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.internal.GeneratedSubclass;
 import org.gradle.api.internal.tasks.TaskValidationContext;
-import org.gradle.api.internal.validation.CoreValidationProblemId;
+import org.gradle.model.internal.reflect.problems.CoreValidationProblemId;
 import org.gradle.internal.reflect.validation.PropertyProblemBuilder;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
 import org.gradle.model.internal.type.ModelType;

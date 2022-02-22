@@ -24,6 +24,7 @@ import org.gradle.internal.reflect.AnnotationCategory;
 import org.gradle.internal.reflect.PropertyMetadata;
 import org.gradle.internal.reflect.validation.Severity;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
+import org.gradle.model.internal.reflect.problems.TestValidationProblemId;
 
 import java.lang.annotation.Annotation;
 import java.util.Optional;

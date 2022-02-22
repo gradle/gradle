@@ -17,7 +17,7 @@
 package org.gradle.configurationcache
 
 
-import org.gradle.api.internal.validation.CoreValidationProblemId
+import org.gradle.model.internal.reflect.problems.CoreValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.reflect.validation.ValidationTestFor
 import spock.lang.Issue

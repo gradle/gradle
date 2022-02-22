@@ -34,7 +34,7 @@ import org.gradle.internal.reflect.PropertyAccessorType;
 import org.gradle.internal.reflect.annotations.PropertyAnnotationMetadata;
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadata;
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadataStore;
-import org.gradle.internal.reflect.annotations.TypeMetadataValidationProblemId;
+import org.gradle.model.internal.reflect.problems.TypeMetadataValidationProblemId;
 import org.gradle.internal.reflect.validation.PropertyProblemBuilder;
 import org.gradle.internal.reflect.validation.ReplayingTypeValidationContext;
 import org.gradle.internal.reflect.validation.TypeValidationContext;

@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution.validation;
+package org.gradle.model.internal.reflect.problems;
 
 import org.gradle.problems.ValidationProblemId;
 
-public enum ExecutionValidationProblemId implements ValidationProblemId {
-    UNKNOWN_IMPLEMENTATION;
+public enum TestValidationProblemId implements ValidationProblemId {
+    TEST_PROBLEM;
 
     @Override
     public String getId() {

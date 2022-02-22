@@ -14,13 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.validation;
+package org.gradle.model.internal.reflect.problems;
 
 import org.gradle.problems.ValidationProblemId;
 
-public enum ArtifactValidationProblemId implements ValidationProblemId {
-    CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY,
-    ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT;
+public enum TypeMetadataValidationProblemId implements ValidationProblemId {
+    IGNORED_ANNOTATIONS_ON_FIELD,
+    IGNORED_ANNOTATIONS_ON_METHOD,
+    MUTABLE_TYPE_WITH_SETTER,
+    REDUNDANT_GETTERS,
+    PRIVATE_GETTER_MUST_NOT_BE_ANNOTATED,
+    IGNORED_PROPERTY_MUST_NOT_BE_ANNOTATED,
+    CONFLICTING_ANNOTATIONS;
 
     @Override
     public String getId() {

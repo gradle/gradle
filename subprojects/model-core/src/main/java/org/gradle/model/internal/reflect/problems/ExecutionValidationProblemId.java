@@ -14,27 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.validation;
+package org.gradle.model.internal.reflect.problems;
 
 import org.gradle.problems.ValidationProblemId;
 
-public enum CoreValidationProblemId implements ValidationProblemId {
-    VALUE_NOT_SET,
-    ANNOTATION_INVALID_IN_CONTEXT,
-    MISSING_ANNOTATION,
-    INCOMPATIBLE_ANNOTATIONS,
-    INVALID_USE_OF_TYPE_ANNOTATION,
-    MISSING_NORMALIZATION_ANNOTATION,
-    INCORRECT_USE_OF_INPUT_ANNOTATION,
-    UNRESOLVABLE_INPUT,
-    IMPLICIT_DEPENDENCY,
-    INPUT_FILE_DOES_NOT_EXIST,
-    UNEXPECTED_INPUT_FILE_TYPE,
-    CANNOT_WRITE_OUTPUT,
-    CANNOT_WRITE_TO_RESERVED_LOCATION,
-    UNSUPPORTED_NOTATION,
-    CANNOT_USE_OPTIONAL_ON_PRIMITIVE_TYPE,
-    NOT_CACHEABLE_WITHOUT_REASON;
+public enum ExecutionValidationProblemId implements ValidationProblemId {
+    UNKNOWN_IMPLEMENTATION;
 
     @Override
     public String getId() {
