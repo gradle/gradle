@@ -263,6 +263,11 @@ public class DependencyInsightReportTask extends DefaultTask {
      * Show all variants of each displayed dependency.
      *
      * <p>
+     * Note: this option displays compatibility information for each variant. This information is currently only an approximation,
+     * and may be missing compatibility rules for some variants, or not indicate when disambiguation rules were used.
+     * </p>
+     *
+     * <p>
      * This method is exposed to the command line interface. Example usage:
      * <pre>gradle dependencyInsight --all-variants</pre>
      *
