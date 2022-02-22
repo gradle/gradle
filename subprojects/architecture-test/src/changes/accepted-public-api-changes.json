@@ -18,10 +18,27 @@
         },
         {
             "type": "org.gradle.api.tasks.diagnostics.DependencyInsightReportTask",
-            "member": "Constructor org.gradle.api.tasks.diagnostics.DependencyInsightReportTask()",
-            "acceptation": "Added injected parameter, since all tasks are created via a factory this should not break anything",
+            "member": "Method org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.setLegacyShowSinglePathToDependency(boolean)",
+            "acceptation": "Method is deprecated for removal",
             "changes": [
-                "Constructor has been removed"
+                "METHOD_ADDED_TO_PUBLIC_CLASS",
+                "ANNOTATION_DEPRECATED_ADDED"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.DependencyInsightReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.getDependencySpec()",
+            "acceptation": "Method always could return null",
+            "changes": [
+                "From non-null returning to null returning breaking change"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.DependencyInsightReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.getConfiguration()",
+            "acceptation": "Method always could return null",
+            "changes": [
+                "From non-null returning to null returning breaking change"
             ]
         }
     ]

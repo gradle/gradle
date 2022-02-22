@@ -30,10 +30,10 @@ public enum MatchType {
      * The attribute was requested by the configuration, and the actual value was <strong>compatible</strong> with
      * the configuration's requested value.
      */
-    DIFFERENT_VALUE,
+    COMPATIBLE,
     /**
      * The attribute was requested by the configuration, and the actual value was <strong>equal</strong> to the
      * configuration's requested value.
      */
-    REQUESTED,
+    EQUAL,
 }

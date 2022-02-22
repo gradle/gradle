@@ -80,7 +80,6 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import static org.gradle.internal.logging.text.StyledTextOutput.Style.AlternativeSuccess;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Description;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Failure;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Header;
@@ -120,7 +119,6 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
 @DisableCachingByDefault(because = "Produces only non-cacheable console output")
 public class DependencyInsightReportTask extends DefaultTask {
 
-    private final NamedObjectInstantiator namedObjectInstantiator;
     private Spec<DependencyResult> dependencySpec;
     private boolean showSinglePathToDependency;
     private final Property<Boolean> showingAllVariants = getProject().getObjects().property(Boolean.class);
@@ -132,8 +130,8 @@ public class DependencyInsightReportTask extends DefaultTask {
     private AttributeContainer configurationAttributes;
 
     @Inject
-    public DependencyInsightReportTask(NamedObjectInstantiator namedObjectInstantiator) {
-        this.namedObjectInstantiator = namedObjectInstantiator;
+    protected NamedObjectInstantiator getNamedObjectInstantiator() {
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -247,7 +245,6 @@ public class DependencyInsightReportTask extends DefaultTask {
      * @deprecated should not be used, call {@link #setShowSinglePathToDependency(boolean)} instead
      */
     @Deprecated
-    @Incubating
     @Option(option = "singlepath", description = "Show at most one path to each dependency")
     public void setLegacyShowSinglePathToDependency(boolean showSinglePathToDependency) {
         this.showSinglePathToDependency = showSinglePathToDependency;
@@ -372,8 +369,9 @@ public class DependencyInsightReportTask extends DefaultTask {
     @SuppressWarnings("unchecked")
     private AttributeMatchDetails match(Attribute<?> actualAttribute, @Nullable Object actualValue, AttributeContainer requestedAttributes) {
         AttributesSchemaInternal schema = (AttributesSchemaInternal) getProject().getDependencies().getAttributesSchema();
-        // As far as I could tell, the only schema ever mixed in using withProducer is PreferJavaRuntimeVariant
-        // However, that only adds disambiguation rules, which don't apply here. So this should be sufficient:
+        // This is technically not quite right. Project dependencies can influence the matcher as well.
+        // However, finding a way to feed that into this matcher is a bit of a pain. It would be better if this
+        // information (the AttributeMatchDetails) was instead returned from the dependency resolution result.
         AttributeMatcher matcher = schema.matcher();
         for (Attribute<?> requested : requestedAttributes.keySet()) {
             Object requestedValue = requestedAttributes.getAttribute(requested);
@@ -381,22 +379,22 @@ public class DependencyInsightReportTask extends DefaultTask {
                 // found an attribute with the same name, but they do not necessarily have the same type
                 if (requested.equals(actualAttribute)) {
                     if (Objects.equals(actualValue, requestedValue)) {
-                        return new AttributeMatchDetails(MatchType.REQUESTED, requested, requestedValue);
+                        return new AttributeMatchDetails(MatchType.EQUAL, requested, requestedValue);
                     }
                 } else {
                     // maybe it matched through coercion
                     Object actualString = actualValue != null ? actualValue.toString() : null;
                     Object requestedString = requestedValue != null ? requestedValue.toString() : null;
                     if (Objects.equals(actualString, requestedString)) {
-                        return new AttributeMatchDetails(MatchType.REQUESTED, requested, requestedValue);
+                        return new AttributeMatchDetails(MatchType.EQUAL, requested, requestedValue);
                     }
                 }
                 // Coerce into the requested value, this is extremely hacky but it works
                 if (requested.getType().isInstance(requestedValue) && actualValue instanceof String) {
-                    Object coerced = new CoercingStringValueSnapshot((String) actualValue, namedObjectInstantiator)
+                    Object coerced = new CoercingStringValueSnapshot((String) actualValue, getNamedObjectInstantiator())
                         .coerce(requested.getType());
                     if (coerced != null && matcher.isMatching((Attribute<Object>) requested, coerced, requestedValue)) {
-                        return new AttributeMatchDetails(MatchType.DIFFERENT_VALUE, requested, requestedValue);
+                        return new AttributeMatchDetails(MatchType.COMPATIBLE, requested, requestedValue);
                     }
                 }
                 return new AttributeMatchDetails(MatchType.INCOMPATIBLE, requested, requestedValue);
@@ -483,6 +481,7 @@ public class DependencyInsightReportTask extends DefaultTask {
             }
             if (task.getShowingAllVariants().get()) {
                 out.style(Header);
+                out.println();
                 out.text("---------------------").println();
                 out.text("Unselected Variant(s)").println();
                 out.text("---------------------");
@@ -509,7 +508,7 @@ public class DependencyInsightReportTask extends DefaultTask {
             if (selected) {
                 out.style(Success);
             } else if (buckets.bothAttributes.values().stream().noneMatch(v -> v.matchType() == MatchType.INCOMPATIBLE)) {
-                out.style(AlternativeSuccess);
+                out.style(Info);
             } else {
                 out.style(Failure);
             }
@@ -628,12 +627,10 @@ public class DependencyInsightReportTask extends DefaultTask {
                 );
             StyledTextOutput.Style style;
             switch (match.matchType()) {
-                case REQUESTED:
+                case EQUAL:
                     style = Success;
                     break;
-                case DIFFERENT_VALUE:
-                    style = AlternativeSuccess;
-                    break;
+                case COMPATIBLE:
                 case NOT_REQUESTED:
                     style = Info;
                     break;

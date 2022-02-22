@@ -34,7 +34,6 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.Error;
 public class DefaultColorMap implements ColorMap {
     private static final String STATUS_BAR = "statusbar";
     private static final String BOLD = "bold";
-    private static final String ITALIC = "italic";
     private static final String COLOR_DIVIDER = "-";
 
     /**
@@ -65,17 +64,16 @@ public class DefaultColorMap implements ColorMap {
     public DefaultColorMap() {
         addDefault(Info, "yellow");
         addDefault(Error, "default");
-        addDefault(Header, BOLD);
+        addDefault(Header, "bold");
         addDefault(Description, "yellow");
         addDefault(ProgressStatus, "yellow");
         addDefault(Identifier, "green");
-        addDefault(UserInput, BOLD);
+        addDefault(UserInput, "bold");
         addDefault(Success, "green");
-        addDefault(AlternativeSuccess, "green" + COLOR_DIVIDER + ITALIC);
         addDefault(SuccessHeader, Success, Header);
         addDefault(Failure, "red");
         addDefault(FailureHeader, Failure, Header);
-        addDefault(STATUS_BAR, BOLD);
+        addDefault(STATUS_BAR, "bold");
     }
 
 
@@ -172,7 +170,7 @@ public class DefaultColorMap implements ColorMap {
         if (colorSpec.equalsIgnoreCase("reverse")) {
             return newReverseColor();
         }
-        if (colorSpec.equalsIgnoreCase(ITALIC)) {
+        if (colorSpec.equalsIgnoreCase("italic")) {
             return newItalicColor();
         }
 
