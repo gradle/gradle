@@ -32,6 +32,7 @@ import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.internal.artifacts.ConfigurationVariantInternal
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.tasks.DefaultSourceSetOutput
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.TaskProvider
@@ -69,7 +70,10 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
         }
         def javaCompileProvider = Stub(TaskProvider) {
                 get() >> Stub(JavaCompile) {
-                    getTargetCompatibility() >> '8'
+                    getTargetCompatibility() >> Stub(Property) {
+                        get() >> '8'
+                        getOrNull() >> '8'
+                    }
                 }
             }
         when:
