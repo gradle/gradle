@@ -97,6 +97,7 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
  * <li>Exactly which dependencies are pulling this dependency into the graph?</li>
  * <li>What is the actual version (i.e. *selected* version) of the dependency that will be used? Is it the same as what was *requested*?</li>
  * <li>Why is the *selected* version of a dependency different to the *requested*?</li>
+ * <li>What variants are available for this dependency?</li>
  * </ul>
  *
  * Use this task to get insight into a particular dependency (or dependencies)
@@ -109,13 +110,12 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
  * That is, it is an inverted view of the regular dependencies report.
  * <p>
  * The task requires setting the dependency spec and the configuration.
- * For more information on how to configure those please refer to docs for
- * {@link DependencyInsightReportTask#setDependencySpec(Object)} and
- * {@link DependencyInsightReportTask#setConfiguration(String)}.
+ * For more information on how to configure those please refer to docs for {@link #setDependencySpec(Object)} and
+ * {@link #setConfiguration(String)}.
  * <p>
  * The task can also be configured from the command line.
- * For more information please refer to {@link DependencyInsightReportTask#setDependencySpec(Object)}
- * and {@link DependencyInsightReportTask#setConfiguration(String)}
+ * For more information please refer to {@link #setDependencySpec(Object)}, {@link #setConfiguration(String)},
+ * {@link #setShowSinglePathToDependency(boolean)}, and {@link #getShowingAllVariants()}.
  */
 @DisableCachingByDefault(because = "Produces only non-cacheable console output")
 public class DependencyInsightReportTask extends DefaultTask {
@@ -165,7 +165,8 @@ public class DependencyInsightReportTask extends DefaultTask {
     }
 
     /**
-     * The dependency spec selects the dependency (or dependencies if multiple matches found) to show the report for. The spec receives an instance of {@link DependencyResult} as parameter.
+     * The dependency spec selects the dependency (or dependencies if multiple matches found) to show the report for.
+     * The spec receives an instance of {@link DependencyResult} as parameter.
      */
     public void setDependencySpec(Spec<DependencyResult> dependencySpec) {
         this.dependencySpec = dependencySpec;
@@ -178,7 +179,7 @@ public class DependencyInsightReportTask extends DefaultTask {
      * and groovy closures. Spec and closure receive {@link DependencyResult} as parameter.
      * Examples of String notation: 'org.slf4j:slf4j-api', 'slf4j-api', or simply: 'slf4j'.
      * The input may potentially match multiple dependencies.
-     * See also {@link DependencyInsightReportTask#setDependencySpec(Spec)}
+     * See also {@link #setDependencySpec(Spec)}
      * <p>
      * This method is exposed to the command line interface. Example usage:
      * <pre>gradle dependencyInsight --dependency slf4j</pre>
@@ -230,6 +231,10 @@ public class DependencyInsightReportTask extends DefaultTask {
      * can be useful when the graph is large. This is false by default, meaning that for
      * each dependency, the report will display all paths leading to it.
      *
+     * <p>
+     * This method is exposed to the command line interface. Example usage:
+     * <pre>gradle dependencyInsight --single-path</pre>
+     *
      * @since 4.9
      */
     @Option(option = "single-path", description = "Show at most one path to each dependency")
@@ -256,6 +261,10 @@ public class DependencyInsightReportTask extends DefaultTask {
 
     /**
      * Show all variants of each displayed dependency.
+     *
+     * <p>
+     * This method is exposed to the command line interface. Example usage:
+     * <pre>gradle dependencyInsight --all-variants</pre>
      *
      * @since 7.5
      */
