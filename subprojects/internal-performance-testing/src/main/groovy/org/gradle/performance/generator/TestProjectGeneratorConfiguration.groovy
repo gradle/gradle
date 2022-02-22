@@ -56,6 +56,11 @@ class TestProjectGeneratorConfiguration {
     boolean useTestNG
     Map<String, String> fileToChangeByScenario
 
+    /**
+     * This is the list of projects which ought to be added as API dependencies of any generated projects
+     * which are <strong>NOT</strong> in this list (and not the root project).  This is used to force
+     * project dependencies to exist in the generated project, for testing changes that impact these.
+     */
     List<Integer> apiDependencies
 }
 

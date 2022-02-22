@@ -135,7 +135,7 @@ class DependencyTree {
 
         for (int parentProjectId = 0; parentProjectId < classDependencyTrees.size(); parentProjectId++) {
             for (int projectDependency : projectDependencies) {
-                if (projectDependency != parentProjectId) {
+                if (!projectDependencies.contains(parentProjectId)) {
                     List<Integer> projectDeps = parentToChildProjectIds.get(parentProjectId);
                     if (!projectDeps.contains(projectDependency)) {
                         projectDeps.add(projectDependency)
