@@ -16,12 +16,11 @@
 
 package org.gradle.api.internal.initialization.loadercache
 
-
 import org.gradle.internal.classloader.DefaultHashingClassLoaderFactory
 import org.gradle.internal.classloader.FilteringClassLoader
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
-import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.TestHashCode
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -64,9 +63,9 @@ class DefaultClassLoaderCacheTest extends Specification {
         def root = classLoader(classPath("root"))
         cache.get(id1, classPath("c1"), root, null) == cache.get(id1, classPath("c1"), root, null)
         cache.get(id1, classPath("c1"), root, null) != cache.get(id1, classPath("c1", "c2"), root, null)
-        cache.get(id1, classPath("c1"), root, null, HashCode.fromInt(100)) == cache.get(id1, classPath("c1"), root, null, HashCode.fromInt(100))
-        cache.get(id1, classPath("c1"), root, null, HashCode.fromInt(100)) != cache.get(id1, classPath("c1", "c2"), root, null, HashCode.fromInt(200))
-        cache.get(id1, classPath("c1"), root, null, HashCode.fromInt(100)) != cache.get(id1, classPath("c1"), root, null, null)
+        cache.get(id1, classPath("c1"), root, null, TestHashCode.fromInt(100)) == cache.get(id1, classPath("c1"), root, null, TestHashCode.fromInt(100))
+        cache.get(id1, classPath("c1"), root, null, TestHashCode.fromInt(100)) != cache.get(id1, classPath("c1", "c2"), root, null, TestHashCode.fromInt(200))
+        cache.get(id1, classPath("c1"), root, null, TestHashCode.fromInt(100)) != cache.get(id1, classPath("c1"), root, null, null)
         cache.get(id1, classPath("c1"), root, null, classpathHasher.hash(classPath("c1"))) == cache.get(id1, classPath("c1"), root, null, null)
     }
 

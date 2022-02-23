@@ -23,6 +23,7 @@ import org.gradle.api.internal.tasks.compile.incremental.compilerapi.constants.C
 import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.DependentsSet
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingData
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.TestHashCode
 import spock.lang.Specification
 
 import static org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.DependentsSet.dependentClasses
@@ -30,7 +31,7 @@ import static org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps
 
 class ClassSetAnalysisTest extends Specification {
 
-    static def hash = HashCode.fromInt(0)
+    static def hash = TestHashCode.fromInt(0)
 
     ClassSetAnalysis analysis(Map<String, DependentsSet> dependents,
                               Map<String, IntSet> classToConstants = [:],
@@ -47,16 +48,16 @@ class ClassSetAnalysisTest extends Specification {
     }
 
     def "knows when there are no affected classes since some other snapshot"() {
-        ClassSetAnalysis s1 = snapshot(["A": HashCode.fromInt(0xaa), "B": HashCode.fromInt(0xbb)])
-        ClassSetAnalysis s2 = snapshot(["A": HashCode.fromInt(0xaa), "B": HashCode.fromInt(0xbb)])
+        ClassSetAnalysis s1 = snapshot(["A": TestHashCode.fromInt(0xaa), "B": TestHashCode.fromInt(0xbb)])
+        ClassSetAnalysis s2 = snapshot(["A": TestHashCode.fromInt(0xaa), "B": TestHashCode.fromInt(0xbb)])
 
         expect:
         s1.findChangesSince(s2).dependents.isEmpty()
     }
 
     def "knows when there are changed classes since other snapshot"() {
-        ClassSetAnalysis s1 = snapshot(["A": HashCode.fromInt(0xaa), "B": HashCode.fromInt(0xbb), "C": HashCode.fromInt(0xcc)])
-        ClassSetAnalysis s2 = snapshot(["A": HashCode.fromInt(0xaa), "B": HashCode.fromInt(0xbbbb)])
+        ClassSetAnalysis s1 = snapshot(["A": TestHashCode.fromInt(0xaa), "B": TestHashCode.fromInt(0xbb), "C": TestHashCode.fromInt(0xcc)])
+        ClassSetAnalysis s2 = snapshot(["A": TestHashCode.fromInt(0xaa), "B": TestHashCode.fromInt(0xbbbb)])
 
         expect:
         s1.findChangesSince(s2).dependents.allDependentClasses == ["B"] as Set

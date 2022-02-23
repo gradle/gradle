@@ -29,7 +29,7 @@ import org.gradle.internal.snapshot.TestSnapshotFixture
 import static org.gradle.internal.file.FileMetadata.AccessType.DIRECT
 import static org.gradle.internal.file.FileMetadata.AccessType.VIA_SYMLINK
 import static org.gradle.internal.file.impl.DefaultFileMetadata.file
-import static org.gradle.internal.hash.HashCode.fromInt
+import static org.gradle.internal.hash.TestHashCode.fromInt
 import static org.gradle.internal.snapshot.FileSystemSnapshot.EMPTY
 import static org.gradle.internal.snapshot.SnapshotUtil.index
 

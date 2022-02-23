@@ -107,6 +107,8 @@ dependencies {
     testFixturesImplementation(project(":internal-testing"))
     testFixturesImplementation(project(":internal-integ-testing"))
 
+    testFixturesImplementation(testFixtures(project(":hashing")))
+
     testFixturesImplementation(libs.junit)
     testFixturesImplementation(libs.mockitoKotlin)
     testFixturesImplementation(libs.jacksonKotlin)

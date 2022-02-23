@@ -41,23 +41,6 @@ class HashCodeTest extends Specification {
         "e5b7d1919156335a9c453a4956bbe775" | HashCode128             | 16     | 0x91D1B7E5 | toBytes([0xE5, 0xB7, 0xD1, 0x91, 0x91, 0x56, 0x33, 0x5A, 0x9C, 0x45, 0x3A, 0x49, 0x56, 0xBB, 0xE7, 0x75])
     }
 
-    def "can parse int: #input"() {
-        def hash = HashCode.fromInt((int) input)
-
-        expect:
-        hash.toString() == toString
-        hash.toByteArray() == bytes
-        hash.length() == length
-        hash.hashCode() == (int) hashCode
-        type.isInstance(hash)
-
-        where:
-        input      | type                    | length | toString   | hashCode   | bytes
-        0x12345678 | ByteArrayBackedHashCode | 4      | "12345678" | 0x78563412 | toBytes(0x12, 0x34, 0x56, 0x78)
-        0xCAFEBABE | ByteArrayBackedHashCode | 4      | "cafebabe" | 0xBEBAFECA | toBytes(0xCA, 0xFE, 0xBA, 0xBE)
-        0xabbaabba | ByteArrayBackedHashCode | 4      | "abbaabba" | 0xBAABBAAB | toBytes([0xAB, 0xBA] * 2)
-    }
-
     def "can parse bytes: #input"() {
         def hash = HashCode.fromBytes(input)
 
@@ -123,8 +106,8 @@ class HashCodeTest extends Specification {
 
     def "not equals with null"() {
         expect:
-        HashCode.fromInt(0x12345678) != null
-        null != HashCode.fromInt(0x12345678)
+        TestHashCode.fromInt(0x12345678) != null
+        null != TestHashCode.fromInt(0x12345678)
     }
 
     def "won't parse string with odd length"() {

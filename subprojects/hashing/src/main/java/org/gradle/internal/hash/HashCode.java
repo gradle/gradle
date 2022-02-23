@@ -16,10 +16,6 @@
 
 package org.gradle.internal.hash;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.primitives.Ints;
-import com.google.common.primitives.Longs;
-
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.Serializable;
@@ -79,18 +75,6 @@ public abstract class HashCode implements Serializable, Comparable<HashCode> {
             throw new IllegalArgumentException(String.format("Invalid hash code length: %d bytes", bytes.length));
         }
         return fromBytes(bytes, CLONE_BYTES_IF_NECESSARY);
-    }
-
-    @VisibleForTesting
-    public static HashCode fromInt(int value) {
-        byte[] bytes = Ints.toByteArray(value); // Big-endian
-        return fromBytes(bytes, SAFE_TO_REUSE_BYTES);
-    }
-
-    @VisibleForTesting
-    public static HashCode fromLong(long value) {
-        byte[] bytes = Longs.toByteArray(value); // Big-endian
-        return fromBytes(bytes, SAFE_TO_REUSE_BYTES);
     }
 
     public static HashCode fromString(String string) {
