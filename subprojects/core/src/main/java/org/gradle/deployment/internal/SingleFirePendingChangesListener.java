@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.filewatch;
+package org.gradle.deployment.internal;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

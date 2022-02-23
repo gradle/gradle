@@ -17,11 +17,11 @@
 package org.gradle.launcher.continuous
 
 import org.gradle.deployment.internal.DeploymentRegistryInternal
+import org.gradle.deployment.internal.PendingChangesListener
+import org.gradle.deployment.internal.PendingChangesManager
+import org.gradle.deployment.internal.SingleFirePendingChangesListener
 import org.gradle.initialization.ContinuousExecutionGate
 import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
-import org.gradle.internal.filewatch.PendingChangesListener
-import org.gradle.internal.filewatch.PendingChangesManager
-import org.gradle.internal.filewatch.SingleFirePendingChangesListener
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 

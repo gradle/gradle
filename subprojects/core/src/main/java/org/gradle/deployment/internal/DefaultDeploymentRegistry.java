@@ -27,8 +27,6 @@ import org.gradle.initialization.DefaultContinuousExecutionGate;
 import org.gradle.internal.Cast;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
-import org.gradle.internal.filewatch.PendingChangesListener;
-import org.gradle.internal.filewatch.PendingChangesManager;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;

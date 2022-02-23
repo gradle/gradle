@@ -14,12 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.filewatch;
+package org.gradle.deployment.internal;
 
-import org.gradle.internal.service.scopes.EventScope;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.event.ListenerManager;
 
-@EventScope(Scopes.BuildSession.class)
-public interface PendingChangesListener {
-    void onPendingChanges();
+public class PendingChangesManager {
+    private final ListenerManager listenerManager;
+
+    public PendingChangesManager(ListenerManager listenerManager) {
+        this.listenerManager = listenerManager;
+    }
+
+    public void addListener(PendingChangesListener listener) {
+        listenerManager.addListener(listener);
+    }
+
+    public void removeListener(PendingChangesListener listener) {
+        listenerManager.removeListener(listener);
+    }
 }
