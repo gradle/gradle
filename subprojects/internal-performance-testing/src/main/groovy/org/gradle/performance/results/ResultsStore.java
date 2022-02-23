@@ -39,7 +39,7 @@ public interface ResultsStore extends Closeable {
     /**
      * Returns the n most recent instances of the given test which are younger than the max age.
      *
-     * This returns all the executions which are either match the channel patterns or are in the list of provided teamcity build ids.
+     * This returns all the executions which either match the channel patterns or are in the list of provided teamcity build ids.
      */
     PerformanceTestHistory getTestResults(PerformanceExperiment experiment, int mostRecentN, int maxDaysOld, List<String> channelPatterns, List<String> teamcityBuildIds);
 
