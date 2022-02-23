@@ -23,8 +23,8 @@ import javax.annotation.Nullable
 class AndroidTestProject implements TestProject {
 
     private static final AndroidGradlePluginVersions AGP_VERSIONS = new AndroidGradlePluginVersions()
-    private static final String AGP_STABLE_TARGET_VERSION = "4.1"
-    private static final String AGP_LATEST_TARGET_VERSION = "4.2"
+    private static final String AGP_STABLE_TARGET_VERSION = "7.0"
+    private static final String AGP_LATEST_TARGET_VERSION = "7.1"
     public static final LARGE_ANDROID_BUILD = new AndroidTestProject(
         templateName: 'largeAndroidBuild'
     )
