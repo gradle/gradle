@@ -216,7 +216,7 @@ public abstract class AbstractRealisedModuleResolveMetadataSerializationHelper {
                 if (componentId instanceof MavenUniqueSnapshotComponentIdentifier) {
                     MavenUniqueSnapshotComponentIdentifier uid = (MavenUniqueSnapshotComponentIdentifier) componentId;
                     encoder.writeNullableString(uid.getTimestamp());
-                    encoder.writeString(uid.getSnapshotVersion());
+                    encoder.writeString(uid.getVersion());
                 } else {
                     encoder.writeNullableString(null);
                 }
