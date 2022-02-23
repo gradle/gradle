@@ -56,9 +56,11 @@ For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility 
 By default, Gradle produces a separate HTML test report for every test task in each project. Previously, it was difficult to combine those reports across multiple projects in a safe and convenient way.
 
 This release adds the new [`test-report-aggregation`](userguide/test_report_aggregation_plugin.html) plugin to make it easy to aggregate test results from multiple projects into a single HTML report.
-This plugin uses test suites registered with the [`jvm-test-suite`](userguide/jvm_test_suite_plugin.html) plugin.
+This plugin uses test suites registered with the [`jvm-test-suite`](userguide/jvm_test_suite_plugin.html) plugin as the basis for this aggregation.
 
-When this plugin is applied to a Java project, Gradle will automatically create an aggregated test report for each test suite with test results from a compatible test suite in every project that the Java project depends on.
+When this plugin is applied to a Java project, Gradle will automatically create an aggregated test report for each test suite. By default, only the built-in test suite is defined. If no other suites are configured, a single report will be generated.
+
+Gradle looks at the project's direct and transitive `runtimeClasspath` project dependencies and selects the test suite with the same [test suite type](dsl/org.gradle.api.plugins.jvm.JvmTestSuite.html#org.gradle.api.plugins.jvm.JvmTestSuite:testType) from those projects for each aggregated report. If a project does not have a matching test suite, it's ignored. 
 See [the sample](samples/sample_jvm_multi_project_with_test_aggregation_distribution.html) in the user manual.
 
 If you want more control over the set of projects that are included in the aggregated report or which test suites are used, see [another sample that requires you to provide this configuration](samples/sample_jvm_multi_project_with_test_aggregation_standalone.html) in the user manual.
@@ -69,9 +71,9 @@ If you want more control over the set of projects that are included in the aggre
 Gradle comes with a [JaCoCo code coverage](userguide/jacoco_plugin.html) plugin that produces a coverage report for the built-in test task. Previously, it was difficult to combine such reports across multiple projects in a safe and convenient way.
 
 This release adds the new [`jacoco-report-aggregation`](userguide/jacoco_report_aggregation_plugin.html) plugin to make it easy to aggregate code coverage from multiple projects into a single report.
-This plugin uses test suites registered with the `jvm-test-suite` plugin.
+This plugin uses test suites registered with the `jvm-test-suite` plugin in a similar manner to the `test-report-aggregation` plugin described above.
 
-When this plugin is applied to a Java project, Gradle will automatically create an aggregated code coverage report for each test suite with code coverage data from a compatible test suite in every project that the Java project depends on.
+When this plugin is applied to a Java project, Gradle will automatically create an aggregated code coverage report for each group of suites using the same grouping process as the `test-report-aggregation` plugin.
 See [the sample](samples/sample_jvm_multi_project_with_code_coverage_distribution.html) in the user manual.
 
 If you want more control over the set of projects that are included in the aggregated report or which test suites are used, see [another sample that requires you to provide this configuration](samples/sample_jvm_multi_project_with_code_coverage_standalone.html) in the user manual.
