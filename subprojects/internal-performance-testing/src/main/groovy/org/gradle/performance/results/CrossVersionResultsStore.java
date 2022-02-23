@@ -19,7 +19,6 @@ package org.gradle.performance.results;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import org.gradle.internal.UncheckedException;
 import org.gradle.performance.measure.Amount;
 import org.gradle.performance.measure.DataSeries;
 import org.gradle.performance.measure.Duration;
@@ -35,9 +34,6 @@ import java.sql.SQLException;
 import java.sql.SQLIntegrityConstraintViolationException;
 import java.sql.Statement;
 import java.sql.Timestamp;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -45,7 +41,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TimeZone;
 import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -73,7 +68,6 @@ public class CrossVersionResultsStore extends AbstractWritableResultsStore<Cross
 
     // Only the flakiness detection results within 90 days will be considered.
     private static final int FLAKINESS_DETECTION_DAYS = 90;
-    private final long ignoreV17Before;
     private final Map<String, GradleVersion> gradleVersionCache = new HashMap<>();
 
     public CrossVersionResultsStore() {
@@ -82,15 +76,6 @@ public class CrossVersionResultsStore extends AbstractWritableResultsStore<Cross
 
     public CrossVersionResultsStore(String databaseName) {
         super(new PerformanceDatabase(databaseName));
-
-        // Ignore some broken samples before the given date
-        DateFormat timeStampFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        timeStampFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-        try {
-            ignoreV17Before = timeStampFormat.parse("2013-07-03 00:00:00").getTime();
-        } catch (ParseException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
     }
 
     @Override
@@ -310,10 +295,6 @@ public class CrossVersionResultsStore extends AbstractWritableResultsStore<Cross
                             continue;
                         }
                         String version = operations.getString(1);
-                        if ("1.7".equals(version) && result.getStartTime() <= ignoreV17Before) {
-                            // Ignore some broken samples
-                            continue;
-                        }
                         MeasuredOperation operation = new MeasuredOperation();
                         operation.setTotalTime(Duration.millis(operations.getBigDecimal(3)));
 
