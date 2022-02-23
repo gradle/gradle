@@ -25,6 +25,9 @@ import javax.annotation.Nullable;
 import java.io.Serializable;
 import java.math.BigInteger;
 
+import static org.gradle.internal.hash.HashCode.Usage.CLONE_BYTES_IF_NECESSARY;
+import static org.gradle.internal.hash.HashCode.Usage.SAFE_TO_REUSE_BYTES;
+
 /**
  * An immutable hash code. Must be 4-255 bytes long.
  *
@@ -51,12 +54,22 @@ public abstract class HashCode implements Serializable, Comparable<HashCode> {
     private HashCode() {
     }
 
-    static HashCode fromBytesNoCopy(byte[] bytes) {
+    enum Usage {
+        CLONE_BYTES_IF_NECESSARY,
+        SAFE_TO_REUSE_BYTES
+    }
+
+    static HashCode fromBytes(byte[] bytes, Usage usage) {
         switch (bytes.length) {
             case 16:
-                return new HashCode128(bytes);
+                return new HashCode128(
+                    bytesToLong(bytes, 0),
+                    bytesToLong(bytes, 8)
+                );
             default:
-                return new ByteArrayBackedHashCode(bytes);
+                return new ByteArrayBackedHashCode(usage == CLONE_BYTES_IF_NECESSARY
+                    ? bytes.clone()
+                    : bytes);
         }
     }
 
@@ -65,19 +78,19 @@ public abstract class HashCode implements Serializable, Comparable<HashCode> {
         if (bytes.length < MIN_NUMBER_OF_BYTES || bytes.length > MAX_NUMBER_OF_BYTES) {
             throw new IllegalArgumentException(String.format("Invalid hash code length: %d bytes", bytes.length));
         }
-        return fromBytesNoCopy(bytes.clone());
+        return fromBytes(bytes, CLONE_BYTES_IF_NECESSARY);
     }
 
     @VisibleForTesting
     public static HashCode fromInt(int value) {
         byte[] bytes = Ints.toByteArray(value); // Big-endian
-        return fromBytesNoCopy(bytes);
+        return fromBytes(bytes, SAFE_TO_REUSE_BYTES);
     }
 
     @VisibleForTesting
     public static HashCode fromLong(long value) {
         byte[] bytes = Longs.toByteArray(value); // Big-endian
-        return fromBytesNoCopy(bytes);
+        return fromBytes(bytes, SAFE_TO_REUSE_BYTES);
     }
 
     public static HashCode fromString(String string) {
@@ -96,7 +109,7 @@ public abstract class HashCode implements Serializable, Comparable<HashCode> {
             bytes[i / 2] = (byte) (ch1 + ch2);
         }
 
-        return fromBytesNoCopy(bytes);
+        return fromBytes(bytes, SAFE_TO_REUSE_BYTES);
     }
 
     private static int decode(char ch) {
@@ -157,12 +170,9 @@ public abstract class HashCode implements Serializable, Comparable<HashCode> {
         private final long bits1;
         private final long bits2;
 
-        public HashCode128(byte[] bytes) {
-            if (bytes.length != 16) {
-                throw new IllegalArgumentException("Must be 32 bytes");
-            }
-            this.bits1 = bytesToLong(bytes, 0);
-            this.bits2 = bytesToLong(bytes, 8);
+        public HashCode128(long bits1, long bits2) {
+            this.bits1 = bits1;
+            this.bits2 = bits2;
         }
 
         @Override
