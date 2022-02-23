@@ -58,8 +58,9 @@ By default, Gradle produces a separate HTML test report for every test task in e
 This release adds the new [`test-report-aggregation`](userguide/test_report_aggregation_plugin.html) plugin to make it easy to aggregate test results from multiple projects into a single HTML report.
 This plugin uses test suites registered with the [`jvm-test-suite`](userguide/jvm_test_suite_plugin.html) plugin as the basis for this aggregation.
 
-This plugin will cause Gradle to examine a Java project's direct and transitive `implementation` dependencies, and group test suites found in any dependent Gradle projects with same the [test suite type](https://docs.gradle.org/current/dsl/org.gradle.api.plugins.jvm.JvmTestSuite.html#org.gradle.api.plugins.jvm.JvmTestSuite:testType) together.
-Gradle will then create a test report for each of these groups.  By default, the only group that exists is the built-in unit test group; if no other suites are configured, a single report will be generated which will include the results of all of the tests in a Gradle build.
+When this plugin is applied to a Java project, Gradle will automatically create an aggregated test report for each test suite. By default, only the built-in test suite is defined. If no other suites are configured, a single report will be generated.
+
+Gradle looks at the project's direct and transitive `runtimeClasspath` project dependencies and selects the test suite with the same [test suite type](dsl/org.gradle.api.plugins.jvm.JvmTestSuite.html#org.gradle.api.plugins.jvm.JvmTestSuite:testType) from those projects for each aggregated report. If a project does not have a matching test suite, it's ignored. 
 See [the sample](samples/sample_jvm_multi_project_with_test_aggregation_distribution.html) in the user manual.
 
 If you want more control over the set of projects that are included in the aggregated report or which test suites are used, see [another sample that requires you to provide this configuration](samples/sample_jvm_multi_project_with_test_aggregation_standalone.html) in the user manual.
