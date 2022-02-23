@@ -43,7 +43,8 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
     @RunFor([
         @Scenario(type = PER_COMMIT, operatingSystems = LINUX, testProjects = "largeAndroidBuild", iterationMatcher = "run help"),
         @Scenario(type = PER_COMMIT, operatingSystems = LINUX, testProjects = ["largeAndroidBuild", "santaTrackerAndroidBuild"], iterationMatcher = "run assembleDebug"),
-        @Scenario(type = PER_COMMIT, operatingSystems = LINUX, testProjects = "largeAndroidBuild", iterationMatcher = ".*phthalic.*")
+        @Scenario(type = PER_COMMIT, operatingSystems = LINUX, testProjects = "largeAndroidBuild", iterationMatcher = ".*phthalic.*"),
+        @Scenario(type = PER_COMMIT, operatingSystems = LINUX, testProjects = "largeAndroidBuild2", iterationMatcher = ".*module21.*"),
     ])
     def "run #tasks"() {
         given:
@@ -62,10 +63,11 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        tasks                          | warmUpRuns | runs
-        'help'                         | null       | null
-        'assembleDebug'                | null       | null
-        'clean phthalic:assembleDebug' | 2          | 8
+        tasks                                        | warmUpRuns | runs
+        'help'                                       | null       | null
+        'assembleDebug'                              | null       | null
+        'clean phthalic:assembleDebug'               | 2          | 8
+        ':module21:module02:assembleDebug --dry-run' | null       | null
     }
 
     @RunFor([
