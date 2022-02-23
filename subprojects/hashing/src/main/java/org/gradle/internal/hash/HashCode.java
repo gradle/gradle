@@ -314,14 +314,14 @@ public abstract class HashCode implements Serializable, Comparable<HashCode> {
 
 
     private static long bytesToLong(byte[] bytes, int offset) {
-        return (long) (bytes[offset] & 0xFF)
-            | (long) (bytes[offset + 1] & 0xFF) << 8
-            | (long) (bytes[offset + 2] & 0xFF) << 16
-            | (long) (bytes[offset + 3] & 0xFF) << 24
-            | (long) (bytes[offset + 4] & 0xFF) << 32
-            | (long) (bytes[offset + 5] & 0xFF) << 40
-            | (long) (bytes[offset + 6] & 0xFF) << 48
-            | (long) (bytes[offset + 7] & 0xFF) << 56;
+        return (bytes[offset] & 0xFFL)
+            | ((bytes[offset + 1] & 0xFFL) << 8)
+            | ((bytes[offset + 2] & 0xFFL) << 16)
+            | ((bytes[offset + 3] & 0xFFL) << 24)
+            | ((bytes[offset + 4] & 0xFFL) << 32)
+            | ((bytes[offset + 5] & 0xFFL) << 40)
+            | ((bytes[offset + 6] & 0xFFL) << 48)
+            | ((bytes[offset + 7] & 0xFFL) << 56);
     }
 
     private static void longToBytes(long value, byte[] bytes, int offset) {
