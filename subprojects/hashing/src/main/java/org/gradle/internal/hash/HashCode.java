@@ -224,7 +224,6 @@ public abstract class HashCode implements Serializable, Comparable<HashCode> {
 
     private static class ByteArrayBackedHashCode extends HashCode {
         private final byte[] bytes;
-        private int hashCode;
 
         public ByteArrayBackedHashCode(byte[] bytes) {
             this.bytes = bytes;
@@ -252,15 +251,10 @@ public abstract class HashCode implements Serializable, Comparable<HashCode> {
 
         @Override
         public int hashCode() {
-            if (hashCode == 0) {
-                hashCode = (int) ((bytes[0] & 0xFF)
-                    | ((bytes[1] & 0xFF) << 8)
-                    | ((bytes[2] & 0xFF) << 16)
-                    | ((bytes[3] & 0xFF) << 24)
-                    // Make sure it's always > 0 but without affecting the lower 32 bits
-                    | (1L << 32));
-            }
-            return hashCode;
+            return (bytes[0] & 0xFF)
+                | ((bytes[1] & 0xFF) << 8)
+                | ((bytes[2] & 0xFF) << 16)
+                | ((bytes[3] & 0xFF) << 24);
         }
 
         @Override
@@ -314,7 +308,6 @@ public abstract class HashCode implements Serializable, Comparable<HashCode> {
         }
         return len1 - len2;
     }
-
 
     private static long bytesToLong(byte[] bytes, int offset) {
         return (bytes[offset] & 0xFFL)
