@@ -559,8 +559,8 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     public Set<Task> getRequestedTasks() {
         Set<Task> requested = new LinkedHashSet<>();
         for (Node entryNode : entryNodes) {
-            if (entryNode instanceof TaskNode) {
-                requested.add(((TaskNode) entryNode).getTask());
+            if (entryNode instanceof LocalTaskNode) {
+                requested.add(((LocalTaskNode) entryNode).getTask());
             }
         }
         return requested;
@@ -838,7 +838,6 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         try {
             if (!node.isComplete()) {
                 enforceFinalizers(node);
-                maybeNodesReady = true;
                 if (node.isFailed()) {
                     LOGGER.debug("Node {} failed", node);
                     handleFailure(node);
@@ -858,7 +857,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         }
     }
 
-    private static void enforceFinalizers(Node node) {
+    private void enforceFinalizers(Node node) {
         for (Node finalizerNode : node.getFinalizers()) {
             if (finalizerNode.isRequired() || finalizerNode.isMustNotRun()) {
                 enforceWithDependencies(finalizerNode);
@@ -866,7 +865,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         }
     }
 
-    private static void enforceWithDependencies(Node node) {
+    private void enforceWithDependencies(Node node) {
         Set<Node> enforcedNodes = new HashSet<>();
 
         Deque<Node> candidates = new ArrayDeque<>();
@@ -880,6 +879,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                 candidates.addAll(candidate.getDependencySuccessors());
 
                 if (candidate.isMustNotRun() || candidate.isRequired()) {
+                    maybeNodesReady = true;
                     candidate.enforceRun();
                     // Completed changed from true to false - inform all nodes depending on this one.
                     for (Node predecessor : candidate.getAllPredecessors()) {
