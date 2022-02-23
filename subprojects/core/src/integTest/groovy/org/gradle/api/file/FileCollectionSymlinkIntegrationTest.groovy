@@ -20,7 +20,6 @@ import org.gradle.api.tasks.CompileClasspath
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.util.Requires
@@ -362,9 +361,9 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec imple
         output.text == "${[MODIFIED]}"
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.INPUT_FILE_DOES_NOT_EXIST
-    )
+    @ValidationTestFor({
+        CoreValidationProblemId.INPUT_FILE_DOES_NOT_EXIST
+    })
     def "broken symlink in #inputType.simpleName fails validation"() {
         def brokenInputFile = file('brokenInput').createLink("brokenInputFileTarget")
         buildFile << """

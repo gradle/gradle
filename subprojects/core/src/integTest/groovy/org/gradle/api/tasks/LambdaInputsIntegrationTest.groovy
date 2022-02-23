@@ -18,7 +18,6 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
-import org.gradle.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.test.fixtures.file.TestFile
@@ -75,9 +74,9 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements Val
         """
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.UNKNOWN_IMPLEMENTATION
-    )
+    @ValidationTestFor({
+        ExecutionValidationProblemId.UNKNOWN_IMPLEMENTATION
+    })
     @Issue("https://github.com/gradle/gradle/issues/5510")
     def "task with nested property defined by Java lambda disables execution optimizations"() {
         setupTaskClassWithActionProperty()
@@ -127,9 +126,9 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements Val
         file('build/tmp/myTask/output.txt').text == "changed"
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.UNKNOWN_IMPLEMENTATION
-    )
+    @ValidationTestFor({
+        ExecutionValidationProblemId.UNKNOWN_IMPLEMENTATION
+    })
     def "can change nested property from Java lambda to anonymous inner class and back"() {
         setupTaskClassWithActionProperty()
         def lambdaClassName = "LambdaAction"
@@ -225,9 +224,9 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements Val
         """
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.UNKNOWN_IMPLEMENTATION
-    )
+    @ValidationTestFor({
+        ExecutionValidationProblemId.UNKNOWN_IMPLEMENTATION
+    })
     @Issue("https://github.com/gradle/gradle/issues/5510")
     def "task with Java lambda actions disables execution optimizations"() {
         file("buildSrc/src/main/java/LambdaActionOriginal.java") << javaClass("LambdaActionOriginal", lambdaPrintingString("ACTION", "From Lambda: original"))
@@ -267,9 +266,9 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements Val
         executedAndNotSkipped(":myTask")
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.UNKNOWN_IMPLEMENTATION
-    )
+    @ValidationTestFor({
+        ExecutionValidationProblemId.UNKNOWN_IMPLEMENTATION
+    })
     def "can change lambda action to anonymous inner class and back"() {
         file("buildSrc/src/main/java/LambdaAction.java") << javaClass("LambdaAction", lambdaPrintingString("ACTION", "From Lambda"))
         file("buildSrc/src/main/java/AnonymousAction.java") << javaClass("AnonymousAction", anonymousClassPrintingString("ACTION", "From Anonymous"))

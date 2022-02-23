@@ -19,9 +19,9 @@ package org.gradle.plugin.devel.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.reflect.validation.ValidationTestFor
+import org.gradle.model.internal.reflect.problems.TestValidationProblemId
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Requires
 
@@ -33,9 +33,9 @@ class TaskFromPluginValidationIntegrationTest extends AbstractIntegrationSpec im
         expectReindentedValidationMessage()
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.TEST_PROBLEM
-    )
+    @ValidationTestFor({
+        TestValidationProblemId.TEST_PROBLEM
+    })
     def "detects that a problem is from a task declared in a precompiled script plugin"() {
         withPrecompiledScriptPlugins()
         def pluginFile = file("buildSrc/src/main/groovy/test.gradle.demo.plugin.gradle")
@@ -61,9 +61,9 @@ class TaskFromPluginValidationIntegrationTest extends AbstractIntegrationSpec im
         }.trim())
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.TEST_PROBLEM
-    )
+    @ValidationTestFor({
+        TestValidationProblemId.TEST_PROBLEM
+    })
     def "detects that a problem is from a task declared in plugin"() {
         settingsFile << """
             includeBuild 'my-plugin'

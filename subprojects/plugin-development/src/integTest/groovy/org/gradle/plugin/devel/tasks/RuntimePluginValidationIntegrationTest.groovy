@@ -16,8 +16,8 @@
 
 package org.gradle.plugin.devel.tasks
 
-import org.gradle.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationTestFor
+import org.gradle.model.internal.reflect.problems.CoreValidationProblemId
 import org.gradle.test.fixtures.file.TestFile
 
 import static org.gradle.internal.reflect.validation.Severity.ERROR
@@ -87,9 +87,9 @@ class RuntimePluginValidationIntegrationTest extends AbstractPluginValidationInt
         return file("buildSrc/$path")
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.MISSING_ANNOTATION
-    )
+    @ValidationTestFor({
+        CoreValidationProblemId.MISSING_ANNOTATION
+    })
     def "supports recursive types"() {
         groovyTaskSource << """
             import org.gradle.api.*

@@ -50,13 +50,14 @@ import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.reflect.DefaultTypeValidationContext
 import org.gradle.internal.reflect.PropertyMetadata
 import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore
-import org.gradle.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.TypeValidationContext
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.internal.scripts.ScriptOrigin
 import org.gradle.internal.service.ServiceRegistryBuilder
 import org.gradle.internal.service.scopes.ExecutionGlobalServices
+import org.gradle.model.internal.reflect.problems.CoreValidationProblemId
+import org.gradle.model.internal.reflect.problems.TestValidationProblemId
 import spock.lang.Issue
 import spock.lang.Shared
 import spock.lang.Specification
@@ -133,7 +134,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         _ * annotationHandler.annotationType >> SearchPath
         _ * annotationHandler.validatePropertyMetadata(_, _) >> { PropertyMetadata metadata, TypeValidationContext context ->
             context.visitPropertyProblem {
-                it.withId(ValidationProblemId.TEST_PROBLEM)
+                it.withId(TestValidationProblemId.TEST_PROBLEM)
                     .reportAs(WARNING)
                     .forProperty(metadata.propertyName)
                     .withDescription("is broken")
@@ -160,7 +161,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         _ * annotationHandler.annotationType >> SearchPath
         _ * annotationHandler.validatePropertyMetadata(_, _) >> { PropertyMetadata metadata, TypeValidationContext context ->
             context.visitPropertyProblem {
-                it.withId(ValidationProblemId.TEST_PROBLEM)
+                it.withId(TestValidationProblemId.TEST_PROBLEM)
                     .reportAs(WARNING)
                     .forProperty(metadata.propertyName)
                     .withDescription("is broken")
@@ -184,7 +185,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         _ * typeAnnotationHandler.annotationType >> CustomCacheable
         _ * typeAnnotationHandler.validateTypeMetadata(_, _) >> { Class type, TypeValidationContext context ->
             context.visitTypeProblem { it.reportAs(WARNING)
-                .withId(ValidationProblemId.TEST_PROBLEM)
+                .withId(TestValidationProblemId.TEST_PROBLEM)
                 .forType(type)
                 .withDescription("type is broken")
                 .happensBecause("Test")
@@ -365,9 +366,9 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         @Input String useful
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.MISSING_ANNOTATION
-    )
+    @ValidationTestFor({
+        CoreValidationProblemId.MISSING_ANNOTATION
+    })
     def "warns about and ignores properties that are not annotated"() {
         when:
         def metadata = metadataStore.getTypeMetadata(TypeWithUnannotatedProperties)

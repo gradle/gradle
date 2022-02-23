@@ -18,9 +18,10 @@ package org.gradle.api.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.reflect.validation.ValidationTestFor
+import org.gradle.model.internal.reflect.problems.ExecutionValidationProblemId
+import org.gradle.model.internal.reflect.problems.TypeMetadataValidationProblemId
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
@@ -1081,9 +1082,9 @@ task b(dependsOn: a)
         output.contains "Task 'b2' file 'output.txt' with 'output-file'"
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.UNKNOWN_IMPLEMENTATION
-    )
+    @ValidationTestFor({
+        ExecutionValidationProblemId.UNKNOWN_IMPLEMENTATION
+    })
     @ToBeFixedForConfigurationCache(because = "ClassNotFoundException: CustomTask")
     def "task loaded with custom classloader disables execution optimizations"() {
         file("input.txt").text = "data"
@@ -1138,9 +1139,9 @@ task b(dependsOn: a)
         noneSkipped()
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.UNKNOWN_IMPLEMENTATION
-    )
+    @ValidationTestFor({
+        ExecutionValidationProblemId.UNKNOWN_IMPLEMENTATION
+    })
     def "can switch between task with implementation from unknown classloader and from known classloader"() {
         file("input.txt").text = "data"
         buildFile << """
@@ -1222,9 +1223,9 @@ task b(dependsOn: a)
         """
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.UNKNOWN_IMPLEMENTATION
-    )
+    @ValidationTestFor({
+        ExecutionValidationProblemId.UNKNOWN_IMPLEMENTATION
+    })
     @ToBeFixedForConfigurationCache(because = "ClassNotFoundException: CustomTaskAction")
     def "task with custom action loaded with custom classloader is never up-to-date"() {
         file("input.txt").text = "data"
@@ -1407,9 +1408,9 @@ task b(dependsOn: a)
     }
 
     @ToBeImplemented("Private getters should be ignored")
-    @ValidationTestFor(
-        ValidationProblemId.PRIVATE_GETTER_MUST_NOT_BE_ANNOTATED
-    )
+    @ValidationTestFor({
+        TypeMetadataValidationProblemId.PRIVATE_GETTER_MUST_NOT_BE_ANNOTATED
+    })
     def "private inputs can be overridden in subclass"() {
         given:
         buildFile << '''
@@ -1504,9 +1505,9 @@ task b(dependsOn: a)
         outputFile.text == 'second'
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.IGNORED_PROPERTY_MUST_NOT_BE_ANNOTATED
-    )
+    @ValidationTestFor({
+        TypeMetadataValidationProblemId.IGNORED_PROPERTY_MUST_NOT_BE_ANNOTATED
+    })
     @Issue("https://github.com/gradle/gradle/issues/11805")
     def "Groovy property annotated as @Internal with differently annotated getter is not allowed"() {
         def inputFile = file("input.txt")

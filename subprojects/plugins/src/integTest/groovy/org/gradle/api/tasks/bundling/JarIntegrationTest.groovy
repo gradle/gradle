@@ -18,7 +18,6 @@ package org.gradle.api.tasks.bundling
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
-import org.gradle.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.test.fixtures.archive.JarTestFixture
@@ -662,9 +661,9 @@ class JarIntegrationTest extends AbstractIntegrationSpec implements ValidationMe
         skipped ":jar"
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.VALUE_NOT_SET
-    )
+    @ValidationTestFor({
+        CoreValidationProblemId.VALUE_NOT_SET
+    })
     def "cannot create a JAR without destination dir"() {
         given:
         buildFile << """

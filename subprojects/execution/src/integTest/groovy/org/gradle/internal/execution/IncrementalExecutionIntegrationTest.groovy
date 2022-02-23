@@ -70,13 +70,13 @@ import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.id.UniqueId
 import org.gradle.internal.operations.TestBuildOperationExecutor
-import org.gradle.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId
 import org.gradle.internal.snapshot.SnapshotVisitorUtil
 import org.gradle.internal.snapshot.ValueSnapshot
 import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot
+import org.gradle.model.internal.reflect.problems.TestValidationProblemId
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -295,7 +295,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
             .withValidator {context -> context
                 .forType(UnitOfWork, false)
                 .visitPropertyProblem{
-                    it.withId(ValidationProblemId.TEST_PROBLEM)
+                    it.withId(TestValidationProblemId.TEST_PROBLEM)
                         .reportAs(WARNING)
                         .withDescription("Validation problem")
                         .happensBecause("Test")
@@ -602,7 +602,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
         def invalidWork = builder
             .withValidator { validationContext ->
                 validationContext.forType(Object, true).visitTypeProblem {
-                    it.withId(ValidationProblemId.TEST_PROBLEM)
+                    it.withId(TestValidationProblemId.TEST_PROBLEM)
                         .reportAs(ERROR)
                         .forType(Object)
                         .withDescription("Validation error")

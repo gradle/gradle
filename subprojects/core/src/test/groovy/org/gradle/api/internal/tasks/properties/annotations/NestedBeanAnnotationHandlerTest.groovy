@@ -27,7 +27,7 @@ import org.gradle.api.internal.tasks.properties.PropertyVisitor
 import org.gradle.api.internal.tasks.properties.ValidationActions
 import org.gradle.api.tasks.Optional
 import org.gradle.internal.reflect.PropertyMetadata
-import org.gradle.problems.ValidationProblemId
+import org.gradle.model.internal.reflect.problems.CoreValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationTestFor
 import spock.lang.Specification
 
@@ -40,9 +40,9 @@ class NestedBeanAnnotationHandlerTest extends Specification {
     def context = Mock(BeanPropertyContext)
     def propertyMetadata = Mock(PropertyMetadata)
 
-    @ValidationTestFor(
-        ValidationProblemId.VALUE_NOT_SET
-    )
+    @ValidationTestFor({
+        CoreValidationProblemId.VALUE_NOT_SET
+    })
     def "absent nested property is reported as error"() {
         PropertyValue validatingValue = null
         def validationContext = Mock(TaskValidationContext)

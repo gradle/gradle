@@ -18,15 +18,15 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.MissingTaskDependenciesFixture
-import org.gradle.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationTestFor
+import org.gradle.model.internal.reflect.problems.CoreValidationProblemId
 import spock.lang.Issue
 
 import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.convertToSingleLine
 
-@ValidationTestFor(
-    ValidationProblemId.IMPLICIT_DEPENDENCY
-)
+@ValidationTestFor({
+    CoreValidationProblemId.IMPLICIT_DEPENDENCY
+})
 class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec implements MissingTaskDependenciesFixture {
 
     def "detects missing dependency between two tasks (#description)"() {
@@ -435,9 +435,9 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec imp
         executedAndNotSkipped(":fooReport", ":barReport")
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.UNRESOLVABLE_INPUT
-    )
+    @ValidationTestFor({
+        CoreValidationProblemId.UNRESOLVABLE_INPUT
+    })
     def "emits a deprecation warning when an input file collection can't be resolved"() {
         buildFile """
             task "broken" {

@@ -27,9 +27,10 @@ import org.gradle.integtests.fixtures.TestBuildCache
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.Actions
-import org.gradle.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.reflect.validation.ValidationTestFor
+import org.gradle.model.internal.reflect.problems.CoreValidationProblemId
+import org.gradle.model.internal.reflect.problems.TypeMetadataValidationProblemId
 import spock.lang.Issue
 import spock.lang.Requires
 
@@ -453,10 +454,12 @@ task someTask {
         skipped(":invalid")
     }
 
-    @ValidationTestFor([
-        ValidationProblemId.MUTABLE_TYPE_WITH_SETTER,
-        ValidationProblemId.INCORRECT_USE_OF_INPUT_ANNOTATION
-    ])
+    @ValidationTestFor({
+        [
+            TypeMetadataValidationProblemId.MUTABLE_TYPE_WITH_SETTER,
+            CoreValidationProblemId.INCORRECT_USE_OF_INPUT_ANNOTATION
+        ]
+    })
     def "task can use input property of type #type"() {
         file("buildSrc/src/main/java/SomeTask.java") << """
 import org.gradle.api.DefaultTask;
@@ -554,9 +557,9 @@ task someTask(type: SomeTask) {
         "${MapProperty.name}<String, Number>" | "objects.mapProperty(String, Number); v.set([a: 12])" | "objects.mapProperty(String, Number); v.set([a: 10])"        | null
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.VALUE_NOT_SET
-    )
+    @ValidationTestFor({
+        CoreValidationProblemId.VALUE_NOT_SET
+    })
     def "null input properties registered via TaskInputs.property are not allowed"() {
         expectReindentedValidationMessage()
         buildFile << """
@@ -582,9 +585,9 @@ task someTask(type: SomeTask) {
         succeeds "test"
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.VALUE_NOT_SET
-    )
+    @ValidationTestFor({
+        CoreValidationProblemId.VALUE_NOT_SET
+    })
     def "null input files registered via TaskInputs.#method are not allowed"() {
         expectReindentedValidationMessage()
         buildFile << """
@@ -616,9 +619,9 @@ task someTask(type: SomeTask) {
         method << ["file", "files", "dir"]
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.VALUE_NOT_SET
-    )
+    @ValidationTestFor({
+        CoreValidationProblemId.VALUE_NOT_SET
+    })
     def "null output files registered via TaskOutputs.#method are not allowed"() {
         expectReindentedValidationMessage()
         buildFile << """
@@ -650,9 +653,9 @@ task someTask(type: SomeTask) {
         method << ["file", "files", "dir", "dirs"]
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.INPUT_FILE_DOES_NOT_EXIST
-    )
+    @ValidationTestFor({
+        CoreValidationProblemId.INPUT_FILE_DOES_NOT_EXIST
+    })
     def "missing input files registered via TaskInputs.#method are not allowed"() {
         expectReindentedValidationMessage()
         buildFile << """
@@ -679,9 +682,9 @@ task someTask(type: SomeTask) {
         "dir"  | "Directory"
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.UNEXPECTED_INPUT_FILE_TYPE
-    )
+    @ValidationTestFor({
+        CoreValidationProblemId.UNEXPECTED_INPUT_FILE_TYPECoreValidationProblemId.UNEXPECTED_INPUT_FILE_TYPE
+    })
     def "wrong input file type registered via TaskInputs.#method is not allowed"() {
         expectReindentedValidationMessage()
         file("input-file.txt").touch()
@@ -710,9 +713,9 @@ task someTask(type: SomeTask) {
         "dir"  | "input-file.txt" | "directory"
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.CANNOT_WRITE_OUTPUT
-    )
+    @ValidationTestFor({
+        CoreValidationProblemId.CANNOT_WRITE_OUTPUT
+    })
     def "wrong output file type registered via TaskOutputs.#method is not allowed (files)"() {
         expectReindentedValidationMessage()
         def outputDir = file("output-dir")
@@ -739,9 +742,9 @@ task someTask(type: SomeTask) {
         "files" | "output-dir"
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.CANNOT_WRITE_OUTPUT
-    )
+    @ValidationTestFor({
+        CoreValidationProblemId.CANNOT_WRITE_OUTPUT
+    })
     def "wrong output file type registered via TaskOutputs.#method is not allowed (directories)"() {
         expectReindentedValidationMessage()
         def outputFile = file("output-file.txt")
@@ -768,9 +771,9 @@ task someTask(type: SomeTask) {
         "dirs"  | "output-file.txt"
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.CANNOT_WRITE_OUTPUT
-    )
+    @ValidationTestFor({
+        CoreValidationProblemId.CANNOT_WRITE_OUTPUT
+    })
     @Issue("https://github.com/gradle/gradle/issues/15679")
     def "fileTrees with regular file roots cannot be used as output files"() {
         expectReindentedValidationMessage()

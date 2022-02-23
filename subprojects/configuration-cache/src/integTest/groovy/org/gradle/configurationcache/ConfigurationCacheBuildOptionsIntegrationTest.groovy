@@ -115,9 +115,9 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
             : 'producer.flatMap { it.outputFile }.map { it.asFile.readText() }'
     }
 
-    @ValidationTestFor(
+    @ValidationTestFor({
         CoreValidationProblemId.VALUE_NOT_SET
-    )
+    })
     @Issue("https://github.com/gradle/gradle/issues/13334")
     def "task input property with convention set to absent #operator is reported correctly"() {
 

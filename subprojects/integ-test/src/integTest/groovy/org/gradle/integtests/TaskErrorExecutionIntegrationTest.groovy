@@ -16,7 +16,6 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.test.fixtures.file.TestFile
@@ -108,9 +107,9 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
         failure.assertHasCause("broken")
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.VALUE_NOT_SET
-    )
+    @ValidationTestFor({
+        CoreValidationProblemId.VALUE_NOT_SET
+    })
     def reportsTaskValidationFailure() {
         buildFile << '''
             class CustomTask extends DefaultTask {

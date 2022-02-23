@@ -21,9 +21,9 @@ import org.gradle.internal.execution.WorkValidationContext
 import org.gradle.internal.execution.WorkValidationException
 import org.gradle.internal.execution.WorkValidationExceptionChecker
 import org.gradle.internal.execution.impl.DefaultWorkValidationContext
-import org.gradle.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.vfs.VirtualFileSystem
+import org.gradle.model.internal.reflect.problems.TestValidationProblemId
 
 import static org.gradle.internal.reflect.validation.Severity.ERROR
 import static org.gradle.internal.reflect.validation.Severity.WARNING
@@ -75,7 +75,7 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
         }
         _ * work.validate(_ as  WorkValidationContext) >> {  WorkValidationContext validationContext ->
             validationContext.forType(JobType, true).visitTypeProblem {
-                it.withId(ValidationProblemId.TEST_PROBLEM)
+                it.withId(TestValidationProblemId.TEST_PROBLEM)
                     .reportAs(ERROR)
                     .forType(Object)
                     .withDescription("Validation error")
@@ -102,14 +102,14 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
 
         _ * work.validate(_ as  WorkValidationContext) >> {  WorkValidationContext validationContext ->
             validationContext.forType(JobType, true).visitTypeProblem{
-                it.withId(ValidationProblemId.TEST_PROBLEM)
+                it.withId(TestValidationProblemId.TEST_PROBLEM)
                     .reportAs(ERROR)
                     .forType(Object)
                     .withDescription("Validation error #1")
                     .happensBecause("Test")
             }
             validationContext.forType(SecondaryJobType, true).visitTypeProblem{
-                it.withId(ValidationProblemId.TEST_PROBLEM)
+                it.withId(TestValidationProblemId.TEST_PROBLEM)
                     .reportAs(ERROR)
                     .forType(Object)
                     .withDescription("Validation error #2")
@@ -127,7 +127,7 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
         then:
         _ * work.validate(_ as  WorkValidationContext) >> {  WorkValidationContext validationContext ->
             validationContext.forType(JobType, true).visitTypeProblem{
-                it.withId(ValidationProblemId.TEST_PROBLEM)
+                it.withId(TestValidationProblemId.TEST_PROBLEM)
                     .reportAs(WARNING)
                     .forType(Object)
                     .withDescription("Validation warning")
@@ -157,14 +157,14 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
         _ * work.validate(_ as  WorkValidationContext) >> {  WorkValidationContext validationContext ->
             def typeContext = validationContext.forType(JobType, true)
             typeContext.visitTypeProblem{
-                it.withId(ValidationProblemId.TEST_PROBLEM)
+                it.withId(TestValidationProblemId.TEST_PROBLEM)
                     .reportAs(ERROR)
                     .forType(Object)
                     .withDescription("Validation error")
                     .happensBecause("Test")
             }
             typeContext.visitTypeProblem{
-                it.withId(ValidationProblemId.TEST_PROBLEM)
+                it.withId(TestValidationProblemId.TEST_PROBLEM)
                     .reportAs(WARNING)
                     .forType(Object)
                     .withDescription("Validation warning")

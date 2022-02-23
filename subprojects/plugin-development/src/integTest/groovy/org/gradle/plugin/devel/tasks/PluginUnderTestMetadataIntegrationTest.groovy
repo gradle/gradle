@@ -36,9 +36,9 @@ class PluginUnderTestMetadataIntegrationTest extends AbstractIntegrationSpec imp
         expectReindentedValidationMessage()
     }
 
-    @ValidationTestFor(
+    @ValidationTestFor({
         CoreValidationProblemId.VALUE_NOT_SET
-    )
+    })
     def "fails the task for null plugin classpath and output directory"() {
         given:
         buildFile << """

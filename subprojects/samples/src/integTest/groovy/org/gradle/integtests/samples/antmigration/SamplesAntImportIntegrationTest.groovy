@@ -21,8 +21,8 @@ import org.gradle.integtests.fixtures.MissingTaskDependenciesFixture
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UsesSample
-import org.gradle.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationTestFor
+import org.gradle.model.internal.reflect.problems.CoreValidationProblemId
 import org.junit.Rule
 
 class SamplesAntImportIntegrationTest extends AbstractSampleIntegrationTest implements MissingTaskDependenciesFixture {
@@ -69,9 +69,9 @@ class SamplesAntImportIntegrationTest extends AbstractSampleIntegrationTest impl
         dsl << ['groovy', 'kotlin']
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.IMPLICIT_DEPENDENCY
-    )
+    @ValidationTestFor({
+        CoreValidationProblemId.IMPLICIT_DEPENDENCY
+    })
     @UsesSample("antMigration/fileDeps")
     def "can use task properties to link tasks (#dsl)"() {
         given: "A sample Java project"

@@ -73,9 +73,9 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         return file(path)
     }
 
-    @ValidationTestFor(
+    @ValidationTestFor({
         CoreValidationProblemId.MISSING_ANNOTATION
-    )
+    })
     def "supports recursive types"() {
         groovyTaskSource << """
             import org.gradle.api.*
@@ -105,9 +105,9 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         ])
     }
 
-    @ValidationTestFor(
+    @ValidationTestFor({
         CoreValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT
-    )
+    })
     def "task cannot have property with annotation @#ann.simpleName"() {
         javaTaskSource << """
             import org.gradle.api.*;
@@ -146,9 +146,9 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         ann << [InputArtifact, InputArtifactDependencies]
     }
 
-    @ValidationTestFor(
+    @ValidationTestFor({
         CoreValidationProblemId.MISSING_NORMALIZATION_ANNOTATION
-    )
+    })
     def "can enable stricter validation"() {
         buildFile << """
             dependencies {
@@ -283,10 +283,12 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         assertValidationSucceeds()
     }
 
-    @ValidationTestFor([
-        CoreValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT,
-        CoreValidationProblemId.MISSING_ANNOTATION
-    ])
+    @ValidationTestFor({
+        [
+            CoreValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT,
+            CoreValidationProblemId.MISSING_ANNOTATION
+        ]
+    })
     def "can validate properties of an artifact transform action"() {
         file("src/main/java/MyTransformAction.java") << """
             import org.gradle.api.*;
@@ -347,10 +349,12 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         ])
     }
 
-    @ValidationTestFor([
-        CoreValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT,
-        CoreValidationProblemId.MISSING_ANNOTATION
-    ])
+    @ValidationTestFor({
+        [
+            CoreValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT,
+            CoreValidationProblemId.MISSING_ANNOTATION
+        ]
+    })
     def "can validate properties of an artifact transform parameters object"() {
         file("src/main/java/MyTransformParameters.java") << """
             import org.gradle.api.*;
@@ -415,9 +419,9 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         ])
     }
 
-    @ValidationTestFor(
+    @ValidationTestFor({
         CoreValidationProblemId.MISSING_ANNOTATION
-    )
+    })
     def "tests only classes from plugin source set"() {
         buildFile << """
             sourceSets {
@@ -472,7 +476,9 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         ])
     }
 
-    @ValidationTestFor(CoreValidationProblemId.NOT_CACHEABLE_WITHOUT_REASON)
+    @ValidationTestFor({
+        CoreValidationProblemId.NOT_CACHEABLE_WITHOUT_REASON
+    })
     def "detects missing DisableCachingByDefault annotations"() {
         javaTaskSource << """
             import org.gradle.api.*;
@@ -498,7 +504,9 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         ])
     }
 
-    @ValidationTestFor(CoreValidationProblemId.NOT_CACHEABLE_WITHOUT_REASON)
+    @ValidationTestFor({
+        CoreValidationProblemId.NOT_CACHEABLE_WITHOUT_REASON
+    })
     def "untracked tasks don't need a disable caching by default reason"() {
         javaTaskSource << """
             import org.gradle.api.*;

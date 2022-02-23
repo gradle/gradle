@@ -22,9 +22,9 @@ import org.gradle.api.internal.tasks.properties.GetInputFilesVisitor
 import org.gradle.api.internal.tasks.properties.PropertyWalker
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.reflect.validation.ValidationTestFor
+import org.gradle.model.internal.reflect.problems.CoreValidationProblemId
 import spock.lang.Issue
 
 class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
@@ -63,9 +63,9 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec imp
         annotation << [InputFile, InputDirectory, InputFiles]
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.UNSUPPORTED_NOTATION
-    )
+    @ValidationTestFor({
+        CoreValidationProblemId.UNSUPPORTED_NOTATION
+    })
     @Issue("https://github.com/gradle/gradle/issues/3193")
     @ToBeFixedForConfigurationCache(because = "multiple build failures")
     def "TaskInputs.#method shows error message when used with complex input"() {
@@ -106,9 +106,9 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec imp
         "file" | "file"
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.UNSUPPORTED_NOTATION
-    )
+    @ValidationTestFor({
+        CoreValidationProblemId.UNSUPPORTED_NOTATION
+    })
     @ToBeFixedForConfigurationCache(because = "multiple build failures")
     def "#annotation.simpleName shows error message when used with complex input"() {
         buildFile << """
@@ -208,9 +208,9 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec imp
         executed ":foo"
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.VALUE_NOT_SET
-    )
+    @ValidationTestFor({
+        CoreValidationProblemId.VALUE_NOT_SET
+    })
     @Issue("https://github.com/gradle/gradle/issues/9674")
     def "shows validation error when non-Optional @Input is null"() {
         buildFile << """

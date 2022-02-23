@@ -22,9 +22,9 @@ import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.reflect.validation.ValidationTestFor
+import org.gradle.model.internal.reflect.problems.CoreValidationProblemId
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
@@ -184,9 +184,9 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         """
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.CANNOT_WRITE_TO_RESERVED_LOCATION
-    )
+    @ValidationTestFor({
+        CoreValidationProblemId.CANNOT_WRITE_TO_RESERVED_LOCATION
+    })
     def "task cannot write into transform directory"() {
         def forbiddenPath = ".transforms/not-allowed.txt"
 

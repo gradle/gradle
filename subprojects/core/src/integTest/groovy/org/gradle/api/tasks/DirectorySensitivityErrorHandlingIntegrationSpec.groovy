@@ -28,9 +28,9 @@ class DirectorySensitivityErrorHandlingIntegrationSpec extends AbstractIntegrati
         expectReindentedValidationMessage()
     }
 
-    @ValidationTestFor(
+    @ValidationTestFor({
         CoreValidationProblemId.INCOMPATIBLE_ANNOTATIONS
-    )
+    })
     def "fails when @IgnoreEmptyDirectories is applied to an #nonDirectoryInput.annotation annotation"() {
         createAnnotatedInputFileTask(nonDirectoryInput)
         buildFile << """
@@ -59,9 +59,9 @@ class DirectorySensitivityErrorHandlingIntegrationSpec extends AbstractIntegrati
         nonDirectoryInput << NonDirectoryInput.values()
     }
 
-    @ValidationTestFor(
+    @ValidationTestFor({
         CoreValidationProblemId.INCOMPATIBLE_ANNOTATIONS
-    )
+    })
     def "fails when @IgnoreEmptyDirectories is applied to an #output.annotation annotation"() {
         createAnnotatedOutputFileTask(output)
         buildFile << """
