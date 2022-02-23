@@ -33,9 +33,9 @@ class JavaTestVsJarFirstPerformanceTest extends AbstractCrossVersionPerformanceT
     ])
     def "test is faster with running jar first"() {
         given:
-        runner.warmUpRuns = 10
-        runner.runs = 50
-        runner.tasksToRun = ['clean', 'test']
+        runner.warmUpRuns = 5
+        runner.runs = 20
+        runner.tasksToRun = ['test']
 
         when:
         def result = runner.run()

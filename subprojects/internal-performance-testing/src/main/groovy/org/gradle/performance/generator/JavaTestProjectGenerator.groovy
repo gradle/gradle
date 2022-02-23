@@ -100,11 +100,11 @@ enum JavaTestProjectGenerator {
         .assembleChangeFile()
         .create()),
     MEDIUM_JAVA_MULTI_PROJECT_WITH_API_PROJECT_DEPENDENCIES(new TestProjectGeneratorConfigurationBuilder("mediumJavaMultiProjectWithAPIProjectDependencies")
-        .withSourceFiles(1000)
-        .withSubProjects(100)
+        .withSourceFiles(250)
+        .withSubProjects(50)
         .withApiDependencies([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
-        .withDaemonMemory('5120m')
-        .withCompilerMemory('2560m')
+        .withDaemonMemory('1g')
+        .withCompilerMemory('512m')
         .assembleChangeFile()
         .create()),
     MEDIUM_JAVA_COMPOSITE_BUILD(new TestProjectGeneratorConfigurationBuilder("mediumJavaCompositeBuild", "mediumJavaMultiProject")
