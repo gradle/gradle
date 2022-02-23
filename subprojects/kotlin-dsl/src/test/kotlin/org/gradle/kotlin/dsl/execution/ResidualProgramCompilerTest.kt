@@ -28,7 +28,7 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
 import org.gradle.internal.classpath.ClassPath
-import org.gradle.internal.hash.TestHashCode.fromInt
+import org.gradle.internal.hash.TestHashCode
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Dynamic
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.ApplyBasePlugins
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.ApplyDefaultPluginRequests
@@ -44,30 +44,6 @@ import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 import org.mockito.InOrder
-import java.util.Arrays.fill
-
-(.fromInt(
-
-import org.gradle.kotlin.dsl.execution.ResidualProgram.Dynamic
-import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.ApplyBasePlugins
-import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.ApplyDefaultPluginRequests
-import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.ApplyPluginRequestsOf
-import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.CloseTargetScope
-import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.Eval
-import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.SetupEmbeddedKotlin
-import org.gradle.kotlin.dsl.execution.ResidualProgram.Static
-
-import org.gradle.kotlin.dsl.fixtures.assertInstanceOf
-import org.gradle.kotlin.dsl.fixtures.assertStandardOutputOf
-
-import org.gradle.plugin.management.internal.PluginRequests
-
-import org.hamcrest.CoreMatchers.equalTo
-import org.hamcrest.MatcherAssert.assertThat
-
-import org.junit.Test
-import org.mockito.InOrder
-
 import java.util.Arrays.fill
 
 
@@ -158,7 +134,7 @@ class ResidualProgramCompilerTest : TestWithCompiler() {
     fun `Dynamic(Static(CloseTargetScope))`() {
 
         val source = ProgramSource("settings.gradle.kts", "include(\"foo\", \"bar\")")
-        val sourceHash = TestHashCode.fromInt(.fromInt(.fromInt(42)
+        val sourceHash = TestHashCode.fromInt(42)
         val target = mock<Settings>()
         val programHost = safeMockProgramHost()
         val scriptHost = scriptHostWith(target)
@@ -211,7 +187,7 @@ class ResidualProgramCompilerTest : TestWithCompiler() {
             "task(\"precompiled stage 2\")"
         )
 
-        val sourceHash = TestHashCode.fromInt(.fromInt(42)
+        val sourceHash = TestHashCode.fromInt(42)
         val target = mock<Project>()
         val scriptHost = scriptHostWith(target)
         val accessorsClassPath = mock<ClassPath>()

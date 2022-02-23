@@ -29,6 +29,7 @@ import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.Describables
 import org.gradle.internal.classpath.ClassPath
+import org.gradle.internal.hash.TestHashCode
 import org.gradle.internal.resource.TextResource
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.kotlin.dsl.fixtures.DummyCompiledScript
