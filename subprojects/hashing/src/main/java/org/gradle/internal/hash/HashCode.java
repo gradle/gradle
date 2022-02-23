@@ -16,6 +16,8 @@
 
 package org.gradle.internal.hash;
 
+import com.google.common.annotations.VisibleForTesting;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.Serializable;
@@ -150,6 +152,7 @@ public abstract class HashCode implements Serializable, Comparable<HashCode> {
 
     abstract byte[] bytes();
 
+    @VisibleForTesting
     static class HashCode128 extends HashCode {
         private final long bits1;
         private final long bits2;
@@ -219,7 +222,7 @@ public abstract class HashCode implements Serializable, Comparable<HashCode> {
         }
     }
 
-    static class ByteArrayBackedHashCode extends HashCode {
+    private static class ByteArrayBackedHashCode extends HashCode {
         private final byte[] bytes;
         private int hashCode;
 
