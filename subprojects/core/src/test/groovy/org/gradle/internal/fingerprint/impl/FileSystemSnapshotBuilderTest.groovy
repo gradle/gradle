@@ -21,7 +21,7 @@ import org.gradle.internal.file.FileMetadata
 import org.gradle.internal.file.FileMetadata.AccessType
 import org.gradle.internal.file.impl.DefaultFileMetadata
 import org.gradle.internal.hash.FileHasher
-import org.gradle.internal.hash.TestHashCode
+import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.snapshot.DirectorySnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.RegularFileSnapshot
@@ -47,7 +47,7 @@ class FileSystemSnapshotBuilderTest extends Specification {
     }
     def hasher = Stub(FileHasher) {
         hash(_, _, _) >> {
-            TestHashCode.fromInt(1234)
+            TestHashCodes.hashCodeFrom(1234)
         }
     }
 

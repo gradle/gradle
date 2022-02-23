@@ -18,7 +18,7 @@ package org.gradle.workers.internal
 
 import org.gradle.api.attributes.Attribute
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
-import org.gradle.internal.hash.TestHashCode
+import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.isolation.Isolatable
 import org.gradle.internal.isolation.IsolatableFactory
@@ -37,7 +37,7 @@ import spock.lang.Specification
 class IsolatableSerializerRegistryTest extends Specification {
     def managedFactoryRegistry = TestUtil.managedFactoryRegistry()
     def classLoaderHasher = Stub(ClassLoaderHierarchyHasher) {
-        getClassLoaderHash(_) >> TestHashCode.fromInt(123)
+        getClassLoaderHash(_) >> TestHashCodes.hashCodeFrom(123)
     }
     IsolatableFactory isolatableFactory = new DefaultIsolatableFactory(classLoaderHasher, managedFactoryRegistry)
     InstantiatorFactory instantiatorFactory = TestUtil.instantiatorFactory()

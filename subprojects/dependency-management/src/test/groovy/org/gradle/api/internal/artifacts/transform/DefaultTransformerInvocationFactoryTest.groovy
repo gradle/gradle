@@ -60,7 +60,7 @@ import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprin
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionSnapshotter
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
-import org.gradle.internal.hash.TestHashCode
+import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.id.UniqueId
 import org.gradle.internal.operations.CurrentBuildOperationRef
 import org.gradle.internal.operations.TestBuildOperationExecutor
@@ -81,7 +81,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
     def mutableTransformsStoreDirectory = temporaryFolder.file("child/build/transforms")
 
     def classloaderHasher = Stub(ClassLoaderHierarchyHasher) {
-        getClassLoaderHash(_ as ClassLoader) >> TestHashCode.fromInt(1234)
+        getClassLoaderHash(_ as ClassLoader) >> TestHashCodes.hashCodeFrom(1234)
     }
     def valueSnapshotter = new DefaultValueSnapshotter([], classloaderHasher)
 
@@ -171,7 +171,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         private final HashCode secondaryInputsHash
         private final BiFunction<File, File, List<File>> transformationAction
 
-        static TestTransformer create(HashCode secondaryInputsHash = TestHashCode.fromInt(1234), BiFunction<File, File, List<File>> transformationAction) {
+        static TestTransformer create(HashCode secondaryInputsHash = TestHashCodes.hashCodeFrom(1234), BiFunction<File, File, List<File>> transformationAction) {
             return new TestTransformer(secondaryInputsHash, transformationAction)
         }
 
@@ -383,8 +383,8 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
             outputFile.text = input.text + " transformed"
             return ImmutableList.of(outputFile)
         }
-        def transformer1 = TestTransformer.create(TestHashCode.fromInt(1234), transformationAction)
-        def transformer2 = TestTransformer.create(TestHashCode.fromInt(4321), transformationAction)
+        def transformer1 = TestTransformer.create(TestHashCodes.hashCodeFrom(1234), transformationAction)
+        def transformer2 = TestTransformer.create(TestHashCodes.hashCodeFrom(4321), transformationAction)
 
         def subject = dependency(transformationType, inputArtifact)
         when:
@@ -410,7 +410,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
             outputFile.text = input.text + " transformed"
             return ImmutableList.of(outputFile)
         }
-        def transformer = TestTransformer.create(TestHashCode.fromInt(1234), transformationAction)
+        def transformer = TestTransformer.create(TestHashCodes.hashCodeFrom(1234), transformationAction)
         when:
         invoke(transformer, inputArtifact1, dependencies, dependency(transformationType, inputArtifact1), inputFingerprinter)
         then:
@@ -437,7 +437,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
             outputFile.text = input.text + " transformed"
             return ImmutableList.of(outputFile)
         }
-        def transformer = TestTransformer.create(TestHashCode.fromInt(1234), transformationAction)
+        def transformer = TestTransformer.create(TestHashCodes.hashCodeFrom(1234), transformationAction)
         def subject = immutableDependency(inputArtifact)
 
         when:
@@ -463,7 +463,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
             outputFile.text = input.text + " transformed"
             return ImmutableList.of(outputFile)
         }
-        def transformer = TestTransformer.create(TestHashCode.fromInt(1234), transformationAction)
+        def transformer = TestTransformer.create(TestHashCodes.hashCodeFrom(1234), transformationAction)
         def subject = mutableDependency(inputArtifact)
 
         when:

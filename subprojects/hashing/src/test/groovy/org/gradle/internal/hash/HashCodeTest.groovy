@@ -106,8 +106,8 @@ class HashCodeTest extends Specification {
 
     def "not equals with null"() {
         expect:
-        TestHashCode.fromInt(0x12345678) != null
-        null != TestHashCode.fromInt(0x12345678)
+        TestHashCodes.hashCodeFrom(0x12345678) != null
+        null != TestHashCodes.hashCodeFrom(0x12345678)
     }
 
     def "won't parse string with odd length"() {

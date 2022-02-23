@@ -16,12 +16,12 @@
 
 package org.gradle.internal.hash
 
-class TestHashCode {
-    static HashCode fromInt(int value) {
-        return fromLong(value)
-    }
-
-    static HashCode fromLong(long value) {
+class TestHashCodes {
+    /**
+     * Create a 128-bit {@link HashCode} using the given value.
+     * The higher 64 bits are set to {@code 0}.
+     */
+    static HashCode hashCodeFrom(long value) {
         return new HashCode.HashCode128(value, 0)
     }
 }

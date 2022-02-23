@@ -18,7 +18,7 @@ package org.gradle.internal.snapshot
 
 import org.apache.commons.io.FilenameUtils
 import org.gradle.internal.file.FileMetadata
-import org.gradle.internal.hash.TestHashCode
+import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.vfs.impl.DefaultSnapshotHierarchy
 
 import javax.annotation.Nullable
@@ -36,7 +36,7 @@ trait TestSnapshotFixture {
             FilenameUtils.separatorsToSystem(absolutePath),
             FilenameUtils.getName(absolutePath),
             accessType,
-            TestHashCode.fromLong(hashCode ?: pseudoRandom.nextLong()),
+            TestHashCodes.hashCodeFrom(hashCode ?: pseudoRandom.nextLong()),
             children as List
         )
     }
@@ -53,7 +53,7 @@ trait TestSnapshotFixture {
         new RegularFileSnapshot(
             FilenameUtils.separatorsToSystem(absolutePath),
             FilenameUtils.getName(absolutePath),
-            TestHashCode.fromLong(hashCode ?: pseudoRandom.nextLong()),
+            TestHashCodes.hashCodeFrom(hashCode ?: pseudoRandom.nextLong()),
             file(abs(pseudoRandom.nextLong()), abs(pseudoRandom.nextLong()), accessType))
     }
 

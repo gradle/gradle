@@ -28,7 +28,7 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
 import org.gradle.internal.classpath.ClassPath
-import org.gradle.internal.hash.TestHashCode
+import org.gradle.internal.hash.TestHashCodes
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Dynamic
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.ApplyBasePlugins
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.ApplyDefaultPluginRequests
@@ -134,7 +134,7 @@ class ResidualProgramCompilerTest : TestWithCompiler() {
     fun `Dynamic(Static(CloseTargetScope))`() {
 
         val source = ProgramSource("settings.gradle.kts", "include(\"foo\", \"bar\")")
-        val sourceHash = TestHashCode.fromInt(42)
+        val sourceHash = TestHashCodes.hashCodeFrom(42)
         val target = mock<Settings>()
         val programHost = safeMockProgramHost()
         val scriptHost = scriptHostWith(target)
@@ -187,7 +187,7 @@ class ResidualProgramCompilerTest : TestWithCompiler() {
             "task(\"precompiled stage 2\")"
         )
 
-        val sourceHash = TestHashCode.fromInt(42)
+        val sourceHash = TestHashCodes.hashCodeFrom(42)
         val target = mock<Project>()
         val scriptHost = scriptHostWith(target)
         val accessorsClassPath = mock<ClassPath>()
@@ -233,7 +233,7 @@ class ResidualProgramCompilerTest : TestWithCompiler() {
         val scriptSource =
             buildscriptFragment.source.map { text("println(\"stage 2\")") }
 
-        val sourceHash = TestHashCode.fromInt(42)
+        val sourceHash = TestHashCodes.hashCodeFrom(42)
 
         val scriptHandler = mock<ScriptHandlerInternal> {
             on { repositories } doReturn mock<RepositoryHandler>()
@@ -594,7 +594,7 @@ class ResidualProgramCompilerTest : TestWithCompiler() {
         target: T,
         val programTarget: ProgramTarget
     ) {
-        val sourceHash = TestHashCode.fromInt(42)
+        val sourceHash = TestHashCodes.hashCodeFrom(42)
         val scriptHost = scriptHostWith(target = target)
         val accessorsClassPath = mock<ClassPath>()
         val programHost = safeMockProgramHost {
