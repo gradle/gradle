@@ -19,12 +19,19 @@ package org.gradle.jvm.toolchain.internal.task;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.HelpTasksPlugin;
 import org.gradle.configuration.project.ProjectConfigureAction;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 public class ShowToolchainsTaskConfigurator implements ProjectConfigureAction {
 
     @Override
     public void execute(ProjectInternal project) {
         project.getTasks().register("javaToolchains", ShowToolchainsTask.class, task -> {
+            task.setDescription("Displays the detected java toolchains.");
+            task.setGroup(HelpTasksPlugin.HELP_GROUP);
+            task.setImpliesSubProjects(true);
+            DeprecationLogger.deprecateTask("javaToolchains").replaceWith("javaToolchainsReport").willBeRemovedInGradle8().withUpgradeGuideSection(7, "some").nagUser();
+        });
+        project.getTasks().register("javaToolchainsReport", ShowToolchainsTask.class, task -> {
             task.setDescription("Displays the detected java toolchains.");
             task.setGroup(HelpTasksPlugin.HELP_GROUP);
             task.setImpliesSubProjects(true);
