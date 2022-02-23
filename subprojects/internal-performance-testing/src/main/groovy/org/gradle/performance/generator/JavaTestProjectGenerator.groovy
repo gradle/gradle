@@ -100,8 +100,9 @@ enum JavaTestProjectGenerator {
         .assembleChangeFile()
         .create()),
     MEDIUM_JAVA_MULTI_PROJECT_WITH_API_PROJECT_DEPENDENCIES(new TestProjectGeneratorConfigurationBuilder("mediumJavaMultiProjectWithAPIProjectDependencies")
-        .withSourceFiles(500)
+        .withSourceFiles(200)
         .withSubProjects(100)
+        .withTestCoverageFactor(5)
         .withApiDependencies([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
         .withDaemonMemory('1g')
         .withCompilerMemory('512m')

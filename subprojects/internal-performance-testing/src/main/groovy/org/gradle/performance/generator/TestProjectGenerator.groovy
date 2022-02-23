@@ -83,6 +83,10 @@ class TestProjectGenerator {
             (sourceFileRangeStart..sourceFileRangeEnd).each {
                 def packageName = fileContentGenerator.packageName(it, subProjectNumber, '/')
                 file projectDir, "src/main/${config.language.name}/${packageName}/Production${it}.${config.language.name}", fileContentGenerator.generateProductionClassFile(subProjectNumber, it, dependencyTree)
+            }
+            def testSourceFileRangeEnd = (sourceFileRangeStart + config.sourceFiles - 1) * config.testCoverageFactor
+            (sourceFileRangeStart..testSourceFileRangeEnd).each {
+                def packageName = fileContentGenerator.packageName(it, subProjectNumber, '/')
                 file projectDir, "src/test/${config.language.name}/${packageName}/Test${it}.${config.language.name}", fileContentGenerator.generateTestClassFile(subProjectNumber, it, dependencyTree)
             }
         }

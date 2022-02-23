@@ -62,6 +62,13 @@ class TestProjectGeneratorConfiguration {
      * project dependencies to exist in the generated project, for testing changes that impact these.
      */
     List<Integer> apiDependencies
+
+    /**
+     * Multiplier for the number of test files to be created in a project; as based on the number of
+     * source files.  For example, if this is 2, then the number of test files will be 2x the number
+     * of source files.  Whole numbers >= 1 are valid.
+     */
+    Integer testCoverageFactor = 1
 }
 
 @Builder(prefix = "with",
