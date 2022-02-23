@@ -23,6 +23,7 @@ import org.gradle.api.Project;
 import org.gradle.api.internal.tasks.DefaultSourceSetContainer;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 import java.util.Arrays;
 import java.util.Set;
@@ -157,6 +158,11 @@ public class GradlePluginDevelopmentExtension {
      */
     @Deprecated
     public boolean isAutomatedPublishing() {
+        DeprecationLogger.deprecateMethod(GradlePluginDevelopmentExtension.class, "isAutomatedPublishing")
+                .withAdvice("Please stop using this method. It is relevant only in the context of the Plugin Publish Plugin and recent versions of that, from 1.0 onwards, only allow automated publishing.")
+                .willBeRemovedInGradle8()
+                .undocumented()
+                .nagUser();
         return automatedPublishing;
     }
 
@@ -168,6 +174,11 @@ public class GradlePluginDevelopmentExtension {
      */
     @Deprecated
     public void setAutomatedPublishing(boolean automatedPublishing) {
+        DeprecationLogger.deprecateMethod(GradlePluginDevelopmentExtension.class, "setAutomatedPublishing")
+                .withAdvice("Please stop using this method. It is relevant only in the context of the Plugin Publish Plugin and recent versions of that, from 1.0 onwards, only allow automated publishing.")
+                .willBeRemovedInGradle8()
+                .undocumented()
+                .nagUser();
         this.automatedPublishing = automatedPublishing;
     }
 }

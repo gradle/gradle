@@ -59,6 +59,9 @@ class MavenPluginPublishPlugin implements Plugin<Project> {
             @Override
             public void execute(PublishingExtension publishing) {
                 final GradlePluginDevelopmentExtension pluginDevelopment = project.getExtensions().getByType(GradlePluginDevelopmentExtension.class);
+                if (!pluginDevelopment.isAutomatedPublishing()) {
+                    return;
+                }
                 SoftwareComponent mainComponent = project.getComponents().getByName("java");
                 MavenPublication mainPublication = addMainPublication(publishing, mainComponent);
                 addMarkerPublications(mainPublication, publishing, pluginDevelopment);
