@@ -16,8 +16,13 @@
 
 package org.gradle.problems
 
-enum TestProblemId {
+enum TestProblemId implements ValidationProblemId {
     PROBLEM1,
     PROBLEM2,
     PROBLEM3,
+
+    @Override
+    public String getId() {
+        return name()
+    }
 }
