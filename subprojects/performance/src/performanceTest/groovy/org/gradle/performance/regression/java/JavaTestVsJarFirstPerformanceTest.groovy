@@ -35,7 +35,7 @@ class JavaTestVsJarFirstPerformanceTest extends AbstractCrossVersionPerformanceT
         given:
         runner.warmUpRuns = 5
         runner.runs = 20
-        runner.tasksToRun = ['test']
+        runner.tasksToRun = ['clean', 'test']
 
         when:
         def result = runner.run()
