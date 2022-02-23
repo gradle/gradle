@@ -19,7 +19,6 @@ package org.gradle.performance.results.report;
 import org.gradle.performance.results.CrossVersionResultsStore;
 import org.gradle.performance.results.PerformanceExperiment;
 import org.gradle.performance.results.PerformanceReportScenarioHistoryExecution;
-import org.gradle.performance.results.PerformanceScenario;
 
 import java.math.BigDecimal;
 import java.util.Map;
@@ -39,24 +38,12 @@ public class DefaultPerformanceFlakinessDataProvider implements PerformanceFlaki
 
     @Override
     public BigDecimal getFlakinessRate(PerformanceExperiment experiment) {
-        BigDecimal flakinessRate = flakinessRates.get(experiment);
-        return flakinessRate != null
-            ? flakinessRate
-            : flakinessRates.get(experimentWithTestClassRemoved(experiment));
-    }
-
-    private PerformanceExperiment experimentWithTestClassRemoved(PerformanceExperiment experiment) {
-        // We query the old flakiness data before storing the test class in the performance DB
-        // until more recent data is available. Can be removed in November 2020.
-        return new PerformanceExperiment(experiment.getTestProject(), new PerformanceScenario(null, experiment.getScenario().getTestName()));
+        return flakinessRates.get(experiment);
     }
 
     @Override
     public BigDecimal getFailureThreshold(PerformanceExperiment experiment) {
-        BigDecimal failureThreshold = failureThresholds.get(experiment);
-        return failureThreshold != null
-            ? failureThreshold
-            : failureThresholds.get(experimentWithTestClassRemoved(experiment));
+        return failureThresholds.get(experiment);
     }
 
     @Override
