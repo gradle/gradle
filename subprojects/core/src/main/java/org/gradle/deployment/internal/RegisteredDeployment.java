@@ -18,6 +18,8 @@ package org.gradle.deployment.internal;
 
 import org.gradle.internal.concurrent.Stoppable;
 
+import javax.annotation.Nullable;
+
 class RegisteredDeployment implements Stoppable {
     private final String id;
     private final DeploymentInternal delegate;
@@ -52,7 +54,7 @@ class RegisteredDeployment implements Stoppable {
         delegate.outOfDate();
     }
 
-    public void upToDate(Throwable failure) {
+    public void upToDate(@Nullable Throwable failure) {
         delegate.upToDate(failure);
         restart();
     }

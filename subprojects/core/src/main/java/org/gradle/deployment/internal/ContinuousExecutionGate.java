@@ -16,10 +16,7 @@
 
 package org.gradle.deployment.internal;
 
-import javax.annotation.Nonnull;
-
 public interface ContinuousExecutionGate {
-    @Nonnull
     GateKeeper createGateKeeper();
 
     void waitForOpen();
