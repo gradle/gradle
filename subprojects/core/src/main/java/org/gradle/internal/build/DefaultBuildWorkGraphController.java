@@ -89,6 +89,13 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
         }
 
         @Override
+        public void stop() {
+            if (plan != null) {
+                plan.stop();
+            }
+        }
+
+        @Override
         public boolean schedule(Collection<ExportedTaskNode> taskNodes) {
             assertIsOwner();
             List<Task> tasks = new ArrayList<>();

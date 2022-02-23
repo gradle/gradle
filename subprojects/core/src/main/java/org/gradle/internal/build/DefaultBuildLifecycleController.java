@@ -224,6 +224,11 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         }
 
         @Override
+        public void stop() {
+            plan.close();
+        }
+
+        @Override
         public void onComplete(Consumer<LocalTaskNode> handler) {
             handlers.add(handler);
         }

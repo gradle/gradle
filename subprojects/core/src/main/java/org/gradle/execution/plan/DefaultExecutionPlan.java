@@ -23,6 +23,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import org.gradle.api.Action;
 import org.gradle.api.BuildCancelledException;
 import org.gradle.api.CircularReferenceException;
 import org.gradle.api.GradleException;
@@ -43,7 +44,9 @@ import org.gradle.internal.graph.DirectedGraphRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.internal.resources.ResourceLock;
+import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -86,6 +89,8 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     private final NodeValidator nodeValidator;
     private final ExecutionNodeAccessHierarchy outputHierarchy;
     private final ExecutionNodeAccessHierarchy destroyableHierarchy;
+    private final ResourceLockCoordinationService lockCoordinator;
+    private final Action<ResourceLock> resourceUnlockListener = this::resourceUnlocked;
     private Spec<? super Task> filter = Specs.satisfyAll();
     private int order = 0;
 
@@ -99,7 +104,14 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     private final OrdinalNodeAccess ordinalNodeAccess = new OrdinalNodeAccess();
     private Consumer<LocalTaskNode> completionHandler = localTaskNode -> {
     };
+
+    // When true, there may be nodes that are "ready", which means their dependencies have completed and the action is ready to execute
+    // When false, there are definitely no nodes that are "ready"
     private boolean maybeNodesReady;
+
+    // When true, there may be nodes that are both ready and "selectable", which means their project and resources are able to be locked
+    // When false, there are definitely no nodes that are "selectable"
+    private boolean maybeNodesSelectable;
 
     private boolean buildCancelled;
 
@@ -109,7 +121,8 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         TaskDependencyResolver dependencyResolver,
         NodeValidator nodeValidator,
         ExecutionNodeAccessHierarchy outputHierarchy,
-        ExecutionNodeAccessHierarchy destroyableHierarchy
+        ExecutionNodeAccessHierarchy destroyableHierarchy,
+        ResourceLockCoordinationService lockCoordinator
     ) {
         this.displayName = displayName;
         this.taskNodeFactory = taskNodeFactory;
@@ -117,6 +130,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         this.nodeValidator = nodeValidator;
         this.outputHierarchy = outputHierarchy;
         this.destroyableHierarchy = destroyableHierarchy;
+        this.lockCoordinator = lockCoordinator;
     }
 
     @Override
@@ -368,7 +382,29 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         executionQueue.addAll(nodeMapping);
 
         for (Node node : executionQueue) {
-            maybeNodesReady |= node.updateAllDependenciesComplete() && node.isReady();
+            maybeNodesReady(node.updateAllDependenciesComplete() && node.isReady());
+        }
+
+        maybeNodesSelectable = true;
+        lockCoordinator.addLockReleaseListener(resourceUnlockListener);
+    }
+
+    @Override
+    public void close() {
+        lockCoordinator.removeLockReleaseListener(resourceUnlockListener);
+        completionHandler = localTaskNode -> {};
+        entryNodes.clear();
+        nodeMapping.clear();
+        executionQueue.clear();
+        runningNodes.clear();
+        filteredNodes.clear();
+        producedButNotYetConsumed.clear();
+        reachableCache.clear();
+    }
+
+    private void resourceUnlocked(ResourceLock resourceLock) {
+        if (!(resourceLock instanceof WorkerLeaseRegistry.WorkerLease) && maybeNodesReady) {
+            maybeNodesSelectable = true;
         }
     }
 
@@ -601,7 +637,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     @Override
     @Nullable
     public Node selectNext() {
-        if (!maybeNodesReady) {
+        if (!maybeNodesSelectable) {
             return null;
         }
         List<ResourceLock> resources = new ArrayList<>();
@@ -639,6 +675,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         }
         LOGGER.debug("No node could be selected, nodes ready: {}", foundReadyNode);
         maybeNodesReady = foundReadyNode;
+        maybeNodesSelectable = false;
         return null;
     }
 
@@ -673,7 +710,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
     private void updateAllDependenciesCompleteForPredecessors(Node node) {
         for (Node predecessor : node.getAllPredecessors()) {
-            maybeNodesReady |= predecessor.updateAllDependenciesComplete() && predecessor.isReady();
+            maybeNodesReady(predecessor.updateAllDependenciesComplete() && predecessor.isReady());
         }
     }
 
@@ -830,12 +867,16 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     }
 
     private void monitoredNodeReady(Node node) {
-        maybeNodesReady = true;
+        lockCoordinator.assertHasStateLock();
+        maybeNodesReady(true);
     }
 
     @Override
     public void finishedExecuting(Node node) {
         try {
+            if (maybeNodesReady) {
+                maybeNodesSelectable = true;
+            }
             if (!node.isComplete()) {
                 enforceFinalizers(node);
                 if (node.isFailed()) {
@@ -854,6 +895,13 @@ public class DefaultExecutionPlan implements ExecutionPlan {
             unlockProjectFor(node);
             unlockSharedResourcesFor(node);
             invalidNodeRunning = false;
+        }
+    }
+
+    private void maybeNodesReady(boolean ready) {
+        if (ready) {
+            maybeNodesReady = true;
+            maybeNodesSelectable = true;
         }
     }
 
@@ -879,7 +927,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                 candidates.addAll(candidate.getDependencySuccessors());
 
                 if (candidate.isMustNotRun() || candidate.isRequired()) {
-                    maybeNodesReady = true;
+                    maybeNodesReady(true);
                     candidate.enforceRun();
                     // Completed changed from true to false - inform all nodes depending on this one.
                     for (Node predecessor : candidate.getAllPredecessors()) {
