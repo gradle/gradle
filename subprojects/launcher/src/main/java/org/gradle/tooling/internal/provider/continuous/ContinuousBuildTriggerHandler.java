@@ -24,7 +24,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 public class ContinuousBuildTriggerHandler {
-    public static final String QUIET_PERIOD_SYSPROP = "org.gradle.internal.filewatch.quietperiod";
+    public static final String QUIET_PERIOD_SYSPROP = "org.gradle.continuous.quietperiod";
 
     private final BuildCancellationToken cancellationToken;
     private final ContinuousExecutionGate continuousExecutionGate;
