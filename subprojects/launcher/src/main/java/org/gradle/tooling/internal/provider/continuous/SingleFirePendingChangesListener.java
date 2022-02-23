@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.deployment.internal;
+package org.gradle.tooling.internal.provider.continuous;
 
+import org.gradle.deployment.internal.PendingChangesListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

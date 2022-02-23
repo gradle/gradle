@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.provider;
+package org.gradle.tooling.internal.provider.continuous;
 
-import org.gradle.execution.plan.BuildInputHierarchy;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.watch.registry.FileWatcherRegistry;
 import org.gradle.internal.watch.vfs.FileChangeListener;

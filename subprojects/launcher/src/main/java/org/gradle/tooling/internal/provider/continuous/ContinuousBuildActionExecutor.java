@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.provider;
+package org.gradle.tooling.internal.provider.continuous;
 
 import org.gradle.api.logging.LogLevel;
 import org.gradle.deployment.internal.ContinuousExecutionGate;
@@ -23,11 +23,9 @@ import org.gradle.deployment.internal.Deployment;
 import org.gradle.deployment.internal.DeploymentInternal;
 import org.gradle.deployment.internal.DeploymentRegistryInternal;
 import org.gradle.deployment.internal.PendingChangesListener;
-import org.gradle.deployment.internal.SingleFirePendingChangesListener;
 import org.gradle.execution.CancellableOperationManager;
 import org.gradle.execution.DefaultCancellableOperationManager;
 import org.gradle.execution.PassThruCancellableOperationManager;
-import org.gradle.execution.plan.BuildInputHierarchy;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.internal.buildevents.BuildStartedTime;

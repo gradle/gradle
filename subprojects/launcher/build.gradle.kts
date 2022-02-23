@@ -7,6 +7,7 @@ description = "Implementation for launching, controlling and communicating with 
 
 dependencies {
     implementation(project(":base-services"))
+    implementation(project(":functional"))
     implementation(project(":enterprise-operations"))
     implementation(project(":cli"))
     implementation(project(":messaging"))

@@ -14,24 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.deployment.internal
+/**
+ * Contains classes handling continuous build execution and triggering.
+ */
+@NonNullApi
+package org.gradle.tooling.internal.provider.continuous;
 
-import spock.lang.Specification
-
-class SingleFirePendingChangesListenerTest extends Specification {
-    def delegate = Mock(PendingChangesListener)
-
-    def "propagates changes only once"() {
-        def singleFirePendingChangesListener = new SingleFirePendingChangesListener(delegate)
-
-        when:
-        singleFirePendingChangesListener.onPendingChanges()
-        then:
-        1 * delegate.onPendingChanges()
-
-        when:
-        singleFirePendingChangesListener.onPendingChanges()
-        then:
-        0 * delegate.onPendingChanges()
-    }
-}
+import org.gradle.api.NonNullApi;

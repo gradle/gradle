@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.provider
+package org.gradle.tooling.internal.provider.continuous
 
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.file.TestFiles

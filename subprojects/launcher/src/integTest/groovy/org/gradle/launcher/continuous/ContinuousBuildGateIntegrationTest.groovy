@@ -20,9 +20,9 @@ import org.gradle.deployment.internal.ContinuousExecutionGate
 import org.gradle.deployment.internal.DeploymentRegistryInternal
 import org.gradle.deployment.internal.PendingChangesListener
 import org.gradle.deployment.internal.PendingChangesManager
-import org.gradle.deployment.internal.SingleFirePendingChangesListener
 import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.gradle.tooling.internal.provider.continuous.SingleFirePendingChangesListener
 import org.junit.Rule
 
 class ContinuousBuildGateIntegrationTest extends AbstractContinuousIntegrationTest {
