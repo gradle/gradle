@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.initialization;
+package org.gradle.deployment.internal;
 
 import javax.annotation.Nonnull;
 

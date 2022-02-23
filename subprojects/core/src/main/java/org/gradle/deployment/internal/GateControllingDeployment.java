@@ -16,8 +16,6 @@
 
 package org.gradle.deployment.internal;
 
-import org.gradle.initialization.ContinuousExecutionGate;
-
 class GateControllingDeployment implements DeploymentInternal {
     private final ContinuousExecutionGate.GateKeeper gateKeeper;
     private final DeploymentInternal delegate;

@@ -16,8 +16,8 @@
 
 package org.gradle.tooling.internal.provider;
 
+import org.gradle.deployment.internal.ContinuousExecutionGate;
 import org.gradle.initialization.BuildCancellationToken;
-import org.gradle.initialization.ContinuousExecutionGate;
 import org.gradle.internal.UncheckedException;
 
 import java.util.concurrent.CountDownLatch;

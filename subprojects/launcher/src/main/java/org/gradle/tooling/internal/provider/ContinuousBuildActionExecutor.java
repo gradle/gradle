@@ -17,6 +17,8 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.api.logging.LogLevel;
+import org.gradle.deployment.internal.ContinuousExecutionGate;
+import org.gradle.deployment.internal.DefaultContinuousExecutionGate;
 import org.gradle.deployment.internal.Deployment;
 import org.gradle.deployment.internal.DeploymentInternal;
 import org.gradle.deployment.internal.DeploymentRegistryInternal;
@@ -28,8 +30,6 @@ import org.gradle.execution.PassThruCancellableOperationManager;
 import org.gradle.execution.plan.BuildInputHierarchy;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildRequestMetaData;
-import org.gradle.initialization.ContinuousExecutionGate;
-import org.gradle.initialization.DefaultContinuousExecutionGate;
 import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.concurrent.ExecutorFactory;

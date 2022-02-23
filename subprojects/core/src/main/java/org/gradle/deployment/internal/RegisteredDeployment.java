@@ -16,7 +16,6 @@
 
 package org.gradle.deployment.internal;
 
-import org.gradle.initialization.ContinuousExecutionGate;
 import org.gradle.internal.concurrent.Stoppable;
 
 class RegisteredDeployment implements Stoppable {
