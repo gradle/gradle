@@ -32,14 +32,12 @@ import static org.gradle.internal.hash.HashCode.Usage.SAFE_TO_REUSE_BYTES;
  * <h3>Memory considerations</h3>
  *
  * <p>Hashes by default are stored in {@link ByteArrayBackedHashCode a byte array}.
- * Their {@link #hashCode()} is cached in a field for faster retrieval.
- * For a 128-bit hash on a 64-bit platform this results in 68 bytes of memory used for each {code HashCode}.
- * Aligned on 8-byte boundaries these objects take up 72 bytes of memory each.
+ * For a 128-bit hash this results in 64 bytes of memory used for each {code HashCode}.
  * This implementation also requires GC to track two separate objects (the {@code HashCode} object and its {code byte[]}).</p>
  *
  * <p>Because Gradle uses a lot of MD5 hashes, for 128-bit hashes we have a more efficient implementation.
  * {@link HashCode128} uses two longs to store the bits of the hash, and does not need to cache the {@link #hashCode()} either.
- * This results in a memory footprint of 32 bytes on a 64-bit platform.
+ * This results in a memory footprint of 32 bytes.
  * Moreover, there is only one object for GC to keep track of.</p>
  *
  * Inspired by the Google Guava project – https://github.com/google/guava.
