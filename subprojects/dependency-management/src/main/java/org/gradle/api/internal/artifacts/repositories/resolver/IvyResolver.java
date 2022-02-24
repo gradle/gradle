@@ -157,21 +157,6 @@ public class IvyResolver extends ExternalResourceResolver<IvyModuleResolveMetada
     }
 
     private class IvyRemoteRepositoryAccess extends RemoteRepositoryAccess {
-        @Override
-        protected void resolveModuleArtifacts(IvyModuleResolveMetadata module, BuildableComponentArtifactsResolveResult result) {
-            // Configuration artifacts are determined locally
-        }
 
-        @Override
-        protected void resolveJavadocArtifacts(IvyModuleResolveMetadata module, BuildableArtifactSetResolveResult result) {
-            // Probe for artifact with classifier
-            result.resolved(findOptionalArtifacts(module, "javadoc", "javadoc"));
-        }
-
-        @Override
-        protected void resolveSourceArtifacts(IvyModuleResolveMetadata module, BuildableArtifactSetResolveResult result) {
-            // Probe for artifact with classifier
-            result.resolved(findOptionalArtifacts(module, "source", "sources"));
-        }
     }
 }
