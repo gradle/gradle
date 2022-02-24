@@ -62,15 +62,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
 
         and:
         if (testProject.templateName == "largeAndroidBuild2") {
-            def buildJavaHome = AvailableJavaHomes.getAvailableJdks { it.languageVersion == JavaVersion.VERSION_11 }.last().javaHome
-            runner.addBuildMutator { invocation ->
-                new BuildMutator() {
-                    @Override
-                    void beforeScenario(ScenarioContext context) {
-                        new File(invocation.projectDir, "gradle.properties") << "\norg.gradle.java.home=${buildJavaHome}\n"
-                    }
-                }
-            }
+            runWithJava11()
         }
 
         when:
@@ -84,7 +76,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
         'help'                                       | null       | null
         'assembleDebug'                              | null       | null
         'clean phthalic:assembleDebug'               | 2          | 8
-        ':module21:module02:assembleDebug --dry-run' | 2          | 8
+        ':module21:module02:assembleDebug --dry-run' | 3          | 10
     }
 
     @RunFor([
@@ -118,5 +110,17 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
 
         where:
         tasks << ['assembleDebug', 'phthalic:assembleDebug']
+    }
+
+    private void runWithJava11() {
+        def buildJavaHome = AvailableJavaHomes.getAvailableJdks { it.languageVersion == JavaVersion.VERSION_11 }.last().javaHome
+        runner.addBuildMutator { invocation ->
+            new BuildMutator() {
+                @Override
+                void beforeScenario(ScenarioContext context) {
+                    new File(invocation.projectDir, "gradle.properties") << "\norg.gradle.java.home=${buildJavaHome}\n"
+                }
+            }
+        }
     }
 }
