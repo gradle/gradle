@@ -31,6 +31,7 @@ import org.gradle.profiler.mutations.ClearArtifactTransformCacheMutator
 import static org.gradle.performance.annotations.ScenarioType.PER_COMMIT
 import static org.gradle.performance.annotations.ScenarioType.PER_DAY
 import static org.gradle.performance.fixture.AndroidTestProject.LARGE_ANDROID_BUILD
+import static org.gradle.performance.fixture.AndroidTestProject.LARGE_ANDROID_BUILD_2
 import static org.gradle.performance.results.OperatingSystem.LINUX
 
 class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanceTest implements AndroidPerformanceTestFixture {
@@ -61,8 +62,8 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
         applyEnterprisePlugin()
 
         and:
-        if (testProject.templateName == "largeAndroidBuild2") {
-            runWithJava11()
+        if (androidTestProject == LARGE_ANDROID_BUILD_2) {
+            configureForLargeAndroidBuild2()
         }
 
         when:
@@ -76,7 +77,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
         'help'                                       | null       | null
         'assembleDebug'                              | null       | null
         'clean phthalic:assembleDebug'               | 2          | 8
-        ':module21:module02:assembleDebug --dry-run' | 3          | 10
+        ':module21:module02:assembleDebug --dry-run' | 2          | 8
     }
 
     @RunFor([
@@ -112,13 +113,15 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
         tasks << ['assembleDebug', 'phthalic:assembleDebug']
     }
 
-    private void runWithJava11() {
+    private void configureForLargeAndroidBuild2() {
         def buildJavaHome = AvailableJavaHomes.getAvailableJdks { it.languageVersion == JavaVersion.VERSION_11 }.last().javaHome
         runner.addBuildMutator { invocation ->
             new BuildMutator() {
                 @Override
                 void beforeScenario(ScenarioContext context) {
-                    new File(invocation.projectDir, "gradle.properties") << "\norg.gradle.java.home=${buildJavaHome}\n"
+                    def gradleProps = new File(invocation.projectDir, "gradle.properties")
+                    gradleProps << "\norg.gradle.workers.max=16\n"
+                    gradleProps << "\norg.gradle.java.home=${buildJavaHome}\n"
                 }
             }
         }
