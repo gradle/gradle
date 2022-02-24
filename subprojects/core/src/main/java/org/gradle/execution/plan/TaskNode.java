@@ -37,11 +37,7 @@ public abstract class TaskNode extends Node {
     private final NavigableSet<Node> shouldSuccessors = Sets.newTreeSet();
     private final NavigableSet<Node> finalizers = Sets.newTreeSet();
     private final NavigableSet<Node> finalizingSuccessors = Sets.newTreeSet();
-    private int ordinal;
-
-    public TaskNode(int ordinal) {
-        this.ordinal = ordinal;
-    }
+    private int ordinal = UNKNOWN_ORDINAL;
 
     @Override
     public boolean doCheckDependenciesComplete() {
@@ -166,11 +162,6 @@ public abstract class TaskNode extends Node {
     public abstract Action<? super Task> getPostAction();
 
     public abstract TaskInternal getTask();
-
-    @Override
-    public boolean isPublicNode() {
-        return true;
-    }
 
     private void deprecateLifecycleHookReferencingNonLocalTask(String hookName, Node taskNode) {
         if (taskNode instanceof TaskInAnotherBuild) {

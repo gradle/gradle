@@ -23,11 +23,13 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.internal.TextUtil
 import org.junit.ComparisonFailure
 import org.junit.Rule
 import org.junit.Test
+import org.junit.experimental.categories.Category
 import spock.lang.Issue
 
 import java.util.regex.Pattern
@@ -39,6 +41,7 @@ class EclipseIntegrationTest extends AbstractEclipseIntegrationTest {
     public final TestResources testResources = new TestResources(testDirectoryProvider)
 
     @Test
+    @Category(Flaky.class)
     @ToBeFixedForConfigurationCache
     void canCreateAndDeleteMetaData() {
         when:

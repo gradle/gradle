@@ -109,6 +109,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
 
     @Override
     public void populate(ExecutionPlan plan) {
+        executionPlan.close();
         executionPlan = plan;
         allTasks = null;
         if (!hasFiredWhenReady) {
@@ -128,6 +129,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         try (ProjectExecutionServiceRegistry projectExecutionServices = new ProjectExecutionServiceRegistry(globalServices)) {
             executeWithServices(projectExecutionServices, failures);
         } finally {
+            executionPlan.close();
             executionPlan = ExecutionPlan.EMPTY;
         }
     }
