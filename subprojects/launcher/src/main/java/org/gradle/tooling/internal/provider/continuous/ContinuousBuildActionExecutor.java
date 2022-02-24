@@ -164,7 +164,7 @@ public class ContinuousBuildActionExecutor implements BuildSessionActionExecutor
             ContinuousBuildTriggerHandler continuousBuildTriggerHandler = new ContinuousBuildTriggerHandler(
                 cancellationToken,
                 continuousExecutionGate,
-                action.getStartParameter().getContinuousBuildQuietPeriodMillis()
+                action.getStartParameter().getContinuousBuildQuietPeriod()
             );
             SingleFirePendingChangesListener singleFirePendingChangesListener = new SingleFirePendingChangesListener(pendingChangesListener);
             FileEventCollector fileEventCollector = new FileEventCollector(buildInputs, () -> {

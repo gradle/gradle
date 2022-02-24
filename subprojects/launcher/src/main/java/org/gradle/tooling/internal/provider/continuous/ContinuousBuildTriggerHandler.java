@@ -20,6 +20,7 @@ import org.gradle.deployment.internal.ContinuousExecutionGate;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.UncheckedException;
 
+import java.time.Duration;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -28,18 +29,18 @@ public class ContinuousBuildTriggerHandler {
     private final ContinuousExecutionGate continuousExecutionGate;
     private final CountDownLatch changeOrCancellationArrived = new CountDownLatch(1);
     private final CountDownLatch cancellationArrived = new CountDownLatch(1);
-    private final int quietPeriod;
+    private final long quietPeriod;
     private volatile long lastChangeAt = monotonicClockMillis();
     private volatile boolean changeArrived;
 
     public ContinuousBuildTriggerHandler(
         BuildCancellationToken cancellationToken,
         ContinuousExecutionGate continuousExecutionGate,
-        int continuousBuildQuietPeriodMillis
+        Duration continuousBuildQuietPeriod
     ) {
         this.cancellationToken = cancellationToken;
         this.continuousExecutionGate = continuousExecutionGate;
-        this.quietPeriod = continuousBuildQuietPeriodMillis;
+        this.quietPeriod = continuousBuildQuietPeriod.toMillis();
     }
 
     public void wait(Runnable notifier) {

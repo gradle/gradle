@@ -35,6 +35,7 @@ import org.gradle.internal.buildoption.StringBuildOption;
 import org.gradle.internal.watch.registry.WatchMode;
 
 import java.io.File;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -189,7 +190,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
 
         @Override
         public void applyTo(int quietPeriodMillis, StartParameterInternal startParameter, Origin origin) {
-            startParameter.setContinuousBuildQuietPeriodMillis(quietPeriodMillis);
+            startParameter.setContinuousBuildQuietPeriod(Duration.ofMillis(quietPeriodMillis));
         }
     }
 

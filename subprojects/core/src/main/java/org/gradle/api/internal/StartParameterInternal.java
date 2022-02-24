@@ -24,6 +24,7 @@ import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.watch.registry.WatchMode;
 
 import java.io.File;
+import java.time.Duration;
 
 public class StartParameterInternal extends StartParameter {
     private WatchMode watchFileSystemMode = WatchMode.DEFAULT;
@@ -38,7 +39,7 @@ public class StartParameterInternal extends StartParameter {
     private boolean configurationCacheQuiet;
     private boolean searchUpwards = true;
     private boolean useEmptySettings = false;
-    private int continuousBuildQuietPeriodMillis = 250;
+    private Duration continuousBuildQuietPeriod = Duration.ofMillis(250);
 
     public StartParameterInternal() {
     }
@@ -183,11 +184,11 @@ public class StartParameterInternal extends StartParameter {
         this.configurationCacheQuiet = configurationCacheQuiet;
     }
 
-    public void setContinuousBuildQuietPeriodMillis(int continuousBuildQuietPeriodMillis) {
-        this.continuousBuildQuietPeriodMillis = continuousBuildQuietPeriodMillis;
+    public void setContinuousBuildQuietPeriod(Duration continuousBuildQuietPeriod) {
+        this.continuousBuildQuietPeriod = continuousBuildQuietPeriod;
     }
 
-    public int getContinuousBuildQuietPeriodMillis() {
-        return continuousBuildQuietPeriodMillis;
+    public Duration getContinuousBuildQuietPeriod() {
+        return continuousBuildQuietPeriod;
     }
 }

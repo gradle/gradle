@@ -46,6 +46,7 @@ import org.gradle.tooling.internal.provider.serialization.SerializedPayloadSeria
 
 import java.io.File;
 import java.io.Serializable;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -141,7 +142,7 @@ public class BuildActionSerializer {
             encoder.writeBoolean(startParameter.isConfigurationCacheQuiet());
             encoder.writeBoolean(startParameter.isConfigureOnDemand());
             encoder.writeBoolean(startParameter.isContinuous());
-            encoder.writeSmallInt(startParameter.getContinuousBuildQuietPeriodMillis());
+            encoder.writeLong(startParameter.getContinuousBuildQuietPeriod().toMillis());
             encoder.writeBoolean(startParameter.isBuildScan());
             encoder.writeBoolean(startParameter.isNoBuildScan());
             encoder.writeBoolean(startParameter.isWriteDependencyLocks());
@@ -221,7 +222,7 @@ public class BuildActionSerializer {
             startParameter.setConfigurationCacheQuiet(decoder.readBoolean());
             startParameter.setConfigureOnDemand(decoder.readBoolean());
             startParameter.setContinuous(decoder.readBoolean());
-            startParameter.setContinuousBuildQuietPeriodMillis(decoder.readSmallInt());
+            startParameter.setContinuousBuildQuietPeriod(Duration.ofMillis(decoder.readLong()));
             startParameter.setBuildScan(decoder.readBoolean());
             startParameter.setNoBuildScan(decoder.readBoolean());
             startParameter.setWriteDependencyLocks(decoder.readBoolean());
