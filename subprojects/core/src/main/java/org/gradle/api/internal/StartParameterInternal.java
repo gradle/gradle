@@ -38,6 +38,7 @@ public class StartParameterInternal extends StartParameter {
     private boolean configurationCacheQuiet;
     private boolean searchUpwards = true;
     private boolean useEmptySettings = false;
+    private int continuousBuildQuietPeriodMillis = 250;
 
     public StartParameterInternal() {
     }
@@ -180,5 +181,13 @@ public class StartParameterInternal extends StartParameter {
 
     public void setConfigurationCacheQuiet(boolean configurationCacheQuiet) {
         this.configurationCacheQuiet = configurationCacheQuiet;
+    }
+
+    public void setContinuousBuildQuietPeriodMillis(int continuousBuildQuietPeriodMillis) {
+        this.continuousBuildQuietPeriodMillis = continuousBuildQuietPeriodMillis;
+    }
+
+    public int getContinuousBuildQuietPeriodMillis() {
+        return continuousBuildQuietPeriodMillis;
     }
 }

@@ -24,23 +24,22 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 public class ContinuousBuildTriggerHandler {
-    public static final String QUIET_PERIOD_SYSPROP = "org.gradle.internal.filewatch.quietperiod";
-
     private final BuildCancellationToken cancellationToken;
     private final ContinuousExecutionGate continuousExecutionGate;
     private final CountDownLatch changeOrCancellationArrived = new CountDownLatch(1);
     private final CountDownLatch cancellationArrived = new CountDownLatch(1);
-    private final long quietPeriod;
+    private final int quietPeriod;
     private volatile long lastChangeAt = monotonicClockMillis();
     private volatile boolean changeArrived;
 
     public ContinuousBuildTriggerHandler(
         BuildCancellationToken cancellationToken,
-        ContinuousExecutionGate continuousExecutionGate
+        ContinuousExecutionGate continuousExecutionGate,
+        int continuousBuildQuietPeriodMillis
     ) {
         this.cancellationToken = cancellationToken;
         this.continuousExecutionGate = continuousExecutionGate;
-        this.quietPeriod = Long.getLong(QUIET_PERIOD_SYSPROP, 250L);
+        this.quietPeriod = continuousBuildQuietPeriodMillis;
     }
 
     public void wait(Runnable notifier) {
