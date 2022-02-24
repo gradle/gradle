@@ -48,6 +48,8 @@ abstract class AdHocPerformanceScenario(os: Os) : BuildType({
             allowEmpty = false,
             description = "Which performance test to run. Should be the fully qualified class name dot (unrolled) method name. E.g. org.gradle.performance.regression.java.JavaUpToDatePerformanceTest.up-to-date assemble (parallel true)"
         )
+        text("testJavaVersion", "8",  display = ParameterDisplay.PROMPT, allowEmpty = false, description = "The java version to run the performance tests, e.g. 8/11/17")
+        text("testJavaVendor", "oracle",  display = ParameterDisplay.PROMPT, allowEmpty = false, description = "The java vendor to run the performance tests, e.g. oracle/openjdk/adoptium")
         when (os) {
             Os.WINDOWS -> {
                 profilerParam("jprofiler")
@@ -76,9 +78,10 @@ abstract class AdHocPerformanceScenario(os: Os) : BuildType({
                     "clean performance:%testProject%PerformanceAdHocTest --tests \"%scenario%\"",
                     "%baselines%",
                     """--warmups %warmups% --runs %runs% --checks %checks% --channel %channel% --profiler %profiler% %additional.gradle.parameters%""",
-                    os
-                ) +
-                    buildToolGradleParameters(isContinue = false)
+                    os,
+                    "%testJavaVersion%",
+                    "%testJavaVendor%",
+                ) + buildToolGradleParameters(isContinue = false)
                 ).joinToString(separator = " ")
         }
         removeSubstDirOnWindows(os)
