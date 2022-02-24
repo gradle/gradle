@@ -16,7 +16,7 @@
 
 package org.gradle.deployment.internal;
 
-import org.gradle.initialization.ContinuousExecutionGate;
+import javax.annotation.Nullable;
 
 class GateControllingDeployment implements DeploymentInternal {
     private final ContinuousExecutionGate.GateKeeper gateKeeper;
@@ -43,7 +43,7 @@ class GateControllingDeployment implements DeploymentInternal {
     }
 
     @Override
-    public void upToDate(Throwable failure) {
+    public void upToDate(@Nullable Throwable failure) {
         delegate.upToDate(failure);
         gateKeeper.close();
     }

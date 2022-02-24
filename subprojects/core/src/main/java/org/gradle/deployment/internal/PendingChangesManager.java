@@ -14,18 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.initialization;
+package org.gradle.deployment.internal;
 
-import javax.annotation.Nonnull;
+import org.gradle.internal.event.ListenerManager;
 
-public interface ContinuousExecutionGate {
-    @Nonnull
-    GateKeeper createGateKeeper();
+public class PendingChangesManager {
+    private final ListenerManager listenerManager;
 
-    void waitForOpen();
+    public PendingChangesManager(ListenerManager listenerManager) {
+        this.listenerManager = listenerManager;
+    }
 
-    interface GateKeeper {
-        void open();
-        void close();
+    public void addListener(PendingChangesListener listener) {
+        listenerManager.addListener(listener);
+    }
+
+    public void removeListener(PendingChangesListener listener) {
+        listenerManager.removeListener(listener);
     }
 }
