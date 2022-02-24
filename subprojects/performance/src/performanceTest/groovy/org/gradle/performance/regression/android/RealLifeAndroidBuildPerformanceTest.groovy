@@ -16,11 +16,15 @@
 
 package org.gradle.performance.regression.android
 
+import org.gradle.api.JavaVersion
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
 import org.gradle.performance.fixture.AndroidTestProject
+import org.gradle.profiler.BuildMutator
+import org.gradle.profiler.ScenarioContext
 import org.gradle.profiler.mutations.AbstractCleanupMutator
 import org.gradle.profiler.mutations.ClearArtifactTransformCacheMutator
 
@@ -55,6 +59,19 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
         runner.warmUpRuns = warmUpRuns
         runner.runs = runs
         applyEnterprisePlugin()
+
+        and:
+        if (testProject.templateName == "largeAndroidBuild2") {
+            def buildJavaHome = AvailableJavaHomes.getAvailableJdks { it.languageVersion == JavaVersion.VERSION_11 }.last().javaHome
+            runner.addBuildMutator { invocation ->
+                new BuildMutator() {
+                    @Override
+                    void beforeScenario(ScenarioContext context) {
+                        new File(invocation.projectDir, "gradle.properties") << "\norg.gradle.java.home=${buildJavaHome}\n"
+                    }
+                }
+            }
+        }
 
         when:
         def result = runner.run()
