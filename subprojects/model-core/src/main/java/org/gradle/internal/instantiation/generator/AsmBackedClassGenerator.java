@@ -35,6 +35,7 @@ import org.gradle.api.internal.provider.PropertyInternal;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
+import org.gradle.api.provider.Provider;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.internal.DisplayName;
@@ -419,6 +420,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final Type OBJECT_ARRAY_TYPE = Type.getType(Object[].class);
         private static final Type ACTION_TYPE = Type.getType(Action.class);
         private static final Type PROPERTY_INTERNAL_TYPE = Type.getType(PropertyInternal.class);
+        private static final Type PROVIDER_TYPE = Type.getType(Provider.class);
         private static final Type MANAGED_TYPE = Type.getType(Managed.class);
         private static final Type EXTENSION_CONTAINER_TYPE = Type.getType(ExtensionContainer.class);
         private static final Type DESCRIBABLE_TYPE = Type.getType(Describable.class);
@@ -944,6 +946,27 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             methodVisitor.visitInsn(RETURN);
             methodVisitor.visitMaxs(0, 0);
             methodVisitor.visitEnd();
+
+            // GENERATE public <Type> get<Name>() {
+            //    <getter>().getOrNull();
+            // }
+            java.lang.reflect.Type genericReturnType = getter.getGenericReturnType();
+            if (genericReturnType instanceof ParameterizedType) {
+                java.lang.reflect.Type propertyTypeParameter = ((ParameterizedType) genericReturnType).getActualTypeArguments()[0];
+                if (propertyTypeParameter instanceof Class<?>) {
+                    Class<?> propertyType = (Class<?>) propertyTypeParameter;
+                    Type returnType = Type.getType(propertyType);
+                    MethodVisitor getterVisitor = visitor.visitMethod(ACC_PUBLIC, MetaProperty.getGetterName(property.getName(), Object.class), Type.getMethodDescriptor(returnType), getterSignature(propertyTypeParameter), EMPTY_STRINGS);
+                    getterVisitor.visitCode();
+                    getterVisitor.visitVarInsn(ALOAD, 0);
+                    getterVisitor.visitMethodInsn(INVOKEVIRTUAL, generatedType.getInternalName(), getter.getName(), Type.getMethodDescriptor(Type.getType(getter.getReturnType())), false);
+                    getterVisitor.visitMethodInsn(INVOKEINTERFACE, PROVIDER_TYPE.getInternalName(), "getOrNull", RETURN_OBJECT, true);
+                    getterVisitor.visitTypeInsn(CHECKCAST, returnType.getInternalName());
+                    getterVisitor.visitInsn(ARETURN);
+                    getterVisitor.visitMaxs(1, 1);
+                    getterVisitor.visitEnd();
+                }
+            }
         }
 
         /**

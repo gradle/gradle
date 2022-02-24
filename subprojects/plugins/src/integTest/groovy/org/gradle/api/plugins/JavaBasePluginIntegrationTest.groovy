@@ -68,8 +68,8 @@ class JavaBasePluginIntegrationTest extends AbstractIntegrationSpec {
                 options.forkOptions.javaHome = file('${jdk.javaHome.toURI()}')
             }
             compileUnitTestJava.doFirst {
-                assert sourceCompatibility.get() == "1.7"
-                assert targetCompatibility.get() == "1.8"
+                assert sourceCompatibility == "1.7"
+                assert targetCompatibility == "1.8"
             }
         """
         file("src/unitTest/java/Test.java") << """public class Test { }"""
