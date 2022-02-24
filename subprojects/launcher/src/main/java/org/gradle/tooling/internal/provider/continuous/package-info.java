@@ -15,7 +15,7 @@
  */
 
 /**
- * Contains classes handling continuous build execution and triggering.
+ * Continuous build execution and triggering.
  */
 @NonNullApi
 package org.gradle.tooling.internal.provider.continuous;
