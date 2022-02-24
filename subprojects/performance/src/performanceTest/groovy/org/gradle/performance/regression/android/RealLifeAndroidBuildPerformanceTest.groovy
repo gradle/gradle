@@ -114,6 +114,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
     }
 
     private void configureForLargeAndroidBuild2() {
+        runner.targetVersions = ["7.3.3", "7.4"]
         def buildJavaHome = AvailableJavaHomes.getAvailableJdks { it.languageVersion == JavaVersion.VERSION_11 }.last().javaHome
         runner.addBuildMutator { invocation ->
             new BuildMutator() {
