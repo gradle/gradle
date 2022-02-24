@@ -37,9 +37,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionC
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
-import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.provider.Property;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Input;
@@ -58,12 +56,10 @@ import org.gradle.api.tasks.diagnostics.internal.insight.DependencyInsightReport
 import org.gradle.api.tasks.diagnostics.internal.text.StyledTable;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.initialization.StartParameterBuildOptions;
-import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.graph.GraphRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
-import org.gradle.internal.snapshot.impl.CoercingStringValueSnapshot;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.work.DisableCachingByDefault;
 
@@ -87,7 +83,6 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.Header;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Identifier;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Info;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Normal;
-import static org.gradle.internal.logging.text.StyledTextOutput.Style.Success;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
 
 /**
@@ -129,12 +124,6 @@ public class DependencyInsightReportTask extends DefaultTask {
     private String configurationName;
     private String configurationDescription;
     private AttributeContainer configurationAttributes;
-    private final AttributesSchemaInternal attributesSchema = (AttributesSchemaInternal) getProject().getDependencies().getAttributesSchema();
-
-    @Inject
-    protected NamedObjectInstantiator getNamedObjectInstantiator() {
-        throw new UnsupportedOperationException();
-    }
 
     /**
      * The root component of the dependency graph to be inspected.
@@ -263,11 +252,6 @@ public class DependencyInsightReportTask extends DefaultTask {
      * Show all variants of each displayed dependency.
      *
      * <p>
-     * Note: this option displays compatibility information for each variant. This information is currently only an approximation,
-     * and may be missing compatibility rules for some variants, or not indicate when disambiguation rules were used.
-     * </p>
-     *
-     * <p>
      * This method is exposed to the command line interface. Example usage:
      * <pre>gradle dependencyInsight --all-variants</pre>
      *
@@ -384,12 +368,7 @@ public class DependencyInsightReportTask extends DefaultTask {
         }
     }
 
-    @SuppressWarnings("unchecked")
     private AttributeMatchDetails match(Attribute<?> actualAttribute, @Nullable Object actualValue, AttributeContainer requestedAttributes) {
-        // This is technically not quite right. Project dependencies can influence the matcher as well.
-        // However, finding a way to feed that into this matcher is a bit of a pain. It would be better if this
-        // information (the AttributeMatchDetails) was instead returned from the dependency resolution result.
-        AttributeMatcher matcher = attributesSchema.matcher();
         for (Attribute<?> requested : requestedAttributes.keySet()) {
             Object requestedValue = requestedAttributes.getAttribute(requested);
             if (requested.getName().equals(actualAttribute.getName())) {
@@ -406,14 +385,8 @@ public class DependencyInsightReportTask extends DefaultTask {
                         return new AttributeMatchDetails(MatchType.EQUAL, requested, requestedValue);
                     }
                 }
-                // Coerce into the requested value, this is extremely hacky but it works
-                if (requested.getType().isInstance(requestedValue) && actualValue instanceof String) {
-                    Object coerced = new CoercingStringValueSnapshot((String) actualValue, getNamedObjectInstantiator())
-                        .coerce(requested.getType());
-                    if (coerced != null && matcher.isMatching((Attribute<Object>) requested, coerced, requestedValue)) {
-                        return new AttributeMatchDetails(MatchType.COMPATIBLE, requested, requestedValue);
-                    }
-                }
+                // TODO check for COMPATIBLE here, in a way compatible with configuration cache.
+                // The branch ot/captchalogue/dependency-insights-compatibility-logging has the original code that isn't CC compatible.
                 return new AttributeMatchDetails(MatchType.INCOMPATIBLE, requested, requestedValue);
             }
         }
@@ -507,7 +480,8 @@ public class DependencyInsightReportTask extends DefaultTask {
                     if (selectedVariantNames.contains(variant.getDisplayName())) {
                         continue;
                     }
-                    printVariant(out, dependency, variant, false);
+                    // Currently, since the compatibility column is unusable, pass true for selected to prevent its output.
+                    printVariant(out, dependency, variant, true);
                 }
             }
         }
@@ -521,14 +495,7 @@ public class DependencyInsightReportTask extends DefaultTask {
 
             out.println().style(Normal).text("  Variant ");
 
-            // Style the name based on whether it is selected or not.
-            if (selected) {
-                out.style(Success);
-            } else if (buckets.bothAttributes.values().stream().noneMatch(v -> v.matchType() == MatchType.INCOMPATIBLE)) {
-                out.style(Info);
-            } else {
-                out.style(Failure);
-            }
+            // For now, do not style -- see ot/captchalogue/dependency-insights-compatibility-logging for the original styling choices
             out.text(variant.getDisplayName()).style(Normal).text(":").println();
             if (!attributes.isEmpty() || !requested.isEmpty()) {
                 writeAttributeBlock(out, attributes, requested, buckets, selected);
@@ -642,25 +609,11 @@ public class DependencyInsightReportTask extends DefaultTask {
                     providedValue == null ? "" : providedValue.toString(),
                     String.valueOf(entry.getValue().requestedValue())
                 );
-            StyledTextOutput.Style style;
-            switch (match.matchType()) {
-                case EQUAL:
-                    style = Success;
-                    break;
-                case COMPATIBLE:
-                case NOT_REQUESTED:
-                    style = Info;
-                    break;
-                case INCOMPATIBLE:
-                    style = Failure;
-                    break;
-                default:
-                    throw new IllegalStateException("Unknown match type: " + match.matchType());
-            }
             if (!selected) {
                 text.add(match.matchType() == MatchType.INCOMPATIBLE ? "Incompatible" : "Compatible");
             }
-            return new StyledTable.Row(text.build(), style);
+            // For now, do not style -- see ot/captchalogue/dependency-insights-compatibility-logging for the original styling choices
+            return new StyledTable.Row(text.build(), Normal);
         }
 
         private StyledTable.Row createRequestedRow(AttributeContainer requested, boolean selected, Attribute<?> attribute) {
