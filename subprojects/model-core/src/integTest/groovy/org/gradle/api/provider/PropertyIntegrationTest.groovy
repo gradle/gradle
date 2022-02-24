@@ -771,6 +771,41 @@ project.extensions.create("some", SomeExtension)
         executedAndNotSkipped(":producer", ":consumer")
     }
 
+    def "can use a mapped value provider"() {
+        buildFile """
+            abstract class MyTask extends DefaultTask {
+                @Input
+                abstract ListProperty<String> getStrings()
+
+                @OutputFile
+                abstract RegularFileProperty getOutput()
+
+                @TaskAction
+                def action() {
+                    def outputFile = output.get().asFile
+                    outputFile.write(strings.get().join(","))
+                }
+            }
+
+            tasks.register("myTask", MyTask) {
+                strings.add(providers.gradleProperty("my").map { it + "-prop"})
+                output = layout.buildDirectory.file("myTask.txt")
+            }
+        """
+
+        when:
+        run 'myTask', "-Pmy=value1"
+        then:
+        executedAndNotSkipped(":myTask")
+        file("build/myTask.txt").text == "value1-prop"
+
+        when:
+        run 'myTask', "-Pmy=value1"
+        then:
+        skipped(":myTask")
+        file("build/myTask.txt").text == "value1-prop"
+    }
+
     def "can depend on the output file collection containing an optional output file"() {
         buildFile """
             abstract class Producer extends DefaultTask {
