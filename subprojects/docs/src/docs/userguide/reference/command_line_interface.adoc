@@ -607,6 +607,10 @@ If file system watching does not work on your system, then continuous build won'
 In particular, continuous build does not work when using `--no-daemon`.
 See <<gradle_daemon.adoc#sec:daemon_watch_fs,Watching the file system>> for more information.
 
+When Gradle detects a change to the inputs, it will not trigger the build immediately.
+Instead, it will wait until no additional changes are detected for a certain period of time - the quiet period.
+You can configure the quiet period in milliseconds by the Gradle property `<<build_environment.adoc#sec:gradle_configuration_properties,org.gradle.continuous.quietperiod>>`.
+
 === Terminating Continuous Build
 
 If Gradle is attached to an interactive input source, such as a terminal, the continuous build can be exited by pressing `CTRL-D` (On Microsoft Windows, it is required to also press `ENTER` or `RETURN` after `CTRL-D`).
