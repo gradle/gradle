@@ -176,7 +176,7 @@ public class DependencyInsightReporter {
 
     private static String render(ComponentSelectionDescriptor descriptor) {
         if (((ComponentSelectionDescriptorInternal) descriptor).hasCustomDescription()) {
-            return prettyCause(descriptor.getCause()) + " : " + descriptor.getDescription();
+            return prettyCause(descriptor.getCause()) + ": " + descriptor.getDescription();
         }
         return prettyCause(descriptor.getCause());
     }
