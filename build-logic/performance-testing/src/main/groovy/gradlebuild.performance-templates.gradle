@@ -402,7 +402,7 @@ performanceTest.registerAndroidTestProject("largeAndroidBuild", RemoteProject) {
 performanceTest.registerAndroidTestProject("largeAndroidBuild2", RemoteProject) {
     remoteUri = 'https://github.com/gradle/perf-android-large-2.git'
     // Pinned from main branch
-    ref = "52392af6055d08d432285db7995f6bb7376ddf7a"
+    ref = "6c03b676971a3f383350b9684cc2aa0b28857c5f"
 }
 
 performanceTest.registerAndroidTestProject("santaTrackerAndroidBuild", RemoteProject) {

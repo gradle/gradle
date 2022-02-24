@@ -120,7 +120,6 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
                 @Override
                 void beforeScenario(ScenarioContext context) {
                     def gradleProps = new File(invocation.projectDir, "gradle.properties")
-                    gradleProps << "\norg.gradle.workers.max=16\n"
                     gradleProps << "\norg.gradle.java.home=${buildJavaHome}\n"
                 }
             }
