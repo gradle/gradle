@@ -16,6 +16,7 @@
 
 package org.gradle.process.internal.worker;
 
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
@@ -31,7 +32,14 @@ import org.gradle.process.internal.ExecHandleListener;
 import org.gradle.process.internal.health.memory.JvmMemoryStatus;
 
 import javax.annotation.Nullable;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Date;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -156,9 +164,9 @@ public class DefaultWorkerProcess implements WorkerProcess {
     @Override
     public String toString() {
         return "DefaultWorkerProcess{"
-                + "running=" + running
-                + ", execHandle=" + execHandle
-                + '}';
+            + "running=" + running
+            + ", execHandle=" + execHandle
+            + '}';
     }
 
     @Override
@@ -194,9 +202,9 @@ public class DefaultWorkerProcess implements WorkerProcess {
                 try {
                     if (!condition.awaitUntil(connectExpiry)) {
                         throw new ExecException(format("Unable to connect to the child process '%s'.\n"
-                                + "It is likely that the child process have crashed - please find the stack trace in the build log.\n"
-                                + "This exception might occur when the build machine is extremely loaded.\n"
-                                + "The connection attempt hit a timeout after %.1f seconds (last known process state: %s, running: %s).", execHandle, ((double) connectTimeout) / 1000, execHandle.getState(), running));
+                            + "It is likely that the child process have crashed - please find the stack trace in the build log.\n"
+                            + "This exception might occur when the build machine is extremely loaded.\n"
+                            + "The connection attempt hit a timeout after %.1f seconds (last known process state: %s, running: %s).", execHandle, ((double) connectTimeout) / 1000, execHandle.getState(), running));
                     }
                 } catch (InterruptedException e) {
                     throw UncheckedException.throwAsUncheckedException(e);
@@ -216,14 +224,31 @@ public class DefaultWorkerProcess implements WorkerProcess {
 
     @Override
     public ExecResult waitForStop() {
+        String uuid = UUID.randomUUID().toString();
+        Path resultFile = Paths.get("/home/tcagent1/result-" + uuid + ".txt");
         try {
-            return execHandle.waitForFinish().assertNormalExitValue();
+            ExecResult result = execHandle.waitForFinish().assertNormalExitValue();
+            Files.write(resultFile,
+                String.format("%s,%s,%s,%s,%d", execHandle.getDirectory().getAbsolutePath(), execHandle.getCommand(), execHandle.getArguments().toString(), execHandle.getEnvironment().toString(), result.getExitValue()).getBytes(StandardCharsets.UTF_8)
+            );
+            return result;
+        } catch (Throwable e) {
+            try {
+                Files.write(resultFile, ExceptionUtils.getFullStackTrace(e).getBytes(StandardCharsets.UTF_8));
+            } catch (IOException e1) {
+                throw new RuntimeException(e1);
+            }
+            throw new RuntimeException(e);
         } finally {
-            cleanup();
+            cleanup(resultFile);
         }
     }
 
     private void cleanup() {
+        cleanup(null);
+    }
+
+    private void cleanup(Path resultFile) {
         CompositeStoppable stoppable;
         lock.lock();
         try {
@@ -239,5 +264,14 @@ public class DefaultWorkerProcess implements WorkerProcess {
             lock.unlock();
         }
         stoppable.stop();
+        if (resultFile != null) {
+            try {
+                Files.delete(resultFile);
+            } catch (NoSuchFileException e) {
+                // do nothing
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 }
