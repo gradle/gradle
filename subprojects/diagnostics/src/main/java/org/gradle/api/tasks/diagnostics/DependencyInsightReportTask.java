@@ -134,7 +134,9 @@ public class DependencyInsightReportTask extends DefaultTask {
     @Optional
     @Incubating
     public Property<ResolvedComponentResult> getRootComponentProperty() {
-        if (!rootComponentProperty.isPresent() && configuration != null && dependencySpec != null) {
+        // Required to maintain DslObject mapping
+        Configuration configuration = getConfiguration();
+        if (!rootComponentProperty.isPresent() && configuration != null && getDependencySpec() != null) {
             configurationName = configuration.getName();
             configurationDescription = configuration.toString();
             configurationAttributes = configuration.getAttributes();
@@ -149,15 +151,15 @@ public class DependencyInsightReportTask extends DefaultTask {
      * Selects the dependency (or dependencies if multiple matches found) to show the report for.
      */
     @Internal
-    public Spec<DependencyResult> getDependencySpec() {
-        return Objects.requireNonNull(dependencySpec, "Dependency spec not set");
+    public @Nullable Spec<DependencyResult> getDependencySpec() {
+        return dependencySpec;
     }
 
     /**
      * The dependency spec selects the dependency (or dependencies if multiple matches found) to show the report for.
      * The spec receives an instance of {@link DependencyResult} as parameter.
      */
-    public void setDependencySpec(Spec<DependencyResult> dependencySpec) {
+    public void setDependencySpec(@Nullable Spec<DependencyResult> dependencySpec) {
         this.dependencySpec = dependencySpec;
         this.errorHandler = new ResolutionErrorRenderer(dependencySpec);
     }
@@ -174,7 +176,7 @@ public class DependencyInsightReportTask extends DefaultTask {
      * <pre>gradle dependencyInsight --dependency slf4j</pre>
      */
     @Option(option = "dependency", description = "Shows the details of given dependency.")
-    public void setDependencySpec(Object dependencyInsightNotation) {
+    public void setDependencySpec(@Nullable Object dependencyInsightNotation) {
         NotationParser<Object, Spec<DependencyResult>> parser = DependencyResultSpecNotationConverter.parser();
         setDependencySpec(parser.parseNotation(dependencyInsightNotation));
     }
@@ -183,14 +185,14 @@ public class DependencyInsightReportTask extends DefaultTask {
      * Configuration to look the dependency in
      */
     @Internal
-    public Configuration getConfiguration() {
-        return Objects.requireNonNull(configuration, "Configuration not set");
+    public @Nullable Configuration getConfiguration() {
+        return configuration;
     }
 
     /**
      * Sets the configuration to look the dependency in.
      */
-    public void setConfiguration(Configuration configuration) {
+    public void setConfiguration(@Nullable Configuration configuration) {
         this.configuration = configuration;
     }
 
@@ -201,8 +203,12 @@ public class DependencyInsightReportTask extends DefaultTask {
      * <pre>gradle dependencyInsight --configuration runtime --dependency slf4j</pre>
      */
     @Option(option = "configuration", description = "Looks for the dependency in given configuration.")
-    public void setConfiguration(String configurationName) {
-        this.configuration = ConfigurationFinder.find(getProject().getConfigurations(), configurationName);
+    public void setConfiguration(@Nullable String configurationName) {
+        setConfiguration(
+            configurationName == null
+                ? null
+                : ConfigurationFinder.find(getProject().getConfigurations(), configurationName)
+        );
     }
 
     /**
@@ -336,7 +342,7 @@ public class DependencyInsightReportTask extends DefaultTask {
                 + "\nIt can be specified from the command line, e.g: '" + getPath() + " --configuration someConf --dependency someDep'");
         }
 
-        if (dependencySpec == null) {
+        if (getDependencySpec() == null) {
             throw new InvalidUserDataException("Dependency insight report cannot be generated because the dependency to show was not specified."
                 + "\nIt can be specified from the command line, e.g: '" + getPath() + " --dependency someDep'");
         }
@@ -345,7 +351,7 @@ public class DependencyInsightReportTask extends DefaultTask {
     private Set<DependencyResult> selectDependencies(ResolvedComponentResult rootComponent) {
         final Set<DependencyResult> selectedDependencies = new LinkedHashSet<>();
         eachDependency(rootComponent, dependencyResult -> {
-            if (dependencySpec.isSatisfiedBy(dependencyResult)) {
+            if (Objects.requireNonNull(getDependencySpec()).isSatisfiedBy(dependencyResult)) {
                 selectedDependencies.add(dependencyResult);
             }
         }, new HashSet<>());

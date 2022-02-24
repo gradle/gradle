@@ -211,7 +211,7 @@ org:leaf2:2.5
     | org.gradle.libraryelements | jar          |           |
     | org.gradle.category        | library      |           |
   Selection reasons:
-    - By conflict resolution : between versions 2.5, 1.5 and 1.0
+    - By conflict resolution: between versions 2.5, 1.5 and 1.0
 
 org:leaf2:2.5
 \\--- org:toplevel3:1.0
@@ -351,7 +351,7 @@ org:leaf2:2.5
     | org.gradle.libraryelements | jar          |           |
     | org.gradle.category        | library      |           |
   Selection reasons:
-    - By conflict resolution : between versions 2.5, 1.5 and 1.0
+    - By conflict resolution: between versions 2.5, 1.5 and 1.0
 
 org:leaf2:2.5
 \\--- org:toplevel3:1.0
@@ -426,7 +426,7 @@ org:leaf2:2.5
     | org.gradle.libraryelements | jar          |           |
     | org.gradle.category        | library      |           |
   Selection reasons:
-    - By conflict resolution : between versions 2.5, 1.5 and 1.0
+    - By conflict resolution: between versions 2.5, 1.5 and 1.0
 
 org:leaf2:2.5
 \\--- org:toplevel3:1.0
@@ -479,7 +479,7 @@ dependencies {
         then:
         outputContains """org:foo:1.1 FAILED
   Selection reasons:
-    - By constraint : Dependency locking
+    - By constraint: Dependency locking
   Failures:
     - Dependency lock state out of date:
         - Resolved 'org:foo:1.1' which is not part of the dependency lock state
@@ -529,7 +529,7 @@ dependencies {
         outputContains """
 org:foo:1.0 FAILED
   Selection reasons:
-    - By constraint : dependency was locked to version '1.0'
+    - By constraint: dependency was locked to version '1.0'
   Failures:
     - Could not resolve org:foo:{strictly 1.0}.
         - Cannot find a version of 'org:foo' that satisfies the version constraints:
@@ -669,7 +669,7 @@ org:leaf:2
     | org.gradle.libraryelements | jar          |           |
     | org.gradle.category        | library      |           |
   Selection reasons:
-    - Was requested : didn't match version 3 because testing stuff
+    - Was requested: didn't match version 3 because testing stuff
     - Forced
 
 org:leaf:[1,2] -> 2
@@ -788,10 +788,10 @@ org:bar:2.0
   Selection reasons:
     - Forced
     - Selected by rule
-    - Selected by rule : RULE 2
-    - Selected by rule : SUBSTITUTION 1
-    - Selected by rule : SUBSTITUTION 2
-    - Selected by rule : SUBSTITUTION 3
+    - Selected by rule: RULE 2
+    - Selected by rule: SUBSTITUTION 1
+    - Selected by rule: SUBSTITUTION 2
+    - Selected by rule: SUBSTITUTION 3
 
 org:foo:1.0 -> org:bar:2.0
 \\--- conf
@@ -852,7 +852,7 @@ org.test:bar:2.0
     | org.gradle.libraryelements | jar          |           |
     | org.gradle.category        | library      |           |
   Selection reasons:
-    - Selected by rule : why not?
+    - Selected by rule: why not?
 
 org:bar:1.0 -> org.test:bar:2.0
 \\--- conf
@@ -878,7 +878,7 @@ org:foo:2.0
     | org.gradle.libraryelements | jar          |           |
     | org.gradle.category        | library      |           |
   Selection reasons:
-    - Selected by rule : because I am in control
+    - Selected by rule: because I am in control
 
 org:foo:1.0 -> 2.0
 \\--- conf
@@ -941,7 +941,7 @@ org:bar:1.0
     | org.gradle.libraryelements | jar          |           |
     | org.gradle.category        | library      |           |
   Selection reasons:
-    - Selected by rule : foo superseded by bar
+    - Selected by rule: foo superseded by bar
 
 org:foo:1.0 -> org:bar:1.0
 \\--- conf
@@ -1043,7 +1043,7 @@ org:leaf:2.0 -> org:new-leaf:77
     | org.gradle.libraryelements | jar          |           |
     | org.gradle.category        | library      |           |
   Selection reasons:
-    - Selected by rule : I am not sure I want to explain
+    - Selected by rule: I am not sure I want to explain
 
 org:bar:1.0 -> 2.0
 \\--- conf
@@ -1057,7 +1057,7 @@ org:foo:2.0
     | org.gradle.libraryelements | jar          |           |
     | org.gradle.category        | library      |           |
   Selection reasons:
-    - Selected by rule : I want to
+    - Selected by rule: I want to
 
 org:foo:1.0 -> 2.0
 \\--- conf
@@ -2241,7 +2241,7 @@ foo:foo:1.0
     | org.gradle.jvm.environment     |          | standard-jvm |
     | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
   Selection reasons:
-    - By constraint : $rejected
+    - By constraint: $rejected
 
 org:foo -> $selected
 \\--- compileClasspath"""
@@ -2297,7 +2297,7 @@ org:foo -> $selected
     | org.gradle.jvm.environment     |          | standard-jvm |
     | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
   Selection reasons:
-    - By constraint : ${rejected}${reason}
+    - By constraint: ${rejected}${reason}
 
 org:foo -> $selected
 \\--- compileClasspath
@@ -2350,7 +2350,7 @@ org:foo -> $selected
     | org.gradle.jvm.environment     |          | standard-jvm |
     | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
   Selection reasons:
-    - Was requested : ${rejected}${reason}
+    - Was requested: ${rejected}${reason}
 
 org:foo:${displayVersion} -> $selected
 \\--- compileClasspath
@@ -2401,7 +2401,7 @@ org:foo:${displayVersion} -> $selected
     | org.gradle.jvm.environment     |          | standard-jvm |
     | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
   Selection reasons:
-    - Was requested : didn't match versions 2.0, 1.5, 1.4
+    - Was requested: didn't match versions 2.0, 1.5, 1.4
 
 org:foo:[1.1,1.3] -> 1.3
 +--- compileClasspath
@@ -2458,7 +2458,7 @@ org:foo:[1.1,1.3] -> 1.3
     | org.gradle.jvm.environment     |          | standard-jvm |
     | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
   Selection reasons:
-    - Was requested : rejected versions 1.2, 1.1
+    - Was requested: rejected versions 1.2, 1.1
 
 org:bar:{require [1.0,); reject [1.1, 1.2]} -> 1.0
 \\--- compileClasspath
@@ -2475,7 +2475,7 @@ org:foo:1.1
     | org.gradle.jvm.environment     |          | standard-jvm |
     | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
   Selection reasons:
-    - Was requested : rejected version 1.2
+    - Was requested: rejected version 1.2
 
 org:foo:{require [1.0,); reject 1.2} -> 1.1
 \\--- compileClasspath
@@ -2536,8 +2536,8 @@ org:bar:1.0
     | org.gradle.jvm.environment     |          | standard-jvm |
     | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
   Selection reasons:
-    - Rejection : 1.2 by rule because version 1.2 is bad
-    - Rejection : 1.1 by rule because version 1.1 is bad
+    - Rejection: 1.2 by rule because version 1.2 is bad
+    - Rejection: 1.1 by rule because version 1.1 is bad
 
 org:bar:[1.0,) -> 1.0
 \\--- compileClasspath
@@ -2554,7 +2554,7 @@ org:foo:1.1
     | org.gradle.jvm.environment     |          | standard-jvm |
     | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
   Selection reasons:
-    - Was requested : rejected version 1.2
+    - Was requested: rejected version 1.2
 
 org:foo:{require [1.0,); reject 1.2} -> 1.1
 \\--- compileClasspath
@@ -2652,7 +2652,7 @@ org.test:leaf:1.0
     | org.gradle.jvm.environment     |          | standard-jvm |
     | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
   Selection reasons:
-    - Was requested : first reason
+    - Was requested: first reason
 
 org.test:leaf:1.0
 \\--- org.test:a:1.0
@@ -2755,7 +2755,7 @@ A web-based, searchable dependency report is available by adding the --scan opti
         outputContains """
 org:bar: FAILED
   Selection reasons:
-    - By constraint : Nope, you won't use this
+    - By constraint: Nope, you won't use this
   Failures:
     - Could not resolve org:bar:{reject all versions}.
         - Module 'org:bar' has been rejected:
@@ -2839,7 +2839,7 @@ org:foo:1.0
     | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
   Selection reasons:
     - By constraint
-    - Was requested : rejected versions 1.2, 1.1
+    - Was requested: rejected versions 1.2, 1.1
 
 org:foo:{reject 1.2} -> 1.0
 \\--- compileClasspath
@@ -2894,8 +2894,8 @@ org:foo:{require [1.0,); reject 1.1} -> 1.0
     | org.gradle.jvm.environment     |          | standard-jvm |
     | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
   Selection reasons:
-    - Was requested : first reason
-    - Was requested : transitive reason
+    - Was requested: first reason
+    - Was requested: transitive reason
 
 org.test:leaf:1.0
 +--- org.test:a:1.0
@@ -2960,7 +2960,7 @@ org:foo:1.0
     | org.gradle.jvm.environment     |          | standard-jvm |
     | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
   Selection reasons:
-    - Rejection : version 1.2:
+    - Rejection: version 1.2:
         - Attribute 'color' didn't match. Requested 'blue', was: 'red'
         - Attribute 'org.gradle.category' didn't match. Requested 'library', was: not found
         - Attribute 'org.gradle.dependency.bundling' didn't match. Requested 'external', was: not found
@@ -2968,7 +2968,7 @@ org:foo:1.0
         - Attribute 'org.gradle.jvm.version' didn't match. Requested '${JavaVersion.current().majorVersion}', was: not found
         - Attribute 'org.gradle.libraryelements' didn't match. Requested 'classes', was: not found
         - Attribute 'org.gradle.usage' didn't match. Requested 'java-api', was: not found
-    - Rejection : version 1.1:
+    - Rejection: version 1.1:
         - Attribute 'color' didn't match. Requested 'blue', was: 'green'
         - Attribute 'org.gradle.category' didn't match. Requested 'library', was: not found
         - Attribute 'org.gradle.dependency.bundling' didn't match. Requested 'external', was: not found
@@ -3042,7 +3042,7 @@ planet:mercury:1.0.2
     | org.gradle.jvm.environment     |          | standard-jvm |
     | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
   Selection reasons:
-    - By conflict resolution : between versions 1.0.2 and 1.0.1
+    - By conflict resolution: between versions 1.0.2 and 1.0.1
 
 planet:mercury:1.0.2
 \\--- planet:jupiter:5.0.0
@@ -3074,7 +3074,7 @@ planet:venus:2.0.1
     | org.gradle.jvm.environment     |          | standard-jvm |
     | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
   Selection reasons:
-    - By conflict resolution : between versions 2.0.1, 2.0.0 and 1.0
+    - By conflict resolution: between versions 2.0.1, 2.0.0 and 1.0
 
 planet:venus:2.0.1
 \\--- planet:mars:4.0.0
