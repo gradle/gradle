@@ -137,6 +137,7 @@ public class BuildActionSerializer {
             valueSerializer.write(encoder, startParameter.getIsolatedProjects());
             encoder.writeString(startParameter.getConfigurationCacheProblems().name());
             encoder.writeSmallInt(startParameter.getConfigurationCacheMaxProblems());
+            encoder.writeBoolean(startParameter.isConfigurationCacheDebug());
             encoder.writeBoolean(startParameter.isConfigurationCacheRecreateCache());
             encoder.writeBoolean(startParameter.isConfigurationCacheQuiet());
             encoder.writeBoolean(startParameter.isConfigureOnDemand());
@@ -216,6 +217,7 @@ public class BuildActionSerializer {
             startParameter.setIsolatedProjects(valueSerializer.read(decoder));
             startParameter.setConfigurationCacheProblems(ConfigurationCacheProblemsOption.Value.valueOf(decoder.readString()));
             startParameter.setConfigurationCacheMaxProblems(decoder.readSmallInt());
+            startParameter.setConfigurationCacheDebug(decoder.readBoolean());
             startParameter.setConfigurationCacheRecreateCache(decoder.readBoolean());
             startParameter.setConfigurationCacheQuiet(decoder.readBoolean());
             startParameter.setConfigureOnDemand(decoder.readBoolean());
