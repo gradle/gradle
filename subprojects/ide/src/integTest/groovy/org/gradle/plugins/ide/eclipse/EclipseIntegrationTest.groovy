@@ -23,6 +23,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.internal.TextUtil
 import org.junit.ComparisonFailure
@@ -39,6 +40,7 @@ class EclipseIntegrationTest extends AbstractEclipseIntegrationTest {
     public final TestResources testResources = new TestResources(testDirectoryProvider)
 
     @Test
+    @Flaky
     @ToBeFixedForConfigurationCache
     void canCreateAndDeleteMetaData() {
         when:
