@@ -29,6 +29,7 @@ import org.gradle.util.internal.TextUtil
 import org.junit.ComparisonFailure
 import org.junit.Rule
 import org.junit.Test
+import org.junit.experimental.categories.Category
 import spock.lang.Issue
 
 import java.util.regex.Pattern
@@ -40,7 +41,7 @@ class EclipseIntegrationTest extends AbstractEclipseIntegrationTest {
     public final TestResources testResources = new TestResources(testDirectoryProvider)
 
     @Test
-    @Flaky
+    @Category(Flaky.class)
     @ToBeFixedForConfigurationCache
     void canCreateAndDeleteMetaData() {
         when:

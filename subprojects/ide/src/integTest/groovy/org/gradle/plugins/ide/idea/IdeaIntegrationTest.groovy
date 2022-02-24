@@ -30,6 +30,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.junit.ComparisonFailure
 import org.junit.Rule
 import org.junit.Test
+import org.junit.experimental.categories.Category
 
 import java.util.regex.Pattern
 
@@ -66,7 +67,7 @@ class IdeaIntegrationTest extends AbstractIdeIntegrationTest {
     }
 
     @Test
-    @Flaky
+    @Category(Flaky.class)
     @ToBeFixedForConfigurationCache
     void canCreateAndDeleteMetaData() {
         executer.withTasks('idea').run()
@@ -108,7 +109,7 @@ class IdeaIntegrationTest extends AbstractIdeIntegrationTest {
     }
 
     @Test
-    @Flaky
+    @Category(Flaky.class)
     @ToBeFixedForConfigurationCache
     void overwritesExistingDependencies() {
         executer.withTasks('idea').run()
