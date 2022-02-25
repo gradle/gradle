@@ -108,7 +108,7 @@ class NtlmAuthenticator extends LoginAuthenticator {
         boolean check(Object credentials) {
             if (credentials instanceof String) {
                 byte[] hash = authentication.getAnsiHash(challenge)
-                byte[] clientChallenge = hash[16..-1]
+                byte[] clientChallenge = hash[16..-1] as byte[]
 
                 def response = NtlmPasswordAuthentication.getLMv2Response(authentication.domain, authentication.username, credentials, challenge, clientChallenge)
                 return Arrays.equals(hash, response)
