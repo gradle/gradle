@@ -38,7 +38,7 @@ class BuildSrcSpockIntegrationTest extends JUnitMultiVersionIntegrationSpec {
                 implementation localGroovy()
 
                 testImplementation '$dependencyNotation',
-                    'org.spockframework:spock-core:2.0-groovy-3.0'
+                    'org.spockframework:spock-core:2.2-M1-groovy-4.0'
             }
         """
         file("src/main/groovy/MockIt.groovy") << """
@@ -88,7 +88,7 @@ class BuildSrcSpockIntegrationTest extends JUnitMultiVersionIntegrationSpec {
 
             dependencies {
                 testImplementation localGroovy()
-                testImplementation '$dependencyNotation', 'org.spockframework:spock-core:2.0-groovy-3.0@jar'
+                testImplementation '$dependencyNotation', 'org.spockframework:spock-core:2.2-M1-groovy-4.0@jar'
             }
         """
     }

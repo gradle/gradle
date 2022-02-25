@@ -37,8 +37,8 @@ class GradleRunnerMiscEndUserIntegrationTest extends BaseTestKitEndUserIntegrati
 
             dependencies {
                 implementation localGroovy()
-                testImplementation('org.spockframework:spock-core:2.0-groovy-3.0') {
-                    exclude group: 'org.codehaus.groovy'
+                testImplementation('org.spockframework:spock-core:2.2-M1-groovy-4.0') {
+                    exclude group: 'org.apache.groovy'
                 }
             }
 

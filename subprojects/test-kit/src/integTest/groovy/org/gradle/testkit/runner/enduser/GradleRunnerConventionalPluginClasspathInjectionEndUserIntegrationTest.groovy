@@ -34,7 +34,7 @@ class GradleRunnerConventionalPluginClasspathInjectionEndUserIntegrationTest ext
             }
             ${mavenCentralRepository()}
             dependencies {
-                testImplementation(platform("org.spockframework:spock-bom:2.0-groovy-3.0"))
+                testImplementation(platform("org.spockframework:spock-bom:2.2-M1-groovy-4.0"))
                 testImplementation("org.spockframework:spock-core")
             }
             test.useJUnitPlatform()

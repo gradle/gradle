@@ -48,13 +48,13 @@ repositories {
 }
 
 dependencies {
-    testImplementation(platform("org.spockframework:spock-bom:2.0-groovy-3.0"))
+    testImplementation(platform("org.spockframework:spock-bom:2.2-M1-groovy-4.0"))
     testImplementation("org.spockframework:spock-core")
 
-    "integrationTestImplementation"(platform("org.spockframework:spock-bom:2.0-groovy-3.0"))
+    "integrationTestImplementation"(platform("org.spockframework:spock-bom:2.2-M1-groovy-4.0"))
     "integrationTestImplementation"("org.spockframework:spock-core")
 
-    "functionalTestImplementation"(platform("org.spockframework:spock-bom:2.0-groovy-3.0"))
+    "functionalTestImplementation"(platform("org.spockframework:spock-bom:2.2-M1-groovy-4.0"))
     "functionalTestImplementation"("org.spockframework:spock-core")
 }
 
