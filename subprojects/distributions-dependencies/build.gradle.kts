@@ -106,7 +106,7 @@ dependencies {
         api(libs.junit)                 { version { strictly("4.13.2") }}
         api(libs.junit5JupiterApi)      { version { strictly("5.7.2") }}
         api(libs.junit5Vintage)         { version { strictly("5.7.2") }}
-        api(libs.junitPlatform)         { version { strictly("1.7.2") }}
+        api(libs.junitPlatform)         { version { strictly("1.8.1") }}
         api(libs.jzlib)                 { version { strictly("1.1.3") }}
         api(libs.kryo)                  { version { strictly("2.24.0") }}
         api(libs.log4jToSlf4j)          { version { strictly(slf4jVersion) }}
