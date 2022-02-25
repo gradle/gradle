@@ -66,4 +66,8 @@ public interface ComponentArtifactMetadata {
     default Optional<ComponentArtifactMetadata> getAlternativeArtifact() {
         return Optional.empty();
     }
+
+    default boolean isOptionalArtifact() {
+        return false;
+    }
 }
