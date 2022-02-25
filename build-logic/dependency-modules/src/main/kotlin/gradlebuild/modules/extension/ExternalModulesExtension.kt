@@ -33,6 +33,7 @@ abstract class ExternalModulesExtension {
     val asmCommons = "org.ow2.asm:asm-commons"
     val asmTree = "org.ow2.asm:asm-tree"
     val asmUtil = "org.ow2.asm:asm-util"
+    val assertj = "org.assertj:assertj-core"
     val awsS3Core = "com.amazonaws:aws-java-sdk-core"
     val awsS3Kms = "com.amazonaws:aws-java-sdk-kms"
     val awsS3S3 = "com.amazonaws:aws-java-sdk-s3"
@@ -181,6 +182,7 @@ abstract class ExternalModulesExtension {
         asmCommons to License.BSD3,
         asmTree to License.BSD3,
         asmUtil to License.BSD3,
+        assertj to License.Apache2,
         awsS3Core to License.Apache2,
         awsS3Kms to License.Apache2,
         awsS3S3 to License.Apache2,

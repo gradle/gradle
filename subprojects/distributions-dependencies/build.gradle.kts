@@ -40,6 +40,7 @@ dependencies {
         api(libs.asmCommons)            { version { strictly(asmVersion) }}
         api(libs.asmTree)               { version { strictly(asmVersion) }}
         api(libs.asmUtil)               { version { strictly(asmVersion) }}
+        api(libs.assertj)               { version { strictly("3.16.1") }}
         api(libs.awsS3Core)             { version { strictly(awsS3Version) }}
         api(libs.awsS3Kms)              { version { strictly(awsS3Version) }}
         api(libs.awsS3S3)               { version { strictly(awsS3Version) }}
