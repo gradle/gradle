@@ -14,6 +14,13 @@ tasks.named<JavaCompile>("compileTestJava") {
     options.release.set(8)
 }
 
+/**
+ * Use Java 8 compatibility for JMH benchmarks
+ */
+tasks.named<JavaCompile>("jmhCompileGeneratedClasses") {
+    options.release.set(8)
+}
+
 moduleIdentity.createBuildReceipt()
 
 dependencies {
