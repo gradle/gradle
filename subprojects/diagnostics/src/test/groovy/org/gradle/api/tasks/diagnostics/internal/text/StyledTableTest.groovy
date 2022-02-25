@@ -35,7 +35,7 @@ class StyledTableTest extends Specification {
             | Key | Value |
             |-----|-------|
             | foo | bar   |
-        """.stripIndent().trim()
+        """.stripIndent(true).trim()
     }
 
     def "should render a table with a single row and indent"() {
@@ -53,7 +53,7 @@ class StyledTableTest extends Specification {
             [indent]| Key | Value |
             [indent]|-----|-------|
             [indent]| foo | bar   |
-        """.stripIndent().trim()
+        """.stripIndent(true).trim()
     }
 
     def "header is accounted for in spacing"() {
@@ -71,7 +71,7 @@ class StyledTableTest extends Specification {
             | Very Long |
             |-----------|
             | foo       |
-        """.stripIndent().trim()
+        """.stripIndent(true).trim()
     }
 
     def "longest string determines spacing"() {
@@ -93,7 +93,7 @@ class StyledTableTest extends Specification {
             | foo       | bar         |
             | very long | short       |
             | tiny      | even longer |
-        """.stripIndent().trim()
+        """.stripIndent(true).trim()
     }
 
     def "fails when header and row sizes differ"() {
