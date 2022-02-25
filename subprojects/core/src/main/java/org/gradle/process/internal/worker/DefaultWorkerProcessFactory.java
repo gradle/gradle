@@ -24,6 +24,7 @@ import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.events.OutputEventListener;
+import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.remote.MessagingServer;
 import org.gradle.process.internal.JavaExecHandleFactory;
 import org.gradle.process.internal.health.memory.MemoryManager;
@@ -41,11 +42,12 @@ public class DefaultWorkerProcessFactory implements WorkerProcessFactory {
     private final OutputEventListener outputEventListener;
     private final ApplicationClassesInSystemClassLoaderWorkerImplementationFactory workerImplementationFactory;
     private final MemoryManager memoryManager;
+    private final ProcessEnvironment processEnvironment;
     private int connectTimeoutSeconds = 120;
 
     public DefaultWorkerProcessFactory(LoggingManager loggingManager, MessagingServer server, ClassPathRegistry classPathRegistry, IdGenerator<Long> idGenerator,
                                        File gradleUserHomeDir, TemporaryFileProvider temporaryFileProvider, JavaExecHandleFactory execHandleFactory,
-                                       JvmVersionDetector jvmVersionDetector, OutputEventListener outputEventListener, MemoryManager memoryManager) {
+                                       JvmVersionDetector jvmVersionDetector, OutputEventListener outputEventListener, MemoryManager memoryManager, ProcessEnvironment processEnvironment) {
         this.loggingManager = loggingManager;
         this.server = server;
         this.idGenerator = idGenerator;
@@ -54,6 +56,7 @@ public class DefaultWorkerProcessFactory implements WorkerProcessFactory {
         this.outputEventListener = outputEventListener;
         this.workerImplementationFactory = new ApplicationClassesInSystemClassLoaderWorkerImplementationFactory(classPathRegistry, temporaryFileProvider, jvmVersionDetector, gradleUserHomeDir);
         this.memoryManager = memoryManager;
+        this.processEnvironment = processEnvironment;
     }
 
     public void setConnectTimeoutSeconds(int connectTimeoutSeconds) {
@@ -79,7 +82,7 @@ public class DefaultWorkerProcessFactory implements WorkerProcessFactory {
     }
 
     private DefaultWorkerProcessBuilder newWorkerProcessBuilder() {
-        DefaultWorkerProcessBuilder builder = new DefaultWorkerProcessBuilder(execHandleFactory, server, idGenerator, workerImplementationFactory, outputEventListener, memoryManager);
+        DefaultWorkerProcessBuilder builder = new DefaultWorkerProcessBuilder(execHandleFactory, server, idGenerator, workerImplementationFactory, outputEventListener, memoryManager,processEnvironment);
         builder.setLogLevel(loggingManager.getLevel());
         builder.setGradleUserHomeDir(gradleUserHomeDir);
         builder.setConnectTimeoutSeconds(connectTimeoutSeconds);

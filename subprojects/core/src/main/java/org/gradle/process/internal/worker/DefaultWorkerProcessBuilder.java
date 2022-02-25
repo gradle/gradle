@@ -21,6 +21,7 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.logging.events.OutputEventListener;
+import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.remote.Address;
 import org.gradle.internal.remote.ConnectionAcceptor;
 import org.gradle.internal.remote.MessagingServer;
@@ -68,8 +69,9 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
     private List<URL> implementationClassPath;
     private List<URL> implementationModulePath;
     private boolean shouldPublishJvmMemoryInfo;
+    private ProcessEnvironment processEnvironment;
 
-    DefaultWorkerProcessBuilder(JavaExecHandleFactory execHandleFactory, MessagingServer server, IdGenerator<Long> idGenerator, ApplicationClassesInSystemClassLoaderWorkerImplementationFactory workerImplementationFactory, OutputEventListener outputEventListener, MemoryManager memoryManager) {
+    DefaultWorkerProcessBuilder(JavaExecHandleFactory execHandleFactory, MessagingServer server, IdGenerator<Long> idGenerator, ApplicationClassesInSystemClassLoaderWorkerImplementationFactory workerImplementationFactory, OutputEventListener outputEventListener, MemoryManager memoryManager, ProcessEnvironment processEnvironment) {
         this.javaCommand = execHandleFactory.newJavaExec();
         this.javaCommand.setExecutable(Jvm.current().getJavaExecutable());
         this.server = server;
@@ -77,6 +79,7 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
         this.workerImplementationFactory = workerImplementationFactory;
         this.outputEventListener = outputEventListener;
         this.memoryManager = memoryManager;
+        this.processEnvironment = processEnvironment;
     }
 
     public int getConnectTimeoutSeconds() {
@@ -200,7 +203,7 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
     @Override
     public WorkerProcess build() {
         final WorkerJvmMemoryStatus memoryStatus = shouldPublishJvmMemoryInfo ? new WorkerJvmMemoryStatus() : null;
-        final DefaultWorkerProcess workerProcess = new DefaultWorkerProcess(connectTimeoutSeconds, TimeUnit.SECONDS, memoryStatus);
+        final DefaultWorkerProcess workerProcess = new DefaultWorkerProcess(connectTimeoutSeconds, TimeUnit.SECONDS, memoryStatus, processEnvironment.maybeGetPid());
         ConnectionAcceptor acceptor = server.accept(new Action<ObjectConnection>() {
             @Override
             public void execute(final ObjectConnection connection) {

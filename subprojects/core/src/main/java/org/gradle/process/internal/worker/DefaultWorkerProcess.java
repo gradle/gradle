@@ -59,10 +59,12 @@ public class DefaultWorkerProcess implements WorkerProcess {
     private Throwable processFailure;
     private final long connectTimeout;
     private final JvmMemoryStatus jvmMemoryStatus;
+    private final long pid;
 
-    public DefaultWorkerProcess(int connectTimeoutValue, TimeUnit connectTimeoutUnits, @Nullable JvmMemoryStatus jvmMemoryStatus) {
+    public DefaultWorkerProcess(int connectTimeoutValue, TimeUnit connectTimeoutUnits, @Nullable JvmMemoryStatus jvmMemoryStatus, Long pid) {
         connectTimeout = connectTimeoutUnits.toMillis(connectTimeoutValue);
         this.jvmMemoryStatus = jvmMemoryStatus;
+        this.pid = pid == null ? 0 : pid;
     }
 
     @Override
@@ -225,7 +227,7 @@ public class DefaultWorkerProcess implements WorkerProcess {
     @Override
     public ExecResult waitForStop() {
         String uuid = UUID.randomUUID().toString();
-        Path resultFile = Paths.get("/home/tcagent1/result-" + uuid + ".txt");
+        Path resultFile = Paths.get("/home/tcagent1/result-" + pid + "-" + uuid + ".txt");
         try {
             ExecResult result = execHandle.waitForFinish().assertNormalExitValue();
             Files.write(resultFile,

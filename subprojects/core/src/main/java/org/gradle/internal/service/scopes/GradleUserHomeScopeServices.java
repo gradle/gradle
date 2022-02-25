@@ -73,6 +73,7 @@ import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.events.OutputEventListener;
+import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.remote.MessagingServer;
@@ -176,7 +177,8 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
     WorkerProcessFactory createWorkerProcessFactory(
         LoggingManagerInternal loggingManagerInternal, MessagingServer messagingServer, ClassPathRegistry classPathRegistry,
         TemporaryFileProvider temporaryFileProvider, JavaExecHandleFactory execHandleFactory, JvmVersionDetector jvmVersionDetector,
-        MemoryManager memoryManager, GradleUserHomeDirProvider gradleUserHomeDirProvider, OutputEventListener outputEventListener
+        MemoryManager memoryManager, GradleUserHomeDirProvider gradleUserHomeDirProvider, OutputEventListener outputEventListener,
+        ProcessEnvironment processEnvironment
     ) {
         return new DefaultWorkerProcessFactory(
             loggingManagerInternal,
@@ -188,7 +190,8 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
             execHandleFactory,
             jvmVersionDetector,
             outputEventListener,
-            memoryManager
+            memoryManager,
+            processEnvironment
         );
     }
 
