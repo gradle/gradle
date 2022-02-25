@@ -21,7 +21,7 @@ import org.gradle.api.internal.tasks.testing.detection.ClassFileExtractionManage
 
 public class JUnitDetector extends AbstractTestFrameworkDetector<JUnitTestClassDetector> {
     private static final String TEST_CASE = "junit/framework/TestCase";
-    private static final String GROOVY_TEST_CASE = "groovy/util/GroovyTestCase";
+    private static final String GROOVY_TEST_CASE = "groovy/test/GroovyTestCase";
     private static final ImmutableSet<String> KNOWN_TEST_CASE_CLASS_NAMES = ImmutableSet.of(TEST_CASE, GROOVY_TEST_CASE);
 
     public JUnitDetector(ClassFileExtractionManager classFileExtractionManager) {
