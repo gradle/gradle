@@ -53,7 +53,7 @@ class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSel
         failure.assertHasFileName("Build file '$buildFile.path'")
         failure.assertHasLineNumber(40)
         failure.assertHasCause("There was an error while evaluating a component selection rule for org.utils:api:1.2.")
-        failure.assertHasCause("Could not find method foo()")
+        failure.assertHasCause("No signature of method: org.gradle.api.internal.artifacts.DefaultComponentSelection.foo() is applicable for argument types: () values: []")
     }
 
     def "produces sensible error for invalid component selection rule"() {
