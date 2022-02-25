@@ -37,6 +37,7 @@ import static com.google.common.collect.ImmutableSortedMap.copyOfSorted;
 import static com.google.common.collect.Maps.transformValues;
 
 public class DefaultExecutionHistoryStore implements ExecutionHistoryStore {
+    public static final String EXECUTION_HISTORY_CACHE_SIZE_SYSTEM_PROPERY = "org.gradle.execution.history.size";
 
     private final PersistentIndexedCache<String, PreviousExecutionState> store;
 
@@ -52,7 +53,7 @@ public class DefaultExecutionHistoryStore implements ExecutionHistoryStore {
             classLoaderHasher
         );
 
-        CacheDecorator inMemoryCacheDecorator = inMemoryCacheDecoratorFactory.decorator(10000, false);
+        CacheDecorator inMemoryCacheDecorator = inMemoryCacheDecoratorFactory.decorator(Integer.getInteger(EXECUTION_HISTORY_CACHE_SIZE_SYSTEM_PROPERY, 10000), false);
         this.store = cache.get().createCache(
             PersistentIndexedCacheParameters.of("executionHistory", String.class, serializer)
             .withCacheDecorator(inMemoryCacheDecorator)
