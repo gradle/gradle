@@ -88,8 +88,10 @@ public abstract class Node implements Comparable<Node> {
     }
 
     /**
-     * Is it possible for this node to run? Returns {@code true} if this node definitely will not run, {@code false} if it is possible
-     * for the node to run.
+     * Is it possible for this node to run? Returns {@code true} if this node definitely will not run, {@code false} if it is still possible for the node to run.
+     *
+     * <p>A node may be complete for several reasons, for example when its actions have been executed, or when its outputs have been considered up-to-date or loaded from the build cache,
+     * or when it cannot run due to a failure in a dependency.</p>
      */
     public boolean isComplete() {
         return state == ExecutionState.EXECUTED
@@ -277,7 +279,14 @@ public abstract class Node implements Comparable<Node> {
         return getDependencyPredecessors();
     }
 
-    public abstract void prepareForExecution();
+    /**
+     * Called when this node is added to the work graph, prior to resolving its dependencies.
+     *
+     * @param monitor An action that should be called when this node is ready to execute, when the dependencies for this node are executed outside
+     * the work graph that contains this node (for example, when the node represents a task in an included build).
+     */
+    public void prepareForExecution(Action<Node> monitor) {
+    }
 
     public abstract void resolveDependencies(TaskDependencyResolver dependencyResolver, Action<Node> processHardSuccessor);
 
@@ -325,14 +334,9 @@ public abstract class Node implements Comparable<Node> {
 
     public abstract void resolveMutations();
 
-    public abstract boolean isPublicNode();
-
-    /**
-     * Whether the task needs to be queried if it is completed.
-     *
-     * Everything where the value of {@link #isComplete()} depends on some other state, like another task in an included build.
-     */
-    public abstract boolean requiresMonitoring();
+    public boolean isPublicNode() {
+        return false;
+    }
 
     /**
      * Returns the project state that this node requires mutable access to, if any.

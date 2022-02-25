@@ -28,8 +28,8 @@ fun <T : Any> BuildOperationExecutor.withLoadOperation(block: () -> T) =
 
 
 internal
-fun BuildOperationExecutor.withStoreOperation(block: () -> Unit) =
-    withOperation("Store configuration cache state", block)
+fun BuildOperationExecutor.withStoreOperation(cacheKey: String, block: () -> Unit) =
+    withOperation("Store configuration cache state $cacheKey", block)
 
 
 private

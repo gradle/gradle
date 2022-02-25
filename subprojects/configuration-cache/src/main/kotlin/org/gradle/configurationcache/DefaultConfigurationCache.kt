@@ -313,7 +313,7 @@ class DefaultConfigurationCache internal constructor(
         // can cause the provider value to incorrectly be treated as a task graph input
         Instrumented.discardListener()
 
-        buildOperationExecutor.withStoreOperation {
+        buildOperationExecutor.withStoreOperation(cacheKey.string) {
             store.useForStore { layout ->
                 try {
                     action(layout.fileFor(stateType))

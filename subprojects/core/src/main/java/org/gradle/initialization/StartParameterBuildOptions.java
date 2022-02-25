@@ -77,6 +77,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         options.add(new ConfigurationCacheOption());
         options.add(new IsolatedProjectsOption());
         options.add(new ConfigurationCacheMaxProblemsOption());
+        options.add(new ConfigurationCacheDebugOption());
         options.add(new ConfigurationCacheRecreateOption());
         options.add(new ConfigurationCacheQuietOption());
         StartParameterBuildOptions.options = Collections.unmodifiableList(options);
@@ -479,7 +480,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
 
         @Override
         public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
-            settings.setConfigurationCache(BuildOption.Value.value(value));
+            settings.setConfigurationCache(Value.value(value));
         }
     }
 
@@ -534,6 +535,20 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(int value, StartParameterInternal settings, Origin origin) {
             settings.setConfigurationCacheMaxProblems(value);
+        }
+    }
+
+    public static class ConfigurationCacheDebugOption extends BooleanBuildOption<StartParameterInternal> {
+
+        public static final String PROPERTY_NAME = "org.gradle.unsafe.configuration-cache.debug";
+
+        public ConfigurationCacheDebugOption() {
+            super(PROPERTY_NAME);
+        }
+
+        @Override
+        public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
+            settings.setConfigurationCacheDebug(value);
         }
     }
 

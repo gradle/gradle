@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.execution.plan;
+package org.gradle.tooling.internal.provider.continuous;
 
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.specs.Spec;
+import org.gradle.execution.plan.SingleFileTreeElementMatcher;
+import org.gradle.execution.plan.ValuedVfsHierarchy;
 import org.gradle.execution.plan.ValuedVfsHierarchy.ValueVisitor;
 import org.gradle.internal.collect.PersistentList;
 import org.gradle.internal.file.Stat;

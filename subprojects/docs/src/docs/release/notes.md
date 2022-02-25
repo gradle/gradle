@@ -11,7 +11,9 @@ We would like to thank the following community members for their contributions t
 [Stefan Neuhaus](https://github.com/stefanneuhaus),
 [George Thomas](https://github.com/smoothreggae),
 [Anja Papatola](https://github.com/apalopta),
-[Björn Kautler](https://github.com/Vampire)
+[Björn Kautler](https://github.com/Vampire),
+[David Burström](https://github.com/davidburstrom),
+[Vladimir Sitnikov](https://github.com/vlsi)
 <!-- 
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)

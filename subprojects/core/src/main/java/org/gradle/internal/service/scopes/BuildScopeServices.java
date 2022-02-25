@@ -191,6 +191,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.DefaultTextFileResourceLoader;
 import org.gradle.internal.resource.TextFileResourceLoader;
 import org.gradle.internal.resource.local.FileResourceListener;
+import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.scripts.ScriptExecutionListener;
 import org.gradle.internal.service.CachingServiceLocator;
 import org.gradle.internal.service.DefaultServiceRegistry;
@@ -242,7 +243,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         GradleInternal gradleInternal,
         TaskNodeFactory taskNodeFactory,
         TaskDependencyResolver dependencyResolver,
-        ExecutionNodeAccessHierarchies executionNodeAccessHierarchies
+        ExecutionNodeAccessHierarchies executionNodeAccessHierarchies,
+        ResourceLockCoordinationService lockCoordinationService
     ) {
         return new ExecutionPlanFactory(
             gradleInternal.getIdentityPath().toString(),
@@ -250,7 +252,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             dependencyResolver,
             new DefaultNodeValidator(),
             executionNodeAccessHierarchies.getOutputHierarchy(),
-            executionNodeAccessHierarchies.getDestroyableHierarchy()
+            executionNodeAccessHierarchies.getDestroyableHierarchy(),
+            lockCoordinationService
         );
     }
 

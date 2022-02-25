@@ -214,6 +214,11 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
         }
 
         @Override
+        public void onComplete(Runnable action) {
+            taskNode.onComplete(action);
+        }
+
+        @Override
         public TaskInternal getTask() {
             return taskNode.getTask();
         }

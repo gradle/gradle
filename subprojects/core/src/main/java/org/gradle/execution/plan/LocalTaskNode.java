@@ -51,8 +51,7 @@ public class LocalTaskNode extends TaskNode {
     private List<? extends ResourceLock> resourceLocks;
     private TaskProperties taskProperties;
 
-    public LocalTaskNode(TaskInternal task, WorkValidationContext workValidationContext, int ordinal) {
-        super(ordinal);
+    public LocalTaskNode(TaskInternal task, WorkValidationContext workValidationContext) {
         this.task = task;
         this.validationContext = workValidationContext;
     }
@@ -100,6 +99,11 @@ public class LocalTaskNode extends TaskNode {
     }
 
     @Override
+    public boolean isPublicNode() {
+        return true;
+    }
+
+    @Override
     public Action<? super Task> getPostAction() {
         return postAction;
     }
@@ -124,7 +128,7 @@ public class LocalTaskNode extends TaskNode {
     }
 
     @Override
-    public void prepareForExecution() {
+    public void prepareForExecution(Action<Node> monitor) {
         ((TaskContainerInternal) task.getProject().getTasks()).prepareForExecution(task);
     }
 
@@ -150,11 +154,6 @@ public class LocalTaskNode extends TaskNode {
         for (Node targetNode : getShouldRunAfter(dependencyResolver)) {
             addShouldSuccessor(targetNode);
         }
-    }
-
-    @Override
-    public boolean requiresMonitoring() {
-        return false;
     }
 
     private void addFinalizerNode(TaskNode finalizerNode) {

@@ -21,15 +21,17 @@ import org.gradle.api.Task;
 import org.gradle.api.specs.Spec;
 
 import javax.annotation.Nullable;
+import java.io.Closeable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 
 /**
  * Represents a graph of dependent work items, returned in execution order.
  */
-public interface ExecutionPlan extends Describable {
+public interface ExecutionPlan extends Describable, Closeable {
     ExecutionPlan EMPTY = new ExecutionPlan() {
         @Override
         public void useFilter(Spec<? super Task> filter) {
@@ -114,6 +116,11 @@ public interface ExecutionPlan extends Describable {
         }
 
         @Override
+        public void onComplete(Consumer<LocalTaskNode> handler) {
+            throw new IllegalStateException();
+        }
+
+        @Override
         public boolean allNodesComplete() {
             return true;
         }
@@ -131,6 +138,10 @@ public interface ExecutionPlan extends Describable {
         @Override
         public String getDisplayName() {
             return "empty";
+        }
+
+        @Override
+        public void close() {
         }
     };
 
@@ -194,4 +205,12 @@ public interface ExecutionPlan extends Describable {
      * Returns the number of work items in the plan.
      */
     int size();
+
+    /**
+     * Invokes the given action when a task completes (as per {@link Node#isComplete()}). Does nothing for tasks that have already completed.
+     */
+    void onComplete(Consumer<LocalTaskNode> handler);
+
+    @Override
+    void close();
 }

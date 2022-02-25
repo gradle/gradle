@@ -14,12 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.filewatch;
+package org.gradle.deployment.internal;
 
-import org.gradle.internal.service.scopes.EventScope;
-import org.gradle.internal.service.scopes.Scopes;
+public interface ContinuousExecutionGate {
+    GateKeeper createGateKeeper();
 
-@EventScope(Scopes.BuildSession.class)
-public interface PendingChangesListener {
-    void onPendingChanges();
+    void waitForOpen();
+
+    interface GateKeeper {
+        void open();
+        void close();
+    }
 }

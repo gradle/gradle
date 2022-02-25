@@ -33,6 +33,7 @@ public class StartParameterInternal extends StartParameter {
     private BuildOption.Value<Boolean> configurationCache = BuildOption.Value.defaultValue(false);
     private BuildOption.Value<Boolean> isolatedProjects = BuildOption.Value.defaultValue(false);
     private ConfigurationCacheProblemsOption.Value configurationCacheProblems = ConfigurationCacheProblemsOption.Value.FAIL;
+    private boolean configurationCacheDebug;
     private int configurationCacheMaxProblems = 512;
     private boolean configurationCacheRecreateCache;
     private boolean configurationCacheQuiet;
@@ -66,6 +67,7 @@ public class StartParameterInternal extends StartParameter {
         p.isolatedProjects = isolatedProjects;
         p.configurationCacheProblems = configurationCacheProblems;
         p.configurationCacheMaxProblems = configurationCacheMaxProblems;
+        p.configurationCacheDebug = configurationCacheDebug;
         p.configurationCacheRecreateCache = configurationCacheRecreateCache;
         p.configurationCacheQuiet = configurationCacheQuiet;
         p.searchUpwards = searchUpwards;
@@ -156,6 +158,14 @@ public class StartParameterInternal extends StartParameter {
 
     public void setConfigurationCacheProblems(ConfigurationCacheProblemsOption.Value configurationCacheProblems) {
         this.configurationCacheProblems = configurationCacheProblems;
+    }
+
+    public boolean isConfigurationCacheDebug() {
+        return configurationCacheDebug;
+    }
+
+    public void setConfigurationCacheDebug(boolean configurationCacheDebug) {
+        this.configurationCacheDebug = configurationCacheDebug;
     }
 
     public int getConfigurationCacheMaxProblems() {
