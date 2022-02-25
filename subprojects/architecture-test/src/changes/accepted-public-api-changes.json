@@ -14,6 +14,14 @@
             "changes": [
                 "Method is now abstract"
             ]
+        },
+        {
+            "type": "org.gradle.api.AntBuilder",
+            "member": "Class org.gradle.api.AntBuilder",
+            "acceptation": "We are now basing our AntBuilder on the non-deprecated groovy.ant.AntBuilder instead of the deprecated groovy.util.AntBuilder",
+            "changes": [
+                "Abstract method has been added in implemented interface"
+            ]
         }
     ]
 }
