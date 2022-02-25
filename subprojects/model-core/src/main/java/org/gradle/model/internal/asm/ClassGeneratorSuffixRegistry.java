@@ -16,8 +16,7 @@
 
 package org.gradle.model.internal.asm;
 
-import org.jetbrains.annotations.NotNull;
-
+import javax.annotation.Nonnull;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -54,7 +53,7 @@ public class ClassGeneratorSuffixRegistry {
         }
     }
 
-    @NotNull
+    @Nonnull
     private static RuntimeException markerForSuffix(String suffix) {
         return new RuntimeException("Class generated with suffix '" + suffix + "' registered.");
     }
