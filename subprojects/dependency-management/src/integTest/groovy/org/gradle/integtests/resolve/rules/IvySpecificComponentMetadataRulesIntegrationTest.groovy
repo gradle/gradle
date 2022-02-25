@@ -55,7 +55,7 @@ task resolve {
         repository {
             'org.test:projectA:1.0' {
                 withModule {
-                    withExtraInfo((ns('foo')): "fooValue", (ns('bar')): "barValue")
+                    withExtraInfo((IvySpecificComponentMetadataRulesIntegrationTest.ns('foo')): "fooValue", (IvySpecificComponentMetadataRulesIntegrationTest.ns('bar')): "barValue")
                     withBranch('someBranch')
                     withStatus('release')
                 }
@@ -374,19 +374,19 @@ resolve.doLast { assert ruleInvoked }
         assert file("metadata").text == "{{http://my.extra.info/bar}bar=barValueChanged, {http://my.extra.info/foo}foo=fooValueChanged}\ndifferentBranch\nmilestone"
     }
 
-    private static NamespaceId ns(String name) {
+    static NamespaceId ns(String name) {
         return new NamespaceId("http://my.extra.info/${name}", name)
     }
 
-    private static String declareNS(String name) {
+    static String declareNS(String name) {
         "(new javax.xml.namespace.QName('http://my.extra.info/${name}', '${name}'))"
     }
 
-    private static String sq(String input) {
+    static String sq(String input) {
         escapeForSingleQuoting(input)
     }
 
-    private static String escapeForSingleQuoting(String input) {
+    static String escapeForSingleQuoting(String input) {
         input.replace('\\', '\\\\').replace('\'', '\\\'')
     }
 }
