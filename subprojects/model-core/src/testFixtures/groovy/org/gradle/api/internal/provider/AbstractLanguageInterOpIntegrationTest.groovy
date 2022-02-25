@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.provider
 
+import groovy.ant.FileNameFinder
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.KotlinDslTestUtil
 import org.gradle.test.fixtures.file.TestFile
