@@ -42,11 +42,3 @@ createTestTask("integMultiVersionTest", "forking", sourceSet, TestType.INTEGRATI
     includeSpockAnnotation("org.gradle.integtests.fixtures.compatibility.MultiVersionTestCategory")
     (options as JUnitPlatformOptions).includeEngines("spock")
 }
-
-tasks.withType<GroovyCompile>().configureEach {
-    groovyOptions.forkOptions.jvmArgs = listOf("-Dspock.iKnowWhatImDoing.disableGroovyVersionCheck=true")
-}
-
-tasks.withType<Test>().configureEach {
-    systemProperty("spock.iKnowWhatImDoing.disableGroovyVersionCheck", "true")
-}

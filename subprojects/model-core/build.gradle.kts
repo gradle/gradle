@@ -58,14 +58,6 @@ tasks.withType<JavaCompile>().configureEach {
     targetCompatibility = "8"
 }
 
-tasks.withType<GroovyCompile>().configureEach {
-    groovyOptions.forkOptions.jvmArgs = listOf("-Dspock.iKnowWhatImDoing.disableGroovyVersionCheck=true")
-}
-
-tasks.withType<Test>().configureEach {
-    systemProperty("spock.iKnowWhatImDoing.disableGroovyVersionCheck", "true")
-}
-
 integTest.usesJavadocCodeSnippets.set(true)
 
 classycle {
