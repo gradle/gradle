@@ -37,8 +37,8 @@ import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceLookup;
 import org.gradle.process.ExecOperations;
-import org.jetbrains.annotations.NotNull;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 public class DefaultValueSourceProviderFactory implements ValueSourceProviderFactory {
@@ -100,7 +100,7 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
     }
 
     @Override
-    @NotNull
+    @Nonnull
     public <T, P extends ValueSourceParameters> Provider<T> instantiateValueSourceProvider(
         Class<? extends ValueSource<T, P>> valueSourceType,
         @Nullable Class<P> parametersType,
@@ -111,7 +111,7 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         );
     }
 
-    @NotNull
+    @Nonnull
     public <T, P extends ValueSourceParameters> ValueSource<T, P> instantiateValueSource(
         Class<? extends ValueSource<T, P>> valueSourceType,
         @Nullable Class<P> parametersType,
@@ -291,7 +291,7 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
             return obtained;
         }
 
-        @NotNull
+        @Nonnull
         private ValueSource<T, P> source() {
             return instantiateValueSource(
                 sourceType,
@@ -300,7 +300,7 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
             );
         }
 
-        @NotNull
+        @Nonnull
         private DefaultObtainedValue<T, P> obtainedValue(Try<T> obtained) {
             return new DefaultObtainedValue<>(
                 obtained,
