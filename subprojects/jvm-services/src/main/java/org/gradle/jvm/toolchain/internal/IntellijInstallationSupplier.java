@@ -24,18 +24,18 @@ import javax.inject.Inject;
 import java.io.File;
 import java.util.Set;
 
-public class IntellijIdeaInstallationSupplier extends AutoDetectingInstallationSupplier {
+public class IntellijInstallationSupplier extends AutoDetectingInstallationSupplier {
 
     private static final String PROPERTY_NAME = "org.gradle.java.installations.idea-jdks-directory";
 
     private final Provider<String> root;
 
     @Inject
-    public IntellijIdeaInstallationSupplier(ProviderFactory factory) {
+    public IntellijInstallationSupplier(ProviderFactory factory) {
         this(factory, OperatingSystem.current());
     }
 
-    public IntellijIdeaInstallationSupplier(ProviderFactory factory, OperatingSystem os) {
+    public IntellijInstallationSupplier(ProviderFactory factory, OperatingSystem os) {
         super(factory);
         root = factory.gradleProperty(PROPERTY_NAME).orElse(defaultJdksDirectory(os));
     }

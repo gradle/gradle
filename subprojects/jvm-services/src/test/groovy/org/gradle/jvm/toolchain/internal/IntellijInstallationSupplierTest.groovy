@@ -26,7 +26,7 @@ import spock.lang.Specification
 
 import static org.gradle.api.internal.file.TestFiles.systemSpecificAbsolutePath
 
-class IntellijIdeaInstallationSupplierTest extends Specification {
+class IntellijInstallationSupplierTest extends Specification {
 
     @Rule
     public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
@@ -118,13 +118,13 @@ class IntellijIdeaInstallationSupplierTest extends Specification {
         expectedPaths
     }
 
-    IntellijIdeaInstallationSupplier createSupplierWithProperty(File rootDirectory) {
-        new IntellijIdeaInstallationSupplier(createProviderFactory(rootDirectory.getCanonicalPath()))
+    IntellijInstallationSupplier createSupplierWithProperty(File rootDirectory) {
+        new IntellijInstallationSupplier(createProviderFactory(rootDirectory.getCanonicalPath()))
     }
 
-    IntellijIdeaInstallationSupplier createSupplierWithUserHome(String userHome, OperatingSystem os) {
+    IntellijInstallationSupplier createSupplierWithUserHome(String userHome, OperatingSystem os) {
         SystemProperties.instance.withSystemProperty("user.home", userHome) {
-            new IntellijIdeaInstallationSupplier(createProviderFactory(null), os)
+            new IntellijInstallationSupplier(createProviderFactory(null), os)
         }
     }
 
