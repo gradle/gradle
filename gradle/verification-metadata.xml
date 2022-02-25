@@ -95,6 +95,7 @@
          </trusted-key>
          <trusted-key id="31fae244a81d64507b47182e1b2718089ce964b8" group="com.thoughtworks.qdox"/>
          <trusted-key id="34441e504a937f43eb0daef96a65176a0fb1cd0b">
+            <trusting group="org.apache.groovy"/>
             <trusting group="org.codehaus.groovy"/>
             <trusting group="org.codehaus.groovy" name="groovy"/>
          </trusted-key>
@@ -478,6 +479,11 @@
       <component group="com.github.ben-manes.caffeine" name="caffeine" version="2.8.5">
          <artifact name="caffeine-2.8.5.jar">
             <pgp value="635ee627345f3c1dd422b2e207d3516820bcf6b1"/>
+         </artifact>
+      </component>
+      <component group="com.github.javaparser" name="javaparser-core" version="3.24.0">
+         <artifact name="javaparser-core-3.24.0.jar">
+            <pgp value="253e8e4c6fb28d11748115c1249dee8e2c07a0a2"/>
          </artifact>
       </component>
       <component group="com.github.siom79.japicmp" name="japicmp" version="0.14.3">
@@ -946,6 +952,11 @@
             <pgp value="2c1708ea05adf6966c32d6454a1bac7f1e3b89b3"/>
          </artifact>
       </component>
+      <component group="org.abego.treelayout" name="org.abego.treelayout.core" version="1.0.3">
+         <artifact name="org.abego.treelayout.core-1.0.3.jar">
+            <pgp value="d790f72ea8fd39551012b62dcf9f3090ce4cb752"/>
+         </artifact>
+      </component>
       <component group="org.antlr" name="antlr4-runtime" version="4.5.2-1">
          <artifact name="antlr4-runtime-4.5.2-1.jar">
             <pgp value="d54a395b5cf3f86eb45f6e426b1b008864323b92"/>
@@ -979,6 +990,11 @@
       <component group="org.apache.ivy" name="ivy" version="2.3.0">
          <artifact name="ivy-2.3.0.jar">
             <pgp value="9c60c6b3a5a9df8fedd299d65be0ba8cb80602ae"/>
+         </artifact>
+      </component>
+      <component group="org.apache.ivy" name="ivy" version="2.5.0">
+         <artifact name="ivy-2.5.0.jar">
+            <pgp value="8da70c00df7af1b0d2f9dc74ddbcc1270a29d081"/>
          </artifact>
       </component>
       <component group="org.apache.maven" name="maven-model" version="3.0.4">
@@ -1049,6 +1065,11 @@
       <component group="org.assertj" name="assertj-core" version="3.16.1">
          <artifact name="assertj-core-3.16.1.jar">
             <pgp value="77993d3295698c46912e83984b2277c6358670ee"/>
+         </artifact>
+      </component>
+      <component group="org.assertj" name="assertj-core" version="3.20.2">
+         <artifact name="assertj-core-3.20.2.jar">
+            <pgp value="be685132afd2740d9095f9040cc0b712fee75827"/>
          </artifact>
       </component>
       <component group="org.brotli" name="dec" version="0.1.2">
