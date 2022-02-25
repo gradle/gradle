@@ -61,6 +61,11 @@ _Default is `false`._
 Customize console output coloring or verbosity.
 _Default depends on how Gradle is invoked. See <<command_line_interface.adoc#sec:command_line_logging, command-line logging>> for additional details._
 
+`org.gradle.continuous.quietperiod=(# of quiet period millis)`::
+When using <<command_line_interface.adoc#sec:continuous_build,continuous build>>, Gradle will wait for the quiet period to pass before triggering another build.
+Any additional changes within this quiet period restart waiting for the quiet period.
+_Default is `250` milliseconds._
+
 `org.gradle.daemon=(true,false)`::
 When set to `true` the <<gradle_daemon.adoc#gradle_daemon, Gradle Daemon>> is used to run the build.
 _Default is `true`, builds will be run using the daemon._
