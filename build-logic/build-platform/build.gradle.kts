@@ -10,6 +10,7 @@ val groovyVersion = "3.0.9"
 val asmVersion = "9.2"
 // To try out better kotlin compilation avoidance and incremental compilation
 // with -Pkotlin.incremental.useClasspathSnapshot=true
+// When we update to kotlin 1.7.x remove the workaround in gradlebuild.kotlin-library.gradle.kts
 val defaultBuildKotlinVersion = "1.6.20-M1"
 
 val kotlinVersion = providers.gradleProperty("buildKotlinVersion")

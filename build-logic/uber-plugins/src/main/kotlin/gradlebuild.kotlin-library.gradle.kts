@@ -39,6 +39,16 @@ tasks {
             // Make sure the classes dir is used for test compilation (required by tests accessing internal methods) - https://github.com/gradle/gradle/issues/11501
             classpath = sourceSets.main.get().output.classesDirs + classpath - files(tasks.jar)
         }
+
+        // Workaround for https://youtrack.jetbrains.com/issue/KT-34862
+        // Remove when we use Kotlin 1.7
+        val incrementalStateDirectory = layout.buildDirectory.dir("kotlin/$name")
+        doFirst {
+            val localStateDir = incrementalStateDirectory.get().asFile
+            if (!localStateDir.exists()) {
+                incremental = false
+            }
+        }
     }
 
     codeQuality {
