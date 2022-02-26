@@ -183,8 +183,8 @@ class VariantAwareResolutionWithConfigurationAttributesIntegrationTest extends A
         given:
         subproject('core') {
             def buildDotGradle = file('build.gradle')
-            VariantAwareResolutionWithConfigurationAttributesIntegrationTest.withVariants(buildDotGradle)
-            VariantAwareResolutionWithConfigurationAttributesIntegrationTest.withExternalDependencies(buildDotGradle, '''
+            withVariants(buildDotGradle)
+            withExternalDependencies(buildDotGradle, '''
                 implementationFreeDebug 'org.apache.commons:commons-lang3:3.5'
             ''')
             src {
@@ -216,8 +216,8 @@ class VariantAwareResolutionWithConfigurationAttributesIntegrationTest extends A
         }
         subproject('client') {
             def buildDotGradle = file('build.gradle')
-            VariantAwareResolutionWithConfigurationAttributesIntegrationTest.withVariants(buildDotGradle)
-            VariantAwareResolutionWithConfigurationAttributesIntegrationTest.withDependencies(buildDotGradle, 'implementation project(":core")')
+            withVariants(buildDotGradle)
+            withDependencies(buildDotGradle, 'implementation project(":core")')
             src {
                 main {
                     resources {
