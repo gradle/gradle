@@ -539,7 +539,7 @@ dependencies {
     }
 
     def publishGroovyModuleWithSources(MavenHttpRepository repo, String artifactId) {
-        def module = repo.module("org.codehaus.groovy", artifactId, groovyVersion)
+        def module = repo.module("org.apache.groovy", artifactId, groovyVersion)
         module.artifact(classifier: "sources")
         module.publish()
         module.allowAll()
