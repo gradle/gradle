@@ -11,7 +11,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.codehaus.groovy:groovy-all:4.0.0-beta-1'
+    implementation 'org.apache.groovy:groovy-all:4.0.0-beta-1'
 }
 
 publishing {
