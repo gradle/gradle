@@ -53,6 +53,17 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
                 }
             """
         }
+        def unselectedVariantDeclaration = { sysPropName ->
+            """
+                def myUnselectedAttribute = Attribute.of("my.unselected.attribute.name", String)
+                dependencies.attributesSchema { attribute(myUnselectedAttribute) }
+                configurations {
+                    mainSourceElements {
+                        attributes { attribute(myUnselectedAttribute, System.getProperty('$sysPropName', 'default-value')) }
+                    }
+                }
+            """
+        }
         file('composite-lib/settings.gradle') << ""
         file('composite-lib/build.gradle') << """
             plugins { id 'java-library' }
@@ -75,6 +86,7 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
             project(':project-lib') {
                 apply plugin: 'java-library'
                 ${variantDeclaration('projectLibAttrValue')}
+                ${unselectedVariantDeclaration('projectUnselectedLibAttrValue')}
             }
             apply plugin: 'java-library'
             repositories { maven { url "${mavenHttpRepo.uri}" } }
@@ -471,8 +483,7 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
         executedAndNotSkipped ":verify"
     }
 
-    def "can use ResolvedComponentResult result as task input"() {
-        given:
+    private def resolvedComponentResultSetup() {
         buildFile << """
             abstract class TaskWithGraphInput extends DefaultTask {
 
@@ -491,7 +502,13 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
                 }
             }
         """
+    }
 
+    def "can use ResolvedComponentResult result as task input and changing source in '#changeLoc' doesn't invalidate the cache"() {
+        given:
+        resolvedComponentResultSetup()
+
+        // Task without changes is executed & not skipped
         when:
         succeeds "verify"
 
@@ -499,37 +516,7 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
         executedAndNotSkipped ":verify"
         notExecuted ":project-lib:jar", ":composite-lib:jar"
 
-        when:
-        succeeds "verify"
-
-        then:
-        skipped ":verify"
-        notExecuted ":project-lib:jar", ":composite-lib:jar"
-
-        when:
-        withChangedSourceIn("project-lib")
-        succeeds "verify"
-
-        then:
-        skipped ":verify"
-        notExecuted ":project-lib:jar", ":composite-lib:jar"
-
-        when:
-        withChangedSourceIn("composite-lib")
-        succeeds "verify"
-
-        then:
-        skipped ":verify"
-        notExecuted ":project-lib:jar", ":composite-lib:jar"
-
-        when:
-        withNewExternalDependency()
-        succeeds "verify"
-
-        then:
-        executedAndNotSkipped ":verify"
-        notExecuted ":project-lib:jar", ":composite-lib:jar"
-
+        // Running it again with the same environment skips the task
         when:
         succeeds "verify"
 
@@ -537,33 +524,76 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
         skipped ":verify"
         notExecuted ":project-lib:jar", ":composite-lib:jar"
 
-        when: "changing selection reason"
-        succeeds "verify", "-DselectionReason=changed"
+        // The change doesn't invalidate the cache
+        when:
+        withChangedSourceIn(changeLoc)
+        succeeds "verify"
+
+        then:
+        skipped ":verify"
+        notExecuted ":project-lib:jar", ":composite-lib:jar"
+
+        where:
+        changeLoc << ['project-lib', 'composite-lib']
+    }
+
+    def "can use ResolvedComponentResult result as task input and '#changeDesc' invalidates the cache"() {
+        given:
+        resolvedComponentResultSetup()
+        buildFile << """
+            if (Boolean.getBoolean("externalDependency")) {
+                dependencies { implementation 'org.external:external-tool:1.0' }
+            }
+        """
+
+        // Task without changes is executed & not skipped
+        when:
+        succeeds "verify"
 
         then:
         executedAndNotSkipped ":verify"
         notExecuted ":project-lib:jar", ":composite-lib:jar"
 
-        when: "changing project library variant metadata"
-        succeeds "verify", "-DprojectLibAttrValue=new-value"
+        // Running it again with the same environment skips the task
+        when:
+        succeeds "verify"
+
+        then:
+        skipped ":verify"
+        notExecuted ":project-lib:jar", ":composite-lib:jar"
+
+        // The change invalidates the cache
+        when:
+        succeeds "verify", changeArg
 
         then:
         executedAndNotSkipped ":verify"
         notExecuted ":project-lib:jar", ":composite-lib:jar"
 
-        when: "changing included library variant metadata"
-        succeeds "verify", "-DcompositeLibAttrValue=new-value"
+        // Keeping the change skips the task again
+        when:
+        succeeds "verify", changeArg
+
+        then:
+        skipped ":verify"
+        notExecuted ":project-lib:jar", ":composite-lib:jar"
+
+        // Losing the change invalidates the cache
+        when:
+        succeeds "verify"
 
         then:
         executedAndNotSkipped ":verify"
         notExecuted ":project-lib:jar", ":composite-lib:jar"
 
-        when: "changing external library variant metadata"
-        succeeds "verify", "-DexternalLibAttrValue=new-value"
-
-        then:
-        executedAndNotSkipped ":verify"
-        notExecuted ":project-lib:jar", ":composite-lib:jar"
+        where:
+        changeDesc                                             | changeArg
+        "a new external dependency"                            | "-DexternalDependency=true"
+        "changing selection reasons"                           | "-DselectionReason=changed"
+        "changing project library variant metadata"            | "-DprojectLibAttrValue=new-value"
+        "changing unselected project library variant metadata" | "-DprojectUnselectedLibAttrValue=new-value"
+        "changing included library variant metadata"           | "-DcompositeLibAttrValue=new-value"
+        "changing external library variant metadata"           | "-DexternalLibAttrValue=new-value"
     }
 
     private void withOriginalSourceIn(String basePath) {
