@@ -22,7 +22,6 @@ import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.file.FileFactory;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
@@ -52,10 +51,6 @@ public class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
     public static final String DEFAULT_CHECKSTYLE_VERSION = "8.37";
     private static final String CONFIG_DIR_NAME = "config/checkstyle";
     private CheckstyleExtension extension;
-    private BuildLayout buildLayout;
-    private FileFactory fileFactory;
-    private JavaToolchainService javaToolchainService;
-    private ObjectFactory objects;
 
     @Override
     protected String getToolName() {
@@ -68,18 +63,20 @@ public class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
     }
 
     @Inject
-    public CheckstylePlugin(BuildLayout buildLayout, FileFactory fileFactory, JavaToolchainService javaToolchainService, ObjectFactory objects) {
-        this.buildLayout = buildLayout;
-        this.fileFactory = fileFactory;
-        this.javaToolchainService = javaToolchainService;
-        this.objects = objects;
+    protected FileFactory getFileFactory() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected BuildLayout getBuildLayout() {
+        throw new UnsupportedOperationException();
     }
 
     @Override
     protected CodeQualityExtension createExtension() {
         extension = project.getExtensions().create("checkstyle", CheckstyleExtension.class, project);
         extension.setToolVersion(DEFAULT_CHECKSTYLE_VERSION);
-        Directory directory = fileFactory.dir(buildLayout.getRootDirectory()).dir(CONFIG_DIR_NAME);
+        Directory directory = getFileFactory().dir(getBuildLayout().getRootDirectory()).dir(CONFIG_DIR_NAME);
         extension.getConfigDirectory().convention(directory);
         extension.setConfig(project.getResources().getText().fromFile(extension.getConfigDirectory().file("checkstyle.xml")
             // If for whatever reason the provider above cannot be resolved, go back to default location, which we know how to ignore if missing
@@ -134,7 +131,8 @@ public class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
     }
 
     private void configureToolchains(Checkstyle task) {
-        Provider<JavaLauncher> javaLauncherProvider = javaToolchainService.launcherFor(new CurrentJvmToolchainSpec(objects));
+        Provider<JavaLauncher> javaLauncherProvider = project.getExtensions().getByType(JavaToolchainService.class)
+            .launcherFor(new CurrentJvmToolchainSpec(project.getObjects()));
         task.getJavaLauncher().convention(javaLauncherProvider);
         project.getPluginManager().withPlugin("java-base", p -> {
             JavaToolchainSpec toolchain = getJavaPluginExtension().getToolchain();
