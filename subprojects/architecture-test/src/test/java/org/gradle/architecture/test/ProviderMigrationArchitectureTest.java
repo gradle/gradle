@@ -29,7 +29,6 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.resources.TextResource;
 import org.gradle.internal.reflect.PropertyAccessorType;
@@ -45,7 +44,6 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
 import static org.gradle.architecture.test.ArchUnitFixture.freeze;
 import static org.gradle.architecture.test.ArchUnitFixture.public_api_methods;
 
-@SuppressWarnings("deprecation")
 @AnalyzeClasses(packages = "org.gradle")
 public class ProviderMigrationArchitectureTest {
     private static final DescribedPredicate<JavaMethod> getters = new DescribedPredicate<JavaMethod>("getters") {
@@ -94,7 +92,7 @@ public class ProviderMigrationArchitectureTest {
         .and(not(annotatedWith(Inject.class)))
         .and(not(declaredIn(Task.class)))
         .and(not(declaredIn(DefaultTask.class)))
-        .and(not(declaredIn(AbstractTask.class)))
+        .and(not(declaredIn(org.gradle.api.internal.AbstractTask.class)))
         .as("task properties");
 
     @ArchTest

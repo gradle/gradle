@@ -23,10 +23,6 @@ dependencies {
     testRuntimeOnly(project(":distributions-full"))
 }
 
-strictCompile {
-    ignoreDeprecations()
-}
-
 tasks.test {
     // Looks like loading all the classes requires more than the default 512M
     maxHeapSize = "900M"
