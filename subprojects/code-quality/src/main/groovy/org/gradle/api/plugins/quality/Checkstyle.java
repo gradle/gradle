@@ -175,7 +175,9 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
 
     private void runWithProcessIsolation() {
         WorkQueue workQueue = getWorkerExecutor().processIsolation(spec -> {
-            spec.getForkOptions().setExecutable(javaLauncher.get().getExecutablePath().getAsFile().getAbsolutePath());
+            if (javaLauncher.isPresent()) {
+                spec.getForkOptions().setExecutable(javaLauncher.get().getExecutablePath().getAsFile().getAbsolutePath());
+            }
             spec.getClasspath().setFrom(getCheckstyleClasspath());
         });
         workQueue.submit(CheckstyleAction.class, this::setupParameters);

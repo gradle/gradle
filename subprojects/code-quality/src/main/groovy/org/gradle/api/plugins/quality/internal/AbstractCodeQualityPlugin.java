@@ -244,8 +244,4 @@ public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInte
     protected JavaPluginExtension getJavaPluginExtension() {
         return project.getExtensions().getByType(JavaPluginExtension.class);
     }
-
-    protected boolean hasJavaExtension() {
-        return project.getExtensions().findByType(JavaPluginExtension.class) != null;
-    }
 }
