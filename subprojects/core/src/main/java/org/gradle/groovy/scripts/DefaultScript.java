@@ -88,7 +88,12 @@ public abstract class DefaultScript extends BasicScript {
                 FileResolver resolver = fileLookup.getFileResolver(sourceFile.getParentFile());
                 FileCollectionFactory fileCollectionFactoryWithBase = fileCollectionFactory.withResolver(resolver);
                 fileOperations = DefaultFileOperations.createSimple(resolver, fileCollectionFactoryWithBase, services);
-                processOperations = services.get(ExecFactory.class).forContext(resolver, fileCollectionFactoryWithBase, instantiator, new InstantiatorBackedObjectFactory(instantiator));
+                processOperations = services.get(ExecFactory.class).forContext()
+                    .withFileResolver(resolver)
+                    .withFileCollectionFactory(fileCollectionFactoryWithBase)
+                    .withInstantiator(instantiator)
+                    .withObjectFactory(new InstantiatorBackedObjectFactory(instantiator))
+                    .build();
             } else {
                 fileOperations = DefaultFileOperations.createSimple(fileLookup.getFileResolver(), fileCollectionFactory, services);
                 processOperations = services.get(ExecFactory.class);

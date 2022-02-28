@@ -30,6 +30,7 @@ dependencies {
     implementation(project(":snapshots"))
     implementation(project(":execution"))
     implementation(project(":security"))
+    implementation(project(":wrapper-shared"))
 
     implementation(libs.slf4jApi)
     implementation(libs.groovy)

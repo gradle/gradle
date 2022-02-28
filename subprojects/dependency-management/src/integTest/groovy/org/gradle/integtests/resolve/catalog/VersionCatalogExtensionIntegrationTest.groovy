@@ -70,7 +70,7 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
             dependencyResolutionManagement {
                 versionCatalogs {
                     libs {
-                        alias("bar") to "org.gradle.test:bar:1.0"
+                        library("bar", "org.gradle.test:bar:1.0")
                     }
                 }
             }
@@ -85,13 +85,13 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
 
         then: "extension is not regenerated"
         !operations.hasOperation("Executing generation of dependency accessors for libs")
-        outputContains 'Type-safe dependency accessors is an incubating feature.'
+        outputDoesNotContain 'Type-safe dependency accessors is an incubating feature.'
 
         where:
         notation << [
-            'alias("foo").to("org.gradle.test:lib:1.0")',
-            'alias("foo").to("org.gradle.test", "lib").version { require "1.0" }',
-            'alias("foo").to("org.gradle.test", "lib").version("1.0")'
+            'library("foo", "org.gradle.test:lib:1.0")',
+            'library("foo", "org.gradle.test", "lib").version { require "1.0" }',
+            'library("foo", "org.gradle.test", "lib").version("1.0")'
         ]
     }
 
@@ -100,7 +100,7 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
             dependencyResolutionManagement {
                 versionCatalogs {
                     libs {
-                        alias("my-great-lib").to("org.gradle.test", "lib")
+                        library("my-great-lib", "org.gradle.test", "lib")
                     }
                 }
             }
@@ -123,9 +123,9 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
                     libs {
                         // Even though this is unfinished, it will not trigger an error
                         // It should log a message though.
-                        alias("my-great-lib").to("org.gradle.test", "lib")
+                        library("my-great-lib", "org.gradle.test", "lib")
 
-                        alias("my-great-lib").to("org.gradle.test", "lib").version("1.0")
+                        library("my-great-lib", "org.gradle.test", "lib").version("1.0")
                     }
                 }
             }
@@ -161,7 +161,7 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
             dependencyResolutionManagement {
                 versionCatalogs {
                     libs {
-                        alias("myLib").to("org.gradle.test", "lib").version {
+                        library("myLib", "org.gradle.test", "lib").version {
                             require "1.0"
                         }
                     }
@@ -198,7 +198,7 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
                 versionCatalogs {
                     libs {
                         version("my-great-lib", "1.0")
-                        alias("my-great-lib").to("org.gradle.test", "lib").versionRef("my-great-lib")
+                        library("my-great-lib", "org.gradle.test", "lib").versionRef("my-great-lib")
                     }
                 }
             }
@@ -233,7 +233,7 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
         settingsFile << """
             dependencyResolutionManagement {
                 versionCatalogs.create('libs') {
-                    alias("myLib").to("org.gradle.test", "lib").version {
+                    library("myLib", "org.gradle.test", "lib").version {
                         require "1.0"
                     }
                 }
@@ -271,8 +271,8 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
                         version("myLib") {
                             strictly "[1.0,1.1)"
                         }
-                        alias("myLib").to("org.gradle.test", "lib-core").versionRef("myLib")
-                        alias("myLib-ext").to("org.gradle.test", "lib-ext").versionRef("myLib")
+                        library("myLib", "org.gradle.test", "lib-core").versionRef("myLib")
+                        library("myLib-ext", "org.gradle.test", "lib-ext").versionRef("myLib")
                     }
                 }
             }
@@ -328,7 +328,7 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
             dependencyResolutionManagement {
                 versionCatalogs {
                     libs {
-                        alias("myLib").to("org.gradle.test", "lib").version {
+                        library("myLib", "org.gradle.test", "lib").version {
                             require "1.0"
                         }
                     }
@@ -368,7 +368,7 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
             dependencyResolutionManagement {
                 versionCatalogs {
                     libs {
-                        alias("myLib").to("org.gradle.test", "lib").version {
+                        library("myLib", "org.gradle.test", "lib").version {
                             require "1.0"
                         }
                     }
@@ -412,10 +412,10 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
             dependencyResolutionManagement {
                 versionCatalogs {
                     libs {
-                        alias("lib").to("org.gradle.test", "lib").version {
+                        library("lib", "org.gradle.test", "lib").version {
                             require "1.0"
                         }
-                        alias("lib2").to("org.gradle.test:lib2:1.0")
+                        library("lib2", "org.gradle.test:lib2:1.0")
                         bundle("myBundle", ["lib", "lib2"])
                     }
                 }
@@ -454,10 +454,10 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
             dependencyResolutionManagement {
                 versionCatalogs {
                     libs {
-                        alias("lib").to("org.gradle.test", "lib").version {
+                        library("lib", "org.gradle.test", "lib").version {
                             require "1.0"
                         }
-                        alias("lib2").to("org.gradle.test:lib2:1.0")
+                        library("lib2", "org.gradle.test:lib2:1.0")
                         bundle("my-great-bundle", ["lib", "lib2"])
                     }
                 }
@@ -496,10 +496,10 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
             dependencyResolutionManagement {
                 versionCatalogs {
                     libs {
-                        alias("lib").to("org.gradle.test", "lib").version {
+                        library("lib", "org.gradle.test", "lib").version {
                             require "1.0"
                         }
-                        alias("lib2").to("org.gradle.test:lib2:1.0")
+                        library("lib2", "org.gradle.test:lib2:1.0")
                         bundle("myBundle", ["lib", "lib2"])
                     }
                 }
@@ -541,8 +541,8 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
         settingsFile << """
             dependencyResolutionManagement {
                 versionCatalogs {
-                    libraries {
-                        alias("myLib").to("org.gradle.test", "lib").version {
+                    myLibs {
+                        library("myLib", "org.gradle.test", "lib").version {
                             require "1.0"
                         }
                     }
@@ -554,7 +554,7 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
             apply plugin: 'java-library'
 
             dependencies {
-                implementation libraries.myLib
+                implementation myLibs.myLib
             }
         """
 
@@ -577,13 +577,13 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
         settingsFile << """
             dependencyResolutionManagement {
                 versionCatalogs {
-                    libraries {
-                        alias("myLib").to("org.gradle.test", "lib").version {
+                    myLibs {
+                        library("myLib", "org.gradle.test", "lib").version {
                             require "1.0"
                         }
                     }
-                    other {
-                        alias("great").to("org.gradle.test", "lib2").version {
+                    otherLibs {
+                        library("great", "org.gradle.test", "lib2").version {
                             require "1.1"
                         }
                     }
@@ -596,8 +596,8 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
             apply plugin: 'java-library'
 
             dependencies {
-                implementation libraries.myLib
-                implementation other.great
+                implementation myLibs.myLib
+                implementation otherLibs.great
             }
         """
 
@@ -625,13 +625,13 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
         settingsFile << """
             dependencyResolutionManagement {
                 versionCatalogs {
-                    libraries {
-                        alias("myLib").to("org.gradle.test", "lib").version {
+                    myLibs {
+                        library("myLib", "org.gradle.test", "lib").version {
                             require "1.0"
                         }
                     }
-                    other {
-                        alias("myLib").to("org.gradle.test", "lib").version {
+                    otherLibs {
+                        library("myLib", "org.gradle.test", "lib").version {
                             require "1.0"
                         }
                     }
@@ -643,8 +643,8 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
             apply plugin: 'java-library'
 
             dependencies {
-                implementation libraries.myLib
-                implementation other.myLib
+                implementation myLibs.myLib
+                implementation otherLibs.myLib
             }
         """
 
@@ -663,12 +663,50 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
         }
     }
 
+    def "nags when not using a library name ending with 'Libs'"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    notLibsEnding {
+                        library("myLib", "org.gradle.test", "lib").version {
+                            require "1.0"
+                        }
+                    }
+                }
+            }
+        """
+        def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.0").publish()
+        buildFile << """
+            apply plugin: 'java-library'
+
+            dependencies {
+                implementation notLibsEnding.myLib
+            }
+        """
+
+        when:
+        lib.pom.expectGet()
+        lib.artifact.expectGet()
+
+        then:
+        run ':checkDeps'
+
+        then:
+        executer.expectDeprecationWarning("The name of version catalogs must end with 'Libs' to reduce chances of extension conflicts.")
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org.gradle.test:lib:1.0')
+            }
+        }
+
+    }
+
     def "extension can be used in any subproject"() {
         settingsFile << """
             dependencyResolutionManagement {
                 versionCatalogs {
                     libs {
-                        alias("lib").to("org.gradle.test:lib:1.0")
+                        library("lib", "org.gradle.test:lib:1.0")
                     }
                 }
             }
@@ -715,7 +753,7 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
             dependencyResolutionManagement {
                 versionCatalogs {
                     libs {
-                        alias("lib").to("org.gradle.test:lib:1.0")
+                        library("lib", "org.gradle.test:lib:1.0")
                     }
                 }
             }
@@ -738,7 +776,7 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
             dependencyResolutionManagement {
                 versionCatalogs {
                     libs {
-                        alias("lib").to("org.gradle.test:lib:1.0")
+                        library("lib", "org.gradle.test:lib:1.0")
                     }
                 }
             }
@@ -756,7 +794,7 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
             dependencyResolutionManagement {
                 versionCatalogs {
                     libs {
-                        alias("build-src-lib").to("org.gradle.test:buildsrc-lib:1.0")
+                        library("build-src-lib", "org.gradle.test:buildsrc-lib:1.0")
                     }
                 }
             }
@@ -810,7 +848,7 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
                 }
                 versionCatalogs {
                     libs {
-                        alias('from-included').to('org.gradle.test:other:1.1')
+                        library('from-included', 'org.gradle.test:other:1.1')
                     }
                 }
             }
@@ -854,8 +892,8 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
                         version("myVersion") {
                             require "1.0"
                         }
-                        alias("myLib").to("org.gradle.test", "lib").versionRef("myVersion")
-                        alias("myOtherLib").to("org.gradle.test", "lib2").versionRef("myOtherVersion")
+                        library("myLib", "org.gradle.test", "lib").versionRef("myVersion")
+                        library("myOtherLib", "org.gradle.test", "lib2").versionRef("myOtherVersion")
                         version("myOtherVersion") {
                             // intentionnally declared AFTER
                             strictly "1.1"
@@ -901,8 +939,8 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
                         def myVersion = version("myVersion") {
                             require "1.0"
                         }
-                        alias("myLib").to("org.gradle.test", "lib").versionRef("myVersion")
-                        alias("myOtherLib").to("org.gradle.test", "lib2").versionRef(myVersion)
+                        library("myLib", "org.gradle.test", "lib").versionRef("myVersion")
+                        library("myOtherLib", "org.gradle.test", "lib2").versionRef(myVersion)
                     }
                 }
             }
@@ -986,10 +1024,10 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
             dependencyResolutionManagement {
                 versionCatalogs {
                     libs {
-                        alias("myLib").to("org.gradle.test", "lib").version {
+                        library("myLib", "org.gradle.test", "lib").version {
                             require "1.1"
                         }
-                        alias("myLib-subgroup").to("org.gradle.test", "lib.subgroup").version {
+                        library("myLib-subgroup", "org.gradle.test", "lib.subgroup").version {
                             require "1.1"
                         }
                     }
@@ -1052,10 +1090,10 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
             dependencyResolutionManagement {
                 versionCatalogs {
                     libs {
-                        alias("myLib").to("org.gradle.test", "lib").version {
+                        library("myLib", "org.gradle.test", "lib").version {
                             require "1.1"
                         }
-                        alias("myLib-subgroup").to("org.gradle.test", "lib.subgroup").version {
+                        library("myLib-subgroup", "org.gradle.test", "lib.subgroup").version {
                             require "1.1"
                         }
                     }
@@ -1107,10 +1145,10 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
             dependencyResolutionManagement {
                 versionCatalogs {
                     libs {
-                        alias("myLib").to("org.gradle.test", "lib").version {
+                        library("myLib", "org.gradle.test", "lib").version {
                             require "1.1"
                         }
-                        alias("myLib-subgroup").to("org.gradle.test", "lib.subgroup").version {
+                        library("myLib-subgroup", "org.gradle.test", "lib.subgroup").version {
                             require "1.1"
                         }
                     }
@@ -1161,10 +1199,10 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
             dependencyResolutionManagement {
                 versionCatalogs {
                     libs {
-                        alias("myLib").to("org.gradle.test", "lib").version {
+                        library("myLib", "org.gradle.test", "lib").version {
                             require "1.1"
                         }
-                        alias("myLib-subgroup").to("org.gradle.test", "lib.subgroup").version {
+                        library("myLib-subgroup", "org.gradle.test", "lib.subgroup").version {
                             require "1.1"
                         }
                     }
@@ -1212,10 +1250,10 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
             dependencyResolutionManagement {
                 versionCatalogs {
                     libs {
-                        alias("myLib").to("org.gradle.test", "lib").version {
+                        library("myLib", "org.gradle.test", "lib").version {
                             require "1.1"
                         }
-                        alias("myLib-subgroup").to("org.gradle.test", "lib.subgroup").version {
+                        library("myLib-subgroup", "org.gradle.test", "lib.subgroup").version {
                             require "1.1"
                         }
                     }
@@ -1264,8 +1302,8 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
             dependencyResolutionManagement {
                 versionCatalogs {
                     libs {
-                        alias("top").to("org:top:1.0")
-                        alias("top.bottom").to("org:bottom:1.0")
+                        library("top", "org:top:1.0")
+                        library("top.bottom", "org:bottom:1.0")
                     }
                 }
             }
@@ -1304,8 +1342,8 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
             dependencyResolutionManagement {
                 versionCatalogs {
                     libs {
-                        alias("top.middle").to("org:top:1.0")
-                        alias("top.middle.bottom").to("org:bottom:1.0")
+                        library("top.middle", "org:top:1.0")
+                        library("top.middle.bottom", "org:bottom:1.0")
                     }
                 }
             }
@@ -1344,8 +1382,8 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
             dependencyResolutionManagement {
                 versionCatalogs {
                     libs {
-                        alias("top").to("org:top:1.0")
-                        alias("top.middle.bottom").to("org:bottom:1.0")
+                        library("top", "org:top:1.0")
+                        library("top.middle.bottom", "org:bottom:1.0")
                     }
                 }
             }
@@ -1384,9 +1422,9 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
             dependencyResolutionManagement {
                 versionCatalogs {
                     libs {
-                        alias("foo${separator}bar${separator}baz${separator}a").to("org:a:1.0")
-                        alias("foo${separator}bar${separator}baz${separator}b").to("org:b:1.0")
-                        alias("foo${separator}bar").to("org:bar:1.0")
+                        library("foo${separator}bar${separator}baz${separator}a", "org:a:1.0")
+                        library("foo${separator}bar${separator}baz${separator}b", "org:b:1.0")
+                        library("foo${separator}bar", "org:bar:1.0")
                     }
                 }
             }
@@ -1428,14 +1466,14 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
             dependencyResolutionManagement {
                 versionCatalogs {
                     libs {
-                        alias("lib").to("org:test:1.0")
-                        alias("lib2").to("org:test2:1.0")
-                        alias("plug").toPluginId("org.test2").version("1.0")
+                        library("lib", "org:test:1.0")
+                        library("lib2", "org:test2:1.0")
+                        plugin("plug", "org.test2").version("1.0")
                         bundle("all", ["lib", "lib2"])
                     }
-                    other {
+                    otherLibs {
                         version("ver", "1.1")
-                        alias("lib").to("org", "test2").versionRef("ver")
+                        library("lib", "org", "test2").versionRef("ver")
                     }
                 }
             }
@@ -1446,23 +1484,23 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
             tasks.register("verifyCatalogs") {
                 doLast {
                     def libs = catalogs.named("libs")
-                    def other = catalogs.find("other").get()
+                    def other = catalogs.find("otherLibs").get()
                     assert !catalogs.find("missing").present
-                    def lib = libs.findDependency('lib')
+                    def lib = libs.findLibrary('lib')
                     assert lib.present
                     assert lib.get() instanceof Provider
-                    assert !libs.findDependency('missing').present
+                    assert !libs.findLibrary('missing').present
                     assert libs.findPlugin('plug').present
                     assert libs.findBundle('all').present
                     assert !libs.findBundle('missing').present
                     assert other.findVersion('ver').present
                     assert !other.findVersion('missing').present
 
-                    assert libs.dependencyAliases == ['lib', 'lib2']
+                    assert libs.libraryAliases == ['lib', 'lib2']
                     assert libs.bundleAliases == ['all']
                     assert libs.versionAliases == []
 
-                    assert other.dependencyAliases == ['lib']
+                    assert other.libraryAliases == ['lib']
                     assert other.bundleAliases == []
                     assert other.versionAliases == ['ver']
 
@@ -1483,8 +1521,8 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
                 versionCatalogs {
                     libs {
                         version("my-ver", "1.1")
-                        alias("my-lib").to("org:test:1.0")
-                        alias("my-plug").toPluginId("org.test2").version("1.0")
+                        library("my-lib", "org:test:1.0")
+                        plugin("my-plug", "org.test2").version("1.0")
                         bundle("my-all", ["my-lib"])
                     }
                 }
@@ -1500,9 +1538,9 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
                     assert libs.findVersion('my_ver').present
                     assert libs.findVersion('my.ver').present
 
-                    assert libs.findDependency('my-lib').present
-                    assert libs.findDependency('my_lib').present
-                    assert libs.findDependency('my.lib').present
+                    assert libs.findLibrary('my-lib').present
+                    assert libs.findLibrary('my_lib').present
+                    assert libs.findLibrary('my.lib').present
 
                     assert libs.findBundle('my-all').present
                     assert libs.findBundle('my_all').present
@@ -1528,7 +1566,7 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
             dependencyResolutionManagement {
                 versionCatalogs {
                     libs {
-                        alias("lib").to("org:test:1.0")
+                        library("lib", "org:test:1.0")
                     }
                 }
             }
@@ -1542,7 +1580,7 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
             class MyPlugin implements Plugin<Project> {
                 void apply(Project p) {
                     def libs = p.extensions.getByType(VersionCatalogsExtension).named('libs')
-                    p.dependencies.addProvider("implementation", libs.findDependency('lib').get())
+                    p.dependencies.addProvider("implementation", libs.findLibrary('lib').get())
                 }
             }
         """
@@ -1574,7 +1612,7 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
             dependencyResolutionManagement {
                 versionCatalogs {
                     libs {
-                        alias("lib").to("org:test:1.0")
+                        library("lib", "org:test:1.0")
                     }
                 }
             }
@@ -1587,7 +1625,7 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
         file("buildSrc/src/main/groovy/my.plugin.gradle") << """
             pluginManager.withPlugin('java') {
                 def libs = extensions.getByType(VersionCatalogsExtension).named('libs')
-                dependencies.addProvider("implementation", libs.findDependency('lib').get())
+                dependencies.addProvider("implementation", libs.findLibrary('lib').get())
             }
         """
 
@@ -1706,8 +1744,8 @@ Second: 1.1"""
             dependencyResolutionManagement {
                 versionCatalogs {
                     libs {
-                        alias("lib1").to("org:lib1:1.0")
-                        alias("lib2").to("org:lib2:1.0")
+                        library("lib1", "org:lib1:1.0")
+                        library("lib2", "org:lib2:1.0")
                         bundle("my", ["lib1", "lib2"])
                         bundle("my.other", ["lib1", "lib2"])
                     }
@@ -1749,8 +1787,8 @@ Second: 1.1"""
             dependencyResolutionManagement {
                 versionCatalogs {
                     libs {
-                        alias("lib1").to("org:lib1:1.0")
-                        alias("lib2").to("org:lib2:1.0")
+                        library("lib1", "org:lib1:1.0")
+                        library("lib2", "org:lib2:1.0")
                         bundle("my.middle", ["lib1", "lib2"])
                         bundle("my.middle.other", ["lib1", "lib2"])
                     }
@@ -1792,8 +1830,8 @@ Second: 1.1"""
             dependencyResolutionManagement {
                 versionCatalogs {
                     libs {
-                        alias("lib1").to("org:lib1:1.0")
-                        alias("lib2").to("org:lib2:1.0")
+                        library("lib1", "org:lib1:1.0")
+                        library("lib2", "org:lib2:1.0")
                         bundle("my", ["lib1", "lib2"])
                         bundle("my.middle.other", ["lib1", "lib2"])
                     }
@@ -1839,7 +1877,7 @@ Second: 1.1"""
             dependencyResolutionManagement {
                 versionCatalogs {
                     libs {
-                        alias("$reserved").to("org:lib1:1.0")
+                        library("$reserved", "org:lib1:1.0")
                     }
                 }
             }
@@ -1871,7 +1909,7 @@ Second: 1.1"""
             dependencyResolutionManagement {
                 versionCatalogs {
                     libs {
-                        alias("$reservedName").to("org:lib1:1.0")
+                        library("$reservedName", "org:lib1:1.0")
                     }
                 }
             }
@@ -1906,8 +1944,8 @@ Second: 1.1"""
                 versionCatalogs {
                     libs {
                         version("$reservedName", "1.0")
-                        alias("$reservedName").to("org:lib1:1.0")
-                        alias("$reservedName").toPluginId("org:lib1").version("1.0")
+                        library("$reservedName", "org:lib1:1.0")
+                        plugin("$reservedName", "org:lib1").version("1.0")
                     }
                 }
             }
@@ -1925,8 +1963,10 @@ Second: 1.1"""
             "versionAliases",
             "pluginAliases",
             "dependencyAliases",
+            "libraryAliases",
             "findPlugin",
             "findDependency",
+            "findLibrary",
             "findVersion",
             "findBundle"
         ]
@@ -1941,7 +1981,7 @@ Second: 1.1"""
                 versionCatalogs {
                     libs {
                         version("$reservedName", "1.0")
-                        alias("$reservedName").toPluginId("org:lib1").version("1.0")
+                        plugin("$reservedName", "org:lib1").version("1.0")
                     }
                 }
             }
@@ -1967,7 +2007,7 @@ Second: 1.1"""
             dependencyResolutionManagement {
                 versionCatalogs {
                     libs {
-                        alias("myLib").to("org.gradle.test", "lib").version {
+                        library("myLib", "org.gradle.test", "lib").version {
                             require "1.0"
                         }
                     }
@@ -2014,16 +2054,16 @@ Second: 1.1"""
                 versionCatalogs {
                     libs {
                         version("ver", "1.5")
-                        alias("lib").to("org:test:1.0")
-                        alias("lib2").to("org", "test2").version {
+                        library("lib", "org:test:1.0")
+                        library("lib2", "org", "test2").version {
                             require "1.0.0"
                             prefer "1.1.0"
                             reject "1.0.5"
                         }
-                        alias("lib3").to("org", "test3").withoutVersion()
+                        library("lib3", "org", "test3").withoutVersion()
                         bundle("all", ["lib", "lib2"])
-                        alias('greeter').toPluginId('com.acme.greeter').version('1.4')
-                        alias('greeter2').toPluginId('com.acme.greeter2').version {
+                        plugin('greeter', 'com.acme.greeter').version('1.4')
+                        plugin('greeter2', 'com.acme.greeter2').version {
                             require "1.0.0"
                             prefer "1.1.0"
                             reject "1.0.5"
@@ -2040,13 +2080,13 @@ Second: 1.1"""
                     catalog.findVersion("ver").ifPresent {
                         println("Found version: '\${it.toString()}'.")
                     }
-                    catalog.findDependency("lib").ifPresent {
+                    catalog.findLibrary("lib").ifPresent {
                         println("Found dependency: '\${it.get().toString()}'.")
                     }
-                    catalog.findDependency("lib2").ifPresent {
+                    catalog.findLibrary("lib2").ifPresent {
                         println("Found dependency: '\${it.get().toString()}'.")
                     }
-                    catalog.findDependency("lib3").ifPresent {
+                    catalog.findLibrary("lib3").ifPresent {
                         println("Found dependency: '\${it.get().toString()}'.")
                     }
                     catalog.findBundle("all").ifPresent {
@@ -2081,8 +2121,8 @@ Second: 1.1"""
             dependencyResolutionManagement {
                 versionCatalogs {
                     libs {
-                        alias("myLib").to("org.gradle.test:lib:3.0.5")
-                        alias("myLib-subgroup").to("org.gradle.test:lib2:3.0.5")
+                        library("myLib", "org.gradle.test:lib:3.0.5")
+                        library("myLib-subgroup", "org.gradle.test:lib2:3.0.5")
                     }
                 }
             }
@@ -2127,7 +2167,7 @@ Second: 1.1"""
             dependencyResolutionManagement {
                 versionCatalogs {
                     libs {
-                        alias("myLib").to("org.gradle.test", "lib").version {
+                        library("myLib", "org.gradle.test", "lib").version {
                             strictly "[3.0, 4.0["
                             prefer "3.0.5"
                         }
@@ -2162,9 +2202,9 @@ Second: 1.1"""
                 versionCatalogs {
                     libs {
                         version("myVersion", "1.0")
-                        alias("myLib").to("org.gradle.test:lib:3.0.5")
+                        library("myLib", "org.gradle.test:lib:3.0.5")
                         bundle("myBundle", ["myLib"])
-                        alias("myPlugin").toPluginId("org.gradle.test").version("1.0")
+                        plugin("myPlugin", "org.gradle.test").version("1.0")
                     }
                 }
             }
@@ -2193,5 +2233,52 @@ Second: 1.1"""
         "versions.myVersion" | "1.0"
         "plugins.myPlugin"   | "org.gradle.test:1.0"
         "bundles.myBundle"   | "[org.gradle.test:lib:3.0.5]"
+    }
+
+    def "findDependency is deprecated"() {
+        given:
+        settingsFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        library("myLib", "org.gradle.test:lib:3.0.5")
+                    }
+                }
+            }
+        """
+
+        buildFile << """
+            def depProvider = project.extensions.getByType(VersionCatalogsExtension).named("libs").findDependency("myLib").orElse(null)
+            assert(depProvider != null)
+            assert("org.gradle.test:lib:3.0.5" == depProvider.get().toString())
+        """
+
+        executer.expectDocumentedDeprecationWarning("The VersionCatalog.findDependency(String) method has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use the findLibrary(String) method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#version_catalog_deprecations")
+
+        expect:
+        succeeds ':help'
+    }
+
+    def "getDependencyAliases is deprecated"() {
+        given:
+        settingsFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        library("myLib", "org.gradle.test:lib:3.0.5")
+                    }
+                }
+            }
+        """
+
+        buildFile << """
+            def aliases = project.extensions.getByType(VersionCatalogsExtension).named("libs").dependencyAliases
+            assert(aliases == ["myLib"])
+        """
+
+        executer.expectDocumentedDeprecationWarning("The VersionCatalog.getDependencyAliases() method has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use the getLibraryAliases() method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#version_catalog_deprecations")
+
+        expect:
+        succeeds ':help'
     }
 }

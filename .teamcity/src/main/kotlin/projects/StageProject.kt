@@ -1,6 +1,8 @@
 package projects
 
+import common.VersionedSettingsBranch
 import common.failedTestArtifactDestination
+import common.toCapitalized
 import configurations.BaseGradleBuildType
 import configurations.FunctionalTest
 import configurations.FunctionalTestsPass
@@ -34,6 +36,7 @@ class StageProject(
     previousPerformanceTestPasses: List<PerformanceTestsPass>
 ) : Project({
     this.id("${model.projectId}_Stage_${stage.stageName.id}")
+    this.uuid = "${VersionedSettingsBranch.fromDslContext().branchName.toCapitalized()}_${model.projectId}_Stage_${stage.stageName.uuid}"
     this.name = stage.stageName.stageName
     this.description = stage.stageName.description
 }) {

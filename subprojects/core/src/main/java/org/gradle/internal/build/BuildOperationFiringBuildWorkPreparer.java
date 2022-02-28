@@ -25,6 +25,7 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.execution.plan.ExecutionPlan;
+import org.gradle.execution.plan.LocalTaskNode;
 import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.TaskNode;
 import org.gradle.initialization.DefaultPlannedTask;
@@ -110,12 +111,12 @@ public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer 
 
                 private List<CalculateTaskGraphBuildOperationType.PlannedTask> toPlannedTasks(List<Node> scheduledWork) {
                     return FluentIterable.from(scheduledWork)
-                        .filter(TaskNode.class)
+                        .filter(LocalTaskNode.class)
                         .transform(this::toPlannedTask)
                         .toList();
                 }
 
-                private CalculateTaskGraphBuildOperationType.PlannedTask toPlannedTask(TaskNode taskNode) {
+                private CalculateTaskGraphBuildOperationType.PlannedTask toPlannedTask(LocalTaskNode taskNode) {
                     TaskIdentity<?> taskIdentity = taskNode.getTask().getTaskIdentity();
                     return new DefaultPlannedTask(
                         new PlannedTaskIdentity(taskIdentity),

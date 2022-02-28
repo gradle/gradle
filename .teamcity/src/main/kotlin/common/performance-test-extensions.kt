@@ -37,11 +37,20 @@ fun BuildType.applyPerformanceTestSettings(os: Os = Os.LINUX, timeout: Int = 30)
     }
 }
 
-fun performanceTestCommandLine(task: String, baselines: String, extraParameters: String = "", os: Os = Os.LINUX) = listOf(
+fun performanceTestCommandLine(
+    task: String,
+    baselines: String,
+    extraParameters: String = "",
+    os: Os = Os.LINUX,
+    testJavaVersion: String = os.perfTestJavaVersion.major.toString(),
+    testJavaVendor: String = os.perfTestJavaVendor,
+) = listOf(
     "$task${if (extraParameters.isEmpty()) "" else " $extraParameters"}",
     "-PperformanceBaselines=$baselines",
-    "-PtestJavaVersion=${os.perfTestJavaVersion.major}",
-    "-PtestJavaVendor=${os.perfTestJavaVendor}",
+    "-PtestJavaVersion=$testJavaVersion",
+    "-PtestJavaVendor=$testJavaVendor",
+    "-PautoDownloadAndroidStudio=true",
+    "-PrunAndroidStudioInHeadlessMode=true",
     "-Porg.gradle.java.installations.auto-download=false",
     os.javaInstallationLocations()
 ) + listOf(

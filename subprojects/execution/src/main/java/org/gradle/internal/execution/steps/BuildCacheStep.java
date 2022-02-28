@@ -21,9 +21,8 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.file.FileCollection;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.CacheableEntity;
-import org.gradle.caching.internal.controller.BuildCacheCommandFactory;
-import org.gradle.caching.internal.controller.BuildCacheCommandFactory.LoadMetadata;
 import org.gradle.caching.internal.controller.BuildCacheController;
+import org.gradle.caching.internal.controller.service.BuildCacheLoadResult;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.ExecutionOutcome;
@@ -49,20 +48,17 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExec
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildCacheStep.class);
 
     private final BuildCacheController buildCache;
-    private final BuildCacheCommandFactory commandFactory;
     private final Deleter deleter;
     private final OutputChangeListener outputChangeListener;
     private final Step<? super IncrementalChangesContext, ? extends AfterExecutionResult> delegate;
 
     public BuildCacheStep(
         BuildCacheController buildCache,
-        BuildCacheCommandFactory commandFactory,
         Deleter deleter,
         OutputChangeListener outputChangeListener,
         Step<? super IncrementalChangesContext, ? extends AfterExecutionResult> delegate
     ) {
         this.buildCache = buildCache;
-        this.commandFactory = commandFactory;
         this.deleter = deleter;
         this.outputChangeListener = outputChangeListener;
         this.delegate = delegate;
@@ -79,8 +75,8 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExec
     private AfterExecutionResult executeWithCache(UnitOfWork work, IncrementalChangesContext context, BuildCacheKey cacheKey, BeforeExecutionState beforeExecutionState) {
         CacheableWork cacheableWork = new CacheableWork(context.getIdentity().getUniqueId(), context.getWorkspace(), work);
         return Try.ofFailable(() -> work.isAllowedToLoadFromCache()
-                ? buildCache.load(commandFactory.createLoad(cacheKey, cacheableWork))
-                : Optional.<LoadMetadata>empty()
+                ? buildCache.load(cacheKey, cacheableWork)
+                : Optional.<BuildCacheLoadResult>empty()
             )
             .map(successfulLoad -> successfulLoad
                 .map(cacheHit -> {
@@ -126,8 +122,11 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExec
             )
             .getOrMapFailure(loadFailure -> {
                 throw new RuntimeException(
-                    String.format("Failed to load cache entry for %s",
-                        work.getDisplayName()),
+                    String.format("Failed to load cache entry %s for %s: %s",
+                        cacheKey.getHashCode(),
+                        work.getDisplayName(),
+                        loadFailure.getMessage()
+                    ),
                     loadFailure
                 );
             });
@@ -163,15 +162,17 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExec
 
     private void store(CacheableWork work, BuildCacheKey cacheKey, ImmutableSortedMap<String, FileSystemSnapshot> outputFilesProducedByWork, Duration executionTime) {
         try {
-            buildCache.store(commandFactory.createStore(cacheKey, work, outputFilesProducedByWork, executionTime));
+            buildCache.store(cacheKey, work, outputFilesProducedByWork, executionTime);
             if (LOGGER.isInfoEnabled()) {
                 LOGGER.info("Stored cache entry for {} with cache key {}",
                     work.getDisplayName(), cacheKey.getHashCode());
             }
         } catch (Exception e) {
             throw new RuntimeException(
-                String.format("Failed to store cache entry for %s",
-                    work.getDisplayName()),
+                String.format("Failed to store cache entry %s for %s: %s",
+                    cacheKey.getHashCode(),
+                    work.getDisplayName(),
+                    e.getMessage()),
                 e);
         }
     }

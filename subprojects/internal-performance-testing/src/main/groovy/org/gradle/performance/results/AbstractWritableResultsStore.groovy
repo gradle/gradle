@@ -66,6 +66,11 @@ abstract class AbstractWritableResultsStore<T extends PerformanceTestResult> imp
         return teamcityBuildIds.isEmpty() ? '' : " or teamcitybuildid in (${String.join(',', Collections.nCopies(teamcityBuildIds.size(), '?'))})"
     }
 
+    @NotNull
+    static String channelPatternQueryFor(List<String> channelPatterns) {
+        return String.join(' or ', Collections.nCopies(channelPatterns.size(), "channel like ?"))
+    }
+
     @Override
     public Map<PerformanceExperimentOnOs, Long> getEstimatedExperimentDurationsInMillis() {
         return this.<Map<PerformanceExperimentOnOs, Long>>withConnection("load estimated runtimes") { connection ->

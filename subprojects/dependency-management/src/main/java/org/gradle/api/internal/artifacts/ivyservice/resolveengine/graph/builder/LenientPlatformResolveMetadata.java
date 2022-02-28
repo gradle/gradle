@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
+import org.gradle.api.internal.attributes.EmptySchema;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.component.external.model.ComponentVariant;
@@ -77,7 +78,7 @@ class LenientPlatformResolveMetadata implements ModuleComponentResolveMetadata {
 
     @Override
     public AttributesSchemaInternal getAttributesSchema() {
-        return null;
+        return EmptySchema.INSTANCE;
     }
 
     @Override
@@ -108,7 +109,7 @@ class LenientPlatformResolveMetadata implements ModuleComponentResolveMetadata {
             }
             return new RealisedConfigurationMetadata(
                 moduleComponentIdentifier, name, false, false,
-                ImmutableSet.of(name), ImmutableList.of(), ImmutableList.of(), ImmutableAttributes.EMPTY, ImmutableCapabilities.EMPTY, false, dependencies.build(), false, false
+                ImmutableSet.of(name), ImmutableList.of(), ImmutableList.of(), ImmutableAttributes.EMPTY, ImmutableCapabilities.EMPTY, dependencies.build(), false, false
             );
         }
         throw new IllegalArgumentException("Undefined configuration '" + name + "'");
@@ -176,6 +177,11 @@ class LenientPlatformResolveMetadata implements ModuleComponentResolveMetadata {
 
     @Override
     public ModuleComponentArtifactMetadata artifact(String type, @Nullable String extension, @Nullable String classifier) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public ModuleComponentArtifactMetadata optionalArtifact(String type, @Nullable String extension, @Nullable String classifier) {
         throw new UnsupportedOperationException();
     }
 

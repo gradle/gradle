@@ -29,7 +29,6 @@ import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.InternalAction
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.tasks.testing.TestListener
-import org.gradle.initialization.BuildCompletionListener
 import org.gradle.internal.DisplayName
 import org.gradle.internal.InternalBuildAdapter
 import org.gradle.internal.InternalListener
@@ -44,7 +43,11 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
 
     private static interface InternalTaskExecutionGraphListener extends TaskExecutionGraphListener, InternalListener {}
 
-    private static interface ComboListener extends BuildListener, ProjectEvaluationListener, TaskExecutionGraphListener, BuildCompletionListener {}
+    private static interface Other {
+        void completed()
+    }
+
+    private static interface ComboListener extends BuildListener, ProjectEvaluationListener, TaskExecutionGraphListener, Other {}
 
     def buildOperationExecutor = new TestBuildOperationExecutor()
     def context = new DefaultUserCodeApplicationContext()

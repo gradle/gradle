@@ -43,9 +43,9 @@ For older Gradle versions, please see the table below which Java version is supp
 
 [[kotlin]]
 == Kotlin
-Gradle is tested with Kotlin 1.3.72 through 1.6.0.
+Gradle is tested with Kotlin 1.3.72 through 1.6.10.
 
-Gradle plugins written in Kotlin target Kotlin 1.4 for compatibility with Gradle and Kotlin DSL build scripts, even though the embedded Kotlin runtime is Kotlin 1.5.
+Gradle plugins written in Kotlin target Kotlin 1.4 for compatibility with Gradle and Kotlin DSL build scripts, even though the embedded Kotlin runtime is Kotlin 1.6.
 
 == Groovy
 Gradle is tested with Groovy 1.5.8 through 3.0.9.

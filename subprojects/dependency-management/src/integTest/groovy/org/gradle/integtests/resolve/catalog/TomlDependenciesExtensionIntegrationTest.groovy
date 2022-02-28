@@ -85,7 +85,7 @@ bar = {group="org.gradle.test", name="bar", version="1.0"}
 
         then: "extension is not regenerated"
         !operations.hasOperation("Executing generation of dependency accessors for libs")
-        outputContains 'Type-safe dependency accessors is an incubating feature.'
+        outputDoesNotContain 'Type-safe dependency accessors is an incubating feature.'
     }
 
     def "can use the generated extension to declare a dependency"() {
@@ -435,7 +435,7 @@ my-lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
             dependencyResolutionManagement {
                 versionCatalogs {
                     libs {
-                        alias('other').to('org.gradle.test:other:1.0')
+                        library('other', 'org.gradle.test:other:1.0')
                     }
                 }
             }
@@ -475,7 +475,7 @@ my-lib = {group = "org.gradle.test", name="lib", version.require="1.1"}
             dependencyResolutionManagement {
                 versionCatalogs {
                     libs {
-                        alias('my-lib').to('org.gradle.test:lib:1.0')
+                        library('my-lib', 'org.gradle.test:lib:1.0')
                     }
                 }
             }
@@ -566,14 +566,14 @@ my-lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
         def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.0").publish()
         settingsFile << """
             dependencyResolutionManagement {
-                defaultLibrariesExtensionName = 'libraries'
+                defaultLibrariesExtensionName = 'myLibs'
             }
         """
         buildFile << """
             apply plugin: 'java-library'
 
             dependencies {
-                implementation libraries.my.lib
+                implementation myLibs.my.lib
             }
         """
 

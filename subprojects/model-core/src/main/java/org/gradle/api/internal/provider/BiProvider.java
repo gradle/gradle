@@ -22,14 +22,19 @@ import java.util.function.BiFunction;
 
 class BiProvider<R, A, B> extends AbstractMinimalProvider<R> {
 
-    private final BiFunction<A, B, R> combiner;
+    private final BiFunction<? super A, ? super B, ? extends R> combiner;
     private final ProviderInternal<A> left;
     private final ProviderInternal<B> right;
 
-    public BiProvider(Provider<A> left, Provider<B> right, BiFunction<A, B, R> combiner) {
+    public BiProvider(Provider<A> left, Provider<B> right, BiFunction<? super A, ? super B, ? extends R> combiner) {
         this.combiner = combiner;
         this.left = Providers.internal(left);
         this.right = Providers.internal(right);
+    }
+
+    @Override
+    public String toString() {
+        return String.format("and(%s, %s)", left, right);
     }
 
     @Override

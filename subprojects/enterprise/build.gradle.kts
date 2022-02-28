@@ -2,9 +2,12 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
+description = "Services and utilities needed by Gradle Enterprise plugin"
+
 dependencies {
     api(project(":base-services"))
     api(project(":enterprise-operations"))
+    api(project(":enterprise-logging"))
 
     implementation(libs.inject)
     implementation(libs.jsr305)
@@ -16,6 +19,7 @@ dependencies {
     implementation(project(":jvm-services"))
     implementation(project(":launcher"))
     implementation(project(":logging"))
+    implementation(project(":messaging"))
     implementation(project(":model-core"))
     implementation(project(":process-services"))
     implementation(project(":reporting"))

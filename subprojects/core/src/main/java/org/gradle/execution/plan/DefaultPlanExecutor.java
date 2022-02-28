@@ -20,7 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.api.NonNullApi;
 import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.initialization.BuildCancellationToken;
-import org.gradle.internal.MutableBoolean;
 import org.gradle.internal.MutableReference;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
@@ -178,35 +177,36 @@ public class DefaultPlanExecutor implements PlanExecutor {
          * Selects a node that's ready to execute and executes the provided action against it. If no node is ready, blocks until some
          * can be executed.
          *
-         * @return {@code true} if there are more nodes waiting to execute, {@code false} if all nodes have been executed.
+         * @return {@code true} if there may be more nodes waiting to execute, {@code false} if all nodes have been executed.
          */
         private boolean executeNextNode(final WorkerLease workerLease, final Action<Node> nodeExecutor) {
             final MutableReference<Node> selected = MutableReference.empty();
-            final MutableBoolean nodesRemaining = new MutableBoolean();
             coordinationService.withStateLock(resourceLockState -> {
                 if (cancellationToken.isCancellationRequested()) {
                     executionPlan.cancelExecution();
                 }
 
-                nodesRemaining.set(executionPlan.hasNodesRemaining());
-                if (!nodesRemaining.get()) {
+                if (!executionPlan.hasNodesRemaining()) {
                     return FINISHED;
                 }
 
+                boolean hasWorkerLease = workerLease.isLockedByCurrentThread();
+                if (!hasWorkerLease && !workerLease.tryLock()) {
+                    // Cannot run work
+                    return RETRY;
+                }
+
                 try {
-                    selected.set(executionPlan.selectNext(workerLease, resourceLockState));
+                    selected.set(executionPlan.selectNext());
                 } catch (Throwable t) {
                     resourceLockState.releaseLocks();
                     executionPlan.abortAllAndFail(t);
-                    nodesRemaining.set(false);
+                    return FINISHED;
                 }
 
-                if (selected.get() == null && nodesRemaining.get()) {
+                if (selected.get() == null) {
                     // Release worker lease while waiting
-                    if (workerLease.isLockedByCurrentThread()) {
-                        workerLease.unlock();
-                        coordinationService.notifyStateChange();
-                    }
+                    workerLease.unlock();
                     return RETRY;
                 } else {
                     return FINISHED;
@@ -216,8 +216,10 @@ public class DefaultPlanExecutor implements PlanExecutor {
             Node selectedNode = selected.get();
             if (selectedNode != null) {
                 execute(selectedNode, nodeExecutor);
+                return true;
+            } else {
+                return false;
             }
-            return nodesRemaining.get();
         }
 
         private void execute(final Node selected, Action<Node> nodeExecutor) {

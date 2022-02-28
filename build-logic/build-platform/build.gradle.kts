@@ -8,17 +8,20 @@ description = "Provides a platform that constrains versions of external dependen
 val javaParserVersion = "3.18.0"
 val groovyVersion = "3.0.9"
 val asmVersion = "9.2"
+// To try out better kotlin compilation avoidance and incremental compilation
+// with -Pkotlin.incremental.useClasspathSnapshot=true
+val defaultBuildKotlinVersion = "1.7.0-dev-1904"
 
 val kotlinVersion = providers.gradleProperty("buildKotlinVersion")
-    .getOrElse(embeddedKotlinVersion)
+    .getOrElse(defaultBuildKotlinVersion)
 
 dependencies {
     constraints {
         // Gradle Plugins
-        api("com.gradle:gradle-enterprise-gradle-plugin:3.7.2")
-        api("com.gradle.enterprise:test-distribution-gradle-plugin:2.2.2-rc-2") // Sync with `settings.gradle.kts`
+        api("com.gradle:gradle-enterprise-gradle-plugin:3.8.1")
+        api("com.gradle.enterprise:test-distribution-gradle-plugin:2.2.2") // Sync with `settings.gradle.kts`
         api("org.gradle.guides:gradle-guides-plugin:0.19.1")
-        api("com.gradle.publish:plugin-publish-plugin:0.18.0")
+        api("com.gradle.publish:plugin-publish-plugin:0.20.0")
         api("gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:1.0.1")
         api("me.champeau.gradle:japicmp-gradle-plugin:0.3.0")
         api("me.champeau.jmh:jmh-gradle-plugin:0.6.4")
@@ -28,7 +31,6 @@ dependencies {
         api(kotlin("compiler-embeddable")) { version { strictly(kotlinVersion) } }
         api("org.jlleitschuh.gradle:ktlint-gradle:10.1.0")
         api("org.gradle.kotlin:gradle-kotlin-dsl-conventions:0.7.0")
-        api("com.diffplug.spotless:spotless-plugin-gradle:6.0.0")
         api("com.autonomousapps:dependency-analysis-gradle-plugin:0.71.0")
 
         // Java Libraries
@@ -61,7 +63,7 @@ dependencies {
         api("org.codenarc:CodeNarc:2.0.0")
         api("org.eclipse.jgit:org.eclipse.jgit:5.7.0.202003110725-r")
         api("org.javassist:javassist:3.27.0-GA")
-        api("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.3.0")
+        api("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.4.1")
         api("org.jsoup:jsoup:1.13.1")
         api("org.junit.jupiter:junit-jupiter:5.7.1")
         api("org.junit.vintage:junit-vintage-engine:5.7.1")

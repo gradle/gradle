@@ -16,10 +16,12 @@
 
 package org.gradle.jvm.toolchain.install.internal;
 
+import com.google.common.io.Files;
 import org.apache.commons.io.FilenameUtils;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.EmptyFileVisitor;
 import org.gradle.api.file.FileTree;
+import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.cache.FileLock;
@@ -75,7 +77,7 @@ public class JdkCacheDirectory {
 
         File[] subfolders = potentialHome.listFiles(File::isDirectory);
         if (subfolders != null) {
-            for(File subfolder : subfolders) {
+            for (File subfolder : subfolders) {
                 if (new File(subfolder, MAC_OS_JAVA_HOME_FOLDER).exists()) {
                     return new File(subfolder, MAC_OS_JAVA_HOME_FOLDER);
                 }
@@ -104,26 +106,37 @@ public class JdkCacheDirectory {
     private File unpack(File jdkArchive) {
         final FileTree fileTree = asFileTree(jdkArchive);
         final String rootName = getRootDirectory(fileTree);
-        final File installLocation = new File(jdkDirectory, rootName);
+        String installRootName = getNameWithoutExtension(jdkArchive);
+        final File installLocation = new File(jdkDirectory, installRootName);
         if (!installLocation.exists()) {
             operations.copy(spec -> {
                 spec.from(fileTree);
                 spec.into(jdkDirectory);
+                spec.exclude(FileTreeElement::isDirectory);
+                spec.eachFile(fileCopyDetails -> {
+                    String path = fileCopyDetails.getPath();
+                    if (path.startsWith(rootName)) { //root names can be weird, regexp based replacement won't work
+                        String newPath = installRootName + path.substring(rootName.length());
+                        fileCopyDetails.setPath(newPath);
+                    }
+                });
             });
             LOGGER.info("Installed {} into {}", jdkArchive.getName(), installLocation);
         }
         return installLocation;
     }
 
+    //TODO: unit test top level directory name replacement (ie. don't forget to add integration test)
+
     private String getRootDirectory(FileTree fileTree) {
-        AtomicReference<File> rootDir = new AtomicReference<>();
+        AtomicReference<String> rootDirName = new AtomicReference<>();
         fileTree.visit(new EmptyFileVisitor() {
             @Override
             public void visitDir(FileVisitDetails details) {
-                rootDir.compareAndSet(null, details.getFile());
+                rootDirName.compareAndSet(null, details.getName()); //querying only the name, instead of File objects will prevent these directories to be manifested on disk
             }
         });
-        return rootDir.get().getName();
+        return rootDirName.get();
     }
 
     private FileTree asFileTree(File jdkArchive) {
@@ -140,6 +153,17 @@ public class JdkCacheDirectory {
 
     public File getDownloadLocation(String filename) {
         return new File(jdkDirectory, filename);
+    }
+
+    private static String getNameWithoutExtension(File file) {
+        //remove all extensions, for example for xxx.tar.gz files only xxx should be left
+        String output = file.getName();
+        String input;
+        do {
+            input = output;
+            output = Files.getNameWithoutExtension(input);
+        } while (!input.equals(output));
+        return output;
     }
 
 }

@@ -24,6 +24,7 @@ import org.gradle.internal.execution.history.PreviousExecutionState
 import org.gradle.internal.file.FileMetadata
 import org.gradle.internal.file.impl.DefaultFileMetadata
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.id.UniqueId
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
@@ -32,7 +33,7 @@ import org.gradle.internal.snapshot.RegularFileSnapshot
 
 import java.time.Duration
 
-import static org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder.EmptyDirectoryHandlingStrategy.INCLUDE_EMPTY_DIRS
+import static org.gradle.internal.snapshot.DirectorySnapshotBuilder.EmptyDirectoryHandlingStrategy.INCLUDE_EMPTY_DIRS
 
 class CaptureStateAfterExecutionStepTest extends StepSpec<BeforeExecutionContext> {
 
@@ -112,8 +113,8 @@ class CaptureStateAfterExecutionStepTest extends StepSpec<BeforeExecutionContext
     def "overlapping outputs are captured"() {
         def delegateDuration = Duration.ofMillis(123)
 
-        def staleFile = fileSnapshot("stale", HashCode.fromInt(123))
-        def outputFile = fileSnapshot("outputs", HashCode.fromInt(345))
+        def staleFile = fileSnapshot("stale", TestHashCodes.hashCodeFrom(123))
+        def outputFile = fileSnapshot("outputs", TestHashCodes.hashCodeFrom(345))
 
         def emptyDirectory = directorySnapshot()
         def directoryWithStaleFile = directorySnapshot(staleFile)

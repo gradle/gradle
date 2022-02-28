@@ -16,6 +16,7 @@
 
 package gradlebuild.basics
 
+import gradlebuild.basics.BuildParams.AUTO_DOWNLOAD_ANDROID_STUDIO
 import gradlebuild.basics.BuildParams.BUILD_BRANCH
 import gradlebuild.basics.BuildParams.BUILD_COMMIT_DISTRIBUTION
 import gradlebuild.basics.BuildParams.BUILD_COMMIT_ID
@@ -30,8 +31,8 @@ import gradlebuild.basics.BuildParams.BUILD_SERVER_URL
 import gradlebuild.basics.BuildParams.BUILD_TIMESTAMP
 import gradlebuild.basics.BuildParams.BUILD_VCS_NUMBER
 import gradlebuild.basics.BuildParams.BUILD_VERSION_QUALIFIER
-import gradlebuild.basics.BuildParams.FLAKY_TEST_QUARANTINE
 import gradlebuild.basics.BuildParams.CI_ENVIRONMENT_VARIABLE
+import gradlebuild.basics.BuildParams.FLAKY_TEST
 import gradlebuild.basics.BuildParams.GRADLE_INSTALL_PATH
 import gradlebuild.basics.BuildParams.INCLUDE_PERFORMANCE_TEST_SCENARIOS
 import gradlebuild.basics.BuildParams.MAX_PARALLEL_FORKS
@@ -44,6 +45,8 @@ import gradlebuild.basics.BuildParams.PERFORMANCE_DEPENDENCY_BUILD_IDS
 import gradlebuild.basics.BuildParams.PERFORMANCE_MAX_PROJECTS
 import gradlebuild.basics.BuildParams.PERFORMANCE_TEST_VERBOSE
 import gradlebuild.basics.BuildParams.RERUN_ALL_TESTS
+import gradlebuild.basics.BuildParams.RUN_ANDROID_STUDIO_IN_HEADLESS_MODE
+import gradlebuild.basics.BuildParams.STUDIO_HOME
 import gradlebuild.basics.BuildParams.TEST_DISTRIBUTION_ENABLED
 import gradlebuild.basics.BuildParams.TEST_DISTRIBUTION_PARTITION_SIZE
 import gradlebuild.basics.BuildParams.TEST_FILTERING_ENABLED
@@ -52,9 +55,16 @@ import gradlebuild.basics.BuildParams.TEST_JAVA_VERSION
 import gradlebuild.basics.BuildParams.TEST_SPLIT_EXCLUDE_TEST_CLASSES
 import gradlebuild.basics.BuildParams.TEST_SPLIT_INCLUDE_TEST_CLASSES
 import gradlebuild.basics.BuildParams.TEST_SPLIT_ONLY_TEST_GRADLE_VERSION
+import gradlebuild.basics.BuildParams.YARNPKG_MIRROR_URL
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.provider.Provider
+import org.jetbrains.kotlin.util.capitalizeDecapitalize.toUpperCaseAsciiOnly
+
+
+enum class FlakyTestStrategy {
+    INCLUDE, EXCLUDE, ONLY
+}
 
 
 object BuildParams {
@@ -74,7 +84,17 @@ object BuildParams {
     const val BUILD_VERSION_QUALIFIER = "versionQualifier"
     const val CI_ENVIRONMENT_VARIABLE = "CI"
     const val GRADLE_INSTALL_PATH = "gradle_installPath"
-    const val FLAKY_TEST_QUARANTINE = "flakyTestQuarantine"
+
+    /**
+     * Specify the flaky test quarantine strategy:
+     *
+     * -PflakyTests=include: run all tests, including flaky tests.
+     * -PflakyTests=exclude: run all tests, excluding flaky tests.
+     * -PflakyTests=only: run flaky tests only.
+     *
+     * Default value (if absent) is "include".
+     */
+    const val FLAKY_TEST = "flakyTests"
     const val INCLUDE_PERFORMANCE_TEST_SCENARIOS = "includePerformanceTestScenarios"
     const val MAX_PARALLEL_FORKS = "maxParallelForks"
     const val PERFORMANCE_BASELINES = "performanceBaselines"
@@ -94,6 +114,10 @@ object BuildParams {
     const val TEST_SPLIT_ONLY_TEST_GRADLE_VERSION = "onlyTestGradleVersion"
     const val TEST_JAVA_VENDOR = "testJavaVendor"
     const val TEST_JAVA_VERSION = "testJavaVersion"
+    const val AUTO_DOWNLOAD_ANDROID_STUDIO = "autoDownloadAndroidStudio"
+    const val RUN_ANDROID_STUDIO_IN_HEADLESS_MODE = "runAndroidStudioInHeadlessMode"
+    const val STUDIO_HOME = "studioHome"
+    const val YARNPKG_MIRROR_URL = "YARNPKG_MIRROR_URL"
 }
 
 
@@ -188,8 +212,14 @@ val Project.buildVersionQualifier: Provider<String>
     get() = gradleProperty(BUILD_VERSION_QUALIFIER)
 
 
-val Project.flakyTestQuarantine: Provider<String>
-    get() = gradleProperty(FLAKY_TEST_QUARANTINE)
+val Project.flakyTestStrategy: FlakyTestStrategy
+    get() = gradleProperty(FLAKY_TEST).let {
+        if (it.getOrElse("").isEmpty()) {
+            return FlakyTestStrategy.INCLUDE
+        } else {
+            return FlakyTestStrategy.valueOf(it.get().toUpperCaseAsciiOnly())
+        }
+    }
 
 
 val Project.ignoreIncomingBuildReceipt: Provider<Boolean>
@@ -285,3 +315,19 @@ val Project.maxTestDistributionPartitionSecond: Long?
 val Project.maxParallelForks: Int
     get() = gradleProperty(MAX_PARALLEL_FORKS).getOrElse("4").toInt() *
         environmentVariable("BUILD_AGENT_VARIANT").getOrElse("").let { if (it == "AX41") 2 else 1 }
+
+
+val Project.autoDownloadAndroidStudio: Boolean
+    get() = propertyFromAnySource(AUTO_DOWNLOAD_ANDROID_STUDIO).getOrElse("false").toBoolean()
+
+
+val Project.runAndroidStudioInHeadlessMode: Boolean
+    get() = propertyFromAnySource(RUN_ANDROID_STUDIO_IN_HEADLESS_MODE).getOrElse("false").toBoolean()
+
+
+val Project.androidStudioHome: Provider<String>
+    get() = propertyFromAnySource(STUDIO_HOME)
+
+
+val Project.yarnpkgMirrorUrl: Provider<String>
+    get() = environmentVariable(YARNPKG_MIRROR_URL)

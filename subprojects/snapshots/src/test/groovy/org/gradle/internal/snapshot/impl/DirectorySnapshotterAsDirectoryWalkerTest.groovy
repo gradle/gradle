@@ -26,13 +26,16 @@ import org.gradle.api.internal.file.collections.DirectoryFileTree
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.fingerprint.impl.PatternSetSnapshottingFilter
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.internal.snapshot.SnapshotVisitorUtil
 import org.gradle.internal.snapshot.SnapshottingFilter
 
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.function.Consumer
 
 class DirectorySnapshotterAsDirectoryWalkerTest extends AbstractDirectoryWalkerTest<DirectorySnapshotter> {
+    Consumer<FileSystemLocationSnapshot> completeSnapshotConsumer = Stub()
 
     def "directory snapshotter returns the same details as directory walker"() {
         given:
@@ -58,7 +61,7 @@ class DirectorySnapshotterAsDirectoryWalkerTest extends AbstractDirectoryWalkerT
         }
 
         when:
-        directorySnapshotter().snapshot(rootDir.absolutePath, directoryWalkerPredicate(patternSet), new AtomicBoolean())
+        directorySnapshotter().snapshot(rootDir.absolutePath, directoryWalkerPredicate(patternSet), new AtomicBoolean(), completeSnapshotConsumer)
         then:
         1 * patternSet.getAsSpec() >> assertingSpec
 
@@ -87,7 +90,7 @@ class DirectorySnapshotterAsDirectoryWalkerTest extends AbstractDirectoryWalkerT
 
     @Override
     protected List<String> walkDirForPaths(DirectorySnapshotter walker, File rootDir, PatternSet patternSet) {
-        def snapshot = walker.snapshot(rootDir.absolutePath, directoryWalkerPredicate(patternSet), new AtomicBoolean())
+        def snapshot = walker.snapshot(rootDir.absolutePath, directoryWalkerPredicate(patternSet), new AtomicBoolean(), completeSnapshotConsumer)
         return SnapshotVisitorUtil.getAbsolutePaths(snapshot)
     }
 

@@ -6,15 +6,28 @@ plugins {
     id("gradlebuild.internal.java")
 }
 
+description = "Collection of test fixtures for integration tests, internal use only"
+
 dependencies {
     api(libs.jettyWebApp) {
         because("Part of the public API via HttpServer")
+    }
+    api(libs.spock) {
+        because("Part of the public API")
+    }
+    api(project(":internal-testing")) {
+        because("Part of the public API")
+    }
+    api(libs.junit) {
+        because("Part of the public API, used by spock AST transformer")
+    }
+    api(project(":base-services")) {
+        because("Part of the public API, used by spock AST transformer")
     }
     api(project(":jvm-services")) {
         because("Exposing jvm metadata via AvailableJavaHomes")
     }
 
-    implementation(project(":base-services"))
     implementation(project(":enterprise-operations"))
     implementation(project(":messaging"))
     implementation(project(":native"))
@@ -32,7 +45,6 @@ dependencies {
     implementation(project(":dependency-management"))
     implementation(project(":configuration-cache"))
     implementation(project(":launcher"))
-    implementation(project(":internal-testing"))
     implementation(project(":build-events"))
     implementation(project(":build-option"))
 
@@ -41,8 +53,6 @@ dependencies {
     implementation(libs.groovyDatetime)
     implementation(libs.groovyJson)
     implementation(libs.groovyXml)
-    implementation(libs.junit)
-    implementation(libs.spock)
     implementation(libs.nativePlatform)
     implementation(libs.commonsLang)
     implementation(libs.commonsIo)

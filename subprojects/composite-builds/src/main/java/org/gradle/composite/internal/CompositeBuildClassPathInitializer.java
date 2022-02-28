@@ -17,11 +17,9 @@ package org.gradle.composite.internal;
 
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.initialization.ScriptClassPathInitializer;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.internal.Pair;
 import org.gradle.internal.build.BuildState;
 
 import java.util.ArrayList;
@@ -38,21 +36,21 @@ public class CompositeBuildClassPathInitializer implements ScriptClassPathInitia
 
     @Override
     public void execute(Configuration classpath) {
-        List<Pair<BuildIdentifier, TaskInternal>> tasksToBuild = new ArrayList<>();
+        List<TaskIdentifier> tasksToBuild = new ArrayList<>();
         for (Task task : classpath.getBuildDependencies().getDependencies(null)) {
             if (!task.getState().getExecuted()) {
                 // This check should live lower down, and should have some kind of synchronization around it, as other threads may be
                 // running tasks at the same time
                 BuildState targetBuild = ((ProjectInternal) task.getProject()).getOwner().getOwner();
                 assert targetBuild != currentBuild;
-                tasksToBuild.add(Pair.of(targetBuild.getBuildIdentifier(), (TaskInternal) task));
+                tasksToBuild.add(TaskIdentifier.of(targetBuild.getBuildIdentifier(), (TaskInternal) task));
             }
         }
         if (!tasksToBuild.isEmpty()) {
             buildTreeWorkGraphController.withNewWorkGraph(graph -> {
                 graph.scheduleWork(builder -> {
-                    for (Pair<BuildIdentifier, TaskInternal> task : tasksToBuild) {
-                        buildTreeWorkGraphController.locateTask(task.left, task.right).queueForExecution();
+                    for (TaskIdentifier taskIdentifier : tasksToBuild) {
+                        buildTreeWorkGraphController.locateTask(taskIdentifier).queueForExecution();
                     }
                 });
                 graph.runWork().rethrow();

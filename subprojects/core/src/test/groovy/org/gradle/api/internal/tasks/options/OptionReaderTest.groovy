@@ -100,6 +100,14 @@ class OptionReaderTest extends Specification {
         e.message == "@Option 'stringValue' linked to multiple elements in class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$TestClass2'."
     }
 
+    def "fail when multiple methods from different types define same option"() {
+        when:
+        reader.getOptions(new WithDuplicateOptionInAnotherInterface())
+        then:
+        def e = thrown(OptionValidationException)
+        e.message == "@Option 'stringValue' linked to multiple elements in class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$WithDuplicateOptionInAnotherInterface'."
+    }
+
     def "fails on static methods"() {
         when:
         reader.getOptions(new TestClass31())
@@ -281,6 +289,46 @@ class OptionReaderTest extends Specification {
         options[2].availableValues == [] as Set<String>
     }
 
+    def "class that defines option when parent class and interface do has uses the sub-class option"() {
+        when:
+        List<OptionDescriptor> options = reader.getOptions(new OverrideCheckSubClassDefinesOption())
+        then:
+        options.size() == 1
+
+        options[0].name == "base"
+        options[0].description == "from sub class"
+    }
+
+    def "class that has an option defined in parent class and interface uses the parent class option"() {
+        when:
+        List<OptionDescriptor> options = reader.getOptions(new OverrideCheckSubClassSaysNothing())
+        then:
+        options.size() == 1
+
+        options[0].name == "base"
+        options[0].description == "from base class"
+    }
+
+    def "class that defines option when parent class which impls interface do has uses the sub-class option"() {
+        when:
+        List<OptionDescriptor> options = reader.getOptions(new OverrideCheckSubClassImplInterfaceDefinesOption())
+        then:
+        options.size() == 1
+
+        options[0].name == "base"
+        options[0].description == "from sub class"
+    }
+
+    def "class that has an option defined in parent class which impls interface uses the parent class option"() {
+        when:
+        List<OptionDescriptor> options = reader.getOptions(new OverrideCheckSubClassImplInterfaceSaysNothing())
+        then:
+        options.size() == 1
+
+        options[0].name == "base"
+        options[0].description == "from base class"
+    }
+
     public interface TestInterface {
         @Option(option = "stringValue", description = "string value")
         public Property<String> getStringValue();
@@ -301,6 +349,43 @@ class OptionReaderTest extends Specification {
         @Option(option = "objectValue", description = "object value")
         public void setObjectValue(Object value) {
         }
+    }
+
+    // These demonstrate override behavior
+
+    static class OverrideCheckBaseClass {
+        @Option(option = "base", description = "from base class")
+        public void setBase(String value) {
+        }
+    }
+
+    interface OverrideCheckBaseInterface {
+        @Option(option = "base", description = "from base interface")
+        public void setBase(String value);
+    }
+
+    static class OverrideCheckSubClassDefinesOption extends OverrideCheckBaseClass implements OverrideCheckBaseInterface {
+        @Option(option = "base", description = "from sub class")
+        public void setBase(String value) {
+        }
+    }
+
+    static class OverrideCheckSubClassSaysNothing extends OverrideCheckBaseClass implements OverrideCheckBaseInterface {
+    }
+
+    static class OverrideCheckBaseClassImplInterface implements OverrideCheckBaseInterface {
+        @Option(option = "base", description = "from base class")
+        public void setBase(String value) {
+        }
+    }
+
+    static class OverrideCheckSubClassImplInterfaceDefinesOption extends OverrideCheckBaseClassImplInterface {
+        @Option(option = "base", description = "from sub class")
+        public void setBase(String value) {
+        }
+    }
+
+    static class OverrideCheckSubClassImplInterfaceSaysNothing extends OverrideCheckBaseClassImplInterface {
     }
 
     public static class TestClassWithSetters {
@@ -476,6 +561,16 @@ class OptionReaderTest extends Specification {
 
         @OptionValues("someOption")
         List<String> getValues2() { return Arrays.asList("somethingElse") }
+    }
+
+    static class WithDuplicateOptionInAnotherInterface implements TestInterface {
+        @Option(option = "stringValue", description = "string value")
+        List<String> getValues() { return Arrays.asList("something") }
+
+        @Override
+        Property<String> getStringValue() {
+            return null
+        }
     }
 
     public static class WithAnnotatedStaticMethod {

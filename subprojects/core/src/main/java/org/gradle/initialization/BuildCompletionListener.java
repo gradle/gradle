@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,10 @@ package org.gradle.initialization;
 import org.gradle.internal.service.scopes.EventScope;
 import org.gradle.internal.service.scopes.Scopes;
 
+/**
+ * Note: this listener type is never notified. This type is used by the Android plugin lint tasks.
+ */
+@Deprecated
 @EventScope(Scopes.Build.class)
 public interface BuildCompletionListener {
     /**

@@ -64,6 +64,11 @@ public class TaskNodeFactory {
         return nodes.keySet();
     }
 
+    @Nullable
+    public TaskNode getNode(Task task) {
+        return nodes.get(task);
+    }
+
     public TaskNode getOrCreateNode(Task task) {
         TaskNode node = nodes.get(task);
         if (node == null) {

@@ -34,6 +34,14 @@ import javax.annotation.Nullable;
 // TODO:configuration-cache - complain when used at configuration time, except when opted in to this
 @SuppressWarnings("rawtypes")
 public class BuildServiceProvider<T extends BuildService<P>, P extends BuildServiceParameters> extends AbstractMinimalProvider<T> implements Managed {
+
+    public interface Listener {
+        Listener EMPTY = provider -> {
+        };
+
+        void beforeGet(BuildServiceProvider<?, ?> provider);
+    }
+
     private final BuildIdentifier buildIdentifier;
     private final String name;
     private final Class<T> implementationType;
@@ -41,6 +49,7 @@ public class BuildServiceProvider<T extends BuildService<P>, P extends BuildServ
     private final InstantiationScheme instantiationScheme;
     private final IsolatableFactory isolatableFactory;
     private final ServiceRegistry internalServices;
+    private final Listener listener;
     private final P parameters;
     private Try<T> instance;
 
@@ -52,7 +61,8 @@ public class BuildServiceProvider<T extends BuildService<P>, P extends BuildServ
         IsolationScheme<BuildService, BuildServiceParameters> isolationScheme,
         InstantiationScheme instantiationScheme,
         IsolatableFactory isolatableFactory,
-        ServiceRegistry internalServices
+        ServiceRegistry internalServices,
+        Listener listener
     ) {
         this.buildIdentifier = buildIdentifier;
         this.name = name;
@@ -62,6 +72,7 @@ public class BuildServiceProvider<T extends BuildService<P>, P extends BuildServ
         this.instantiationScheme = instantiationScheme;
         this.isolatableFactory = isolatableFactory;
         this.internalServices = internalServices;
+        this.listener = listener;
     }
 
     /**
@@ -111,6 +122,7 @@ public class BuildServiceProvider<T extends BuildService<P>, P extends BuildServ
     }
 
     private T getInstance() {
+        listener.beforeGet(this);
         synchronized (this) {
             if (instance == null) {
                 instance = instantiate();

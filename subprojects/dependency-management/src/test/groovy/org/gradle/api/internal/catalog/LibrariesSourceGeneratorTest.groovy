@@ -37,6 +37,7 @@ import org.gradle.internal.installation.CurrentGradleInstallation
 import org.gradle.internal.isolation.TestIsolatableFactory
 import org.gradle.internal.management.VersionCatalogBuilderInternal
 import org.gradle.internal.service.scopes.Scopes
+import org.gradle.process.ExecOperations
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.junit.Rule
@@ -62,8 +63,10 @@ class LibrariesSourceGeneratorTest extends Specification implements VersionCatal
             TestUtil.instantiatorFactory(),
             new TestIsolatableFactory(),
             Stub(GradleProperties),
+            Stub(ExecOperations),
             TestUtil.services()
         ),
+        null,
         null
     )
 
@@ -80,7 +83,7 @@ class LibrariesSourceGeneratorTest extends Specification implements VersionCatal
     def "generates an accessor for #name as method #method"() {
         when:
         generate {
-            alias(name).to 'g:a:v'
+            library(name, 'g:a:v')
         }
 
         then:
@@ -99,8 +102,8 @@ class LibrariesSourceGeneratorTest extends Specification implements VersionCatal
     def "generates an accessor for bundle #name as method #method"() {
         when:
         generate {
-            alias('foo') to 'g:a:v'
-            alias('bar') to 'g:a:v'
+            library('foo', 'g:a:v')
+            library('bar', 'g:a:v')
             bundle(name, ['foo', 'bar'])
         }
 
@@ -141,8 +144,8 @@ class LibrariesSourceGeneratorTest extends Specification implements VersionCatal
     def "reasonable error message if methods have the same name"() {
         when:
         generate {
-            alias('groovy.json') to 'g:a:v'
-            alias('groovyJson') to 'g:a:v'
+            library('groovy.json', 'g:a:v')
+            library('groovyJson', 'g:a:v')
         }
 
         then:
@@ -154,12 +157,12 @@ class LibrariesSourceGeneratorTest extends Specification implements VersionCatal
 
         when:
         generate {
-            alias('groovy.json') to 'g:a:v'
-            alias('groovyJson') to 'g:a:v'
+            library('groovy.json', 'g:a:v')
+            library('groovyJson', 'g:a:v')
 
-            alias('tada_one') to 'g:a:v'
-            alias('tada.one') to 'g:a:v'
-            alias('tadaOne') to 'g:a:v'
+            library('tada_one', 'g:a:v')
+            library('tada.one', 'g:a:v')
+            library('tadaOne', 'g:a:v')
         }
 
         then:
@@ -176,8 +179,8 @@ ${nameClash { noIntro().inConflict('tada.one', 'tadaOne').getterName('getTadaOne
     def "reasonable error message if bundles have the same name"() {
         when:
         generate {
-            alias('foo') to 'g:a:v'
-            alias('bar') to 'g:a:v'
+            library('foo', 'g:a:v')
+            library('bar', 'g:a:v')
             bundle('one.cool', ['foo', 'bar'])
             bundle('oneCool', ['foo', 'bar'])
         }
@@ -185,15 +188,15 @@ ${nameClash { noIntro().inConflict('tada.one', 'tadaOne').getterName('getTadaOne
         then:
         InvalidUserDataException ex = thrown()
         verify(ex.message, nameClash {
-            kind('bundles')
+            kind('dependency bundles')
             inConflict('one.cool', 'oneCool')
             getterName('getOneCoolBundle')
         })
 
         when:
         generate {
-            alias('foo') to 'g:a:v'
-            alias('bar') to 'g:a:v'
+            library('foo', 'g:a:v')
+            library('bar', 'g:a:v')
             bundle('one.cool', ['foo', 'bar'])
             bundle('oneCool', ['foo', 'bar'])
 
@@ -205,18 +208,18 @@ ${nameClash { noIntro().inConflict('tada.one', 'tadaOne').getterName('getTadaOne
         then:
         ex = thrown()
         verify(ex.message, """Cannot generate dependency accessors:
-${nameClash { noIntro().kind('bundles').inConflict('other.cool', 'otherCool').getterName('getOtherCoolBundle') }}
-${nameClash { noIntro().kind('bundles').inConflict('one.cool', 'oneCool').getterName('getOneCoolBundle') }}
+${nameClash { noIntro().kind('dependency bundles').inConflict('other.cool', 'otherCool').getterName('getOtherCoolBundle') }}
+${nameClash { noIntro().kind('dependency bundles').inConflict('one.cool', 'oneCool').getterName('getOneCoolBundle') }}
 """)
     }
 
     def "generated sources can be compiled"() {
         when:
         generate {
-            alias('foo') to 'g:a:v'
-            alias('bar') to 'g2:a2:v2'
+            library('foo', 'g:a:v')
+            library('bar', 'g2:a2:v2')
             bundle('myBundle', ['foo', 'bar'])
-            alias('pl') toPluginId('org.plugin') version('1.2')
+            plugin('pl', 'org.plugin') version('1.2')
         }
 
         then:
@@ -245,7 +248,7 @@ ${nameClash { noIntro().kind('bundles').inConflict('one.cool', 'oneCool').getter
     def "reasonable error message in case a reserved alias name is used"() {
         when:
         generate {
-            alias(reservedName).to("org:test:1.0")
+            library(reservedName, "org:test:1.0")
         }
 
         then:
@@ -269,7 +272,7 @@ ${nameClash { noIntro().kind('bundles').inConflict('one.cool', 'oneCool').getter
         when:
         generate {
             16000.times { n ->
-                alias("alias$n").to("g:a$n:1.0")
+                library("alias$n", "g:a$n:1.0")
                 bundle("foo$n", ["alias$n".toString()])
             }
         }
@@ -288,12 +291,12 @@ ${nameClash { noIntro().kind('bundles').inConflict('one.cool', 'oneCool').getter
         generate {
             description.set("Some description for tests")
             withContext(context) {
-                alias("some-alias").to 'g:a:v'
+                library("some-alias", 'g:a:v')
                 bundle("b0Bundle", ["some-alias"])
                 withContext(innerContext) {
                     version("v0Version", "1.0")
                 }
-                alias("other").to("g", "a").versionRef("v0Version")
+                library("other", "g", "a").versionRef("v0Version")
             }
         }
 

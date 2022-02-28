@@ -371,14 +371,14 @@ abstract class AbstractClassGenerator implements ClassGenerator {
     }
 
     private static boolean isManagedProperty(PropertyMetadata property) {
-        // Property is read only and the type can be created
-        return property.isReadOnly() && (MANAGED_PROPERTY_TYPES.contains(property.getType()) || property.hasAnnotation(Nested.class));
+        // Property is readable and without a setter of property type and the type can be created
+        return property.isReadableWithoutSetterOfPropertyType() && (MANAGED_PROPERTY_TYPES.contains(property.getType()) || property.hasAnnotation(Nested.class));
     }
 
     private static boolean isEagerAttachProperty(PropertyMetadata property) {
-        // Property is read only and getter is final, so attach owner eagerly in constructor
+        // Property is readable and without a setter of property type and getter is final, so attach owner eagerly in constructor
         // This should apply to all 'managed' types however for backwards compatibility is applied only to property types
-        return property.isReadOnly() && !property.getMainGetter().shouldOverride() && isPropertyType(property.getType());
+        return property.isReadableWithoutSetterOfPropertyType() && !property.getMainGetter().shouldOverride() && isPropertyType(property.getType());
     }
 
     private static boolean isIneligibleForConventionMapping(PropertyMetadata property) {
@@ -388,9 +388,9 @@ abstract class AbstractClassGenerator implements ClassGenerator {
     }
 
     private static boolean isLazyAttachProperty(PropertyMetadata property) {
-        // Property is read only and getter is not final, so attach owner lazily when queried
+        // Property is readable and without a setter of property type and getter is not final, so attach owner lazily when queried
         // This should apply to all 'managed' types however only the Provider types and @Nested value current implement OwnerAware
-        return property.isReadOnly() && !property.getOverridableGetters().isEmpty() && (Provider.class.isAssignableFrom(property.getType()) || property.hasAnnotation(Nested.class));
+        return property.isReadableWithoutSetterOfPropertyType() && !property.getOverridableGetters().isEmpty() && (Provider.class.isAssignableFrom(property.getType()) || property.hasAnnotation(Nested.class));
     }
 
     private static boolean isNameProperty(PropertyMetadata property) {
@@ -620,7 +620,11 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         }
 
         public boolean isReadOnly() {
-            return mainGetter != null && setters.isEmpty();
+            return isReadable() && !isWritable();
+        }
+
+        public boolean isReadableWithoutSetterOfPropertyType() {
+            return isReadable() && setters.stream().noneMatch(method -> method.getParameterTypes()[0].equals(getType()));
         }
 
         public boolean isReadable() {

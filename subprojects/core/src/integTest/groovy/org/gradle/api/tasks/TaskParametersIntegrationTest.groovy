@@ -726,7 +726,7 @@ task someTask(type: SomeTask) {
 
         expect:
         fails "test"
-        failureDescriptionContains(cannotWriteToFile {
+        failureDescriptionContains(cannotWriteFileToDirectory {
             property('output')
                 .file(outputDir)
                 .isNotFile()
@@ -974,9 +974,9 @@ task someTask(type: SomeTask) {
         """
         def inputFile = file('input.txt')
         inputFile.text = "input"
-        def expectedCounts = [inputFile: 3, outputFile: 2, nestedInput: 2, inputValue: 1, nestedInputValue: 1]
+        def expectedCounts = [inputFile: 3, outputFile: 2, nestedInput: 3, inputValue: 1, nestedInputValue: 1]
         def expectedIncrementalCounts = expectedCounts
-        def expectedUpToDateCounts = [inputFile: 2, outputFile: 1, nestedInput: 2, inputValue: 1, nestedInputValue: 1]
+        def expectedUpToDateCounts = [inputFile: 2, outputFile: 1, nestedInput: 3, inputValue: 1, nestedInputValue: 1]
         def arguments = ["assertInputCounts"] + expectedCounts.collect { name, count -> "-P${name}Count=${count}" }
         def incrementalBuildArguments = ["assertInputCounts"] + expectedIncrementalCounts.collect { name, count -> "-P${name}Count=${count}" }
         def upToDateArguments = ["assertInputCounts"] + expectedUpToDateCounts.collect { name, count -> "-P${name}Count=${count}" }

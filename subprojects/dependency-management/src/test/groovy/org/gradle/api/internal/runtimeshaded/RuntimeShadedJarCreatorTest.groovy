@@ -433,7 +433,7 @@ org.gradle.api.internal.tasks.CompileServices"""
             JarEntry providerConfigJarEntry = jar.getJarEntry("META-INF/services/$serviceType")
             IoActions.withResource(jar.getInputStream(providerConfigJarEntry), new Action<InputStream>() {
                 void execute(InputStream inputStream) {
-                    assert inputStream.text == "org.gradle.internal.impldep.org.junit.JarToolProvider\norg.gradle.internal.impldep.org.jetbrains.ide.JavadocToolProvider\norg.gradle.internal.impldep.bsh.Main"
+                    assert inputStream.text == "org.gradle.internal.impldep.org.junit.JarToolProvider\norg.gradle.internal.impldep.bsh.Main"
                 }
             })
         }

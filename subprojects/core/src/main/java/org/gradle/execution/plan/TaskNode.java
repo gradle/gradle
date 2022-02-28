@@ -30,12 +30,14 @@ import java.util.Set;
 
 public abstract class TaskNode extends Node {
     private static final Logger LOGGER = LoggerFactory.getLogger(TaskNode.class);
+    public static final int UNKNOWN_ORDINAL = -1;
 
     private final NavigableSet<Node> mustSuccessors = Sets.newTreeSet();
     private final Set<Node> mustPredecessors = Sets.newHashSet();
     private final NavigableSet<Node> shouldSuccessors = Sets.newTreeSet();
     private final NavigableSet<Node> finalizers = Sets.newTreeSet();
     private final NavigableSet<Node> finalizingSuccessors = Sets.newTreeSet();
+    private int ordinal = UNKNOWN_ORDINAL;
 
     @Override
     public boolean doCheckDependenciesComplete() {
@@ -161,11 +163,6 @@ public abstract class TaskNode extends Node {
 
     public abstract TaskInternal getTask();
 
-    @Override
-    public boolean isPublicNode() {
-        return true;
-    }
-
     private void deprecateLifecycleHookReferencingNonLocalTask(String hookName, Node taskNode) {
         if (taskNode instanceof TaskInAnotherBuild) {
             DeprecationLogger.deprecateAction("Using " + hookName + " to reference tasks from another build")
@@ -175,4 +172,13 @@ public abstract class TaskNode extends Node {
         }
     }
 
+    public int getOrdinal() {
+        return ordinal;
+    }
+
+    public void maybeSetOrdinal(int ordinal) {
+        if (this.ordinal == UNKNOWN_ORDINAL || this.ordinal > ordinal) {
+            this.ordinal = ordinal;
+        }
+    }
 }

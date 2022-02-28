@@ -313,9 +313,11 @@ class DefaultWorkerLeaseServiceProjectLockTest extends ConcurrentSpec {
         instant.taskLeaseLocked > instant.projectUnlocked
     }
 
-    def "can lock and unlock all projects"() {
-        def allProjectsLock = workerLeaseService.getAllProjectsLock()
+    def "can lock and unlock all projects for a build"() {
+        def allProjectsLock = workerLeaseService.getAllProjectsLock(path("root"))
         def projectLock = workerLeaseService.getProjectLock(path("root"), path(":project"))
+        def otherBuildAllProjectsLock = workerLeaseService.getAllProjectsLock(path("other"))
+        def otherBuildProjectLock = workerLeaseService.getProjectLock(path("other"), path(":project"))
 
         given:
         assert !lockIsHeld(allProjectsLock)
@@ -325,6 +327,8 @@ class DefaultWorkerLeaseServiceProjectLockTest extends ConcurrentSpec {
         workerLeaseService.withLocks([allProjectsLock]) {
             assert lockIsHeld(allProjectsLock)
             assert !lockIsHeld(projectLock)
+            assert !lockIsHeld(otherBuildAllProjectsLock)
+            assert !lockIsHeld(otherBuildProjectLock)
             assert workerLeaseService.currentProjectLocks == [allProjectsLock]
         }
 
@@ -333,8 +337,8 @@ class DefaultWorkerLeaseServiceProjectLockTest extends ConcurrentSpec {
         assert workerLeaseService.currentProjectLocks.empty
     }
 
-    def "cannot acquire project lock while all projects lock is held by another thread"() {
-        def allProjectsLock = workerLeaseService.getAllProjectsLock()
+    def "cannot acquire project lock while all projects lock for build is held by another thread"() {
+        def allProjectsLock = workerLeaseService.getAllProjectsLock(path("root"))
         def projectLock = workerLeaseService.getProjectLock(path("root"), path(":project"))
 
         when:
@@ -360,8 +364,34 @@ class DefaultWorkerLeaseServiceProjectLockTest extends ConcurrentSpec {
         assert instant.projectLocked > instant.allLocked
     }
 
-    def "cannot acquire all projects lock while all projects lock is held by another thread"() {
-        def allProjectsLock = workerLeaseService.getAllProjectsLock()
+    def "can acquire project lock while all projects lock for another build is held by another thread"() {
+        def allProjectsLock = workerLeaseService.getAllProjectsLock(path("other"))
+        def projectLock = workerLeaseService.getProjectLock(path("root"), path(":project"))
+
+        when:
+        async {
+            start {
+                workerLeaseService.withLocks([allProjectsLock]) {
+                    instant.allLocked
+                    assert lockIsHeld(allProjectsLock)
+                    assert !lockIsHeld(projectLock)
+                    thread.blockUntil.projectLocked
+                }
+            }
+            start {
+                thread.blockUntil.allLocked
+                workerLeaseService.withLocks([projectLock]) {
+                    instant.projectLocked
+                }
+            }
+        }
+
+        then:
+        assert instant.projectLocked > instant.allLocked
+    }
+
+    def "cannot acquire all projects lock for build while it is held by another thread"() {
+        def allProjectsLock = workerLeaseService.getAllProjectsLock(path("root"))
 
         when:
         async {
@@ -378,6 +408,31 @@ class DefaultWorkerLeaseServiceProjectLockTest extends ConcurrentSpec {
                 workerLeaseService.withLocks([allProjectsLock]) {
                     instant.projectLocked
                     assert workerLeaseService.currentProjectLocks == [allProjectsLock]
+                }
+            }
+        }
+
+        then:
+        assert instant.projectLocked > instant.allLocked
+    }
+
+    def "can acquire all projects lock for build while another is held by another thread"() {
+        def allProjectsLock = workerLeaseService.getAllProjectsLock(path("root"))
+        def otherLock = workerLeaseService.getAllProjectsLock(path("other"))
+
+        when:
+        async {
+            start {
+                workerLeaseService.withLocks([otherLock]) {
+                    instant.allLocked
+                    assert lockIsHeld(otherLock)
+                }
+            }
+            start {
+                thread.blockUntil.allLocked
+                workerLeaseService.withLocks([allProjectsLock]) {
+                    instant.projectLocked
+                    assert lockIsHeld(allProjectsLock)
                 }
             }
         }
