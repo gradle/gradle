@@ -22,6 +22,7 @@ import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
+import com.tngtech.archunit.lang.conditions.ArchPredicates;
 import org.gradle.StartParameter;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Task;
@@ -37,8 +38,8 @@ import javax.inject.Inject;
 
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableTo;
-import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameEndingWith;
 import static com.tngtech.archunit.core.domain.JavaMember.Predicates.declaredIn;
+import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predicates.annotatedWith;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
 import static org.gradle.architecture.test.ArchUnitFixture.freeze;
@@ -66,7 +67,7 @@ public class ProviderMigrationArchitectureTest {
         }
     };
 
-    private static final DescribedPredicate<JavaClass> haveMutableProperty = new DescribedPredicate<JavaClass>("getters") {
+    private static final DescribedPredicate<JavaClass> class_with_any_mutable_property = new DescribedPredicate<JavaClass>("class with any mutable property") {
         @Override
         public boolean apply(JavaClass input) {
             return input.getAllMethods().stream()
@@ -75,76 +76,60 @@ public class ProviderMigrationArchitectureTest {
         }
     };
 
+    private static final DescribedPredicate<JavaMethod> mutable_public_API_properties = ArchPredicates.<JavaMethod>are(public_api_methods)
+        .and(not(declaredIn(assignableTo(Task.class))))
+        .and(not(declaredIn(StartParameter.class)))
+        .and(not(declaredIn(Configuration.class)))
+        .and(not(declaredIn(FileCollection.class)))
+        .and(not(declaredIn(ConfigurableFileCollection.class)))
+        .and(are(declaredIn(class_with_any_mutable_property)))
+        .and(are(getters))
+        .and(not(annotatedWith(Inject.class)))
+        .as("mutable public API properties");
+
+    @SuppressWarnings("deprecation")
+    private static final DescribedPredicate<JavaMethod> task_properties = ArchPredicates.<JavaMethod>are(public_api_methods)
+        .and(declaredIn(assignableTo(Task.class)))
+        .and(are(getters))
+        .and(not(annotatedWith(Inject.class)))
+        .and(not(declaredIn(Task.class)))
+        .and(not(declaredIn(DefaultTask.class)))
+        .and(not(declaredIn(AbstractTask.class)))
+        .as("task properties");
+
     @ArchTest
     public static final ArchRule mutable_public_api_properties_should_be_providers = freeze(methods()
-        .that(are(public_api_methods))
-        .and(not(declaredIn(assignableTo(Task.class))))
-        .and(are(declaredIn(haveMutableProperty)))
-        .and(are(getters))
-        .and().areNotAnnotatedWith(Inject.class)
-        .and().areNotDeclaredIn(StartParameter.class)
-        .and().areNotDeclaredIn(Configuration.class)
-        .and().areNotDeclaredIn(ConfigurableFileCollection.class)
-        .and().areNotDeclaredIn(FileCollection.class)
+        .that(are(mutable_public_API_properties))
         .and().doNotHaveRawReturnType(TextResource.class)
         .and().doNotHaveRawReturnType(assignableTo(FileCollection.class))
         .should().haveRawReturnType(assignableTo(Provider.class)));
 
     @ArchTest
     public static final ArchRule mutable_public_api_properties_should_be_file_collections = freeze(methods()
-        .that(are(public_api_methods))
-        .and(not(declaredIn(assignableTo(Task.class))))
-        .and(are(getters))
-        .and(haveSetters)
-        .and().areNotAnnotatedWith(Inject.class)
+        .that(are(mutable_public_API_properties))
         .and().haveRawReturnType(assignableTo(FileCollection.class))
         .should().haveRawReturnType(assignableTo(ConfigurableFileCollection.class)));
 
-    @SuppressWarnings("deprecation")
+    @ArchTest
+    public static final ArchRule mutable_public_api_properties_should_not_use_text_resources = freeze(methods()
+        .that(are(mutable_public_API_properties))
+        .should().notHaveRawReturnType(TextResource.class));
+
     @ArchTest
     public static final ArchRule public_api_task_properties_are_providers = freeze(methods()
-        .that(are(public_api_methods))
-        .and(are(declaredIn(assignableTo(Task.class))))
-        .and(are(getters))
-        .and().areNotDeclaredIn(Task.class)
-        .and().areNotDeclaredIn(DefaultTask.class)
-        .and().areNotDeclaredIn(AbstractTask.class)
-        .and().areNotAnnotatedWith(Inject.class)
+        .that(are(task_properties))
         .and().doNotHaveRawReturnType(TextResource.class)
         .and().doNotHaveRawReturnType(assignableTo(FileCollection.class))
         .should().haveRawReturnType(assignableTo(Provider.class)));
 
-    @SuppressWarnings("deprecation")
     @ArchTest
     public static final ArchRule public_api_task_file_properties_are_configurable_file_collections = freeze(methods()
-        .that(are(public_api_methods))
-        .and(are(declaredIn(assignableTo(Task.class))))
-        .and(are(getters))
-        .and().areNotDeclaredIn(Task.class)
-        .and().areNotDeclaredIn(DefaultTask.class)
-        .and().areNotDeclaredIn(AbstractTask.class)
-        .and().areNotAnnotatedWith(Inject.class)
+        .that(are(task_properties))
         .and().haveRawReturnType(assignableTo(FileCollection.class))
         .should().haveRawReturnType(assignableTo(ConfigurableFileCollection.class)));
 
-    @SuppressWarnings("deprecation")
     @ArchTest
     public static final ArchRule public_api_task_properties_should_not_use_text_resources = freeze(methods()
-        .that(are(public_api_methods))
-        .and(are(declaredIn(assignableTo(Task.class))))
-        .and(are(getters))
-        .and().areNotDeclaredIn(Task.class)
-        .and().areNotDeclaredIn(DefaultTask.class)
-        .and().areNotDeclaredIn(AbstractTask.class)
-        .and().areNotAnnotatedWith(Inject.class)
+        .that(are(task_properties))
         .should().notHaveRawReturnType(TextResource.class));
-
-    @ArchTest
-    public static final ArchRule public_api_extension_properties_are_providers = freeze(methods()
-        .that(are(public_api_methods))
-        .and(are(not(declaredIn(assignableTo(Task.class)))))
-        .and(are(declaredIn(simpleNameEndingWith("Extension"))))
-        .and(are(getters))
-        .and().areNotAnnotatedWith(Inject.class)
-        .should().haveRawReturnType(assignableTo(Provider.class)));
 }
