@@ -16,11 +16,11 @@
 
 package org.gradle.plugin.devel;
 
-import com.google.common.base.Objects;
 import org.gradle.api.Named;
 
 import javax.annotation.Nullable;
 import java.io.Serializable;
+import java.util.Objects;
 
 
 //TODO version - could be different from main artifact's version
@@ -30,7 +30,9 @@ import java.io.Serializable;
  * @see org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin
  * @since 2.14
  */
-public class PluginDeclaration implements Named, Serializable {
+public class PluginDeclaration implements Named,
+    // TODO: Shouldn't be serializable, remove the interface in Gradle 8.0.
+    Serializable {
     private final String name;
     private String id;
     private String implementationClass;
@@ -114,17 +116,22 @@ public class PluginDeclaration implements Named, Serializable {
 
     @Override
     public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
         if (obj instanceof PluginDeclaration) {
             PluginDeclaration other = (PluginDeclaration) obj;
-            return Objects.equal(name, other.name)
-                && Objects.equal(id, other.id)
-                && Objects.equal(implementationClass, other.implementationClass);
+            return Objects.equals(name, other.name)
+                && Objects.equals(id, other.id)
+                && Objects.equals(implementationClass, other.implementationClass)
+                && Objects.equals(displayName, other.displayName)
+                && Objects.equals(description, other.description);
         }
         return false;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(name, id, implementationClass);
+        return Objects.hash(name, id, implementationClass);
     }
 }
