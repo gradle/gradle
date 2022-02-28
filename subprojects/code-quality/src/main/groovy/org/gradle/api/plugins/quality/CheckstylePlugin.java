@@ -31,6 +31,7 @@ import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
+import org.gradle.jvm.toolchain.internal.CurrentJvmToolchainSpec;
 import org.gradle.jvm.toolchain.internal.ToolchainSpecInternal;
 
 import javax.inject.Inject;
@@ -68,6 +69,11 @@ public class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
 
     @Inject
     protected BuildLayout getBuildLayout() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected JavaToolchainService getToolchainService() {
         throw new UnsupportedOperationException();
     }
 
@@ -130,6 +136,8 @@ public class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
     }
 
     private void configureToolchains(Checkstyle task) {
+        Provider<JavaLauncher> javaLauncherProvider = getToolchainService().launcherFor(new CurrentJvmToolchainSpec(project.getObjects()));
+        task.getJavaLauncher().convention(javaLauncherProvider);
         project.getPluginManager().withPlugin("java-base", p -> {
             JavaToolchainSpec toolchain = getJavaPluginExtension().getToolchain();
             if (((ToolchainSpecInternal) toolchain).isConfigured()) {
