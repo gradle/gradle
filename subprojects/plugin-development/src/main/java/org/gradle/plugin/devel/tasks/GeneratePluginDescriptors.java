@@ -21,7 +21,8 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
-import org.gradle.api.tasks.Input;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.file.Deleter;
@@ -32,7 +33,10 @@ import org.gradle.work.DisableCachingByDefault;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 /**
  * Generates plugin descriptors from plugin declarations.
@@ -41,15 +45,20 @@ import java.util.Properties;
 public class GeneratePluginDescriptors extends DefaultTask {
 
     private final ListProperty<PluginDeclaration> declarations;
+    private final Provider<Map<String, String>> implementationClassById;
     private final DirectoryProperty outputDirectory;
 
     public GeneratePluginDescriptors() {
         ObjectFactory objectFactory = getProject().getObjects();
         declarations = objectFactory.listProperty(PluginDeclaration.class);
         outputDirectory = objectFactory.directoryProperty();
+        implementationClassById = getDeclarations().map(declarations -> declarations.stream()
+            .collect(Collectors.toMap(PluginDeclaration::getId, PluginDeclaration::getImplementationClass, (a, b) -> a, LinkedHashMap::new))
+        );
+        getInputs().property("implementationClassById", implementationClassById);
     }
 
-    @Input
+    @Internal("The relevant data is tracked via implementationClassById")
     public ListProperty<PluginDeclaration> getDeclarations() {
         return declarations;
     }
@@ -63,10 +72,12 @@ public class GeneratePluginDescriptors extends DefaultTask {
     public void generatePluginDescriptors() {
         File outputDir = outputDirectory.get().getAsFile();
         clearOutputDirectory(outputDir);
-        for (PluginDeclaration declaration : getDeclarations().get()) {
-            File descriptorFile = new File(outputDir, declaration.getId() + ".properties");
+        for (Map.Entry<String, String> entry : implementationClassById.get().entrySet()) {
+            String id = entry.getKey();
+            String implementationClass = entry.getValue();
+            File descriptorFile = new File(outputDir, id + ".properties");
             Properties properties = new Properties();
-            properties.setProperty("implementation-class", declaration.getImplementationClass());
+            properties.setProperty("implementation-class", implementationClass);
             writePropertiesTo(properties, descriptorFile);
         }
     }
