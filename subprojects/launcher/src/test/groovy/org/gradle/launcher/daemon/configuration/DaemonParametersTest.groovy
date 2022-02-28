@@ -58,30 +58,12 @@ class DaemonParametersTest extends Specification {
         parameters.effectiveJvm == Jvm.current()
     }
 
-    def "configuring jvmargs replaces the defaults"() {
-        when:
-        parameters.setJvmArgs(["-Xmx17m"])
-
-        then:
-        parameters.effectiveJvmArgs.intersect(parameters.DEFAULT_JVM_ARGS).empty
-    }
-
-    def "does not apply defaults when jvmargs already specified"() {
-        when:
-        parameters.setJvmArgs(["-Xmx17m"])
-        parameters.applyDefaultsFor(JavaVersion.VERSION_1_8)
-
-        then:
-        parameters.effectiveJvmArgs.containsAll(["-Xmx17m"])
-        parameters.effectiveJvmArgs.intersect(parameters.DEFAULT_JVM_ARGS).empty
-    }
-
     def "can apply defaults for Java 7 and earlier"() {
         when:
         parameters.applyDefaultsFor(JavaVersion.VERSION_1_7)
 
         then:
-        parameters.effectiveJvmArgs.containsAll(DaemonParameters.DEFAULT_JVM_ARGS)
+        parameters.effectiveJvmArgs.containsAll("-Xmx512m", "-Xms256m", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError")
     }
 
     def "can apply defaults for Java 8 and later"() {
@@ -89,8 +71,44 @@ class DaemonParametersTest extends Specification {
         parameters.applyDefaultsFor(JavaVersion.VERSION_1_9)
 
         then:
-        parameters.effectiveJvmArgs.containsAll(DaemonParameters.DEFAULT_JVM_8_ARGS)
-        !parameters.effectiveJvmArgs.containsAll(DaemonParameters.DEFAULT_JVM_ARGS)
+        parameters.effectiveJvmArgs.containsAll("-Xmx512m", "-Xms256m", "-XX:MaxMetaspaceSize=256m", "-XX:+HeapDumpOnOutOfMemoryError")
+        !parameters.effectiveJvmArgs.contains("-XX:MaxPermSize=256m")
+    }
+
+    def "can provide jvmargs which are added to defaults"() {
+        when:
+        parameters.setJvmArgs(["-XX:+UseG1GC"])
+        parameters.applyDefaultsFor(JavaVersion.VERSION_1_8)
+
+        then:
+        parameters.effectiveJvmArgs.containsAll(["-XX:+UseG1GC", "-Xmx512m", "-Xms256m", "-XX:MaxMetaspaceSize=256m", "-XX:+HeapDumpOnOutOfMemoryError"])
+    }
+
+    def "can provide jvmargs to override defaults"() {
+        when:
+        parameters.setJvmArgs(["-Xmx1111m", "-Xms555m", "-XX:MaxMetaspaceSize=222m"])
+        parameters.applyDefaultsFor(JavaVersion.VERSION_1_8)
+
+        then:
+        parameters.effectiveJvmArgs.containsAll(["-Xmx1111m", "-Xms555m", "-XX:MaxMetaspaceSize=222m", "-XX:+HeapDumpOnOutOfMemoryError"])
+    }
+
+    def "can provide jvmargs to override defaults for JDK < 8"() {
+        when:
+        parameters.setJvmArgs(["-Xmx1111m", "-Xms555m", "-XX:MaxPermSize=222m"])
+        parameters.applyDefaultsFor(JavaVersion.VERSION_1_7)
+
+        then:
+        parameters.effectiveJvmArgs.containsAll(["-Xmx1111m", "-Xms555m", "-XX:MaxPermSize=222m", "-XX:+HeapDumpOnOutOfMemoryError"])
+    }
+
+    def "jvmargs that duplicate defaults are ignored"() {
+        when:
+        parameters.setJvmArgs(["-Xmx512m", "-Xms256m", "-XX:MaxMetaspaceSize=256m", "-XX:+HeapDumpOnOutOfMemoryError"])
+        parameters.applyDefaultsFor(JavaVersion.VERSION_1_8)
+
+        then:
+        parameters.effectiveJvmArgs.containsAll(["-Xmx512m", "-Xms256m", "-XX:MaxMetaspaceSize=256m", "-XX:+HeapDumpOnOutOfMemoryError"])
     }
 
     @Issue("20611")

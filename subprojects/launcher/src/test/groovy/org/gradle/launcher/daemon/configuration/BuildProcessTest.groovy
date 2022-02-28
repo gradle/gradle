@@ -42,13 +42,13 @@ class BuildProcessTest extends Specification {
         def currentJvmOptions = new JvmOptions(fileCollectionFactory)
         currentJvmOptions.minHeapSize = "16m"
         currentJvmOptions.maxHeapSize = "256m"
-        currentJvmOptions.jvmArgs = ["-XX:+HeapDumpOnOutOfMemoryError"]
+        currentJvmOptions.jvmArgs("-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError")
 
         when:
         def buildProcess = new BuildProcess(currentJvm, currentJvmOptions)
 
         then:
-        buildProcess.configureForBuild(buildParameters(["-Xms16m", "-Xmx256m", "-XX:+HeapDumpOnOutOfMemoryError"]))
+        buildProcess.configureForBuild(buildParameters(["-Xms16m", "-Xmx256m"]))
     }
 
     def "current and requested build vm do not match if vm arguments differ"() {
@@ -56,13 +56,13 @@ class BuildProcessTest extends Specification {
         def currentJvmOptions = new JvmOptions(fileCollectionFactory)
         currentJvmOptions.minHeapSize = "16m"
         currentJvmOptions.maxHeapSize = "1024m"
-        currentJvmOptions.jvmArgs = ["-XX:+HeapDumpOnOutOfMemoryError"]
+        currentJvmOptions.jvmArgs("-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError")
 
         when:
         def buildProcess = new BuildProcess(currentJvm, currentJvmOptions)
 
         then:
-        !buildProcess.configureForBuild(buildParameters(["-Xms16m", "-Xmx256m", "-XX:+HeapDumpOnOutOfMemoryError"]))
+        !buildProcess.configureForBuild(buildParameters(["-Xms16m", "-Xmx256m"]))
     }
 
     def "current and requested build vm match if java home matches"() {
@@ -79,6 +79,8 @@ class BuildProcessTest extends Specification {
         def notDefaultEncoding = ["UTF-8", "US-ASCII"].collect { Charset.forName(it) } find { it != Charset.defaultCharset() }
         def currentJvmOptions = new JvmOptions(fileCollectionFactory)
         currentJvmOptions.setAllJvmArgs(["-Dfile.encoding=$notDefaultEncoding", "-Xmx100m", "-XX:SomethingElse"])
+        // Default jvm options: these will be implicit in the request
+        currentJvmOptions.jvmArgs("-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError")
 
         when:
         def buildProcess = new BuildProcess(currentJvm, currentJvmOptions)
@@ -96,7 +98,7 @@ class BuildProcessTest extends Specification {
         def currentJvmOptions = new JvmOptions(fileCollectionFactory)
         currentJvmOptions.minHeapSize = "16m"
         currentJvmOptions.maxHeapSize = "1024m"
-        currentJvmOptions.jvmArgs = ["-XX:+HeapDumpOnOutOfMemoryError"]
+        currentJvmOptions.jvmArgs("-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError")
         def emptyRequest = buildParameters([])
 
         when:
@@ -109,7 +111,9 @@ class BuildProcessTest extends Specification {
     def "current VM does not match if it was started with the default client heap size"() {
         given:
         def currentJvmOptions = new JvmOptions(fileCollectionFactory)
+        currentJvmOptions.minHeapSize = "64m"
         currentJvmOptions.maxHeapSize = "64m"
+        currentJvmOptions.jvmArgs("-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError")
         def defaultRequest = buildParameters(null as Iterable)
 
         when:
@@ -129,7 +133,7 @@ class BuildProcessTest extends Specification {
         def buildProcess = new BuildProcess(currentJvm, new JvmOptions(fileCollectionFactory))
 
         then:
-        requestWithDefaults.getEffectiveJvmArgs().containsAll(DaemonParameters.DEFAULT_JVM_ARGS)
+        requestWithDefaults.getEffectiveJvmArgs().containsAll("-Xmx512m", "-Xms256m", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError")
         buildProcess.configureForBuild(requestWithDefaults)
     }
 
@@ -138,7 +142,7 @@ class BuildProcessTest extends Specification {
         def currentJvmOptions = new JvmOptions(fileCollectionFactory)
         currentJvmOptions.minHeapSize = "16m"
         currentJvmOptions.maxHeapSize = "1024m"
-        currentJvmOptions.jvmArgs = ["-XX:+HeapDumpOnOutOfMemoryError"]
+        currentJvmOptions.jvmArgs("-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError")
         def requestWithMutableArgument = buildParameters(["-Dfoo=bar"])
 
         when:
@@ -152,6 +156,7 @@ class BuildProcessTest extends Specification {
         given:
         def currentJvmOptions = new JvmOptions(fileCollectionFactory)
         currentJvmOptions.setAllJvmArgs(["-Xmx100m", "-XX:SomethingElse", "-Dfoo=bar", "-Dbaz"])
+        currentJvmOptions.jvmArgs("-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError")
 
         when:
         def buildProcess = new BuildProcess(currentJvm, currentJvmOptions)
@@ -221,20 +226,9 @@ class BuildProcessTest extends Specification {
         System.getProperty('baz') != null
     }
 
-    def "user can explicitly disable default daemon args by setting jvm args to empty"() {
-        given:
-        def emptyBuildParameters = buildParameters([])
-
-        when:
-        new BuildProcess(currentJvm, new JvmOptions(fileCollectionFactory)).configureForBuild(emptyBuildParameters)
-
-        then:
-        !emptyBuildParameters.getEffectiveJvmArgs().containsAll(DaemonParameters.DEFAULT_JVM_ARGS)
-    }
-
     def "user-defined vm args that correspond to daemon default are considered during matching"() {
         given:
-        def parametersWithDefaults = buildParameters(DaemonParameters.DEFAULT_JVM_ARGS)
+        def parametersWithDefaults = buildParameters(["-Xmx512m", "-Xms256m", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError"])
 
         when:
         def buildProcess = new BuildProcess(currentJvm, new JvmOptions(fileCollectionFactory))
