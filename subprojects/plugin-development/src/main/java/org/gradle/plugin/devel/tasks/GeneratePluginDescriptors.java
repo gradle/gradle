@@ -53,7 +53,7 @@ public class GeneratePluginDescriptors extends DefaultTask {
         declarations = objectFactory.listProperty(PluginDeclaration.class);
         outputDirectory = objectFactory.directoryProperty();
         implementationClassById = getDeclarations().map(declarations -> declarations.stream()
-            .collect(Collectors.toMap(PluginDeclaration::getId, PluginDeclaration::getImplementationClass, (a, b) -> a, LinkedHashMap::new))
+            .collect(Collectors.toMap(PluginDeclaration::getId, PluginDeclaration::getImplementationClass, (a, b) -> b, LinkedHashMap::new))
         );
         getInputs().property("implementationClassById", implementationClassById);
     }
