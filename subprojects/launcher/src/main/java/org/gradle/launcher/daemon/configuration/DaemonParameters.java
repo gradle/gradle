@@ -37,8 +37,9 @@ public class DaemonParameters {
     static final int DEFAULT_IDLE_TIMEOUT = 3 * 60 * 60 * 1000;
     public static final int DEFAULT_PERIODIC_CHECK_INTERVAL_MILLIS = 10 * 1000;
 
-    public static final List<String> DEFAULT_JVM_ARGS = ImmutableList.of("-Xmx512m", "-Xms256m", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError");
-    public static final List<String> DEFAULT_JVM_8_ARGS = ImmutableList.of("-Xmx512m", "-Xms256m", "-XX:MaxMetaspaceSize=256m", "-XX:+HeapDumpOnOutOfMemoryError");
+    public static final String DEFAULT_MAX_HEAP = "512m";
+    public static final String DEFAULT_MIN_HEAP = "256m";
+    public static final String DEFAULT_METASPACE_SIZE = "256m";
     public static final List<String> ALLOW_ENVIRONMENT_VARIABLE_OVERWRITE = ImmutableList.of("--add-opens=java.base/java.util=ALL-UNNAMED");
 
     private final File gradleUserHomeDir;
@@ -50,7 +51,6 @@ public class DaemonParameters {
     private final DaemonJvmOptions jvmOptions;
     private Map<String, String> envVariables;
     private boolean enabled = true;
-    private boolean hasJvmArgs;
     private boolean userDefinedImmutableJvmArgs;
     private boolean foreground;
     private boolean stop;
@@ -131,13 +131,24 @@ public class DaemonParameters {
             jpmsArgs.addAll(JpmsConfiguration.GRADLE_DAEMON_JPMS_ARGS);
             jvmOptions.jvmArgs(jpmsArgs);
         }
-        if (hasJvmArgs) {
-            return;
+
+        // Set defaults for heap size unless either min and max heap size is provided
+        if (jvmOptions.getMinHeapSize() == null && jvmOptions.getMaxHeapSize() == null) {
+            jvmOptions.setMinHeapSize(DEFAULT_MIN_HEAP);
+            jvmOptions.setMaxHeapSize(DEFAULT_MAX_HEAP);
         }
-        if (javaVersion.compareTo(JavaVersion.VERSION_1_8) >= 0) {
-            jvmOptions.jvmArgs(DEFAULT_JVM_8_ARGS);
-        } else {
-            jvmOptions.jvmArgs(DEFAULT_JVM_ARGS);
+
+        List<String> existingArgs = jvmOptions.getJvmArgs();
+        if (javaVersion.compareTo(JavaVersion.VERSION_1_8) < 0
+            && existingArgs.stream().noneMatch(s -> s.startsWith("-XX:MaxPermSize"))) {
+            jvmOptions.jvmArgs("-XX:MaxPermSize=" + DEFAULT_METASPACE_SIZE);
+        }
+        if (javaVersion.compareTo(JavaVersion.VERSION_1_8) >= 0
+            && existingArgs.stream().noneMatch(s -> s.startsWith("-XX:MaxMetaspaceSize"))) {
+            jvmOptions.jvmArgs("-XX:MaxMetaspaceSize=" + DEFAULT_METASPACE_SIZE);
+        }
+        if (!existingArgs.contains("-XX:+HeapDumpOnOutOfMemoryError")) {
+            jvmOptions.jvmArgs("-XX:+HeapDumpOnOutOfMemoryError");
         }
     }
 
@@ -163,7 +174,6 @@ public class DaemonParameters {
     }
 
     public void setJvmArgs(Iterable<String> jvmArgs) {
-        hasJvmArgs = true;
         List<String> immutableBefore = jvmOptions.getAllImmutableJvmArgs();
         jvmOptions.setAllJvmArgs(jvmArgs);
         List<String> immutableAfter = jvmOptions.getAllImmutableJvmArgs();
