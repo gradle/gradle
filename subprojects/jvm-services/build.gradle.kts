@@ -8,6 +8,7 @@ dependencies {
     implementation(project(":base-services"))
     implementation(project(":core-api"))
     implementation(project(":file-temp"))
+    implementation(project(":file-collections"))
     implementation(project(":functional"))
     implementation(project(":logging"))
     implementation(project(":process-services"))

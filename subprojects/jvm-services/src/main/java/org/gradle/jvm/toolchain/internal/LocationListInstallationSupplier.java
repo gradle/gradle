@@ -16,11 +16,11 @@
 
 package org.gradle.jvm.toolchain.internal;
 
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 
 import javax.inject.Inject;
-import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Set;
@@ -31,10 +31,12 @@ public class LocationListInstallationSupplier implements InstallationSupplier {
     private static final String PROPERTY_NAME = "org.gradle.java.installations.paths";
 
     private final ProviderFactory factory;
+    private final FileResolver fileResolver;
 
     @Inject
-    public LocationListInstallationSupplier(ProviderFactory factory) {
+    public LocationListInstallationSupplier(ProviderFactory factory, FileResolver fileResolver) {
         this.factory = factory;
+        this.fileResolver = fileResolver;
     }
 
     @Override
@@ -46,7 +48,7 @@ public class LocationListInstallationSupplier implements InstallationSupplier {
     private Set<InstallationLocation> asInstallations(String listOfDirectories) {
         return Arrays.stream(listOfDirectories.split(","))
             .filter(path -> !path.trim().isEmpty())
-            .map(path -> new InstallationLocation(new File(path), "system property '" + PROPERTY_NAME + "'"))
+            .map(path -> new InstallationLocation(fileResolver.resolve(path), "system property '" + PROPERTY_NAME + "'"))
             .collect(Collectors.toSet());
     }
 

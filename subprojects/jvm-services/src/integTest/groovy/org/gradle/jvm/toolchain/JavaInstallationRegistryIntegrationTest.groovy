@@ -18,6 +18,7 @@ package org.gradle.jvm.toolchain
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.test.fixtures.file.TestFile
 import spock.lang.IgnoreIf
 
 class JavaInstallationRegistryIntegrationTest extends AbstractIntegrationSpec {
@@ -98,6 +99,47 @@ class JavaInstallationRegistryIntegrationTest extends AbstractIntegrationSpec {
         outputContains("${File.separator}unknown${File.separator}env' (environment variable 'JDK1') used for java installations does not exist")
         outputContains(firstJavaHome)
         outputContains(secondJavaHome)
+    }
+
+    def "relative file paths are resolved relative to root dir"() {
+        def javaHome = AvailableJavaHomes.availableJvms[0].javaHome.absolutePath
+
+        buildTestFixture.withBuildInSubDir()
+        def subproject = "app"
+        def subprojects = [subproject]
+        def rootProject = multiProjectBuild("project", subprojects) {
+            buildFile << """
+                import org.gradle.jvm.toolchain.internal.JavaInstallationRegistry;
+
+                abstract class ShowPlugin implements Plugin<Project> {
+                    @Inject
+                    abstract JavaInstallationRegistry getRegistry()
+    
+                    void apply(Project project) {
+                        project.tasks.register("show") {
+                           registry.listInstallations().each { println it.location }
+                        }
+                    }
+                }
+
+                allprojects {
+                    apply plugin: ShowPlugin
+                }
+            """
+        }
+
+        when:
+        result = executer
+                .withArgument("-Porg.gradle.java.installations.paths=" + relativePath(rootProject, javaHome))
+                .withTasks("show")
+                .inDirectory(new File(rootProject, subproject))
+                .run()
+        then:
+        outputContains(javaHome)
+    }
+
+    private static String relativePath(TestFile from, String to) {
+        from.toPath().relativize(new File(to).toPath()).toString()
     }
 
 }

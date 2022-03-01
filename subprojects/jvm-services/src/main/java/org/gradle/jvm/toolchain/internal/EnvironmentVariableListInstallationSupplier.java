@@ -16,11 +16,11 @@
 
 package org.gradle.jvm.toolchain.internal;
 
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 
 import javax.inject.Inject;
-import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
@@ -30,10 +30,12 @@ import java.util.stream.Collectors;
 public class EnvironmentVariableListInstallationSupplier implements InstallationSupplier {
 
     private final ProviderFactory factory;
+    private final FileResolver fileResolver;
 
     @Inject
-    public EnvironmentVariableListInstallationSupplier(ProviderFactory factory) {
+    public EnvironmentVariableListInstallationSupplier(ProviderFactory factory, FileResolver fileResolver) {
         this.factory = factory;
+        this.fileResolver = fileResolver;
     }
 
     @Override
@@ -55,7 +57,7 @@ public class EnvironmentVariableListInstallationSupplier implements Installation
         if (value.isPresent()) {
             final String path = value.get().trim();
             if (!path.isEmpty()) {
-                return Optional.of(new InstallationLocation(new File(path), "environment variable '" + environmentVariable + "'"));
+                return Optional.of(new InstallationLocation(fileResolver.resolve(path), "environment variable '" + environmentVariable + "'"));
             }
         }
         return Optional.empty();
