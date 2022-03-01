@@ -346,13 +346,17 @@ public class BuildActionSerializer {
         final Set<InternalJvmTestRequest> internalJvmTestRequests;
         final InternalDebugOptions debugOptions;
         final Map<String, List<InternalJvmTestRequest>> taskAndTests;
+        final boolean isRunDefaultTasks;
+        final List<String> tasks;
 
-        public TestExecutionRequestPayload(Set<InternalTestDescriptor> testDescriptors, Set<String> classNames, Set<InternalJvmTestRequest> internalJvmTestRequests, InternalDebugOptions debugOptions, Map<String, List<InternalJvmTestRequest>> taskAndTests) {
+        public TestExecutionRequestPayload(Set<InternalTestDescriptor> testDescriptors, Set<String> classNames, Set<InternalJvmTestRequest> internalJvmTestRequests, InternalDebugOptions debugOptions, Map<String, List<InternalJvmTestRequest>> taskAndTests, boolean isRunDefaultTasks, List<String> tasks) {
             this.testDescriptors = testDescriptors;
             this.classNames = classNames;
             this.internalJvmTestRequests = internalJvmTestRequests;
             this.debugOptions = debugOptions;
             this.taskAndTests = taskAndTests;
+            this.isRunDefaultTasks = isRunDefaultTasks;
+            this.tasks = tasks;
         }
     }
 
@@ -370,7 +374,9 @@ public class BuildActionSerializer {
                 value.getTestClassNames(),
                 value.getInternalJvmTestRequests(),
                 value.getDebugOptions(),
-                value.getTaskAndTests()
+                value.getTaskAndTests(),
+                value.isRunDefaultTasks(),
+                value.getTasks()
             ));
         }
 
@@ -379,7 +385,7 @@ public class BuildActionSerializer {
             StartParameterInternal startParameter = startParameterSerializer.read(decoder);
             BuildEventSubscriptions buildEventSubscriptions = buildEventSubscriptionsSerializer.read(decoder);
             TestExecutionRequestPayload payload = payloadSerializer.read(decoder);
-            return new TestExecutionRequestAction(buildEventSubscriptions, startParameter, payload.testDescriptors, payload.classNames, payload.internalJvmTestRequests, payload.debugOptions, payload.taskAndTests);
+            return new TestExecutionRequestAction(buildEventSubscriptions, startParameter, payload.testDescriptors, payload.classNames, payload.internalJvmTestRequests, payload.debugOptions, payload.taskAndTests, payload.isRunDefaultTasks, payload.tasks);
         }
     }
 
