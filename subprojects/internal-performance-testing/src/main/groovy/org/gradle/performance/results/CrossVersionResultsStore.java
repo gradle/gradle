@@ -221,7 +221,6 @@ public class CrossVersionResultsStore extends AbstractWritableResultsStore<Cross
         return withConnection("load results", connection -> {
             String buildIdQuery = teamcityBuildIdQueryFor(teamcityBuildIds);
             String channelPatternQuery = channelPatternQueryFor(channelPatterns);
-            String currentBranch = channelPatterns.get(0).substring("commits-".length());
             try (
                 PreparedStatement executionsForName = connection.prepareStatement("select id, startTime, endTime, targetVersion, tasks, args, gradleOpts, daemon, operatingSystem, jvm, vcsBranch, vcsCommit, channel, host, cleanTasks, teamCityBuildId from testExecution where testClass = ? and testId = ? and testProject = ? and startTime >= ? and (" + channelPatternQuery + buildIdQuery + ") order by startTime desc limit ?");
                 PreparedStatement operationsForExecution = connection.prepareStatement("select version, testExecution, totalTime from testOperation "
@@ -262,7 +261,7 @@ public class CrossVersionResultsStore extends AbstractWritableResultsStore<Cross
                         performanceResults.setDaemon((Boolean) testExecutions.getObject(8));
                         performanceResults.setOperatingSystem(testExecutions.getString(9));
                         performanceResults.setJvm(testExecutions.getString(10));
-                        performanceResults.setVcsBranch(mapVcsBranch(currentBranch, testExecutions.getString(11).trim()));
+                        performanceResults.setVcsBranch(testExecutions.getString(11).trim());
                         performanceResults.setVcsCommits(ResultsStoreHelper.split(testExecutions.getString(12)));
                         performanceResults.setChannel(testExecutions.getString(13));
                         performanceResults.setHost(testExecutions.getString(14));
