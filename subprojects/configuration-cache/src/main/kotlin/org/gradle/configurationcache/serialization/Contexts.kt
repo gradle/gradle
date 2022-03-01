@@ -18,6 +18,7 @@ package org.gradle.configurationcache.serialization
 
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logger
 import org.gradle.configurationcache.ClassLoaderScopeSpec
 import org.gradle.configurationcache.problems.ProblemsListener
@@ -144,7 +145,8 @@ internal
 class LoggingTracer(
     private val profile: String,
     private val writePosition: () -> Long,
-    private val logger: Logger
+    private val logger: Logger,
+    private val level: LogLevel
 ) : Tracer {
 
     // Include a sequence number in the events so the order of events can be preserved in face of log output reordering
@@ -161,7 +163,8 @@ class LoggingTracer(
 
     private
     fun log(frame: String, openOrClose: Char) {
-        logger.debug(
+        logger.log(
+            level,
             """{"profile":"$profile","type":"$openOrClose","frame":"$frame","at":${writePosition()},"sn":${nextSequenceNumber()}}"""
         )
     }

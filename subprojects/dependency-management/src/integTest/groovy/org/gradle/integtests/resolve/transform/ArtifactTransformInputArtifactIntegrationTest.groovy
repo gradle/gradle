@@ -429,7 +429,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
                 void transform(TransformOutputs outputs) {
                     def input = inputArtifact.get().asFile
                     println "processing \${input.name}"
-                    def output = outputs.file(input.text + ".green")
+                    def output = outputs.file(input.name + ".green")
                     output.text = input.text + ".green"
                 }
             }
@@ -441,7 +441,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         then:
         result.assertTasksNotSkipped(":b:producer", ":c:producer", ":a:resolve")
         transformed("b.jar", "c.jar")
-        outputContains("result = [b.green, c.green]")
+        outputContains("result = [b.jar.green, c.jar.green]")
 
         when:
         executer.withArguments("-DbOutputDir=out")
@@ -450,34 +450,34 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         then: // path has changed, but should be up to date
         result.assertTasksNotSkipped(":b:producer", ":a:resolve")
         transformed()
-        outputContains("result = [b.green, c.green]")
+        outputContains("result = [b.jar.green, c.jar.green]")
 
         when:
         executer.withArguments("-DbOutputDir=out", "-DbFileName=b-blue.jar")
         withBuildCache().succeeds(":a:resolve")
 
-        then: // name has changed, but should be up to date
+        then: // name has changed, should run
         result.assertTasksNotSkipped(":b:producer", ":a:resolve")
-        transformed()
-        outputContains("result = [b.green, c.green]")
+        transformed("b-blue.jar")
+        outputContains("result = [b-blue.jar.green, c.jar.green]")
 
         when:
-        withBuildCache().executer.withArguments("-DbOutputDir=out", "-DbFileName=b-blue.jar", "-DbContent=b-new")
+        withBuildCache().executer.withArguments("-DbOutputDir=out", "-DbContent=b-new")
         succeeds(":a:resolve")
 
         then: // new content, should run
         result.assertTasksNotSkipped(":b:producer", ":a:resolve")
-        transformed("b-blue.jar")
-        outputContains("result = [b-new.green, c.green]")
+        transformed("b.jar")
+        outputContains("result = [b.jar.green, c.jar.green]")
 
         when:
-        withBuildCache().executer.withArguments("-DbOutputDir=out", "-DbFileName=b-blue.jar", "-DbContent=b-new")
+        withBuildCache().executer.withArguments("-DbOutputDir=out", "-DbContent=b-new")
         succeeds(":a:resolve")
 
         then: // no change, should be up to date
         result.assertTasksNotSkipped(":a:resolve")
         transformed()
-        outputContains("result = [b-new.green, c.green]")
+        outputContains("result = [b.jar.green, c.jar.green]")
 
         when:
         withBuildCache().succeeds(":a:resolve")
@@ -485,7 +485,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         then: // have already seen these artifacts before
         result.assertTasksNotSkipped(":b:producer", ":a:resolve")
         transformed()
-        outputContains("result = [b.green, c.green]")
+        outputContains("result = [b.jar.green, c.jar.green]")
     }
 
     def "honors @PathSensitive(#sensitivity) to input artifact property for project artifact directory when caching"() {
@@ -537,10 +537,10 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         executer.withArguments("-DbOutputDir=out", "-DbDirName=b-blue")
         withBuildCache().succeeds(":a:resolve")
 
-        then: // name has changed, but should be up to date
+        then: // name has changed, should run
         result.assertTasksNotSkipped(":b:producer", ":a:resolve")
-        transformed()
-        outputContains("result = [b-dir.green, c-dir.green]")
+        transformed("b-blue")
+        outputContains("result = [b-blue.green, c-dir.green]")
 
         when:
         executer.withArguments("-DbOutputDir=out", "-DbDirName=b-blue", "-DbContent=new")
@@ -801,10 +801,10 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         executer.withArguments("-DbOutputDir=out", "-DbDirName=b-blue")
         withBuildCache().succeeds(":a:resolve")
 
-        then: // name has changed, should be up to date
+        then: // name has changed, should run
         result.assertTasksNotSkipped(":b:producer", ":a:resolve")
-        transformed()
-        outputContains("result = [b-dir.green, c-dir.green]")
+        transformed("b-blue")
+        outputContains("result = [b-blue.green, c-dir.green]")
 
         when:
         executer.withArguments("-DbOutputDir=out", "-DbDirName=b-blue", "-DbContent=new")
@@ -844,14 +844,16 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
 
     def "can attach @PathSensitive(NONE) to input artifact property for external artifact"() {
         setupBuildWithColorTransformAction()
-        def lib1 = mavenRepo.module("group1", "lib", "1.0").adhocVariants().variant('runtime', [color: 'blue']).withModuleMetadata().publish()
-        lib1.artifactFile.text = "lib"
-        def lib2 = mavenRepo.module("group2", "lib", "1.0").adhocVariants().variant('runtime', [color: 'blue']).withModuleMetadata().publish()
-        lib2.artifactFile.text = "lib"
-        def lib3 = mavenRepo.module("group2", "lib", "1.1").adhocVariants().variant('runtime', [color: 'blue']).withModuleMetadata().publish()
-        lib3.artifactFile.text = "lib"
-        def lib4 = mavenRepo.module("group2", "lib2", "1.0").adhocVariants().variant('runtime', [color: 'blue']).withModuleMetadata().publish()
-        lib4.artifactFile.text = "lib2"
+        def group1libv10 = mavenRepo.module("group1", "lib", "1.0").adhocVariants().variant('runtime', [color: 'blue']).withModuleMetadata().publish()
+        group1libv10.artifactFile.text = "lib"
+        def group2libv10 = mavenRepo.module("group2", "lib", "1.0").adhocVariants().variant('runtime', [color: 'blue']).withModuleMetadata().publish()
+        group2libv10.artifactFile.text = "lib"
+        def group2libv11 = mavenRepo.module("group2", "lib", "1.1").adhocVariants().variant('runtime', [color: 'blue']).withModuleMetadata().publish()
+        group2libv11.artifactFile.text = "lib"
+        def group2lib2v10 = mavenRepo.module("group2", "lib2", "1.0").adhocVariants().variant('runtime', [color: 'blue']).withModuleMetadata().publish()
+        group2lib2v10.artifactFile.text = "lib2"
+        def group1lib2v10 = mavenRepo.module("group1", "lib2", "1.0").adhocVariants().variant('runtime', [color: 'blue']).withModuleMetadata().publish()
+        group1lib2v10.artifactFile.text = "lib2"
 
         buildFile << """
             repositories {
@@ -873,7 +875,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
                 void transform(TransformOutputs outputs) {
                     def input = inputArtifact.get().asFile
                     println "processing \${input.name}"
-                    def output = outputs.file(input.text + ".green")
+                    def output = outputs.file(input.name + ".green")
                     output.text = input.text + ".green"
                 }
             }
@@ -884,44 +886,43 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
 
         then:
         transformed("lib-1.0.jar", "lib2-1.0.jar")
-        outputContains("result = [lib.green, lib2.green]")
+        outputContains("result = [lib-1.0.jar.green, lib2-1.0.jar.green]")
 
         when:
         succeeds(":resolve")
 
         then: // no change, should be up-to-date
         transformed()
-        outputContains("result = [lib.green, lib2.green]")
+        outputContains("result = [lib-1.0.jar.green, lib2-1.0.jar.green]")
 
         when:
         succeeds(":resolve", "-PexternalCoords=group2:lib:1.0")
 
         then: // path change, should be up-to-date
         transformed()
-        outputContains("result = [lib.green, lib2.green]")
+        outputContains("result = [lib-1.0.jar.green, lib2-1.0.jar.green]")
 
         when:
         succeeds(":resolve", "-PexternalCoords=group2:lib:1.1")
 
-        then: // name change, should be up-to-date
-        transformed()
-        outputContains("result = [lib.green, lib2.green]")
+        then: // name change, should run
+        transformed("lib-1.1.jar")
+        outputContains("result = [lib-1.1.jar.green, lib2-1.0.jar.green]")
 
         when:
-        lib1.artifactFile.text = "new-lib"
+        group1libv10.artifactFile.text = "new-lib"
         succeeds(":resolve")
 
         then: // content change, should run
         transformed("lib-1.0.jar")
-        outputContains("result = [new-lib.green, lib2.green]")
+        outputContains("result = [lib-1.0.jar.green, lib2-1.0.jar.green]")
 
         when:
-        lib4.artifactFile.text = "new-lib"
-        succeeds(":resolve")
+        succeeds(":resolve", "-PexternalCoords=group1:lib2:1.0")
 
-        then: // duplicate content
+        then: // duplicate content / name
         transformed()
-        outputContains("result = [new-lib.green]")
+        outputContains("result = [lib2-1.0.jar.green]")
     }
 
     def "can attach @PathSensitive(#sensitivity) to input artifact property for external artifact"() {
@@ -1183,10 +1184,10 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         executer.withArguments("-DbContent=new", "-DbTimestamp=567", "-DbOutputDir=out", "-DbFileName=b-blue.jar")
         withBuildCache().succeeds(":a:resolve")
 
-        then: // new file name, should not run
+        then: // new file name, should run
         result.assertTasksNotSkipped(":b:producer", ":a:resolve")
-        transformed()
-        outputContains("result = [b.jar.green, c.jar.green]")
+        transformed("b-blue.jar")
+        outputContains("result = [b-blue.jar.green, c.jar.green]")
 
         when:
         withBuildCache().succeeds(":a:resolve")

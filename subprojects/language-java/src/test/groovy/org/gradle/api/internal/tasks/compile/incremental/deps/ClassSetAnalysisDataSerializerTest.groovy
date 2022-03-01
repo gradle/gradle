@@ -22,6 +22,7 @@ import it.unimi.dsi.fastutil.ints.IntSets
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.tasks.compile.incremental.serialization.HierarchicalNameSerializer
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.serialize.InputStreamBackedDecoder
 import org.gradle.internal.serialize.OutputStreamBackedEncoder
 import spock.lang.Specification
@@ -32,7 +33,7 @@ import static org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps
 
 class ClassSetAnalysisDataSerializerTest extends Specification {
 
-    HashCode hash = HashCode.fromInt(0)
+    HashCode hash = TestHashCodes.hashCodeFrom(0)
     @Subject serializer = new ClassSetAnalysisData.Serializer({ new HierarchicalNameSerializer(new StringInterner())})
 
     def "serializes"() {

@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.provider
+package org.gradle.tooling.internal.provider.continuous
 
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.deployment.internal.DefaultContinuousExecutionGate
 import org.gradle.deployment.internal.Deployment
 import org.gradle.deployment.internal.DeploymentInternal
 import org.gradle.deployment.internal.DeploymentRegistryInternal
 import org.gradle.initialization.BuildRequestMetaData
 import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.initialization.DefaultBuildRequestContext
-import org.gradle.initialization.DefaultContinuousExecutionGate
 import org.gradle.initialization.NoOpBuildEventConsumer
 import org.gradle.integtests.fixtures.RedirectStdIn
 import org.gradle.internal.buildevents.BuildStartedTime

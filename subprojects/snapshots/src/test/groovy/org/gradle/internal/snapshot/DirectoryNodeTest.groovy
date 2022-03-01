@@ -18,14 +18,14 @@ package org.gradle.internal.snapshot
 
 import org.gradle.internal.file.FileMetadata.AccessType
 import org.gradle.internal.file.FileType
-import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.TestHashCodes
 
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
 
 class DirectoryNodeTest extends AbstractFileSystemNodeWithChildrenTest<FileSystemNode, FileSystemLocationSnapshot> {
     @Override
     protected FileSystemNode createInitialRootNode(ChildMap<FileSystemLocationSnapshot> children) {
-        return new DirectorySnapshot("/root/some/path", PathUtil.getFileName("path"), AccessType.DIRECT, HashCode.fromInt(1234), children).asFileSystemNode()
+        return new DirectorySnapshot("/root/some/path", PathUtil.getFileName("path"), AccessType.DIRECT, TestHashCodes.hashCodeFrom(1234), children).asFileSystemNode()
     }
 
     @Override

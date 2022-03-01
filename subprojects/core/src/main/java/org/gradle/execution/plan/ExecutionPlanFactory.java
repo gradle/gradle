@@ -16,6 +16,7 @@
 
 package org.gradle.execution.plan;
 
+import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -27,6 +28,7 @@ public class ExecutionPlanFactory {
     private final NodeValidator nodeValidator;
     private final ExecutionNodeAccessHierarchy outputHierarchy;
     private final ExecutionNodeAccessHierarchy destroyableHierarchy;
+    private final ResourceLockCoordinationService lockCoordinationService;
 
     public ExecutionPlanFactory(
         String displayName,
@@ -34,7 +36,8 @@ public class ExecutionPlanFactory {
         TaskDependencyResolver dependencyResolver,
         NodeValidator nodeValidator,
         ExecutionNodeAccessHierarchy outputHierarchy,
-        ExecutionNodeAccessHierarchy destroyableHierarchy
+        ExecutionNodeAccessHierarchy destroyableHierarchy,
+        ResourceLockCoordinationService lockCoordinationService
     ) {
         this.displayName = displayName;
         this.taskNodeFactory = taskNodeFactory;
@@ -42,9 +45,10 @@ public class ExecutionPlanFactory {
         this.nodeValidator = nodeValidator;
         this.outputHierarchy = outputHierarchy;
         this.destroyableHierarchy = destroyableHierarchy;
+        this.lockCoordinationService = lockCoordinationService;
     }
 
     public ExecutionPlan createPlan() {
-        return new DefaultExecutionPlan(displayName, taskNodeFactory, dependencyResolver, nodeValidator, outputHierarchy, destroyableHierarchy);
+        return new DefaultExecutionPlan(displayName, taskNodeFactory, dependencyResolver, nodeValidator, outputHierarchy, destroyableHierarchy, lockCoordinationService);
     }
 }

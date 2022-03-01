@@ -23,10 +23,10 @@ import org.gradle.performance.results.NoResultsStore;
 import org.gradle.performance.results.PerformanceDatabase;
 import org.gradle.performance.results.PerformanceExperiment;
 import org.gradle.performance.results.PerformanceReportScenario;
+import org.gradle.performance.results.PerformanceTestExecutionResult;
 import org.gradle.performance.results.PerformanceTestHistory;
 import org.gradle.performance.results.ResultsStore;
 import org.gradle.performance.results.ResultsStoreHelper;
-import org.gradle.performance.results.PerformanceTestExecutionResult;
 import org.gradle.util.internal.GFileUtils;
 
 import java.io.File;
@@ -45,6 +45,8 @@ import java.util.stream.Collectors;
 import static org.gradle.performance.results.report.PerformanceFlakinessDataProvider.EmptyPerformanceFlakinessDataProvider;
 
 public abstract class AbstractReportGenerator<R extends ResultsStore> {
+    public static final String SYSPROP_PERFORMANCE_TEST_CHANNEL_PATTERNS = "org.gradle.performance.execution.channel.patterns";
+
     protected void generateReport(String... args) {
         File outputDirectory = new File(args[0]);
         String projectName = args[1];
@@ -83,7 +85,7 @@ public abstract class AbstractReportGenerator<R extends ResultsStore> {
             .map(PerformanceReportScenario::getPerformanceExperiment)
             .distinct()
             .forEach(experiment -> {
-                PerformanceTestHistory testResults = store.getTestResults(experiment, 500, 90, ResultsStoreHelper.determineChannel(), executedBuildIds);
+                PerformanceTestHistory testResults = store.getTestResults(experiment, 500, 90, determineChannelPatterns(), executedBuildIds);
                 renderScenarioPage(projectName, outputDirectory, testResults);
             });
 
@@ -94,6 +96,16 @@ public abstract class AbstractReportGenerator<R extends ResultsStore> {
         copyResource("report.js", outputDirectory);
         copyResource("performanceGraph.js", outputDirectory);
         copyResource("performanceReport.js", outputDirectory);
+    }
+
+    private List<String> determineChannelPatterns() {
+        List<String> patterns = new ArrayList<>();
+        patterns.add(ResultsStoreHelper.determineChannel());
+        String extraPatterns = System.getProperty(SYSPROP_PERFORMANCE_TEST_CHANNEL_PATTERNS, "");
+        if (!extraPatterns.isEmpty()) {
+            patterns.addAll(Arrays.asList(extraPatterns.split(",")));
+        }
+        return patterns;
     }
 
     protected void renderIndexPage(PerformanceFlakinessDataProvider flakinessDataProvider, PerformanceExecutionDataProvider executionDataProvider, File output) throws IOException {

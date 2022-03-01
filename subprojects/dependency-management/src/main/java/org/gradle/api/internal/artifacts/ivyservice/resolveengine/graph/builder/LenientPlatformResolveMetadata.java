@@ -181,6 +181,11 @@ class LenientPlatformResolveMetadata implements ModuleComponentResolveMetadata {
     }
 
     @Override
+    public ModuleComponentArtifactMetadata optionalArtifact(String type, @Nullable String extension, @Nullable String classifier) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public ImmutableList<? extends ComponentVariant> getVariants() {
         return ImmutableList.of();
     }

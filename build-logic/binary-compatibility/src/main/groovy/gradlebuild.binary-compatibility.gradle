@@ -47,8 +47,8 @@ repositories {
     }
 }
 
-def apiChangesJsonFile = project.file("src/changes/accepted-public-api-changes.json")
-def acceptedViolations = AcceptedApiChanges.parse(apiChangesJsonFile.text)
+def apiChangesJsonFile = layout.projectDirectory.file("src/changes/accepted-public-api-changes.json")
+def acceptedViolations = AcceptedApiChanges.parse(providers.fileContents(apiChangesJsonFile).asText.get())
 def compatibilityBaselineVersion = moduleIdentity.releasedVersions.get().mostRecentRelease.version
 
 def ARTIFACT_TYPE = Attribute.of('artifactType', String)
@@ -160,7 +160,7 @@ tasks.named("check").configure { dependsOn(checkBinaryCompatibility) }
 
 tasks.register("cleanAcceptedApiChanges", CleanAcceptedApiChanges) {
     description = 'Cleans up all existing accepted API changes.'
-    jsonFile = apiChangesJsonFile
+    jsonFile = apiChangesJsonFile.asFile
 }
 
 static List<String> toPatterns(List<String> packages) {

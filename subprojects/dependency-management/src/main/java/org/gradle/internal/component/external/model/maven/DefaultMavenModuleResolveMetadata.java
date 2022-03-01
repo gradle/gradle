@@ -91,7 +91,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
 
     @Override
     protected DefaultConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableSet<String> parents, VariantMetadataRules componentMetadataRules) {
-        ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts = getArtifactsForConfiguration(name);
+        ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts = getArtifactsForConfiguration();
         final DefaultConfigurationMetadata configuration = new DefaultConfigurationMetadata(componentId, name, transitive, visible, parents, artifacts, componentMetadataRules, ImmutableList.of(), getAttributes(), false);
         configuration.setConfigDependenciesFactory(new Factory<List<ModuleDependencyMetadata>>() {
             @Nullable
@@ -131,8 +131,8 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
         return md;
     }
 
-    private ImmutableList<? extends ModuleComponentArtifactMetadata> getArtifactsForConfiguration(String name) {
-        return RealisedMavenModuleResolveMetadata.getArtifactsForConfiguration(this, name);
+    private ImmutableList<? extends ModuleComponentArtifactMetadata> getArtifactsForConfiguration() {
+        return RealisedMavenModuleResolveMetadata.getArtifactsForConfiguration(this);
     }
 
     private ImmutableList<ModuleDependencyMetadata> filterDependencies(DefaultConfigurationMetadata config) {

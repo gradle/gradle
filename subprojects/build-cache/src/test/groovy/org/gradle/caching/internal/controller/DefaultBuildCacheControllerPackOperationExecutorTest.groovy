@@ -30,7 +30,7 @@ import org.gradle.caching.internal.packaging.BuildCacheEntryPacker
 import org.gradle.internal.file.FileMetadata
 import org.gradle.internal.file.TreeType
 import org.gradle.internal.file.impl.DefaultFileMetadata
-import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.operations.BuildOperationContext
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.CallableBuildOperation
@@ -79,10 +79,10 @@ class DefaultBuildCacheControllerPackOperationExecutorTest extends Specification
             prop("outputFile", FILE, outputFile)
         )
 
-        def outputFileSnapshot = new RegularFileSnapshot(outputFile.absolutePath, outputFile.name, HashCode.fromInt(234), DefaultFileMetadata.file(15, 234, FileMetadata.AccessType.DIRECT))
+        def outputFileSnapshot = new RegularFileSnapshot(outputFile.absolutePath, outputFile.name, TestHashCodes.hashCodeFrom(234), DefaultFileMetadata.file(15, 234, FileMetadata.AccessType.DIRECT))
         def fileSnapshots = [
-            outputDir: new DirectorySnapshot(outputDir.getAbsolutePath(), outputDir.name, FileMetadata.AccessType.DIRECT, HashCode.fromInt(456), [
-                new RegularFileSnapshot(outputDirFile.getAbsolutePath(), outputDirFile.name, HashCode.fromInt(123), DefaultFileMetadata.file(46, 123, FileMetadata.AccessType.DIRECT))
+            outputDir: new DirectorySnapshot(outputDir.getAbsolutePath(), outputDir.name, FileMetadata.AccessType.DIRECT, TestHashCodes.hashCodeFrom(456), [
+                new RegularFileSnapshot(outputDirFile.getAbsolutePath(), outputDirFile.name, TestHashCodes.hashCodeFrom(123), DefaultFileMetadata.file(46, 123, FileMetadata.AccessType.DIRECT))
             ]),
             outputFile: outputFileSnapshot
         ]

@@ -144,16 +144,12 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
     }
 
     @Override
-    public CrossBuildPerformanceTestHistory getTestResults(PerformanceExperiment experiment, String channel) {
-        return getTestResults(experiment, Integer.MAX_VALUE, Integer.MAX_VALUE, channel, ImmutableList.of());
-    }
-
-    @Override
-    public CrossBuildPerformanceTestHistory getTestResults(final PerformanceExperiment experiment, final int mostRecentN, final int maxDaysOld, final String channel, List<String> teamcityBuildIds) {
+    public CrossBuildPerformanceTestHistory getTestResults(final PerformanceExperiment experiment, final int mostRecentN, final int maxDaysOld, final List<String> channelPatterns, List<String> teamcityBuildIds) {
         return withConnection("load results", connection -> {
             String buildIdQuery = teamcityBuildIdQueryFor(teamcityBuildIds);
+            String channelPatternQuery = channelPatternQueryFor(channelPatterns);
             try (
-                PreparedStatement executionsForName = connection.prepareStatement("select id, startTime, endTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit, testGroup, channel, host, teamCityBuildId from testExecution where testClass = ? and testId = ? and testProject = ? and startTime >= ? and (channel = ?" + buildIdQuery + ") order by startTime desc limit ?");
+                PreparedStatement executionsForName = connection.prepareStatement("select id, startTime, endTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit, testGroup, channel, host, teamCityBuildId from testExecution where testClass = ? and testId = ? and testProject = ? and startTime >= ? and (" + channelPatternQuery + buildIdQuery + ") order by startTime desc limit ?");
                 PreparedStatement operationsForExecution = connection.prepareStatement("select displayName, tasks, args, gradleOpts, daemon, totalTime, cleanTasks from testOperation where testExecution = ?")
             ) {
                 int idx = 0;
@@ -162,7 +158,9 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
                 executionsForName.setString(++idx, experiment.getTestProject());
                 Timestamp minDate = new Timestamp(LocalDate.now().minusDays(maxDaysOld).toDate().getTime());
                 executionsForName.setTimestamp(++idx, minDate);
-                executionsForName.setString(++idx, channel);
+                for (String channelPattern : channelPatterns) {
+                    executionsForName.setString(++idx, channelPattern);
+                }
                 for (String teamcityBuildId : teamcityBuildIds) {
                     executionsForName.setString(++idx, teamcityBuildId);
                 }

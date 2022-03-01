@@ -47,7 +47,7 @@ _Depends on_: All tasks which contribute to the compilation classpath, including
 +
 Compiles production Java source files using the JDK compiler.
 
-`processResources` — link:{groovyDslPath}/org.gradle.api.tasks.Copy.html[Copy]::
+`processResources` — link:{groovyDslPath}/org.gradle.language.jvm.tasks.ProcessResources.html[ProcessResources]::
 Copies production resources into the production resources directory.
 
 `classes`::

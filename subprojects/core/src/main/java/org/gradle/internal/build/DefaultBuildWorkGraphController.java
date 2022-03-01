@@ -16,11 +16,13 @@
 
 package org.gradle.internal.build;
 
+import com.google.common.util.concurrent.Runnables;
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.composite.internal.IncludedBuildTaskResource;
 import org.gradle.composite.internal.TaskIdentifier;
 import org.gradle.execution.plan.BuildWorkPlan;
+import org.gradle.execution.plan.LocalTaskNode;
 import org.gradle.execution.plan.TaskNode;
 import org.gradle.execution.plan.TaskNodeFactory;
 
@@ -65,7 +67,7 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
     }
 
     private DefaultExportedTaskNode doLocate(TaskIdentifier taskIdentifier) {
-        return nodesByPath.computeIfAbsent(taskIdentifier.getTaskPath(), taskPath -> new DefaultExportedTaskNode(taskPath, taskIdentifier.getOrdinal()));
+        return nodesByPath.computeIfAbsent(taskIdentifier.getTaskPath(), DefaultExportedTaskNode::new);
     }
 
     @Nullable
@@ -84,6 +86,13 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
 
         public DefaultBuildWorkGraph() {
             this.owner = Thread.currentThread();
+        }
+
+        @Override
+        public void stop() {
+            if (plan != null) {
+                plan.stop();
+            }
         }
 
         @Override
@@ -121,6 +130,14 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
             if (plan == null) {
                 controller.prepareToScheduleTasks();
                 plan = controller.newWorkGraph();
+                plan.onComplete(this::nodeComplete);
+            }
+        }
+
+        private void nodeComplete(LocalTaskNode node) {
+            DefaultExportedTaskNode exportedNode = nodesByPath.get(node.getTask().getPath());
+            if (exportedNode != null) {
+                exportedNode.fireCompleted();
             }
         }
 
@@ -157,23 +174,28 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
     private class DefaultExportedTaskNode implements ExportedTaskNode {
         final String taskPath;
         TaskNode taskNode;
-        int ordinal;
+        Runnable action = Runnables.doNothing();
 
-        DefaultExportedTaskNode(String taskPath, int ordinal) {
+        DefaultExportedTaskNode(String taskPath) {
             this.taskPath = taskPath;
-            this.ordinal = ordinal;
-        }
-
-        @Override
-        public int getOrdinal() {
-            return ordinal;
         }
 
         void maybeBindTask(TaskInternal task) {
             synchronized (lock) {
                 if (taskNode == null) {
-                    taskNode = taskNodeFactory.getOrCreateNode(task, ordinal);
+                    taskNode = taskNodeFactory.getOrCreateNode(task);
                 }
+            }
+        }
+
+        @Override
+        public void onComplete(Runnable action) {
+            synchronized (lock) {
+                Runnable previous = this.action;
+                this.action = () -> {
+                    previous.run();
+                    action.run();
+                };
             }
         }
 
@@ -185,7 +207,7 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
                     if (task == null) {
                         throw new IllegalStateException("Task '" + taskPath + "' was never scheduled for execution.");
                     }
-                    taskNode = taskNodeFactory.getOrCreateNode(task, ordinal);
+                    taskNode = taskNodeFactory.getOrCreateNode(task);
                 }
                 return taskNode.getTask();
             }
@@ -200,7 +222,7 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
                         // Assume not scheduled yet
                         return IncludedBuildTaskResource.State.Waiting;
                     }
-                    taskNode = taskNodeFactory.getOrCreateNode(task, ordinal);
+                    taskNode = taskNodeFactory.getOrCreateNode(task);
                 }
                 if (taskNode.isExecuted() && taskNode.isSuccessful()) {
                     return IncludedBuildTaskResource.State.Success;
@@ -217,6 +239,13 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
         public boolean shouldSchedule() {
             synchronized (lock) {
                 return taskNode == null || !taskNode.isRequired();
+            }
+        }
+
+        public void fireCompleted() {
+            synchronized (lock) {
+                action.run();
+                action = Runnables.doNothing();
             }
         }
     }

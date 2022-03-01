@@ -69,13 +69,13 @@ public class TaskNodeFactory {
         return nodes.get(task);
     }
 
-    public TaskNode getOrCreateNode(Task task, int ordinal) {
+    public TaskNode getOrCreateNode(Task task) {
         TaskNode node = nodes.get(task);
         if (node == null) {
             if (task.getProject().getGradle() == thisBuild) {
-                node = new LocalTaskNode((TaskInternal) task, new DefaultWorkValidationContext(documentationRegistry, typeOriginInspectorFactory.forTask(task)), ordinal);
+                node = new LocalTaskNode((TaskInternal) task, new DefaultWorkValidationContext(documentationRegistry, typeOriginInspectorFactory.forTask(task)));
             } else {
-                node = TaskInAnotherBuild.of((TaskInternal) task, workGraphController, ordinal);
+                node = TaskInAnotherBuild.of((TaskInternal) task, workGraphController);
             }
             nodes.put(task, node);
         }

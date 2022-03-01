@@ -27,7 +27,7 @@ import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.classloader.FilteringClassLoader
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
-import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.instantiation.ManagedTypeFactory
 import org.gradle.internal.state.ManagedFactoryRegistry
 import org.gradle.util.TestUtil
@@ -36,7 +36,7 @@ import spock.lang.Specification
 class DefaultIsolatableFactoryTest extends Specification {
 
     def classLoaderHasher = Stub(ClassLoaderHierarchyHasher) {
-        getClassLoaderHash(_) >> HashCode.fromInt(123)
+        getClassLoaderHash(_) >> TestHashCodes.hashCodeFrom(123)
     }
     def managedFactoryRegistry = Mock(ManagedFactoryRegistry)
     def snapshotter = new DefaultValueSnapshotter([], classLoaderHasher)

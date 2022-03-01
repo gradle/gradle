@@ -39,6 +39,13 @@ dependencyResolutionManagement {
                 includeModule("classycle", "classycle")
             }
         }
+        maven {
+            name = "Kotlin EAP repository"
+            url = uri("https://cache-redirector.jetbrains.com/maven.pkg.jetbrains.space/kotlin/p/kotlin/bootstrap")
+            content {
+                includeVersionByRegex("org.jetbrains.kotlin", "kotlin-.*", "1.7.0-dev-1904")
+            }
+        }
         mavenCentral()
         gradlePluginPortal()
     }
