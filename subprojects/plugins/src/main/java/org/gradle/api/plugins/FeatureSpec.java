@@ -34,12 +34,15 @@ public interface FeatureSpec {
     void usingSourceSet(SourceSet sourceSet);
 
     /**
-     * Declares a capability of this feature. By default, a capability
-     * corresponding to the "group", "name" + feature name will be created.
-     * For example, if the group of the component is "org", that the project
-     * name is "lib" and that the feature name is "myFeature", then a
-     * capability named "org:lib-my-feature" is automatically added. Calling
-     * this method override the default and register <i>additional</i> capabilities.
+     * Declares a capability of this feature.
+     *
+     * By default, a capability corresponding to the "group", "name" + feature
+     * name and version of this project will be created. For example, if the
+     * group of the component is "org", that the project name is "lib" the
+     * version is "1.0" and that the feature name is "myFeature", then a
+     * capability named "org:lib-my-feature:1.0" is automatically added.
+     * Calling this method will override the default and register
+     * <i>additional</i> capabilities.
      *
      * @param group the group of the capability
      * @param name the name of the capability
@@ -57,7 +60,7 @@ public interface FeatureSpec {
 
     /**
      * Automatically package sources from the linked {@link #usingSourceSet(SourceSet) SourceSet} and register the produced JAR as a variant.
-     * See also {@link JavaPluginExtension#withSourcesJar()} ()}.
+     * See also {@link JavaPluginExtension#withSourcesJar()}.
      *
      * @since 6.0
      */
