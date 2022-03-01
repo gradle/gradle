@@ -94,7 +94,7 @@ project :$expectedProject
 
             task insight(type: DependencyInsightReportTask) {
                 showingAllVariants = true
-                setDependencySpec { it.requested in ProjectComponentSelector }
+                dependencySpec = { it.requested in ProjectComponentSelector }
                 configuration = configurations.$configuration
             }
         """
@@ -211,7 +211,7 @@ project :$expectedProject
 
             task insight(type: DependencyInsightReportTask) {
                 showingAllVariants = true
-                setDependencySpec { it.requested in ProjectComponentSelector }
+                dependencySpec = { it.requested in ProjectComponentSelector }
                 configuration = configurations.$configuration
             }
         """
@@ -382,7 +382,7 @@ org.test:leaf:1.0
                 conf 'org:top:1.0'
             }
             task insight(type: DependencyInsightReportTask) {
-                setDependencySpec { it.requested.module == 'middle' }
+                dependencySpec = { it.requested.module == 'middle' }
                 configuration = configurations.conf
             }
         """
@@ -415,7 +415,7 @@ org:middle:1.0 FAILED
             }
             task insight(type: DependencyInsightReportTask) {
                 showingAllVariants = false
-                setDependencySpec { it.requested.module == 'leaf' }
+                dependencySpec = { it.requested.module == 'leaf' }
                 configuration = configurations.conf
             }
         """
@@ -459,7 +459,7 @@ org:leaf:1.0
             }
             task insight(type: DependencyInsightReportTask) {
                 showingAllVariants = false
-                setDependencySpec { it.requested.module == 'leaf' }
+                dependencySpec = { it.requested.module == 'leaf' }
                 configuration = configurations.conf
             }
         """
