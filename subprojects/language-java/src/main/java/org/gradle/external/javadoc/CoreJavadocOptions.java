@@ -16,6 +16,7 @@
 
 package org.gradle.external.javadoc;
 
+import com.google.common.collect.Sets;
 import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Input;
 import org.gradle.external.javadoc.internal.JavadocOptionFile;
@@ -31,12 +32,28 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Provides the core Javadoc Options. That is, provides the options which are not doclet specific.
  */
 public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
+    private static final String OPTION_OVERVIEW = "overview";
+    private static final String OPTION_MEMBERLEVEL = "memberLevel";
+    private static final String OPTION_DOCLET = "doclet";
+    private static final String OPTION_DOCLETPATH = "docletpath";
+    private static final String OPTION_SOURCE = "source";
+    private static final String OPTION_CLASSPATH = "classpath";
+    private static final String OPTION_MODULE_PATH = "-module-path";
+    private static final String OPTION_SOURCE_PATH = "-source-path";
+    private static final String OPTION_BOOTCLASSPATH = "bootclasspath";
+    private static final String OPTION_EXTDIRS = "extdirs";
+    private static final String OPTION_OUTPUTLEVEL = "outputLevel";
+    private static final String OPTION_BREAKITERATOR = "breakiterator";
+    private static final String OPTION_LOCALE = "locale";
+    private static final String OPTION_ENCODING = "encoding";
+
     protected final JavadocOptionFile optionFile;
 
     private final JavadocOptionFileOption<String> overview;
@@ -64,20 +81,20 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
     protected CoreJavadocOptions(JavadocOptionFile optionFile) {
         this.optionFile = optionFile;
 
-        overview = addStringOption("overview");
-        memberLevel = addEnumOption("memberLevel");
-        doclet = addStringOption("doclet");
-        docletpath = addPathOption("docletpath");
-        source = addStringOption("source");
-        classpath = addPathOption("classpath");
-        modulePath = addPathOption("-module-path");
-        sourcePath = addPathOption("-source-path");
-        bootClasspath = addPathOption("bootclasspath");
-        extDirs = addPathOption("extdirs");
-        outputLevel = addEnumOption("outputLevel", JavadocOutputLevel.QUIET);
-        breakIterator = addBooleanOption("breakiterator");
-        locale = addStringOption("locale");
-        encoding = addStringOption("encoding");
+        overview = addStringOption(OPTION_OVERVIEW);
+        memberLevel = addEnumOption(OPTION_MEMBERLEVEL);
+        doclet = addStringOption(OPTION_DOCLET);
+        docletpath = addPathOption(OPTION_DOCLETPATH);
+        source = addStringOption(OPTION_SOURCE);
+        classpath = addPathOption(OPTION_CLASSPATH);
+        modulePath = addPathOption(OPTION_MODULE_PATH);
+        sourcePath = addPathOption(OPTION_SOURCE_PATH);
+        bootClasspath = addPathOption(OPTION_BOOTCLASSPATH);
+        extDirs = addPathOption(OPTION_EXTDIRS);
+        outputLevel = addEnumOption(OPTION_OUTPUTLEVEL, JavadocOutputLevel.QUIET);
+        breakIterator = addBooleanOption(OPTION_BREAKITERATOR);
+        locale = addStringOption(OPTION_LOCALE);
+        encoding = addStringOption(OPTION_ENCODING);
 
         sourceNames = optionFile.getSourceNames();
     }
@@ -85,24 +102,37 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
     protected CoreJavadocOptions(CoreJavadocOptions original, JavadocOptionFile optionFile) {
         this.optionFile = optionFile;
 
-        overview = optionFile.getOption("overview");
-        memberLevel = optionFile.getOption("memberLevel");
-        doclet = optionFile.getOption("doclet");
-        docletpath = optionFile.getOption("docletpath");
-        source = optionFile.getOption("source");
-        classpath = optionFile.getOption("classpath");
-        modulePath = optionFile.getOption("-module-path");
-        sourcePath = optionFile.getOption("-source-path");
-        bootClasspath = optionFile.getOption("bootclasspath");
-        extDirs = optionFile.getOption("extdirs");
-        outputLevel = optionFile.getOption("outputLevel");
-        breakIterator = optionFile.getOption("breakiterator");
-        locale = optionFile.getOption("locale");
-        encoding = optionFile.getOption("encoding");
+        overview = optionFile.getOption(OPTION_OVERVIEW);
+        memberLevel = optionFile.getOption(OPTION_MEMBERLEVEL);
+        doclet = optionFile.getOption(OPTION_DOCLET);
+        docletpath = optionFile.getOption(OPTION_DOCLETPATH);
+        source = optionFile.getOption(OPTION_SOURCE);
+        classpath = optionFile.getOption(OPTION_CLASSPATH);
+        modulePath = optionFile.getOption(OPTION_MODULE_PATH);
+        sourcePath = optionFile.getOption(OPTION_SOURCE_PATH);
+        bootClasspath = optionFile.getOption(OPTION_BOOTCLASSPATH);
+        extDirs = optionFile.getOption(OPTION_EXTDIRS);
+        outputLevel = optionFile.getOption(OPTION_OUTPUTLEVEL);
+        breakIterator = optionFile.getOption(OPTION_BREAKITERATOR);
+        locale = optionFile.getOption(OPTION_LOCALE);
+        encoding = optionFile.getOption(OPTION_ENCODING);
 
         sourceNames = optionFile.getSourceNames();
         jFlags = original.jFlags;
         optionFiles = original.optionFiles;
+    }
+
+    /**
+     * Gets a set of all the options that are known to this class and have separate properties.
+     *
+     * @return set of property names
+     * @since 7.5
+     */
+    @Incubating
+    protected Set<String> knownOptions() {
+        return Sets.newHashSet(OPTION_OVERVIEW, OPTION_MEMBERLEVEL, OPTION_DOCLET, OPTION_DOCLETPATH, OPTION_SOURCE,
+                OPTION_CLASSPATH, OPTION_MODULE_PATH, OPTION_SOURCE_PATH, OPTION_BOOTCLASSPATH, OPTION_EXTDIRS,
+                OPTION_OUTPUTLEVEL, OPTION_BREAKITERATOR, OPTION_LOCALE, OPTION_ENCODING);
     }
 
     /**
@@ -738,7 +768,10 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      */
     @Incubating
     @Input
-    protected Map<String, String> getFullOptions() {
-        return optionFile.stringifyOptionsToMap();
+    protected String getExtraOptions() {
+        String result = optionFile.stringifyExtraOptionsToMap(knownOptions()).entrySet().stream()
+                .map(e -> e.getKey() + ":" + e.getValue())
+                .collect(Collectors.joining(", "));
+        return result;
     }
 }

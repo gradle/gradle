@@ -28,6 +28,8 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class JavadocOptionFile {
     private final Map<String, JavadocOptionFileOptionInternal<?>> options;
@@ -147,9 +149,9 @@ public class JavadocOptionFile {
         return addOption(new MultilineMultiValueJavadocOptionFileOption(option, Lists.<List<String>>newArrayList(), " "));
     }
 
-    public Map<String, String> stringifyOptionsToMap() {
-        Map<String, String> result = new LinkedHashMap<>(options.size());
-        options.forEach((key, value) -> result.put(key, String.valueOf(value.getValue())));
-        return result;
+    public Map<String, String> stringifyExtraOptionsToMap(Set<String> optionsToExclude) {
+        return options.entrySet().stream()
+                .filter(entry -> !optionsToExclude.contains(entry.getKey()))
+                .collect(Collectors.toMap(Map.Entry::getKey, entry -> String.valueOf(entry.getValue().getValue())));
     }
 }
