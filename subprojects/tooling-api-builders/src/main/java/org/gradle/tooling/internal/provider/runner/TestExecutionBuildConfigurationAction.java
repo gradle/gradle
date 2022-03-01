@@ -58,13 +58,21 @@ class TestExecutionBuildConfigurationAction implements BuildConfigurationAction 
 
     @Override
     public void configure(BuildExecutionContext context) {
-        final Set<Test> allTestTasksToRun = new LinkedHashSet<Test>();
+        final Set<Test> allTestTasksToRun = new LinkedHashSet<>();
         final GradleInternal gradleInternal = context.getGradle();
         allTestTasksToRun.addAll(configureBuildForTestDescriptors(testExecutionRequest));
         allTestTasksToRun.addAll(configureBuildForInternalJvmTestRequest(gradleInternal, testExecutionRequest));
         allTestTasksToRun.addAll(configureBuildForTestTasks(testExecutionRequest));
         configureTestTasks(allTestTasksToRun);
         context.getExecutionPlan().addEntryTasks(allTestTasksToRun, 0);
+        for (String task : testExecutionRequest.getTasks()) {
+            context.getExecutionPlan().addEntryTasks(queryTasks(task));
+        }
+        if (testExecutionRequest.isRunDefaultTasks()) {
+            for (String defaultTask : gradleInternal.getDefaultProject().getDefaultTasks()) {
+                context.getExecutionPlan().addEntryTasks(queryTasks(defaultTask));
+            }
+        }
     }
 
     private void configureTestTasks(Set<Test> allTestTasksToRun) {
@@ -136,19 +144,25 @@ class TestExecutionBuildConfigurationAction implements BuildConfigurationAction 
         return testTasksToRun;
     }
 
-    private Set<Test> queryTestTasks(String testTaskPath) {
+    private Set<Task> queryTasks(String testTaskPath) {
         TaskSelection taskSelection;
         try {
             taskSelection = taskSelector.getSelection(testTaskPath);
         } catch (TaskSelectionException e) {
             throw new TestExecutionException(String.format("Requested test task with path '%s' cannot be found.", testTaskPath));
         }
+
         Set<Task> tasks = taskSelection.getTasks();
         if (tasks.isEmpty()) {
             throw new TestExecutionException(String.format("Requested test task with path '%s' cannot be found.", testTaskPath));
         }
+
+        return tasks;
+    }
+
+    private Set<Test> queryTestTasks(String testTaskPath) {
         Set<Test> result = new LinkedHashSet<>();
-        for (Task task : tasks) {
+        for (Task task : queryTasks(testTaskPath)) {
             if (!(task instanceof Test)) {
                 throw new TestExecutionException(String.format("Task '%s' of type '%s' not supported for executing tests via TestLauncher API.", testTaskPath, task.getClass().getName()));
             }

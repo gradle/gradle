@@ -56,6 +56,20 @@ Gradle 7.6 introduces new failure types for the `Failure` interface returned by 
 IDEs can now easily distinguish between different failures using standard progress event listeners. 
 Moreover, `TestAssertionFailure` exposes the expected and actual values if the used test framework supply such information.
 
+#### Task execution with TestLauncher
+
+The [TestLauncher](javadoc/org/gradle/tooling/TestLauncher.html) interface now allows Tooling API clients to execute any tasks along with the selected tasks.
+
+```
+ProjectConnection connection = ...
+connection.newTestLauncher()
+          .withTaskAndTestClasses("integTest", ["org.MyTest"])
+          .forTasks("startDB")
+          .run()
+```
+
+Note, that the task execution only works if the target Gradle version is >=7.6.
+
 ### Improved Maven Conversion
 
 The `init` task now adds compile-time Maven dependencies to Gradle's `api` configuration when converting a Maven project. This sharply reduces the number of compilation errors resulting from the automatic conversion utility. See the [Build Init Plugin](userguide/build_init_plugin.html#sec:pom_maven_conversion) for more information.
