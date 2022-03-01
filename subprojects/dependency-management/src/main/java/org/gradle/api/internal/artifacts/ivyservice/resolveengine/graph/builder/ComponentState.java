@@ -39,7 +39,9 @@ import org.gradle.internal.Pair;
 import org.gradle.internal.component.external.model.ImmutableCapability;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
+import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DefaultComponentOverrideMetadata;
+import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.result.DefaultBuildableComponentResolveResult;
@@ -50,8 +52,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Predicate;
-import java.util.stream.Stream;
+import java.util.function.Consumer;
 import java.util.stream.StreamSupport;
 
 /**
@@ -277,8 +278,9 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
 
     @Override
     public List<ResolvedVariantResult> getResolvedVariants() {
-        return getResolvedVariantsStream()
-            .collect(ImmutableList.toImmutableList());
+        ImmutableList.Builder<ResolvedVariantResult> builder = ImmutableList.builder();
+        addResolvedVariants(builder::add);
+        return builder.build();
     }
 
     @Override
@@ -286,57 +288,58 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         // Without mixing in resolved variants here, we don't return all variants selected in the case of project dependencies.
         // Additionally, we wouldn't have the external variants that we get from getResolvedVariants().
         // TODO: Figure out why the variants from getVariantsForGraphTraversal() are different in the case of project dependencies.
-        return Stream.concat(getResolvedVariantsStream(), getOtherVariantsStream())
-            // Make sure it's unique by display name.
-            .filter(new Predicate<ResolvedVariantResult>() {
-                private final Set<String> seen = new HashSet<>();
-                @Override
-                public boolean test(ResolvedVariantResult resolvedVariantResult) {
-                    return seen.add(resolvedVariantResult.getDisplayName());
-                }
-            })
-            .collect(ImmutableList.toImmutableList());
+        Set<String> seen = new HashSet<>();
+        ImmutableList.Builder<ResolvedVariantResult> builder = ImmutableList.builder();
+        Consumer<ResolvedVariantResult> resolvedVariantResultConsumer = v -> {
+            if (seen.add(v.getDisplayName())) {
+                builder.add(v);
+            }
+        };
+        addResolvedVariants(resolvedVariantResultConsumer);
+        addOtherVariants(resolvedVariantResultConsumer);
+        return builder.build();
     }
 
-    private Stream<ResolvedVariantResult> getResolvedVariantsStream() {
-        return nodes.stream()
-            .filter(NodeState::isSelected)
-            .map(NodeState::getResolvedVariant);
+    private void addResolvedVariants(Consumer<ResolvedVariantResult> consumer) {
+        for (NodeState node : nodes) {
+            if (node.isSelected()) {
+                consumer.accept(node.getResolvedVariant());
+            }
+        }
     }
 
-    private Stream<ResolvedVariantResult> getOtherVariantsStream() {
+    private void addOtherVariants(Consumer<ResolvedVariantResult> consumer) {
         if (metadata.getVariantsForGraphTraversal().isPresent()) {
-            return metadata.getVariantsForGraphTraversal().get().stream()
-                .flatMap(primary -> primary.getVariants().stream())
-                .map(v -> {
-                    List<? extends Capability> capabilities = v.getCapabilities().getCapabilities();
+            for (ConfigurationMetadata configurationMetadata : metadata.getVariantsForGraphTraversal().get()) {
+                for (VariantResolveMetadata variant : configurationMetadata.getVariants()) {
+                    List<? extends Capability> capabilities = variant.getCapabilities().getCapabilities();
                     if (capabilities.isEmpty()) {
                         capabilities = Collections.singletonList(getImplicitCapability());
                     } else {
                         capabilities = ImmutableList.copyOf(capabilities);
                     }
-                    return new DefaultResolvedVariantResult(
+                    consumer.accept(new DefaultResolvedVariantResult(
                         metadata.getId(),
-                        Describables.of(v.getName()),
-                        attributeDesugaring.desugar(v.getAttributes().asImmutable()),
+                        Describables.of(variant.getName()),
+                        attributeDesugaring.desugar(variant.getAttributes().asImmutable()),
                         capabilities,
                         null
-                    );
-                });
+                    ));
+                }
+            }
         }
         // Fall-back if there's no graph data
-        return nodes.stream()
-            .flatMap(nodeState ->
-                nodeState.getMetadata()
-                    .getVariants().stream()
-                    .map(v -> new DefaultResolvedVariantResult(
-                        metadata.getId(),
-                        Describables.of(v.getName()),
-                        nodeState.desugar(v.getAttributes().asImmutable()),
-                        ImmutableList.of(),
-                        null
-                    ))
-            );
+        for (NodeState node : nodes) {
+            for (VariantResolveMetadata variant : node.getMetadata().getVariants()) {
+                consumer.accept(new DefaultResolvedVariantResult(
+                    metadata.getId(),
+                    Describables.of(variant.getName()),
+                    node.desugar(variant.getAttributes().asImmutable()),
+                    ImmutableList.of(),
+                    null
+                ));
+            }
+        }
     }
 
     @Override
