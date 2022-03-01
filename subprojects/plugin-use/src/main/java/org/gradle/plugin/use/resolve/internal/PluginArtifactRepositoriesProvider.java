@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugin.use.internal;
+package org.gradle.plugin.use.resolve.internal;
 
-import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
+/**
+ * Provides access to the shared artifact repositories to use for plugin resolution for this build.
+ */
 @ServiceScope(Scopes.Build.class)
-public interface PluginRepositoryHandlerProvider {
-    /**
-     * Returns the {@link RepositoryHandler} that will contain the shared repositories to be used to resolve plugins for all project of this build.
-     * Should be mutated only during settings configuration.
-     */
-    RepositoryHandler getPluginRepositoryHandler();
+public interface PluginArtifactRepositoriesProvider {
+    PluginArtifactRepositories createPluginResolveRepositories();
 }
