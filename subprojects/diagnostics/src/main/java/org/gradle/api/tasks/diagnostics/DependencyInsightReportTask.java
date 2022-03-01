@@ -67,6 +67,7 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -478,9 +479,11 @@ public class DependencyInsightReportTask extends DefaultTask {
             if (task.getShowingAllVariants().get()) {
                 out.style(Header);
                 out.println();
+                out.println();
                 out.text("---------------------").println();
                 out.text("Unselected Variant(s)").println();
                 out.text("---------------------");
+                out.println();
                 out.style(Normal);
                 for (ResolvedVariantResult variant : dependency.getAllVariants()) {
                     if (selectedVariantNames.contains(variant.getDisplayName())) {
@@ -488,6 +491,7 @@ public class DependencyInsightReportTask extends DefaultTask {
                     }
                     // Currently, since the compatibility column is unusable, pass true for selected to prevent its output.
                     printVariant(out, dependency, variant, true);
+                    out.println();
                 }
             }
         }
