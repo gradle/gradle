@@ -28,8 +28,6 @@ public interface CheckstyleActionParameters extends WorkParameters {
 
     ConfigurableFileCollection getSource();
 
-    ConfigurableFileCollection getClasspath();
-
     Property<Integer> getMaxErrors();
 
     Property<Integer> getMaxWarnings();
