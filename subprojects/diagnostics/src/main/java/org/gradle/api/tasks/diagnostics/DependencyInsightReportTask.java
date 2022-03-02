@@ -538,7 +538,7 @@ public class DependencyInsightReportTask extends DefaultTask {
         }
 
         private static final class AttributeBuckets {
-            private final Comparator<Attribute<?>> sortedByAttributeName = Comparator.comparing(Attribute::getName);
+            private static final Comparator<Attribute<?>> sortedByAttributeName = Comparator.comparing(Attribute::getName);
 
             Set<Attribute<?>> providedAttributes = new TreeSet<>(sortedByAttributeName);
             Map<Attribute<?>, AttributeMatchDetails> bothAttributes = new TreeMap<>(sortedByAttributeName);
