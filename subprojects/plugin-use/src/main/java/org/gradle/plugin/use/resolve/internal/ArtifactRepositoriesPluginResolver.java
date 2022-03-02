@@ -42,12 +42,10 @@ public class ArtifactRepositoriesPluginResolver implements PluginResolver {
     @VisibleForTesting
     static final String SOURCE_NAME = "Plugin Repositories";
 
-    private final DependencyResolutionServices resolution;
+    private final DependencyResolutionServices resolutionServices;
 
-    public ArtifactRepositoriesPluginResolver(DependencyResolutionServices dependencyResolutionServices, PluginRepositoriesProvider pluginRepositoriesProvider) {
-        // This should happen as part of settings finalization
-        pluginRepositoriesProvider.prepareForPluginResolution();
-        this.resolution = dependencyResolutionServices;
+    public ArtifactRepositoriesPluginResolver(DependencyResolutionServices resolutionServices) {
+        this.resolutionServices = resolutionServices;
     }
 
     @Override
@@ -87,7 +85,7 @@ public class ArtifactRepositoriesPluginResolver implements PluginResolver {
 
     private void handleNotFound(PluginResolutionResult result, String message) {
         StringBuilder detail = new StringBuilder("Searched in the following repositories:\n");
-        for (Iterator<ArtifactRepository> it = resolution.getResolveRepositoryHandler().iterator(); it.hasNext();) {
+        for (Iterator<ArtifactRepository> it = resolutionServices.getResolveRepositoryHandler().iterator(); it.hasNext();) {
             detail.append("  ").append(((ArtifactRepositoryInternal) it.next()).getDisplayName());
             if (it.hasNext()) {
                 detail.append("\n");
@@ -100,7 +98,7 @@ public class ArtifactRepositoriesPluginResolver implements PluginResolver {
      * Checks whether the plugin marker artifact exists in the backing artifacts repositories.
      */
     private boolean exists(ModuleDependency dependency) {
-        ConfigurationContainer configurations = resolution.getConfigurationContainer();
+        ConfigurationContainer configurations = resolutionServices.getConfigurationContainer();
         Configuration configuration = configurations.detachedConfiguration(dependency);
         configuration.setTransitive(false);
         return !configuration.getResolvedConfiguration().hasError();
