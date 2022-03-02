@@ -29,5 +29,4 @@ public abstract class CheckstyleAction extends AntWorkAction<CheckstyleActionPar
     protected Closure<Object> getAntClosure() {
         return new CheckstyleInvoker(this, this, getParameters());
     }
-
 }

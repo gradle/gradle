@@ -42,9 +42,7 @@ class CheckstyleInvoker extends Closure<Object> {
 
     @SuppressWarnings("UnusedDeclaration")
     Object doCall(Object ant) {
-
         def source = parameters.source.asFileTree
-        def classpath = parameters.classpath
         def showViolations = parameters.showViolations.get()
         def maxErrors = parameters.maxErrors.get()
         def maxWarnings = parameters.maxWarnings.get()
@@ -72,7 +70,6 @@ class CheckstyleInvoker extends Closure<Object> {
             maxErrors: maxErrors, maxWarnings: maxWarnings, failureProperty: FAILURE_PROPERTY_NAME) {
 
             source.addToAntBuilder(ant, 'fileset', FileCollection.AntType.FileSet)
-            classpath.addToAntBuilder(ant, 'classpath')
 
             if (showViolations) {
                 formatter(type: 'plain', useFile: false)

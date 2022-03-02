@@ -17,6 +17,8 @@
 package org.gradle.api.plugins.quality.internal;
 
 import groovy.lang.Closure;
+import org.apache.tools.ant.BuildListener;
+import org.apache.tools.ant.Project;
 import org.gradle.api.AntBuilder;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.project.ant.AntLoggingAdapter;
@@ -29,7 +31,6 @@ import org.gradle.workers.WorkParameters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.Method;
 import java.util.Vector;
 
 public abstract class AntWorkAction<T extends WorkParameters> implements WorkAction<T> {
@@ -56,37 +57,26 @@ public abstract class AntWorkAction<T extends WorkParameters> implements WorkAct
 
     private void configureAntBuilder(AntBuilder antBuilder, AntLoggingAdapter antLogger) {
         try {
-            Object project = getProject(antBuilder);
-            Class<?> projectClass = project.getClass();
-            ClassLoader cl = projectClass.getClassLoader();
-            Class<?> buildListenerClass = cl.loadClass("org.apache.tools.ant.BuildListener");
-            Method addBuildListener = projectClass.getDeclaredMethod("addBuildListener", buildListenerClass);
-            Method removeBuildListener = projectClass.getDeclaredMethod("removeBuildListener", buildListenerClass);
-            Method getBuildListeners = projectClass.getDeclaredMethod("getBuildListeners");
-            Vector<?> listeners = (Vector<?>) getBuildListeners.invoke(project);
-            removeBuildListener.invoke(project, listeners.get(0));
-            addBuildListener.invoke(project, antLogger);
+            Project project = getProject(antBuilder);
+            Vector<BuildListener> listeners = project.getBuildListeners();
+            project.removeBuildListener(listeners.get(0));
+            project.addBuildListener(antLogger);
         } catch (Exception ex) {
             throw new GradleException("Unable to configure AntBuilder", ex);
         }
     }
 
-    private void disposeBuilder(Object antBuilder, Object antLogger) {
+    private void disposeBuilder(Object antBuilder, AntLoggingAdapter antLogger) {
         try {
-            Object project = getProject(antBuilder);
-            Class<?> projectClass = project.getClass();
-            ClassLoader cl = projectClass.getClassLoader();
-            Class<?> buildListenerClass = cl.loadClass("org.apache.tools.ant.BuildListener");
-            Method removeBuildListener = projectClass.getDeclaredMethod("removeBuildListener", buildListenerClass);
-            removeBuildListener.invoke(project, antLogger);
+            Project project = getProject(antBuilder);
+            project.removeBuildListener(antLogger);
             antBuilder.getClass().getDeclaredMethod("close").invoke(antBuilder);
         } catch (Exception ex) {
             throw new GradleException("Unable to dispose AntBuilder", ex);
         }
     }
 
-    private Object getProject(Object antBuilder) throws Exception {
-        return antBuilder.getClass().getMethod("getProject").invoke(antBuilder);
+    private Project getProject(Object antBuilder) throws Exception {
+        return (Project) antBuilder.getClass().getMethod("getProject").invoke(antBuilder);
     }
-
 }
