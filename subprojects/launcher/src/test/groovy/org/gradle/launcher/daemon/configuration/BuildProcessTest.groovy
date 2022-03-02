@@ -42,7 +42,7 @@ class BuildProcessTest extends Specification {
         def currentJvmOptions = new JvmOptions(fileCollectionFactory)
         currentJvmOptions.minHeapSize = "16m"
         currentJvmOptions.maxHeapSize = "256m"
-        currentJvmOptions.jvmArgs("-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError")
+        currentJvmOptions.jvmArgs("-XX:MaxMetaspaceSize=256m", "-XX:+HeapDumpOnOutOfMemoryError")
 
         when:
         def buildProcess = new BuildProcess(currentJvm, currentJvmOptions)
@@ -56,7 +56,7 @@ class BuildProcessTest extends Specification {
         def currentJvmOptions = new JvmOptions(fileCollectionFactory)
         currentJvmOptions.minHeapSize = "16m"
         currentJvmOptions.maxHeapSize = "1024m"
-        currentJvmOptions.jvmArgs("-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError")
+        currentJvmOptions.jvmArgs("-XX:MaxMetaspaceSize=256m", "-XX:+HeapDumpOnOutOfMemoryError")
 
         when:
         def buildProcess = new BuildProcess(currentJvm, currentJvmOptions)
@@ -80,7 +80,7 @@ class BuildProcessTest extends Specification {
         def currentJvmOptions = new JvmOptions(fileCollectionFactory)
         currentJvmOptions.setAllJvmArgs(["-Dfile.encoding=$notDefaultEncoding", "-Xmx100m", "-XX:SomethingElse"])
         // Default jvm options: these will be implicit in the request
-        currentJvmOptions.jvmArgs("-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError")
+        currentJvmOptions.jvmArgs("-XX:MaxMetaspaceSize=256m", "-XX:+HeapDumpOnOutOfMemoryError")
 
         when:
         def buildProcess = new BuildProcess(currentJvm, currentJvmOptions)
@@ -98,7 +98,7 @@ class BuildProcessTest extends Specification {
         def currentJvmOptions = new JvmOptions(fileCollectionFactory)
         currentJvmOptions.minHeapSize = "16m"
         currentJvmOptions.maxHeapSize = "1024m"
-        currentJvmOptions.jvmArgs("-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError")
+        currentJvmOptions.jvmArgs("-XX:MaxMetaspaceSize=256m", "-XX:+HeapDumpOnOutOfMemoryError")
         def emptyRequest = buildParameters([])
 
         when:
@@ -113,7 +113,7 @@ class BuildProcessTest extends Specification {
         def currentJvmOptions = new JvmOptions(fileCollectionFactory)
         currentJvmOptions.minHeapSize = "64m"
         currentJvmOptions.maxHeapSize = "64m"
-        currentJvmOptions.jvmArgs("-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError")
+        currentJvmOptions.jvmArgs("-XX:MaxMetaspaceSize=256m", "-XX:+HeapDumpOnOutOfMemoryError")
         def defaultRequest = buildParameters(null as Iterable)
 
         when:
@@ -133,7 +133,7 @@ class BuildProcessTest extends Specification {
         def buildProcess = new BuildProcess(currentJvm, new JvmOptions(fileCollectionFactory))
 
         then:
-        requestWithDefaults.getEffectiveJvmArgs().containsAll("-Xmx512m", "-Xms256m", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError")
+        requestWithDefaults.getEffectiveJvmArgs().containsAll("-Xmx512m", "-Xms256m", "-XX:MaxMetaspaceSize=256m", "-XX:+HeapDumpOnOutOfMemoryError")
         buildProcess.configureForBuild(requestWithDefaults)
     }
 
@@ -142,7 +142,7 @@ class BuildProcessTest extends Specification {
         def currentJvmOptions = new JvmOptions(fileCollectionFactory)
         currentJvmOptions.minHeapSize = "16m"
         currentJvmOptions.maxHeapSize = "1024m"
-        currentJvmOptions.jvmArgs("-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError")
+        currentJvmOptions.jvmArgs("-XX:MaxMetaspaceSize=256m", "-XX:+HeapDumpOnOutOfMemoryError")
         def requestWithMutableArgument = buildParameters(["-Dfoo=bar"])
 
         when:
@@ -156,7 +156,7 @@ class BuildProcessTest extends Specification {
         given:
         def currentJvmOptions = new JvmOptions(fileCollectionFactory)
         currentJvmOptions.setAllJvmArgs(["-Xmx100m", "-XX:SomethingElse", "-Dfoo=bar", "-Dbaz"])
-        currentJvmOptions.jvmArgs("-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError")
+        currentJvmOptions.jvmArgs("-XX:MaxMetaspaceSize=256m", "-XX:+HeapDumpOnOutOfMemoryError")
 
         when:
         def buildProcess = new BuildProcess(currentJvm, currentJvmOptions)
@@ -228,7 +228,7 @@ class BuildProcessTest extends Specification {
 
     def "user-defined vm args that correspond to daemon default are considered during matching"() {
         given:
-        def parametersWithDefaults = buildParameters(["-Xmx512m", "-Xms256m", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError"])
+        def parametersWithDefaults = buildParameters(["-Xmx512m", "-Xms256m", "-XX:MaxMetaspaceSize=256m", "-XX:+HeapDumpOnOutOfMemoryError"])
 
         when:
         def buildProcess = new BuildProcess(currentJvm, new JvmOptions(fileCollectionFactory))
@@ -254,7 +254,7 @@ class BuildProcessTest extends Specification {
         if (jvmArgs != null) {
             parameters.setJvmArgs(jvmArgs)
         }
-        parameters.applyDefaultsFor(JavaVersion.VERSION_1_7)
+        parameters.applyDefaultsFor(JavaVersion.VERSION_1_8)
         return parameters
     }
 }
