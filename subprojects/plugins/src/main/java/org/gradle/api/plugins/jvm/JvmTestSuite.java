@@ -71,7 +71,7 @@ public interface JvmTestSuite extends TestSuite, Buildable {
     /**
      * Get the test type for this test suite.
      *
-     * Defaults to {@link TestSuiteType#UNIT_TEST} for the built-in test suite, and to the dash-case name of the
+     * Defaults to the value of the {@code UNIT_TEST} constant defined in {@link TestSuiteType} for the built-in test suite, and to the dash-case name of the
      * test suite for custom test suites.  Test suite types must be unique across all test suites within a project.
      *
      * @since 7.4
@@ -82,7 +82,7 @@ public interface JvmTestSuite extends TestSuite, Buildable {
      * Use the <a href="https://junit.org/junit5/docs/current/user-guide/">JUnit Jupiter</a> testing framework.
      *
      * <p>
-     *     Gradle will provide the version of JUnit Jupiter to use. Defaults to version {@code 5.7.1}
+     *     Gradle will provide the version of JUnit Jupiter to use. Defaults to version {@code 5.7.2}
      * </p>
      */
     void useJUnitJupiter();
@@ -127,7 +127,7 @@ public interface JvmTestSuite extends TestSuite, Buildable {
     /**
      * Use the <a href="https://kotlinlang.org/api/latest/kotlin.test/">kotlin.test</a> testing framework.
      * <p>
-     *     Gradle will provide the version of kotlin.test to use. Defaults to version {@code 1.5.31}
+     *     Gradle will provide the version of kotlin.test to use. Defaults to version {@code 1.6.10}
      * </p>
      */
     void useKotlinTest();

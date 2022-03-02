@@ -16,13 +16,13 @@
 
 package org.gradle.launcher.continuous
 
+import org.gradle.deployment.internal.ContinuousExecutionGate
 import org.gradle.deployment.internal.DeploymentRegistryInternal
-import org.gradle.initialization.ContinuousExecutionGate
+import org.gradle.deployment.internal.PendingChangesListener
+import org.gradle.deployment.internal.PendingChangesManager
 import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
-import org.gradle.internal.filewatch.PendingChangesListener
-import org.gradle.internal.filewatch.PendingChangesManager
-import org.gradle.internal.filewatch.SingleFirePendingChangesListener
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.gradle.tooling.internal.provider.continuous.SingleFirePendingChangesListener
 import org.junit.Rule
 
 class ContinuousBuildGateIntegrationTest extends AbstractContinuousIntegrationTest {
@@ -78,21 +78,21 @@ class ContinuousBuildGateIntegrationTest extends AbstractContinuousIntegrationTe
             class SimpleTask extends DefaultTask {
                 @InputFile
                 File inputFile = project.file("input.txt")
-                
+
                 @OutputFile
                 File outputFile = new File(project.buildDir, "output.txt")
-                
+
                 @TaskAction
                 void generate() {
                     outputFile.text = inputFile.text
-                } 
+                }
             }
-            
+
             def pendingChangesManager = gradle.services.get(${PendingChangesManager.canonicalName})
             pendingChangesManager.addListener new ${SingleFirePendingChangesListener.canonicalName}({
                 ${server.callFromBuild("pending")}
             } as ${PendingChangesListener.canonicalName})
-            
+
             task work(type: SimpleTask)
         """
 
@@ -124,7 +124,7 @@ class ContinuousBuildGateIntegrationTest extends AbstractContinuousIntegrationTe
         server.expect(server.get("command").send("stop"))
         then:
         // waits for build to start and finish
-        succeeds()
+        buildTriggeredAndSucceeded()
         // Change has been incorporated
         outputFile.text == "changed"
     }

@@ -45,6 +45,7 @@ import static org.gradle.internal.Cast.uncheckedCast;
 import static org.gradle.internal.Cast.uncheckedNonnullCast;
 
 public class DefaultBuildServicesRegistry implements BuildServiceRegistryInternal {
+
     private final BuildIdentifier buildIdentifier;
     private final NamedDomainObjectSet<BuildServiceRegistration<?, ?>> registrations;
     private final InstantiatorFactory instantiatorFactory;
@@ -55,6 +56,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
     private final IsolationScheme<BuildService, BuildServiceParameters> isolationScheme = new IsolationScheme<>(BuildService.class, BuildServiceParameters.class, BuildServiceParameters.None.class);
     private final Instantiator paramsInstantiator;
     private final Instantiator specInstantiator;
+    private final BuildServiceProvider.Listener listener;
 
     public DefaultBuildServicesRegistry(
         BuildIdentifier buildIdentifier,
@@ -63,7 +65,8 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
         ServiceRegistry services,
         ListenerManager listenerManager,
         IsolatableFactory isolatableFactory,
-        SharedResourceLeaseRegistry leaseRegistry
+        SharedResourceLeaseRegistry leaseRegistry,
+        BuildServiceProvider.Listener listener
     ) {
         this.buildIdentifier = buildIdentifier;
         this.registrations = uncheckedCast(factory.newNamedDomainObjectSet(BuildServiceRegistration.class));
@@ -74,6 +77,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
         this.leaseRegistry = leaseRegistry;
         this.paramsInstantiator = instantiatorFactory.decorateScheme().withServices(services).instantiator();
         this.specInstantiator = instantiatorFactory.decorateLenientScheme().withServices(services).instantiator();
+        this.listener = listener;
     }
 
     @Override
@@ -132,7 +136,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
     }
 
     @Override
-    public BuildServiceProvider<?, ?> register(String name, Class<? extends BuildService<?>> implementationType, BuildServiceParameters parameters, int maxUsages) {
+    public BuildServiceProvider<?, ?> register(String name, Class<? extends BuildService<?>> implementationType, @Nullable BuildServiceParameters parameters, int maxUsages) {
         if (registrations.findByName(name) != null) {
             throw new IllegalArgumentException(String.format("Service '%s' has already been registered.", name));
         }
@@ -153,7 +157,8 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
             isolationScheme,
             instantiatorFactory.injectScheme(),
             isolatableFactory,
-            services
+            services,
+            listener
         );
 
         DefaultServiceRegistration<T, P> registration = uncheckedNonnullCast(specInstantiator.newInstance(DefaultServiceRegistration.class, name, parameters, provider));
@@ -183,8 +188,8 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
         }
 
         @Override
-        public ResourceLock getResourceLock(int usages) {
-            return leaseRegistry.getResourceLock(name, usages);
+        public ResourceLock getResourceLock() {
+            return leaseRegistry.getResourceLock(name);
         }
     }
 
@@ -249,6 +254,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
             this.provider = provider;
         }
 
+        @SuppressWarnings("deprecation")
         @Override
         public void buildFinished(BuildResult result) {
             provider.maybeStop();

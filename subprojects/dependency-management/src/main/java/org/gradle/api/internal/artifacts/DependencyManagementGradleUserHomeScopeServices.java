@@ -63,6 +63,7 @@ public class DependencyManagementGradleUserHomeScopeServices {
     ) {
         DefaultArtifactCaches artifactCachesProvider = new DefaultArtifactCaches(globalScopedCache, cacheRepository, parameters, documentationRegistry);
         listenerManager.addListener(new BuildAdapter() {
+            @SuppressWarnings("deprecation")
             @Override
             public void buildFinished(BuildResult result) {
                 artifactCachesProvider.getWritableCacheLockingManager().useCache(() -> {

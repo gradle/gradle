@@ -17,7 +17,6 @@
 package org.gradle.caching.internal.operations;
 
 import org.gradle.internal.operations.BuildOperationType;
-import org.gradle.internal.scan.UsedByScanPlugin;
 
 /**
  * A store operation to a build cache.
@@ -27,7 +26,6 @@ import org.gradle.internal.scan.UsedByScanPlugin;
  */
 public final class BuildCacheRemoteStoreBuildOperationType implements BuildOperationType<BuildCacheRemoteStoreBuildOperationType.Details, BuildCacheRemoteStoreBuildOperationType.Result> {
 
-    @UsedByScanPlugin
     public interface Details {
 
         /**
@@ -42,7 +40,6 @@ public final class BuildCacheRemoteStoreBuildOperationType implements BuildOpera
 
     }
 
-    @UsedByScanPlugin
     public interface Result {
 
         boolean isStored();

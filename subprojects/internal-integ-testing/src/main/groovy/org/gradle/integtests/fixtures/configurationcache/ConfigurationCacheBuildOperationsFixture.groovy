@@ -70,6 +70,6 @@ class ConfigurationCacheBuildOperationsFixture {
     }
 
     private BuildOperationRecord storeOperation() {
-        operations.firstMatchingRegex("Store (configuration cache|instant execution) state")
+        operations.firstMatchingRegex("Store (configuration cache|instant execution) state.*")
     }
 }

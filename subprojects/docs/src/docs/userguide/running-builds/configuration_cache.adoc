@@ -26,7 +26,7 @@ In other words, the configuration cache saves the output of the configuration ph
 
 [IMPORTANT]
 ====
-This feature is currently *_experimental_* and not enabled by default.
+This feature is currently *_incubating_* and not enabled by default.
 
 Not all <<configuration_cache#config_cache:plugins:core, core Gradle plugins>> are supported.
 Your build and the plugins you depend on might require changes to fulfil the <<configuration_cache#config_cache:requirements, requirements>>.
@@ -447,7 +447,7 @@ include::sample[dir="snippets/configurationCache/problemsFixedReuse/kotlin",file
 ====
 <1> We wired the system property provider directly, without reading it at configuration time.
 
-With this simple change in place we can run the task any number of time, change the system property value, and reuse the configuration cache:
+With this simple change in place we can run the task any number of times, change the system property value, and reuse the configuration cache:
 
 ----
 ❯ gradle --configuration-cache someTask -DsomeDestination=dest
@@ -461,6 +461,18 @@ Configuration cache entry reused.
 We're now done with fixing the problems with this simple task.
 
 Keep reading to learn how to adopt the configuration cache for your build or your plugins.
+
+[[config_cache:task_opt_out]]
+=== Declare a task incompatible with the configuration cache
+
+It is possible to declare that a particular task is not compatible with the configuration cache
+via the link:{javadocPath}/org/gradle/api/Task.html#notCompatibleWithConfigurationCache-java.lang.String-[Task.notCompatibleWithConfigurationCache()] method.
+
+Configuration cache problems found in tasks marked incompatible will no longer cause the build to fail.
+
+And, when an incompatible task is scheduled to run, Gradle discards the configuration state at the end of the build. You can use this to help with migration, by temporarily opting out certain tasks that are difficult to change to work with the configuration cache.
+
+Check the method documentation for more details.
 
 [[config_cache:adoption]]
 == Adoption steps
@@ -605,9 +617,10 @@ For example, if you reference a `Configuration` to later get the resolved files,
 In the same vein, if you reference a `SourceDirectorySet` you should instead declare a `FileTree` as an input to your task.
 
 Referencing dependency resolution results is also disallowed (e.g. `ArtifactResolutionQuery`, `ResolvedArtifact`, `ArtifactResult` etc...).
-For example, if you reference some `ResolvedArtifactResult` instances, you should instead declare some `ArtifactCollection` as an input to your task.
+For example, if you reference some `ResolvedComponentResult` instances, you should instead declare a `Provider<ResolvedComponentResult>` as an input to your task.
+Such a provider can be obtained by invoking `ResolutionResult.getRootComponent()`.
+In the same vein, if you reference some `ResolvedArtifactResult` instances, you should instead use `ArtifactCollection.getResolvedArtifacts()` that returns a `Provider<Set<ResolvedArtifactResult>>` that can be mapped as an input to your task.
 The rule of thumb is that tasks must not reference _resolved_ results, but lazy specifications instead, in order to do the dependency resolution at execution time.
-Some APIs are missing and cannot yet be used as task inputs, for example it is currently not possible for task actions to reason about the dependency _graph_, see link:{gradle-issues}12871[gradle/gradle#12871].
 
 Some types, such as `Publication` or `Dependency` are not serializable, but could be.
 We may, if necessary, allow these to be used as task inputs directly.
@@ -807,6 +820,41 @@ For example a `BuildListener` or a `TaskExecutionListener`.
 
 These should be replaced by <<build_services#build_services,build services>>, registered to receive information about <<build_services#operation_listener, task execution>> if needed.
 
+[[config_cache:requirements:external_processes]]
+=== Running external processes
+
+Plugin and build scripts should avoid running external processes at configuration time.
+In general, it is preferred to run external processes in tasks with properly declared inputs and outputs to avoid unnecessary work when the task is up-to-date.
+If necessary, only configuration-cache-compatible APIs should be used instead of Java and Groovy standard APIs or existing `ExecOperations`,
+`Project.exec`, `Project.javaexec`, and their likes in settings and init scripts.
+For simpler cases, when grabbing the output of the process is enough,
+link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#exec-org.gradle.api.Action-[providers.exec()] and
+link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#javaexec-org.gradle.api.Action-[providers.javaExec()] can be used:
+
+====
+include::sample[dir="snippets/valueProviders/externalProcessProvider/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/valueProviders/externalProcessProvider/kotlin",files="build.gradle.kts[]"]
+====
+
+For more complex cases a custom link:{javadocPath}/org/gradle/api/provider/ValueSource.html[ValueSource] implementation with injected `ExecOperations` can be used.
+This `ExecOperations` instance can be used at configuration time without restrictions.
+
+====
+include::sample[dir="snippets/valueProviders/externalProcessValueSource/groovy",files="build.gradle[tags=value-source]"]
+include::sample[dir="snippets/valueProviders/externalProcessValueSource/kotlin",files="build.gradle.kts[tags=value-source]"]
+====
+
+The `ValueSource` implementation can then be used to create a provider with link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#of-java.lang.Class-org.gradle.api.Action-[providers.of]:
+
+====
+include::sample[dir="snippets/valueProviders/externalProcessValueSource/groovy",files="build.gradle[tags=create-provider]"]
+include::sample[dir="snippets/valueProviders/externalProcessValueSource/kotlin",files="build.gradle.kts[tags=create-provider]"]
+====
+
+In both approaches, if the value of the provider is used at configuration time then it will become a build configuration input.
+The external process will be executed for every build to determine if the configuration cache is up-to-date, so it is recommended to only call fast-running processes at configuration time.
+If the value changes then the cache is invalidated and the process will be run again during this build as part of the configuration phase.
+
 [[config_cache:requirements:reading_sys_props_and_env_vars]]
 === Reading system properties and environment variables
 
@@ -940,3 +988,18 @@ The following _Java Object Serialization_ features are **not** supported:
 - the `readObjectNoData` method, if present, is never invoked;
 
 See link:{gradle-issues}13588[gradle/gradle#13588].
+
+[[config_cache:not_yet_implemented:storing_lambdas]]
+=== Objects Storing Lambdas
+
+Currently, Gradle cannot restore objects from the configuration cache that store user-provided lambdas.
+For example, if an object provides a method that accepts a Single Abstract Method (SAM) interface argument (e.g. a `Function` argument), it is natural to implement this argument as a lambda.
+If the lambda is then stored in the object for later invocation, the object will not be compatible with the configuration cache and will cause a failure when restored.
+Instead of a lambda, the argument should be provided as a typed object implementing the SAM interface.
+
+Alternatively, for Kotlin implementations, the Kotlin compiler can be configured to generate classes instead of lambdas during SAM conversion.
+
+====
+include::sample[dir="snippets/configurationCache/samConversion/groovy",files="build.gradle[tags=configure]"]
+include::sample[dir="snippets/configurationCache/samConversion/kotlin",files="build.gradle.kts[tags=configure]"]
+====

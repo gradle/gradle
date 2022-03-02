@@ -18,13 +18,10 @@ package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.android.AndroidHome
-import org.gradle.testkit.runner.GradleRunner
-
-import spock.lang.Ignore
+import org.gradle.util.internal.VersionNumber
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
-@Ignore("https://github.com/gradle/gradle-private/issues/3282")
 class KotlinPluginAndroidGroovyDSLSmokeTest extends AbstractSmokeTest {
 
     @UnsupportedWithConfigurationCache(iterationMatchers = [KGP_NO_CC_ITERATION_MATCHER, AGP_NO_CC_ITERATION_MATCHER])
@@ -44,17 +41,16 @@ class KotlinPluginAndroidGroovyDSLSmokeTest extends AbstractSmokeTest {
         }
 
         when:
-        def runner = createRunner(workers, 'clean', ':app:testDebugUnitTestCoverage')
-        def result = useAgpVersion(androidPluginVersion, runner).build()
+        def runner = createRunner(workers, kotlinPluginVersion, 'clean', ":app:testDebugUnitTestCoverage")
+        def result = useAgpVersion(androidPluginVersion, runner)
+            .deprecations(KotlinAndroidDeprecations) {
+                expectKotlinConfigurationAsDependencyDeprecation(kotlinPluginVersion)
+                expectAndroidOrKotlinWorkerSubmitDeprecation(androidPluginVersion, workers, kotlinPluginVersion)
+                expectAndroidFileTreeForEmptySourcesDeprecationWarnings(androidPluginVersion, "sourceFiles", "sourceDirs")
+            }.build()
 
         then:
         result.task(':app:testDebugUnitTestCoverage').outcome == SUCCESS
-
-        if (kotlinPluginVersion == TestedVersions.kotlin.latest()
-            && androidPluginVersion == TestedVersions.androidGradle.latest()) {
-            // TODO: re-enable once the Kotlin plugin fixes how it extends configurations
-            // expectNoDeprecationWarnings(result)
-        }
 
         where:
 // To run a specific combination, set the values here, uncomment the following four lines
@@ -70,7 +66,7 @@ class KotlinPluginAndroidGroovyDSLSmokeTest extends AbstractSmokeTest {
         ].combinations()
     }
 
-    private GradleRunner createRunner(boolean workers, String... tasks) {
-        return KotlinPluginSmokeTest.runnerFor(this, workers, *tasks)
+    private SmokeTestGradleRunner createRunner(boolean workers, String kotlinVersion, String... tasks) {
+        return KotlinPluginSmokeTest.runnerFor(this, workers, VersionNumber.parse(kotlinVersion), tasks)
     }
 }

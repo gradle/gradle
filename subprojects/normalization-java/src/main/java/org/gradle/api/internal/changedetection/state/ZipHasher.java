@@ -50,6 +50,7 @@ public class ZipHasher implements RegularFileSnapshotContextHasher, Configurable
 
     private static final Set<String> KNOWN_ZIP_EXTENSIONS = ImmutableSet.of("zip", "jar", "war", "rar", "ear", "apk", "aar");
     private static final Logger LOGGER = LoggerFactory.getLogger(ZipHasher.class);
+    private static final HashCode EMPTY_HASH_MARKER = Hashing.signature(ZipHasher.class);
 
     public static boolean isZipFile(final String name) {
         return KNOWN_ZIP_EXTENSIONS.contains(FilenameUtils.getExtension(name).toLowerCase(Locale.ROOT));
@@ -133,7 +134,7 @@ public class ZipHasher implements RegularFileSnapshotContextHasher, Configurable
     }
 
     private DefaultFileSystemLocationFingerprint newZipMarker(String relativePath) {
-        return new DefaultFileSystemLocationFingerprint(relativePath, FileType.RegularFile, HashCode.fromInt(0));
+        return new DefaultFileSystemLocationFingerprint(relativePath, FileType.RegularFile, EMPTY_HASH_MARKER);
     }
 
     public interface HashingExceptionReporter {

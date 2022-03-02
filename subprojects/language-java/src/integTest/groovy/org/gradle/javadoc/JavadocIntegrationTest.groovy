@@ -17,12 +17,16 @@ package org.gradle.javadoc
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 import spock.lang.Issue
+
+import java.nio.file.Paths
 
 class JavadocIntegrationTest extends AbstractIntegrationSpec {
     @Rule TestResources testResources = new TestResources(temporaryFolder)
@@ -292,6 +296,107 @@ Joe!""")
 
         expect:
         succeeds("javadoc")
+    }
+
+    // bootclasspath has been removed in Java 9+
+    @Requires(TestPrecondition.JDK8_OR_EARLIER)
+    @Issue("https://github.com/gradle/gradle/issues/19817")
+    def "shows deprecation if bootclasspath is provided as a path instead of a single file"() {
+        def jre = AvailableJavaHomes.getBestJre()
+        def bootClasspath = TextUtil.escapeString(jre.absolutePath) + "/lib/rt.jar${File.pathSeparator}someotherpath"
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+            javadoc {
+                options.bootClasspath = [file('$bootClasspath')]
+            }
+        """
+        writeSourceFile()
+
+        expect:
+        executer.expectDocumentedDeprecationWarning("Converting files to a classpath string when their paths contain the path separator '${File.pathSeparator}' has been deprecated." +
+            " The path separator is not a valid element of a file path. Problematic paths in 'file collection' are: '${Paths.get(bootClasspath)}'." +
+            " This will fail with an error in Gradle 8.0. Add the individual files to the file collection instead." +
+            " Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#file_collection_to_classpath")
+        succeeds "javadoc"
+    }
+
+    def "can use custom stylesheet file"() {
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+            javadoc {
+                options.stylesheetFile = file('src/docs/custom.css')
+            }
+        """
+        writeSourceFile()
+        file("src/docs/custom.css") << """
+            /* This is a custom stylesheet */
+            h1 {
+                color red
+            }
+        """
+
+        when:
+        succeeds "javadoc"
+        then:
+        file("build/docs/javadoc/custom.css").assertContents(containsNormalizedString("/* This is a custom stylesheet */"))
+
+        when:
+        succeeds("javadoc")
+        then:
+        skipped(":javadoc")
+
+        when:
+        file("src/docs/custom.css") << """
+            a {
+                color blue
+            }
+        """
+        succeeds("javadoc")
+        then:
+        executed(":javadoc")
+    }
+
+    def "can use custom stylesheet file with a different name"() {
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+            javadoc {
+                options.stylesheetFile = file('src/docs/custom.css')
+            }
+        """
+        writeSourceFile()
+        file("src/docs/custom.css") << """
+            /* This is a custom stylesheet */
+            h1 {
+                color red
+            }
+        """
+
+        when:
+        succeeds "javadoc"
+        then:
+        file("build/docs/javadoc/custom.css").assertContents(containsNormalizedString("/* This is a custom stylesheet */"))
+
+        when:
+        succeeds("javadoc")
+        then:
+        skipped(":javadoc")
+
+        when:
+        file("src/docs/custom.css").moveToDirectory(file("src/not-docs"))
+        buildFile << """
+            javadoc {
+                options.stylesheetFile = file('src/not-docs/custom.css')
+            }
+        """
+        succeeds("javadoc")
+        then:
+        skipped(":javadoc")
     }
 
     private TestFile writeSourceFile() {

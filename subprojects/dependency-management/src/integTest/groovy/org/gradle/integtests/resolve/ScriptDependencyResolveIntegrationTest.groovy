@@ -95,7 +95,7 @@ rootProject.name = 'testproject'
     @Issue("gradle/gradle#19300")
     def 'carries implicit constraint for log4j-core'() {
         given:
-        mavenRepo().module('org.apache.logging.log4j', 'log4j-core', '2.16.0').publish()
+        mavenRepo().module('org.apache.logging.log4j', 'log4j-core', '2.17.1').publish()
 
         and:
         settingsFile << """
@@ -120,7 +120,7 @@ rootProject.name = 'testproject'
 
         expect:
         succeeds 'buildEnvironment'
-        outputContains('org.apache.logging.log4j:log4j-core:{require 2.16.0; reject [2.0, 2.16)} -> 2.16.0 (c)')
+        outputContains('org.apache.logging.log4j:log4j-core:{require 2.17.1; reject [2.0, 2.17.1)} -> 2.17.1 (c)')
     }
 
     @Issue("gradle/gradle#19300")
@@ -160,6 +160,6 @@ rootProject.name = 'testproject'
 
         expect:
         succeeds 'buildEnvironment'
-        outputContains('org.apache.logging.log4j:log4j-core:{require 2.16.0; reject [2.0, 2.16)} -> 3.1.0 (c)')
+        outputContains('org.apache.logging.log4j:log4j-core:{require 2.17.1; reject [2.0, 2.17.1)} -> 3.1.0 (c)')
     }
 }

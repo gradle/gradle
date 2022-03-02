@@ -206,14 +206,14 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
 
         when: 'repo is not disabled'
         repositoryBlacklister.isDisabled(REPOSITORY_ID) >> false
-        access.resolveArtifacts(component, variant, result)
+        access.resolveArtifacts(component, result)
 
         then: 'work is delegated'
-        1 * delegate.resolveArtifacts(component, variant, result)
+        1 * delegate.resolveArtifacts(component, result)
 
         when: 'exception is thrown in resolution'
-        effectiveRetries * delegate.resolveArtifacts(component, variant, result) >> { throw exception }
-        access.resolveArtifacts(component, variant, result)
+        effectiveRetries * delegate.resolveArtifacts(component, result) >> { throw exception }
+        access.resolveArtifacts(component, result)
 
         then: 'resolution fails and repo is disabled'
         1 * repositoryBlacklister.disableRepository(REPOSITORY_ID, { hasCause(it, exception) })
@@ -221,7 +221,7 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
 
         when: 'repo is already disabled'
         repositoryBlacklister.isDisabled(REPOSITORY_ID) >> true
-        access.resolveArtifacts(component, variant, result)
+        access.resolveArtifacts(component, result)
 
         then: 'resolution fails directly'
         1 * result.failed(_ as ArtifactResolveException)

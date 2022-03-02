@@ -14,15 +14,22 @@ pluginManagement {
                 includeVersionByRegex("com.gradle.internal.test-selection", "com.gradle.internal.test-selection.gradle.plugin", rcAndMilestonesPattern)
             }
         }
+        maven {
+            name = "Kotlin EAP repository"
+            url = uri("https://cache-redirector.jetbrains.com/maven.pkg.jetbrains.space/kotlin/p/kotlin/bootstrap")
+            content {
+                includeVersionByRegex("org.jetbrains.kotlin", "kotlin-.*", "1.7.0-dev-1904")
+            }
+        }
         gradlePluginPortal()
     }
 }
 
 plugins {
-    id("com.gradle.enterprise").version("3.7.2")
-    id("com.gradle.enterprise.gradle-enterprise-conventions-plugin").version("0.7.5")
+    id("com.gradle.enterprise").version("3.8.1")
+    id("io.github.gradle.gradle-enterprise-conventions-plugin").version("0.7.6")
     id("gradlebuild.base.allprojects")
-    id("com.gradle.enterprise.test-distribution").version("2.2.2-rc-2") // Sync with `build-logic/build-platform/build.gradle.kts`
+    id("com.gradle.enterprise.test-distribution").version("2.2.3") // Sync with `build-logic/build-platform/build.gradle.kts`
     id("gradlebuild.internal.testfiltering")
     id("com.gradle.internal.test-selection").version("0.6.5-rc-1")
     id("gradlebuild.internal.cc-experiment")
@@ -55,12 +62,14 @@ include("api-metadata")
 include("base-services")
 include("base-services-groovy")
 include("worker-services")
+include("logging-api")
 include("logging")
 include("process-services")
 include("jvm-services")
 include("core")
 include("dependency-management")
 include("wrapper")
+include("wrapper-shared")
 include("cli")
 include("launcher")
 include("bootstrap")
@@ -137,6 +146,7 @@ include("security")
 include("normalization-java")
 include("enterprise")
 include("enterprise-operations")
+include("enterprise-logging")
 include("enterprise-workers")
 include("build-operations")
 include("problems")
@@ -151,7 +161,6 @@ include("architecture-test")
 include("internal-testing")
 include("internal-integ-testing")
 include("internal-performance-testing")
-include("internal-android-performance-testing")
 include("internal-build-reports")
 include("integ-test")
 include("kotlin-dsl-integ-tests")
@@ -171,5 +180,19 @@ for (project in rootProject.children) {
 FeaturePreviews.Feature.values().forEach { feature ->
     if (feature.isActive) {
         enableFeaturePreview(feature.name)
+    }
+}
+
+fun remoteBuildCacheEnabled(settings: Settings) = settings.buildCache.remote?.isEnabled == true
+
+fun getBuildJavaHome() = System.getProperty("java.home")
+
+gradle.settingsEvaluated {
+    if ("true" == System.getProperty("org.gradle.ignoreBuildJavaVersionCheck")) {
+        return@settingsEvaluated
+    }
+
+    if (!JavaVersion.current().isJava11) {
+        throw GradleException("This build requires JDK 11. It's currently ${getBuildJavaHome()}. You can ignore this check by passing '-Dorg.gradle.ignoreBuildJavaVersionCheck'.")
     }
 }

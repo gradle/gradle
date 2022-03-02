@@ -272,3 +272,47 @@ include::sample[dir="snippets/ide/eclipse/groovy",files="build.gradle[tags=wtp-w
 include::sample[dir="snippets/ide/eclipse/kotlin",files="build.gradle.kts[tags=wtp-with-xml]"]
 ====
 
+[[sec:test-sources]]
+== Separation of test classpath entries
+
+Eclipse defines only one classpath per project which implies limitations on how Gradle projects can be mapped.
+Eclipse 4.8 introduced the concept of link:https://www.eclipse.org/eclipse/news/4.8/jdt.php#jdt-test-sources[test sources].
+This feature allows the Eclipse plugin to define better separation between test and non-test sources.
+
+The Eclipse classpath consists of classpath entries: source directories, jar files, project dependencies, etc.
+Each classpath entry can have a a list of classpath attributes, where the attributes are string key-value pairs.
+There are two classpath attribute relevant for test sources: `test` and `without_test_code`, both of which can have `true` or `false` as values.
+
+If a source directory has the `test=true` classpath attribute then the contents are considered test sources.
+Test sources have access to non-test sources, but non-test sources don't have access to test sources.
+Similarly, test sources can only reference classes from a jar file if the jar file has the `test=true` classpath attribute.
+For project dependencies if the `test=true` attribute is present the classes in the target project are visible to test sources.
+If the `without_test_code=false` attribute is present then the test sources of the target project are also accessible.  By default, test code is not available (which can be thought of as implicitly having `without_test_code=true`).
+
+The following rules apply for the test attribute declaration when generating the Eclipse classpath:
+
+- Source sets and dependency configurations are categorized as test if their name contain the 'test' substring, irrespective of case.
+- All source sets and dependency configurations defined by the JVM test suite plugin are categorized as test.
+- Source directories have the `test=true` classpath attribute if the container source set is a test source set.
+- Jar files and project dependencies have the `test=true` attribute if they are present only in test dependency configurations.
+- Project dependencies have the `without_test_sources=false` attribute if the target project applies the java-test-fixtures plugin.
+
+You can customize the test source sets and configurations:
+
+.Customizing test sources
+====
+include::sample[dir="snippets/ide/eclipse/groovy",files="build.gradle[tags=test-sources]"]
+include::sample[dir="snippets/ide/eclipse/kotlin",files="build.gradle.kts[tags=test-sources]"]
+====
+
+TIP: Consider migrating away from manual definition of additional test source sets and towards the use of the <<jvm_test_suite_plugin#jvm_test_suite_plugin,JVM Test Suite Plugin>> in scenarios like this.
+
+You can also customize if a project should expose test sources to upstream project dependencies via the `containsTestFixtures` property.
+
+.Customizing test fixtures
+====
+include::sample[dir="snippets/ide/eclipse/groovy",files="build.gradle[tags=test-fixtures]"]
+include::sample[dir="snippets/ide/eclipse/kotlin",files="build.gradle.kts[tags=test-fixtures]"]
+====
+
+Note, that this configuration also applies to the classpath of Buildship projects.

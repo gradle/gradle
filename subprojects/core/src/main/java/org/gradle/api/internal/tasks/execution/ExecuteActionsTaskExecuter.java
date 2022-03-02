@@ -15,8 +15,6 @@
  */
 package org.gradle.api.internal.tasks.execution;
 
-import org.gradle.api.execution.TaskActionListener;
-import org.gradle.api.execution.internal.TaskInputsListeners;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileOperations;
@@ -46,6 +44,7 @@ import java.util.Optional;
 /**
  * A {@link TaskExecuter} which executes the actions of a task.
  */
+@SuppressWarnings("deprecation")
 public class ExecuteActionsTaskExecuter implements TaskExecuter {
     public enum BuildCacheState {
         ENABLED, DISABLED
@@ -61,7 +60,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     private final ExecutionHistoryStore executionHistoryStore;
     private final BuildOperationExecutor buildOperationExecutor;
     private final AsyncWorkTracker asyncWorkTracker;
-    private final TaskActionListener actionListener;
+    private final org.gradle.api.execution.TaskActionListener actionListener;
     private final TaskCacheabilityResolver taskCacheabilityResolver;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final ExecutionEngine executionEngine;
@@ -70,7 +69,6 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     private final ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry;
     private final FileCollectionFactory fileCollectionFactory;
     private final FileOperations fileOperations;
-    private final TaskInputsListeners taskInputsListeners;
 
     public ExecuteActionsTaskExecuter(
         BuildCacheState buildCacheState,
@@ -79,7 +77,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         ExecutionHistoryStore executionHistoryStore,
         BuildOperationExecutor buildOperationExecutor,
         AsyncWorkTracker asyncWorkTracker,
-        TaskActionListener actionListener,
+        org.gradle.api.execution.TaskActionListener actionListener,
         TaskCacheabilityResolver taskCacheabilityResolver,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         ExecutionEngine executionEngine,
@@ -87,8 +85,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         ListenerManager listenerManager,
         ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry,
         FileCollectionFactory fileCollectionFactory,
-        FileOperations fileOperations,
-        TaskInputsListeners taskInputsListeners
+        FileOperations fileOperations
     ) {
         this.buildCacheState = buildCacheState;
         this.scanPluginState = scanPluginState;
@@ -105,7 +102,6 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         this.reservedFileSystemLocationRegistry = reservedFileSystemLocationRegistry;
         this.fileCollectionFactory = fileCollectionFactory;
         this.fileOperations = fileOperations;
-        this.taskInputsListeners = taskInputsListeners;
     }
 
     @Override
@@ -126,8 +122,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
             inputFingerprinter,
             listenerManager,
             reservedFileSystemLocationRegistry,
-            taskCacheabilityResolver,
-            taskInputsListeners
+            taskCacheabilityResolver
         );
         try {
             return executeIfValid(task, state, context, work);

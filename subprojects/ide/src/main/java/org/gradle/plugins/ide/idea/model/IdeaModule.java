@@ -162,14 +162,18 @@ public class IdeaModule {
     private Set<File> sourceDirs;
     private Set<File> generatedSourceDirs = Sets.newLinkedHashSet();
     private Set<File> resourceDirs = Sets.newLinkedHashSet();
-    @Deprecated
+    /**
+     * <strong>This field will be {@code @Deprecated} soon, please use {@link #testResources} instead.</strong>
+     */
     private Set<File> testResourceDirs = Sets.newLinkedHashSet();
     private ConfigurableFileCollection testResources;
     private Map<String, Map<String, Collection<Configuration>>> scopes = Maps.newLinkedHashMap();
     private boolean downloadSources = true;
     private boolean downloadJavadoc;
     private File contentRoot;
-    @Deprecated
+    /**
+     * <strong>This field will be {@code @Deprecated} soon, please use {@link #testSources} instead.</strong>
+     */
     private Set<File> testSourceDirs;
     private ConfigurableFileCollection testSources;
     private Set<File> excludeDirs;
@@ -331,13 +335,16 @@ public class IdeaModule {
      * <strong>Note that late changes to default test directories may NOT be reflected in this collection and {@link #getTestSources()} should be preferred.</strong>
      *
      * For example see docs for {@link IdeaModule}
+     *
+     * <strong>This field will be {@code @Deprecated} soon, please use {@link #getTestSources()} instead.</strong>
      */
-    @Deprecated
     public Set<File> getTestSourceDirs() {
         return testSourceDirs;
     }
 
-    @Deprecated
+    /**
+     * <strong>This field will be {@code @Deprecated} soon, please use {@link #getTestSources()} instead to access the new collection property.</strong>
+     */
     public void setTestSourceDirs(Set<File> testSourceDirs) {
         this.testSourceDirs = testSourceDirs;
     }
@@ -376,9 +383,10 @@ public class IdeaModule {
     /**
      * The directories containing the test resources. <p> For example see docs for {@link IdeaModule}
      *
+     * <strong>This field will be {@code @Deprecated} soon, please use {@link #getTestResources()} instead.</strong>
+     *
      * @since 4.7
      */
-    @Deprecated
     public Set<File> getTestResourceDirs() {
         return testResourceDirs;
     }
@@ -386,9 +394,10 @@ public class IdeaModule {
     /**
      * Sets the directories containing the test resources. <p> For example see docs for {@link IdeaModule}
      *
+     * <strong>This field will be {@code @Deprecated} soon, please use {@link #getTestResources()} instead to access the new collection property.</strong>
+     *
      * @since 4.7
      */
-    @Deprecated
     public void setTestResourceDirs(Set<File> testResourceDirs) {
         this.testResourceDirs = testResourceDirs;
     }
@@ -606,7 +615,7 @@ public class IdeaModule {
     public Set<Dependency> resolveDependencies() {
         ProjectInternal projectInternal = (ProjectInternal) project;
         IdeArtifactRegistry ideArtifactRegistry = projectInternal.getServices().get(IdeArtifactRegistry.class);
-        IdeaDependenciesProvider ideaDependenciesProvider = new IdeaDependenciesProvider(projectInternal, ideArtifactRegistry, new DefaultGradleApiSourcesResolver(project));
+        IdeaDependenciesProvider ideaDependenciesProvider = new IdeaDependenciesProvider(projectInternal, ideArtifactRegistry, new DefaultGradleApiSourcesResolver(projectInternal.newDetachedResolver()));
         return ideaDependenciesProvider.provide(this);
     }
 

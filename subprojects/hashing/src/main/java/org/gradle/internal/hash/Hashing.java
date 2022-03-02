@@ -29,6 +29,8 @@ import java.nio.ByteOrder;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
+import static org.gradle.internal.hash.HashCode.Usage.SAFE_TO_REUSE_BYTES;
+
 /**
  * Some popular hash functions. Replacement for Guava's hashing utilities.
  * Inspired by the Google Guava project – https://github.com/google/guava.
@@ -340,14 +342,14 @@ public class Hashing {
 
         @Override
         public void putHash(HashCode hashCode) {
-            putBytes(hashCode.getBytes());
+            hashCode.appendToHasher(this);
         }
 
         @Override
         public HashCode hash() {
             byte[] bytes = getDigest().digest();
             digest = null;
-            return HashCode.fromBytesNoCopy(bytes);
+            return HashCode.fromBytes(bytes, SAFE_TO_REUSE_BYTES);
         }
     }
 

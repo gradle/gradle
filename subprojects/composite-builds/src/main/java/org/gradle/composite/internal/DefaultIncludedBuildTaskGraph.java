@@ -15,7 +15,6 @@
  */
 package org.gradle.composite.internal;
 
-import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.BuildState;
@@ -83,19 +82,10 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
     }
 
     @Override
-    public IncludedBuildTaskResource locateTask(BuildIdentifier targetBuild, TaskInternal task) {
+    public IncludedBuildTaskResource locateTask(TaskIdentifier taskIdentifier) {
         return withState(workGraph -> {
-            BuildState build = buildRegistry.getBuild(targetBuild);
-            ExportedTaskNode taskNode = build.getWorkGraph().locateTask(task);
-            return new TaskBackedResource(workGraph, build, taskNode);
-        });
-    }
-
-    @Override
-    public IncludedBuildTaskResource locateTask(BuildIdentifier targetBuild, String taskPath) {
-        return withState(workGraph -> {
-            BuildState build = buildRegistry.getBuild(targetBuild);
-            ExportedTaskNode taskNode = build.getWorkGraph().locateTask(taskPath);
+            BuildState build = buildRegistry.getBuild(taskIdentifier.getBuildIdentifier());
+            ExportedTaskNode taskNode = build.getWorkGraph().locateTask(taskIdentifier);
             return new TaskBackedResource(workGraph, build, taskNode);
         });
     }
@@ -221,6 +211,11 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
         @Override
         public void queueForExecution() {
             workGraph.queueForExecution(build, taskNode);
+        }
+
+        @Override
+        public void onComplete(Runnable action) {
+            taskNode.onComplete(action);
         }
 
         @Override

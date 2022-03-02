@@ -1,7 +1,7 @@
 [[variant_attributes]]
 = Working with Variant Attributes
 
-As explained in the section on <<variant_model.adoc#sec:variant-aware-matching,variant aware matching>>, attributes give semantics to variants and are used to perform the selection between them.
+As explained in the section on <<variant_model.adoc#sec:variant-aware-matching,variant aware matching>>, attributes give semantics to variants and are used by Gradle's dependency management engine to select the best matching variant. 
 
 As a user of Gradle, attributes are often hidden as implementation details.
 But it might be useful to understand the _standard attributes_ defined by Gradle and its core plugins.
@@ -177,7 +177,7 @@ include::sample[dir="snippets/dependencyManagement/attributeMatching/groovy",fil
 include::sample[dir="snippets/dependencyManagement/attributeMatching/kotlin",files="build.gradle.kts[tags=define_attribute]"]
 ====
 
-Currently, only attribute types of `String`, or anything extending `Named` is supported.
+Attribute types support most Java primitive classes; such as `String` and `Integer`; Or anything extending `org.gradle.api.Named`.
 Attributes must be declared in the _attribute schema_ found on the `dependencies` handler:
 
 .Registering attributes on the attributes schema
@@ -202,23 +202,48 @@ include::sample[dir="snippets/dependencyManagement/attributeMatching/groovy",fil
 include::sample[dir="snippets/dependencyManagement/attributeMatching/kotlin",files="build.gradle.kts[tags=named-attributes]"]
 ====
 
+== Attribute matching
+
 [[sec:abm_compatibility_rules]]
 === Attribute compatibility rules
 
 Attributes let the engine select _compatible variants_.
-However, there are cases where a provider may not have _exactly_ what the consumer wants, but still something that it can use.
-For example, if the consumer is asking for the API of a library, there's a possibility that the producer doesn't have such a variant, but only a _runtime_ variant.
-This is typical of libraries published on external repositories.
+There are cases where a producer may not have _exactly_ what the consumer requests but has a variant that can be used.
+
+For example, if the consumer is asking for the API of a library and the producer doesn't have an exactly matching variant, the _runtime_ variant could be considered compatible.
+This is typical of libraries published to external repositories.
 In this case, we know that even if we don't have an exact match (API), we can still compile against the runtime variant (it contains _more_ than what we need to compile but it's still ok to use).
-To deal with this, Gradle provides link:{javadocPath}/org/gradle/api/attributes/AttributeCompatibilityRule.html[attribute compatibility rules].
-The role of a compatibility rule is to explain what variants are _compatible_ with what the consumer asked for.
+
+Gradle provides link:{javadocPath}/org/gradle/api/attributes/AttributeCompatibilityRule.html[attribute compatibility rules] that can be defined for each attribute.
+The role of a compatibility rule is to explain which attribute values are _compatible_ based on what the consumer asked for.
 
 Attribute compatibility rules have to be registered via the link:{javadocPath}/org/gradle/api/attributes/AttributeMatchingStrategy.html[attribute matching strategy] that you can obtain from the link:{javadocPath}/org/gradle/api/attributes/AttributesSchema.html[attributes schema].
 
 [[sec:abm_disambiguation_rules]]
 === Attribute disambiguation rules
 
-Because multiple values for an attribute can be _compatible_ with the requested attribute, Gradle needs to choose between the candidates.
-This is done by implementing an link:{javadocPath}/org/gradle/api/attributes/AttributeDisambiguationRule.html[attribute disambiguation rule].
+Since multiple values for an attribute can be _compatible_, Gradle needs to choose the "best" candidate between all compatible candidates. This is called "disambiguation".
+
+This is done by implementing an link:{javadocPath}/org/gradle/api/attributes/AttributeDisambiguationRule.html[attribute disambiguation rule]. 
 
 Attribute disambiguation rules have to be registered via the link:{javadocPath}/org/gradle/api/attributes/AttributeMatchingStrategy.html[attribute matching strategy] that you can obtain from the link:{javadocPath}/org/gradle/api/attributes/AttributesSchema.html[attributes schema].
+[[sec:abm_algorithm]]
+=== Variant attribute matching algorithm
+
+Finding the best variant can get complicated when there are many different variants available for a component and many different attributes. Gradle's dependency resolution engine performs the following algorithm when finding the best result (or failing):
+
+1. Each candidate's attribute value is compared to the consumer's requested attribute value. A candidate is considered compatible if its value matches the consumer's value exactly, passes the attribute's compatibility rule or is not provided.
+2. If only one candidate is considered compatible, that candidate wins.
+3. If several candidates are compatible, but one of the candidates matches all of the same attributes as the other candidates, Gradle chooses that candidate. This is the candidate with the "longest" match.
+4. If several candidates are compatible and are compatible with an equal number of attributes, Gradle needs to disambiguate the candidates.
+    a. For each requested attribute, if a candidate does not have a value matching the disambiguation rule, it's eliminated from consideration.
+    b. If the attribute has a known precedence, Gradle will stop as soon as there is a single candidate remaining.
+    c. If the attribute does not have a known precedence, Gradle must consider all attributes.
+5. If several candidates still remain, Gradle will start to consider "extra" attributes to disambiguate between multiple candidates. Extra attributes are attributes that were not requested by the consumer. A candidate can be chosen if it is compatible with all of the disambiguation rules.
+6. If several candidates still remain, Gradle will consider extra attributes again. A candidate can be chosen if it has the fewest number of extra attributes.
+
+If at any step no candidates remain compatible, resolution will fail and list all compatible candidates from step 1. 
+
+Plugins and ecosystems can influence the selection algorithm by implementing compatibility rules, disambiguation rules and telling Gradle the precedence of attributes. Attributes with a higher precedence are used to eliminate compatible matches in order. 
+
+For example, in the Java ecosystem, the `org.gradle.usage` attribute has a higher precedence than `org.gradle.libraryelements`. This means that if two candidates were available with compatible values for both `org.gradle.usage` and `org.gradle.libraryelements`, Gradle will choose the candidate that passes the disambiguation rule for `org.gradle.usage`. 

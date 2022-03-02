@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableSortedMap
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.UnitOfWork
+import org.gradle.internal.execution.WorkInputListeners
 import org.gradle.internal.execution.fingerprint.InputFingerprinter
 import org.gradle.internal.execution.fingerprint.impl.DefaultInputFingerprinter
 import org.gradle.internal.execution.history.OutputsCleaner
@@ -34,12 +35,16 @@ import static org.gradle.internal.execution.ExecutionOutcome.SHORT_CIRCUITED
 
 class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
     def outputChangeListener = Mock(OutputChangeListener)
+    def workInputListeners = Mock(WorkInputListeners)
     def outputsCleaner = Mock(OutputsCleaner)
     def inputFingerprinter = Mock(InputFingerprinter)
     def fileCollectionSnapshotter = TestFiles.fileCollectionSnapshotter()
+    def primaryFileInputs = EnumSet.of(InputFingerprinter.InputPropertyType.PRIMARY)
+    def allFileInputs = EnumSet.allOf(InputFingerprinter.InputPropertyType)
 
     def step = new SkipEmptyWorkStep(
         outputChangeListener,
+        workInputListeners,
         { -> outputsCleaner },
         delegate)
 
@@ -48,7 +53,6 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
     def knownInputProperties = ImmutableSortedMap.<String, ValueSnapshot>of()
     def knownInputFileProperties = ImmutableSortedMap.<String, CurrentFileCollectionFingerprint>of()
     def sourceFileFingerprint = Mock(CurrentFileCollectionFingerprint)
-    boolean hasEmptySources
 
     @Override
     protected PreviousExecutionContext createContext() {
@@ -59,7 +63,6 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
     }
 
     def setup() {
-        _ * work.broadcastRelevantFileSystemInputs(_) >> { boolean hasEmptySources -> this.hasEmptySources = hasEmptySources }
         _ * work.inputFingerprinter >> inputFingerprinter
     }
 
@@ -90,9 +93,9 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
             it.inputProperties as Map == ["known": knownSnapshot]
             it.inputFileProperties as Map == ["known-file": knownFileFingerprint]
         }) >> delegateResult
+        1 * workInputListeners.broadcastFileSystemInputsOf(work, allFileInputs)
         0 * _
 
-        !hasEmptySources
         result == delegateResult
     }
 
@@ -127,10 +130,10 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
             assert delegateContext.inputFileProperties as Map == ["known-file": knownFileFingerprint, "source-file": sourceFileFingerprint]
             return delegateResult
         }
+        1 * workInputListeners.broadcastFileSystemInputsOf(work, allFileInputs)
         0 * _
 
         then:
-        !hasEmptySources
         result == delegateResult
     }
 
@@ -157,9 +160,9 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
 
         then:
         1 * sourceFileFingerprint.empty >> true
+        1 * workInputListeners.broadcastFileSystemInputsOf(work, primaryFileInputs)
 
         then:
-        hasEmptySources
         result.executionResult.get().outcome == SHORT_CIRCUITED
         !result.afterExecutionState.present
     }
@@ -184,10 +187,10 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
 
         and:
         1 * outputsCleaner.didWork >> didWork
+        1 * workInputListeners.broadcastFileSystemInputsOf(work, primaryFileInputs)
         0 * _
 
         then:
-        hasEmptySources
         result.executionResult.get().outcome == outcome
         !result.afterExecutionState.present
 

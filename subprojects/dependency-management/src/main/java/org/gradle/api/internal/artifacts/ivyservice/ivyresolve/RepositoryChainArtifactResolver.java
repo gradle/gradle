@@ -15,12 +15,9 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.gradle.api.attributes.Category;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
-import org.gradle.api.internal.artifacts.repositories.metadata.MavenImmutableAttributesFactory;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
-import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
@@ -69,22 +66,12 @@ class RepositoryChainArtifactResolver implements ArtifactResolver, OriginArtifac
             // virtual components have no source
             return NO_ARTIFACTS;
         }
-        if (configuration.getArtifacts().isEmpty()) {
-            // checks if it's a derived platform
-            AttributeValue<String> componentTypeEntry = configuration.getAttributes().findEntry(MavenImmutableAttributesFactory.CATEGORY_ATTRIBUTE);
-            if (componentTypeEntry.isPresent()) {
-                String value = componentTypeEntry.get();
-                if (Category.REGULAR_PLATFORM.equals(value) || Category.ENFORCED_PLATFORM.equals(value)) {
-                    return NO_ARTIFACTS;
-                }
-            }
-        }
         ModuleComponentRepository sourceRepository = findSourceRepository(component.getSources());
         // First try to determine the artifacts locally before going remote
         DefaultBuildableComponentArtifactsResolveResult result = new DefaultBuildableComponentArtifactsResolveResult();
-        sourceRepository.getLocalAccess().resolveArtifacts(component, configuration, result);
+        sourceRepository.getLocalAccess().resolveArtifacts(component, result);
         if (!result.hasResult()) {
-            sourceRepository.getRemoteAccess().resolveArtifacts(component, configuration, result);
+            sourceRepository.getRemoteAccess().resolveArtifacts(component, result);
         }
         if (result.hasResult()) {
             return result.getResult().getArtifactsFor(component, configuration, this, sourceRepository.getArtifactCache(), artifactTypeRegistry, exclusions, overriddenAttributes, calculatedValueContainerFactory);

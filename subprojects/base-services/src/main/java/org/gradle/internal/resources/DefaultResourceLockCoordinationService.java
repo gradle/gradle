@@ -18,21 +18,60 @@ package org.gradle.internal.resources;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.internal.UncheckedException;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-public class DefaultResourceLockCoordinationService implements ResourceLockCoordinationService {
+public class DefaultResourceLockCoordinationService implements ResourceLockCoordinationService, Closeable {
     private final Object lock = new Object();
+    private final Set<Action<ResourceLock>> releaseHandlers = new LinkedHashSet<Action<ResourceLock>>();
     private final ThreadLocal<List<ResourceLockState>> currentState = new ThreadLocal<List<ResourceLockState>>() {
         @Override
         protected List<ResourceLockState> initialValue() {
             return Lists.newArrayList();
         }
     };
+
+    @Override
+    public void close() throws IOException {
+        synchronized (lock) {
+            if (!releaseHandlers.isEmpty()) {
+                throw new IllegalStateException("Some lock release listeners have not been removed.");
+            }
+        }
+    }
+
+    @Override
+    public void assertHasStateLock() {
+        synchronized (lock) {
+            if (getCurrent() == null) {
+                throw new IllegalStateException();
+            }
+        }
+    }
+
+    @Override
+    public void addLockReleaseListener(Action<ResourceLock> listener) {
+        synchronized (lock) {
+            releaseHandlers.add(listener);
+        }
+    }
+
+    @Override
+    public void removeLockReleaseListener(Action<ResourceLock> listener) {
+        synchronized (lock) {
+            releaseHandlers.remove(listener);
+        }
+    }
 
     @Override
     public boolean withStateLock(Transformer<ResourceLockState.Disposition, ResourceLockState> stateLockAction) {
@@ -47,6 +86,7 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
                     switch (disposition) {
                         case RETRY:
                             resourceLockState.releaseLocks();
+                            maybeNotifyStateChange(resourceLockState);
                             try {
                                 lock.wait();
                             } catch (InterruptedException e) {
@@ -84,8 +124,14 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
     }
 
     private void maybeNotifyStateChange(DefaultResourceLockState resourceLockState) {
-        if (resourceLockState.hasUnlockedResources()) {
+        Collection<ResourceLock> unlockedResources = resourceLockState.getUnlockedResources();
+        if (!unlockedResources.isEmpty()) {
             notifyStateChange();
+            for (ResourceLock resource : unlockedResources) {
+                for (Action<ResourceLock> releaseHandler : releaseHandlers) {
+                    releaseHandler.execute(resource);
+                }
+            }
         }
     }
 
@@ -121,8 +167,8 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
             }
         }
 
-        boolean hasUnlockedResources() {
-            return unlockedResources != null && !unlockedResources.isEmpty();
+        Collection<ResourceLock> getUnlockedResources() {
+            return unlockedResources == null ? Collections.<ResourceLock>emptyList() : unlockedResources;
         }
 
         @Override

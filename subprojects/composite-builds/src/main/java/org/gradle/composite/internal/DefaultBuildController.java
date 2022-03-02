@@ -28,7 +28,6 @@ import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildWorkGraph;
 import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.build.ExportedTaskNode;
-import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
 import org.gradle.internal.graph.DirectedGraphRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
@@ -48,7 +47,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 
-class DefaultBuildController implements BuildController, Stoppable {
+class DefaultBuildController implements BuildController {
     private enum State {
         DiscoveringTasks, ReadyToRun, RunningTasks, Finished
     }
@@ -141,6 +140,7 @@ class DefaultBuildController implements BuildController, Stoppable {
         if (state == State.RunningTasks) {
             throw new IllegalStateException("Build is currently running tasks.");
         }
+        workGraph.stop();
     }
 
     private void doAwaitCompletion() {
@@ -182,7 +182,7 @@ class DefaultBuildController implements BuildController, Stoppable {
             }));
             StringWriter writer = new StringWriter();
             graphRenderer.renderTo(task, writer);
-            throw new CircularReferenceException(String.format("Circular dependency between the following tasks:%n%s", writer.toString()));
+            throw new CircularReferenceException(String.format("Circular dependency between the following tasks:%n%s", writer));
         }
         visitDependenciesOf(task, dep -> checkForCyclesFor(dep, visited, visiting));
         visiting.remove(task);

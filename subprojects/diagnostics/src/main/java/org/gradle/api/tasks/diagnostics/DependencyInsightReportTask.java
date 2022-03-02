@@ -18,11 +18,15 @@ package org.gradle.api.tasks.diagnostics;
 
 import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
+import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolutionResult;
+import org.gradle.api.artifacts.result.ResolvedComponentResult;
+import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
@@ -33,8 +37,11 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionP
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.diagnostics.internal.ConfigurationFinder;
 import org.gradle.api.tasks.diagnostics.internal.dsl.DependencyResultSpecNotationConverter;
@@ -54,6 +61,7 @@ import org.gradle.work.DisableCachingByDefault;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -94,9 +102,35 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
 @DisableCachingByDefault(because = "Produces only non-cacheable console output")
 public class DependencyInsightReportTask extends DefaultTask {
 
-    private Configuration configuration;
     private Spec<DependencyResult> dependencySpec;
     private boolean showSinglePathToDependency;
+    private transient Configuration configuration;
+    private final Property<ResolvedComponentResult> rootComponentProperty = getProject().getObjects().property(ResolvedComponentResult.class);
+    private ResolutionErrorRenderer errorHandler;
+    private String configurationName;
+    private String configurationDescription;
+    private AttributeContainer configurationAttributes;
+
+    /**
+     * The root component of the dependency graph to be inspected.
+     *
+     * @since 7.5
+     */
+    @Input
+    @Optional
+    @Incubating
+    public Property<ResolvedComponentResult> getRootComponentProperty() {
+        Configuration configuration = getConfiguration();
+        if (!rootComponentProperty.isPresent() && configuration != null && getDependencySpec() != null) {
+            configurationName = configuration.getName();
+            configurationDescription = configuration.toString();
+            configurationAttributes = configuration.getAttributes();
+            ResolvableDependenciesInternal incoming = (ResolvableDependenciesInternal) configuration.getIncoming();
+            ResolutionResult result = incoming.getResolutionResult(errorHandler);
+            rootComponentProperty.set(result.getRootComponent());
+        }
+        return rootComponentProperty;
+    }
 
     /**
      * Selects the dependency (or dependencies if multiple matches found) to show the report for.
@@ -111,6 +145,7 @@ public class DependencyInsightReportTask extends DefaultTask {
      */
     public void setDependencySpec(Spec<DependencyResult> dependencySpec) {
         this.dependencySpec = dependencySpec;
+        this.errorHandler = new ResolutionErrorRenderer(dependencySpec);
     }
 
     /**
@@ -127,7 +162,7 @@ public class DependencyInsightReportTask extends DefaultTask {
     @Option(option = "dependency", description = "Shows the details of given dependency.")
     public void setDependencySpec(Object dependencyInsightNotation) {
         NotationParser<Object, Spec<DependencyResult>> parser = DependencyResultSpecNotationConverter.parser();
-        this.dependencySpec = parser.parseNotation(dependencyInsightNotation);
+        setDependencySpec(parser.parseNotation(dependencyInsightNotation));
     }
 
     /**
@@ -210,28 +245,27 @@ public class DependencyInsightReportTask extends DefaultTask {
 
     @TaskAction
     public void report() {
-        final Configuration configuration = getConfiguration();
-        assertValidTaskConfiguration(configuration);
+        assertValidTaskConfiguration();
+        ResolvedComponentResult rootComponent = getRootComponentProperty().get();
 
         StyledTextOutput output = getTextOutputFactory().create(getClass());
-        ResolutionErrorRenderer errorHandler = new ResolutionErrorRenderer(dependencySpec);
-        Set<DependencyResult> selectedDependencies = selectDependencies(configuration, errorHandler);
+        Set<DependencyResult> selectedDependencies = selectDependencies(rootComponent);
 
         if (selectedDependencies.isEmpty()) {
-            output.println("No dependencies matching given input were found in " + configuration);
+            output.println("No dependencies matching given input were found in " + configurationDescription);
             return;
         }
         errorHandler.renderErrors(output);
-        renderSelectedDependencies(configuration, output, selectedDependencies);
+        renderSelectedDependencies(output, selectedDependencies);
         renderBuildScanHint(output);
     }
 
-    private void renderSelectedDependencies(Configuration configuration, StyledTextOutput output, Set<DependencyResult> selectedDependencies) {
+    private void renderSelectedDependencies(StyledTextOutput output, Set<DependencyResult> selectedDependencies) {
         GraphRenderer renderer = new GraphRenderer(output);
         DependencyInsightReporter reporter = new DependencyInsightReporter(getVersionSelectorScheme(), getVersionComparator(), getVersionParser());
         Collection<RenderableDependency> itemsToRender = reporter.convertToRenderableItems(selectedDependencies, isShowSinglePathToDependency());
-        RootDependencyRenderer rootRenderer = new RootDependencyRenderer(configuration, getAttributesFactory());
-        ReplaceProjectWithConfigurationNameRenderer dependenciesRenderer = new ReplaceProjectWithConfigurationNameRenderer(configuration);
+        RootDependencyRenderer rootRenderer = new RootDependencyRenderer(configurationAttributes, getAttributesFactory());
+        ReplaceProjectWithConfigurationNameRenderer dependenciesRenderer = new ReplaceProjectWithConfigurationNameRenderer(configurationName);
         DependencyGraphsRenderer dependencyGraphRenderer = new DependencyGraphsRenderer(output, renderer, rootRenderer, dependenciesRenderer);
         dependencyGraphRenderer.setShowSinglePath(showSinglePathToDependency);
         dependencyGraphRenderer.render(itemsToRender);
@@ -245,31 +279,43 @@ public class DependencyInsightReportTask extends DefaultTask {
         output.println(" option.");
     }
 
-    private void assertValidTaskConfiguration(@Nullable Configuration configuration) {
-        if (configuration == null) {
+    private void assertValidTaskConfiguration() {
+        if (configurationName == null) {
             throw new InvalidUserDataException("Dependency insight report cannot be generated because the input configuration was not specified. "
-                    + "\nIt can be specified from the command line, e.g: '" + getPath() + " --configuration someConf --dependency someDep'");
+                + "\nIt can be specified from the command line, e.g: '" + getPath() + " --configuration someConf --dependency someDep'");
         }
 
         if (dependencySpec == null) {
             throw new InvalidUserDataException("Dependency insight report cannot be generated because the dependency to show was not specified."
-                    + "\nIt can be specified from the command line, e.g: '" + getPath() + " --dependency someDep'");
+                + "\nIt can be specified from the command line, e.g: '" + getPath() + " --dependency someDep'");
         }
     }
 
-    private Set<DependencyResult> selectDependencies(Configuration configuration, ResolutionErrorRenderer errorHandler) {
-        ResolvableDependenciesInternal incoming = (ResolvableDependenciesInternal) configuration.getIncoming();
-        ResolutionResult result = incoming.getResolutionResult(errorHandler);
-
+    private Set<DependencyResult> selectDependencies(ResolvedComponentResult rootComponent) {
         final Set<DependencyResult> selectedDependencies = new LinkedHashSet<>();
-        result.allDependencies(dependencyResult -> {
+        eachDependency(rootComponent, dependencyResult -> {
             if (dependencySpec.isSatisfiedBy(dependencyResult)) {
                 selectedDependencies.add(dependencyResult);
             }
-        });
+        }, new HashSet<>());
         return selectedDependencies;
     }
 
+    private void eachDependency(
+        ResolvedComponentResult node,
+        Action<? super DependencyResult> dependencyAction,
+        Set<ResolvedComponentResult> visited
+    ) {
+        if (!visited.add(node)) {
+            return;
+        }
+        for (DependencyResult d : node.getDependencies()) {
+            dependencyAction.execute(d);
+            if (d instanceof ResolvedDependencyResult) {
+                eachDependency(((ResolvedDependencyResult) d).getSelected(), dependencyAction, visited);
+            }
+        }
+    }
 
     private static AttributeMatchDetails match(Attribute<?> actualAttribute, Object actualValue, AttributeContainer requestedAttributes) {
         for (Attribute<?> requested : requestedAttributes.keySet()) {
@@ -313,11 +359,11 @@ public class DependencyInsightReportTask extends DefaultTask {
     }
 
     private static class RootDependencyRenderer implements NodeRenderer {
-        private final Configuration configuration;
+        private final AttributeContainer configurationAttributes;
         private final ImmutableAttributesFactory attributesFactory;
 
-        public RootDependencyRenderer(Configuration configuration, ImmutableAttributesFactory attributesFactory) {
-            this.configuration = configuration;
+        public RootDependencyRenderer(AttributeContainer configurationAttributes, ImmutableAttributesFactory attributesFactory) {
+            this.configurationAttributes = configurationAttributes;
             this.attributesFactory = attributesFactory;
         }
 
@@ -372,25 +418,26 @@ public class DependencyInsightReportTask extends DefaultTask {
                 out.println();
                 out.withStyle(Description).text("   variant \"" + resolvedVariant.getDisplayName() + "\"");
                 AttributeContainer attributes = resolvedVariant.getAttributes();
-                AttributeContainer requested = getRequestedAttributes(configuration, dependency);
+                AttributeContainer requested = getRequestedAttributes(dependency);
                 if (!attributes.isEmpty() || !requested.isEmpty()) {
                     writeAttributeBlock(out, attributes, requested);
                 }
             }
         }
 
-        private AttributeContainer getRequestedAttributes(Configuration configuration, RenderableDependency dependency) {
+        private AttributeContainer getRequestedAttributes(RenderableDependency dependency) {
             if (dependency instanceof HasAttributes) {
                 AttributeContainer dependencyAttributes = ((HasAttributes) dependency).getAttributes();
-                return concat(configuration.getAttributes(), dependencyAttributes);
+                return concat(configurationAttributes, dependencyAttributes);
             }
-            return configuration.getAttributes();
+            return configurationAttributes;
         }
 
         private AttributeContainer concat(AttributeContainer configAttributes, AttributeContainer dependencyAttributes) {
             return attributesFactory.concat(
-                    ((AttributeContainerInternal) configAttributes).asImmutable(),
-                    ((AttributeContainerInternal) dependencyAttributes).asImmutable());
+                ((AttributeContainerInternal) configAttributes).asImmutable(),
+                ((AttributeContainerInternal) dependencyAttributes).asImmutable()
+            );
         }
 
         private void writeAttributeBlock(StyledTextOutput out, AttributeContainer attributes, AttributeContainer requested) {
@@ -455,16 +502,16 @@ public class DependencyInsightReportTask extends DefaultTask {
     }
 
     private static class ReplaceProjectWithConfigurationNameRenderer implements NodeRenderer {
-        private final Configuration configuration;
+        private final String configurationName;
 
-        public ReplaceProjectWithConfigurationNameRenderer(Configuration configuration) {
-            this.configuration = configuration;
+        public ReplaceProjectWithConfigurationNameRenderer(String configurationName) {
+            this.configurationName = configurationName;
         }
 
         @Override
         public void renderNode(StyledTextOutput target, RenderableDependency node, boolean alreadyRendered) {
             boolean leaf = node.getChildren().isEmpty();
-            target.text(leaf ? configuration.getName() : node.getName());
+            target.text(leaf ? configurationName : node.getName());
             if (node.getDescription() != null) {
                 target.text(" ").withStyle(Description).text(node.getDescription());
             }

@@ -27,6 +27,7 @@ import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.ManagedExecutor
 import org.gradle.internal.resources.ResourceLockCoordinationService
 import org.gradle.internal.resources.ResourceLockState
+import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.internal.work.WorkerLeaseService
 import spock.lang.Specification
 
@@ -40,7 +41,9 @@ class DefaultPlanExecutorTest extends Specification {
             transformer[0].transform(Stub(ResourceLockState))
         }
     }
-    def executor = new DefaultPlanExecutor(new DefaultParallelismConfiguration(false, 1), executorFactory, Stub(WorkerLeaseService), cancellationHandler, coordinationService)
+    def workerLeaseService = Mock(WorkerLeaseService)
+    def workerLease = Mock(WorkerLeaseRegistry.WorkerLease)
+    def executor = new DefaultPlanExecutor(new DefaultParallelismConfiguration(false, 1), executorFactory, workerLeaseService, cancellationHandler, coordinationService)
 
     def "executes tasks until no further tasks remain"() {
         def gradle = Mock(Gradle)
@@ -56,17 +59,27 @@ class DefaultPlanExecutorTest extends Specification {
         executor.process(executionPlan, [], worker)
 
         then:
+        1 * executionPlan.getDisplayName() >> "task plan"
         1 * executorFactory.create(_) >> Mock(ManagedExecutor)
+        1 * workerLeaseService.currentWorkerLease >> workerLease
+
+        then:
         1 * cancellationHandler.isCancellationRequested() >> false
+        1 * workerLease.tryLock() >> true
         1 * executionPlan.hasNodesRemaining() >> true
-        1 * executionPlan.selectNext(_, _) >> node
+        1 * executionPlan.selectNext() >> node
         1 * worker.execute(node)
+        1 * executionPlan.finishedExecuting(node)
 
         then:
         1 * cancellationHandler.isCancellationRequested() >> false
         1 * executionPlan.hasNodesRemaining() >> false
+
+        then:
+        1 * workerLease.tryLock() >> true
         1 * executionPlan.allNodesComplete() >> true
         1 * executionPlan.collectFailures([])
+        0 * executionPlan._
     }
 
     def "execution is canceled when cancellation requested"() {
@@ -85,9 +98,13 @@ class DefaultPlanExecutorTest extends Specification {
         then:
         1 * executionPlan.getDisplayName() >> "task plan"
         1 * executorFactory.create(_) >> Mock(ManagedExecutor)
+        1 * workerLeaseService.currentWorkerLease >> workerLease
+
+        then:
         1 * cancellationHandler.isCancellationRequested() >> false
         1 * executionPlan.hasNodesRemaining() >> true
-        1 * executionPlan.selectNext(_, _) >> node
+        1 * workerLease.tryLock() >> true
+        1 * executionPlan.selectNext() >> node
         1 * worker.execute(node)
         1 * executionPlan.finishedExecuting(node)
 
@@ -95,6 +112,9 @@ class DefaultPlanExecutorTest extends Specification {
         1 * cancellationHandler.isCancellationRequested() >> true
         1 * executionPlan.cancelExecution()
         1 * executionPlan.hasNodesRemaining() >> false
+
+        then:
+        1 * workerLease.tryLock() >> true
         1 * executionPlan.allNodesComplete() >> true
         1 * executionPlan.collectFailures([])
         0 * executionPlan._

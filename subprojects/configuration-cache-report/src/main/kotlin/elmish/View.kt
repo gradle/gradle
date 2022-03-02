@@ -16,11 +16,11 @@
 
 package elmish
 
-import org.w3c.dom.Element
-import org.w3c.dom.events.Event
 import kotlinx.dom.addClass
 import kotlinx.dom.appendElement
 import kotlinx.dom.appendText
+import org.w3c.dom.Element
+import org.w3c.dom.events.Event
 
 
 val empty = View.Empty
@@ -195,27 +195,12 @@ private
 fun <I> Element.appendElementFor(view: View<I>, send: (I) -> Unit) {
     when (view) {
         is View.Element -> appendElement(view.elementName) {
-            view.innerText?.let(this::appendText)
-            view.children.forEach { child ->
-                appendElementFor(child, send)
+            view.attributes.forEach {
+                setAttribute(it, send)
             }
-            view.attributes.forEach { a ->
-                when (a) {
-                    is Attribute.OnEvent -> addEventListener(
-                        a.eventName,
-                        { event ->
-                            event.stopPropagation()
-                            send(a.handler(event))
-                        }
-                    )
-                    is Attribute.ClassName -> addClass(
-                        a.value
-                    )
-                    is Attribute.Named -> setAttribute(
-                        a.name,
-                        a.value
-                    )
-                }
+            view.innerText?.let(this::appendText)
+            view.children.forEach { childView ->
+                appendElementFor(childView, send)
             }
         }
         is View.MappedView<*, *> -> {
@@ -226,5 +211,21 @@ fun <I> Element.appendElementFor(view: View<I>, send: (I) -> Unit) {
             }
         }
         View.Empty -> return
+    }
+}
+
+
+private
+fun <I> Element.setAttribute(attr: Attribute<out I>, send: (I) -> Unit) {
+    when (attr) {
+        is Attribute.Named -> setAttribute(attr.name, attr.value)
+        is Attribute.ClassName -> addClass(attr.value)
+        is Attribute.OnEvent -> addEventListener(
+            attr.eventName,
+            { event ->
+                event.stopPropagation()
+                send(attr.handler(event))
+            }
+        )
     }
 }

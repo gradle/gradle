@@ -23,29 +23,22 @@ import com.nhaarman.mockito_kotlin.eq
 import com.nhaarman.mockito_kotlin.inOrder
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.same
-
 import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.file.temp.GradleUserHomeTemporaryFileProvider
 import org.gradle.api.internal.initialization.ClassLoaderScope
-
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.Describables
 import org.gradle.internal.classpath.ClassPath
-
-import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.resource.TextResource
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.kotlin.dsl.fixtures.DummyCompiledScript
-
 import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
 import org.gradle.kotlin.dsl.fixtures.assertStandardOutputOf
 import org.gradle.kotlin.dsl.fixtures.classLoaderFor
 import org.gradle.kotlin.dsl.fixtures.testRuntimeClassPath
-
 import org.junit.Test
-
 import java.io.File
-
 import java.net.URLClassLoader
 
 
@@ -69,8 +62,8 @@ class InterpreterTest : TestWithTempFiles() {
 
         """.trimIndent()
 
-        val sourceHash = HashCode.fromInt(42)
-        val compilationClassPathHash = HashCode.fromInt(11)
+        val sourceHash = TestHashCodes.hashCodeFrom(42)
+        val compilationClassPathHash = TestHashCodes.hashCodeFrom(11)
         val stage1TemplateId = "Settings/TopLevel/stage1"
         val stage2TemplateId = "Settings/TopLevel/stage2"
 

@@ -17,13 +17,14 @@
 package org.gradle.caching.internal.controller.service;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.gradle.api.Action;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.local.internal.LocalBuildCacheService;
 
 import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.File;
+import java.util.Optional;
+import java.util.function.Function;
 
 public interface LocalBuildCacheServiceHandle extends Closeable {
 
@@ -31,15 +32,19 @@ public interface LocalBuildCacheServiceHandle extends Closeable {
     @VisibleForTesting
     LocalBuildCacheService getService();
 
-    boolean canLoad();
-
     // TODO: what if this errors?
-    void load(BuildCacheKey key, Action<? super File> reader);
+    Optional<BuildCacheLoadResult> maybeLoad(BuildCacheKey key, Function<File, BuildCacheLoadResult> unpackFunction);
 
     boolean canStore();
 
-    // TODO: what if this errors?
-    void store(BuildCacheKey key, File file);
+    /**
+     * Stores the file to the local cache.
+     *
+     * If canStore() returns false, then this method will do nothing and will return false.
+     *
+     * Returns true if store was completed.
+     */
+    boolean maybeStore(BuildCacheKey key, File file);
 
     @Override
     void close();

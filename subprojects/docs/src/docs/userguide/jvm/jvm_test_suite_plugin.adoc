@@ -50,7 +50,7 @@ The JVM Test Suite plugin adds the following task to the project:
 `test` — link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test]::
 _Depends on_: `testClasses` from the `java` plugin, and all tasks which produce the test runtime classpath
 +
-Runs the tests using JUnit by default but can be configured for other frameworks.
+Runs the tests using the framework configured for the default test suite.
 
 Additional instances of link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] tasks will be automatically created for each test suite added via the `testing` extension.
 
@@ -102,9 +102,9 @@ include::sample[dir="snippets/testing/test-suite-plugin/kotlin",files="build.gra
 ====
 
 <1> Configure all test suites for this project.
-<2> Configure the built-in `test` suite.  This suite is automatically created for backwards compatibility.  By convention, the built-in `test` suite will use JUnit4.
-<3> Declare this test suite uses JUnit Jupiter.  The framework's dependencies are automatically included.  It is not necessary to explicitly name or configure the built-in `test` suite if JUnit4 is desired.
-<4> Define a new suite called `integrationTest`.
+<2> Configure the built-in `test` suite.  This suite is automatically created for backwards compatibility.  You *must* specify a testing framework to use in order to run these tests (e.g. JUnit 4, JUnit Jupiter).  This suite is the only suite that will automatically have access to the production source's `implementation` dependencies, all other suites must explicitly declare these.
+<3> Declare this test suite uses JUnit Jupiter.  The framework's dependencies are automatically included.  It is always necessary to explicitly configure the built-in `test` suite even if JUnit4 is desired.
+<4> Define a new suite called `integrationTest`.  Note that all suites other than the built-in `test` suite will by convention work as if `useJUnitJupiter()` was called.  You do *not* have to explicitly configure the testing framework on these additional suites, unless you wish to change to another framework.
 <5> Add a dependency on the production code of the project to the `integrationTest` suite targets.  By convention, only the built-in `test` suite will automatically have a dependency on the production code of the project.
 <6> Configure all targets of this suite.  By convention, test suite targets have no relationship to other `Test` tasks.  This example shows that the slower integration test suite targets should run after all targets of the `test` suite are complete.
 <7> Configure the `check` task to depend on all `integrationTest` targets.  By convention, test suite targets are not associated with the `check` task.
@@ -175,7 +175,7 @@ include::sample[dir="snippets/testing/test-suite-configure-source-dir/kotlin",fi
 
 == Differences between similar methods on link:{groovyDslPath}/org.gradle.api.plugins.jvm.JvmTestSuite.html[JvmTestSuite] and link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] task types
 
-Instances of JvmTestSuite have methods link:{javadocPath}org/gradle/api/plugins/jvm/JvmTestSuite.html#useJUnit--[useJUnit()] and link:{javadocPath}org/gradle/api/plugins/jvm/JvmTestSuite.html#useJUnitJupiter[useJUnitJupiter()], which are similar in name to methods on the link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] task type:  link:{javadocPath}/org/gradle/api/tasks/testing/Test.html#useJUnit[useJUnit()] and link:{javadocPath}/org/gradle/api/tasks/testing/Test.html#useJUnitPlatform[useJUnitPlatform()].  However, there are important differences.
+Instances of JvmTestSuite have methods link:{javadocPath}/org/gradle/api/plugins/jvm/JvmTestSuite.html#useJUnit--[useJUnit()] and link:{javadocPath}/org/gradle/api/plugins/jvm/JvmTestSuite.html#useJUnitJupiter--[useJUnitJupiter()], which are similar in name to methods on the link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] task type:  link:{javadocPath}/org/gradle/api/tasks/testing/Test.html#useJUnit--[useJUnit()] and link:{javadocPath}/org/gradle/api/tasks/testing/Test.html#useJUnitPlatform--[useJUnitPlatform()].  However, there are important differences.
 
 Unlike the methods on the link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] task, link:{groovyDslPath}/org.gradle.api.plugins.jvm.JvmTestSuite.html[JvmTestSuite] methods perform two additional pieces of configuration:
 

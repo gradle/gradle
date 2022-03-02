@@ -89,11 +89,6 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
     }
 
     @Override
-    public boolean requiresMonitoring() {
-        return false;
-    }
-
-    @Override
     public void resolveMutations() {
         // Assume for now that no other node is going to destroy the transform outputs, or overlap with them
     }
@@ -127,10 +122,6 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
     @Override
     public Set<Node> getFinalizers() {
         return Collections.emptySet();
-    }
-
-    @Override
-    public void prepareForExecution() {
     }
 
     @Nullable

@@ -48,7 +48,6 @@ abstract class AbstractExecutionPlanSpec extends Specification {
     private def acquired = new HashSet<MockLock>()
     def thisBuild = backing.gradle
     def project = project()
-    def resourceLockState = new MockResourceLockState(acquired)
     def nodeValidator = Mock(NodeValidator)
 
     protected Set<ProjectInternal> getLockedProjects() {

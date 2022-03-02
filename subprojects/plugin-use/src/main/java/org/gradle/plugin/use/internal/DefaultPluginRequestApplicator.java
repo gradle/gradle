@@ -17,9 +17,7 @@
 package org.gradle.plugin.use.internal;
 
 import org.gradle.api.GradleException;
-import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
-import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.api.internal.plugins.ClassloaderBackedPluginDescriptorLocator;
@@ -38,11 +36,12 @@ import org.gradle.plugin.management.internal.PluginRequests;
 import org.gradle.plugin.management.internal.PluginResolutionStrategyInternal;
 import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.resolve.internal.AlreadyOnClasspathPluginResolver;
-import org.gradle.plugin.use.resolve.internal.PluginRepositoriesProvider;
+import org.gradle.plugin.use.resolve.internal.PluginArtifactRepositoriesProvider;
 import org.gradle.plugin.use.resolve.internal.PluginResolution;
 import org.gradle.plugin.use.resolve.internal.PluginResolutionResult;
 import org.gradle.plugin.use.resolve.internal.PluginResolveContext;
 import org.gradle.plugin.use.resolve.internal.PluginResolver;
+import org.gradle.plugin.use.resolve.internal.PluginArtifactRepositories;
 import org.gradle.plugin.use.tracker.internal.PluginVersionTracker;
 import org.gradle.util.internal.TextUtil;
 
@@ -62,22 +61,23 @@ import static org.gradle.util.internal.CollectionUtils.collect;
 public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
     private final PluginRegistry pluginRegistry;
     private final PluginResolverFactory pluginResolverFactory;
-    private final PluginRepositoriesProvider pluginRepositoriesProvider;
+    private final PluginArtifactRepositoriesProvider pluginRepositoriesProvider;
     private final PluginResolutionStrategyInternal pluginResolutionStrategy;
     private final PluginInspector pluginInspector;
     private final CachedClasspathTransformer cachedClasspathTransformer;
     private final PluginVersionTracker pluginVersionTracker;
 
     public DefaultPluginRequestApplicator(
-        PluginRegistry pluginRegistry, PluginResolverFactory pluginResolver,
-        PluginRepositoriesProvider pluginRepositoriesProvider,
+        PluginRegistry pluginRegistry,
+        PluginResolverFactory pluginResolverFactory,
+        PluginArtifactRepositoriesProvider pluginRepositoriesProvider,
         PluginResolutionStrategyInternal pluginResolutionStrategy,
         PluginInspector pluginInspector,
         CachedClasspathTransformer cachedClasspathTransformer,
         PluginVersionTracker pluginVersionTracker
     ) {
         this.pluginRegistry = pluginRegistry;
-        this.pluginResolverFactory = pluginResolver;
+        this.pluginResolverFactory = pluginResolverFactory;
         this.pluginRepositoriesProvider = pluginRepositoriesProvider;
         this.pluginResolutionStrategy = pluginResolutionStrategy;
         this.pluginInspector = pluginInspector;
@@ -92,12 +92,11 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
             return;
         }
 
-        // This should move to settings finalization
-        pluginRepositoriesProvider.prepareForPluginResolution();
+        PluginArtifactRepositories resolveContext = pluginRepositoriesProvider.createPluginResolveRepositories();
 
-        final PluginResolver effectivePluginResolver = wrapInAlreadyInClasspathResolver(classLoaderScope);
+        final PluginResolver effectivePluginResolver = wrapInAlreadyInClasspathResolver(classLoaderScope, resolveContext);
         if (!requests.isEmpty()) {
-            addPluginArtifactRepositories(scriptHandler.getRepositories());
+            addPluginArtifactRepositories(resolveContext, scriptHandler.getRepositories());
         }
         List<Result> results = resolvePluginRequests(requests, effectivePluginResolver);
 
@@ -170,12 +169,8 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         });
     }
 
-    private void addPluginArtifactRepositories(RepositoryHandler repositories) {
-        if (pluginRepositoriesProvider.isExclusiveContentInUse() && !repositories.isEmpty()) {
-            throw new InvalidUserCodeException("When using exclusive repository content in 'settings.pluginManagement.repositories', you cannot add repositories to 'buildscript.repositories'.\n" +
-                "See the documentation in " + new DocumentationRegistry().getDocumentationFor("declaring_repositories", "declaring_content_exclusively_found_in_one_repository") + ".");
-        }
-        repositories.addAll(pluginRepositoriesProvider.getPluginRepositories());
+    private void addPluginArtifactRepositories(PluginArtifactRepositories resolveContext, RepositoryHandler repositories) {
+        resolveContext.applyRepositoriesTo(repositories);
     }
 
     private void defineScriptHandlerClassScope(ScriptHandlerInternal scriptHandler, ClassLoaderScope classLoaderScope, Iterable<PluginImplementation<?>> pluginsFromOtherLoaders) {
@@ -193,10 +188,10 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         classLoaderScope.export(cachedClassPath);
     }
 
-    private PluginResolver wrapInAlreadyInClasspathResolver(ClassLoaderScope classLoaderScope) {
+    private PluginResolver wrapInAlreadyInClasspathResolver(ClassLoaderScope classLoaderScope, PluginArtifactRepositories resolveContext) {
         ClassLoaderScope parentLoaderScope = classLoaderScope.getParent();
         PluginDescriptorLocator scriptClasspathPluginDescriptorLocator = new ClassloaderBackedPluginDescriptorLocator(parentLoaderScope.getExportClassLoader());
-        PluginResolver pluginResolver = pluginResolverFactory.create();
+        PluginResolver pluginResolver = pluginResolverFactory.create(resolveContext);
         return new AlreadyOnClasspathPluginResolver(pluginResolver, pluginRegistry, parentLoaderScope, scriptClasspathPluginDescriptorLocator, pluginInspector, pluginVersionTracker);
     }
 

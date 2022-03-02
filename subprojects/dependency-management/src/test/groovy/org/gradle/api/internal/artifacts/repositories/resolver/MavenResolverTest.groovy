@@ -32,14 +32,12 @@ import org.gradle.internal.action.ConfigurableRule
 import org.gradle.internal.action.DefaultConfigurableRules
 import org.gradle.internal.action.InstantiatingAction
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
-import org.gradle.internal.component.external.model.FixedComponentArtifacts
 import org.gradle.internal.component.external.model.MetadataSourcedComponentArtifacts
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata
 import org.gradle.internal.component.external.model.maven.MavenModuleResolveMetadata
 import org.gradle.internal.component.model.ComponentOverrideMetadata
-import org.gradle.internal.component.model.ConfigurationMetadata
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResult
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult
@@ -52,7 +50,6 @@ import spock.lang.Specification
 
 class MavenResolverTest extends Specification {
     def module = Mock(MavenModuleResolveMetadata)
-    def variant = Mock(ConfigurationMetadata)
     def result = Mock(BuildableComponentArtifactsResolveResult)
     def transport = Stub(RepositoryTransport)
     def resolver = resolver()
@@ -64,10 +61,24 @@ class MavenResolverTest extends Specification {
 
     def "uses artifacts from variant metadata"() {
         given:
-        variant.requiresMavenArtifactDiscovery() >> false
+        module.hasVariants() >> true
 
         when:
-        resolver.getLocalAccess().resolveModuleArtifacts(module, variant, result)
+        resolver.getLocalAccess().resolveModuleArtifacts(module, result)
+
+        then:
+        1 * result.resolved(_) >> { args ->
+            assert args[0] instanceof MetadataSourcedComponentArtifacts
+        }
+    }
+
+    def "uses artifacts from all variant metadata, even when POM declares JAR packaging"() {
+        given:
+        module.hasVariants() >> false
+        module.isKnownJarPackaging() >> true
+
+        when:
+        resolver.getLocalAccess().resolveModuleArtifacts(module, result)
 
         then:
         1 * result.resolved(_) >> { args ->
@@ -79,33 +90,29 @@ class MavenResolverTest extends Specification {
         given:
         module.variants >> ImmutableList.of()
         module.relocated >> true
-        variant.requiresMavenArtifactDiscovery() >> true
 
         when:
-        resolver.getLocalAccess().resolveModuleArtifacts(module, variant, result)
+        resolver.getLocalAccess().resolveModuleArtifacts(module, result)
 
         then:
         1 * result.resolved(_) >> { args ->
-            assert args[0] instanceof FixedComponentArtifacts
-            assert args[0].artifacts.isEmpty()
+            assert args[0] instanceof MetadataSourcedComponentArtifacts
         }
     }
 
-    def "resolve artifact when module's packaging is jar"() {
+    def "resolve metadata when module's packaging is jar"() {
         given:
         module.variants >> ImmutableList.of()
         module.knownJarPackaging >> true
         ModuleComponentArtifactMetadata artifact = Mock(ModuleComponentArtifactMetadata)
         module.artifact('jar', 'jar', null) >> artifact
-        variant.requiresMavenArtifactDiscovery() >> true
 
         when:
-        resolver.getLocalAccess().resolveModuleArtifacts(module, variant, result)
+        resolver.getLocalAccess().resolveModuleArtifacts(module, result)
 
         then:
         1 * result.resolved(_) >> { args ->
-            assert args[0] instanceof FixedComponentArtifacts
-            assert args[0].artifacts == [artifact]
+            assert args[0] instanceof MetadataSourcedComponentArtifacts
         }
     }
 

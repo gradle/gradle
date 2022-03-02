@@ -3,23 +3,22 @@ The Gradle team is excited to announce Gradle @version@.
 This release features [1](), [2](), ... [n](), and more.
 
 We would like to thank the following community members for their contributions to this release of Gradle:
+[Josh Kasten](https://github.com/jkasten2),
+[Marcono1234](https://github.com/Marcono1234),
+[mataha](https://github.com/mataha),
+[Lieven Vaneeckhaute](https://github.com/denshade),
+[kiwi-oss](https://github.com/kiwi-oss),
+[Stefan Neuhaus](https://github.com/stefanneuhaus),
+[George Thomas](https://github.com/smoothreggae),
+[Anja Papatola](https://github.com/apalopta),
+[Björn Kautler](https://github.com/Vampire),
+[David Burström](https://github.com/davidburstrom),
+[Vladimir Sitnikov](https://github.com/vlsi),
+[Roland Weisleder](https://github.com/rweisleder)
 <!-- 
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
 -->
-[Michael Bailey](https://github.com/yogurtearl),
-[Jochen Schalanda](https://github.com/joschi),
-[Jendrik Johannes](https://github.com/jjohannes),
-[Roberto Perez Alcolea](https://github.com/rpalcolea),
-[Konstantin Gribov](https://github.com/grossws),
-[Piyush Mor](https://github.com/piyushmor),
-[Róbert Papp](https://github.com/TWiStErRob),
-[Piyush Mor](https://github.com/piyushmor),
-[Ned Twigg](https://github.com/nedtwigg),
-[Nikolas Grottendieck](https://github.com/Okeanos),
-[Lars Grefer](https://github.com/larsgrefer),
-[Patrick Pichler](https://github.com/patrickpichler),
-[Marcin Mielnicki](https://github.com/platan).
 
 ## Upgrade instructions
 
@@ -27,18 +26,14 @@ Switch your build to use Gradle @version@ by updating your wrapper:
 
 `./gradlew wrapper --gradle-version=@version@`
 
-See the [Gradle 7.x upgrade guide](userguide/upgrading_version_7.html#changes_@baseVersion@) to learn about deprecations, breaking changes and other considerations when upgrading to Gradle @version@. 
-
-NOTE: Gradle 7.3 has had *two* patch releases, which fixes several issues from the original release.
-We recommend always using the latest patch release.
+See the [Gradle 7.x upgrade guide](userguide/upgrading_version_7.html#changes_@baseVersion@) to learn about deprecations, breaking changes and other considerations when upgrading to Gradle @version@.
 
 For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).
 
-## New features and usability improvements
 
-<!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. --> 
+<!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. -->
 
-<!-- 
+<!--
 
 ================== TEMPLATE ==============================
 
@@ -55,7 +50,7 @@ Example:
 > HIGHLIGHT the usecase or existing problem the feature solves
 > EXPLAIN how the new release addresses that problem or use case
 > PROVIDE a screenshot or snippet illustrating the new feature, if applicable
-> LINK to the full documentation for more details 
+> LINK to the full documentation for more details
 
 ================== END TEMPLATE ==========================
 
@@ -69,102 +64,84 @@ vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 [Java toolchains](userguide/toolchains.html) provide an easy way to declare which Java version your project should be built with.
 By default, Gradle will [detect installed JDKs](userguide/toolchains.html#sec:auto_detection) or automatically download new toolchain versions.
 
-#### Changes following migration from AdoptOpenJDK to Adoptium
+#### Checkstyle tasks can be configured to use JVM toolchain
 
-Following the migration of [AdoptOpenJDK](https://adoptopenjdk.net/) to [Eclipse Adoptium](https://adoptium.net/), a number of changes have been made for toolchains:
-* `ADOPTIUM` and `IBM_SEMERU` are now recognized as vendors,
-* Both of the above can be used as vendors and trigger auto-provisioning,
-* Using `ADOPTOPENJDK` as a vendor and having it trigger auto-provisioning will emit a [deprecation warning](userguide/upgrading_version_7.html#adoptopenjdk_download).
+The checkstyle task is now leveraging JVM toolchains. By default the toolchain based on the current jdk is used.
+In combination with the Java Plugin the configured java toolchain is used for checkstyle tasks.
 
-See [the documentation](userguide/toolchains.html#sec:provisioning) for details.
-
-#### Checkstyle tasks can be configured to use JVM toolchain 
-
-The checkstyle task is now leveraging JVM toolchains. By default the toolchain based on the current jdk is used. 
-In combination with the Java Plugin the configured java toolchain is used for checkstyle tasks. 
-
-Furthermore the checkstyle task is now leveraging the Gradle worker API which effectively means  
+Furthermore the checkstyle task is now leveraging the Gradle worker API which effectively means
 
 - the checkstyle process is always running as an external process,
-- parallel task execution within a single project is improved by allowing 
+- parallel task execution within a single project is improved by allowing
   multiple checkstyle tasks within a project can now be executed in parallel.
 
-### Kotlin DSL improvements
+### Improved test sources separation in the `eclipse` plugin
 
-#### Type-safe accessors for extensions of `repositories {}`
+The `eclipse` plugin has improved support for [test sources](https://www.eclipse.org/eclipse/news/4.8/jdt.php#jdt-test-sources).
+The Eclipse classpath file generated by the plugin has the following changes:
 
-The Kotlin DSL now generates type-safe model accessors for extensions registered on the `repositories {}` block.
+ - Project dependencies defined in test configurations get the `test=true` classpath attribute
+ - All source sets and dependencies defined by the JVM Test Suite plugin are also marked as test code by default
+ - The `eclipse` plugin DSL exposes properties to configure test sources
 
-
-For example, starting with this version of Gradle, the [`asciidoctorj-gems-plugin`](https://asciidoctor.github.io/asciidoctor-gradle-plugin/master/user-guide/#asciidoctorj-gems-plugin) can be configured directly via the generated type-safe accessors:
-
-
-```kotlin
-repositories {
-    ruby {
-        gems()
+```
+eclipse {
+    classpath {
+        testSourceSets = [sourcesSets.test, sourceSets.myTestSourceSet]
+        testConfigurations = [configuration.myTestConfiguration]
     }
 }
 ```
 
-Whereas before it required to use [`withGroovyBuilder`]():
+Note, that these changes improve the [Buildship](https://eclipse.org/buildship) plugin's project synchronization as well.
 
-```kotlin
-repositories {
-    withGroovyBuilder {
-        "ruby" {
-            "gems"()
-        }
-    }
-}
-```
+See [the documentation](userguide/eclipse_plugin.html#sec:test-sources) for more details.
 
-or, required more tinkering in order to discover what names and types to use, relying on the API:
-```kotlin
-repositories {
-    this as ExtensionAware
-    configure<com.github.jrubygradle.api.core.RepositoryHandlerExtension> {
-        gems()
-    }
-}
-```
-See [the documentation](userguide/kotlin_dsl.html#type-safe-accessors) for details.
+### Improved Diagnostic Reports for dependency resolution
 
-### Dependency verification improvements
+#### Outgoing Variants
 
-[Dependency verification](userguide/dependency_verification.html) is a feature that allows to verify the checksums and signatures of the plugins and dependencies that are used by the build of your project.
+The `outgoingVariants` report has been improved to present information more clearly and consistently:
 
-With this release, the generation of the dependency verification file has been improved to produce stable output.
-This means that for the same inputs - build configuration and previous verification file - Gradle will always produce the same output.
-This allows you to leverage [the verification metadata bootstrapping feature](userguide/dependency_verification.html#sec:bootstrapping-verification) as an update strategy when dependencies change in your project.
-Have a look at [the documentation](userguide/dependency_verification.html#sec:verification-update) for more details.
+- New messages when using `--all` and `--variant` options to better describe results (or the lack thereof)
+- Classifier printed next to Artifacts if available
+- Capabilities, Attributes, Artifacts lists all fully sorted
+- Rich Console output coloring improved to highlight important information
 
-### Gradle Option Improvements
+See the [OutgoingVariantsReport](https://docs.gradle.org/current/dsl/org.gradle.api.tasks.diagnostics.OutgoingVariantsReport.html) DSL reference for more details.
 
-#### Additional Daemon Debug Options
+#### Resolvable Configurations
 
-Additional options were added for use with `-Dorg.gradle.debug=true`. These allow specification of the port, server mode, and suspend mode.
+There is a new `resolvableConfigurations` report available which will display information about all configurations in a project which can be resolved.  This report compliments `outgoingVariants` and will include the following information:
 
-See [the documentation](userguide/command_line_interface.html#sec:command_line_debugging) for details.
+- Description, Attributes and (directly) extended Configurations
+- A `--recursive` option flag can be set to display all configurations which are extended transitively
+- Attributes affected by Compatibility or Disambiguation rules during resolution listed
+- A `--configuration` option can limit this report to a single configuration
+- A `--all` option flag can be set to include legacy configurations which are both resolvable and consumable, these will be hidden by default
+-
+See the [ResolvableConfigurations](https://docs.gradle.org/current/dsl/org.gradle.api.tasks.diagnostics.ResolvableConfigurations.html) DSL reference for more details.
 
-### Mark additional test source directories as tests in IntelliJ IDEA 
+#### Dependency Insights
 
-The [IntelliJ IDEA Plugin](userguide/idea_plugin.html) plugin will now automatically mark all source directories used by a [JVM Test Suite](userguide/jvm_test_suite_plugin.html#declare_an_additional_test_suite) as test source directories within the IDE. 
+[**TO BE ADDED**]
 
-The [JVM Test Suite Plugin](userguide/jvm_test_suite_plugin.html) is an incubating plugin that makes it easier to create additional sets of tests in a Java project.
+### Description Available on Secondary Variants
 
-The Eclipse plugin will be updated in a future version of Gradle.
+When defining secondary variants, there is a new [ConfigurationVariant](https://docs.gradle.org/current/javadoc/org/gradle/api/artifacts/ConfigurationVariant.html#getDescription--) method available to supply a note or description for the variant.
+These descriptions will be printed by the `outgoingVariants` report and defaults have been added for existing secondary variants produced by the Java plugin.
+### Continuous build is responsive on Windows and macOS
 
-### Plugins DSL improvements
+Continuous Build allows you to automatically re-execute the build with the same requested tasks when inputs change.
+This allows for continuous feedback during development.
 
-The [plugins DSL](userguide/plugins.html#sec:plugins_block) provides a succinct and convenient way to declare plugin dependencies.
+Since Java 9, continuous build did not work very well on Windows and macOS.
+It could take up to 10 seconds to pick up a change and trigger a build.
 
-#### Plugins can be declared with a version in a subproject in more cases
-Previously, it was not possible to declare a plugin with a version in a subproject when the parent project also declared the same
-plugin. Now, this is allowed when Gradle can track the version of the plugin (currently when using included build plugins or externally resolved plugins), and the version of the plugin in both applications matches.
+Now, continuous build uses the same infrastructure as Gradle's [file system watching](userguide/gradle_daemon.html#sec:daemon_watch_fs) to detect changes.
+This means that Gradle picks up changes nearly instantly on all platforms and file systems where file system watching is supported.
 
-This allows you to use [`alias`](userguide/platforms.html#sec:plugins) in both a parent and subproject's `plugins {}` without 
-needing to remove the version in some way.
+For more information see the section on [continuous build](userguide/command_line_interface.html#sec:continuous_build) in the user manual.
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
@@ -178,17 +155,13 @@ See the User Manual section on the “[Feature Lifecycle](userguide/feature_life
 
 The following are the features that have been promoted in this Gradle release.
 
+- The [TargetJvmEnvironmant](https://docs.gradle.org/current/javadoc/org/gradle/api/attributes/java/TargetJvmEnvironmant.html) interface is now stable.
+
 <!--
 ### Example promoted
 -->
 
 ## Fixed issues
-
-### Idle Connection Timeout
-
-Some CI hosting providers like Azure automatically close idle connections after a certain period of time.
-This caused problems with connections to the Gradle Build Cache which could have an open connection for the entire execution of the build.
-This release of Gradle fixes this issue by automatically closing idle connections after 3 min by default.
 
 ## Known issues
 
@@ -200,7 +173,7 @@ We love getting contributions from the Gradle community. For information on cont
 
 ## Reporting problems
 
-If you find a problem with this release, please file a bug on [GitHub Issues](https://github.com/gradle/gradle/issues) adhering to our issue guidelines. 
+If you find a problem with this release, please file a bug on [GitHub Issues](https://github.com/gradle/gradle/issues) adhering to our issue guidelines.
 If you're not sure you're encountering a bug, please use the [forum](https://discuss.gradle.org/c/help-discuss).
 
 We hope you will build happiness with Gradle, and we look forward to your feedback via [Twitter](https://twitter.com/gradle) or on [GitHub](https://github.com/gradle).

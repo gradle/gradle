@@ -19,19 +19,19 @@ package org.gradle.execution.plan;
 import org.gradle.api.Describable;
 import org.gradle.api.Task;
 import org.gradle.api.specs.Spec;
-import org.gradle.internal.resources.ResourceLockState;
-import org.gradle.internal.work.WorkerLeaseRegistry;
 
 import javax.annotation.Nullable;
+import java.io.Closeable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 
 /**
  * Represents a graph of dependent work items, returned in execution order.
  */
-public interface ExecutionPlan extends Describable {
+public interface ExecutionPlan extends Describable, Closeable {
     ExecutionPlan EMPTY = new ExecutionPlan() {
         @Override
         public void useFilter(Spec<? super Task> filter) {
@@ -45,7 +45,7 @@ public interface ExecutionPlan extends Describable {
 
         @Nullable
         @Override
-        public Node selectNext(WorkerLeaseRegistry.WorkerLease workerLease, ResourceLockState resourceLockState) {
+        public Node selectNext() {
             return null;
         }
 
@@ -74,6 +74,11 @@ public interface ExecutionPlan extends Describable {
 
         @Override
         public void addEntryTasks(Collection<? extends Task> tasks) {
+            throw new IllegalStateException();
+        }
+
+        @Override
+        public void addEntryTasks(Collection<? extends Task> tasks, int ordinal) {
             throw new IllegalStateException();
         }
 
@@ -111,6 +116,11 @@ public interface ExecutionPlan extends Describable {
         }
 
         @Override
+        public void onComplete(Consumer<LocalTaskNode> handler) {
+            throw new IllegalStateException();
+        }
+
+        @Override
         public boolean allNodesComplete() {
             return true;
         }
@@ -129,6 +139,10 @@ public interface ExecutionPlan extends Describable {
         public String getDisplayName() {
             return "empty";
         }
+
+        @Override
+        public void close() {
+        }
     };
 
     void useFilter(Spec<? super Task> filter);
@@ -139,7 +153,7 @@ public interface ExecutionPlan extends Describable {
      * Selects a work item to run, returns null if there is no work remaining _or_ if no queued work is ready to run.
      */
     @Nullable
-    Node selectNext(WorkerLeaseRegistry.WorkerLease workerLease, ResourceLockState resourceLockState);
+    Node selectNext();
 
     void finishedExecuting(Node node);
 
@@ -157,6 +171,8 @@ public interface ExecutionPlan extends Describable {
     void addNodes(Collection<? extends Node> nodes);
 
     void addEntryTasks(Collection<? extends Task> tasks);
+
+    void addEntryTasks(Collection<? extends Task> tasks, int ordinal);
 
     void determineExecutionPlan();
 
@@ -189,4 +205,12 @@ public interface ExecutionPlan extends Describable {
      * Returns the number of work items in the plan.
      */
     int size();
+
+    /**
+     * Invokes the given action when a task completes (as per {@link Node#isComplete()}). Does nothing for tasks that have already completed.
+     */
+    void onComplete(Consumer<LocalTaskNode> handler);
+
+    @Override
+    void close();
 }

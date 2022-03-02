@@ -25,10 +25,12 @@ import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.plugins.ide.AbstractIdeIntegrationTest
+import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.ComparisonFailure
 import org.junit.Rule
 import org.junit.Test
+import org.junit.experimental.categories.Category
 
 import java.util.regex.Pattern
 
@@ -65,6 +67,7 @@ class IdeaIntegrationTest extends AbstractIdeIntegrationTest {
     }
 
     @Test
+    @Category(Flaky.class)
     @ToBeFixedForConfigurationCache
     void canCreateAndDeleteMetaData() {
         executer.withTasks('idea').run()
@@ -106,6 +109,7 @@ class IdeaIntegrationTest extends AbstractIdeIntegrationTest {
     }
 
     @Test
+    @Category(Flaky.class)
     @ToBeFixedForConfigurationCache
     void overwritesExistingDependencies() {
         executer.withTasks('idea').run()

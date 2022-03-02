@@ -20,7 +20,6 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.execution.plan.BuildWorkPlan;
 import org.gradle.execution.plan.Node;
-import org.gradle.internal.concurrent.Stoppable;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -30,7 +29,7 @@ import java.util.function.Function;
 /**
  * Controls the lifecycle of an individual build in the build tree.
  */
-public interface BuildLifecycleController extends Stoppable {
+public interface BuildLifecycleController {
     /**
      * Returns the current state of the mutable model for this build.
      *

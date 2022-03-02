@@ -54,10 +54,6 @@ public class ActionNode extends Node implements SelfExecutingNode {
     }
 
     @Override
-    public void prepareForExecution() {
-    }
-
-    @Override
     public void resolveDependencies(TaskDependencyResolver dependencyResolver, Action<Node> processHardSuccessor) {
         TaskDependencyContainer dependencies = action::visitDependencies;
         for (Node node : dependencyResolver.resolveDependenciesFor(null, dependencies)) {
@@ -78,16 +74,6 @@ public class ActionNode extends Node implements SelfExecutingNode {
 
     public WorkNodeAction getAction() {
         return action;
-    }
-
-    @Override
-    public boolean isPublicNode() {
-        return false;
-    }
-
-    @Override
-    public boolean requiresMonitoring() {
-        return false;
     }
 
     @Override

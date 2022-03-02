@@ -26,11 +26,12 @@ import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.composite.internal.BuildTreeWorkGraphController
 import org.gradle.internal.file.Stat
-import org.gradle.internal.resources.ResourceLockState
-import org.gradle.internal.work.WorkerLeaseRegistry
+import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.util.Path
 import org.gradle.util.internal.TextUtil
 import spock.lang.Issue
+
+import java.util.function.Consumer
 
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
 import static org.gradle.util.internal.TextUtil.toPlatformLineSeparators
@@ -38,13 +39,12 @@ import static org.gradle.util.internal.WrapUtil.toList
 
 class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
     DefaultExecutionPlan executionPlan
-    def workerLease = Mock(WorkerLeaseRegistry.WorkerLease)
+    int order = 0
 
     def setup() {
         def taskNodeFactory = new TaskNodeFactory(thisBuild, Stub(DocumentationRegistry), Stub(BuildTreeWorkGraphController))
         def dependencyResolver = new TaskDependencyResolver([new TaskNodeDependencyResolver(taskNodeFactory)])
-        executionPlan = new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, dependencyResolver, nodeValidator, new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, Stub(Stat)), new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, Stub(Stat)))
-        _ * workerLease.tryLock() >> true
+        executionPlan = new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, dependencyResolver, nodeValidator, new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, Stub(Stat)), new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, Stub(Stat)), new DefaultResourceLockCoordinationService())
     }
 
     def "schedules tasks in dependency order"() {
@@ -96,9 +96,9 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         Task d = task("d")
 
         when:
-        executionPlan.addEntryTasks(toList(c, b))
-        executionPlan.addEntryTasks(toList(d, a))
-        executionPlan.determineExecutionPlan()
+        addToGraph(toList(c, b))
+        addToGraph(toList(d, a))
+        populateGraph()
 
         then:
         executes(b, c, a, d)
@@ -129,9 +129,9 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         Task e = task("e", dependsOn: [b, d])
 
         when:
-        executionPlan.addEntryTasks(toList(c))
-        executionPlan.addEntryTasks(toList(e))
-        executionPlan.determineExecutionPlan()
+        addToGraph(toList(c))
+        addToGraph(toList(e))
+        populateGraph()
 
         then:
         executes(a, b, c, d, e)
@@ -156,9 +156,9 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         Task c = task("c", (orderingRule): [b])
 
         when:
-        executionPlan.addEntryTasks([c])
-        executionPlan.addEntryTasks([b])
-        executionPlan.determineExecutionPlan()
+        addToGraph([c])
+        addToGraph([b])
+        populateGraph()
 
         then:
         executes(a, b, c)
@@ -319,9 +319,8 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         Task finalized = task("finalized", finalizedBy: [finalizer], didWork: false)
 
         when:
-        executionPlan.addEntryTasks([finalized])
-        executionPlan.addEntryTasks([dependsOnFinalizer])
-        executionPlan.determineExecutionPlan()
+        addToGraph([finalized])
+        addToGraphAndPopulate([dependsOnFinalizer])
 
         then:
         executes(finalized, finalizerDependency, finalizer, dependsOnFinalizer)
@@ -485,11 +484,11 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         Task c = task("c", dependsOn: [b])
         Task d = task("d", dependsOn: [c])
         relationships(a, mustRunAfter: [c])
-        executionPlan.addEntryTasks([d])
+        addToGraph([d])
 
         when:
-        executionPlan.addEntryTasks([a])
-        executionPlan.determineExecutionPlan()
+        addToGraph([a])
+        populateGraph()
 
         then:
         def e = thrown CircularReferenceException
@@ -826,6 +825,58 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         executesNodes(node1, node2, node3)
     }
 
+    def "notifies listener when task is executed"() {
+        def listener = Mock(Consumer)
+        executionPlan.onComplete(listener)
+
+        def task1 = task("a")
+        def task2 = task("b")
+
+        when:
+        addToGraphAndPopulate([task1, task2])
+        executes(task1, task2)
+
+        then:
+        1 * listener.accept({ it.task == task1 })
+        1 * listener.accept({ it.task == task2 })
+        0 * listener._
+    }
+
+    def "notifies listener when task fails"() {
+        def listener = Mock(Consumer)
+        executionPlan.onComplete(listener)
+
+        def task1 = task("a")
+        def task2 = task("b", failure: new RuntimeException("broken"))
+
+        when:
+        addToGraphAndPopulate([task1, task2])
+        executes(task1, task2)
+
+        then:
+        1 * listener.accept({ it.task == task1 })
+        1 * listener.accept({ it.task == task2 })
+        0 * listener._
+    }
+
+    def "notifies listener when task is skipped due to failed dependency"() {
+        def listener = Mock(Consumer)
+        executionPlan.onComplete(listener)
+
+        def task1 = task("a", failure: new RuntimeException("broken"))
+        def task2 = task("b", dependsOn: [task1])
+        def task3 = task("c", dependsOn: [task2])
+
+        when:
+        addToGraphAndPopulate([task1, task2, task3])
+        executedTasks == [task1]
+
+        then:
+        1 * listener.accept({ it.task == task1 })
+        1 * listener.accept({ it.task == task2 })
+        1 * listener.accept({ it.task == task3 })
+        0 * listener._
+    }
 
     private Node requiredNode(Node... dependencies) {
         node(dependencies).tap {
@@ -845,8 +896,16 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         return node
     }
 
+    private void addToGraph(List tasks) {
+        executionPlan.addEntryTasks(tasks, order++)
+    }
+
     private void addToGraphAndPopulate(List tasks) {
-        executionPlan.addEntryTasks(tasks)
+        addToGraph(tasks)
+        populateGraph()
+    }
+
+    private void populateGraph() {
         executionPlan.determineExecutionPlan()
     }
 
@@ -870,7 +929,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
     List<Node> getExecutedNodes() {
         def nodes = []
         while (executionPlan.hasNodesRemaining()) {
-            def nextNode = executionPlan.selectNext(workerLease, Mock(ResourceLockState))
+            def nextNode = executionPlan.selectNext()
             assert nextNode != null
             if (!nextNode.isComplete()) {
                 nodes << nextNode

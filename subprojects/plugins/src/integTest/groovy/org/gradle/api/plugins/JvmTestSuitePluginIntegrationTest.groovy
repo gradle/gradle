@@ -17,13 +17,12 @@
 package org.gradle.api.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.InspectsOutgoingVariants
+import org.gradle.integtests.fixtures.InspectsConfigurationReport
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 
-class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec implements InspectsOutgoingVariants {
+class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec implements InspectsConfigurationReport {
 
-    @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
     def "JVM Test Suites plugin adds outgoing variants for default test suite"() {
         settingsFile << "rootProject.name = 'Test'"
 
@@ -46,29 +45,26 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec implemen
 
         def resultsPath = new TestFile(getTestDirectory(), 'build/test-results/test/binary').getRelativePathFromBase()
         outputContains("""
-            --------------------------------------------------
-            Variant testResultsElementsForTest (i)
-            --------------------------------------------------
-            Description = Directory containing binary results of running tests for the test Test Suite's test target.
+--------------------------------------------------
+Variant testResultsElementsForTest (i)
+--------------------------------------------------
+Directory containing binary results of running tests for the test Test Suite's test target.
 
-            Capabilities
-                - :Test:unspecified (default capability)
-            Attributes
-                - org.gradle.category              = verification
-                - org.gradle.testsuite.name        = test
-                - org.gradle.testsuite.target.name = test
-                - org.gradle.testsuite.type        = unit-test
-                - org.gradle.verificationtype      = test-results
-
-            Artifacts
-                - $resultsPath (artifactType = directory)
-            """.stripIndent())
+Capabilities
+    - :Test:unspecified (default capability)
+Attributes
+    - org.gradle.category              = verification
+    - org.gradle.testsuite.name        = test
+    - org.gradle.testsuite.target.name = test
+    - org.gradle.testsuite.type        = unit-test
+    - org.gradle.verificationtype      = test-results
+Artifacts
+    - $resultsPath (artifactType = directory)""".stripIndent())
 
         and:
-        hasIncubatingVariantsLegend()
+        hasIncubatingLegend()
     }
 
-    @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
     def "JVM Test Suites plugin adds outgoing variants for custom test suite"() {
         settingsFile << "rootProject.name = 'Test'"
 
@@ -95,26 +91,24 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec implemen
 
         def resultsPath = new TestFile(getTestDirectory(), 'build/test-results/integrationTest/binary').getRelativePathFromBase()
         outputContains("""
-            --------------------------------------------------
-            Variant testResultsElementsForIntegrationTest (i)
-            --------------------------------------------------
-            Description = Directory containing binary results of running tests for the integrationTest Test Suite's integrationTest target.
+--------------------------------------------------
+Variant testResultsElementsForIntegrationTest (i)
+--------------------------------------------------
+Directory containing binary results of running tests for the integrationTest Test Suite's integrationTest target.
 
-            Capabilities
-                - :Test:unspecified (default capability)
-            Attributes
-                - org.gradle.category              = verification
-                - org.gradle.testsuite.name        = integrationTest
-                - org.gradle.testsuite.target.name = integrationTest
-                - org.gradle.testsuite.type        = integration-test
-                - org.gradle.verificationtype      = test-results
-
-            Artifacts
-                - $resultsPath (artifactType = directory)
-            """.stripIndent())
+Capabilities
+    - :Test:unspecified (default capability)
+Attributes
+    - org.gradle.category              = verification
+    - org.gradle.testsuite.name        = integrationTest
+    - org.gradle.testsuite.target.name = integrationTest
+    - org.gradle.testsuite.type        = integration-test
+    - org.gradle.verificationtype      = test-results
+Artifacts
+    - $resultsPath (artifactType = directory)""".stripIndent())
 
         and:
-        hasIncubatingVariantsLegend()
+        hasIncubatingLegend()
     }
 
     def "Test coverage data can be consumed by another task via Dependency Management"() {
