@@ -312,7 +312,7 @@ public class CrossVersionResultsStore extends AbstractWritableResultsStore<Cross
     }
 
     private String mapVcsBranch(String channelPattern, String vcsBranch) {
-        if (channelPattern.startsWith("commits-")) {
+        if (!channelPattern.startsWith("commits-")) {
             return vcsBranch;
         }
         String currentBranch = channelPattern.substring("commits-".length());
