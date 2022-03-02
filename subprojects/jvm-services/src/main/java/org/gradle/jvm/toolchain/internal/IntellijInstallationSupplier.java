@@ -16,6 +16,7 @@
 
 package org.gradle.jvm.toolchain.internal;
 
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.os.OperatingSystem;
@@ -26,18 +27,20 @@ import java.util.Set;
 
 public class IntellijInstallationSupplier extends AutoDetectingInstallationSupplier {
 
-    private static final String PROPERTY_NAME = "org.gradle.java.installations.idea-jdks-directory";
+    private static final String IDEA_JDKS_DIRECTORY_PROPERTY = "org.gradle.java.installations.idea-jdks-directory";
 
-    private final Provider<String> root;
+    private final Provider<String> ideaJdksDirectory;
+    private final FileResolver fileResolver;
 
     @Inject
-    public IntellijInstallationSupplier(ProviderFactory factory) {
-        this(factory, OperatingSystem.current());
+    public IntellijInstallationSupplier(ProviderFactory factory, FileResolver fileResolver) {
+        this(factory, fileResolver, OperatingSystem.current());
     }
 
-    public IntellijInstallationSupplier(ProviderFactory factory, OperatingSystem os) {
+    public IntellijInstallationSupplier(ProviderFactory factory, FileResolver fileResolver, OperatingSystem os) {
         super(factory);
-        root = factory.gradleProperty(PROPERTY_NAME).orElse(defaultJdksDirectory(os));
+        this.ideaJdksDirectory = factory.gradleProperty(IDEA_JDKS_DIRECTORY_PROPERTY).orElse(defaultJdksDirectory(os));
+        this.fileResolver = fileResolver;
     }
 
     private String defaultJdksDirectory(OperatingSystem os) {
@@ -49,7 +52,7 @@ public class IntellijInstallationSupplier extends AutoDetectingInstallationSuppl
 
     @Override
     protected Set<InstallationLocation> findCandidates() {
-        File rootDirectory = new File(root.get());
-        return FileBasedInstallationFactory.fromDirectory(rootDirectory, "IntelliJ IDEA");
+        File directory = fileResolver.resolve(ideaJdksDirectory.get());
+        return FileBasedInstallationFactory.fromDirectory(directory, "IntelliJ IDEA");
     }
 }

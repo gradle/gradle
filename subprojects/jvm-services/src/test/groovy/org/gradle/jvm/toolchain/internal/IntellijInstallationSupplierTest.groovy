@@ -16,6 +16,7 @@
 
 package org.gradle.jvm.toolchain.internal
 
+import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.internal.SystemProperties
@@ -145,22 +146,13 @@ class IntellijInstallationSupplierTest extends Specification {
         useProperty << [true, false]
     }
 
-    def directoriesAsStablePaths(Set<InstallationLocation> actualDirectories) {
-        actualDirectories*.location.absolutePath.sort()
-    }
-
-    def stablePaths(List<String> expectedPaths) {
-        expectedPaths.replaceAll({ String s -> systemSpecificAbsolutePath(s) })
-        expectedPaths
-    }
-
     IntellijInstallationSupplier createSupplierWithProperty(File rootDirectory) {
-        new IntellijInstallationSupplier(createProviderFactory(rootDirectory.getCanonicalPath()))
+        new IntellijInstallationSupplier(createProviderFactory(rootDirectory.getCanonicalPath()), createFileResolver())
     }
 
     IntellijInstallationSupplier createSupplierWithUserHome(File userHome, OperatingSystem os) {
         SystemProperties.instance.withSystemProperty("user.home", userHome.getCanonicalPath()) {
-            new IntellijInstallationSupplier(createProviderFactory(null), os)
+            new IntellijInstallationSupplier(createProviderFactory(null), createFileResolver(), os)
         }
     }
 
@@ -169,5 +161,20 @@ class IntellijInstallationSupplierTest extends Specification {
         providerFactory.gradleProperty("org.gradle.java.installations.auto-detect") >> Providers.notDefined()
         providerFactory.gradleProperty("org.gradle.java.installations.idea-jdks-directory") >> Providers.ofNullable(propertyValue)
         providerFactory
+    }
+
+    FileResolver createFileResolver() {
+        def fileResolver = Mock(FileResolver)
+        fileResolver.resolve(_) >> {String path -> new File(path)}
+        fileResolver
+    }
+
+    static def directoriesAsStablePaths(Set<InstallationLocation> actualDirectories) {
+        actualDirectories*.location.absolutePath.sort()
+    }
+
+    static def stablePaths(List<String> expectedPaths) {
+        expectedPaths.replaceAll({ String s -> systemSpecificAbsolutePath(s) })
+        expectedPaths
     }
 }
