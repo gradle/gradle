@@ -74,7 +74,7 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
         binary.canProvideMatchingJdk(spec) >> true
         cache.acquireWriteLock(_, _) >> lock
         binary.toFilename(spec) >> 'jdk-123.zip'
-        def downloadLocation = new File(temporaryFolder, "jdk-archive.zip")
+        def downloadLocation = new File(temporaryFolder, "jdk.zip")
         downloadLocation.createNewFile()
         cache.getDownloadLocation(_ as String) >> downloadLocation
         def provisioningService = new DefaultJavaToolchainProvisioningService(binary, cache, providerFactory, new TestBuildOperationExecutor())
