@@ -21,7 +21,6 @@ import com.google.common.collect.Iterables;
 import com.google.common.util.concurrent.Callables;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
-import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.ConventionMapping;
@@ -32,19 +31,15 @@ import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.ReportingBasePlugin;
 import org.gradle.api.plugins.quality.CodeQualityExtension;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
-import org.gradle.jvm.toolchain.JavaToolchainService;
-import org.gradle.jvm.toolchain.JavaToolchainSpec;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.concurrent.Callable;
-import java.util.function.BiFunction;
 
 public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInternal> {
 
@@ -67,12 +62,6 @@ public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInte
         configureTaskRule();
         configureSourceSetRule();
         configureCheckTask();
-    }
-
-    protected  <C> Provider<C> getToolchainTool(Project project, BiFunction<JavaToolchainService, JavaToolchainSpec, Provider<C>> toolMapper) {
-        final JavaPluginExtension extension = getJavaPluginExtension();
-        final JavaToolchainService service = project.getExtensions().getByType(JavaToolchainService.class);
-        return toolMapper.apply(service, extension.getToolchain());
     }
 
     protected abstract String getToolName();
