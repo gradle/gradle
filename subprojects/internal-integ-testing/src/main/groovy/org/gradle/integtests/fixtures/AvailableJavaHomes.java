@@ -235,7 +235,7 @@ public abstract class AvailableJavaHomes {
             new IntellijInstallationSupplier(providerFactory(), new IdentityFileResolver()),
             new JabbaInstallationSupplier(providerFactory()),
             new LinuxInstallationSupplier(providerFactory()),
-            new MavenToolchainsInstallationSupplier(providerFactory()),
+            new MavenToolchainsInstallationSupplier(providerFactory(), new IdentityFileResolver()),
             new OsXInstallationSupplier(TestFiles.execHandleFactory(), providerFactory(), OperatingSystem.current()),
             new SdkmanInstallationSupplier(providerFactory()),
             new WindowsInstallationSupplier(windowsRegistry, OperatingSystem.current(), providerFactory())

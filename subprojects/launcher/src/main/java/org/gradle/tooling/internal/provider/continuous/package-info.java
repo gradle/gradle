@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.deployment.internal;
+/**
+ * Continuous build execution and triggering.
+ */
+@NonNullApi
+package org.gradle.tooling.internal.provider.continuous;
 
-import javax.annotation.Nullable;
-
-public interface DeploymentInternal extends Deployment {
-    void outOfDate();
-    void upToDate(@Nullable Throwable failure);
-}
+import org.gradle.api.NonNullApi;

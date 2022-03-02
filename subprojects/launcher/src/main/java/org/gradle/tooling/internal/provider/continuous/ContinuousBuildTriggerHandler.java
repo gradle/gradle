@@ -14,33 +14,34 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.provider;
+package org.gradle.tooling.internal.provider.continuous;
 
+import org.gradle.deployment.internal.ContinuousExecutionGate;
 import org.gradle.initialization.BuildCancellationToken;
-import org.gradle.initialization.ContinuousExecutionGate;
 import org.gradle.internal.UncheckedException;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 public class ContinuousBuildTriggerHandler {
-    public static final String QUIET_PERIOD_SYSPROP = "org.gradle.internal.filewatch.quietperiod";
-
     private final BuildCancellationToken cancellationToken;
     private final ContinuousExecutionGate continuousExecutionGate;
     private final CountDownLatch changeOrCancellationArrived = new CountDownLatch(1);
     private final CountDownLatch cancellationArrived = new CountDownLatch(1);
-    private final long quietPeriod;
-    private volatile long lastChangeAt = monotonicClockMillis();
+    private final Duration quietPeriod;
+    private volatile Instant lastChangeAt = nowFromMonotonicClock();
     private volatile boolean changeArrived;
 
     public ContinuousBuildTriggerHandler(
         BuildCancellationToken cancellationToken,
-        ContinuousExecutionGate continuousExecutionGate
+        ContinuousExecutionGate continuousExecutionGate,
+        Duration continuousBuildQuietPeriod
     ) {
         this.cancellationToken = cancellationToken;
         this.continuousExecutionGate = continuousExecutionGate;
-        this.quietPeriod = Long.getLong(QUIET_PERIOD_SYSPROP, 250L);
+        this.quietPeriod = continuousBuildQuietPeriod;
     }
 
     public void wait(Runnable notifier) {
@@ -56,12 +57,13 @@ public class ContinuousBuildTriggerHandler {
             notifier.run();
             changeOrCancellationArrived.await();
             while (!cancellationToken.isCancellationRequested()) {
-                long now = monotonicClockMillis();
-                long remainingQuietPeriod = quietPeriod - (now - lastChangeAt);
-                if (remainingQuietPeriod <= 0) {
+                Instant now = nowFromMonotonicClock();
+                Instant endOfQuietPeriod = lastChangeAt.plus(quietPeriod);
+                if (!endOfQuietPeriod.isAfter(now)) {
                     break;
                 }
-                cancellationArrived.await(remainingQuietPeriod, TimeUnit.MILLISECONDS);
+                Duration remainingQuietPeriod = Duration.between(now, endOfQuietPeriod);
+                cancellationArrived.await(remainingQuietPeriod.toMillis(), TimeUnit.MILLISECONDS);
             }
             if (!cancellationToken.isCancellationRequested()) {
                 continuousExecutionGate.waitForOpen();
@@ -79,11 +81,11 @@ public class ContinuousBuildTriggerHandler {
 
     public void notifyFileChangeArrived() {
         changeArrived = true;
-        lastChangeAt = monotonicClockMillis();
+        lastChangeAt = nowFromMonotonicClock();
         changeOrCancellationArrived.countDown();
     }
 
-    private static long monotonicClockMillis() {
-        return TimeUnit.NANOSECONDS.toMillis(System.nanoTime());
+    private static Instant nowFromMonotonicClock() {
+        return Instant.ofEpochMilli(TimeUnit.NANOSECONDS.toMillis(System.nanoTime()));
     }
 }

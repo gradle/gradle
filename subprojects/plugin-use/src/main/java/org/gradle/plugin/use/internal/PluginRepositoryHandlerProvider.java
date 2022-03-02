@@ -16,8 +16,14 @@
 package org.gradle.plugin.use.internal;
 
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
+@ServiceScope(Scopes.Build.class)
 public interface PluginRepositoryHandlerProvider {
-
+    /**
+     * Returns the {@link RepositoryHandler} that will contain the shared repositories to be used to resolve plugins for all project of this build.
+     * Should be mutated only during settings configuration.
+     */
     RepositoryHandler getPluginRepositoryHandler();
 }

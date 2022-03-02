@@ -20,10 +20,8 @@ import org.gradle.api.attributes.Category
 import org.gradle.api.attributes.DocsType
 import org.gradle.api.attributes.Usage
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import spock.lang.Ignore
 import spock.lang.Issue
 
-@Ignore("temporarily ignore tests to unblock RfR")
 class MavenCustomPackagingResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2984")
@@ -119,7 +117,7 @@ class MavenCustomPackagingResolveIntegrationTest extends AbstractHttpDependencyR
 
         when:
         remote.pom.expectGet()
-        // HEAD call is intentionally omitted, as variants will be derived from metadata
+        remote.artifact.expectHead()
         remote.artifact.expectGet()
 
         run("remote")

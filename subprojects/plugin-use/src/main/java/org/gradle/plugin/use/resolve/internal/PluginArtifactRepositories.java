@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.initialization;
+package org.gradle.plugin.use.resolve.internal;
 
-import javax.annotation.Nonnull;
+import org.gradle.api.artifacts.dsl.RepositoryHandler;
 
-public interface ContinuousExecutionGate {
-    @Nonnull
-    GateKeeper createGateKeeper();
+/**
+ * Encapsulates the artifact repositories that should be used to resolve plugins for a particular scope (such as plugins for a particular settings object or a particular project)
+ */
+public interface PluginArtifactRepositories {
+    PluginResolver getPluginResolver();
 
-    void waitForOpen();
-
-    interface GateKeeper {
-        void open();
-        void close();
-    }
+    void applyRepositoriesTo(RepositoryHandler repositories);
 }
