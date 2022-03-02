@@ -40,6 +40,7 @@ import org.gradle.jvm.toolchain.internal.AsdfInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.CurrentInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.InstallationLocation;
 import org.gradle.jvm.toolchain.internal.InstallationSupplier;
+import org.gradle.jvm.toolchain.internal.IntellijInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.JabbaInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.JavaInstallationRegistry;
 import org.gradle.jvm.toolchain.internal.LinuxInstallationSupplier;
@@ -231,6 +232,7 @@ public abstract class AvailableJavaHomes {
             new BaseDirJvmLocator(SystemProperties.getInstance().getUserHome()),
             new CurrentInstallationSupplier(providerFactory()),
             new EnvVariableJvmLocator(),
+            new IntellijInstallationSupplier(providerFactory(), new IdentityFileResolver()),
             new JabbaInstallationSupplier(providerFactory()),
             new LinuxInstallationSupplier(providerFactory()),
             new MavenToolchainsInstallationSupplier(providerFactory(), new IdentityFileResolver()),

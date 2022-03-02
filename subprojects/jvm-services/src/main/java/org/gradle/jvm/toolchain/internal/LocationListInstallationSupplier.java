@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 
 public class LocationListInstallationSupplier implements InstallationSupplier {
 
-    private static final String PROPERTY_NAME = "org.gradle.java.installations.paths";
+    private static final String JAVA_INSTALLATIONS_PATHS_PROPERTY = "org.gradle.java.installations.paths";
 
     private final ProviderFactory factory;
     private final FileResolver fileResolver;
@@ -41,14 +41,14 @@ public class LocationListInstallationSupplier implements InstallationSupplier {
 
     @Override
     public Set<InstallationLocation> get() {
-        final Provider<String> property = factory.gradleProperty(PROPERTY_NAME);
+        final Provider<String> property = factory.gradleProperty(JAVA_INSTALLATIONS_PATHS_PROPERTY);
         return property.map(paths -> asInstallations(paths)).orElse(Collections.emptySet()).get();
     }
 
     private Set<InstallationLocation> asInstallations(String listOfDirectories) {
         return Arrays.stream(listOfDirectories.split(","))
             .filter(path -> !path.trim().isEmpty())
-            .map(path -> new InstallationLocation(fileResolver.resolve(path), "system property '" + PROPERTY_NAME + "'"))
+            .map(path -> new InstallationLocation(fileResolver.resolve(path), "system property '" + JAVA_INSTALLATIONS_PATHS_PROPERTY + "'"))
             .collect(Collectors.toSet());
     }
 
