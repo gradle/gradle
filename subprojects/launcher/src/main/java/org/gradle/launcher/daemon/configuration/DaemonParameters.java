@@ -126,6 +126,10 @@ public class DaemonParameters {
     }
 
     public void applyDefaultsFor(JavaVersion javaVersion) {
+        if (javaVersion.compareTo(JavaVersion.VERSION_1_8) < 0) {
+            throw new IllegalStateException("Running daemon on JDK < 8 is not supported");
+        }
+
         if (javaVersion.compareTo(JavaVersion.VERSION_1_9) >= 0) {
             Set<String> jpmsArgs = new LinkedHashSet<>(ALLOW_ENVIRONMENT_VARIABLE_OVERWRITE);
             jpmsArgs.addAll(JpmsConfiguration.GRADLE_DAEMON_JPMS_ARGS);
@@ -138,13 +142,9 @@ public class DaemonParameters {
             jvmOptions.setMaxHeapSize(DEFAULT_MAX_HEAP);
         }
 
+        // Set other defaults unless they are explicitly provided
         List<String> existingArgs = jvmOptions.getJvmArgs();
-        if (javaVersion.compareTo(JavaVersion.VERSION_1_8) < 0
-            && existingArgs.stream().noneMatch(s -> s.startsWith("-XX:MaxPermSize"))) {
-            jvmOptions.jvmArgs("-XX:MaxPermSize=" + DEFAULT_METASPACE_SIZE);
-        }
-        if (javaVersion.compareTo(JavaVersion.VERSION_1_8) >= 0
-            && existingArgs.stream().noneMatch(s -> s.startsWith("-XX:MaxMetaspaceSize"))) {
+        if (existingArgs.stream().noneMatch(s -> s.startsWith("-XX:MaxMetaspaceSize"))) {
             jvmOptions.jvmArgs("-XX:MaxMetaspaceSize=" + DEFAULT_METASPACE_SIZE);
         }
         if (!existingArgs.contains("-XX:+HeapDumpOnOutOfMemoryError")) {
