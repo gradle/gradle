@@ -67,7 +67,7 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -75,7 +75,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Description;
@@ -541,6 +543,24 @@ public class DependencyInsightReportTask extends DefaultTask {
             List<Attribute<?>> providedAttributes = new ArrayList<>();
             Map<Attribute<?>, AttributeMatchDetails> bothAttributes = new LinkedHashMap<>();
             List<Attribute<?>> requestedAttributes = new ArrayList<>();
+
+            private final Comparator<Attribute<?>> byAttributeName = Comparator.comparing(Attribute::getName);
+
+            private final Comparator<? super Map.Entry<Attribute<?>, AttributeMatchDetails>> byEntryAttributeName = Comparator.comparing(e -> e.getKey().getName());
+
+            private final Supplier<TreeSet<Map.Entry<Attribute<?>, AttributeMatchDetails>>> sortedEntrySet = () -> new TreeSet<>(byEntryAttributeName);
+
+            List<Attribute<?>> getProvidedAttributesSorted() {
+                return providedAttributes.stream().sorted(byAttributeName).collect(Collectors.toList());
+            }
+
+            Set<Map.Entry<Attribute<?>, AttributeMatchDetails>> getBothAttributesEntrySetSorted() {
+                return bothAttributes.entrySet().stream().collect(Collectors.toCollection(sortedEntrySet));
+            }
+
+            List<Attribute<?>> getRequestedAttributesSorted() {
+                return requestedAttributes.stream().sorted(byAttributeName).collect(Collectors.toList());
+            }
         }
 
         private StyledTable createAttributeTable(
@@ -561,13 +581,13 @@ public class DependencyInsightReportTask extends DefaultTask {
             AttributeContainer attributes, AttributeContainer requested, AttributeBuckets buckets, boolean selected
         ) {
             ImmutableList.Builder<StyledTable.Row> rows = ImmutableList.builder();
-            for (Attribute<?> attribute : buckets.providedAttributes) {
+            for (Attribute<?> attribute : buckets.getProvidedAttributesSorted()) {
                 rows.add(createProvidedRow(attributes, selected, attribute));
             }
-            for (Map.Entry<Attribute<?>, AttributeMatchDetails> entry : buckets.bothAttributes.entrySet()) {
+            for (Map.Entry<Attribute<?>, AttributeMatchDetails> entry : buckets.getBothAttributesEntrySetSorted()) {
                 rows.add(createMatchBasedRow(attributes, selected, entry));
             }
-            for (Attribute<?> attribute : buckets.requestedAttributes) {
+            for (Attribute<?> attribute : buckets.getRequestedAttributesSorted()) {
                 rows.add(createRequestedRow(requested, selected, attribute));
             }
             return rows.build();
