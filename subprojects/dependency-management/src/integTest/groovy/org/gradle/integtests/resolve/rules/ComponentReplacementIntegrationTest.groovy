@@ -479,8 +479,8 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         result.groupedOutput.task(':dependencyInsight').output.contains("""
-  Selection reasons:
-    - Selected by rule: $expected
+   Selection reasons:
+      - Selected by rule: $expected
 
 org:a:1 -> org:b:1""")
 
