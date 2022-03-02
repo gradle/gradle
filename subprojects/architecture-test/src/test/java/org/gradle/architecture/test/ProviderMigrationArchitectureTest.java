@@ -98,7 +98,7 @@ public class ProviderMigrationArchitectureTest {
         .should(haveProviderReturnType()));
 
     @ArchTest
-    public static final ArchRule mutable_public_api_properties_should_be_file_collections = freeze(methods()
+    public static final ArchRule mutable_public_api_properties_should_be_configurable_file_collections = freeze(methods()
         .that(are(mutable_public_API_properties))
         .and().haveRawReturnType(assignableTo(FileCollection.class))
         .should(haveFileCollectionReturnType()));
@@ -148,9 +148,8 @@ public class ProviderMigrationArchitectureTest {
         public void check(JavaMethod javaMethod, ConditionEvents events) {
             boolean hasSetter = hasSetter(javaMethod);
             Class<?> expectedReturnType = hasSetter ? mutableType : immutableType;
-            Class<?> printedType = immutableType.equals(Provider.class) ? immutableType : mutableType;
             boolean satisfied = javaMethod.getRawReturnType().isAssignableTo(expectedReturnType);
-            String message = createMessage(javaMethod, (satisfied ? "has " : "does not have ") + "raw return type assignable to " + printedType.getName());
+            String message = createMessage(javaMethod, (satisfied ? "has " : "does not have ") + "raw return type assignable to " + expectedReturnType.getName());
             events.add(new SimpleConditionEvent(javaMethod, satisfied, message));
         }
 
