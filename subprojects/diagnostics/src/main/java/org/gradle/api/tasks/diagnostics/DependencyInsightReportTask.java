@@ -538,6 +538,7 @@ public class DependencyInsightReportTask extends DefaultTask {
         }
 
         private static final class AttributeBuckets {
+            @SuppressWarnings("checkstyle:constantname")
             private static final Comparator<Attribute<?>> sortedByAttributeName = Comparator.comparing(Attribute::getName);
 
             Set<Attribute<?>> providedAttributes = new TreeSet<>(sortedByAttributeName);
