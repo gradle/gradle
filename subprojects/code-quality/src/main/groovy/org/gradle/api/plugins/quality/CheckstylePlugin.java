@@ -141,8 +141,7 @@ public class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
         project.getPluginManager().withPlugin("java-base", p -> {
             JavaToolchainSpec toolchain = getJavaPluginExtension().getToolchain();
             if (((ToolchainSpecInternal) toolchain).isConfigured()) {
-                Provider<JavaLauncher> toolchainTool = getToolchainTool(project, JavaToolchainService::launcherFor);
-                task.getJavaLauncher().set(toolchainTool);
+                task.getJavaLauncher().set(getToolchainService().launcherFor(toolchain));
             }
         });
     }
