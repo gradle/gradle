@@ -46,15 +46,15 @@ class CheckstyleInvoker extends Closure<Object> {
         def showViolations = parameters.showViolations.get()
         def maxErrors = parameters.maxErrors.get()
         def maxWarnings = parameters.maxWarnings.get()
-        def configProperties = parameters.configProperties.get()
+        def configProperties = parameters.configProperties.getOrElse([:])
         def ignoreFailures = parameters.ignoreFailures.get()
         def config = parameters.config.get()
         def configDir = parameters.configDirectory.asFile.getOrNull()
         def isXmlRequired = parameters.isXmlRequired.get()
         def isHtmlRequired = parameters.isHtmlRequired.get()
-        def xmlOutputLocation = parameters.xmlOuputLocation.get().asFile
+        def xmlOutputLocation = parameters.xmlOuputLocation.asFile.getOrElse(null)
         def stylesheetString = parameters.stylesheetString
-        def htmlOutputLocation = parameters.getHtmlOuputLocation().asFile.get()
+        def htmlOutputLocation = parameters.htmlOuputLocation.asFile.getOrElse(null)
 
         if (isHtmlReportEnabledOnly(isXmlRequired, isHtmlRequired)) {
             xmlOutputLocation = new File(parameters.temporaryDir.asFile.get(), xmlOutputLocation.name)
@@ -95,8 +95,9 @@ class CheckstyleInvoker extends Closure<Object> {
         }
 
         if (isHtmlRequired) {
-            def stylesheet = stylesheetString.isPresent() ? stylesheetString.get() :
-                Checkstyle.getClassLoader().getResourceAsStream('checkstyle-noframes-sorted.xsl').text
+            def stylesheet = stylesheetString.isPresent()
+                ? stylesheetString.get()
+                : Checkstyle.getClassLoader().getResourceAsStream('checkstyle-noframes-sorted.xsl').text
             ant.xslt(in: xmlOutputLocation, out: htmlOutputLocation) {
                 style {
                     string(value: stylesheet)
@@ -108,16 +109,16 @@ class CheckstyleInvoker extends Closure<Object> {
             GFileUtils.deleteQuietly(xmlOutputLocation)
         }
 
+        def reportXml = parseCheckstyleXml(isXmlRequired, xmlOutputLocation)
         if (ant.project.properties[FAILURE_PROPERTY_NAME] && !ignoreFailures) {
-            throw new GradleException(getMessage(isXmlRequired, xmlOutputLocation, isHtmlRequired, htmlOutputLocation, parseCheckstyleXml(isXmlRequired, xmlOutputLocation)))
+            throw new GradleException(getMessage(isXmlRequired, xmlOutputLocation, isHtmlRequired, htmlOutputLocation, reportXml))
         } else {
-            def reportXml = parseCheckstyleXml(isXmlRequired, xmlOutputLocation)
             if (violationsExist(reportXml)) {
                 LOGGER.warn(getMessage(isXmlRequired, xmlOutputLocation, isHtmlRequired, htmlOutputLocation, reportXml))
             }
         }
 
-        return null;
+        return null
     }
 
     private static parseCheckstyleXml(Boolean isXmlRequired, File xmlOutputLocation) {

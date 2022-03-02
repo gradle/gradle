@@ -21,6 +21,8 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.resources.TextResource;
 import org.gradle.workers.WorkParameters;
 
 public interface CheckstyleActionParameters extends WorkParameters {

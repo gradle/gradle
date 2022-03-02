@@ -181,7 +181,7 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
         workQueue.submit(CheckstyleAction.class, this::setupParameters);
     }
 
-    private CheckstyleActionParameters setupParameters(CheckstyleActionParameters parameters) {
+    private void setupParameters(CheckstyleActionParameters parameters) {
         parameters.getConfig().set(getConfigFile());
         parameters.getMaxErrors().set(getMaxErrors());
         parameters.getMaxWarnings().set(getMaxWarnings());
@@ -195,9 +195,10 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
         parameters.getHtmlOuputLocation().set(getReports().getHtml().getOutputLocation());
         parameters.getTemporaryDir().set(getTemporaryDir());
         parameters.getConfigProperties().set(getConfigProperties());
-        TextResource stylesheet = getReports().getHtml().getStylesheet();
-        parameters.getStylesheetString().set(stylesheet != null ? stylesheet.asString() : null);
-        return parameters;
+        TextResource stylesheetString = getReports().getHtml().getStylesheet();
+        if (stylesheetString != null) {
+            parameters.getStylesheetString().set(stylesheetString.asString());
+        }
     }
 
     /**
