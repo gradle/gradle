@@ -17,11 +17,16 @@
 package org.gradle.architecture.test;
 
 import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaMethod;
+import com.tngtech.archunit.core.domain.properties.HasSourceCodeLocation;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
+import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
+import com.tngtech.archunit.lang.ConditionEvents;
+import com.tngtech.archunit.lang.SimpleConditionEvent;
 import com.tngtech.archunit.lang.conditions.ArchPredicates;
 import org.gradle.StartParameter;
 import org.gradle.api.DefaultTask;
@@ -29,6 +34,7 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.resources.TextResource;
 import org.gradle.internal.reflect.PropertyAccessorType;
@@ -54,23 +60,12 @@ public class ProviderMigrationArchitectureTest {
         }
     };
 
-    private static final DescribedPredicate<JavaMethod> haveSetters = new DescribedPredicate<JavaMethod>("have mutable property") {
-        @Override
-        public boolean apply(JavaMethod input) {
-            PropertyAccessorType accessorType = PropertyAccessorType.fromName(input.getName());
-            String propertyNameFromGetter = accessorType.propertyNameFor(input.getName());
-            return input.getOwner().getAllMethods().stream()
-                .filter(method -> PropertyAccessorType.fromName(method.getName()) == PropertyAccessorType.SETTER)
-                .anyMatch(method -> PropertyAccessorType.SETTER.propertyNameFor(method.getName()).equals(propertyNameFromGetter));
-        }
-    };
-
     private static final DescribedPredicate<JavaClass> class_with_any_mutable_property = new DescribedPredicate<JavaClass>("class with any mutable property") {
         @Override
         public boolean apply(JavaClass input) {
             return input.getAllMethods().stream()
                 .filter(getters::apply)
-                .anyMatch(haveSetters::apply);
+                .anyMatch(ProviderMigrationArchitectureTest::hasSetter);
         }
     };
 
@@ -100,13 +95,13 @@ public class ProviderMigrationArchitectureTest {
         .that(are(mutable_public_API_properties))
         .and().doNotHaveRawReturnType(TextResource.class)
         .and().doNotHaveRawReturnType(assignableTo(FileCollection.class))
-        .should().haveRawReturnType(assignableTo(Provider.class)));
+        .should(haveProviderReturnType()));
 
     @ArchTest
     public static final ArchRule mutable_public_api_properties_should_be_file_collections = freeze(methods()
         .that(are(mutable_public_API_properties))
         .and().haveRawReturnType(assignableTo(FileCollection.class))
-        .should().haveRawReturnType(assignableTo(ConfigurableFileCollection.class)));
+        .should(haveFileCollectionReturnType()));
 
     @ArchTest
     public static final ArchRule mutable_public_api_properties_should_not_use_text_resources = freeze(methods()
@@ -118,16 +113,57 @@ public class ProviderMigrationArchitectureTest {
         .that(are(task_properties))
         .and().doNotHaveRawReturnType(TextResource.class)
         .and().doNotHaveRawReturnType(assignableTo(FileCollection.class))
-        .should().haveRawReturnType(assignableTo(Provider.class)));
+        .should(haveProviderReturnType()));
 
     @ArchTest
     public static final ArchRule public_api_task_file_properties_are_configurable_file_collections = freeze(methods()
         .that(are(task_properties))
         .and().haveRawReturnType(assignableTo(FileCollection.class))
-        .should().haveRawReturnType(assignableTo(ConfigurableFileCollection.class)));
+        .should(haveFileCollectionReturnType()));
 
     @ArchTest
     public static final ArchRule public_api_task_properties_should_not_use_text_resources = freeze(methods()
         .that(are(task_properties))
         .should().notHaveRawReturnType(TextResource.class));
+
+    private static HaveLazyReturnType haveProviderReturnType() {
+        return new HaveLazyReturnType(Property.class, Provider.class);
+    }
+
+    private static HaveLazyReturnType haveFileCollectionReturnType() {
+        return new HaveLazyReturnType(ConfigurableFileCollection.class, FileCollection.class);
+    }
+
+    public static class HaveLazyReturnType extends ArchCondition<JavaMethod> {
+        private final Class<?> mutableType;
+        private final Class<?> immutableType;
+
+        public HaveLazyReturnType(Class<?> mutableType, Class<?> immutableType) {
+            super("have return type " + immutableType.getSimpleName());
+            this.mutableType = mutableType;
+            this.immutableType = immutableType;
+        }
+
+        @Override
+        public void check(JavaMethod javaMethod, ConditionEvents events) {
+            boolean hasSetter = hasSetter(javaMethod);
+            Class<?> expectedReturnType = hasSetter ? mutableType : immutableType;
+            Class<?> printedType = immutableType.equals(Provider.class) ? immutableType : mutableType;
+            boolean satisfied = javaMethod.getRawReturnType().isAssignableTo(expectedReturnType);
+            String message = createMessage(javaMethod, (satisfied ? "has " : "does not have ") + "raw return type assignable to " + printedType.getName());
+            events.add(new SimpleConditionEvent(javaMethod, satisfied, message));
+        }
+
+        private static <T extends HasDescription & HasSourceCodeLocation> String createMessage(T object, String message) {
+            return object.getDescription() + " " + message + " in " + object.getSourceCodeLocation();
+        }
+    }
+
+    private static boolean hasSetter(JavaMethod input) {
+        PropertyAccessorType accessorType = PropertyAccessorType.fromName(input.getName());
+        String propertyNameFromGetter = accessorType.propertyNameFor(input.getName());
+        return input.getOwner().getAllMethods().stream()
+            .filter(method -> PropertyAccessorType.fromName(method.getName()) == PropertyAccessorType.SETTER)
+            .anyMatch(method -> PropertyAccessorType.SETTER.propertyNameFor(method.getName()).equals(propertyNameFromGetter));
+    }
 }
