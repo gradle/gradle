@@ -35,14 +35,20 @@ public interface FeatureSpec {
 
     /**
      * Declares a capability of this feature.
+     * <p>
+     * Calling this method multiple times will declare <i>additional</i>
+     * capabilities. Note that calling this method will drop the default
+     * capability that is added by
+     * {@link JavaPluginExtension#registerFeature(String, org.gradle.api.Action)}.
+     * If you want to keep the default capability and add a new one you need to
+     * restore the default capability:
      *
-     * By default, a capability corresponding to the "group", "name" + feature
-     * name and version of this project will be created. For example, if the
-     * group of the component is "org", that the project name is "lib" the
-     * version is "1.0" and that the feature name is "myFeature", then a
-     * capability named "org:lib-my-feature:1.0" is automatically added.
-     * Calling this method will override the default and register
-     * <i>additional</i> capabilities.
+     * <pre>
+     * registerFeature("myFeature") {
+     *     capability("${project.group}", "${project.name}-my-feature", "${project.version}")
+     *     capability("com.example", "some-other-capability", "2.0")
+     * }
+     * </pre>
      *
      * @param group the group of the capability
      * @param name the name of the capability
