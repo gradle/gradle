@@ -1,17 +1,16 @@
 
 > Task :dependencyInsight
 org.mongodb:bson:3.9.1
-   variant "runtime" [
-      org.gradle.status              = release (not requested)
-      org.gradle.usage               = java-runtime
-      org.gradle.libraryelements     = jar
-      org.gradle.category            = library
-
-      Requested attributes not found in the selected variant:
-         org.gradle.dependency.bundling = external
-         org.gradle.jvm.environment     = standard-jvm
-         org.gradle.jvm.version = 11
-   ]
+  Variant runtime:
+    | Attribute Name                 | Provided     | Requested    |
+    |--------------------------------|--------------|--------------|
+    | org.gradle.status              | release      |              |
+    | org.gradle.category            | library      | library      |
+    | org.gradle.libraryelements     | jar          | jar          |
+    | org.gradle.usage               | java-runtime | java-runtime |
+    | org.gradle.dependency.bundling |              | external     |
+    | org.gradle.jvm.environment     |              | standard-jvm |
+    | org.gradle.jvm.version         |              | 11           |
 
 org.mongodb:bson:3.9.1
 +--- org.mongodb:mongodb-driver-core:3.9.1
@@ -21,17 +20,16 @@ org.mongodb:bson:3.9.1
 \--- org.mongodb:mongodb-driver-sync:3.9.1 (*)
 
 org.mongodb:mongodb-driver-core:3.9.1
-   variant "runtime" [
-      org.gradle.status              = release (not requested)
-      org.gradle.usage               = java-runtime
-      org.gradle.libraryelements     = jar
-      org.gradle.category            = library
-
-      Requested attributes not found in the selected variant:
-         org.gradle.dependency.bundling = external
-         org.gradle.jvm.environment     = standard-jvm
-         org.gradle.jvm.version = 11
-   ]
+  Variant runtime:
+    | Attribute Name                 | Provided     | Requested    |
+    |--------------------------------|--------------|--------------|
+    | org.gradle.status              | release      |              |
+    | org.gradle.category            | library      | library      |
+    | org.gradle.libraryelements     | jar          | jar          |
+    | org.gradle.usage               | java-runtime | java-runtime |
+    | org.gradle.dependency.bundling |              | external     |
+    | org.gradle.jvm.environment     |              | standard-jvm |
+    | org.gradle.jvm.version         |              | 11           |
 
 org.mongodb:mongodb-driver-core:3.9.1
 \--- org.mongodb:mongodb-driver-sync:3.9.1
@@ -39,17 +37,16 @@ org.mongodb:mongodb-driver-core:3.9.1
           \--- runtimeClasspath
 
 org.mongodb:mongodb-driver-sync:3.9.1
-   variant "runtime" [
-      org.gradle.status              = release (not requested)
-      org.gradle.usage               = java-runtime
-      org.gradle.libraryelements     = jar
-      org.gradle.category            = library
-
-      Requested attributes not found in the selected variant:
-         org.gradle.dependency.bundling = external
-         org.gradle.jvm.environment     = standard-jvm
-         org.gradle.jvm.version = 11
-   ]
+  Variant runtime:
+    | Attribute Name                 | Provided     | Requested    |
+    |--------------------------------|--------------|--------------|
+    | org.gradle.status              | release      |              |
+    | org.gradle.category            | library      | library      |
+    | org.gradle.libraryelements     | jar          | jar          |
+    | org.gradle.usage               | java-runtime | java-runtime |
+    | org.gradle.dependency.bundling |              | external     |
+    | org.gradle.jvm.environment     |              | standard-jvm |
+    | org.gradle.jvm.version         |              | 11           |
 
 org.mongodb:mongodb-driver-sync:3.9.1
 \--- org.gradle.demo:producer:1.0
