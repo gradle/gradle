@@ -66,7 +66,7 @@ By default, Gradle will [detect installed JDKs](userguide/toolchains.html#sec:au
 
 #### Checkstyle tasks execute in parallel by default
 
-The Checkstyle plugin now uses the Gradle worker API and JVM toolchains. Checkstyle analysis now runs as an external worker process. Checkstyle tasks may now run in parallel within one project.
+The [Checkstyle plugin](userguide/checkstyle_plugin.html) now uses the Gradle worker API and JVM toolchains. Checkstyle analysis now runs as an external worker process. Checkstyle tasks may now run in parallel within one project.
 
 In Java projects, Checkstyle will use the same version of Java required by the project. In other types of projects, Checkstyle will use the same version of Java that is used by the Gradle daemon.
 
