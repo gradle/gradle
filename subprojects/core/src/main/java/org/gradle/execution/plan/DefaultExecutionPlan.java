@@ -50,7 +50,6 @@ import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.io.StringWriter;
 import java.util.AbstractCollection;
 import java.util.ArrayDeque;
@@ -192,8 +191,8 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
         while (!queue.isEmpty()) {
             Node node = queue.getFirst();
-            if (node.getDependenciesProcessed()) {
-                // Have already visited this node - skip it
+            if (node.getDependenciesProcessed() || node.isAlreadyExecuted()) {
+                // Have already visited this node or have already executed it - skip it
                 queue.removeFirst();
                 continue;
             }
@@ -392,7 +391,8 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     @Override
     public void close() {
         lockCoordinator.removeLockReleaseListener(resourceUnlockListener);
-        completionHandler = localTaskNode -> {};
+        completionHandler = localTaskNode -> {
+        };
         entryNodes.clear();
         nodeMapping.clear();
         executionQueue.clear();
@@ -635,17 +635,39 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     }
 
     @Override
-    @Nullable
-    public Node selectNext() {
-        if (!maybeNodesSelectable) {
-            return null;
+    public State executionState() {
+        if (executionQueue.isEmpty()) {
+            return State.NoMoreNodesToStart;
+        } else if (maybeNodesSelectable) {
+            return State.MaybeNodesReadyToStart;
+        } else {
+            return State.NoNodesReadyToStart;
         }
+    }
+
+    @Override
+    public NodeSelection selectNext() {
+        if (executionQueue.isEmpty()) {
+            return NO_MORE_NODES_TO_START;
+        }
+        if (!maybeNodesSelectable) {
+            return NO_NODES_READY_TO_START;
+        }
+
         List<ResourceLock> resources = new ArrayList<>();
         Iterator<Node> iterator = executionQueue.iterator();
         boolean foundReadyNode = false;
+        boolean foundNotReadyNode = false;
         while (iterator.hasNext()) {
             Node node = iterator.next();
             if (node.isReady() && node.allDependenciesComplete()) {
+                if (!node.allDependenciesSuccessful()) {
+                    // Cannot execute this node due to failed dependencies - skip it
+                    node.skipExecution(this::recordNodeCompleted);
+                    iterator.remove();
+                    continue;
+                }
+
                 foundReadyNode = true;
 
                 if (!tryAcquireLocksForNode(node, resources)) {
@@ -660,23 +682,37 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                     continue;
                 }
 
-                if (node.allDependenciesSuccessful()) {
-                    node.startExecution(this::recordNodeExecutionStarted);
-                    if (mutations.hasValidationProblem) {
-                        invalidNodeRunning = true;
-                    }
-                } else {
-                    releaseLocks(resources);
-                    node.skipExecution(this::recordNodeCompleted);
+                node.startExecution(this::recordNodeExecutionStarted);
+                if (mutations.hasValidationProblem) {
+                    invalidNodeRunning = true;
                 }
                 iterator.remove();
-                return node;
+                return NodeSelection.of(node);
+            } else if (!node.isComplete()) {
+                // Node is not yet complete
+                // - its dependencies are not yet complete
+                // - it is waiting for some external event such as completion of a task in another build
+                foundNotReadyNode = true;
             }
         }
+
         LOGGER.debug("No node could be selected, nodes ready: {}", foundReadyNode);
         maybeNodesReady = foundReadyNode;
         maybeNodesSelectable = false;
-        return null;
+        if (executionQueue.isEmpty()) {
+            return NO_MORE_NODES_TO_START;
+        } else if (!foundReadyNode && !foundNotReadyNode && runningNodes.isEmpty()) {
+            // Nothing is currently running or will run -> all tasks that remain in the execution queue cannot run because
+            // they are finalizers for tasks that could not be started
+            executionQueue.clear();
+            return NO_MORE_NODES_TO_START;
+        } else {
+            // Some tasks are yet to start
+            // - they are ready to execute but cannot acquire the resources they need to start
+            // - they are waiting for their dependencies to complete
+            // - they are waiting for some external event
+            return NO_NODES_READY_TO_START;
+        }
     }
 
     private void releaseLocks(List<ResourceLock> resources) {
@@ -873,23 +909,21 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
     @Override
     public void finishedExecuting(Node node) {
+        if (!node.isExecuting()) {
+            throw new IllegalStateException(String.format("Cannot finish executing %s as it is in an unexpected state.", node));
+        }
         try {
             if (maybeNodesReady) {
                 maybeNodesSelectable = true;
             }
-            if (!node.isComplete()) {
-                enforceFinalizers(node);
-                if (node.isFailed()) {
-                    LOGGER.debug("Node {} failed", node);
-                    handleFailure(node);
-                } else {
-                    LOGGER.debug("Node {} finished executing", node);
-                }
-
-                runningNodes.remove(node);
-                node.finishExecution(this::recordNodeCompleted);
+            enforceFinalizers(node);
+            runningNodes.remove(node);
+            node.finishExecution(this::recordNodeCompleted);
+            if (node.isFailed()) {
+                LOGGER.debug("Node {} failed", node);
+                handleFailure(node);
             } else {
-                LOGGER.debug("Already completed node {} reported as finished executing", node);
+                LOGGER.debug("Node {} finished executing", node);
             }
         } finally {
             unlockProjectFor(node);
@@ -977,18 +1011,26 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
     private boolean abortExecution(boolean abortAll) {
         boolean aborted = false;
-        for (Node node : nodeMapping) {
+        Iterator<Node> iterator = executionQueue.iterator();
+        while (iterator.hasNext()) {
+            Node node = iterator.next();
+
             // Allow currently executing and enforced tasks to complete, but skip everything else.
             if (node.isRequired()) {
                 node.skipExecution(this::recordNodeCompleted);
+                iterator.remove();
                 aborted = true;
             }
 
             // If abortAll is set, also stop enforced tasks.
             if (abortAll && node.isReady()) {
                 node.abortExecution(this::recordNodeCompleted);
+                iterator.remove();
                 aborted = true;
             }
+        }
+        if (aborted) {
+            maybeNodesSelectable = true;
         }
         return aborted;
     }
@@ -1003,24 +1045,13 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     }
 
     @Override
-    public boolean allNodesComplete() {
+    public boolean allExecutionComplete() {
         for (Node node : nodeMapping) {
             if (!node.isComplete()) {
                 return false;
             }
         }
-        // TODO:lptr why don't we check runningNodes here like we do in hasNodesRemaining()?
         return true;
-    }
-
-    @Override
-    public boolean hasNodesRemaining() {
-        for (Node node : executionQueue) {
-            if (!node.isComplete()) {
-                return true;
-            }
-        }
-        return !runningNodes.isEmpty();
     }
 
     @Override

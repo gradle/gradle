@@ -40,7 +40,19 @@ public abstract class Node implements Comparable<Node> {
 
     @VisibleForTesting
     enum ExecutionState {
-        UNKNOWN, NOT_REQUIRED, SHOULD_RUN, MUST_RUN, MUST_NOT_RUN, EXECUTING, EXECUTED, SKIPPED
+        // Node has not been added to any execution plan
+        UNKNOWN,
+        // Node has been filtered from the current execution plan and must not execute
+        NOT_REQUIRED,
+        SHOULD_RUN,
+        MUST_RUN,
+        MUST_NOT_RUN,
+        EXECUTING,
+        // Node has been executed (and possibly failed) in an execution plan (not necessarily the current)
+        EXECUTED,
+        // Either cannot be executed because of a failed dependency or was skipped because the execution plan was aborted
+        // Should split this into two separate states, or perhaps use NOT_REQUIRED for the abort case
+        SKIPPED
     }
 
     private ExecutionState state;
@@ -69,7 +81,11 @@ public abstract class Node implements Comparable<Node> {
     }
 
     public boolean isIncludeInGraph() {
-        return state != ExecutionState.NOT_REQUIRED && state != ExecutionState.UNKNOWN;
+        return state != ExecutionState.NOT_REQUIRED && state != ExecutionState.UNKNOWN && state != ExecutionState.EXECUTED && state != ExecutionState.SKIPPED;
+    }
+
+    public boolean isAlreadyExecuted() {
+        return state == ExecutionState.EXECUTED || state == ExecutionState.SKIPPED;
     }
 
     /**
@@ -109,6 +125,7 @@ public abstract class Node implements Comparable<Node> {
 
     /**
      * Whether this node failed with a verification failure.
+     *
      * @return true if failed and threw {@link VerificationException}, false otherwise
      */
     public boolean isVerificationFailure() {

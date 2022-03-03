@@ -33,7 +33,6 @@ import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.TaskDestroyables
 import org.gradle.internal.resources.ResourceLock
-import org.gradle.internal.resources.ResourceLockState
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Path
 import org.gradle.util.TestUtil
@@ -136,26 +135,9 @@ abstract class AbstractExecutionPlanSpec extends Specification {
         Stub(TaskInputsInternal)
     }
 
-    private static class MockResourceLockState implements ResourceLockState {
-        final Collection<MockLock> locks
-
-        MockResourceLockState(Collection<MockLock> locks) {
-            this.locks = locks
-        }
-
-        @Override
-        void registerLocked(ResourceLock resourceLock) {
-        }
-
-        @Override
-        void registerUnlocked(ResourceLock resourceLock) {
-        }
-
-        @Override
-        void releaseLocks() {
-            locks.forEach { it.unlock() }
-            locks.clear()
-        }
+    void failure(TaskInternal task, final RuntimeException failure) {
+        task.state.getFailure() >> failure
+        task.state.rethrowFailure() >> { throw failure }
     }
 
     private static class MockLock implements ResourceLock {
