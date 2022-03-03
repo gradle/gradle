@@ -17,17 +17,17 @@
 package org.gradle.internal.serialize.kryo;
 
 import com.esotericsoftware.kryo.io.Output;
-import com.google.common.collect.Maps;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.gradle.internal.serialize.AbstractEncoder;
 import org.gradle.internal.serialize.FlushableEncoder;
 
 import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.OutputStream;
-import java.util.Map;
 
 public class StringDeduplicatingKryoBackedEncoder extends AbstractEncoder implements FlushableEncoder, Closeable {
-    private Map<String, Integer> strings;
+    private Object2IntMap<String> strings;
 
     private final Output output;
 
@@ -89,12 +89,12 @@ public class StringDeduplicatingKryoBackedEncoder extends AbstractEncoder implem
             return;
         } else {
             if (strings == null) {
-                strings = Maps.newHashMapWithExpectedSize(1024);
+                strings = new Object2IntOpenHashMap<String>(1024);
             }
         }
         String key = value.toString();
-        Integer index = strings.get(key);
-        if (index == null) {
+        int index = strings.getOrDefault(key, -1);
+        if (index == -1) {
             index = strings.size();
             output.writeInt(index);
             strings.put(key, index);

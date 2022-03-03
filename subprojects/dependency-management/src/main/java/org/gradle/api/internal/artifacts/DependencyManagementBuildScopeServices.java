@@ -330,7 +330,7 @@ class DependencyManagementBuildScopeServices {
     }
 
     AttributeContainerSerializer createAttributeContainerSerializer(ImmutableAttributesFactory attributesFactory, NamedObjectInstantiator instantiator) {
-        return new DesugaredAttributeContainerSerializer(attributesFactory, instantiator);
+        return new DesugaringAttributeContainerSerializer(attributesFactory, instantiator);
     }
 
     ModuleSourcesSerializer createModuleSourcesSerializer(ImmutableModuleIdentifierFactory moduleIdentifierFactory, FileStoreAndIndexProvider fileStoreAndIndexProvider) {

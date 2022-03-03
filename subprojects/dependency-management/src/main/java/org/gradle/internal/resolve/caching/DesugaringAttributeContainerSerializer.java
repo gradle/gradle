@@ -27,6 +27,7 @@ import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.snapshot.impl.CoercingStringValueSnapshot;
 
 import java.io.IOException;
+import java.util.Set;
 
 /**
  * An attribute container serializer that will desugar typed attributes.
@@ -73,21 +74,23 @@ public class DesugaringAttributeContainerSerializer implements AttributeContaine
 
     @Override
     public void write(Encoder encoder, AttributeContainer container) throws IOException {
-        encoder.writeSmallInt(container.keySet().size());
-        for (Attribute<?> attribute : container.keySet()) {
+        Set<Attribute<?>> keySet = container.keySet();
+        encoder.writeSmallInt(keySet.size());
+        for (Attribute<?> attribute : keySet) {
             encoder.writeString(attribute.getName());
-            if (attribute.getType().equals(Boolean.class)) {
+            Class<?> type = attribute.getType();
+            Object attrValue = container.getAttribute(attribute);
+            if (type == Boolean.class) {
                 encoder.writeByte(BOOLEAN_ATTRIBUTE);
-                encoder.writeBoolean((Boolean) container.getAttribute(attribute));
-            } else if (attribute.getType().equals(String.class)){
+                encoder.writeBoolean((Boolean) attrValue);
+            } else if (type == String.class) {
                 encoder.writeByte(STRING_ATTRIBUTE);
-                encoder.writeString((String) container.getAttribute(attribute));
-            } else if (attribute.getType().equals(Integer.class)){
+                encoder.writeString((String) attrValue);
+            } else if (type == Integer.class) {
                 encoder.writeByte(INTEGER_ATTRIBUTE);
-                encoder.writeInt((Integer) container.getAttribute(attribute));
+                encoder.writeInt((Integer) attrValue);
             } else {
-                assert Named.class.isAssignableFrom(attribute.getType());
-                Named attributeValue = (Named) container.getAttribute(attribute);
+                Named attributeValue = (Named) attrValue;
                 encoder.writeByte(DESUGARED_ATTRIBUTE);
                 encoder.writeString(attributeValue.getName());
             }

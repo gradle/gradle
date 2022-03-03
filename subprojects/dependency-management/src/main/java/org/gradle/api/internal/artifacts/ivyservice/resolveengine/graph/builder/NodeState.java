@@ -1251,7 +1251,7 @@ public class NodeState implements DependencyGraphNode {
         }
         DisplayName name = Describables.of(metaData.getName());
         List<? extends Capability> capabilities = metaData.getCapabilities().getCapabilities();
-        AttributeContainer attributes = desugar(metaData.getAttributes());
+        AttributeContainer attributes = metaData.getAttributes();
         List<Capability> resolvedVariantCapabilities = capabilities.isEmpty() ? Collections.singletonList(component.getImplicitCapability()) : ImmutableList.copyOf(capabilities);
         cachedVariantResult = new DefaultResolvedVariantResult(
             component.getComponentId(),
