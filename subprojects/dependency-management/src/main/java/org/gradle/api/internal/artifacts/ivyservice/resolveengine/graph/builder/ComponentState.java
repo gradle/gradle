@@ -48,7 +48,6 @@ import org.gradle.internal.resolve.result.DefaultBuildableComponentResolveResult
 
 import javax.annotation.Nullable;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -314,7 +313,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
                 for (VariantResolveMetadata variant : configurationMetadata.getVariants()) {
                     List<? extends Capability> capabilities = variant.getCapabilities().getCapabilities();
                     if (capabilities.isEmpty()) {
-                        capabilities = Collections.singletonList(getImplicitCapability());
+                        capabilities = ImmutableList.of(getImplicitCapability());
                     } else {
                         capabilities = ImmutableList.copyOf(capabilities);
                     }
