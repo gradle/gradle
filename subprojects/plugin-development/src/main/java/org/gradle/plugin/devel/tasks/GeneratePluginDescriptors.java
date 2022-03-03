@@ -22,6 +22,7 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
@@ -55,12 +56,16 @@ public class GeneratePluginDescriptors extends DefaultTask {
         implementationClassById = getDeclarations().map(declarations -> declarations.stream()
             .collect(Collectors.toMap(PluginDeclaration::getId, PluginDeclaration::getImplementationClass, (a, b) -> b, LinkedHashMap::new))
         );
-        getInputs().property("implementationClassById", implementationClassById);
     }
 
     @Internal("The relevant data is tracked via implementationClassById")
     public ListProperty<PluginDeclaration> getDeclarations() {
         return declarations;
+    }
+
+    @Input
+    Provider<Map<String, String>> getImplementationClassById() {
+        return implementationClassById;
     }
 
     @OutputDirectory
