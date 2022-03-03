@@ -84,7 +84,6 @@ class DefaultArtifactSetTest extends Specification {
 
         when:
         def artifactSet = DefaultArtifactSet.createFromVariantMetadata(componentId, ownerId, moduleSources, exclusions, [variant1, variant2] as Set, schema, artifactResolver, new HashMap<ComponentArtifactIdentifier, ResolvableArtifact>(), artifactTypeRegistry, ImmutableAttributes.EMPTY, calculatedValueContainerFactory)
-        then:
         artifactSet.select({ true }, new VariantSelector() {
             @Override
             ResolvedArtifactSet select(ResolvedVariantSet candidates, VariantSelector.Factory factory) {
@@ -99,14 +98,9 @@ class DefaultArtifactSetTest extends Specification {
                 return ImmutableAttributes.EMPTY
             }
         })
-        1 * artifactResolver.resolveArtifact(variant1.artifacts[0], moduleSources, _) >> { args ->
-            ComponentArtifactMetadata artifact = args[0]
-            BuildableArtifactResolveResult result = args[2]
-            result.notFound(artifact.getId())
-        }
 
-        // TODO: This shouldn't be called for every artifact
-        1 * artifactResolver.resolveArtifact(variant2.artifacts[0], moduleSources, _) >> { args ->
+        then: 'artifactResolver.resolveArtifact should only be invoked once by DefaultArtifactSet#createFromVariantMetadata and ArtifactSet#select'
+        1 * artifactResolver.resolveArtifact(variant1.artifacts[0], moduleSources, _) >> { args ->
             ComponentArtifactMetadata artifact = args[0]
             BuildableArtifactResolveResult result = args[2]
             result.notFound(artifact.getId())
