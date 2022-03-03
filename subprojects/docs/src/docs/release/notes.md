@@ -64,16 +64,11 @@ vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 [Java toolchains](userguide/toolchains.html) provide an easy way to declare which Java version your project should be built with.
 By default, Gradle will [detect installed JDKs](userguide/toolchains.html#sec:auto_detection) or automatically download new toolchain versions.
 
-#### Checkstyle tasks can be configured to use JVM toolchain
+#### Checkstyle tasks execute in parallel by default
 
-The checkstyle task is now leveraging JVM toolchains. By default the toolchain based on the current jdk is used.
-In combination with the Java Plugin the configured java toolchain is used for checkstyle tasks.
+The Checkstyle plugin now uses the Gradle worker API and JVM toolchains. Checkstyle analysis now runs as an external worker process. Checkstyle tasks may now run in parallel within one project.
 
-Furthermore the checkstyle task is now leveraging the Gradle worker API which effectively means
-
-- the checkstyle process is always running as an external process,
-- parallel task execution within a single project is improved by allowing
-  multiple checkstyle tasks within a project can now be executed in parallel.
+In Java projects, Checkstyle will use the same version of Java required by the project. In other types of projects, Checkstyle will use the same version of Java that is used by the Gradle daemon.
 
 ### Improved test sources separation in the `eclipse` plugin
 
