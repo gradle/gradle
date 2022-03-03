@@ -17,6 +17,13 @@
 pluginManagement {
     repositories {
         gradlePluginPortal()
+        maven {
+            name = "Kotlin EAP repository"
+            url = uri("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/bootstrap/")
+            content {
+                includeVersionByRegex("org.jetbrains.kotlin", "kotlin-.*", "1.7.0-dev-1904")
+            }
+        }
     }
 }
 
@@ -41,7 +48,7 @@ dependencyResolutionManagement {
         }
         maven {
             name = "Kotlin EAP repository"
-            url = uri("https://cache-redirector.jetbrains.com/maven.pkg.jetbrains.space/kotlin/p/kotlin/bootstrap")
+            url = uri("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/bootstrap/")
             content {
                 includeVersionByRegex("org.jetbrains.kotlin", "kotlin-.*", "1.7.0-dev-1904")
             }

@@ -14,5 +14,6 @@ dependencies {
     implementation(project(":build-scan"))
 
     implementation("org.gradle.kotlin.kotlin-dsl:org.gradle.kotlin.kotlin-dsl.gradle.plugin:2.2.0")
+    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.7.0-dev-1904")
     implementation("org.gradle.kotlin:gradle-kotlin-dsl-conventions:0.7.0")
 }
