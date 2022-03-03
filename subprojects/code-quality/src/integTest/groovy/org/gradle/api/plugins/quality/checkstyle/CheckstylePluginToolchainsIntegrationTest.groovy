@@ -75,7 +75,7 @@ class CheckstylePluginToolchainsIntegrationTest extends MultiVersionIntegrationS
         outputContains("Running checkstyle with toolchain '${Jvm.current().javaHome.absolutePath}'")
     }
 
-    def "analyze good code"() {
+    def "analyze good code with the toolchain JDK"() {
         goodCode()
         def jdk = setupExecutorForToolchains()
         writeBuildFileWithToolchainsFromJavaPlugin(jdk)
@@ -91,7 +91,7 @@ class CheckstylePluginToolchainsIntegrationTest extends MultiVersionIntegrationS
         file("build/reports/checkstyle/main.html").assertContents(containsClass("org.gradle.Class2"))
     }
 
-    def "analyze bad code"() {
+    def "analyze bad code with the toolchain JDK"() {
         executer.withDefaultLocale(new Locale('en'))
         badCode()
         def jdk = setupExecutorForToolchains()
