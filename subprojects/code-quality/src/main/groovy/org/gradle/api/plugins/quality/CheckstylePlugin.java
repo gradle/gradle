@@ -63,16 +63,6 @@ public class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
     }
 
     @Inject
-    protected FileFactory getFileFactory() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    protected BuildLayout getBuildLayout() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
     protected JavaToolchainService getToolchainService() {
         throw new UnsupportedOperationException();
     }
@@ -81,7 +71,7 @@ public class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
     protected CodeQualityExtension createExtension() {
         extension = project.getExtensions().create("checkstyle", CheckstyleExtension.class, project);
         extension.setToolVersion(DEFAULT_CHECKSTYLE_VERSION);
-        Directory directory = getFileFactory().dir(getBuildLayout().getRootDirectory()).dir(CONFIG_DIR_NAME);
+        Directory directory = project.getRootProject().getLayout().getProjectDirectory().dir(CONFIG_DIR_NAME);
         extension.getConfigDirectory().convention(directory);
         extension.setConfig(project.getResources().getText().fromFile(extension.getConfigDirectory().file("checkstyle.xml")
             // If for whatever reason the provider above cannot be resolved, go back to default location, which we know how to ignore if missing
@@ -140,9 +130,7 @@ public class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
         task.getJavaLauncher().convention(javaLauncherProvider);
         project.getPluginManager().withPlugin("java-base", p -> {
             JavaToolchainSpec toolchain = getJavaPluginExtension().getToolchain();
-            if (((ToolchainSpecInternal) toolchain).isConfigured()) {
-                task.getJavaLauncher().set(getToolchainService().launcherFor(toolchain));
-            }
+            task.getJavaLauncher().convention(getToolchainService().launcherFor(toolchain).orElse(javaLauncherProvider));
         });
     }
 

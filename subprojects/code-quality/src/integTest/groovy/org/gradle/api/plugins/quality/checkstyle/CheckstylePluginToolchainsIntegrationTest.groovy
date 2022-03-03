@@ -16,27 +16,30 @@
 
 package org.gradle.api.plugins.quality.checkstyle
 
-import org.gradle.api.specs.Spec
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
+import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.internal.jvm.Jvm
-import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
+import org.gradle.quality.integtest.fixtures.CheckstyleCoverage
 import org.hamcrest.Matcher
-import org.junit.Assume
 
 import static org.gradle.util.Matchers.containsLine
 import static org.hamcrest.CoreMatchers.containsString
+import static org.junit.Assume.assumeNotNull
 
-class CheckstylePluginToolchainsIntegrationTest extends AbstractIntegrationSpec {
+@TargetCoverage({ CheckstyleCoverage.getSupportedVersionsByJdk() })
+class CheckstylePluginToolchainsIntegrationTest extends MultiVersionIntegrationSpec {
 
-    def "uses jdk from toolchains"() {
+    def setup() {
+        executer.withArgument("--info")
+    }
+
+    def "uses jdk from toolchains set through java plugin"() {
         given:
+        goodCode()
         writeDummyConfig()
-        file('src/main/java/Dummy.java') << "class Dummy {}"
-        def jdk = setupExecutorForToolchains {
-            it.languageVersion > Jvm.current().javaVersion
-        }
-        writeBuildFile(jdk)
+        def jdk = setupExecutorForToolchains()
+        writeBuildFileWithToolchainsFromJavaPlugin(jdk)
 
         when:
         succeeds("checkstyleMain")
@@ -45,8 +48,23 @@ class CheckstylePluginToolchainsIntegrationTest extends AbstractIntegrationSpec 
         outputContains("Running checkstyle with toolchain '${jdk.javaHome.absolutePath}'.")
     }
 
-    def "uses toolchains based on current jdk if not specified otherwise"() {
+    def "uses jdk from toolchains set through checkstyle task"() {
         given:
+        goodCode()
+        writeDummyConfig()
+        def jdk = setupExecutorForToolchains()
+        writeBuildFileWithToolchainsFromCheckstyleTask(jdk)
+
+        when:
+        succeeds("checkstyleMain")
+
+        then:
+        outputContains("Running checkstyle with toolchain '${jdk.javaHome.absolutePath}'.")
+    }
+
+    def "uses current jdk if not specified otherwise"() {
+        given:
+        goodCode()
         writeDummyConfig()
         writeBuildFile()
 
@@ -54,15 +72,13 @@ class CheckstylePluginToolchainsIntegrationTest extends AbstractIntegrationSpec 
         succeeds("checkstyleMain")
 
         then:
-        outputDoesNotContain("Running checkstyle with toolchain")
+        outputContains("Running checkstyle with toolchain '${Jvm.current().javaHome.absolutePath}'")
     }
 
     def "analyze good code"() {
         goodCode()
-        def jdk = setupExecutorForToolchains {
-            it.languageVersion > Jvm.current().javaVersion
-        }
-        writeBuildFile(jdk)
+        def jdk = setupExecutorForToolchains()
+        writeBuildFileWithToolchainsFromJavaPlugin(jdk)
         writeConfigFileWithTypeName()
 
         expect:
@@ -78,10 +94,8 @@ class CheckstylePluginToolchainsIntegrationTest extends AbstractIntegrationSpec 
     def "analyze bad code"() {
         executer.withDefaultLocale(new Locale('en'))
         badCode()
-        def jdk = setupExecutorForToolchains {
-            it.languageVersion > Jvm.current().javaVersion
-        }
-        writeBuildFile(jdk)
+        def jdk = setupExecutorForToolchains()
+        writeBuildFileWithToolchainsFromJavaPlugin(jdk)
         writeConfigFileWithTypeName()
 
         expect:
@@ -96,12 +110,10 @@ class CheckstylePluginToolchainsIntegrationTest extends AbstractIntegrationSpec 
         file("build/reports/checkstyle/main.html").assertContents(containsClass("org.gradle.class2"))
     }
 
-    Jvm setupExecutorForToolchains(Spec<? super JvmInstallationMetadata> jvmFilter) {
-        Jvm jdk = AvailableJavaHomes.getAvailableJdk(jvmFilter)
-        Assume.assumeNotNull(jdk)
-        executer.beforeExecute {
-            withArguments("-Porg.gradle.java.installations.paths=${jdk.javaHome.absolutePath}", "--info")
-        }
+    Jvm setupExecutorForToolchains() {
+        Jvm jdk = AvailableJavaHomes.getDifferentVersion()
+        assumeNotNull(jdk)
+        executer.withArgument("-Porg.gradle.java.installations.paths=${jdk.javaHome.absolutePath}")
         return jdk
     }
 
@@ -111,6 +123,10 @@ class CheckstylePluginToolchainsIntegrationTest extends AbstractIntegrationSpec 
         id 'groovy'
         id 'java'
         id 'checkstyle'
+    }
+
+    checkstyle {
+        toolVersion = '$version'
     }
 
     repositories {
@@ -123,11 +139,22 @@ class CheckstylePluginToolchainsIntegrationTest extends AbstractIntegrationSpec 
 """
     }
 
-    private void writeBuildFile(Jvm jvm) {
+    private void writeBuildFileWithToolchainsFromJavaPlugin(Jvm jvm) {
         writeBuildFile()
         buildFile << """
     java {
         toolchain {
+            languageVersion = JavaLanguageVersion.of(${jvm.javaVersion.majorVersion})
+        }
+    }
+"""
+    }
+
+    private void writeBuildFileWithToolchainsFromCheckstyleTask(Jvm jvm) {
+        writeBuildFile()
+        buildFile << """
+    tasks.withType(Checkstyle) {
+        javaLauncher = javaToolchains.launcherFor {
             languageVersion = JavaLanguageVersion.of(${jvm.javaVersion.majorVersion})
         }
     }
