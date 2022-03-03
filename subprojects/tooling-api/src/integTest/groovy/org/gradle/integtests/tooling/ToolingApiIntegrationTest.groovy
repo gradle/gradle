@@ -336,4 +336,197 @@ allprojects {
         where:
         withColor << [true, false]
     }
+
+
+    def "TestTaskExecutionTracker receives events for custom AbstractTestTask"() {
+        given:
+        def buildFile = projectDir.file("build.gradle")
+        def startTimeoutMs = 90000
+        def stateChangeTimeoutMs = 15000
+        def stopTimeoutMs = 10000
+        def retryIntervalMs = 500
+
+        def gradleUserHomeDirPath = executer.gradleUserHomeDir.absolutePath
+        def gradleHomeDirPath = otherVersion.gradleHomeDir.absolutePath
+
+        buildFile << """
+            import org.gradle.api.internal.tasks.testing.*
+            import org.gradle.internal.operations.OperationIdentifier
+
+            apply plugin: 'java'
+            apply plugin: 'application'
+
+            repositories {
+                maven { url "${buildContext.localRepository.toURI()}" }
+                ${RepoScriptBlockUtil.gradleRepositoryDefinition()}
+            }
+
+            dependencies {
+                implementation "org.gradle:gradle-tooling-api:${distribution.version.baseVersion.version}"
+                runtimeOnly 'org.slf4j:slf4j-simple:1.7.10'
+            }
+
+            application.mainClass = 'Main'
+
+            run {
+                args = ["${TextUtil.escapeString(gradleHomeDirPath)}", "${TextUtil.escapeString(gradleUserHomeDirPath)}"]
+                systemProperty 'org.gradle.daemon.idletimeout', 10000
+                systemProperty 'org.gradle.daemon.registry.base', "${TextUtil.escapeString(projectDir.file("daemon").absolutePath)}"
+            }
+
+            class CustomTestExecutionSpec implements TestExecutionSpec {}
+            class CustomTestExecuter implements TestExecuter<CustomTestExecutionSpec> {
+
+                @Override
+                void execute(CustomTestExecutionSpec customTestExecutionSpec, TestResultProcessor testResultProcessor) {
+                    OperationIdentifier rootId = new OperationIdentifier(40L)
+                    DefaultTestSuiteDescriptor rootDescr = new DefaultTestSuiteDescriptor(rootId, "MyCustomTestRoot")
+                    testResultProcessor.started(rootDescr, new TestStartEvent(System.currentTimeMillis()))
+
+                    OperationIdentifier testId = new OperationIdentifier(42L)
+                    DefaultTestDescriptor testDescr = new DefaultTestDescriptor(testId, "org.my.MyClass", "MyCustomTest", null, "DisplayName")
+                    testResultProcessor.started(testDescr, new TestStartEvent(System.currentTimeMillis()))
+                    testResultProcessor.completed(testId, new TestCompleteEvent(System.currentTimeMillis(), TestResult.ResultType.SUCCESS))
+
+                    testResultProcessor.completed(rootId, new TestCompleteEvent(System.currentTimeMillis()))
+                }
+
+                @Override
+                void stopNow() {}
+            }
+
+            class CustomTestTask extends AbstractTestTask {
+                CustomTestTask() {
+                    binaryResultsDirectory.set(new File(getProject().buildDir, "CustomTestTask"))
+                    reports.html.required.set(false)
+                    reports.junitXml.required.set(false)
+                }
+
+                @Override
+                protected TestExecuter<? extends TestExecutionSpec> createTestExecuter() {
+                    return new CustomTestExecuter()
+                }
+
+                @Override
+                protected TestExecutionSpec createTestExecutionSpec() {
+                    return new CustomTestExecutionSpec()
+                }
+            }
+
+            tasks.register("myTestTask", CustomTestTask) {
+                doFirst {
+                    def startMarkerFile = file("start.marker")
+                    startMarkerFile << new Date().toString()
+                    println "start marker written (\$startMarkerFile)"
+
+                    def stopMarkerFile = file("stop.marker")
+                    def startedAt = System.currentTimeMillis()
+                    println "waiting for stop marker (\$stopMarkerFile)"
+                    while(!stopMarkerFile.exists()) {
+                        if (System.currentTimeMillis() - startedAt > $stateChangeTimeoutMs) {
+                            throw new Exception("Timeout ($stateChangeTimeoutMs ms) waiting for stop marker")
+                        }
+                        sleep $retryIntervalMs
+                    }
+                }
+            }
+        """
+
+        projectDir.file("src/main/java/Main.java") << """
+            import org.gradle.tooling.BuildLauncher;
+            import org.gradle.tooling.GradleConnector;
+            import org.gradle.tooling.ProjectConnection;
+            import org.gradle.tooling.events.OperationType;
+            import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
+
+            import java.io.ByteArrayOutputStream;
+            import java.io.File;
+
+            public class Main {
+                public static void main(String[] args) {
+                    GradleConnector connector = GradleConnector.newConnector();
+
+                    if (args.length > 0) {
+                        connector.useInstallation(new File(args[0]));
+                        if (args.length > 1) {
+                            connector.useGradleUserHomeDir(new File(args[1]));
+                        }
+                    }
+
+                    connector.forProjectDirectory(new File("."));
+
+                    // required because invoked build script doesn't provide a settings file
+                    ((DefaultGradleConnector) connector).searchUpwards(false);
+
+                    ProjectConnection connection = connector.connect();
+                    try {
+                        BuildLauncher launcher = connection.newBuild();
+                        launcher.forTasks("myTestTask");
+
+                        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+                        launcher.setStandardOutput(outputStream);
+                        launcher.setStandardError(outputStream);
+                        launcher.addProgressListener(event -> {
+                            System.out.println("TEST ProgressEvent: " + event.getDisplayName());
+                        }, OperationType.TEST);
+
+                        launcher.run();
+                        System.out.println("Build was successful");
+                    } finally {
+                        System.out.println("Cleaning up after the build");
+                        connection.close();
+                    }
+                }
+            }
+        """
+
+        when:
+        GradleHandle handle = executer.inDirectory(projectDir)
+            .withTasks('run')
+            .start()
+
+        then:
+        // Wait for the tooling API to start the build
+        def startMarkerFile = projectDir.file("start.marker")
+        def foundStartMarker = startMarkerFile.exists()
+
+        CountdownTimer startTimer = Time.startCountdownTimer(startTimeoutMs)
+        while (handle.running && !foundStartMarker) {
+            if (startTimer.hasExpired()) {
+                throw new Exception("timeout waiting for start marker")
+            } else {
+                sleep retryIntervalMs
+            }
+            foundStartMarker = startMarkerFile.exists()
+        }
+
+        if (!foundStartMarker) {
+            throw new Exception("Build finished without start marker appearing")
+        }
+
+        // Signal the build to finish
+        def stopMarkerFile = projectDir.file("stop.marker")
+        def stopTimer = Time.startCountdownTimer(stopTimeoutMs)
+        stopMarkerFile << new Date().toString()
+
+        // Does the tooling API hold the JVM open (which will also hold the build open)?
+        while (handle.running) {
+            if (stopTimer.hasExpired()) {
+                // This test can fail if we have started a thread pool in Gradle and have not shut it down
+                // properly. If you run this locally, you can connect to the JVM running Main above and
+                // get a thread dump after you see "Connection is closed".
+                throw new Exception("timeout after placing stop marker (JVM might have been held open)")
+            }
+            sleep retryIntervalMs
+        }
+
+        handle.waitForFinish()
+
+        // https://github.com/gradle/gradle-private/issues/3005
+        println "Waiting for daemon exit, start: ${ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ISO_INSTANT)}"
+
+        Thread.sleep(stopTimeoutMs)
+
+        println "Waiting for daemon exit, end: ${ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ISO_INSTANT)}"
+    }
 }
