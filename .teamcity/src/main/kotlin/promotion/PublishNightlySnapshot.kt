@@ -23,7 +23,8 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.triggers.schedule
 class PublishNightlySnapshot(branch: VersionedSettingsBranch) : PublishGradleDistribution(
     promotedBranch = branch.branchName,
     task = branch.promoteNightlyTaskName(),
-    triggerName = "ReadyforNightly"
+    triggerName = "ReadyforNightly",
+    vcsRootId = gradlePromotionBranches
 ) {
     init {
         id("Promotion_Nightly")
