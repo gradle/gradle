@@ -25,7 +25,7 @@ class DependencyInsightOutputNormalizer implements OutputNormalizer {
 
     @Override
     String normalize(String output, ExecutionMetadata executionMetadata) {
-        output.replaceAll("org\\.gradle\\.jvm\\.version[ ]+= [0-9]+", "org.gradle.jvm.version = 11")
+        output.replaceAll("(\\s+\\|\\s+org\\.gradle\\.jvm\\.version\\s+\\|\\s+\\|\\s+)\\d\\s(\\s+\\|)", "\$111\$2")
             .replaceAll("org\\.gradle\\.jvm\\.version[ ]'[0-9]+'", "org.gradle.jvm.version '11'")
             .replaceAll("'org\\.gradle\\.jvm\\.version' with value '[0-9]+'", "'org.gradle.jvm.version' with value '11'")
             .replaceAll("compatib(le|ility) with Java [0-9]+", "compatib\$1 with Java 11")
