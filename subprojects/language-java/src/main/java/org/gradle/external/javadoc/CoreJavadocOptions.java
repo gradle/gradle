@@ -106,7 +106,6 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
         encoding = addStringOption(OPTION_ENCODING);
 
         sourceNames = optionFile.getSourceNames();
-        jFlags = new ArrayList<>();
 
         knownCoreOptionNames = Collections.unmodifiableSet(new HashSet<>(optionFile.getOptions().keySet()));
     }
