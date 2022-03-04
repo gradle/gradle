@@ -37,7 +37,7 @@ public class JavadocOptionFile {
     private final OptionLessJavadocOptionFileOptionInternal<List<String>> sourceNames;
 
     public JavadocOptionFile() {
-        this(new LinkedHashMap<String, JavadocOptionFileOptionInternal<?>>(), new OptionLessStringsJavadocOptionFileOption(Lists.<String>newArrayList()));
+        this(new LinkedHashMap<>(), new OptionLessStringsJavadocOptionFileOption(Lists.<String>newArrayList()));
     }
 
     private JavadocOptionFile(Map<String, JavadocOptionFileOptionInternal<?>> options, OptionLessJavadocOptionFileOptionInternal<List<String>> sourceNames) {
@@ -61,7 +61,7 @@ public class JavadocOptionFile {
         return sourceNames;
     }
 
-    Map<String, JavadocOptionFileOptionInternal<?>> getOptions() {
+    public Map<String, JavadocOptionFileOptionInternal<?>> getOptions() {
         return Collections.unmodifiableMap(options);
     }
 

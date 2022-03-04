@@ -27,25 +27,27 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.external.javadoc.internal.GroupsJavadocOptionFileOption;
 import org.gradle.external.javadoc.internal.JavadocOptionFile;
-import org.gradle.external.javadoc.internal.KnownJavadocOptions;
 import org.gradle.external.javadoc.internal.LinksOfflineJavadocOptionFileOption;
 
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static org.gradle.api.tasks.PathSensitivity.NAME_ONLY;
-import static org.gradle.external.javadoc.internal.KnownJavadocOptionNames.*;
 
 /**
  * Provides the options for the standard Javadoc doclet.
  */
 public class StandardJavadocDocletOptions extends CoreJavadocOptions implements MinimalJavadocOptions {
+    private static final String OPTION_D = "d";
+    private static final String OPTION_USE = "use";
+    private static final String OPTION_VERSION = "version";
+    private static final String OPTION_AUTHOR = "author";
     private static final String OPTION_SPLITINDEX = "splitindex";
     private static final String OPTION_HEADER = "header";
     private static final String OPTION_WINDOWTITLE = "windowtitle";
@@ -78,11 +80,10 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
     private static final String OPTION_NOTIMESTAMP = "notimestamp";
     private static final String OPTION_NOCOMMENT = "nocomment";
 
-    private final Map<String, JavadocOptionFileOption<?>> optionsMap = new HashMap<>(KnownJavadocOptions.values().length);
-    {
-        Arrays.stream(KnownJavadocOptions.values()).forEach(option -> optionsMap.put(option.getName(), option.create(optionFile)));
-    }
-
+    private final JavadocOptionFileOption<File> destinationDirectory;
+    private final JavadocOptionFileOption<Boolean> use;
+    private final JavadocOptionFileOption<Boolean> version;
+    private final JavadocOptionFileOption<Boolean> author;
     private final JavadocOptionFileOption<Boolean> splitIndex;
     private final JavadocOptionFileOption<String> windowTitle;
     private final JavadocOptionFileOption<String> header;
@@ -115,6 +116,14 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
     public final JavadocOptionFileOption<Boolean> noTimestamp;
     private final JavadocOptionFileOption<Boolean> noComment;
 
+    /**
+     * Standard options which are known, and have corresponding fields in this class.
+     *
+     * @since 7.5
+     */
+    @Incubating
+    private final Set<String> knownStandardOptionNames;
+
     public StandardJavadocDocletOptions() {
         this(new JavadocOptionFile());
     }
@@ -122,6 +131,10 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
     public StandardJavadocDocletOptions(JavadocOptionFile javadocOptionFile) {
         super(javadocOptionFile);
 
+        destinationDirectory = addFileOption(OPTION_D);
+        use = addBooleanOption(OPTION_USE);
+        version = addBooleanOption(OPTION_VERSION);
+        author = addBooleanOption(OPTION_AUTHOR);
         splitIndex = addBooleanOption(OPTION_SPLITINDEX);
         header = addStringOption(OPTION_HEADER);
         windowTitle = addStringOption(OPTION_WINDOWTITLE);
@@ -153,6 +166,8 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         noQualifiers = addStringsOption(OPTION_NOQUALIFIER, ":");
         noTimestamp = addBooleanOption(OPTION_NOTIMESTAMP, true);
         noComment = addBooleanOption(OPTION_NOCOMMENT);
+
+        knownStandardOptionNames = Collections.unmodifiableSet(new HashSet<>(Sets.difference(optionFile.getOptions().keySet(), knownCoreOptionNames)));
     }
 
     public StandardJavadocDocletOptions(StandardJavadocDocletOptions original) {
@@ -162,11 +177,10 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
     public StandardJavadocDocletOptions(StandardJavadocDocletOptions original, JavadocOptionFile optionFile) {
         super(original, optionFile);
 
-        setDestinationDirectory(original.getDestinationDirectory());
-        setUse(original.isUse());
-        setVersion(original.isVersion());
-        setAuthor(original.isAuthor());
-
+        destinationDirectory = optionFile.getOption(OPTION_D);
+        use = optionFile.getOption(OPTION_USE);
+        version = optionFile.getOption(OPTION_VERSION);
+        author = optionFile.getOption(OPTION_AUTHOR);
         splitIndex = optionFile.getOption(OPTION_SPLITINDEX);
         header = optionFile.getOption(OPTION_HEADER);
         windowTitle = optionFile.getOption(OPTION_WINDOWTITLE);
@@ -198,6 +212,8 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         noQualifiers = optionFile.getOption(OPTION_NOQUALIFIER);
         noTimestamp = optionFile.getOption(OPTION_NOTIMESTAMP);
         noComment = optionFile.getOption(OPTION_NOCOMMENT);
+
+        knownStandardOptionNames = original.knownStandardOptionNames;
     }
 
     public StandardJavadocDocletOptions(MinimalJavadocOptions original) {
@@ -232,23 +248,14 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
     }
 
     /**
-     * Gets a set of all the options that are known to this class and have separate properties.
+     * Gets a set of all the options that are known to this class and its super class and have separate properties.
      *
      * @return set of property names
      * @since 7.5
      */
     @Incubating
-    protected Set<String> knownOptions() {
-        return Sets.union(Arrays.stream(KnownJavadocOptions.values()).map(KnownJavadocOptions::getName).collect(Collectors.toSet()),
-                Sets.union(
-                super.knownOptions(),
-                Sets.newHashSet(OPTION_SPLITINDEX,
-                        OPTION_HEADER, OPTION_WINDOWTITLE, OPTION_DOCTITLE, OPTION_FOOTER, OPTION_BOTTOM,
-                        OPTION_LINK, OPTION_LINKOFFLINE, OPTION_LINKSOURCE, OPTION_GROUP, OPTION_NODEPRECATED,
-                        OPTION_NODEPRECATEDLIST, OPTION_NOSINCE, OPTION_NOTREE, OPTION_NOINDEX, OPTION_NOHELP,
-                        OPTION_NONAVBAR, OPTION_HELPFILE, OPTION_STYLESHEETFILE, OPTION_SERIALWARN, OPTION_CHARSET,
-                        OPTION_DOENCODING, OPTION_KEYWORDS, OPTION_TAG, OPTION_TAGLET, OPTION_TAGLETPATH,
-                        OPTION_DOCFILESSUBDIRS, OPTION_EXCLUDEDOCFILESSUBDIR, OPTION_NOQUALIFIER, OPTION_NOTIMESTAMP, OPTION_NOCOMMENT)));
+    public Set<String> knownOptionNames() {
+        return Sets.union(knownCoreOptionNames, knownStandardOptionNames);
     }
 
     /**
@@ -265,13 +272,12 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     @Override
     public File getDestinationDirectory() {
-        return (File) optionsMap.get(OPTION_D).getValue();
+        return destinationDirectory.getValue();
     }
 
     @Override
     public void setDestinationDirectory(File directory) {
-        @SuppressWarnings("unchecked") JavadocOptionFileOption<File> destinationDirectory = (JavadocOptionFileOption<File>) optionsMap.get(OPTION_D);
-        destinationDirectory.setValue(directory);
+        this.destinationDirectory.setValue(directory);
     }
 
     @Override
@@ -300,12 +306,11 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     @Input
     public boolean isUse() {
-        return (Boolean) optionsMap.get(OPTION_USE).getValue();
+        return use.getValue();
     }
 
     public void setUse(boolean use) {
-        @SuppressWarnings("unchecked") JavadocOptionFileOption<Boolean> isUse = (JavadocOptionFileOption<Boolean>) optionsMap.get(OPTION_USE);
-        isUse.setValue(use);
+        this.use.setValue(use);
     }
 
     public StandardJavadocDocletOptions use(boolean use) {
@@ -325,12 +330,11 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     @Input
     public boolean isVersion() {
-        return (Boolean) optionsMap.get(OPTION_VERSION).getValue();
+        return version.getValue();
     }
 
     public void setVersion(boolean version) {
-        @SuppressWarnings("unchecked") JavadocOptionFileOption<Boolean> isVersion = (JavadocOptionFileOption<Boolean>) optionsMap.get(OPTION_VERSION);
-        isVersion.setValue(version);isVersion.setValue(version);
+        this.version.setValue(version);
     }
 
     public StandardJavadocDocletOptions version(boolean version) {
@@ -349,12 +353,11 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     @Input
     public boolean isAuthor() {
-        return (Boolean) optionsMap.get(OPTION_AUTHOR).getValue();
+        return author.getValue();
     }
 
     public void setAuthor(boolean author) {
-        @SuppressWarnings("unchecked") JavadocOptionFileOption<Boolean> isAuthor = (JavadocOptionFileOption<Boolean>) optionsMap.get(OPTION_AUTHOR);
-        isAuthor.setValue(author);
+        this.author.setValue(author);
     }
 
     public StandardJavadocDocletOptions author(boolean author) {

@@ -16,7 +16,6 @@
 
 package org.gradle.external.javadoc;
 
-import com.google.common.collect.Sets;
 import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Input;
 import org.gradle.external.javadoc.internal.JavadocOptionFile;
@@ -31,6 +30,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -71,8 +72,16 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
     private final JavadocOptionFileOption<String> locale;
     private final JavadocOptionFileOption<String> encoding;
     private final OptionLessJavadocOptionFileOption<List<String>> sourceNames;
-    private List<String> jFlags = new ArrayList<String>();
-    private List<File> optionFiles = new ArrayList<File>();
+    private List<String> jFlags = new ArrayList<>();
+    private List<File> optionFiles = new ArrayList<>();
+
+    /**
+     * Core options which are known, and have corresponding fields in this class.
+     *
+     * @since 7.5
+     */
+    @Incubating
+    protected final Set<String> knownCoreOptionNames;
 
     public CoreJavadocOptions() {
         this(new JavadocOptionFile());
@@ -97,6 +106,9 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
         encoding = addStringOption(OPTION_ENCODING);
 
         sourceNames = optionFile.getSourceNames();
+        jFlags = new ArrayList<>();
+
+        knownCoreOptionNames = Collections.unmodifiableSet(new HashSet<>(optionFile.getOptions().keySet()));
     }
 
     protected CoreJavadocOptions(CoreJavadocOptions original, JavadocOptionFile optionFile) {
@@ -120,6 +132,8 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
         sourceNames = optionFile.getSourceNames();
         jFlags = original.jFlags;
         optionFiles = original.optionFiles;
+
+        knownCoreOptionNames = original.knownCoreOptionNames;
     }
 
     /**
@@ -129,10 +143,8 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      * @since 7.5
      */
     @Incubating
-    protected Set<String> knownOptions() {
-        return Sets.newHashSet(OPTION_OVERVIEW, OPTION_MEMBERLEVEL, OPTION_DOCLET, OPTION_DOCLETPATH, OPTION_SOURCE,
-                OPTION_CLASSPATH, OPTION_MODULE_PATH, OPTION_SOURCE_PATH, OPTION_BOOTCLASSPATH, OPTION_EXTDIRS,
-                OPTION_OUTPUTLEVEL, OPTION_BREAKITERATOR, OPTION_LOCALE, OPTION_ENCODING);
+    public Set<String> knownOptionNames() {
+        return knownCoreOptionNames;
     }
 
     /**
@@ -769,9 +781,8 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
     @Incubating
     @Input
     protected String getExtraOptions() {
-        String result = optionFile.stringifyExtraOptionsToMap(knownOptions()).entrySet().stream()
+        return optionFile.stringifyExtraOptionsToMap(knownOptionNames()).entrySet().stream()
                 .map(e -> e.getKey() + ":" + e.getValue())
                 .collect(Collectors.joining(", "));
-        return result;
     }
 }
