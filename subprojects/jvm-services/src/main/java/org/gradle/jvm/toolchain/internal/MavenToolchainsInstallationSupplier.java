@@ -16,6 +16,7 @@
 
 package org.gradle.jvm.toolchain.internal;
 
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.provider.Provider;
@@ -51,18 +52,20 @@ public class MavenToolchainsInstallationSupplier extends AutoDetectingInstallati
     private final Provider<String> toolchainLocation;
     private final XPathFactory xPathFactory;
     private final DocumentBuilderFactory documentBuilderFactory;
+    private final FileResolver fileResolver;
 
     @Inject
-    public MavenToolchainsInstallationSupplier(ProviderFactory factory) {
+    public MavenToolchainsInstallationSupplier(ProviderFactory factory, FileResolver fileResolver) {
         super(factory);
         toolchainLocation = factory.gradleProperty(PROPERTY_NAME).orElse(defaultMavenToolchainsDefinitionsLocation());
         xPathFactory = XPathFactory.newInstance();
         documentBuilderFactory = DocumentBuilderFactory.newInstance();
+        this.fileResolver = fileResolver;
     }
 
     @Override
     protected Set<InstallationLocation> findCandidates() {
-        File toolchainFile = new File(toolchainLocation.get());
+        File toolchainFile = fileResolver.resolve(toolchainLocation.get());
         if (toolchainFile.exists()) {
             try (FileInputStream toolchain = new FileInputStream(toolchainFile)) {
                 DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();

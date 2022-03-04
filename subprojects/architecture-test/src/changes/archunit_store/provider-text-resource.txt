@@ -1,0 +1,4 @@
+Method <org.gradle.api.plugins.quality.Checkstyle.getConfig()> has raw return type org.gradle.api.resources.TextResource in (Checkstyle.java:204)
+Method <org.gradle.api.plugins.quality.CodeNarc.getConfig()> has raw return type org.gradle.api.resources.TextResource in (CodeNarc.java:167)
+Method <org.gradle.api.plugins.quality.Pmd.getRuleSetConfig()> has raw return type org.gradle.api.resources.TextResource in (Pmd.java:218)
+Method <org.gradle.api.tasks.javadoc.Groovydoc.getOverviewText()> has raw return type org.gradle.api.resources.TextResource in (Groovydoc.java:334)

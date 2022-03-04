@@ -163,7 +163,8 @@ public class ContinuousBuildActionExecutor implements BuildSessionActionExecutor
             BuildInputHierarchy buildInputs = new BuildInputHierarchy(caseSensitivity, stat);
             ContinuousBuildTriggerHandler continuousBuildTriggerHandler = new ContinuousBuildTriggerHandler(
                 cancellationToken,
-                continuousExecutionGate
+                continuousExecutionGate,
+                action.getStartParameter().getContinuousBuildQuietPeriod()
             );
             SingleFirePendingChangesListener singleFirePendingChangesListener = new SingleFirePendingChangesListener(pendingChangesListener);
             FileEventCollector fileEventCollector = new FileEventCollector(buildInputs, () -> {
