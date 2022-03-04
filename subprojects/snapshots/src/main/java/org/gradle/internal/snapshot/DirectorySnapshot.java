@@ -25,6 +25,7 @@ import org.gradle.internal.hash.HashCode;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.gradle.internal.snapshot.ChildMapFactory.childMapFromSorted;
 import static org.gradle.internal.snapshot.SnapshotVisitResult.CONTINUE;
@@ -39,7 +40,11 @@ public class DirectorySnapshot extends AbstractFileSystemLocationSnapshot {
     private final HashCode contentHash;
 
     public DirectorySnapshot(String absolutePath, String name, AccessType accessType, HashCode contentHash, List<FileSystemLocationSnapshot> children) {
-        this(absolutePath, name, accessType, contentHash, childMapFromSorted(children.stream()
+        this(absolutePath, name, accessType, contentHash, children.stream());
+    }
+
+    public DirectorySnapshot(String absolutePath, String name, AccessType accessType, HashCode contentHash, Stream<FileSystemLocationSnapshot> children) {
+        this(absolutePath, name, accessType, contentHash, childMapFromSorted(children
             .map(it -> new ChildMap.Entry<>(it.getName(), it))
             .collect(Collectors.toList())));
     }
@@ -125,10 +130,16 @@ public class DirectorySnapshot extends AbstractFileSystemLocationSnapshot {
         return transformer.visitDirectory(this);
     }
 
+    @Override
+    public Stream<FileSystemLocationSnapshot> stream() {
+        return children.stream()
+            .map(ChildMap.Entry::getValue);
+    }
+
+    // TODO Move this to tests
     @VisibleForTesting
     public ImmutableList<FileSystemLocationSnapshot> getChildren() {
-        return children.stream()
-            .map(ChildMap.Entry::getValue)
+        return stream()
             .collect(ImmutableList.toImmutableList());
     }
 

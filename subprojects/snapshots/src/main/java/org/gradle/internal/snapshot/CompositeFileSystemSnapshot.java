@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Stream;
 
 public class CompositeFileSystemSnapshot implements FileSystemSnapshot {
     private final ImmutableList<FileSystemSnapshot> snapshots;
@@ -59,6 +60,12 @@ public class CompositeFileSystemSnapshot implements FileSystemSnapshot {
             }
         }
         return SnapshotVisitResult.CONTINUE;
+    }
+
+    @Override
+    public Stream<FileSystemSnapshot> stream() {
+        return snapshots.stream()
+            .flatMap(FileSystemSnapshot::stream);
     }
 
     public boolean equals(Object o) {

@@ -16,6 +16,8 @@
 
 package org.gradle.internal.snapshot;
 
+import java.util.stream.Stream;
+
 /**
  * The snapshot of a leaf element in the file system that can have no children of its own.
  */
@@ -33,5 +35,10 @@ public interface FileSystemLeafSnapshot extends FileSystemLocationSnapshot {
         } finally {
             pathTracker.leave();
         }
+    }
+
+    @Override
+    default Stream<FileSystemLocationSnapshot> stream() {
+        return Stream.of(this);
     }
 }

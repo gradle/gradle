@@ -16,6 +16,8 @@
 
 package org.gradle.internal.snapshot;
 
+import java.util.stream.Stream;
+
 /**
  * A snapshot of a part of the file system.
  */
@@ -33,6 +35,11 @@ public interface FileSystemSnapshot {
         public SnapshotVisitResult accept(RelativePathTracker pathTracker, RelativePathTrackingFileSystemSnapshotHierarchyVisitor visitor) {
             return SnapshotVisitResult.CONTINUE;
         }
+
+        @Override
+        public Stream<FileSystemLocationSnapshot> stream() {
+            return Stream.empty();
+        }
     };
 
     /**
@@ -48,4 +55,11 @@ public interface FileSystemSnapshot {
      * The walk is depth first.
      */
     SnapshotVisitResult accept(RelativePathTracker pathTracker, RelativePathTrackingFileSystemSnapshotHierarchyVisitor visitor);
+
+    /**
+     * Walks the whole hierarchy represented by this snapshot.
+     *
+     * The walk is depth first.
+     */
+    Stream<? extends FileSystemLocationSnapshot> stream();
 }
