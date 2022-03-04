@@ -58,6 +58,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /**
  * Contains zero or more variants of a particular component.
@@ -114,9 +115,9 @@ public abstract class DefaultArtifactSet implements ArtifactSet, ResolvedVariant
 
     public static ResolvedVariant toResolvedVariant(VariantResolveMetadata variant, ModuleVersionIdentifier ownerId, ModuleSources moduleSources, ExcludeSpec exclusions, ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvableArtifact> allResolvedArtifacts, ImmutableAttributes variantAttributes, CalculatedValueContainerFactory calculatedValueContainerFactory) {
         List<? extends ComponentArtifactMetadata> artifacts = variant.getArtifacts();
-        ImmutableSet.Builder<ResolvableArtifact> resolvedArtifacts = ImmutableSet.builder();
+        List<? extends ComponentArtifactMetadata> artifactsExcludedByOwner = artifacts.stream().filter(artifact -> exclusions.excludesArtifact(ownerId.getModule(), artifact.getName())).collect(Collectors.toList());
 
-        boolean hasExcludedArtifact = artifacts.stream().anyMatch(artifact -> exclusions.excludesArtifact(ownerId.getModule(), artifact.getName()));
+        boolean hasExcludedArtifact = !artifactsExcludedByOwner.isEmpty();
 
         VariantResolveMetadata.Identifier identifier = variant.getIdentifier();
         if (hasExcludedArtifact) {
@@ -124,7 +125,9 @@ public abstract class DefaultArtifactSet implements ArtifactSet, ResolvedVariant
             identifier = null;
         }
 
-        return ArtifactBackedResolvedVariant.create(identifier, variant.asDescribable(), variantAttributes, withImplicitCapability(variant, ownerId), supplyLazilyResolvedArtifacts(ownerId, moduleSources, artifacts, artifactResolver, allResolvedArtifacts, calculatedValueContainerFactory));
+        List<? extends ComponentArtifactMetadata> artifactsToResolve = artifacts.stream().filter(e -> !artifactsExcludedByOwner.contains(e)).collect(Collectors.toList());
+
+        return ArtifactBackedResolvedVariant.create(identifier, variant.asDescribable(), variantAttributes, withImplicitCapability(variant, ownerId), supplyLazilyResolvedArtifacts(ownerId, moduleSources, artifactsToResolve, artifactResolver, allResolvedArtifacts, calculatedValueContainerFactory));
     }
 
     private static Supplier<Collection<? extends ResolvableArtifact>> supplyLazilyResolvedArtifacts(ModuleVersionIdentifier ownerId, ModuleSources moduleSources, List<? extends ComponentArtifactMetadata> artifacts, ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvableArtifact> allResolvedArtifacts, CalculatedValueContainerFactory calculatedValueContainerFactory) {
