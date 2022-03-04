@@ -30,8 +30,8 @@ class CheckstyleInvoker extends Closure<Object> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CheckstyleInvoker.class)
 
-    private final static String FAILURE_PROPERTY_NAME = 'org.gradle.checkstyle.violations'
-    private final static String CONFIG_LOC_PROPERTY = "config_loc"
+    private static final String FAILURE_PROPERTY_NAME = "org.gradle.checkstyle.violations"
+    private static final String CONFIG_LOC_PROPERTY = "config_loc"
 
     private final CheckstyleActionParameters parameters
 

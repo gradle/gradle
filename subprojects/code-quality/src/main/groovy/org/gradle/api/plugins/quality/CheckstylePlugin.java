@@ -21,18 +21,15 @@ import org.gradle.api.file.Directory;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.ConventionMapping;
-import org.gradle.api.internal.file.FileFactory;
 import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.SourceSet;
-import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.CurrentJvmToolchainSpec;
-import org.gradle.jvm.toolchain.internal.ToolchainSpecInternal;
 
 import javax.inject.Inject;
 import java.io.File;
