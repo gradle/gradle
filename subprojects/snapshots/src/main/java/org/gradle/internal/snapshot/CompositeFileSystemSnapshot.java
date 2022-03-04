@@ -63,7 +63,7 @@ public class CompositeFileSystemSnapshot implements FileSystemSnapshot {
     }
 
     @Override
-    public Stream<FileSystemSnapshot> stream() {
+    public Stream<FileSystemLocationSnapshot> stream() {
         return snapshots.stream()
             .flatMap(FileSystemSnapshot::stream);
     }
