@@ -30,4 +30,7 @@ public interface AttributeContainerSerializer extends Serializer<AttributeContai
 
     @Override
     void write(Encoder encoder, AttributeContainer container) throws IOException;
+
+    default void reset() {
+    }
 }
