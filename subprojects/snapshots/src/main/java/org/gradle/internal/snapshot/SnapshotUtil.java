@@ -29,10 +29,8 @@ public class SnapshotUtil {
 
     public static Map<String, FileSystemLocationSnapshot> index(FileSystemSnapshot snapshot) {
         HashMap<String, FileSystemLocationSnapshot> index = new HashMap<>();
-        snapshot.accept(entrySnapshot -> {
-            index.put(entrySnapshot.getAbsolutePath(), entrySnapshot);
-            return SnapshotVisitResult.CONTINUE;
-        });
+        snapshot.stream()
+                .forEach(entrySnapshot -> index.put(entrySnapshot.getAbsolutePath(), entrySnapshot));
         return index;
     }
 
