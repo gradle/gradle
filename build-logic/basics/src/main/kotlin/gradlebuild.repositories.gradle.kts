@@ -39,5 +39,12 @@ repositories {
             includeGroup("io.usethesource")
         }
     }
+    maven {
+        name = "Apache Snapshots"
+        url = uri("https://repository.apache.org/content/repositories/snapshots/")
+        content {
+            includeGroup("org.apache.groovy")
+        }
+    }
     mavenCentral()
 }
