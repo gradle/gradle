@@ -21,7 +21,6 @@ import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-import org.gradle.internal.snapshot.SnapshotUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,9 +28,9 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * Cleans outputs, removing empty directories.
@@ -64,9 +63,9 @@ public class OutputsCleaner {
      * After cleaning up the files, the empty directories are removed as well.
      */
     public void cleanupOutputs(FileSystemSnapshot snapshot) throws IOException {
-        // TODO We could make this faster by visiting the snapshot
-        for (Map.Entry<String, FileSystemLocationSnapshot> entry : SnapshotUtil.index(snapshot).entrySet()) {
-            cleanupOutput(new File(entry.getKey()), entry.getValue().getType());
+        // TODO This could be even faster if we processed the stream directly, but that complicates exception handling
+        for (FileSystemLocationSnapshot entry : snapshot.stream().collect(Collectors.toList())) {
+            cleanupOutput(new File(entry.getAbsolutePath()), entry.getType());
         }
         cleanupDirectories();
     }
