@@ -50,6 +50,7 @@ import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.model.ValueCalculator;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactResolveResult;
+import org.gradle.util.internal.CollectionUtils;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -58,7 +59,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 /**
  * Contains zero or more variants of a particular component.
@@ -115,17 +115,19 @@ public abstract class DefaultArtifactSet implements ArtifactSet, ResolvedVariant
 
     public static ResolvedVariant toResolvedVariant(VariantResolveMetadata variant, ModuleVersionIdentifier ownerId, ModuleSources moduleSources, ExcludeSpec exclusions, ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvableArtifact> allResolvedArtifacts, ImmutableAttributes variantAttributes, CalculatedValueContainerFactory calculatedValueContainerFactory) {
         List<? extends ComponentArtifactMetadata> artifacts = variant.getArtifacts();
-        List<? extends ComponentArtifactMetadata> artifactsExcludedByOwner = artifacts.stream().filter(artifact -> exclusions.excludesArtifact(ownerId.getModule(), artifact.getName())).collect(Collectors.toList());
 
-        boolean hasExcludedArtifact = !artifactsExcludedByOwner.isEmpty();
+        // artifactsToResolve are those not excluded by their owning module
+        List<? extends ComponentArtifactMetadata> artifactsToResolve = CollectionUtils.filter(artifacts,
+            artifact -> !exclusions.excludesArtifact(ownerId.getModule(), artifact.getName())
+        );
+
+        boolean hasExcludedArtifact = artifactsToResolve.size() < artifacts.size();
 
         VariantResolveMetadata.Identifier identifier = variant.getIdentifier();
         if (hasExcludedArtifact) {
             // An ad hoc variant, has no identifier
             identifier = null;
         }
-
-        List<? extends ComponentArtifactMetadata> artifactsToResolve = artifacts.stream().filter(e -> !artifactsExcludedByOwner.contains(e)).collect(Collectors.toList());
 
         return ArtifactBackedResolvedVariant.create(identifier, variant.asDescribable(), variantAttributes, withImplicitCapability(variant, ownerId), supplyLazilyResolvedArtifacts(ownerId, moduleSources, artifactsToResolve, artifactResolver, allResolvedArtifacts, calculatedValueContainerFactory));
     }
