@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.execution;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
@@ -70,8 +71,8 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-import org.gradle.internal.snapshot.SnapshotUtil;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.work.AsyncWorkTracker;
 import org.slf4j.Logger;
@@ -82,13 +83,11 @@ import java.io.File;
 import java.io.UncheckedIOException;
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RELEASE_AND_REACQUIRE_PROJECT_LOCKS;
 import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RELEASE_PROJECT_LOCKS;
@@ -494,12 +493,11 @@ public class TaskExecution implements UnitOfWork {
 
         @Override
         public FileCollectionInternal createDelegate() {
-            List<File> outputs = previousOutputs.values().stream()
-                .map(SnapshotUtil::index)
-                .map(Map::keySet)
-                .flatMap(Collection::stream)
+            ImmutableSet<File> outputs = previousOutputs.values().stream()
+                .flatMap(FileSystemSnapshot::stream)
+                .map(FileSystemLocationSnapshot::getAbsolutePath)
                 .map(File::new)
-                .collect(Collectors.toList());
+                .collect(ImmutableSet.toImmutableSet());
             return fileCollectionFactory.fixed(outputs);
         }
 
