@@ -332,7 +332,7 @@ public class DirectorySnapshotter {
                                 internedFileName,
                                 AccessType.VIA_SYMLINK,
                                 targetSnapshot.getHash(),
-                                targetSnapshot.getChildren()
+                                targetSnapshot.stream()
                             );
                             builder.visitDirectory(directorySnapshotAccessedViaSymlink);
                             boolean symlinkFiltered = symlinkHasBeenFiltered.get();
