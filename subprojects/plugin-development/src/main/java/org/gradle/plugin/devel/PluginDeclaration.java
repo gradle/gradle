@@ -18,6 +18,8 @@ package org.gradle.plugin.devel;
 
 import com.google.common.base.Objects;
 import org.gradle.api.Named;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Optional;
 
 import javax.annotation.Nullable;
 import java.io.Serializable;
@@ -42,10 +44,12 @@ public class PluginDeclaration implements Named, Serializable {
     }
 
     @Override
+    @Input
     public String getName() {
         return name;
     }
 
+    @Input
     public String getId() {
         return id;
     }
@@ -54,6 +58,7 @@ public class PluginDeclaration implements Named, Serializable {
         this.id = id;
     }
 
+    @Input
     public String getImplementationClass() {
         return implementationClass;
     }
@@ -71,6 +76,8 @@ public class PluginDeclaration implements Named, Serializable {
      * @since 4.10
      */
     @Nullable
+    @Optional
+    @Input
     public String getDisplayName() {
         return displayName;
     }
@@ -96,6 +103,8 @@ public class PluginDeclaration implements Named, Serializable {
      * @since 4.10
      */
     @Nullable
+    @Optional
+    @Input
     public String getDescription() {
         return description;
     }
