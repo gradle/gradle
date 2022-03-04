@@ -19,11 +19,11 @@ package org.gradle.internal.watch.vfs.impl;
 import com.google.common.collect.EnumMultiset;
 import com.google.common.collect.Multiset;
 import org.gradle.internal.file.FileType;
+import org.gradle.internal.snapshot.FileSystemSnapshot;
+import org.gradle.internal.snapshot.MetadataSnapshot;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.watch.registry.FileWatcherRegistry;
 import org.gradle.internal.watch.vfs.FileSystemWatchingStatistics;
-
-import static org.gradle.internal.snapshot.SnapshotVisitResult.CONTINUE;
 
 public class DefaultFileSystemWatchingStatistics implements FileSystemWatchingStatistics {
     private final FileWatcherRegistry.FileWatchingStatistics fileWatchingStatistics;
@@ -65,10 +65,9 @@ public class DefaultFileSystemWatchingStatistics implements FileSystemWatchingSt
     private static VirtualFileSystemStatistics getStatistics(SnapshotHierarchy root) {
         EnumMultiset<FileType> retained = EnumMultiset.create(FileType.class);
         root.rootSnapshots()
-            .forEach(snapshot -> snapshot.accept(entrySnapshot -> {
-                retained.add(entrySnapshot.getType());
-                return CONTINUE;
-            }));
+            .flatMap(FileSystemSnapshot::stream)
+            .map(MetadataSnapshot::getType)
+            .forEach(retained::add);
         return new VirtualFileSystemStatistics(retained);
     }
 
