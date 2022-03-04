@@ -39,6 +39,7 @@ import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiPredicate;
+import java.util.stream.Collectors;
 
 import static com.google.common.collect.ImmutableSortedMap.copyOfSorted;
 import static com.google.common.collect.Maps.transformEntries;
@@ -79,10 +80,12 @@ public class OutputSnapshotUtil {
 
     @VisibleForTesting
     static FileSystemSnapshot findOutputPropertyStillPresentSincePreviousExecution(FileSystemSnapshot previous, FileSystemSnapshot current) {
-        Map<String, FileSystemLocationSnapshot> previousIndex = index(previous);
+        Set<String> previousAbsolutePaths = previous.stream()
+            .map(FileSystemLocationSnapshot::getAbsolutePath)
+            .collect(Collectors.toSet());
         return filterSnapshot(current, (currentSnapshot, isRoot) ->
             // Include only outputs that we already considered outputs after the previous execution
-            previousIndex.containsKey(currentSnapshot.getAbsolutePath())
+            previousAbsolutePaths.contains(currentSnapshot.getAbsolutePath())
         );
     }
 
