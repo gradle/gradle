@@ -18,6 +18,7 @@ package org.gradle.api.internal.attributes;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterators;
 import com.google.common.collect.Maps;
 import org.gradle.api.Named;
 import org.gradle.api.attributes.Attribute;
@@ -28,6 +29,7 @@ import org.gradle.internal.isolation.Isolatable;
 
 import javax.annotation.Nullable;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -114,6 +116,17 @@ final class DefaultImmutableAttributes implements ImmutableAttributes, Attribute
     @Override
     public <T> AttributeContainer attribute(Attribute<T> key, T value) {
         throw new UnsupportedOperationException("Mutation of attributes is not allowed");
+    }
+
+    @Override
+    public Iterator<Map.Entry<Attribute<?>, Object>> entryIterator() {
+        return Iterators.transform(
+            hierarchy.entrySet().iterator(),
+            entry -> {
+                Isolatable<?> value = entry.getValue().value;
+                return Maps.immutableEntry(entry.getKey(), value == null ? null : value.isolate());
+            }
+        );
     }
 
     @Override

@@ -19,6 +19,9 @@ package org.gradle.api.internal.attributes;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.attributes.Attribute;
 
+import java.util.Iterator;
+import java.util.Map;
+
 public interface ImmutableAttributes extends AttributeContainerInternal {
     ImmutableAttributes EMPTY = new DefaultImmutableAttributes();
 
@@ -31,6 +34,13 @@ public interface ImmutableAttributes extends AttributeContainerInternal {
      * Locates the entry for the attribute with the given name. Returns a 'missing' value when not present.
      */
     AttributeValue<?> findEntry(String key);
+
+    /**
+     * Returns an iterator over the entries in this container.
+     *
+     * @return an iterator over the entries in this container
+     */
+    Iterator<Map.Entry<Attribute<?>, Object>> entryIterator();
 
     @Override
     ImmutableSet<Attribute<?>> keySet();

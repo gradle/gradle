@@ -37,6 +37,7 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 class ResolveConfigurationResolutionBuildOperationResult implements ResolveConfigurationDependenciesBuildOperationType.Result, CustomOperationTraceSerialization {
@@ -99,6 +100,11 @@ class ResolveConfigurationResolutionBuildOperationResult implements ResolveConfi
         private LazyDesugaringAttributeContainer(@Nullable AttributeContainer source, ImmutableAttributesFactory attributesFactory) {
             this.source = source;
             this.attributesFactory = attributesFactory;
+        }
+
+        @Override
+        public Iterator<Map.Entry<Attribute<?>, Object>> entryIterator() {
+            return getDesugared().entryIterator();
         }
 
         @Override

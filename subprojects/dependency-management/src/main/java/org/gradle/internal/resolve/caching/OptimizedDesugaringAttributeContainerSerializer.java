@@ -15,12 +15,11 @@
  */
 package org.gradle.internal.resolve.caching;
 
-import com.google.common.collect.HashBasedTable;
-import com.google.common.collect.Table;
 import org.gradle.api.Named;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
@@ -29,14 +28,16 @@ import org.gradle.internal.serialize.Encoder;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
 /**
  * Optimized version of {@link DesugaringAttributeContainerSerializer}.
  */
 public class OptimizedDesugaringAttributeContainerSerializer implements AttributeContainerSerializer {
-    private final Table<Attribute<?>, Object, Integer> writeIndex = HashBasedTable.create();
+    private final Map<Map.Entry<Attribute<?>, Object>, Integer> writeIndex = new HashMap<>();
     private final List<ImmutableAttributes> readIndex = new ArrayList<>();
     private final ImmutableAttributesFactory attributesFactory;
 
@@ -85,16 +86,17 @@ public class OptimizedDesugaringAttributeContainerSerializer implements Attribut
 
     @Override
     public void write(Encoder encoder, AttributeContainer container) throws IOException {
-        Set<Attribute<?>> keySet = container.keySet();
-        encoder.writeSmallInt(keySet.size());
-        for (Attribute<?> attribute : keySet) {
-            Object attrValue = container.getAttribute(attribute);
-            Integer idx = writeIndex.get(attribute, attrValue);
+        Iterator<Map.Entry<Attribute<?>, Object>> entries = ((AttributeContainerInternal) container).asImmutable()
+            .entryIterator();
+        encoder.writeSmallInt(container.keySet().size());
+        while (entries.hasNext()) {
+            Map.Entry<Attribute<?>, Object> entry = entries.next();
+            Integer idx = writeIndex.get(entry);
             if (idx == null) {
                 // new value
                 encoder.writeSmallInt(writeIndex.size());
-                writeIndex.put(attribute, attrValue, writeIndex.size());
-                writeEntry(encoder, attribute, attrValue);
+                writeIndex.put(entry, writeIndex.size());
+                writeEntry(encoder, entry.getKey(), entry.getValue());
             } else {
                 // known value, only write index
                 encoder.writeSmallInt(idx);
