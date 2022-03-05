@@ -20,6 +20,7 @@ import org.gradle.internal.UncheckedException;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.security.CodeSource;
@@ -44,6 +45,17 @@ public class GradleRuntimeShadedJarDetector {
 
         if (codeSource != null) {
             URL location = codeSource.getLocation();
+            if (location == null) {
+                URL resource = clazz.getResource(".");
+                if (resource == null) {
+                    return false;
+                }
+                try {
+                    location = new URL(resource.getFile().split("!")[0]);
+                } catch (MalformedURLException e) {
+                    throw UncheckedException.throwAsUncheckedException(e);
+                }
+            }
 
             if (isJarUrl(location)) {
                 try {
