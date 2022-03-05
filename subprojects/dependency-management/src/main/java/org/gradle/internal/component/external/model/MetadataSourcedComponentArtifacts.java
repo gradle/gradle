@@ -26,10 +26,13 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.model.ComponentArtifacts;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
+import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Uses the artifacts attached to each configuration.
@@ -37,6 +40,16 @@ import java.util.Map;
 public class MetadataSourcedComponentArtifacts implements ComponentArtifacts {
     @Override
     public ArtifactSet getArtifactsFor(ComponentResolveMetadata component, ConfigurationMetadata configuration, ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvableArtifact> allResolvedArtifacts, ArtifactTypeRegistry artifactTypeRegistry, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes, CalculatedValueContainerFactory calculatedValueContainerFactory) {
-        return DefaultArtifactSet.createFromVariantMetadata(component.getId(), component.getModuleVersionId(), component.getSources(), exclusions, configuration.getVariants(), component.getAttributesSchema(), artifactResolver, allResolvedArtifacts, artifactTypeRegistry, overriddenAttributes, calculatedValueContainerFactory);
+        Set<VariantResolveMetadata> variants = new LinkedHashSet<>();
+        if (component.getVariantsForGraphTraversal().isPresent()) {
+            for (ConfigurationMetadata configurationMetadata : component.getVariantsForGraphTraversal().get()) {
+                if (configurationMetadata.getCapabilities().equals(configuration.getCapabilities())) {
+                    variants.addAll(configurationMetadata.getVariants());
+                }
+            }
+        } else {
+            variants.addAll(configuration.getVariants());
+        }
+        return DefaultArtifactSet.createFromVariantMetadata(component.getId(), component.getModuleVersionId(), component.getSources(), exclusions, variants, component.getAttributesSchema(), artifactResolver, allResolvedArtifacts, artifactTypeRegistry, overriddenAttributes, calculatedValueContainerFactory);
     }
 }
