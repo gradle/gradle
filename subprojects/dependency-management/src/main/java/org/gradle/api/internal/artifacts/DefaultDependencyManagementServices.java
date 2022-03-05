@@ -132,7 +132,7 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.caching.ComponentMetadataRuleExecutor;
 import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor;
-import org.gradle.internal.resolve.caching.OptimizedDesugaringAttributeContainerSerializer;
+import org.gradle.internal.resolve.caching.DesugaringAttributeContainerSerializer;
 import org.gradle.internal.resource.local.FileResourceListener;
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
@@ -520,7 +520,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                         buildOperationExecutor,
                         artifactTypeRegistry,
                         componentSelectorConverter,
-                        new OptimizedDesugaringAttributeContainerSerializer(attributesFactory, instantiator),
+                        new DesugaringAttributeContainerSerializer(attributesFactory, instantiator),
                         currentBuild.getBuildIdentifier(),
                         new AttributeDesugaring(attributesFactory),
                         dependencyVerificationOverride,

@@ -47,7 +47,6 @@ import org.gradle.internal.component.external.model.ModuleComponentFileArtifactI
 import org.gradle.internal.component.local.model.OpaqueComponentArtifactIdentifier;
 import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetadata;
 import org.gradle.internal.resolve.caching.DesugaringAttributeContainerSerializer;
-import org.gradle.internal.resolve.caching.OptimizedDesugaringAttributeContainerSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.DefaultSerializerRegistry;
 import org.gradle.internal.serialize.Encoder;
@@ -85,7 +84,7 @@ public class DependencyManagementValueSnapshotterSerializerRegistry extends Defa
         super(true);
 
         ComponentIdentifierSerializer componentIdentifierSerializer = new ComponentIdentifierSerializer();
-        AttributeContainerSerializer attributeContainerSerializer = new OptimizedDesugaringAttributeContainerSerializer(immutableAttributesFactory, namedObjectInstantiator);
+        AttributeContainerSerializer attributeContainerSerializer = new DesugaringAttributeContainerSerializer(immutableAttributesFactory, namedObjectInstantiator);
         ModuleVersionIdentifierSerializer moduleVersionIdentifierSerializer = new ModuleVersionIdentifierSerializer(moduleIdentifierFactory);
 
         register(Capability.class, new CapabilitySerializer());

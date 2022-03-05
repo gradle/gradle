@@ -19,6 +19,7 @@ import org.gradle.api.Named;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
@@ -27,6 +28,8 @@ import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.snapshot.impl.CoercingStringValueSnapshot;
 
 import java.io.IOException;
+import java.util.Iterator;
+import java.util.Map;
 
 /**
  * An attribute container serializer that will desugar typed attributes.
@@ -74,20 +77,23 @@ public class DesugaringAttributeContainerSerializer implements AttributeContaine
     @Override
     public void write(Encoder encoder, AttributeContainer container) throws IOException {
         encoder.writeSmallInt(container.keySet().size());
-        for (Attribute<?> attribute : container.keySet()) {
-            encoder.writeString(attribute.getName());
-            if (attribute.getType().equals(Boolean.class)) {
+        Iterator<Map.Entry<Attribute<?>, Object>> entryIterator =
+            ((AttributeContainerInternal) container).asImmutable().entryIterator();
+        while (entryIterator.hasNext()) {
+            Map.Entry<Attribute<?>, Object> entry = entryIterator.next();
+            encoder.writeString(entry.getKey().getName());
+            Class<?> type = entry.getKey().getType();
+            if (type == Boolean.class) {
                 encoder.writeByte(BOOLEAN_ATTRIBUTE);
-                encoder.writeBoolean((Boolean) container.getAttribute(attribute));
-            } else if (attribute.getType().equals(String.class)){
+                encoder.writeBoolean((Boolean) entry.getValue());
+            } else if (type == String.class){
                 encoder.writeByte(STRING_ATTRIBUTE);
-                encoder.writeString((String) container.getAttribute(attribute));
-            } else if (attribute.getType().equals(Integer.class)){
+                encoder.writeString((String) entry.getValue());
+            } else if (type == Integer.class){
                 encoder.writeByte(INTEGER_ATTRIBUTE);
-                encoder.writeInt((Integer) container.getAttribute(attribute));
+                encoder.writeInt((Integer) entry.getValue());
             } else {
-                assert Named.class.isAssignableFrom(attribute.getType());
-                Named attributeValue = (Named) container.getAttribute(attribute);
+                Named attributeValue = (Named) entry.getValue();
                 encoder.writeByte(DESUGARED_ATTRIBUTE);
                 encoder.writeString(attributeValue.getName());
             }
