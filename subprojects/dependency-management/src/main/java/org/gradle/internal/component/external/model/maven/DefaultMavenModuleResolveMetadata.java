@@ -292,7 +292,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
         }
 
         /**
-         * Dependencies markes as optional/pending in the "optional" configuration _can_ have dependency artifacts.
+         * Dependencies marked as optional/pending in the "optional" configuration _can_ have dependency artifacts.
          */
         @Override
         public List<IvyArtifactName> getArtifacts() {
