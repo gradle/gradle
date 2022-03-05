@@ -15,6 +15,8 @@
  */
 package org.gradle.internal.resolve.caching;
 
+import com.google.common.collect.HashBasedTable;
+import com.google.common.collect.Table;
 import org.gradle.api.Named;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
@@ -22,22 +24,19 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Attribu
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
-import org.gradle.internal.Pair;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
  * Optimized version of {@link DesugaringAttributeContainerSerializer}.
  */
 public class OptimizedDesugaringAttributeContainerSerializer implements AttributeContainerSerializer {
-    private final Map<Pair<Attribute<?>, Object>, Integer> writeIndex = new HashMap<>();
+    private final Table<Attribute<?>, Object, Integer> writeIndex = HashBasedTable.create();
     private final List<ImmutableAttributes> readIndex = new ArrayList<>();
     private final ImmutableAttributesFactory attributesFactory;
 
@@ -90,12 +89,11 @@ public class OptimizedDesugaringAttributeContainerSerializer implements Attribut
         encoder.writeSmallInt(keySet.size());
         for (Attribute<?> attribute : keySet) {
             Object attrValue = container.getAttribute(attribute);
-            Pair<Attribute<?>, Object> key = Pair.of(attribute, attrValue);
-            Integer idx = writeIndex.get(key);
+            Integer idx = writeIndex.get(attribute, attrValue);
             if (idx == null) {
                 // new value
                 encoder.writeSmallInt(writeIndex.size());
-                writeIndex.put(key, writeIndex.size());
+                writeIndex.put(attribute, attrValue, writeIndex.size());
                 writeEntry(encoder, attribute, attrValue);
             } else {
                 // known value, only write index
