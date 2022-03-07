@@ -18,6 +18,7 @@ package org.gradle.api.tasks.compile;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.JavaVersion;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.ProjectLayout;
@@ -94,7 +95,7 @@ import static com.google.common.base.Preconditions.checkState;
  * </pre>
  */
 @CacheableTask
-public class JavaCompile extends AbstractCompile implements HasCompileOptions {
+public abstract class JavaCompile extends AbstractCompile implements HasCompileOptions {
     private final CompileOptions compileOptions;
     private final FileCollection stableSources = getProject().files((Callable<FileTree>) this::getSource);
     private final ModularitySpec modularity;
@@ -399,9 +400,7 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
     @Override
     @CompileClasspath
     @Incremental
-    public FileCollection getClasspath() {
-        return super.getClasspath();
-    }
+    public abstract ConfigurableFileCollection getClasspath();
 
     /**
      * The sources for incremental change detection.

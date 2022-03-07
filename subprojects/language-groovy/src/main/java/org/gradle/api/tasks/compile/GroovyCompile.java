@@ -82,7 +82,7 @@ import static org.gradle.api.internal.FeaturePreviews.Feature.GROOVY_COMPILATION
  * Compiles Groovy source files, and optionally, Java source files.
  */
 @CacheableTask
-public class GroovyCompile extends AbstractCompile implements HasCompileOptions {
+public abstract class GroovyCompile extends AbstractCompile implements HasCompileOptions {
     private FileCollection groovyClasspath;
     private final ConfigurableFileCollection astTransformationClasspath;
     private final CompileOptions compileOptions;
@@ -107,11 +107,7 @@ public class GroovyCompile extends AbstractCompile implements HasCompileOptions 
     @Override
     @CompileClasspath
     @Incremental
-    public FileCollection getClasspath() {
-        // Note that @CompileClasspath here is an approximation and must be fixed before de-incubating getAstTransformationClasspath()
-        // See https://github.com/gradle/gradle/pull/9513
-        return super.getClasspath();
-    }
+    public abstract ConfigurableFileCollection getClasspath();
 
     /**
      * The classpath containing AST transformations and their dependencies.
