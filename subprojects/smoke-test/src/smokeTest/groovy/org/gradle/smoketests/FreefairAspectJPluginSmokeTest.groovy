@@ -86,7 +86,8 @@ class FreefairAspectJPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
     @Override
     Map<String, Versions> getPluginsToValidate() {
         [
-            'io.freefair.aspectj': Versions.of(TestedVersions.aspectj)
+            'io.freefair.aspectj': Versions.of(TestedVersions.aspectj),
+            'io.freefair.aspectj.post-compile-weaving': Versions.of(TestedVersions.aspectj)
         ]
     }
 }
