@@ -182,6 +182,9 @@ abstract class AbstractSmokeTest extends Specification {
 
         // https://plugins.gradle.org/plugin/com.github.node-gradle.node
         static newNode = Versions.of("3.1.1")
+
+        // https://github.com/davidmc24/gradle-avro-plugin
+        static avro = Versions.of("1.3.0")
     }
 
     static class Versions implements Iterable<String> {
