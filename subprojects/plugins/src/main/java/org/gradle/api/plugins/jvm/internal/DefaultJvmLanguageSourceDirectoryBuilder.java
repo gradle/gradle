@@ -65,7 +65,7 @@ public class DefaultJvmLanguageSourceDirectoryBuilder implements JvmLanguageSour
         return includeInAllJava().compiledBy(details -> {
             TaskProvider<JavaCompile> taskProvider = project.getTasks().register("compile" + StringUtils.capitalize(name), JavaCompile.class, compileTask -> {
                 compileTask.source(details.getSourceDirectory());
-                compileTask.getClasspath().from(sourceSet.getCompileClasspath());
+                compileTask.setClasspath(sourceSet.getCompileClasspath());
                 compilerConfiguration.execute(compileTask);
             });
             details.setCompileTask(taskProvider, JavaCompile::getDestinationDirectory);
