@@ -185,6 +185,9 @@ abstract class AbstractSmokeTest extends Specification {
 
         // https://github.com/davidmc24/gradle-avro-plugin
         static avro = Versions.of("1.3.0")
+
+        // https://plugins.gradle.org/plugin/io.spring.nohttp
+        static nohttp = Versions.of("0.0.10")
     }
 
     static class Versions implements Iterable<String> {
