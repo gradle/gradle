@@ -89,7 +89,6 @@ class DefaultArtifactSetTest extends Specification {
             ResolvedArtifactSet select(ResolvedVariantSet candidates, VariantSelector.Factory factory) {
                 assert candidates.variants.size() == 2
                 // select the first variant
-                // TODO: this should trigger resolveArtifact?
                 return candidates.variants[0].artifacts
             }
 
