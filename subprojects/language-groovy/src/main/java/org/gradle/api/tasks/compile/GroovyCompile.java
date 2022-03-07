@@ -107,7 +107,7 @@ public class GroovyCompile extends AbstractCompile implements HasCompileOptions 
     @Override
     @CompileClasspath
     @Incremental
-    public FileCollection getClasspath() {
+    public ConfigurableFileCollection getClasspath() {
         // Note that @CompileClasspath here is an approximation and must be fixed before de-incubating getAstTransformationClasspath()
         // See https://github.com/gradle/gradle/pull/9513
         return super.getClasspath();

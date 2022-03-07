@@ -15,6 +15,7 @@
  */
 package org.gradle.api.tasks.compile;
 
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
@@ -38,13 +39,14 @@ import java.util.concurrent.Callable;
 @DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class AbstractCompile extends SourceTask {
     private final DirectoryProperty destinationDirectory;
-    private FileCollection classpath;
+    private final ConfigurableFileCollection classpath;
     private String sourceCompatibility;
     private String targetCompatibility;
 
     public AbstractCompile() {
         this.destinationDirectory = getProject().getObjects().directoryProperty();
         this.destinationDirectory.convention(getProject().getProviders().provider(new BackwardCompatibilityOutputDirectoryConvention()));
+        this.classpath = getProject().getObjects().fileCollection();
     }
 
     /**
@@ -53,7 +55,7 @@ public abstract class AbstractCompile extends SourceTask {
      * @return The classpath.
      */
     @Classpath
-    public FileCollection getClasspath() {
+    public ConfigurableFileCollection getClasspath() {
         return classpath;
     }
 
@@ -63,7 +65,7 @@ public abstract class AbstractCompile extends SourceTask {
      * @param configuration The classpath. Must not be null, but may be empty.
      */
     public void setClasspath(FileCollection configuration) {
-        this.classpath = configuration;
+        this.classpath.setFrom(configuration);
     }
 
     /**
