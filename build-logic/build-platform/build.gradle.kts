@@ -10,7 +10,7 @@ val groovyVersion = "3.0.9"
 val asmVersion = "9.2"
 // To try out better kotlin compilation avoidance and incremental compilation
 // with -Pkotlin.incremental.useClasspathSnapshot=true
-val defaultBuildKotlinVersion = "1.6.20-M1"
+val defaultBuildKotlinVersion = "1.7.0-dev-1904"
 
 val kotlinVersion = providers.gradleProperty("buildKotlinVersion")
     .getOrElse(defaultBuildKotlinVersion)
@@ -19,7 +19,7 @@ dependencies {
     constraints {
         // Gradle Plugins
         api("com.gradle:gradle-enterprise-gradle-plugin:3.8.1")
-        api("com.gradle.enterprise:test-distribution-gradle-plugin:2.2.2") // Sync with `settings.gradle.kts`
+        api("com.gradle.enterprise:test-distribution-gradle-plugin:2.2.3") // Sync with `settings.gradle.kts`
         api("org.gradle.guides:gradle-guides-plugin:0.19.1")
         api("com.gradle.publish:plugin-publish-plugin:0.20.0")
         api("gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:1.0.1")

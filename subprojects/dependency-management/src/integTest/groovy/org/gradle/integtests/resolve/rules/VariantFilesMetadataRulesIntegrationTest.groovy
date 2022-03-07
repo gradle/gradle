@@ -19,9 +19,7 @@ import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
-import spock.lang.Ignore
 
-@Ignore("temporarily ignore tests to unblock RfR")
 class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyResolveTest {
 
     private Map<String, ?> expectedJavaLibraryAttributes(boolean hasJavaLibraryVariants) {
@@ -699,7 +697,7 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false")
-    def "does maven artifact discovery when metadata does not include artifact"() {
+    def "probes for artifact when metadata does not include artifact"() {
         given:
         repository {
             'org.test:moduleA:1.0' {
@@ -720,6 +718,7 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
         repositoryInteractions {
             'org.test:moduleA:1.0' {
                 expectGetMetadata()
+                expectHeadArtifact(type: 'notJar')
                 expectGetArtifact(type: 'notJar')
             }
         }

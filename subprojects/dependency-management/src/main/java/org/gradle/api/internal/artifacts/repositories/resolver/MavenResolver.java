@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
-import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.ComponentMetadataListerDetails;
 import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -28,7 +27,6 @@ import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransp
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.resources.MissingResourceException;
 import org.gradle.internal.action.InstantiatingAction;
-import org.gradle.internal.component.external.model.FixedComponentArtifacts;
 import org.gradle.internal.component.external.model.MetadataSourcedComponentArtifacts;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
@@ -42,7 +40,6 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
-import org.gradle.internal.resolve.result.DefaultResourceAwareResolveResult;
 import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.local.FileStore;
@@ -222,13 +219,7 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
     private class MavenLocalRepositoryAccess extends LocalRepositoryAccess {
         @Override
         protected void resolveModuleArtifacts(MavenModuleResolveMetadata module, BuildableComponentArtifactsResolveResult result) {
-            if (module.isRelocated()) {
-                result.resolved(new FixedComponentArtifacts(Collections.emptyList()));
-            } else if (module.hasVariants() && !module.isPomPackaging()) {
-                result.resolved(new MetadataSourcedComponentArtifacts());
-            } else if (module.isKnownJarPackaging()) {
-                result.resolved(new MetadataSourcedComponentArtifacts());
-            }
+            result.resolved(new MetadataSourcedComponentArtifacts());
         }
 
         @Override
@@ -243,31 +234,7 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
     }
 
     private class MavenRemoteRepositoryAccess extends RemoteRepositoryAccess {
-        @Override
-        protected void resolveModuleArtifacts(MavenModuleResolveMetadata module, BuildableComponentArtifactsResolveResult result) {
-            if (module.isPomPackaging()) {
-                result.resolved(new FixedComponentArtifacts(findOptionalArtifacts(module, "jar", null)));
-            } else {
-                ModuleComponentArtifactMetadata artifactMetaData = module.artifact(module.getPackaging(), module.getPackaging(), null);
 
-                if (createArtifactResolver(module.getSources()).artifactExists(artifactMetaData, new DefaultResourceAwareResolveResult())) {
-                    result.resolved(new FixedComponentArtifacts(ImmutableSet.of(artifactMetaData)));
-                } else {
-                    ModuleComponentArtifactMetadata artifact = module.artifact("jar", "jar", null);
-                    result.resolved(new FixedComponentArtifacts(ImmutableSet.of(artifact)));
-                }
-            }
-        }
-
-        @Override
-        protected void resolveJavadocArtifacts(MavenModuleResolveMetadata module, BuildableArtifactSetResolveResult result) {
-            result.resolved(findOptionalArtifacts(module, "javadoc", "javadoc"));
-        }
-
-        @Override
-        protected void resolveSourceArtifacts(MavenModuleResolveMetadata module, BuildableArtifactSetResolveResult result) {
-            result.resolved(findOptionalArtifacts(module, "source", "sources"));
-        }
     }
 
     private static boolean isUniqueSnapshot(ModuleComponentIdentifier id) {

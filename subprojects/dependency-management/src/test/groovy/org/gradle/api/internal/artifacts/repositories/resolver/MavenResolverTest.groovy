@@ -32,7 +32,6 @@ import org.gradle.internal.action.ConfigurableRule
 import org.gradle.internal.action.DefaultConfigurableRules
 import org.gradle.internal.action.InstantiatingAction
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
-import org.gradle.internal.component.external.model.FixedComponentArtifacts
 import org.gradle.internal.component.external.model.MetadataSourcedComponentArtifacts
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
@@ -97,8 +96,7 @@ class MavenResolverTest extends Specification {
 
         then:
         1 * result.resolved(_) >> { args ->
-            assert args[0] instanceof FixedComponentArtifacts
-            assert args[0].artifacts.isEmpty()
+            assert args[0] instanceof MetadataSourcedComponentArtifacts
         }
     }
 

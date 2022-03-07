@@ -16,22 +16,18 @@
 
 package gradlebuild.binarycompatibility
 
+import org.gradle.kotlin.dsl.*
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.UnexpectedBuildFailure
-
 import org.hamcrest.CoreMatchers
-
-import org.junit.Assert.assertFalse
 import org.hamcrest.MatcherAssert.assertThat
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
-
 import java.io.File
 import java.nio.file.Files
-
-import org.gradle.kotlin.dsl.*
 
 
 abstract class AbstractBinaryCompatibilityTest {
@@ -194,6 +190,13 @@ abstract class AbstractBinaryCompatibilityTest {
                         apply(plugin = "kotlin")
                         the<ModuleIdentityExtension>().baseName.set("api-module")
                         repositories {
+                            maven {
+                                name = "Kotlin EAP repository"
+                                url = uri("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/bootstrap/")
+                                content {
+                                    includeVersionByRegex("org.jetbrains.kotlin", "kotlin-.*", "1.7.0-dev-1904")
+                                }
+                            }
                             mavenCentral()
                         }
                         dependencies {
