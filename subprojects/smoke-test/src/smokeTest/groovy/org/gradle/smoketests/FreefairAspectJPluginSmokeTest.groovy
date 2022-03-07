@@ -36,10 +36,6 @@ class FreefairAspectJPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
             ${mavenCentralRepository()}
 
-            aspectj {
-                version = "1.9.7"
-            }
-
             dependencies {
                 inpath "org.apache.httpcomponents:httpcore-nio:4.4.11"
                 implementation "org.aspectj:aspectjrt:1.9.7"
