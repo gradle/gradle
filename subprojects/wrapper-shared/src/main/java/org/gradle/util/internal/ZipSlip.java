@@ -47,6 +47,6 @@ public class ZipSlip {
     }
 
     private static boolean isWindows() {
-        return System.getProperty("os.name").contains("windows");
+        return System.getProperty("os.name").toLowerCase().contains("windows");
     }
 }
