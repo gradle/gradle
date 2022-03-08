@@ -15,6 +15,7 @@ We would like to thank the following community members for their contributions t
 [David Burström](https://github.com/davidburstrom),
 [Vladimir Sitnikov](https://github.com/vlsi),
 [Roland Weisleder](https://github.com/rweisleder)
+[aSemy](https://github.com/aSemy)
 <!-- 
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
