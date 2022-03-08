@@ -270,6 +270,11 @@ public class DependencyInsightReportTask extends DefaultTask {
      * Show all variants of each displayed dependency.
      *
      * <p>
+     * Due to internal limitations, this option only works when the {@linkplain #getConfiguration() configuration} is
+     * unresolved before the execution of this task.
+     * </p>
+     *
+     * <p>
      * This method is exposed to the command line interface. Example usage:
      * <pre>gradle dependencyInsight --all-variants</pre>
      *
