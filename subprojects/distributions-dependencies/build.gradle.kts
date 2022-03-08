@@ -40,6 +40,7 @@ dependencies {
         api(libs.asmCommons)            { version { strictly(asmVersion) }}
         api(libs.asmTree)               { version { strictly(asmVersion) }}
         api(libs.asmUtil)               { version { strictly(asmVersion) }}
+        api(libs.assertj)               { version { strictly("3.16.1") }}
         api(libs.awsS3Core)             { version { strictly(awsS3Version) }}
         api(libs.awsS3Kms)              { version { strictly(awsS3Version) }}
         api(libs.awsS3S3)               { version { strictly(awsS3Version) }}
@@ -103,9 +104,9 @@ dependencies {
         api(libs.jsr305)                { version { strictly("3.0.2") }}
         api(libs.julToSlf4j)            { version { strictly(slf4jVersion) }}
         api(libs.junit)                 { version { strictly("4.13.2") }}
-        api(libs.junit5JupiterApi)      { version { strictly("5.7.2") }}
-        api(libs.junit5Vintage)         { version { strictly("5.7.2") }}
-        api(libs.junitPlatform)         { version { strictly("1.7.2") }}
+        api(libs.junit5JupiterApi)      { version { strictly("5.8.2") }}
+        api(libs.junit5Vintage)         { version { strictly("5.8.2") }}
+        api(libs.junitPlatform)         { version { strictly("1.8.2") }}
         api(libs.jzlib)                 { version { strictly("1.1.3") }}
         api(libs.kryo)                  { version { strictly("2.24.0") }}
         api(libs.log4jToSlf4j)          { version { strictly(slf4jVersion) }}
@@ -169,8 +170,8 @@ dependencies {
         api(libs.mySqlConnector)        { version { strictly("8.0.17") }}
         api(libs.samplesCheck)          { version { strictly("1.0.0") }}
         api(libs.snappy)                { version { strictly("0.4") }}
-        api(libs.spock)                 { version { strictly("2.0-groovy-3.0") }}
-        api(libs.spockJUnit4)           { version { strictly("2.0-groovy-3.0") }}
+        api(libs.spock)                 { version { strictly("2.1-groovy-3.0") }}
+        api(libs.spockJUnit4)           { version { strictly("2.1-groovy-3.0") }}
         api(libs.sshdCore)              { version { strictly(sshdVersion) }}
         api(libs.sshdScp)               { version { strictly(sshdVersion) }}
         api(libs.sshdSftp)              { version { strictly(sshdVersion) }}
