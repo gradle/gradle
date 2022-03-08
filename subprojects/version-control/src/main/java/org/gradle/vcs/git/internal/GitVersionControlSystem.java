@@ -155,7 +155,7 @@ public class GitVersionControlSystem implements VersionControlSystem {
     private static void updateSubModules(Git git) throws IOException, GitAPIException {
         try (SubmoduleWalk walker = SubmoduleWalk.forIndex(git.getRepository())) {
             while (walker.next()) {
-                try (Repository submodule = walker.getRepository() ) {
+                try (Repository submodule = walker.getRepository()) {
                     if (submodule != null) {
                         Git submoduleGit = Git.wrap(submodule);
                         configureTransport(submoduleGit.fetch()).call();
