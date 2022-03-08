@@ -132,8 +132,11 @@ public class DirectorySnapshot extends AbstractFileSystemLocationSnapshot {
 
     @Override
     public Stream<FileSystemLocationSnapshot> stream() {
-        return children.stream()
-            .map(ChildMap.Entry::getValue);
+        return Stream.concat(
+            Stream.of(this),
+            children.stream()
+                .map(ChildMap.Entry::getValue)
+                .flatMap(FileSystemSnapshot::stream));
     }
 
     // TODO Move this to tests

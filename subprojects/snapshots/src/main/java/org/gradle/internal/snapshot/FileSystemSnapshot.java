@@ -61,5 +61,5 @@ public interface FileSystemSnapshot {
      *
      * The walk is depth first.
      */
-    Stream<? extends FileSystemLocationSnapshot> stream();
+    Stream<FileSystemLocationSnapshot> stream();
 }
