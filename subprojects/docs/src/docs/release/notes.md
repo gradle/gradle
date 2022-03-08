@@ -3,7 +3,15 @@ The Gradle team is excited to announce Gradle @version@.
 This is the first patch release for Gradle 7.4.
 
 It fixes the following issues:
-* TODO Add fixed issues
+* [#14536](https://github.com/gradle/gradle/issues/14536) Applying Build Scan Plugin (--scan) cause the following error 'Cannot mutate content repository descriptor 'Gradle Central Plugin Repository' after repository has been used'
+* [#19837](https://github.com/gradle/gradle/issues/19837) Dependency resolution hangs with IDEA parallel model fetch
+* [#19852](https://github.com/gradle/gradle/issues/19852) plugins resolution from settings convention plugin [possible regression]
+* [#19853](https://github.com/gradle/gradle/issues/19853) Type-safe dependency accessors are reported as an incubating feature despite version catalog stabilization
+* [#19868](https://github.com/gradle/gradle/issues/19868) CLI options fail with "linked to multiple elements in class" error when inherited from interface and defined in class
+* [#19955](https://github.com/gradle/gradle/issues/19955) test-aggregation-plugin and jacoco-aggregation-plugin should eagerly configure objects
+* [#19990](https://github.com/gradle/gradle/issues/19990) 7.4 regression: exclusiveContent in buildscript doesn't work with plugins {} block
+
+This release also documents [a security advisory](#security) that was fixed in Gradle 7.4 already.
 
 We recommend users upgrade to 7.4.1 instead of 7.4.
 
@@ -215,6 +223,12 @@ Since core plugins take precedence over other plugins this caused the precompile
 With this release, a name conflict between a precompiled plugin and a core plugin causes an error.
 
 See the user manual for [precompiled plugins](userguide/custom_plugins.html#sec:precompiled_plugins) for more information.
+
+<a name="security"></a>
+## Security advisories
+
+This release of Gradle contains fixes for the following security advisory:
+* [Dependency verification can be bypassed when using `ResolutionStrategy.disableDependencyVerification()`](https://github.com/gradle/gradle/security/advisories/GHSA-9pf5-88jw-3qgr)
 
 <a name="promoted"></a>
 ## Promoted features
