@@ -141,6 +141,14 @@ include::sample[dir="snippets/testing/test-suite-configure-suite-dependencies/ko
 <1> Configure the built-in `test` test suite.
 <2> Add the assertj library to the test's compile and runtime classpaths.  The `dependencies` block within a test suite is already scoped for that test suite.  Instead of having to know the global name of the configuration, test suites have a consistent name that you use in this block for declaring `implementation`, `compileOnly` and `runtimeOnly` dependencies.
 
+The `dependencies` block within a test suite does not (yet) provide access to the full set of dependency configuration methods that are available within a top-level `dependencies` block.
+For instance the link:{groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyHandler.html#org.gradle.api.artifacts.dsl.DependencyHandler:platform(java.lang.Object)[platform()] and link:{groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyHandler.html#org.gradle.api.artifacts.dsl.DependencyHandler:platform(java.lang.Object)[enforcedPlatform()] methods described in the section <<java_platform_plugin.html#java_platform_bom_import, Sourcing constraints from another platform>> are not yet available.  You will need to use the equivalent way of configuring dependencies noted above to utilize these methods.
+
+[NOTE]
+====
+You must access the configurations of a test suite in a top-level `dependencies` block only after creating the test suite in a prior `testing` block.  Adding dependencies is not a lazy operation, and the test suite's configurations must be created prior to adding any dependencies to them using their global names.
+====
+
 == Configure source directories of a test suite
 ====
 include::sample[dir="snippets/testing/test-suite-configure-source-dir/groovy",files="build.gradle[tags=configure-source-dir]"]

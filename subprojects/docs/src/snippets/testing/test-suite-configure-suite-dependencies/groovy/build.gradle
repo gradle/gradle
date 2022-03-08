@@ -36,7 +36,7 @@ testing {
     }
 }
 
-// Note that this is equivalent to:
+// Note that this is equivalent to using the generated "global" configuration name:
 dependencies {
     testImplementation 'org.assertj:assertj-core:3.21.0'
 }
