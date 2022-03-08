@@ -5492,18 +5492,6 @@
 		"testCoverageUuid":7
 	},
 	{
-		"buckets":[],
-		"testCoverageUuid":8
-	},
-	{
-		"buckets":[],
-		"testCoverageUuid":9
-	},
-	{
-		"buckets":[],
-		"testCoverageUuid":35
-	},
-	{
 		"buckets":[
 			{
 				"enableTD":true,

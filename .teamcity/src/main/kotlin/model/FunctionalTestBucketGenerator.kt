@@ -168,7 +168,7 @@ class FunctionalTestBucketGenerator(private val model: CIBuildModel, testTimeDat
         val result = mutableMapOf<TestCoverage, List<BuildTypeBucket>>()
         for (stage in model.stages) {
             for (testCoverage in stage.functionalTests) {
-                if (testCoverage.testType !in listOf(TestType.allVersionsCrossVersion, TestType.quickFeedbackCrossVersion)) {
+                if (testCoverage.testType !in listOf(TestType.allVersionsCrossVersion, TestType.quickFeedbackCrossVersion, TestType.soak)) {
                     result[testCoverage] = splitBucketsByTestClassesForBuildProject(testCoverage, stage, buildProjectClassTimes)
                 }
             }

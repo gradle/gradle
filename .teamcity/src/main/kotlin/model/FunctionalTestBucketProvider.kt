@@ -93,13 +93,13 @@ class StatisticBasedFunctionalTestBucketProvider(val model: CIBuildModel, testBu
                 if (it is SmallSubprojectBucket) it.subprojects.map { it.name }
                 else listOf((it as LargeSubprojectSplitBucket).subproject.name)
             }.toSet()
-            val allSubprojectsInModel = model.subprojects.subprojects.filter { it.functionalTests || it.unitTests || it.crossVersionTests }.map { it.name }.toMutableList()
-            allSubprojectsInModel.removeAll(allSubprojectsInBucketJson)
+            val allSubprojectsInModel = model.subprojects.subprojects.filter { it.hasTestsOf(testCoverage.testType) }.map { it.name }
+            val subprojectsInModelButNotInBucketJson = allSubprojectsInModel.toMutableList().apply { removeAll(allSubprojectsInBucketJson) }
 
-            if (buckets.isEmpty() || allSubprojectsInModel.isEmpty()) {
+            if (subprojectsInModelButNotInBucketJson.isEmpty()) {
                 testCoverage to buckets
             } else {
-                testCoverage to mergeUnknownSubprojectsIntoFirstAvailableBucket(buckets, model.subprojects.subprojects.filter { allSubprojectsInModel.contains(it.name) })
+                testCoverage to mergeUnknownSubprojectsIntoFirstAvailableBucket(buckets, model.subprojects.subprojects.filter { subprojectsInModelButNotInBucketJson.contains(it.name) })
             }
         }
     }
