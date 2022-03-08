@@ -496,4 +496,40 @@ class TestSuitesDependenciesIntegrationTest extends AbstractIntegrationSpec {
         expect:
         succeeds 'checkConfiguration'
     }
+
+    def "JVM Test Suites plugin allows for using exclude in dependencies block"() {
+        given:
+        settingsFile << "rootProject.name = 'Test'"
+
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing {
+                suites {
+                    test {
+                        useJUnit()
+                        dependencies {
+                            implementation 'org.apache.commons:commons-text:1.9'
+//                            implementation 'org.apache.commons:commons-text:1.9' {
+//                                exclude group: 'org.apache.commons', module: 'commons-lang3:3.11'
+//                            }
+                        }
+                    }
+                }
+            }
+
+            tasks.register('verifyResolve') {
+                doLast {
+                    assert !configurations.testCompileClasspath.resolvedConfiguration.resolvedArtifacts*.file*.name.contains('commons-lang3-3.11.jar')
+                }
+            }
+            """
+
+        expect:
+        succeeds "verifyResolve"
+    }
 }
