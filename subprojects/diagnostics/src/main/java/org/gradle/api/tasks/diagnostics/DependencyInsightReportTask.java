@@ -32,6 +32,7 @@ import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.HasAttributes;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.ResolvableDependenciesInternal;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
@@ -138,6 +139,16 @@ public class DependencyInsightReportTask extends DefaultTask {
         // Required to maintain DslObject mapping
         Configuration configuration = getConfiguration();
         if (!rootComponentProperty.isPresent() && configuration != null && getDependencySpec() != null) {
+            if (getShowingAllVariants().get()) {
+                ConfigurationInternal configurationInternal = (ConfigurationInternal) configuration;
+                if (!configurationInternal.isCanBeMutated()) {
+                    throw new IllegalStateException(
+                        "The configuration '" + configuration.getName() + "' is not mutable. " +
+                        "In order to use the '--all-variants' option, the configuration must not be resolved before this task is executed."
+                    );
+                }
+                configurationInternal.setReturnAllVariants(true);
+            }
             configurationName = configuration.getName();
             configurationDescription = configuration.toString();
             configurationAttributes = configuration.getAttributes();

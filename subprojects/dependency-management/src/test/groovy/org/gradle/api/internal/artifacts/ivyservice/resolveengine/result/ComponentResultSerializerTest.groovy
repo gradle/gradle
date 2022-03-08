@@ -41,7 +41,8 @@ class ComponentResultSerializerTest extends SerializerSpec {
             new DesugaredAttributeContainerSerializer(AttributeTestUtil.attributesFactory(), TestUtil.objectInstantiator())
         ),
         DependencyManagementTestUtil.componentSelectionDescriptorFactory(),
-        componentIdentifierSerializer
+        componentIdentifierSerializer,
+        false
     )
 
     def "serializes"() {

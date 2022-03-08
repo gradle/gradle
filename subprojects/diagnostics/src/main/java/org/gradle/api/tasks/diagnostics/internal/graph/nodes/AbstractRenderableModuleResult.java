@@ -19,6 +19,7 @@ package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
+import org.gradle.api.internal.artifacts.result.ResolvedComponentResultInternal;
 
 import javax.annotation.Nonnull;
 import java.util.List;
@@ -49,7 +50,7 @@ public abstract class AbstractRenderableModuleResult extends AbstractRenderableD
 
     @Override
     public List<ResolvedVariantResult> getAllVariants() {
-        return module.getAllVariants();
+        return ((ResolvedComponentResultInternal) module).getAllVariants();
     }
 
     @Override

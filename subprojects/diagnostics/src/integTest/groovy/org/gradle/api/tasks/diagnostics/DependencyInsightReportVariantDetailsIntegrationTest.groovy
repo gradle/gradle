@@ -302,6 +302,38 @@ project :$expectedProject
         }
     }
 
+    def "fails to show all variant details for compileClasspath if it was already resolved"() {
+        given:
+        settingsFile << "include 'a', 'b', 'c'"
+        file('a/build.gradle') << """
+            apply plugin: 'java-library'
+
+            dependencies {
+                api project(':b')
+                implementation project(':c')
+            }
+
+            configurations.compileClasspath.resolve()
+
+            task insight(type: DependencyInsightReportTask) {
+                showingAllVariants = true
+                dependencySpec = { it.requested in ProjectComponentSelector }
+                configuration = configurations.compileClasspath
+            }
+        """
+        ['b', 'c'].each {
+            file("${it}/build.gradle") << """
+                apply plugin: 'java-library'
+            """
+        }
+
+        when:
+        fails "a:insight"
+
+        then:
+        failureCauseContains("The configuration 'compileClasspath' is not mutable. In order to use the '--all-variants' option, the configuration must not be resolved before this task is executed.")
+    }
+
     def "shows published variant details"() {
         given:
         mavenRepo.with {
@@ -368,6 +400,7 @@ org.test:leaf:1.0
                 conf 'org:top:1.0'
             }
             task insight(type: DependencyInsightReportTask) {
+                showingAllVariants = false
                 dependencySpec = { it.requested.module == 'middle' }
                 configuration = configurations.conf
             }
