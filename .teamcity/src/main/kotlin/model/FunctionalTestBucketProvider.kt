@@ -106,11 +106,10 @@ class StatisticBasedFunctionalTestBucketProvider(val model: CIBuildModel, testBu
 
     private fun mergeUnknownSubprojectsIntoFirstAvailableBucket(buckets: List<BuildTypeBucket>, unknownSubprojects: List<GradleSubproject>): MutableList<BuildTypeBucket> =
         buckets.toMutableList().apply {
-            val firstSmallSubprojectsBucketIndex = indexOfFirst { it is SmallSubprojectBucket }
-            val firstSmallSubprojectsBucket = get(firstSmallSubprojectsBucketIndex) as SmallSubprojectBucket
+            val firstAvailableBucketIndex = indexOfFirst { it is SmallSubprojectBucket }
+            val firstSmallSubprojectsBucket = get(firstAvailableBucketIndex) as SmallSubprojectBucket
 
-            set(firstSmallSubprojectsBucketIndex,
-                SmallSubprojectBucket(firstSmallSubprojectsBucket.subprojects + unknownSubprojects, firstSmallSubprojectsBucket.enableTestDistribution))
+            set(firstAvailableBucketIndex, SmallSubprojectBucket(firstSmallSubprojectsBucket.subprojects + unknownSubprojects, firstSmallSubprojectsBucket.enableTestDistribution))
         }
 
     override fun createFunctionalTestsFor(stage: Stage, testCoverage: TestCoverage): List<FunctionalTest> {

@@ -17,7 +17,7 @@ const val MAX_PROJECT_NUMBER_IN_BUCKET = 11
  *
  * Usage: `mvn compile exec:java@update-test-buckets -DinputTestClassDataJson=/path/to/test-class-data.json`.
  */
-fun main(args: Array<String>) {
+fun main() {
     val model = CIBuildModel(
         projectId = "Check",
         branch = VersionedSettingsBranch("master", true),
