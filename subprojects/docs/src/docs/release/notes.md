@@ -36,7 +36,8 @@ We would like to thank the following community members for their contributions t
 [Marcin Mielnicki](https://github.com/platan),
 [Marcono1234](https://github.com/Marcono1234),
 [Dima Merkurev](https://github.com/dimorinny).
-[Matthew Haughton](https://github.com/3flex)
+[Matthew Haughton](https://github.com/3flex),
+[Kostya Tskhovrebov](https://github.com/terrakok)
 
 ## Upgrade instructions
 
