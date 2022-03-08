@@ -16,7 +16,6 @@
 package org.gradle.api.tasks;
 
 import com.google.common.collect.Iterables;
-import groovy.lang.GroovySystem;
 import org.gradle.api.Buildable;
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
