@@ -14,7 +14,8 @@ We would like to thank the following community members for their contributions t
 [Björn Kautler](https://github.com/Vampire),
 [David Burström](https://github.com/davidburstrom),
 [Vladimir Sitnikov](https://github.com/vlsi),
-[Roland Weisleder](https://github.com/rweisleder)
+[Roland Weisleder](https://github.com/rweisleder),
+[Konstantin Gribov](https://github.com/grossws)
 [aSemy](https://github.com/aSemy)
 <!-- 
 Include only their name, impactful features should be called out separately below.
