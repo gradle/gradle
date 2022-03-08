@@ -58,11 +58,19 @@ public class GeneratePluginDescriptors extends DefaultTask {
         );
     }
 
-    @Internal("The relevant data is tracked via implementationClassById")
+    /**
+     * The plugin declarations used to create the descriptors.
+     */
+    @Internal("Changes for the declarations are tracked via implementationClassById")
     public ListProperty<PluginDeclaration> getDeclarations() {
         return declarations;
     }
 
+    /**
+     * Returns all {@code (id, implementation class)} pairs from {@link #getDeclarations()}.
+     * <p>
+     * This map is the only input needed from the plugin declarations to create the plugin descriptors.
+     */
     @Input
     Provider<Map<String, String>> getImplementationClassById() {
         return implementationClassById;
