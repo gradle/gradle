@@ -42,9 +42,7 @@ class GroovyRuntimeTest extends AbstractProjectBuilderSpec {
         classifier << ["", "-indy"]
     }
 
-    def "inferred Groovy class path uses 'groovy' jars from classpath if all required pieces are found and match the runtime Groovy version"() {
-        def groovyVersion = GroovySystem.version
-
+    def "inferred Groovy class path uses 'groovy' jars from classpath if all required pieces are found and match the runtime Groovy version #groovyVersion"() {
         when:
         def classpath = project.groovyRuntime.inferGroovyClasspath([
             project.file("other.jar"),
@@ -78,6 +76,9 @@ class GroovyRuntimeTest extends AbstractProjectBuilderSpec {
         classpath.files.contains(project.file("groovy-nio-${groovyVersion}.jar"))
         classpath.files.contains(project.file("groovy-sql-${groovyVersion}.jar"))
         classpath.files.contains(project.file("groovy-test-${groovyVersion}.jar"))
+
+        where:
+        groovyVersion << ([GroovySystem.version, "3.0.9", "4.0.0"] as Set)
     }
 
     def "inferred Groovy #groovyVersion#classifier class path uses repository dependency if 'groovy' Jar is found on class path (to get transitive dependencies right)"() {
@@ -108,10 +109,8 @@ class GroovyRuntimeTest extends AbstractProjectBuilderSpec {
         "2.1.2"              | "-indy"    | "org.codehaus.groovy" | ["groovy", "groovy-ant"]
         "2.5.2"              | ""         | "org.codehaus.groovy" | ["groovy", "groovy-ant", "groovy-templates"]
         "2.5.2"              | "-indy"    | "org.codehaus.groovy" | ["groovy", "groovy-ant", "groovy-templates"]
-        "3.0.0"              | ""         | "org.codehaus.groovy" | ["groovy", "groovy-ant", "groovy-templates", "groovy-json", "groovy-xml", "groovy-groovydoc", "groovy-astbuilder", "groovy-console", "groovy-datetime", "groovy-dateutil", "groovy-nio", "groovy-sql", "groovy-test"]
-        "3.0.0"              | "-indy"    | "org.codehaus.groovy" | ["groovy", "groovy-ant", "groovy-templates", "groovy-json", "groovy-xml", "groovy-groovydoc", "groovy-astbuilder", "groovy-console", "groovy-datetime", "groovy-dateutil", "groovy-nio", "groovy-sql", "groovy-test"]
-        GroovySystem.version | ""         | "org.codehaus.groovy" | ["groovy", "groovy-ant", "groovy-templates", "groovy-json", "groovy-xml", "groovy-groovydoc", "groovy-astbuilder", "groovy-console", "groovy-datetime", "groovy-dateutil", "groovy-nio", "groovy-sql", "groovy-test"]
-        GroovySystem.version | "-indy"    | "org.codehaus.groovy" | ["groovy", "groovy-ant", "groovy-templates", "groovy-json", "groovy-xml", "groovy-groovydoc", "groovy-astbuilder", "groovy-console", "groovy-datetime", "groovy-dateutil", "groovy-nio", "groovy-sql", "groovy-test"]
+        "3.0.9"              | ""         | "org.codehaus.groovy" | ["groovy", "groovy-ant", "groovy-templates", "groovy-json", "groovy-xml", "groovy-groovydoc", "groovy-astbuilder", "groovy-console", "groovy-datetime", "groovy-dateutil", "groovy-nio", "groovy-sql", "groovy-test"]
+        "3.0.9"              | "-indy"    | "org.codehaus.groovy" | ["groovy", "groovy-ant", "groovy-templates", "groovy-json", "groovy-xml", "groovy-groovydoc", "groovy-astbuilder", "groovy-console", "groovy-datetime", "groovy-dateutil", "groovy-nio", "groovy-sql", "groovy-test"]
         "4.0.0"              | ""         | "org.apache.groovy"   | ["groovy", "groovy-ant", "groovy-templates", "groovy-json", "groovy-xml", "groovy-groovydoc", "groovy-astbuilder", "groovy-console", "groovy-datetime", "groovy-dateutil", "groovy-nio", "groovy-sql", "groovy-test"]
     }
 

@@ -128,15 +128,6 @@ public class GroovyRuntime {
 
                 VersionNumber groovyVersion = groovyJar.getVersion();
 
-                // We may already have the required pieces on classpath via localGroovy()
-                if (groovyVersion.equals(VersionNumber.parse(GroovySystem.getVersion()))) {
-                    Set<String> groovyJarNames = groovyJarNamesFor(groovyVersion);
-                    List<File> groovyClasspath = collectJarsFromClasspath(classpath, groovyJarNames);
-                    if (groovyClasspath.size() == GROOVY_LIBS.size()) {
-                        return project.getLayout().files(groovyClasspath);
-                    }
-                }
-
                 if (groovyVersion.getMajor() <= 2) {
                     return inferGroovyAllClasspath(groovyJar.getDependencyNotation(), groovyVersion);
                 } else if (groovyVersion.getMajor() == 3) {
@@ -173,6 +164,13 @@ public class GroovyRuntime {
             }
 
             private FileCollection inferGroovyClasspath(String groupId, VersionNumber groovyVersion) {
+                // We may already have the required pieces on classpath via localGroovy()
+                Set<String> groovyJarNames = groovyJarNamesFor(groovyVersion);
+                List<File> groovyClasspath = collectJarsFromClasspath(classpath, groovyJarNames);
+                if (groovyClasspath.size() == GROOVY_LIBS.size()) {
+                    return project.getLayout().files(groovyClasspath);
+                }
+
                 return detachedRuntimeClasspath(
                     GROOVY_LIBS.stream()
                         .map(libName -> project.getDependencies().create(groupId + ":" + libName + ":" + groovyVersion))
