@@ -496,4 +496,61 @@ class TestSuitesDependenciesIntegrationTest extends AbstractIntegrationSpec {
         expect:
         succeeds 'checkConfiguration'
     }
+
+    def "Test suites support annotationProcessor dependencies"() {
+        given: "a test suite that uses Google's Auto Value as an example of an annotation processor"
+        settingsFile << """rootProject.name = 'Test'"""
+        buildFile << """plugins {
+                id 'java'
+            }
+
+            repositories {
+                ${mavenCentralRepository()}
+            }
+
+            testing {
+                suites {
+                    test {
+                        useJUnit()
+                        dependencies {
+                            implementation 'com.google.auto.value:auto-value-annotations:1.9'
+                            annotationProcessor 'com.google.auto.value:auto-value:1.9'
+                        }
+                    }
+                }
+            }
+            """.stripIndent()
+
+        file("src/test/java/Animal.java") << """
+            import com.google.auto.value.AutoValue;
+
+            @AutoValue
+            abstract class Animal {
+              static Animal create(String name, int numberOfLegs) {
+                return new AutoValue_Animal(name, numberOfLegs);
+              }
+
+              abstract String name();
+              abstract int numberOfLegs();
+            }
+            """.stripIndent()
+
+        file("src/test/java/AnimalTest.java") << """
+            import org.junit.Test;
+
+            import static org.junit.Assert.assertEquals;
+
+            public class AnimalTest {
+                @Test
+                public void testCreateAnimal() {
+                    Animal dog = Animal.create("dog", 4);
+                    assertEquals("dog", dog.name());
+                    assertEquals(4, dog.numberOfLegs());
+                }
+            }
+            """.stripIndent()
+
+        expect: "tests using a class created by running that annotation processor will succeed"
+        succeeds('test')
+    }
 }
