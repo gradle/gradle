@@ -17,21 +17,21 @@
 package org.gradle.internal.snapshot;
 
 import com.google.common.collect.ImmutableListMultimap;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMultimap;
 import org.gradle.internal.hash.HashCode;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class SnapshotUtil {
 
     public static Map<String, FileSystemLocationSnapshot> index(FileSystemSnapshot snapshot) {
-        HashMap<String, FileSystemLocationSnapshot> index = new HashMap<>();
-        snapshot.stream()
-                .forEach(entrySnapshot -> index.put(entrySnapshot.getAbsolutePath(), entrySnapshot));
-        return index;
+        return snapshot.stream()
+            .collect(ImmutableMap.toImmutableMap(FileSystemLocationSnapshot::getAbsolutePath, Function.identity()));
     }
 
     public static Map<String, FileSystemLocationSnapshot> rootIndex(FileSystemSnapshot snapshot) {
