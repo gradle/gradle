@@ -21,6 +21,9 @@ import org.gradle.api.component.ComponentWithVariants
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.provider.DefaultPropertyFactory
+import org.gradle.api.internal.provider.PropertyHost
+import org.gradle.api.provider.Property
 import org.gradle.execution.ProjectConfigurer
 import org.gradle.internal.Describables
 import org.gradle.util.Path
@@ -32,10 +35,17 @@ class DefaultProjectDependencyPublicationResolverTest extends Specification {
     def project = Mock(ProjectInternal)
     def publicationRegistry = Mock(ProjectPublicationRegistry)
     def projectConfigurer = Mock(ProjectConfigurer)
+    def propertyFactory = new DefaultPropertyFactory(PropertyHost.NO_OP)
 
     def setup() {
         project.identityPath >> Path.path(":path")
         project.displayName >> "<project>"
+    }
+
+    def <T> Property<T> property(T value) {
+        def property = propertyFactory.property(value.getClass())
+        property.set(value)
+        return property
     }
 
     def "uses project coordinates when dependent project has no publications"() {
@@ -44,7 +54,7 @@ class DefaultProjectDependencyPublicationResolverTest extends Specification {
 
         project.group >> "dep-group"
         project.name >> "project-name"
-        project.version >> "dep-version"
+        project.version >> property("dep-version")
 
         then:
         with (resolve()) {
