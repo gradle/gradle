@@ -14,6 +14,13 @@
             "changes": [
                 "Method is now abstract"
             ]
+        }, {
+            "type": "org.gradle.api.tasks.compile.AbstractCompile",
+            "member": "Method org.gradle.api.tasks.compile.AbstractCompile.getClasspath()",
+            "acceptation": "Change type to ConfigurableFileCollection",
+            "changes": [
+                "Method return type has changed"
+            ]
         }
     ]
 }
