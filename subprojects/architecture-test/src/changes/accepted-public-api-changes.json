@@ -14,6 +14,34 @@
             "changes": [
                 "Method is now abstract"
             ]
+        }, {
+            "type": "org.gradle.api.Project",
+            "member": "Method org.gradle.api.Project.getVersion()",
+            "acceptation": "Migrated to Provider API",
+            "changes": [
+                "Method return type has changed"
+            ]
+        }, {
+            "type": "org.gradle.api.Project",
+            "member": "Method org.gradle.api.Project.setVersion(java.lang.Object)",
+            "acceptation": "Migrated to Provider API",
+            "changes": [
+                "Method has been removed"
+            ]
+        }, {
+            "type": "org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript",
+            "member": "Class org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript",
+            "acceptation": "Migrated to Provider API",
+            "changes": [
+                "org.gradle.kotlin.dsl.support.delegates.ProjectDelegate.setVersion(java.lang.Object)"
+            ]
+        }, {
+            "type": "org.gradle.kotlin.dsl.KotlinBuildScript",
+            "member": "Class org.gradle.kotlin.dsl.KotlinBuildScript",
+            "acceptation": "Migrated to Provider API",
+            "changes": [
+                "org.gradle.kotlin.dsl.support.delegates.ProjectDelegate.setVersion(java.lang.Object)"
+            ]
         }
     ]
 }
