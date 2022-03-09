@@ -234,38 +234,6 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
         result.assertTaskExecuted(":compileKotlin")
     }
 
-    @Test
-    fun `emit a warning if the kotlin plugin version is not the same as embedded`() {
-
-        val logger = mock<Logger>()
-        val template = """
-            WARNING: Unsupported Kotlin plugin version.
-            The `embedded-kotlin` and `kotlin-dsl` plugins rely on features of Kotlin `{}` that might work differently than in the requested version `{}`.
-        """.trimIndent()
-
-
-        logger.warnOnDifferentKotlinVersion(embeddedKotlinVersion)
-
-        inOrder(logger) {
-            verifyNoMoreInteractions()
-        }
-
-
-        logger.warnOnDifferentKotlinVersion("1.3")
-
-        inOrder(logger) {
-            verify(logger).warn(template, embeddedKotlinVersion, "1.3")
-            verifyNoMoreInteractions()
-        }
-
-
-        logger.warnOnDifferentKotlinVersion(null)
-
-        inOrder(logger) {
-            verify(logger).warn(template, embeddedKotlinVersion, null)
-            verifyNoMoreInteractions()
-        }
-    }
 
     private
     fun dependencyDeclarationsFor(configuration: String, modules: List<String>, version: String? = null) =

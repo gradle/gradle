@@ -17,15 +17,12 @@ package org.gradle.kotlin.dsl.plugins.embedded
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.logging.Logger
 
 import org.gradle.api.plugins.JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME
 import org.gradle.api.plugins.JavaPlugin.TEST_IMPLEMENTATION_CONFIGURATION_NAME
 
 import org.jetbrains.kotlin.gradle.plugin.KotlinPluginWrapper
-import org.jetbrains.kotlin.gradle.plugin.getKotlinPluginVersion
 
-import org.gradle.kotlin.dsl.embeddedKotlinVersion
 import org.gradle.kotlin.dsl.support.EmbeddedKotlinProvider
 
 import javax.inject.Inject
@@ -46,8 +43,6 @@ class EmbeddedKotlinPlugin @Inject internal constructor(
 
             plugins.apply(KotlinPluginWrapper::class.java)
 
-            logger.warnOnDifferentKotlinVersion(getKotlinPluginVersion())
-
             val embeddedKotlinConfiguration = configurations.create("embeddedKotlin")
             embeddedKotlin.addDependenciesTo(
                 dependencies,
@@ -59,20 +54,6 @@ class EmbeddedKotlinPlugin @Inject internal constructor(
                 configurations.getByName(it).extendsFrom(embeddedKotlinConfiguration)
             }
         }
-    }
-}
-
-
-fun Logger.warnOnDifferentKotlinVersion(kotlinVersion: String?) {
-    if (kotlinVersion != embeddedKotlinVersion) {
-        warn(
-            """
-                WARNING: Unsupported Kotlin plugin version.
-                The `embedded-kotlin` and `kotlin-dsl` plugins rely on features of Kotlin `{}` that might work differently than in the requested version `{}`.
-            """.trimIndent(),
-            embeddedKotlinVersion,
-            kotlinVersion
-        )
     }
 }
 
