@@ -60,6 +60,7 @@ import org.gradle.api.internal.plugins.PluginManagerInternal
 import org.gradle.api.internal.project.ant.AntLoggingAdapter
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.api.internal.provider.DefaultPropertyFactory
+import org.gradle.api.internal.provider.PropertyFactory
 import org.gradle.api.internal.provider.PropertyHost
 import org.gradle.api.internal.resources.ApiTextResourceAdapter
 import org.gradle.api.internal.tasks.TaskContainerInternal
@@ -141,7 +142,7 @@ class DefaultProjectTest extends Specification {
     GradleInternal build = Stub(GradleInternal)
     ConfigurationTargetIdentifier configurationTargetIdentifier = Stub(ConfigurationTargetIdentifier)
     FileOperations fileOperationsMock = Stub(FileOperations)
-    ProviderFactory propertyStateFactoryMock = Stub(ProviderFactory)
+    ProviderFactory providerFactoryMock = Stub(ProviderFactory)
     ProcessOperations processOperationsMock = Stub(ProcessOperations)
     LoggingManagerInternal loggingManagerMock = Stub(LoggingManagerInternal)
     Instantiator instantiatorMock = Stub(Instantiator)
@@ -205,7 +206,8 @@ class DefaultProjectTest extends Specification {
         serviceRegistryMock.get(Instantiator) >> instantiatorMock
         serviceRegistryMock.get(InstantiatorFactory) >> TestUtil.instantiatorFactory()
         serviceRegistryMock.get((Type) FileOperations) >> fileOperationsMock
-        serviceRegistryMock.get((Type) ProviderFactory) >> propertyStateFactoryMock
+        serviceRegistryMock.get((Type) ProviderFactory) >> providerFactoryMock
+        serviceRegistryMock.get((Type) PropertyFactory) >> new DefaultPropertyFactory(PropertyHost.NO_OP)
         serviceRegistryMock.get((Type) ProcessOperations) >> processOperationsMock
         serviceRegistryMock.get((Type) ScriptPluginFactory) >> Stub(ScriptPluginFactory)
         serviceRegistryMock.get((Type) ScriptHandlerFactory) >> Stub(ScriptHandlerFactory)
@@ -295,7 +297,7 @@ class DefaultProjectTest extends Specification {
     private void checkProject(DefaultProject project, Project parent, String name, File projectDir) {
         assert project.parent.is(parent)
         assert project.name == name
-        assert project.version == Project.DEFAULT_VERSION
+        assert project.version.get() == Project.DEFAULT_VERSION
         assert project.status == Project.DEFAULT_STATUS
         assert project.rootDir.is(rootDir)
         assert project.projectDir.is(projectDir)
@@ -315,18 +317,18 @@ class DefaultProjectTest extends Specification {
 
     def nullVersionAndStatus() {
         when:
-        project.version = 'version'
+        project.version.set('version')
         project.status = 'status'
 
         then:
-        project.version == 'version'
+        project.version.get() == 'version'
         project.status == 'status'
 
         when:
-        project.version = null
+        project.version.set(null)
         project.status = null
         then:
-        project.version == Project.DEFAULT_VERSION
+        project.version.get() == Project.DEFAULT_VERSION
         project.status == Project.DEFAULT_STATUS
     }
 
