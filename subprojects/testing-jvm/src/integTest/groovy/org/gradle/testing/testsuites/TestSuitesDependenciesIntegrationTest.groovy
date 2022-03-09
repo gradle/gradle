@@ -17,8 +17,7 @@
 package org.gradle.testing.testsuites
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-
-
+import org.gradle.test.fixtures.dsl.GradleDsl
 
 class TestSuitesDependenciesIntegrationTest extends AbstractIntegrationSpec {
     private versionCatalog = file('gradle', 'libs.versions.toml')
@@ -497,6 +496,34 @@ class TestSuitesDependenciesIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'checkConfiguration'
     }
 
+    def "test adding dependency with constraint"() {
+        given:
+        settingsFile << "rootProject.name = 'Test'"
+
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            ${mavenCentralRepository()}
+
+            dependencies {
+                implementation('org.apache.commons:commons-text:1.9') {
+                    exclude group: 'org.apache.commons', module: 'commons-lang3'
+                }
+            }
+
+            tasks.register('verifyResolve') {
+                doLast {
+                    assert !configurations.compileClasspath.resolvedConfiguration.resolvedArtifacts*.file*.name.contains('commons-lang3-3.11.jar')
+                }
+            }
+            """.stripIndent()
+
+        expect:
+        succeeds "verifyResolve"
+    }
+
     def "JVM Test Suites plugin allows for using exclude in dependencies block"() {
         given:
         settingsFile << "rootProject.name = 'Test'"
@@ -513,10 +540,9 @@ class TestSuitesDependenciesIntegrationTest extends AbstractIntegrationSpec {
                     test {
                         useJUnit()
                         dependencies {
-                            implementation 'org.apache.commons:commons-text:1.9'
-//                            implementation 'org.apache.commons:commons-text:1.9' {
-//                                exclude group: 'org.apache.commons', module: 'commons-lang3:3.11'
-//                            }
+                            implementation('org.apache.commons:commons-text:1.9') {
+                                exclude group: 'org.apache.commons', module: 'commons-lang3'
+                            }
                         }
                     }
                 }
@@ -527,9 +553,152 @@ class TestSuitesDependenciesIntegrationTest extends AbstractIntegrationSpec {
                     assert !configurations.testCompileClasspath.resolvedConfiguration.resolvedArtifacts*.file*.name.contains('commons-lang3-3.11.jar')
                 }
             }
-            """
+            """.stripIndent()
 
         expect:
         succeeds "verifyResolve"
+    }
+
+    def "test adding dependency with constraint with Kotlin DSL"() {
+        given:
+        settingsFile << """
+            rootProject.name = 'Test'
+
+            include('kotlin-build')"""
+        file('kotlin-build/settings.gradle') << """
+                rootProject.name = 'kotlin-build'
+        """
+        file('kotlin-build/build.gradle.kts') << """
+            plugins {
+                java
+            }
+
+            ${mavenCentralRepository(GradleDsl.KOTLIN)}
+
+            dependencies {
+                implementation("org.apache.commons:commons-text:1.9") {
+                    exclude(group = "org.apache.commons", module = "commons-lang3")
+                }
+            }
+
+            tasks.register("verifyResolve") {
+                doLast {
+                    assert(1 == 1)
+                }
+            }
+            """.stripIndent()
+
+        expect:
+        succeeds ":kotlin-build:verifyResolve"
+    }
+
+    def "JVM Test Suites plugin allows for using exclude in dependencies block with Kotlin DSL"() {
+        given:
+        settingsFile << """
+            rootProject.name = 'Test'
+
+            include('kotlin-build')"""
+        file('kotlin-build/settings.gradle') << """
+                rootProject.name = 'kotlin-build'
+        """
+        file('kotlin-build/build.gradle.kts') << """
+            plugins {
+                java
+            }
+
+            ${mavenCentralRepository(GradleDsl.KOTLIN)}
+
+            testing {
+                suites {
+                    val test by getting(JvmTestSuite::class) {
+                        useJUnit()
+                        dependencies {
+                            implementation("org.apache.commons:commons-text:1.9") {
+//                    exclude(mapOf("group" to "org.apache.commons", "module" to "commons-lang3"))
+                                exclude(group = "org.apache.commons", module = "commons-lang3")
+                            }
+                        }
+                    }
+                }
+            }
+
+            tasks.register("verifyResolve") {
+                doLast {
+                    assert(1 == 1)
+                }
+            }
+            """.stripIndent()
+
+        expect:
+        succeeds ":kotlin-build:verifyResolve"
+    }
+
+    def "JVM Test Suites normal dependency in Kotlin"() {
+        given:
+        settingsFile << """
+            rootProject.name = 'Test'
+
+            include('kotlin-build')"""
+        file('kotlin-build/settings.gradle') << """
+                rootProject.name = 'kotlin-build'
+        """
+        file('kotlin-build/build.gradle.kts') << """
+            plugins {
+                java
+            }
+
+            ${mavenCentralRepository(GradleDsl.KOTLIN)}
+
+            dependencies {
+                implementation("org.apache.commons:commons-text:1.9")
+            }
+
+            tasks.register("verifyResolve") {
+                doLast {
+                    assert(1 == 1)
+                }
+            }
+            """.stripIndent()
+
+        expect:
+        succeeds ":kotlin-build:verifyResolve"
+    }
+
+    def "JVM Test Suite adding dependency NO EXCLUDE with Kotlin DSL"() {
+        given:
+        settingsFile << """
+            rootProject.name = 'Test'
+
+            include('kotlin-build')"""
+        file('kotlin-build/settings.gradle') << """
+                rootProject.name = 'kotlin-build'
+        """
+        file('kotlin-build/build.gradle.kts') << """
+            plugins {
+                java
+            }
+
+            ${mavenCentralRepository(GradleDsl.KOTLIN)}
+
+            testing {
+                suites {
+                    val test by getting(JvmTestSuite::class) {
+                        useJUnit()
+                        dependencies {
+                            implementation("org.apache.commons:commons-text:1.9")
+                        }
+                    }
+                }
+            }
+
+            tasks.register("verifyResolve") {
+                doLast {
+                    assert(1 == 1)
+                }
+            }
+            """.stripIndent()
+
+        expect:
+        succeeds ":kotlin-build:verifyResolve"
     }
 }
