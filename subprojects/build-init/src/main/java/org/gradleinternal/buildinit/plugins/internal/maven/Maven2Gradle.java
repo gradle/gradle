@@ -279,7 +279,7 @@ public class Maven2Gradle {
 
     private void coordinatesForProject(MavenProject project, BuildScriptBuilder builder) {
         builder.propertyAssignment(null, "group", project.getGroupId());
-        builder.propertyAssignment(null, "version", project.getVersion());
+        builder.propertyAssignmentForProperty(null, "version", project.getVersion());
     }
 
     private void descriptionForProject(MavenProject project, BuildScriptBuilder builder) {

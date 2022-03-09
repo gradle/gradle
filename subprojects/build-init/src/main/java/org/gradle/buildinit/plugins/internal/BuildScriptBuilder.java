@@ -328,6 +328,16 @@ public class BuildScriptBuilder {
     }
 
     /**
+     * Adds a top level property assignment statement.
+     *
+     * @return this
+     */
+    public BuildScriptBuilder propertyAssignmentForProperty(@Nullable String comment, String propertyName, Object propertyValue) {
+        block.propertyAssignment(comment, propertyName, propertyValue, false);
+        return this;
+    }
+
+    /**
      * Adds a top level block statement.
      *
      * @return The body of the block, to which further statements can be added.
