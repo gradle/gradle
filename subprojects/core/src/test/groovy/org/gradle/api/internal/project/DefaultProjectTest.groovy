@@ -60,7 +60,6 @@ import org.gradle.api.internal.plugins.PluginManagerInternal
 import org.gradle.api.internal.project.ant.AntLoggingAdapter
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.api.internal.provider.DefaultPropertyFactory
-import org.gradle.api.internal.provider.PropertyFactory
 import org.gradle.api.internal.provider.PropertyHost
 import org.gradle.api.internal.resources.ApiTextResourceAdapter
 import org.gradle.api.internal.tasks.TaskContainerInternal
@@ -207,7 +206,6 @@ class DefaultProjectTest extends Specification {
         serviceRegistryMock.get(InstantiatorFactory) >> TestUtil.instantiatorFactory()
         serviceRegistryMock.get((Type) FileOperations) >> fileOperationsMock
         serviceRegistryMock.get((Type) ProviderFactory) >> providerFactoryMock
-        serviceRegistryMock.get((Type) PropertyFactory) >> new DefaultPropertyFactory(PropertyHost.NO_OP)
         serviceRegistryMock.get((Type) ProcessOperations) >> processOperationsMock
         serviceRegistryMock.get((Type) ScriptPluginFactory) >> Stub(ScriptPluginFactory)
         serviceRegistryMock.get((Type) ScriptHandlerFactory) >> Stub(ScriptHandlerFactory)
