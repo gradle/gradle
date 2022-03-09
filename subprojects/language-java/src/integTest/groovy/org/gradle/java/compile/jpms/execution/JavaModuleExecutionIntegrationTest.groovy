@@ -27,7 +27,7 @@ class JavaModuleExecutionIntegrationTest extends AbstractJavaModuleCompileIntegr
             }
             tasks.withType(JavaCompile).configureEach {
                 // use the project's version as module version
-                options.javaModuleVersion = provider { project.version }
+                options.javaModuleVersion = project.version
             }
         """
     }
