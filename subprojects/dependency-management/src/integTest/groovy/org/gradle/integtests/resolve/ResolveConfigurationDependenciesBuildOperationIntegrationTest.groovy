@@ -291,7 +291,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
                 allprojects {
                     apply plugin: 'java'
                     group "org.sample"
-                    version "1.0"
+                    version = "1.0"
                 }
 
         """
