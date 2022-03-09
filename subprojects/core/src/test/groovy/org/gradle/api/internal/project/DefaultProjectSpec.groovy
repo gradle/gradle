@@ -151,6 +151,10 @@ class DefaultProjectSpec extends Specification {
     ProjectInternal project(String name, ProjectInternal parent, GradleInternal build) {
         def serviceRegistryFactory = Stub(ServiceRegistryFactory)
         def serviceRegistry = Stub(ServiceRegistry)
+        def objectFactory = Stub(ObjectFactory)
+        objectFactory.fileCollection() >> TestFiles.fileCollectionFactory().configurableFiles()
+        def propertyFactory = new DefaultPropertyFactory(Stub(PropertyHost))
+        objectFactory.property(Object) >> propertyFactory.property(Object)
 
         _ * serviceRegistryFactory.createFor(_) >> serviceRegistry
         _ * serviceRegistry.get(TaskContainerInternal) >> Stub(TaskContainerInternal)
@@ -158,14 +162,11 @@ class DefaultProjectSpec extends Specification {
         _ * serviceRegistry.get(AttributesSchema) >> Stub(AttributesSchema)
         _ * serviceRegistry.get(ModelRegistry) >> Stub(ModelRegistry)
         _ * serviceRegistry.get(DependencyResolutionManagementInternal) >> Stub(DependencyResolutionManagementInternal)
+        _ * serviceRegistry.get(ObjectFactory) >> objectFactory
 
         def fileOperations = Stub(FileOperations)
         fileOperations.fileTree(_) >> TestFiles.fileOperations(tmpDir.testDirectory).fileTree('tree')
         def projectDir = new File("project")
-        def objectFactory = Stub(ObjectFactory)
-        objectFactory.fileCollection() >> TestFiles.fileCollectionFactory().configurableFiles()
-        def propertyFactory = new DefaultPropertyFactory(Stub(PropertyHost))
-        objectFactory.property(Object) >> propertyFactory.property(Object)
 
         def container = Mock(ProjectState)
         _ * container.projectPath >> (parent == null ? Path.ROOT : parent.projectPath.child(name))
