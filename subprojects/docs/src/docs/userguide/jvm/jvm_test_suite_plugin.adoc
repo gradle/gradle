@@ -142,12 +142,15 @@ include::sample[dir="snippets/testing/test-suite-configure-suite-dependencies/ko
 <2> Add the assertj library to the test's compile and runtime classpaths.  The `dependencies` block within a test suite is already scoped for that test suite.  Instead of having to know the global name of the configuration, test suites have a consistent name that you use in this block for declaring `implementation`, `compileOnly`, `runtimeOnly` and `annotationProcessor` dependencies.
 <3> Add the Auto Value annotation processor to the suite's annotation processor classpath so that it will be run when compiling the tests.
 
-The `dependencies` block within a test suite does not (yet) provide access to the full set of dependency configuration methods that are available within a top-level `dependencies` block.
-For instance the link:{groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyHandler.html#org.gradle.api.artifacts.dsl.DependencyHandler:platform(java.lang.Object)[platform()] and link:{groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyHandler.html#org.gradle.api.artifacts.dsl.DependencyHandler:platform(java.lang.Object)[enforcedPlatform()] methods described in the section <<java_platform_plugin#sec:java_platform_bom_import,Sourcing constraints from another platform>> are not yet available.  You will need to use the equivalent way of configuring dependencies noted above to utilize these methods.
+
+The `dependencies` block within a test suite does not provide access to the same methods as the top-level `dependencies` block.
+For instance, the link:{groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyHandler.html#org.gradle.api.artifacts.dsl.DependencyHandler:platform(java.lang.Object)[platform()] and link:{groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyHandler.html#org.gradle.api.artifacts.dsl.DependencyHandler:platform(java.lang.Object)[enforcedPlatform()] methods are not available.
+
+To use these and similar methods, you need to access the top-level dependencies handler directly with `project.dependencies.platform(...)` or `project.dependencies.enforcedPlatform(...)`.
 
 [NOTE]
 ====
-You must access the configurations of a test suite in a top-level `dependencies` block only after creating the test suite in a prior `testing` block.  Adding dependencies is not a lazy operation, and the test suite's configurations must be created prior to adding any dependencies to them using their global names.
+Though it is discouraged, as suggested by the comment in the snippet above, you can also access the configurations of a test suite in a top-level `dependencies` block after creating the test suite.  The configurations used by test suites are normal Gradle configurations, but their exact names should be considered an implementation detail subject to change.  For this reason, configuration via the suite's own `dependencies` block is recommended.
 ====
 
 == Configure source directories of a test suite
