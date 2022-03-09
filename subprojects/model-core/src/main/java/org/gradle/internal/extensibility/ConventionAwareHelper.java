@@ -19,6 +19,7 @@ package org.gradle.internal.extensibility;
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.plugins.Convention;

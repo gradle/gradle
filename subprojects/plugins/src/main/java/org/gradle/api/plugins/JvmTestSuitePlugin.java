@@ -30,6 +30,7 @@ import org.gradle.api.attributes.TestSuiteName;
 import org.gradle.api.attributes.TestSuiteTargetName;
 import org.gradle.api.attributes.TestSuiteType;
 import org.gradle.api.attributes.VerificationType;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.jvm.JvmTestSuiteTarget;
@@ -80,7 +81,11 @@ public class JvmTestSuitePlugin implements Plugin<Project> {
             // So defer looking up the java extension and sourceSet until the convention mapping is resolved.
             // See https://github.com/gradle/gradle/issues/18622
             test.getConventionMapping().map("testClassesDirs", () ->  project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets().findByName(SourceSet.TEST_SOURCE_SET_NAME).getOutput().getClassesDirs());
-            test.getConventionMapping().map("classpath", () -> project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets().findByName(SourceSet.TEST_SOURCE_SET_NAME).getRuntimeClasspath());
+            test.getConventionMapping().map("classpath", () -> {
+                ConfigurableFileCollection classpath = project.getObjects().fileCollection();
+                classpath.setFrom(project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets().findByName(SourceSet.TEST_SOURCE_SET_NAME).getRuntimeClasspath());
+                return classpath;
+            });
             test.getModularity().getInferModulePath().convention(java.getModularity().getInferModulePath());
         });
 
@@ -89,7 +94,11 @@ public class JvmTestSuitePlugin implements Plugin<Project> {
             testSuite.getTargets().all(target -> {
                 target.getTestTask().configure(test -> {
                     test.getConventionMapping().map("testClassesDirs", () -> testSuite.getSources().getOutput().getClassesDirs());
-                    test.getConventionMapping().map("classpath", () -> testSuite.getSources().getRuntimeClasspath());
+                    test.getConventionMapping().map("classpath", () -> {
+                        ConfigurableFileCollection classpath = project.getObjects().fileCollection();
+                        classpath.setFrom(testSuite.getSources().getRuntimeClasspath());
+                        return classpath;
+                    });
                 });
             });
         });
