@@ -17,8 +17,10 @@
 package org.gradle.plugin.devel;
 
 import org.gradle.api.Named;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 import javax.annotation.Nullable;
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.Objects;
 
@@ -133,5 +135,14 @@ public class PluginDeclaration implements Named,
     @Override
     public int hashCode() {
         return Objects.hash(name, id, implementationClass);
+    }
+
+    private void writeObject(java.io.ObjectOutputStream out) throws IOException {
+        DeprecationLogger.deprecateIndirectUsage("Declaring PluginDeclaration as an input or serializing PluginDeclaration")
+            .withAdvice("Use your own object and copy the necessary data from PluginDeclaration.")
+            .willBecomeAnErrorInGradle8()
+            .undocumented()
+            .nagUser();
+        out.defaultWriteObject();
     }
 }

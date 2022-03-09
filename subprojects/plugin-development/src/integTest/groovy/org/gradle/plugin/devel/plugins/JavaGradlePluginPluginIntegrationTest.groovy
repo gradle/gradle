@@ -25,6 +25,9 @@ class JavaGradlePluginPluginIntegrationTest extends WellBehavedPluginTest {
     final static String DECLARED_PLUGIN_MISSING_MESSAGE = JavaGradlePluginPlugin.DECLARED_PLUGIN_MISSING_MESSAGE
     final static String BAD_IMPL_CLASS_WARNING_PREFIX = JavaGradlePluginPlugin.BAD_IMPL_CLASS_WARNING_MESSAGE.substring(4).split('[%]')[0]
     final static String INVALID_DESCRIPTOR_WARNING_PREFIX = JavaGradlePluginPlugin.INVALID_DESCRIPTOR_WARNING_MESSAGE.substring(4).split('[%]')[0]
+    final static String PLUGIN_DECLARATION_SERIALIZATION_DEPRECATION = "Declaring PluginDeclaration as an input or serializing PluginDeclaration has been deprecated. " +
+        "This will fail with an error in Gradle 8.0. " +
+        "Use your own object and copy the necessary data from PluginDeclaration."
 
     @Override
     String getMainTask() {
@@ -268,6 +271,63 @@ class JavaGradlePluginPluginIntegrationTest extends WellBehavedPluginTest {
         succeeds "jar"
         file("build/pluginDescriptors").listFiles().size() == 1
         file("build/resources/main/META-INF/gradle-plugins").listFiles().size() == 1
+    }
+
+    def "declaring PluginDeclaration as input is deprecated"() {
+        given:
+        buildFile()
+        goodPlugin()
+        buildFile << """
+            gradlePlugin {
+                plugins {
+                    testPlugin {
+                        id = 'test-plugin'
+                        implementationClass = 'com.xxx.TestPlugin'
+                    }
+                }
+            }
+
+            abstract class MyTask extends DefaultTask {
+                @Input
+                abstract Property<PluginDeclaration> getPluginDeclaration()
+
+                @OutputFile
+                abstract RegularFileProperty getOutputFile()
+
+                @TaskAction
+                void doIt() {
+                    outputFile.get().asFile.text = getPluginDeclaration().get().id
+                }
+            }
+
+            tasks.register("myTask", MyTask) {
+                pluginDeclaration = gradlePlugin.plugins.testPlugin
+                outputFile = file("build/plugin-id.txt")
+            }
+        """
+
+        when:
+        executer.expectDeprecationWarning(PLUGIN_DECLARATION_SERIALIZATION_DEPRECATION)
+        run "myTask"
+        then:
+        executedAndNotSkipped(":myTask")
+        file("build/plugin-id.txt").text == "test-plugin"
+
+        when:
+        executer.expectDeprecationWarning(PLUGIN_DECLARATION_SERIALIZATION_DEPRECATION)
+        run "myTask"
+        then:
+        skipped(":myTask")
+
+        when:
+        buildFile << """
+            gradlePlugin.plugins.testPlugin.id = 'test-plugin-new'
+        """
+        executer.expectDeprecationWarning(PLUGIN_DECLARATION_SERIALIZATION_DEPRECATION)
+        run "myTask"
+        then:
+        executedAndNotSkipped(":myTask")
+        file("build/plugin-id.txt").text == "test-plugin-new"
     }
 
     @Issue("https://github.com/gradle/gradle/issues/1061")
