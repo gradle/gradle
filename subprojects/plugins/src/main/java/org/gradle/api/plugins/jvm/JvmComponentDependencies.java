@@ -19,6 +19,7 @@ package org.gradle.api.plugins.jvm;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.dsl.DependencyConstraintHandler;
 
 /**
  * This DSL element is used to add dependencies to a component, like {@link JvmTestSuite}.
@@ -94,4 +95,22 @@ public interface JvmComponentDependencies {
      * @see org.gradle.api.artifacts.dsl.DependencyHandler Valid dependency notations.
      */
     void runtimeOnly(Object dependencyNotation, Action<? super Dependency> configuration);
+
+    /**
+     * Returns the dependency constraint handler for this project.
+     *
+     * @return the dependency constraint handler for this project
+     * @since 7.5
+     */
+    DependencyConstraintHandler getConstraints();
+
+    /**
+     * Configures dependency constraint for this project.
+     *
+     * <p>This method executes the given action against the {@link org.gradle.api.artifacts.dsl.DependencyConstraintHandler} for this project.</p>
+     *
+     * @param configureAction the action to use to configure module metadata
+     * @since 7.5
+     */
+    void constraints(Action<? super DependencyConstraintHandler> configureAction);
 }

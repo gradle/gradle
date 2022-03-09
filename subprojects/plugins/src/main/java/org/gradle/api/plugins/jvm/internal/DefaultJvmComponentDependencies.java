@@ -22,6 +22,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
+import org.gradle.api.artifacts.dsl.DependencyConstraintHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.catalog.DependencyBundleValueSource;
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory;
@@ -52,6 +53,11 @@ public class DefaultJvmComponentDependencies implements JvmComponentDependencies
 
     @Inject
     protected DependencyHandler getDependencyHandler() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected DependencyConstraintHandler getDependencyConstraintHandler() {
         throw new UnsupportedOperationException();
     }
 
@@ -142,5 +148,15 @@ public class DefaultJvmComponentDependencies implements JvmComponentDependencies
             configuration.execute(created);
         }
         return created;
+    }
+
+    @Override
+    public void constraints(Action<? super DependencyConstraintHandler> configureAction) {
+        configureAction.execute(getDependencyConstraintHandler());
+    }
+
+    @Override
+    public DependencyConstraintHandler getConstraints() {
+        return getDependencyConstraintHandler();
     }
 }
