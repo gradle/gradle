@@ -28,6 +28,7 @@ import com.google.common.reflect.TypeParameter;
 import com.google.common.reflect.TypeToken;
 import groovy.lang.Closure;
 import groovy.lang.GroovyObject;
+import groovy.lang.MetaClass;
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.DomainObjectSet;
@@ -328,11 +329,20 @@ abstract class AbstractClassGenerator implements ClassGenerator {
     }
 
     private void visitFields(ClassDetails type, List<ClassGenerationHandler> generationHandlers) {
-        if (!type.getInstanceFields().isEmpty()) {
-            for (ClassGenerationHandler handler : generationHandlers) {
-                handler.hasFields();
-            }
+        List<Field> instanceFields = type.getInstanceFields();
+        if (instanceFields.isEmpty()) {
+            return;
         }
+        if (instanceFields.size() == 1 && isSyntheticMetaClassField(instanceFields.get(0))) {
+            return;
+        }
+        for (ClassGenerationHandler handler : generationHandlers) {
+            handler.hasFields();
+        }
+    }
+
+    private boolean isSyntheticMetaClassField(Field field) {
+        return field.isSynthetic() && field.getType() == MetaClass.class;
     }
 
     private void assembleProperties(ClassDetails classDetails, ClassMetadata classMetaData) {
