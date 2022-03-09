@@ -67,7 +67,6 @@ import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.internal.plugins.ExtensionContainerInternal;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.taskfactory.TaskInstantiator;
-import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -255,7 +254,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         evaluationListener.add(gradle.getProjectEvaluationBroadcaster());
 
         ruleBasedPluginListenerBroadcast.add((RuleBasedPluginListener) project -> populateModelRegistry(services.get(ModelRegistry.class)));
-        version = services.get(PropertyFactory.class).property(String.class);
+        version = getObjects().property(String.class);
         version.convention(DEFAULT_VERSION);
     }
 
