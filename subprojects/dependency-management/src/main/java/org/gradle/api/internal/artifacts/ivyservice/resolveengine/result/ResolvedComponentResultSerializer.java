@@ -27,6 +27,7 @@ import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedComponentResult;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedDependencyResult;
 import org.gradle.api.internal.artifacts.result.DefaultUnresolvedDependencyResult;
+import org.gradle.api.internal.artifacts.result.ResolvedComponentResultInternal;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
@@ -84,7 +85,7 @@ public class ResolvedComponentResultSerializer implements Serializer<ResolvedCom
         moduleVersionIdSerializer.write(encoder, component.getModuleVersion());
         componentIdSerializer.write(encoder, component.getId());
         componentSelectionReasonSerializer.write(encoder, component.getSelectionReason());
-        List<ResolvedVariantResult> allVariants = component.getAllVariants();
+        List<ResolvedVariantResult> allVariants = ((ResolvedComponentResultInternal) component).getAllVariants();
         Set<ResolvedVariantResult> resolvedVariants = new HashSet<>(component.getVariants());
         encoder.writeSmallInt(allVariants.size());
         for (ResolvedVariantResult variant : allVariants) {

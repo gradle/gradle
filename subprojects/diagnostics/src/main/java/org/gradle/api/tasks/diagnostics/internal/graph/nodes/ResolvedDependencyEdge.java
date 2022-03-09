@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
+import org.gradle.api.internal.artifacts.result.ResolvedComponentResultInternal;
 
 import java.util.Collections;
 import java.util.List;
@@ -55,7 +56,7 @@ public class ResolvedDependencyEdge implements DependencyEdge {
 
     @Override
     public List<ResolvedVariantResult> getAllVariants() {
-        return dependency.getSelected().getAllVariants();
+        return ((ResolvedComponentResultInternal) dependency.getSelected()).getAllVariants();
     }
 
     @Override

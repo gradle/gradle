@@ -591,6 +591,65 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
         "a new external dependency"                            | "-DexternalDependency=true"
         "changing selection reasons"                           | "-DselectionReason=changed"
         "changing project library variant metadata"            | "-DprojectLibAttrValue=new-value"
+        "changing included library variant metadata"           | "-DcompositeLibAttrValue=new-value"
+        "changing external library variant metadata"           | "-DexternalLibAttrValue=new-value"
+    }
+
+    def "can use ResolvedComponentResult result as task input and '#changeDesc' invalidates the cache (returnAllVariants=true)"() {
+        given:
+        resolvedComponentResultSetup()
+        buildFile << """
+            if (Boolean.getBoolean("externalDependency")) {
+                dependencies { implementation 'org.external:external-tool:1.0' }
+            }
+            configurations.runtimeClasspath.returnAllVariants = true
+        """
+
+        // Task without changes is executed & not skipped
+        when:
+        succeeds "verify"
+
+        then:
+        executedAndNotSkipped ":verify"
+        notExecuted ":project-lib:jar", ":composite-lib:jar"
+
+        // Running it again with the same environment skips the task
+        when:
+        succeeds "verify"
+
+        then:
+        skipped ":verify"
+        notExecuted ":project-lib:jar", ":composite-lib:jar"
+
+        // The change invalidates the cache
+        when:
+        succeeds "verify", changeArg
+
+        then:
+        executedAndNotSkipped ":verify"
+        notExecuted ":project-lib:jar", ":composite-lib:jar"
+
+        // Keeping the change skips the task again
+        when:
+        succeeds "verify", changeArg
+
+        then:
+        skipped ":verify"
+        notExecuted ":project-lib:jar", ":composite-lib:jar"
+
+        // Losing the change invalidates the cache
+        when:
+        succeeds "verify"
+
+        then:
+        executedAndNotSkipped ":verify"
+        notExecuted ":project-lib:jar", ":composite-lib:jar"
+
+        where:
+        changeDesc                                             | changeArg
+        "a new external dependency"                            | "-DexternalDependency=true"
+        "changing selection reasons"                           | "-DselectionReason=changed"
+        "changing project library variant metadata"            | "-DprojectLibAttrValue=new-value"
         "changing unselected project library variant metadata" | "-DprojectUnselectedLibAttrValue=new-value"
         "changing included library variant metadata"           | "-DcompositeLibAttrValue=new-value"
         "changing external library variant metadata"           | "-DexternalLibAttrValue=new-value"
