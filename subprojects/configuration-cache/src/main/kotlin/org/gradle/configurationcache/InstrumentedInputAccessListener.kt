@@ -30,6 +30,8 @@ val allowedProperties = setOf(
     "os.name",
     "os.version",
     "os.arch",
+    // TODO(https://github.com/gradle/gradle/issues/18432) Remove this from the list when a proper support for the modifications is in place.
+    "java.awt.headless", // Some popular plugins modify this property at runtime.
     "java.version",
     "java.version.date",
     "java.vendor",
