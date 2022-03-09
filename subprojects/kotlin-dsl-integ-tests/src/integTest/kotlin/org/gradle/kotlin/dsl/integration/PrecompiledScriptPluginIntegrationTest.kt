@@ -660,7 +660,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
                             }
                         }
                         group = "test"
-                        version = "42"
+                        version.set("42")
                     """
                 )
                 withFile(
