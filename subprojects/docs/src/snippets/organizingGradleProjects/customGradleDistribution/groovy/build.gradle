@@ -17,7 +17,7 @@ tasks.register('createCustomGradleDistribution', Zip) {
 
     dependsOn downloadGradle
 
-    def projectVersion = project.version
+    def projectVersion = project.version.get()
     archiveFileName = downloadGradle.gradleVersion.map { gradleVersion ->
         "mycompany-gradle-${gradleVersion}-${projectVersion}-bin.zip"
     }

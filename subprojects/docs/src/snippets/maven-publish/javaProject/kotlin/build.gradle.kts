@@ -45,7 +45,7 @@ publishing {
             url = uri(if (project.hasProperty("release")) releasesRepoUrl else snapshotsRepoUrl)
 // end::repo-url-from-project-property[]
 // tag::repo-url-from-variable[]
-            url = uri(if (version.toString().endsWith("SNAPSHOT")) snapshotsRepoUrl else releasesRepoUrl)
+            url = uri(if (version.get().endsWith("SNAPSHOT")) snapshotsRepoUrl else releasesRepoUrl)
 // tag::repo-url-from-project-property[]
         }
     }
