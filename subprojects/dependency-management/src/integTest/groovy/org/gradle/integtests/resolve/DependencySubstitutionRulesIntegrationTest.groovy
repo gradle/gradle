@@ -1373,10 +1373,8 @@ Required by:
 
             task jar(type: Jar) {
                 archiveBaseName = project.name
-                // TODO LJA: No idea why I have to do this
-                if (project.version != 'unspecified') {
-                    archiveFileName = "\${project.name}-\${project.version}.jar"
-                }
+                // Since we don't use the base plugin, we need to setup the archive file name manually
+                archiveVersion.set(project.version.map { it != 'unspecified' ? it : null })
                 destinationDirectory = buildDir
             }
             artifacts { conf jar }
