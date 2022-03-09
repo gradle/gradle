@@ -37,7 +37,7 @@ import java.util.concurrent.Callable;
  * The base class for all JVM-based language compilation tasks.
  */
 @DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
-public abstract class AbstractCompile extends SourceTask {
+public abstract class AbstractCompile extends SourceTask implements BridgeAbstractCompile {
     private final DirectoryProperty destinationDirectory;
     private final ConfigurableFileCollection classpath;
     private String sourceCompatibility;
