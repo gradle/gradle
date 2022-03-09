@@ -22,6 +22,7 @@ import org.gradle.api.internal.plugins.ExtensionContainerInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.properties.GradleProperties
 import org.gradle.api.plugins.ExtraPropertiesExtension
+import org.gradle.api.provider.Property
 import org.gradle.internal.resource.local.FileResourceListener
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.internal.GUtil
@@ -112,14 +113,18 @@ class ProjectPropertySettingBuildLoaderTest extends Specification {
 
     def "defines project properties from Project class"() {
         given:
+        Property<String> rootVersionProperty = Mock()
+        Property<String> childVersionProperty = Mock()
         2 * gradleProperties.mergeProperties([:]) >> [version: '1.0']
 
         when:
         loader.load(settings, gradle)
 
         then:
-        1 * rootProject.setVersion('1.0')
-        1 * childProject.setVersion('1.0')
+        1 * rootProject.getVersion() >> rootVersionProperty
+        1 * rootVersionProperty.set('1.0')
+        1 * childProject.getVersion() >> childVersionProperty
+        1 * childVersionProperty.set('1.0')
         0 * rootProperties.set(_, _)
         0 * childProperties.set(_, _)
     }
