@@ -130,7 +130,7 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
         project.afterEvaluate(p -> {
             // TODO: make build type configurable for components
             Dimensions.libraryVariants(library.getModule(), library.getLinkage(), library.getTargetMachines(), objectFactory, attributesFactory,
-                    providers.provider(() -> project.getGroup().toString()), providers.provider(() -> project.getVersion().toString()),
+                    providers.provider(() -> project.getGroup().toString()), providers.provider(() -> project.getVersion().get()),
                     variantIdentity -> {
                         if (tryToBuildOnHost(variantIdentity)) {
                             library.getSourceCompatibility().finalizeValue();

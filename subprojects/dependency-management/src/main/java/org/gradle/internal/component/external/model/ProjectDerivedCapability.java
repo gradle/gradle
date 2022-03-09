@@ -49,7 +49,7 @@ public class ProjectDerivedCapability implements CapabilityInternal {
 
     @Override
     public String getVersion() {
-        return notNull("version", project.getVersion());
+        return notNull("version", project.getVersion().get());
     }
 
     @Override

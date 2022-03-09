@@ -157,7 +157,7 @@ public class CppUnitTestPlugin implements Plugin<Project> {
             final SetProperty<TargetMachine> mainTargetMachines = mainComponent != null ? mainComponent.getTargetMachines() : null;
             Dimensions.unitTestVariants(testComponent.getBaseName(), testComponent.getTargetMachines(), mainTargetMachines,
                     objectFactory, attributesFactory,
-                    providers.provider(() -> project.getGroup().toString()), providers.provider(() -> project.getVersion().toString()),
+                    providers.provider(() -> project.getGroup().toString()), project.getVersion(),
                     variantIdentity -> {
                         if (tryToBuildOnHost(variantIdentity)) {
                             ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class, new DefaultCppPlatform(variantIdentity.getTargetMachine()));

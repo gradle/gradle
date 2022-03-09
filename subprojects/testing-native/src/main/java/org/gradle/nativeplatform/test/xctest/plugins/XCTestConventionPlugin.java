@@ -158,7 +158,7 @@ public class XCTestConventionPlugin implements Plugin<Project> {
             final SetProperty<TargetMachine> mainTargetMachines = mainComponent != null ? mainComponent.getTargetMachines() : null;
             Dimensions.unitTestVariants(testComponent.getModule(), testComponent.getTargetMachines(), mainTargetMachines,
                     objectFactory, attributesFactory,
-                    providers.provider(() -> project.getGroup().toString()), providers.provider(() -> project.getVersion().toString()),
+                    providers.provider(() -> project.getGroup().toString()), project.getVersion(),
                     variantIdentity -> {
                         if (tryToBuildOnHost(variantIdentity)) {
                             testComponent.getSourceCompatibility().finalizeValue();

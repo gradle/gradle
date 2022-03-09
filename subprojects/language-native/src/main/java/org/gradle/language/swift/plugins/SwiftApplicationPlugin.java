@@ -99,7 +99,7 @@ public class SwiftApplicationPlugin implements Plugin<Project> {
         project.afterEvaluate(p -> {
             // TODO: make build type configurable for components
             Dimensions.applicationVariants(application.getModule(), application.getTargetMachines(), objectFactory, attributesFactory,
-                    providers.provider(() -> project.getGroup().toString()), providers.provider(() -> project.getVersion().toString()),
+                    providers.provider(() -> project.getGroup().toString()), providers.provider(() -> project.getVersion().get()),
                     variantIdentity -> {
                         if (tryToBuildOnHost(variantIdentity)) {
                             application.getSourceCompatibility().finalizeValue();

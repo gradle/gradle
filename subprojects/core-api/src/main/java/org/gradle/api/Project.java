@@ -39,6 +39,7 @@ import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.plugins.PluginAware;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.resources.ResourceHandler;
@@ -347,14 +348,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @return The version of this project. Never returns null.
      */
-    Object getVersion();
-
-    /**
-     * <p>Sets the version of this project.</p>
-     *
-     * @param version The version of this project. Must not be null.
-     */
-    void setVersion(Object version);
+    Property<String> getVersion();
 
     /**
      * <p>Returns the status of this project. Gradle always uses the {@code toString()} value of the status. The status

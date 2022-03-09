@@ -47,6 +47,7 @@ import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.api.plugins.PluginManager
+import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.resources.ResourceHandler
@@ -95,7 +96,7 @@ abstract class ProjectDelegate : Project {
     override fun getAnt(): AntBuilder =
         delegate.ant
 
-    override fun getVersion(): Any =
+    override fun getVersion(): Property<String> =
         delegate.version
 
     override fun getRootProject(): Project =
@@ -438,10 +439,6 @@ abstract class ProjectDelegate : Project {
 
     override fun getNormalization(): InputNormalizationHandler =
         delegate.normalization
-
-    override fun setVersion(version: Any) {
-        delegate.version = version
-    }
 
     override fun getDepth(): Int =
         delegate.depth

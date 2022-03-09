@@ -30,6 +30,8 @@ import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.jvm.tasks.Jar;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 
+import static org.gradle.api.internal.lambdas.SerializableLambdas.transformer;
+
 /**
  * <p>A {@link org.gradle.api.Plugin} which defines a basic project lifecycle and some common convention properties.</p>
  *
@@ -70,9 +72,9 @@ public class BasePlugin implements Plugin<Project> {
                 task.getDestinationDirectory().convention(extension.getDistsDirectory());
             }
 
-            task.getArchiveVersion().convention(
-                project.provider(() -> project.getVersion() == Project.DEFAULT_VERSION ? null : project.getVersion().toString())
-            );
+            task.getArchiveVersion().convention(project.getVersion().map(transformer(version -> version == Project.DEFAULT_VERSION
+                ? null
+                : version)));
 
             task.getArchiveBaseName().convention(extension.getArchivesName());
         });

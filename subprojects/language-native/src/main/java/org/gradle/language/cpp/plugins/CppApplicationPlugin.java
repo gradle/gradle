@@ -99,7 +99,7 @@ public class CppApplicationPlugin implements Plugin<Project> {
         project.afterEvaluate(p -> {
             // TODO: make build type configurable for components
             Dimensions.applicationVariants(application.getBaseName(), application.getTargetMachines(), objectFactory, attributesFactory,
-                    providers.provider(() -> project.getGroup().toString()), providers.provider(() -> project.getVersion().toString()),
+                    providers.provider(() -> project.getGroup().toString()), providers.provider(() -> project.getVersion().get()),
                     variantIdentity -> {
                         if (tryToBuildOnHost(variantIdentity)) {
                             ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class, new DefaultCppPlatform(variantIdentity.getTargetMachine()));

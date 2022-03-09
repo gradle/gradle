@@ -124,7 +124,7 @@ public class ReportingExtension {
 
     // TODO this doesn't belong here, that java plugin should add an extension to this guy with this
     public String getApiDocTitle() {
-        Object version = project.getVersion();
+        String version = project.getVersion().get();
         if (Project.DEFAULT_VERSION.equals(version)) {
             return project.getName() + " API";
         } else {

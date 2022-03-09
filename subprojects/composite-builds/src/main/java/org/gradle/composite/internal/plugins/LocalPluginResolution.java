@@ -42,7 +42,7 @@ class LocalPluginResolution implements PluginResolution {
 
     @Override
     public String getPluginVersion() {
-        return producingProject.getVersion().toString();
+        return producingProject.getVersion().getOrNull();
     }
 
     @Override

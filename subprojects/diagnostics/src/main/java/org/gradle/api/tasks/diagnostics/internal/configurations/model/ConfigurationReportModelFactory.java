@@ -152,7 +152,7 @@ public final class ConfigurationReportModelFactory {
     }
 
     private ReportCapability convertDefaultCapability(Project project) {
-        return new ReportCapability(Objects.toString(project.getGroup()), project.getName(), Objects.toString(project.getVersion()), true);
+        return new ReportCapability(Objects.toString(project.getGroup()), project.getName(), project.getVersion().getOrElse("null"), true);
     }
 
     /**

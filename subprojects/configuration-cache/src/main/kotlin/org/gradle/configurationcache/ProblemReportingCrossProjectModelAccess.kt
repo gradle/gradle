@@ -245,14 +245,9 @@ class ProblemReportingCrossProjectModelAccess(
             delegate.group = group
         }
 
-        override fun getVersion(): Any {
+        override fun getVersion(): Property<String> {
             onAccess()
             return delegate.version
-        }
-
-        override fun setVersion(version: Any) {
-            onAccess()
-            delegate.version = version
         }
 
         override fun getStatus(): Any {

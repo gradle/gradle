@@ -69,7 +69,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
 
     @Override
     public String getVersion() {
-        return dependencyProject.getVersion().toString();
+        return dependencyProject.getVersion().get();
     }
 
     @Override

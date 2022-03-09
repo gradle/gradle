@@ -39,7 +39,7 @@ public class ProjectBackedModule implements Module {
 
     @Override
     public String getVersion() {
-        return project.getVersion().toString();
+        return project.getVersion().get();
     }
 
     @Override
