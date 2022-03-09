@@ -66,7 +66,6 @@ public class TaskInAnotherBuild extends TaskNode implements SelfExecutingNode {
         this.taskPath = taskPath;
         this.targetBuild = targetBuild;
         this.target = target;
-        doNotRequire();
     }
 
     public BuildIdentifier getTargetBuild() {

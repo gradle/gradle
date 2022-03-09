@@ -66,18 +66,18 @@ class DefaultPlanExecutorTest extends Specification {
         then:
         1 * cancellationHandler.isCancellationRequested() >> false
         1 * workerLease.tryLock() >> true
-        1 * executionPlan.hasNodesRemaining() >> true
-        1 * executionPlan.selectNext() >> node
+        1 * executionPlan.executionState() >> ExecutionPlan.State.MaybeNodesReadyToStart
+        1 * executionPlan.selectNext() >> ExecutionPlan.NodeSelection.of(node)
         1 * worker.execute(node)
         1 * executionPlan.finishedExecuting(node)
 
         then:
         1 * cancellationHandler.isCancellationRequested() >> false
-        1 * executionPlan.hasNodesRemaining() >> false
+        1 * executionPlan.executionState() >> ExecutionPlan.State.NoMoreNodesToStart
 
         then:
         1 * workerLease.tryLock() >> true
-        1 * executionPlan.allNodesComplete() >> true
+        1 * executionPlan.allExecutionComplete() >> true
         1 * executionPlan.collectFailures([])
         0 * executionPlan._
     }
@@ -102,20 +102,20 @@ class DefaultPlanExecutorTest extends Specification {
 
         then:
         1 * cancellationHandler.isCancellationRequested() >> false
-        1 * executionPlan.hasNodesRemaining() >> true
+        1 * executionPlan.executionState() >> ExecutionPlan.State.MaybeNodesReadyToStart
         1 * workerLease.tryLock() >> true
-        1 * executionPlan.selectNext() >> node
+        1 * executionPlan.selectNext() >> ExecutionPlan.NodeSelection.of(node)
         1 * worker.execute(node)
         1 * executionPlan.finishedExecuting(node)
 
         then:
         1 * cancellationHandler.isCancellationRequested() >> true
         1 * executionPlan.cancelExecution()
-        1 * executionPlan.hasNodesRemaining() >> false
+        1 * executionPlan.executionState() >> ExecutionPlan.State.NoMoreNodesToStart
 
         then:
         1 * workerLease.tryLock() >> true
-        1 * executionPlan.allNodesComplete() >> true
+        1 * executionPlan.allExecutionComplete() >> true
         1 * executionPlan.collectFailures([])
         0 * executionPlan._
     }
