@@ -356,4 +356,16 @@ class DefaultPropertyTest extends PropertySpec<String> {
         1 * transformer.transform("abc") >> "cba"
         0 * _
     }
+
+    def "provider from property with convention can be absent"() {
+        def property = propertyWithDefaultValue(String)
+        def conventionValue = "convention"
+        property.convention(conventionValue)
+
+        when:
+        def provider = property.map { value -> null }
+
+        then:
+        !provider.isPresent()
+    }
 }
