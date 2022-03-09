@@ -254,7 +254,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         evaluationListener.add(gradle.getProjectEvaluationBroadcaster());
 
         ruleBasedPluginListenerBroadcast.add((RuleBasedPluginListener) project -> populateModelRegistry(services.get(ModelRegistry.class)));
-        version = getObjects().property(String.class);
+        version = services.get(ObjectFactory.class).property(String.class);
         version.convention(DEFAULT_VERSION);
     }
 
