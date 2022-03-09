@@ -715,7 +715,7 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
 
                     group = "$group"
 
-                    version = "$version"
+                    version.set("$version")
 
                     $repositoriesBlock
 
