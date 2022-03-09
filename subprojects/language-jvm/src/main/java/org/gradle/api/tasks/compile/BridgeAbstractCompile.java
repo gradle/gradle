@@ -16,10 +16,20 @@
 
 package org.gradle.api.tasks.compile;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 
+/**
+ * Bridges old and new AbstractCompile implementations.
+ *
+ * @since 7.5
+ */
+@Incubating
 public interface BridgeAbstractCompile {
 
+    /**
+     * Old getClasspath, should be auto generated.
+     */
     FileCollection getClasspath();
 
 }

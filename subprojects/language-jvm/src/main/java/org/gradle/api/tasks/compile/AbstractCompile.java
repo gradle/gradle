@@ -15,6 +15,7 @@
  */
 package org.gradle.api.tasks.compile;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
@@ -52,8 +53,10 @@ public abstract class AbstractCompile extends SourceTask implements BridgeAbstra
     /**
      * Returns the classpath to use to compile the source files.
      *
+     * @since 7.5
      * @return The classpath.
      */
+    @Incubating
     @Classpath
     public ConfigurableFileCollection getClasspath() {
         return classpath;

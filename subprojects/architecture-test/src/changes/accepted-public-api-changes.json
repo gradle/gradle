@@ -16,10 +16,10 @@
             ]
         }, {
             "type": "org.gradle.api.tasks.compile.AbstractCompile",
-            "member": "Method org.gradle.api.tasks.compile.AbstractCompile.getClasspath()",
-            "acceptation": "Change type to ConfigurableFileCollection",
+            "member": "Class org.gradle.api.tasks.compile.AbstractCompile",
+            "acceptation": "Needed to bridge old methods",
             "changes": [
-                "Method return type has changed"
+                "org.gradle.api.tasks.compile.BridgeAbstractCompile"
             ]
         }
     ]
