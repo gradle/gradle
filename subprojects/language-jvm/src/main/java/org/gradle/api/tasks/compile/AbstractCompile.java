@@ -40,14 +40,13 @@ import java.util.concurrent.Callable;
 @DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class AbstractCompile extends SourceTask implements BridgeAbstractCompile {
     private final DirectoryProperty destinationDirectory;
-    private final ConfigurableFileCollection classpath;
+    private final ConfigurableFileCollection classpath = getProject().getObjects().fileCollection();
     private String sourceCompatibility;
     private String targetCompatibility;
 
     public AbstractCompile() {
         this.destinationDirectory = getProject().getObjects().directoryProperty();
         this.destinationDirectory.convention(getProject().getProviders().provider(new BackwardCompatibilityOutputDirectoryConvention()));
-        this.classpath = getProject().getObjects().fileCollection();
     }
 
     /**
