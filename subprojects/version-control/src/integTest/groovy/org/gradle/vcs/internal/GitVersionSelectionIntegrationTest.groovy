@@ -58,7 +58,7 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
                 configurations.create('default')
                 group = 'test'
                 version = '1.0'
-                def jar = tasks.create("jar_$version", Jar) {
+                def jar = tasks.create("jar_${version.get()}", Jar) {
                     archiveBaseName = "test"
                     destinationDirectory = buildDir
                     archiveVersion = project.version
