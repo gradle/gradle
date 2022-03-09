@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-<<<<<<< HEAD:subprojects/file-watching/src/main/java/org/gradle/internal/watch/vfs/FileChangeListener.java
 package org.gradle.internal.watch.vfs;
 
 import org.gradle.internal.service.scopes.EventScope;
@@ -23,15 +22,4 @@ import org.gradle.internal.watch.registry.FileWatcherRegistry;
 
 @EventScope(Scopes.UserHome.class)
 public interface FileChangeListener extends FileWatcherRegistry.ChangeHandler {
-=======
-import org.gradle.internal.service.scopes.Scopes;
-import org.gradle.internal.service.scopes.ServiceScope;
-
-/**
- * Provides access to the shared artifact repositories to use for plugin resolution for this build.
- */
-@ServiceScope(Scopes.Build.class)
-public interface PluginArtifactRepositoriesProvider {
-    PluginArtifactRepositories createPluginResolveRepositories();
->>>>>>> release:subprojects/plugin-use/src/main/java/org/gradle/plugin/use/resolve/internal/PluginArtifactRepositoriesProvider.java
 }
