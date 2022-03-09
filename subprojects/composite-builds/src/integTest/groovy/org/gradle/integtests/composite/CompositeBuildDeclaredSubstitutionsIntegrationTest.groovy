@@ -40,7 +40,7 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
             buildFile << """
                 allprojects {
                     apply plugin: 'java'
-                    version "2.0"
+                    version = "2.0"
 
                     repositories {
                         maven { url "${mavenRepo.uri}" }

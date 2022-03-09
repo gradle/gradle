@@ -35,7 +35,7 @@ class CompositeBuildMinimalConfigurationIntegrationTest extends AbstractComposit
             buildFile << """
                 allprojects {
                     apply plugin: 'java-library'
-                    version "2.0"
+                    version = "2.0"
                 }
 """
         }
