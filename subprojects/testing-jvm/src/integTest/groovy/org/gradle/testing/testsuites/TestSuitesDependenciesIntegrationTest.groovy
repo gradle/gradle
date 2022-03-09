@@ -504,9 +504,7 @@ class TestSuitesDependenciesIntegrationTest extends AbstractIntegrationSpec {
                 id 'java'
             }
 
-            repositories {
-                ${mavenCentralRepository()}
-            }
+            ${mavenCentralRepository()}
 
             testing {
                 suites {
@@ -551,6 +549,59 @@ class TestSuitesDependenciesIntegrationTest extends AbstractIntegrationSpec {
             """.stripIndent()
 
         expect: "tests using a class created by running that annotation processor will succeed"
+        succeeds('test')
+    }
+
+    def "Test suites support platforms"() {
+        given: "a test suite that uses a platform dependency"
+        settingsFile << """rootProject.name = 'Test'
+
+            include 'platform', 'consumer'""".stripIndent()
+        file('platform/build.gradle') << """plugins {
+                id 'java-platform'
+            }
+
+            dependencies {
+                constraints {
+                    api 'org.apache.commons:commons-lang3:3.8.1'
+                }
+            }
+            """.stripIndent()
+
+        file('consumer/build.gradle') << """plugins {
+                id 'java-library'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing {
+                suites {
+                    test {
+                        useJUnit()
+                        dependencies {
+                            implementation project.dependencies.platform(project(':platform'))
+                            implementation 'org.apache.commons:commons-lang3'
+                        }
+                    }
+                }
+            }
+            """.stripIndent()
+
+        file("consumer/src/test/java/SampleTest.java") << """
+            import org.apache.commons.lang3.StringUtils;
+            import org.junit.Test;
+
+            import static org.junit.Assert.assertTrue;
+
+            public class SampleTest {
+                @Test
+                public void testCommons() {
+                    assertTrue(StringUtils.isAllLowerCase("abc"));
+                }
+            }
+            """.stripIndent()
+
+        expect: "tests using a class from that platform will succeed"
         succeeds('test')
     }
 }
