@@ -27,13 +27,13 @@ class ProjectBackedModuleTest extends AbstractProjectBuilderSpec {
         expect:
         module.name == project.name
         module.group == project.group.toString()
-        module.version == project.version.toString()
+        module.version == project.version.get()
         module.status == project.status.toString()
         module.projectId == project.owner.componentIdentifier
 
         when:
         project.group = "fo${1}o"
-        project.version = "fo${2}o"
+        project.version.set("fo${2}o")
         project.status = "fo${3}o"
 
         then:

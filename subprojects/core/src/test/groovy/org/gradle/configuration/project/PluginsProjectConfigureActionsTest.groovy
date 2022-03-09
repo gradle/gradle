@@ -16,6 +16,7 @@
 
 package org.gradle.configuration.project
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.provider.Property
 import org.gradle.internal.service.DefaultServiceLocator
 import spock.lang.Specification
 
@@ -28,6 +29,7 @@ class PluginsProjectConfigureActionsTest extends Specification {
 
     def "executes all implicit configuration actions"() {
         def project = Mock(ProjectInternal)
+        Property<String> versionMock = Mock()
 
         when:
         def evaluator = createActions()
@@ -37,7 +39,8 @@ class PluginsProjectConfigureActionsTest extends Specification {
         then:
         1 * pluginsClassLoader.getResources('META-INF/services/org.gradle.configuration.project.ProjectConfigureAction') >> resources()
         1 * pluginsClassLoader.loadClass('ConfigureActionClass') >> TestConfigureAction
-        2 * project.setVersion(12)
+        2 * project.getVersion() >> versionMock
+        2 * versionMock.set("12")
         0 * _._
     }
 
@@ -52,7 +55,7 @@ class PluginsProjectConfigureActionsTest extends Specification {
 
     static class TestConfigureAction implements ProjectConfigureAction {
         void execute(ProjectInternal project) {
-            project.version = 12
+            project.version.set("12")
         }
     }
 }
