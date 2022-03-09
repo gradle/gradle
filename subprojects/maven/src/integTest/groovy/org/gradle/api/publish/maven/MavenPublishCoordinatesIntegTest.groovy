@@ -44,9 +44,9 @@ class MavenPublishCoordinatesIntegTest extends AbstractMavenPublishIntegTest {
                 publications {
                     maven(MavenPublication) {
                         from components.java
-                        groupId 'org.custom'
-                        artifactId 'custom'
-                        version '2.2'
+                        groupId = 'org.custom'
+                        artifactId = 'custom'
+                        version = '2.2'
                     }
                 }
             }
@@ -101,15 +101,15 @@ class MavenPublishCoordinatesIntegTest extends AbstractMavenPublishIntegTest {
                 }
                 publications {
                     impl(MavenPublication) {
-                        groupId "org.custom"
-                        artifactId "custom"
-                        version "2.2"
+                        groupId = "org.custom"
+                        artifactId = "custom"
+                        version = "2.2"
                         from components.java
                     }
                     api(MavenPublication) {
-                        groupId "org.custom"
-                        artifactId "custom-api"
-                        version "2"
+                        groupId = "org.custom"
+                        artifactId = "custom-api"
+                        version = "2"
                         artifact(apiJar)
                     }
                 }

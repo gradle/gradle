@@ -101,9 +101,9 @@ publishing {
         }
         mainMaven(MavenPublication) {
             from components.java
-            groupId 'test.groupId'
-            artifactId 'test-artifactId'
-            version '1.2'
+            groupId = 'test.groupId'
+            artifactId = 'test-artifactId'
+            version = '1.2'
         }
     }
 }

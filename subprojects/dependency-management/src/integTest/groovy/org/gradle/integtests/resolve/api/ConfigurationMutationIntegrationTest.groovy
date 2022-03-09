@@ -31,8 +31,8 @@ class ConfigurationMutationIntegrationTest extends AbstractDependencyResolutionT
 
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
-group "org.test"
-version "1.1"
+group = "org.test"
+version = "1.1"
 
 configurations {
     conf

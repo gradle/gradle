@@ -356,9 +356,9 @@ class MavenPublishPomCustomizationIntegTest extends AbstractMavenPublishIntegTes
                 }
                 publications {
                     maven(MavenPublication) {
-                        groupId "group"
-                        artifactId "artifact"
-                        version "1.0"
+                        groupId = "group"
+                        artifactId = "artifact"
+                        version = "1.0"
 
                         pom.withXml {
                             asNode().version[0].value = "2.0"

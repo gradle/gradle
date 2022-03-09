@@ -161,9 +161,9 @@ project(":project3") {
             }
             extra2(MavenPublication) {
                 from c2
-                groupId "custom"
-                artifactId "custom3"
-                version "456"
+                groupId = "custom"
+                artifactId = "custom3"
+                version = "456"
             }
         }
     }

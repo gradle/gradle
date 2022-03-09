@@ -719,8 +719,8 @@ parentFirst
         buildFile << """
 apply plugin: 'java'
 
-group "org"
-version "1.3"
+group = "org"
+version = "1.3"
 
 repositories {
     maven { url "${mavenRepo.uri}" }
@@ -757,8 +757,8 @@ dependencies {
         buildFile << """
 apply plugin: 'java'
 
-group "org"
-version "1.3"
+group = "org"
+version = "1.3"
 
 repositories {
     maven { url "${mavenRepo.uri}" }
