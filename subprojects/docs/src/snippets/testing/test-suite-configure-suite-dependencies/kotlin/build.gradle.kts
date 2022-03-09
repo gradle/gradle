@@ -31,6 +31,7 @@ testing {
         val test by getting(JvmTestSuite::class) { // <1>
             dependencies {
                 implementation("org.assertj:assertj-core:3.21.0") // <2>
+                annotationProcessor("com.google.auto.value:auto-value:1.9") // <3>
             }
         }
     }
