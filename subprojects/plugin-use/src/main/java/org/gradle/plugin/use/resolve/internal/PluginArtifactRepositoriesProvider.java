@@ -13,8 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+<<<<<<< HEAD
 package org.gradle.plugin.use.resolve.internal;
 
+=======
+
+<<<<<<< HEAD:subprojects/file-watching/src/main/java/org/gradle/internal/watch/vfs/FileChangeListener.java
+package org.gradle.internal.watch.vfs;
+
+import org.gradle.internal.service.scopes.EventScope;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.watch.registry.FileWatcherRegistry;
+
+@EventScope(Scopes.UserHome.class)
+public interface FileChangeListener extends FileWatcherRegistry.ChangeHandler {
+=======
+>>>>>>> release
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -24,4 +38,8 @@ import org.gradle.internal.service.scopes.ServiceScope;
 @ServiceScope(Scopes.Build.class)
 public interface PluginArtifactRepositoriesProvider {
     PluginArtifactRepositories createPluginResolveRepositories();
+<<<<<<< HEAD
+=======
+>>>>>>> release:subprojects/plugin-use/src/main/java/org/gradle/plugin/use/resolve/internal/PluginArtifactRepositoriesProvider.java
+>>>>>>> release
 }
