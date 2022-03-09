@@ -24,7 +24,7 @@ apply(plugin = "java")
 
 // tag::complete-example[]
 // tag::customization[]
-version = "1.0"
+version.set("1.0")
 tasks.jar {
     manifest {
         attributes(

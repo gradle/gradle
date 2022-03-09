@@ -9,7 +9,7 @@ plugins {
 
 
 group = "gradle"
-version = "1.0"
+version.set("1.0")
 
 // Typically set in ~/.gradle/gradle.properties
 extra["signing.keyId"] = "24875D73"

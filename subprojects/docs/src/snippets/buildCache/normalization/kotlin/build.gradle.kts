@@ -4,7 +4,7 @@ plugins {
     id("java-library")
 }
 
-version = "3.2-${System.currentTimeMillis()}"
+version.set("3.2-${System.currentTimeMillis()}")
 
 // tag::normalization[]
 normalization {

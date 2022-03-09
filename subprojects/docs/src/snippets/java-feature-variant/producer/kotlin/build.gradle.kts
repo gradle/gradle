@@ -12,7 +12,7 @@ repositories {
 
 // tag::register_variant[]
 group = "org.gradle.demo"
-version = "1.0"
+version.set("1.0")
 
 java {
     registerFeature("mongodbSupport") {

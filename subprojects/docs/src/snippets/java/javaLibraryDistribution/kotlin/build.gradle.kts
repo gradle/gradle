@@ -4,7 +4,7 @@ plugins {
 }
 // end::use-plugin[]
 
-version = "1.0.0"
+version.set("1.0.0")
 
 // tag::name-conf[]
 distributions {

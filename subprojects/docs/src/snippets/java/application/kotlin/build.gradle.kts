@@ -4,7 +4,7 @@ plugins {
 }
 // end::use-plugin[]
 
-version = "1.0.2"
+version.set("1.0.2")
 
 // tag::applicationName-conf[]
 application.applicationName = "my-app"

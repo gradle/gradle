@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "org.gradle.sample"
-version = "1.0"
+version.set("1.0")
 
 dependencies {
     implementation("commons-collections:commons-collections:3.2.2")

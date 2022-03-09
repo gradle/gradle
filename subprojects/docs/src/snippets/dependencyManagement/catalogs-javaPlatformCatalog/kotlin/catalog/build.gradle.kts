@@ -28,7 +28,7 @@ catalog {
 }
 
 group = "com.mycompany"
-version = "1.0"
+version.set("1.0")
 
 publishing {
     publications {

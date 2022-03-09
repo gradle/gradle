@@ -3,7 +3,7 @@ import org.apache.tools.ant.filters.FixCrLfFilter
 import org.apache.tools.ant.filters.ReplaceTokens
 // end::filter-files[]
 
-version = "1.1"
+version.set("1.1")
 
 // tag::copy-single-file-example[]
 tasks.register<Copy>("copyReport") {

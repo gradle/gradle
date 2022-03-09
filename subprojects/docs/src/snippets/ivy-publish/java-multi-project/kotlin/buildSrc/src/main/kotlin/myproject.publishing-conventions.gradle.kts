@@ -3,7 +3,7 @@ plugins {
     id("ivy-publish")
 }
 
-version = "1.0"
+version.set("1.0")
 group = "org.gradle.sample"
 
 repositories {

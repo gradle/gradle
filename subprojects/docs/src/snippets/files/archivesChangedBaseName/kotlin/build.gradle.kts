@@ -2,7 +2,7 @@ plugins {
     base
 }
 
-version = "1.0"
+version.set("1.0")
 
 // tag::base-plugin-config[]
 base {

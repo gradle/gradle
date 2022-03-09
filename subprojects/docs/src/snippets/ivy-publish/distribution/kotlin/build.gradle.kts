@@ -8,7 +8,7 @@ plugins {
 // end::publishing[]
 
 group = "org.gradle.sample"
-version = "1.0"
+version.set("1.0")
 
 distributions {
     main {

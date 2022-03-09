@@ -25,7 +25,7 @@ dependencies {
 }
 
 group = "org.example"
-version = "1.0-SNAPSHOT"
+version.set("1.0-SNAPSHOT")
 
 publishing {
     repositories {

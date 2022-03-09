@@ -22,7 +22,7 @@ plugins {
 // end::apply_plugin[]
 
 group = "com.mycompany"
-version = "1.0"
+version.set("1.0")
 
 // tag::catalog_spec[]
 catalog {

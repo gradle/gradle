@@ -10,7 +10,7 @@ plugins {
 // end::use-plugin[]
 
 group = "com.example"
-version = "1.0"
+version.set("1.0")
 
 // tag::defining-sources-jar-task[]
 java {

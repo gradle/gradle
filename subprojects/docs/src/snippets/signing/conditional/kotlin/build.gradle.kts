@@ -7,7 +7,7 @@ plugins {
 group = "gradle"
 
 // tag::conditional-signing[]
-version = "1.0-SNAPSHOT"
+version.set("1.0-SNAPSHOT")
 extra["isReleaseVersion"] = !version.toString().endsWith("SNAPSHOT")
 
 // end::conditional-signing[]

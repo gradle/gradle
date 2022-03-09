@@ -7,7 +7,7 @@ repositories {
 }
 
 // tag::declareVersion[]
-version = "1.2"
+version.set("1.2")
 
 tasks.compileJava {
     // use the project's version or define one directly

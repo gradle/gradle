@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "org.example"
-version = "1.0"
+version.set("1.0")
 
 // tag::add-plugin-variant[]
 val gradle7 = sourceSets.create("gradle7")

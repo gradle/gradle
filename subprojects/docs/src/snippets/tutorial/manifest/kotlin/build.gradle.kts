@@ -1,7 +1,7 @@
 plugins {
     java
 }
-version = "1.0"
+version.set("1.0")
 
 // tag::add-to-manifest[]
 tasks.jar {

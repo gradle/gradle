@@ -3,7 +3,7 @@ plugins {
     `cpp-application` // or `cpp-library`
 }
 
-version = "1.2.1"
+version.set("1.2.1")
 // end::apply-cpp-plugin[]
 
 // tag::cpp-dependency-mgmt[]

@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "gradle"
-version = "1.0"
+version.set("1.0")
 
 // tag::configure-signatory[]
 signing {

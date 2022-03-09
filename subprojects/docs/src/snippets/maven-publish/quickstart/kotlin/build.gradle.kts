@@ -9,7 +9,7 @@ plugins {
 // end::use-plugin[]
 
 group = "org.gradle.sample"
-version = "1.0"
+version.set("1.0")
 
 // tag::publish-component[]
 publishing {

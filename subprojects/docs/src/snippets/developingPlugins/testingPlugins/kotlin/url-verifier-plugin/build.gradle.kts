@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "org.gradle.sample"
-version = "1.0"
+version.set("1.0")
 
 // tag::test-source-set[]
 val integrationTest by sourceSets.creating

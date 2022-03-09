@@ -3,7 +3,7 @@ plugins {
     `swift-application` // or `swift-library`
 }
 
-version = "1.2.1"
+version.set("1.2.1")
 // end::apply-swift-plugin[]
 
 // tag::swift-dependency-mgmt[]

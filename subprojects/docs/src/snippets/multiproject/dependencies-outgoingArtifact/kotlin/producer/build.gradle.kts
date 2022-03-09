@@ -2,7 +2,7 @@ plugins {
     id("java-library")
 }
 
-version = "1.0"
+version.set("1.0")
 
 val buildInfo by tasks.registering(BuildInfo::class) {
     version.set(project.version.toString())

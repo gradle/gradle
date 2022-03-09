@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "org.gradle.sample"
-version = "1.0"
+version.set("1.0")
 
 // tag::custom-artifact[]
 val rpmFile = layout.buildDirectory.file("rpms/my-package.rpm")

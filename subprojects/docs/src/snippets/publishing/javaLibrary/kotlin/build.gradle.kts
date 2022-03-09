@@ -16,7 +16,7 @@ dependencies {
 
 // tag::configure-publishing[]
 group = "org.example"
-version = "1.0"
+version.set("1.0")
 
 // tag::enable-build-id[]
 publishing {

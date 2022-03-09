@@ -5,7 +5,7 @@ plugins {
 // end::use-plugin[]
 
 group = "gradle"
-version = "1.0"
+version.set("1.0")
 
 // tag::customization[]
 val moreLibs = configurations.create("moreLibs")

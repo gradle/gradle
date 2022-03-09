@@ -3,7 +3,7 @@ plugins {
     base
 }
 
-version = "1.0.0"
+version.set("1.0.0")
 
 tasks.register<Zip>("packageDistribution") {
     from(layout.buildDirectory.dir("toArchive")) {

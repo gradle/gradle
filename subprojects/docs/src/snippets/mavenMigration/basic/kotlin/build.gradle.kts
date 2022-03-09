@@ -8,7 +8,7 @@ java {
     targetCompatibility = JavaVersion.VERSION_1_8
 }
 
-version = "1.2.1"
+version.set("1.2.1")
 
 val currentBuildNumber by extra("1234")
 

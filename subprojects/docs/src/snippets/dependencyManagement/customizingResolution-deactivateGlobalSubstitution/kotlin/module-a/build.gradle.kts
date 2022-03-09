@@ -3,4 +3,4 @@ plugins {
 }
 
 group = "org.test"
-version = "0.9"
+version.set("0.9")

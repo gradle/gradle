@@ -8,7 +8,7 @@ plugins {
 
 // tag::gradle-plugin[]
 group = "io.github.johndoe" // <1>
-version = "1.0"     // <2>
+version.set("1.0")     // <2>
 
 gradlePlugin {
     plugins { // <3>
