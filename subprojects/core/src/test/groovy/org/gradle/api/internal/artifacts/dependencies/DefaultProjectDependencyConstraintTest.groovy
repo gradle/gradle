@@ -18,12 +18,16 @@ package org.gradle.api.internal.artifacts.dependencies
 import org.gradle.api.internal.artifacts.DefaultProjectDependencyFactory
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.provider.DefaultPropertyFactory
+import org.gradle.api.internal.provider.PropertyHost
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
 import spock.lang.Issue
 import spock.lang.Specification
 
 class DefaultProjectDependencyConstraintTest extends Specification {
+
+    def propertyFactory = new DefaultPropertyFactory(PropertyHost.NO_OP)
 
     @Issue("https://github.com/gradle/gradle/issues/17179")
     def "can copy project dependency constraint"() {
@@ -66,7 +70,7 @@ class DefaultProjectDependencyConstraintTest extends Specification {
     private DefaultProjectDependencyConstraint createProjectDependencyConstraint() {
         def project = Mock(ProjectInternal) {
             getGroup() >> "org.example"
-            getVersion() >> "0.0.1"
+            getVersion() >> propertyFactory.property(String).value("0.0.1")
         }
         def dependencyFactory = new DefaultProjectDependencyFactory(
             TestUtil.instantiatorFactory().decorateLenient(),
