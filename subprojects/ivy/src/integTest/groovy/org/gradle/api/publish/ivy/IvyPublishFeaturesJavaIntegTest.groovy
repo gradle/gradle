@@ -178,7 +178,7 @@ class IvyPublishFeaturesJavaIntegTest extends AbstractIvyPublishFeaturesJavaInte
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME_JARS))
                     }
-                    outgoing.capability("org:optional-feature:\${version}")
+                    outgoing.capability("org:optional-feature:\${version.get()}")
                 }
                 compileClasspath.extendsFrom(optionalFeatureImplementation)
             }
@@ -274,7 +274,7 @@ class IvyPublishFeaturesJavaIntegTest extends AbstractIvyPublishFeaturesJavaInte
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME_JARS))
                     }
-                    outgoing.capability("org:optional-feature:\${version}")
+                    outgoing.capability("org:optional-feature:\${version.get()}")
                 }
                 compileClasspath.extendsFrom(optionalFeatureImplementation)
             }
@@ -291,7 +291,7 @@ class IvyPublishFeaturesJavaIntegTest extends AbstractIvyPublishFeaturesJavaInte
             alt.attributes {
                 attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, 'java-runtime-alt'))
             }
-            def altFile = file("\${buildDir}/\${name}-\${version}-alt.jar")
+            def altFile = file("\${buildDir}/\${name}-\${version.get()}-alt.jar")
             task createFile { doFirst { altFile.parentFile.mkdirs(); altFile.text = "test file" } }
             alt.artifact(file:altFile, builtBy: 'createFile')
 
@@ -350,7 +350,7 @@ class IvyPublishFeaturesJavaIntegTest extends AbstractIvyPublishFeaturesJavaInte
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME))
                     }
-                    outgoing.capability("org:optional-feature:\${version}")
+                    outgoing.capability("org:optional-feature:\${version.get()}")
                 }
                 compileClasspath.extendsFrom(optionalFeatureImplementation)
             }
@@ -371,7 +371,7 @@ class IvyPublishFeaturesJavaIntegTest extends AbstractIvyPublishFeaturesJavaInte
             alt.attributes {
                 attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, 'java-runtime'))
             }
-            def altFile = file("\${buildDir}/\${name}-\${version}-alt.jar")
+            def altFile = file("\${buildDir}/\${name}-\${version.get()}-alt.jar")
             task createFile { doFirst { altFile.parentFile.mkdirs(); altFile.text = "test file" } }
             alt.artifact(file:altFile, builtBy: 'createFile')
 
