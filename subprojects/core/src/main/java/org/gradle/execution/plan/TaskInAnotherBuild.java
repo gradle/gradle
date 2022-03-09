@@ -165,11 +165,6 @@ public class TaskInAnotherBuild extends TaskNode implements SelfExecutingNode {
     }
 
     @Override
-    public void resolveMutations() {
-        // Assume for now that no task in the consuming build will destroy the outputs of this task or overlaps with this task
-    }
-
-    @Override
     public void execute(NodeExecutionContext context) {
         // This node does not do anything itself
     }

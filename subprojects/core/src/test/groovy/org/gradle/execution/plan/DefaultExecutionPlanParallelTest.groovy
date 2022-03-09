@@ -51,9 +51,9 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
     DefaultExecutionPlan executionPlan
 
     def setup() {
-        def taskNodeFactory = new TaskNodeFactory(project.gradle, Stub(DocumentationRegistry), Stub(BuildTreeWorkGraphController))
+        def taskNodeFactory = new TaskNodeFactory(project.gradle, Stub(DocumentationRegistry), Stub(BuildTreeWorkGraphController), nodeValidator)
         def dependencyResolver = new TaskDependencyResolver([new TaskNodeDependencyResolver(taskNodeFactory)])
-        executionPlan = new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, dependencyResolver, nodeValidator, new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, fs), new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, fs), new DefaultResourceLockCoordinationService())
+        executionPlan = new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, dependencyResolver, new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, fs), new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, fs), new DefaultResourceLockCoordinationService())
     }
 
     TaskInternal task(Map<String, ?> options = [:], String name) {
@@ -863,22 +863,28 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
 
         when:
         addToGraphAndPopulate(finalized)
-        def finalizedInfo = selectNextTaskNode()
+        def finalizedNode = selectNextTaskNode()
 
         then:
-        finalizedInfo.task == finalized
+        finalizedNode.task == finalized
         selectNextTask() == null
 
         when:
-        executionPlan.finishedExecuting(finalizedInfo)
-        selectNextTask()
+        executionPlan.finishedExecuting(finalizedNode)
 
         then:
-        Exception e = thrown()
-        e.message.contains("Execution failed for task :finalizer")
+        selectNextTask() == null
+        executionPlan.executionState() == ExecutionPlan.State.NoMoreNodesToStart
+        executionPlan.allExecutionComplete()
 
         when:
-        executionPlan.abortAllAndFail(e)
+        def failures = []
+        executionPlan.collectFailures(failures)
+
+        then:
+        failures.size() == 1
+        def e = failures.first()
+        e.message.contains("Execution failed for task :finalizer")
 
         then:
         executionPlan.getNode(finalized).isSuccessful()
@@ -903,8 +909,6 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         def noTaskSelected = selectNextTask()
         then:
         noTaskSelected == null
-        1 * nodeValidator.hasValidationProblems({ LocalTaskNode node -> node.task == second }) >> false
-        0 * nodeValidator.hasValidationProblems(_ as Node)
 
         when:
         executionPlan.finishedExecuting(invalidTaskNode)
@@ -1030,7 +1034,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         selectNextTaskNode()?.task
     }
 
-    private TaskNode selectNextTaskNode() {
+    private LocalTaskNode selectNextTaskNode() {
         def selection
         recordLocks {
             selection = executionPlan.selectNext()
@@ -1046,7 +1050,10 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         }
         // ignore nodes that aren't tasks
         def nextNode = selection.node
-        if (!(nextNode instanceof TaskNode)) {
+        if (!(nextNode instanceof LocalTaskNode)) {
+            if (nextNode instanceof SelfExecutingNode) {
+                nextNode.execute(null)
+            }
             executionPlan.finishedExecuting(nextNode)
             return selectNextTaskNode()
         }

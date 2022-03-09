@@ -85,7 +85,6 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     private final String displayName;
     private final TaskNodeFactory taskNodeFactory;
     private final TaskDependencyResolver dependencyResolver;
-    private final NodeValidator nodeValidator;
     private final ExecutionNodeAccessHierarchy outputHierarchy;
     private final ExecutionNodeAccessHierarchy destroyableHierarchy;
     private final ResourceLockCoordinationService lockCoordinator;
@@ -118,7 +117,6 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         String displayName,
         TaskNodeFactory taskNodeFactory,
         TaskDependencyResolver dependencyResolver,
-        NodeValidator nodeValidator,
         ExecutionNodeAccessHierarchy outputHierarchy,
         ExecutionNodeAccessHierarchy destroyableHierarchy,
         ResourceLockCoordinationService lockCoordinator
@@ -126,7 +124,6 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         this.displayName = displayName;
         this.taskNodeFactory = taskNodeFactory;
         this.dependencyResolver = dependencyResolver;
-        this.nodeValidator = nodeValidator;
         this.outputHierarchy = outputHierarchy;
         this.destroyableHierarchy = destroyableHierarchy;
         this.lockCoordinator = lockCoordinator;
@@ -574,7 +571,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
             });
         StringWriter writer = new StringWriter();
         graphRenderer.renderTo(firstCycle.get(0), writer);
-        throw new CircularReferenceException(String.format("Circular dependency between the following tasks:%n%s", writer.toString()));
+        throw new CircularReferenceException(String.format("Circular dependency between the following tasks:%n%s", writer));
     }
 
     @Override
@@ -670,24 +667,28 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
                 foundReadyNode = true;
 
-                if (!tryAcquireLocksForNode(node, resources)) {
-                    releaseLocks(resources);
-                    continue;
+                Node prepareNode = node.getPrepareNode();
+                if (prepareNode != null) {
+                    if (!prepareNode.isRequired()) {
+                        prepareNode.require();
+                    }
+                    if (prepareNode.isReady()) {
+                        if (attemptToStart(prepareNode, resources)) {
+                            node.addDependencySuccessor(prepareNode);
+                            node.forceAllDependenciesCompleteUpdate();
+                            return NodeSelection.of(prepareNode);
+                        } else {
+                            // Cannot start prepare node, so skip to next node
+                            continue;
+                        }
+                    }
+                    // else prepare node has already completed
                 }
 
-                MutationInfo mutations = getResolvedMutationInfo(node);
-
-                if (conflictsWithOtherNodes(node, mutations)) {
-                    releaseLocks(resources);
-                    continue;
+                if (attemptToStart(node, resources)) {
+                    iterator.remove();
+                    return NodeSelection.of(node);
                 }
-
-                node.startExecution(this::recordNodeExecutionStarted);
-                if (mutations.hasValidationProblem) {
-                    invalidNodeRunning = true;
-                }
-                iterator.remove();
-                return NodeSelection.of(node);
             } else if (!node.isComplete()) {
                 // Node is not yet complete
                 // - its dependencies are not yet complete
@@ -715,6 +716,27 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         }
     }
 
+    private boolean attemptToStart(Node node, List<ResourceLock> resources) {
+        resources.clear();
+        if (!tryAcquireLocksForNode(node, resources)) {
+            releaseLocks(resources);
+            return false;
+        }
+
+        MutationInfo mutations = getResolvedMutationInfo(node);
+
+        if (conflictsWithOtherNodes(node, mutations)) {
+            releaseLocks(resources);
+            return false;
+        }
+
+        node.startExecution(this::recordNodeExecutionStarted);
+        if (mutations.hasValidationProblem) {
+            invalidNodeRunning = true;
+        }
+        return true;
+    }
+
     private void releaseLocks(List<ResourceLock> resources) {
         for (ResourceLock resource : resources) {
             resource.unlock();
@@ -722,7 +744,6 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     }
 
     private boolean tryAcquireLocksForNode(Node node, List<ResourceLock> resources) {
-        resources.clear();
         if (!tryLockProjectFor(node, resources)) {
             LOGGER.debug("Cannot acquire project lock for node {}", node);
             return false;
@@ -786,10 +807,9 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     private MutationInfo getResolvedMutationInfo(Node node) {
         MutationInfo mutations = node.getMutationInfo();
         if (!mutations.resolved) {
-            node.resolveMutations();
-            mutations.hasValidationProblem = nodeValidator.hasValidationProblems(node);
             outputHierarchy.recordNodeAccessingLocations(node, mutations.outputPaths);
             destroyableHierarchy.recordNodeAccessingLocations(node, mutations.destroyablePaths);
+            mutations.resolved = true;
         }
         return mutations;
     }
@@ -1046,12 +1066,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
     @Override
     public boolean allExecutionComplete() {
-        for (Node node : nodeMapping) {
-            if (!node.isComplete()) {
-                return false;
-            }
-        }
-        return true;
+        return executionQueue.isEmpty() && runningNodes.isEmpty();
     }
 
     @Override

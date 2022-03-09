@@ -24,7 +24,6 @@ import org.gradle.internal.resources.ResourceLock;
 import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Represents a node in the graph that controls ordinality of destroyers and producers as they are
@@ -56,14 +55,6 @@ public class OrdinalNode extends Node implements SelfExecutingNode {
 
     @Override
     public void resolveDependencies(TaskDependencyResolver dependencyResolver, Action<Node> processHardSuccessor) { }
-
-    @Override
-    public Set<Node> getFinalizers() {
-        return Collections.emptySet();
-    }
-
-    @Override
-    public void resolveMutations() { }
 
     @Nullable
     @Override

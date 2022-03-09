@@ -44,6 +44,7 @@ import java.util.Set;
 public class LocalTaskNode extends TaskNode {
     private final TaskInternal task;
     private final WorkValidationContext validationContext;
+    private final ResolveMutationsNode resolveMutationsNode;
     private ImmutableActionSet<Task> postAction = ImmutableActionSet.empty();
     private Set<Node> lifecycleSuccessors;
 
@@ -51,9 +52,10 @@ public class LocalTaskNode extends TaskNode {
     private List<? extends ResourceLock> resourceLocks;
     private TaskProperties taskProperties;
 
-    public LocalTaskNode(TaskInternal task, WorkValidationContext workValidationContext) {
+    public LocalTaskNode(TaskInternal task, NodeValidator nodeValidator, WorkValidationContext workValidationContext) {
         this.task = task;
         this.validationContext = workValidationContext;
+        resolveMutationsNode = new ResolveMutationsNode(this, nodeValidator);
     }
 
     /**
@@ -218,6 +220,10 @@ public class LocalTaskNode extends TaskNode {
     }
 
     @Override
+    public Node getPrepareNode() {
+        return resolveMutationsNode;
+    }
+
     public void resolveMutations() {
         final LocalTaskNode taskNode = this;
         final TaskInternal task = getTask();
@@ -237,8 +243,6 @@ public class LocalTaskNode extends TaskNode {
         } catch (Exception e) {
             throw new TaskExecutionException(task, e);
         }
-
-        mutations.resolved = true;
 
         if (!mutations.destroyablePaths.isEmpty()) {
             if (mutations.hasOutputs) {
