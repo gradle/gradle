@@ -36,11 +36,11 @@ class SimplifiedKotlinScriptEvaluatorTest : TestWithTempFiles() {
         val project = project()
         eval(
             script = """
-                version = "1.0"
+                val versionProvider = version
             """,
             target = project
         )
-        verify(project).version = "1.0"
+        verify(project).version
     }
 
     @Test
