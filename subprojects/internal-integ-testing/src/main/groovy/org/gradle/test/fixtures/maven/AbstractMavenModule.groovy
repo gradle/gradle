@@ -763,6 +763,19 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
     }
 
     @Override
+    MavenModule asGradlePlatform() {
+        variants.clear()
+        variant('api',  [(Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_API, (Category.CATEGORY_ATTRIBUTE.name): Category.REGULAR_PLATFORM]) {
+            useDefaultArtifacts = false
+        }
+        variant('runtime', [(Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_RUNTIME, (Category.CATEGORY_ATTRIBUTE.name): Category.REGULAR_PLATFORM]) {
+            useDefaultArtifacts = false
+        }
+        hasType('pom')
+        withModuleMetadata()
+    }
+
+    @Override
     MavenModule withoutGradleMetadataRedirection() {
         gradleMetadataRedirect = false
         return this
