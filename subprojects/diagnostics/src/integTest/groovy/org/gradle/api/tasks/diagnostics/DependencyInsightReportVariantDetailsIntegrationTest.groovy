@@ -304,13 +304,11 @@ project :$expectedProject
 
     def "fails to show all variant details for compileClasspath if it was already resolved"() {
         given:
-        settingsFile << "include 'a', 'b', 'c'"
+        settingsFile << "include 'a'"
         file('a/build.gradle') << """
             apply plugin: 'java-library'
 
             dependencies {
-                api project(':b')
-                implementation project(':c')
             }
 
             configurations.compileClasspath.resolve()
@@ -321,11 +319,6 @@ project :$expectedProject
                 configuration = configurations.compileClasspath
             }
         """
-        ['b', 'c'].each {
-            file("${it}/build.gradle") << """
-                apply plugin: 'java-library'
-            """
-        }
 
         when:
         fails "a:insight"
