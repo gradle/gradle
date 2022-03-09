@@ -121,10 +121,12 @@ abstract class AbstractClassGenerator implements ClassGenerator {
     private final Function<Class<?>, GeneratedClassImpl> generator = this::generateUnderLock;
     private final PropertyRoleAnnotationHandler roleHandler;
 
-    protected AbstractClassGenerator(Collection<? extends InjectAnnotationHandler> allKnownAnnotations,
-                                     Collection<Class<? extends Annotation>> enabledAnnotations,
-                                     PropertyRoleAnnotationHandler roleHandler,
-                                     CrossBuildInMemoryCache<Class<?>, GeneratedClassImpl> generatedClassesCache) {
+    protected AbstractClassGenerator(
+        Collection<? extends InjectAnnotationHandler> allKnownAnnotations,
+        Collection<Class<? extends Annotation>> enabledAnnotations,
+        PropertyRoleAnnotationHandler roleHandler,
+        CrossBuildInMemoryCache<Class<?>, GeneratedClassImpl> generatedClassesCache
+    ) {
         this.generatedClasses = generatedClassesCache;
         this.enabledAnnotations = ImmutableSet.copyOf(enabledAnnotations);
         ImmutableSet.Builder<Class<? extends Annotation>> builder = ImmutableSet.builder();
