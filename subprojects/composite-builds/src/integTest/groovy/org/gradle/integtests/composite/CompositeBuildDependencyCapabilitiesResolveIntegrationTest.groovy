@@ -52,8 +52,8 @@ class CompositeBuildDependencyCapabilitiesResolveIntegrationTest extends Abstrac
             }
 
             artifacts {
-                first file("first-\${version}.jar")
-                second file("second-\${version}.jar")
+                first file("first-\${version.get()}.jar")
+                second file("second-\${version.get()}.jar")
             }
         """
 
