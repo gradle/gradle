@@ -43,7 +43,7 @@ class BuildFileBuilder extends MultiSectionHandler<BuildFileBuilder> implements 
         sections << new GenericSection({
             "version = '$version'"
         }, {
-            "version = \"$version\""
+            "version.set(\"$version\")"
         })
     }
 
