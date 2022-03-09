@@ -8,7 +8,7 @@ group = "gradle"
 
 // tag::conditional-signing[]
 version.set("1.0-SNAPSHOT")
-extra["isReleaseVersion"] = !version.toString().endsWith("SNAPSHOT")
+extra["isReleaseVersion"] = !version.get().endsWith("SNAPSHOT")
 
 // end::conditional-signing[]
 publishing {

@@ -76,7 +76,7 @@ publishing {
             // change URLs to point to your repos, e.g. http://my.org/repo
             def releasesRepoUrl = layout.buildDirectory.dir('repos/releases')
             def snapshotsRepoUrl = layout.buildDirectory.dir('repos/snapshots')
-            url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+            url = version.get().endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
         }
     }
 // tag::pom-customization[]
