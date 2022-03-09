@@ -18,6 +18,8 @@ package org.gradle.internal.reflect;
 
 import com.google.common.reflect.TypeToken;
 import org.apache.commons.lang.reflect.MethodUtils;
+import org.gradle.api.provider.Property;
+import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.util.internal.CollectionUtils;
 
@@ -107,6 +109,11 @@ public class JavaPropertyReflectionUtil {
         Method method = MethodUtils.getMatchingAccessibleMethod(target, setterName, new Class<?>[]{valueType});
         if (method != null) {
             return new MethodBackedPropertyMutator(property, method);
+        }
+        String getterName = toMethodName("get", property);
+        Method getterMethod = MethodUtils.getMatchingAccessibleMethod(target, getterName, new Class<?>[]{});
+        if (getterMethod != null && getterMethod.getReturnType().equals(Property.class)) {
+            return new PropertyGetterMethodBackedMutator(property, getterMethod);
         }
         return null;
     }
@@ -343,6 +350,43 @@ public class JavaPropertyReflectionUtil {
         public void setValue(Object target, Object value) {
             try {
                 method.invoke(target, value);
+            } catch (InvocationTargetException e) {
+                throw UncheckedException.unwrapAndRethrow(e);
+            } catch (Exception e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+        }
+    }
+
+    private static class PropertyGetterMethodBackedMutator implements PropertyMutator {
+        private final String property;
+        private final Method getPropertyMethod;
+
+        private PropertyGetterMethodBackedMutator(String property, Method getPropertyMethod) {
+            this.property = property;
+            this.getPropertyMethod = getPropertyMethod;
+        }
+
+        @Override
+        public String toString() {
+            return "property " + getPropertyMethod.getDeclaringClass().getSimpleName() + "." + property;
+        }
+
+        @Override
+        public String getName() {
+            return property;
+        }
+
+        @Override
+        public Class<?> getType() {
+            return (Class<?>) ((ParameterizedType) getPropertyMethod.getGenericReturnType()).getActualTypeArguments()[0];
+        }
+
+        @Override
+        public void setValue(Object target, @org.jetbrains.annotations.Nullable Object value) {
+            try {
+                Property<Object> property = Cast.uncheckedNonnullCast(getPropertyMethod.invoke(target));
+                property.set(value);
             } catch (InvocationTargetException e) {
                 throw UncheckedException.unwrapAndRethrow(e);
             } catch (Exception e) {
