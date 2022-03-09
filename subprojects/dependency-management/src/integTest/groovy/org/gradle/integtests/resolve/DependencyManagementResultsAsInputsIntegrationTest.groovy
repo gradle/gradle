@@ -508,24 +508,21 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
         given:
         resolvedComponentResultSetup()
 
-        // Task without changes is executed & not skipped
-        when:
+        when: "Task without changes is executed & not skipped"
         succeeds "verify"
 
         then:
         executedAndNotSkipped ":verify"
         notExecuted ":project-lib:jar", ":composite-lib:jar"
 
-        // Running it again with the same environment skips the task
-        when:
+        when: "Running it again with the same environment skips the task"
         succeeds "verify"
 
         then:
         skipped ":verify"
         notExecuted ":project-lib:jar", ":composite-lib:jar"
 
-        // The change doesn't invalidate the cache
-        when:
+        when: "The change doesn't invalidate the cache"
         withChangedSourceIn(changeLoc)
         succeeds "verify"
 
@@ -546,40 +543,35 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
             }
         """
 
-        // Task without changes is executed & not skipped
-        when:
+        when: "Task without changes is executed & not skipped"
         succeeds "verify"
 
         then:
         executedAndNotSkipped ":verify"
         notExecuted ":project-lib:jar", ":composite-lib:jar"
 
-        // Running it again with the same environment skips the task
-        when:
+        when: "Running it again with the same environment skips the task"
         succeeds "verify"
 
         then:
         skipped ":verify"
         notExecuted ":project-lib:jar", ":composite-lib:jar"
 
-        // The change invalidates the cache
-        when:
+        when: "Making a change invalidates the cache"
         succeeds "verify", changeArg
 
         then:
         executedAndNotSkipped ":verify"
         notExecuted ":project-lib:jar", ":composite-lib:jar"
 
-        // Keeping the change skips the task again
-        when:
+        when: "Keeping the change skips the task again"
         succeeds "verify", changeArg
 
         then:
         skipped ":verify"
         notExecuted ":project-lib:jar", ":composite-lib:jar"
 
-        // Losing the change invalidates the cache
-        when:
+        when: "Losing the change invalidates the cache"
         succeeds "verify"
 
         then:
@@ -605,40 +597,35 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
             configurations.runtimeClasspath.returnAllVariants = true
         """
 
-        // Task without changes is executed & not skipped
-        when:
+        when: "Task without changes is executed & not skipped"
         succeeds "verify"
 
         then:
         executedAndNotSkipped ":verify"
         notExecuted ":project-lib:jar", ":composite-lib:jar"
 
-        // Running it again with the same environment skips the task
-        when:
+        when: "Running it again with the same environment skips the task"
         succeeds "verify"
 
         then:
         skipped ":verify"
         notExecuted ":project-lib:jar", ":composite-lib:jar"
 
-        // The change invalidates the cache
-        when:
+        when: "The change invalidates the cache"
         succeeds "verify", changeArg
 
         then:
         executedAndNotSkipped ":verify"
         notExecuted ":project-lib:jar", ":composite-lib:jar"
 
-        // Keeping the change skips the task again
-        when:
+        when: "Keeping the change skips the task again"
         succeeds "verify", changeArg
 
         then:
         skipped ":verify"
         notExecuted ":project-lib:jar", ":composite-lib:jar"
 
-        // Losing the change invalidates the cache
-        when:
+        when: "Losing the change invalidates the cache"
         succeeds "verify"
 
         then:
