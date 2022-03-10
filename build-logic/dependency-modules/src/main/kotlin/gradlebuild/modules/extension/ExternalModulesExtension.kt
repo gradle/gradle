@@ -244,7 +244,6 @@ abstract class ExternalModulesExtension {
         minlog to License.BSD3,
         nativePlatform to License.Apache2,
         nativePlatformFileEvents to License.Apache2,
-        nekohtml to License.Apache2,
         objenesis to License.Apache2,
         plexusCipher to License.Apache2,
         plexusInterpolation to License.Apache2,
@@ -259,7 +258,6 @@ abstract class ExternalModulesExtension {
         tomlj to License.Apache2,
         trove4j to License.LGPL21,
         xbeanReflect to License.Apache2,
-        xerces to License.Apache2,
         xmlApis to License.Apache2
     )
 }

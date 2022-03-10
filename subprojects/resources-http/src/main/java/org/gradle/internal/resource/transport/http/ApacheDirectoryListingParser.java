@@ -17,7 +17,6 @@
 package org.gradle.internal.resource.transport.http;
 
 import com.google.common.base.Charsets;
-import org.cyberneko.html.parsers.SAXParser;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.resource.UriTextResource;
 import org.slf4j.Logger;
@@ -27,6 +26,8 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -50,10 +51,10 @@ public class ApacheDirectoryListingParser {
         Charset contentEncoding = UriTextResource.extractCharacterEncoding(contentType, Charsets.UTF_8);
         final Reader htmlText = new InputStreamReader(content, contentEncoding);
         final InputSource inputSource = new InputSource(htmlText);
-        final SAXParser htmlParser = new SAXParser();
+        final SAXParserFactory htmlParserFactory = SAXParserFactory.newInstance();
+        final SAXParser htmlParser = htmlParserFactory.newSAXParser();
         final AnchorListerHandler anchorListerHandler = new AnchorListerHandler();
-        htmlParser.setContentHandler(anchorListerHandler);
-        htmlParser.parse(inputSource);
+        htmlParser.parse(inputSource, anchorListerHandler);
 
         List<String> hrefs = anchorListerHandler.getHrefs();
         List<URI> uris = resolveURIs(baseURI, hrefs);

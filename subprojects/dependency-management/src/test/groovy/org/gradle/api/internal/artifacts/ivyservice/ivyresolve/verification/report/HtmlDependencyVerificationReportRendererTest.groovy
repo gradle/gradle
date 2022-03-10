@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.rep
 import groovy.xml.XmlSlurper
 import groovy.xml.slurpersupport.GPathResult
 import groovy.xml.slurpersupport.NodeChild
-import org.cyberneko.html.parsers.SAXParser
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.RepositoryAwareVerificationFailure
@@ -41,6 +40,8 @@ import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
+
+import javax.xml.parsers.SAXParserFactory
 
 import static org.gradle.api.internal.artifacts.verification.verifier.SignatureVerificationFailure.FailureKind.FAILED
 import static org.gradle.api.internal.artifacts.verification.verifier.SignatureVerificationFailure.FailureKind.IGNORED_KEY
@@ -287,7 +288,8 @@ class HtmlDependencyVerificationReportRendererTest extends Specification {
     private void generateReport() {
         currentReportFile = renderer.writeReport()
         currentReportDir = currentReportFile.parentFile
-        def parser = new SAXParser()
+        def parserFactory = SAXParserFactory.newInstance()
+        def parser = parserFactory.newSAXParser()
         def slurper = new XmlSlurper(parser)
         report = slurper.parse(currentReportFile)
     }
