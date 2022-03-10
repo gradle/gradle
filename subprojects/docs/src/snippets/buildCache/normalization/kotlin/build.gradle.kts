@@ -16,7 +16,7 @@ normalization {
 
 // tag::versionInfo[]
 val currentVersionInfo = tasks.register<CurrentVersionInfo>("currentVersionInfo") {
-    version.set(project.version as String)
+    version.set(project.version)
     versionInfoFile.set(layout.buildDirectory.file("generated-resources/currentVersion.properties"))
 }
 
