@@ -326,6 +326,7 @@ class TestSuitesDependenciesIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'checkConfiguration'
     }
 
+    // region Version Catalog
     def 'user can add dependencies using a Version Catalog bundle to a suite '() {
         given:
         buildFile << """
@@ -495,35 +496,9 @@ class TestSuitesDependenciesIntegrationTest extends AbstractIntegrationSpec {
         expect:
         succeeds 'checkConfiguration'
     }
+    // endregion Version Catalog
 
-    def "test adding dependency with constraint"() {
-        given:
-        settingsFile << "rootProject.name = 'Test'"
-
-        buildFile << """
-            plugins {
-                id 'java'
-            }
-
-            ${mavenCentralRepository()}
-
-            dependencies {
-                implementation('org.apache.commons:commons-text:1.9') {
-                    exclude group: 'org.apache.commons', module: 'commons-lang3'
-                }
-            }
-
-            tasks.register('verifyResolve') {
-                doLast {
-                    assert !configurations.compileClasspath.resolvedConfiguration.resolvedArtifacts*.file*.name.contains('commons-lang3-3.11.jar')
-                }
-            }
-            """.stripIndent()
-
-        expect:
-        succeeds "verifyResolve"
-    }
-
+    // region Rich Dependency Constraints
     def "JVM Test Suites plugin allows for using exclude in dependencies block"() {
         given:
         settingsFile << "rootProject.name = 'Test'"
@@ -538,7 +513,6 @@ class TestSuitesDependenciesIntegrationTest extends AbstractIntegrationSpec {
             testing {
                 suites {
                     test {
-                        useJUnit()
                         dependencies {
                             implementation('org.apache.commons:commons-text:1.9') {
                                 exclude group: 'org.apache.commons', module: 'commons-lang3'
@@ -553,43 +527,10 @@ class TestSuitesDependenciesIntegrationTest extends AbstractIntegrationSpec {
                     assert !configurations.testCompileClasspath.resolvedConfiguration.resolvedArtifacts*.file*.name.contains('commons-lang3-3.11.jar')
                 }
             }
-            """.stripIndent()
+        """.stripIndent()
 
         expect:
         succeeds "verifyResolve"
-    }
-
-    def "test adding dependency with constraint with Kotlin DSL"() {
-        given:
-        settingsFile << """
-            rootProject.name = 'Test'
-
-            include('kotlin-build')"""
-        file('kotlin-build/settings.gradle') << """
-                rootProject.name = 'kotlin-build'
-        """
-        file('kotlin-build/build.gradle.kts') << """
-            plugins {
-                java
-            }
-
-            ${mavenCentralRepository(GradleDsl.KOTLIN)}
-
-            dependencies {
-                implementation("org.apache.commons:commons-text:1.9") {
-                    exclude(group = "org.apache.commons", module = "commons-lang3")
-                }
-            }
-
-            tasks.register("verifyResolve") {
-                doLast {
-                    assert(1 == 1)
-                }
-            }
-            """.stripIndent()
-
-        expect:
-        succeeds ":kotlin-build:verifyResolve"
     }
 
     def "JVM Test Suites plugin allows for using exclude in dependencies block with Kotlin DSL"() {
@@ -597,10 +538,11 @@ class TestSuitesDependenciesIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << """
             rootProject.name = 'Test'
 
-            include('kotlin-build')"""
-        file('kotlin-build/settings.gradle') << """
-                rootProject.name = 'kotlin-build'
-        """
+            include('kotlin-build')
+        """.stripIndent()
+
+        file('kotlin-build/settings.gradle') << """rootProject.name = 'kotlin-build'"""
+
         file('kotlin-build/build.gradle.kts') << """
             plugins {
                 java
@@ -611,10 +553,8 @@ class TestSuitesDependenciesIntegrationTest extends AbstractIntegrationSpec {
             testing {
                 suites {
                     val test by getting(JvmTestSuite::class) {
-                        useJUnit()
                         dependencies {
                             implementation("org.apache.commons:commons-text:1.9") {
-//                    exclude(mapOf("group" to "org.apache.commons", "module" to "commons-lang3"))
                                 exclude(group = "org.apache.commons", module = "commons-lang3")
                             }
                         }
@@ -624,55 +564,77 @@ class TestSuitesDependenciesIntegrationTest extends AbstractIntegrationSpec {
 
             tasks.register("verifyResolve") {
                 doLast {
-                    assert(1 == 1)
+                    assert(configurations.getByName("testCompileClasspath").getResolvedConfiguration().getResolvedArtifacts().none {
+                        it.getFile().getName().equals("commons-lang3-3.11.jar")
+                    })
                 }
             }
-            """.stripIndent()
+        """.stripIndent()
 
         expect:
         succeeds ":kotlin-build:verifyResolve"
     }
 
-    def "JVM Test Suites normal dependency in Kotlin"() {
+    def 'user can add exclusions to dependencies using a Version Catalog'() {
         given:
-        settingsFile << """
-            rootProject.name = 'Test'
-
-            include('kotlin-build')"""
-        file('kotlin-build/settings.gradle') << """
-                rootProject.name = 'kotlin-build'
-        """
-        file('kotlin-build/build.gradle.kts') << """
+        buildFile << """
             plugins {
-                java
+              id 'java'
             }
 
-            ${mavenCentralRepository(GradleDsl.KOTLIN)}
+            ${mavenCentralRepository()}
 
-            dependencies {
-                implementation("org.apache.commons:commons-text:1.9")
+            testing {
+                suites {
+                    test {
+                        dependencies {
+                            implementation(libs.commons.text) {
+                                exclude group: 'org.apache.commons', module: 'commons-lang3'
+                            }
+                        }
+                    }
+                }
             }
 
             tasks.register("verifyResolve") {
                 doLast {
-                    assert(1 == 1)
+                    assert !configurations.testCompileClasspath.resolvedConfiguration.resolvedArtifacts*.file*.name.contains('commons-lang3-3.11.jar')
                 }
             }
-            """.stripIndent()
+        """.stripIndent()
+
+        settingsFile << """dependencyResolutionManagement {
+            versionCatalogs {
+                libs {
+                    version('commons-text', '1.9')
+                    library('commons-text', 'org.apache.commons', 'commons-text').versionRef('commons-text')
+                }
+            }
+        }
+        """.stripIndent()
+
+        versionCatalog = file('gradle', 'libs.versions.toml') << """
+        [versions]
+        commons-text = "1.9"
+
+        [libraries]
+        commons-text = { group = "org.apache.commons", name = "commons-text", version.ref = "commons-text" }
+        """.stripIndent(8)
 
         expect:
-        succeeds ":kotlin-build:verifyResolve"
+        succeeds 'verifyResolve'
     }
 
-    def "JVM Test Suite adding dependency NO EXCLUDE with Kotlin DSL"() {
+    def 'user can add exclusions to dependencies using a Version Catalog with Kotlin DSL'() {
         given:
         settingsFile << """
             rootProject.name = 'Test'
 
-            include('kotlin-build')"""
-        file('kotlin-build/settings.gradle') << """
-                rootProject.name = 'kotlin-build'
-        """
+            include('kotlin-build')
+        """.stripIndent()
+
+        file('kotlin-build/settings.gradle') << """rootProject.name = 'kotlin-build'"""
+
         file('kotlin-build/build.gradle.kts') << """
             plugins {
                 java
@@ -683,9 +645,10 @@ class TestSuitesDependenciesIntegrationTest extends AbstractIntegrationSpec {
             testing {
                 suites {
                     val test by getting(JvmTestSuite::class) {
-                        useJUnit()
                         dependencies {
-                            implementation("org.apache.commons:commons-text:1.9")
+                            implementation(libs.commons.text) {
+                                exclude(group = "org.apache.commons", module = "commons-lang3")
+                            }
                         }
                     }
                 }
@@ -693,12 +656,156 @@ class TestSuitesDependenciesIntegrationTest extends AbstractIntegrationSpec {
 
             tasks.register("verifyResolve") {
                 doLast {
-                    assert(1 == 1)
+                    assert(configurations.getByName("testCompileClasspath").getResolvedConfiguration().getResolvedArtifacts().none {
+                        it.getFile().getName().equals("commons-lang3-3.11.jar")
+                    })
                 }
             }
-            """.stripIndent()
+        """.stripIndent()
+
+        versionCatalog = file('gradle', 'libs.versions.toml') << """
+        [versions]
+        commons-text = "1.9"
+
+        [libraries]
+        commons-text = { group = "org.apache.commons", name = "commons-text", version.ref = "commons-text" }
+        """.stripIndent(8)
 
         expect:
-        succeeds ":kotlin-build:verifyResolve"
+        succeeds 'verifyResolve'
     }
+    // endregion Rich Dependency Constraints
+
+    // region Non-Module Dependencies
+    def 'user can add file dependencies to the configurations of a suite'() {
+        given:
+        buildFile << """
+        plugins {
+          id 'java'
+        }
+
+        ${mavenCentralRepository()}
+
+        testing {
+            suites {
+                test {
+                    dependencies {
+                        implementation files('lib/myLib.jar')
+                    }
+                }
+            }
+        }
+
+        tasks.register("verifyResolve") {
+            doLast {
+                assert configurations.testCompileClasspath.incoming.files*.name.contains('myLib.jar')
+            }
+        }
+        """.stripIndent()
+
+        file('lib', 'myLib.jar').createFile()
+
+        expect:
+        succeeds 'verifyResolve'
+    }
+
+    def 'user can add file dependencies to the configurations of a suite with Kotlin DSL'() {
+        given:
+        settingsFile << """
+            rootProject.name = 'Test'
+
+            include('kotlin-build')
+        """.stripIndent()
+
+        file('kotlin-build/settings.gradle') << """rootProject.name = 'kotlin-build'"""
+
+        file('kotlin-build/build.gradle.kts') << """
+            plugins {
+                java
+            }
+
+            ${mavenCentralRepository(GradleDsl.KOTLIN)}
+
+            testing {
+                suites {
+                    val test by getting(JvmTestSuite::class) {
+                        dependencies {
+                            implementation(files("lib/myLib.jar"))
+                        }
+                    }
+                }
+            }
+
+            tasks.register("verifyResolve") {
+                doLast {
+                    assert(configurations.getByName("testCompileClasspath").getIncoming().getFiles().any {
+                        it.getName().equals("myLib.jar")
+                    })
+                }
+            }
+        """.stripIndent()
+
+        file('lib', 'myLib.jar').createFile()
+
+        expect:
+        succeeds 'verifyResolve'
+    }
+
+    def 'user can configure file dependencies on a suite outside of the testing block'() {
+        given:
+        buildFile << """
+        plugins {
+          id 'java'
+        }
+
+        ${mavenCentralRepository()}
+
+        dependencies {
+            testImplementation(files('lib/myLib.jar')) {
+                because 'testing configuring a file dependency'
+            }
+        }
+
+        tasks.register("verifyResolve") {
+            doLast {
+                assert configurations.testCompileClasspath.incoming.files*.name.contains('myLib.jar')
+            }
+        }
+        """.stripIndent()
+
+        file('lib', 'myLib.jar').createFile()
+
+        expect:
+        succeeds 'verifyResolve'
+    }
+
+    def 'user can not configure file dependencies on a suite inside the testing block'() {
+        given:
+        buildFile << """
+        plugins {
+          id 'java'
+        }
+
+        ${mavenCentralRepository()}
+
+        testing {
+            suites {
+                test {
+                    dependencies {
+                        implementation(files('lib/myLib.jar')) {
+                            because 'testing configuring a file dependency'
+                        }
+                    }
+                }
+            }
+        }
+        """.stripIndent()
+
+        file('lib', 'myLib.jar').createFile()
+
+        expect:
+        fails 'verifyResolve'
+        result.assertHasErrorOutput("Cannot configure file collection dependency in the testing block because it is not a module dependency.  To configure this dependency, you will need to use the top-level dependency block.")
+    }
+    // endregion Non-Module Dependencies
 }

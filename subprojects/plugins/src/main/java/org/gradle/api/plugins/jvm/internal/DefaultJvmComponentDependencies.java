@@ -22,6 +22,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
+import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.dsl.DependencyConstraintHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.catalog.DependencyBundleValueSource;
@@ -72,7 +73,7 @@ public class DefaultJvmComponentDependencies implements JvmComponentDependencies
     }
 
     @Override
-    public void implementation(Object dependency, @Nullable Action<? super Dependency> configuration) {
+    public void implementation(Object dependency, @Nullable Action<? super ModuleDependency> configuration) {
         doAdd(implementation, dependency, configuration);
     }
 
@@ -82,7 +83,7 @@ public class DefaultJvmComponentDependencies implements JvmComponentDependencies
     }
 
     @Override
-    public void runtimeOnly(Object dependency, @Nullable Action<? super Dependency> configuration) {
+    public void runtimeOnly(Object dependency, @Nullable Action<? super ModuleDependency> configuration) {
         doAdd(runtimeOnly, dependency, configuration);
     }
 
@@ -92,11 +93,11 @@ public class DefaultJvmComponentDependencies implements JvmComponentDependencies
     }
 
     @Override
-    public void compileOnly(Object dependency, @Nullable Action<? super Dependency> configuration) {
+    public void compileOnly(Object dependency, @Nullable Action<? super ModuleDependency> configuration) {
         doAdd(compileOnly, dependency, configuration);
     }
 
-    private void doAdd(Configuration bucket, Object dependency, @Nullable Action<? super Dependency> configuration) {
+    private void doAdd(Configuration bucket, Object dependency, @Nullable Action<? super ModuleDependency> configuration) {
         if (dependency instanceof ProviderConvertible<?>) {
             doAddLazy(bucket, ((ProviderConvertible<?>) dependency).asProvider(), configuration);
         } else if (dependency instanceof Provider<?>) {
@@ -106,12 +107,12 @@ public class DefaultJvmComponentDependencies implements JvmComponentDependencies
         }
     }
 
-    private void doAddEager(Configuration bucket, Object dependency, @Nullable Action<? super Dependency> configuration) {
+    private void doAddEager(Configuration bucket, Object dependency, @Nullable Action<? super ModuleDependency> configuration) {
         Dependency created = create(dependency, configuration);
         bucket.getDependencies().add(created);
     }
 
-    private void doAddLazy(Configuration bucket, Provider<?> dependencyProvider, @Nullable Action<? super Dependency> configuration) {
+    private void doAddLazy(Configuration bucket, Provider<?> dependencyProvider, @Nullable Action<? super ModuleDependency> configuration) {
         if (dependencyProvider instanceof DefaultValueSourceProviderFactory.ValueSourceProvider) {
             Class<? extends ValueSource<?, ?>> valueSourceType = ((DefaultValueSourceProviderFactory.ValueSourceProvider<?, ?>) dependencyProvider).getValueSourceType();
             if (valueSourceType.isAssignableFrom(DependencyBundleValueSource.class)) {
@@ -123,7 +124,7 @@ public class DefaultJvmComponentDependencies implements JvmComponentDependencies
         bucket.getDependencies().addLater(lazyDependency);
     }
 
-    private void doAddListProvider(Configuration bucket, Provider<?> dependency, @Nullable Action<? super Dependency> configuration) {
+    private void doAddListProvider(Configuration bucket, Provider<?> dependency, @Nullable Action<? super ModuleDependency> configuration) {
         // workaround for the fact that mapping to a list will not create a `CollectionProviderInternal`
         final ListProperty<Dependency> dependencies = getObjectFactory().listProperty(Dependency.class);
         dependencies.set(dependency.map(notation -> {
@@ -133,7 +134,7 @@ public class DefaultJvmComponentDependencies implements JvmComponentDependencies
         bucket.getDependencies().addAllLater(dependencies);
     }
 
-    private <T> Transformer<Dependency, T> mapDependencyProvider(Configuration bucket, @Nullable Action<? super Dependency> configuration) {
+    private <T> Transformer<Dependency, T> mapDependencyProvider(Configuration bucket, @Nullable Action<? super ModuleDependency> configuration) {
         return lazyNotation -> {
             if (lazyNotation instanceof Configuration) {
                 throw new InvalidUserDataException("Adding a configuration as a dependency using a provider isn't supported. You should call " + bucket.getName() + ".extendsFrom(" + ((Configuration) lazyNotation).getName() + ") instead");
@@ -142,21 +143,15 @@ public class DefaultJvmComponentDependencies implements JvmComponentDependencies
         };
     }
 
-    private Dependency create(Object dependency, @Nullable Action<? super Dependency> configuration) {
+    private Dependency create(Object dependency, @Nullable Action<? super ModuleDependency> configuration) {
         final Dependency created = getDependencyHandler().create(dependency);
         if (configuration != null) {
-            configuration.execute(created);
+            if (created instanceof ModuleDependency) {
+                configuration.execute((ModuleDependency) created);
+            } else {
+                throw new InvalidUserDataException("Cannot configure " + dependency + " dependency in the testing block because it is not a module dependency.  To configure this dependency, you will need to use the top-level dependency block.");
+            }
         }
         return created;
-    }
-
-    @Override
-    public void constraints(Action<? super DependencyConstraintHandler> configureAction) {
-        configureAction.execute(getDependencyConstraintHandler());
-    }
-
-    @Override
-    public DependencyConstraintHandler getConstraints() {
-        return getDependencyConstraintHandler();
     }
 }

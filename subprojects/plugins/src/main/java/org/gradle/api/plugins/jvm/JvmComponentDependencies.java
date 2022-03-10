@@ -18,8 +18,7 @@ package org.gradle.api.plugins.jvm;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.dsl.DependencyConstraintHandler;
+import org.gradle.api.artifacts.ModuleDependency;
 
 /**
  * This DSL element is used to add dependencies to a component, like {@link JvmTestSuite}.
@@ -54,7 +53,7 @@ public interface JvmComponentDependencies {
      * @param configuration additional configuration for the provided dependency
      * @see org.gradle.api.artifacts.dsl.DependencyHandler Valid dependency notations.
      */
-    void implementation(Object dependencyNotation, Action<? super Dependency> configuration);
+    void implementation(Object dependencyNotation, Action<? super ModuleDependency> configuration);
 
     /**
      * Add a dependency to the set of compileOnly dependencies.
@@ -74,7 +73,7 @@ public interface JvmComponentDependencies {
      * @param configuration additional configuration for the provided dependency
      * @see org.gradle.api.artifacts.dsl.DependencyHandler Valid dependency notations.
      */
-    void compileOnly(Object dependencyNotation, Action<? super Dependency> configuration);
+    void compileOnly(Object dependencyNotation, Action<? super ModuleDependency> configuration);
 
     /**
      * Add a dependency to the set of runtimeOnly dependencies.
@@ -94,23 +93,5 @@ public interface JvmComponentDependencies {
      * @param configuration additional configuration for the provided dependency
      * @see org.gradle.api.artifacts.dsl.DependencyHandler Valid dependency notations.
      */
-    void runtimeOnly(Object dependencyNotation, Action<? super Dependency> configuration);
-
-    /**
-     * Returns the dependency constraint handler for this project.
-     *
-     * @return the dependency constraint handler for this project
-     * @since 7.5
-     */
-    DependencyConstraintHandler getConstraints();
-
-    /**
-     * Configures dependency constraint for this project.
-     *
-     * <p>This method executes the given action against the {@link org.gradle.api.artifacts.dsl.DependencyConstraintHandler} for this project.</p>
-     *
-     * @param configureAction the action to use to configure module metadata
-     * @since 7.5
-     */
-    void constraints(Action<? super DependencyConstraintHandler> configureAction);
+    void runtimeOnly(Object dependencyNotation, Action<? super ModuleDependency> configuration);
 }
