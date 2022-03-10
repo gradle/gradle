@@ -5,7 +5,7 @@ plugins {
 version.set("1.0")
 
 val buildInfo by tasks.registering(BuildInfo::class) {
-    version.set(project.version.toString())
+    version.set(project.version)
     outputFile.set(layout.buildDirectory.file("generated-resources/build-info.properties"))
 }
 

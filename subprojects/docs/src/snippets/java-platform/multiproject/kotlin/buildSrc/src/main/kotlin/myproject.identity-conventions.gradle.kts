@@ -1,2 +1,2 @@
 group = "com.example"
-version = rootProject.version
+version.set(rootProject.version)

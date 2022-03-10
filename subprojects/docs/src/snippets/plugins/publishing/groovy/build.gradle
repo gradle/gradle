@@ -5,8 +5,8 @@ plugins {
     id 'ivy-publish'
 }
 
-group 'com.example'
-version '1.0.0'
+group = 'com.example'
+version = '1.0.0'
 
 gradlePlugin {
     plugins {

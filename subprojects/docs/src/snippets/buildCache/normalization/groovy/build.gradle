@@ -14,7 +14,7 @@ normalization {
 
 // tag::versionInfo[]
 def currentVersionInfo = tasks.register('currentVersionInfo', CurrentVersionInfo) {
-    version = project.version
+    version.set(project.version)
     versionInfoFile = layout.buildDirectory.file('generated-resources/currentVersion.properties')
 }
 

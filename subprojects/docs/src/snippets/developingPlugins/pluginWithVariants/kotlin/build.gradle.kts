@@ -11,7 +11,7 @@ val gradle7 = sourceSets.create("gradle7")
 java {
     registerFeature(gradle7.name) {
         usingSourceSet(gradle7)
-        capability(project.group.toString(), project.name, project.version.toString()) // <1>
+        capability(project.group.toString(), project.name, project.version.get()) // <1>
     }
 }
 configurations.configureEach {

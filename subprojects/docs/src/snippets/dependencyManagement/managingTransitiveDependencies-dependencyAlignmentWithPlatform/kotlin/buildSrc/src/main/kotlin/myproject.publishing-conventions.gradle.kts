@@ -3,7 +3,7 @@ plugins {
 }
 
 group = rootProject.group
-version = rootProject.version
+version.set(rootProject.version)
 
 publishing {
     repositories {
