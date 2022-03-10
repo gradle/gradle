@@ -3,7 +3,7 @@ plugins {
 }
 
 group = "org.sample"
-version = "1.0-SNAPSHOT"
+version.set("1.0-SNAPSHOT")
 
 gradlePlugin {
     plugins {

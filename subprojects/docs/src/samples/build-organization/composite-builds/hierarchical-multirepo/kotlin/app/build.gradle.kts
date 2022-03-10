@@ -3,7 +3,7 @@ plugins {
 }
 
 group = "org.sample"
-version = "1.0"
+version.set("1.0")
 
 application {
     mainClass.set("org.sample.myapp.Main")

@@ -3,7 +3,7 @@ plugins {
     id("extra-java-module-info") // apply my own plugin written in buildSrc
 }
 
-version = "1.0.2"
+version.set("1.0.2")
 group = "org.gradle.sample"
 
 repositories {
