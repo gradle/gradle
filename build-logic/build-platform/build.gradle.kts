@@ -70,6 +70,9 @@ dependencies {
         api("org.openmbee.junit:junit-xml-parser:1.0.0")
         api("org.ow2.asm:asm:$asmVersion")
         api("org.ow2.asm:asm-commons:$asmVersion")
+        api("xerces:xercesImpl:2.12.1") {
+            because("Maven Central and JCenter disagree on version 2.9.1 metadata")
+        }
         api("net.bytebuddy:byte-buddy") { version { strictly("1.10.21") } }
         api("org.objenesis:objenesis") { version { strictly("3.1") } }
     }
