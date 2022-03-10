@@ -25,7 +25,7 @@ publishing {
         create<MavenPublication>("maven") {
             groupId = "org.gradle.sample"
             artifactId = "library"
-            version = "1.1"
+            version.set("1.1")
 
             from(components["java"])
         }
