@@ -49,7 +49,7 @@
   "scenario" : "org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest.run :module21:module02:assembleDebug --dry-run",
   "durations" : [ {
     "testProject" : "largeAndroidBuild2",
-    "linux" : 1586000
+    "linux" : 2395000
   } ]
 }, {
   "scenario" : "org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest.run assembleDebug",
