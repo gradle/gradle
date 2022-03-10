@@ -306,7 +306,7 @@ class CppLibraryPluginTest extends Specification {
         when:
         project.pluginManager.apply(CppLibraryPlugin)
         project.pluginManager.apply(MavenPublishPlugin)
-        project.version = 1.2
+        project.version.set("1.2")
         project.group = 'my.group'
         project.library.baseName = 'mylib'
         project.evaluate()
@@ -318,19 +318,19 @@ class CppLibraryPluginTest extends Specification {
         def main = publishing.publications.main
         main.groupId == 'my.group'
         main.artifactId == 'mylib'
-        main.version == '1.2'
+        main.version.get() == '1.2'
         main.artifacts.size() == 1
 
         def debug = publishing.publications.mainDebug
         debug.groupId == 'my.group'
         debug.artifactId == 'mylib_debug'
-        debug.version == '1.2'
+        debug.version.get() == '1.2'
         debug.artifacts.size() == expectedSharedLibFiles()
 
         def release = publishing.publications.mainRelease
         release.groupId == 'my.group'
         release.artifactId == 'mylib_release'
-        release.version == '1.2'
+        release.version.get() == '1.2'
         release.artifacts.size() == expectedSharedLibFiles()
     }
 
