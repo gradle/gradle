@@ -212,7 +212,6 @@ Method <org.gradle.api.publish.maven.MavenPublication.getArtifactId()> does not 
 Method <org.gradle.api.publish.maven.MavenPublication.getArtifacts()> does not have raw return type assignable to org.gradle.api.provider.Property in (MavenPublication.java:0)
 Method <org.gradle.api.publish.maven.MavenPublication.getGroupId()> does not have raw return type assignable to org.gradle.api.provider.Property in (MavenPublication.java:0)
 Method <org.gradle.api.publish.maven.MavenPublication.getPom()> does not have raw return type assignable to org.gradle.api.provider.Provider in (MavenPublication.java:0)
-Method <org.gradle.api.publish.maven.MavenPublication.getVersion()> does not have raw return type assignable to org.gradle.api.provider.Property in (MavenPublication.java:0)
 Method <org.gradle.api.reporting.DirectoryReport.getEntryPoint()> does not have raw return type assignable to org.gradle.api.provider.Provider in (DirectoryReport.java:0)
 Method <org.gradle.api.reporting.DirectoryReport.getOutputType()> does not have raw return type assignable to org.gradle.api.provider.Provider in (DirectoryReport.java:0)
 Method <org.gradle.api.reporting.Report.getDestination()> does not have raw return type assignable to org.gradle.api.provider.Provider in (Report.java:0)
