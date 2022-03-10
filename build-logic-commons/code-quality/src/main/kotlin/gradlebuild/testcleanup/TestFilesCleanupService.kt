@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,17 +59,9 @@ abstract class TestFilesCleanupService @Inject constructor(
         val cleanupRunnerStep: Property<Boolean>
 
         /**
-         * The mapping task path to project path
-         */
-        val relevantTaskPathToProjectPath: MapProperty<String, String>
-
-        /**
          * Key is the path of a task, value is the possible report dirs it generates.
          */
-        val taskPathToGenericHtmlReports: MapProperty<String, List<File>>
-        val taskPathToAttachedReports: MapProperty<String, List<File>>
-        val taskPathToCustomReports: MapProperty<String, List<File>>
-        val taskPathToTDTraceJsons: MapProperty<String, List<File>>
+        val taskPathToReports: MapProperty<String, List<File>>
 
         /**
          * Key is the path of the test, value is Test.binaryResultsDir
@@ -84,39 +76,23 @@ abstract class TestFilesCleanupService @Inject constructor(
     val projectPathToExecutedTaskPaths: MutableMap<String, MutableList<String>> = mutableMapOf()
 
     private
-    val taskPathToGenericHtmlReports: Map<String, List<File>>
-        get() = parameters.taskPathToGenericHtmlReports.get()
-
-    private
-    val taskPathToAttachedReports: Map<String, List<File>>
-        get() = parameters.taskPathToAttachedReports.get()
-
-    private
-    val taskPathToCustomReports: Map<String, List<File>>
-        get() = parameters.taskPathToCustomReports.get()
-
-    private
-    val taskPathToTDTraceJsons: Map<String, List<File>>
-        get() = parameters.taskPathToTDTraceJsons.get()
-
-    private
-    val testPathToBinaryResultsDirs: Map<String, File>
-        get() = parameters.testPathToBinaryResultsDirs.get()
+    val taskPathReports: Map<String, List<File>>
+        get() = parameters.taskPathToReports.get()
 
     private
     val rootBuildDir: File
         get() = parameters.rootBuildDir.get().asFile
 
     private
-    val relevantTaskPathToProjectPath: Map<String, String>
-        get() = parameters.relevantTaskPathToProjectPath.get()
+    val cleanupRunnerStep: Boolean
+        get() = parameters.cleanupRunnerStep.getOrElse(false)
 
     private
-    val cleanupRunnerStep: Boolean
-        get() = parameters.cleanupRunnerStep.get()
+    val testPathToBinaryResultsDirs: Map<String, File>
+        get() = parameters.testPathToBinaryResultsDirs.get()
 
     override fun onFinish(event: FinishEvent) {
-        if (event is TaskFinishEvent && relevantTaskPathToProjectPath.containsKey(event.descriptor.taskPath)) {
+        if (event is TaskFinishEvent && taskPathReports.containsKey(event.descriptor.taskPath)) {
             val taskPath = event.descriptor.taskPath
             when (event.result) {
                 is TaskSuccessResult -> {
@@ -142,12 +118,12 @@ abstract class TestFilesCleanupService @Inject constructor(
 
     private
     fun addExecutedTaskPath(taskPath: String) {
-        projectPathToExecutedTaskPaths.computeIfAbsent(relevantTaskPathToProjectPath.getValue(taskPath)) { mutableListOf() }.add(taskPath)
+        projectPathToExecutedTaskPaths.computeIfAbsent(taskPathToProjectPath(taskPath)) { mutableListOf() }.add(taskPath)
     }
 
     private
     fun addFailedTaskPath(taskPath: String) {
-        projectPathToFailedTaskPaths.computeIfAbsent(relevantTaskPathToProjectPath.getValue(taskPath)) { mutableListOf() }.add(taskPath)
+        projectPathToFailedTaskPaths.computeIfAbsent(taskPathToProjectPath(taskPath)) { mutableListOf() }.add(taskPath)
     }
 
     private
@@ -158,12 +134,11 @@ abstract class TestFilesCleanupService @Inject constructor(
 
     override fun close() {
         val projectPathToLeftoverFiles = mutableMapOf<String, LeftoverFiles>()
-        // First run: collect and archieve leftover files
+        // First run: collect and archive leftover files
         parameters.projectStates.get().forEach { (projectPath: String, projectExtension: TestFileCleanUpExtension) ->
             val tmpTestFiles = projectExtension.tmpTestFiles()
 
             projectExtension.prepareReportsForCiPublishing(
-                if (tmpTestFiles.isEmpty()) getFailedTaskPaths(projectPath) else getExecutedTaskPaths(projectPath),
                 getExecutedTaskPaths(projectPath),
                 tmpTestFiles.keys
             )
@@ -234,48 +209,11 @@ abstract class TestFilesCleanupService @Inject constructor(
         } ?: emptyMap()
 
     private
-    fun TestFilesCleanupProjectState.prepareReportsForCiPublishing(taskPathsToCollectReports: List<String>, executedTaskPaths: List<String>, tmpTestFiles: Collection<File>) {
-        val collectedTaskHtmlReports = taskPathsToCollectReports.flatMap { taskPathToGenericHtmlReports.getOrDefault(it, emptyList()) }
-        val attachedReports = executedTaskPaths.flatMap { taskPathToAttachedReports.getOrDefault(it, emptyList()) }
-        val executedTaskCustomReports = taskPathsToCollectReports.flatMap { taskPathToCustomReports.getOrDefault(it, emptyList()) }
-        val testDistributionTraceJsons = executedTaskPaths.flatMap { taskPathToTDTraceJsons.getOrDefault(it, emptyList()) }
-        val allReports = collectedTaskHtmlReports + attachedReports + executedTaskCustomReports + tmpTestFiles + testDistributionTraceJsons
+    fun TestFilesCleanupProjectState.prepareReportsForCiPublishing(executedTaskPaths: List<String>, tmpTestFiles: Collection<File>) {
+        val reports = executedTaskPaths.flatMap { taskPathReports.getOrDefault(it, emptyList()) }
+        val allReports = tmpTestFiles + reports
         allReports.forEach { report ->
             prepareReportForCiPublishing(report)
-        }
-    }
-
-    private
-    fun TestFilesCleanupProjectState.prepareReportForCiPublishing(report: File) {
-        if (report.exists()) {
-            if (report.isDirectory) {
-                val destFile = rootBuildDir.resolve("report-${projectName.get()}-${report.name}.zip")
-                zip(destFile, report)
-            } else {
-                fileSystemOperations.copy {
-                    from(report)
-                    into(rootBuildDir)
-                    rename { "report-${projectName.get()}-${report.parentFile.name}-${report.name}" }
-                }
-            }
-        }
-    }
-
-    private
-    fun zip(destZip: File, srcDir: File) {
-        destZip.parentFile.mkdirs()
-        ZipOutputStream(FileOutputStream(destZip), StandardCharsets.UTF_8).use { zipOutput ->
-            val srcPath = srcDir.toPath()
-            Files.walk(srcPath).use { paths ->
-                paths
-                    .filter { Files.isRegularFile(it, LinkOption.NOFOLLOW_LINKS) }
-                    .forEach { path ->
-                        val zipEntry = ZipEntry(srcPath.relativize(path).toString())
-                        zipOutput.putNextEntry(zipEntry)
-                        Files.copy(path, zipOutput)
-                        zipOutput.closeEntry()
-                    }
-            }
         }
     }
 
@@ -309,6 +247,44 @@ abstract class TestFilesCleanupService @Inject constructor(
             e.printStackTrace()
         }
     }
+
+    private
+    fun TestFilesCleanupProjectState.prepareReportForCiPublishing(report: File) {
+        if (report.exists()) {
+            val projectPathName = projectPath.get().replace(':', '-')
+            if (report.isDirectory) {
+                val destFile = rootBuildDir.resolve("report$projectPathName-${report.name}.zip")
+                zip(destFile, report)
+            } else {
+                fileSystemOperations.copy {
+                    from(report)
+                    into(rootBuildDir)
+                    rename { "report$projectPathName-${report.parentFile.name}-${report.name}" }
+                }
+            }
+        }
+    }
+
+    private
+    fun zip(destZip: File, srcDir: File) {
+        destZip.parentFile.mkdirs()
+        ZipOutputStream(FileOutputStream(destZip), StandardCharsets.UTF_8).use { zipOutput ->
+            val srcPath = srcDir.toPath()
+            Files.walk(srcPath).use { paths ->
+                paths
+                    .filter { Files.isRegularFile(it, LinkOption.NOFOLLOW_LINKS) }
+                    .forEach { path ->
+                        val zipEntry = ZipEntry(srcPath.relativize(path).toString())
+                        zipOutput.putNextEntry(zipEntry)
+                        Files.copy(path, zipOutput)
+                        zipOutput.closeEntry()
+                    }
+            }
+        }
+    }
+
+    private
+    fun taskPathToProjectPath(taskPath: String): String {
+        return taskPath.substringBeforeLast(":").ifEmpty { ":" }
+    }
 }
-
-
