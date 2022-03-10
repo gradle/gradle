@@ -42,6 +42,20 @@
             "changes": [
                 "org.gradle.kotlin.dsl.support.delegates.ProjectDelegate.setVersion(java.lang.Object)"
             ]
+        }, {
+            "type": "org.gradle.api.publish.maven.MavenPublication",
+            "member": "Method org.gradle.api.publish.maven.MavenPublication.getVersion()",
+            "acceptation": "Migrated to Provider API",
+            "changes": [
+                "Method return type has changed"
+            ]
+        }, {
+            "type": "org.gradle.api.publish.maven.MavenPublication",
+            "member": "Method org.gradle.api.publish.maven.MavenPublication.setVersion(java.lang.String)",
+            "acceptation": "Migrated to Provider API",
+            "changes": [
+                "Method has been removed"
+            ]
         }
     ]
 }
