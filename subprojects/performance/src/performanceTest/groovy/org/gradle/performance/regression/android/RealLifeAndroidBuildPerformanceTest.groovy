@@ -77,7 +77,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
         'help'                                       | null       | null
         'assembleDebug'                              | null       | null
         'clean phthalic:assembleDebug'               | 2          | 8
-        ':module21:module02:assembleDebug --dry-run' | 4          | 12
+        ':module21:module02:assembleDebug --dry-run' | null       | null
     }
 
     @RunFor([
