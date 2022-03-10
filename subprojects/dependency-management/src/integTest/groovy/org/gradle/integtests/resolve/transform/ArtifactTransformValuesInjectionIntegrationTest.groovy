@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.transform
 
 import com.google.common.reflect.TypeToken
+import groovy.test.NotYetImplemented
 import org.gradle.api.artifacts.transform.InputArtifact
 import org.gradle.api.artifacts.transform.InputArtifactDependencies
 import org.gradle.api.file.FileCollection
@@ -46,6 +47,7 @@ import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.process.ExecOperations
+import spock.lang.Issue
 
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -170,12 +172,14 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         "MapProperty<String, Number>" | "[a: 1, b: 2]" | "[a:1, b:2]" | "[:]"
     }
 
+    @NotYetImplemented
+    @Issue("https://github.com/gradle/gradle/issues/16982")
     def "transform can set convention on parameter of type #type"() {
+        given:
         settingsFile << """
             include 'a', 'b', 'c'
         """
-        setupBuildWithColorTransform {
-        }
+        setupBuildWithColorTransform()
 
         buildFile << """
             project(':a') {
@@ -209,8 +213,8 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
 
         where:
         type                          | value          | expected
-        "Property<String>"            | "'value'"      | 'value'
         "Property<Boolean>"           | 'true'         | 'true'
+        "Property<String>"            | "'value'"      | 'value'
         "ListProperty<String>"        | "['a', 'b']"   | "[a, b]"
         "SetProperty<String>"         | "['a', 'b']"   | "[a, b]"
         "MapProperty<String, Number>" | "[a: 1, b: 2]" | "[a:1, b:2]"
