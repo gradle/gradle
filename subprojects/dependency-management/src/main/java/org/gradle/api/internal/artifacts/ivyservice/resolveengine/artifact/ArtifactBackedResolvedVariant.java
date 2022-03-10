@@ -45,6 +45,7 @@ public class ArtifactBackedResolvedVariant implements ResolvedVariant {
     private final AttributeContainerInternal attributes;
     private final CapabilitiesMetadata capabilities;
     private final Supplier<ResolvedArtifactSet> artifacts;
+    private ResolvedArtifactSet resolvedArtifacts;
 
     private ArtifactBackedResolvedVariant(@Nullable VariantResolveMetadata.Identifier identifier, DisplayName displayName, AttributeContainerInternal attributes, CapabilitiesMetadata capabilities, Supplier<ResolvedArtifactSet> artifacts) {
         this.identifier = identifier;
@@ -93,7 +94,10 @@ public class ArtifactBackedResolvedVariant implements ResolvedVariant {
 
     @Override
     public ResolvedArtifactSet getArtifacts() {
-        return artifacts.get();
+        if (resolvedArtifacts == null) {
+            resolvedArtifacts = artifacts.get();
+        }
+        return resolvedArtifacts;
     }
 
     @Override
