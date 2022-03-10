@@ -114,6 +114,7 @@ class WorkNodeCodec(
                 writeSuccessorReferences(node.shouldSuccessors, scheduledNodeIds)
                 writeSuccessorReferences(node.mustSuccessors, scheduledNodeIds)
                 writeSuccessorReferences(node.finalizingSuccessors, scheduledNodeIds)
+                writeSuccessorReferences(node.lifecycleSuccessors, scheduledNodeIds)
             }
         }
     }
@@ -136,6 +137,12 @@ class WorkNodeCodec(
                     require(it is TaskNode)
                     node.addFinalizingSuccessor(it)
                 }
+                val lifecycleSuccessors = mutableSetOf<Node>()
+                readSuccessorReferences(nodesById) {
+                    require(it is TaskNode)
+                    lifecycleSuccessors.add(it)
+                }
+                node.lifecycleSuccessors = lifecycleSuccessors
             }
         }
     }
