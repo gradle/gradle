@@ -96,7 +96,7 @@ class DefaultMavenPublicationTest extends Specification {
         and:
         publication.groupId = "group2"
         publication.artifactId = "name2"
-        publication.version = "version2"
+        publication.version.set("version2")
 
         then:
         module.groupId.get() == "group2"
@@ -106,7 +106,7 @@ class DefaultMavenPublicationTest extends Specification {
         and:
         publication.groupId == "group2"
         publication.artifactId == "name2"
-        publication.version == "version2"
+        publication.version.get() == "version2"
 
         and:
         publication.mavenProjectIdentity.groupId.get() == "group2"

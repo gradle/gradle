@@ -85,7 +85,7 @@ class MavenPluginPublishPlugin implements Plugin<Project> {
         String pluginId = declaration.getId();
         String pluginGroupId = coordinates.getGroupId();
         String pluginArtifactId = coordinates.getArtifactId();
-        String pluginVersion = coordinates.getVersion();
+        String pluginVersion = coordinates.getVersion().get();
         MavenPublicationInternal publication = (MavenPublicationInternal) publications.create(declaration.getName() + "PluginMarkerMaven", MavenPublication.class);
         publication.setAlias(true);
         publication.setArtifactId(pluginId + PLUGIN_MARKER_SUFFIX);

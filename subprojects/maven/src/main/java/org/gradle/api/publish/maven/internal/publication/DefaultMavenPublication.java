@@ -59,6 +59,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.publish.VersionMappingStrategy;
 import org.gradle.api.publish.internal.CompositePublicationArtifactSet;
 import org.gradle.api.publish.internal.DefaultPublicationArtifactSet;
@@ -533,13 +534,8 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     }
 
     @Override
-    public String getVersion() {
-        return projectIdentity.getVersion().get();
-    }
-
-    @Override
-    public void setVersion(String version) {
-        projectIdentity.getVersion().set(version);
+    public Property<String> getVersion() {
+        return projectIdentity.getVersion();
     }
 
     @Override
@@ -750,7 +746,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
 
     @Override
     public ModuleVersionIdentifier getCoordinates() {
-        return DefaultModuleVersionIdentifier.newId(getGroupId(), getArtifactId(), getVersion());
+        return DefaultModuleVersionIdentifier.newId(getGroupId(), getArtifactId(), getVersion().get());
     }
 
     @Nullable

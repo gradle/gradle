@@ -18,6 +18,7 @@ package org.gradle.api.publish.maven;
 
 import org.gradle.api.Action;
 import org.gradle.api.component.SoftwareComponent;
+import org.gradle.api.provider.Property;
 import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.VersionMappingStrategy;
 import org.gradle.internal.HasInternalProtocol;
@@ -286,14 +287,9 @@ public interface MavenPublication extends Publication {
     void setArtifactId(String artifactId);
 
     /**
-     * Returns the version for this publication.
+     * The version for this publication.
      */
-    String getVersion();
-
-    /**
-     * Sets the version for this publication.
-     */
-    void setVersion(String version);
+    Property<String> getVersion();
 
     /**
      * Configures the version mapping strategy.
