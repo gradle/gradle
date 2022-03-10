@@ -42,9 +42,9 @@ class MavenPublishMultiProjectIntegTest extends AbstractMavenPublishIntegTest {
 project(":project3") {
     publishing {
         publications.maven {
-            groupId "changed.group"
-            artifactId "changed-artifact-id"
-            version "changed"
+            groupId = "changed.group"
+            artifactId = "changed-artifact-id"
+            version = "changed"
         }
     }
 }
@@ -95,14 +95,14 @@ project(":project3") {
         publications {
             extraComp(MavenPublication) {
                 from components.java
-                groupId "extra.group"
-                artifactId "extra-comp"
-                version "extra"
+                groupId = "extra.group"
+                artifactId = "extra-comp"
+                version = "extra"
             }
             extra(MavenPublication) {
-                groupId "extra.group"
-                artifactId "extra"
-                version "extra"
+                groupId = "extra.group"
+                artifactId = "extra"
+                version = "extra"
             }
         }
     }
@@ -126,9 +126,9 @@ project(":project3") {
     publishing {
         publications {
             extra(MavenPublication) {
-                groupId "extra.group"
-                artifactId "extra"
-                version "extra"
+                groupId = "extra.group"
+                artifactId = "extra"
+                version = "extra"
             }
         }
     }
@@ -155,9 +155,9 @@ project(":project3") {
         publications {
             extra1(MavenPublication) {
                 from c1
-                groupId "extra.group"
-                artifactId "extra1"
-                version "extra"
+                groupId = "extra.group"
+                artifactId = "extra1"
+                version = "extra"
             }
             extra2(MavenPublication) {
                 from c2

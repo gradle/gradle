@@ -154,7 +154,7 @@ class CppApplicationPluginTest extends Specification {
         when:
         project.pluginManager.apply(CppApplicationPlugin)
         project.pluginManager.apply(MavenPublishPlugin)
-        project.version = 1.2
+        project.version.set("1.2")
         project.group = 'my.group'
         project.application.baseName = 'test_app'
         project.evaluate()
@@ -166,19 +166,19 @@ class CppApplicationPluginTest extends Specification {
         def main = publishing.publications.main
         main.groupId == 'my.group'
         main.artifactId == 'test_app'
-        main.version == '1.2'
+        main.version.get() == '1.2'
         main.artifacts.empty
 
         def debug = publishing.publications.mainDebug
         debug.groupId == 'my.group'
         debug.artifactId == 'test_app_debug'
-        debug.version == '1.2'
+        debug.version.get() == '1.2'
         debug.artifacts.size() == 1
 
         def release = publishing.publications.mainRelease
         release.groupId == 'my.group'
         release.artifactId == 'test_app_release'
-        release.version == '1.2'
+        release.version.get() == '1.2'
         release.artifacts.size() == 1
     }
 }
