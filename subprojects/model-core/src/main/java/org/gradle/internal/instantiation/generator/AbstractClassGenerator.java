@@ -217,7 +217,6 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             }
 
             ClassGenerationVisitor generationVisitor = inspectionVisitor.builder();
-
             for (ClassGenerationHandler handler : handlers) {
                 handler.applyTo(generationVisitor);
             }
@@ -331,16 +330,23 @@ abstract class AbstractClassGenerator implements ClassGenerator {
     }
 
     private void visitFields(ClassDetails type, List<ClassGenerationHandler> generationHandlers) {
+        if (hasRelevantFields(type)) {
+            for (ClassGenerationHandler handler : generationHandlers) {
+                handler.hasFields();
+            }
+        }
+    }
+
+    private boolean hasRelevantFields(ClassDetails type) {
         List<Field> instanceFields = type.getInstanceFields();
         if (instanceFields.isEmpty()) {
-            return;
+            return false;
         }
+        // Ignore irrelevant synthetic metaClass field injected by the Groovy compiler
         if (instanceFields.size() == 1 && isSyntheticMetaClassField(instanceFields.get(0))) {
-            return;
+            return false;
         }
-        for (ClassGenerationHandler handler : generationHandlers) {
-            handler.hasFields();
-        }
+        return true;
     }
 
     private boolean isSyntheticMetaClassField(Field field) {
