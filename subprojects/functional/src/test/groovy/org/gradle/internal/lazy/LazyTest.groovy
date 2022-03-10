@@ -18,13 +18,82 @@ package org.gradle.internal.lazy
 
 import spock.lang.Specification
 
+import java.util.concurrent.CyclicBarrier
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.function.Supplier
 
 class LazyTest extends Specification {
 
-    def "supplier code is executed once"() {
+    def "#factoryName supplier code is executed once with use"() {
+        def supplier = Mock(Supplier)
+
+        when:
+        def lazy = factory(supplier)
+
+        then:
+        0 * supplier._
+
+        when:
+        lazy.use {
+            assert it == 123
+        }
+
+        then:
+        1 * supplier.get() >> 123
+
+        when:
+        lazy.get()
+
+        then:
+        0 * supplier.get()
+
+        when:
+        lazy.use {
+            throw new RuntimeException("boom")
+        }
+        then:
+        def e = thrown(RuntimeException)
+        e.message == "boom"
+
+        where:
+        factory                  | factoryName
+        Lazy.unsafe()::of        | "unsafe"
+        Lazy.locking()::of       | "locking"
+    }
+
+    def "#factoryName supplier code is executed once with apply"() {
+        def supplier = Mock(Supplier)
+
+        when:
+        def lazy = factory(supplier)
+
+        then:
+        0 * supplier._
+
+        when:
+        def val = lazy.apply {
+            3 * it
+        }
+
+        then:
+        1 * supplier.get() >> 123
+        val == 369
+
+        when:
+        lazy.get()
+
+        then:
+        0 * supplier.get()
+
+        where:
+        factory                  | factoryName
+        Lazy.unsafe()::of        | "unsafe"
+        Lazy.locking()::of       | "locking"
+    }
+
+    def "#factoryName supplier code is executed once"() {
         def supplier = Mock(Supplier)
 
         when:
@@ -45,78 +114,87 @@ class LazyTest extends Specification {
         then:
         0 * supplier.get()
 
+        where:
+        factory                  | factoryName
+        Lazy.unsafe()::of        | "unsafe"
+        Lazy.locking()::of       | "locking"
+    }
+
+    def "#factoryName supplier code is executed once with map"() {
+        def supplier = Mock(Supplier)
+
         when:
-        lazy.use {
-            assert it == expected
+        def lazy = factory(supplier).map {
+            2 * it
         }
 
         then:
-        noExceptionThrown()
+        0 * supplier._
 
         when:
-        def val = lazy.apply {
-            3 * it
-        }
+        def result = lazy.get()
+
+        then:
+        1 * supplier.get() >> 123
+        result == 246
+
+        when:
+        lazy.get()
 
         then:
         0 * supplier.get()
-        val == 3 * expected
 
         where:
-        factory                                                  | expected
-        asClosure { s -> Lazy.unsafe().of(s as Supplier) }                 | 123
-        asClosure { s -> Lazy.unsafe().of(s as Supplier).map { 2 * it } }  | 246
-        asClosure { s -> Lazy.locking().of(s as Supplier) }                | 123
-        asClosure { s -> Lazy.locking().of(s as Supplier).map { 2 * it } } | 246
+        factory                  | factoryName
+        Lazy.unsafe()::of        | "unsafe"
+        Lazy.locking()::of       | "locking"
     }
 
-    def "lazy can handle concurrent threads (#factoryName)"() {
+    def "locking lazy can handle concurrent threads"() {
         def supplier = Mock(Supplier)
-        def lazy = factory.of(supplier)
-        def executors = Executors.newFixedThreadPool(20)
+        Lazy<Integer> lazy = Lazy.locking().of(supplier)
+        def total = new AtomicInteger(0)
 
+        int concurrency = 20
+        def barrier = new CyclicBarrier(concurrency)
+        def executors = Executors.newFixedThreadPool(concurrency)
         when:
-        50.times {
+        concurrency.times {
             executors.submit {
-                assert lazy.get() == 'hello'
+                // The barrier ensures that the threads all try to access lazy at nearly the same time
+                barrier.await()
+                total.addAndGet(lazy.get())
             }
         }
         executors.shutdown()
         executors.awaitTermination(1, TimeUnit.MINUTES)
 
         then:
-        1 * supplier.get() >> 'hello'
-
-        where:
-        factoryName     | factory
-        'locking'       | Lazy.locking()
-        'synchronized'  | Lazy.synchronizing()
+        1 * supplier.get() >> 123
+        total.get() == 123*concurrency
     }
 
-    def "locking lazy can handle concurrent threads (#factoryName)"() {
+    def "locking lazy can handle concurrent threads with map"() {
         def supplier = Mock(Supplier)
-        def lazy = factory.of(supplier).map { 2 * it }
-        def executors = Executors.newFixedThreadPool(20)
+        Lazy<Integer> lazy = Lazy.locking().of(supplier).map { 2 * it }
+        def total = new AtomicInteger(0)
 
+        int concurrency = 20
+        def barrier = new CyclicBarrier(concurrency)
+        def executors = Executors.newFixedThreadPool(concurrency)
         when:
-        50.times {
+        concurrency.times {
             executors.submit {
-                lazy.get()
+                // The barrier ensures that the threads all try to access lazy at nearly the same time
+                barrier.await()
+                total.addAndGet(lazy.get())
             }
         }
         executors.shutdown()
         executors.awaitTermination(1, TimeUnit.MINUTES)
 
         then:
-        1 * supplier.get()
-
-        where:
-        factoryName     | factory
-        'locking'       | Lazy.locking()
-        'synchronized'  | Lazy.synchronizing()
-    }
-
-    Closure asClosure(Closure<Lazy<Object>> lazyClosure) {
-        return lazyClosure
+        1 * supplier.get() >> 123
+        total.get() == 123*concurrency*2
     }
 }
