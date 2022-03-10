@@ -16,7 +16,8 @@
 
 package org.gradle.api.plugins.quality.internal;
 
-import groovy.lang.Closure;
+import org.gradle.api.Action;
+import org.gradle.api.internal.project.antbuilder.AntBuilderDelegate;
 
 public abstract class CheckstyleAction extends AntWorkAction<CheckstyleActionParameters> {
 
@@ -26,7 +27,7 @@ public abstract class CheckstyleAction extends AntWorkAction<CheckstyleActionPar
     }
 
     @Override
-    protected Closure<Object> getAntClosure() {
-        return new CheckstyleInvoker(this, this, getParameters());
+    protected Action<AntBuilderDelegate> getAntAction() {
+        return new CheckstyleInvoker(getParameters());
     }
 }

@@ -16,16 +16,15 @@
 
 package org.gradle.api.plugins.quality.internal;
 
-import groovy.lang.Closure;
 import org.apache.tools.ant.BuildListener;
 import org.apache.tools.ant.Project;
+import org.gradle.api.Action;
 import org.gradle.api.AntBuilder;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.project.ant.AntLoggingAdapter;
 import org.gradle.api.internal.project.ant.BasicAntBuilder;
 import org.gradle.api.internal.project.antbuilder.AntBuilderDelegate;
 import org.gradle.internal.jvm.Jvm;
-import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.workers.WorkAction;
 import org.gradle.workers.WorkParameters;
 import org.slf4j.Logger;
@@ -44,8 +43,8 @@ public abstract class AntWorkAction<T extends WorkParameters> implements WorkAct
         AntLoggingAdapter antLogger = new AntLoggingAdapter();
         try {
             configureAntBuilder(antBuilder, antLogger);
-            Object delegate = new AntBuilderDelegate(antBuilder, Thread.currentThread().getContextClassLoader());
-            ClosureBackedAction.execute(delegate, getAntClosure());
+            AntBuilderDelegate delegate = new AntBuilderDelegate(antBuilder, Thread.currentThread().getContextClassLoader());
+            getAntAction().execute(delegate);
         } finally {
             disposeBuilder(antBuilder, antLogger);
         }
@@ -53,7 +52,7 @@ public abstract class AntWorkAction<T extends WorkParameters> implements WorkAct
 
     protected abstract String getActionName();
 
-    protected abstract Closure<Object> getAntClosure();
+    protected abstract Action<AntBuilderDelegate> getAntAction();
 
     private void configureAntBuilder(AntBuilder antBuilder, AntLoggingAdapter antLogger) {
         try {

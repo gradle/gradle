@@ -17,16 +17,18 @@
 package org.gradle.api.plugins.quality.internal
 
 import groovy.xml.XmlParser
+import org.gradle.api.Action
 import org.gradle.api.GradleException
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.project.antbuilder.AntBuilderDelegate
 import org.gradle.api.plugins.quality.Checkstyle
 import org.gradle.internal.logging.ConsoleRenderer
 import org.gradle.util.internal.GFileUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-class CheckstyleInvoker extends Closure<Object> {
+class CheckstyleInvoker implements Action<AntBuilderDelegate> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CheckstyleInvoker.class)
 
@@ -35,13 +37,12 @@ class CheckstyleInvoker extends Closure<Object> {
 
     private final CheckstyleActionParameters parameters
 
-    CheckstyleInvoker(Object owner, Object thisObject, CheckstyleActionParameters parameters) {
-        super(owner, thisObject)
+    CheckstyleInvoker(CheckstyleActionParameters parameters) {
         this.parameters = parameters
     }
 
     @SuppressWarnings("UnusedDeclaration")
-    Object doCall(Object ant) {
+    void execute(AntBuilderDelegate ant) {
         def source = parameters.source.asFileTree
         def showViolations = parameters.showViolations.get()
         def maxErrors = parameters.maxErrors.get()
@@ -117,8 +118,6 @@ class CheckstyleInvoker extends Closure<Object> {
                 LOGGER.warn(getMessage(isXmlRequired, xmlOutputLocation, isHtmlRequired, htmlOutputLocation, reportXml))
             }
         }
-
-        return null
     }
 
     private static parseCheckstyleXml(Boolean isXmlRequired, File xmlOutputLocation) {
