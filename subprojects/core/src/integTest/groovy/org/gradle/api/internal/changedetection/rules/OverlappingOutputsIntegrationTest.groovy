@@ -634,6 +634,9 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
 
         when:
         cleanBuildDir()
+        // When configuration cache is enabled, the task graph for this build will be loaded from the cache and tasks will run in parallel and start in an arbitrary order
+        // Use max-workers=1 to force non-parallel execution and the tasks to run in the specified order (--no-parallel doesn't have an effect with CC)
+        executer.withArgument("--max-workers=1")
         withBuildCache().run(fileTask, localStateDirTask)
         then:
         // Outcome should look the same again
