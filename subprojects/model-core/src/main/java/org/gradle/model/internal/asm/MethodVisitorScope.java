@@ -43,6 +43,7 @@ import static org.objectweb.asm.Opcodes.ICONST_1;
 import static org.objectweb.asm.Opcodes.IFEQ;
 import static org.objectweb.asm.Opcodes.IFNONNULL;
 import static org.objectweb.asm.Opcodes.IFNULL;
+import static org.objectweb.asm.Opcodes.ILOAD;
 import static org.objectweb.asm.Opcodes.INSTANCEOF;
 import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
 import static org.objectweb.asm.Opcodes.INVOKESPECIAL;
@@ -50,7 +51,9 @@ import static org.objectweb.asm.Opcodes.INVOKESTATIC;
 import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
 import static org.objectweb.asm.Opcodes.IRETURN;
 import static org.objectweb.asm.Opcodes.NEW;
+import static org.objectweb.asm.Opcodes.POP;
 import static org.objectweb.asm.Opcodes.PUTFIELD;
+import static org.objectweb.asm.Opcodes.PUTSTATIC;
 import static org.objectweb.asm.Opcodes.RETURN;
 import static org.objectweb.asm.Opcodes.SWAP;
 import static org.objectweb.asm.Type.getMethodDescriptor;
@@ -144,6 +147,10 @@ public class MethodVisitorScope extends MethodVisitor {
         super.visitInsn(SWAP);
     }
 
+    protected void _POP() {
+        super.visitInsn(POP);
+    }
+
     protected void _DUP() {
         super.visitInsn(DUP);
     }
@@ -174,6 +181,10 @@ public class MethodVisitorScope extends MethodVisitor {
 
     protected void _INSTANCEOF(Type type) {
         super.visitTypeInsn(INSTANCEOF, type.getInternalName());
+    }
+
+    protected void _ILOAD_OF(Type type, int var) {
+        super.visitVarInsn(type.getOpcode(ILOAD), var);
     }
 
     protected void _ALOAD(int var) {
@@ -216,6 +227,10 @@ public class MethodVisitorScope extends MethodVisitor {
         super.visitInsn(ARETURN);
     }
 
+    protected void _IRETURN_OF(Type type) {
+        super.visitInsn(type.getOpcode(IRETURN));
+    }
+
     protected void _IRETURN() {
         super.visitInsn(IRETURN);
     }
@@ -229,7 +244,11 @@ public class MethodVisitorScope extends MethodVisitor {
     }
 
     protected void _PUTFIELD(Type owner, String name, Type fieldType) {
-        _PUTFIELD(owner.getInternalName(), name, fieldType.getDescriptor());
+        _PUTFIELD(owner, name, fieldType.getDescriptor());
+    }
+
+    protected void _PUTFIELD(Type owner, String name, String descriptor) {
+        _PUTFIELD(owner.getInternalName(), name, descriptor);
     }
 
     protected void _GETFIELD(String owner, String name, String descriptor) {
@@ -242,6 +261,18 @@ public class MethodVisitorScope extends MethodVisitor {
 
     protected void _GETFIELD(Type owner, String name, String descriptor) {
         _GETFIELD(owner.getInternalName(), name, descriptor);
+    }
+
+    protected void _PUTSTATIC(String owner, String name, String descriptor) {
+        super.visitFieldInsn(PUTSTATIC, owner, name, descriptor);
+    }
+
+    protected void _PUTSTATIC(Type owner, String name, Type fieldType) {
+        _PUTSTATIC(owner, name, fieldType.getDescriptor());
+    }
+
+    protected void _PUTSTATIC(Type owner, String name, String descriptor) {
+        _PUTSTATIC(owner.getInternalName(), name, descriptor);
     }
 
     protected void _GETSTATIC(String owner, String name, String descriptor) {
