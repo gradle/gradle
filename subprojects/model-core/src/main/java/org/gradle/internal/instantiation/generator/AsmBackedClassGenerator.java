@@ -25,7 +25,6 @@ import groovy.lang.MetaClassRegistry;
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.Task;
-import org.gradle.api.Transformer;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.GeneratedSubclass;
@@ -56,7 +55,6 @@ import org.gradle.model.internal.asm.AsmClassGenerator;
 import org.gradle.model.internal.asm.BytecodeFragment;
 import org.gradle.model.internal.asm.ClassGeneratorSuffixRegistry;
 import org.gradle.model.internal.asm.MethodVisitorScope;
-import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.internal.ConfigureUtil;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassVisitor;
@@ -88,6 +86,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import static groovy.lang.MetaProperty.getSetterName;
 import static org.gradle.model.internal.asm.AsmClassGeneratorUtils.getterSignature;
 import static org.gradle.model.internal.asm.AsmClassGeneratorUtils.signature;
+import static org.gradle.util.internal.CollectionUtils.collectArray;
 import static org.gradle.util.internal.CollectionUtils.findFirst;
 import static org.objectweb.asm.Opcodes.ACC_FINAL;
 import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
@@ -96,7 +95,10 @@ import static org.objectweb.asm.Opcodes.ACC_STATIC;
 import static org.objectweb.asm.Opcodes.ACC_SYNTHETIC;
 import static org.objectweb.asm.Opcodes.ACC_TRANSIENT;
 import static org.objectweb.asm.Opcodes.V1_8;
+import static org.objectweb.asm.Type.BOOLEAN_TYPE;
+import static org.objectweb.asm.Type.INT_TYPE;
 import static org.objectweb.asm.Type.VOID_TYPE;
+import static org.objectweb.asm.Type.getDescriptor;
 import static org.objectweb.asm.Type.getMethodDescriptor;
 import static org.objectweb.asm.Type.getType;
 import static sun.reflect.ReflectionFactory.getReflectionFactory;
@@ -384,8 +386,8 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final String SERVICES_METHOD = "$gradleServices";
         private static final String FACTORY_METHOD = "$gradleFactory";
         private static final String INIT_METHOD = "$gradleInit";
-        private static final String CONVENTION_MAPPING_FIELD_DESCRIPTOR = Type.getDescriptor(ConventionMapping.class);
-        private static final String META_CLASS_TYPE_DESCRIPTOR = Type.getDescriptor(MetaClass.class);
+        private static final String CONVENTION_MAPPING_FIELD_DESCRIPTOR = getDescriptor(ConventionMapping.class);
+        private static final String META_CLASS_TYPE_DESCRIPTOR = getDescriptor(MetaClass.class);
         private final static Type META_CLASS_TYPE = getType(MetaClass.class);
         private final static Type GENERATED_SUBCLASS_TYPE = getType(GeneratedSubclass.class);
         private final static Type MODEL_OBJECT_TYPE = getType(ModelObject.class);
@@ -404,7 +406,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private final static Type ABSTRACT_DYNAMIC_OBJECT_TYPE = getType(AbstractDynamicObject.class);
         private final static Type EXTENSIBLE_DYNAMIC_OBJECT_HELPER_TYPE = getType(MixInExtensibleDynamicObject.class);
         private final static Type NON_EXTENSIBLE_DYNAMIC_OBJECT_HELPER_TYPE = getType(BeanDynamicObject.class);
-        private static final String JAVA_REFLECT_TYPE_DESCRIPTOR = Type.getDescriptor(java.lang.reflect.Type.class);
+        private static final String JAVA_REFLECT_TYPE_DESCRIPTOR = getDescriptor(java.lang.reflect.Type.class);
         private static final Type CONFIGURE_UTIL_TYPE = getType(ConfigureUtil.class);
         private static final Type CLOSURE_TYPE = getType(Closure.class);
         private static final Type SERVICE_REGISTRY_TYPE = getType(ServiceRegistry.class);
@@ -418,7 +420,6 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final Type CLASS_ARRAY_TYPE = getType(Class[].class);
         private static final Type GROOVY_SYSTEM_TYPE = getType(GroovySystem.class);
         private static final Type META_CLASS_REGISTRY_TYPE = getType(MetaClassRegistry.class);
-        private static final Type BOOLEAN_TYPE = getType(Boolean.TYPE);
         private static final Type OBJECT_ARRAY_TYPE = getType(Object[].class);
         private static final Type ACTION_TYPE = getType(Action.class);
         private static final Type PROPERTY_INTERNAL_TYPE = getType(PropertyInternal.class);
@@ -432,9 +433,9 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final String RETURN_DESCRIBABLE = getMethodDescriptor(DESCRIBABLE_TYPE);
         private static final String RETURN_VOID_FROM_OBJECT = getMethodDescriptor(Type.VOID_TYPE, OBJECT_TYPE);
         private static final String RETURN_VOID_FROM_OBJECT_CLASS_DYNAMIC_OBJECT_SERVICE_LOOKUP = getMethodDescriptor(Type.VOID_TYPE, OBJECT_TYPE, CLASS_TYPE, DYNAMIC_OBJECT_TYPE, SERVICE_LOOKUP_TYPE);
-        private static final String RETURN_OBJECT_FROM_STRING_OBJECT_BOOLEAN = getMethodDescriptor(OBJECT_TYPE, OBJECT_TYPE, STRING_TYPE, Type.BOOLEAN_TYPE);
+        private static final String RETURN_OBJECT_FROM_STRING_OBJECT_BOOLEAN = getMethodDescriptor(OBJECT_TYPE, OBJECT_TYPE, STRING_TYPE, BOOLEAN_TYPE);
         private static final String RETURN_CLASS = getMethodDescriptor(CLASS_TYPE);
-        private static final String RETURN_BOOLEAN = getMethodDescriptor(Type.BOOLEAN_TYPE);
+        private static final String RETURN_BOOLEAN = getMethodDescriptor(BOOLEAN_TYPE);
         private static final String RETURN_VOID = getMethodDescriptor(Type.VOID_TYPE);
         private static final String RETURN_VOID_FROM_CONVENTION_AWARE_CONVENTION = getMethodDescriptor(Type.VOID_TYPE, CONVENTION_AWARE_TYPE, CONVENTION_TYPE);
         private static final String RETURN_CONVENTION = getMethodDescriptor(CONVENTION_TYPE);
@@ -571,9 +572,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
         @Override
         public void addDefaultConstructor() {
-            new MethodVisitorScope(visitor.visitMethod(ACC_PUBLIC, "<init>", RETURN_VOID, null, EMPTY_STRINGS)) {{
-                visitCode();
-
+            publicMethod("<init>", RETURN_VOID, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
                 // this.super()
                 _ALOAD(0);
                 _INVOKESPECIAL(OBJECT_TYPE, "<init>", RETURN_VOID);
@@ -583,18 +582,13 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 _INVOKEVIRTUAL(generatedType, INIT_METHOD, RETURN_VOID);
 
                 _RETURN();
-
-                visitMaxs(0, 0);
-                visitEnd();
-            }};
-
+            }});
         }
 
         @Override
         public void addNameConstructor() {
-            new MethodVisitorScope(visitor.visitMethod(ACC_PUBLIC, "<init>", RETURN_VOID_FROM_STRING, null, EMPTY_STRINGS)) {{
+            publicMethod("<init>", RETURN_VOID_FROM_STRING, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
                 visitAnnotation(INJECT_TYPE.getDescriptor(), true).visitEnd();
-                visitCode();
 
                 // this.super()
                 _ALOAD(0);
@@ -609,10 +603,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 _ALOAD(0);
                 _INVOKEVIRTUAL(generatedType, INIT_METHOD, RETURN_VOID);
                 _RETURN();
-
-                visitMaxs(0, 0);
-                visitEnd();
-            }};
+            }});
         }
 
         @Override
@@ -627,9 +618,8 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 methodDescriptor = superMethodDescriptor;
             }
 
-            new MethodVisitorScope(visitor.visitMethod(ACC_PUBLIC, "<init>", methodDescriptor, signature(constructor, addNameParameter), EMPTY_STRINGS)) {{
+            publicMethod("<init>", methodDescriptor, signature(constructor, addNameParameter), methodVisitor -> new MethodVisitorScope(methodVisitor) {{
                 visitDeclaredAnnotationsOf(constructor, mv);
-                visitCode();
 
                 // this.super(p0 .. pn)
                 _ALOAD(0);
@@ -652,10 +642,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 _INVOKEVIRTUAL(generatedType, INIT_METHOD, RETURN_VOID);
 
                 _RETURN();
-
-                visitMaxs(0, 0);
-                visitEnd();
-            }};
+            }});
         }
 
         @Nonnull
@@ -682,17 +669,9 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         private void generateInitMethod() {
-            new MethodVisitorScope(visitor.visitMethod(ACC_PRIVATE | ACC_SYNTHETIC, INIT_METHOD, RETURN_VOID, null, EMPTY_STRINGS)) {{
-                visitCode();
-                initializeFields(mv);
-                _RETURN();
-                visitMaxs(0, 0);
-                visitEnd();
-            }};
-        }
 
-        private void initializeFields(MethodVisitor methodVisitor) {
-            new MethodVisitorScope(methodVisitor) {{
+            privateSyntheticMethod(INIT_METHOD, RETURN_VOID, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
+
                 // this.displayName = AsmBackedClassGenerator.getDisplayNameForNext()
                 _ALOAD(0);
                 _INVOKESTATIC(ASM_BACKED_CLASS_GENERATOR_TYPE, GET_DISPLAY_NAME_FOR_NEXT_METHOD_NAME, RETURN_DESCRIBABLE);
@@ -745,13 +724,14 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                         _INVOKEINTERFACE(CONVENTION_MAPPING_TYPE, "ineligible", RETURN_VOID_FROM_STRING);
                     }
                 }
-            }};
+                _RETURN();
+            }});
         }
 
         @Override
         public void addExtensionsProperty() {
             // GENERATE public ExtensionContainer getExtensions() { return getConvention(); }
-            addGetter("getExtensions", EXTENSION_CONTAINER_TYPE, RETURN_EXTENSION_CONTAINER, visitor -> new MethodVisitorScope(visitor) {{
+            addGetter("getExtensions", EXTENSION_CONTAINER_TYPE, RETURN_EXTENSION_CONTAINER, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
                 // GENERATE getConvention()
                 _ALOAD(0);
                 _INVOKEVIRTUAL(generatedType, "getConvention", RETURN_CONVENTION);
@@ -765,18 +745,12 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             }
 
             // GENERATE private DynamicObject dynamicObjectHelper
-            visitor.visitField(
-                ACC_PRIVATE | ACC_TRANSIENT,
-                DYNAMIC_OBJECT_HELPER_FIELD,
-                ABSTRACT_DYNAMIC_OBJECT_TYPE.getDescriptor(),
-                null,
-                null
-            );
+            addField(ACC_PRIVATE | ACC_TRANSIENT, DYNAMIC_OBJECT_HELPER_FIELD, ABSTRACT_DYNAMIC_OBJECT_TYPE);
             // END
 
             if (extensible) {
                 // GENERATE public Convention getConvention() { return getAsDynamicObject().getConvention(); }
-                addGetter("getConvention", CONVENTION_TYPE, RETURN_CONVENTION, visitor -> new MethodVisitorScope(visitor) {{
+                addGetter("getConvention", CONVENTION_TYPE, RETURN_CONVENTION, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
                     // GENERATE ((MixInExtensibleDynamicObject)getAsDynamicObject()).getConvention()
                     _ALOAD(0);
                     _INVOKEVIRTUAL(generatedType, "getAsDynamicObject", RETURN_DYNAMIC_OBJECT);
@@ -827,7 +801,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                     }
 
                     // GENERATE this.services()
-                    putServiceRegistryOnStack(methodVisitor);
+                    putServiceRegistryOnStack(mv);
                     _INVOKESPECIAL(EXTENSIBLE_DYNAMIC_OBJECT_HELPER_TYPE, "<init>", RETURN_VOID_FROM_OBJECT_CLASS_DYNAMIC_OBJECT_SERVICE_LOOKUP);
                     // END
                 } else {
@@ -844,7 +818,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         @Override
         public void mixInConventionAware() {
             // GENERATE private ConventionMapping mapping
-            visitor.visitField(ACC_PRIVATE | ACC_TRANSIENT, MAPPING_FIELD, CONVENTION_MAPPING_FIELD_DESCRIPTOR, null, null);
+            addField(ACC_PRIVATE | ACC_TRANSIENT, MAPPING_FIELD, CONVENTION_MAPPING_FIELD_DESCRIPTOR);
             hasMappingField = true;
             // END
 
@@ -854,7 +828,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             //     }
             //     return mapping;
             // }
-            addLazyGetter("getConventionMapping", CONVENTION_MAPPING_TYPE, RETURN_CONVENTION_MAPPING, null, MAPPING_FIELD, CONVENTION_MAPPING_TYPE, visitor -> new MethodVisitorScope(visitor) {{
+            addLazyGetter("getConventionMapping", CONVENTION_MAPPING_TYPE, RETURN_CONVENTION_MAPPING, null, MAPPING_FIELD, CONVENTION_MAPPING_TYPE, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
                 // GENERATE new ConventionAwareHelper(this, getConvention())
                 _NEW(CONVENTION_AWARE_HELPER_TYPE);
                 _DUP();
@@ -885,7 +859,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             }
 
             // GENERATE private MetaClass metaClass = GroovySystem.getMetaClassRegistry().getMetaClass(getClass())
-            visitor.visitField(ACC_PRIVATE | ACC_TRANSIENT, META_CLASS_FIELD, META_CLASS_TYPE_DESCRIPTOR, null, null);
+            addField(ACC_PRIVATE | ACC_TRANSIENT, META_CLASS_FIELD, META_CLASS_TYPE_DESCRIPTOR);
 
             // GENERATE public MetaClass getMetaClass() {
             //     if (metaClass == null) {
@@ -893,7 +867,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             //     }
             //     return metaClass;
             // }
-            addLazyGetter("getMetaClass", META_CLASS_TYPE, RETURN_META_CLASS, null, META_CLASS_FIELD, META_CLASS_TYPE, visitor -> new MethodVisitorScope(visitor) {{
+            addLazyGetter("getMetaClass", META_CLASS_TYPE, RETURN_META_CLASS, null, META_CLASS_FIELD, META_CLASS_TYPE, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
                 // GroovySystem.getMetaClassRegistry()
                 _INVOKESTATIC(GROOVY_SYSTEM_TYPE, "getMetaClassRegistry", RETURN_META_CLASS_REGISTRY);
 
@@ -907,7 +881,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             // END
 
             // GENERATE public void setMetaClass(MetaClass class) { this.metaClass = class; }
-            addSetter("setMetaClass", RETURN_VOID_FROM_META_CLASS, visitor -> new MethodVisitorScope(visitor) {{
+            addSetter("setMetaClass", RETURN_VOID_FROM_META_CLASS, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
                 _ALOAD(0);
                 _ALOAD(1);
                 _PUTFIELD(generatedType, META_CLASS_FIELD, META_CLASS_TYPE_DESCRIPTOR);
@@ -915,13 +889,14 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         private void addSetter(String methodName, String methodDescriptor, BytecodeFragment body) {
-            new MethodVisitorScope(visitor.visitMethod(ACC_PUBLIC, methodName, methodDescriptor, null, EMPTY_STRINGS)) {{
-                visitCode();
+            addSetter(methodName, methodDescriptor, null, body);
+        }
+
+        private void addSetter(String methodName, String methodDescriptor, String signature, BytecodeFragment body) {
+            publicMethod(methodName, methodDescriptor, signature, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
                 emit(body);
                 _RETURN();
-                visitMaxs(0, 0);
-                visitEnd();
-            }};
+            }});
         }
 
         @Override
@@ -933,19 +908,13 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             // GENERATE public void set<Name>(Object p) {
             //    ((PropertyInternal)<getter>()).setFromAnyValue(p);
             // }
-            new MethodVisitorScope(visitor.visitMethod(ACC_PUBLIC, getSetterName(property.getName()), RETURN_VOID_FROM_OBJECT, null, EMPTY_STRINGS)) {{
-                visitCode();
-
+            addSetter(getSetterName(property.getName()), RETURN_VOID_FROM_OBJECT, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
                 _ALOAD(0);
                 _INVOKEVIRTUAL(generatedType, getter.getName(), getMethodDescriptor(getType(getter.getReturnType())));
                 _CHECKCAST(PROPERTY_INTERNAL_TYPE);
                 _ALOAD(1);
                 _INVOKEINTERFACE(PROPERTY_INTERNAL_TYPE, "setFromAnyValue", ClassBuilderImpl.RETURN_VOID_FROM_OBJECT);
-                _RETURN();
-
-                visitMaxs(0, 0);
-                visitEnd();
-            }};
+            }});
         }
 
         /**
@@ -960,7 +929,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             final Type fieldType,
             final BytecodeFragment initializer
         ) {
-            addGetter(methodName, returnType, methodDescriptor, signature, visitor -> new MethodVisitorScope(visitor) {{
+            addGetter(methodName, returnType, methodDescriptor, signature, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
                 // var = this.<field>
                 _ALOAD(0);
                 _GETFIELD(generatedType, fieldName, fieldType);
@@ -991,13 +960,10 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
          * Adds a getter that returns the value that the given code leaves on the top of the stack.
          */
         private void addGetter(String methodName, Type returnType, String methodDescriptor, @Nullable String signature, BytecodeFragment body) {
-            new MethodVisitorScope(visitor.visitMethod(ACC_PUBLIC, methodName, methodDescriptor, signature, EMPTY_STRINGS)) {{
-                visitCode();
+            publicMethod(methodName, methodDescriptor, signature, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
                 emit(body);
                 _IRETURN_OF(returnType);
-                visitMaxs(0, 0);
-                visitEnd();
-            }};
+            }});
         }
 
         @Override
@@ -1007,7 +973,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             }
 
             // GENERATE public Object getProperty(String name) { return getAsDynamicObject().getProperty(name); }
-            addGetter("getProperty", OBJECT_TYPE, RETURN_OBJECT_FROM_STRING, visitor -> new MethodVisitorScope(visitor) {{
+            addGetter("getProperty", OBJECT_TYPE, RETURN_OBJECT_FROM_STRING, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
                 // GENERATE getAsDynamicObject().getProperty(name);
                 _ALOAD(0);
                 _INVOKEVIRTUAL(generatedType, "getAsDynamicObject", RETURN_DYNAMIC_OBJECT);
@@ -1018,9 +984,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             }});
 
             // GENERATE public boolean hasProperty(String name) { return getAsDynamicObject().hasProperty(name) }
-            new MethodVisitorScope(visitor.visitMethod(ACC_PUBLIC, "hasProperty", RETURN_BOOLEAN_FROM_STRING, null, EMPTY_STRINGS)) {{
-                visitCode();
-
+            publicMethod("hasProperty", RETURN_BOOLEAN_FROM_STRING, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
                 // GENERATE getAsDynamicObject().hasProperty(name);
                 _ALOAD(0);
                 _INVOKEVIRTUAL(generatedType, "getAsDynamicObject", RETURN_DYNAMIC_OBJECT);
@@ -1030,9 +994,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
                 // END
                 _IRETURN();
-                visitMaxs(0, 0);
-                visitEnd();
-            }};
+            }});
 
             // GENERATE public void setProperty(String name, Object value) { getAsDynamicObject().setProperty(name, value); }
             addSetter("setProperty", RETURN_VOID_FROM_STRING_OBJECT, setter -> new MethodVisitorScope(setter) {{
@@ -1086,17 +1048,15 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         public void applyServiceInjectionToProperty(PropertyMetadata property) {
             // GENERATE private <type> <property-field-name>;
             String fieldName = propFieldName(property);
-            visitor.visitField(ACC_PRIVATE | ACC_TRANSIENT, fieldName, Type.getDescriptor(property.getType()), null, null);
+            addField(ACC_PRIVATE | ACC_TRANSIENT, fieldName, property.getType());
         }
 
         private void generateServicesField() {
-            visitor.visitField(ACC_PRIVATE | ACC_SYNTHETIC | ACC_TRANSIENT, SERVICES_FIELD, SERVICE_LOOKUP_TYPE.getDescriptor(), null, null);
+            addField(ACC_PRIVATE | ACC_SYNTHETIC | ACC_TRANSIENT, SERVICES_FIELD, SERVICE_LOOKUP_TYPE);
         }
 
         private void generateGetServices() {
-            new MethodVisitorScope(visitor.visitMethod(ACC_PRIVATE | ACC_SYNTHETIC, SERVICES_METHOD, RETURN_SERVICE_LOOKUP, null, null)) {{
-                visitCode();
-
+            privateSyntheticMethod(SERVICES_METHOD, RETURN_SERVICE_LOOKUP, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
                 // GENERATE if (services != null) { return services; } else { return AsmBackedClassGenerator.getServicesForNext(); }
                 _ALOAD(0);
                 _GETFIELD(generatedType, SERVICES_FIELD, SERVICE_LOOKUP_TYPE);
@@ -1107,10 +1067,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 visitLabel(label);
                 _INVOKESTATIC(ASM_BACKED_CLASS_GENERATOR_TYPE, GET_SERVICES_FOR_NEXT_METHOD_NAME, RETURN_SERVICE_LOOKUP);
                 _ARETURN();
-
-                visitMaxs(0, 0);
-                visitEnd();
-            }};
+            }});
         }
 
         @Override
@@ -1129,9 +1086,9 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             String propFieldName = propFieldName(property);
             String signature = getterSignature(getter.getGenericReturnType());
 
-            addLazyGetter(getterName, returnType, methodDescriptor, signature, propFieldName, serviceType, visitor -> new MethodVisitorScope(visitor) {{
+            addLazyGetter(getterName, returnType, methodDescriptor, signature, propFieldName, serviceType, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
 
-                putServiceRegistryOnStack(visitor);
+                putServiceRegistryOnStack(mv);
 
                 if (genericServiceType instanceof Class) {
                     // if the return type doesn't use generics, then it's faster to just rely on the type name directly
@@ -1193,8 +1150,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         @Override
         public void applyManagedStateToProperty(PropertyMetadata property) {
             // GENERATE private <type> <property-field-name>;
-            String fieldName = propFieldName(property);
-            visitor.visitField(ACC_PRIVATE, fieldName, Type.getDescriptor(property.getType()), null, null);
+            addField(ACC_PRIVATE, propFieldName(property), property.getType());
         }
 
         @Override
@@ -1209,7 +1165,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             Type returnType = getType(getter.getReturnType());
             String descriptor = getMethodDescriptor(returnType);
             String fieldName = propFieldName(property);
-            addLazyGetter(getter.getName(), returnType, descriptor, null, fieldName, propType, visitor -> new MethodVisitorScope(visitor) {{
+            addLazyGetter(getter.getName(), returnType, descriptor, null, fieldName, propType, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
 
                 // GENERATE factory = getFactory()
                 _ALOAD(0);
@@ -1242,7 +1198,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
                 if (applyRole) {
                     _DUP();
-                    applyRoleTo(visitor);
+                    applyRoleTo(mv);
                 }
 
                 _CHECKCAST(propType);
@@ -1265,7 +1221,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         public void applyManagedStateToGetter(PropertyMetadata property, Method getter) {
             // GENERATE public <type> <getter>() { return <field> }
             Type returnType = getType(getter.getReturnType());
-            addGetter(getter.getName(), returnType, getMethodDescriptor(returnType), visitor -> new MethodVisitorScope(visitor) {{
+            addGetter(getter.getName(), returnType, getMethodDescriptor(returnType), methodVisitor -> new MethodVisitorScope(methodVisitor) {{
                 _ALOAD(0);
                 _GETFIELD(generatedType, propFieldName(property), returnType);
             }});
@@ -1279,46 +1235,34 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private void addSetterForProperty(PropertyMetadata property, Method setter) {
             // GENERATE public void <setter>(<type> value) { <field> == value }
             Type fieldType = getType(property.getType());
-            new MethodVisitorScope(visitor.visitMethod(ACC_PUBLIC, setter.getName(), getMethodDescriptor(setter), signature(setter), EMPTY_STRINGS)) {{
-                visitCode();
-
+            addSetter(setter.getName(), getMethodDescriptor(setter), signature(setter), methodVisitor -> new MethodVisitorScope(methodVisitor) {{
                 // this.field = value
                 _ALOAD(0);
                 _ILOAD_OF(fieldType, 1);
                 _PUTFIELD(generatedType, propFieldName(property), fieldType);
-
-                // return
-                _RETURN();
-                visitMaxs(0, 0);
-                visitEnd();
-            }};
-
+            }});
         }
 
         private void generateGeneratedSubtypeMethods() {
             // Generate: Class publicType() { ... }
-            new MethodVisitorScope(visitor.visitMethod(ACC_PUBLIC, "publicType", RETURN_CLASS, null, EMPTY_STRINGS)) {{
+            publicMethod("publicType", RETURN_CLASS, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
                 _LDC(superclassType);
                 _ARETURN();
-                visitMaxs(0, 0);
-                visitEnd();
-            }};
+            }});
 
             // Generate: static Class generatedFrom() { ... }
-            new MethodVisitorScope(visitor.visitMethod(ACC_PUBLIC | ACC_STATIC, "generatedFrom", RETURN_CLASS, null, EMPTY_STRINGS)) {{
+            addMethod(ACC_PUBLIC | ACC_STATIC, "generatedFrom", RETURN_CLASS, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
                 _LDC(superclassType);
                 _ARETURN();
-                visitMaxs(0, 0);
-                visitEnd();
-            }};
+            }});
         }
 
         private void generateModelObjectMethods() {
-            visitor.visitField(ACC_PRIVATE | ACC_SYNTHETIC, DISPLAY_NAME_FIELD, DESCRIBABLE_TYPE.getDescriptor(), null, null);
-            visitor.visitField(ACC_PRIVATE | ACC_SYNTHETIC, OWNER_FIELD, MODEL_OBJECT_TYPE.getDescriptor(), null, null);
+            addField(ACC_PRIVATE | ACC_SYNTHETIC, DISPLAY_NAME_FIELD, DESCRIBABLE_TYPE);
+            addField(ACC_PRIVATE | ACC_SYNTHETIC, OWNER_FIELD, MODEL_OBJECT_TYPE);
 
             // GENERATE boolean hasUsefulDisplayName() { ... }
-            new MethodVisitorScope(visitor.visitMethod(ACC_PUBLIC, "hasUsefulDisplayName", RETURN_BOOLEAN, null, EMPTY_STRINGS)) {{
+            publicMethod("hasUsefulDisplayName", RETURN_BOOLEAN, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
                 if (requiresToString) {
                     // Type has a generated toString() implementation
                     // Generate: return displayName != null
@@ -1337,21 +1281,17 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                     _LDC(true);
                     _IRETURN_OF(BOOLEAN_TYPE);
                 }
-                visitMaxs(0, 0);
-                visitEnd();
-            }};
+            }});
 
             // GENERATE getModelIdentityDisplayName() { return displayName }
-            new MethodVisitorScope(visitor.visitMethod(ACC_PUBLIC, "getModelIdentityDisplayName", RETURN_DESCRIBABLE, null, EMPTY_STRINGS)) {{
+            publicMethod("getModelIdentityDisplayName", RETURN_DESCRIBABLE, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
                 _ALOAD(0);
                 _GETFIELD(generatedType, DISPLAY_NAME_FIELD, DESCRIBABLE_TYPE);
                 _ARETURN();
-                visitMaxs(0, 0);
-                visitEnd();
-            }};
+            }});
 
             // GENERATE getTaskThatOwnsThisObject() { ... }
-            new MethodVisitorScope(visitor.visitMethod(ACC_PUBLIC, "getTaskThatOwnsThisObject", getMethodDescriptor(getType(Task.class)), null, EMPTY_STRINGS)) {{
+            publicMethod("getTaskThatOwnsThisObject", getMethodDescriptor(getType(Task.class)), methodVisitor -> new MethodVisitorScope(methodVisitor) {{
                 if (Task.class.isAssignableFrom(type)) {
                     // return this
                     _ALOAD(0);
@@ -1366,12 +1306,10 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                     visitLabel(useNull);
                 }
                 _ARETURN();
-                visitMaxs(0, 0);
-                visitEnd();
-            }};
+            }});
 
             // GENERATE attachOwner(owner, displayName) { this.displayName = displayName }
-            new MethodVisitorScope(visitor.visitMethod(ACC_PUBLIC, "attachOwner", RETURN_VOID_FROM_MODEL_OBJECT_DISPLAY_NAME, null, EMPTY_STRINGS)) {{
+            publicMethod("attachOwner", RETURN_VOID_FROM_MODEL_OBJECT_DISPLAY_NAME, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
                 _ALOAD(0);
                 _ALOAD(1);
                 _PUTFIELD(generatedType, OWNER_FIELD, MODEL_OBJECT_TYPE);
@@ -1379,20 +1317,18 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 _ALOAD(2);
                 _PUTFIELD(generatedType, DISPLAY_NAME_FIELD, DESCRIBABLE_TYPE);
                 _RETURN();
-                visitMaxs(0, 0);
-                visitEnd();
-            }};
+            }});
         }
 
         @Override
         public void addManagedMethods(Iterable<PropertyMetadata> mutableProperties, Iterable<PropertyMetadata> readOnlyProperties) {
-            visitor.visitField(ACC_PRIVATE | ACC_STATIC, FACTORY_ID_FIELD, Type.INT_TYPE.getDescriptor(), null, null);
+            addField(ACC_PRIVATE | ACC_STATIC, FACTORY_ID_FIELD, INT_TYPE);
 
             AtomicInteger mutablePropertySize = new AtomicInteger();
             AtomicInteger readOnlyPropertySize = new AtomicInteger();
 
             // Generate: <init>(Object[] state) { }
-            new MethodVisitorScope(visitor.visitMethod(ACC_PUBLIC | ACC_SYNTHETIC, "<init>", getMethodDescriptor(VOID_TYPE, OBJECT_ARRAY_TYPE), null, EMPTY_STRINGS)) {{
+            addMethod(ACC_PUBLIC | ACC_SYNTHETIC, "<init>", getMethodDescriptor(VOID_TYPE, OBJECT_ARRAY_TYPE), methodVisitor -> new MethodVisitorScope(methodVisitor) {{
                 _ALOAD(0);
                 if (type.isInterface()) {
                     _INVOKESPECIAL(OBJECT_TYPE, "<init>", RETURN_VOID);
@@ -1424,21 +1360,17 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 }
                 readOnlyPropertySize.set(propertyIndex);
                 _RETURN();
-                visitMaxs(0, 0);
-                visitEnd();
-            }};
+            }});
 
             // Generate: Class immutable() { return <properties.empty> && <read-only-properties.empty> }
-            new MethodVisitorScope(visitor.visitMethod(ACC_PUBLIC, "isImmutable", RETURN_BOOLEAN, null, EMPTY_STRINGS)) {{
+            publicMethod("isImmutable", RETURN_BOOLEAN, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
                 // Could return true if all of the read only properties point to immutable objects, but at this stage there are no such types supported
                 _LDC(mutablePropertySize.intValue() == 0 && readOnlyPropertySize.intValue() == 0);
                 _IRETURN();
-                visitMaxs(0, 0);
-                visitEnd();
-            }};
+            }});
 
             // Generate: Object[] unpackState() { state = new Object[<size>]; state[x] = <prop-field>; return state; }
-            new MethodVisitorScope(visitor.visitMethod(ACC_PUBLIC, "unpackState", RETURN_OBJECT, null, EMPTY_STRINGS)) {{
+            publicMethod("unpackState", RETURN_OBJECT, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
                 _LDC(mutablePropertySize.intValue() + readOnlyPropertySize.intValue());
                 _ANEWARRAY(OBJECT_TYPE);
                 // TODO - property order needs to be deterministic across JVM invocations, i.e. sort the properties by name
@@ -1466,17 +1398,13 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                     propertyIndex++;
                 }
                 _ARETURN();
-                visitMaxs(0, 0);
-                visitEnd();
-            }};
+            }});
 
             // Generate: int getFactoryId() { return <factory-id-field> }
-            new MethodVisitorScope(visitor.visitMethod(ACC_PUBLIC, "getFactoryId", getMethodDescriptor(Type.INT_TYPE), null, EMPTY_STRINGS)) {{
-                _GETSTATIC(generatedType, FACTORY_ID_FIELD, Type.INT_TYPE);
+            publicMethod("getFactoryId", getMethodDescriptor(INT_TYPE), methodVisitor -> new MethodVisitorScope(methodVisitor) {{
+                _GETSTATIC(generatedType, FACTORY_ID_FIELD, INT_TYPE);
                 _IRETURN();
-                visitMaxs(0, 0);
-                visitEnd();
-            }};
+            }});
         }
 
         @Override
@@ -1487,7 +1415,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
             // GENERATE private boolean <flag-name>;
             String flagName = propFieldName(property);
-            visitor.visitField(ACC_PRIVATE | ACC_TRANSIENT, flagName, Type.BOOLEAN_TYPE.getDescriptor(), null, null);
+            addField(ACC_PRIVATE | ACC_TRANSIENT, flagName, BOOLEAN_TYPE);
         }
 
         @Override
@@ -1499,9 +1427,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             String getterName = getter.getName();
             Type returnType = getType(getter.getReturnType());
             String methodDescriptor = getMethodDescriptor(returnType);
-            new MethodVisitorScope(visitor.visitMethod(ACC_PUBLIC, getterName, methodDescriptor, null, EMPTY_STRINGS)) {{
-                visitCode();
-
+            publicMethod(getterName, methodDescriptor, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
                 if (conventionAware) {
                     // GENERATE public <type> <getter>() { return (<type>)getConventionMapping().getConventionValue(super.<getter>(), '<prop>', __<prop>__); }
                     Label finish = new Label();
@@ -1529,7 +1455,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                     _LDC(property.getName());
                     String flagName = propFieldName(property);
                     _ALOAD(0);
-                    _GETFIELD(generatedType, flagName, Type.BOOLEAN_TYPE);
+                    _GETFIELD(generatedType, flagName, BOOLEAN_TYPE);
                     _INVOKEINTERFACE(CONVENTION_MAPPING_TYPE, "getConventionValue", RETURN_OBJECT_FROM_STRING_OBJECT_BOOLEAN);
                     unboxOrCastTo(returnType);
 
@@ -1555,9 +1481,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 }
 
                 _IRETURN_OF(returnType);
-                visitMaxs(0, 0);
-                visitEnd();
-            }};
+            }});
         }
 
         @Override
@@ -1570,8 +1494,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             Type paramType = getType(setter.getParameterTypes()[0]);
             Type returnType = getType(setter.getReturnType());
             String setterDescriptor = getMethodDescriptor(returnType, paramType);
-            new MethodVisitorScope(visitor.visitMethod(ACC_PUBLIC, setter.getName(), setterDescriptor, null, EMPTY_STRINGS)) {{
-                visitCode();
+            publicMethod(setter.getName(), setterDescriptor, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
 
                 // GENERATE super.<setter>(v)
                 _ALOAD(0);
@@ -1582,13 +1505,11 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 // GENERATE __<prop>__ = true
                 _ALOAD(0);
                 _LDC(true);
-                _PUTFIELD(generatedType, propFieldName(property), Type.BOOLEAN_TYPE);
+                _PUTFIELD(generatedType, propFieldName(property), BOOLEAN_TYPE);
 
                 // END
                 _IRETURN_OF(returnType);
-                visitMaxs(0, 0);
-                visitEnd();
-            }};
+            }});
         }
 
         @Override
@@ -1602,19 +1523,12 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             String setterDescriptor = getMethodDescriptor(returnType, paramType);
 
             // GENERATE public void <propName>(<type> v) { <setter>(v) }
-            new MethodVisitorScope(visitor.visitMethod(ACC_PUBLIC, property.getName(), getMethodDescriptor(Type.VOID_TYPE, paramType), null, EMPTY_STRINGS)) {{
-                visitCode();
-
+            addSetter(property.getName(), getMethodDescriptor(VOID_TYPE, paramType), methodVisitor -> new MethodVisitorScope(methodVisitor) {{
                 // GENERATE <setter>(v)
                 _ALOAD(0);
                 _ILOAD_OF(paramType, 1);
                 _INVOKEVIRTUAL(generatedType, setter.getName(), setterDescriptor);
-
-                // END
-                _RETURN();
-                visitMaxs(0, 0);
-                visitEnd();
-            }};
+            }});
         }
 
         @Override
@@ -1628,9 +1542,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             String methodDescriptor = getMethodDescriptor(returnType, paramType);
 
             // GENERATE public <returnType> <propName>(<type> v) { val = super.<propName>(v); __<prop>__ = true; return val; }
-            new MethodVisitorScope(visitor.visitMethod(ACC_PUBLIC, method.getName(), methodDescriptor, null, EMPTY_STRINGS)) {{
-                visitCode();
-
+            publicMethod(method.getName(), methodDescriptor, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
                 // GENERATE super.<propName>(v)
                 _ALOAD(0);
                 _ILOAD_OF(paramType, 1);
@@ -1639,13 +1551,11 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 // GENERATE __<prop>__ = true
                 _ALOAD(0);
                 _LDC(true);
-                _PUTFIELD(generatedType, propFieldName(property), Type.BOOLEAN_TYPE);
+                _PUTFIELD(generatedType, propFieldName(property), BOOLEAN_TYPE);
 
                 // END
                 _IRETURN_OF(returnType);
-                visitMaxs(0, 0);
-                visitEnd();
-            }};
+            }});
         }
 
         @Override
@@ -1657,7 +1567,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             Type returnType = getType(method.getReturnType());
 
             @SuppressWarnings("NullableProblems")
-            Type[] originalParameterTypes = CollectionUtils.collectArray(method.getParameterTypes(), Type.class, (Transformer<Type, Class<?>>) Type::getType);
+            Type[] originalParameterTypes = collectArray(method.getParameterTypes(), Type.class, Type::getType);
             int numParams = originalParameterTypes.length;
             Type[] closurisedParameterTypes = new Type[numParams];
             System.arraycopy(originalParameterTypes, 0, closurisedParameterTypes, 0, numParams);
@@ -1666,8 +1576,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             final String methodDescriptor = getMethodDescriptor(returnType, closurisedParameterTypes);
 
             // GENERATE public <return type> <method>(Closure v) { return <method>(…, ConfigureUtil.configureUsing(v)); }
-            new MethodVisitorScope(visitor.visitMethod(ACC_PUBLIC, method.getName(), methodDescriptor, null, EMPTY_STRINGS)) {{
-                visitCode();
+            publicMethod(method.getName(), methodDescriptor, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
 
                 // GENERATE <method>(…, ConfigureUtil.configureUsing(v));
                 _ALOAD(0);
@@ -1685,9 +1594,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 _INVOKEVIRTUAL(generatedType, method.getName(), getMethodDescriptor(getType(method.getReturnType()), originalParameterTypes));
 
                 _IRETURN_OF(returnType);
-                visitMaxs(0, 0);
-                visitEnd();
-            }};
+            }});
         }
 
         private void generateToStringSupport() {
@@ -1699,8 +1606,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             // } else {
             //     return super.toString()
             // }
-            new MethodVisitorScope(visitor.visitMethod(ACC_PUBLIC, "toString", RETURN_STRING, null, null)) {{
-                visitCode();
+            publicMethod("toString", RETURN_STRING, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
 
                 // Generate: if (displayName != null) { return displayName.getDisplayName() }
                 _ALOAD(0);
@@ -1726,10 +1632,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 _ALOAD(0);
                 _INVOKESPECIAL(OBJECT_TYPE, "toString", RETURN_STRING);
                 _ARETURN();
-
-                visitMaxs(0, 0);
-                visitEnd();
-            }};
+            }});
         }
 
         private void generateServiceRegistrySupport() {
@@ -1743,13 +1646,11 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         private void generateManagedObjectFactoryField() {
-            visitor.visitField(ACC_PRIVATE | ACC_SYNTHETIC | ACC_TRANSIENT, FACTORY_FIELD, MANAGED_OBJECT_FACTORY_TYPE.getDescriptor(), null, null);
+            addField(ACC_PRIVATE | ACC_SYNTHETIC | ACC_TRANSIENT, FACTORY_FIELD, MANAGED_OBJECT_FACTORY_TYPE.getDescriptor());
         }
 
         private void generateGetManagedObjectFactory() {
-            new MethodVisitorScope(visitor.visitMethod(ACC_PRIVATE | ACC_SYNTHETIC, FACTORY_METHOD, RETURN_MANAGED_OBJECT_FACTORY, null, null)) {{
-                visitCode();
-
+            privateSyntheticMethod(FACTORY_METHOD, RETURN_MANAGED_OBJECT_FACTORY, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
                 // GENERATE if (factory != null) { return factory; } else { return AsmBackedClassGenerator.getFactoryForNext(); }
                 _ALOAD(0);
                 _GETFIELD(generatedType, FACTORY_FIELD, MANAGED_OBJECT_FACTORY_TYPE);
@@ -1760,10 +1661,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 visitLabel(label);
                 _INVOKESTATIC(ASM_BACKED_CLASS_GENERATOR_TYPE, GET_FACTORY_FOR_NEXT_METHOD_NAME, RETURN_MANAGED_OBJECT_FACTORY);
                 _ARETURN();
-
-                visitMaxs(0, 0);
-                visitEnd();
-            }};
+            }});
         }
 
         private void includeNotInheritedAnnotations() {
@@ -1848,8 +1746,8 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
         @Override
         public void addNameProperty() {
-            visitor.visitField(ACC_PRIVATE | ACC_SYNTHETIC | ACC_FINAL, NAME_FIELD, STRING_TYPE.getDescriptor(), null, null);
-            addGetter("getName", STRING_TYPE, getMethodDescriptor(STRING_TYPE), visitor -> new MethodVisitorScope(visitor) {{
+            addField(ACC_PRIVATE | ACC_SYNTHETIC | ACC_FINAL, NAME_FIELD, STRING_TYPE.getDescriptor());
+            addGetter("getName", STRING_TYPE, getMethodDescriptor(STRING_TYPE), methodVisitor -> new MethodVisitorScope(methodVisitor) {{
                 _ALOAD(0);
                 _GETFIELD(generatedType, NAME_FIELD, STRING_TYPE);
             }});
@@ -1871,12 +1769,10 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
         private void writeGenericReturnTypeFields() {
             if (!genericReturnTypeConstantsIndex.isEmpty()) {
-                new MethodVisitorScope(visitor.visitMethod(ACC_STATIC, "<clinit>", "()V", null, null)) {{
-                    visitCode();
-
+                addMethod(ACC_STATIC, "<clinit>", "()V", methodVisitor -> new MethodVisitorScope(methodVisitor) {{
                     for (Map.Entry<java.lang.reflect.Type, ReturnTypeEntry> entry : genericReturnTypeConstantsIndex.entrySet()) {
                         ReturnTypeEntry returnType = entry.getValue();
-                        visitor.visitField(PV_FINAL_STATIC, returnType.fieldName, JAVA_REFLECT_TYPE_DESCRIPTOR, null, null);
+                        addField(PV_FINAL_STATIC, returnType.fieldName, JAVA_REFLECT_TYPE_DESCRIPTOR);
 
                         // <class>.getDeclaredMethod(<getter-name>)
                         _LDC(generatedType);
@@ -1890,12 +1786,67 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                         _PUTSTATIC(generatedType, returnType.fieldName, JAVA_REFLECT_TYPE_DESCRIPTOR);
                     }
                     _RETURN();
-
-                    visitMaxs(1, 1);
-                    visitEnd();
-                }};
-
+                }});
             }
+        }
+
+        /**
+         * Adds a field to the generated type.
+         */
+        private void addField(int access, String fieldName, Class<?> type) {
+            addField(access, fieldName, getDescriptor(type));
+        }
+
+        /**
+         * Adds a field to the generated type.
+         */
+        private void addField(int access, String fieldName, Type type) {
+            addField(access, fieldName, type.getDescriptor());
+        }
+
+        /**
+         * Adds a field to the generated type.
+         */
+        private void addField(int access, String fieldName, String descriptor) {
+            visitor.visitField(access, fieldName, descriptor, null, null);
+        }
+
+        /**
+         * Adds a private synthetic method to the generated type.
+         */
+        private void privateSyntheticMethod(String name, String descriptor, BytecodeFragment methodBody) {
+            addMethod(ACC_PRIVATE | ACC_SYNTHETIC, name, descriptor, null, methodBody);
+        }
+
+        /**
+         * Adds a public method to the generated type.
+         */
+        private void publicMethod(String name, String descriptor, BytecodeFragment methodBody) {
+            publicMethod(name, descriptor, null, methodBody);
+        }
+
+        /**
+         * Adds a public method to the generated type.
+         */
+        private void publicMethod(String name, String descriptor, String signature, BytecodeFragment methodBody) {
+            addMethod(ACC_PUBLIC, name, descriptor, signature, methodBody);
+        }
+
+        /**
+         * Adds a method to the generated type.
+         */
+        private void addMethod(int access, String name, String descriptor, BytecodeFragment methodBody) {
+            addMethod(access, name, descriptor, null, methodBody);
+        }
+
+        /**
+         * Adds a method to the generated type.
+         */
+        private void addMethod(int access, String name, String descriptor, String signature, BytecodeFragment methodBody) {
+            MethodVisitor methodVisitor = visitor.visitMethod(access, name, descriptor, signature, null);
+            methodBody.emit(methodVisitor);
+            methodVisitor.visitMaxs(0, 0);
+            methodVisitor.visitEnd();
         }
 
         private final static class ReturnTypeEntry {
