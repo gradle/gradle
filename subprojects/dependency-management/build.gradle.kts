@@ -51,6 +51,7 @@ dependencies {
     testImplementation(project(":build-cache-packaging"))
     testImplementation(libs.asmUtil)
     testImplementation(libs.commonsHttpclient)
+    testImplementation(libs.jsoup)
     testImplementation(libs.groovyXml)
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":messaging")))

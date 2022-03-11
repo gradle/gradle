@@ -19,6 +19,7 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.commonsLang)
     implementation(libs.commonsIo)
+    implementation(libs.jsoup)
 
     testImplementation(project(":internal-integ-testing"))
     testImplementation(libs.jettyWebApp)
