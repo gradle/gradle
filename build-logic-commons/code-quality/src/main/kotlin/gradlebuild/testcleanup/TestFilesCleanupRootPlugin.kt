@@ -20,7 +20,6 @@ import gradlebuild.testcleanup.extension.TestFilesCleanupBuildServiceRootExtensi
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.internal.provider.DefaultProvider
 import org.gradle.api.reporting.Reporting
 import org.gradle.api.tasks.testing.Test
 import org.gradle.build.event.BuildEventsListenerRegistry
@@ -44,8 +43,7 @@ class TestFilesCleanupRootPlugin : Plugin<Project> {
                     .associate { it.path to it.genericHtmlReports() + it.findTraceJson() }
                     .filter { it.value.isNotEmpty() }
 
-                parameters.taskPathToReports.set(DefaultProvider<Map<String, List<File>>> {
-                    val taskPathToReportsInExtension = globalExtension.taskPathToReports.get()
+                parameters.taskPathToReports.set(globalExtension.taskPathToReports.map { taskPathToReportsInExtension ->
                     (taskPathToReportsInExtension.keys + taskPathToReports.keys).associateWith {
                         taskPathToReportsInExtension.getOrDefault(it, emptyList()) + taskPathToReports.getOrDefault(it, emptyList())
                     }
