@@ -47,6 +47,7 @@ import org.gradle.execution.plan.LocalTaskNode
 import org.gradle.execution.plan.Node
 import org.gradle.execution.plan.NodeExecutor
 import org.gradle.execution.plan.PlanExecutor
+import org.gradle.execution.plan.SelfExecutingNode
 import org.gradle.execution.plan.TaskDependencyResolver
 import org.gradle.execution.plan.TaskNodeDependencyResolver
 import org.gradle.execution.plan.TaskNodeFactory
@@ -79,7 +80,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
     def parallelismConfiguration = new DefaultParallelismConfiguration(true, 1)
     def workerLeases = new DefaultWorkerLeaseService(coordinationService, parallelismConfiguration)
     def executorFactory = Mock(ExecutorFactory)
-    def taskNodeFactory = new TaskNodeFactory(thisBuild, Stub(DocumentationRegistry), Stub(BuildTreeWorkGraphController))
+    def taskNodeFactory = new TaskNodeFactory(thisBuild, Stub(DocumentationRegistry), Stub(BuildTreeWorkGraphController), nodeValidator)
     def dependencyResolver = new TaskDependencyResolver([new TaskNodeDependencyResolver(taskNodeFactory)])
     def projectStateRegistry = Stub(ProjectStateRegistry)
     def executionPlan = newExecutionPlan()
@@ -105,6 +106,8 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         _ * nodeExecutor.execute(_ as Node, _ as NodeExecutionContext) >> { Node node, NodeExecutionContext context ->
             if (node instanceof LocalTaskNode) {
                 executedTasks << node.task
+                return true
+            } else if (node instanceof SelfExecutingNode) {
                 return true
             } else {
                 return false
@@ -134,12 +137,12 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         failures == [failure]
     }
 
-    def "stops running tasks and fails with exception when build is cancelled"() {
+    def "stops running nodes and fails with exception when build is cancelled"() {
         def a = task("a")
         def b = task("b")
 
         given:
-        cancellationToken.cancellationRequested >>> [false, true]
+        cancellationToken.cancellationRequested >>> [false, false, true]
 
         when:
         populateAndExecute([a, b])
@@ -150,12 +153,12 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         executedTasks == [a]
     }
 
-    def "does not fail with exception when build is cancelled after last task has started"() {
+    def "does not fail with exception when build is cancelled after last node has started"() {
         def a = task("a")
         def b = task("b")
 
         given:
-        cancellationToken.cancellationRequested >>> [false, false, true]
+        cancellationToken.cancellationRequested >>> [false, false, false, false, true]
 
         when:
         populateAndExecute([a, b])
@@ -611,7 +614,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
     }
 
     private DefaultExecutionPlan newExecutionPlan() {
-        return new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, dependencyResolver, nodeValidator, new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, Stub(Stat)), new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, Stub(Stat)), new DefaultResourceLockCoordinationService())
+        return new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, dependencyResolver, new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, Stub(Stat)), new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, Stub(Stat)), new DefaultResourceLockCoordinationService())
     }
 
     def task(String name, Task... dependsOn = []) {
