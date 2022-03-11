@@ -45,7 +45,7 @@ class TestFilesCleanupRootPlugin : Plugin<Project> {
                     .filter { it.value.isNotEmpty() }
 
                 parameters.taskPathToReports.set(DefaultProvider<Map<String, List<File>>> {
-                    val taskPathToReportsInExtension = globalExtension.taskPathToReports.getOrElse(emptyMap())
+                    val taskPathToReportsInExtension = globalExtension.taskPathToReports.get()
                     (taskPathToReportsInExtension.keys + taskPathToReports.keys).associateWith {
                         taskPathToReportsInExtension.getOrDefault(it, emptyList()) + taskPathToReports.getOrDefault(it, emptyList())
                     }
