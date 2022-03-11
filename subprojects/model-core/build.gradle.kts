@@ -23,7 +23,6 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.commonsLang)
     implementation(libs.asm)
-    implementation(libs.asmUtil)
 
     testFixturesApi(testFixtures(project(":diagnostics")))
     testFixturesApi(testFixtures(project(":core")))

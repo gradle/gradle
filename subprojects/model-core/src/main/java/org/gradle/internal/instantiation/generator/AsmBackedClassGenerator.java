@@ -63,12 +63,10 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
-import org.objectweb.asm.util.TraceClassVisitor;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
-import java.io.PrintWriter;
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
@@ -104,10 +102,6 @@ import static org.objectweb.asm.Type.getType;
 import static sun.reflect.ReflectionFactory.getReflectionFactory;
 
 public class AsmBackedClassGenerator extends AbstractClassGenerator {
-
-    // Set to true to get the bytecode of each generated class printed to stdout.
-    private static final boolean TRACE_GENERATED_CLASSES = false;
-
     private static final ThreadLocal<ObjectCreationDetails> SERVICES_FOR_NEXT_OBJECT = new ThreadLocal<>();
     private static final AtomicReference<CrossBuildInMemoryCache<Class<?>, GeneratedClassImpl>> GENERATED_CLASSES_CACHES = new AtomicReference<>();
     private final boolean decorate;
@@ -512,9 +506,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             this.requiresToString = requiresToString;
             this.propertiesToAttach = propertiesToAttach;
             this.classGenerator = new AsmClassGenerator(type, suffix);
-            this.visitor = TRACE_GENERATED_CLASSES
-                ? new TraceClassVisitor(classGenerator.getVisitor(), new PrintWriter(System.out))
-                : classGenerator.getVisitor();
+            this.visitor = classGenerator.getVisitor();
             this.generatedType = classGenerator.getGeneratedType();
             this.superclassType = getType(type);
             this.mixInDsl = decorated;
