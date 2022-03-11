@@ -54,11 +54,11 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         // necessary for picking up some of the output/errorOutput when forked executer is used
         executer.withArgument("-i")
         executer.withRepositoryMirrors()
-        groovyDependency = "org.codehaus.groovy:groovy:$version"
+        groovyDependency = groovyDependency("groovy")
     }
 
     def "compileGoodCode"() {
-        groovyDependency = "org.codehaus.groovy:$module:$version"
+        groovyDependency = groovyDependency(module)
 
         expect:
         succeeds("compileGroovy")
@@ -785,5 +785,12 @@ tasks.withType(GroovyCompile) {
     options.incremental = true
 }
 '''
+    }
+
+    private static String groovyDependency(String module) {
+        def group = versionNumber.major >= 4
+            ? "org.apache.groovy"
+            : "org.codehaus.groovy"
+        return "$group:$module:$versionNumber"
     }
 }
