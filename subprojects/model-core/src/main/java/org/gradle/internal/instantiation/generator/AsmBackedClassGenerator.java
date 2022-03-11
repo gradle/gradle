@@ -80,7 +80,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static groovy.lang.MetaProperty.getSetterName;
@@ -1321,11 +1320,11 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         @Override
-        public void addManagedMethods(Iterable<PropertyMetadata> mutableProperties, Iterable<PropertyMetadata> readOnlyProperties) {
+        public void addManagedMethods(List<PropertyMetadata> mutableProperties, List<PropertyMetadata> readOnlyProperties) {
             addField(ACC_PRIVATE | ACC_STATIC, FACTORY_ID_FIELD, INT_TYPE);
 
-            AtomicInteger mutablePropertySize = new AtomicInteger();
-            AtomicInteger readOnlyPropertySize = new AtomicInteger();
+            final int mutablePropertySize = mutableProperties.size();
+            final int readOnlyPropertySize = readOnlyProperties.size();
 
             // Generate: <init>(Object[] state) { }
             addMethod(ACC_PUBLIC | ACC_SYNTHETIC, "<init>", getMethodDescriptor(VOID_TYPE, OBJECT_ARRAY_TYPE), methodVisitor -> new MethodVisitorScope(methodVisitor) {{
@@ -1346,32 +1345,30 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                     _PUTFIELD(generatedType, propFieldName, getType(propertyMetaData.getType()));
                     propertyIndex++;
                 }
-                mutablePropertySize.set(propertyIndex);
                 propertyIndex = 0;
                 for (PropertyMetadata propertyMetaData : readOnlyProperties) {
                     _ALOAD(0);
                     _ALOAD(1);
-                    _LDC(propertyIndex + mutablePropertySize.intValue());
+                    _LDC(propertyIndex + mutablePropertySize);
                     _AALOAD();
                     unboxOrCastTo(getType(propertyMetaData.getType()));
                     String propFieldName = propFieldName(propertyMetaData);
                     _PUTFIELD(generatedType, propFieldName, getType(propertyMetaData.getType()));
                     propertyIndex++;
                 }
-                readOnlyPropertySize.set(propertyIndex);
                 _RETURN();
             }});
 
             // Generate: Class immutable() { return <properties.empty> && <read-only-properties.empty> }
             publicMethod("isImmutable", RETURN_BOOLEAN, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
                 // Could return true if all of the read only properties point to immutable objects, but at this stage there are no such types supported
-                _LDC(mutablePropertySize.intValue() == 0 && readOnlyPropertySize.intValue() == 0);
+                _LDC(mutablePropertySize == 0 && readOnlyPropertySize == 0);
                 _IRETURN();
             }});
 
             // Generate: Object[] unpackState() { state = new Object[<size>]; state[x] = <prop-field>; return state; }
             publicMethod("unpackState", RETURN_OBJECT, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
-                _LDC(mutablePropertySize.intValue() + readOnlyPropertySize.intValue());
+                _LDC(mutablePropertySize + readOnlyPropertySize);
                 _ANEWARRAY(OBJECT_TYPE);
                 // TODO - property order needs to be deterministic across JVM invocations, i.e. sort the properties by name
                 int propertyIndex = 0;
@@ -1389,7 +1386,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 propertyIndex = 0;
                 for (PropertyMetadata property : readOnlyProperties) {
                     _DUP();
-                    _LDC(propertyIndex + mutablePropertySize.intValue());
+                    _LDC(propertyIndex + mutablePropertySize);
                     _ALOAD(0);
                     MethodMetadata getter = property.getMainGetter();
                     _INVOKEVIRTUAL(generatedType, getter.getName(), getMethodDescriptor(getType(getter.getReturnType())));
@@ -1976,7 +1973,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         @Override
-        public void addManagedMethods(Iterable<PropertyMetadata> mutableProperties, Iterable<PropertyMetadata> readOnlyProperties) {
+        public void addManagedMethods(List<PropertyMetadata> mutableProperties, List<PropertyMetadata> readOnlyProperties) {
         }
 
         @Override
