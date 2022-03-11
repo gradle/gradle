@@ -108,7 +108,6 @@ abstract class ExternalModulesExtension {
     val minlog = "com.esotericsoftware.minlog:minlog"
     val nativePlatform = "net.rubygrapefruit:native-platform"
     val nativePlatformFileEvents = "net.rubygrapefruit:file-events"
-    val nekohtml = "net.sourceforge.nekohtml:nekohtml"
     val objenesis = "org.objenesis:objenesis"
     val plexusCipher = "org.sonatype.plexus:plexus-cipher"
     val plexusInterpolation = "org.codehaus.plexus:plexus-interpolation"
@@ -125,7 +124,6 @@ abstract class ExternalModulesExtension {
     val jna = "net.java.dev.jna:jna"
     val agp = "com.android.tools.build:gradle"
     val xbeanReflect = "org.apache.xbean:xbean-reflect"
-    val xerces = "xerces:xercesImpl"
     val xmlApis = "xml-apis:xml-apis"
 
     // Compile only dependencies (dynamically downloaded if needed)
@@ -170,6 +168,7 @@ abstract class ExternalModulesExtension {
     val sshdSftp = "org.apache.sshd:sshd-sftp"
     val testcontainersSpock = "org.testcontainers:spock"
     val typesafeConfig = "com.typesafe:config"
+    val xerces = "xerces:xercesImpl"
     val xmlunit = "xmlunit:xmlunit"
 
     val licenses = mapOf(

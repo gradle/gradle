@@ -174,6 +174,7 @@ dependencies {
         api(libs.sshdSftp)              { version { strictly(sshdVersion) }}
         api(libs.testcontainersSpock)   { version { strictly("1.12.5") }}
         api(libs.typesafeConfig)        { version { strictly("1.3.3") }}
+        api(libs.xerces)                { version { strictly("2.12.0") }}
         api(libs.xmlunit)               { version { strictly("1.6") }}
     }
 }
