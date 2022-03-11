@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.transform
 
 import com.google.common.reflect.TypeToken
+import groovy.test.NotYetImplemented
 import org.gradle.api.artifacts.transform.InputArtifact
 import org.gradle.api.artifacts.transform.InputArtifactDependencies
 import org.gradle.api.file.FileCollection
@@ -46,6 +47,7 @@ import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.process.ExecOperations
+import spock.lang.Issue
 
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -164,9 +166,58 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         where:
         type                          | value          | expected     | expectedNullValue
         "Property<String>"            | "'value'"      | 'value'      | null
+        "Property<Boolean>"           | "true"         | 'true'       | null
         "ListProperty<String>"        | "['a', 'b']"   | "[a, b]"     | "[]"
         "SetProperty<String>"         | "['a', 'b']"   | "[a, b]"     | "[] as Set"
         "MapProperty<String, Number>" | "[a: 1, b: 2]" | "[a:1, b:2]" | "[:]"
+    }
+
+    @NotYetImplemented
+    @Issue("https://github.com/gradle/gradle/issues/16982")
+    def "transform can set convention on parameter of type #type"() {
+        given:
+        settingsFile << """
+            include 'a', 'b', 'c'
+        """
+        setupBuildWithColorTransform()
+
+        buildFile << """
+            project(':a') {
+                dependencies {
+                    implementation project(':b')
+                    implementation project(':c')
+                }
+            }
+
+            abstract class MakeGreen implements TransformAction<Parameters> {
+
+                abstract static class Parameters extends TransformParameters {
+
+                    { prop.convention($value) }
+
+                    @Input
+                    abstract ${type} getProp()
+                }
+
+                void transform(TransformOutputs outputs) {
+                    println "processing using prop: \${parameters.prop.get()}"
+                }
+            }
+        """
+
+        when:
+        run("a:resolve")
+
+        then:
+        outputContains("processing using prop: ${expected}")
+
+        where:
+        type                          | value          | expected
+        "Property<Boolean>"           | 'true'         | 'true'
+        "Property<String>"            | "'value'"      | 'value'
+        "ListProperty<String>"        | "['a', 'b']"   | "[a, b]"
+        "SetProperty<String>"         | "['a', 'b']"   | "[a, b]"
+        "MapProperty<String, Number>" | "[a: 1, b: 2]" | "[a:1, b:2]"
     }
 
     def "transform can receive a build service as a parameter"() {
