@@ -1448,7 +1448,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
         void applyReadOnlyManagedStateToGetter(PropertyMetadata property, Method getter, boolean applyRole);
 
-        void addManagedMethods(Iterable<PropertyMetadata> mutableProperties, Iterable<PropertyMetadata> readOnlyProperties);
+        void addManagedMethods(List<PropertyMetadata> mutableProperties, List<PropertyMetadata> readOnlyProperties);
 
         void applyConventionMappingToProperty(PropertyMetadata property);
 
