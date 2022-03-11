@@ -65,6 +65,24 @@ import static org.objectweb.asm.Type.getType;
 @SuppressWarnings({"NewMethodNamingConvention", "SpellCheckingInspection"})
 public class MethodVisitorScope extends MethodVisitor {
 
+    private static final String BOXED_BOOLEAN_TYPE = getType(Boolean.class).getInternalName();
+    private static final String BOXED_CHAR_TYPE = getType(Character.class).getInternalName();
+    private static final String BOXED_BYTE_TYPE = getType(Byte.class).getInternalName();
+    private static final String BOXED_SHORT_TYPE = getType(Short.class).getInternalName();
+    private static final String BOXED_INT_TYPE = getType(Integer.class).getInternalName();
+    private static final String BOXED_LONG_TYPE = getType(Long.class).getInternalName();
+    private static final String BOXED_FLOAT_TYPE = getType(Float.class).getInternalName();
+    private static final String BOXED_DOUBLE_TYPE = getType(Double.class).getInternalName();
+
+    private static final String RETURN_PRIMITIVE_BOOLEAN = getMethodDescriptor(Type.BOOLEAN_TYPE);
+    private static final String RETURN_CHAR = getMethodDescriptor(Type.CHAR_TYPE);
+    private static final String RETURN_PRIMITIVE_BYTE = getMethodDescriptor(Type.BYTE_TYPE);
+    private static final String RETURN_PRIMITIVE_SHORT = getMethodDescriptor(Type.SHORT_TYPE);
+    private static final String RETURN_INT = getMethodDescriptor(Type.INT_TYPE);
+    private static final String RETURN_PRIMITIVE_LONG = getMethodDescriptor(Type.LONG_TYPE);
+    private static final String RETURN_PRIMITIVE_FLOAT = getMethodDescriptor(Type.FLOAT_TYPE);
+    private static final String RETURN_PRIMITIVE_DOUBLE = getMethodDescriptor(Type.DOUBLE_TYPE);
+
     public MethodVisitorScope(MethodVisitor methodVisitor) {
         super(ASM_LEVEL, methodVisitor);
     }
@@ -73,8 +91,46 @@ public class MethodVisitorScope extends MethodVisitor {
         bytecode.emit(mv);
     }
 
+    /**
+     * Unboxes or casts the value at the top of the stack.
+     */
     protected void unboxOrCastTo(Type targetType) {
-        AsmClassGeneratorUtils.unboxOrCast(this, targetType);
+        switch (targetType.getSort()) {
+            case Type.BOOLEAN:
+                _CHECKCAST(BOXED_BOOLEAN_TYPE);
+                _INVOKEVIRTUAL(BOXED_BOOLEAN_TYPE, "booleanValue", RETURN_PRIMITIVE_BOOLEAN);
+                return;
+            case Type.CHAR:
+                _CHECKCAST(BOXED_CHAR_TYPE);
+                _INVOKEVIRTUAL(BOXED_CHAR_TYPE, "charValue", RETURN_CHAR);
+                return;
+            case Type.BYTE:
+                _CHECKCAST(BOXED_BYTE_TYPE);
+                _INVOKEVIRTUAL(BOXED_BYTE_TYPE, "byteValue", RETURN_PRIMITIVE_BYTE);
+                break;
+            case Type.SHORT:
+                _CHECKCAST(BOXED_SHORT_TYPE);
+                _INVOKEVIRTUAL(BOXED_SHORT_TYPE, "shortValue", RETURN_PRIMITIVE_SHORT);
+                break;
+            case Type.INT:
+                _CHECKCAST(BOXED_INT_TYPE);
+                _INVOKEVIRTUAL(BOXED_INT_TYPE, "intValue", RETURN_INT);
+                return;
+            case Type.LONG:
+                _CHECKCAST(BOXED_LONG_TYPE);
+                _INVOKEVIRTUAL(BOXED_LONG_TYPE, "longValue", RETURN_PRIMITIVE_LONG);
+                return;
+            case Type.FLOAT:
+                _CHECKCAST(BOXED_FLOAT_TYPE);
+                _INVOKEVIRTUAL(BOXED_FLOAT_TYPE, "floatValue", RETURN_PRIMITIVE_FLOAT);
+                return;
+            case Type.DOUBLE:
+                _CHECKCAST(BOXED_DOUBLE_TYPE);
+                _INVOKEVIRTUAL(BOXED_DOUBLE_TYPE, "doubleValue", RETURN_PRIMITIVE_DOUBLE);
+                return;
+            default:
+                _CHECKCAST(targetType);
+        }
     }
 
     /**
@@ -176,7 +232,11 @@ public class MethodVisitorScope extends MethodVisitor {
     }
 
     protected void _CHECKCAST(Type type) {
-        super.visitTypeInsn(CHECKCAST, type.getInternalName());
+        _CHECKCAST(type.getInternalName());
+    }
+
+    private void _CHECKCAST(String internalName) {
+        super.visitTypeInsn(CHECKCAST, internalName);
     }
 
     protected void _INSTANCEOF(Type type) {
