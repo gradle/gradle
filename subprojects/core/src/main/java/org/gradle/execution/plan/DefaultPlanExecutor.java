@@ -231,7 +231,11 @@ public class DefaultPlanExecutor implements PlanExecutor {
                 }
             } finally {
                 coordinationService.withStateLock(state -> {
-                    executionPlan.finishedExecuting(selected);
+                    try {
+                        executionPlan.finishedExecuting(selected);
+                    } catch (Throwable t) {
+                        executionPlan.abortAllAndFail(t);
+                    }
                     // Notify other threads that the node is finished as this may unblock further work
                     // or this might be the last node in the graph
                     coordinationService.notifyStateChange();
