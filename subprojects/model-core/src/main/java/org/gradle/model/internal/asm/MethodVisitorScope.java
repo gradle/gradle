@@ -94,49 +94,47 @@ public class MethodVisitorScope extends MethodVisitor {
     /**
      * Unboxes or casts the value at the top of the stack.
      */
-    protected void unboxOrCastTo(Type targetType) {
+    protected void _UNBOX(Type targetType) {
         switch (targetType.getSort()) {
             case Type.BOOLEAN:
-                _CHECKCAST(BOXED_BOOLEAN_TYPE);
-                _INVOKEVIRTUAL(BOXED_BOOLEAN_TYPE, "booleanValue", RETURN_PRIMITIVE_BOOLEAN);
-                return;
+                unbox(BOXED_BOOLEAN_TYPE, "booleanValue", RETURN_PRIMITIVE_BOOLEAN);
+                break;
             case Type.CHAR:
-                _CHECKCAST(BOXED_CHAR_TYPE);
-                _INVOKEVIRTUAL(BOXED_CHAR_TYPE, "charValue", RETURN_CHAR);
-                return;
+                unbox(BOXED_CHAR_TYPE, "charValue", RETURN_CHAR);
+                break;
             case Type.BYTE:
-                _CHECKCAST(BOXED_BYTE_TYPE);
-                _INVOKEVIRTUAL(BOXED_BYTE_TYPE, "byteValue", RETURN_PRIMITIVE_BYTE);
+                unbox(BOXED_BYTE_TYPE, "byteValue", RETURN_PRIMITIVE_BYTE);
                 break;
             case Type.SHORT:
-                _CHECKCAST(BOXED_SHORT_TYPE);
-                _INVOKEVIRTUAL(BOXED_SHORT_TYPE, "shortValue", RETURN_PRIMITIVE_SHORT);
+                unbox(BOXED_SHORT_TYPE, "shortValue", RETURN_PRIMITIVE_SHORT);
                 break;
             case Type.INT:
-                _CHECKCAST(BOXED_INT_TYPE);
-                _INVOKEVIRTUAL(BOXED_INT_TYPE, "intValue", RETURN_INT);
-                return;
+                unbox(BOXED_INT_TYPE, "intValue", RETURN_INT);
+                break;
             case Type.LONG:
-                _CHECKCAST(BOXED_LONG_TYPE);
-                _INVOKEVIRTUAL(BOXED_LONG_TYPE, "longValue", RETURN_PRIMITIVE_LONG);
-                return;
+                unbox(BOXED_LONG_TYPE, "longValue", RETURN_PRIMITIVE_LONG);
+                break;
             case Type.FLOAT:
-                _CHECKCAST(BOXED_FLOAT_TYPE);
-                _INVOKEVIRTUAL(BOXED_FLOAT_TYPE, "floatValue", RETURN_PRIMITIVE_FLOAT);
-                return;
+                unbox(BOXED_FLOAT_TYPE, "floatValue", RETURN_PRIMITIVE_FLOAT);
+                break;
             case Type.DOUBLE:
-                _CHECKCAST(BOXED_DOUBLE_TYPE);
-                _INVOKEVIRTUAL(BOXED_DOUBLE_TYPE, "doubleValue", RETURN_PRIMITIVE_DOUBLE);
-                return;
+                unbox(BOXED_DOUBLE_TYPE, "doubleValue", RETURN_PRIMITIVE_DOUBLE);
+                break;
             default:
                 _CHECKCAST(targetType);
+                break;
         }
+    }
+
+    private void unbox(String boxedType, String unboxMethod, String unboxMethodDescriptor) {
+        _CHECKCAST(boxedType);
+        _INVOKEVIRTUAL(boxedType, unboxMethod, unboxMethodDescriptor);
     }
 
     /**
      * Boxes the value at the top of the stack, if primitive
      */
-    protected void maybeBox(Class<?> valueClass, Type valueType) {
+    protected void _AUTOBOX(Class<?> valueClass, Type valueType) {
         if (valueClass.isPrimitive()) {
             // Box value
             Type boxedType = getType(getWrapperTypeForPrimitiveType(valueClass));
