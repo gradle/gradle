@@ -256,7 +256,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
                             _ALOAD(0);
                             _LDC(i);
                             _INVOKEVIRTUAL(SERIALIZED_LAMBDA_TYPE, "getCapturedArg", RETURN_OBJECT_FROM_INT);
-                            unboxOrCastTo(argumentTypes[i]);
+                            _UNBOX(argumentTypes[i]);
                         }
                         _INVOKEDYNAMIC(factory.name, factory.descriptor, factory.bootstrapMethodHandle, factory.bootstrapMethodArguments);
                         _ARETURN();

@@ -1456,7 +1456,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
         void applyConventionMappingToSetter(PropertyMetadata property, Method setter);
 
-        void applyConventionMappingToSetMethod(PropertyMetadata property, Method metaMethod);
+        void applyConventionMappingToSetMethod(PropertyMetadata property, Method setter);
 
         void addSetMethod(PropertyMetadata propertyMetaData, Method setter);
 
