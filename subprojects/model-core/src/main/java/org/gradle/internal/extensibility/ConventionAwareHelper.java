@@ -19,16 +19,12 @@ package org.gradle.internal.extensibility;
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.Convention;
 import org.gradle.internal.Cast;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.reflect.JavaPropertyReflectionUtil;
-import org.gradle.internal.reflect.PropertyAccessor;
 
 import java.util.Collection;
 import java.util.HashMap;
