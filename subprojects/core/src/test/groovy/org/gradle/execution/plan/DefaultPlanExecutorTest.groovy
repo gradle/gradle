@@ -59,8 +59,6 @@ class DefaultPlanExecutorTest extends Specification {
         executor.process(executionPlan, [], worker)
 
         then:
-        1 * executionPlan.getDisplayName() >> "task plan"
-        1 * executorFactory.create(_) >> Mock(ManagedExecutor)
         1 * workerLeaseService.currentWorkerLease >> workerLease
 
         then:
@@ -96,8 +94,6 @@ class DefaultPlanExecutorTest extends Specification {
         executor.process(executionPlan, [], worker)
 
         then:
-        1 * executionPlan.getDisplayName() >> "task plan"
-        1 * executorFactory.create(_) >> Mock(ManagedExecutor)
         1 * workerLeaseService.currentWorkerLease >> workerLease
 
         then:
