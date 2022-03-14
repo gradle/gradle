@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import gradlebuild.basics.BuildEnvironment
 import gradlebuild.testcleanup.TestFilesCleanupRootPlugin
 import gradlebuild.testcleanup.extension.TestFileCleanUpExtension
 import gradlebuild.testcleanup.extension.TestFilesCleanupBuildServiceRootExtension
@@ -33,7 +32,7 @@ val testFilesCleanup = extensions.create<TestFileCleanUpExtension>("testFilesCle
     reportOnly.convention(false)
 }
 
-if (BuildEnvironment.isCiServer && project.name != "gradle-kotlin-dsl-accessors") {
+if ("CI" in System.getenv() && project.name != "gradle-kotlin-dsl-accessors") {
     rootProject.plugins.apply(TestFilesCleanupRootPlugin::class.java)
     val globalExtension = rootProject.extensions.getByType<TestFilesCleanupBuildServiceRootExtension>()
 
@@ -41,6 +40,6 @@ if (BuildEnvironment.isCiServer && project.name != "gradle-kotlin-dsl-accessors"
 
     globalExtension.projectStates.put(path, projectState)
     projectState.projectBuildDir.set(buildDir)
-    projectState.projectName.set(name)
+    projectState.projectPath.set(path)
     projectState.reportOnly.set(testFilesCleanup.reportOnly)
 }

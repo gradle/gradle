@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@
 package gradlebuild.testcleanup.extension
 
 import org.gradle.api.provider.MapProperty
+import org.gradle.api.provider.Property
+import java.io.File
 
 
 /**
@@ -26,4 +28,14 @@ import org.gradle.api.provider.MapProperty
  */
 interface TestFilesCleanupBuildServiceRootExtension {
     val projectStates: MapProperty<String, TestFilesCleanupProjectState>
+
+    /**
+     * Whether current build is a "clean up runner step" on CI.
+     */
+    val cleanupRunnerStep: Property<Boolean>
+
+    /**
+     * Key is the path of a task, value is the possible report dirs it generates.
+     */
+    val taskPathToReports: MapProperty<String, List<File>>
 }
