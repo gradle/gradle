@@ -9,7 +9,7 @@ dependencies {
 tasks.named<AbstractCompile>("compileGroovy") {
     // Groovy only needs the declared dependencies
     // (and not longer the output of compileJava)
-    classpath.from(sourceSets.main.get().compileClasspath)
+    classpath.setFrom(sourceSets.main.get().compileClasspath)
 }
 tasks.named<AbstractCompile>("compileJava") {
     // Java also depends on the result of Groovy compilation
