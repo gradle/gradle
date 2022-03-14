@@ -44,6 +44,7 @@ import javax.inject.Inject
 import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.collections.set
+import kotlin.streams.toList
 
 
 typealias LeftoverFiles = Map<File, List<String>>
@@ -210,11 +211,9 @@ abstract class TestFilesCleanupService @Inject constructor(
 
     private
     fun TestFilesCleanupProjectState.prepareReportsForCiPublishing(executedTaskPaths: List<String>, tmpTestFiles: Collection<File>) {
-        val reports = executedTaskPaths.flatMap { taskPathReports.getOrDefault(it, emptyList()) }
-        val allReports = tmpTestFiles + reports
-        allReports.forEach { report ->
-            prepareReportForCiPublishing(report)
-        }
+        val reports = executedTaskPaths
+            .flatMap { taskPathReports.getOrDefault(it, emptyList()) }
+        prepareReportForCiPublishing(tmpTestFiles + reports)
     }
 
     // We count the test task containing flaky result as failed
@@ -249,37 +248,61 @@ abstract class TestFilesCleanupService @Inject constructor(
     }
 
     private
-    fun TestFilesCleanupProjectState.prepareReportForCiPublishing(report: File) {
-        if (report.exists()) {
-            val projectPathName = projectPath.get().replace(':', '-')
-            if (report.isDirectory) {
-                val destFile = rootBuildDir.resolve("report$projectPathName-${report.name}.zip")
-                zip(destFile, report)
-            } else {
+    fun TestFilesCleanupProjectState.prepareReportForCiPublishing(reports: List<File>) {
+        val projectPathName = projectPath.get().replace(':', '-')
+        val projectBuildDirPath = projectBuildDir.asFile.get().toPath()
+
+        reports.filter { it.isDirectory }.forEach {
+            val destFile = rootBuildDir.resolve("report$projectPathName-${it.name}.zip")
+            zip(destFile, it)
+        }
+
+        // Zip all files in project build directory into a single zip file to avoid publishing too many tiny files
+        reports.filter { it.isFile && it.toPath().startsWith(projectBuildDirPath) }
+            .map { projectBuildDirPath.relativize(it.toPath()).toString() to it }
+            .apply { zip(rootBuildDir.resolve("report$projectPathName.zip"), this) }
+
+        reports.filter { it.isFile && !it.toPath().startsWith(projectBuildDirPath) }
+            .forEach { report ->
                 fileSystemOperations.copy {
                     from(report)
                     into(rootBuildDir)
                     rename { "report$projectPathName-${report.parentFile.name}-${report.name}" }
                 }
             }
+    }
+
+    /**
+     * Zip a list of files with same root directory to a zip file.
+     *
+     * @param destZip the target zip file
+     * @param srcFiles the mapping of relative path to the file
+     */
+    private
+    fun zip(destZip: File, srcFiles: List<Pair<String, File>>) {
+        if (srcFiles.isEmpty()) {
+            return
+        }
+        destZip.parentFile.mkdirs()
+        ZipOutputStream(FileOutputStream(destZip), StandardCharsets.UTF_8).use { zipOutput ->
+            srcFiles.forEach { (relativePath: String, file: File) ->
+                val zipEntry = ZipEntry(relativePath)
+                zipOutput.putNextEntry(zipEntry)
+                Files.copy(file.toPath(), zipOutput)
+                zipOutput.closeEntry()
+            }
         }
     }
 
     private
     fun zip(destZip: File, srcDir: File) {
-        destZip.parentFile.mkdirs()
-        ZipOutputStream(FileOutputStream(destZip), StandardCharsets.UTF_8).use { zipOutput ->
-            val srcPath = srcDir.toPath()
-            Files.walk(srcPath).use { paths ->
-                paths
-                    .filter { Files.isRegularFile(it, LinkOption.NOFOLLOW_LINKS) }
-                    .forEach { path ->
-                        val zipEntry = ZipEntry(srcPath.relativize(path).toString())
-                        zipOutput.putNextEntry(zipEntry)
-                        Files.copy(path, zipOutput)
-                        zipOutput.closeEntry()
-                    }
-            }
+        val srcPath = srcDir.toPath()
+        Files.walk(srcPath).use { paths ->
+            zip(destZip,
+                paths.filter { Files.isRegularFile(it, LinkOption.NOFOLLOW_LINKS) }
+                    .map { srcPath.relativize(it).toString() to it.toFile() }
+                    .toList()
+            )
         }
     }
 
