@@ -24,7 +24,7 @@ import org.gradle.internal.exceptions.DefaultMultiCauseException;
  */
 @Contextual
 public class TaskExecutionException extends DefaultMultiCauseException {
-    private final Task task;
+    private transient final Task task;
 
     public TaskExecutionException(Task task, Throwable cause) {
         super(String.format("Execution failed for %s.", task), cause);

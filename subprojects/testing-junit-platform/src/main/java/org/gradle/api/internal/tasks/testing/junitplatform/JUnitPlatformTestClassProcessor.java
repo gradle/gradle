@@ -31,7 +31,6 @@ import org.junit.platform.engine.TestDescriptor;
 import org.junit.platform.engine.TestSource;
 import org.junit.platform.engine.discovery.DiscoverySelectors;
 import org.junit.platform.engine.support.descriptor.ClassSource;
-import org.junit.platform.engine.support.descriptor.MethodSource;
 import org.junit.platform.launcher.Launcher;
 import org.junit.platform.launcher.LauncherDiscoveryRequest;
 import org.junit.platform.launcher.PostDiscoveryFilter;
@@ -41,10 +40,18 @@ import org.junit.platform.launcher.core.LauncherFactory;
 import javax.annotation.Nonnull;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.ServiceLoader;
+import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import static org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.isNestedClassInsideEnclosedRunner;
 import static org.junit.platform.launcher.EngineFilter.excludeEngines;
 import static org.junit.platform.launcher.EngineFilter.includeEngines;
@@ -52,6 +59,8 @@ import static org.junit.platform.launcher.TagFilter.excludeTags;
 import static org.junit.platform.launcher.TagFilter.includeTags;
 
 public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProcessor<JUnitPlatformSpec> {
+    private static final Logger LOG = Logging.getLogger(JUnitPlatformTestClassProcessor.class);
+
     private CollectAllTestClassesExecutor testClassExecutor;
 
     public JUnitPlatformTestClassProcessor(JUnitPlatformSpec spec, IdGenerator<?> idGenerator, ActorFactory actorFactory, Clock clock) {
@@ -145,19 +154,36 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
         }
     }
 
+
     private void addTestNameFilters(LauncherDiscoveryRequestBuilder requestBuilder) {
         if (!spec.getIncludedTests().isEmpty() || !spec.getIncludedTestsCommandLine().isEmpty() || !spec.getExcludedTests().isEmpty()) {
             TestSelectionMatcher matcher = new TestSelectionMatcher(spec.getIncludedTests(),
                 spec.getExcludedTests(), spec.getIncludedTestsCommandLine());
-            requestBuilder.filters(new ClassMethodNameFilter(matcher));
+            requestBuilder.filters(new SelectorNameFilter(matcher, loadSelectorFactories()));
         }
     }
 
-    private static class ClassMethodNameFilter implements PostDiscoveryFilter {
-        private final TestSelectionMatcher matcher;
+    private Collection<TestSelectorFactory> loadSelectorFactories() {
+        Set<TestSelectorFactory> selectorFactories = streamServiceProviders(new JoinClassLoader(
+                getClass().getClassLoader(),
+                Thread.currentThread().getContextClassLoader()),
+            TestSelectorFactory.class)
+            .collect(Collectors.toSet());
+        LOG.info("Loaded test selector factories: {}", selectorFactories);
+        return selectorFactories;
+    }
 
-        private ClassMethodNameFilter(TestSelectionMatcher matcher) {
+    private Stream<TestSelectorFactory> streamServiceProviders(ClassLoader classLoader, Class<TestSelectorFactory> serviceProviderInterface) {
+        return StreamSupport.stream(ServiceLoader.load(serviceProviderInterface, classLoader).spliterator(), false);
+    }
+
+    private static class SelectorNameFilter implements PostDiscoveryFilter {
+        private final TestSelectionMatcher matcher;
+        private final Collection<TestSelectorFactory> testSelectors;
+
+        private SelectorNameFilter(TestSelectionMatcher matcher, Collection<TestSelectorFactory> testSelectors) {
             this.matcher = matcher;
+            this.testSelectors = testSelectors;
         }
 
         @Override
@@ -173,36 +199,76 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
         }
 
         private boolean shouldRun(TestDescriptor descriptor, boolean checkingParent) {
-            Optional<TestSource> source = descriptor.getSource();
-            if (!source.isPresent()) {
-                return true;
-            }
+            return descriptor.getSource()
+                .flatMap(source -> or(
+                    shouldRunExistingSelector(descriptor, source),
+                    shouldRunClassSource(descriptor, checkingParent, source),
+                    shouldRunParent(descriptor)
+                )).orElse(true);
+        }
 
-            if (source.get() instanceof MethodSource) {
-                MethodSource methodSource = (MethodSource) source.get();
-                return matcher.matchesTest(methodSource.getClassName(), methodSource.getMethodName())
-                    || matchesParentMethod(descriptor, methodSource.getMethodName());
-            } else if (source.get() instanceof ClassSource) {
-                if (!checkingParent) {
-                    for (TestDescriptor child : descriptor.getChildren()) {
-                        if (shouldRun(child)) {
-                            return true;
-                        }
+        @SuppressWarnings("varargs")
+        @SafeVarargs
+        private static <T> Optional<T> or(Optional<T>... alternatives) {
+            return Arrays.stream(alternatives)
+                .filter(Optional::isPresent)
+                .findFirst()
+                .get();
+        }
+
+        private Optional<Boolean> shouldRunClassSource(TestDescriptor descriptor, boolean checkingParent, TestSource source) {
+            return Optional.of(source)
+                .filter(ClassSource.class::isInstance)
+                .map(ClassSource.class::cast)
+                .map(classSource -> shouldRunClassSource(descriptor, checkingParent, classSource));
+        }
+
+        private Optional<Boolean> shouldRunExistingSelector(TestDescriptor descriptor, TestSource source) {
+            return findExistingSelector(source)
+                .map(factory -> factory.createSelector(source))
+                .map(selector -> shouldRunSelector(descriptor, selector));
+        }
+
+        private Optional<TestSelectorFactory> findExistingSelector(TestSource source) {
+            Optional<TestSelectorFactory> maybeExistingSelector = testSelectors.stream()
+                .filter(factory -> factory.supports(source))
+                .findAny();
+            if (LOG.isDebugEnabled()) {
+                if (maybeExistingSelector.isPresent()) {
+                    LOG.debug("Found selector {} for source {}", maybeExistingSelector.get().getClass().getSimpleName(), source);
+                } else {
+                    LOG.debug("No selector fround for source {}", source);
+                }
+            }
+            return maybeExistingSelector;
+        }
+
+        private Optional<Boolean> shouldRunParent(TestDescriptor descriptor) {
+            return descriptor.getParent().map(parent -> shouldRun(parent, true));
+        }
+
+        private boolean shouldRunSelector(TestDescriptor descriptor, TestSelectorFactory.TestSelector selector) {
+            return matcher.matchesTest(selector.getContainerName(), selector.getSelectorName()) || matchesParentSelector(descriptor, selector.getSelectorName());
+        }
+
+        private boolean shouldRunClassSource(TestDescriptor descriptor, boolean checkingParent, ClassSource source) {
+            if (!checkingParent) {
+                for (TestDescriptor child : descriptor.getChildren()) {
+                    if (shouldRun(child)) {
+                        return true;
                     }
                 }
-                if (descriptor.getChildren().isEmpty()) {
-                    String className = ((ClassSource) source.get()).getClassName();
-                    return matcher.matchesTest(className, null)
-                        || matcher.matchesTest(className, descriptor.getLegacyReportingName());
-                } else {
-                    return true;
-                }
+            }
+            if (descriptor.getChildren().isEmpty()) {
+                String className = source.getClassName();
+                return matcher.matchesTest(className, null)
+                    || matcher.matchesTest(className, descriptor.getLegacyReportingName());
             } else {
-                return descriptor.getParent().isPresent() && shouldRun(descriptor.getParent().get(), true);
+                return true;
             }
         }
 
-        private boolean matchesParentMethod(TestDescriptor descriptor, String methodName) {
+        private boolean matchesParentSelector(TestDescriptor descriptor, String methodName) {
             return descriptor.getParent().flatMap(this::className).filter(className -> matcher.matchesTest(className, methodName)).isPresent();
         }
 
@@ -223,5 +289,4 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
                 .map(ClassSource::getClassName);
         }
     }
-
 }
