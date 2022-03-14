@@ -167,6 +167,11 @@ public interface ExecutionPlan extends Describable, Closeable {
         }
 
         @Override
+        public Diagnostics healthDiagnostics() {
+            return new Diagnostics(true, Collections.emptyList());
+        }
+
+        @Override
         public int size() {
             return 0;
         }
@@ -210,6 +215,11 @@ public interface ExecutionPlan extends Describable, Closeable {
     void abortAllAndFail(Throwable t);
 
     void cancelExecution();
+
+    /**
+     * Returns some diagnostic information about the state of this plan. This is used to monitor the health of the plan.
+     */
+    Diagnostics healthDiagnostics();
 
     /**
      * Returns the node for the supplied task that is part of this execution plan.
@@ -268,4 +278,34 @@ public interface ExecutionPlan extends Describable, Closeable {
 
     @Override
     void close();
+
+    /**
+     * Some basic diagnostic information about the state of the plan.
+     */
+    class Diagnostics {
+        private final boolean canMakeProgress;
+        private final List<String> queuedNodes;
+
+        public Diagnostics(boolean canMakeProgress, List<String> queuedNodes) {
+            this.canMakeProgress = canMakeProgress;
+            this.queuedNodes = queuedNodes;
+        }
+
+        /**
+         * Returns true when this plan is either finished or is still able to select further nodes.
+         * Returns false when there are nodes queued but none of them will be able to be selected, without some external change (eg completion of a node in an included build).
+         *
+         * this method should never return false.
+         */
+        public boolean canMakeProgress() {
+            return canMakeProgress;
+        }
+
+        /**
+         * A description of each queued node. Is empty when {@link #canMakeProgress()} returns true (as this information is not required in that case).
+         */
+        public List<String> getQueuedNodes() {
+            return queuedNodes;
+        }
+    }
 }

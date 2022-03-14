@@ -25,6 +25,7 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.TimeFormatting;
@@ -37,9 +38,11 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -93,6 +96,11 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
         awaitCompletion(executionPlan, currentWorkerLease, failures);
     }
 
+    @Override
+    public void assertHealthy() {
+        coordinationService.withStateLock(queue::assertHealthy);
+    }
+
     /**
      * Blocks until all nodes in the plan have been processed. This method will only return when every node in the plan has either completed, failed or been skipped.
      */
@@ -108,7 +116,7 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
                 executionPlan.collectFailures(failures);
                 return FINISHED;
             } else {
-                // Release worker lease while waiting for work to complete
+                // Release worker lease (if held) while waiting for work to complete
                 workerLease.unlock();
                 return RETRY;
             }
@@ -172,7 +180,7 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
                     return ExecutionPlan.State.MaybeNodesReadyToStart;
                 }
             }
-            if (finished || (autoFinish && queues.isEmpty())) {
+            if (nothingMoreToStart()) {
                 return ExecutionPlan.State.NoMoreNodesToStart;
             } else {
                 return ExecutionPlan.State.NoNodesReadyToStart;
@@ -191,15 +199,19 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
                     return new WorkItem(selection, details.plan, details.nodeExecutor);
                 }
             }
-            if (finished || (autoFinish && queues.isEmpty())) {
+            if (nothingMoreToStart()) {
                 return NO_MORE_NODES;
             } else {
                 return NO_NODES_READY;
             }
         }
 
+        private boolean nothingMoreToStart() {
+            return finished || (autoFinish && queues.isEmpty());
+        }
+
         public void add(PlanDetails planDetails) {
-            coordinationService.withStateLock(resourceLockState -> {
+            coordinationService.withStateLock(() -> {
                 if (finished) {
                     throw new IllegalStateException("This queue has been closed.");
                 }
@@ -207,20 +219,22 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
                 queues.addFirst(planDetails);
                 // Signal to the worker threads that work may be available
                 coordinationService.notifyStateChange();
-                return FINISHED;
             });
         }
 
         @Override
         public void close() throws IOException {
-            coordinationService.withStateLock(resourceLockState -> {
+            coordinationService.withStateLock(() -> {
                 finished = true;
                 if (!queues.isEmpty()) {
-                    throw new IllegalStateException("Not all work has completed.");
+                    for (PlanDetails queue : queues) {
+                        if (queue.plan.executionState() != ExecutionPlan.State.NoMoreNodesToStart) {
+                            throw new IllegalStateException("Not all work has completed.");
+                        }
+                    }
                 }
                 // Signal to the worker threads that no more work is available
                 coordinationService.notifyStateChange();
-                return FINISHED;
             });
         }
 
@@ -235,6 +249,40 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
             coordinationService.assertHasStateLock();
             for (PlanDetails details : queues) {
                 details.plan.abortAllAndFail(t);
+            }
+        }
+
+        public void assertHealthy() {
+            coordinationService.assertHasStateLock();
+            if (queues.isEmpty()) {
+                return;
+            }
+            List<ExecutionPlan.Diagnostics> allDiagnostics = new ArrayList<>(queues.size());
+            for (PlanDetails details : queues) {
+                ExecutionPlan.Diagnostics diagnostics = details.plan.healthDiagnostics();
+                if (diagnostics.canMakeProgress()) {
+                    return;
+                }
+                allDiagnostics.add(diagnostics);
+            }
+
+            // Log some diagnostic information to the console, in addition to aborting execution with an exception which will also be logged
+            // Given that the execution infrastructure is in an unhealthy state, it may not shut down cleanly and report the execution.
+            // So, log some details here just in case
+            TreeFormatter formatter = new TreeFormatter();
+            formatter.node("Unable to make progress running work. The following items are queued for execution but none of them can be started:");
+            formatter.startChildren();
+            for (ExecutionPlan.Diagnostics diagnostics : allDiagnostics) {
+                for (String node : diagnostics.getQueuedNodes()) {
+                    formatter.node(node);
+                }
+            }
+            formatter.endChildren();
+            System.out.println(formatter);
+
+            IllegalStateException failure = new IllegalStateException("Unable to make progress running work. There are items queued for execution but none of them can be started");
+            for (PlanDetails details : queues) {
+                details.plan.abortAllAndFail(failure);
             }
         }
     }
@@ -291,10 +339,7 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
             }
 
             if (releaseLeaseOnCompletion) {
-                coordinationService.withStateLock(resourceLockState -> {
-                    workerLease.unlock();
-                    return FINISHED;
-                });
+                coordinationService.withStateLock(() -> workerLease.unlock());
             }
 
             long total = totalTimer.getElapsedMillis();
@@ -367,7 +412,7 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
                     selected.setExecutionFailure(e);
                 }
             } finally {
-                coordinationService.withStateLock(state -> {
+                coordinationService.withStateLock(() -> {
                     try {
                         executionPlan.finishedExecuting(selected);
                     } catch (Throwable t) {
@@ -376,7 +421,6 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
                     // Notify other threads that the node is finished as this may unblock further work
                     // or this might be the last node in the graph
                     coordinationService.notifyStateChange();
-                    return FINISHED;
                 });
             }
         }

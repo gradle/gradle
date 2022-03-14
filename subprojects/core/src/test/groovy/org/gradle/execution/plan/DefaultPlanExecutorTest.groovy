@@ -24,9 +24,7 @@ import org.gradle.api.invocation.Gradle
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.internal.concurrent.DefaultParallelismConfiguration
 import org.gradle.internal.concurrent.ExecutorFactory
-import org.gradle.internal.concurrent.ManagedExecutor
-import org.gradle.internal.resources.ResourceLockCoordinationService
-import org.gradle.internal.resources.ResourceLockState
+import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.internal.work.WorkerLeaseService
 import spock.lang.Specification
@@ -36,11 +34,7 @@ class DefaultPlanExecutorTest extends Specification {
     def worker = Mock(Action)
     def executorFactory = Mock(ExecutorFactory)
     def cancellationHandler = Mock(BuildCancellationToken)
-    def coordinationService = Stub(ResourceLockCoordinationService) {
-        withStateLock(_) >> { transformer ->
-            transformer[0].transform(Stub(ResourceLockState))
-        }
-    }
+    def coordinationService = new DefaultResourceLockCoordinationService()
     def workerLeaseService = Mock(WorkerLeaseService)
     def workerLease = Mock(WorkerLeaseRegistry.WorkerLease)
     def executor = new DefaultPlanExecutor(new DefaultParallelismConfiguration(false, 1), executorFactory, workerLeaseService, cancellationHandler, coordinationService)

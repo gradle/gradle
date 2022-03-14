@@ -37,4 +37,6 @@ public interface PlanExecutor {
      * @param nodeExecutor the actual executor responsible to execute the nodes. Must be thread-safe.
      */
     void process(ExecutionPlan executionPlan, Collection<? super Throwable> failures, Action<Node> nodeExecutor);
+
+    void assertHealthy();
 }
