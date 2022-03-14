@@ -54,6 +54,14 @@ public class JavaPropertyReflectionUtil {
         return new GetterMethodBackedPropertyAccessor<T, F>(property, returnType, getterMethod);
     }
 
+    public static <T> PropertyAccessor<T, ?> readableProperty(Class<T> target, String property) throws NoSuchPropertyException {
+        final Method getterMethod = findGetterMethod(target, property);
+        if (getterMethod == null) {
+            throw new NoSuchPropertyException(String.format("Could not find getter method for property '%s' on class %s.", property, target.getSimpleName()));
+        }
+        return new GetterMethodBackedPropertyAccessor<>(property, getterMethod.getReturnType(), getterMethod);
+    }
+
     /**
      * Locates the property with the given name as a readable property. Searches only public properties.
      *
