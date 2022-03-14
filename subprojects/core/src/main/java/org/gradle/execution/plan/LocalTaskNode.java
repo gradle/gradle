@@ -257,6 +257,16 @@ public class LocalTaskNode extends TaskNode {
         }
     }
 
+    @Override
+    public Set<Node> getLifecycleSuccessors() {
+        return lifecycleSuccessors;
+    }
+
+    @Override
+    public void setLifecycleSuccessors(Set<Node> lifecycleSuccessors) {
+        this.lifecycleSuccessors = lifecycleSuccessors;
+    }
+
     /**
      * Used to determine whether a {@link Node} consumes the <b>outcome</b> of a successor task vs. its output(s).
      *

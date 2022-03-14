@@ -32,6 +32,7 @@ import org.gradle.util.Path;
 import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 public class TaskInAnotherBuild extends TaskNode implements SelfExecutingNode {
     public static TaskInAnotherBuild of(
@@ -79,6 +80,18 @@ public class TaskInAnotherBuild extends TaskNode implements SelfExecutingNode {
     @Override
     public TaskInternal getTask() {
         return target.getTask();
+    }
+
+    @Override
+    public Set<Node> getLifecycleSuccessors() {
+        return Collections.emptySet();
+    }
+
+    @Override
+    public void setLifecycleSuccessors(Set<Node> successors) {
+        if (!successors.isEmpty()) {
+            throw new IllegalArgumentException();
+        }
     }
 
     @Override
