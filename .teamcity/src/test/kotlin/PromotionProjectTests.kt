@@ -62,10 +62,17 @@ class PromotionProjectTests {
 
         val sanityCheck = model.findBuildTypeByName("Nightly Snapshot")
         val steps = sanityCheck.steps.items
-        val gradleBuildStep = gradleStep(steps, 0)
-        gradleBuildStep.assertTasks("promoteReleaseNightly")
-        assertEquals("""-PcommitId=%dep.Gradle_release_Check_Stage_ReadyforNightly_Trigger.build.vcs.number%  "-PgitUserName=bot-teamcity" "-PgitUserEmail=bot-teamcity@gradle.com" """, gradleBuildStep.gradleParams)
+        val upload = gradleStep(steps, 0)
+        upload.assertTasks("help")
+        assertEquals("""-PcommitId=%dep.Gradle_release_Check_Stage_ReadyforNightly_Trigger.build.vcs.number%  "-PgitUserName=bot-teamcity" "-PgitUserEmail=bot-teamcity@gradle.com" """, upload.gradleParams)
+
+        val promote = gradleStep(steps, 1)
+        promote.assertTasks("promoteReleaseNightly")
+        assertEquals("""-PcommitId=%dep.Gradle_release_Check_Stage_ReadyforNightly_Trigger.build.vcs.number%  "-PgitUserName=bot-teamcity" "-PgitUserEmail=bot-teamcity@gradle.com" """, promote.gradleParams)
     }
+
+    // TODO: Add tests for other promotion build types
+    // TODO: Add proper task for first upload step
 
     private fun setupModelFor(branchName: String): PromotionProject {
         // Set the project id here, so we can use methods on the DslContext

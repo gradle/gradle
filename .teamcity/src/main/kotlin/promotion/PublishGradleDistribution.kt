@@ -44,6 +44,11 @@ abstract class PublishGradleDistribution(
         steps {
             gradleWrapper {
                 name = "Promote"
+                tasks = "help"
+                gradleParams = """-PcommitId=%dep.${RelativeId("Check_Stage_${this@PublishGradleDistribution.triggerName}_Trigger")}.build.vcs.number% $extraParameters "-PgitUserName=$gitUserName" "-PgitUserEmail=$gitUserEmail" """
+            }
+            gradleWrapper {
+                name = "Promote"
                 tasks = task
                 gradleParams = """-PcommitId=%dep.${RelativeId("Check_Stage_${this@PublishGradleDistribution.triggerName}_Trigger")}.build.vcs.number% $extraParameters "-PgitUserName=$gitUserName" "-PgitUserEmail=$gitUserEmail" """
             }
