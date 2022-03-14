@@ -14,6 +14,7 @@ dependencies {
     implementation(project(":language-java"))
     implementation(project(":testing-base"))
     implementation(project(":testing-jvm"))
+    implementation(project(":logging-api"))
 
     implementation(libs.junitPlatform)
 }
