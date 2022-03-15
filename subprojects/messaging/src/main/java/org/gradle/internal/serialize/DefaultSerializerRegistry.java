@@ -19,24 +19,32 @@ package org.gradle.internal.serialize;
 import com.google.common.base.Objects;
 import org.gradle.internal.Cast;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
+import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.concurrent.ConcurrentSkipListSet;
 
+/**
+ * Default implementation of {@link SerializerRegistry}.
+ *
+ * This class must be thread-safe because multiple tasks may be registering serializable classes concurrently, while other tasks are calling {@link #build(Class)}.
+ */
+@ThreadSafe
 public class DefaultSerializerRegistry implements SerializerRegistry {
-    private final Map<Class<?>, Serializer<?>> serializerMap = new TreeMap<Class<?>, Serializer<?>>(new Comparator<Class<?>>() {
+    private static final Comparator<Class<?>> CLASS_COMPARATOR = new Comparator<Class<?>>() {
         @Override
         public int compare(Class<?> o1, Class<?> o2) {
             return o1.getName().compareTo(o2.getName());
         }
-    });
-    private final Set<Class<?>> javaSerialization = new HashSet<Class<?>>();
+    };
+    private final Map<Class<?>, Serializer<?>> serializerMap = new ConcurrentSkipListMap<Class<?>, Serializer<?>>(CLASS_COMPARATOR);
+    private final Set<Class<?>> javaSerialization = new ConcurrentSkipListSet<Class<?>>(CLASS_COMPARATOR);
     private final SerializerClassMatcherStrategy classMatcher;
 
     public DefaultSerializerRegistry() {
