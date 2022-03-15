@@ -43,7 +43,7 @@ class DisambiguateArtifactTransformIntegrationTest extends AbstractHttpDependenc
         """
     }
 
-    def "disambiguates A -> B -> C and B -> C by selecting the later"() {
+    def "disambiguates A -> B -> C and B -> C by selecting the latter"() {
         def m1 = mavenRepo.module("test", "test", "1.3").publish()
         m1.artifactFile.text = "1234"
 
@@ -89,14 +89,16 @@ project(':app') {
             from.attribute(artifactType, 'java-classes-directory')
             from.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.JAVA_API))
             from.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.CLASSES))
+            
             to.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, 'size'))
         }
         registerTransform(FileSizer) {
             from.attribute(artifactType, 'jar')
             from.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.JAVA_API))
             from.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.JAR))
-            to.attribute(artifactType, 'java-classes-directory')
+            
             to.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.JAVA_API))
+            to.attribute(artifactType, 'java-classes-directory')
             to.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.CLASSES))
         }
     }
@@ -132,7 +134,7 @@ ${artifactTransform("FileSizer")}
         output.count("Transforming test-1.3.jar.txt to test-1.3.jar.txt.txt") == 1
     }
 
-    def "disambiguates A -> B -> C and D -> C by selecting the later iff attributes match"() {
+    def "disambiguates A -> B -> C and D -> C by selecting the latter iff attributes match"() {
         def m1 = mavenRepo.module("test", "test", "1.3").publish()
         m1.artifactFile.text = "1234"
 
