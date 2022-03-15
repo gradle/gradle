@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.SettingsInternal.BUILD_SRC
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.provider.Provider
 import org.gradle.api.services.internal.BuildServiceProvider
@@ -165,12 +166,11 @@ class ConfigurationCacheState(
             writeBuildTreeState(gradle)
         }
         val buildEventListeners = buildEventListenersOf(gradle)
-        val storedBuilds = storedBuilds()
         writeBuildState(
             build,
             StoredBuildTreeState(
-                storedBuilds,
-                buildEventListeners
+                storedBuilds = storedBuilds(),
+                requiredBuildServicesPerBuild = buildEventListeners
                     .filterIsInstance<BuildServiceProvider<*, *>>()
                     .groupBy { it.buildIdentifier }
             )
@@ -623,7 +623,15 @@ class ConfigurationCacheState(
 
     private
     fun buildEventListenersOf(gradle: GradleInternal) =
-        gradle.serviceOf<BuildEventListenerRegistryInternal>().subscriptions
+        gradle.serviceOf<BuildEventListenerRegistryInternal>()
+            .subscriptions
+            .filter(::isRelevantBuildEventListener)
+
+    private
+    fun isRelevantBuildEventListener(provider: Provider<*>?) = when (provider) {
+        is BuildServiceProvider<*, *> -> provider.buildIdentifier.name != BUILD_SRC
+        else -> true
+    }
 
     private
     fun BuildStateRegistry.buildServiceRegistrationOf(buildId: BuildIdentifier) =

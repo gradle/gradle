@@ -286,6 +286,12 @@ public abstract class DelegatingMavenModule<T extends MavenModule> implements Ma
     }
 
     @Override
+    public MavenModule asGradlePlatform() {
+        backingModule.asGradlePlatform();
+        return t();
+    }
+
+    @Override
     public boolean getUniqueSnapshots() {
         return backingModule.getUniqueSnapshots();
     }

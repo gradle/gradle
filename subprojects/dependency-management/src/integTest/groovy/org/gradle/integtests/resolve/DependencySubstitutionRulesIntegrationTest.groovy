@@ -17,8 +17,6 @@
 
 package org.gradle.integtests.resolve
 
-import org.gradle.api.attributes.Category
-import org.gradle.api.attributes.Usage
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
@@ -1639,15 +1637,7 @@ configurations.all {
     def "constraint shouldn't be converted to hard dependency when a dependency subsitution applies on an external module"() {
         def fooModule = mavenRepo.module("org", "foo", "1.0")
         mavenRepo.module("org", "platform", "1.0")
-            .withModuleMetadata()
-            .adhocVariants()
-            .variant("apiElements", [(Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_API, (Category.CATEGORY_ATTRIBUTE.name): Category.REGULAR_PLATFORM]) {
-                useDefaultArtifacts = false
-            }
-            .dependencyConstraint(fooModule)
-            .variant("runtimeElements", [(Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_RUNTIME, (Category.CATEGORY_ATTRIBUTE.name): Category.REGULAR_PLATFORM]) {
-                useDefaultArtifacts = false
-            }
+            .asGradlePlatform()
             .dependencyConstraint(fooModule)
             .publish()
 

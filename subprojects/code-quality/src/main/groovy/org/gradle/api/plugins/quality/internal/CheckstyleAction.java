@@ -14,17 +14,20 @@
  * limitations under the License.
  */
 
-package gradlebuild.testcleanup.extension
+package org.gradle.api.plugins.quality.internal;
 
-import org.gradle.api.file.DirectoryProperty
-import org.gradle.api.provider.Property
+import org.gradle.api.Action;
+import org.gradle.api.internal.project.antbuilder.AntBuilderDelegate;
 
+public abstract class CheckstyleAction extends AntWorkAction<CheckstyleActionParameters> {
 
-/**
- * Works with {@see TestFilesCleanupService} and {@see TestFilesCleanupServiceRootExtension}.
- * It collects states to be used in the build service for each project.
- */
-interface TestFilesCleanupProjectState : TestFileCleanUpExtension {
-    val projectName: Property<String>
-    val projectBuildDir: DirectoryProperty
+    @Override
+    protected String getActionName() {
+        return "checkstyle";
+    }
+
+    @Override
+    protected Action<AntBuilderDelegate> getAntAction() {
+        return new CheckstyleInvoker(getParameters());
+    }
 }

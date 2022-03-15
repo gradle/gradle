@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
+import java.util.Collections;
 import java.util.List;
 import java.util.NavigableSet;
 import java.util.Set;
@@ -40,12 +41,30 @@ public abstract class Node implements Comparable<Node> {
 
     @VisibleForTesting
     enum ExecutionState {
-        UNKNOWN, NOT_REQUIRED, SHOULD_RUN, MUST_RUN, MUST_NOT_RUN, EXECUTING, EXECUTED, SKIPPED
+        // Node has not been added to any execution plan
+        UNKNOWN,
+        // Node has been filtered from the current execution plan and must not execute
+        NOT_REQUIRED,
+        SHOULD_RUN,
+        MUST_RUN,
+        MUST_NOT_RUN,
+        EXECUTING,
+        // Node has been executed (and possibly failed) in an execution plan (not necessarily the current)
+        EXECUTED,
+        // Either cannot be executed because of a failed dependency or was skipped because the execution plan was aborted
+        // Should split this into two separate states, or perhaps use NOT_REQUIRED for the abort case
+        SKIPPED
+    }
+
+    enum DependenciesState {
+        NOT_COMPLETE,
+        COMPLETE_AND_SUCCESSFUL,
+        COMPLETE_AND_NOT_SUCCESSFUL
     }
 
     private ExecutionState state;
     private boolean dependenciesProcessed;
-    private boolean allDependenciesComplete;
+    private DependenciesState dependenciesState = DependenciesState.NOT_COMPLETE;
     private Throwable executionFailure;
     private final NavigableSet<Node> dependencySuccessors = Sets.newTreeSet();
     private final NavigableSet<Node> dependencyPredecessors = Sets.newTreeSet();
@@ -69,7 +88,11 @@ public abstract class Node implements Comparable<Node> {
     }
 
     public boolean isIncludeInGraph() {
-        return state != ExecutionState.NOT_REQUIRED && state != ExecutionState.UNKNOWN;
+        return state != ExecutionState.NOT_REQUIRED && state != ExecutionState.UNKNOWN && state != ExecutionState.EXECUTED && state != ExecutionState.SKIPPED;
+    }
+
+    public boolean isAlreadyExecuted() {
+        return state == ExecutionState.EXECUTED || state == ExecutionState.SKIPPED;
     }
 
     /**
@@ -109,6 +132,7 @@ public abstract class Node implements Comparable<Node> {
 
     /**
      * Whether this node failed with a verification failure.
+     *
      * @return true if failed and threw {@link VerificationException}, false otherwise
      */
     public boolean isVerificationFailure() {
@@ -145,7 +169,7 @@ public abstract class Node implements Comparable<Node> {
     }
 
     public void skipExecution(Consumer<Node> completionAction) {
-        assert state == ExecutionState.SHOULD_RUN;
+        assert state == ExecutionState.SHOULD_RUN || state == ExecutionState.MUST_RUN;
         state = ExecutionState.SKIPPED;
         completionAction.accept(this);
     }
@@ -230,23 +254,31 @@ public abstract class Node implements Comparable<Node> {
      * Returns if all dependencies completed, but have not been completed in the last check.
      */
     public boolean updateAllDependenciesComplete() {
-        if (!allDependenciesComplete) {
+        if (dependenciesState == DependenciesState.NOT_COMPLETE) {
             forceAllDependenciesCompleteUpdate();
-            return allDependenciesComplete;
+            return dependenciesState != DependenciesState.NOT_COMPLETE;
         }
         return false;
     }
 
     public void forceAllDependenciesCompleteUpdate() {
-        allDependenciesComplete = doCheckDependenciesComplete();
+        if (doCheckDependenciesComplete()) {
+            if (dependencySuccessors.stream().allMatch(this::shouldContinueExecution)) {
+                dependenciesState = DependenciesState.COMPLETE_AND_SUCCESSFUL;
+            } else {
+                dependenciesState = DependenciesState.COMPLETE_AND_NOT_SUCCESSFUL;
+            }
+        } else {
+            dependenciesState = DependenciesState.NOT_COMPLETE;
+        }
     }
 
     public boolean allDependenciesComplete() {
-        return allDependenciesComplete;
+        return dependenciesState != DependenciesState.NOT_COMPLETE;
     }
 
     public boolean allDependenciesSuccessful() {
-        return dependencySuccessors.stream().allMatch(this::shouldContinueExecution);
+        return dependenciesState == DependenciesState.COMPLETE_AND_SUCCESSFUL;
     }
 
     /**
@@ -326,13 +358,21 @@ public abstract class Node implements Comparable<Node> {
         return dependencySuccessors.contains(successor);
     }
 
-    public abstract Set<Node> getFinalizers();
+    public Set<Node> getFinalizers() {
+        return Collections.emptySet();
+    }
+
+    /**
+     * Returns a node that should be executed prior to this node, once this node is ready to execute and it dependencies complete.
+     */
+    @Nullable
+    public Node getPrepareNode() {
+        return null;
+    }
 
     public MutationInfo getMutationInfo() {
         return mutationInfo;
     }
-
-    public abstract void resolveMutations();
 
     public boolean isPublicNode() {
         return false;

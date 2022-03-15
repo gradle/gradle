@@ -166,7 +166,7 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
     }
 
     private ModuleResolveState getModule(ModuleIdentifier id, boolean rootModule) {
-        return modules.computeIfAbsent(id, mid -> new ModuleResolveState(idGenerator, id, metaDataResolver, attributesFactory, versionComparator, versionParser, selectorStateResolver, resolveOptimizations, rootModule, conflictResolution));
+        return modules.computeIfAbsent(id, mid -> new ModuleResolveState(idGenerator, id, metaDataResolver, attributesFactory, versionComparator, versionParser, selectorStateResolver, resolveOptimizations, rootModule, conflictResolution, attributeDesugaring));
     }
 
     List<? extends DependencyMetadata> getGeneratedRootDependencies() {

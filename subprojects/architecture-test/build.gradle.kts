@@ -18,7 +18,7 @@ dependencies {
     testImplementation(libs.archunitJunit5)
     testImplementation(libs.guava)
     testImplementation("org.junit.jupiter:junit-jupiter")
-    testImplementation("org.assertj:assertj-core:3.16.1")
+    testImplementation(libs.assertj)
 
     testRuntimeOnly(project(":distributions-full"))
 }

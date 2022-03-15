@@ -69,7 +69,7 @@ public class DefaultPlanExecutor implements PlanExecutor {
             WorkerLease currentWorkerLease = workerLeaseService.getCurrentWorkerLease();
             startAdditionalWorkers(executionPlan, nodeExecutor, executor);
             new ExecutorWorker(executionPlan, nodeExecutor, currentWorkerLease, cancellationToken, coordinationService, workerLeaseService).run();
-            awaitCompletion(executionPlan, failures);
+            awaitCompletion(executionPlan, currentWorkerLease, failures);
         } finally {
             executor.stop();
         }
@@ -78,12 +78,20 @@ public class DefaultPlanExecutor implements PlanExecutor {
     /**
      * Blocks until all nodes in the plan have been processed. This method will only return when every node in the plan has either completed, failed or been skipped.
      */
-    private void awaitCompletion(final ExecutionPlan executionPlan, final Collection<? super Throwable> failures) {
+    private void awaitCompletion(ExecutionPlan executionPlan, WorkerLease workerLease, Collection<? super Throwable> failures) {
         coordinationService.withStateLock(resourceLockState -> {
-            if (executionPlan.allNodesComplete()) {
+            if (executionPlan.allExecutionComplete()) {
+                // Need to hold a worker lease in order to finish up
+                if (!workerLease.isLockedByCurrentThread()) {
+                    if (!workerLease.tryLock()) {
+                        return RETRY;
+                    }
+                }
                 executionPlan.collectFailures(failures);
                 return FINISHED;
             } else {
+                // Release worker lease while waiting for work to complete
+                workerLease.unlock();
                 return RETRY;
             }
         });
@@ -151,20 +159,12 @@ public class DefaultPlanExecutor implements PlanExecutor {
                 }
             }
 
-            coordinationService.withStateLock(resourceLockState -> {
-                if (releaseLeaseOnCompletion && workerLease.isLockedByCurrentThread()) {
+            if (releaseLeaseOnCompletion) {
+                coordinationService.withStateLock(resourceLockState -> {
                     workerLease.unlock();
                     return FINISHED;
-                } else if (!releaseLeaseOnCompletion && !workerLease.isLockedByCurrentThread()) {
-                    if (workerLease.tryLock()) {
-                        return FINISHED;
-                    } else {
-                        return RETRY;
-                    }
-                } else {
-                    return FINISHED;
-                }
-            });
+                });
+            }
 
             long total = totalTimer.getElapsedMillis();
 
@@ -177,7 +177,7 @@ public class DefaultPlanExecutor implements PlanExecutor {
          * Selects a node that's ready to execute and executes the provided action against it. If no node is ready, blocks until some
          * can be executed.
          *
-         * @return {@code true} if there may be more nodes waiting to execute, {@code false} if all nodes have been executed.
+         * @return {@code true} if there may be more nodes waiting to execute, {@code false} if no more nodes can be started.
          */
         private boolean executeNextNode(final WorkerLease workerLease, final Action<Node> nodeExecutor) {
             final MutableReference<Node> selected = MutableReference.empty();
@@ -186,31 +186,42 @@ public class DefaultPlanExecutor implements PlanExecutor {
                     executionPlan.cancelExecution();
                 }
 
-                if (!executionPlan.hasNodesRemaining()) {
+                ExecutionPlan.State state = executionPlan.executionState();
+                if (state == ExecutionPlan.State.NoMoreNodesToStart) {
                     return FINISHED;
+                } else if (state == ExecutionPlan.State.NoNodesReadyToStart) {
+                    // Release worker lease while waiting
+                    if (workerLease.isLockedByCurrentThread()) {
+                        workerLease.unlock();
+                    }
+                    return RETRY;
                 }
+                // Else there may be nodes ready, acquire a worker lease
 
                 boolean hasWorkerLease = workerLease.isLockedByCurrentThread();
                 if (!hasWorkerLease && !workerLease.tryLock()) {
-                    // Cannot run work
+                    // Cannot get a lease to run work
                     return RETRY;
                 }
 
+                ExecutionPlan.NodeSelection selection;
                 try {
-                    selected.set(executionPlan.selectNext());
+                    selection = executionPlan.selectNext();
                 } catch (Throwable t) {
                     resourceLockState.releaseLocks();
                     executionPlan.abortAllAndFail(t);
                     return FINISHED;
                 }
-
-                if (selected.get() == null) {
+                if (selection == ExecutionPlan.NO_MORE_NODES_TO_START) {
+                    return FINISHED;
+                } else if (selection == ExecutionPlan.NO_NODES_READY_TO_START) {
                     // Release worker lease while waiting
                     workerLease.unlock();
                     return RETRY;
-                } else {
-                    return FINISHED;
                 }
+
+                selected.set(selection.getNode());
+                return FINISHED;
             });
 
             Node selectedNode = selected.get();
@@ -224,16 +235,18 @@ public class DefaultPlanExecutor implements PlanExecutor {
 
         private void execute(final Node selected, Action<Node> nodeExecutor) {
             try {
-                if (!selected.isComplete()) {
-                    try {
-                        nodeExecutor.execute(selected);
-                    } catch (Throwable e) {
-                        selected.setExecutionFailure(e);
-                    }
+                try {
+                    nodeExecutor.execute(selected);
+                } catch (Throwable e) {
+                    selected.setExecutionFailure(e);
                 }
             } finally {
                 coordinationService.withStateLock(state -> {
-                    executionPlan.finishedExecuting(selected);
+                    try {
+                        executionPlan.finishedExecuting(selected);
+                    } catch (Throwable t) {
+                        executionPlan.abortAllAndFail(t);
+                    }
                     // Notify other threads that the node is finished as this may unblock further work
                     // or this might be the last node in the graph
                     coordinationService.notifyStateChange();

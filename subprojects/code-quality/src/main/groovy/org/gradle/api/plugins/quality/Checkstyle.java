@@ -18,13 +18,16 @@ package org.gradle.api.plugins.quality;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.plugins.quality.internal.CheckstyleInvoker;
+import org.gradle.api.plugins.quality.internal.CheckstyleAction;
+import org.gradle.api.plugins.quality.internal.CheckstyleActionParameters;
 import org.gradle.api.plugins.quality.internal.CheckstyleReportsImpl;
+import org.gradle.api.provider.Property;
 import org.gradle.api.reporting.Reporting;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.CacheableTask;
@@ -40,7 +43,10 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.VerificationTask;
+import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.util.internal.ClosureBackedAction;
+import org.gradle.workers.WorkQueue;
+import org.gradle.workers.WorkerExecutor;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -64,6 +70,13 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
     private int maxWarnings = Integer.MAX_VALUE;
     private boolean showViolations = true;
     private final DirectoryProperty configDirectory;
+    private final Property<JavaLauncher> javaLauncher;
+
+    public Checkstyle() {
+        this.configDirectory = getObjectFactory().directoryProperty();
+        this.reports = getObjectFactory().newInstance(CheckstyleReportsImpl.class, this);
+        this.javaLauncher = getObjectFactory().property(JavaLauncher.class);
+    }
 
     /**
      * The Checkstyle configuration file to use.
@@ -80,18 +93,19 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
         setConfig(getProject().getResources().getText().fromFile(configFile));
     }
 
-    public Checkstyle() {
-        configDirectory = getObjectFactory().directoryProperty();
-        reports = getObjectFactory().newInstance(CheckstyleReportsImpl.class, this);
-    }
-
     @Inject
     protected ObjectFactory getObjectFactory() {
         throw new UnsupportedOperationException();
     }
 
     @Inject
+    @Deprecated
     public IsolatedAntBuilder getAntBuilder() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    public WorkerExecutor getWorkerExecutor() {
         throw new UnsupportedOperationException();
     }
 
@@ -144,9 +158,47 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
         return reports;
     }
 
+    /**
+     * JavaLauncher for toolchain support
+     * @since 7.5
+     */
+    @Incubating
+    @Nested
+    public Property<JavaLauncher> getJavaLauncher() {
+        return javaLauncher;
+    }
+
     @TaskAction
     public void run() {
-        CheckstyleInvoker.invoke(this);
+        runWithProcessIsolation();
+    }
+
+    private void runWithProcessIsolation() {
+        WorkQueue workQueue = getWorkerExecutor().processIsolation(spec -> {
+            spec.getForkOptions().setExecutable(javaLauncher.get().getExecutablePath().getAsFile().getAbsolutePath());
+            spec.getClasspath().from(getCheckstyleClasspath());
+        });
+        workQueue.submit(CheckstyleAction.class, this::setupParameters);
+    }
+
+    private void setupParameters(CheckstyleActionParameters parameters) {
+        parameters.getConfig().set(getConfigFile());
+        parameters.getMaxErrors().set(getMaxErrors());
+        parameters.getMaxWarnings().set(getMaxWarnings());
+        parameters.getIgnoreFailures().set(getIgnoreFailures());
+        parameters.getConfigDirectory().set(getConfigDirectory());
+        parameters.getShowViolations().set(isShowViolations());
+        parameters.getSource().setFrom(getSource());
+        parameters.getIsHtmlRequired().set(getReports().getHtml().getRequired());
+        parameters.getIsXmlRequired().set(getReports().getXml().getRequired());
+        parameters.getXmlOuputLocation().set(getReports().getXml().getOutputLocation());
+        parameters.getHtmlOuputLocation().set(getReports().getHtml().getOutputLocation());
+        parameters.getTemporaryDir().set(getTemporaryDir());
+        parameters.getConfigProperties().set(getConfigProperties());
+        TextResource stylesheetString = getReports().getHtml().getStylesheet();
+        if (stylesheetString != null) {
+            parameters.getStylesheetString().set(stylesheetString.asString());
+        }
     }
 
     /**
