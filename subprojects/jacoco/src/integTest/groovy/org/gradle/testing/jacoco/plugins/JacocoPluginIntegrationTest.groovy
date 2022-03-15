@@ -16,6 +16,7 @@
 
 package org.gradle.testing.jacoco.plugins
 
+import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
@@ -24,7 +25,10 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testing.jacoco.plugins.fixtures.JacocoReportFixture
 import org.gradle.testing.jacoco.plugins.fixtures.JavaProjectUnderTest
+import spock.lang.IgnoreIf
 
+// JaCoCo does not support Java 18 yet
+@IgnoreIf({ JavaVersion.current() >= JavaVersion.VERSION_18 })
 class JacocoPluginIntegrationTest extends AbstractIntegrationSpec implements InspectsConfigurationReport {
 
     private final JavaProjectUnderTest javaProjectUnderTest = new JavaProjectUnderTest(testDirectory)

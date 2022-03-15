@@ -16,13 +16,17 @@
 
 package org.gradle.testing.jacoco.plugins
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractProjectRelocationIntegrationTest
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testing.jacoco.plugins.fixtures.JavaProjectUnderTest
+import spock.lang.IgnoreIf
 
 import static org.gradle.util.BinaryDiffUtils.levenshteinDistance
 import static org.gradle.util.BinaryDiffUtils.toHexStrings
 
+// JaCoCo does not support Java 18 yet
+@IgnoreIf({ JavaVersion.current() >= JavaVersion.VERSION_18 })
 class JacocoTestRelocationIntegrationTest extends AbstractProjectRelocationIntegrationTest {
 
     @Override

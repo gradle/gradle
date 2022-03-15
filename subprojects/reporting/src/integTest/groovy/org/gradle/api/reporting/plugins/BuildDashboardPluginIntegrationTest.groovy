@@ -22,6 +22,7 @@ import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import org.gradle.test.fixtures.file.TestFile
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
+import spock.lang.IgnoreIf
 
 class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
 
@@ -353,6 +354,8 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
     }
 
     @ToBeFixedForConfigurationCache(because = ":buildDashboard")
+    // JaCoCo does not support Java 18 yet
+    @IgnoreIf({ JavaVersion.current() >= JavaVersion.VERSION_18 })
     void 'dashboard includes JaCoCo reports'() {
         given:
         goodCode()
