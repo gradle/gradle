@@ -33,6 +33,7 @@ abstract class ExternalModulesExtension {
     val asmCommons = "org.ow2.asm:asm-commons"
     val asmTree = "org.ow2.asm:asm-tree"
     val asmUtil = "org.ow2.asm:asm-util"
+    val assertj = "org.assertj:assertj-core"
     val awsS3Core = "com.amazonaws:aws-java-sdk-core"
     val awsS3Kms = "com.amazonaws:aws-java-sdk-kms"
     val awsS3S3 = "com.amazonaws:aws-java-sdk-s3"
@@ -108,7 +109,6 @@ abstract class ExternalModulesExtension {
     val minlog = "com.esotericsoftware.minlog:minlog"
     val nativePlatform = "net.rubygrapefruit:native-platform"
     val nativePlatformFileEvents = "net.rubygrapefruit:file-events"
-    val nekohtml = "net.sourceforge.nekohtml:nekohtml"
     val objenesis = "org.objenesis:objenesis"
     val plexusCipher = "org.sonatype.plexus:plexus-cipher"
     val plexusInterpolation = "org.codehaus.plexus:plexus-interpolation"
@@ -125,7 +125,6 @@ abstract class ExternalModulesExtension {
     val jna = "net.java.dev.jna:jna"
     val agp = "com.android.tools.build:gradle"
     val xbeanReflect = "org.apache.xbean:xbean-reflect"
-    val xerces = "xerces:xercesImpl"
     val xmlApis = "xml-apis:xml-apis"
 
     // Compile only dependencies (dynamically downloaded if needed)
@@ -170,6 +169,7 @@ abstract class ExternalModulesExtension {
     val sshdSftp = "org.apache.sshd:sshd-sftp"
     val testcontainersSpock = "org.testcontainers:spock"
     val typesafeConfig = "com.typesafe:config"
+    val xerces = "xerces:xercesImpl"
     val xmlunit = "xmlunit:xmlunit"
 
     val licenses = mapOf(
@@ -181,6 +181,7 @@ abstract class ExternalModulesExtension {
         asmCommons to License.BSD3,
         asmTree to License.BSD3,
         asmUtil to License.BSD3,
+        assertj to License.Apache2,
         awsS3Core to License.Apache2,
         awsS3Kms to License.Apache2,
         awsS3S3 to License.Apache2,
@@ -244,7 +245,6 @@ abstract class ExternalModulesExtension {
         minlog to License.BSD3,
         nativePlatform to License.Apache2,
         nativePlatformFileEvents to License.Apache2,
-        nekohtml to License.Apache2,
         objenesis to License.Apache2,
         plexusCipher to License.Apache2,
         plexusInterpolation to License.Apache2,
@@ -259,7 +259,6 @@ abstract class ExternalModulesExtension {
         tomlj to License.Apache2,
         trove4j to License.LGPL21,
         xbeanReflect to License.Apache2,
-        xerces to License.Apache2,
         xmlApis to License.Apache2
     )
 }

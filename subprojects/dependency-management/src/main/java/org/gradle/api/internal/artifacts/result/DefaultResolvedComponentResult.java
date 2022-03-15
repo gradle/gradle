@@ -45,19 +45,20 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
     private final Set<ResolvedDependencyResult> dependents = new LinkedHashSet<>();
     private final ComponentSelectionReason selectionReason;
     private final ComponentIdentifier componentId;
-    private final List<ResolvedVariantResult> variants;
+    private final List<ResolvedVariantResult> selectedVariants;
+    private final List<ResolvedVariantResult> allVariants;
     private final String repositoryName;
     private final Multimap<ResolvedVariantResult, DependencyResult> variantDependencies = ArrayListMultimap.create();
 
-    public DefaultResolvedComponentResult(ModuleVersionIdentifier moduleVersion, ComponentSelectionReason selectionReason, ComponentIdentifier componentId, List<ResolvedVariantResult> variants, String repositoryName) {
-        assert moduleVersion != null;
-        assert selectionReason != null;
-        assert variants != null;
-
+    public DefaultResolvedComponentResult(
+        ModuleVersionIdentifier moduleVersion, ComponentSelectionReason selectionReason, ComponentIdentifier componentId,
+        List<ResolvedVariantResult> selectedVariants, List<ResolvedVariantResult> allVariants, String repositoryName
+    ) {
         this.moduleVersion = moduleVersion;
         this.selectionReason = selectionReason;
         this.componentId = componentId;
-        this.variants = variants;
+        this.selectedVariants = selectedVariants;
+        this.allVariants = allVariants;
         this.repositoryName = repositoryName;
     }
 
@@ -104,17 +105,17 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
     }
 
     @Override
-    @SuppressWarnings("deprecation")
+    @Deprecated
     public ResolvedVariantResult getVariant() {
-        if (variants.isEmpty()) {
+        if (selectedVariants.isEmpty()) {
             return new DefaultResolvedVariantResult(componentId, Describables.of("<empty>"), ImmutableAttributes.EMPTY, Collections.emptyList(), null);
         }
         // Returns an approximation of a composite variant
-        List<String> parts = variants.stream()
+        List<String> parts = selectedVariants.stream()
             .map(ResolvedVariantResult::getDisplayName)
             .collect(Collectors.toList());
         DisplayName variantName = new VariantNameBuilder().getVariantName(parts);
-        ResolvedVariantResult firstVariant = variants.get(0);
+        ResolvedVariantResult firstVariant = selectedVariants.get(0);
         return new DefaultResolvedVariantResult(componentId, variantName, firstVariant.getAttributes(), firstVariant.getCapabilities(), null);
     }
 
@@ -125,19 +126,24 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
 
     @Override
     public List<ResolvedVariantResult> getVariants() {
-        return variants;
+        return selectedVariants;
+    }
+
+    @Override
+    public List<ResolvedVariantResult> getAllVariants() {
+        return allVariants;
     }
 
     @Override
     public List<DependencyResult> getDependenciesForVariant(ResolvedVariantResult variant) {
-        if (!variants.contains(variant)) {
+        if (!selectedVariants.contains(variant)) {
             reportInvalidVariant(variant);
         }
         return ImmutableList.copyOf(variantDependencies.get(variant));
     }
 
     private void reportInvalidVariant(ResolvedVariantResult variant) {
-        Optional<ResolvedVariantResult> sameName = variants.stream()
+        Optional<ResolvedVariantResult> sameName = selectedVariants.stream()
             .filter(v -> v.getDisplayName().equals(variant.getDisplayName()))
             .findFirst();
         String moreInfo = sameName.isPresent()

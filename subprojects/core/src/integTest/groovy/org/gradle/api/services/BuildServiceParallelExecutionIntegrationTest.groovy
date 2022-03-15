@@ -82,13 +82,11 @@ class BuildServiceParallelExecutionIntegrationTest extends AbstractIntegrationSp
         """
 
         expect:
-        blockingServer.expectConcurrent("a")
-        blockingServer.expectConcurrent("b")
+        blockingServer.expectConcurrent(1, "a", "b")
 
         run ":a:ping", ":b:ping"
 
-        blockingServer.expectConcurrent("a")
-        blockingServer.expectConcurrent("b")
+        blockingServer.expectConcurrent(1, "a", "b")
 
         run ":a:ping", ":b:ping"
     }
@@ -132,13 +130,11 @@ class BuildServiceParallelExecutionIntegrationTest extends AbstractIntegrationSp
         """
 
         expect:
-        blockingServer.expectConcurrent("a", "b")
-        blockingServer.expectConcurrent("c")
+        blockingServer.expectConcurrent(2, "a", "b", "c")
 
         run ":a:ping", ":b:ping", ":c:ping"
 
-        blockingServer.expectConcurrent("a", "b")
-        blockingServer.expectConcurrent("c")
+        blockingServer.expectConcurrent(2, "a", "b", "c")
 
         run ":a:ping", ":b:ping", ":c:ping"
     }
@@ -149,10 +145,10 @@ class BuildServiceParallelExecutionIntegrationTest extends AbstractIntegrationSp
 
         buildFile << """
             def service1 = gradle.sharedServices.registerIfAbsent("service1", BuildService) {
-                maxParallelUsages = 1
+                maxParallelUsages = 2
             }
             def service2 = gradle.sharedServices.registerIfAbsent("service2", BuildService) {
-                maxParallelUsages = 1
+                maxParallelUsages = 3
             }
 
             project(':a') {
@@ -161,20 +157,20 @@ class BuildServiceParallelExecutionIntegrationTest extends AbstractIntegrationSp
             }
             project(':b') {
                 ping.usesService(service1)
+                ping.usesService(service2)
             }
             project(':c') {
+                ping.usesService(service1)
                 ping.usesService(service2)
             }
         """
 
         expect:
-        blockingServer.expectConcurrent("a")
-        blockingServer.expectConcurrent("b", "c")
+        blockingServer.expectConcurrent(2, "a", "b", "c")
 
         run ":a:ping", ":b:ping", ":c:ping"
 
-        blockingServer.expectConcurrent("a")
-        blockingServer.expectConcurrent("b", "c")
+        blockingServer.expectConcurrent(2, "a", "b", "c")
 
         run ":a:ping", ":b:ping", ":c:ping"
     }

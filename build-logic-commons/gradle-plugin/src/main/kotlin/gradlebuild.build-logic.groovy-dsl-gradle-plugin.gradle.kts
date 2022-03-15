@@ -18,6 +18,7 @@ plugins {
     id("java-library")
     id("groovy-gradle-plugin")
     id("gradlebuild.code-quality")
+    id("gradlebuild.ci-reporting")
 }
 
 java {

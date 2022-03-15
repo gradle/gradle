@@ -33,7 +33,7 @@ object StartReleaseCycleTest : BasePromotionBuildType(vcsRootId = gradlePromotio
                 name = "PromoteTest"
                 tasks = "clean promoteStartReleaseCycle"
                 useGradleWrapper = true
-                gradleParams = "-PconfirmationCode=startCycle -PtestRun=1"
+                gradleParams = """-PconfirmationCode=startCycle -PtestRun=1 "-PgitUserName=test" "-PgitUserEmail=test@example.com""""
             }
         }
 

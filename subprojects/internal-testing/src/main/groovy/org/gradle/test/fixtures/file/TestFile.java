@@ -624,6 +624,7 @@ public class TestFile extends File {
     }
 
     private void visit(Set<String> names, String prefix, File file, boolean ignoreDirs) {
+        assert file.isDirectory();
         for (File child : file.listFiles()) {
             if (child.isFile() || !ignoreDirs && child.isDirectory() && child.list().length == 0) {
                 names.add(prefix + child.getName());

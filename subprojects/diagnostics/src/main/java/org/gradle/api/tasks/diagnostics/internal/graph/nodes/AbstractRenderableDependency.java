@@ -38,6 +38,11 @@ public abstract class AbstractRenderableDependency implements RenderableDependen
     }
 
     @Override
+    public List<ResolvedVariantResult> getAllVariants() {
+        return Collections.emptyList();
+    }
+
+    @Override
     public ResolutionState getResolutionState() {
         return ResolutionState.UNRESOLVED;
     }

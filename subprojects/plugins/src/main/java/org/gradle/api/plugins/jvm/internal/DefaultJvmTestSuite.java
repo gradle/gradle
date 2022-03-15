@@ -49,7 +49,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     public enum Frameworks {
         JUNIT4("junit:junit", "4.13"),
         JUNIT_JUPITER("org.junit.jupiter:junit-jupiter", "5.7.2"),
-        SPOCK("org.spockframework:spock-core", "2.0-groovy-3.0"),
+        SPOCK("org.spockframework:spock-core", "2.1-groovy-3.0"),
         KOTLIN_TEST("org.jetbrains.kotlin:kotlin-test-junit", "1.6.10"),
         TESTNG("org.testng:testng", "7.4.0"),
         NONE(null, null);

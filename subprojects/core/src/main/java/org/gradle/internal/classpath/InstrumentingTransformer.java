@@ -23,7 +23,7 @@ import org.gradle.api.file.RelativePath;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Pair;
 import org.gradle.internal.hash.Hasher;
-import org.gradle.model.internal.asm.AsmClassGeneratorUtils;
+import org.gradle.model.internal.asm.MethodVisitorScope;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.Label;
@@ -49,13 +49,7 @@ import static org.objectweb.asm.Opcodes.ACC_INTERFACE;
 import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
 import static org.objectweb.asm.Opcodes.ACC_STATIC;
 import static org.objectweb.asm.Opcodes.ACC_SYNTHETIC;
-import static org.objectweb.asm.Opcodes.ACONST_NULL;
-import static org.objectweb.asm.Opcodes.ALOAD;
-import static org.objectweb.asm.Opcodes.ARETURN;
-import static org.objectweb.asm.Opcodes.DUP;
-import static org.objectweb.asm.Opcodes.F_SAME;
 import static org.objectweb.asm.Opcodes.H_INVOKESTATIC;
-import static org.objectweb.asm.Opcodes.IFEQ;
 import static org.objectweb.asm.Opcodes.INVOKESPECIAL;
 import static org.objectweb.asm.Opcodes.INVOKESTATIC;
 import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
@@ -262,7 +256,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
                             _ALOAD(0);
                             _LDC(i);
                             _INVOKEVIRTUAL(SERIALIZED_LAMBDA_TYPE, "getCapturedArg", RETURN_OBJECT_FROM_INT);
-                            unboxOrCastTo(argumentTypes[i]);
+                            _UNBOX(argumentTypes[i]);
                         }
                         _INVOKEDYNAMIC(factory.name, factory.descriptor, factory.bootstrapMethodHandle, factory.bootstrapMethodArguments);
                         _ARETURN();
@@ -564,80 +558,6 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
             this.descriptor = descriptor;
             this.bootstrapMethodHandle = bootstrapMethodHandle;
             this.bootstrapMethodArguments = bootstrapMethodArguments;
-        }
-    }
-
-    /**
-     * Simplifies emitting bytecode to a {@link MethodVisitor} by providing a JVM bytecode DSL.
-     */
-    @SuppressWarnings("NewMethodNamingConvention")
-    private static class MethodVisitorScope extends MethodVisitor {
-
-        public MethodVisitorScope(MethodVisitor methodVisitor) {
-            super(ASM_LEVEL, methodVisitor);
-        }
-
-        protected void unboxOrCastTo(Type targetType) {
-            AsmClassGeneratorUtils.unboxOrCast(this, targetType);
-        }
-
-        /**
-         * @see org.objectweb.asm.Opcodes#F_SAME
-         */
-        protected void _F_SAME() {
-            super.visitFrame(F_SAME, 0, new Object[0], 0, new Object[0]);
-        }
-
-        protected void _INVOKESPECIAL(String owner, String name, String descriptor) {
-            super.visitMethodInsn(INVOKESPECIAL, owner, name, descriptor, false);
-        }
-
-        protected void _INVOKESTATIC(Type owner, String name, String descriptor) {
-            _INVOKESTATIC(owner.getInternalName(), name, descriptor);
-        }
-
-        protected void _INVOKESTATIC(String owner, String name, String descriptor) {
-            super.visitMethodInsn(INVOKESTATIC, owner, name, descriptor, false);
-        }
-
-        protected void _INVOKESTATIC(String owner, String name, String descriptor, boolean targetIsInterface) {
-            super.visitMethodInsn(INVOKESTATIC, owner, name, descriptor, targetIsInterface);
-        }
-
-        protected void _INVOKEVIRTUAL(Type owner, String name, String descriptor) {
-            _INVOKEVIRTUAL(owner.getInternalName(), name, descriptor);
-        }
-
-        protected void _INVOKEVIRTUAL(String owner, String name, String descriptor) {
-            super.visitMethodInsn(INVOKEVIRTUAL, owner, name, descriptor, false);
-        }
-
-        protected void _INVOKEDYNAMIC(String name, String descriptor, Handle bootstrapMethodHandle, List<?> bootstrapMethodArguments) {
-            super.visitInvokeDynamicInsn(name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments.toArray());
-        }
-
-        protected void _DUP() {
-            super.visitInsn(DUP);
-        }
-
-        protected void _ACONST_NULL() {
-            super.visitInsn(ACONST_NULL);
-        }
-
-        protected void _LDC(Object value) {
-            super.visitLdcInsn(value);
-        }
-
-        protected void _ALOAD(int var) {
-            super.visitVarInsn(ALOAD, var);
-        }
-
-        protected void _IFEQ(Label label) {
-            super.visitJumpInsn(IFEQ, label);
-        }
-
-        protected void _ARETURN() {
-            super.visitInsn(ARETURN);
         }
     }
 }
