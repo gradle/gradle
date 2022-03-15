@@ -126,7 +126,10 @@ public class Instrumented {
     // Called by generated code.
     public static Properties systemProperties(String consumer) {
         return new AccessTrackingProperties(System.getProperties(), (k, v) -> {
-            systemPropertyQueried(convertToString(k), convertToString(v), consumer);
+            // Do not track accesses to non-String properties. Only String properties can be set externally, so they cannot affect the cached configuration.
+            if (k instanceof String && (v == null || v instanceof String)) {
+                systemPropertyQueried(convertToString(k), convertToString(v), consumer);
+            }
         });
     }
 

@@ -35,14 +35,13 @@ import java.util.function.Function;
 
 /**
  * A wrapper for {@link Properties} that notifies a listener about accesses.
- * interface.
  */
 class AccessTrackingProperties extends Properties {
     // TODO(https://github.com/gradle/configuration-cache/issues/337) Only a limited subset of method is tracked currently.
     private final Properties delegate;
-    private final BiConsumer<? super String, ? super String> onAccess;
+    private final BiConsumer<Object, Object> onAccess;
 
-    public AccessTrackingProperties(Properties delegate, BiConsumer<? super String, ? super String> onAccess) {
+    public AccessTrackingProperties(Properties delegate, BiConsumer<Object, Object> onAccess) {
         this.delegate = delegate;
         this.onAccess = onAccess;
     }
@@ -98,7 +97,7 @@ class AccessTrackingProperties extends Properties {
     }
 
     private void onAccessEntrySetElement(@Nullable Object potentialEntry) {
-        Map.Entry<String, String> entry = AccessTrackingUtils.tryConvertingToTrackableEntry(potentialEntry);
+        Map.Entry<?, ?> entry = AccessTrackingUtils.tryConvertingToEntry(potentialEntry);
         if (entry != null) {
             getAndReport(entry.getKey());
         }
@@ -305,9 +304,7 @@ class AccessTrackingProperties extends Properties {
     }
 
     private void reportKeyAndValue(Object key, Object value) {
-        if (key instanceof String && (value == null || value instanceof String)) {
-            onAccess.accept((String) key, (String) value);
-        }
+        onAccess.accept(key, value);
     }
 
     private void reportAggregatingAccess() {
