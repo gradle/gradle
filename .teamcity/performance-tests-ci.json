@@ -196,6 +196,14 @@
       }
     } ]
   }, {
+    "testId" : "org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest.run :module21:module02:assembleDebug --dry-run",
+    "groups" : [ {
+      "testProject" : "largeAndroidBuild2",
+      "coverage" : {
+        "per_commit" : [ "linux" ]
+      }
+    } ]
+  }, {
     "testId" : "org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest.run assembleDebug",
     "groups" : [ {
       "testProject" : "largeAndroidBuild",
