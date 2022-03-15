@@ -24,7 +24,6 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import promotion.PromotionProject
 
-
 class PromotionProjectTests {
     @Test
     fun `promotion project has expected build types for master branch`() {
@@ -32,8 +31,10 @@ class PromotionProjectTests {
 
         assertEquals("Promotion", model.name)
         assertEquals(7, model.buildTypes.size)
-        assertEquals(listOf("SanityCheck", "Nightly Snapshot", "Nightly Snapshot (from QuickFeedback)", "Publish Branch Snapshot (from Quick Feedback)", "Release - Milestone", "Start Release Cycle", "Start Release Cycle Test"),
-                model.buildTypes.map { it.name })
+        assertEquals(
+            listOf("SanityCheck", "Nightly Snapshot", "Nightly Snapshot (from QuickFeedback)", "Publish Branch Snapshot (from Quick Feedback)", "Release - Milestone", "Start Release Cycle", "Start Release Cycle Test"),
+            model.buildTypes.map { it.name }
+        )
     }
 
     @Test
@@ -42,8 +43,10 @@ class PromotionProjectTests {
 
         assertEquals("Promotion", model.name)
         assertEquals(7, model.buildTypes.size)
-        assertEquals(listOf("SanityCheck", "Nightly Snapshot", "Nightly Snapshot (from QuickFeedback)", "Publish Branch Snapshot (from Quick Feedback)", "Release - Milestone", "Release - Release Candidate", "Release - Final"),
-                model.buildTypes.map { it.name })
+        assertEquals(
+            listOf("SanityCheck", "Nightly Snapshot", "Nightly Snapshot (from QuickFeedback)", "Publish Branch Snapshot (from Quick Feedback)", "Release - Milestone", "Release - Release Candidate", "Release - Final"),
+            model.buildTypes.map { it.name }
+        )
     }
 
     @Test
@@ -76,7 +79,7 @@ class PromotionProjectTests {
 
     private fun setupModelFor(branchName: String): PromotionProject {
         // Set the project id here, so we can use methods on the DslContext
-        DslContext.projectId = AbsoluteId("Gradle_${branchName}")
+        DslContext.projectId = AbsoluteId("Gradle_$branchName")
         DslContext.addParameters("Branch" to branchName)
         val model = PromotionProject(VersionedSettingsBranch(branchName, true))
         return model

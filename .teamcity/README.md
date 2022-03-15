@@ -16,7 +16,7 @@ After you make a change, you can run `mvn clean teamcity-configs:generate` to ge
 
 You also need to run `mvn clean verify` with Java 8 before committing changes.
 
-If you have ktlint errors, you can automatically fix them by running `mvn com.github.gantsign.maven:ktlint-maven-plugin:1.1.1:format`.
+If you have ktlint errors, you can automatically fix them by running `mvn com.github.gantsign.maven:ktlint-maven-plugin:1.11.1:format`.
 
 ## How the configuration works
 
