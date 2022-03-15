@@ -100,7 +100,7 @@ class JUnitClassInJarDetectionIntegrationTest extends JUnitMultiVersionIntegrati
         new DefaultTestExecutionResult(testDirectory).assertTestClassesExecuted('com.example.SomeTest')
     }
 
-    private void assertJarContainsAllEntries(final File jar, final Set<String> entries) {
+    private static void assertJarContainsAllEntries(final File jar, final Set<String> entries) {
         ZipFile originalJar = new ZipFile(jar)
 
         originalJar.withCloseable {
@@ -117,7 +117,7 @@ class JUnitClassInJarDetectionIntegrationTest extends JUnitMultiVersionIntegrati
         assert entries.isEmpty()
     }
 
-    private void assertJarContainsOnlyOneEntry(final File jar, final String entry) {
+    private static void assertJarContainsOnlyOneEntry(final File jar, final String entry) {
         ZipFile originalJar = new ZipFile(jar)
 
         originalJar.withCloseable {
@@ -129,7 +129,7 @@ class JUnitClassInJarDetectionIntegrationTest extends JUnitMultiVersionIntegrati
         }
     }
 
-    private void createNewJarWithoutPackageEntries(final File jar, final File jarNew) {
+    private static void createNewJarWithoutPackageEntries(final File jar, final File jarNew) {
         ZipFile originalJar = new ZipFile(jar)
         originalJar.withCloseable {
             Enumeration<? extends ZipEntry> entries = originalJar.entries()

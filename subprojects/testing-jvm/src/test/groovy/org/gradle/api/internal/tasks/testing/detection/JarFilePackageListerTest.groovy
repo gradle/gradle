@@ -37,11 +37,14 @@ class JarFilePackageListerTest extends Specification {
 
     def setup() {
         out.withCloseable {
+            it.putNextEntry(new ZipEntry("com/a/b/c/"))
             it.putNextEntry(new ZipEntry("com/a/b/c/A.class"))
             it.putNextEntry(new ZipEntry("com/a/b/c/B.class"))
+            it.putNextEntry(new ZipEntry("com/a/b/"))
             it.putNextEntry(new ZipEntry("com/a/b/C.class"))
             it.putNextEntry(new ZipEntry("com/"))
-            it.putNextEntry(new ZipEntry("D.class"))
+            it.putNextEntry(new ZipEntry("com/D.class"))
+            it.putNextEntry(new ZipEntry("E.class"))
         }
     }
 
@@ -50,9 +53,10 @@ class JarFilePackageListerTest extends Specification {
         lister.listJarPackages(zipFile, listener)
 
         then:
-        2 * listener.receivePackage("com/a/b/c/")
-        1 * listener.receivePackage("com/a/b/")
-        1 * listener.receivePackage("com/")
-        0 * listener.receivePackage("D.class")
+        3 * listener.receivePackage("com/a/b/c/")
+        2 * listener.receivePackage("com/a/b/")
+        2 * listener.receivePackage("com/")
+        1 * listener.receivePackage("")
+        0 * listener.receivePackage("*_")
     }
 }
