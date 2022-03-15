@@ -32,17 +32,16 @@ import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE
 @TargetCoverage({ JUNIT_4_LATEST + JUNIT_VINTAGE })
 class JUnitClassInJarDetectionIntegrationTest extends JUnitMultiVersionIntegrationSpec {
 
-    def other = testDirectory.createDir("other")
     def jarName = "testFramework.jar"
     def jarNameNew = "anotherTestFramework.jar"
-    def jar = new File(testDirectory, "other/build/libs/$jarName")
-    def jarNew = new File(testDirectory, "other/build/libs/$jarNameNew")
+    def jar = new File(testDirectory, "build/libs/$jarName")
+    def jarNew = new File(testDirectory, "build/libs/$jarNameNew")
 
     def 'support detecting classes whose package is not a zip entry'() {
         given:
-        other.file("build.gradle") << """
+        buildFile << """
             apply plugin: 'java'
-            repositories { mavenCentral() }
+            ${mavenCentralRepository()}
             dependencies {
                 implementation "junit:junit:3.8"
             }
@@ -54,28 +53,27 @@ class JUnitClassInJarDetectionIntegrationTest extends JUnitMultiVersionIntegrati
             }
         """
 
-        other.file("src/main/java/org/gradle/BasePlatformTestCase.java") << """
+        file("src/main/java/org/gradle/BasePlatformTestCase.java") << """
             package org.gradle;
             import junit.framework.TestCase;
             public class BasePlatformTestCase extends TestCase { }
         """
 
         when:
-        executer.inDirectory(other)
         succeeds('build')
 
         then:
         Set<String> entries = ["org/", "org/gradle/", "org/gradle/BasePlatformTestCase.class"]
         assertJarContainsAllEntries(jar, entries)
-        testDirectory.file("build.gradle") << """
+        buildFile << """
             apply plugin: 'java'
             repositories { mavenCentral() }
             dependencies {
-                testImplementation files('other/build/libs/testFramework.jar')
+                testImplementation files('build/libs/testFramework.jar')
                 testImplementation "junit:junit:3.8"
             }
         """
-        testDirectory.file('src/test/java/SomeTest.java') << """
+        file('src/test/java/SomeTest.java') << """
             package com.example;
             import org.gradle.BasePlatformTestCase;
             public class SomeTest extends BasePlatformTestCase {
@@ -84,7 +82,7 @@ class JUnitClassInJarDetectionIntegrationTest extends JUnitMultiVersionIntegrati
         """
 
         when:
-        succeeds('test')
+        succeeds("test", "--tests", "SomeTest")
         then:
         new DefaultTestExecutionResult(testDirectory).testClass('com.example.SomeTest').assertTestCount(1, 0, 0)
         new DefaultTestExecutionResult(testDirectory).assertTestClassesExecuted('com.example.SomeTest')
@@ -94,7 +92,7 @@ class JUnitClassInJarDetectionIntegrationTest extends JUnitMultiVersionIntegrati
         String entry = "org/gradle/BasePlatformTestCase.class"
         assertJarContainsOnlyOneEntry(jarNew, entry)
         testDirectory.file("build.gradle").replace(jarName, jarNameNew)
-        succeeds('test')
+        succeeds("test", "--tests", "SomeTest")
         then:
         new DefaultTestExecutionResult(testDirectory).testClass('com.example.SomeTest').assertTestCount(1, 0, 0)
         new DefaultTestExecutionResult(testDirectory).assertTestClassesExecuted('com.example.SomeTest')
