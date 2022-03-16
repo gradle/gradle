@@ -43,16 +43,18 @@ public abstract class Node implements Comparable<Node> {
     enum ExecutionState {
         // Node has not been added to any execution plan
         UNKNOWN,
-        // Node has been filtered from the current execution plan and must not execute
-        NOT_REQUIRED,
+        // Node has been added to an execution plan and should run
         SHOULD_RUN,
+        // Node is a finalizer of at least one node that has executed and so must run
         MUST_RUN,
+        // Node is a finalizer of one or more nodes and none of these nodes has executed
         MUST_NOT_RUN,
+        // Node is current executing
         EXECUTING,
-        // Node has been executed (and possibly failed) in an execution plan (not necessarily the current)
+        // Node has been executed, and possibly failed, in an execution plan (not necessarily the current)
         EXECUTED,
         // Either cannot be executed because of a failed dependency or was skipped because the execution plan was aborted
-        // Should split this into two separate states, or perhaps use NOT_REQUIRED for the abort case
+        // Should split this into two separate states, or perhaps use UNKNOWN for the abort case
         SKIPPED
     }
 
@@ -62,17 +64,14 @@ public abstract class Node implements Comparable<Node> {
         COMPLETE_AND_NOT_SUCCESSFUL
     }
 
-    private ExecutionState state;
+    private ExecutionState state = ExecutionState.UNKNOWN;
     private boolean dependenciesProcessed;
     private DependenciesState dependenciesState = DependenciesState.NOT_COMPLETE;
     private Throwable executionFailure;
+    private boolean filtered;
     private final NavigableSet<Node> dependencySuccessors = Sets.newTreeSet();
     private final NavigableSet<Node> dependencyPredecessors = Sets.newTreeSet();
     private final MutationInfo mutationInfo = new MutationInfo(this);
-
-    public Node() {
-        this.state = ExecutionState.UNKNOWN;
-    }
 
     @VisibleForTesting
     ExecutionState getState() {
@@ -88,7 +87,7 @@ public abstract class Node implements Comparable<Node> {
     }
 
     public boolean isIncludeInGraph() {
-        return state != ExecutionState.NOT_REQUIRED && state != ExecutionState.UNKNOWN && state != ExecutionState.EXECUTED && state != ExecutionState.SKIPPED;
+        return !filtered && state != ExecutionState.UNKNOWN && state != ExecutionState.EXECUTED && state != ExecutionState.SKIPPED;
     }
 
     public boolean isAlreadyExecuted() {
@@ -111,7 +110,7 @@ public abstract class Node implements Comparable<Node> {
     }
 
     /**
-     * Is it possible for this node to run? Returns {@code true} if this node definitely will not run, {@code false} if it is still possible for the node to run.
+     * Is it possible for this node to run in the current plan? Returns {@code true} if this node definitely will not run, {@code false} if it is still possible for the node to run.
      *
      * <p>A node may be complete for several reasons, for example when its actions have been executed, or when its outputs have been considered up-to-date or loaded from the build cache,
      * or when it cannot run due to a failure in a dependency.</p>
@@ -120,14 +119,15 @@ public abstract class Node implements Comparable<Node> {
         return state == ExecutionState.EXECUTED
             || state == ExecutionState.SKIPPED
             || state == ExecutionState.UNKNOWN
-            || state == ExecutionState.NOT_REQUIRED
+            || filtered
             || state == ExecutionState.MUST_NOT_RUN;
     }
 
     public boolean isSuccessful() {
-        return (state == ExecutionState.EXECUTED && !isFailed())
-            || state == ExecutionState.NOT_REQUIRED
-            || state == ExecutionState.MUST_NOT_RUN;
+        if (state == ExecutionState.EXECUTED) {
+            return !isFailed();
+        }
+        return filtered || state == ExecutionState.MUST_NOT_RUN;
     }
 
     /**
@@ -191,11 +191,15 @@ public abstract class Node implements Comparable<Node> {
         }
     }
 
-    public void doNotRequire() {
+    public void filtered() {
         if (state == ExecutionState.EXECUTED) {
             return;
         }
-        state = ExecutionState.NOT_REQUIRED;
+        filtered = true;
+    }
+
+    public void notFiltered() {
+        filtered = false;
     }
 
     public void mustNotRun() {

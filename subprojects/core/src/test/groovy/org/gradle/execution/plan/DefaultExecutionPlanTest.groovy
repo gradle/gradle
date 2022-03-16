@@ -48,6 +48,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
     }
 
     private DefaultExecutionPlan newExecutionPlan() {
+        executionPlan?.close()
         new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, dependencyResolver, new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, Stub(Stat)), new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, Stub(Stat)), coordinator)
     }
 
@@ -875,6 +876,24 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         then:
         executionPlan.tasks as List == [b, c]
         executedTasks == []
+    }
+
+    def "builds graph for task that was filtered in a previous plan"() {
+        given:
+        Task a = task("a")
+        Task b = task("b", dependsOn: [a])
+        Task c = task("c")
+        def filter = { it != b } as Spec<Task>
+        executionPlan.useFilter(filter)
+        addToGraphAndPopulate([b, c])
+        executes(c)
+
+        when:
+        executionPlan = newExecutionPlan()
+        addToGraphAndPopulate([b])
+
+        then:
+        executes(a, b)
     }
 
     def "required nodes added to the graph are executed in dependency order"() {

@@ -200,7 +200,7 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
                 // Task is not required - skip it
                 queue.removeFirst();
                 node.dependenciesProcessed();
-                node.doNotRequire();
+                node.filtered();
                 filteredNodes.add(node);
                 continue;
             }
@@ -397,6 +397,9 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
         nodeMapping.clear();
         executionQueue.clear();
         runningNodes.clear();
+        for (Node node : filteredNodes) {
+            node.notFiltered();
+        }
         filteredNodes.clear();
         producedButNotYetConsumed.clear();
         reachableCache.clear();
