@@ -506,6 +506,65 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
         'c1'               | 'c2'            | 'runtime'       | ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', custom: 'c2']
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/20182")
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+    @Unroll("Selects variant #expectedVariant using custom attribute value #dependencyValue overriding configuration attribute #configurationValue using dependency constraint without version")
+    def "dependency attribute value overrides configuration attribute using dependency constraint without version"() {
+        given:
+        repository {
+            'org:test:1.0' {
+                variant('api') {
+                    attribute('custom', 'c1')
+                }
+                variant('runtime') {
+                    attribute('custom', 'c2')
+                }
+            }
+        }
+
+        buildFile << """
+            configurations.conf.attributes.attribute(CUSTOM_ATTRIBUTE, '$configurationValue')
+
+            dependencies {
+                constraints {
+                    conf('org:test') {
+                       attributes {
+                          attribute(CUSTOM_ATTRIBUTE, '$dependencyValue')
+                       }
+                    }
+                }
+                conf 'org:test:1.0'
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'org:test:1.0' {
+                expectResolve()
+            }
+        }
+        succeeds 'checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org:test:1.0') {
+                    configuration = expectedVariant
+                    variant(expectedVariant, expectedAttributes)
+                }
+                constraint('org:test', 'org:test:1.0') {
+                    configuration = expectedVariant
+                    variant(expectedVariant, expectedAttributes)
+                }
+            }
+        }
+
+        where:
+        configurationValue | dependencyValue | expectedVariant | expectedAttributes
+        'c2'               | 'c1'            | 'api'           | ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-api', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', custom: 'c1']
+        'c1'               | 'c2'            | 'runtime'       | ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', custom: 'c2']
+    }
+
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
     @ToBeFixedForConfigurationCache
     def "Fails resolution because consumer configuration attributes and constraint attributes conflict"() {
