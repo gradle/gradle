@@ -17,6 +17,7 @@
 package org.gradle.internal.snapshot.impl
 
 import org.gradle.api.Named
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.api.internal.provider.DefaultMapProperty
@@ -28,10 +29,13 @@ import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.classloader.FilteringClassLoader
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.TestHashCodes
-import org.gradle.internal.instantiation.ManagedTypeFactory
+import org.gradle.internal.instantiation.generator.DefaultInstantiatorFactory
+import org.gradle.internal.state.ManagedFactory
 import org.gradle.internal.state.ManagedFactoryRegistry
 import org.gradle.util.TestUtil
 import spock.lang.Specification
+
+import static org.gradle.util.TestUtil.instantiatorFactory
 
 class DefaultIsolatableFactoryTest extends Specification {
 
@@ -412,12 +416,12 @@ class DefaultIsolatableFactoryTest extends Specification {
     }
 
     def "creates isolated managed interface"() {
-        def instantiator = TestUtil.instantiatorFactory().inject()
+        def instantiator = instantiatorFactory().inject()
         def original = instantiator.newInstance(BeanInterface)
         original.prop1 = "a"
 
         given:
-        _ * managedFactoryRegistry.lookup(_) >> new ManagedTypeFactory(original.getClass())
+        _ * managedFactoryRegistry.lookup(_) >> managedTypeFactory()
 
         expect:
         def isolated = isolatableFactory.isolate(original)
@@ -428,12 +432,12 @@ class DefaultIsolatableFactoryTest extends Specification {
     }
 
     def "creates isolated managed abstract class"() {
-        def instantiator = TestUtil.instantiatorFactory().inject()
+        def instantiator = instantiatorFactory().inject()
         def original = instantiator.newInstance(AbstractBean)
         original.prop1 = "a"
 
         given:
-        _ * managedFactoryRegistry.lookup(_) >> new ManagedTypeFactory(original.getClass())
+        _ * managedFactoryRegistry.lookup(_) >> managedTypeFactory()
 
         expect:
         def isolated = isolatableFactory.isolate(original)
@@ -443,9 +447,13 @@ class DefaultIsolatableFactoryTest extends Specification {
         copy.prop1 == "a"
     }
 
+    private ManagedFactory managedTypeFactory() {
+        new DefaultInstantiatorFactory.ManagedTypeFactory(instantiatorFactory().injectScheme().deserializationInstantiator())
+    }
+
     def "creates isolated ConfigurableFileCollection"() {
-        def empty = TestFiles.fileCollectionFactory().configurableFiles()
-        def files1 = TestFiles.fileCollectionFactory().configurableFiles()
+        def empty = configurableFiles()
+        def files1 = configurableFiles()
         files1.from(new File("a").absoluteFile)
 
         given:
@@ -463,6 +471,10 @@ class DefaultIsolatableFactoryTest extends Specification {
         def copy = isolated.isolate()
         !copy.is(files1)
         copy.files == files1.files
+    }
+
+    private ConfigurableFileCollection configurableFiles() {
+        TestFiles.fileCollectionFactory().configurableFiles()
     }
 
     def "creates isolated java serializable type"() {
