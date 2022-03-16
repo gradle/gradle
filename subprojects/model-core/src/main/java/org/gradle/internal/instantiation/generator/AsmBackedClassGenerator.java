@@ -668,7 +668,6 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         private void generateInitMethod() {
-
             privateSyntheticMethod(INIT_METHOD, RETURN_VOID, methodVisitor -> new LocalMethodVisitorScope(methodVisitor) {{
 
                 // this.displayName = AsmBackedClassGenerator.getDisplayNameForNext()
@@ -1301,17 +1300,11 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             final int mutablePropertySize = mutableProperties.size();
             final int readOnlyPropertySize = readOnlyProperties.size();
 
-            // Generate: <init>(Object[] state) { }
-            addMethod(ACC_PUBLIC | ACC_SYNTHETIC, "<init>", getMethodDescriptor(VOID_TYPE, OBJECT_ARRAY_TYPE), methodVisitor -> new MethodVisitorScope(methodVisitor) {
+            // Generate: void initFromState(Object[] state) { }
+            // See ManagedTypeFactory for how it's used.
+            addMethod(ACC_PUBLIC | ACC_SYNTHETIC, "initFromState", getMethodDescriptor(VOID_TYPE, OBJECT_ARRAY_TYPE), methodVisitor -> new MethodVisitorScope(methodVisitor) {
 
                 {
-                    // super();
-                    _ALOAD(0);
-                    if (type.isInterface()) {
-                        _INVOKESPECIAL(OBJECT_TYPE, "<init>", RETURN_VOID);
-                    } else {
-                        _INVOKESPECIAL(superclassType, "<init>", RETURN_VOID);
-                    }
                     // for each property
                     //   this.$property = state[$propertyIndex];
                     loadPropertiesFromState(mutableProperties);
