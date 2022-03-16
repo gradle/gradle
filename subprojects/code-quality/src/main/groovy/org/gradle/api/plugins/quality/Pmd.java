@@ -72,6 +72,7 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
     private final Property<Integer> rulesMinimumPriority;
     private final Property<Integer> maxFailures;
     private final Property<Boolean> incrementalAnalysis;
+    private final Property<Integer> threads;
 
     public Pmd() {
         ObjectFactory objects = getObjectFactory();
@@ -79,6 +80,7 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
         this.rulesMinimumPriority = objects.property(Integer.class);
         this.incrementalAnalysis = objects.property(Boolean.class);
         this.maxFailures = objects.property(Integer.class);
+        this.threads = objects.property(Integer.class);
     }
 
     @Inject
@@ -94,6 +96,7 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
     @TaskAction
     public void run() {
         validate(rulesMinimumPriority.get());
+        validateThreads(threads.get());
         PmdInvoker.invoke(this);
     }
 
@@ -135,6 +138,17 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
     public static void validate(int value) {
         if (value > 5 || value < 1) {
             throw new InvalidUserDataException(String.format("Invalid rulesMinimumPriority '%d'.  Valid range 1 (highest) to 5 (lowest).", value));
+        }
+    }
+
+    /**
+     * Validates the number of threads used by PMD.
+     *
+     * @param value the number of threads used by PMD
+     */
+    public static void validateThreads(int value) {
+        if (value < 0) {
+            throw new InvalidUserDataException(String.format("Invalid number of threads '%d'.  Number should not be negative.", value));
         }
     }
 
@@ -386,5 +400,15 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
     @LocalState
     public File getIncrementalCacheFile() {
         return new File(getTemporaryDir(), "incremental.cache");
+    }
+
+    /**
+     * Specifies the number of threads used by PMD.
+     *
+     * @see PmdExtension#getThreads()
+     */
+    @Input
+    public Property<Integer> getThreads() {
+        return threads;
     }
 }

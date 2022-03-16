@@ -42,12 +42,14 @@ public class PmdExtension extends CodeQualityExtension {
     private final Property<Integer> rulesMinimumPriority;
     private final Property<Integer> maxFailures;
     private final Property<Boolean> incrementalAnalysis;
+    private final Property<Integer> threads;
 
     public PmdExtension(Project project) {
         this.project = project;
         this.rulesMinimumPriority = project.getObjects().property(Integer.class).convention(5);
         this.incrementalAnalysis = project.getObjects().property(Boolean.class).convention(true);
         this.maxFailures = project.getObjects().property(Integer.class).convention(0);
+        this.threads = project.getObjects().property(Integer.class).convention(1);
     }
 
     /**
@@ -230,5 +232,12 @@ public class PmdExtension extends CodeQualityExtension {
      */
     public Property<Boolean> getIncrementalAnalysis() {
         return incrementalAnalysis;
+    }
+
+    /**
+     * The number of threads used by PMD.
+     */
+    public Property<Integer> getThreads() {
+        return threads;
     }
 }
