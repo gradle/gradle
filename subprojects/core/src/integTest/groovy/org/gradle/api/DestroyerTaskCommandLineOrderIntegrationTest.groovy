@@ -310,4 +310,62 @@ class DestroyerTaskCommandLineOrderIntegrationTest extends AbstractCommandLineOr
         result.assertTaskOrder(cleanFoo.fullPath, generateFoo.fullPath, generate.fullPath)
         result.assertTaskOrder(cleanBar.fullPath, generateBar.fullPath, generate.fullPath)
     }
+
+    def "destroyer task that is a finalizer of a producer task will run after the producer even when ordered first (type: #type)"() {
+        def foo = subproject(':foo')
+        def bar = subproject(':bar')
+
+        def cleanFoo = foo.task('cleanFoo').destroys('build/foo')
+        def cleanBar = bar.task('cleanBar').destroys('build/bar')
+        def clean = rootBuild.task('clean').dependsOn(cleanFoo).dependsOn(cleanBar)
+        def generateFoo = foo.task('generateFoo').produces('build/foo', type).finalizedBy(cleanFoo)
+        def generateBar = bar.task('generateBar').produces('build/bar', type)
+        def generate = rootBuild.task('generate').dependsOn(generateBar).dependsOn(generateFoo)
+
+        writeAllFiles()
+
+        when:
+        executer.startBuildProcessInDebugger(true)
+        args '--parallel', '--max-workers=2'
+        succeeds(clean.path, generate.path)
+
+        then:
+        result.assertTaskOrder(cleanFoo.fullPath, clean.fullPath)
+        result.assertTaskOrder(cleanBar.fullPath, clean.fullPath)
+        result.assertTaskOrder(generateFoo.fullPath, cleanFoo.fullPath)
+        result.assertTaskOrder(generateFoo.fullPath, generate.fullPath)
+        result.assertTaskOrder(cleanBar.fullPath, generateBar.fullPath, generate.fullPath)
+
+        where:
+        type << ProductionType.values()
+    }
+
+    def "destroyer task that is a finalizer of a producer task and also a dependency will run after the producer even when ordered first (type: #type)"() {
+        def foo = subproject(':foo')
+        def bar = subproject(':bar')
+
+        def cleanFoo = foo.task('cleanFoo').destroys('build/foo')
+        def cleanBar = bar.task('cleanBar').destroys('build/bar').dependsOn(cleanFoo)
+        def clean = rootBuild.task('clean').dependsOn(cleanFoo).dependsOn(cleanBar)
+        def generateFoo = foo.task('generateFoo').produces('build/foo', type).finalizedBy(cleanFoo)
+        def generateBar = bar.task('generateBar').produces('build/bar', type)
+        def generate = rootBuild.task('generate').dependsOn(generateBar).dependsOn(generateFoo)
+
+        writeAllFiles()
+
+        when:
+        executer.startBuildProcessInDebugger(true)
+        args '--parallel', '--max-workers=2'
+        succeeds(clean.path, generate.path)
+
+        then:
+        result.assertTaskOrder(cleanFoo.fullPath, clean.fullPath)
+        result.assertTaskOrder(cleanBar.fullPath, clean.fullPath)
+        result.assertTaskOrder(generateFoo.fullPath, cleanFoo.fullPath)
+        result.assertTaskOrder(generateFoo.fullPath, generate.fullPath)
+        result.assertTaskOrder(cleanBar.fullPath, generateBar.fullPath, generate.fullPath)
+
+        where:
+        type << ProductionType.values()
+    }
 }
