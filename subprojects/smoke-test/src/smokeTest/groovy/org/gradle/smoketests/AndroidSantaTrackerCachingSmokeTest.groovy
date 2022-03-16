@@ -1810,6 +1810,7 @@ class AndroidPluginExpectations71 {
         ':rocketsleigh:stripDebugDebugSymbols': NO_SOURCE,
         ':santa-tracker:assembleDebug': SUCCESS,
         ':santa-tracker:bundleDebugClasses': FROM_CACHE,
+        ':santa-tracker:bundleDebugClassesToRuntimeJar': FROM_CACHE,
         ':santa-tracker:checkDebugAarMetadata': FROM_CACHE,
         ':santa-tracker:checkDebugDuplicateClasses': FROM_CACHE,
         ':santa-tracker:checkDebugLibraries': FROM_CACHE,
