@@ -25,8 +25,6 @@ import org.gradle.execution.plan.ExecutionPlan;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.internal.build.ExecutionResult;
 
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Set;
 
 public class SelectedTaskExecutionAction implements BuildWorkExecutor {
@@ -38,9 +36,7 @@ public class SelectedTaskExecutionAction implements BuildWorkExecutor {
         }
 
         bindAllReferencesOfProject(taskGraph);
-        List<Throwable> taskFailures = new LinkedList<>();
-        taskGraph.execute(plan, taskFailures);
-        return ExecutionResult.maybeFailed(taskFailures);
+        return taskGraph.execute(plan);
     }
 
     private void bindAllReferencesOfProject(TaskExecutionGraph graph) {

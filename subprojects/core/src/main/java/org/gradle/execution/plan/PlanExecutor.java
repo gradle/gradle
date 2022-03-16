@@ -17,11 +17,11 @@
 package org.gradle.execution.plan;
 
 import org.gradle.api.Action;
+import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.concurrent.ThreadSafe;
-import java.util.Collection;
 
 /**
  * Responsible for running the work of a build tree, packaged as zero or more {@link ExecutionPlan} instances.
@@ -30,13 +30,15 @@ import java.util.Collection;
 @ThreadSafe
 public interface PlanExecutor {
     /**
-     * Executes an {@link ExecutionPlan}, blocking until complete.
+     * Executes a {@link WorkSource}, blocking until complete.
      *
-     * @param executionPlan the plan to execute.
-     * @param failures collection to collect failures happening during execution into. Does not need to be thread-safe.
-     * @param nodeExecutor the actual executor responsible to execute the nodes. Must be thread-safe.
+     * @param workSource the work to execute.
+     * @param worker the actual executor responsible to execute the nodes. Must be thread-safe.
      */
-    void process(ExecutionPlan executionPlan, Collection<? super Throwable> failures, Action<Node> nodeExecutor);
+    <T> ExecutionResult<Void> process(WorkSource<T> workSource, Action<T> worker);
 
+    /**
+     * Verifies that this executor and the work it is running is healthy (not stuck or deadlocked). Aborts any current work when not healthy.
+     */
     void assertHealthy();
 }

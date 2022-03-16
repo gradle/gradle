@@ -50,6 +50,7 @@ import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.StringWriter;
 import java.util.AbstractCollection;
 import java.util.ArrayDeque;
@@ -75,7 +76,7 @@ import static com.google.common.collect.Sets.newIdentityHashSet;
  * The mutation methods on this implementation are NOT threadsafe, and callers must synchronize access to these methods.
  */
 @NonNullApi
-public class DefaultExecutionPlan implements ExecutionPlan {
+public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultExecutionPlan.class);
 
     private final Set<Node> entryNodes = new LinkedHashSet<>();
@@ -401,6 +402,12 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         reachableCache.clear();
     }
 
+    @Override
+    public WorkSource<Node> finalizePlan() {
+        // For now
+        return this;
+    }
+
     private void resourceUnlocked(ResourceLock resourceLock) {
         if (!(resourceLock instanceof WorkerLeaseRegistry.WorkerLease) && maybeNodesReady) {
             maybeNodesSelectable = true;
@@ -637,11 +644,11 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     public State executionState() {
         lockCoordinator.assertHasStateLock();
         if (executionQueue.isEmpty()) {
-            return State.NoMoreNodesToStart;
+            return State.NoMoreWorkToStart;
         } else if (maybeNodesSelectable) {
-            return State.MaybeNodesReadyToStart;
+            return State.MaybeWorkReadyToStart;
         } else {
-            return State.NoNodesReadyToStart;
+            return State.NoWorkReadyToStart;
         }
     }
 
@@ -650,7 +657,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         lockCoordinator.assertHasStateLock();
         State state = executionState();
         // If no nodes are ready and nothing is running, then cannot make progress
-        boolean cannotMakeProgress = state == State.NoNodesReadyToStart && runningNodes.isEmpty();
+        boolean cannotMakeProgress = state == State.NoWorkReadyToStart && runningNodes.isEmpty();
         if (cannotMakeProgress) {
             List<String> nodes = new ArrayList<>(executionQueue.size());
             for (Node node : executionQueue) {
@@ -669,13 +676,13 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     }
 
     @Override
-    public NodeSelection selectNext() {
+    public Selection<Node> selectNext() {
         lockCoordinator.assertHasStateLock();
         if (executionQueue.isEmpty()) {
-            return NO_MORE_NODES_TO_START;
+            return Selection.noMoreWorkToStart();
         }
         if (!maybeNodesSelectable) {
-            return NO_NODES_READY_TO_START;
+            return Selection.noWorkReadyToStart();
         }
 
         List<ResourceLock> resources = new ArrayList<>();
@@ -703,7 +710,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                         if (attemptToStart(prepareNode, resources)) {
                             node.addDependencySuccessor(prepareNode);
                             node.forceAllDependenciesCompleteUpdate();
-                            return NodeSelection.of(prepareNode);
+                            return Selection.of(prepareNode);
                         } else {
                             // Cannot start prepare node, so skip to next node
                             continue;
@@ -714,7 +721,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
                 if (attemptToStart(node, resources)) {
                     iterator.remove();
-                    return NodeSelection.of(node);
+                    return Selection.of(node);
                 }
             } else if (!node.isComplete()) {
                 // Node is not yet complete
@@ -728,18 +735,18 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         maybeNodesReady = foundReadyNode;
         maybeNodesSelectable = false;
         if (executionQueue.isEmpty()) {
-            return NO_MORE_NODES_TO_START;
+            return Selection.noMoreWorkToStart();
         } else if (!foundReadyNode && !foundNotReadyNode && runningNodes.isEmpty()) {
             // Nothing is currently running or will run -> all tasks that remain in the execution queue cannot run because
             // they are finalizers for tasks that could not be started
             executionQueue.clear();
-            return NO_MORE_NODES_TO_START;
+            return Selection.noMoreWorkToStart();
         } else {
             // Some tasks are yet to start
             // - they are ready to execute but cannot acquire the resources they need to start
             // - they are waiting for their dependencies to complete
             // - they are waiting for some external event
-            return NO_NODES_READY_TO_START;
+            return Selection.noWorkReadyToStart();
         }
     }
 
@@ -955,8 +962,11 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     }
 
     @Override
-    public void finishedExecuting(Node node) {
+    public void finishedExecuting(Node node, @Nullable Throwable failure) {
         lockCoordinator.assertHasStateLock();
+        if (failure != null) {
+            node.setExecutionFailure(failure);
+        }
         if (!node.isExecuting()) {
             throw new IllegalStateException(String.format("Cannot finish executing %s as it is in an unexpected state.", node));
         }

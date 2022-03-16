@@ -147,9 +147,7 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         }
         _ * controller.executeTasks(_) >> {
             plan.determineExecutionPlan()
-            def failures = []
-            services.planExecutor.process(plan, failures) { node -> }
-            return ExecutionResult.maybeFailed(failures)
+            return services.planExecutor.process(plan) { node -> }
         }
 
         return new DefaultBuildWorkGraphController(

@@ -84,9 +84,9 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         then:
         firstTaskNode.task == a
         coordinator.withStateLock {
-            executionPlan.executionState() == ExecutionPlan.State.MaybeNodesReadyToStart
-            executionPlan.selectNext() == ExecutionPlan.NO_NODES_READY_TO_START
-            executionPlan.executionState() == ExecutionPlan.State.NoNodesReadyToStart
+            executionPlan.executionState() == WorkSource.State.MaybeWorkReadyToStart
+            executionPlan.selectNext().noWorkReadyToStart
+            executionPlan.executionState() == WorkSource.State.NoWorkReadyToStart
         }
 
         when:
@@ -94,9 +94,9 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
 
         then:
         coordinator.withStateLock {
-            executionPlan.executionState() == ExecutionPlan.State.MaybeNodesReadyToStart
-            executionPlan.selectNext() == ExecutionPlan.NO_MORE_NODES_TO_START
-            executionPlan.executionState() == ExecutionPlan.State.NoMoreNodesToStart
+            executionPlan.executionState() == WorkSource.State.NoMoreWorkToStart
+            executionPlan.selectNext().noWorkReadyToStart
+            executionPlan.executionState() == WorkSource.State.NoMoreWorkToStart
             executionPlan.allExecutionComplete()
         }
     }
@@ -114,9 +114,9 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         then:
         firstTaskNode.task == b
         coordinator.withStateLock {
-            executionPlan.executionState() == ExecutionPlan.State.MaybeNodesReadyToStart
-            executionPlan.selectNext() == ExecutionPlan.NO_NODES_READY_TO_START
-            executionPlan.executionState() == ExecutionPlan.State.NoNodesReadyToStart
+            executionPlan.executionState() == WorkSource.State.MaybeWorkReadyToStart
+            executionPlan.selectNext().noWorkReadyToStart
+            executionPlan.executionState() == WorkSource.State.NoWorkReadyToStart
         }
 
         when:
@@ -124,7 +124,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
 
         then:
         coordinator.withStateLock {
-            executionPlan.executionState() == ExecutionPlan.State.MaybeNodesReadyToStart
+            executionPlan.executionState() == WorkSource.State.MaybeWorkReadyToStart
         }
 
         when:
@@ -133,9 +133,9 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         then:
         secondTaskNode.task == a
         coordinator.withStateLock {
-            executionPlan.executionState() == ExecutionPlan.State.NoMoreNodesToStart
-            executionPlan.selectNext() == ExecutionPlan.NO_MORE_NODES_TO_START
-            executionPlan.executionState() == ExecutionPlan.State.NoMoreNodesToStart
+            executionPlan.executionState() == WorkSource.State.NoMoreWorkToStart
+            executionPlan.selectNext().noWorkReadyToStart
+            executionPlan.executionState() == WorkSource.State.NoMoreWorkToStart
         }
 
         when:
@@ -143,9 +143,9 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
 
         then:
         coordinator.withStateLock {
-            executionPlan.executionState() == ExecutionPlan.State.NoMoreNodesToStart
-            executionPlan.selectNext() == ExecutionPlan.NO_MORE_NODES_TO_START
-            executionPlan.executionState() == ExecutionPlan.State.NoMoreNodesToStart
+            executionPlan.executionState() == WorkSource.State.NoMoreWorkToStart
+            executionPlan.selectNext().noWorkReadyToStart
+            executionPlan.executionState() == WorkSource.State.NoMoreWorkToStart
         }
     }
 
@@ -886,7 +886,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         then:
         selectNextTask() == null
         coordinator.withStateLock {
-            executionPlan.executionState() == ExecutionPlan.State.NoMoreNodesToStart
+            executionPlan.executionState() == WorkSource.State.NoMoreWorkToStart
             executionPlan.allExecutionComplete()
         }
 
@@ -1049,7 +1049,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
 
     private void finishedExecuting(Node node) {
         coordinator.withStateLock {
-            executionPlan.finishedExecuting(node)
+            executionPlan.finishedExecuting(node, null)
         }
     }
 
@@ -1060,26 +1060,26 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
     private LocalTaskNode selectNextTaskNode() {
         def result = null
         coordinator.withStateLock {
-            def selection
+            WorkSource.Selection selection
             recordLocks {
                 selection = executionPlan.selectNext()
             }
-            if (selection == ExecutionPlan.NO_NODES_READY_TO_START) {
-                assert executionPlan.executionState() == ExecutionPlan.State.NoNodesReadyToStart
+            if (selection.noWorkReadyToStart) {
+                assert executionPlan.executionState() == WorkSource.State.NoWorkReadyToStart
                 assert !executionPlan.allExecutionComplete()
                 return
             }
-            if (selection == ExecutionPlan.NO_MORE_NODES_TO_START) {
-                assert executionPlan.executionState() == ExecutionPlan.State.NoMoreNodesToStart
+            if (selection.noMoreWorkToStart) {
+                assert executionPlan.executionState() == WorkSource.State.NoMoreWorkToStart
                 return
             }
             // ignore nodes that aren't tasks
-            def nextNode = selection.node
+            def nextNode = selection.item
             if (!(nextNode instanceof LocalTaskNode)) {
                 if (nextNode instanceof SelfExecutingNode) {
                     nextNode.execute(null)
                 }
-                executionPlan.finishedExecuting(nextNode)
+                executionPlan.finishedExecuting(nextNode, null)
                 result = selectNextTaskNode()
                 return
             }

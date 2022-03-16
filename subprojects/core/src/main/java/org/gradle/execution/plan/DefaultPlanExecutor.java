@@ -20,7 +20,9 @@ import org.gradle.api.Action;
 import org.gradle.api.NonNullApi;
 import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.initialization.BuildCancellationToken;
+import org.gradle.internal.Cast;
 import org.gradle.internal.MutableReference;
+import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
@@ -81,8 +83,8 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
     }
 
     @Override
-    public void process(ExecutionPlan executionPlan, Collection<? super Throwable> failures, Action<Node> nodeExecutor) {
-        PlanDetails planDetails = new PlanDetails(executionPlan, nodeExecutor);
+    public <T> ExecutionResult<Void> process(WorkSource<T> workSource, Action<T> worker) {
+        PlanDetails planDetails = new PlanDetails(Cast.uncheckedCast(workSource), Cast.uncheckedCast(worker));
         queue.add(planDetails);
 
         maybeStartWorkers(queue, executor);
@@ -93,7 +95,9 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
         thisPlanOnly.add(planDetails);
         new ExecutorWorker(thisPlanOnly, currentWorkerLease, cancellationToken, coordinationService, workerLeaseService).run();
 
-        awaitCompletion(executionPlan, currentWorkerLease, failures);
+        List<Throwable> failures = new ArrayList<>();
+        awaitCompletion(workSource, currentWorkerLease, failures);
+        return ExecutionResult.maybeFailed(failures);
     }
 
     @Override
@@ -102,18 +106,19 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
     }
 
     /**
-     * Blocks until all nodes in the plan have been processed. This method will only return when every node in the plan has either completed, failed or been skipped.
+     * Blocks until all items in the queue have been processed. This method will only return when every item in the queue has either completed, failed or been skipped.
      */
-    private void awaitCompletion(ExecutionPlan executionPlan, WorkerLease workerLease, Collection<? super Throwable> failures) {
+    private void awaitCompletion(WorkSource<?> workSource, WorkerLease workerLease, Collection<? super Throwable> failures) {
         coordinationService.withStateLock(resourceLockState -> {
-            if (executionPlan.allExecutionComplete()) {
+            if (workSource.allExecutionComplete()) {
                 // Need to hold a worker lease in order to finish up
                 if (!workerLease.isLockedByCurrentThread()) {
                     if (!workerLease.tryLock()) {
                         return RETRY;
                     }
                 }
-                executionPlan.collectFailures(failures);
+                workSource.collectFailures(failures);
+                queue.removeFinishedPlans();
                 return FINISHED;
             } else {
                 // Release worker lease (if held) while waiting for work to complete
@@ -133,21 +138,21 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
     }
 
     private static class PlanDetails {
-        final ExecutionPlan plan;
-        final Action<Node> nodeExecutor;
+        final WorkSource<Object> source;
+        final Action<Object> worker;
 
-        public PlanDetails(ExecutionPlan plan, Action<Node> nodeExecutor) {
-            this.plan = plan;
-            this.nodeExecutor = nodeExecutor;
+        public PlanDetails(WorkSource<Object> source, Action<Object> worker) {
+            this.source = source;
+            this.worker = worker;
         }
     }
 
     private static class WorkItem {
-        final ExecutionPlan.NodeSelection selection;
-        final ExecutionPlan plan;
-        final Action<Node> executor;
+        final WorkSource.Selection<Object> selection;
+        final WorkSource<Object> plan;
+        final Action<Object> executor;
 
-        public WorkItem(ExecutionPlan.NodeSelection selection, ExecutionPlan plan, Action<Node> executor) {
+        public WorkItem(WorkSource.Selection<Object> selection, WorkSource<Object> plan, Action<Object> executor) {
             this.selection = selection;
             this.plan = plan;
             this.executor = executor;
@@ -155,9 +160,6 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
     }
 
     private static class Queue implements Closeable {
-        private static final WorkItem NO_MORE_NODES = new WorkItem(ExecutionPlan.NO_MORE_NODES_TO_START, null, null);
-        private static final WorkItem NO_NODES_READY = new WorkItem(ExecutionPlan.NO_NODES_READY_TO_START, null, null);
-
         private final ResourceLockCoordinationService coordinationService;
         private final boolean autoFinish;
         private boolean finished;
@@ -168,41 +170,41 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
             this.autoFinish = autoFinish;
         }
 
-        public ExecutionPlan.State executionState() {
+        public WorkSource.State executionState() {
             coordinationService.assertHasStateLock();
             Iterator<PlanDetails> iterator = queues.iterator();
             while (iterator.hasNext()) {
                 PlanDetails details = iterator.next();
-                ExecutionPlan.State state = details.plan.executionState();
-                if (state == ExecutionPlan.State.NoMoreNodesToStart) {
+                WorkSource.State state = details.source.executionState();
+                if (state == WorkSource.State.NoMoreWorkToStart) {
                     iterator.remove();
-                } else if (state == ExecutionPlan.State.MaybeNodesReadyToStart) {
-                    return ExecutionPlan.State.MaybeNodesReadyToStart;
+                } else if (state == WorkSource.State.MaybeWorkReadyToStart) {
+                    return WorkSource.State.MaybeWorkReadyToStart;
                 }
             }
             if (nothingMoreToStart()) {
-                return ExecutionPlan.State.NoMoreNodesToStart;
+                return WorkSource.State.NoMoreWorkToStart;
             } else {
-                return ExecutionPlan.State.NoNodesReadyToStart;
+                return WorkSource.State.NoWorkReadyToStart;
             }
         }
 
-        public WorkItem selectNext() {
+        public WorkSource.Selection<WorkItem> selectNext() {
             coordinationService.assertHasStateLock();
             Iterator<PlanDetails> iterator = queues.iterator();
             while (iterator.hasNext()) {
                 PlanDetails details = iterator.next();
-                ExecutionPlan.NodeSelection selection = details.plan.selectNext();
-                if (selection == ExecutionPlan.NO_MORE_NODES_TO_START) {
+                WorkSource.Selection<Object> selection = details.source.selectNext();
+                if (selection.isNoMoreWorkToStart()) {
                     iterator.remove();
-                } else if (selection != ExecutionPlan.NO_NODES_READY_TO_START) {
-                    return new WorkItem(selection, details.plan, details.nodeExecutor);
+                } else if (!selection.isNoWorkReadyToStart()) {
+                    return WorkSource.Selection.of(new WorkItem(selection, details.source, details.worker));
                 }
             }
             if (nothingMoreToStart()) {
-                return NO_MORE_NODES;
+                return WorkSource.Selection.noMoreWorkToStart();
             } else {
-                return NO_NODES_READY;
+                return WorkSource.Selection.noWorkReadyToStart();
             }
         }
 
@@ -222,16 +224,17 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
             });
         }
 
+        public void removeFinishedPlans() {
+            coordinationService.assertHasStateLock();
+            queues.removeIf(details -> details.source.allExecutionComplete());
+        }
+
         @Override
         public void close() throws IOException {
             coordinationService.withStateLock(() -> {
                 finished = true;
                 if (!queues.isEmpty()) {
-                    for (PlanDetails queue : queues) {
-                        if (queue.plan.executionState() != ExecutionPlan.State.NoMoreNodesToStart) {
-                            throw new IllegalStateException("Not all work has completed.");
-                        }
-                    }
+                    throw new IllegalStateException("Not all work has completed.");
                 }
                 // Signal to the worker threads that no more work is available
                 coordinationService.notifyStateChange();
@@ -241,14 +244,14 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
         public void cancelExecution() {
             coordinationService.assertHasStateLock();
             for (PlanDetails details : queues) {
-                details.plan.cancelExecution();
+                details.source.cancelExecution();
             }
         }
 
         public void abortAllAndFail(Throwable t) {
             coordinationService.assertHasStateLock();
             for (PlanDetails details : queues) {
-                details.plan.abortAllAndFail(t);
+                details.source.abortAllAndFail(t);
             }
         }
 
@@ -257,9 +260,9 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
             if (queues.isEmpty()) {
                 return;
             }
-            List<ExecutionPlan.Diagnostics> allDiagnostics = new ArrayList<>(queues.size());
+            List<WorkSource.Diagnostics> allDiagnostics = new ArrayList<>(queues.size());
             for (PlanDetails details : queues) {
-                ExecutionPlan.Diagnostics diagnostics = details.plan.healthDiagnostics();
+                WorkSource.Diagnostics diagnostics = details.source.healthDiagnostics();
                 if (diagnostics.canMakeProgress()) {
                     return;
                 }
@@ -272,8 +275,8 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
             TreeFormatter formatter = new TreeFormatter();
             formatter.node("Unable to make progress running work. The following items are queued for execution but none of them can be started:");
             formatter.startChildren();
-            for (ExecutionPlan.Diagnostics diagnostics : allDiagnostics) {
-                for (String node : diagnostics.getQueuedNodes()) {
+            for (WorkSource.Diagnostics diagnostics : allDiagnostics) {
+                for (String node : diagnostics.getQueuedItems()) {
                     formatter.node(node);
                 }
             }
@@ -282,7 +285,7 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
 
             IllegalStateException failure = new IllegalStateException("Unable to make progress running work. There are items queued for execution but none of them can be started");
             for (PlanDetails details : queues) {
-                details.plan.abortAllAndFail(failure);
+                details.source.abortAllAndFail(failure);
             }
         }
     }
@@ -327,14 +330,14 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
                 if (workItem == null) {
                     break;
                 }
-                Node node = workItem.selection.getNode();
-                LOGGER.info("{} ({}) started.", node, Thread.currentThread());
+                Object selected = workItem.selection.getItem();
+                LOGGER.info("{} ({}) started.", selected, Thread.currentThread());
                 executionTimer.reset();
-                execute(node, workItem.plan, workItem.executor);
+                execute(selected, workItem.plan, workItem.executor);
                 long duration = executionTimer.getElapsedMillis();
                 busy.addAndGet(duration);
                 if (LOGGER.isInfoEnabled()) {
-                    LOGGER.info("{} ({}) completed. Took {}.", node, Thread.currentThread(), TimeFormatting.formatDurationVerbose(duration));
+                    LOGGER.info("{} ({}) completed. Took {}.", selected, Thread.currentThread(), TimeFormatting.formatDurationVerbose(duration));
                 }
             }
 
@@ -350,10 +353,10 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
         }
 
         /**
-         * Selects a node that's ready to execute and executes the provided action against it. If no node is ready, blocks until some
+         * Selects an item that's ready to execute and executes the provided action against it. If no item is ready, blocks until some
          * can be executed.
          *
-         * @return The next node to execute or {@code null} when there are no nodes remaining
+         * @return The next item to execute or {@code null} when there are no items remaining
          */
         @Nullable
         private WorkItem getNextItem(final WorkerLease workerLease) {
@@ -363,17 +366,17 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
                     queue.cancelExecution();
                 }
 
-                ExecutionPlan.State state = queue.executionState();
-                if (state == ExecutionPlan.State.NoMoreNodesToStart) {
+                WorkSource.State state = queue.executionState();
+                if (state == WorkSource.State.NoMoreWorkToStart) {
                     return FINISHED;
-                } else if (state == ExecutionPlan.State.NoNodesReadyToStart) {
+                } else if (state == WorkSource.State.NoWorkReadyToStart) {
                     // Release worker lease while waiting
                     if (workerLease.isLockedByCurrentThread()) {
                         workerLease.unlock();
                     }
                     return RETRY;
                 }
-                // Else there may be nodes ready, acquire a worker lease
+                // Else there may be items ready, acquire a worker lease
 
                 boolean hasWorkerLease = workerLease.isLockedByCurrentThread();
                 if (!hasWorkerLease && !workerLease.tryLock()) {
@@ -381,7 +384,7 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
                     return RETRY;
                 }
 
-                WorkItem workItem;
+                WorkSource.Selection<WorkItem> workItem;
                 try {
                     workItem = queue.selectNext();
                 } catch (Throwable t) {
@@ -389,40 +392,45 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
                     queue.abortAllAndFail(t);
                     return FINISHED;
                 }
-                if (workItem.selection == ExecutionPlan.NO_MORE_NODES_TO_START) {
+                if (workItem.isNoMoreWorkToStart()) {
                     return FINISHED;
-                } else if (workItem.selection == ExecutionPlan.NO_NODES_READY_TO_START) {
+                } else if (workItem.isNoWorkReadyToStart()) {
                     // Release worker lease while waiting
                     workerLease.unlock();
                     return RETRY;
                 }
 
-                selected.set(workItem);
+                selected.set(workItem.getItem());
                 return FINISHED;
             });
 
             return selected.get();
         }
 
-        private void execute(final Node selected, ExecutionPlan executionPlan, Action<Node> nodeExecutor) {
+        private void execute(Object selected, WorkSource<Object> executionPlan, Action<Object> worker) {
+            Throwable failure = null;
             try {
                 try {
-                    nodeExecutor.execute(selected);
-                } catch (Throwable e) {
-                    selected.setExecutionFailure(e);
+                    worker.execute(selected);
+                } catch (Throwable t) {
+                    failure = t;
                 }
             } finally {
-                coordinationService.withStateLock(() -> {
-                    try {
-                        executionPlan.finishedExecuting(selected);
-                    } catch (Throwable t) {
-                        queue.abortAllAndFail(t);
-                    }
-                    // Notify other threads that the node is finished as this may unblock further work
-                    // or this might be the last node in the graph
-                    coordinationService.notifyStateChange();
-                });
+                markFinished(selected, executionPlan, failure);
             }
+        }
+
+        private void markFinished(Object selected, WorkSource<Object> executionPlan, @Nullable Throwable failure) {
+            coordinationService.withStateLock(() -> {
+                try {
+                    executionPlan.finishedExecuting(selected, failure);
+                } catch (Throwable t) {
+                    queue.abortAllAndFail(t);
+                }
+                // Notify other threads that the item is finished as this may unblock further work
+                // or this might be the last item in the queue
+                coordinationService.notifyStateChange();
+            });
         }
     }
 }

@@ -128,10 +128,10 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         taskGraph.populate(executionPlan)
 
         when:
-        taskGraph.execute(executionPlan, failures)
+        def result = taskGraph.execute(executionPlan)
 
         then:
-        failures == [failure]
+        result.failures == [failure]
     }
 
     def "stops running nodes and fails with exception when build is cancelled"() {
@@ -304,7 +304,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         executionPlan.determineExecutionPlan()
         taskGraph.populate(executionPlan)
         taskGraph.allTasks
-        taskGraph.execute(executionPlan, failures)
+        taskGraph.execute(executionPlan)
 
         then:
         // tests existing behaviour, not desired behaviour
@@ -337,8 +337,6 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         failures.size() == 1
 
         when:
-        def failures2 = []
-        executedTasks.clear()
         def plan2 = newExecutionPlan()
         plan2.addEntryTasks([c])
         plan2.determineExecutionPlan()
@@ -348,11 +346,12 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         taskGraph.allTasks == [c]
 
         when:
-        taskGraph.execute(plan2, failures2)
+        executedTasks.clear()
+        def result2 = taskGraph.execute(plan2)
 
         then:
         executedTasks == [c]
-        failures2.empty
+        result2.failures.empty
     }
 
     def "cannot add task with circular reference"() {
@@ -388,17 +387,17 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         taskGraph.addTaskExecutionGraphListener(listener)
         executionPlan.addEntryTasks([a])
         taskGraph.populate(executionPlan)
-        taskGraph.execute(executionPlan, failures)
+        taskGraph.execute(executionPlan)
 
         then:
         1 * listener.graphPopulated(_)
 
         then:
-        1 * planExecutor.process(_, _, _)
+        1 * planExecutor.process(_, _)
 
         when:
         taskGraph.populate(executionPlan)
-        taskGraph.execute(executionPlan, failures)
+        taskGraph.execute(executionPlan)
 
         then:
         0 * listener._
@@ -426,14 +425,14 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         taskGraph.whenReady(action)
         executionPlan.addEntryTasks([a])
         taskGraph.populate(executionPlan)
-        taskGraph.execute(executionPlan, failures)
+        taskGraph.execute(executionPlan)
 
         then:
         1 * closure.call()
         1 * action.execute(_)
 
         then:
-        1 * planExecutor.process(_, _, _)
+        1 * planExecutor.process(_, _)
 
         and:
         with(buildOperationExecutor.operations[0]) {
@@ -445,7 +444,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         when:
         def plan2 = newExecutionPlan()
         taskGraph.populate(plan2)
-        taskGraph.execute(plan2, failures)
+        taskGraph.execute(plan2)
 
         then:
         0 * closure._
@@ -541,11 +540,11 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         taskGraph.allTasks == [b]
 
         when:
-        taskGraph.execute(executionPlan, failures)
+        def result = taskGraph.execute(executionPlan)
 
         then:
         executedTasks == [b]
-        failures.empty
+        result.failures.empty
     }
 
     def "does not execute filtered dependencies"() {
@@ -568,11 +567,11 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         taskGraph.allTasks == [b, c]
 
         when:
-        taskGraph.execute(executionPlan, failures)
+        def result = taskGraph.execute(executionPlan)
 
         then:
         executedTasks == [b, c]
-        failures.empty
+        result.failures.empty
     }
 
     def "will execute a task whose dependencies have been filtered on failure"() {
@@ -595,17 +594,23 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         failures == [failure]
     }
 
-    def populateAndExecute(List<Task> tasks) {
+    void populateAndExecute(List<Task> tasks) {
         executionPlan.addEntryTasks(tasks)
         executionPlan.determineExecutionPlan()
         taskGraph.populate(executionPlan)
-        taskGraph.execute(executionPlan, failures)
+        executedTasks.clear()
+        failures.clear()
+        def result = taskGraph.execute(executionPlan)
+        failures.addAll(result.failures)
     }
 
-    def execute() {
+    void execute() {
         executionPlan.determineExecutionPlan()
         taskGraph.populate(executionPlan)
-        taskGraph.execute(executionPlan, failures)
+        executedTasks.clear()
+        failures.clear()
+        def result = taskGraph.execute(executionPlan)
+        failures.addAll(result.failures)
     }
 
     private DefaultExecutionPlan newExecutionPlan() {

@@ -38,6 +38,7 @@ import org.gradle.execution.plan.PlanExecutor;
 import org.gradle.execution.plan.TaskNode;
 import org.gradle.internal.Cast;
 import org.gradle.internal.InternalListener;
+import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -46,14 +47,11 @@ import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.time.Time;
-import org.gradle.internal.time.Timer;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.util.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -117,13 +115,13 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     }
 
     @Override
-    public void execute(ExecutionPlan plan, Collection<? super Throwable> failures) {
+    public ExecutionResult<Void> execute(ExecutionPlan plan) {
         assertIsThisGraphsPlan(plan);
         if (!hasFiredWhenReady) {
             throw new IllegalStateException("Task graph should be populated before execution starts.");
         }
         try (ProjectExecutionServiceRegistry projectExecutionServices = new ProjectExecutionServiceRegistry(globalServices)) {
-            executeWithServices(projectExecutionServices, failures);
+            return executeWithServices(projectExecutionServices);
         } finally {
             executionPlan.close();
             executionPlan = ExecutionPlan.EMPTY;
@@ -137,17 +135,14 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         }
     }
 
-    private void executeWithServices(ProjectExecutionServiceRegistry projectExecutionServices, Collection<? super Throwable> failures) {
-        Timer clock = Time.startTimer();
-        planExecutor.process(
-            executionPlan,
-            failures,
+    private ExecutionResult<Void> executeWithServices(ProjectExecutionServiceRegistry projectExecutionServices) {
+        return planExecutor.process(
+            executionPlan.finalizePlan(),
             new BuildOperationAwareExecutionAction(
                 buildOperationExecutor.getCurrentOperation(),
                 new InvokeNodeExecutorsAction(nodeExecutors, projectExecutionServices)
             )
         );
-        LOGGER.debug("Timing: Executing the DAG took {}", clock.getElapsed());
     }
 
     @Override
