@@ -226,7 +226,8 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
                 }
                 if (taskNode.isExecuted() && taskNode.isSuccessful()) {
                     return IncludedBuildTaskResource.State.Success;
-                } else if (taskNode.isComplete() && taskNode.isInKnownState()) {
+                } else if (taskNode.isWillNotRun()) {
+                    // The task has failed or is not scheduled to run, so the consuming node can proceed
                     // Here "failed" means "output is not available, so do not run dependents"
                     return IncludedBuildTaskResource.State.Failed;
                 } else {

@@ -904,7 +904,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         then:
         coordinator.withStateLock {
             executionPlan.getNode(finalized).isSuccessful()
-            executionPlan.getNode(finalizer).state == Node.ExecutionState.SKIPPED
+            executionPlan.getNode(finalizer).state == Node.ExecutionState.FAILED_DEPENDENCY
         }
     }
 

@@ -896,6 +896,23 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         executes(a, b)
     }
 
+    def "builds graph for task whose execution was cancelled in a previous plan"() {
+        given:
+        Task a = task("a")
+        Task b = task("b")
+        addToGraphAndPopulate([a, b])
+        coordinator.withStateLock {
+            executionPlan.cancelExecution()
+        }
+
+        when:
+        executionPlan = newExecutionPlan()
+        addToGraphAndPopulate([a, b])
+
+        then:
+        executes(a, b)
+    }
+
     def "required nodes added to the graph are executed in dependency order"() {
         given:
         def node1 = requiredNode()

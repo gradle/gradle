@@ -126,10 +126,6 @@ public class TaskInAnotherBuild extends TaskNode implements SelfExecutingNode {
     }
 
     @Override
-    public void rethrowNodeFailure() {
-    }
-
-    @Override
     public void appendPostAction(Action<? super Task> action) {
         // Ignore. Currently, the actions don't need to run, it's just better if they do
         // By the time this node is notified that the task in the other build has completed, it's too late to run the action

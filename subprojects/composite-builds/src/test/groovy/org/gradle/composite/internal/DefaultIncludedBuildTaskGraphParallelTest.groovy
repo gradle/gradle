@@ -190,9 +190,6 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
             return null
         }
 
-        @Override
-        void rethrowNodeFailure() {
-        }
 
         @Override
         void resolveDependencies(TaskDependencyResolver dependencyResolver, Action<Node> processHardSuccessor) {

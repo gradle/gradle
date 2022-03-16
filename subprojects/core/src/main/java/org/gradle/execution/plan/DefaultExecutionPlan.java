@@ -82,7 +82,7 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
     private final Set<Node> entryNodes = new LinkedHashSet<>();
     private final NodeMapping nodeMapping = new NodeMapping();
     private final List<Node> executionQueue = new LinkedList<>();
-    private final FailureCollector failureCollector = new FailureCollector();
+    private final List<Throwable> failures = new ArrayList<>();
     private final String displayName;
     private final TaskNodeFactory taskNodeFactory;
     private final TaskDependencyResolver dependencyResolver;
@@ -381,10 +381,12 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
         executionQueue.addAll(nodeMapping);
 
         for (Node node : executionQueue) {
-            maybeNodesReady(node.updateAllDependenciesComplete() && node.isReady());
+            node.updateAllDependenciesComplete();
         }
 
         maybeNodesSelectable = true;
+        maybeNodesReady = true;
+
         lockCoordinator.addLockReleaseListener(resourceUnlockListener);
     }
 
@@ -732,6 +734,9 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
                 // - it is waiting for some external event such as completion of a task in another build
                 foundNotReadyNode = true;
             }
+            // else, node is "complete"
+            // - it has been filtered
+            // - it is a finalizer for nodes that have not executed (so not actually complete)
         }
 
         LOGGER.debug("No node could be selected, nodes ready: {}", foundReadyNode);
@@ -1033,37 +1038,34 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
         }
     }
 
-    @Override
-    public void abortAllAndFail(Throwable t) {
-        lockCoordinator.assertHasStateLock();
-        abortExecution(true);
-        this.failureCollector.addFailure(t);
-    }
-
     private void handleFailure(Node node) {
         Throwable executionFailure = node.getExecutionFailure();
         if (executionFailure != null) {
             // Always abort execution for an execution failure (as opposed to a node failure)
+            failures.add(executionFailure);
             abortExecution();
-            this.failureCollector.addFailure(executionFailure);
             return;
         }
 
         // Failure
-        try {
+        Throwable nodeFailure = node.getNodeFailure();
+        if (nodeFailure != null) {
+            failures.add(node.getNodeFailure());
             if (!continueOnFailure) {
-                node.rethrowNodeFailure();
+                abortExecution();
             }
-            this.failureCollector.addFailure(node.getNodeFailure());
-        } catch (Exception e) {
-            // If the failure handler rethrows exception, then execution of other nodes is aborted. (--continue will collect failures)
-            abortExecution();
-            this.failureCollector.addFailure(e);
         }
     }
 
     private boolean abortExecution() {
         return abortExecution(false);
+    }
+
+    @Override
+    public void abortAllAndFail(Throwable t) {
+        lockCoordinator.assertHasStateLock();
+        abortExecution(true);
+        failures.add(t);
     }
 
     @Override
@@ -1080,7 +1082,7 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
 
             // Allow currently executing and enforced tasks to complete, but skip everything else.
             if (node.isRequired()) {
-                node.skipExecution(this::recordNodeCompleted);
+                node.abortExecution(this::recordNodeCompleted);
                 iterator.remove();
                 aborted = true;
             }
@@ -1100,9 +1102,8 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
 
     @Override
     public void collectFailures(Collection<? super Throwable> failures) {
-        List<Throwable> collectedFailures = failureCollector.getFailures();
-        failures.addAll(collectedFailures);
-        if (buildCancelled && collectedFailures.isEmpty()) {
+        failures.addAll(this.failures);
+        if (buildCancelled && failures.isEmpty()) {
             failures.add(new BuildCancelledException());
         }
     }

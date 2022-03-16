@@ -132,10 +132,6 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
     }
 
     @Override
-    public void rethrowNodeFailure() {
-    }
-
-    @Override
     public int compareTo(Node other) {
         if (getClass() != other.getClass()) {
             return getClass().getName().compareTo(other.getClass().getName());

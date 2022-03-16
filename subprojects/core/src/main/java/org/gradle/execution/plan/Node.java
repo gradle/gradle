@@ -41,21 +41,21 @@ public abstract class Node implements Comparable<Node> {
 
     @VisibleForTesting
     enum ExecutionState {
-        // Node has not been added to any execution plan
-        UNKNOWN,
-        // Node has been added to an execution plan and should run
+        // Node is not scheduled to run in any plan
+        // Nodes may be moved back into this state when the execution plan is cancelled or aborted due to a failure
+        NOT_SCHEDULED,
+        // Node has been scheduled in an execution plan and should run
         SHOULD_RUN,
         // Node is a finalizer of at least one node that has executed and so must run
         MUST_RUN,
         // Node is a finalizer of one or more nodes and none of these nodes has executed
         MUST_NOT_RUN,
-        // Node is current executing
+        // Node is currently executing
         EXECUTING,
         // Node has been executed, and possibly failed, in an execution plan (not necessarily the current)
         EXECUTED,
-        // Either cannot be executed because of a failed dependency or was skipped because the execution plan was aborted
-        // Should split this into two separate states, or perhaps use UNKNOWN for the abort case
-        SKIPPED
+        // Node cannot be executed because of a failed dependency
+        FAILED_DEPENDENCY
     }
 
     enum DependenciesState {
@@ -64,7 +64,7 @@ public abstract class Node implements Comparable<Node> {
         COMPLETE_AND_NOT_SUCCESSFUL
     }
 
-    private ExecutionState state = ExecutionState.UNKNOWN;
+    private ExecutionState state = ExecutionState.NOT_SCHEDULED;
     private boolean dependenciesProcessed;
     private DependenciesState dependenciesState = DependenciesState.NOT_COMPLETE;
     private Throwable executionFailure;
@@ -87,11 +87,11 @@ public abstract class Node implements Comparable<Node> {
     }
 
     public boolean isIncludeInGraph() {
-        return !filtered && state != ExecutionState.UNKNOWN && state != ExecutionState.EXECUTED && state != ExecutionState.SKIPPED;
+        return !filtered && state != ExecutionState.NOT_SCHEDULED && !isAlreadyExecuted();
     }
 
     public boolean isAlreadyExecuted() {
-        return state == ExecutionState.EXECUTED || state == ExecutionState.SKIPPED;
+        return state == ExecutionState.EXECUTED || state == ExecutionState.FAILED_DEPENDENCY;
     }
 
     /**
@@ -102,7 +102,7 @@ public abstract class Node implements Comparable<Node> {
     }
 
     public boolean isInKnownState() {
-        return state != ExecutionState.UNKNOWN;
+        return state != ExecutionState.NOT_SCHEDULED;
     }
 
     public boolean isExecuting() {
@@ -115,10 +115,17 @@ public abstract class Node implements Comparable<Node> {
      * <p>A node may be complete for several reasons, for example when its actions have been executed, or when its outputs have been considered up-to-date or loaded from the build cache,
      * or when it cannot run due to a failure in a dependency.</p>
      */
+    public boolean isWillNotRun() {
+        return state == ExecutionState.EXECUTED
+            || state == ExecutionState.FAILED_DEPENDENCY
+            || state == ExecutionState.NOT_SCHEDULED
+            || filtered;
+    }
+
     public boolean isComplete() {
         return state == ExecutionState.EXECUTED
-            || state == ExecutionState.SKIPPED
-            || state == ExecutionState.UNKNOWN
+            || state == ExecutionState.FAILED_DEPENDENCY
+            || state == ExecutionState.NOT_SCHEDULED
             || filtered
             || state == ExecutionState.MUST_NOT_RUN;
     }
@@ -154,8 +161,6 @@ public abstract class Node implements Comparable<Node> {
     @Nullable
     public abstract Throwable getNodeFailure();
 
-    public abstract void rethrowNodeFailure();
-
     public void startExecution(Consumer<Node> nodeStartAction) {
         assert isReady();
         state = ExecutionState.EXECUTING;
@@ -170,18 +175,18 @@ public abstract class Node implements Comparable<Node> {
 
     public void skipExecution(Consumer<Node> completionAction) {
         assert state == ExecutionState.SHOULD_RUN || state == ExecutionState.MUST_RUN;
-        state = ExecutionState.SKIPPED;
+        state = ExecutionState.FAILED_DEPENDENCY;
         completionAction.accept(this);
     }
 
     public void abortExecution(Consumer<Node> completionAction) {
-        assert isReady();
-        state = ExecutionState.SKIPPED;
+        assert !isAlreadyExecuted();
+        state = ExecutionState.NOT_SCHEDULED;
         completionAction.accept(this);
     }
 
     public void require() {
-        if (state == ExecutionState.EXECUTED) {
+        if (isAlreadyExecuted()) {
             return;
         }
         if (state != ExecutionState.SHOULD_RUN) {
@@ -191,8 +196,11 @@ public abstract class Node implements Comparable<Node> {
         }
     }
 
+    /**
+     * Mark this node as filtered from the current plan. The node will be considered complete and successful.
+     */
     public void filtered() {
-        if (state == ExecutionState.EXECUTED) {
+        if (isAlreadyExecuted()) {
             return;
         }
         filtered = true;
@@ -203,7 +211,7 @@ public abstract class Node implements Comparable<Node> {
     }
 
     public void mustNotRun() {
-        assert state == ExecutionState.UNKNOWN;
+        assert state == ExecutionState.NOT_SCHEDULED;
         state = ExecutionState.MUST_NOT_RUN;
     }
 

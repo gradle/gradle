@@ -54,9 +54,6 @@ public class OrdinalNode extends Node implements SelfExecutingNode {
     }
 
     @Override
-    public void rethrowNodeFailure() { }
-
-    @Override
     public void resolveDependencies(TaskDependencyResolver dependencyResolver, Action<Node> processHardSuccessor) { }
 
     @Nullable

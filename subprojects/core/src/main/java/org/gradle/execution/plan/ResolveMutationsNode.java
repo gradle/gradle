@@ -19,7 +19,6 @@ package org.gradle.execution.plan;
 import org.gradle.api.Action;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.resources.ResourceLock;
 
 import javax.annotation.Nullable;
@@ -54,11 +53,6 @@ public class ResolveMutationsNode extends Node implements SelfExecutingNode {
     @Override
     public Throwable getNodeFailure() {
         return failure;
-    }
-
-    @Override
-    public void rethrowNodeFailure() {
-        throw UncheckedException.throwAsUncheckedException(failure);
     }
 
     @Override

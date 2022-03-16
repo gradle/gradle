@@ -125,11 +125,6 @@ public class LocalTaskNode extends TaskNode {
     }
 
     @Override
-    public void rethrowNodeFailure() {
-        task.getState().rethrowFailure();
-    }
-
-    @Override
     public void prepareForExecution(Action<Node> monitor) {
         ((TaskContainerInternal) task.getProject().getTasks()).prepareForExecution(task);
     }

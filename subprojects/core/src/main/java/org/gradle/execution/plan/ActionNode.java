@@ -49,10 +49,6 @@ public class ActionNode extends Node implements SelfExecutingNode {
     }
 
     @Override
-    public void rethrowNodeFailure() {
-    }
-
-    @Override
     public void resolveDependencies(TaskDependencyResolver dependencyResolver, Action<Node> processHardSuccessor) {
         TaskDependencyContainer dependencies = action::visitDependencies;
         for (Node node : dependencyResolver.resolveDependenciesFor(null, dependencies)) {
