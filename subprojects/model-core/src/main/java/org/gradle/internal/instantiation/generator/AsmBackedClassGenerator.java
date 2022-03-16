@@ -1128,25 +1128,28 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 _ALOAD(0);
                 _LDC(property.getName());
 
-                int typeParamCount = property.getType().getTypeParameters().length;
-                if (typeParamCount == 1) {
-                    // GENERATE factory.newInstance(this, propertyName, type, valueType)
-                    Type elementType = getType(rawTypeParam(property, 0));
-                    _LDC(propType);
-                    _LDC(elementType);
-                    _INVOKEVIRTUAL(MANAGED_OBJECT_FACTORY_TYPE, "newInstance", RETURN_OBJECT_FROM_MODEL_OBJECT_STRING_CLASS_CLASS);
-                } else if (typeParamCount == 2) {
-                    // GENERATE factory.newInstance(this, propertyName, type, keyType, valueType)
-                    Type keyType = getType(rawTypeParam(property, 0));
-                    Type elementType = getType(rawTypeParam(property, 1));
-                    _LDC(propType);
-                    _LDC(keyType);
-                    _LDC(elementType);
-                    _INVOKEVIRTUAL(MANAGED_OBJECT_FACTORY_TYPE, "newInstance", RETURN_OBJECT_FROM_MODEL_OBJECT_STRING_CLASS_CLASS_CLASS);
-                } else {
-                    // GENERATE factory.newInstance(this, propertyName, type)
-                    _LDC(propType);
-                    _INVOKEVIRTUAL(MANAGED_OBJECT_FACTORY_TYPE, "newInstance", RETURN_OBJECT_FROM_MODEL_OBJECT_STRING_CLASS);
+                switch (property.getType().getTypeParameters().length) {
+                    case 1:
+                        // GENERATE factory.newInstance(this, propertyName, propType, elementType)
+                        Type elementType = getType(rawTypeParam(property, 0));
+                        _LDC(propType);
+                        _LDC(elementType);
+                        _INVOKEVIRTUAL(MANAGED_OBJECT_FACTORY_TYPE, "newInstance", RETURN_OBJECT_FROM_MODEL_OBJECT_STRING_CLASS_CLASS);
+                        break;
+                    case 2:
+                        // GENERATE factory.newInstance(this, propertyName, propType, keyType, valueType)
+                        Type keyType = getType(rawTypeParam(property, 0));
+                        Type valueType = getType(rawTypeParam(property, 1));
+                        _LDC(propType);
+                        _LDC(keyType);
+                        _LDC(valueType);
+                        _INVOKEVIRTUAL(MANAGED_OBJECT_FACTORY_TYPE, "newInstance", RETURN_OBJECT_FROM_MODEL_OBJECT_STRING_CLASS_CLASS_CLASS);
+                        break;
+                    default:
+                        // GENERATE factory.newInstance(this, propertyName, propType)
+                        _LDC(propType);
+                        _INVOKEVIRTUAL(MANAGED_OBJECT_FACTORY_TYPE, "newInstance", RETURN_OBJECT_FROM_MODEL_OBJECT_STRING_CLASS);
+                        break;
                 }
 
                 if (applyRole) {
