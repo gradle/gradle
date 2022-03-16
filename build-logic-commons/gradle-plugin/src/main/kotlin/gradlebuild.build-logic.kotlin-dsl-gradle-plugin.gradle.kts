@@ -29,8 +29,7 @@ java {
 
 dependencies {
     api(platform(project(":build-platform")))
-    implementation("gradlebuild:code-quality")
-    implementation("gradlebuild:build-scan")
+    implementation("gradlebuild:gradle-plugin")
 
     testImplementation("org.junit.vintage:junit-vintage-engine")
 }
@@ -46,8 +45,8 @@ tasks.runKtlintCheckOverKotlinScripts {
     setIncludes(listOf("*.gradle.kts"))
 }
 
-tasks.codeQuality {
-    dependsOn(tasks.ktlintCheck)
+tasks.named("codeQuality") {
+    dependsOn("ktlintCheck")
 }
 
 tasks.validatePlugins {
