@@ -210,12 +210,13 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         outputContains("processing using prop: ${expected}")
 
         where:
-        type                          | value          | expected
-        "Property<Boolean>"           | 'true'         | 'true'
-        "Property<String>"            | "'value'"      | 'value'
-        "ListProperty<String>"        | "['a', 'b']"   | "[a, b]"
-        "SetProperty<String>"         | "['a', 'b']"   | "[a, b]"
-        "MapProperty<String, Number>" | "[a: 1, b: 2]" | "[a:1, b:2]"
+        type                          | value            | expected
+        "Property<Byte>"              | '42.byteValue()' | '42'
+        "Property<Boolean>"           | 'true'           | 'true'
+        "Property<String>"            | "'value'"        | 'value'
+        "ListProperty<String>"        | "['a', 'b']"     | "[a, b]"
+        "SetProperty<String>"         | "['a', 'b']"     | "[a, b]"
+        "MapProperty<String, Number>" | "[a: 1, b: 2]"   | "[a:1, b:2]"
     }
 
     def "transform can receive a build service as a parameter"() {
