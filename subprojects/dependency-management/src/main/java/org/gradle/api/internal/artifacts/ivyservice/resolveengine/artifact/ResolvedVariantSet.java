@@ -33,6 +33,11 @@ public interface ResolvedVariantSet {
     Set<ResolvedVariant> getVariants();
 
     /**
+     * These are the variants that were selected when building the dependency graph.
+     */
+    Set<ResolvedVariant> getVariantsForGraph();
+
+    /**
      * The provider may have been selected thanks to a different attribute set than the one from
      * the consuming configuration. This can happen whenever a dependency has additional attributes,
      * in which case it may override attributes from the configuration itself.

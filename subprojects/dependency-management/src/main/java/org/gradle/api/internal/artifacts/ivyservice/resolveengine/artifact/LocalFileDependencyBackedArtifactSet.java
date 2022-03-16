@@ -202,6 +202,11 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
         }
 
         @Override
+        public Set<ResolvedVariant> getVariantsForGraph() {
+            return Collections.singleton(this);
+        }
+
+        @Override
         public ImmutableAttributes getOverriddenAttributes() {
             return ImmutableAttributes.EMPTY;
         }
