@@ -22,7 +22,6 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.TaskNode;
 import org.gradle.execution.plan.TaskNodeFactory;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildWorkGraph;
@@ -36,15 +35,11 @@ import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.work.WorkerLeaseService;
 
 import java.io.StringWriter;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 
 class DefaultBuildController implements BuildController {
@@ -58,11 +53,6 @@ class DefaultBuildController implements BuildController {
     private final WorkerLeaseService workerLeaseService;
 
     private State state = State.DiscoveringTasks;
-    // Lock protects the following state
-    private final Lock lock = new ReentrantLock();
-    private final Condition stateChange = lock.newCondition();
-    private boolean finished;
-    private final List<Throwable> executionFailures = new ArrayList<>();
 
     public DefaultBuildController(BuildState build, WorkerLeaseService workerLeaseService) {
         this.workerLeaseService = workerLeaseService;
@@ -116,45 +106,15 @@ class DefaultBuildController implements BuildController {
     }
 
     @Override
-    public void startExecution(ExecutorService executorService) {
+    public void startExecution(ExecutorService executorService, Consumer<ExecutionResult<Void>> completionHandler) {
         assertInState(State.ReadyToRun);
-        executorService.submit(new BuildOpRunnable(CurrentBuildOperationRef.instance().get()));
+        executorService.submit(new BuildOpRunnable(CurrentBuildOperationRef.instance().get(), completionHandler));
         state = State.RunningTasks;
     }
 
     @Override
-    public ExecutionResult<Void> awaitCompletion() {
-        assertInState(State.RunningTasks);
-        doAwaitCompletion();
-        state = State.Finished;
-        lock.lock();
-        try {
-            return ExecutionResult.maybeFailed(executionFailures);
-        } finally {
-            lock.unlock();
-        }
-    }
-
-    @Override
     public void stop() {
-        if (state == State.RunningTasks) {
-            throw new IllegalStateException("Build is currently running tasks.");
-        }
         workGraph.stop();
-    }
-
-    private void doAwaitCompletion() {
-        // Ensure that this thread does not hold locks while waiting and so prevent this work from completing
-        workerLeaseService.blocking(() -> {
-            lock.lock();
-            try {
-                while (!finished) {
-                    awaitStateChange();
-                }
-            } finally {
-                lock.unlock();
-            }
-        });
     }
 
     private void assertInState(State expectedState) {
@@ -199,69 +159,28 @@ class DefaultBuildController implements BuildController {
         }
     }
 
-    private void doRun() {
+    private ExecutionResult<Void> doRun() {
         try {
-            workerLeaseService.runAsWorkerThread(this::doBuild);
+            return workerLeaseService.runAsWorkerThread(workGraph::runWork);
         } catch (Throwable t) {
-            executionFailed(t);
-        } finally {
-            markFinished();
-        }
-    }
-
-    private void markFinished() {
-        lock.lock();
-        try {
-            finished = true;
-            stateChange.signalAll();
-        } finally {
-            lock.unlock();
-        }
-    }
-
-    private void awaitStateChange() {
-        try {
-            stateChange.await();
-        } catch (InterruptedException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
-    }
-
-    private void doBuild() {
-        ExecutionResult<Void> result = workGraph.runWork();
-        executionFinished(result);
-    }
-
-    private void executionFinished(ExecutionResult<Void> result) {
-        lock.lock();
-        try {
-            executionFailures.addAll(result.getFailures());
-        } finally {
-            lock.unlock();
-        }
-    }
-
-    private void executionFailed(Throwable failure) {
-        lock.lock();
-        try {
-            executionFailures.add(failure);
-        } finally {
-            lock.unlock();
+            return ExecutionResult.failed(t);
         }
     }
 
     private class BuildOpRunnable implements Runnable {
         private final BuildOperationRef parentBuildOperation;
+        private final Consumer<ExecutionResult<Void>> completionHandler;
 
-        BuildOpRunnable(BuildOperationRef parentBuildOperation) {
+        BuildOpRunnable(BuildOperationRef parentBuildOperation, Consumer<ExecutionResult<Void>> completionHandler) {
             this.parentBuildOperation = parentBuildOperation;
+            this.completionHandler = completionHandler;
         }
 
         @Override
         public void run() {
             CurrentBuildOperationRef.instance().set(parentBuildOperation);
             try {
-                doRun();
+                completionHandler.accept(doRun());
             } finally {
                 CurrentBuildOperationRef.instance().set(null);
             }

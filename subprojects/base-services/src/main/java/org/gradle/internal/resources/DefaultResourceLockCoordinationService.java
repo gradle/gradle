@@ -16,10 +16,12 @@
 
 package org.gradle.internal.resources;
 
+import com.google.common.base.Supplier;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
+import org.gradle.internal.MutableReference;
 import org.gradle.internal.UncheckedException;
 
 import java.io.Closeable;
@@ -71,6 +73,30 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
         synchronized (lock) {
             releaseHandlers.remove(listener);
         }
+    }
+
+    @Override
+    public void withStateLock(final Runnable action) {
+        withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
+            @Override
+            public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
+                action.run();
+                return ResourceLockState.Disposition.FINISHED;
+            }
+        });
+    }
+
+    @Override
+    public <T> T withStateLock(final Supplier<T> action) {
+        final MutableReference<T> result = MutableReference.empty();
+        withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
+            @Override
+            public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
+                result.set(action.get());
+                return ResourceLockState.Disposition.FINISHED;
+            }
+        });
+        return result.get();
     }
 
     @Override
