@@ -55,6 +55,7 @@ import org.gradle.util.internal.CollectionUtils;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -79,22 +80,27 @@ public abstract class DefaultArtifactSet implements ArtifactSet, ResolvedVariant
         return selectionAttributes;
     }
 
-    public static ArtifactSet createFromVariantMetadata(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier ownerId, ModuleSources moduleSources, ExcludeSpec exclusions, Set<? extends VariantResolveMetadata> variants, AttributesSchemaInternal schema, ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvableArtifact> allResolvedArtifacts, ArtifactTypeRegistry artifactTypeRegistry, ImmutableAttributes selectionAttributes, CalculatedValueContainerFactory calculatedValueContainerFactory) {
+    public static ArtifactSet createFromVariantMetadata(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier ownerId, ModuleSources moduleSources, ExcludeSpec exclusions, Set<? extends VariantResolveMetadata> variants, Set<? extends VariantResolveMetadata> fallbackVariants, AttributesSchemaInternal schema, ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvableArtifact> allResolvedArtifacts, ArtifactTypeRegistry artifactTypeRegistry, ImmutableAttributes selectionAttributes, CalculatedValueContainerFactory calculatedValueContainerFactory) {
+        ImmutableSet.Builder<ResolvedVariant> fallbackResult = ImmutableSet.builder();
+        for (VariantResolveMetadata variant : fallbackVariants) {
+            ResolvedVariant resolvedFallbackVariant = toResolvedVariant(variant, ownerId, moduleSources, exclusions, artifactResolver, allResolvedArtifacts, artifactTypeRegistry, calculatedValueContainerFactory);
+            fallbackResult.add(resolvedFallbackVariant);
+        }
         if (variants.size() == 1) {
             VariantResolveMetadata variantMetadata = variants.iterator().next();
             ResolvedVariant resolvedVariant = toResolvedVariant(variantMetadata, ownerId, moduleSources, exclusions, artifactResolver, allResolvedArtifacts, artifactTypeRegistry, calculatedValueContainerFactory);
-            return new SingleVariantArtifactSet(componentIdentifier, schema, resolvedVariant, selectionAttributes);
+            return new SingleVariantArtifactSet(componentIdentifier, schema, resolvedVariant, selectionAttributes, fallbackResult.build());
         }
         ImmutableSet.Builder<ResolvedVariant> result = ImmutableSet.builder();
         for (VariantResolveMetadata variant : variants) {
             ResolvedVariant resolvedVariant = toResolvedVariant(variant, ownerId, moduleSources, exclusions, artifactResolver, allResolvedArtifacts, artifactTypeRegistry, calculatedValueContainerFactory);
             result.add(resolvedVariant);
         }
-        return new MultipleVariantArtifactSet(componentIdentifier, schema, result.build(), selectionAttributes);
+        return new MultipleVariantArtifactSet(componentIdentifier, schema, result.build(), selectionAttributes, fallbackResult.build());
     }
 
-    public static ArtifactSet createFromVariants(ComponentIdentifier componentIdentifier, ImmutableSet<ResolvedVariant> variants, AttributesSchemaInternal schema, ImmutableAttributes selectionAttributes) {
-        return new MultipleVariantArtifactSet(componentIdentifier, schema, variants, selectionAttributes);
+    public static ArtifactSet createFromVariants(ComponentIdentifier componentIdentifier, ImmutableSet<ResolvedVariant> variants, ImmutableSet<ResolvedVariant> fallbackVariants, AttributesSchemaInternal schema, ImmutableAttributes selectionAttributes) {
+        return new MultipleVariantArtifactSet(componentIdentifier, schema, variants, selectionAttributes, fallbackVariants);
     }
 
     public static ArtifactSet adHocVariant(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier ownerId, Collection<? extends ComponentArtifactMetadata> artifacts, ModuleSources moduleSources, ExcludeSpec exclusions, AttributesSchemaInternal schema, ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvableArtifact> allResolvedArtifacts, ArtifactTypeRegistry artifactTypeRegistry, ImmutableAttributes variantAttributes, ImmutableAttributes selectionAttributes, CalculatedValueContainerFactory calculatedValueContainerFactory) {
@@ -104,7 +110,7 @@ public abstract class DefaultArtifactSet implements ArtifactSet, ResolvedVariant
         }
         VariantResolveMetadata variantMetadata = new DefaultVariantMetadata(null, identifier, Describables.of(componentIdentifier), variantAttributes, ImmutableList.copyOf(artifacts), ImmutableCapabilities.EMPTY);
         ResolvedVariant resolvedVariant = toResolvedVariant(variantMetadata, ownerId, moduleSources, exclusions, artifactResolver, allResolvedArtifacts, artifactTypeRegistry, calculatedValueContainerFactory);
-        return new SingleVariantArtifactSet(componentIdentifier, schema, resolvedVariant, selectionAttributes);
+        return new SingleVariantArtifactSet(componentIdentifier, schema, resolvedVariant, selectionAttributes, Collections.singleton(resolvedVariant));
     }
 
     private static ResolvedVariant toResolvedVariant(VariantResolveMetadata variant, ModuleVersionIdentifier ownerId, ModuleSources moduleSources, ExcludeSpec exclusions, ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvableArtifact> allResolvedArtifacts, ArtifactTypeRegistry artifactTypeRegistry, CalculatedValueContainerFactory calculatedValueContainerFactory) {
@@ -207,29 +213,43 @@ public abstract class DefaultArtifactSet implements ArtifactSet, ResolvedVariant
 
     private static class SingleVariantArtifactSet extends DefaultArtifactSet {
         private final ResolvedVariant variant;
+        private final Set<ResolvedVariant> fallbackVariants;
 
-        public SingleVariantArtifactSet(ComponentIdentifier componentIdentifier, AttributesSchemaInternal schema, ResolvedVariant variant, ImmutableAttributes selectionAttributes) {
+        public SingleVariantArtifactSet(ComponentIdentifier componentIdentifier, AttributesSchemaInternal schema, ResolvedVariant variant, ImmutableAttributes selectionAttributes, Set<ResolvedVariant> fallbackVariants) {
             super(componentIdentifier, schema, selectionAttributes);
             this.variant = variant;
+            this.fallbackVariants = fallbackVariants;
         }
 
         @Override
         public Set<ResolvedVariant> getVariants() {
             return ImmutableSet.of(variant);
         }
+
+        @Override
+        public Set<ResolvedVariant> getVariantsForGraph() {
+            return fallbackVariants;
+        }
     }
 
     private static class MultipleVariantArtifactSet extends DefaultArtifactSet {
         private final Set<ResolvedVariant> variants;
+        private final Set<ResolvedVariant> fallbackVariants;
 
-        public MultipleVariantArtifactSet(ComponentIdentifier componentIdentifier, AttributesSchemaInternal schema, Set<ResolvedVariant> variants, ImmutableAttributes selectionAttributes) {
+        public MultipleVariantArtifactSet(ComponentIdentifier componentIdentifier, AttributesSchemaInternal schema, Set<ResolvedVariant> variants, ImmutableAttributes selectionAttributes, Set<ResolvedVariant> fallbackVariants) {
             super(componentIdentifier, schema, selectionAttributes);
             this.variants = variants;
+            this.fallbackVariants = fallbackVariants;
         }
 
         @Override
         public Set<ResolvedVariant> getVariants() {
             return variants;
+        }
+
+        @Override
+        public Set<ResolvedVariant> getVariantsForGraph() {
+            return fallbackVariants;
         }
     }
 

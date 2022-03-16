@@ -180,6 +180,10 @@ class RecordingVariantSet(
         return setOf(this)
     }
 
+    override fun getVariantsForGraph(): Set<ResolvedVariant> {
+        return setOf(this)
+    }
+
     override fun getOverriddenAttributes(): ImmutableAttributes {
         return ImmutableAttributes.EMPTY
     }
