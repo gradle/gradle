@@ -39,6 +39,9 @@ import org.gradle.internal.resources.SharedResourceLeaseRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 
 import javax.annotation.Nullable;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static org.gradle.internal.Cast.uncheckedCast;
@@ -48,6 +51,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
 
     private final BuildIdentifier buildIdentifier;
     private final NamedDomainObjectSet<BuildServiceRegistration<?, ?>> registrations;
+    private final Lock registrationsLock = new ReentrantLock();
     private final InstantiatorFactory instantiatorFactory;
     private final ServiceRegistry services;
     private final ListenerManager listenerManager;
@@ -80,6 +84,15 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
         this.listener = listener;
     }
 
+    private <U> U withRegistrations(Function<NamedDomainObjectSet<BuildServiceRegistration<?, ?>>, U> function) {
+        registrationsLock.lock();
+        try {
+            return function.apply(registrations);
+        } finally {
+            registrationsLock.unlock();
+        }
+    }
+
     @Override
     public NamedDomainObjectSet<BuildServiceRegistration<?, ?>> getRegistrations() {
         return registrations;
@@ -91,7 +104,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
             throw new IllegalArgumentException("The given provider is not a build service provider.");
         }
         BuildServiceProvider<?, ?> provider = (BuildServiceProvider<?, ?>) service;
-        DefaultServiceRegistration<?, ?> registration = (DefaultServiceRegistration<?, ?>) registrations.getByName(provider.getName());
+        DefaultServiceRegistration<?, ?> registration = getByName(provider.getName());
         return registration.asSharedResource(() -> {
             // Prevent further changes to registration
             registration.getMaxParallelUsages().finalizeValue();
@@ -104,27 +117,33 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
         });
     }
 
+    private DefaultServiceRegistration<?, ?> getByName(String name) {
+        return (DefaultServiceRegistration<?, ?>) withRegistrations(registrations -> registrations.getByName(name));
+    }
+
     @Override
     public <T extends BuildService<P>, P extends BuildServiceParameters> Provider<T> registerIfAbsent(String name, Class<T> implementationType, Action<? super BuildServiceSpec<P>> configureAction) {
-        BuildServiceRegistration<?, ?> existing = registrations.findByName(name);
-        if (existing != null) {
-            // TODO - assert same type
-            // TODO - assert same parameters
-            return uncheckedNonnullCast(existing.getService());
-        }
+        return withRegistrations(registrations -> {
+            BuildServiceRegistration<?, ?> existing = registrations.findByName(name);
+            if (existing != null) {
+                // TODO - assert same type
+                // TODO - assert same parameters
+                return uncheckedNonnullCast(existing.getService());
+            }
 
-        // TODO - extract some shared infrastructure to take care of parameter instantiation (eg strict vs lenient, which services are visible)
-        P parameters = instantiateParametersOf(implementationType);
+            // TODO - extract some shared infrastructure to take care of parameter instantiation (eg strict vs lenient, which services are visible)
+            P parameters = instantiateParametersOf(implementationType);
 
-        // TODO - should defer execution of the action, to match behaviour for other container `register()` methods.
+            // TODO - should defer execution of the action, to match behaviour for other container `register()` methods.
 
-        DefaultServiceSpec<P> spec = uncheckedNonnullCast(specInstantiator.newInstance(DefaultServiceSpec.class, parameters));
-        configureAction.execute(spec);
-        Integer maxParallelUsages = spec.getMaxParallelUsages().getOrNull();
+            DefaultServiceSpec<P> spec = uncheckedNonnullCast(specInstantiator.newInstance(DefaultServiceSpec.class, parameters));
+            configureAction.execute(spec);
+            Integer maxParallelUsages = spec.getMaxParallelUsages().getOrNull();
 
-        // TODO - finalize the parameters during isolation
-        // TODO - need to lock the project during isolation - should do this the same way as artifact transforms
-        return doRegister(name, implementationType, parameters, maxParallelUsages);
+            // TODO - finalize the parameters during isolation
+            // TODO - need to lock the project during isolation - should do this the same way as artifact transforms
+            return doRegister(name, implementationType, parameters, maxParallelUsages, registrations);
+        });
     }
 
     @Nullable
@@ -137,17 +156,20 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
 
     @Override
     public BuildServiceProvider<?, ?> register(String name, Class<? extends BuildService<?>> implementationType, @Nullable BuildServiceParameters parameters, int maxUsages) {
-        if (registrations.findByName(name) != null) {
-            throw new IllegalArgumentException(String.format("Service '%s' has already been registered.", name));
-        }
-        return doRegister(name, uncheckedNonnullCast(implementationType), parameters, maxUsages <= 0 ? null : maxUsages);
+        return withRegistrations(registrations -> {
+            if (registrations.findByName(name) != null) {
+                throw new IllegalArgumentException(String.format("Service '%s' has already been registered.", name));
+            }
+            return doRegister(name, uncheckedNonnullCast(implementationType), parameters, maxUsages <= 0 ? null : maxUsages, registrations);
+        });
     }
 
     private <T extends BuildService<P>, P extends BuildServiceParameters> BuildServiceProvider<T, P> doRegister(
         String name,
         Class<T> implementationType,
         @Nullable P parameters,
-        @Nullable Integer maxParallelUsages
+        Integer maxParallelUsages,
+        NamedDomainObjectSet<BuildServiceRegistration<?, ?>> registrations
     ) {
         BuildServiceProvider<T, P> provider = new BuildServiceProvider<>(
             buildIdentifier,
