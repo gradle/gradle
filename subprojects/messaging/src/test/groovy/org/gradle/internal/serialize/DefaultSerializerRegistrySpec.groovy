@@ -50,13 +50,14 @@ class DefaultSerializerRegistrySpec extends Specification {
     def "invoking DefaultSerializerRegistry from multiple threads"() {
         given:
         def conditions = new AsyncConditions(numThreads)
+        def serializer = Stub(Serializer)
         numThreads.times { threadId ->
             Thread.startDaemon("DefaultSerializerRegistry Test #$threadId") {
                 conditions.evaluate {
                     serializableClasses.forEach { theClass ->
                         try {
                             defaultSerializerRegistry.useJavaSerialization(theClass)
-                            defaultSerializerRegistry.register(theClass, Mock(Serializer))
+                            defaultSerializerRegistry.register(theClass, serializer)
                             Thread.sleep(1)
                         } finally {
                             latch.countDown()
@@ -78,7 +79,7 @@ class DefaultSerializerRegistrySpec extends Specification {
         testIteration << (0..9)
     }
 
-    static class SerializableParent {}
+    static class SerializableParent implements Serializable {}
 
     static class Serializable1 extends SerializableParent {}
 
