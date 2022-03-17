@@ -27,8 +27,8 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListMap;
-import java.util.concurrent.ConcurrentSkipListSet;
 
 /**
  * Default implementation of {@link SerializerRegistry}.
@@ -44,7 +44,12 @@ public class DefaultSerializerRegistry implements SerializerRegistry {
         }
     };
     private final Map<Class<?>, Serializer<?>> serializerMap = new ConcurrentSkipListMap<Class<?>, Serializer<?>>(CLASS_COMPARATOR);
-    private final Set<Class<?>> javaSerialization = new ConcurrentSkipListSet<Class<?>>(CLASS_COMPARATOR);
+
+    // We are using a ConcurrentHashMap here because:
+    //   - We don't want to use a Set with CLASS_COMPARATOR, since that would identity two classes from different classloaders.
+    //   - ConcurrentHashMap.newKeySet() isn't available on Java 6, yet, and that is where this code needs to run.
+    //   - CopyOnWriteArraySet has slower insert performance, since it is not hash based.
+    private final Map<Class<?>, Boolean> javaSerialization = new ConcurrentHashMap<Class<?>, Boolean>();
     private final SerializerClassMatcherStrategy classMatcher;
 
     public DefaultSerializerRegistry() {
@@ -62,7 +67,7 @@ public class DefaultSerializerRegistry implements SerializerRegistry {
 
     @Override
     public <T> void useJavaSerialization(Class<T> implementationType) {
-        javaSerialization.add(implementationType);
+        javaSerialization.put(implementationType, Boolean.TRUE);
     }
 
     @Override
@@ -72,7 +77,7 @@ public class DefaultSerializerRegistry implements SerializerRegistry {
                 return true;
             }
         }
-        for (Class<?> candidate : javaSerialization) {
+        for (Class<?> candidate : javaSerialization.keySet()) {
             if (classMatcher.matches(baseType, candidate)) {
                 return true;
             }
@@ -89,7 +94,7 @@ public class DefaultSerializerRegistry implements SerializerRegistry {
             }
         }
         Set<Class<?>> matchingJavaSerialization = new LinkedHashSet<Class<?>>();
-        for (Class<?> candidate : javaSerialization) {
+        for (Class<?> candidate : javaSerialization.keySet()) {
             if (baseType.isAssignableFrom(candidate)) {
                 matchingJavaSerialization.add(candidate);
             }
