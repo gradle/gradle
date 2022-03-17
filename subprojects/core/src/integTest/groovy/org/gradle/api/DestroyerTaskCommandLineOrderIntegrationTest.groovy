@@ -17,6 +17,7 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.executer.TaskOrderSpecs
+import spock.lang.Issue
 
 class DestroyerTaskCommandLineOrderIntegrationTest extends AbstractCommandLineOrderTaskIntegrationTest {
     def "destroyer task with a dependency in another project will run before producer tasks when ordered first (type: #type)"() {
@@ -311,6 +312,7 @@ class DestroyerTaskCommandLineOrderIntegrationTest extends AbstractCommandLineOr
         result.assertTaskOrder(cleanBar.fullPath, generateBar.fullPath, generate.fullPath)
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/20195")
     def "destroyer task that is a finalizer of a producer task will run after the producer even when ordered first (type: #type)"() {
         def foo = subproject(':foo')
         def bar = subproject(':bar')
@@ -330,9 +332,8 @@ class DestroyerTaskCommandLineOrderIntegrationTest extends AbstractCommandLineOr
         succeeds(clean.path, generate.path)
 
         then:
-        result.assertTaskOrder(cleanFoo.fullPath, clean.fullPath)
         result.assertTaskOrder(cleanBar.fullPath, clean.fullPath)
-        result.assertTaskOrder(generateFoo.fullPath, cleanFoo.fullPath)
+        result.assertTaskOrder(generateFoo.fullPath, cleanFoo.fullPath, clean.fullPath)
         result.assertTaskOrder(generateFoo.fullPath, generate.fullPath)
         result.assertTaskOrder(cleanBar.fullPath, generateBar.fullPath, generate.fullPath)
 
@@ -340,6 +341,7 @@ class DestroyerTaskCommandLineOrderIntegrationTest extends AbstractCommandLineOr
         type << ProductionType.values()
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/20195")
     def "destroyer task that is a finalizer of a producer task and also a dependency will run after the producer even when ordered first (type: #type)"() {
         def foo = subproject(':foo')
         def bar = subproject(':bar')
@@ -359,9 +361,8 @@ class DestroyerTaskCommandLineOrderIntegrationTest extends AbstractCommandLineOr
         succeeds(clean.path, generate.path)
 
         then:
-        result.assertTaskOrder(cleanFoo.fullPath, clean.fullPath)
-        result.assertTaskOrder(cleanBar.fullPath, clean.fullPath)
-        result.assertTaskOrder(generateFoo.fullPath, cleanFoo.fullPath)
+        result.assertTaskOrder(cleanFoo.fullPath, cleanBar.fullPath, clean.fullPath)
+        result.assertTaskOrder(generateFoo.fullPath, cleanFoo.fullPath, clean.fullPath)
         result.assertTaskOrder(generateFoo.fullPath, generate.fullPath)
         result.assertTaskOrder(cleanBar.fullPath, generateBar.fullPath, generate.fullPath)
 
