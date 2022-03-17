@@ -29,8 +29,6 @@ import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.classloader.FilteringClassLoader
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.TestHashCodes
-import org.gradle.internal.instantiation.generator.DefaultInstantiatorFactory
-import org.gradle.internal.state.ManagedFactory
 import org.gradle.internal.state.ManagedFactoryRegistry
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -421,7 +419,7 @@ class DefaultIsolatableFactoryTest extends Specification {
         original.prop1 = "a"
 
         given:
-        _ * managedFactoryRegistry.lookup(_) >> managedTypeFactory()
+        _ * managedFactoryRegistry.lookup(_) >> instantiatorFactory().managedFactory
 
         expect:
         def isolated = isolatableFactory.isolate(original)
@@ -437,7 +435,7 @@ class DefaultIsolatableFactoryTest extends Specification {
         original.prop1 = "a"
 
         given:
-        _ * managedFactoryRegistry.lookup(_) >> managedTypeFactory()
+        _ * managedFactoryRegistry.lookup(_) >> instantiatorFactory().managedFactory
 
         expect:
         def isolated = isolatableFactory.isolate(original)
@@ -445,10 +443,6 @@ class DefaultIsolatableFactoryTest extends Specification {
         def copy = isolated.isolate()
         !copy.is(original)
         copy.prop1 == "a"
-    }
-
-    private ManagedFactory managedTypeFactory() {
-        new DefaultInstantiatorFactory.ManagedTypeFactory(instantiatorFactory().injectScheme().deserializationInstantiator())
     }
 
     def "creates isolated ConfigurableFileCollection"() {

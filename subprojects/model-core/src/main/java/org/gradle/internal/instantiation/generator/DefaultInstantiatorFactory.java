@@ -157,7 +157,8 @@ public class DefaultInstantiatorFactory implements InstantiatorFactory {
         throw new IllegalArgumentException(String.format("Annotation @%s is not a registered injection annotation.", annotation.getSimpleName()));
     }
 
-    public static class ManagedTypeFactory implements ManagedFactory {
+    private static class ManagedTypeFactory implements ManagedFactory {
+
         private final DeserializationInstantiator deserializationInstantiator;
 
         public ManagedTypeFactory(DeserializationInstantiator deserializationInstantiator) {
