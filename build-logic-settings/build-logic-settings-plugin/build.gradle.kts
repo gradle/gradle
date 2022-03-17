@@ -17,3 +17,5 @@
 plugins {
    `kotlin-dsl`
 }
+
+description = "Provides settings plugins for main build"
