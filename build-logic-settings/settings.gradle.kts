@@ -22,4 +22,4 @@ dependencyResolutionManagement {
     }
 }
 
-
+include("build-logic-settings-plugin")

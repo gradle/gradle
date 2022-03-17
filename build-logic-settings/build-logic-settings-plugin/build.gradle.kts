@@ -17,5 +17,3 @@
 plugins {
    `kotlin-dsl`
 }
-
-description = "A plugin which applies other plugins to all projects, without relying on the allprojects block"
