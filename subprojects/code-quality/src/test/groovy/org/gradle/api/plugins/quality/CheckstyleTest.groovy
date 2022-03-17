@@ -42,8 +42,8 @@ class CheckstyleTest extends Specification {
             showViolations
             maxErrors == 0
             maxWarnings == Integer.MAX_VALUE
-            minHeapSize == null
-            maxHeapSize == null
+            !minHeapSize.isPresent()
+            !maxHeapSize.isPresent()
         }
     }
 

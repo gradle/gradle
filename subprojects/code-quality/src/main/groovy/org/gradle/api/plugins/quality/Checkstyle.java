@@ -44,8 +44,6 @@ import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.VerificationTask;
 import org.gradle.jvm.toolchain.JavaLauncher;
-import org.gradle.process.JavaForkOptions;
-import org.gradle.process.internal.JavaForkOptionsFactory;
 import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.workers.WorkQueue;
 import org.gradle.workers.WorkerExecutor;
@@ -73,13 +71,15 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
     private boolean showViolations = true;
     private final DirectoryProperty configDirectory;
     private final Property<JavaLauncher> javaLauncher;
-    private final JavaForkOptions forkOptions;
+    private final Property<String> minHeapSize;
+    private final Property<String> maxHeapSize;
 
     public Checkstyle() {
         this.configDirectory = getObjectFactory().directoryProperty();
         this.reports = getObjectFactory().newInstance(CheckstyleReportsImpl.class, this);
         this.javaLauncher = getObjectFactory().property(JavaLauncher.class);
-        this.forkOptions = getForkOptionsFactory().newDecoratedJavaForkOptions();
+        this.minHeapSize = getObjectFactory().property(String.class);
+        this.maxHeapSize = getObjectFactory().property(String.class);
     }
 
     /**
@@ -164,6 +164,7 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
 
     /**
      * JavaLauncher for toolchain support
+     *
      * @since 7.5
      */
     @Incubating
@@ -179,7 +180,8 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
 
     private void runWithProcessIsolation() {
         WorkQueue workQueue = getWorkerExecutor().processIsolation(spec -> {
-            forkOptions.copyTo(spec.getForkOptions());
+            spec.getForkOptions().setMinHeapSize(minHeapSize.getOrNull());
+            spec.getForkOptions().setMaxHeapSize(maxHeapSize.getOrNull());
             spec.getForkOptions().setExecutable(javaLauncher.get().getExecutablePath().getAsFile().getAbsolutePath());
             spec.getClasspath().from(getCheckstyleClasspath());
         });
@@ -401,45 +403,31 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
     }
 
     /**
-     * Returns the minimum heap size for the checkstyle worker process, if any.
+     * The minimum heap size for the checkstyle worker process, if any.
      *
-     * @return The minimum heap size. Returns null if the default minimum heap size should be used.
+     * @return The minimum heap size. Value should be null if the default minimum heap size should be used.
+     *
+     * @since 7.5
      */
-    @Nullable @Optional @Input
-    public String getMinHeapSize() {
-        return forkOptions.getMinHeapSize();
+    @Incubating
+    @Optional
+    @Input
+    public Property<String> getMinHeapSize() {
+        return minHeapSize;
     }
+
 
     /**
-     * Sets the minimum heap size for the checkstyle worker process.
+     * The maximum heap size for the checkstyle worker process, if any.
      *
-     * @param heapSize The minimum heap size. Use null for the default minimum heap size.
-     */
-    public void setMinHeapSize(String heapSize) {
-        forkOptions.setMinHeapSize(heapSize);
-    }
-
-    /**
-     * Returns the maximum heap size for the checkstyle worker process, if any.
+     * @return The maximum heap size. Value should be null if the default maximum heap size should be used.
      *
-     * @return The maximum heap size. Returns null if the default maximum heap size should be used.
+     * @since 7.5
      */
-    @Nullable @Optional @Input
-    public String getMaxHeapSize() {
-        return forkOptions.getMaxHeapSize();
-    }
-
-    /**
-     * Sets the maximum heap size for the checkstyle worker process.
-     *
-     * @param heapSize The heap size. Use null for the default maximum heap size.
-     */
-    public void setMaxHeapSize(String heapSize) {
-        forkOptions.setMaxHeapSize(heapSize);
-    }
-
-    @Inject
-    protected JavaForkOptionsFactory getForkOptionsFactory() {
-        throw new UnsupportedOperationException();
+    @Incubating
+    @Optional
+    @Input
+    public Property<String> getMaxHeapSize() {
+        return maxHeapSize;
     }
 }

@@ -87,8 +87,8 @@ class CheckstylePluginToolchainsIntegrationTest extends MultiVersionIntegrationS
             import org.gradle.internal.jvm.Jvm
 
             tasks.named('checkstyleMain').configure {
-                minHeapSize = "128m"
-                maxHeapSize = "256m"
+                minHeapSize.set("128m")
+                maxHeapSize.set("256m")
 
                 doLast {
                     assert services.get(WorkerDaemonClientsManager).idleClients.find {
