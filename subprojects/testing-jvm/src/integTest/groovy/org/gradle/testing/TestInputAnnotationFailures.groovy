@@ -54,6 +54,41 @@ class TestInputAnnotationFailures extends AbstractIntegrationSpec {
         result.assertHasErrorOutput("This property might have to use @InputFile, or a related file-based input annotation, instead of @Input")
     }
 
+    def "misconfigured @Input annotation on DirectoryProperty fails with outputs.upToDateWhen() but does not print error message"() {
+        given:
+        buildFile << """
+            import groovy.transform.CompileStatic
+
+            plugins {
+                id 'java'
+            }
+
+            ${mavenCentralRepository()}
+
+            @CacheableTask
+            @CompileStatic
+            abstract class MyTask extends DefaultTask {
+                @Input
+                abstract DirectoryProperty getMyDirectory()
+
+                @TaskAction
+                void action() {
+                    logger.warn("Input directory: {}", myDirectory.getAsFile().get().absolutePath)
+                }
+            }
+
+            tasks.register('myTask', MyTask) {
+                outputs.upToDateWhen { false }
+                myDirectory = project.layout.projectDirectory
+            }
+        """
+
+        expect:
+        fails 'myTask'
+        result.assertHasErrorOutput("Cannot fingerprint input property 'myDirectory'")
+        !result.getError().contains("This property might have to use @InputFile, or a related file-based input annotation, instead of @Input")
+    }
+
     def "misconfigured @Input annotation succeeds if no upToDate check done"() {
         given:
         buildFile << """
