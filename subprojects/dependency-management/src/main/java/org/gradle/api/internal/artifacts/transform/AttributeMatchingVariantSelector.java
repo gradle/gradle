@@ -102,6 +102,11 @@ class AttributeMatchingVariantSelector implements VariantSelector {
         if (matches.size() == 1) {
             return matches.get(0).getArtifacts();
         }
+
+        // Resolvable and consumable variants are "legacy" configurations
+        // If there is ambiguity, ignore these variants as they usually do not have all of their attributes defined in a way that makes sense
+        matches = matches.stream().filter(it -> !it.isLegacyResolvableConfiguration()).collect(Collectors.toList());
+
         if (matches.size() > 1) {
             if (explanationBuilder instanceof TraceDiscardedVariants) {
                 Set<ResolvedVariant> discarded = Cast.uncheckedCast(((TraceDiscardedVariants) explanationBuilder).discarded);

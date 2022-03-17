@@ -41,4 +41,6 @@ public interface ResolvedVariant extends HasAttributes {
     ResolvedArtifactSet getArtifacts();
 
     CapabilitiesMetadata getCapabilities();
+
+    boolean isLegacyResolvableConfiguration();
 }
