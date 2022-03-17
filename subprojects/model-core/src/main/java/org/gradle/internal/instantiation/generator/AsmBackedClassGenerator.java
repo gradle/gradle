@@ -54,10 +54,10 @@ import org.gradle.internal.state.OwnerAware;
 import org.gradle.model.internal.asm.AsmClassGenerator;
 import org.gradle.model.internal.asm.BytecodeFragment;
 import org.gradle.model.internal.asm.ClassGeneratorSuffixRegistry;
+import org.gradle.model.internal.asm.ClassVisitorScope;
 import org.gradle.model.internal.asm.MethodVisitorScope;
 import org.gradle.util.internal.ConfigureUtil;
 import org.objectweb.asm.AnnotationVisitor;
-import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
@@ -351,9 +351,9 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             }
             boolean requiresServicesMethod = (extensible || serviceInjection) && !providesOwnServicesImplementation;
             boolean requiresToString = !providesOwnToStringImplementation;
-            ClassBuilderImpl builder = new ClassBuilderImpl(type,
+            ClassBuilderImpl builder = new ClassBuilderImpl(
+                new AsmClassGenerator(type, suffix),
                 decorate,
-                suffix,
                 factoryId,
                 extensible,
                 conventionAware,
@@ -370,7 +370,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
     }
 
-    private static class ClassBuilderImpl implements ClassGenerationVisitor {
+    private static class ClassBuilderImpl extends ClassVisitorScope implements ClassGenerationVisitor {
         public static final int PV_FINAL_STATIC = ACC_PRIVATE | ACC_STATIC | ACC_FINAL | ACC_SYNTHETIC;
         private static final Set<? extends Class<?>> PRIMITIVE_TYPES = ImmutableSet.of(Byte.TYPE, Boolean.TYPE, Character.TYPE, Short.TYPE, Integer.TYPE, Long.TYPE, Float.TYPE, Double.TYPE);
         private static final String DYNAMIC_OBJECT_HELPER_FIELD = "_gr_dyn_";
@@ -466,7 +466,6 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final String[] EMPTY_STRINGS = new String[0];
         private static final Type[] EMPTY_TYPES = new Type[0];
 
-        private final ClassVisitor visitor;
         private final Class<?> type;
         private final boolean managed;
         private final Type generatedType;
@@ -486,9 +485,8 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private final boolean requiresFactory;
 
         private ClassBuilderImpl(
-            Class<?> type,
+            AsmClassGenerator classGenerator,
             boolean decorated,
-            String suffix,
             int factoryId,
             boolean extensible,
             boolean conventionAware,
@@ -500,14 +498,14 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             List<AttachedProperty> propertiesToAttach,
             List<PropertyMetadata> ineligibleProperties
         ) {
-            this.type = type;
+            super(classGenerator.getVisitor());
+            this.classGenerator = classGenerator;
+            this.type = classGenerator.getTargetType();
+            this.generatedType = classGenerator.getGeneratedType();
             this.factoryId = factoryId;
             this.managed = managed;
             this.requiresToString = requiresToString;
             this.propertiesToAttach = propertiesToAttach;
-            this.classGenerator = new AsmClassGenerator(type, suffix);
-            this.visitor = classGenerator.getVisitor();
-            this.generatedType = classGenerator.getGeneratedType();
             this.superclassType = getType(type);
             this.mixInDsl = decorated;
             this.extensible = extensible;
@@ -551,7 +549,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
             includeNotInheritedAnnotations();
 
-            visitor.visit(V1_8, ACC_PUBLIC | ACC_SYNTHETIC, generatedType.getInternalName(), null,
+            visit(V1_8, ACC_PUBLIC | ACC_SYNTHETIC, generatedType.getInternalName(), null,
                 superclass.getInternalName(), interfaceTypes.toArray(EMPTY_STRINGS));
 
             generateInitMethod();
@@ -935,23 +933,6 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             }});
         }
 
-        /**
-         * Adds a getter that returns the value that the given code leaves on the top of the stack.
-         */
-        private void addGetter(String methodName, Type returnType, String methodDescriptor, BytecodeFragment body) {
-            addGetter(methodName, returnType, methodDescriptor, null, body);
-        }
-
-        /**
-         * Adds a getter that returns the value that the given code leaves on the top of the stack.
-         */
-        private void addGetter(String methodName, Type returnType, String methodDescriptor, @Nullable String signature, BytecodeFragment body) {
-            publicMethod(methodName, methodDescriptor, signature, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
-                emit(body);
-                _IRETURN_OF(returnType);
-            }});
-        }
-
         @Override
         public void addDynamicMethods() {
             if (!mixInDsl) {
@@ -1033,8 +1014,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         @Override
         public void applyServiceInjectionToProperty(PropertyMetadata property) {
             // GENERATE private <type> <property-field-name>;
-            String fieldName = propFieldName(property);
-            addField(ACC_PRIVATE | ACC_TRANSIENT, fieldName, property.getType());
+            addField(ACC_PRIVATE | ACC_TRANSIENT, propFieldName(property), property.getType());
         }
 
         @Override
@@ -1128,25 +1108,28 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 _ALOAD(0);
                 _LDC(property.getName());
 
-                int typeParamCount = property.getType().getTypeParameters().length;
-                if (typeParamCount == 1) {
-                    // GENERATE factory.newInstance(this, propertyName, type, valueType)
-                    Type elementType = getType(rawTypeParam(property, 0));
-                    _LDC(propType);
-                    _LDC(elementType);
-                    _INVOKEVIRTUAL(MANAGED_OBJECT_FACTORY_TYPE, "newInstance", RETURN_OBJECT_FROM_MODEL_OBJECT_STRING_CLASS_CLASS);
-                } else if (typeParamCount == 2) {
-                    // GENERATE factory.newInstance(this, propertyName, type, keyType, valueType)
-                    Type keyType = getType(rawTypeParam(property, 0));
-                    Type elementType = getType(rawTypeParam(property, 1));
-                    _LDC(propType);
-                    _LDC(keyType);
-                    _LDC(elementType);
-                    _INVOKEVIRTUAL(MANAGED_OBJECT_FACTORY_TYPE, "newInstance", RETURN_OBJECT_FROM_MODEL_OBJECT_STRING_CLASS_CLASS_CLASS);
-                } else {
-                    // GENERATE factory.newInstance(this, propertyName, type)
-                    _LDC(propType);
-                    _INVOKEVIRTUAL(MANAGED_OBJECT_FACTORY_TYPE, "newInstance", RETURN_OBJECT_FROM_MODEL_OBJECT_STRING_CLASS);
+                switch (property.getType().getTypeParameters().length) {
+                    case 1:
+                        // GENERATE factory.newInstance(this, propertyName, propType, elementType)
+                        Type elementType = getType(rawTypeParam(property, 0));
+                        _LDC(propType);
+                        _LDC(elementType);
+                        _INVOKEVIRTUAL(MANAGED_OBJECT_FACTORY_TYPE, "newInstance", RETURN_OBJECT_FROM_MODEL_OBJECT_STRING_CLASS_CLASS);
+                        break;
+                    case 2:
+                        // GENERATE factory.newInstance(this, propertyName, propType, keyType, valueType)
+                        Type keyType = getType(rawTypeParam(property, 0));
+                        Type valueType = getType(rawTypeParam(property, 1));
+                        _LDC(propType);
+                        _LDC(keyType);
+                        _LDC(valueType);
+                        _INVOKEVIRTUAL(MANAGED_OBJECT_FACTORY_TYPE, "newInstance", RETURN_OBJECT_FROM_MODEL_OBJECT_STRING_CLASS_CLASS_CLASS);
+                        break;
+                    default:
+                        // GENERATE factory.newInstance(this, propertyName, propType)
+                        _LDC(propType);
+                        _INVOKEVIRTUAL(MANAGED_OBJECT_FACTORY_TYPE, "newInstance", RETURN_OBJECT_FROM_MODEL_OBJECT_STRING_CLASS);
+                        break;
                 }
 
                 if (applyRole) {
@@ -1609,7 +1592,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 }
                 Retention retention = annotation.annotationType().getAnnotation(Retention.class);
                 boolean visible = retention != null && retention.value() == RetentionPolicy.RUNTIME;
-                AnnotationVisitor annotationVisitor = visitor.visitAnnotation(descriptorOf(annotation.annotationType()), visible);
+                AnnotationVisitor annotationVisitor = visitAnnotation(descriptorOf(annotation.annotationType()), visible);
                 visitAnnotationValues(annotation, annotationVisitor);
                 annotationVisitor.visitEnd();
             }
@@ -1694,7 +1677,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         @Override
         public Class<?> generate() {
             writeGenericReturnTypeFields();
-            visitor.visitEnd();
+            visitEnd();
 
             Class<?> generatedClass = classGenerator.define();
 
@@ -1743,65 +1726,6 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 _INVOKESTATIC(ASM_BACKED_CLASS_GENERATOR_TYPE, runtimeGetterName, getterDescriptor);
                 _ARETURN();
             }});
-        }
-
-        /**
-         * Adds a field to the generated type.
-         */
-        private void addField(int access, String fieldName, Class<?> type) {
-            addField(access, fieldName, getDescriptor(type));
-        }
-
-        /**
-         * Adds a field to the generated type.
-         */
-        private void addField(int access, String fieldName, Type type) {
-            addField(access, fieldName, type.getDescriptor());
-        }
-
-        /**
-         * Adds a field to the generated type.
-         */
-        private void addField(int access, String fieldName, String descriptor) {
-            visitor.visitField(access, fieldName, descriptor, null, null);
-        }
-
-        /**
-         * Adds a private synthetic method to the generated type.
-         */
-        private void privateSyntheticMethod(String name, String descriptor, BytecodeFragment body) {
-            addMethod(ACC_PRIVATE | ACC_SYNTHETIC, name, descriptor, null, body);
-        }
-
-        /**
-         * Adds a public method to the generated type.
-         */
-        private void publicMethod(String name, String descriptor, BytecodeFragment body) {
-            publicMethod(name, descriptor, null, body);
-        }
-
-        /**
-         * Adds a public method to the generated type.
-         */
-        private void publicMethod(String name, String descriptor, String signature, BytecodeFragment body) {
-            addMethod(ACC_PUBLIC, name, descriptor, signature, body);
-        }
-
-        /**
-         * Adds a method to the generated type.
-         */
-        private void addMethod(int access, String name, String descriptor, BytecodeFragment body) {
-            addMethod(access, name, descriptor, null, body);
-        }
-
-        /**
-         * Adds a method to the generated type.
-         */
-        private void addMethod(int access, String name, String descriptor, String signature, BytecodeFragment body) {
-            MethodVisitor methodVisitor = visitor.visitMethod(access, name, descriptor, signature, null);
-            body.emit(methodVisitor);
-            methodVisitor.visitMaxs(0, 0);
-            methodVisitor.visitEnd();
         }
 
         private final static class ReturnTypeEntry {
