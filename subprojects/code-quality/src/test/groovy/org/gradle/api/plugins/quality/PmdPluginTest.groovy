@@ -57,6 +57,7 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
         !extension.ignoreFailures
         extension.maxFailures.get() == 0
         extension.rulesMinimumPriority.get() == 5
+        extension.threads.get() == 1
     }
 
     def "configures pmd task for each source set"() {
