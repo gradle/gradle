@@ -451,6 +451,10 @@ Gradle treats all entries in the `<dependencyManagement>` block of a BOM similar
 This means that any version defined in the `<dependencyManagement>` block can impact the dependency resolution result.
 In order to qualify as a BOM, a `.pom` file needs to have `<packaging>pom</packaging>` set.
 
+The BOMs declared dependencies versions are recommendations only. 
+In case you want to use another version provided by the BOM, you can set the version to the declared dependency.
+This will then override the version provided by the BOM.
+
 However often BOMs are not only providing versions as recommendations, but also a way to override any other version found in the graph.
 You can enable this behavior by using the `enforcedPlatform` keyword, instead of `platform`, when importing the BOM:
 
