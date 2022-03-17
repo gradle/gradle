@@ -146,7 +146,7 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
      *
      * @param value the number of threads used by PMD
      */
-    public static void validateThreads(int value) {
+    private void validateThreads(int value) {
         if (value < 0) {
             throw new InvalidUserDataException(String.format("Invalid number of threads '%d'.  Number should not be negative.", value));
         }
