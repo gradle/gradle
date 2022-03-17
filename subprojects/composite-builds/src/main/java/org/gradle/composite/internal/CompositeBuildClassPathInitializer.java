@@ -38,9 +38,9 @@ public class CompositeBuildClassPathInitializer implements ScriptClassPathInitia
     public void execute(Configuration classpath) {
         List<TaskIdentifier> tasksToBuild = new ArrayList<>();
         for (Task task : classpath.getBuildDependencies().getDependencies(null)) {
+            // This check should live lower down, and should have some kind of synchronization around it, as other threads may be
+            // running tasks at the same time
             if (!task.getState().getExecuted()) {
-                // This check should live lower down, and should have some kind of synchronization around it, as other threads may be
-                // running tasks at the same time
                 BuildState targetBuild = ((ProjectInternal) task.getProject()).getOwner().getOwner();
                 assert targetBuild != currentBuild;
                 tasksToBuild.add(TaskIdentifier.of(targetBuild.getBuildIdentifier(), (TaskInternal) task));

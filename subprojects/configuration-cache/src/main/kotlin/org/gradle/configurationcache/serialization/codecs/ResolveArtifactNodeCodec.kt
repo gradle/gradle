@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,26 +16,22 @@
 
 package org.gradle.configurationcache.serialization.codecs
 
-import org.gradle.api.internal.tasks.WorkNodeAction
+import org.gradle.api.internal.artifacts.DefaultResolvableArtifact
 import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.configurationcache.serialization.readNonNull
-import org.gradle.configurationcache.serialization.withCodec
-import org.gradle.execution.plan.ActionNode
 
 
-class ActionNodeCodec(
-    private val userTypesCodec: Codec<Any?>,
-) : Codec<ActionNode> {
-    override suspend fun WriteContext.encode(value: ActionNode) {
-        withCodec(userTypesCodec) {
-            write(value.action)
-        }
+object ResolveArtifactNodeCodec : Codec<DefaultResolvableArtifact.ResolveAction> {
+    override suspend fun WriteContext.encode(value: DefaultResolvableArtifact.ResolveAction) {
+        // TODO - should just discard this action. The artifact location will already have been resolved during writing to the cache
+        // and so this node does not do anything useful
+        write(value.artifact)
     }
 
-    override suspend fun ReadContext.decode(): ActionNode {
-        val action = withCodec(userTypesCodec) { readNonNull<WorkNodeAction>() }
-        return ActionNode(action)
+    override suspend fun ReadContext.decode(): DefaultResolvableArtifact.ResolveAction {
+        val artifact = readNonNull<DefaultResolvableArtifact>()
+        return DefaultResolvableArtifact.ResolveAction(artifact)
     }
 }

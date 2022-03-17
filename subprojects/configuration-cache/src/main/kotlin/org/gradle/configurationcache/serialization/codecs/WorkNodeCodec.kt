@@ -139,7 +139,6 @@ class WorkNodeCodec(
                 }
                 val lifecycleSuccessors = mutableSetOf<Node>()
                 readSuccessorReferences(nodesById) {
-                    require(it is TaskNode)
                     lifecycleSuccessors.add(it)
                 }
                 node.lifecycleSuccessors = lifecycleSuccessors

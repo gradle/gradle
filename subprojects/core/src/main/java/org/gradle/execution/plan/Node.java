@@ -155,6 +155,16 @@ public abstract class Node implements Comparable<Node> {
     }
 
     /**
+     * Returns true when this node should be executed as soon as its dependencies are ready, rather than at its default point in
+     * the execution plan. Does not affect the dependencies of this node.
+     *
+     * <p>Use sparingly, and only for fast work that requires access to some project or other resource.</p>
+     */
+    public boolean isPriority() {
+        return false;
+    }
+
+    /**
      * Returns any error that happened during the execution of the node itself,
      * i.e. a task action has thrown an exception.
      */

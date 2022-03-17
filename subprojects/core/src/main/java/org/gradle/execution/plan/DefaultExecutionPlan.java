@@ -21,6 +21,7 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Iterators;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
@@ -97,6 +98,7 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
     private boolean continueOnFailure;
 
     private final Set<Node> runningNodes = newIdentityHashSet();
+    private final List<Node> priorityNodes = new LinkedList<>();
     private final Set<Node> filteredNodes = newIdentityHashSet();
     private final Set<Node> producedButNotYetConsumed = newIdentityHashSet();
     private final Map<Pair<Node, Node>, Boolean> reachableCache = new HashMap<>();
@@ -691,7 +693,7 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
         }
 
         List<ResourceLock> resources = new ArrayList<>();
-        Iterator<Node> iterator = executionQueue.iterator();
+        Iterator<Node> iterator = Iterators.concat(priorityNodes.iterator(), executionQueue.iterator());
         boolean foundReadyNode = false;
         boolean foundNotReadyNode = false;
         while (iterator.hasNext()) {
@@ -733,9 +735,13 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
                 // - its dependencies are not yet complete
                 // - it is waiting for some external event such as completion of a task in another build
                 foundNotReadyNode = true;
+            } else if (node.isComplete() && !node.isMustNotRun()) {
+                // node is complete
+                // - it has been filtered
+                // - it is a priority node that has already executed
+                iterator.remove();
             }
-            // else, node is "complete"
-            // - it has been filtered
+            // else, node is "complete" but may actually still run
             // - it is a finalizer for nodes that have not executed (so not actually complete)
         }
 
@@ -809,7 +815,9 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
 
     private void updateAllDependenciesCompleteForPredecessors(Node node) {
         for (Node predecessor : node.getAllPredecessors()) {
-            maybeNodesReady(predecessor.updateAllDependenciesComplete() && predecessor.isReady());
+            if (predecessor.updateAllDependenciesComplete()) {
+                maybeNodeReady(predecessor);
+            }
         }
     }
 
@@ -966,7 +974,7 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
 
     private void monitoredNodeReady(Node node) {
         lockCoordinator.assertHasStateLock();
-        maybeNodesReady(true);
+        maybeNodeReady(node);
     }
 
     @Override
@@ -998,10 +1006,13 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
         }
     }
 
-    private void maybeNodesReady(boolean ready) {
-        if (ready) {
+    private void maybeNodeReady(Node node) {
+        if (node.isReady() && node.allDependenciesComplete()) {
             maybeNodesReady = true;
             maybeNodesSelectable = true;
+            if (node.isPriority() && node.isReady() && node.allDependenciesComplete()) {
+                priorityNodes.add(node);
+            }
         }
     }
 
@@ -1027,8 +1038,8 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
                 candidates.addAll(candidate.getDependencySuccessors());
 
                 if (candidate.isMustNotRun() || candidate.isRequired()) {
-                    maybeNodesReady(true);
                     candidate.enforceRun();
+                    maybeNodeReady(candidate);
                     // Completed changed from true to false - inform all nodes depending on this one.
                     for (Node predecessor : candidate.getAllPredecessors()) {
                         predecessor.forceAllDependenciesCompleteUpdate();

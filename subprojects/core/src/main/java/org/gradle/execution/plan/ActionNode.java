@@ -28,7 +28,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class ActionNode extends Node implements SelfExecutingNode {
-    private final WorkNodeAction action;
+    private WorkNodeAction action;
     private final ProjectInternal owningProject;
     private final ProjectInternal projectToLock;
 
@@ -67,8 +67,18 @@ public class ActionNode extends Node implements SelfExecutingNode {
     }
 
     @Override
-    public int compareTo(Node o) {
-        return -1;
+    public int compareTo(Node other) {
+        // Prefer to run task nodes before action nodes
+        if (other instanceof LocalTaskNode) {
+            return 1;
+        } else {
+            return -1;
+        }
+    }
+
+    @Override
+    public boolean isPriority() {
+        return getProjectToLock() != null;
     }
 
     @Nullable
@@ -93,6 +103,10 @@ public class ActionNode extends Node implements SelfExecutingNode {
 
     @Override
     public void execute(NodeExecutionContext context) {
-        action.run(context);
+        try {
+            action.run(context);
+        } finally {
+            action = null;
+        }
     }
 }

@@ -17,7 +17,6 @@
 package org.gradle.execution.plan;
 
 import org.gradle.api.Action;
-import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -28,7 +27,6 @@ import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.internal.tasks.properties.TaskProperties;
 import org.gradle.api.tasks.TaskExecutionException;
-import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.service.ServiceRegistry;
@@ -45,7 +43,6 @@ public class LocalTaskNode extends TaskNode {
     private final TaskInternal task;
     private final WorkValidationContext validationContext;
     private final ResolveMutationsNode resolveMutationsNode;
-    private ImmutableActionSet<Task> postAction = ImmutableActionSet.empty();
     private Set<Node> lifecycleSuccessors;
 
     private boolean isolated;
@@ -105,18 +102,8 @@ public class LocalTaskNode extends TaskNode {
         return true;
     }
 
-    @Override
-    public Action<? super Task> getPostAction() {
-        return postAction;
-    }
-
     public TaskProperties getTaskProperties() {
         return taskProperties;
-    }
-
-    @Override
-    public void appendPostAction(Action<? super Task> action) {
-        postAction = postAction.add(action);
     }
 
     @Override
@@ -178,8 +165,9 @@ public class LocalTaskNode extends TaskNode {
 
     @Override
     public int compareTo(Node other) {
-        if (getClass() != other.getClass()) {
-            return getClass().getName().compareTo(other.getClass().getName());
+        // Prefer to run tasks first
+        if (!(other instanceof LocalTaskNode)) {
+            return -1;
         }
         LocalTaskNode localTask = (LocalTaskNode) other;
         return task.compareTo(localTask.task);
