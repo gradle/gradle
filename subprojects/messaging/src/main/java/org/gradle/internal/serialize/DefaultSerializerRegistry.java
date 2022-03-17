@@ -46,7 +46,7 @@ public class DefaultSerializerRegistry implements SerializerRegistry {
     private final Map<Class<?>, Serializer<?>> serializerMap = new ConcurrentSkipListMap<Class<?>, Serializer<?>>(CLASS_COMPARATOR);
 
     // We are using a ConcurrentHashMap here because:
-    //   - We don't want to use a Set with CLASS_COMPARATOR, since that would identity two classes from different classloaders.
+    //   - We don't want to use a Set with CLASS_COMPARATOR, since that would treat two classes with the same name originating from different classloaders as identical, allowing only one in the Set.
     //   - ConcurrentHashMap.newKeySet() isn't available on Java 6, yet, and that is where this code needs to run.
     //   - CopyOnWriteArraySet has slower insert performance, since it is not hash based.
     private final Map<Class<?>, Boolean> javaSerialization = new ConcurrentHashMap<Class<?>, Boolean>();
