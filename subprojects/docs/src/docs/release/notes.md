@@ -1,8 +1,11 @@
 The Gradle team is excited to announce Gradle @version@.
 
-This is the first patch release for Gradle 7.4.
+This is the second patch release for Gradle 7.4.
 
 It fixes the following issues:
+* TODO
+
+Issues fixed in the first patch release:
 * [#14536](https://github.com/gradle/gradle/issues/14536) Applying Build Scan Plugin (--scan) cause the following error 'Cannot mutate content repository descriptor 'Gradle Central Plugin Repository' after repository has been used'
 * [#19710](https://github.com/gradle/gradle/issues/19710) Configuration cache captures system property value set by the build logic causing no cache hits afterward
 * [#19837](https://github.com/gradle/gradle/issues/19837) Dependency resolution hangs with IDEA parallel model fetch
@@ -15,7 +18,7 @@ It fixes the following issues:
 
 This release also documents [a security advisory](#security) that was fixed in Gradle 7.4 already.
 
-We recommend users upgrade to 7.4.1 instead of 7.4.
+We recommend users upgrade to @version@ instead of 7.4.
 
 ----
 
