@@ -18,6 +18,7 @@ package org.gradle.api.plugins.quality;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
@@ -406,8 +407,10 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
      * Specifies the number of threads used by PMD.
      *
      * @see PmdExtension#getThreads()
+     * @since 7.5
      */
     @Input
+    @Incubating
     public Property<Integer> getThreads() {
         return threads;
     }
