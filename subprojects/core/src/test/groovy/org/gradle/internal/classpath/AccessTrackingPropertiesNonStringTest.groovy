@@ -21,8 +21,6 @@ import com.google.common.collect.ImmutableSet
 import com.google.common.collect.Maps
 import spock.lang.Specification
 
-import java.util.function.BiConsumer
-
 import static org.gradle.internal.classpath.AccessTrackingPropertiesNonStringTest.TestData.EXISTING_KEY
 import static org.gradle.internal.classpath.AccessTrackingPropertiesNonStringTest.TestData.EXISTING_VALUE
 import static org.gradle.internal.classpath.AccessTrackingPropertiesNonStringTest.TestData.MISSING_KEY
@@ -39,14 +37,14 @@ class AccessTrackingPropertiesNonStringTest extends Specification {
         'existing', 'existingStringValue',
         'keyWithNonStringValue', NON_STRING_VALUE
     )
-    private final BiConsumer<Object, Object> consumer = Mock()
+    private final AccessTrackingProperties.Listener listener = Mock()
 
     protected Properties getMapUnderTestToRead() {
         return getMapUnderTestToWrite()
     }
 
     protected Properties getMapUnderTestToWrite() {
-        return new AccessTrackingProperties(propertiesWithContent(innerMap), consumer)
+        return new AccessTrackingProperties(propertiesWithContent(innerMap), listener)
     }
 
     def "get(#key) is tracked for non-strings"() {
@@ -55,7 +53,7 @@ class AccessTrackingPropertiesNonStringTest extends Specification {
 
         then:
         result == expectedResult
-        1 * consumer.accept(key, expectedResult)
+        1 * listener.onAccess(key, expectedResult)
 
         where:
         key                     | expectedResult
@@ -70,7 +68,7 @@ class AccessTrackingPropertiesNonStringTest extends Specification {
 
         then:
         result == expectedResult
-        1 * consumer.accept(key, trackedValue)
+        1 * listener.onAccess(key, trackedValue)
 
         where:
         key                     | trackedValue     | expectedResult
@@ -85,7 +83,7 @@ class AccessTrackingPropertiesNonStringTest extends Specification {
 
         then:
         result == expectedResult
-        1 * consumer.accept(key, trackedValue)
+        1 * listener.onAccess(key, trackedValue)
 
         where:
         key                     | trackedValue     | expectedResult
@@ -100,7 +98,7 @@ class AccessTrackingPropertiesNonStringTest extends Specification {
 
         then:
         result == null
-        1 * consumer.accept('keyWithNonStringValue', NON_STRING_VALUE)
+        1 * listener.onAccess('keyWithNonStringValue', NON_STRING_VALUE)
     }
 
     def "getProperty(String, String) is tracked for non-string values"() {
@@ -109,7 +107,7 @@ class AccessTrackingPropertiesNonStringTest extends Specification {
 
         then:
         result == 'defaultValue'
-        1 * consumer.accept('keyWithNonStringValue', NON_STRING_VALUE)
+        1 * listener.onAccess('keyWithNonStringValue', NON_STRING_VALUE)
     }
 
     def "forEach is tracked for non-strings"() {
@@ -119,10 +117,10 @@ class AccessTrackingPropertiesNonStringTest extends Specification {
 
         then:
         iterated.keySet() == innerMap.keySet()
-        1 * consumer.accept(EXISTING_KEY, EXISTING_VALUE)
-        1 * consumer.accept('existing', 'existingStringValue')
-        1 * consumer.accept('keyWithNonStringValue', NON_STRING_VALUE)
-        0 * consumer._
+        1 * listener.onAccess(EXISTING_KEY, EXISTING_VALUE)
+        1 * listener.onAccess('existing', 'existingStringValue')
+        1 * listener.onAccess('keyWithNonStringValue', NON_STRING_VALUE)
+        0 * listener._
     }
 
     def "entrySet() enumeration is tracked for non-strings"() {
@@ -131,10 +129,10 @@ class AccessTrackingPropertiesNonStringTest extends Specification {
 
         then:
         result == innerMap.entrySet()
-        1 * consumer.accept(EXISTING_KEY, EXISTING_VALUE)
-        1 * consumer.accept('existing', 'existingStringValue')
-        1 * consumer.accept('keyWithNonStringValue', NON_STRING_VALUE)
-        0 * consumer._
+        1 * listener.onAccess(EXISTING_KEY, EXISTING_VALUE)
+        1 * listener.onAccess('existing', 'existingStringValue')
+        1 * listener.onAccess('keyWithNonStringValue', NON_STRING_VALUE)
+        0 * listener._
     }
 
     def "entrySet() contains(entry(#key, #requestedValue)) and containsAll(entry(#key, #requestedValue)) are tracked for non-strings"() {
@@ -143,14 +141,14 @@ class AccessTrackingPropertiesNonStringTest extends Specification {
 
         then:
         containsResult == expectedResult
-        1 * consumer.accept(key, expectedValue)
+        1 * listener.onAccess(key, expectedValue)
 
         when:
         def containsAllResult = getMapUnderTestToRead().entrySet().containsAll(Collections.singleton(entry(key, requestedValue)))
 
         then:
         containsAllResult == expectedResult
-        1 * consumer.accept(key, expectedValue)
+        1 * listener.onAccess(key, expectedValue)
 
         where:
         key                     | expectedValue         | requestedValue   | expectedResult
@@ -172,10 +170,10 @@ class AccessTrackingPropertiesNonStringTest extends Specification {
             entry('existing', 'existingStringValue')))
         then:
         result
-        1 * consumer.accept(EXISTING_KEY, EXISTING_VALUE)
-        1 * consumer.accept('existing', 'existingStringValue')
-        1 * consumer.accept('keyWithNonStringValue', NON_STRING_VALUE)
-        0 * consumer._
+        1 * listener.onAccess(EXISTING_KEY, EXISTING_VALUE)
+        1 * listener.onAccess('existing', 'existingStringValue')
+        1 * listener.onAccess('keyWithNonStringValue', NON_STRING_VALUE)
+        0 * listener._
     }
 
     def "keySet() enumeration is tracked for strings only"() {
@@ -184,10 +182,10 @@ class AccessTrackingPropertiesNonStringTest extends Specification {
 
         then:
         result == innerMap.keySet()
-        1 * consumer.accept(EXISTING_KEY, EXISTING_VALUE)
-        1 * consumer.accept('existing', 'existingStringValue')
-        1 * consumer.accept('keyWithNonStringValue', NON_STRING_VALUE)
-        0 * consumer._
+        1 * listener.onAccess(EXISTING_KEY, EXISTING_VALUE)
+        1 * listener.onAccess('existing', 'existingStringValue')
+        1 * listener.onAccess('keyWithNonStringValue', NON_STRING_VALUE)
+        0 * listener._
     }
 
     def "keySet() contains(#key) and containsAll(#key) are tracked for non-strings"() {
@@ -196,14 +194,14 @@ class AccessTrackingPropertiesNonStringTest extends Specification {
 
         then:
         containsResult == expectedResult
-        1 * consumer.accept(key, expectedValue)
+        1 * listener.onAccess(key, expectedValue)
 
         when:
         def containsAllResult = getMapUnderTestToRead().keySet().containsAll(Collections.<Object> singleton(key))
 
         then:
         containsAllResult == expectedResult
-        1 * consumer.accept(key, expectedValue)
+        1 * listener.onAccess(key, expectedValue)
 
         where:
         key                     | expectedValue    | expectedResult
@@ -217,10 +215,10 @@ class AccessTrackingPropertiesNonStringTest extends Specification {
         def result = getMapUnderTestToRead().keySet().containsAll(Arrays.asList(EXISTING_KEY, 'keyWithNonStringValue', 'existing'))
         then:
         result
-        1 * consumer.accept(EXISTING_KEY, EXISTING_VALUE)
-        1 * consumer.accept('existing', 'existingStringValue')
-        1 * consumer.accept('keyWithNonStringValue', NON_STRING_VALUE)
-        0 * consumer._
+        1 * listener.onAccess(EXISTING_KEY, EXISTING_VALUE)
+        1 * listener.onAccess('existing', 'existingStringValue')
+        1 * listener.onAccess('keyWithNonStringValue', NON_STRING_VALUE)
+        0 * listener._
     }
 
     def "stringPropertyNames() contains(#key) and containsAll(#key) are tracked for non-strings"() {
@@ -229,14 +227,14 @@ class AccessTrackingPropertiesNonStringTest extends Specification {
 
         then:
         containsResult == expectedResult
-        1 * consumer.accept(key, expectedValue)
+        1 * listener.onAccess(key, expectedValue)
 
         when:
         def containsAllResult = getMapUnderTestToRead().stringPropertyNames().containsAll(Collections.<Object> singleton(key))
 
         then:
         containsAllResult == expectedResult
-        1 * consumer.accept(key, expectedValue)
+        1 * listener.onAccess(key, expectedValue)
 
         where:
         key                     | expectedValue    | expectedResult
@@ -250,10 +248,10 @@ class AccessTrackingPropertiesNonStringTest extends Specification {
         def result = getMapUnderTestToRead().stringPropertyNames().containsAll(Arrays.asList(EXISTING_KEY, 'keyWithNonStringValue', 'existing'))
         then:
         !result
-        1 * consumer.accept(EXISTING_KEY, EXISTING_VALUE)
-        1 * consumer.accept('existing', 'existingStringValue')
-        1 * consumer.accept('keyWithNonStringValue', NON_STRING_VALUE)
-        0 * consumer._
+        1 * listener.onAccess(EXISTING_KEY, EXISTING_VALUE)
+        1 * listener.onAccess('existing', 'existingStringValue')
+        1 * listener.onAccess('keyWithNonStringValue', NON_STRING_VALUE)
+        0 * listener._
     }
 
     def "remove(#key) is tracked for non-strings"() {
@@ -262,7 +260,7 @@ class AccessTrackingPropertiesNonStringTest extends Specification {
 
         then:
         result == expectedResult
-        1 * consumer.accept(key, expectedResult)
+        1 * listener.onAccess(key, expectedResult)
         where:
         key                     | expectedResult
         EXISTING_KEY            | EXISTING_VALUE
@@ -276,14 +274,14 @@ class AccessTrackingPropertiesNonStringTest extends Specification {
 
         then:
         removeResult == expectedResult
-        1 * consumer.accept(key, expectedValue)
+        1 * listener.onAccess(key, expectedValue)
 
         when:
         def removeAllResult = getMapUnderTestToWrite().keySet().removeAll(Collections.<Object> singleton(key))
 
         then:
         removeAllResult == expectedResult
-        1 * consumer.accept(key, expectedValue)
+        1 * listener.onAccess(key, expectedValue)
 
         where:
         key                     | expectedValue    | expectedResult
@@ -297,10 +295,10 @@ class AccessTrackingPropertiesNonStringTest extends Specification {
         def result = getMapUnderTestToRead().keySet().removeAll(Arrays.asList(EXISTING_KEY, 'keyWithNonStringValue', 'existing'))
         then:
         result
-        1 * consumer.accept(EXISTING_KEY, EXISTING_VALUE)
-        1 * consumer.accept('existing', 'existingStringValue')
-        1 * consumer.accept('keyWithNonStringValue', NON_STRING_VALUE)
-        0 * consumer._
+        1 * listener.onAccess(EXISTING_KEY, EXISTING_VALUE)
+        1 * listener.onAccess('existing', 'existingStringValue')
+        1 * listener.onAccess('keyWithNonStringValue', NON_STRING_VALUE)
+        0 * listener._
     }
 
     def "entrySet() remove(#key) and removeAll(#key) are tracked for non-strings"() {
@@ -309,14 +307,14 @@ class AccessTrackingPropertiesNonStringTest extends Specification {
 
         then:
         removeResult == expectedResult
-        1 * consumer.accept(key, expectedValue)
+        1 * listener.onAccess(key, expectedValue)
 
         when:
         def removeAllResult = getMapUnderTestToWrite().entrySet().removeAll(Collections.singleton(entry(key, requestedValue)))
 
         then:
         removeAllResult == expectedResult
-        1 * consumer.accept(key, expectedValue)
+        1 * listener.onAccess(key, expectedValue)
 
         where:
         key                     | expectedValue         | requestedValue   | expectedResult

@@ -23,28 +23,32 @@ import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Set;
-import java.util.function.Consumer;
 
 /**
  * The special-cased implementation of {@link Set} that tracks all accesses to its elements.
  * @param <E> the type of elements
  */
 class AccessTrackingSet<E> extends ForwardingSet<E> {
+    public interface Listener {
+        void onAccess(Object o);
+
+        void onAggregatingAccess();
+    }
+
     // TODO(https://github.com/gradle/configuration-cache/issues/337) Only a limited subset of entrySet/keySet methods are currently tracked.
     private final Set<? extends E> delegate;
-    private final Consumer<Object> onAccess;
-    private final Runnable onAggregatingAccess;
+    private final Listener listener;
 
-    public AccessTrackingSet(Set<? extends E> delegate, Consumer<Object> onAccess, Runnable onAggregatingAccess) {
+
+    public AccessTrackingSet(Set<? extends E> delegate, Listener listener) {
         this.delegate = delegate;
-        this.onAccess = onAccess;
-        this.onAggregatingAccess = onAggregatingAccess;
+        this.listener = listener;
     }
 
     @Override
     public boolean contains(@Nullable Object o) {
         boolean result = delegate.contains(o);
-        onAccess.accept(o);
+        listener.onAccess(o);
         return result;
     }
 
@@ -52,7 +56,7 @@ class AccessTrackingSet<E> extends ForwardingSet<E> {
     public boolean containsAll(@Nonnull Collection<?> collection) {
         boolean result = delegate.containsAll(collection);
         for (Object o : collection) {
-            onAccess.accept(o);
+            listener.onAccess(o);
         }
         return result;
     }
@@ -60,7 +64,7 @@ class AccessTrackingSet<E> extends ForwardingSet<E> {
     @Override
     public boolean remove(Object o) {
         // We cannot perform modification before notifying because the listener may want to query the state of the delegate prior to that.
-        onAccess.accept(o);
+        listener.onAccess(o);
         return delegate.remove(o);
     }
 
@@ -68,7 +72,7 @@ class AccessTrackingSet<E> extends ForwardingSet<E> {
     public boolean removeAll(Collection<?> collection) {
         // We cannot perform modification before notifying because the listener may want to query the state of the delegate prior to that.
         for (Object o : collection) {
-            onAccess.accept(o);
+            listener.onAccess(o);
         }
         return delegate.removeAll(collection);
     }
@@ -123,6 +127,6 @@ class AccessTrackingSet<E> extends ForwardingSet<E> {
     }
 
     private void reportAggregatingAccess() {
-        onAggregatingAccess.run();
+        listener.onAggregatingAccess();
     }
 }

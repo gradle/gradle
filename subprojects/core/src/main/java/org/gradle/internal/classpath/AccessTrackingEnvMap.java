@@ -62,7 +62,7 @@ class AccessTrackingEnvMap extends ForwardingMap<String, String> {
 
     @Override
     public Set<String> keySet() {
-        return new AccessTrackingSet<>(super.keySet(), this::getAndReport, this::reportAggregatingAccess);
+        return new AccessTrackingSet<>(super.keySet(), trackingListener());
     }
 
     private String getAndReport(@Nullable Object key) {
@@ -74,7 +74,7 @@ class AccessTrackingEnvMap extends ForwardingMap<String, String> {
 
     @Override
     public Set<Entry<String, String>> entrySet() {
-        return new AccessTrackingSet<>(delegate.entrySet(), this::onAccessEntrySetElement, this::reportAggregatingAccess);
+        return new AccessTrackingSet<>(delegate.entrySet(), entrySetTrackingListener());
     }
 
     private void onAccessEntrySetElement(@Nullable Object potentialEntry) {
@@ -123,6 +123,34 @@ class AccessTrackingEnvMap extends ForwardingMap<String, String> {
     private void reportAggregatingAccess() {
         // Mark all map contents as inputs if some aggregating access is used.
         delegate.forEach(onAccess);
+    }
+
+    private AccessTrackingSet.Listener trackingListener() {
+        return new AccessTrackingSet.Listener() {
+            @Override
+            public void onAccess(Object o) {
+                getAndReport(o);
+            }
+
+            @Override
+            public void onAggregatingAccess() {
+                reportAggregatingAccess();
+            }
+        };
+    }
+
+    private AccessTrackingSet.Listener entrySetTrackingListener() {
+        return new AccessTrackingSet.Listener() {
+            @Override
+            public void onAccess(Object o) {
+                onAccessEntrySetElement(o);
+            }
+
+            @Override
+            public void onAggregatingAccess() {
+                reportAggregatingAccess();
+            }
+        };
     }
 }
 

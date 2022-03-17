@@ -19,16 +19,24 @@ package org.gradle.internal.classpath
 import com.google.common.io.ByteStreams
 import com.google.common.io.CharStreams
 
+import javax.annotation.Nullable
 import java.util.function.Consumer
 
 class AccessTrackingPropertiesTest extends AbstractAccessTrackingMapTest {
+    private AccessTrackingProperties.Listener listener = new AccessTrackingProperties.Listener() {
+        @Override
+        void onAccess(Object key, @Nullable Object value) {
+            onAccess.accept(key, value)
+        }
+    }
+
     @Override
     protected Properties getMapUnderTestToRead() {
         return getMapUnderTestToWrite()
     }
 
     protected Properties getMapUnderTestToWrite() {
-        return new AccessTrackingProperties(propertiesWithContent(innerMap), consumer)
+        return new AccessTrackingProperties(propertiesWithContent(innerMap), listener)
     }
 
     def "getProperty(#key) is tracked"() {
@@ -37,8 +45,8 @@ class AccessTrackingPropertiesTest extends AbstractAccessTrackingMapTest {
 
         then:
         result == expectedResult
-        1 * consumer.accept(key, reportedValue)
-        0 * consumer._
+        1 * onAccess.accept(key, reportedValue)
+        0 * onAccess._
 
         where:
         key        | expectedResult  | reportedValue
@@ -52,8 +60,8 @@ class AccessTrackingPropertiesTest extends AbstractAccessTrackingMapTest {
 
         then:
         result == expectedResult
-        1 * consumer.accept(key, reportedValue)
-        0 * consumer._
+        1 * onAccess.accept(key, reportedValue)
+        0 * onAccess._
 
         where:
         key        | expectedResult  | reportedValue
@@ -67,16 +75,16 @@ class AccessTrackingPropertiesTest extends AbstractAccessTrackingMapTest {
 
         then:
         containsResult == expectedResult
-        1 * consumer.accept(key, reportedValue)
-        0 * consumer._
+        1 * onAccess.accept(key, reportedValue)
+        0 * onAccess._
 
         when:
         def containsAllResult = getMapUnderTestToRead().stringPropertyNames().containsAll(Collections.singleton(key))
 
         then:
         containsAllResult == expectedResult
-        1 * consumer.accept(key, reportedValue)
-        0 * consumer._
+        1 * onAccess.accept(key, reportedValue)
+        0 * onAccess._
 
         where:
         key        | expectedResult | reportedValue
@@ -90,9 +98,9 @@ class AccessTrackingPropertiesTest extends AbstractAccessTrackingMapTest {
 
         then:
         result == expectedResult
-        1 * consumer.accept(key1, reportedValue1)
-        1 * consumer.accept(key2, reportedValue2)
-        0 * consumer._
+        1 * onAccess.accept(key1, reportedValue1)
+        1 * onAccess.accept(key2, reportedValue2)
+        0 * onAccess._
 
         where:
         key1       | reportedValue1  | key2           | reportedValue2 | expectedResult
@@ -107,8 +115,8 @@ class AccessTrackingPropertiesTest extends AbstractAccessTrackingMapTest {
 
         then:
         result == expectedResult
-        1 * consumer.accept(key, reportedValue)
-        0 * consumer._
+        1 * onAccess.accept(key, reportedValue)
+        0 * onAccess._
         where:
         key        | reportedValue   | expectedResult
         'existing' | 'existingValue' | 'existingValue'
@@ -121,16 +129,16 @@ class AccessTrackingPropertiesTest extends AbstractAccessTrackingMapTest {
 
         then:
         removeResult == expectedResult
-        1 * consumer.accept(key, reportedValue)
-        0 * consumer._
+        1 * onAccess.accept(key, reportedValue)
+        0 * onAccess._
 
         when:
         def removeAllResult = getMapUnderTestToWrite().keySet().removeAll(Collections.singleton(key))
 
         then:
         removeAllResult == expectedResult
-        1 * consumer.accept(key, reportedValue)
-        0 * consumer._
+        1 * onAccess.accept(key, reportedValue)
+        0 * onAccess._
 
         where:
         key        | reportedValue   | expectedResult
@@ -144,16 +152,16 @@ class AccessTrackingPropertiesTest extends AbstractAccessTrackingMapTest {
 
         then:
         removeResult == expectedResult
-        1 * consumer.accept(key, reportedValue)
-        0 * consumer._
+        1 * onAccess.accept(key, reportedValue)
+        0 * onAccess._
 
         when:
         def removeAllResult = getMapUnderTestToWrite().entrySet().removeAll(Collections.singleton(entry(key, requestedValue)))
 
         then:
         removeAllResult == expectedResult
-        1 * consumer.accept(key, reportedValue)
-        0 * consumer._
+        1 * onAccess.accept(key, reportedValue)
+        0 * onAccess._
 
         where:
         key        | requestedValue  | reportedValue   | expectedResult
@@ -167,9 +175,9 @@ class AccessTrackingPropertiesTest extends AbstractAccessTrackingMapTest {
         operation.accept(getMapUnderTestToRead())
 
         then:
-        (1.._) * consumer.accept('existing', 'existingValue')
-        (1.._) * consumer.accept('other', 'otherValue')
-        0 * consumer._
+        (1.._) * onAccess.accept('existing', 'existingValue')
+        (1.._) * onAccess.accept('other', 'otherValue')
+        0 * onAccess._
 
         where:
         methodName                                | operation
@@ -194,7 +202,7 @@ class AccessTrackingPropertiesTest extends AbstractAccessTrackingMapTest {
         operation.accept(getMapUnderTestToRead())
 
         then:
-        0 * consumer._
+        0 * onAccess._
         where:
         methodName          | operation
         "toString()"        | call(p -> p.toString())

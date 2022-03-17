@@ -37,13 +37,17 @@ import java.util.function.Function;
  * A wrapper for {@link Properties} that notifies a listener about accesses.
  */
 class AccessTrackingProperties extends Properties {
+    public interface Listener {
+        void onAccess(Object key, @Nullable Object value);
+    }
+
     // TODO(https://github.com/gradle/configuration-cache/issues/337) Only a limited subset of method is tracked currently.
     private final Properties delegate;
-    private final BiConsumer<Object, Object> onAccess;
+    private final Listener listener;
 
-    public AccessTrackingProperties(Properties delegate, BiConsumer<Object, Object> onAccess) {
+    public AccessTrackingProperties(Properties delegate, Listener listener) {
         this.delegate = delegate;
-        this.onAccess = onAccess;
+        this.listener = listener;
     }
 
     @Override
@@ -54,7 +58,7 @@ class AccessTrackingProperties extends Properties {
 
     @Override
     public Set<String> stringPropertyNames() {
-        return new AccessTrackingSet<>(delegate.stringPropertyNames(), this::getAndReport, this::reportAggregatingAccess);
+        return new AccessTrackingSet<>(delegate.stringPropertyNames(), trackingListener());
     }
 
     @Override
@@ -83,7 +87,7 @@ class AccessTrackingProperties extends Properties {
 
     @Override
     public Set<Object> keySet() {
-        return new AccessTrackingSet<>(delegate.keySet(), this::getAndReport, this::reportAggregatingAccess);
+        return new AccessTrackingSet<>(delegate.keySet(), trackingListener());
     }
 
     @Override
@@ -93,7 +97,7 @@ class AccessTrackingProperties extends Properties {
 
     @Override
     public Set<Map.Entry<Object, Object>> entrySet() {
-        return new AccessTrackingSet<>(delegate.entrySet(), this::onAccessEntrySetElement, this::reportAggregatingAccess);
+        return new AccessTrackingSet<>(delegate.entrySet(), entrySetTrackingListener());
     }
 
     private void onAccessEntrySetElement(@Nullable Object potentialEntry) {
@@ -304,11 +308,39 @@ class AccessTrackingProperties extends Properties {
     }
 
     private void reportKeyAndValue(Object key, Object value) {
-        onAccess.accept(key, value);
+        listener.onAccess(key, value);
     }
 
     private void reportAggregatingAccess() {
         // Mark all map contents as inputs if some aggregating access is used.
         delegate.forEach(this::reportKeyAndValue);
+    }
+
+    private AccessTrackingSet.Listener trackingListener() {
+        return new AccessTrackingSet.Listener() {
+            @Override
+            public void onAccess(Object o) {
+                getAndReport(o);
+            }
+
+            @Override
+            public void onAggregatingAccess() {
+                reportAggregatingAccess();
+            }
+        };
+    }
+
+    private AccessTrackingSet.Listener entrySetTrackingListener() {
+        return new AccessTrackingSet.Listener() {
+            @Override
+            public void onAccess(Object o) {
+                onAccessEntrySetElement(o);
+            }
+
+            @Override
+            public void onAggregatingAccess() {
+                reportAggregatingAccess();
+            }
+        };
     }
 }
