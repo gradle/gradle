@@ -246,7 +246,11 @@ fun Project.enableScriptCompilationOf(
             }
 
         kotlinCompileTask {
+
+            notCompatibleWithConfigurationCache("Kotlin DSL precompiled script plugin compilation settings cannot be cached.")
+
             dependsOn(generatePrecompiledScriptPluginAccessors)
+
             inputs.files(compileClasspath)
                 .withNormalizer(ClasspathNormalizer::class.java)
                 .withPropertyName("compileClasspath")
