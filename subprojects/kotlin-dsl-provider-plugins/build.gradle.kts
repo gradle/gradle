@@ -25,6 +25,7 @@ dependencies {
         isTransitive = false
     }
 
+    implementation(libs.groovy)
     implementation(libs.slf4jApi)
     implementation(libs.inject)
 
