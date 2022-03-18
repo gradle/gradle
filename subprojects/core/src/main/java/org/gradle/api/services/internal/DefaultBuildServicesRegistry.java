@@ -138,7 +138,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
 
             DefaultServiceSpec<P> spec = uncheckedNonnullCast(specInstantiator.newInstance(DefaultServiceSpec.class, parameters));
             configureAction.execute(spec);
-            Integer maxParallelUsages = spec.getMaxParallelUsages().getOrNull();
+            @Nullable Integer maxParallelUsages = spec.getMaxParallelUsages().getOrNull();
 
             // TODO - finalize the parameters during isolation
             // TODO - need to lock the project during isolation - should do this the same way as artifact transforms
@@ -168,7 +168,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
         String name,
         Class<T> implementationType,
         @Nullable P parameters,
-        Integer maxParallelUsages,
+        @Nullable Integer maxParallelUsages,
         NamedDomainObjectSet<BuildServiceRegistration<?, ?>> registrations
     ) {
         BuildServiceProvider<T, P> provider = new BuildServiceProvider<>(
