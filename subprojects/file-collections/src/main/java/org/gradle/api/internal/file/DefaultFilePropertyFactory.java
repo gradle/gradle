@@ -371,7 +371,9 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
 
         @Override
         public FileCollection files(Object... paths) {
-            return fileCollectionFactory.withResolver(resolver).resolving(paths);
+            File resolved = resolver.resolve(this);
+            FileResolver dirResolver = resolver.newResolver(resolved);
+            return fileCollectionFactory.withResolver(dirResolver).resolving(paths);
         }
 
     }
@@ -406,6 +408,36 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
         @Override
         public File transform(FileSystemLocation location) {
             return location.getAsFile();
+        }
+    }
+
+    private static class DirectoryProviderPathToFileResolver implements PathToFileResolver {
+        private final Provider<Directory> directoryProvider;
+        private final PathToFileResolver parentResolver;
+
+        public DirectoryProviderPathToFileResolver(Provider<Directory> directoryProvider, PathToFileResolver parentResolver) {
+            this.directoryProvider = directoryProvider;
+            this.parentResolver = parentResolver;
+        }
+
+        private PathToFileResolver createResolver() {
+            File resolved = directoryProvider.get().getAsFile();
+            return parentResolver.newResolver(resolved);
+        }
+
+        @Override
+        public File resolve(Object path) {
+            return createResolver().resolve(path);
+        }
+
+        @Override
+        public PathToFileResolver newResolver(File baseDir) {
+            return new DirectoryProviderPathToFileResolver(directoryProvider.map(dir -> dir.dir(baseDir.getPath())), parentResolver);
+        }
+
+        @Override
+        public boolean canResolveRelativePath() {
+            return true;
         }
     }
 }
