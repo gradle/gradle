@@ -170,6 +170,8 @@ class Codecs(
 
         bind(TaskReferenceCodec)
 
+        bind(CachedEnvironmentStateCodec)
+
         bind(IsolatedManagedValueCodec(managedFactoryRegistry))
         bind(IsolatedImmutableManagedValueCodec(managedFactoryRegistry))
         bind(IsolatedJavaSerializedValueSnapshotCodec)

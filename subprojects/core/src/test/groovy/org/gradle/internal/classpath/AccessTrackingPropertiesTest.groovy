@@ -20,13 +20,21 @@ import com.google.common.io.ByteStreams
 import com.google.common.io.CharStreams
 
 import javax.annotation.Nullable
+import java.util.function.BiConsumer
 import java.util.function.Consumer
 
 class AccessTrackingPropertiesTest extends AbstractAccessTrackingMapTest {
+    private BiConsumer<Object, Object> onChange = Mock()
+
     private AccessTrackingProperties.Listener listener = new AccessTrackingProperties.Listener() {
         @Override
         void onAccess(Object key, @Nullable Object value) {
             onAccess.accept(key, value)
+        }
+
+        @Override
+        void onChange(Object key, @Nullable Object newValue) {
+            onChange.accept(key, newValue)
         }
     }
 
@@ -209,6 +217,47 @@ class AccessTrackingPropertiesTest extends AbstractAccessTrackingMapTest {
         "clear()"           | call(p -> p.clear())
         "load(Reader)"      | call(p -> p.load(new StringReader("")))
         "load(InputStream)" | call(p -> p.load(new ByteArrayInputStream(new byte[0])))
+    }
+
+    def "method put(#key, #newValue) reports argument as input and change"() {
+        when:
+        def result = getMapUnderTestToWrite().put(key, newValue)
+
+        then:
+        result == oldValue
+        1 * onAccess.accept(key, oldValue)
+        1 * onChange.accept(key, newValue)
+        where:
+        key          | oldValue        | newValue
+        'existing'   | 'existingValue' | 'changed'
+        'missingKey' | null            | 'changed'
+    }
+
+    def "method put(#key, #newValue) updates map"() {
+        given:
+        def map = getMapUnderTestToWrite()
+
+        when:
+        map.put(key, newValue)
+
+        then:
+        map.get(key) == newValue
+
+        where:
+        key          | oldValue        | newValue
+        'existing'   | 'existingValue' | 'changed'
+        'missingKey' | null            | 'changed'
+    }
+
+    def "method putAll() reports argument as change only"() {
+        when:
+        def update = [existing: 'changedExisting', missing: 'changedMissing']
+        getMapUnderTestToWrite().putAll(update)
+
+        then:
+        1 * onChange.accept('existing', 'changedExisting')
+        1 * onChange.accept('missing', 'changedMissing')
+        0 * onAccess._
     }
 
     private static Properties propertiesWithContent(Map<String, String> contents) {

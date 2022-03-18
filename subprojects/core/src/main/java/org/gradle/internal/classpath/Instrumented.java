@@ -43,6 +43,10 @@ public class Instrumented {
         }
 
         @Override
+        public void systemPropertyChanged(Object key, @Nullable Object value, String consumer) {
+        }
+
+        @Override
         public void envVariableQueried(String key, @Nullable String value, String consumer) {
         }
 
@@ -76,6 +80,9 @@ public class Instrumented {
             switch (callSite.getName()) {
                 case "getProperty":
                     array.array[callSite.getIndex()] = new SystemPropertyCallSite(callSite);
+                    break;
+                case "setProperty":
+                    array.array[callSite.getIndex()] = new SetSystemPropertyCallSite(callSite);
                     break;
                 case "properties":
                     array.array[callSite.getIndex()] = new SystemPropertiesCallSite(callSite);
@@ -125,12 +132,28 @@ public class Instrumented {
 
     // Called by generated code.
     public static Properties systemProperties(String consumer) {
-        return new AccessTrackingProperties(System.getProperties(), (k, v) -> {
+        return new AccessTrackingProperties(System.getProperties(), new AccessTrackingProperties.Listener() {
             // Do not track accesses to non-String properties. Only String properties can be set externally, so they cannot affect the cached configuration.
-            if (k instanceof String && (v == null || v instanceof String)) {
-                systemPropertyQueried(convertToString(k), convertToString(v), consumer);
+            @Override
+            public void onAccess(Object key, @Nullable Object value) {
+                if (key instanceof String && (value == null || value instanceof String)) {
+                    systemPropertyQueried(convertToString(key), convertToString(value), consumer);
+                }
+            }
+
+            @Override
+            public void onChange(Object key, Object newValue) {
+                listener().systemPropertyChanged(key, newValue, consumer);
             }
         });
+    }
+
+    // Called by generated code.
+    public static String setSystemProperty(String key, String value, String consumer) {
+        String oldValue = System.setProperty(key, value);
+        systemPropertyQueried(key, oldValue, consumer);
+        listener().systemPropertyChanged(key, value, consumer);
+        return oldValue;
     }
 
     // Called by generated code.
@@ -363,9 +386,22 @@ public class Instrumented {
 
     public interface Listener {
         /**
-         * @param consumer The name of the class that is reading the property value
+         * Invoked when the code reads the system property with the String key.
+         *
+         * @param key the name of the property
+         * @param value the value of the property at the time of reading or {@code null} if the property is not present
+         * @param consumer the name of the class that is reading the property value
          */
         void systemPropertyQueried(String key, @Nullable Object value, String consumer);
+
+        /**
+         * Invoked when the code updates or adds the system property.
+         *
+         * @param key the name of the property, can be non-string
+         * @param value the new value of the property, can be {@code null} or non-string
+         * @param consumer the name of the class that is updating the property value
+         */
+        void systemPropertyChanged(Object key, @Nullable Object value, String consumer);
 
         /**
          * Invoked when the code reads the environment variable.
@@ -482,6 +518,30 @@ public class Instrumented {
                 return systemProperty(arg1.toString(), convertToString(arg2), array.owner.getName());
             } else {
                 return super.call(receiver, arg1, arg2);
+            }
+        }
+    }
+
+    private static class SetSystemPropertyCallSite extends AbstractCallSite {
+        public SetSystemPropertyCallSite(CallSite callSite) {
+            super(callSite);
+        }
+
+        @Override
+        public Object call(Object receiver, Object arg1, Object arg2) throws Throwable {
+            if (receiver.equals(System.class)) {
+                return setSystemProperty(convertToString(arg1), convertToString(arg2), array.owner.getName());
+            } else {
+                return super.call(receiver, arg1, arg2);
+            }
+        }
+
+        @Override
+        public Object callStatic(Class receiver, Object arg1, Object arg2) throws Throwable {
+            if (receiver.equals(System.class)) {
+                return setSystemProperty(convertToString(arg1), convertToString(arg2), array.owner.getName());
+            } else {
+                return super.callStatic(receiver, arg1, arg2);
             }
         }
     }

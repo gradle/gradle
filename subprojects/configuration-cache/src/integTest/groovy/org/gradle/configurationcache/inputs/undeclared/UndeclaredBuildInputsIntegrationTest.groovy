@@ -286,6 +286,40 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
         ]
     }
 
+    def "build logic can set up property at configuration phase"() {
+        given:
+        buildFile("""
+            $propertySetter
+
+            tasks.register("printProperty") {
+                doLast {
+                    println("some.property = \${System.properties["some.property"]}")
+                }
+            }
+        """)
+
+        def configurationCache = newConfigurationCacheFixture()
+
+        when:
+        configurationCacheRun("printProperty")
+
+        then:
+        outputContains("some.property = $propertyValue")
+
+        when:
+        configurationCacheRun("printProperty")
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains("some.property = $propertyValue")
+
+        where:
+        propertyValue | propertySetter
+        "some.value"  | """System.setProperty("some.property", "$propertyValue")"""
+        "some.value"  | """System.properties["some.property"]="$propertyValue" """
+        "1"           | """System.properties["some.property"]=$propertyValue"""
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/13155")
     def "plugin can bundle multiple resources with the same name"() {
         file("buildSrc/build.gradle") << """
@@ -433,8 +467,7 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
 
         then:
         configurationCache.assertStateLoaded()
-        // TODO(https://github.com/gradle/gradle/issues/18432) This should be changed to "true".
-        outputContains("execution time value=false")
+        outputContains("execution time value=true")
     }
 
     def "reports build logic reading environment variables with getenv(String) using GString parameters"() {

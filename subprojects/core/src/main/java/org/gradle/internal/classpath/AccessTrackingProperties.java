@@ -39,6 +39,8 @@ import java.util.function.Function;
 class AccessTrackingProperties extends Properties {
     public interface Listener {
         void onAccess(Object key, @Nullable Object value);
+
+        void onChange(Object key, Object newValue);
     }
 
     // TODO(https://github.com/gradle/configuration-cache/issues/337) Only a limited subset of method is tracked currently.
@@ -176,12 +178,15 @@ class AccessTrackingProperties extends Properties {
 
     @Override
     public Object put(Object key, Object value) {
-        return delegate.put(key, value);
+        Object oldValue = delegate.put(key, value);
+        reportKeyAndValue(key, oldValue);
+        listener.onChange(key, value);
+        return oldValue;
     }
 
     @Override
     public Object setProperty(String key, String value) {
-        return delegate.setProperty(key, value);
+        return put(key, value);
     }
 
     @Override
@@ -193,6 +198,8 @@ class AccessTrackingProperties extends Properties {
 
     @Override
     public void putAll(Map<?, ?> t) {
+        // putAll has no return value so keys do not become inputs.
+        t.forEach(listener::onChange);
         delegate.putAll(t);
     }
 
