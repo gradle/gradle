@@ -71,11 +71,15 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
     private boolean showViolations = true;
     private final DirectoryProperty configDirectory;
     private final Property<JavaLauncher> javaLauncher;
+    private final Property<String> minHeapSize;
+    private final Property<String> maxHeapSize;
 
     public Checkstyle() {
         this.configDirectory = getObjectFactory().directoryProperty();
         this.reports = getObjectFactory().newInstance(CheckstyleReportsImpl.class, this);
         this.javaLauncher = getObjectFactory().property(JavaLauncher.class);
+        this.minHeapSize = getObjectFactory().property(String.class);
+        this.maxHeapSize = getObjectFactory().property(String.class);
     }
 
     /**
@@ -159,7 +163,8 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
     }
 
     /**
-     * JavaLauncher for toolchain support
+     * JavaLauncher for toolchain support.
+     *
      * @since 7.5
      */
     @Incubating
@@ -175,6 +180,8 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
 
     private void runWithProcessIsolation() {
         WorkQueue workQueue = getWorkerExecutor().processIsolation(spec -> {
+            spec.getForkOptions().setMinHeapSize(minHeapSize.getOrNull());
+            spec.getForkOptions().setMaxHeapSize(maxHeapSize.getOrNull());
             spec.getForkOptions().setExecutable(javaLauncher.get().getExecutablePath().getAsFile().getAbsolutePath());
             spec.getClasspath().from(getCheckstyleClasspath());
         });
@@ -393,5 +400,35 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
      */
     public void setShowViolations(boolean showViolations) {
         this.showViolations = showViolations;
+    }
+
+    /**
+     * The minimum heap size for the Checkstyle worker process, if any.
+     * Supports the units megabytes (e.g. "512m") and gigabytes (e.g. "1g").
+     *
+     * @return The minimum heap size. Value should be null if the default minimum heap size should be used.
+     *
+     * @since 7.5
+     */
+    @Incubating
+    @Optional
+    @Input
+    public Property<String> getMinHeapSize() {
+        return minHeapSize;
+    }
+
+    /**
+     * The maximum heap size for the Checkstyle worker process, if any.
+     * Supports the units megabytes (e.g. "512m") and gigabytes (e.g. "1g").
+     *
+     * @return The maximum heap size. Value should be null if the default maximum heap size should be used.
+     *
+     * @since 7.5
+     */
+    @Incubating
+    @Optional
+    @Input
+    public Property<String> getMaxHeapSize() {
+        return maxHeapSize;
     }
 }
