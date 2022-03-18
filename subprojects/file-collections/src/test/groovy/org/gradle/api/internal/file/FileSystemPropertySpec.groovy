@@ -29,7 +29,9 @@ abstract class FileSystemPropertySpec<T extends FileSystemLocation> extends Prop
     def resolver = TestFiles.resolver(tmpDir.testDirectory)
     def fileCollectionFactory = TestFiles.fileCollectionFactory(tmpDir.testDirectory)
     def factory = new DefaultFilePropertyFactory(host, resolver, fileCollectionFactory)
-    def baseDir = factory.newDirectoryProperty().fileValue(tmpDir.testDirectory)
+    // Make sure that `baseDir` isn't the same as the base for the resolver.
+    def baseDir = tmpDir.testDirectory.createDir("base")
+    def baseDirectory = factory.newDirectoryProperty().fileValue(baseDir)
 
     def "can set value using absolute file"() {
         given:
