@@ -95,6 +95,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
 
     /**
      * Sets the minimum heap size for the process.
+     * Formats in megabytes (e.g. "512m") and gigabytes (e.g. "1g") are supported.
      *
      * @param heapSize The minimum heap size. Use null for the default minimum heap size.
      */
@@ -110,6 +111,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
 
     /**
      * Sets the maximum heap size for the process.
+     * Formats in megabytes (e.g. "512m") and gigabytes (e.g. "1g") are supported.
      *
      * @param heapSize The heap size. Use null for the default maximum heap size.
      */
