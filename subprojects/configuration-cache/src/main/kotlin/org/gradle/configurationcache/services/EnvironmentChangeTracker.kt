@@ -16,6 +16,9 @@
 
 package org.gradle.configurationcache.services
 
+import org.gradle.configuration.internal.UserCodeApplicationContext
+import org.gradle.configurationcache.problems.PropertyTrace
+import org.gradle.configurationcache.problems.location
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
 import java.util.concurrent.ConcurrentHashMap
@@ -25,7 +28,7 @@ import java.util.concurrent.ConcurrentHashMap
  * The environment state that was mutated at the configuration phase and has to be restored before running a build from the cache.
  */
 @ServiceScope(Scopes.BuildTree::class)
-class EnvironmentChangeTracker {
+class EnvironmentChangeTracker(private val userCodeApplicationContext: UserCodeApplicationContext) {
     private
     val mutatedSystemProperties = ConcurrentHashMap<Any, SystemPropertyChange>()
 
@@ -43,12 +46,12 @@ class EnvironmentChangeTracker {
     }
 
     fun systemPropertyChanged(key: Any, value: Any?, consumer: String) {
-        mutatedSystemProperties[key] = SystemPropertySet(key, value)
+        mutatedSystemProperties[key] = SystemPropertySet(key, value, userCodeApplicationContext.location(consumer))
     }
 
     class CachedEnvironmentState(val updates: List<SystemPropertySet>)
 
     sealed class SystemPropertyChange(val key: Any)
 
-    class SystemPropertySet(key: Any, val value: Any?) : SystemPropertyChange(key)
+    class SystemPropertySet(key: Any, val value: Any?, val location: PropertyTrace?) : SystemPropertyChange(key)
 }

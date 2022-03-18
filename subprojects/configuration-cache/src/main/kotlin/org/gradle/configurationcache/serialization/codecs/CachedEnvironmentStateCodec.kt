@@ -16,20 +16,40 @@
 
 package org.gradle.configurationcache.serialization.codecs
 
+import org.gradle.configurationcache.ConfigurationCacheError
+import org.gradle.configurationcache.ConfigurationCacheProblemsException
+import org.gradle.configurationcache.extensions.maybeUnwrapInvocationTargetException
+import org.gradle.configurationcache.problems.PropertyTrace
+import org.gradle.configurationcache.problems.propertyDescriptionFor
 import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.configurationcache.serialization.readList
+import org.gradle.configurationcache.serialization.withPropertyTrace
 import org.gradle.configurationcache.serialization.writeCollection
 import org.gradle.configurationcache.services.EnvironmentChangeTracker
+import java.io.IOException
 
 
 internal
 object CachedEnvironmentStateCodec : Codec<EnvironmentChangeTracker.CachedEnvironmentState> {
     override suspend fun WriteContext.encode(value: EnvironmentChangeTracker.CachedEnvironmentState) {
         writeCollection(value.updates) { update ->
-            write(update.key)
-            write(update.value)
+            withPropertyTrace(PropertyTrace.SystemProperty(update.key.toString(), update.location ?: PropertyTrace.Unknown)) {
+                try {
+                    write(update.key)
+                    write(update.value)
+                } catch (passThrough: IOException) {
+                    throw passThrough
+                } catch (passThrough: ConfigurationCacheProblemsException) {
+                    throw passThrough
+                } catch (error: Exception) {
+                    throw ConfigurationCacheError(
+                        propertyDescriptionFor(trace),
+                        error.maybeUnwrapInvocationTargetException()
+                    )
+                }
+            }
         }
     }
 
@@ -37,7 +57,7 @@ object CachedEnvironmentStateCodec : Codec<EnvironmentChangeTracker.CachedEnviro
         val updates = readList {
             val key = read() as Any
             val value = read()
-            EnvironmentChangeTracker.SystemPropertySet(key, value)
+            EnvironmentChangeTracker.SystemPropertySet(key, value, null)
         }
 
         return EnvironmentChangeTracker.CachedEnvironmentState(updates)

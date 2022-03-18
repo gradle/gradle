@@ -320,6 +320,23 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
         "1"           | """System.properties["some.property"]=$propertyValue"""
     }
 
+    def "non-serializable system property is reported"() {
+        given:
+        buildFile("""
+            System.properties["some.property"] = new Thread()
+        """)
+
+        when:
+        configurationCacheFails()
+
+        then:
+        problems.assertFailureHasProblems(failure) {
+            totalProblemsCount = 1
+            withProblem("Build file 'build.gradle': cannot serialize object of type 'java.lang.Thread', a subtype of 'java.lang.Thread', as these are not supported with the configuration cache.")
+            problemsWithStackTraceCount = 0
+        }
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/13155")
     def "plugin can bundle multiple resources with the same name"() {
         file("buildSrc/build.gradle") << """
