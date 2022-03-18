@@ -24,7 +24,7 @@ abstract class PublishRelease(
     requiredConfirmationCode: String,
     promotedBranch: String,
     init: PublishRelease.() -> Unit = {}
-) : PublishGradleDistribution(
+) : PublishGradleDistributionBothSteps(
     promotedBranch = promotedBranch,
     task = task,
     triggerName = "ReadyforRelease",

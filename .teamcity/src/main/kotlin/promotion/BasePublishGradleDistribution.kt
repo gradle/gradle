@@ -17,18 +17,17 @@
 package promotion
 
 import common.VersionedSettingsBranch
-import common.gradleWrapper
 import jetbrains.buildServer.configs.kotlin.v2019_2.RelativeId
 import vcsroots.gradlePromotionMaster
 
-abstract class PublishGradleDistribution(
+abstract class BasePublishGradleDistribution(
     // The branch to be promoted
-    promotedBranch: String,
-    task: String,
+    val promotedBranch: String,
+    val task: String,
     val triggerName: String,
-    gitUserName: String = "bot-teamcity",
-    gitUserEmail: String = "bot-teamcity@gradle.com",
-    extraParameters: String = "",
+    val gitUserName: String = "bot-teamcity",
+    val gitUserEmail: String = "bot-teamcity@gradle.com",
+    val extraParameters: String = "",
     vcsRootId: String = gradlePromotionMaster
 ) : BasePromotionBuildType(vcsRootId) {
 
@@ -41,21 +40,8 @@ abstract class PublishGradleDistribution(
         **/smoke-tests/build/reports/tests/** => post-smoke-tests
         """.trimIndent()
 
-        steps {
-            gradleWrapper {
-                name = "Promote"
-                tasks = "uploadAll"
-                gradleParams = """-PcommitId=%dep.${RelativeId("Check_Stage_${this@PublishGradleDistribution.triggerName}_Trigger")}.build.vcs.number% $extraParameters "-PgitUserName=$gitUserName" "-PgitUserEmail=$gitUserEmail" """
-            }
-            gradleWrapper {
-                name = "Promote"
-                tasks = task
-                gradleParams = """-PcommitId=%dep.${RelativeId("Check_Stage_${this@PublishGradleDistribution.triggerName}_Trigger")}.build.vcs.number% $extraParameters "-PgitUserName=$gitUserName" "-PgitUserEmail=$gitUserEmail" """
-            }
-        }
-
         dependencies {
-            snapshot(RelativeId("Check_Stage_${this@PublishGradleDistribution.triggerName}_Trigger")) {
+            snapshot(RelativeId("Check_Stage_${this@BasePublishGradleDistribution.triggerName}_Trigger")) {
             }
         }
     }

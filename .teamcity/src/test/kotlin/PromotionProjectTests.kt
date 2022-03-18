@@ -30,9 +30,9 @@ class PromotionProjectTests {
         val model = setupModelFor("master")
 
         assertEquals("Promotion", model.name)
-        assertEquals(7, model.buildTypes.size)
+        assertEquals(9, model.buildTypes.size)
         assertEquals(
-            listOf("SanityCheck", "Nightly Snapshot", "Nightly Snapshot (from QuickFeedback)", "Publish Branch Snapshot (from Quick Feedback)", "Release - Milestone", "Start Release Cycle", "Start Release Cycle Test"),
+            listOf("SanityCheck", "Nightly Snapshot", "Nightly Snapshot (from QuickFeedback)", "Nightly Snapshot (from QuickFeedback) - Step 1", "Nightly Snapshot (from QuickFeedback) - Step 2", "Publish Branch Snapshot (from Quick Feedback)", "Release - Milestone", "Start Release Cycle", "Start Release Cycle Test"),
             model.buildTypes.map { it.name }
         )
     }
@@ -42,9 +42,9 @@ class PromotionProjectTests {
         val model = setupModelFor("release")
 
         assertEquals("Promotion", model.name)
-        assertEquals(7, model.buildTypes.size)
+        assertEquals(9, model.buildTypes.size)
         assertEquals(
-            listOf("SanityCheck", "Nightly Snapshot", "Nightly Snapshot (from QuickFeedback)", "Publish Branch Snapshot (from Quick Feedback)", "Release - Milestone", "Release - Release Candidate", "Release - Final"),
+            listOf("SanityCheck", "Nightly Snapshot", "Nightly Snapshot (from QuickFeedback)", "Nightly Snapshot (from QuickFeedback) - Step 1", "Nightly Snapshot (from QuickFeedback) - Step 2", "Publish Branch Snapshot (from Quick Feedback)", "Release - Milestone", "Release - Release Candidate", "Release - Final"),
             model.buildTypes.map { it.name }
         )
     }
