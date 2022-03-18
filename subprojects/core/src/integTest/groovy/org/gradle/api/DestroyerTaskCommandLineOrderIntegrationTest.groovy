@@ -327,7 +327,6 @@ class DestroyerTaskCommandLineOrderIntegrationTest extends AbstractCommandLineOr
         writeAllFiles()
 
         when:
-        executer.startBuildProcessInDebugger(true)
         args '--parallel', '--max-workers=2'
         succeeds(clean.path, generate.path)
 
@@ -356,7 +355,6 @@ class DestroyerTaskCommandLineOrderIntegrationTest extends AbstractCommandLineOr
         writeAllFiles()
 
         when:
-        executer.startBuildProcessInDebugger(true)
         args '--parallel', '--max-workers=2'
         succeeds(clean.path, generate.path)
 
