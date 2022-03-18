@@ -57,6 +57,10 @@
                 <td></td>
             </tr>
             <tr>
+                <td>javaLauncher</td>
+                <td></td>
+            </tr>
+            <tr>
                 <td>minHeapSize</td>
                 <td></td>
             </tr>

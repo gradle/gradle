@@ -163,7 +163,7 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
     }
 
     /**
-     * JavaLauncher for toolchain support
+     * JavaLauncher for toolchain support.
      *
      * @since 7.5
      */
