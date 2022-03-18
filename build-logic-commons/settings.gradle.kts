@@ -27,7 +27,5 @@ dependencyResolutionManagement {
     }
 }
 
-include("code-quality")
-include("build-scan")
 include("code-quality-rules")
 include("gradle-plugin")

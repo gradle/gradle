@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,18 +15,7 @@
  */
 
 plugins {
-    `kotlin-dsl`
+   `kotlin-dsl`
 }
 
-description = "Provides a plugin that configures build scans in the Gradle build"
-
-java {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
-}
-
-group = "gradlebuild"
-
-dependencies {
-    compileOnly("com.gradle:gradle-enterprise-gradle-plugin:3.8")
-}
+description = "Provides settings plugins for main build"
