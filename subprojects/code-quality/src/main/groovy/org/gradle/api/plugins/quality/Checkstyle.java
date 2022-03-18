@@ -404,7 +404,7 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
 
     /**
      * The minimum heap size for the checkstyle worker process, if any.
-     * Formats in megabytes (e.g. "512m") and gigabytes (e.g. "1g") are supported.
+     * Supports the units megabytes (e.g. "512m") and gigabytes (e.g. "1g").
      *
      * @return The minimum heap size. Value should be null if the default minimum heap size should be used.
      *
@@ -420,7 +420,7 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
 
     /**
      * The maximum heap size for the checkstyle worker process, if any.
-     * Formats in megabytes (e.g. "512m") and gigabytes (e.g. "1g") are supported.
+     * Supports the units megabytes (e.g. "512m") and gigabytes (e.g. "1g").
      *
      * @return The maximum heap size. Value should be null if the default maximum heap size should be used.
      *

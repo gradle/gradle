@@ -111,7 +111,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
 
     /**
      * Sets the maximum heap size for the process.
-     * Formats in megabytes (e.g. "512m") and gigabytes (e.g. "1g") are supported.
+     * Supports the units megabytes (e.g. "512m") and gigabytes (e.g. "1g").
      *
      * @param heapSize The heap size. Use null for the default maximum heap size.
      */
