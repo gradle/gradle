@@ -28,8 +28,9 @@ abstract class BasePublishGradleDistribution(
     val gitUserName: String = "bot-teamcity",
     val gitUserEmail: String = "bot-teamcity@gradle.com",
     val extraParameters: String = "",
-    vcsRootId: String = gradlePromotionMaster
-) : BasePromotionBuildType(vcsRootId) {
+    vcsRootId: String = gradlePromotionMaster,
+    cleanCheckout: Boolean = true
+) : BasePromotionBuildType(vcsRootId, cleanCheckout) {
 
     init {
         artifactRules = """

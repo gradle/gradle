@@ -23,7 +23,8 @@ class PublishNightlySnapshotFromQuickFeedbackStep2(branch: VersionedSettingsBran
     promotedBranch = branch.branchName,
     task = branch.promoteNightlyTaskName(),
     triggerName = "QuickFeedback",
-    vcsRootId = gradlePromotionBranches
+    vcsRootId = gradlePromotionBranches,
+    cleanCheckout = false
 ) {
     init {
         id("Promotion_SnapshotFromQuickFeedbackStep2")
