@@ -52,6 +52,7 @@ import gradlebuild.basics.BuildParams.TEST_JAVA_VERSION
 import gradlebuild.basics.BuildParams.TEST_SPLIT_EXCLUDE_TEST_CLASSES
 import gradlebuild.basics.BuildParams.TEST_SPLIT_INCLUDE_TEST_CLASSES
 import gradlebuild.basics.BuildParams.TEST_SPLIT_ONLY_TEST_GRADLE_VERSION
+import gradlebuild.basics.BuildParams.YARNPKG_MIRROR_URL
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.provider.Provider
@@ -110,6 +111,7 @@ object BuildParams {
     const val TEST_SPLIT_ONLY_TEST_GRADLE_VERSION = "onlyTestGradleVersion"
     const val TEST_JAVA_VENDOR = "testJavaVendor"
     const val TEST_JAVA_VERSION = "testJavaVersion"
+    const val YARNPKG_MIRROR_URL = "YARNPKG_MIRROR_URL"
 }
 
 
@@ -307,3 +309,7 @@ val Project.maxTestDistributionPartitionSecond: Long?
 val Project.maxParallelForks: Int
     get() = gradleProperty(MAX_PARALLEL_FORKS).getOrElse("4").toInt() *
         environmentVariable("BUILD_AGENT_VARIANT").getOrElse("").let { if (it == "AX41") 2 else 1 }
+
+
+val Project.yarnpkgMirrorUrl: Provider<String>
+    get() = environmentVariable(YARNPKG_MIRROR_URL)
