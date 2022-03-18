@@ -41,6 +41,8 @@ import org.gradle.internal.state.Managed;
 import javax.annotation.Nullable;
 import java.io.File;
 
+import static org.gradle.api.internal.lambdas.SerializableLambdas.transformer;
+
 @ServiceScope(Scope.Global.class)
 public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFactory {
     private final PropertyHost host;
@@ -371,9 +373,7 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
 
         @Override
         public FileCollection files(Object... paths) {
-            File resolved = resolver.resolve(this);
-            FileResolver dirResolver = resolver.newResolver(resolved);
-            return fileCollectionFactory.withResolver(dirResolver).resolving(paths);
+            return fileCollectionFactory.withResolver(new DirectoryProviderPathToFileResolver(this, resolver)).resolving(paths);
         }
 
     }
@@ -432,7 +432,10 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
 
         @Override
         public PathToFileResolver newResolver(File baseDir) {
-            return new DirectoryProviderPathToFileResolver(directoryProvider.map(dir -> dir.dir(baseDir.getPath())), parentResolver);
+            return new DirectoryProviderPathToFileResolver(
+                directoryProvider.map(transformer(dir -> dir.dir(baseDir.getPath()))),
+                parentResolver
+            );
         }
 
         @Override

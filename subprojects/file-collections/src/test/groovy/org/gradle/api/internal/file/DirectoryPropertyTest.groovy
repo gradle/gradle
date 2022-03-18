@@ -17,6 +17,7 @@
 package org.gradle.api.internal.file
 
 import org.gradle.api.file.Directory
+import org.gradle.api.internal.provider.MissingValueException
 import org.gradle.api.internal.provider.PropertyInternal
 import org.gradle.internal.state.ManagedFactory
 
@@ -81,6 +82,7 @@ class DirectoryPropertyTest extends FileSystemPropertySpec<Directory> {
     def "can view relative paths as a file collection"() {
         given:
         def fileCollection = baseDirectory.files("a/b/c", "d", "e/f")
+        def secondBase = tmpDir.createDir("secondBase")
 
         expect:
         fileCollection.files == [
@@ -88,5 +90,27 @@ class DirectoryPropertyTest extends FileSystemPropertySpec<Directory> {
             baseDir.file("d"),
             baseDir.file("e/f")
         ] as Set
+
+
+        when:
+        baseDirectory.set(secondBase)
+
+        then:
+        fileCollection.files == [
+            secondBase.file("a/b/c"),
+            secondBase.file("d"),
+            secondBase.file("e/f")
+        ] as Set
+    }
+
+    def "cannot resolve file collection when directory property is not set"() {
+        given:
+        baseDirectory.set(null)
+        def fileCollection = baseDirectory.files("a/b/c", "d", "e/f")
+
+        when:
+        fileCollection.files
+        then:
+        thrown(MissingValueException)
     }
 }
