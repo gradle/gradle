@@ -85,6 +85,7 @@ public class Instrumented {
                     array.array[callSite.getIndex()] = new SetSystemPropertyCallSite(callSite);
                     break;
                 case "properties":
+                case "getProperties":
                     array.array[callSite.getIndex()] = new SystemPropertiesCallSite(callSite);
                     break;
                 case "getInteger":
@@ -557,6 +558,24 @@ public class Instrumented {
                 return systemProperties(array.owner.getName());
             } else {
                 return super.callGetProperty(receiver);
+            }
+        }
+
+        @Override
+        public Object call(Object receiver) throws Throwable {
+            if (receiver.equals(System.class)) {
+                return systemProperties(array.owner.getName());
+            } else {
+                return super.call(receiver);
+            }
+        }
+
+        @Override
+        public Object callStatic(Class receiver) throws Throwable {
+            if (receiver.equals(System.class)) {
+                return systemProperties(array.owner.getName());
+            } else {
+                return super.callStatic(receiver);
             }
         }
     }

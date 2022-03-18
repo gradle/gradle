@@ -158,7 +158,9 @@ class ConfigurationCacheValueSourceIntegrationTest extends AbstractConfiguration
 
         then:
         output.count("ON CI") == 1
-        output.contains("because a build logic input of type 'IsSystemPropertySet' has changed")
+        // TODO(mlopatkin) the system property becomes an input itself because it is accessed in the ValueSource implementation.
+        //  This assert should be changed back if ValueSource implementations are allowed to access environment freely.
+        output.contains("because system property 'ci' has changed")
         configurationCache.assertStateStored()
     }
 }
