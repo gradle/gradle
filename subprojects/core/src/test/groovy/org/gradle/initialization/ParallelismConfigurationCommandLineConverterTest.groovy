@@ -48,6 +48,18 @@ class ParallelismConfigurationCommandLineConverterTest extends Specification {
         result.maxWorkerCount == maxWorkerCount
     }
 
+    def "converts relative max workers"() {
+        when:
+        def result = convert("--max-workers", "${relativeMaxWourcerCount}C")
+
+        then:
+        result.maxWorkerCount >= 1
+        result.maxWorkerCount == Math.max(1, (int) (Runtime.getRuntime().availableProcessors() * relativeMaxWourcerCount.toDouble()))
+
+        where:
+        relativeMaxWourcerCount << ["0.1", "0.5", "1.0", "2.0"]
+    }
+
     def "converts empty arguments set max workers to number of processors"() {
         when:
         def result = convert()
@@ -64,7 +76,7 @@ class ParallelismConfigurationCommandLineConverterTest extends Specification {
         thrown(CommandLineArgumentException)
 
         where:
-        value << ["foo", "0"]
+        value << ["foo", "0", "0C"]
     }
 
     def "throws exception for invalid max workers argument when converting"() {

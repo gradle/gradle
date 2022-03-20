@@ -74,7 +74,7 @@ public class ParallelismBuildOptions extends BuildOptionSet<ParallelismConfigura
         @Override
         public void applyTo(String value, ParallelismConfiguration settings, Origin origin) {
             try {
-                int workerCount = Integer.parseInt(value);
+                int workerCount = getMaxWorkerCount(value);
                 if (workerCount < 1) {
                     origin.handleInvalidValue(value, HINT);
                 }
@@ -82,6 +82,21 @@ public class ParallelismBuildOptions extends BuildOptionSet<ParallelismConfigura
             } catch (NumberFormatException e) {
                 origin.handleInvalidValue(value, HINT);
             }
+        }
+
+        private int getMaxWorkerCount(String value) {
+            value = value.trim().toLowerCase();
+            return value.endsWith("c") ? getRelativeWorkerCount(value) : Integer.parseInt(value);
+        }
+
+        private int getRelativeWorkerCount(String value) {
+            value = value.substring(0, value.length() - 1).trim();
+            double relativeWorkerCount = Double.parseDouble(value);
+            if (relativeWorkerCount <= 0.0) {
+                return 0;
+            }
+            int maxWorkers = (int) (Runtime.getRuntime().availableProcessors() * relativeWorkerCount);
+            return Math.max(1, maxWorkers);
         }
     }
 }
