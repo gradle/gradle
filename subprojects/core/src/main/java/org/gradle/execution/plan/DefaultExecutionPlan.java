@@ -213,10 +213,6 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                     if (!visiting.contains(targetNode)) {
                         queue.addFirst(targetNode);
                     }
-                    if (node instanceof TaskNode && targetNode instanceof TaskNode) {
-                        // if the dependency doesn't already have an ordinal assigned, then inherit the ordinal from this node
-                        ((TaskNode) targetNode).maybeSetOrdinal(((TaskNode) node).getOrdinal());
-                    }
                 });
                 if (node.isRequired()) {
                     for (Node successor : node.getDependencySuccessors()) {
@@ -345,6 +341,9 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                         }
                     }
                     nodeQueue.addFirst(new NodeInVisitingSegment(successor, currentSegment));
+                    if (node instanceof TaskNode && successor instanceof TaskNode) {
+                        ((TaskNode) successor).maybeInheritOrdinalAsDependency((TaskNode) node);
+                    }
                 }
                 path.push(node);
             } else {
@@ -364,6 +363,9 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                     if (!visitingNodes.containsKey(finalizer)) {
                         int position = finalizerTaskPosition(finalizer, nodeQueue);
                         nodeQueue.add(position, new NodeInVisitingSegment(finalizer, visitingSegmentCounter++));
+                        if (node instanceof TaskNode && finalizer instanceof TaskNode) {
+                            ((TaskNode) finalizer).maybeInheritOrdinalAsFinalizer((TaskNode) node);
+                        }
                     }
                 }
 

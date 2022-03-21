@@ -168,7 +168,11 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
         String name,
         Class<T> implementationType,
         @Nullable P parameters,
+<<<<<<< HEAD
         Integer maxParallelUsages,
+=======
+        @Nullable Integer maxParallelUsages,
+>>>>>>> release
         NamedDomainObjectSet<BuildServiceRegistration<?, ?>> registrations
     ) {
         BuildServiceProvider<T, P> provider = new BuildServiceProvider<>(

@@ -114,9 +114,12 @@ object BuildParams {
     const val TEST_SPLIT_ONLY_TEST_GRADLE_VERSION = "onlyTestGradleVersion"
     const val TEST_JAVA_VENDOR = "testJavaVendor"
     const val TEST_JAVA_VERSION = "testJavaVersion"
+<<<<<<< HEAD
     const val AUTO_DOWNLOAD_ANDROID_STUDIO = "autoDownloadAndroidStudio"
     const val RUN_ANDROID_STUDIO_IN_HEADLESS_MODE = "runAndroidStudioInHeadlessMode"
     const val STUDIO_HOME = "studioHome"
+=======
+>>>>>>> release
     const val YARNPKG_MIRROR_URL = "YARNPKG_MIRROR_URL"
 }
 
