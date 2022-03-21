@@ -1,0 +1,149 @@
+[[build_github_actions]]
+= Executing Gradle builds on GitHub Actions
+
+TIP: Top engineering teams using GitHub Actions have been able to reduce CI build time by up to 90% by using the Gradle Build Cache. https://gradle.com/training/build-cache-deep-dive/?bid=guides-execute-travisci[Register here] for our Build Cache training session to learn how your team can achieve similar results.
+
+Building Gradle projects doesn't stop with the developer's machine.
+https://en.wikipedia.org/wiki/Continuous_integration[Continuous Integration] (CI) has been a long-established practice for running a build for every single change committed to version control to tighten the feedback loop.
+
+In this guide, we'll discuss how to configure link:https://github.com/features/actions/[GitHub Actions] for a typical Gradle project.
+
+== What you'll need
+
+* A text editor
+* A command prompt
+* The Java Development Kit (JDK), version 1.8 or higher
+* A https://gradle.org/install[Gradle distribution], version {gradle-version} or better
+* A GitHub account
+
+== Setup a typical project
+
+As example, this guide is going to focus on a Java-based project.
+More specifically, a Gradle plugin written in Java and tested with https://www.spekframework.org/[Spek].
+First, we'll get the project set up on your local machine before covering the same steps on CI.
+
+Just follow these steps:
+
+=== Fork the https://github.com/gradle/gradle-site-plugin[Gradle Site Plugin] repository
+
+Open https://github.com/gradle/gradle-site-plugin and click the "Fork" button top right. Create the fork under your personal GitHub account.
+
+=== Clone the repository locally
+
+[listing.terminal.sample-command]
+----
+$ git clone https://github.com/<github-user>/gradle-site-plugin.git
+Cloning into 'gradle-site-plugin'...
+$ cd gradle-site-plugin
+----
+
+=== Build the project
+
+As a developer of a Java project, you'll typical want to compile the source code, run the tests and assemble the JAR artifact. That's no different for Gradle plugins. The following command achieves exactly that:
+
+[listing.terminal.sample-command]
+----
+$ ./gradlew build
+
+BUILD SUCCESSFUL
+14 actionable tasks: 14 executed
+----
+
+The project provides the <<gradle_wrapper.adoc#gradle_wrapper,Gradle Wrapper>> as part of the repository.
+It is a recommended practice for any Gradle project as it enables your project to built on CI without having to install the Gradle runtime.
+
+=== Build scan integration
+
+The sample project is equipped with support for generating link:https://scans.gradle.com/[build scans].
+Running the build with the command line option `--scan` renders a link in the console.
+
+[listing.terminal.sample-command]
+----
+$ ./gradlew build --scan
+Publishing build scan...
+https://gradle.com/s/7mtynxxmesdio
+----
+
+The following section will describe how to build the project with the help of GitHub Actions.
+
+== Configure GitHub Actions
+
+GitHub Actions is a free, cloud-based CI solution provider built directly into GitHub making it an excellent choice for open source projects hosted on GitHub.
+You can build any project as long as it is hosted on GitHub as public repository.
+GitHub Actions can be configured to make your build outputs and test results available for download.
+
+=== Configure the GitHub Actions workflow
+
+You create a GitHub Actions workflow by adding a `.github/workflows/<workflow-name>.yml` file to your repository.
+This workflow definition file contains all relevant instructions for building the project on GitHub Actions.
+
+The following workflow file instructs GitHub Actions to build your Gradle project with the default JDK, using th Java project with JDK 8, using the Gradle Wrapper to run the build.
+Create a new file named `.github/workflows/build-project.yml` with the following content, and push it to the GitHub repository.
+
+[listing]
+----
+name: Build Gradle project
+
+on:
+  push:
+
+jobs:
+  build-gradle-project:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout project sources
+      uses: actions/checkout@v2
+    - name: Setup Gradle
+      uses: gradle/gradle-build-action@v2
+    - name: Run build with Gradle wrapper
+      run: ./gradlew build --scan
+----
+
+== View the GitHub Actions results
+
+Once this workflow file is pushed, you should immediately see the workflow execution in the GitHub Actions page for your repository (eg https://github.com/bigdaz/gradle-site-plugin/actions).
+Any subsequent push to the repository will trigger the workflow to run.
+
+=== List all runs of the GitHub Actions workflow
+
+The main actions page can be filtered to list all runs for a GitHub Actions workflow.
+
+image::ci-systems/github-actions-workflows.png[View workflow executions]
+
+=== See the results for GitHub Actions workflow run
+
+Clicking on the link for a workflow run will show the details of the workflow run, including a link to the build scan produced for the build.
+
+NOTE: Configuring link:https://scans.gradle.com/[build scans] is especially helpful on cloud CI systems like GitHub Actions because it has additional environment and test results information that are difficult to obtain otherwise.
+
+image::ci-systems/github-actions-workflow.png[View workflow execution details]
+
+=== View the details for Jobs and Steps in the workflow
+
+Finally, you can view the details for the individual workflow Jobs and each Step defined for a Job:
+
+image::ci-systems/github-actions-job-details.png[View workflow job details]
+
+== Enable caching of downloaded artifacts
+
+The https://github.com/gradle/gradle-build-action[gradle-build-action] used by this workflow will enable saving and restoring of the Gradle User Home
+directory in the built-in GitHub Actions cache.
+This will speed up your GitHub Actions build by avoiding the need to re-download Gradle versions and project dependencies,
+as well as re-using state from the previous workflow execution.
+
+Details about what entries are saved/restored from the cache can be viewed in the `Post Setup Gradle` step:
+
+image::ci-systems/github-actions-cache-details.png[View cache entry details]
+
+== Further reading
+
+Learn more about building Gradle projects with GitHub Actions:
+
+* https://docs.github.com/en/actions/[GitHub Actions documentation]
+* https://github.com/gradle/gradle-build-action#readme[Use and configuration of the gradle-build-action]
+
+== Summary
+
+Executing Gradle builds on CI can be set up and configured with just a handful of steps.
+The benefit of receiving fast feedback clearly speaks for itself.
+GitHub Actions provides a simple, convenient mechanism to setup CI for any Gradle project hosted on GitHub.
