@@ -260,8 +260,12 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * <p>Returns the build directory of this project.  The build directory is the directory which all artifacts are
      * generated into.  The default value for the build directory is <code><i>projectDir</i>/build</code></p>
      *
+     * <p>This method is deprecated and scheduled for removal in Gradle 8. Use {@code getLayout().getBuildDirectory()} instead.</p>
+     *
      * @return The build directory. Never returns null.
+     * @deprecated Use {@link ProjectLayout#getBuildDirectory()} instead.
      */
+    @Deprecated
     File getBuildDir();
 
     /**

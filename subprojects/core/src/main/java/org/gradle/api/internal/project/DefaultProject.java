@@ -798,6 +798,8 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public File getBuildDir() {
+        // TODO document deprecation and link it in the error message
+        DeprecationLogger.deprecateMethod(Project.class, "getBuildDir").replaceWith("getLayout().getBuildDirectory()").willBeRemovedInGradle8().undocumented().nagUser();
         return getLayout().getBuildDirectory().getAsFile().get();
     }
 
