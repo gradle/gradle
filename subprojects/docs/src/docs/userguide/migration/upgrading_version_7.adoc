@@ -55,6 +55,17 @@ eclipse {
 
 Alternatively, you can adjust or remove classpath attributes in the `eclipse.classpath.file.whenMerged { }` block.
 
+==== Signing plugin defaults to `gpg` instead of `gpg2` when using the GPG command
+
+The signature plugin's default executable link:signing_plugin.html#sec:using_gpg_agent[when using the GPG command] changed from `gpg2` to `gpg`. The change was motivated as GPG 2.x became stable, and distributions started to migrate by not linking the `gpg2` executable.
+
+In order to set the old default, the executable can be manually defined in `gradle.properties`:
+
+[source,properties]
+----
+signing.gnupg.executable=gpg2
+----
+
 === Deprecations
 
 [[file_collection_to_classpath]]
