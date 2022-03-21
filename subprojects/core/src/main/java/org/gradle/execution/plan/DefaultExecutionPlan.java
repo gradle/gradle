@@ -163,7 +163,6 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
         for (Task task : sorted(tasks)) {
             TaskNode node = taskNodeFactory.getOrCreateNode(task);
-            node.maybeSetOrdinal(ordinal);
             if (node.isMustNotRun()) {
                 requireWithDependencies(node);
             } else if (filter.isSatisfiedBy(task)) {
