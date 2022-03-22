@@ -45,6 +45,8 @@ abstract class BasePromotionBuildType(vcsRootId: String, cleanCheckout: Boolean 
         params {
             password("env.GRADLE_ENTERPRISE_ACCESS_KEY", "%ge.gradle.org.access.key%;%e.grdev.net.access.key%")
             password("env.ORG_GRADLE_PROJECT_botGradleGitHubToken", "%github.bot-gradle.token%")
+
+            param("additional.gradle.parameters", "")
         }
 
         features {
