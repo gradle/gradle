@@ -545,6 +545,29 @@ class AccessTrackingPropertiesTest extends AbstractAccessTrackingMapTest {
         changeCount = changed != null ? 1 : 0
     }
 
+    def "entry method setValue changes map"() {
+        when:
+        def map = getMapUnderTestToWrite()
+        def entry = map.entrySet().find { entry -> entry.getKey() == 'existing'}
+
+        def result = entry.setValue('newValue')
+
+        then:
+        result == 'existingValue'
+        map['existing'] == 'newValue'
+    }
+
+    def "entry method setValue reports change"() {
+        when:
+        def entry = getMapUnderTestToWrite().entrySet().find { entry -> entry.getKey() == 'existing'}
+
+        entry.setValue('newValue')
+
+        then:
+        1 * onChange.accept('existing', 'newValue')
+        0 * onChange._
+    }
+
     private static Properties propertiesWithContent(Map<String, String> contents) {
         Properties props = new Properties()
         props.putAll(contents)

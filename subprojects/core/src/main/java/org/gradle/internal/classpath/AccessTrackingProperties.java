@@ -27,6 +27,7 @@ import java.io.Writer;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 import java.util.function.BiConsumer;
@@ -101,7 +102,7 @@ class AccessTrackingProperties extends Properties {
 
     @Override
     public Set<Map.Entry<Object, Object>> entrySet() {
-        return new AccessTrackingSet<>(delegate.entrySet(), entrySetTrackingListener());
+        return new AccessTrackingSet<>(delegate.entrySet(), entrySetTrackingListener(), TrackingEntry::new);
     }
 
     private void onAccessEntrySetElement(@Nullable Object potentialEntry) {
@@ -436,5 +437,48 @@ class AccessTrackingProperties extends Properties {
                 }
             }
         };
+    }
+
+    private class TrackingEntry implements Map.Entry<Object, Object> {
+        private final Map.Entry<Object, Object> delegate;
+
+        TrackingEntry(Map.Entry<Object, Object> delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public Object getKey() {
+            return delegate.getKey();
+        }
+
+        @Override
+        public Object getValue() {
+            return delegate.getValue();
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (!(o instanceof Map.Entry)) {
+                return false;
+            }
+            Map.Entry<?, ?> that = (Map.Entry<?, ?>) o;
+            return Objects.equals(delegate.getKey(), that.getKey()) && Objects.equals(delegate.getValue(), that.getValue());
+        }
+
+        @Override
+        public int hashCode() {
+            return delegate.hashCode();
+        }
+
+        @Override
+        public Object setValue(Object value) {
+            Object oldValue = delegate.setValue(value);
+            listener.onAccess(getKey(), oldValue);
+            listener.onChange(getKey(), value);
+            return oldValue;
+        }
     }
 }
