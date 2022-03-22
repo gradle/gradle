@@ -153,6 +153,7 @@ class DefaultPrecompiledScriptPluginsSupport : PrecompiledScriptPluginsSupport {
         return true
     }
 
+    @Deprecated("Use enableOn(Target)")
     override fun enableOn(
         project: Project,
         kotlinSourceDirectorySet: SourceDirectorySet,
@@ -166,11 +167,13 @@ class DefaultPrecompiledScriptPluginsSupport : PrecompiledScriptPluginsSupport {
             override val kotlinSourceDirectorySet
                 get() = kotlinSourceDirectorySet
 
+            @Deprecated("No longer used.", ReplaceWith(""))
             override val kotlinCompileTask
-                get() = kotlinCompileTask
+                get() = error("No longer used.")
 
+            @Deprecated("No longer used.", ReplaceWith(""))
             override fun applyKotlinCompilerArgs(args: List<String>) =
-                kotlinCompilerArgsConsumer.accept(args)
+                error("No longer used.")
         })
     }
 
