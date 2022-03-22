@@ -5,20 +5,6 @@ plugins {
 
 description = "Configuration cache implementation"
 
-val configurationCacheReportPath by configurations.creating {
-    isVisible = false
-    isCanBeConsumed = false
-    attributes { attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named("configuration-cache-report")) }
-}
-
-dependencies {
-    configurationCacheReportPath(project(":configuration-cache-report"))
-}
-
-tasks.processResources {
-    from(configurationCacheReportPath) { into("org/gradle/configurationcache/problems") }
-}
-
 // The integration tests in this project do not need to run in 'config cache' mode.
 tasks.configCacheIntegTest {
     enabled = false
