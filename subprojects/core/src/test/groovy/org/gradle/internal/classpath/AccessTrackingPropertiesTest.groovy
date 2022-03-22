@@ -433,13 +433,11 @@ class AccessTrackingPropertiesTest extends AbstractAccessTrackingMapTest {
         0 * onAccess._
 
         where:
-        key        | newValue   | oldValue
-        'existing' | 'newValue' | 'existingValue'
-        'existing' | null       | 'existingValue'
-        'missing'  | 'newValue' | null
-        'missing'  | null       | null
-
-        changeCount = oldValue == null ? 1 : 0
+        key        | newValue   | oldValue        | changeCount
+        'existing' | 'newValue' | 'existingValue' | 0
+        'existing' | null       | 'existingValue' | 0
+        'missing'  | 'newValue' | null            | 1
+        'missing'  | null       | null            | 0
     }
 
     def "method computeIfPresent(#key, #newValue) changes map"() {
@@ -554,7 +552,7 @@ class AccessTrackingPropertiesTest extends AbstractAccessTrackingMapTest {
     def "entry method setValue changes map"() {
         when:
         def map = getMapUnderTestToWrite()
-        def entry = map.entrySet().find { entry -> entry.getKey() == 'existing'}
+        def entry = map.entrySet().find { entry -> entry.getKey() == 'existing' }
 
         def result = entry.setValue('newValue')
 
@@ -565,7 +563,7 @@ class AccessTrackingPropertiesTest extends AbstractAccessTrackingMapTest {
 
     def "entry method setValue reports change"() {
         when:
-        def entry = getMapUnderTestToWrite().entrySet().find { entry -> entry.getKey() == 'existing'}
+        def entry = getMapUnderTestToWrite().entrySet().find { entry -> entry.getKey() == 'existing' }
 
         entry.setValue('newValue')
 

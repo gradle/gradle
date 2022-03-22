@@ -123,32 +123,42 @@ class AccessTrackingProperties extends Properties {
     @Override
     public void replaceAll(BiFunction<? super Object, ? super Object, ?> function) {
         reportAggregatingAccess();
-        delegate.replaceAll((k, v) -> {
-            Object newValue = function.apply(k, v);
-            if (v != newValue) {
-                // Doing reference comparison may be overzealous for strings,
-                // but it is safer for user types with potentially poorly defined equals.
-                listener.onChange(k, newValue);
-            }
-            return newValue;
-        });
+        synchronized (delegate) {
+            delegate.replaceAll((k, v) -> {
+                Object newValue = function.apply(k, v);
+                if (v != newValue) {
+                    // Doing reference comparison may be overzealous for strings,
+                    // but it is safer for user types with potentially poorly defined equals.
+                    listener.onChange(k, newValue);
+                }
+                return newValue;
+            });
+        }
     }
 
     @Override
     public Object putIfAbsent(Object key, Object value) {
-        Object oldValue = delegate.putIfAbsent(key, value);
+        Object oldValue;
+        synchronized (delegate) {
+            oldValue = delegate.putIfAbsent(key, value);
+        }
         reportKeyAndValue(key, oldValue);
         if (oldValue == null) {
             // Properties disallow null values, so it is safe to assume that the map was changed.
             listener.onChange(key, value);
         }
         return oldValue;
+
     }
 
     @Override
     public boolean remove(Object key, Object value) {
-        Object oldValue = delegate.get(key);
-        boolean hadValue = delegate.remove(key, value);
+        Object oldValue;
+        boolean hadValue;
+        synchronized (delegate) {
+            oldValue = delegate.get(key);
+            hadValue = delegate.remove(key, value);
+        }
         reportKeyAndValue(key, oldValue);
         if (hadValue) {
             // The configuration cache uses onRemove callback to remember that the property has to be removed.
@@ -157,12 +167,17 @@ class AccessTrackingProperties extends Properties {
             listener.onRemove(key);
         }
         return hadValue;
+
     }
 
     @Override
     public boolean replace(Object key, Object expectedOldValue, Object newValue) {
-        Object oldValue = delegate.get(key);
-        boolean changed = delegate.replace(key, expectedOldValue, newValue);
+        Object oldValue;
+        boolean changed;
+        synchronized (delegate) {
+            oldValue = delegate.get(key);
+            changed = delegate.replace(key, expectedOldValue, newValue);
+        }
         reportKeyAndValue(key, oldValue);
         if (changed) {
             // The configuration cache uses onChange callback to remember that the property has to be changed.
@@ -171,24 +186,35 @@ class AccessTrackingProperties extends Properties {
             listener.onChange(key, newValue);
         }
         return changed;
+
     }
 
     @Override
     public Object replace(Object key, Object value) {
-        Object oldValue = delegate.replace(key, value);
+        Object oldValue;
+        synchronized (delegate) {
+            oldValue = delegate.replace(key, value);
+        }
         reportKeyAndValue(key, oldValue);
         if (oldValue != null) {
             listener.onChange(key, value);
         }
         return oldValue;
+
     }
 
     @Override
     public Object computeIfAbsent(Object key, Function<? super Object, ?> mappingFunction) {
-        Object oldValue = delegate.get(key);
+        Object oldValue;
+        Object computedValue = null;
+        synchronized (delegate) {
+            oldValue = delegate.get(key);
+            if (oldValue == null) {
+                computedValue = delegate.computeIfAbsent(key, mappingFunction);
+            }
+        }
         reportKeyAndValue(key, oldValue);
-        if (oldValue == null) {
-            Object computedValue = delegate.computeIfAbsent(key, mappingFunction);
+        if (computedValue != null) {
             listener.onChange(key, computedValue);
             return computedValue;
         }
@@ -197,25 +223,35 @@ class AccessTrackingProperties extends Properties {
 
     @Override
     public Object computeIfPresent(Object key, BiFunction<? super Object, ? super Object, ?> remappingFunction) {
-        Object oldValue = delegate.get(key);
+        Object oldValue;
+        Object computedValue = null;
+        synchronized (delegate) {
+            oldValue = delegate.get(key);
+            if (oldValue != null) {
+                computedValue = delegate.computeIfPresent(key, remappingFunction);
+            }
+        }
         reportKeyAndValue(key, oldValue);
         if (oldValue != null) {
-            Object computedValue = delegate.computeIfPresent(key, remappingFunction);
             if (computedValue != null) {
                 listener.onChange(key, computedValue);
             } else {
                 listener.onRemove(key);
             }
-            return computedValue;
         }
-        return null;
+        return computedValue;
     }
+
 
     @Override
     public Object compute(Object key, BiFunction<? super Object, ? super Object, ?> remappingFunction) {
-        Object oldValue = delegate.get(key);
+        Object oldValue;
+        Object newValue;
+        synchronized (delegate) {
+            oldValue = delegate.get(key);
+            newValue = delegate.compute(key, remappingFunction);
+        }
         reportKeyAndValue(key, oldValue);
-        Object newValue = delegate.compute(key, remappingFunction);
         if (newValue != null) {
             listener.onChange(key, newValue);
         } else if (oldValue != null) {
@@ -224,10 +260,15 @@ class AccessTrackingProperties extends Properties {
         return newValue;
     }
 
+
     @Override
     public Object merge(Object key, Object value, BiFunction<? super Object, ? super Object, ?> remappingFunction) {
-        Object oldValue = delegate.get(key);
-        Object newValue = delegate.merge(key, value, remappingFunction);
+        Object oldValue;
+        Object newValue;
+        synchronized (delegate) {
+            oldValue = delegate.get(key);
+            newValue = delegate.merge(key, value, remappingFunction);
+        }
         reportKeyAndValue(key, oldValue);
         if (newValue != null) {
             listener.onChange(key, newValue);
@@ -235,6 +276,7 @@ class AccessTrackingProperties extends Properties {
             listener.onRemove(key);
         }
         return newValue;
+
     }
 
     @Override
@@ -254,10 +296,14 @@ class AccessTrackingProperties extends Properties {
 
     @Override
     public Object put(Object key, Object value) {
-        Object oldValue = delegate.put(key, value);
+        Object oldValue;
+        synchronized (delegate) {
+            oldValue = delegate.put(key, value);
+        }
         reportKeyAndValue(key, oldValue);
         listener.onChange(key, value);
         return oldValue;
+
     }
 
     @Override
@@ -267,23 +313,31 @@ class AccessTrackingProperties extends Properties {
 
     @Override
     public Object remove(Object key) {
-        Object result = delegate.remove(key);
+        Object result;
+        synchronized (delegate) {
+            result = delegate.remove(key);
+        }
         reportKeyAndValue(key, result);
         listener.onRemove(key);
         return result;
+
     }
 
     @Override
     public void putAll(Map<?, ?> t) {
         // putAll has no return value so keys do not become inputs.
         t.forEach(listener::onChange);
-        delegate.putAll(t);
+        synchronized (delegate) {
+            delegate.putAll(t);
+        }
     }
 
     @Override
     public void clear() {
         listener.onClear();
-        delegate.clear();
+        synchronized (delegate) {
+            delegate.clear();
+        }
     }
 
     @Override
