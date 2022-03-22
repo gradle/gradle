@@ -120,7 +120,7 @@ public interface WorkExecutionBuildOperationType extends BuildOperationType<Work
         /**
          * The categorisation of the why the work was not cacheable.
          * {@link Optional#empty()} if the work was cacheable.
-         * Not empty if {@link #getCachingDisabledReasonMessage()}l is not empty.
+         * Not empty if {@link #getCachingDisabledReasonMessage()} is not empty.
          * Values are expected to correlate to {@link org.gradle.internal.execution.caching.CachingDisabledReasonCategory}.
          */
         Optional<String> getCachingDisabledReasonCategory();
