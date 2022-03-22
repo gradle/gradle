@@ -334,6 +334,10 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
                     _LDC(binaryClassNameOf(className));
                     _INVOKESTATIC(INSTRUMENTED_TYPE, "setSystemProperty", RETURN_STRING_FROM_STRING_STRING_STRING);
                     return true;
+                } else if (name.equals("clearProperty") && descriptor.equals(RETURN_STRING_FROM_STRING)) {
+                    _LDC(binaryClassNameOf(className));
+                    _INVOKESTATIC(INSTRUMENTED_TYPE, "clearSystemProperty", RETURN_STRING_FROM_STRING_STRING);
+                    return true;
                 } else if (name.equals("getenv")) {
                     if (descriptor.equals(RETURN_STRING_FROM_STRING)) {
                         // System.getenv(String) -> String

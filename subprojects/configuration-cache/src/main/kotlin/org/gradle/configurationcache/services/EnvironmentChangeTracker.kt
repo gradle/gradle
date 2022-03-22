@@ -39,19 +39,48 @@ class EnvironmentChangeTracker(private val userCodeApplicationContext: UserCodeA
             mutatedSystemProperties[update.key] = update
             System.getProperties()[update.key] = update.value
         }
+
+        storedState.removals.forEach { removal ->
+            mutatedSystemProperties[removal.key] = removal
+            System.clearProperty(removal.key)
+        }
     }
 
     fun getCachedState(): CachedEnvironmentState {
-        return CachedEnvironmentState(mutatedSystemProperties.values.filterIsInstance<SystemPropertySet>())
+        return CachedEnvironmentState(
+            updates = mutatedSystemProperties.values.filterIsInstance<SystemPropertySet>(),
+            removals = mutatedSystemProperties.values.filterIsInstance<SystemPropertyRemove>()
+        )
     }
 
     fun systemPropertyChanged(key: Any, value: Any?, consumer: String) {
         mutatedSystemProperties[key] = SystemPropertySet(key, value, userCodeApplicationContext.location(consumer))
     }
 
-    class CachedEnvironmentState(val updates: List<SystemPropertySet>)
+    fun systemPropertyRemoved(key: Any) {
+        if (key is String) {
+            // Externally set system properties can only use Strings as keys. If the removal argument is a string
+            // then it can affect externally set property and has to be persisted. Then removal will be applied on
+            // the next run from cache.
+            mutatedSystemProperties[key] = SystemPropertyRemove(key)
+        } else {
+            // If the key is not a string, it can only affect properties that were set by the build logic. There is
+            // no need to persist the removal, but the set value should not be persisted too. A placeholder value
+            // will keep the key mutated to avoid recording it as an input.
+            mutatedSystemProperties[key] = SystemPropertyIgnored
+        }
+    }
 
-    sealed class SystemPropertyChange(val key: Any)
+    class CachedEnvironmentState(val updates: List<SystemPropertySet>, val removals: List<SystemPropertyRemove>)
 
-    class SystemPropertySet(key: Any, val value: Any?, val location: PropertyTrace?) : SystemPropertyChange(key)
+    sealed class SystemPropertyChange
+
+    class SystemPropertySet(val key: Any, val value: Any?, val location: PropertyTrace?) : SystemPropertyChange()
+    class SystemPropertyRemove(val key: String) : SystemPropertyChange()
+
+    /**
+     * This is a placeholder for system properties that were set but then removed. Having this in the map marks
+     * the property as mutated for the rest of the configuration phase but doesn't store the key in cache.
+     */
+    object SystemPropertyIgnored : SystemPropertyChange()
 }

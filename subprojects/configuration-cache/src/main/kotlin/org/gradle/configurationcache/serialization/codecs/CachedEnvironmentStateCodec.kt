@@ -51,6 +51,10 @@ object CachedEnvironmentStateCodec : Codec<EnvironmentChangeTracker.CachedEnviro
                 }
             }
         }
+
+        writeCollection(value.removals) { removal ->
+            writeString(removal.key)
+        }
     }
 
     override suspend fun ReadContext.decode(): EnvironmentChangeTracker.CachedEnvironmentState {
@@ -60,6 +64,11 @@ object CachedEnvironmentStateCodec : Codec<EnvironmentChangeTracker.CachedEnviro
             EnvironmentChangeTracker.SystemPropertySet(key, value, null)
         }
 
-        return EnvironmentChangeTracker.CachedEnvironmentState(updates)
+        val removals = readList {
+            val key = readString()
+            EnvironmentChangeTracker.SystemPropertyRemove(key)
+        }
+
+        return EnvironmentChangeTracker.CachedEnvironmentState(updates, removals)
     }
 }

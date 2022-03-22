@@ -136,6 +136,11 @@ class AccessTrackingEnvMap extends ForwardingMap<String, String> {
             public void onAggregatingAccess() {
                 reportAggregatingAccess();
             }
+
+            @Override
+            public void onRemove(Object object) {
+                // Environment variables are immutable.
+            }
         };
     }
 
@@ -149,6 +154,11 @@ class AccessTrackingEnvMap extends ForwardingMap<String, String> {
             @Override
             public void onAggregatingAccess() {
                 reportAggregatingAccess();
+            }
+
+            @Override
+            public void onRemove(Object object) {
+                // Environment variables are immutable.
             }
         };
     }

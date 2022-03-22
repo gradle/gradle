@@ -320,6 +320,98 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
         "1"           | """System.properties["some.property"]=$propertyValue"""
     }
 
+    def "build logic can remove property at configuration phase"() {
+        given:
+        buildFile("""
+            $propertyRemover
+
+            tasks.register("printProperty") {
+                doLast {
+                    println("some.property present = \${System.properties.containsKey("some.property")}")
+                }
+            }
+        """)
+
+        def configurationCache = newConfigurationCacheFixture()
+
+        when:
+        configurationCacheRun("-Dsome.property=some.value", "printProperty")
+
+        then:
+        outputContains("some.property present = false")
+
+        when:
+        configurationCacheRun("-Dsome.property=some.value", "printProperty")
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains("some.property present = false")
+
+        where:
+        propertyRemover                                               | _
+        """System.clearProperty("some.property")"""                   | _
+        """System.properties.remove("some.property")"""               | _
+        """System.getProperties().keySet().remove("some.property")""" | _
+    }
+
+    def "updated system property can be removed"() {
+        given:
+        buildFile("""
+            System.setProperty("some.property", "some.value")
+            System.clearProperty("some.property")
+
+            tasks.register("printProperty") {
+                doLast {
+                    println("some.property present = \${System.properties.containsKey("some.property")}")
+                }
+            }
+        """)
+
+        def configurationCache = newConfigurationCacheFixture()
+
+        when:
+        configurationCacheRun("-Dsome.property=some.value", "printProperty")
+
+        then:
+        outputContains("some.property present = false")
+
+        when:
+        configurationCacheRun("-Dsome.property=some.value", "printProperty")
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains("some.property present = false")
+    }
+
+    def "system property with a string key is removed even if it is set externally"() {
+        given:
+        buildFile("""
+            System.properties.putAll(someProperty: "some.value")  // Use putAll to avoid recording property as an input
+            System.clearProperty("someProperty")
+
+            tasks.register("printProperty") {
+                doLast {
+                    println("someProperty present = \${System.properties.containsKey("someProperty")}")
+                }
+            }
+        """)
+
+        def configurationCache = newConfigurationCacheFixture()
+
+        when:
+        configurationCacheRun("printProperty")
+
+        then:
+        outputContains("someProperty present = false")
+
+        when:
+        configurationCacheRun("-DsomeProperty=some.value", "printProperty")
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains("someProperty present = false")
+    }
+
     def "non-serializable system property is reported"() {
         given:
         buildFile("""

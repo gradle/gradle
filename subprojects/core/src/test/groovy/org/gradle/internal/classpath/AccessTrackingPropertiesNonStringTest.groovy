@@ -261,6 +261,9 @@ class AccessTrackingPropertiesNonStringTest extends Specification {
         then:
         result == expectedResult
         1 * listener.onAccess(key, expectedResult)
+        1 * listener.onRemove(key)
+        0 * listener._
+
         where:
         key                     | expectedResult
         EXISTING_KEY            | EXISTING_VALUE
@@ -275,6 +278,8 @@ class AccessTrackingPropertiesNonStringTest extends Specification {
         then:
         removeResult == expectedResult
         1 * listener.onAccess(key, expectedValue)
+        1 * listener.onRemove(key)
+        0 * listener._
 
         when:
         def removeAllResult = getMapUnderTestToWrite().keySet().removeAll(Collections.<Object> singleton(key))
@@ -282,6 +287,8 @@ class AccessTrackingPropertiesNonStringTest extends Specification {
         then:
         removeAllResult == expectedResult
         1 * listener.onAccess(key, expectedValue)
+        1 * listener.onRemove(key)
+        0 * listener._
 
         where:
         key                     | expectedValue    | expectedResult
@@ -298,6 +305,9 @@ class AccessTrackingPropertiesNonStringTest extends Specification {
         1 * listener.onAccess(EXISTING_KEY, EXISTING_VALUE)
         1 * listener.onAccess('existing', 'existingStringValue')
         1 * listener.onAccess('keyWithNonStringValue', NON_STRING_VALUE)
+        1 * listener.onRemove(EXISTING_KEY)
+        1 * listener.onRemove('existing')
+        1 * listener.onRemove('keyWithNonStringValue')
         0 * listener._
     }
 
@@ -308,6 +318,8 @@ class AccessTrackingPropertiesNonStringTest extends Specification {
         then:
         removeResult == expectedResult
         1 * listener.onAccess(key, expectedValue)
+        1 * listener.onRemove(key)
+        0 * listener._
 
         when:
         def removeAllResult = getMapUnderTestToWrite().entrySet().removeAll(Collections.singleton(entry(key, requestedValue)))
@@ -315,6 +327,8 @@ class AccessTrackingPropertiesNonStringTest extends Specification {
         then:
         removeAllResult == expectedResult
         1 * listener.onAccess(key, expectedValue)
+        1 * listener.onRemove(key)
+        0 * listener._
 
         where:
         key                     | expectedValue         | requestedValue   | expectedResult

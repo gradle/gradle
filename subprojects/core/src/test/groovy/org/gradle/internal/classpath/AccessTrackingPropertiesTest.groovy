@@ -25,6 +25,7 @@ import java.util.function.Consumer
 
 class AccessTrackingPropertiesTest extends AbstractAccessTrackingMapTest {
     private BiConsumer<Object, Object> onChange = Mock()
+    private Consumer<Object> onRemove = Mock()
 
     private AccessTrackingProperties.Listener listener = new AccessTrackingProperties.Listener() {
         @Override
@@ -35,6 +36,11 @@ class AccessTrackingPropertiesTest extends AbstractAccessTrackingMapTest {
         @Override
         void onChange(Object key, @Nullable Object newValue) {
             onChange.accept(key, newValue)
+        }
+
+        @Override
+        void onRemove(Object key) {
+            onRemove.accept(key)
         }
     }
 
@@ -124,11 +130,35 @@ class AccessTrackingPropertiesTest extends AbstractAccessTrackingMapTest {
         then:
         result == expectedResult
         1 * onAccess.accept(key, reportedValue)
+        1 * onRemove.accept(key)
         0 * onAccess._
+        0 * onRemove._
+
         where:
         key        | reportedValue   | expectedResult
         'existing' | 'existingValue' | 'existingValue'
         'missing'  | null            | null
+    }
+
+    def "remove(#key, #removedValue) is tracked"() {
+        when:
+        def result = getMapUnderTestToWrite().remove(key, removedValue)
+
+        then:
+        result == expectedResult
+        1 * onAccess.accept(key, reportedValue)
+        expectedReportedRemovalsCount * onRemove.accept(key)
+        0 * onAccess._
+        0 * onRemove._
+
+        where:
+        key        | removedValue    | reportedValue   | expectedResult
+        'existing' | 'existingValue' | 'existingValue' | true
+        'existing' | 'missingValue'  | 'existingValue' | false
+        'missing'  | 'missingValue'  | null            | false
+
+        // onRemove is only called if the value is actually removed
+        expectedReportedRemovalsCount = expectedResult ? 1 : 0
     }
 
     def "keySet() remove(#key) and removeAll(#key) are tracked"() {
@@ -138,7 +168,9 @@ class AccessTrackingPropertiesTest extends AbstractAccessTrackingMapTest {
         then:
         removeResult == expectedResult
         1 * onAccess.accept(key, reportedValue)
+        1 * onRemove.accept(key)
         0 * onAccess._
+        0 * onRemove._
 
         when:
         def removeAllResult = getMapUnderTestToWrite().keySet().removeAll(Collections.singleton(key))
@@ -146,7 +178,9 @@ class AccessTrackingPropertiesTest extends AbstractAccessTrackingMapTest {
         then:
         removeAllResult == expectedResult
         1 * onAccess.accept(key, reportedValue)
+        1 * onRemove.accept(key)
         0 * onAccess._
+        0 * onRemove._
 
         where:
         key        | reportedValue   | expectedResult
@@ -161,7 +195,9 @@ class AccessTrackingPropertiesTest extends AbstractAccessTrackingMapTest {
         then:
         removeResult == expectedResult
         1 * onAccess.accept(key, reportedValue)
+        1 * onRemove.accept(key)
         0 * onAccess._
+        0 * onRemove._
 
         when:
         def removeAllResult = getMapUnderTestToWrite().entrySet().removeAll(Collections.singleton(entry(key, requestedValue)))
@@ -169,7 +205,9 @@ class AccessTrackingPropertiesTest extends AbstractAccessTrackingMapTest {
         then:
         removeAllResult == expectedResult
         1 * onAccess.accept(key, reportedValue)
+        1 * onRemove.accept(key)
         0 * onAccess._
+        0 * onRemove._
 
         where:
         key        | requestedValue  | reportedValue   | expectedResult

@@ -41,6 +41,8 @@ class AccessTrackingProperties extends Properties {
         void onAccess(Object key, @Nullable Object value);
 
         void onChange(Object key, Object newValue);
+
+        void onRemove(Object key);
     }
 
     // TODO(https://github.com/gradle/configuration-cache/issues/337) Only a limited subset of method is tracked currently.
@@ -128,7 +130,16 @@ class AccessTrackingProperties extends Properties {
 
     @Override
     public boolean remove(Object key, Object value) {
-        return delegate.remove(key, value);
+        Object oldValue = delegate.get(key);
+        boolean hadValue = delegate.remove(key, value);
+        reportKeyAndValue(key, oldValue);
+        if (hadValue) {
+            // The configuration cache uses onRemove callback to remember that the property has to be removed.
+            // Of course, the property has to be removed in the cached run only if it was removed in the
+            // non-cached run first. Changing the value of the property would invalidate the cache and recalculate the removal.
+            listener.onRemove(key);
+        }
+        return hadValue;
     }
 
     @Override
@@ -193,6 +204,7 @@ class AccessTrackingProperties extends Properties {
     public Object remove(Object key) {
         Object result = delegate.remove(key);
         reportKeyAndValue(key, result);
+        listener.onRemove(key);
         return result;
     }
 
@@ -334,6 +346,11 @@ class AccessTrackingProperties extends Properties {
             public void onAggregatingAccess() {
                 reportAggregatingAccess();
             }
+
+            @Override
+            public void onRemove(Object object) {
+                listener.onRemove(object);
+            }
         };
     }
 
@@ -347,6 +364,14 @@ class AccessTrackingProperties extends Properties {
             @Override
             public void onAggregatingAccess() {
                 reportAggregatingAccess();
+            }
+
+            @Override
+            public void onRemove(Object potentialEntry) {
+                Map.Entry<?, ?> entry = AccessTrackingUtils.tryConvertingToEntry(potentialEntry);
+                if (entry != null) {
+                    listener.onRemove(entry.getKey());
+                }
             }
         };
     }

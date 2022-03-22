@@ -33,6 +33,8 @@ class AccessTrackingSet<E> extends ForwardingSet<E> {
         void onAccess(Object o);
 
         void onAggregatingAccess();
+
+        void onRemove(Object object);
     }
 
     // TODO(https://github.com/gradle/configuration-cache/issues/337) Only a limited subset of entrySet/keySet methods are currently tracked.
@@ -65,6 +67,7 @@ class AccessTrackingSet<E> extends ForwardingSet<E> {
     public boolean remove(Object o) {
         // We cannot perform modification before notifying because the listener may want to query the state of the delegate prior to that.
         listener.onAccess(o);
+        listener.onRemove(o);
         return delegate.remove(o);
     }
 
@@ -73,6 +76,7 @@ class AccessTrackingSet<E> extends ForwardingSet<E> {
         // We cannot perform modification before notifying because the listener may want to query the state of the delegate prior to that.
         for (Object o : collection) {
             listener.onAccess(o);
+            listener.onRemove(o);
         }
         return delegate.removeAll(collection);
     }

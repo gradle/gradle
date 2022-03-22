@@ -88,6 +88,10 @@ class InstrumentedInputAccessListener(
         environmentChangeTracker.systemPropertyChanged(key, value, consumer)
     }
 
+    override fun systemPropertyRemoved(key: Any, consumer: String) {
+        environmentChangeTracker.systemPropertyRemoved(key)
+    }
+
     override fun envVariableQueried(key: String, value: String?, consumer: String) {
         if (Workarounds.canReadEnvironmentVariable(consumer)) {
             return

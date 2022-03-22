@@ -105,6 +105,7 @@ class AccessTrackingSetTest extends Specification {
         then:
         result
         1 * listener.onAccess('existing')
+        1 * listener.onRemove('existing')
         0 * listener._
     }
 
@@ -115,6 +116,7 @@ class AccessTrackingSetTest extends Specification {
         then:
         !result
         1 * listener.onAccess('missing')
+        1 * listener.onRemove('missing')
         0 * listener._
     }
 
@@ -126,6 +128,8 @@ class AccessTrackingSetTest extends Specification {
         result
         1 * listener.onAccess('existing')
         1 * listener.onAccess('other')
+        1 * listener.onRemove('existing')
+        1 * listener.onRemove('other')
         0 * listener._
     }
 
@@ -137,6 +141,8 @@ class AccessTrackingSetTest extends Specification {
         !result
         1 * listener.onAccess('missing')
         1 * listener.onAccess('alsoMissing')
+        1 * listener.onRemove('missing')
+        1 * listener.onRemove('alsoMissing')
         0 * listener._
     }
 
@@ -148,6 +154,8 @@ class AccessTrackingSetTest extends Specification {
         result
         1 * listener.onAccess('existing')
         1 * listener.onAccess('missing')
+        1 * listener.onRemove('existing')
+        1 * listener.onRemove('missing')
         0 * listener._
     }
 

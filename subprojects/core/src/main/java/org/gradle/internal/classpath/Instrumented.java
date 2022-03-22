@@ -47,6 +47,10 @@ public class Instrumented {
         }
 
         @Override
+        public void systemPropertyRemoved(Object key, String consumer) {
+        }
+
+        @Override
         public void envVariableQueried(String key, @Nullable String value, String consumer) {
         }
 
@@ -83,6 +87,9 @@ public class Instrumented {
                     break;
                 case "setProperty":
                     array.array[callSite.getIndex()] = new SetSystemPropertyCallSite(callSite);
+                    break;
+                case "clearProperty":
+                    array.array[callSite.getIndex()] = new ClearSystemPropertyCallSite(callSite);
                     break;
                 case "properties":
                 case "getProperties":
@@ -146,6 +153,11 @@ public class Instrumented {
             public void onChange(Object key, Object newValue) {
                 listener().systemPropertyChanged(key, newValue, consumer);
             }
+
+            @Override
+            public void onRemove(Object key) {
+                listener().systemPropertyRemoved(key, consumer);
+            }
         });
     }
 
@@ -154,6 +166,14 @@ public class Instrumented {
         String oldValue = System.setProperty(key, value);
         systemPropertyQueried(key, oldValue, consumer);
         listener().systemPropertyChanged(key, value, consumer);
+        return oldValue;
+    }
+
+    // Called by generated code.
+    public static String clearSystemProperty(String key, String consumer) {
+        String oldValue = System.clearProperty(key);
+        systemPropertyQueried(key, oldValue, consumer);
+        listener().systemPropertyRemoved(key, consumer);
         return oldValue;
     }
 
@@ -405,6 +425,14 @@ public class Instrumented {
         void systemPropertyChanged(Object key, @Nullable Object value, String consumer);
 
         /**
+         * Invoked when the code removes the system property. The property may not be present.
+         *
+         * @param key the name of the property, can be non-string
+         * @param consumer the name of the class that is removing the property value
+         */
+        void systemPropertyRemoved(Object key, String consumer);
+
+        /**
          * Invoked when the code reads the environment variable.
          *
          * @param key the name of the variable
@@ -543,6 +571,30 @@ public class Instrumented {
                 return setSystemProperty(convertToString(arg1), convertToString(arg2), array.owner.getName());
             } else {
                 return super.callStatic(receiver, arg1, arg2);
+            }
+        }
+    }
+
+    private static class ClearSystemPropertyCallSite extends AbstractCallSite {
+        public ClearSystemPropertyCallSite(CallSite callSite) {
+            super(callSite);
+        }
+
+        @Override
+        public Object call(Object receiver, Object arg1) throws Throwable {
+            if (receiver.equals(System.class)) {
+                return clearSystemProperty(convertToString(arg1), array.owner.getName());
+            } else {
+                return super.call(receiver, arg1);
+            }
+        }
+
+        @Override
+        public Object callStatic(Class receiver, Object arg1) throws Throwable {
+            if (receiver.equals(System.class)) {
+                return clearSystemProperty(convertToString(arg1), array.owner.getName());
+            } else {
+                return super.callStatic(receiver, arg1);
             }
         }
     }
