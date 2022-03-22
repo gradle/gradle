@@ -287,6 +287,7 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
             for (PlanDetails details : queues) {
                 details.source.abortAllAndFail(failure);
             }
+            coordinationService.notifyStateChange();
         }
     }
 

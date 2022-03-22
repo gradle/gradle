@@ -1092,14 +1092,8 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
             Node node = iterator.next();
 
             // Allow currently executing and enforced tasks to complete, but skip everything else.
-            if (node.isRequired()) {
-                node.abortExecution(this::recordNodeCompleted);
-                iterator.remove();
-                aborted = true;
-            }
-
-            // If abortAll is set, also stop enforced tasks.
-            if (abortAll && node.isReady()) {
+            // If abortAll is set, also stop everything.
+            if (node.isRequired() || abortAll) {
                 node.abortExecution(this::recordNodeCompleted);
                 iterator.remove();
                 aborted = true;

@@ -101,7 +101,6 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         when:
         def result = scheduleAndRun(services) { builder ->
             builder.withWorkGraph(build) { graphBuilder ->
-                def node = new StuckNode()
                 node.require()
                 node.dependenciesProcessed()
                 graphBuilder.addNodes([node])
@@ -112,6 +111,9 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         result.failures.size() == 1
         result.failures.first() instanceof IllegalStateException
         result.failures.first().message == "Unable to make progress running work. There are items queued for execution but none of them can be started"
+
+        where:
+        node << [new DependenciesStuckNode(), new NeverReadyNode()]
     }
 
     ExecutionResult<Void> scheduleAndRun(Services services, Action<BuildTreeWorkGraph.Builder> action) {
@@ -225,9 +227,30 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         }
     }
 
-    private static class StuckNode extends TestNode {
+    private static class DependenciesStuckNode extends TestNode {
         @Override
         protected boolean doCheckDependenciesComplete() {
+            return false
+        }
+    }
+
+    // Emulates a stuck finalizer
+    private static class NeverReadyNode extends TestNode {
+        boolean stuck
+
+        @Override
+        String toString() {
+            return super.toString() + " stuck=" + stuck
+        }
+
+        @Override
+        boolean isRequired() {
+            return !stuck
+        }
+
+        @Override
+        boolean isReady() {
+            stuck = true
             return false
         }
     }
