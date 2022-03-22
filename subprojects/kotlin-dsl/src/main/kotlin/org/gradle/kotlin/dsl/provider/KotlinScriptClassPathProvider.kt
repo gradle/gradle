@@ -208,16 +208,17 @@ class KotlinScriptClassPathProvider(
 internal
 fun gradleApiJarsProviderFor(dependencyFactory: DependencyFactory, dependencyResolutionServices: DependencyResolutionServices): JarsProvider =
     {
-        gradleApisFromRepository(dependencyResolutionServices, dependencyFactory)
-//        gradleApisFromCurrentGradle(dependencyFactory)
+        System.getProperty("org.gradle.api.version")?.let { version ->
+            gradleApisFromRepository(dependencyResolutionServices, dependencyFactory, version)
+        } ?: gradleApisFromCurrentGradle(dependencyFactory)
     }
 
 private
-fun gradleApisFromRepository(dependencyResolutionServices: DependencyResolutionServices, dependencyFactory: DependencyFactory): Set<File> {
+fun gradleApisFromRepository(dependencyResolutionServices: DependencyResolutionServices, dependencyFactory: DependencyFactory, version: String): Set<File> {
     dependencyResolutionServices.resolveRepositoryHandler.maven("https://repo.gradle.org/gradle/libs-releases")
     val gradleModules = listOf("core", "core-api", "tooling-api", "kotlin-dsl")
     val detachedConfiguration = dependencyResolutionServices.configurationContainer.detachedConfiguration(
-        *gradleModules.map { dependencyFactory.gradleDependency(it) }.toTypedArray()
+        *gradleModules.map { dependencyFactory.gradleDependency(it, version) }.toTypedArray()
     )
 
     return detachedConfiguration.resolve()
