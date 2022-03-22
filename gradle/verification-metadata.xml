@@ -480,6 +480,11 @@
             <pgp value="635ee627345f3c1dd422b2e207d3516820bcf6b1"/>
          </artifact>
       </component>
+      <component group="com.github.javaparser" name="javaparser-core" version="3.24.0">
+         <artifact name="javaparser-core-3.24.0.jar">
+            <pgp value="253e8e4c6fb28d11748115c1249dee8e2c07a0a2"/>
+         </artifact>
+      </component>
       <component group="com.github.siom79.japicmp" name="japicmp" version="0.14.3">
          <artifact name="japicmp-0.14.3.jar">
             <pgp value="fffd810fffde203d5fa27263beabcfbee059e4e5"/>
@@ -1041,14 +1046,14 @@
             <sha256 value="6dd87a91ddfe71b12b139efe9b82624af0eb47e525bd5f10259ad54341e347bf" origin="Artifact is not signed"/>
          </artifact>
       </component>
-      <component group="org.assertj" name="assertj-core" version="3.12.2">
-         <artifact name="assertj-core-3.12.2.jar">
-            <pgp value="a778fde933a96dda827840d8e2b3d84202b812d9"/>
-         </artifact>
-      </component>
       <component group="org.assertj" name="assertj-core" version="3.16.1">
          <artifact name="assertj-core-3.16.1.jar">
             <pgp value="77993d3295698c46912e83984b2277c6358670ee"/>
+         </artifact>
+      </component>
+      <component group="org.assertj" name="assertj-core" version="3.20.2">
+         <artifact name="assertj-core-3.20.2.jar">
+            <pgp value="be685132afd2740d9095f9040cc0b712fee75827"/>
          </artifact>
       </component>
       <component group="org.brotli" name="dec" version="0.1.2">

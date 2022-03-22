@@ -549,7 +549,7 @@ tasks.named("checkAsciidoctorSampleContents") {
 }
 
 // exclude (unused and non-existing) wrapper of development Gradle version, as well as README, because the timestamp in the Gradle version break the cache
-tasks.withType(InstallSample) {
+tasks.withType(InstallSample).configureEach {
     if (name.contains('ForTest')) {
         excludes.add("gradle/wrapper/**")
         excludes.add("README")

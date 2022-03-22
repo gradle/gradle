@@ -16,17 +16,22 @@
 
 package org.gradle.performance.regression.android
 
+import org.gradle.api.JavaVersion
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
 import org.gradle.performance.fixture.AndroidTestProject
+import org.gradle.profiler.BuildMutator
+import org.gradle.profiler.ScenarioContext
 import org.gradle.profiler.mutations.AbstractCleanupMutator
 import org.gradle.profiler.mutations.ClearArtifactTransformCacheMutator
 
 import static org.gradle.performance.annotations.ScenarioType.PER_COMMIT
 import static org.gradle.performance.annotations.ScenarioType.PER_DAY
 import static org.gradle.performance.fixture.AndroidTestProject.LARGE_ANDROID_BUILD
+import static org.gradle.performance.fixture.AndroidTestProject.LARGE_ANDROID_BUILD_2
 import static org.gradle.performance.results.OperatingSystem.LINUX
 
 class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanceTest implements AndroidPerformanceTestFixture {
@@ -43,7 +48,8 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
     @RunFor([
         @Scenario(type = PER_COMMIT, operatingSystems = LINUX, testProjects = "largeAndroidBuild", iterationMatcher = "run help"),
         @Scenario(type = PER_COMMIT, operatingSystems = LINUX, testProjects = ["largeAndroidBuild", "santaTrackerAndroidBuild"], iterationMatcher = "run assembleDebug"),
-        @Scenario(type = PER_COMMIT, operatingSystems = LINUX, testProjects = "largeAndroidBuild", iterationMatcher = ".*phthalic.*")
+        @Scenario(type = PER_COMMIT, operatingSystems = LINUX, testProjects = "largeAndroidBuild", iterationMatcher = ".*phthalic.*"),
+        // @Scenario(type = PER_COMMIT, operatingSystems = LINUX, testProjects = "largeAndroidBuild2", iterationMatcher = ".*module21.*"),
     ])
     def "run #tasks"() {
         given:
@@ -55,6 +61,11 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
         runner.runs = runs
         applyEnterprisePlugin()
 
+        and:
+        if (androidTestProject == LARGE_ANDROID_BUILD_2) {
+            configureForLargeAndroidBuild2()
+        }
+
         when:
         def result = runner.run()
 
@@ -62,10 +73,11 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        tasks                          | warmUpRuns | runs
-        'help'                         | null       | null
-        'assembleDebug'                | null       | null
-        'clean phthalic:assembleDebug' | 2          | 8
+        tasks                                        | warmUpRuns | runs
+        'help'                                       | null       | null
+        'assembleDebug'                              | null       | null
+        'clean phthalic:assembleDebug'               | 2          | 8
+        // ':module21:module02:assembleDebug --dry-run' | 8          | 20
     }
 
     @RunFor([
@@ -99,5 +111,18 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
 
         where:
         tasks << ['assembleDebug', 'phthalic:assembleDebug']
+    }
+
+    private void configureForLargeAndroidBuild2() {
+        def buildJavaHome = AvailableJavaHomes.getAvailableJdks { it.languageVersion == JavaVersion.VERSION_11 }.first().javaHome
+        runner.addBuildMutator { invocation ->
+            new BuildMutator() {
+                @Override
+                void beforeScenario(ScenarioContext context) {
+                    def gradleProps = new File(invocation.projectDir, "gradle.properties")
+                    gradleProps << "\norg.gradle.java.home=${buildJavaHome}\n"
+                }
+            }
+        }
     }
 }

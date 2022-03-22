@@ -17,6 +17,7 @@
 package org.gradle.util.internal;
 
 import java.io.File;
+import java.util.Locale;
 
 import static java.lang.String.format;
 
@@ -47,6 +48,6 @@ public class ZipSlip {
     }
 
     private static boolean isWindows() {
-        return System.getProperty("os.name").contains("windows");
+        return System.getProperty("os.name").toLowerCase(Locale.US).contains("windows");
     }
 }

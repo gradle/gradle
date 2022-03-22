@@ -26,7 +26,6 @@ import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.composite.internal.BuildTreeWorkGraphController
 import org.gradle.internal.file.Stat
-import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.util.Path
 import org.gradle.util.internal.TextUtil
 import spock.lang.Issue
@@ -41,10 +40,15 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
     DefaultExecutionPlan executionPlan
     int order = 0
 
+    def taskNodeFactory = new TaskNodeFactory(thisBuild, Stub(DocumentationRegistry), Stub(BuildTreeWorkGraphController), nodeValidator)
+    def dependencyResolver = new TaskDependencyResolver([new TaskNodeDependencyResolver(taskNodeFactory)])
+
     def setup() {
-        def taskNodeFactory = new TaskNodeFactory(thisBuild, Stub(DocumentationRegistry), Stub(BuildTreeWorkGraphController))
-        def dependencyResolver = new TaskDependencyResolver([new TaskNodeDependencyResolver(taskNodeFactory)])
-        executionPlan = new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, dependencyResolver, nodeValidator, new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, Stub(Stat)), new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, Stub(Stat)), new DefaultResourceLockCoordinationService())
+        executionPlan = newExecutionPlan()
+    }
+
+    private DefaultExecutionPlan newExecutionPlan() {
+        new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, dependencyResolver, new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, Stub(Stat)), new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, Stub(Stat)), coordinator)
     }
 
     def "schedules tasks in dependency order"() {
@@ -619,7 +623,9 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
 
         when:
         addToGraphAndPopulate([a, b])
-        executionPlan.cancelExecution()
+        coordinator.withStateLock {
+            executionPlan.cancelExecution()
+        }
 
         then:
         executedTasks == []
@@ -719,7 +725,8 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         final Task a = task("a", failure: failure)
         final Task b = task("b", dependsOn: [a])
         final Task c = task("c")
-        addToGraphAndPopulate([b, c])
+        final Task d = task("d", dependsOn: [b, c])
+        addToGraphAndPopulate([d])
 
         when:
         executionPlan.setContinueOnFailure(true)
@@ -732,6 +739,32 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
 
         then:
         failures == [failure]
+    }
+
+    def "does not attempt to execute tasks whose dependencies failed to execute in a previous plan"() {
+        def failures = []
+        RuntimeException failure = new RuntimeException()
+        final Task a = task("a", failure: failure)
+        final Task b = task("b", dependsOn: [a])
+        final Task c = task("c")
+        final Task d = task("d", dependsOn: [b, c])
+        addToGraphAndPopulate([b])
+        executedTasks == [a]
+
+        when:
+        executionPlan = newExecutionPlan()
+        addToGraphAndPopulate([d])
+        executionPlan.setContinueOnFailure(true)
+
+        then:
+        executionPlan.tasks as List == [b, c, d]
+        executedTasks == [c]
+
+        when:
+        executionPlan.collectFailures(failures)
+
+        then:
+        failures == []
     }
 
     def "does not build graph for or execute filtered tasks"() {
@@ -809,6 +842,39 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         then:
         executes(c)
         filtered(b)
+    }
+
+    def "does not build graph for or execute tasks that have already executed in a previous plan"() {
+        given:
+        Task a = task("a")
+        Task b = task("b", dependsOn: [a])
+        Task c = task("c", dependsOn: [b])
+        addToGraphAndPopulate([b])
+        executes(a, b)
+
+        when:
+        executionPlan = newExecutionPlan()
+        addToGraphAndPopulate([c])
+
+        then:
+        executes(c)
+    }
+
+    def "does not build graph for or execute tasks that failed in a previous plan"() {
+        given:
+        Task a = task("a", failure: new RuntimeException("failure"))
+        Task b = task("b", dependsOn: [a])
+        Task c = task("c", dependsOn: [b])
+        addToGraphAndPopulate([b])
+        executedTasks == [a]
+
+        when:
+        executionPlan = newExecutionPlan()
+        addToGraphAndPopulate([c])
+
+        then:
+        executionPlan.tasks as List == [b, c]
+        executedTasks == []
     }
 
     def "required nodes added to the graph are executed in dependency order"() {
@@ -923,18 +989,38 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
     }
 
     List<Task> getExecutedTasks() {
-        return executedNodes*.task
+        def tasks = []
+        def nodes = executedNodes
+        int i = 0
+        while (i < nodes.size) {
+            def node = nodes[i]
+            assert node instanceof ResolveMutationsNode
+            assert nodes.size() > i + 1
+            def taskNode = nodes[i + 1]
+            assert taskNode instanceof LocalTaskNode
+            assert taskNode == node.node
+            tasks << taskNode.task
+            i += 2
+        }
+        return tasks
     }
 
     List<Node> getExecutedNodes() {
         def nodes = []
-        while (executionPlan.hasNodesRemaining()) {
-            def nextNode = executionPlan.selectNext()
-            assert nextNode != null
-            if (!nextNode.isComplete()) {
+        coordinator.withStateLock {
+            while (executionPlan.executionState() != ExecutionPlan.State.NoMoreNodesToStart) {
+                def selection = executionPlan.selectNext()
+                if (selection == ExecutionPlan.NO_MORE_NODES_TO_START) {
+                    break
+                }
+                assert selection != ExecutionPlan.NO_NODES_READY_TO_START // There should always be a node ready to start when executing sequentially
+                def nextNode = selection.node
+                assert !nextNode.isComplete()
                 nodes << nextNode
+                executionPlan.finishedExecuting(nextNode)
             }
-            executionPlan.finishedExecuting(nextNode)
+            assert executionPlan.executionState() == ExecutionPlan.State.NoMoreNodesToStart
+            assert executionPlan.allExecutionComplete()
         }
         return nodes
     }
@@ -943,11 +1029,6 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         Mock(TaskDependency) {
             0 * getDependencies(_)
         }
-    }
-
-    private void failure(TaskInternal task, final RuntimeException failure) {
-        task.state.getFailure() >> failure
-        task.state.rethrowFailure() >> { throw failure }
     }
 
     private TaskInternal task(final String name) {

@@ -13,7 +13,12 @@ We would like to thank the following community members for their contributions t
 [Anja Papatola](https://github.com/apalopta),
 [Björn Kautler](https://github.com/Vampire),
 [David Burström](https://github.com/davidburstrom),
-[Vladimir Sitnikov](https://github.com/vlsi)
+[Vladimir Sitnikov](https://github.com/vlsi),
+[Roland Weisleder](https://github.com/rweisleder),
+[Konstantin Gribov](https://github.com/grossws),
+[aSemy](https://github.com/aSemy),
+[Rene Groeschke](https://github.com/breskeby),
+[Jonathan Leitschuh](https://github.com/JLLeitschuh)
 <!-- 
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
@@ -57,6 +62,17 @@ Example:
 ==========================================================
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
+
+### JVM toolchains improvements
+
+[Java toolchains](userguide/toolchains.html) provide an easy way to declare which Java version your project should be built with.
+By default, Gradle will [detect installed JDKs](userguide/toolchains.html#sec:auto_detection) or automatically download new toolchain versions.
+
+#### Checkstyle tasks execute in parallel by default
+
+The [Checkstyle plugin](userguide/checkstyle_plugin.html) now uses the Gradle worker API and JVM toolchains. Checkstyle analysis now runs as an external worker process. Checkstyle tasks may now run in parallel within one project.
+
+In Java projects, Checkstyle will use the same version of Java required by the project. In other types of projects, Checkstyle will use the same version of Java that is used by the Gradle daemon.
 
 ### Improved test sources separation in the `eclipse` plugin
 

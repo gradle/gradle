@@ -403,6 +403,40 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
         EnvVariableRead.getEnvContainsKey("CI")             | "false"    | "defined" | "true"
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/19710")
+    def "modification of allowed properties does not invalidate cache"() {
+        buildFile("""
+            def oldValue = System.setProperty("java.awt.headless", "true")
+            println("previous value = \$oldValue")
+
+            // Attempt to capture the modified property value.
+            println("configuration time value=\${System.getProperty("java.awt.headless")}")
+
+            tasks.register("printProperty") {
+                doLast {
+                    println("execution time value=\${System.getProperty("java.awt.headless")}")
+                }
+            }
+        """)
+        def configurationCache = newConfigurationCacheFixture()
+
+        when:
+        configurationCacheRun("-Djava.awt.headless=false", "printProperty")
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("configuration time value=true")
+        outputContains("execution time value=true")
+
+        when:
+        configurationCacheRun("-Djava.awt.headless=false", "printProperty")
+
+        then:
+        configurationCache.assertStateLoaded()
+        // TODO(https://github.com/gradle/gradle/issues/18432) This should be changed to "true".
+        outputContains("execution time value=false")
+    }
+
     def "reports build logic reading environment variables with getenv(String) using GString parameters"() {
         // Note that the map returned from System.getenv() doesn't support GStrings as keys, so there is no point in testing it.
         buildFile << '''

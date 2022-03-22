@@ -226,6 +226,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             registration.add(ProjectFactory.class);
             registration.add(DefaultSettingsLoaderFactory.class);
             registration.add(ResolvedBuildLayout.class);
+            registration.add(DefaultNodeValidator.class);
             registration.add(TaskNodeFactory.class);
             registration.add(TaskNodeDependencyResolver.class);
             registration.add(WorkNodeDependencyResolver.class);
@@ -250,7 +251,6 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             gradleInternal.getIdentityPath().toString(),
             taskNodeFactory,
             dependencyResolver,
-            new DefaultNodeValidator(),
             executionNodeAccessHierarchies.getOutputHierarchy(),
             executionNodeAccessHierarchies.getDestroyableHierarchy(),
             lockCoordinationService
