@@ -43,7 +43,7 @@ class GroovyRuntimeTest extends AbstractProjectBuilderSpec {
     }
 
     def "inferred Groovy3 class path uses 'groovy' jars from classpath if all required pieces are found"() {
-        def groovyVersion = "3.0.9"
+        def groovyVersion = "3.0.10"
 
         when:
         def classpath = project.groovyRuntime.inferGroovyClasspath([
@@ -106,7 +106,7 @@ class GroovyRuntimeTest extends AbstractProjectBuilderSpec {
         "2.1.2"       | "-indy"    | ["groovy", "groovy-ant"]
         "2.5.2"       | ""         | ["groovy", "groovy-ant", "groovy-templates"]
         "2.5.2"       | "-indy"    | ["groovy", "groovy-ant", "groovy-templates"]
-        "3.0.8"       | ""         | ["groovy", "groovy-ant", "groovy-templates", "groovy-json", "groovy-xml", "groovy-groovydoc", "groovy-astbuilder", "groovy-console", "groovy-datetime", "groovy-dateutil", "groovy-nio", "groovy-sql", "groovy-test"]
+        "3.0.10"       | ""         | ["groovy", "groovy-ant", "groovy-templates", "groovy-json", "groovy-xml", "groovy-groovydoc", "groovy-astbuilder", "groovy-console", "groovy-datetime", "groovy-dateutil", "groovy-nio", "groovy-sql", "groovy-test"]
     }
 
     def "useful error message is produced when no groovy runtime could be found on a classpath"() {

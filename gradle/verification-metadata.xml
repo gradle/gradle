@@ -480,6 +480,11 @@
             <pgp value="635ee627345f3c1dd422b2e207d3516820bcf6b1"/>
          </artifact>
       </component>
+      <component group="com.github.javaparser" name="javaparser-core" version="3.24.0">
+         <artifact name="javaparser-core-3.24.0.jar">
+            <pgp value="253e8e4c6fb28d11748115c1249dee8e2c07a0a2"/>
+         </artifact>
+      </component>
       <component group="com.github.siom79.japicmp" name="japicmp" version="0.14.3">
          <artifact name="japicmp-0.14.3.jar">
             <pgp value="fffd810fffde203d5fa27263beabcfbee059e4e5"/>
