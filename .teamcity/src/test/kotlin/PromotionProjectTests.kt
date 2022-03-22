@@ -67,11 +67,11 @@ class PromotionProjectTests {
         val steps = sanityCheck.steps.items
         val upload = gradleStep(steps, 0)
         upload.assertTasks("uploadAll")
-        assertEquals("""-PcommitId=%dep.Gradle_release_Check_Stage_ReadyforNightly_Trigger.build.vcs.number%  "-PgitUserName=bot-teamcity" "-PgitUserEmail=bot-teamcity@gradle.com" "%additional.gradle.parameters%" """, upload.gradleParams)
+        assertEquals("""-PcommitId=%dep.Gradle_release_Check_Stage_ReadyforNightly_Trigger.build.vcs.number%  "-PgitUserName=bot-teamcity" "-PgitUserEmail=bot-teamcity@gradle.com" %additional.gradle.parameters% """, upload.gradleParams)
 
         val promote = gradleStep(steps, 1)
         promote.assertTasks("promoteReleaseNightly")
-        assertEquals("""-PcommitId=%dep.Gradle_release_Check_Stage_ReadyforNightly_Trigger.build.vcs.number%  "-PgitUserName=bot-teamcity" "-PgitUserEmail=bot-teamcity@gradle.com" "%additional.gradle.parameters%" """, promote.gradleParams)
+        assertEquals("""-PcommitId=%dep.Gradle_release_Check_Stage_ReadyforNightly_Trigger.build.vcs.number%  "-PgitUserName=bot-teamcity" "-PgitUserEmail=bot-teamcity@gradle.com" %additional.gradle.parameters% """, promote.gradleParams)
     }
 
     // TODO: Add tests for other promotion build types
