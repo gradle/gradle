@@ -141,7 +141,6 @@ class DefaultPrecompiledScriptPluginsSupport : PrecompiledScriptPluginsSupport {
         val scriptPlugins = scriptPluginFiles.map(::PrecompiledScriptPlugin)
         enableScriptCompilationOf(
             scriptPlugins,
-            target.kotlinCompileTask,
             target.kotlinSourceDirectorySet
         )
 
@@ -183,7 +182,6 @@ class DefaultPrecompiledScriptPluginsSupport : PrecompiledScriptPluginsSupport {
 private
 fun Project.enableScriptCompilationOf(
     scriptPlugins: List<PrecompiledScriptPlugin>,
-    kotlinCompileTask: TaskProvider<out Task>,
     kotlinSourceDirectorySet: SourceDirectorySet
 ) {
 
@@ -248,7 +246,7 @@ fun Project.enableScriptCompilationOf(
                 plugins = scriptPlugins
             }
 
-        kotlinCompileTask {
+        compileKotlin {
 
             dependsOn(generatePrecompiledScriptPluginAccessors)
 
@@ -320,19 +318,27 @@ inline fun <reified T> ObjectFactory.withInstance(block: T.() -> Unit) {
 
 private
 fun TaskContainerScope.configureScriptResolverEnvironment(resolverEnvironment: String) {
-    taskContainer.named("compileKotlin") { compileKotlin ->
+    taskContainer.compileKotlin {
         val scriptCompilerArgs = listOf(
             "-script-templates", scriptTemplates,
             // Propagate implicit imports and other settings
             "-Xscript-resolver-environment=$resolverEnvironment"
         )
-        compileKotlin.withGroovyBuilder {
+        withGroovyBuilder {
             "kotlinOptions" {
                 @Suppress("unchecked_cast")
                 val freeCompilerArgs: List<String> = getProperty("freeCompilerArgs") as List<String>
                 setProperty("freeCompilerArgs", freeCompilerArgs + scriptCompilerArgs)
             }
         }
+    }
+}
+
+
+private
+fun TaskContainer.compileKotlin(action: Task.() -> Unit) {
+    named("compileKotlin") {
+        it.action()
     }
 }
 
