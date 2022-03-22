@@ -35,6 +35,8 @@ import org.junit.Rule
 import spock.lang.Ignore
 import spock.lang.Issue
 
+import static org.gradle.util.internal.GroovyDependencyUtil.groovyModuleDependency
+
 @TargetCoverage({ GroovyCoverage.SUPPORTED_BY_JDK })
 abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegrationSpec implements ValidationMessageChecker {
     @Rule
@@ -54,11 +56,11 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         // necessary for picking up some of the output/errorOutput when forked executer is used
         executer.withArgument("-i")
         executer.withRepositoryMirrors()
-        groovyDependency = groovyDependency("groovy")
+        groovyDependency = groovyModuleDependency("groovy", versionNumber)
     }
 
     def "compileGoodCode"() {
-        groovyDependency = groovyDependency(module)
+        groovyDependency = groovyModuleDependency(module, versionNumber)
 
         expect:
         succeeds("compileGroovy")
@@ -364,7 +366,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         failure.assertHasErrorOutput('unable to resolve class groovy.ant.AntBuilder')
 
         when:
-        buildFile << "dependencies { implementation 'org.codehaus.groovy:groovy-ant:${version}' }"
+        buildFile << "dependencies { implementation '${groovyModuleDependency("groovy-ant", versionNumber)}' }"
 
         then:
         succeeds("compileGroovy")
@@ -389,7 +391,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
     def "canCompileAgainstGroovyClassThatDependsOnExternalClass"() {
         Assume.assumeFalse(versionLowerThan("3.0"))
 
-        buildFile << "dependencies { implementation 'org.codehaus.groovy:groovy-test:${version}' }"
+        buildFile << "dependencies { implementation '${groovyModuleDependency("groovy-test", versionNumber)}' }"
         expect:
         succeeds("test")
     }
@@ -785,12 +787,5 @@ tasks.withType(GroovyCompile) {
     options.incremental = true
 }
 '''
-    }
-
-    private static String groovyDependency(String module) {
-        def group = versionNumber.major >= 4
-            ? "org.apache.groovy"
-            : "org.codehaus.groovy"
-        return "$group:$module:$version"
     }
 }

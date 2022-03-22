@@ -40,6 +40,7 @@ import java.util.Set;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static java.util.stream.StreamSupport.stream;
+import static org.gradle.util.internal.GroovyDependencyUtil.groovyModuleDependency;
 
 /**
  * Provides information related to the Groovy runtime(s) used in a project. Added by the
@@ -129,10 +130,8 @@ public class GroovyRuntime {
 
                 if (groovyVersion.getMajor() <= 2) {
                     return inferGroovyAllClasspath(groovyJar.getDependencyNotation(), groovyVersion);
-                } else if (groovyVersion.getMajor() == 3) {
-                    return inferGroovyClasspath("org.codehaus.groovy", groovyVersion);
                 } else {
-                    return inferGroovyClasspath("org.apache.groovy", groovyVersion);
+                    return inferGroovyClasspath(groovyVersion);
                 }
             }
 
@@ -162,7 +161,7 @@ public class GroovyRuntime {
                 return detachedRuntimeClasspath(dependencies.toArray(new Dependency[0]));
             }
 
-            private FileCollection inferGroovyClasspath(String groupId, VersionNumber groovyVersion) {
+            private FileCollection inferGroovyClasspath(VersionNumber groovyVersion) {
                 // We may already have the required pieces on classpath via localGroovy()
                 Set<String> groovyJarNames = groovyJarNamesFor(groovyVersion);
                 List<File> groovyClasspath = collectJarsFromClasspath(classpath, groovyJarNames);
@@ -172,7 +171,7 @@ public class GroovyRuntime {
 
                 return detachedRuntimeClasspath(
                     GROOVY_LIBS.stream()
-                        .map(libName -> project.getDependencies().create(groupId + ":" + libName + ":" + groovyVersion))
+                        .map(libName -> project.getDependencies().create(groovyModuleDependency(libName, groovyVersion)))
                         .toArray(Dependency[]::new)
                 );
             }
