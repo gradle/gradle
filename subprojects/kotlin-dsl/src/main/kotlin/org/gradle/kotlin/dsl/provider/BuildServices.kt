@@ -17,12 +17,17 @@
 package org.gradle.kotlin.dsl.provider
 
 import org.gradle.api.internal.ClassPathRegistry
+import org.gradle.api.internal.artifacts.DependencyManagementServices
+import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
+import org.gradle.api.internal.artifacts.dsl.dependencies.UnknownProjectFinder
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService
 import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.file.FileCollectionFactory
+import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.temp.TemporaryFileProvider
+import org.gradle.api.internal.initialization.RootScriptDomainObjectContext
 import org.gradle.api.internal.initialization.loadercache.DefaultClasspathHasher
 import org.gradle.cache.internal.GeneratedGradleJarCache
 import org.gradle.groovy.scripts.internal.ScriptSourceHasher
@@ -57,6 +62,10 @@ object BuildServices {
         classPathRegistry: ClassPathRegistry,
         classLoaderScopeRegistry: ClassLoaderScopeRegistry,
         dependencyFactory: DependencyFactory,
+        dependencyManagementServices: DependencyManagementServices,
+        fileResolver: FileResolver,
+        fileCollectionFactory: FileCollectionFactory,
+        dependencyMetaDataProvider: DependencyMetaDataProvider,
         jarCache: GeneratedGradleJarCache,
         temporaryFileProvider: TemporaryFileProvider,
         progressLoggerFactory: ProgressLoggerFactory
@@ -66,7 +75,13 @@ object BuildServices {
             moduleRegistry,
             classPathRegistry,
             classLoaderScopeRegistry.coreAndPluginsScope,
-            gradleApiJarsProviderFor(dependencyFactory),
+            gradleApiJarsProviderFor(dependencyFactory, dependencyManagementServices.create(
+                fileResolver,
+                fileCollectionFactory,
+                dependencyMetaDataProvider,
+                UnknownProjectFinder("Some unknown project"),
+                RootScriptDomainObjectContext.PLUGINS
+            )),
             versionedJarCacheFor(jarCache),
             temporaryFileProvider,
             StandardJarGenerationProgressMonitorProvider(progressLoggerFactory)
