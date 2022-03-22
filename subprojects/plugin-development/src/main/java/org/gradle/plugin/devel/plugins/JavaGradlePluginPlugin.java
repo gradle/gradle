@@ -152,7 +152,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
 
     private void applyDependencies(Project project) {
         DependencyHandler dependencies = project.getDependencies();
-        dependencies.add(API_CONFIGURATION, dependencies.gradleApi());
+//        dependencies.add(API_CONFIGURATION, dependencies.gradleApi());
     }
 
     private void configureJarTask(Project project, GradlePluginDevelopmentExtension extension) {
