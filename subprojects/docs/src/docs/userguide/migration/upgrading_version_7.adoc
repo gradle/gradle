@@ -66,6 +66,11 @@ In order to set the old default, the executable can be manually defined in `grad
 signing.gnupg.executable=gpg2
 ----
 
+==== Updates to bundled Gradle dependencies
+
+- Groovy has been updated to https://groovy-lang.org/releasenotes/groovy-3.0.html[Groovy 3.0.10].
+
+
 === Deprecations
 
 [[file_collection_to_classpath]]
