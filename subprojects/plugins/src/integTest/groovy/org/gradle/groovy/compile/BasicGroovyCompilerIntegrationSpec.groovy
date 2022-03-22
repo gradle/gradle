@@ -791,6 +791,6 @@ tasks.withType(GroovyCompile) {
         def group = versionNumber.major >= 4
             ? "org.apache.groovy"
             : "org.codehaus.groovy"
-        return "$group:$module:$versionNumber"
+        return "$group:$module:$version"
     }
 }

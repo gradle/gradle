@@ -29,6 +29,8 @@ abstract class MultiVersionIntegrationSpec extends AbstractIntegrationSpec {
     static def version
 
     static VersionNumber getVersionNumber() {
-        VersionNumber.parse(version.toString())
+        // Split off a potential classifier
+        def m = version.toString() =~ /^(.*?)(?::.*)?$/
+        VersionNumber.parse(m[0][1])
     }
 }
