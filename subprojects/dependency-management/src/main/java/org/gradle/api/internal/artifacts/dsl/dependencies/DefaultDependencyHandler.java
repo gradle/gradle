@@ -267,6 +267,11 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
     }
 
     @Override
+    public Dependency gradleApi(String version) {
+        return dependencyFactory.createDependency("org.gradle:gradle-api:" + version);
+    }
+
+    @Override
     public Dependency gradleTestKit() {
         return dependencyFactory.createDependency(DependencyFactory.ClassPathNotation.GRADLE_TEST_KIT);
     }
