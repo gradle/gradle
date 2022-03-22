@@ -120,12 +120,26 @@ class AccessTrackingProperties extends Properties {
     @Override
     public void replaceAll(BiFunction<? super Object, ? super Object, ?> function) {
         reportAggregatingAccess();
-        delegate.replaceAll(function);
+        delegate.replaceAll((k, v) -> {
+            Object newValue = function.apply(k, v);
+            if (v != newValue) {
+                // Doing reference comparison may be overzealous for strings,
+                // but it is safer for user types with potentially poorly defined equals.
+                listener.onChange(k, newValue);
+            }
+            return newValue;
+        });
     }
 
     @Override
     public Object putIfAbsent(Object key, Object value) {
-        return delegate.putIfAbsent(key, value);
+        Object oldValue = delegate.putIfAbsent(key, value);
+        reportKeyAndValue(key, oldValue);
+        if (oldValue == null) {
+            // Properties disallow null values, so it is safe to assume that the map was changed.
+            listener.onChange(key, value);
+        }
+        return oldValue;
     }
 
     @Override
@@ -143,33 +157,81 @@ class AccessTrackingProperties extends Properties {
     }
 
     @Override
-    public boolean replace(Object key, Object oldValue, Object newValue) {
-        return delegate.replace(key, oldValue, newValue);
+    public boolean replace(Object key, Object expectedOldValue, Object newValue) {
+        Object oldValue = delegate.get(key);
+        boolean changed = delegate.replace(key, expectedOldValue, newValue);
+        reportKeyAndValue(key, oldValue);
+        if (changed) {
+            // The configuration cache uses onChange callback to remember that the property has to be changed.
+            // Of course, the property has to be changed in the cached run only if it was changed in the
+            // non-cached run first. Changing the value of the property externally would invalidate the cache and recalculate the replacement.
+            listener.onChange(key, newValue);
+        }
+        return changed;
     }
 
     @Override
     public Object replace(Object key, Object value) {
-        return delegate.replace(key, value);
+        Object oldValue = delegate.replace(key, value);
+        reportKeyAndValue(key, oldValue);
+        if (oldValue != null) {
+            listener.onChange(key, value);
+        }
+        return oldValue;
     }
 
     @Override
     public Object computeIfAbsent(Object key, Function<? super Object, ?> mappingFunction) {
-        return delegate.computeIfAbsent(key, mappingFunction);
+        Object oldValue = delegate.get(key);
+        reportKeyAndValue(key, oldValue);
+        if (oldValue == null) {
+            Object computedValue = delegate.computeIfAbsent(key, mappingFunction);
+            listener.onChange(key, computedValue);
+            return computedValue;
+        }
+        return oldValue;
     }
 
     @Override
     public Object computeIfPresent(Object key, BiFunction<? super Object, ? super Object, ?> remappingFunction) {
-        return delegate.computeIfPresent(key, remappingFunction);
+        Object oldValue = delegate.get(key);
+        reportKeyAndValue(key, oldValue);
+        if (oldValue != null) {
+            Object computedValue = delegate.computeIfPresent(key, remappingFunction);
+            if (computedValue != null) {
+                listener.onChange(key, computedValue);
+            } else {
+                listener.onRemove(key);
+            }
+            return computedValue;
+        }
+        return null;
     }
 
     @Override
     public Object compute(Object key, BiFunction<? super Object, ? super Object, ?> remappingFunction) {
-        return delegate.compute(key, remappingFunction);
+        Object oldValue = delegate.get(key);
+        reportKeyAndValue(key, oldValue);
+        Object newValue = delegate.compute(key, remappingFunction);
+        if (newValue != null) {
+            listener.onChange(key, newValue);
+        } else if (oldValue != null) {
+            listener.onRemove(key);
+        }
+        return newValue;
     }
 
     @Override
     public Object merge(Object key, Object value, BiFunction<? super Object, ? super Object, ?> remappingFunction) {
-        return delegate.merge(key, value, remappingFunction);
+        Object oldValue = delegate.get(key);
+        Object newValue = delegate.merge(key, value, remappingFunction);
+        reportKeyAndValue(key, oldValue);
+        if (newValue != null) {
+            listener.onChange(key, newValue);
+        } else if (oldValue != null) {
+            listener.onRemove(key);
+        }
+        return newValue;
     }
 
     @Override

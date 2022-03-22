@@ -21,6 +21,7 @@ import com.google.common.io.CharStreams
 
 import javax.annotation.Nullable
 import java.util.function.BiConsumer
+import java.util.function.BiFunction
 import java.util.function.Consumer
 
 class AccessTrackingPropertiesTest extends AbstractAccessTrackingMapTest {
@@ -298,6 +299,252 @@ class AccessTrackingPropertiesTest extends AbstractAccessTrackingMapTest {
         0 * onAccess._
     }
 
+    def "method putIfAbsent(#key, newValue) reports change"() {
+        when:
+        def result = getMapUnderTestToWrite().putIfAbsent(key, 'newValue')
+
+        then:
+        result == oldValue
+        changeCount * onChange.accept(key, 'newValue')
+        1 * onAccess.accept(key, oldValue)
+        0 * onChange._
+        0 * onAccess._
+
+        where:
+        key        | oldValue        | changeCount
+        'existing' | 'existingValue' | 0
+        'missing'  | null            | 1
+    }
+
+    def "method replaceAll reports change"() {
+        when:
+        def map = getMapUnderTestToWrite()
+        map.replaceAll((k, v) -> {
+            if (k == 'existing') {
+                return 'newValue'
+            }
+            return v
+        })
+
+        then:
+        (Map<?, ?>) map == [existing: 'newValue', other: 'otherValue']
+        1 * onChange.accept('existing', 'newValue')
+        0 * onChange._
+    }
+
+    def "method replace(#key, #oldValue, newValue) changes map"() {
+        when:
+        def map = getMapUnderTestToWrite()
+        def result = map.replace(key, oldValue, 'newValue')
+
+        then:
+        result == expectedResult
+        map[key] == expectedValue
+
+        where:
+        key        | oldValue        | expectedValue   | expectedResult
+        'existing' | 'existingValue' | 'newValue'      | true
+        'existing' | 'otherValue'    | 'existingValue' | false
+        'missing'  | 'otherValue'    | null            | false
+
+    }
+
+    def "method replace(#key, #oldValue, newValue) reports change"() {
+        when:
+        getMapUnderTestToWrite().replace(key, oldValue, 'newValue')
+
+        then:
+        changeCount * onChange.accept(key, 'newValue')
+        1 * onAccess.accept(key, expectedOldValue)
+        0 * onChange._
+        0 * onAccess._
+
+        where:
+        key        | expectedOldValue | oldValue         | changeCount
+        'existing' | 'existingValue'  | expectedOldValue | 1
+        'existing' | 'existingValue'  | 'otherValue'     | 0
+        'missing'  | null             | 'otherValue'     | 0
+    }
+
+    def "method replace(#key, newValue) changes map"() {
+        when:
+        def map = getMapUnderTestToWrite()
+        def result = map.replace(key, 'newValue')
+
+        then:
+        result == oldValue
+        map[key] == expectedValue
+
+        where:
+        key        | oldValue        | expectedValue
+        'existing' | 'existingValue' | 'newValue'
+        'missing'  | null            | null
+    }
+
+    def "method replace(#key, newValue) reports change"() {
+        when:
+        getMapUnderTestToWrite().replace(key, 'newValue')
+
+        then:
+        changeCount * onChange.accept(key, 'newValue')
+        1 * onAccess.accept(key, oldValue)
+        0 * onChange._
+        0 * onAccess._
+
+        where:
+        key        | oldValue
+        'existing' | 'existingValue'
+        'missing'  | null
+
+        changeCount = oldValue != null ? 1 : 0
+    }
+
+    def "method computeIfAbsent(#key, #newValue) changes map"() {
+        when:
+        def map = getMapUnderTestToWrite()
+        def result = map.computeIfAbsent(key, k -> newValue)
+
+        then:
+        result == expectedResult
+        map[key] == expectedResult
+
+        where:
+        key        | newValue   | expectedResult
+        'existing' | 'newValue' | 'existingValue'
+        'existing' | null       | 'existingValue'
+        'missing'  | 'newValue' | 'newValue'
+        'missing'  | null       | null
+    }
+
+    def "method computeIfAbsent(#key, #newValue) reports change"() {
+        when:
+        getMapUnderTestToWrite().computeIfAbsent(key, k -> newValue)
+
+        then:
+        changeCount * onChange.accept(key, newValue)
+        1 * onAccess.accept(key, oldValue)
+        0 * onChange._
+        0 * onAccess._
+
+        where:
+        key        | newValue   | oldValue
+        'existing' | 'newValue' | 'existingValue'
+        'existing' | null       | 'existingValue'
+        'missing'  | 'newValue' | null
+        'missing'  | null       | null
+
+        changeCount = oldValue == null ? 1 : 0
+    }
+
+    def "method computeIfPresent(#key, #newValue) changes map"() {
+        when:
+        def map = getMapUnderTestToWrite()
+        def result = map.computeIfPresent(key, (k, v) -> newValue)
+
+        then:
+        result == expectedResult
+        map[key] == expectedResult
+
+        where:
+        key        | newValue   | expectedResult
+        'existing' | 'newValue' | 'newValue'
+        'existing' | null       | null
+        'missing'  | 'newValue' | null
+        'missing'  | null       | null
+    }
+
+    def "method computeIfPresent(#key, #newValue) reports change"() {
+        when:
+        getMapUnderTestToWrite().computeIfPresent(key, (k, v) -> newValue)
+
+        then:
+        changeCount * onChange.accept(key, newValue)
+        removeCount * onRemove.accept(key)
+        1 * onAccess.accept(key, oldValue)
+        0 * onChange._
+        0 * onAccess._
+
+        where:
+        key        | newValue   | oldValue        | changeCount | removeCount
+        'existing' | 'newValue' | 'existingValue' | 1           | 0
+        'existing' | null       | 'existingValue' | 0           | 1
+        'missing'  | 'newValue' | null            | 0           | 0
+        'missing'  | null       | null            | 0           | 0
+    }
+
+    def "method compute(#key, #newValue) changes map"() {
+        when:
+        def map = getMapUnderTestToWrite()
+        def result = map.compute(key, (k, v) -> newValue)
+
+        then:
+        result == expectedResult
+        map[key] == expectedResult
+
+        where:
+        key        | newValue   | expectedResult
+        'existing' | 'newValue' | 'newValue'
+        'existing' | null       | null
+        'missing'  | 'newValue' | 'newValue'
+        'missing'  | null       | null
+    }
+
+    def "method compute(#key, #newValue) reports change"() {
+        when:
+        getMapUnderTestToWrite().compute(key, (k, v) -> newValue)
+
+        then:
+        changeCount * onChange.accept(key, newValue)
+        removeCount * onRemove.accept(key)
+        1 * onAccess.accept(key, oldValue)
+        0 * onChange._
+        0 * onAccess._
+
+        where:
+        key        | newValue   | oldValue        | changeCount | removeCount
+        'existing' | 'newValue' | 'existingValue' | 1           | 0
+        'existing' | null       | 'existingValue' | 0           | 1
+        'missing'  | 'newValue' | null            | 1           | 0
+        'missing'  | null       | null            | 0           | 0
+    }
+
+    def "method merge(#key, #newValue) changes map"(String key, String newValue, BiFunction<?, ?, ?> func, String expectedResult) {
+        when:
+        def map = getMapUnderTestToWrite()
+        def result = map.merge(key, newValue, func)
+
+        then:
+        result == expectedResult
+        map[key] == expectedResult
+
+        where:
+        key        | newValue   | func                                        | expectedResult
+        'existing' | 'Concat'   | String::concat                              | 'existingValueConcat'
+        'existing' | ''         | AccessTrackingPropertiesTest::removeMapping | null
+        'missing'  | 'newValue' | String::concat                              | 'newValue'
+    }
+
+    def "method merge(#key, #newValue) reports change"(String key, String newValue, String oldValue, BiFunction<?, ?, ?> func) {
+        when:
+        getMapUnderTestToWrite().merge(key, newValue, func)
+
+        then:
+        changeCount * onChange.accept(key, changed)
+        removeCount * onRemove.accept(key)
+        1 * onAccess.accept(key, oldValue)
+        0 * onChange._
+        0 * onAccess._
+        0 * onRemove._
+
+        where:
+        key        | newValue   | oldValue        | func                                        | changed              | removeCount
+        'existing' | 'Concat'   | 'existingValue' | String::concat                              | "$oldValue$newValue" | 0
+        'existing' | ''         | 'existingValue' | AccessTrackingPropertiesTest::removeMapping | null                 | 1
+        'missing'  | 'newValue' | null            | String::concat                              | newValue             | 0
+
+        changeCount = changed != null ? 1 : 0
+    }
+
     private static Properties propertiesWithContent(Map<String, String> contents) {
         Properties props = new Properties()
         props.putAll(contents)
@@ -307,5 +554,9 @@ class AccessTrackingPropertiesTest extends AbstractAccessTrackingMapTest {
     // Shortcut to have a typed lambda expression in where: block
     private static Consumer<Properties> call(Consumer<Properties> consumer) {
         return consumer
+    }
+
+    private static Object removeMapping(Object key, Object value) {
+        return null
     }
 }
