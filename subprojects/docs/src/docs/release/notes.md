@@ -18,7 +18,9 @@ We would like to thank the following community members for their contributions t
 [Konstantin Gribov](https://github.com/grossws),
 [aSemy](https://github.com/aSemy),
 [Rene Groeschke](https://github.com/breskeby),
-[Jonathan Leitschuh](https://github.com/JLLeitschuh)
+[Jonathan Leitschuh](https://github.com/JLLeitschuh),
+[Jamie Tanna](https://github.com/jamietanna)
+
 <!-- 
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
@@ -141,6 +143,24 @@ Now, continuous build uses the same infrastructure as Gradle's [file system watc
 This means that Gradle picks up changes nearly instantly on all platforms and file systems where file system watching is supported.
 
 For more information see the section on [continuous build](userguide/command_line_interface.html#sec:continuous_build) in the user manual.
+
+### Query a single property with the `properties` task
+
+The built-in `properties` task prints all project properties to the console. Now, the task takes an optional `--property` argument which configures it to display the selected property only.
+```
+$ gradle properties --property buildFile
+
+> Task :properties
+
+------------------------------------------------------------
+Root project 'example-project'
+------------------------------------------------------------
+
+buildFile: /path/to/project/build.gradle
+
+BUILD SUCCESSFUL in 550ms
+1 actionable task: 1 executed 
+```
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
