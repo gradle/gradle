@@ -567,11 +567,29 @@ public class Instrumented {
         }
 
         @Override
+        public Object callStatic(Class receiver, Object arg1) throws Throwable {
+            if (receiver.equals(System.class)) {
+                return systemProperty(arg1.toString(), array.owner.getName());
+            } else {
+                return super.callStatic(receiver, arg1);
+            }
+        }
+
+        @Override
         public Object call(Object receiver, Object arg1, Object arg2) throws Throwable {
             if (receiver.equals(System.class)) {
                 return systemProperty(arg1.toString(), convertToString(arg2), array.owner.getName());
             } else {
                 return super.call(receiver, arg1, arg2);
+            }
+        }
+
+        @Override
+        public Object callStatic(Class receiver, Object arg1, Object arg2) throws Throwable {
+            if (receiver.equals(System.class)) {
+                return systemProperty(arg1.toString(), convertToString(arg2), array.owner.getName());
+            } else {
+                return super.callStatic(receiver, arg1, arg2);
             }
         }
     }

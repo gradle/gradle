@@ -623,42 +623,6 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
         EnvVariableRead.getEnvContainsKey("CI")             | "false"    | "defined" | "true"
     }
 
-    def "reports system property reads in dynamic groovy with getProperties"() {
-        def configurationCache = newConfigurationCacheFixture()
-        // Why the separate plugin? The Project.getProperties() is available in the build.gradle as getProperties().
-        // Therefore, it is impossible to call System.getProperties() with static import there, and testing static
-        // import is important because Groovy generates different code in this case.
-        file("buildSrc/src/main/groovy/SomePlugin.groovy") << """
-            import ${Project.name}
-            import ${Plugin.name}
-            import static ${System.name}.getProperties
-
-            class SomePlugin implements Plugin<Project> {
-                void apply(Project project) {
-                    println("read.with.class.name=\${System.getProperties().get("read.with.class.name")}")
-                    println("read.with.static.import=\${getProperties().get("read.with.static.import")}")
-                }
-            }
-        """
-
-        buildFile("""
-            apply plugin: SomePlugin
-        """)
-
-        when:
-        configurationCacheRun("-Dread.with.class.name=ClassName", "-Dread.with.static.import=StaticImport")
-
-        then:
-        outputContains("read.with.class.name=ClassName")
-        outputContains("read.with.static.import=StaticImport")
-        configurationCache.assertStateStored()
-
-        problems.assertResultHasProblems(result) {
-            withInput("Plugin class 'SomePlugin': system property 'read.with.class.name'")
-            withInput("Plugin class 'SomePlugin': system property 'read.with.static.import'")
-        }
-    }
-
     @Issue("https://github.com/gradle/gradle/issues/19710")
     def "modification of allowed properties does not invalidate cache"() {
         buildFile("""
