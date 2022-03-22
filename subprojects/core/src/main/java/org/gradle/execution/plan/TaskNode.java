@@ -70,6 +70,10 @@ public abstract class TaskNode extends Node {
         return mustSuccessors;
     }
 
+    public abstract Set<Node> getLifecycleSuccessors();
+
+    public abstract void setLifecycleSuccessors(Set<Node> successors);
+
     @Override
     public Set<Node> getFinalizers() {
         return finalizers;
