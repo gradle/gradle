@@ -62,7 +62,7 @@ class TestTaskToolchainIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         type           | jdk
-        'differentJdk' | AvailableJavaHomes.getJdk(JavaVersion.VERSION_1_8)
+        'differentJdk' | AvailableJavaHomes.differentJdk
         'current'      | Jvm.current()
     }
 

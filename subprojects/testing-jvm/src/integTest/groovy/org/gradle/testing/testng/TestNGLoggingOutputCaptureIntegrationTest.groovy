@@ -16,21 +16,28 @@
 
 package org.gradle.testing.testng
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.HtmlTestExecutionResult
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TestClassExecutionResult
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.GradleVersion
 
 import static org.gradle.testing.fixture.TestNGCoverage.FIXED_ICLASS_LISTENER
 import static org.gradle.testing.fixture.TestNGCoverage.STANDARD_COVERAGE
 import static org.hamcrest.CoreMatchers.is
+import static org.junit.Assume.assumeFalse
 
 @TargetCoverage({STANDARD_COVERAGE})
 class TestNGLoggingOutputCaptureIntegrationTest extends MultiVersionIntegrationSpec {
 
     def setup() {
+        assumeFalse(
+            "Java 18 currently creates issues with System.out charset resulting in these tests failing",
+            OperatingSystem.current().isWindows() && JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_18)
+        )
         buildFile << """
             apply plugin: "java"
             ${mavenCentralRepository()}

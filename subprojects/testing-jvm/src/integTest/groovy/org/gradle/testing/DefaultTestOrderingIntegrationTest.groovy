@@ -15,13 +15,16 @@
  */
 package org.gradle.testing
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.internal.os.OperatingSystem
 import org.junit.Rule
 
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4_LATEST
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE_JUPITER
+import static org.junit.Assume.assumeFalse
 
 @TargetCoverage({ JUNIT_4_LATEST + JUNIT_VINTAGE_JUPITER })
 class DefaultTestOrderingIntegrationTest extends MultiVersionIntegrationSpec {
@@ -43,6 +46,10 @@ public class ${testName} {
     }
 
     def "test classes are scanned and run in deterministic order by default"() {
+        assumeFalse(
+            "Java 18 currently creates issues with System.out charset resulting in these tests failing",
+            OperatingSystem.current().isWindows() && JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_18)
+        )
         addEmptyTestClass("AdTest")
         addEmptyTestClass("AATest")
         addEmptyTestClass("AyTest")
