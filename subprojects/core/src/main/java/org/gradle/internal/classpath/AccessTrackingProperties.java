@@ -44,6 +44,8 @@ class AccessTrackingProperties extends Properties {
         void onChange(Object key, Object newValue);
 
         void onRemove(Object key);
+
+        void onClear();
     }
 
     // TODO(https://github.com/gradle/configuration-cache/issues/337) Only a limited subset of method is tracked currently.
@@ -280,6 +282,7 @@ class AccessTrackingProperties extends Properties {
 
     @Override
     public void clear() {
+        listener.onClear();
         delegate.clear();
     }
 
@@ -414,6 +417,11 @@ class AccessTrackingProperties extends Properties {
             public void onRemove(Object object) {
                 listener.onRemove(object);
             }
+
+            @Override
+            public void onClear() {
+                listener.onClear();
+            }
         };
     }
 
@@ -435,6 +443,11 @@ class AccessTrackingProperties extends Properties {
                 if (entry != null) {
                     listener.onRemove(entry.getKey());
                 }
+            }
+
+            @Override
+            public void onClear() {
+                listener.onClear();
             }
         };
     }

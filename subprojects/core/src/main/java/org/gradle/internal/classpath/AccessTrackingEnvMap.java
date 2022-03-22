@@ -141,6 +141,11 @@ class AccessTrackingEnvMap extends ForwardingMap<String, String> {
             public void onRemove(Object object) {
                 // Environment variables are immutable.
             }
+
+            @Override
+            public void onClear() {
+                // Environment variables are immutable.
+            }
         };
     }
 
@@ -158,6 +163,11 @@ class AccessTrackingEnvMap extends ForwardingMap<String, String> {
 
             @Override
             public void onRemove(Object object) {
+                // Environment variables are immutable.
+            }
+
+            @Override
+            public void onClear() {
                 // Environment variables are immutable.
             }
         };

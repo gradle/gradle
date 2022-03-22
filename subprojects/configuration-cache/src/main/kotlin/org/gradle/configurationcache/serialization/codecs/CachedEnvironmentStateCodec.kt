@@ -34,6 +34,8 @@ import java.io.IOException
 internal
 object CachedEnvironmentStateCodec : Codec<EnvironmentChangeTracker.CachedEnvironmentState> {
     override suspend fun WriteContext.encode(value: EnvironmentChangeTracker.CachedEnvironmentState) {
+        writeBoolean(value.cleared)
+
         writeCollection(value.updates) { update ->
             withPropertyTrace(PropertyTrace.SystemProperty(update.key.toString(), update.location ?: PropertyTrace.Unknown)) {
                 try {
@@ -58,6 +60,7 @@ object CachedEnvironmentStateCodec : Codec<EnvironmentChangeTracker.CachedEnviro
     }
 
     override suspend fun ReadContext.decode(): EnvironmentChangeTracker.CachedEnvironmentState {
+        val cleared = readBoolean()
         val updates = readList {
             val key = read() as Any
             val value = read()
@@ -69,6 +72,6 @@ object CachedEnvironmentStateCodec : Codec<EnvironmentChangeTracker.CachedEnviro
             EnvironmentChangeTracker.SystemPropertyRemove(key)
         }
 
-        return EnvironmentChangeTracker.CachedEnvironmentState(updates, removals)
+        return EnvironmentChangeTracker.CachedEnvironmentState(cleared, updates, removals)
     }
 }

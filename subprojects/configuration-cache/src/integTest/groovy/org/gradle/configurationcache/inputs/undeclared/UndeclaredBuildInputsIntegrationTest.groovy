@@ -354,6 +354,83 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
         """System.getProperties().keySet().remove("some.property")""" | _
     }
 
+    def "build logic can use setProperties at configuration phase"() {
+        given:
+        buildFile("""
+            System.setProperty("some.removed.property", "removed.value")
+            def newProps = new Properties()
+            System.properties.forEach { k, v -> newProps.put(k, v) }
+            newProps.setProperty("some.property", "some.value")
+            newProps.remove("some.removed.property")
+
+            System.setProperties(newProps)
+            tasks.register("printProperty") {
+                doLast {
+                    println("some.property = \${System.properties.getProperty("some.property")}")
+                    println("some.removed.property = \${System.properties.getProperty("some.removed.property")}")
+                }
+            }
+        """)
+
+        def configurationCache = newConfigurationCacheFixture()
+
+        when:
+        configurationCacheRun("printProperty")
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("some.property = some.value")
+        outputContains("some.removed.property = null")
+
+        when:
+        configurationCacheRun("printProperty")
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains("some.property = some.value")
+        outputContains("some.removed.property = null")
+    }
+
+    def "properties set after clearing system properties with #systemPropsCleaner do not become inputs"() {
+        given:
+        buildFile("""
+            def copiedProps = new HashMap<>(System.properties)
+            $systemPropsCleaner
+
+            copiedProps.forEach { k, v -> System.setProperty(k, v) }
+            System.setProperty("some.property", "some.value")
+
+            tasks.register("printProperty") {
+                doLast {
+                    println("some.property = \${System.properties.getProperty("some.property")}")
+                }
+            }
+        """)
+
+        def configurationCache = newConfigurationCacheFixture()
+
+        when:
+        configurationCacheRun("printProperty")
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("some.property = some.value")
+
+        when:
+        configurationCacheRun("-Dsome.property=other.value", "printProperty")
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains("some.property = some.value")
+
+        where:
+        systemPropsCleaner                       | _
+        'System.properties.clear()'              | _
+        'System.properties.keySet().clear()'     | _
+        'System.properties.entrySet().clear()'   | _
+        'System.setProperties(new Properties())' | _
+    }
+
     def "updated system property can be removed"() {
         given:
         buildFile("""

@@ -27,6 +27,7 @@ import java.util.function.Consumer
 class AccessTrackingPropertiesTest extends AbstractAccessTrackingMapTest {
     private BiConsumer<Object, Object> onChange = Mock()
     private Consumer<Object> onRemove = Mock()
+    private Runnable onClear = Mock()
 
     private AccessTrackingProperties.Listener listener = new AccessTrackingProperties.Listener() {
         @Override
@@ -42,6 +43,11 @@ class AccessTrackingPropertiesTest extends AbstractAccessTrackingMapTest {
         @Override
         void onRemove(Object key) {
             onRemove.accept(key)
+        }
+
+        @Override
+        void onClear() {
+            onClear.run()
         }
     }
 
@@ -246,7 +252,7 @@ class AccessTrackingPropertiesTest extends AbstractAccessTrackingMapTest {
 
     def "method #methodName does not report properties as inputs"() {
         when:
-        operation.accept(getMapUnderTestToRead())
+        operation.accept(getMapUnderTestToWrite())
 
         then:
         0 * onAccess._
@@ -565,6 +571,19 @@ class AccessTrackingPropertiesTest extends AbstractAccessTrackingMapTest {
 
         then:
         1 * onChange.accept('existing', 'newValue')
+        0 * onChange._
+    }
+
+    def "method clear() notifies listener and changes map"() {
+        def map = getMapUnderTestToWrite()
+        when:
+        map.clear()
+
+        then:
+        map.isEmpty()
+        1 * onClear.run()
+        0 * onAccess._
+        0 * onRemove._
         0 * onChange._
     }
 

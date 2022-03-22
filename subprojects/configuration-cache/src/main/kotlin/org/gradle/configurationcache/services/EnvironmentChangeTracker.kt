@@ -32,9 +32,20 @@ class EnvironmentChangeTracker(private val userCodeApplicationContext: UserCodeA
     private
     val mutatedSystemProperties = ConcurrentHashMap<Any, SystemPropertyChange>()
 
-    fun isSystemPropertyMutated(key: String): Boolean = mutatedSystemProperties.containsKey(key)
+    @Volatile
+    private
+    var systemPropertiesCleared = false
+
+    fun isSystemPropertyMutated(key: String): Boolean {
+        return systemPropertiesCleared || mutatedSystemProperties.containsKey(key)
+    }
 
     fun loadFrom(storedState: CachedEnvironmentState) {
+        if (storedState.cleared) {
+            systemPropertiesCleared = true
+            System.getProperties().clear()
+        }
+
         storedState.updates.forEach { update ->
             mutatedSystemProperties[update.key] = update
             System.getProperties()[update.key] = update.value
@@ -48,6 +59,7 @@ class EnvironmentChangeTracker(private val userCodeApplicationContext: UserCodeA
 
     fun getCachedState(): CachedEnvironmentState {
         return CachedEnvironmentState(
+            cleared = systemPropertiesCleared,
             updates = mutatedSystemProperties.values.filterIsInstance<SystemPropertySet>(),
             removals = mutatedSystemProperties.values.filterIsInstance<SystemPropertyRemove>()
         )
@@ -71,7 +83,12 @@ class EnvironmentChangeTracker(private val userCodeApplicationContext: UserCodeA
         }
     }
 
-    class CachedEnvironmentState(val updates: List<SystemPropertySet>, val removals: List<SystemPropertyRemove>)
+    fun systemPropertiesCleared() {
+        systemPropertiesCleared = true
+        mutatedSystemProperties.clear()
+    }
+
+    class CachedEnvironmentState(val cleared: Boolean, val updates: List<SystemPropertySet>, val removals: List<SystemPropertyRemove>)
 
     sealed class SystemPropertyChange
 

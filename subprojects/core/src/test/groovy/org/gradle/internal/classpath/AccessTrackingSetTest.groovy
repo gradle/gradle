@@ -181,6 +181,16 @@ class AccessTrackingSetTest extends Specification {
         "removeIf(Predicate)" | call(s -> s.removeIf(e -> false))
     }
 
+    def "method clear is reported"() {
+        when:
+        set.clear()
+
+        then:
+        inner.isEmpty()
+        1 * listener.onClear()
+        0 * listener._
+    }
+
     def "method #methodName is not reported as aggregating"() {
         when:
         operation.accept(set)
@@ -191,7 +201,6 @@ class AccessTrackingSetTest extends Specification {
         where:
         methodName    | operation
         "retainAll()" | call(s -> s.retainAll(Collections.emptySet()))
-        "clear()"     | call(s -> s.clear())
         "toString()"  | call(s -> s.toString())
     }
 
