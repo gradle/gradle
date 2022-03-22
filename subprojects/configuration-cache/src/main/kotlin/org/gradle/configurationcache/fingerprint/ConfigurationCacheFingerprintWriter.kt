@@ -22,6 +22,7 @@ import org.gradle.api.Describable
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentSelector
+import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.configurations.ProjectDependencyObservedListener
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.Expiry
@@ -206,6 +207,10 @@ class ConfigurationCacheFingerprintWriter(
         reportUniqueFileInput(file, consumer)
     }
 
+    override fun fileCollectionObserved(fileCollection: FileCollection, consumer: String) {
+        captureWorkInputs(consumer) { it(fileCollection as FileCollectionInternal) }
+    }
+
     override fun systemPropertiesPrefixedBy(prefix: String, snapshot: Map<String, String?>) {
         buildScopedSink.write(ConfigurationCacheFingerprint.SystemPropertiesPrefixedBy(prefix, snapshot))
     }
@@ -269,22 +274,36 @@ class ConfigurationCacheFingerprintWriter(
 
     private
     fun captureWorkInputs(work: UnitOfWork, relevantTypes: EnumSet<InputFingerprinter.InputPropertyType>) {
-        val simplifyingVisitor = SimplifyingFileCollectionStructureVisitor(directoryFileTreeFactory, fileCollectionFactory)
-        work.visitRegularInputs(object : InputVisitor {
-            override fun visitInputFileProperty(propertyName: String, type: InputFingerprinter.InputPropertyType, value: InputFingerprinter.FileValueSupplier) {
-                if (relevantTypes.contains(type)) {
-                    (value.files as FileCollectionInternal).visitStructure(simplifyingVisitor)
+        captureWorkInputs(work.displayName) { visitStructure ->
+            work.visitRegularInputs(object : InputVisitor {
+                override fun visitInputFileProperty(propertyName: String, type: InputFingerprinter.InputPropertyType, value: InputFingerprinter.FileValueSupplier) {
+                    if (relevantTypes.contains(type)) {
+                        visitStructure(value.files as FileCollectionInternal)
+                    }
                 }
-            }
-        })
-        val fileSystemInputs = simplifyingVisitor.simplify()
+            })
+        }
+    }
+
+    private
+    inline fun captureWorkInputs(workDisplayName: String, content: ((FileCollectionInternal) -> Unit) -> Unit) {
+        val fileSystemInputs = simplify(content)
         sink().write(
             ConfigurationCacheFingerprint.WorkInputs(
-                work.displayName,
+                workDisplayName,
                 fileSystemInputs,
                 host.fingerprintOf(fileSystemInputs)
             )
         )
+    }
+
+    private
+    inline fun simplify(content: ((FileCollectionInternal) -> Unit) -> Unit): FileCollectionInternal {
+        val simplifyingVisitor = SimplifyingFileCollectionStructureVisitor(directoryFileTreeFactory, fileCollectionFactory)
+        content {
+            it.visitStructure(simplifyingVisitor)
+        }
+        return simplifyingVisitor.simplify()
     }
 
     fun <T> collectFingerprintForProject(identityPath: Path, action: () -> T): T {
