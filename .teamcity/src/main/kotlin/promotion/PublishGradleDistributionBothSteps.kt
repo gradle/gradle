@@ -43,7 +43,7 @@ fun BuildSteps.buildStep1(extraParameters: String, gitUserName: String, gitUserE
     gradleWrapper {
         name = "Promote"
         tasks = "uploadAll"
-        gradleParams = """-PcommitId=%dep.${RelativeId("Check_Stage_${triggerName}_Trigger")}.build.vcs.number% $extraParameters "-PgitUserName=$gitUserName" "-PgitUserEmail=$gitUserEmail" """
+        gradleParams = """-PcommitId=%dep.${RelativeId("Check_Stage_${triggerName}_Trigger")}.build.vcs.number% $extraParameters "-PgitUserName=$gitUserName" "-PgitUserEmail=$gitUserEmail" "%additional.gradle.parameters%" """
     }
 }
 
@@ -51,6 +51,6 @@ fun BuildSteps.buildStep2(extraParameters: String, gitUserName: String, gitUserE
     gradleWrapper {
         name = "Promote"
         tasks = task
-        gradleParams = """-PcommitId=%dep.${RelativeId("Check_Stage_${triggerName}_Trigger")}.build.vcs.number% $extraParameters "-PgitUserName=$gitUserName" "-PgitUserEmail=$gitUserEmail" """
+        gradleParams = """-PcommitId=%dep.${RelativeId("Check_Stage_${triggerName}_Trigger")}.build.vcs.number% $extraParameters "-PgitUserName=$gitUserName" "-PgitUserEmail=$gitUserEmail" "%additional.gradle.parameters%" """
     }
 }
