@@ -15,7 +15,6 @@
  */
 package org.gradle.plugin.use;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.VersionConstraint;
 
 /**
@@ -23,7 +22,6 @@ import org.gradle.api.artifacts.VersionConstraint;
  *
  * @since 7.2
  */
-@Incubating
 public interface PluginDependency {
     String getPluginId();
 
