@@ -16,15 +16,23 @@
 
 package org.gradle.api.publish.ivy
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.encoding.Identifier
 
 import javax.xml.namespace.QName
+
+import static org.junit.Assume.assumeFalse
 
 class IvyPublishValidationIntegTest extends AbstractIvyPublishIntegTest {
 
     @ToBeFixedForConfigurationCache
     def "can publish with metadata containing #identifier characters"() {
+        assumeFalse(
+            "Java 18 currently creates issues with System.out charset resulting in these tests failing",
+            OperatingSystem.current().isWindows() && JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_18) && identifier.displayName == "non-ascii"
+        )
         given:
         file("content-file") << "some content"
         def organisation = identifier.safeForFileName().decorate("org")

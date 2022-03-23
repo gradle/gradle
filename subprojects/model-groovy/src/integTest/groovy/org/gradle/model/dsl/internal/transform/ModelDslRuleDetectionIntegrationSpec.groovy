@@ -16,10 +16,13 @@
 
 package org.gradle.model.dsl.internal.transform
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.internal.os.OperatingSystem
 
 import static org.hamcrest.CoreMatchers.containsString
+import static org.junit.Assume.assumeFalse
 
 @UnsupportedWithConfigurationCache(because = "software model")
 class ModelDslRuleDetectionIntegrationSpec extends AbstractIntegrationSpec {
@@ -141,6 +144,10 @@ class ModelDslRuleDetectionIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     def "only closure literals can be used as rules"() {
+        assumeFalse(
+            "Java 18 currently creates issues with System.out charset resulting in these tests failing",
+            OperatingSystem.current().isWindows() && JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_18)
+        )
         when:
         buildScript """
             class MyPlugin extends RuleSource {
