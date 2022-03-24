@@ -77,7 +77,9 @@ class ConfigurationCacheBuildOperationsIntegrationTest extends AbstractConfigura
         given:
         withLibBuild(true)
         file('settings.gradle') << """
-            includeBuild 'lib'
+            pluginManagement {
+                includeBuild 'lib'
+            }
         """
         buildFile << """
             plugins {
