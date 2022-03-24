@@ -26,28 +26,28 @@ import org.gradle.internal.operations.CallableBuildOperation
 
 internal
 fun <T : Any> BuildOperationExecutor.withLoadOperation(block: () -> T) =
-    withOperation("Load configuration cache state", block, loadDetails, loadResult)
+    withOperation("Load configuration cache state", block, LoadDetails, LoadResult)
 
 
 internal
 fun BuildOperationExecutor.withStoreOperation(cacheKey: String, block: () -> Unit) =
-    withOperation("Store configuration cache state $cacheKey", block, storeDetails, storeResult)
+    withOperation("Store configuration cache state $cacheKey", block, StoreDetails, StoreResult)
 
 
 private
-object loadDetails : ConfigurationCacheLoadBuildOperationType.Details
+object LoadDetails : ConfigurationCacheLoadBuildOperationType.Details
 
 
 private
-object loadResult : ConfigurationCacheLoadBuildOperationType.Result
+object LoadResult : ConfigurationCacheLoadBuildOperationType.Result
 
 
 private
-object storeDetails : ConfigurationCacheStoreBuildOperationType.Details
+object StoreDetails : ConfigurationCacheStoreBuildOperationType.Details
 
 
 private
-object storeResult : ConfigurationCacheStoreBuildOperationType.Result
+object StoreResult : ConfigurationCacheStoreBuildOperationType.Result
 
 
 private
