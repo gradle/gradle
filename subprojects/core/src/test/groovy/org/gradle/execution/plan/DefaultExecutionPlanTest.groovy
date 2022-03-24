@@ -288,7 +288,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         executes(finalized)
     }
 
-    def "finalizer tasks and their dependencies are not executed if finalized task did not run"() {
+    def "finalizer tasks and their dependencies are not executed if finalized task did not run due to failed dependency"() {
         Task finalizerDependency = task("finalizerDependency")
         Task finalizer = task("finalizer", dependsOn: [finalizerDependency])
         Task finalizedDependency = task("finalizedDependency", failure: new RuntimeException("failure"))
@@ -300,6 +300,20 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         then:
         executionPlan.tasks as List == [finalizedDependency, finalized, finalizerDependency, finalizer]
         executedTasks == [finalizedDependency]
+    }
+
+    def "finalizer tasks and their dependencies are not executed if finalized task did not run due to failure in unrelated task"() {
+        Task finalizerDependency = task("finalizerDependency")
+        Task finalizer = task("finalizer", dependsOn: [finalizerDependency])
+        Task broken = task("broken", failure: new RuntimeException("failure"))
+        Task finalized = task("finalized", finalizedBy: [finalizer])
+
+        when:
+        addToGraphAndPopulate([broken, finalized])
+
+        then:
+        executionPlan.tasks as List == [broken, finalized, finalizerDependency, finalizer]
+        executedTasks == [broken]
     }
 
     def "finalizer tasks and their dependencies are executed if they are previously required even if the finalized task did not run"() {
@@ -598,7 +612,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
 """)
     }
 
-    def "stops returning tasks on task execution failure"() {
+    def "stops returning tasks on first task execution failure"() {
         def failures = []
         RuntimeException exception = new RuntimeException("failure")
 
@@ -637,44 +651,6 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         then:
         failures.size() == 1
         failures[0] instanceof BuildCancelledException
-    }
-
-    def "stops returning tasks on first task failure when no failure handler provided"() {
-        def failures = []
-        RuntimeException failure = new RuntimeException("failure")
-        Task a = task("a", failure: failure)
-        Task b = task("b")
-
-        when:
-        addToGraphAndPopulate([a, b])
-
-        then:
-        executedTasks == [a]
-
-        when:
-        executionPlan.collectFailures(failures)
-
-        then:
-        failures == [failure]
-    }
-
-    def "stops execution on task failure when failure handler indicates that execution should stop"() {
-        def failures = []
-        RuntimeException failure = new RuntimeException("failure")
-        Task a = task("a", failure: failure)
-        Task b = task("b")
-
-        when:
-        addToGraphAndPopulate([a, b])
-
-        then:
-        executedTasks == [a]
-
-        when:
-        executionPlan.collectFailures(failures)
-
-        then:
-        failures == [failure]
     }
 
     def "continues to return tasks and rethrows failure on completion when failure handler indicates that execution should continue"() {
@@ -750,7 +726,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         final Task c = task("c")
         final Task d = task("d", dependsOn: [b, c])
         addToGraphAndPopulate([b])
-        executedTasks == [a]
+        assert executedTasks == [a]
 
         when:
         executionPlan = newExecutionPlan()
@@ -867,7 +843,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         Task b = task("b", dependsOn: [a])
         Task c = task("c", dependsOn: [b])
         addToGraphAndPopulate([b])
-        executedTasks == [a]
+        assert executedTasks == [a]
 
         when:
         executionPlan = newExecutionPlan()
@@ -921,7 +897,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         executionPlan.addNodes([node3, node1, node2])
 
         when:
-        executionPlan.determineExecutionPlan()
+        populateGraph()
 
         then:
         executesNodes(node1, node2, node3)
@@ -1009,6 +985,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
 
     private void populateGraph() {
         executionPlan.determineExecutionPlan()
+        executionPlan.finalizePlan()
     }
 
     void executes(Task... expectedTasks) {
@@ -1045,6 +1022,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         def nodes = []
         coordinator.withStateLock {
             while (executionPlan.executionState() != WorkSource.State.NoMoreWorkToStart) {
+                assert executionPlan.executionState() == WorkSource.State.MaybeWorkReadyToStart // There should always be a node ready to start when executing sequentially
                 def selection = executionPlan.selectNext()
                 if (selection.noMoreWorkToStart) {
                     break

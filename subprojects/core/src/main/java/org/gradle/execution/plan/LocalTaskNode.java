@@ -102,6 +102,17 @@ public class LocalTaskNode extends TaskNode {
         return true;
     }
 
+    @Override
+    public boolean isCanCancel() {
+        for (Node node : getFinalizingSuccessors()) {
+            // Cannot cancel this node if something it finalizes has started
+            if (node.isExecuting() || node.isExecuted()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     public TaskProperties getTaskProperties() {
         return taskProperties;
     }
@@ -117,10 +128,9 @@ public class LocalTaskNode extends TaskNode {
     }
 
     @Override
-    public void resolveDependencies(TaskDependencyResolver dependencyResolver, Action<Node> processHardSuccessor) {
+    public void resolveDependencies(TaskDependencyResolver dependencyResolver) {
         for (Node targetNode : getDependencies(dependencyResolver)) {
             addDependencySuccessor(targetNode);
-            processHardSuccessor.execute(targetNode);
         }
 
         lifecycleSuccessors = dependencyResolver.resolveDependenciesFor(task, task.getLifecycleDependencies());
@@ -130,7 +140,6 @@ public class LocalTaskNode extends TaskNode {
                 throw new IllegalStateException("Only tasks can be finalizers: " + targetNode);
             }
             addFinalizerNode((TaskNode) targetNode);
-            processHardSuccessor.execute(targetNode);
         }
         for (Node targetNode : getMustRunAfter(dependencyResolver)) {
             addMustSuccessor((TaskNode) targetNode);
@@ -141,10 +150,8 @@ public class LocalTaskNode extends TaskNode {
     }
 
     private void addFinalizerNode(TaskNode finalizerNode) {
-        addFinalizer(finalizerNode);
-        if (!finalizerNode.isInKnownState()) {
-            finalizerNode.mustNotRun();
-        }
+        deprecateLifecycleHookReferencingNonLocalTask("finalizedBy", finalizerNode);
+        finalizerNode.addFinalizingSuccessor(this);
     }
 
     private Set<Node> getDependencies(TaskDependencyResolver dependencyResolver) {

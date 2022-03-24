@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration;
@@ -141,14 +140,13 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
     }
 
     @Override
-    public void resolveDependencies(TaskDependencyResolver dependencyResolver, Action<Node> processHardSuccessor) {
-        processDependencies(processHardSuccessor, dependencyResolver.resolveDependenciesFor(null, (TaskDependencyContainer) context -> getTransformedArtifacts().visitDependencies(context)));
+    public void resolveDependencies(TaskDependencyResolver dependencyResolver) {
+        processDependencies(dependencyResolver.resolveDependenciesFor(null, (TaskDependencyContainer) context -> getTransformedArtifacts().visitDependencies(context)));
     }
 
-    protected void processDependencies(Action<Node> processHardSuccessor, Set<Node> dependencies) {
+    protected void processDependencies(Set<Node> dependencies) {
         for (Node dependency : dependencies) {
             addDependencySuccessor(dependency);
-            processHardSuccessor.execute(dependency);
         }
     }
 

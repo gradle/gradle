@@ -23,6 +23,7 @@ import org.gradle.internal.deprecation.DeprecationLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collection;
 import java.util.NavigableSet;
 import java.util.Set;
 
@@ -42,22 +43,38 @@ public abstract class TaskNode extends Node {
         if (!super.doCheckDependenciesComplete()) {
             return false;
         }
-        LOGGER.debug("Checking if all must successors are complete for {}", this);
+
         for (Node dependency : mustSuccessors) {
             if (!dependency.isComplete()) {
                 return false;
             }
         }
 
-        LOGGER.debug("Checking if all finalizing successors are complete for {}", this);
-        for (Node dependency : finalizingSuccessors) {
-            if (!dependency.isComplete()) {
+        for (Node finalized : finalizingSuccessors) {
+            if (!finalized.isComplete()) {
                 return false;
             }
         }
 
-        LOGGER.debug("All task dependencies are complete for {}", this);
         return true;
+    }
+
+    @Override
+    public boolean allDependenciesSuccessful() {
+        if (!super.allDependenciesSuccessful()) {
+            return false;
+        }
+        if (finalizingSuccessors.isEmpty()) {
+            return true;
+        }
+
+        // If any finalized node has executed, then this node can execute
+        for (Node finalized : finalizingSuccessors) {
+            if (finalized.isExecuted()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public Set<Node> getMustSuccessors() {
@@ -73,8 +90,22 @@ public abstract class TaskNode extends Node {
         return finalizers;
     }
 
+    @Override
+    public void addFinalizer(Node finalizer) {
+        finalizers.add(finalizer);
+    }
+
+    @Override
     public Set<Node> getFinalizingSuccessors() {
         return finalizingSuccessors;
+    }
+
+    @Override
+    public void addFinalizingSuccessors(Collection<Node> finalizingSuccessors) {
+        this.finalizingSuccessors.addAll(finalizingSuccessors);
+        for (Node finalized : finalizingSuccessors) {
+            addFinalizingSuccessor(finalized);
+        }
     }
 
     public Set<Node> getShouldSuccessors() {
@@ -87,14 +118,9 @@ public abstract class TaskNode extends Node {
         toNode.mustPredecessors.add(this);
     }
 
-    public void addFinalizingSuccessor(TaskNode finalized) {
+    public void addFinalizingSuccessor(Node finalized) {
         finalizingSuccessors.add(finalized);
-        finalized.finalizers.add(this);
-    }
-
-    public void addFinalizer(TaskNode finalizerNode) {
-        deprecateLifecycleHookReferencingNonLocalTask("finalizedBy", finalizerNode);
-        finalizerNode.addFinalizingSuccessor(this);
+        finalized.addFinalizer(this);
     }
 
     public void addShouldSuccessor(Node toNode) {
@@ -154,7 +180,7 @@ public abstract class TaskNode extends Node {
 
     public abstract TaskInternal getTask();
 
-    private void deprecateLifecycleHookReferencingNonLocalTask(String hookName, Node taskNode) {
+    protected void deprecateLifecycleHookReferencingNonLocalTask(String hookName, Node taskNode) {
         if (taskNode instanceof TaskInAnotherBuild) {
             DeprecationLogger.deprecateAction("Using " + hookName + " to reference tasks from another build")
                 .willBecomeAnErrorInGradle8()

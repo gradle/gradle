@@ -93,6 +93,31 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         ['a', 'b']     | 'c'         | [any(':c', ':d'), ':b'] // :c and :d might run in parallel with the configuration cache
     }
 
+    void 'finalizer tasks are not run when finalized task does not run'() {
+        given:
+        buildScript("""
+            task a {
+            }
+            task b {
+                finalizedBy a
+                doLast {
+                    throw new RuntimeException("broken")
+                }
+            }
+            task c {
+            }
+            task d {
+                finalizedBy c
+            }
+        """)
+
+        expect:
+        2.times {
+            fails("b", "d")
+            result.assertTasksExecutedInOrder ":b", ":a"
+        }
+    }
+
     @Ignore
     void 'finalizer tasks work with task disabling (#taskDisablingStatement)'() {
         setupProject()

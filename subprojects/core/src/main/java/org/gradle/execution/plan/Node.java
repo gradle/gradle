@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.NavigableSet;
@@ -44,12 +45,8 @@ public abstract class Node implements Comparable<Node> {
         // Node is not scheduled to run in any plan
         // Nodes may be moved back into this state when the execution plan is cancelled or aborted due to a failure
         NOT_SCHEDULED,
-        // Node has been scheduled in an execution plan and should run
+        // Node has been scheduled in an execution plan and should run if possible (depending on failures in other nodes)
         SHOULD_RUN,
-        // Node is a finalizer of at least one node that has executed and so must run
-        MUST_RUN,
-        // Node is a finalizer of one or more nodes and none of these nodes has executed
-        MUST_NOT_RUN,
         // Node is currently executing
         EXECUTING,
         // Node has been executed, and possibly failed, in an execution plan (not necessarily the current)
@@ -82,15 +79,11 @@ public abstract class Node implements Comparable<Node> {
         return state == ExecutionState.SHOULD_RUN;
     }
 
-    public boolean isMustNotRun() {
-        return state == ExecutionState.MUST_NOT_RUN;
+    public boolean isDoNotIncludeInPlan() {
+        return filtered || state == ExecutionState.NOT_SCHEDULED || isCannotRunInAnyPlan();
     }
 
-    public boolean isIncludeInGraph() {
-        return !filtered && state != ExecutionState.NOT_SCHEDULED && !isAlreadyExecuted();
-    }
-
-    public boolean isAlreadyExecuted() {
+    public boolean isCannotRunInAnyPlan() {
         return state == ExecutionState.EXECUTED || state == ExecutionState.FAILED_DEPENDENCY;
     }
 
@@ -98,7 +91,11 @@ public abstract class Node implements Comparable<Node> {
      * Is this node ready to execute? Note: does not consider the dependencies of the node.
      */
     public boolean isReady() {
-        return state == ExecutionState.SHOULD_RUN || state == ExecutionState.MUST_RUN;
+        return state == ExecutionState.SHOULD_RUN;
+    }
+
+    public boolean isCanCancel() {
+        return true;
     }
 
     public boolean isInKnownState() {
@@ -112,29 +109,23 @@ public abstract class Node implements Comparable<Node> {
     /**
      * Is it possible for this node to run in the current plan? Returns {@code true} if this node definitely will not run, {@code false} if it is still possible for the node to run.
      *
-     * <p>A node may be complete for several reasons, for example when its actions have been executed, or when its outputs have been considered up-to-date or loaded from the build cache,
-     * or when it cannot run due to a failure in a dependency.</p>
+     * <p>A node may be complete for several reasons, for example:</p>
+     * <ul>
+     *     <li>when its actions have been executed, or when its outputs have been considered up-to-date or loaded from the build cache</li>
+     *     <li>when it cannot run due to a failure in a dependency</li>
+     *     <li>when it is cancelled due to a failure in some other node and not running with --continue</li>
+     *     <li>when it is a finalizer of tasks that have all completed but did not run</li>
+     * </ul>
      */
-    public boolean isWillNotRun() {
+    public boolean isComplete() {
         return state == ExecutionState.EXECUTED
             || state == ExecutionState.FAILED_DEPENDENCY
             || state == ExecutionState.NOT_SCHEDULED
             || filtered;
     }
 
-    public boolean isComplete() {
-        return state == ExecutionState.EXECUTED
-            || state == ExecutionState.FAILED_DEPENDENCY
-            || state == ExecutionState.NOT_SCHEDULED
-            || filtered
-            || state == ExecutionState.MUST_NOT_RUN;
-    }
-
     public boolean isSuccessful() {
-        if (state == ExecutionState.EXECUTED) {
-            return !isFailed();
-        }
-        return filtered || state == ExecutionState.MUST_NOT_RUN;
+        return filtered || (state == ExecutionState.EXECUTED && !isFailed());
     }
 
     /**
@@ -172,7 +163,7 @@ public abstract class Node implements Comparable<Node> {
     public abstract Throwable getNodeFailure();
 
     public void startExecution(Consumer<Node> nodeStartAction) {
-        assert isReady();
+        assert allDependenciesComplete() && allDependenciesSuccessful();
         state = ExecutionState.EXECUTING;
         nodeStartAction.accept(this);
     }
@@ -184,19 +175,19 @@ public abstract class Node implements Comparable<Node> {
     }
 
     public void skipExecution(Consumer<Node> completionAction) {
-        assert state == ExecutionState.SHOULD_RUN || state == ExecutionState.MUST_RUN;
+        assert state == ExecutionState.SHOULD_RUN;
         state = ExecutionState.FAILED_DEPENDENCY;
         completionAction.accept(this);
     }
 
     public void abortExecution(Consumer<Node> completionAction) {
-        assert !isAlreadyExecuted();
+        assert !isCannotRunInAnyPlan();
         state = ExecutionState.NOT_SCHEDULED;
         completionAction.accept(this);
     }
 
     public void require() {
-        if (isAlreadyExecuted()) {
+        if (isCannotRunInAnyPlan()) {
             return;
         }
         if (state != ExecutionState.SHOULD_RUN) {
@@ -210,24 +201,21 @@ public abstract class Node implements Comparable<Node> {
      * Mark this node as filtered from the current plan. The node will be considered complete and successful.
      */
     public void filtered() {
-        if (isAlreadyExecuted()) {
+        if (isCannotRunInAnyPlan()) {
             return;
         }
         filtered = true;
     }
 
-    public void notFiltered() {
-        filtered = false;
-    }
-
-    public void mustNotRun() {
-        assert state == ExecutionState.NOT_SCHEDULED;
-        state = ExecutionState.MUST_NOT_RUN;
-    }
-
-    public void enforceRun() {
-        assert state == ExecutionState.SHOULD_RUN || state == ExecutionState.MUST_NOT_RUN || state == ExecutionState.MUST_RUN;
-        state = ExecutionState.MUST_RUN;
+    /**
+     * Discards any plan specific state for this node, so that it can potentally be added to another execution plan.
+     */
+    public void reset() {
+        if (!isCannotRunInAnyPlan()) {
+            filtered = false;
+            dependenciesProcessed = false;
+            state = ExecutionState.NOT_SCHEDULED;
+        }
     }
 
     public void setExecutionFailure(Throwable failure) {
@@ -251,6 +239,10 @@ public abstract class Node implements Comparable<Node> {
 
     public Set<Node> getDependencySuccessors() {
         return dependencySuccessors;
+    }
+
+    public Iterable<Node> getDependencySuccessorsInReverseOrder() {
+        return dependencySuccessors.descendingSet();
     }
 
     public void addDependencySuccessor(Node toNode) {
@@ -295,10 +287,16 @@ public abstract class Node implements Comparable<Node> {
         }
     }
 
+    /**
+     * Is this node ready to execute or discard (eg because a dependency has failed)?
+     */
     public boolean allDependenciesComplete() {
-        return dependenciesState != DependenciesState.NOT_COMPLETE;
+        return state == ExecutionState.SHOULD_RUN && dependenciesState != DependenciesState.NOT_COMPLETE;
     }
 
+    /**
+     * Can this node execute or should it be discarded? Should only be called when {@link #allDependenciesComplete()} return true.
+     */
     public boolean allDependenciesSuccessful() {
         return dependenciesState == DependenciesState.COMPLETE_AND_SUCCESSFUL;
     }
@@ -342,7 +340,7 @@ public abstract class Node implements Comparable<Node> {
     public void prepareForExecution(Action<Node> monitor) {
     }
 
-    public abstract void resolveDependencies(TaskDependencyResolver dependencyResolver, Action<Node> processHardSuccessor);
+    public abstract void resolveDependencies(TaskDependencyResolver dependencyResolver);
 
     public boolean getDependenciesProcessed() {
         return dependenciesProcessed;
@@ -382,6 +380,16 @@ public abstract class Node implements Comparable<Node> {
 
     public Set<Node> getFinalizers() {
         return Collections.emptySet();
+    }
+
+    public void addFinalizer(Node finalizer) {
+    }
+
+    public Set<Node> getFinalizingSuccessors() {
+        return Collections.emptySet();
+    }
+
+    public void addFinalizingSuccessors(Collection<Node> finalizingSuccessors) {
     }
 
     /**

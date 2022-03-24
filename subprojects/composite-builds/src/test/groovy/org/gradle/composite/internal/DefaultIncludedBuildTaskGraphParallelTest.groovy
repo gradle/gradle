@@ -101,6 +101,7 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         when:
         def result = scheduleAndRun(services) { builder ->
             builder.withWorkGraph(build) { graphBuilder ->
+                def node = new DependenciesStuckNode()
                 node.require()
                 node.dependenciesProcessed()
                 graphBuilder.addNodes([node])
@@ -111,9 +112,6 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         result.failures.size() == 1
         result.failures.first() instanceof IllegalStateException
         result.failures.first().message == "Unable to make progress running work. There are items queued for execution but none of them can be started"
-
-        where:
-        node << [new DependenciesStuckNode(), new NeverReadyNode()]
     }
 
     ExecutionResult<Void> scheduleAndRun(Services services, Action<BuildTreeWorkGraph.Builder> action) {
@@ -149,7 +147,7 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         }
         _ * controller.executeTasks(_) >> {
             plan.determineExecutionPlan()
-            return services.planExecutor.process(plan) { node -> }
+            return services.planExecutor.process(plan.finalizePlan()) { node -> }
         }
 
         return new DefaultBuildWorkGraphController(
@@ -192,9 +190,8 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
             return null
         }
 
-
         @Override
-        void resolveDependencies(TaskDependencyResolver dependencyResolver, Action<Node> processHardSuccessor) {
+        void resolveDependencies(TaskDependencyResolver dependencyResolver) {
         }
 
         @Override
@@ -230,27 +227,6 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
     private static class DependenciesStuckNode extends TestNode {
         @Override
         protected boolean doCheckDependenciesComplete() {
-            return false
-        }
-    }
-
-    // Emulates a stuck finalizer
-    private static class NeverReadyNode extends TestNode {
-        boolean stuck
-
-        @Override
-        String toString() {
-            return super.toString() + " stuck=" + stuck
-        }
-
-        @Override
-        boolean isRequired() {
-            return !stuck
-        }
-
-        @Override
-        boolean isReady() {
-            stuck = true
             return false
         }
     }

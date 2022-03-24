@@ -16,7 +16,6 @@
 
 package org.gradle.execution.plan;
 
-import org.gradle.api.Action;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.internal.resources.ResourceLock;
@@ -56,7 +55,7 @@ public class ResolveMutationsNode extends Node implements SelfExecutingNode {
     }
 
     @Override
-    public void resolveDependencies(TaskDependencyResolver dependencyResolver, Action<Node> processHardSuccessor) {
+    public void resolveDependencies(TaskDependencyResolver dependencyResolver) {
     }
 
     @Nullable

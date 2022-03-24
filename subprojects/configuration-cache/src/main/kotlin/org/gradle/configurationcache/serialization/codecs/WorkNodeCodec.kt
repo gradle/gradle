@@ -96,9 +96,8 @@ class WorkNodeCodec(
     private
     fun ReadContext.readExecutionStateOf(node: Node) {
         val isRequired = readBoolean()
-        when {
-            isRequired -> node.require()
-            else -> node.mustNotRun() // finalizer nodes and their dependencies
+        if (isRequired) {
+            node.require()
         }
         if (node !is TaskInAnotherBuild) {
             // we want TaskInAnotherBuild dependencies to be processed later
