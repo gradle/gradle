@@ -35,19 +35,19 @@ fun BuildOperationExecutor.withStoreOperation(cacheKey: String, block: () -> Uni
 
 
 private
-val loadDetails = object : ConfigurationCacheLoadBuildOperationType.Details {}
+object loadDetails : ConfigurationCacheLoadBuildOperationType.Details
 
 
 private
-val loadResult = object : ConfigurationCacheLoadBuildOperationType.Result {}
+object loadResult : ConfigurationCacheLoadBuildOperationType.Result
 
 
 private
-val storeDetails = object : ConfigurationCacheStoreBuildOperationType.Details {}
+object storeDetails : ConfigurationCacheStoreBuildOperationType.Details
 
 
 private
-val storeResult = object : ConfigurationCacheStoreBuildOperationType.Result {}
+object storeResult : ConfigurationCacheStoreBuildOperationType.Result
 
 
 private
