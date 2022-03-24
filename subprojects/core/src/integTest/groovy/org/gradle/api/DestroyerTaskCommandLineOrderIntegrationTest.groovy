@@ -367,4 +367,32 @@ class DestroyerTaskCommandLineOrderIntegrationTest extends AbstractCommandLineOr
         where:
         type << ProductionType.values()
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/20272")
+    def "a destroyer task that mustRunAfter a task that does not get executed will run before producer tasks when ordered first (type: #type)"() {
+        def foo = subproject(':foo')
+        def bar = subproject(':bar')
+
+        def cleanSpecialBar = bar.task('cleanSpecialBar')
+        def cleanFoo = foo.task('cleanFoo').destroys('build/foo')
+        def cleanBar = bar.task('cleanBar').destroys('build/bar').mustRunAfter(cleanSpecialBar)
+        def clean = rootBuild.task('clean').dependsOn(cleanFoo).dependsOn(cleanBar)
+        def generateFoo = foo.task('generateFoo').produces('build/foo', type)
+        def generateBar = bar.task('generateBar').produces('build/bar', type)
+        def generate = rootBuild.task('generate').dependsOn(generateBar).dependsOn(generateFoo)
+
+        writeAllFiles()
+
+        when:
+        args '--parallel', '--max-workers=2'
+        succeeds(clean.path, generate.path)
+
+        then:
+        result.assertTaskOrder(cleanFoo.fullPath, cleanBar.fullPath, clean.fullPath)
+        result.assertTaskOrder(cleanFoo.fullPath, generateFoo.fullPath, generate.fullPath)
+        result.assertTaskOrder(cleanBar.fullPath, generateBar.fullPath, generate.fullPath)
+
+        where:
+        type << ProductionType.values()
+    }
 }
