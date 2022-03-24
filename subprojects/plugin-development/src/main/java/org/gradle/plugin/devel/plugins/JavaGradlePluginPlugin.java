@@ -156,6 +156,11 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
         if (apiVersion == null || apiVersion.isEmpty()) {
             dependencies.add(API_CONFIGURATION, dependencies.gradleApi());
         } else {
+            String repositoryUrl = System.getProperty("gradle.api.repository.url", "https://repo.gradle.org/gradle/libs-releases");
+            project.getRepositories().maven(repository -> {
+                repository.setName("gradleApiRepository");
+                repository.setUrl(repositoryUrl);
+            });
             dependencies.add(API_CONFIGURATION, dependencies.gradleApi(apiVersion));
         }
     }

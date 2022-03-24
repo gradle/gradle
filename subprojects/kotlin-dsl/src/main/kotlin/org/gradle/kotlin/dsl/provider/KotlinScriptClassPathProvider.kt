@@ -215,8 +215,9 @@ fun gradleApiJarsProviderFor(dependencyFactory: DependencyFactory, dependencyRes
 
 private
 fun gradleApisFromRepository(dependencyResolutionServices: DependencyResolutionServices, dependencyFactory: DependencyFactory, version: String): Set<File> {
-    dependencyResolutionServices.resolveRepositoryHandler.maven("https://repo.gradle.org/gradle/libs-releases")
-    val gradleModules = listOf("core", "core-api", "tooling-api", "kotlin-dsl")
+    val repositoryUrl = System.getProperty("gradle.api.repository.url", "https://repo.gradle.org/gradle/libs-releases")
+    dependencyResolutionServices.resolveRepositoryHandler.maven(repositoryUrl)
+    val gradleModules = listOf("api")
     val detachedConfiguration = dependencyResolutionServices.configurationContainer.detachedConfiguration(
         *gradleModules.map { dependencyFactory.gradleDependency(it, version) }.toTypedArray()
     )
