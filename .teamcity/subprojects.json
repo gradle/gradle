@@ -147,13 +147,6 @@
     "crossVersionTests": true
   },
   {
-    "dirName": "configuration-cache-report",
-    "name": "configuration-cache-report",
-    "unitTests": true,
-    "functionalTests": false,
-    "crossVersionTests": false
-  },
-  {
     "dirName": "core",
     "name": "core",
     "unitTests": true,

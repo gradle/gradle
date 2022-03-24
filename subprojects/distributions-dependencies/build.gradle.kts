@@ -57,6 +57,7 @@ dependencies {
         api(libs.commonsLang)           { version { strictly("2.6") }}
         api(libs.commonsLang3)          { version { strictly("3.12.0") }}
         api(libs.commonsMath)           { version { strictly("3.6.1") }}
+        api(libs.configurationCacheReport)          { version { strictly("1.0") }}
         api(libs.fastutil)              { version { strictly("8.5.2") }}
         api(libs.gcs)                   { version { strictly("v1-rev171-1.25.0") }}
         api(libs.googleApiClient)       { version { strictly(googleApiVersion); because("our GCS version requires 1.25.0") }}
