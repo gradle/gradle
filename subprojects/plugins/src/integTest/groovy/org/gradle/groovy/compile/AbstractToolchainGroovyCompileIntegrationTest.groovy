@@ -25,6 +25,15 @@ abstract class AbstractToolchainGroovyCompileIntegrationTest extends ApiGroovyCo
 
     Jvm jdk
 
+    @Override
+    def getGroovyJarVariants() {
+        // Do not test with groovy-all with Groovy 4 for now because it doesn't work as a platform currently
+        // TODO Link to Groovy issue
+        versionNumber.major >= 4
+            ? ["groovy"]
+            : ["groovy-all", "groovy"]
+    }
+
     def setup() {
         jdk = computeJdkForTest()
         Assume.assumeNotNull(jdk)

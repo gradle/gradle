@@ -22,14 +22,6 @@ import org.gradle.internal.jvm.Jvm
 class LowerToolchainGroovyCompileIntegrationTest extends AbstractToolchainGroovyCompileIntegrationTest {
 
     @Override
-    def getGroovyJarVariants() {
-        // Do not test with groovy-all with Groovy 4
-        versionNumber.major >= 4
-            ? ["groovy"]
-            : ["groovy-all", "groovy"]
-    }
-
-    @Override
     Jvm computeJdkForTest() {
         AvailableJavaHomes.getAvailableJdk {
             it.languageVersion < Jvm.current().javaVersion && it.languageVersion.isJava8Compatible()
