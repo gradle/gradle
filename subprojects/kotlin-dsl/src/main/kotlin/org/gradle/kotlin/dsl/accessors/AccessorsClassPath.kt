@@ -45,6 +45,7 @@ import org.gradle.kotlin.dsl.concurrent.withAsynchronousIO
 import org.gradle.kotlin.dsl.support.ClassBytesRepository
 import org.gradle.kotlin.dsl.support.appendReproducibleNewLine
 import org.gradle.kotlin.dsl.support.useToRun
+import org.gradle.util.GradleVersion
 import org.jetbrains.kotlin.metadata.ProtoBuf
 import org.jetbrains.kotlin.metadata.ProtoBuf.Visibility
 import org.jetbrains.kotlin.metadata.deserialization.Flags
@@ -601,6 +602,10 @@ fun IO.writeAccessorsTo(
     }
 }
 
+val gradleApiVersion = System.getProperty("org.gradle.api.version", GradleVersion.current().version).apply {
+    println("Gradle API version: $this")
+}
+val supportsProviderConvertible = GradleVersion.version(gradleApiVersion).baseVersion >= GradleVersion.version("7.4")
 
 internal
 fun fileHeaderWithImportsFor(accessorsPackage: String = kotlinDslPackageName) = """
@@ -623,7 +628,7 @@ import org.gradle.api.artifacts.dsl.ArtifactHandler
 import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.provider.Provider
-import org.gradle.api.provider.ProviderConvertible
+${if (supportsProviderConvertible) "import org.gradle.api.provider.ProviderConvertible" else ""}
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskProvider
 
