@@ -25,7 +25,7 @@ class ConfigurationCacheBuildOperationsIntegrationTest extends AbstractConfigura
 
     def operations = new BuildOperationsFixture(executer, temporaryFolder)
 
-    def "emits no load/store build operations when not used"() {
+    def "emits no load/store build operations when configuration cache is not used"() {
         given:
         withLibBuild()
         withAppBuild()
@@ -39,7 +39,7 @@ class ConfigurationCacheBuildOperationsIntegrationTest extends AbstractConfigura
         operations.all(ConfigurationCacheStoreBuildOperationType).empty
     }
 
-    def "emits load/store build operations when used"() {
+    def "emits single load/store build operations of each type per build-tree when configuration cache is used - included build dependency"() {
         given:
         withLibBuild()
         withAppBuild()
@@ -73,12 +73,58 @@ class ConfigurationCacheBuildOperationsIntegrationTest extends AbstractConfigura
         operations.all(ConfigurationCacheStoreBuildOperationType).empty
     }
 
-    private TestFile withLibBuild() {
+    def "emits single load/store build operations of each type per build-tree when configuration cache is used - included build build logic"() {
+        given:
+        withLibBuild(true)
+        file('settings.gradle') << """
+            includeBuild 'lib'
+        """
+        buildFile << """
+            plugins {
+                id 'my-plugin'
+            }
+        """
+        when:
+        configurationCacheRun 'help'
+
+        then:
+        outputContains('In script plugin')
+        operations.all(ConfigurationCacheLoadBuildOperationType).empty
+        with(operations.all(ConfigurationCacheStoreBuildOperationType)) {
+            size() == 1
+            with(get(0)) {
+                details == [:]
+                it.result == [:]
+            }
+        }
+
+        when:
+        configurationCacheRun 'help'
+
+        then:
+        with(operations.all(ConfigurationCacheLoadBuildOperationType)) {
+            size() == 1
+            with(get(0)) {
+                details == [:]
+                it.result == [:]
+            }
+        }
+        operations.all(ConfigurationCacheStoreBuildOperationType).empty
+    }
+
+    private TestFile withLibBuild(boolean withPrecompiledScriptPlugin = false) {
         createDir('lib') {
             file('settings.gradle') << """
                 rootProject.name = 'lib'
             """
-
+            if (withPrecompiledScriptPlugin) {
+                file('build.gradle') << """
+                    plugins { id 'groovy-gradle-plugin' }
+                """
+                file('src/main/groovy/my-plugin.gradle') << """
+                    println 'In script plugin'
+                """
+            }
             file('build.gradle') << """
                 plugins { id 'java' }
                 group = 'org.test'
