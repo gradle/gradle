@@ -21,7 +21,6 @@ import org.gradle.buildinit.plugins.internal.model.Description;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.buildinit.plugins.internal.modifiers.Language;
 import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
-import org.gradle.util.internal.GroovyDependencyUtil;
 
 import java.util.ArrayList;
 import java.util.List;
