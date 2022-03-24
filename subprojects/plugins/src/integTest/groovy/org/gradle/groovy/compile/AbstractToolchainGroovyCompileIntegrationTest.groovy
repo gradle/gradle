@@ -28,7 +28,7 @@ abstract class AbstractToolchainGroovyCompileIntegrationTest extends ApiGroovyCo
     @Override
     def getGroovyJarVariants() {
         // Do not test with groovy-all with Groovy 4 for now because it doesn't work as a platform currently
-        // TODO Link to Groovy issue
+        // See https://issues.apache.org/jira/browse/GROOVY-10543
         versionNumber.major >= 4
             ? ["groovy"]
             : ["groovy-all", "groovy"]
