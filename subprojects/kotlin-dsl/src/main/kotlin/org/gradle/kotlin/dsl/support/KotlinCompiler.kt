@@ -19,7 +19,7 @@ package org.gradle.kotlin.dsl.support
 import org.gradle.internal.SystemProperties
 import org.gradle.internal.io.NullOutputStream
 
-import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
+import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY
 import org.jetbrains.kotlin.cli.common.CompilerSystemProperties.KOTLIN_COMPILER_ENVIRONMENT_KEEPALIVE_PROPERTY
 import org.jetbrains.kotlin.cli.common.config.addKotlinSourceRoot
 import org.jetbrains.kotlin.cli.common.config.addKotlinSourceRoots
@@ -44,7 +44,8 @@ import org.jetbrains.kotlin.compiler.plugin.ComponentRegistrar
 
 import org.jetbrains.kotlin.config.AnalysisFlags
 import org.jetbrains.kotlin.config.ApiVersion
-import org.jetbrains.kotlin.config.CommonConfigurationKeys
+import org.jetbrains.kotlin.config.CommonConfigurationKeys.LANGUAGE_VERSION_SETTINGS
+import org.jetbrains.kotlin.config.CommonConfigurationKeys.MODULE_NAME
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.JVMConfigurationKeys.JVM_TARGET
 import org.jetbrains.kotlin.config.JVMConfigurationKeys.OUTPUT_DIRECTORY
@@ -340,9 +341,9 @@ class LoggingOutputStream(val log: (String) -> Unit) : OutputStream() {
 private
 fun compilerConfigurationFor(messageCollector: MessageCollector): CompilerConfiguration =
     CompilerConfiguration().apply {
-        put(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, messageCollector)
+        put(MESSAGE_COLLECTOR_KEY, messageCollector)
         put(JVM_TARGET, JVM_1_8)
-        put(CommonConfigurationKeys.LANGUAGE_VERSION_SETTINGS, gradleKotlinDslLanguageVersionSettings)
+        put(LANGUAGE_VERSION_SETTINGS, gradleKotlinDslLanguageVersionSettings)
     }
 
 
@@ -362,7 +363,7 @@ val gradleKotlinDslLanguageVersionSettings = LanguageVersionSettingsImpl(
 
 private
 fun CompilerConfiguration.setModuleName(name: String) {
-    put(CommonConfigurationKeys.MODULE_NAME, name)
+    put(MODULE_NAME, name)
 }
 
 
