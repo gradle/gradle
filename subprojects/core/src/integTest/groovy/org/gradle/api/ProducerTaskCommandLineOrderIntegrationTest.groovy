@@ -354,8 +354,8 @@ class ProducerTaskCommandLineOrderIntegrationTest extends AbstractCommandLineOrd
         def cleanBar = bar.task('cleanBar').destroys('build/bar')
         def clean = rootBuild.task('clean').dependsOn(cleanFoo).dependsOn(cleanBar)
         def generateSpecialBar = bar.task('generateSpecialBar')
-        def generateBar = bar.task('generateBar').produces('build/bar', type).mustRunAfter(generateSpecialBar)
         def generateFoo = foo.task('generateFoo').produces('build/foo', type)
+        def generateBar = bar.task('generateBar').produces('build/bar', type).dependsOn(generateFoo).mustRunAfter(generateSpecialBar)
         def generate = rootBuild.task('generate').dependsOn(generateBar).dependsOn(generateFoo)
 
         writeAllFiles()

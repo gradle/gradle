@@ -375,7 +375,7 @@ class DestroyerTaskCommandLineOrderIntegrationTest extends AbstractCommandLineOr
 
         def cleanSpecialBar = bar.task('cleanSpecialBar')
         def cleanFoo = foo.task('cleanFoo').destroys('build/foo')
-        def cleanBar = bar.task('cleanBar').destroys('build/bar').mustRunAfter(cleanSpecialBar)
+        def cleanBar = bar.task('cleanBar').destroys('build/bar').dependsOn(cleanFoo).mustRunAfter(cleanSpecialBar)
         def clean = rootBuild.task('clean').dependsOn(cleanFoo).dependsOn(cleanBar)
         def generateFoo = foo.task('generateFoo').produces('build/foo', type)
         def generateBar = bar.task('generateBar').produces('build/bar', type)

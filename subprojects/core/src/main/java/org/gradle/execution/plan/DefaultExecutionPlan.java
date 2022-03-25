@@ -69,6 +69,7 @@ import java.util.stream.Stream;
 
 import static com.google.common.collect.Lists.newLinkedList;
 import static com.google.common.collect.Sets.newIdentityHashSet;
+import static java.util.stream.StreamSupport.stream;
 
 /**
  * The mutation methods on this implementation are NOT threadsafe, and callers must synchronize access to these methods.
@@ -405,7 +406,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
             if (taskClassifier.isDestroyer()) {
                 // Create (or get) a destroyer ordinal node that depends on the dependencies of this task node
                 Node ordinalNode = ordinalNodeAccess.getOrCreateDestroyableLocationNode(taskNode.getOrdinal());
-                taskNode.getHardSuccessors().forEach(ordinalNode::addDependencySuccessor);
+                addDependenciesFrom(taskNode, ordinalNode);
 
                 if (taskNode.getOrdinal() > 0) {
                     // Depend on any previous producer ordinal nodes (i.e. any producer ordinal nodes with a lower
@@ -416,7 +417,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
             } else if (taskClassifier.isProducer()) {
                 // Create (or get) a producer ordinal node that depends on the dependencies of this task node
                 Node ordinalNode = ordinalNodeAccess.getOrCreateOutputLocationNode(taskNode.getOrdinal());
-                taskNode.getHardSuccessors().forEach(ordinalNode::addDependencySuccessor);
+                addDependenciesFrom(taskNode, ordinalNode);
 
                 if (taskNode.getOrdinal() > 0) {
                     // Depend on any previous destroyer ordinal nodes (i.e. any destroyer ordinal nodes with a lower
@@ -426,6 +427,11 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                 }
             }
         }
+    }
+
+    private void addDependenciesFrom(TaskNode taskNode, Node ordinalNode) {
+        Stream<Node> executingSuccessors = stream(taskNode.getHardSuccessors().spliterator(), false).filter(Node::isRequired);
+        executingSuccessors.forEach(ordinalNode::addDependencySuccessor);
     }
 
     private void maybeRemoveProcessedShouldRunAfterEdge(Deque<GraphEdge> walkedShouldRunAfterEdges, Node node) {
