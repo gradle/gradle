@@ -416,6 +416,10 @@ tasks.withType<KotlinCompile>().configureEach {
 }
 ```
 
+Starting with Gradle 7.5, `.gradle.kts` scripts and plugins using the `kotlin-dsl` plugin are compiled with `-Xsam-conversion=class`.
+This instructs the Kotlin compiler to produce classes instead of lambdas for SAM wrappers.
+It is not needed to stick with Kotlin 1.4 api/language anymore.
+
 For the case where Gradle cannot track the implementation because it was loaded by a classloader unknown to Gradle, you can use Gradle's built-in ways to load the class.
 
 [[disable_caching_by_default]]
