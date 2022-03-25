@@ -162,6 +162,17 @@ BUILD SUCCESSFUL in 550ms
 1 actionable task: 1 executed 
 ```
 
+### Kotlin DSL compilation now produces classes for Kotlin lambdas
+
+Since Gradle 7.0 that includes Kotlin 1.5 the compilation of `.gradle.kts` scripts, and plugins using the `kotlin-dsl` plugin, uses `invoke-dynamic` and lambda meta-factory to generate classes for some Kotlin lambdas.
+This made Kotlin lambdas suffer the same [problem](userguide/validation_problems.html#implementation_unknown) as Java lambdas when it comes to task input snapshotting, leading to never up-to-date tasks.
+
+Starting with Gradle 7.5, the Kotlin compiler used by the Kotlin DSL is configured to produce simple classes for Kotlin lambdas.
+As a result registering Kotlin lambdas to e.g. `doLast {}` doesn't make a task out of date anymore. 
+
+This also makes the Kotlin lambdas restorable by the [configuration cache](userguide/configuration_cache.html), simplifying its adoption.
+
+
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
 ==========================================================
