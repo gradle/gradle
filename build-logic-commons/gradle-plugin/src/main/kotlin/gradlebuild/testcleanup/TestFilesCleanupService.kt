@@ -154,7 +154,7 @@ abstract class TestFilesCleanupService @Inject constructor(
                 .filter { projectPathToLeftoverFiles.containsKey(it.key) }
                 .forEach { (projectPath: String, projectExtension: TestFileCleanUpExtension) ->
                     try {
-                        projectExtension.verifyTestFilesCleanup(getFailedTaskPaths(projectPath), projectPathToLeftoverFiles.getValue(projectPath))
+                        projectExtension.verifyTestFilesCleanup(projectPath, projectPathToLeftoverFiles.getValue(projectPath))
                     } catch (e: Exception) {
                         exceptions.add(e)
                     }
@@ -172,8 +172,11 @@ abstract class TestFilesCleanupService @Inject constructor(
     fun isPathForTestTask(taskPath: String) = testPathToBinaryResultsDirs.containsKey(taskPath)
 
     private
-    fun TestFileCleanUpExtension.verifyTestFilesCleanup(failedTaskPaths: List<String>, tmpTestFiles: Map<File, List<String>>) {
-        if (failedTaskPaths.any { isPathForTestTask(it) }) {
+    fun isAnyTestTaskFailed(projectPath: String) = getFailedTaskPaths(projectPath).any { isPathForTestTask(it) }
+
+    private
+    fun TestFileCleanUpExtension.verifyTestFilesCleanup(projectPath: String, tmpTestFiles: Map<File, List<String>>) {
+        if (isAnyTestTaskFailed(projectPath)) {
             println("Leftover files: $tmpTestFiles")
             return
         }
@@ -213,7 +216,11 @@ abstract class TestFilesCleanupService @Inject constructor(
     fun TestFilesCleanupProjectState.prepareReportsForCiPublishing(executedTaskPaths: List<String>, tmpTestFiles: Collection<File>) {
         val reports = executedTaskPaths
             .flatMap { taskPathReports.getOrDefault(it, emptyList()) }
-        prepareReportForCiPublishing(tmpTestFiles + reports)
+        if (isAnyTestTaskFailed(projectPath.get())) {
+            prepareReportForCiPublishing(tmpTestFiles + reports)
+        } else {
+            prepareReportForCiPublishing(reports)
+        }
     }
 
     // We count the test task containing flaky result as failed
