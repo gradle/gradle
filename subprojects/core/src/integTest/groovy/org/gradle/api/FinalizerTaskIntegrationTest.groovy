@@ -93,7 +93,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         ['a', 'b']     | 'c'         | [any(':c', ':d'), ':b'] // :c and :d might run in parallel with the configuration cache
     }
 
-    void 'finalizer tasks are not run when finalized task does not run'() {
+    void 'finalizer tasks are not run when finalized task does not run due to unrelated task failure and not using --continue'() {
         given:
         buildScript("""
             task a {
@@ -108,6 +108,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
             }
             task d {
                 finalizedBy c
+                mustRunAfter(b)
             }
         """)
 

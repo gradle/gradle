@@ -52,12 +52,10 @@ import static java.lang.String.format;
 public class CachingTaskDependencyResolveContext<T> extends AbstractTaskDependencyResolveContext {
     private final Deque<Object> queue = new ArrayDeque<Object>();
     private final CachingDirectedGraphWalker<Object, T> walker;
-    private final Collection<? extends WorkDependencyResolver<T>> workResolvers;
     private Task task;
 
     public CachingTaskDependencyResolveContext(Collection<? extends WorkDependencyResolver<T>> workResolvers) {
         this.walker = new CachingDirectedGraphWalker<>(new TaskGraphImpl(workResolvers));
-        this.workResolvers = workResolvers;
     }
 
     public Set<T> getDependencies(@Nullable Task task, Object dependencies) {

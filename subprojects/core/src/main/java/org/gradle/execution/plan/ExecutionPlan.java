@@ -88,11 +88,6 @@ public interface ExecutionPlan extends Describable, Closeable {
         }
 
         @Override
-        public List<Node> getScheduledNodesPlusDependencies() {
-            return Collections.emptyList();
-        }
-
-        @Override
         public Set<Task> getFilteredTasks() {
             return Collections.emptySet();
         }
@@ -146,8 +141,6 @@ public interface ExecutionPlan extends Describable, Closeable {
     Set<Task> getRequestedTasks();
 
     List<Node> getScheduledNodes();
-
-    List<Node> getScheduledNodesPlusDependencies();
 
     /**
      * @return The set of all filtered tasks that don't get executed.

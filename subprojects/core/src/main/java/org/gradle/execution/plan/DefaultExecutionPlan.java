@@ -101,6 +101,7 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
     private final Set<Node> filteredNodes = newIdentityHashSet();
     private final Set<Node> producedButNotYetConsumed = newIdentityHashSet();
     private final Map<Pair<Node, Node>, Boolean> reachableCache = new HashMap<>();
+    private final Set<Node> finalizers = new LinkedHashSet<>();
     private final OrdinalNodeAccess ordinalNodeAccess = new OrdinalNodeAccess();
     private Consumer<LocalTaskNode> completionHandler = localTaskNode -> {
     };
@@ -163,10 +164,11 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
     @Override
     public void addEntryTasks(Collection<? extends Task> tasks, int ordinal) {
         final Deque<Node> queue = new ArrayDeque<>();
+        final OrdinalGroup group = ordinalNodeAccess.group(ordinal);
 
         for (Task task : sorted(tasks)) {
             TaskNode node = taskNodeFactory.getOrCreateNode(task);
-            node.maybeSetOrdinal(ordinal);
+            node.setGroup(group);
             entryNodes.add(node);
             queue.add(node);
         }
@@ -181,7 +183,7 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
     }
 
     private void doAddNodes(Deque<Node> queue) {
-        final Set<Node> visiting = new HashSet<>();
+        Set<Node> visiting = new HashSet<>();
         while (!queue.isEmpty()) {
             Node node = queue.getFirst();
             if (node.getDependenciesProcessed() || node.isCannotRunInAnyPlan()) {
@@ -208,6 +210,7 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
                 node.prepareForExecution(this::monitoredNodeReady);
                 node.resolveDependencies(dependencyResolver);
                 for (Node successor : node.getDependencySuccessorsInReverseOrder()) {
+                    successor.maybeInheritOrdinalAsDependency(node.getGroup());
                     if (!visiting.contains(successor)) {
                         queue.addFirst(successor);
                     }
@@ -219,6 +222,7 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
                 node.dependenciesProcessed();
                 // Finalizers run immediately after the node
                 for (Node finalizer : node.getFinalizers()) {
+                    finalizers.add(finalizer);
                     if (!visiting.contains(finalizer)) {
                         queue.addFirst(finalizer);
                     }
@@ -236,6 +240,8 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
 
     @Override
     public void determineExecutionPlan() {
+        updateFinalizerGroups();
+
         LinkedList<NodeInVisitingSegment> nodeQueue = newLinkedList();
         int visitingSegmentCounter = 0;
         for (Node node : entryNodes) {
@@ -273,6 +279,11 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
                 removeShouldRunAfterSuccessorsIfTheyImposeACycle(visitingNodes, nodeInVisitingSegment);
                 takePlanSnapshotIfCanBeRestoredToCurrentTask(planBeforeVisiting, node);
 
+                // Add any finalizers to the queue just after the current node
+                for (Node finalizer : node.getFinalizers()) {
+                    addFinalizerToQueue(nodeQueue, visitingSegmentCounter++, finalizer);
+                }
+
                 for (Node successor : node.getAllSuccessorsInReverseOrder()) {
                     if (visitingNodes.containsEntry(successor, currentSegment)) {
                         if (!walkedShouldRunAfterEdges.isEmpty()) {
@@ -291,9 +302,6 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
                         }
                     }
                     nodeQueue.addFirst(new NodeInVisitingSegment(successor, currentSegment));
-                    if (node instanceof TaskNode && successor instanceof TaskNode) {
-                        ((TaskNode) successor).maybeInheritOrdinalAsDependency((TaskNode) node);
-                    }
                 }
                 path.push(node);
             } else {
@@ -308,18 +316,6 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
                     dependency.getMutationInfo().consumingNodes.add(node);
                 }
 
-                // Add any finalizers to the queue
-                for (Node finalizer : node.getFinalizers()) {
-                    if (!visitingNodes.containsKey(finalizer)) {
-                        nodeQueue.addFirst(new NodeInVisitingSegment(finalizer, visitingSegmentCounter++));
-                        if (node instanceof TaskNode && finalizer instanceof TaskNode) {
-                            ((TaskNode) finalizer).maybeInheritOrdinalAsFinalizer((TaskNode) node);
-                        }
-                    }
-                }
-
-                attachDependenciesAsFinalizers(node);
-
                 // Add any ordinal relationships for this node
                 createOrdinalRelationships(node);
             }
@@ -331,6 +327,23 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
         executionQueue.addAll(nodeMapping);
 
         lockCoordinator.addLockReleaseListener(resourceUnlockListener);
+    }
+
+    private void addFinalizerToQueue(LinkedList<NodeInVisitingSegment> nodeQueue, int visitingSegmentCounter, Node finalizer) {
+        int insertPosition = 1;
+        int pos = 0;
+        for (NodeInVisitingSegment segment : nodeQueue) {
+            if (segment.node == finalizer) {
+                // Already later in the queue
+                return;
+            }
+            // Need to insert the finalizer immediately after the last node that it finalizes
+            if (finalizer.getFinalizingSuccessors().contains(segment.node) && pos > insertPosition) {
+                insertPosition = pos;
+            }
+            pos++;
+        }
+        nodeQueue.add(insertPosition, new NodeInVisitingSegment(finalizer, visitingSegmentCounter));
     }
 
     @Override
@@ -373,7 +386,7 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
     }
 
     private void createOrdinalRelationships(Node node) {
-        if (node instanceof TaskNode && ((TaskNode) node).getOrdinal() != TaskNode.UNKNOWN_ORDINAL) {
+        if (node instanceof TaskNode && node.getOrdinal() != null) {
             TaskNode taskNode = (TaskNode) node;
             TaskClassifier taskClassifier = new TaskClassifier();
             ProjectInternal project = (ProjectInternal) taskNode.getTask().getProject();
@@ -391,10 +404,10 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
                 OrdinalNode ordinalNode = ordinalNodeAccess.getOrCreateDestroyableLocationNode(taskNode.getOrdinal());
                 ordinalNode.addDependenciesFrom(taskNode);
 
-                if (taskNode.getOrdinal() > 0) {
+                if (taskNode.getOrdinal().getOrdinal() > 0) {
                     // Depend on any previous producer ordinal nodes (i.e. any producer ordinal nodes with a lower
                     // ordinal)
-                    ordinalNodeAccess.getPrecedingProducerLocationNodes(taskNode.getOrdinal())
+                    ordinalNodeAccess.getPrecedingProducerLocationNodes(taskNode.getOrdinal().getOrdinal())
                         .forEach(taskNode::addDependencySuccessor);
                 }
             } else if (taskClassifier.isProducer()) {
@@ -402,10 +415,10 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
                 OrdinalNode ordinalNode = ordinalNodeAccess.getOrCreateOutputLocationNode(taskNode.getOrdinal());
                 ordinalNode.addDependenciesFrom(taskNode);
 
-                if (taskNode.getOrdinal() > 0) {
+                if (taskNode.getOrdinal().getOrdinal() > 0) {
                     // Depend on any previous destroyer ordinal nodes (i.e. any destroyer ordinal nodes with a lower
                     // ordinal)
-                    ordinalNodeAccess.getPrecedingDestroyerLocationNodes(taskNode.getOrdinal())
+                    ordinalNodeAccess.getPrecedingDestroyerLocationNodes(taskNode.getOrdinal().getOrdinal())
                         .forEach(taskNode::addDependencySuccessor);
                 }
             }
@@ -534,12 +547,6 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
     }
 
     @Override
-    public List<Node> getScheduledNodesPlusDependencies() {
-        Set<Node> nodes = nodeMapping.nodes;
-        return ImmutableList.copyOf(nodes);
-    }
-
-    @Override
     public Set<Task> getFilteredTasks() {
         ImmutableSet.Builder<Task> builder = ImmutableSet.builder();
         for (Node filteredNode : filteredNodes) {
@@ -606,6 +613,7 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
         List<ResourceLock> resources = new ArrayList<>();
         Iterator<Node> iterator = Iterators.concat(priorityNodes.iterator(), executionQueue.iterator());
         boolean foundReadyNode = false;
+        boolean skippedNode = false;
         while (iterator.hasNext()) {
             Node node = iterator.next();
             if (node.allDependenciesComplete()) {
@@ -613,6 +621,7 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
                     // Cannot execute this node due to failed dependencies - skip it
                     node.skipExecution(this::recordNodeCompleted);
                     iterator.remove();
+                    skippedNode = true;
                     continue;
                 }
 
@@ -658,6 +667,10 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
         maybeNodesSelectable = false;
         if (executionQueue.isEmpty()) {
             return Selection.noMoreWorkToStart();
+        } else if (skippedNode) {
+            // Skipped some nodes, which may invalidate some earlier nodes (for example a shared dependency of multiple finalizers when all finalizers are skipped), so start again
+            maybeNodesSelectable = true;
+            return selectNext();
         } else {
             // Some tasks are yet to start
             // - they are ready to execute but cannot acquire the resources they need to start
@@ -717,11 +730,11 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
     }
 
     private void updateAllDependenciesCompleteForPredecessors(Node node) {
-        for (Node predecessor : node.getAllPredecessors()) {
-            if (predecessor.updateAllDependenciesComplete()) {
-                maybeNodeReady(predecessor);
+        node.visitAllNodesWaitingForThisNode(dependent -> {
+            if (dependent.updateAllDependenciesComplete()) {
+                maybeNodeReady(dependent);
             }
-        }
+        });
     }
 
     private boolean tryLockProjectFor(Node node, List<ResourceLock> resources) {
@@ -920,26 +933,34 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
         }
     }
 
-    private void attachDependenciesAsFinalizers(Node node) {
-        if (node.getFinalizingSuccessors().isEmpty()) {
-            return;
-        }
-
-        Set<Node> enforcedNodes = new HashSet<>();
-
-        Deque<Node> candidates = new ArrayDeque<>();
-        candidates.addAll(node.getDependencySuccessors());
-
-        while (!candidates.isEmpty()) {
-            Node candidate = candidates.pop();
-            if (!enforcedNodes.contains(candidate)) {
-                enforcedNodes.add(candidate);
-                candidates.addAll(candidate.getDependencySuccessors());
-                if (candidate.isRequired()) {
-                    candidate.addFinalizingSuccessors(node.getFinalizingSuccessors());
+    private void updateFinalizerGroups() {
+        // Collect the finalizers and their dependencies so that each node is ordered before all of its dependencies
+        LinkedList<Node> nodes = new LinkedList<>();
+        Set<Node> visiting = new HashSet<>();
+        Set<Node> visited = new HashSet<>();
+        Deque<Node> queue = new ArrayDeque<>(finalizers);
+        while (!queue.isEmpty()) {
+            Node node = queue.peek();
+            if (visited.contains(node)) {
+                // Already visited node, skip
+                queue.remove();
+            } else if (visiting.add(node)) {
+                // Haven't seen this node
+                for (Node successor : node.getDependencySuccessors()) {
+                    queue.addFirst(successor);
                 }
+            } else {
+                // Have visited the dependencies of this node, add it to the start of the list (so that it is earlier in the list that
+                // all of its dependencies)
+                visiting.remove(node);
+                visited.add(node);
+                nodes.addFirst(node);
             }
         }
+        for (Node node : nodes) {
+            node.updateGroupOfFinalizer();
+        }
+        finalizers.clear();
     }
 
     private void handleFailure(Node node) {

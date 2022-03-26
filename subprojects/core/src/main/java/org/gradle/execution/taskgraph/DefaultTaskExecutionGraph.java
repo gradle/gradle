@@ -271,7 +271,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
 
     @Override
     public List<Node> getScheduledWorkPlusDependencies() {
-        return executionPlan.getScheduledNodesPlusDependencies();
+        return executionPlan.getScheduledNodes();
     }
 
     @Override

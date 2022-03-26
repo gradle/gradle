@@ -21,8 +21,6 @@ import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.internal.resources.ResourceLock;
 
 import javax.annotation.Nullable;
-import java.util.Collections;
-import java.util.List;
 
 public class ResolveMutationsNode extends Node implements SelfExecutingNode {
     private final LocalTaskNode node;
@@ -68,11 +66,6 @@ public class ResolveMutationsNode extends Node implements SelfExecutingNode {
     @Override
     public ProjectInternal getOwningProject() {
         return node.getOwningProject();
-    }
-
-    @Override
-    public List<? extends ResourceLock> getResourcesToLock() {
-        return Collections.emptyList();
     }
 
     @Override

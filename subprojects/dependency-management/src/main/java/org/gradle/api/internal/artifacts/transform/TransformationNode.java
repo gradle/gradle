@@ -37,12 +37,10 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
-import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -112,18 +110,6 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
     }
 
     protected abstract CalculatedValueContainer<TransformationSubject, ?> getTransformedArtifacts();
-
-    @Nullable
-    @Override
-    public ResourceLock getProjectToLock() {
-        // Transforms do not require project state
-        return null;
-    }
-
-    @Override
-    public List<ResourceLock> getResourcesToLock() {
-        return Collections.emptyList();
-    }
 
     @Override
     public Throwable getNodeFailure() {

@@ -23,8 +23,6 @@ import org.gradle.api.internal.tasks.WorkNodeAction;
 import org.gradle.internal.resources.ResourceLock;
 
 import javax.annotation.Nullable;
-import java.util.Collections;
-import java.util.List;
 
 public class ActionNode extends Node implements SelfExecutingNode {
     private WorkNodeAction action;
@@ -92,11 +90,6 @@ public class ActionNode extends Node implements SelfExecutingNode {
     @Override
     public ProjectInternal getOwningProject() {
         return owningProject;
-    }
-
-    @Override
-    public List<ResourceLock> getResourcesToLock() {
-        return Collections.emptyList();
     }
 
     @Override

@@ -16,13 +16,9 @@
 
 package org.gradle.execution.plan;
 
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
-import org.gradle.internal.resources.ResourceLock;
 
 import javax.annotation.Nullable;
-import java.util.Collections;
-import java.util.List;
 import java.util.stream.Stream;
 
 import static java.util.stream.StreamSupport.stream;
@@ -39,11 +35,12 @@ public class OrdinalNode extends Node implements SelfExecutingNode {
     public enum Type {DESTROYER, PRODUCER}
 
     private final Type type;
-    private final int ordinal;
+    private final OrdinalGroup ordinal;
 
-    public OrdinalNode(Type type, int ordinal) {
+    public OrdinalNode(Type type, OrdinalGroup ordinal) {
         this.type = type;
         this.ordinal = ordinal;
+        setGroup(ordinal);
     }
 
     @Nullable
@@ -56,27 +53,10 @@ public class OrdinalNode extends Node implements SelfExecutingNode {
     public void resolveDependencies(TaskDependencyResolver dependencyResolver) {
     }
 
-    @Nullable
-    @Override
-    public ResourceLock getProjectToLock() {
-        return null;
-    }
-
-    @Nullable
-    @Override
-    public ProjectInternal getOwningProject() {
-        return null;
-    }
-
-    @Override
-    public List<? extends ResourceLock> getResourcesToLock() {
-        return Collections.emptyList();
-    }
-
     @Override
     // TODO is there a better term to use here than "task group"
     public String toString() {
-        return type.name().toLowerCase() + " locations for task group " + ordinal;
+        return type.name().toLowerCase() + " locations for " + getGroup();
     }
 
     @Override
@@ -92,7 +72,7 @@ public class OrdinalNode extends Node implements SelfExecutingNode {
         return type;
     }
 
-    public int getOrdinal() {
+    public OrdinalGroup getOrdinalGroup() {
         return ordinal;
     }
 

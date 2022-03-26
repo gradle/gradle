@@ -21,7 +21,6 @@ import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.NodeExecutionContext
 import org.gradle.execution.plan.BuildWorkPlan
 import org.gradle.execution.plan.DefaultExecutionPlan
@@ -45,7 +44,6 @@ import org.gradle.internal.concurrent.DefaultParallelismConfiguration
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
-import org.gradle.internal.resources.ResourceLock
 import org.gradle.internal.snapshot.CaseSensitivity
 import org.gradle.internal.work.DefaultWorkerLeaseService
 import org.gradle.internal.work.WorkerLeaseService
@@ -192,21 +190,6 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
 
         @Override
         void resolveDependencies(TaskDependencyResolver dependencyResolver) {
-        }
-
-        @Override
-        ResourceLock getProjectToLock() {
-            return null
-        }
-
-        @Override
-        ProjectInternal getOwningProject() {
-            return null
-        }
-
-        @Override
-        List<? extends ResourceLock> getResourcesToLock() {
-            return []
         }
 
         @Override

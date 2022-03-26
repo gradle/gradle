@@ -45,7 +45,6 @@ import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
 class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
 
     FileSystem fs = NativeServicesTestFixture.instance.get(FileSystem)
-    int ordinal = 0
 
     DefaultExecutionPlan executionPlan
 
@@ -71,152 +70,484 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         return task
     }
 
+    def "runs finalizer and its dependencies after finalized task"() {
+        given:
+        Task dep = task("dep", type: Async)
+        Task finalizerDep1 = task("finalizerDep1", type: Async)
+        Task finalizerDep2 = task("finalizerDep2", type: Async)
+        Task finalizer = task("finalizer", type: Async, dependsOn: [finalizerDep1, finalizerDep2])
+        Task finalized = task("finalized", type: Async, dependsOn: [dep], finalizedBy: [finalizer])
+        Task task = task("task", type: Async, dependsOn: [finalized])
+
+        when:
+        addToGraphAndPopulate(task)
+
+        then:
+        executionPlan.tasks as List == [dep, finalized, finalizerDep1, finalizerDep2, finalizer, task]
+        assertSingleTaskReady(dep)
+        assertSingleTaskReady(finalized)
+        assertTasksReady(finalizerDep1, finalizerDep2, task)
+        assertLastTaskReady(finalizer)
+        assertAllWorkComplete()
+    }
+
     def "does not attempt to run finalizer of task whose dependencies have failed"() {
         given:
-        Task broken = task("a", failure: new RuntimeException())
-        Task finalizerDep = task("b")
-        Task finalizer = task("c", dependsOn: [finalizerDep])
-        Task task = task("d", type: Async, dependsOn: [broken], finalizedBy: [finalizer])
+        Task broken = task("broken", type: Async, failure: new RuntimeException())
+        Task finalizerDepDep = task("finalizerDepDep", type: Async)
+        Task finalizerDep = task("finalizerDep", type: Async, dependsOn: [finalizerDepDep])
+        Task finalizer = task("finalizer", type: Async, dependsOn: [finalizerDep])
+        Task finalized = task("finalized", type: Async, dependsOn: [broken], finalizedBy: [finalizer])
+        Task task = task("task", type: Async, dependsOn: [finalized])
 
         when:
         executionPlan.setContinueOnFailure(continueOnFailure)
         addToGraphAndPopulate(task)
-        def node1 = selectNextTaskNode()
 
         then:
-        node1.task == broken
-        assertNoWorkReadyToStartAfterSelect()
-
-        when:
-        finishedExecuting(node1)
-
-        then:
-        if (continueOnFailure) {
-            assertAllWorkCompleteAfterSelect()
-        } else {
-            assertAllWorkComplete()
-        }
+        executionPlan.tasks as List == [broken, finalized, finalizerDepDep, finalizerDep, finalizer, task]
+        assertSingleTaskReady(broken)
+        assertAllWorkComplete(continueOnFailure)
 
         where:
         continueOnFailure << [false, true]
     }
 
     def "finalizer tasks are executed on task failure but dependents of failed task are not"() {
-        Task finalizerDep = task("a")
-        Task finalizer = task("b", dependsOn: [finalizerDep])
-        Task broken = task("c", finalizedBy: [finalizer], failure: new RuntimeException())
-        Task task = task("d", dependsOn: [broken])
+        Task finalizerDepDep = task("finalizerDepDep")
+        Task finalizerDep = task("finalizerDep", dependsOn: [finalizerDepDep])
+        Task finalizer = task("finalizer", dependsOn: [finalizerDep])
+        Task broken = task("broken", finalizedBy: [finalizer], failure: new RuntimeException())
+        Task task = task("task", dependsOn: [broken])
 
         when:
         executionPlan.setContinueOnFailure(continueOnFailure)
         addToGraphAndPopulate(task)
 
-        def node1 = selectNextTaskNode()
-
         then:
-        node1.task == broken
-        assertNoWorkReadyToStartAfterSelect()
-
-        when:
-        finishedExecuting(node1)
-        def node2 = selectNextTaskNode()
-
-        then:
-        node2.task == finalizerDep
-        assertNoWorkReadyToStartAfterSelect()
-
-        when:
-        finishedExecuting(node2)
-        def node3 = selectNextTaskNode()
-
-        then:
-        node3.task == finalizer
-        assertNoMoreWorkToStartButNotAllComplete()
-
-        when:
-        finishedExecuting(node3)
-
-        then:
+        executionPlan.tasks as List == [broken, finalizerDepDep, finalizerDep, finalizer, task]
+        assertSingleTaskReady(broken)
+        assertSingleTaskReady(finalizerDepDep)
+        assertSingleTaskReady(finalizerDep)
+        assertLastTaskReady(finalizer)
         assertAllWorkComplete()
 
         where:
         continueOnFailure << [false, true]
     }
 
+    def "does not run finalizer when its dependency fails"() {
+        given:
+        Task broken = task("broken", type: Async, failure: new RuntimeException())
+        Task finalizerDep = task("finalizerDep", type: Async, dependsOn: [broken])
+        Task finalizer = task("finalizer", type: Async, dependsOn: [finalizerDep])
+        Task finalized = task("finalized", type: Async, finalizedBy: [finalizer])
+        Task task = task("task", type: Async, dependsOn: [finalized])
+
+        when:
+        executionPlan.setContinueOnFailure(continueOnFailure)
+        addToGraphAndPopulate(task)
+
+        then:
+        executionPlan.tasks as List == [finalized, broken, finalizerDep, finalizer, task]
+        assertSingleTaskReady(finalized)
+        assertTasksReady(broken, task)
+        assertAllWorkComplete(true)
+
+        where:
+        continueOnFailure << [false, true]
+    }
+
     def "task and finalizer are not executed when unrelated finalized task fails"() {
-        Task finalizer1 = task("a")
-        Task broken = task("b", finalizedBy: [finalizer1], failure: new RuntimeException())
-        Task finalizer2 = task("c")
-        Task unrelated = task("d", finalizedBy: [finalizer2])
+        Task finalizerDep1 = task("finalizerDep1", type: Async)
+        Task finalizer1 = task("finalizer1", type: Async, dependsOn: [finalizerDep1])
+        Task broken = task("broken", type: Async, finalizedBy: [finalizer1], failure: new RuntimeException())
+        Task finalizerDep2 = task("finalizerDep2", type: Async)
+        Task finalizer2 = task("finalizer2", type: Async, dependsOn: [finalizerDep2])
+        Task unrelated = task("unrelated", type: Async, finalizedBy: [finalizer2])
 
         when:
         addToGraphAndPopulate(broken, unrelated)
 
-        def node1 = selectNextTaskNode()
-
         then:
-        node1.task == broken
-        assertNoWorkReadyToStartAfterSelect()
-
-        when:
-        finishedExecuting(node1)
-        def node2 = selectNextTaskNode()
-
-        then:
-        node2.task == finalizer1
-        assertNoMoreWorkToStartButNotAllComplete()
-
-        when:
-        finishedExecuting(node2)
-
-        then:
+        executionPlan.tasks as List == [broken, finalizerDep1, finalizer1, unrelated, finalizerDep2, finalizer2]
+        assertNextTaskReady(broken)
+        assertSingleTaskReady(finalizerDep1)
+        assertLastTaskReady(finalizer1)
         assertAllWorkComplete()
     }
 
     def "task and finalizer are executed when unrelated finalized task fails and continue on failure"() {
-        Task finalizer1 = task("a")
-        Task broken = task("b", finalizedBy: [finalizer1], failure: new RuntimeException())
-        Task finalizer2 = task("c")
-        Task unrelated = task("d", finalizedBy: [finalizer2])
+        Task finalizerDep1 = task("finalizerDep1", type: Async)
+        Task finalizer1 = task("finalizer1", type: Async, dependsOn: [finalizerDep1])
+        Task broken = task("broken", type: Async, finalizedBy: [finalizer1], failure: new RuntimeException())
+        Task finalizerDep2 = task("finalizerDep2", type: Async)
+        Task finalizer2 = task("finalizer2", type: Async, dependsOn: [finalizerDep2])
+        Task unrelated = task("unrelated", type: Async, finalizedBy: [finalizer2])
 
         when:
         executionPlan.setContinueOnFailure(true)
         addToGraphAndPopulate(broken, unrelated)
 
-        def node1 = selectNextTaskNode()
-
         then:
-        node1.task == broken
-        assertNoWorkReadyToStartAfterSelect()
+        executionPlan.tasks as List == [broken, finalizerDep1, finalizer1, unrelated, finalizerDep2, finalizer2]
+        assertNextTaskReady(broken)
+        assertTasksReady(finalizerDep1, unrelated)
+        assertTasksReady(finalizer1, finalizerDep2)
+        assertLastTaskReady(finalizer2)
+        assertAllWorkComplete()
+    }
+
+    def "finalizer and its dependencies run after the last task to be finalized"() {
+        given:
+        Task finalizerDep = task("finalizerDep", type: Async)
+        Task finalizer = task("finalizer", type: Async, dependsOn: [finalizerDep])
+        Task dep = task("dep", type: Async)
+        Task a = task("a", type: Async, finalizedBy: [finalizer], dependsOn: [dep])
+        Task b = task("b", type: Async, finalizedBy: [finalizer])
 
         when:
-        finishedExecuting(node1)
-        def node2 = selectNextTaskNode()
+        addToGraphAndPopulate(a, b)
 
         then:
-        node2.task == finalizer1
-        assertNoWorkReadyToStartAfterSelect()
+        executionPlan.tasks as List == [dep, a, b, finalizerDep, finalizer]
+        assertTasksReady(dep, b)
+        assertSingleTaskReady(a)
+        assertSingleTaskReady(finalizerDep)
+        assertLastTaskReady(finalizer)
+        assertAllWorkComplete()
+    }
+
+    def "finalizer of multiple tasks and its dependencies run after the last task to be finalized when some do not start"() {
+        given:
+        Task finalizerDep = task("finalizerDep", type: Async)
+        Task finalizer = task("finalizer", type: Async, dependsOn: [finalizerDep])
+        Task broken = task("broken", type: Async, failure: new RuntimeException())
+        Task a = task("a", type: Async, finalizedBy: [finalizer], dependsOn: [broken])
+        Task b = task("b", type: Async, finalizedBy: [finalizer])
 
         when:
-        finishedExecuting(node2)
-        def node3 = selectNextTaskNode()
+        executionPlan.setContinueOnFailure(true)
+        addToGraphAndPopulate(a, b)
 
         then:
-        node3.task == unrelated
-        assertNoWorkReadyToStartAfterSelect()
+        executionPlan.tasks as List == [broken, a, b, finalizerDep, finalizer]
+        assertNextTaskReady(broken)
+        assertSingleTaskReady(b)
+        assertSingleTaskReady(finalizerDep)
+        assertLastTaskReady(finalizer)
+        assertAllWorkComplete()
+    }
+
+    def "finalizer of multiple tasks and its dependencies do not run when none of the finalized tasks start"() {
+        given:
+        Task finalizerDep = task("finalizerDep", type: Async)
+        Task finalizer = task("finalizer", type: Async, dependsOn: [finalizerDep])
+        Task broken = task("broken", type: Async, failure: new RuntimeException())
+        Task a = task("a", type: Async, finalizedBy: [finalizer], dependsOn: [broken])
+        Task b = task("b", type: Async, finalizedBy: [finalizer])
 
         when:
-        finishedExecuting(node3)
-        def node4 = selectNextTaskNode()
+        addToGraphAndPopulate(a, b)
 
         then:
-        node4.task == finalizer2
-        assertNoMoreWorkToStartButNotAllComplete()
+        executionPlan.tasks as List == [broken, a, b, finalizerDep, finalizer]
+        assertNextTaskReady(broken)
+        assertAllWorkComplete()
+    }
+
+    def "dependency of multiple finalizers runs after the first task to be finalized"() {
+        given:
+        Task finalizerDepDep = task("finalizerDepDep", type: Async)
+        Task finalizerDep1 = task("finalizerDep1", type: Async, dependsOn: [finalizerDepDep])
+        Task finalizerDep2 = task("finalizerDep2", type: Async, dependsOn: [finalizerDepDep])
+        Task finalizer1 = task("finalizer1", type: Async, dependsOn: [finalizerDep1])
+        Task finalizer2 = task("finalizer2", type: Async, dependsOn: [finalizerDep2])
+        Task a = task("a", type: Async, finalizedBy: [finalizer1])
+        Task b = task("b", type: Async, finalizedBy: [finalizer2], dependsOn: [a])
 
         when:
-        finishedExecuting(node4)
+        addToGraphAndPopulate(a, b)
 
         then:
+        executionPlan.tasks as List == [a, finalizerDepDep, finalizerDep1, finalizer1, b, finalizerDep2, finalizer2]
+        assertSingleTaskReady(a)
+        assertTasksReady(finalizerDepDep, b)
+        assertTasksReady(finalizerDep1, finalizerDep2)
+        assertLastTasksReady(finalizer1, finalizer2)
+        assertAllWorkComplete()
+    }
+
+    def "dependency of multiple finalizers runs after the first task to be finalized when one finalizer does not run"() {
+        given:
+        Task finalizerDepDep = task("finalizerDepDep", type: Async)
+        Task finalizerDep1 = task("finalizerDep1", type: Async, dependsOn: [finalizerDepDep])
+        Task finalizerDep2 = task("finalizerDep2", type: Async, dependsOn: [finalizerDepDep])
+        Task finalizer1 = task("finalizer1", type: Async, dependsOn: [finalizerDep1])
+        Task finalizer2 = task("finalizer2", type: Async, dependsOn: [finalizerDep2])
+        Task broken = task("broken", type: Async, failure: new RuntimeException())
+        Task a = task("a", type: Async, finalizedBy: [finalizer1], dependsOn: [broken])
+        Task b = task("b", type: Async, finalizedBy: [finalizer2])
+
+        when:
+        executionPlan.setContinueOnFailure(true)
+        addToGraphAndPopulate(a, b)
+
+        then:
+        executionPlan.tasks as List == [broken, a, finalizerDepDep, finalizerDep1, finalizer1, b, finalizerDep2, finalizer2]
+        assertNextTaskReady(broken)
+        assertSingleTaskReady(b)
+        assertSingleTaskReady(finalizerDepDep)
+        assertSingleTaskReady(finalizerDep2)
+        assertLastTaskReady(finalizer2)
+        assertAllWorkComplete()
+    }
+
+    def "dependency of multiple finalizers does not run when none of the finalizers run"() {
+        given:
+        Task finalizerDepDep = task("finalizerDepDep", type: Async)
+        Task finalizerDep1 = task("finalizerDep1", type: Async, dependsOn: [finalizerDepDep])
+        Task finalizerDep2 = task("finalizerDep2", type: Async, dependsOn: [finalizerDepDep])
+        Task finalizer1 = task("finalizer1", type: Async, dependsOn: [finalizerDep1])
+        Task finalizer2 = task("finalizer2", type: Async, dependsOn: [finalizerDep2])
+        Task broken = task("broken", type: Async, failure: new RuntimeException())
+        Task a = task("a", type: Async, finalizedBy: [finalizer1], dependsOn: [broken])
+        Task b = task("b", type: Async, finalizedBy: [finalizer2], dependsOn: [a])
+
+        when:
+        executionPlan.setContinueOnFailure(continueOnFailure)
+        addToGraphAndPopulate(a, b)
+
+        then:
+        executionPlan.tasks as List == [broken, a, finalizerDepDep, finalizerDep1, finalizer1, b, finalizerDep2, finalizer2]
+        assertNextTaskReady(broken)
+        assertAllWorkComplete(continueOnFailure)
+
+        where:
+        continueOnFailure << [true, false]
+    }
+
+    def "finalizers do not run when shared dependency does not run"() {
+        given:
+        Task broken = task("broken", type: Async, failure: new RuntimeException())
+        Task finalizerDep1 = task("finalizerDep1", type: Async, dependsOn: [broken])
+        Task finalizerDep2 = task("finalizerDep2", type: Async, dependsOn: [broken])
+        Task finalizer1 = task("finalizer1", type: Async, dependsOn: [finalizerDep1])
+        Task finalizer2 = task("finalizer2", type: Async, dependsOn: [finalizerDep2])
+        Task a = task("a", type: Async, finalizedBy: [finalizer1])
+        Task b = task("b", type: Async, finalizedBy: [finalizer2])
+
+        when:
+        executionPlan.setContinueOnFailure(continueOnFailure)
+        addToGraphAndPopulate(a, b)
+
+        then:
+        executionPlan.tasks as List == [a, broken, finalizerDep1, finalizer1, b, finalizerDep2, finalizer2]
+        assertTasksReady(a, b)
+        assertSingleTaskReady(broken)
+        assertAllWorkComplete(true)
+
+        where:
+        continueOnFailure << [true, false]
+    }
+
+    def "finalizer that is dependency of another finalizer runs when the task it finalizes is complete"() {
+        given:
+        Task finalizerDep1 = task("finalizerDep1", type: Async)
+        Task finalizer1 = task("finalizer1", type: Async, dependsOn: [finalizerDep1])
+        Task finalizerDep2 = task("finalizerDep2", type: Async, dependsOn: [finalizer1])
+        Task finalizer2 = task("finalizer2", type: Async, dependsOn: [finalizerDep2])
+        Task a = task("a", type: Async, finalizedBy: [finalizer1])
+        Task b = task("b", type: Async, finalizedBy: [finalizer2], dependsOn: [a])
+
+        when:
+        addToGraphAndPopulate(a, b)
+
+        then:
+        executionPlan.tasks as List == [a, finalizerDep1, finalizer1, b, finalizerDep2, finalizer2]
+        assertSingleTaskReady(a)
+        assertTasksReady(finalizerDep1, b)
+        assertSingleTaskReady(finalizer1)
+        assertSingleTaskReady(finalizerDep2)
+        assertLastTaskReady(finalizer2)
+        assertAllWorkComplete()
+    }
+
+    def "finalizer that is dependency of another finalizer runs when the task it finalizes does not run but other finalized task does"() {
+        given:
+        Task finalizerDep1 = task("finalizerDep1", type: Async)
+        Task finalizer1 = task("finalizer1", type: Async, dependsOn: [finalizerDep1])
+        Task finalizerDep2 = task("finalizerDep2", type: Async, dependsOn: [finalizer1])
+        Task finalizer2 = task("finalizer2", type: Async, dependsOn: [finalizerDep2])
+        Task broken = task("broken", type: Async, failure: new RuntimeException())
+        Task a = task("a", type: Async, finalizedBy: [finalizer1], dependsOn: [broken])
+        Task b = task("b", type: Async, finalizedBy: [finalizer2])
+
+        when:
+        executionPlan.setContinueOnFailure(true)
+        addToGraphAndPopulate(a, b)
+
+        then:
+        executionPlan.tasks as List == [broken, a, finalizerDep1, finalizer1, b, finalizerDep2, finalizer2]
+        assertNextTaskReady(broken)
+        assertSingleTaskReady(b)
+        assertSingleTaskReady(finalizerDep1)
+        assertSingleTaskReady(finalizer1)
+        assertSingleTaskReady(finalizerDep2)
+        assertLastTaskReady(finalizer2)
+        assertAllWorkComplete()
+    }
+
+    def "finalizer that is dependency of another finalizer does not run when finalized tasks do not run"() {
+        given:
+        Task finalizerDep1 = task("finalizerDep1", type: Async)
+        Task finalizer1 = task("finalizer1", type: Async, dependsOn: [finalizerDep1])
+        Task finalizerDep2 = task("finalizerDep2", type: Async, dependsOn: [finalizer1])
+        Task finalizer2 = task("finalizer2", type: Async, dependsOn: [finalizerDep2])
+        Task broken = task("broken", type: Async, failure: new RuntimeException())
+        Task a = task("a", type: Async, finalizedBy: [finalizer1], dependsOn: [broken])
+        Task b = task("b", type: Async, finalizedBy: [finalizer2], dependsOn: [a])
+
+        when:
+        executionPlan.setContinueOnFailure(continueOnFailure)
+        addToGraphAndPopulate(a, b)
+
+        then:
+        executionPlan.tasks as List == [broken, a, finalizerDep1, finalizer1, b, finalizerDep2, finalizer2]
+        assertSingleTaskReady(broken)
+        assertAllWorkComplete(continueOnFailure)
+
+        where:
+        continueOnFailure << [true, false]
+    }
+
+    def "finalizer of multiple tasks and its dependencies run after last task to be finalized when finalized tasks have dependency relationships"() {
+        given:
+        Task finalizerDep1 = task("finalizerDep1", type: Async)
+        Task finalizer1 = task("finalizer1", type: Async, dependsOn: [finalizerDep1])
+        Task finalizerDep2 = task("finalizerDep2", type: Async)
+        Task finalizer2 = task("finalizer2", type: Async, dependsOn: [finalizerDep2], finalizedBy: [finalizer1])
+        Task depDep = task("depDep", type: Async, finalizedBy: [finalizer1])
+        Task dep = task("dep", type: Async, dependsOn: [depDep])
+        Task task = task("task", type: Async, finalizedBy: [finalizer2], dependsOn: [dep])
+
+        when:
+        addToGraphAndPopulate(task)
+
+        then:
+        executionPlan.tasks as List == [depDep, dep, task, finalizerDep2, finalizer2, finalizerDep1, finalizer1]
+        assertSingleTaskReady(depDep)
+        assertSingleTaskReady(dep)
+        assertSingleTaskReady(task)
+        assertSingleTaskReady(finalizerDep2)
+        assertSingleTaskReady(finalizer2)
+        assertSingleTaskReady(finalizerDep1)
+        assertLastTaskReady(finalizer1)
+        assertAllWorkComplete()
+    }
+
+    def "finalizer of multiple tasks and its dependencies do not run when finalized tasks have dependency relationships but do not run"() {
+        given:
+        Task finalizerDep1 = task("finalizerDep1", type: Async)
+        Task finalizer1 = task("finalizer1", type: Async, dependsOn: [finalizerDep1])
+        Task finalizerDep2 = task("finalizerDep2", type: Async)
+        Task finalizer2 = task("finalizer2", type: Async, dependsOn: [finalizerDep2], finalizedBy: [finalizer1])
+        Task broken = task("broken", type: Async, finalizedBy: [finalizer1], failure: new RuntimeException())
+        Task dep = task("dep", type: Async, dependsOn: [broken])
+        Task task = task("task", type: Async, finalizedBy: [finalizer2], dependsOn: [dep])
+
+        when:
+        executionPlan.setContinueOnFailure(continueOnFailure)
+        addToGraphAndPopulate(task)
+
+        then:
+        executionPlan.tasks as List == [broken, dep, task, finalizerDep2, finalizer2, finalizerDep1, finalizer1]
+        assertSingleTaskReady(broken)
+        assertSingleTaskReady(finalizerDep1)
+        assertLastTaskReady(finalizer1)
+        assertAllWorkComplete()
+
+        where:
+        continueOnFailure << [true, false]
+    }
+
+    def "finalizer dependency runs in parallel with finalized task when that dependency is also an entry point task"() {
+        given:
+        Task finalizerDepDep = task("finalizerDepDep", type: Async)
+        Task finalizerDep = task("finalizerDep", type: Async, dependsOn: [finalizerDepDep])
+        Task finalizer = task("finalizer", type: Async, dependsOn: [finalizerDep])
+        Task a = task("a", type: Async, finalizedBy: [finalizer])
+
+        when:
+        addToGraphAndPopulate(finalizerDep, a)
+
+        then:
+        executionPlan.tasks as List == [finalizerDepDep, finalizerDep, a, finalizer]
+        assertTasksReady(finalizerDepDep, a)
+        assertSingleTaskReady(finalizerDep)
+        assertLastTaskReady(finalizer)
+        assertAllWorkComplete()
+    }
+
+    def "finalizer dependency runs in parallel with finalized task when that dependency is also a later entry point task"() {
+        given:
+        Task finalizerDepDep = task("finalizerDepDep", type: Async)
+        Task finalizerDep = task("finalizerDep", type: Async, dependsOn: [finalizerDepDep])
+        Task finalizer = task("finalizer", dependsOn: [finalizerDep])
+        Task a = task("a", type: Async, finalizedBy: [finalizer])
+
+        when:
+        addToGraphAndPopulate(a, finalizerDep)
+
+        then:
+        executionPlan.tasks as List == [a, finalizerDepDep, finalizerDep, finalizer]
+        assertTasksReady(a, finalizerDepDep)
+        assertSingleTaskReady(finalizerDep)
+        assertLastTaskReady(finalizer)
+        assertAllWorkComplete()
+    }
+
+    def "finalizer dependency runs even when finalizer does not run when dependency is also an entry point task"() {
+        given:
+        Task finalizerDepDep = task("finalizerDepDep", type: Async)
+        Task finalizerDep = task("finalizerDep", type: Async, dependsOn: [finalizerDepDep])
+        Task finalizer = task("finalizer", type: Async, dependsOn: [finalizerDep])
+        Task broken = task("broken", type: Async, failure: new RuntimeException())
+        Task a = task("a", type: Async, finalizedBy: [finalizer], dependsOn: [broken])
+
+        when:
+        executionPlan.setContinueOnFailure(true)
+        addToGraphAndPopulate(finalizerDep, a)
+
+        then:
+        executionPlan.tasks as List == [finalizerDepDep, finalizerDep, broken, a, finalizer]
+        assertTasksReady(finalizerDepDep, broken)
+        assertSingleTaskReady(finalizerDep)
+        assertAllWorkComplete(true)
+    }
+
+    def "finalizer that is a dependency of multiple finalizers and an entry point task"() {
+        given:
+        Task finalizerDep = task("finalizerDep", type: Async)
+        Task finalizer = task("finalizer", dependsOn: [finalizerDep])
+        Task a = task("a", type: Async, finalizedBy: [finalizer])
+        Task finalizerDep2 = task("finalizerDep2", type: Async, dependsOn: [finalizer])
+        Task finalizer2 = task("finalizer2", dependsOn: [finalizerDep2])
+        Task finalizer3 = task("finalizer3", dependsOn: [finalizer])
+        Task b = task("b", type: Async, finalizedBy: [finalizer2])
+        Task c = task("c", type: Async, finalizedBy: [finalizer3], dependsOn: [finalizer2])
+
+        when:
+        addToGraphAndPopulate(a, b, c)
+
+        then:
+        executionPlan.tasks as List == [a, finalizerDep, finalizer, b, finalizerDep2, finalizer2, c, finalizer3]
+        assertTasksReady(a, finalizerDep, b)
+        assertSingleTaskReady(finalizer)
+        assertSingleTaskReady(finalizerDep2)
+        assertSingleTaskReady(finalizer2)
+        assertSingleTaskReady(c)
+        assertLastTaskReady(finalizer3)
         assertAllWorkComplete()
     }
 
@@ -273,7 +604,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         def foo = task("foo")
 
         when:
-        addToGraphAndPopulate(foo, bar)
+        addToGraphAndPopulate(bar, foo)
         def asyncTask = selectNextTask()
         then:
         asyncTask == bar
@@ -783,38 +1114,6 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         selectNextTask() == destroyer
     }
 
-    def "finalizer runs after the last task to be finalized"() {
-        given:
-        def projectA = project(project, "a")
-        Task finalizer = task("finalizer", project: projectA)
-        Task a = task("a", project: projectA, type: Async, finalizedBy: [finalizer])
-        def projectB = project(project, "b")
-        Task b = task("b", project: projectB, type: Async, finalizedBy: [finalizer])
-
-        when:
-        addToGraphAndPopulate(a, b)
-        def firstInfo = selectNextTaskNode()
-        def secondInfo = selectNextTaskNode()
-
-        then:
-        firstInfo.task == a
-        secondInfo.task == b
-        assertNoWorkReadyToStartAfterSelect()
-
-        when:
-        finishedExecuting(firstInfo)
-
-        then:
-        assertNoWorkReadyToStart()
-
-        when:
-        finishedExecuting(secondInfo)
-        def finalizerInfo = selectNextTaskNode()
-
-        then:
-        finalizerInfo.task == finalizer
-    }
-
     @Issue("https://github.com/gradle/gradle/issues/8253")
     def "dependency of dependency of finalizer is scheduled when another task depends on the dependency"() {
         given:
@@ -927,7 +1226,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         finishedExecuting(node)
 
         then:
-        assertAllWorkCompleteAfterSelect()
+        assertAllWorkComplete(true)
 
         when:
         def failures = []
@@ -953,7 +1252,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         def second = task("second", type: Async)
 
         when:
-        addToGraphAndPopulate(second, first)
+        addToGraphAndPopulate(first, second)
         def invalidTaskNode = selectNextTaskNode()
 
         then:
@@ -975,7 +1274,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         def second = task("second", type: Async)
 
         when:
-        addToGraphAndPopulate(second, first)
+        addToGraphAndPopulate(first, second)
         def validTaskNode = selectNextTaskNode()
 
         then:
@@ -1020,7 +1319,9 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
     }
 
     private void addToGraph(Task... tasks) {
-        executionPlan.addEntryTasks(Arrays.asList(tasks), ordinal++)
+        for (final def task in tasks) {
+            executionPlan.addEntryTasks([task])
+        }
     }
 
     private void addToGraphAndPopulate(Task... tasks) {
@@ -1083,6 +1384,84 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         }
     }
 
+    void assertNextTaskReady(Task task) {
+        def node = selectNextTaskNode()
+        assert node.task == task
+        assertWorkReadyToStart()
+        finishedExecuting(node)
+    }
+
+    void assertSingleTaskReady(Task task, boolean needToSelect = true) {
+        def node = selectNextTaskNode()
+        assert node.task == task
+        if (needToSelect) {
+            assertNoWorkReadyToStartAfterSelect()
+        } else {
+            assertNoWorkReadyToStart()
+        }
+        finishedExecuting(node)
+    }
+
+    void assertLastTaskReady(Task task, boolean needToSelect = false) {
+        def node = selectNextTaskNode()
+        assert node.task == task
+        assertNoMoreWorkToStartButNotAllComplete(needToSelect)
+        finishedExecuting(node)
+    }
+
+    void assertTasksReady(Task task1, Task task2, boolean needToSelect = true) {
+        def node1 = selectNextTaskNode()
+        assert node1.task == task1
+        def node2 = selectNextTaskNode()
+        assert node2.task == task2
+        if (needToSelect) {
+            assertNoWorkReadyToStartAfterSelect()
+        } else {
+            assertNoWorkReadyToStart()
+        }
+        finishedExecuting(node2)
+        finishedExecuting(node1)
+    }
+
+    void assertLastTasksReady(Task task1, Task task2, boolean needToSelect = false) {
+        def node1 = selectNextTaskNode()
+        assert node1.task == task1
+        def node2 = selectNextTaskNode()
+        assert node2.task == task2
+        assertNoMoreWorkToStartButNotAllComplete(needToSelect)
+        finishedExecuting(node2)
+        finishedExecuting(node1)
+    }
+
+    void assertTasksReady(Task task1, Task task2, Task task3) {
+        def node1 = selectNextTaskNode()
+        assert node1.task == task1
+        def node2 = selectNextTaskNode()
+        assert node2.task == task2
+        def node3 = selectNextTaskNode()
+        assert node3.task == task3
+        assertNoWorkReadyToStartAfterSelect()
+        finishedExecuting(node3)
+        finishedExecuting(node2)
+        finishedExecuting(node1)
+    }
+
+    void assertTasksReady(Task task1, Task task2, Task task3, Task task4) {
+        def node1 = selectNextTaskNode()
+        assert node1.task == task1
+        def node2 = selectNextTaskNode()
+        assert node2.task == task2
+        def node3 = selectNextTaskNode()
+        assert node3.task == task3
+        def node4 = selectNextTaskNode()
+        assert node4.task == task4
+        assertNoWorkReadyToStartAfterSelect()
+        finishedExecuting(node4)
+        finishedExecuting(node3)
+        finishedExecuting(node2)
+        finishedExecuting(node1)
+    }
+
     private void finishedExecuting(Node node) {
         coordinator.withStateLock {
             executionPlan.finishedExecuting(node, null)
@@ -1115,11 +1494,13 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         def result = null
         coordinator.withStateLock {
             WorkSource.Selection selection
+            assert !executionPlan.allExecutionComplete()
             assert executionPlan.executionState() == WorkSource.State.MaybeWorkReadyToStart
             recordLocks {
                 selection = executionPlan.selectNext()
             }
             assert !selection.noMoreWorkToStart && !selection.noWorkReadyToStart
+            assert !executionPlan.allExecutionComplete()
             def nextNode = selection.item
             if (nextNode instanceof LocalTaskNode && nextNode.task instanceof Async) {
                 nextNode.projectToLock.unlock()
@@ -1150,27 +1531,26 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         }
     }
 
-    void assertNoMoreWorkToStartButNotAllComplete() {
+    void assertNoMoreWorkToStartButNotAllComplete(boolean needToSelect = false) {
         coordinator.withStateLock {
-            assert executionPlan.executionState() == WorkSource.State.NoMoreWorkToStart
+            if (needToSelect) {
+                assert executionPlan.executionState() == WorkSource.State.MaybeWorkReadyToStart
+            } else {
+                assert executionPlan.executionState() == WorkSource.State.NoMoreWorkToStart
+            }
             assert executionPlan.selectNext().noMoreWorkToStart
             assert executionPlan.executionState() == WorkSource.State.NoMoreWorkToStart
             assert !executionPlan.allExecutionComplete()
         }
     }
 
-    void assertAllWorkComplete() {
+    void assertAllWorkComplete(boolean needToSelect = false) {
         coordinator.withStateLock {
-            assert executionPlan.executionState() == WorkSource.State.NoMoreWorkToStart
-            assert executionPlan.selectNext().noMoreWorkToStart
-            assert executionPlan.executionState() == WorkSource.State.NoMoreWorkToStart
-            assert executionPlan.allExecutionComplete()
-        }
-    }
-
-    void assertAllWorkCompleteAfterSelect() {
-        coordinator.withStateLock {
-            assert executionPlan.executionState() == WorkSource.State.MaybeWorkReadyToStart
+            if (needToSelect) {
+                assert executionPlan.executionState() == WorkSource.State.MaybeWorkReadyToStart
+            } else {
+                assert executionPlan.executionState() == WorkSource.State.NoMoreWorkToStart
+            }
             assert executionPlan.selectNext().noMoreWorkToStart
             assert executionPlan.executionState() == WorkSource.State.NoMoreWorkToStart
             assert executionPlan.allExecutionComplete()
@@ -1191,6 +1571,12 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
             assert executionPlan.executionState() == WorkSource.State.MaybeWorkReadyToStart
             assert executionPlan.selectNext().noWorkReadyToStart
             assert executionPlan.executionState() == WorkSource.State.NoWorkReadyToStart
+        }
+    }
+
+    void assertWorkReadyToStart() {
+        coordinator.withStateLock {
+            assert executionPlan.executionState() == WorkSource.State.MaybeWorkReadyToStart
         }
     }
 }

@@ -104,10 +104,13 @@ public class LocalTaskNode extends TaskNode {
 
     @Override
     public boolean isCanCancel() {
-        for (Node node : getFinalizingSuccessors()) {
-            // Cannot cancel this node if something it finalizes has started
-            if (node.isExecuting() || node.isExecuted()) {
-                return false;
+        FinalizerGroup finalizerGroup = getFinalizerGroup();
+        if (finalizerGroup != null) {
+            for (Node node : finalizerGroup.getSuccessors()) {
+                // Cannot cancel this node if something it finalizes has started
+                if (node.isExecuting() || node.isExecuted()) {
+                    return false;
+                }
             }
         }
         return true;

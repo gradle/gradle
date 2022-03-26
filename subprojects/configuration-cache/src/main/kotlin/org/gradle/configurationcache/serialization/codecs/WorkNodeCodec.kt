@@ -20,9 +20,17 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
+import org.gradle.configurationcache.serialization.decodePreservingIdentity
+import org.gradle.configurationcache.serialization.encodePreservingIdentityOf
+import org.gradle.configurationcache.serialization.readCollectionInto
 import org.gradle.configurationcache.serialization.readNonNull
 import org.gradle.configurationcache.serialization.withGradleIsolate
+import org.gradle.configurationcache.serialization.writeCollection
+import org.gradle.execution.plan.CompositeNodeGroup
+import org.gradle.execution.plan.FinalizerGroup
 import org.gradle.execution.plan.Node
+import org.gradle.execution.plan.NodeGroup
+import org.gradle.execution.plan.OrdinalGroup
 import org.gradle.execution.plan.TaskInAnotherBuild
 import org.gradle.execution.plan.TaskNode
 
@@ -54,6 +62,9 @@ class WorkNodeCodec(
             writeNode(node, scheduledNodeIds)
             scheduledNodeIds[node] = nodeId
         }
+        nodes.forEach { node ->
+            writeNodeGroup(node.group, scheduledNodeIds)
+        }
     }
 
     private
@@ -66,6 +77,9 @@ class WorkNodeCodec(
             nodesById[nodeId] = node
             nodes.add(node)
         }
+        nodes.forEach { node ->
+            node.group = readNodeGroup(nodesById)
+        }
         return nodes
     }
 
@@ -76,32 +90,71 @@ class WorkNodeCodec(
     ) {
         write(node)
         writeSuccessorReferencesOf(node, scheduledNodeIds)
-        writeExecutionStateOf(node)
     }
 
     private
     suspend fun ReadContext.readNode(nodesById: Map<Int, Node>): Node {
         val node = readNonNull<Node>()
         readSuccessorReferencesOf(node, nodesById)
-        readExecutionStateOf(node)
+        node.require()
+        if (node !is TaskInAnotherBuild) {
+            // we want TaskInAnotherBuild dependencies to be processed later, so that the node is connected to its target task
+            node.dependenciesProcessed()
+        }
         return node
     }
 
     private
-    fun WriteContext.writeExecutionStateOf(node: Node) {
-        // entry nodes are required, finalizer nodes and their dependencies are not
-        writeBoolean(node.isRequired)
+    fun WriteContext.writeNodeGroup(group: NodeGroup, nodesById: Map<Node, Int>) {
+        encodePreservingIdentityOf(group) {
+            when (group) {
+                is OrdinalGroup -> {
+                    writeSmallInt(0)
+                    writeSmallInt(group.ordinal)
+                }
+                is FinalizerGroup -> {
+                    writeSmallInt(1)
+                    writeSmallInt(nodesById.getValue(group.node))
+                    writeNodeGroup(group.delegate, nodesById)
+                }
+                is CompositeNodeGroup -> {
+                    writeSmallInt(2)
+                    writeNodeGroup(group.ordinalGroup, nodesById)
+                    writeCollection(group.finalizerGroups) {
+                        writeNodeGroup(it, nodesById)
+                    }
+                }
+                NodeGroup.DEFAULT_GROUP -> {
+                    writeSmallInt(3)
+                }
+                else -> throw IllegalArgumentException()
+            }
+        }
     }
 
     private
-    fun ReadContext.readExecutionStateOf(node: Node) {
-        val isRequired = readBoolean()
-        if (isRequired) {
-            node.require()
-        }
-        if (node !is TaskInAnotherBuild) {
-            // we want TaskInAnotherBuild dependencies to be processed later
-            node.dependenciesProcessed()
+    fun ReadContext.readNodeGroup(nodesById: Map<Int, Node>): NodeGroup {
+        return decodePreservingIdentity { id ->
+            when (readSmallInt()) {
+                0 -> {
+                    val ordinal = readSmallInt()
+                    OrdinalGroup(ordinal)
+                }
+                1 -> {
+                    val finalizerNode = nodesById.getValue(readSmallInt()) as TaskNode
+                    val delegate = readNodeGroup(nodesById)
+                    FinalizerGroup(finalizerNode, delegate)
+                }
+                2 -> {
+                    val ordinalGroup = readNodeGroup(nodesById)
+                    val groups = readCollectionInto({ c -> HashSet() }) { readNodeGroup(nodesById) as FinalizerGroup }
+                    CompositeNodeGroup(ordinalGroup, groups)
+                }
+                3 -> NodeGroup.DEFAULT_GROUP
+                else -> throw IllegalArgumentException()
+            }.also {
+                isolate.identities.putInstance(id, it)
+            }
         }
     }
 

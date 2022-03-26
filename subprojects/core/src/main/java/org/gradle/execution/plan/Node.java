@@ -17,17 +17,15 @@
 package org.gradle.execution.plan;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.VerificationException;
 import org.gradle.internal.resources.ResourceLock;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.NavigableSet;
@@ -38,8 +36,6 @@ import java.util.function.Consumer;
  * A node in the execution graph that represents some executable code with potential dependencies on other nodes.
  */
 public abstract class Node implements Comparable<Node> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(Node.class);
-
     @VisibleForTesting
     enum ExecutionState {
         // Node is not scheduled to run in any plan
@@ -69,10 +65,91 @@ public abstract class Node implements Comparable<Node> {
     private final NavigableSet<Node> dependencySuccessors = Sets.newTreeSet();
     private final NavigableSet<Node> dependencyPredecessors = Sets.newTreeSet();
     private final MutationInfo mutationInfo = new MutationInfo(this);
+    private NodeGroup group = NodeGroup.DEFAULT_GROUP;
 
     @VisibleForTesting
     ExecutionState getState() {
         return state;
+    }
+
+    public NodeGroup getGroup() {
+        return group;
+    }
+
+    public void setGroup(NodeGroup group) {
+        this.group.removeMember(this);
+        this.group = group;
+        this.group.addMember(this);
+    }
+
+    @Nullable
+    public OrdinalGroup getOrdinal() {
+        return group.asOrdinal();
+    }
+
+    /**
+     * Potentially update the ordinal group of this node when it is reachable from the given group.
+     */
+    public void maybeInheritOrdinalAsDependency(NodeGroup candidate) {
+        // This is called prior to updating the groups of finalizers and their dependencies. So both this node and the candidate can be:
+        // - in the "default" group (ie not-a-group) -> use the candidate
+        // - in an ordinal group -> use the group with the lowest ordinal
+        //
+        if (group == candidate || candidate == NodeGroup.DEFAULT_GROUP) {
+            return;
+        }
+        if (group == NodeGroup.DEFAULT_GROUP) {
+            setGroup(candidate);
+            return;
+        }
+
+        OrdinalGroup candidateOrdinal = (OrdinalGroup) candidate;
+        OrdinalGroup currentOrdinal = (OrdinalGroup) group;
+        if (candidateOrdinal.getOrdinal() < currentOrdinal.getOrdinal()) {
+            setGroup(candidate);
+        }
+    }
+
+    /**
+     * Maybe update the group for this node when it is a finalizer for the given node.
+     *
+     * <p>When this method is called, the group of each node that depends on this node has been updated.</p>
+     */
+    public void updateGroupOfFinalizer() {
+        NodeGroup newGroup = group;
+        for (Node predecessor : getDependencyPredecessors()) {
+            if (predecessor.getGroup() instanceof HasFinalizers) {
+                newGroup = maybeInheritGroupAsFinalizerDependency((HasFinalizers) predecessor.getGroup(), newGroup);
+            }
+        }
+        if (newGroup != group) {
+            setGroup(newGroup);
+        }
+    }
+
+    private static NodeGroup maybeInheritGroupAsFinalizerDependency(HasFinalizers finalizers, NodeGroup current) {
+        if (current == finalizers || current == NodeGroup.DEFAULT_GROUP) {
+            return finalizers;
+        }
+
+        if (current instanceof OrdinalGroup) {
+            return new CompositeNodeGroup(current, finalizers.getFinalizerGroups());
+        }
+
+        HasFinalizers currentFinalizers = (HasFinalizers) current;
+        if (currentFinalizers.getFinalizerGroups().containsAll(finalizers.getFinalizerGroups())) {
+            return current;
+        }
+
+        ImmutableSet.Builder<FinalizerGroup> builder = ImmutableSet.builder();
+        builder.addAll(currentFinalizers.getFinalizerGroups());
+        builder.addAll(finalizers.getFinalizerGroups());
+        return new CompositeNodeGroup(currentFinalizers.getOrdinalGroup(), builder.build());
+    }
+
+    @Nullable
+    public FinalizerGroup getFinalizerGroup() {
+        return group.asFinalizer();
     }
 
     public boolean isRequired() {
@@ -208,9 +285,10 @@ public abstract class Node implements Comparable<Node> {
     }
 
     /**
-     * Discards any plan specific state for this node, so that it can potentally be added to another execution plan.
+     * Discards any plan specific state for this node, so that it can potentially be added to another execution plan.
      */
     public void reset() {
+        group = NodeGroup.DEFAULT_GROUP;
         if (!isCannotRunInAnyPlan()) {
             filtered = false;
             dependenciesProcessed = false;
@@ -252,16 +330,12 @@ public abstract class Node implements Comparable<Node> {
 
     @OverridingMethodsMustInvokeSuper
     protected boolean doCheckDependenciesComplete() {
-        LOGGER.debug("Checking if all dependencies are complete for {}", this);
         for (Node dependency : dependencySuccessors) {
             if (!dependency.isComplete()) {
-                LOGGER.debug("Dependency {} for {} not yet completed", dependency, this);
                 return false;
             }
         }
-
-        LOGGER.debug("All dependencies are complete for {}", this);
-        return true;
+        return group.isSuccessorsCompleteFor(this);
     }
 
     /**
@@ -298,7 +372,7 @@ public abstract class Node implements Comparable<Node> {
      * Can this node execute or should it be discarded? Should only be called when {@link #allDependenciesComplete()} return true.
      */
     public boolean allDependenciesSuccessful() {
-        return dependenciesState == DependenciesState.COMPLETE_AND_SUCCESSFUL;
+        return dependenciesState == DependenciesState.COMPLETE_AND_SUCCESSFUL && group.isSuccessorsSuccessfulFor(this);
     }
 
     /**
@@ -326,9 +400,14 @@ public abstract class Node implements Comparable<Node> {
         return false;
     }
 
-    @OverridingMethodsMustInvokeSuper
-    protected Iterable<Node> getAllPredecessors() {
-        return getDependencyPredecessors();
+    /**
+     * Visits all nodes whose {@link #allDependenciesComplete()} state depends in some way on the completion of this node.
+     * Should visit the nodes in a deterministic order, but the order can be whatever best makes sense for the node implementation.
+     */
+    protected void visitAllNodesWaitingForThisNode(Consumer<Node> visitor) {
+        for (Node node : getDependencyPredecessors()) {
+            visitor.accept(node);
+        }
     }
 
     /**
@@ -389,9 +468,6 @@ public abstract class Node implements Comparable<Node> {
         return Collections.emptySet();
     }
 
-    public void addFinalizingSuccessors(Collection<Node> finalizingSuccessors) {
-    }
-
     /**
      * Returns a node that should be executed prior to this node, once this node is ready to execute and it dependencies complete.
      */
@@ -412,7 +488,9 @@ public abstract class Node implements Comparable<Node> {
      * Returns the project state that this node requires mutable access to, if any.
      */
     @Nullable
-    public abstract ResourceLock getProjectToLock();
+    public ResourceLock getProjectToLock() {
+        return null;
+    }
 
     /**
      * Returns the project which this node belongs to, and requires access to the execution services of.
@@ -421,12 +499,16 @@ public abstract class Node implements Comparable<Node> {
      * TODO - this should return some kind of abstract 'action context' instead of a mutable project.
      */
     @Nullable
-    public abstract ProjectInternal getOwningProject();
+    public ProjectInternal getOwningProject() {
+        return null;
+    }
 
     /**
      * Returns the resources which should be locked before starting this node.
      */
-    public abstract List<? extends ResourceLock> getResourcesToLock();
+    public List<? extends ResourceLock> getResourcesToLock() {
+        return Collections.emptyList();
+    }
 
     @Override
     public abstract String toString();
