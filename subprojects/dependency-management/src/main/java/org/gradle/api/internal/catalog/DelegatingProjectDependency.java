@@ -49,6 +49,10 @@ public class DelegatingProjectDependency implements ProjectDependencyInternal {
         return factory.create(path);
     }
 
+    protected ProjectDependencyInternal create(String path, String configuration) {
+        return factory.create(path, configuration);
+    }
+
     protected TypeSafeProjectDependencyFactory getFactory() {
         return factory;
     }

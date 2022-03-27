@@ -16,6 +16,7 @@
 package org.gradle.api.internal.catalog;
 
 import com.google.common.base.Splitter;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.initialization.ProjectDescriptor;
 
 import java.io.IOException;
@@ -75,6 +76,8 @@ public class AbstractProjectAccessorsSourceGenerator extends AbstractSourceGener
         writeLn("     */");
         String returnType = toClassName(path, rootProjectName(descriptor));
         writeLn("    public " +  returnType + " get" + name + "() { return new " + returnType + "(getFactory(), create(\"" + path + "\")); }");
+        writeLn();
+        writeLn("    public " + returnType + " " + StringUtils.uncapitalize(name) + "(String configuration) { return new " + returnType + "(getFactory(), create(\"" + path + "\", configuration)); }");
         writeLn();
     }
 

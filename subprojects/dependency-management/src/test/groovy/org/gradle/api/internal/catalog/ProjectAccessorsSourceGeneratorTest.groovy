@@ -281,10 +281,21 @@ class ProjectAccessorsSourceGeneratorTest extends Specification {
             this.generatedCode = code
         }
 
+        private String baseName(String projectPath) { AbstractProjectAccessorsSourceGenerator.toProjectName projectPath == ':' ? toJavaName(name) : projectPath }
+
+        private String getterPath(String baseName) { baseName.contains('_') ? baseName.substring(baseName.lastIndexOf('_') + 1) : baseName }
+
         private int lineOfSubAccessor(String projectPath) {
-            String baseName = AbstractProjectAccessorsSourceGenerator.toProjectName(projectPath == ':' ? toJavaName(name) : projectPath)
-            String getterPath = baseName.contains('_') ? baseName.substring(baseName.lastIndexOf('_') + 1) : baseName
+            String baseName = baseName(projectPath)
+            String getterPath = getterPath(baseName)
             int lineOfSubAccessor = lineOf("public ${baseName}ProjectDependency get${getterPath}() { return new ${baseName}ProjectDependency(getFactory(), create(\"${projectPath}\")); }")
+            lineOfSubAccessor
+        }
+
+        private int lineOfSubAccessorWithConfiguration(String projectPath) {
+            String baseName = baseName(projectPath)
+            String getterPath = getterPath(baseName).uncapitalize()
+            int lineOfSubAccessor = lineOf("public ${baseName}ProjectDependency $getterPath(String configuration) { return new ${baseName}ProjectDependency(getFactory(), create(\"${projectPath}\", configuration)); }")
             lineOfSubAccessor
         }
 
@@ -295,15 +306,16 @@ class ProjectAccessorsSourceGeneratorTest extends Specification {
                 int lineOfSubAccessor = lineOfSubAccessor(path)
                 assert lineOfSubAccessor > 0: "Could not find sub accessor for $path"
                 lineNumberToAccessor[lineOfSubAccessor] = path
+                int lineOfSubAccessorWithConfiguration = lineOfSubAccessorWithConfiguration(path)
+                assert lineOfSubAccessorWithConfiguration > 0: "Could not find sub accessor for $path with configuration parameter"
+                lineNumberToAccessor[lineOfSubAccessorWithConfiguration] = path
             }
-            def accessorsInSourceOrder = lineNumberToAccessor.values() as List<String>
-            assert expectedOrderOfAccessors == accessorsInSourceOrder
-            assert expectedOrderOfAccessors.size() == subAccessorCount()
+            assert expectedOrderOfAccessors.size() * 2 == subAccessorCount(): "There should be 2 accessor methods per project"
         }
 
         int subAccessorCount() {
             generatedCode.split("(\r)?\n").count {
-                it.contains('public ') && it.contains('ProjectDependency get')
+                it.contains('public ') && (it.contains('ProjectDependency get') || it.contains('(String configuration)'))
             } as int
         }
 

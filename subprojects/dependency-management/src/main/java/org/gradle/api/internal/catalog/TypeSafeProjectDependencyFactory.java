@@ -32,6 +32,10 @@ public abstract class TypeSafeProjectDependencyFactory {
         return (ProjectDependencyInternal) factory.create(finder.getProject(path));
     }
 
+    protected ProjectDependencyInternal create(String path, String configuration) {
+        return (ProjectDependencyInternal) factory.create(finder.getProject(path), configuration);
+    }
+
     protected TypeSafeProjectDependencyFactory getFactory() {
         return this;
     }

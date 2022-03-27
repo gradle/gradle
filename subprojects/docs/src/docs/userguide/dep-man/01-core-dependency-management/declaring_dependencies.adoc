@@ -327,6 +327,14 @@ For example, if a project path is `:commons:utils:some:lib` then the project acc
 
 A project name with kebab case (`some-lib`) or snake case (`some_lib`) will be converted to camel case in accessors: `projects.someLib`.
 
+Type-safe project accessors also accept optional parameter for dependency configuration. For example, `project(":some:path", "distribution")` can be rewritten as follows:
+
+.Declaring project dependencies with custom configurations using the type-safe API
+====
+include::sample[dir="snippets/dependencyManagement/declaringDependencies-typeSafeProjectDependencies/groovy",files="web-service-custom-configurations/build.gradle[tags=project-dependencies]"]
+include::sample[dir="snippets/dependencyManagement/declaringDependencies-typeSafeProjectDependencies/kotlin",files="web-service-custom-configurations/build.gradle.kts[tags=project-dependencies]"]
+====
+
 === Local forks of module dependencies
 
 A module dependency can be substituted by a dependency to a local fork of the sources of that module, if the module itself is built with Gradle.
