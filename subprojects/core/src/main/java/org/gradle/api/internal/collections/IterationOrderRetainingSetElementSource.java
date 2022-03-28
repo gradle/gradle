@@ -85,6 +85,12 @@ public class IterationOrderRetainingSetElementSource<T> extends AbstractIteratio
         return super.remove(o);
     }
 
+    @Override
+    public void clear() {
+        nonProvidedValues.clear();
+        super.clear();
+    }
+
     private void markDuplicates(T value) {
         boolean seen = false;
         for (Element<T> element : getInserted()) {

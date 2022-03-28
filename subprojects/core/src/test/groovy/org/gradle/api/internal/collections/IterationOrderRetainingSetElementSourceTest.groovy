@@ -90,6 +90,31 @@ class IterationOrderRetainingSetElementSourceTest extends AbstractIterationOrder
         source.iterator().collect() == ["b", "a"]
     }
 
+    def "can re-add an ordinary value after clear"() {
+        when:
+        source.add("a")
+        source.add("b")
+        source.clear()
+
+        then:
+        source.iterator().collect() == []
+
+        when:
+        source.add("a")
+        source.add("b")
+
+        then:
+        source.iterator().collect() == ["a", "b"]
+
+        when:
+        source.clear()
+        source.add("b")
+        source.add("a")
+
+        then:
+        source.iterator().collect() == ["b", "a"]
+    }
+
     def "duplicates are handled when values change"() {
         def provider1 = setProvider("foo", "bar", "baz")
 
