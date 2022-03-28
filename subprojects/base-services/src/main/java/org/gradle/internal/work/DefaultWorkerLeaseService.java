@@ -16,14 +16,13 @@
 
 package org.gradle.internal.work;
 
+import com.google.common.base.Supplier;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
 import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
-import org.gradle.internal.MutableBoolean;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.resources.AbstractResourceLockRegistry;
 import org.gradle.internal.resources.DefaultLease;
@@ -35,7 +34,6 @@ import org.gradle.internal.resources.ProjectLockStatistics;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.resources.ResourceLockContainer;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
-import org.gradle.internal.resources.ResourceLockState;
 import org.gradle.internal.resources.TaskExecutionLockRegistry;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
@@ -54,7 +52,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.lock;
 import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.tryLock;
 import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.unlock;
-import static org.gradle.internal.resources.ResourceLockState.Disposition.FINISHED;
 
 public class DefaultWorkerLeaseService implements WorkerLeaseService, Stoppable {
     public static final String PROJECT_LOCK_STATS_PROPERTY = "org.gradle.internal.project.lock.stats";
@@ -125,9 +122,9 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Stoppable 
 
     @Override
     public void stop() {
-        coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
+        coordinationService.withStateLock(new Runnable() {
             @Override
-            public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
+            public void run() {
                 if (workerLeaseLockRegistry.hasOpenLocks()) {
                     throw new IllegalStateException("Some worker leases have not been marked as completed.");
                 }
@@ -137,7 +134,6 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Stoppable 
                 if (taskLockRegistry.hasOpenLocks()) {
                     throw new IllegalStateException("Some task execution locks have not been unlocked.");
                 }
-                return FINISHED;
             }
         });
 
@@ -289,9 +285,9 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Stoppable 
         }
 
         final List<ResourceLock> locksNotHeld = Lists.newArrayList(locks);
-        coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
+        coordinationService.withStateLock(new Runnable() {
             @Override
-            public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
+            public void run() {
                 Iterator<ResourceLock> iterator = locksNotHeld.iterator();
                 while (iterator.hasNext()) {
                     ResourceLock lock = iterator.next();
@@ -299,7 +295,6 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Stoppable 
                         iterator.remove();
                     }
                 }
-                return FINISHED;
             }
         });
         return locksNotHeld;
@@ -361,20 +356,17 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Stoppable 
     }
 
     private boolean allLockedByCurrentThread(final Iterable<? extends ResourceLock> locks) {
-        final MutableBoolean allLocked = new MutableBoolean();
-        coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
+        return coordinationService.withStateLock(new Supplier<Boolean>() {
             @Override
-            public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
-                allLocked.set(CollectionUtils.every(locks, new Spec<ResourceLock>() {
+            public Boolean get() {
+                return CollectionUtils.every(locks, new Spec<ResourceLock>() {
                     @Override
                     public boolean isSatisfiedBy(ResourceLock lock) {
                         return lock.isLockedByCurrentThread();
                     }
-                }));
-                return FINISHED;
+                });
             }
         });
-        return allLocked.get();
     }
 
     private class WorkerLeaseLockRegistry extends AbstractResourceLockRegistry<String, DefaultWorkerLease> {

@@ -14,19 +14,21 @@
  * limitations under the License.
  */
 
-plugins {
-    `kotlin-dsl`
-}
+package org.gradle.internal.configurationcache;
 
-description = "Provides a plugin that configures build scans in the Gradle build"
+import org.gradle.internal.operations.BuildOperationType;
 
-java {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
-}
+/**
+ * Details about a configuration cache load build operation.
+ *
+ * @since 7.5
+ */
+public class ConfigurationCacheLoadBuildOperationType implements BuildOperationType<ConfigurationCacheLoadBuildOperationType.Details, ConfigurationCacheLoadBuildOperationType.Result> {
 
-group = "gradlebuild"
+    public interface Details {
+    }
 
-dependencies {
-    compileOnly("com.gradle:gradle-enterprise-gradle-plugin:3.8")
+    public interface Result {
+    }
+
 }

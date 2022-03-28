@@ -311,7 +311,8 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
 
         void expectKotlinParallelTasksDeprecation(String version) {
             VersionNumber versionNumber = VersionNumber.parse(version)
-            runner.expectLegacyDeprecationWarningIf(versionNumber >= VersionNumber.parse('1.5.20'),
+            runner.expectLegacyDeprecationWarningIf(
+                versionNumber >= VersionNumber.parse('1.5.20') && versionNumber <= VersionNumber.parse('1.6.10'),
                 "Project property 'kotlin.parallel.tasks.in.project' is deprecated."
             )
         }

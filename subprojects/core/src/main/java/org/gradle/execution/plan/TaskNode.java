@@ -185,4 +185,14 @@ public abstract class TaskNode extends Node {
             this.ordinal = ordinal;
         }
     }
+
+    public void maybeInheritOrdinalAsDependency(TaskNode node) {
+        maybeSetOrdinal(node.getOrdinal());
+    }
+
+    public void maybeInheritOrdinalAsFinalizer(TaskNode node) {
+        if (this.ordinal == UNKNOWN_ORDINAL || this.ordinal < node.getOrdinal()) {
+            this.ordinal = node.getOrdinal();
+        }
+    }
 }

@@ -143,8 +143,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
     // Runtime().exec(String[], String[], File) -> exec(Runtime, String[], String[], File, String)
     // ProcessGroovyMethods.execute(String[], String[], File) -> execute(String[], String[], File, String)
     private static final String RETURN_PROCESS_FROM_STRING_ARRAY_STRING_ARRAY_FILE = getMethodDescriptor(PROCESS_TYPE, STRING_ARRAY_TYPE, STRING_ARRAY_TYPE, FILE_TYPE);
-    private static final String RETURN_PROCESS_FROM_RUNTIME_STRING_ARRAY_STRING_ARRAY_FILE_STRING = getMethodDescriptor(
-        PROCESS_TYPE, RUNTIME_TYPE, STRING_ARRAY_TYPE, STRING_ARRAY_TYPE, FILE_TYPE, STRING_TYPE);
+    private static final String RETURN_PROCESS_FROM_RUNTIME_STRING_ARRAY_STRING_ARRAY_FILE_STRING = getMethodDescriptor(PROCESS_TYPE, RUNTIME_TYPE, STRING_ARRAY_TYPE, STRING_ARRAY_TYPE, FILE_TYPE, STRING_TYPE);
     private static final String RETURN_PROCESS_FROM_STRING_ARRAY_STRING_ARRAY_FILE_STRING = getMethodDescriptor(PROCESS_TYPE, STRING_ARRAY_TYPE, STRING_ARRAY_TYPE, FILE_TYPE, STRING_TYPE);
     // ProcessGroovyMethods.execute(List, String[], File) -> execute(List, String[], File, String)
     private static final String RETURN_PROCESS_FROM_LIST_STRING_ARRAY_FILE = getMethodDescriptor(PROCESS_TYPE, LIST_TYPE, STRING_ARRAY_TYPE, FILE_TYPE);
@@ -234,74 +233,58 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
         }
 
         private void generateLambdaDeserializeMethod() {
-            new MethodVisitorScope(
-                visitStaticPrivateMethod(DESERIALIZE_LAMBDA, RETURN_OBJECT_FROM_SERIALIZED_LAMBDA)
-            ) {
-                {
-                    visitCode();
-                    Label next = null;
-                    for (LambdaFactoryDetails factory : lambdaFactories) {
-                        if (next != null) {
-                            visitLabel(next);
-                            _F_SAME();
-                        }
-                        next = new Label();
-                        _ALOAD(0);
-                        _INVOKEVIRTUAL(SERIALIZED_LAMBDA_TYPE, "getImplMethodName", RETURN_STRING);
-                        _LDC(((Handle) factory.bootstrapMethodArguments.get(1)).getName());
-                        _INVOKEVIRTUAL(OBJECT_TYPE, "equals", RETURN_BOOLEAN_FROM_OBJECT);
-                        _IFEQ(next);
-                        Type[] argumentTypes = Type.getArgumentTypes(factory.descriptor);
-                        for (int i = 0; i < argumentTypes.length; i++) {
-                            _ALOAD(0);
-                            _LDC(i);
-                            _INVOKEVIRTUAL(SERIALIZED_LAMBDA_TYPE, "getCapturedArg", RETURN_OBJECT_FROM_INT);
-                            _UNBOX(argumentTypes[i]);
-                        }
-                        _INVOKEDYNAMIC(factory.name, factory.descriptor, factory.bootstrapMethodHandle, factory.bootstrapMethodArguments);
-                        _ARETURN();
-                    }
+            new MethodVisitorScope(visitStaticPrivateMethod(DESERIALIZE_LAMBDA, RETURN_OBJECT_FROM_SERIALIZED_LAMBDA)) {{
+                Label next = null;
+                for (LambdaFactoryDetails factory : lambdaFactories) {
                     if (next != null) {
                         visitLabel(next);
                         _F_SAME();
                     }
-                    if (hasDeserializeLambda) {
+                    next = new Label();
+                    _ALOAD(0);
+                    _INVOKEVIRTUAL(SERIALIZED_LAMBDA_TYPE, "getImplMethodName", RETURN_STRING);
+                    _LDC(((Handle) factory.bootstrapMethodArguments.get(1)).getName());
+                    _INVOKEVIRTUAL(OBJECT_TYPE, "equals", RETURN_BOOLEAN_FROM_OBJECT);
+                    _IFEQ(next);
+                    Type[] argumentTypes = Type.getArgumentTypes(factory.descriptor);
+                    for (int i = 0; i < argumentTypes.length; i++) {
                         _ALOAD(0);
-                        _INVOKESTATIC(className, RENAMED_DESERIALIZE_LAMBDA, RETURN_OBJECT_FROM_SERIALIZED_LAMBDA, isInterface);
-                    } else {
-                        _ACONST_NULL();
+                        _LDC(i);
+                        _INVOKEVIRTUAL(SERIALIZED_LAMBDA_TYPE, "getCapturedArg", RETURN_OBJECT_FROM_INT);
+                        _UNBOX(argumentTypes[i]);
                     }
+                    _INVOKEDYNAMIC(factory.name, factory.descriptor, factory.bootstrapMethodHandle, factory.bootstrapMethodArguments);
                     _ARETURN();
-                    visitMaxs(0, 0);
-                    visitEnd();
                 }
-            };
+                if (next != null) {
+                    visitLabel(next);
+                    _F_SAME();
+                }
+                if (hasDeserializeLambda) {
+                    _ALOAD(0);
+                    _INVOKESTATIC(className, RENAMED_DESERIALIZE_LAMBDA, RETURN_OBJECT_FROM_SERIALIZED_LAMBDA, isInterface);
+                } else {
+                    _ACONST_NULL();
+                }
+                _ARETURN();
+                visitMaxs(0, 0);
+                visitEnd();
+            }};
         }
 
         private void generateCallSiteFactoryMethod() {
-            new MethodVisitorScope(
-                visitStaticPrivateMethod(INSTRUMENTED_CALL_SITE_METHOD, RETURN_CALL_SITE_ARRAY)
-            ) {
-                {
-                    visitCode();
-                    _INVOKESTATIC(className, CREATE_CALL_SITE_ARRAY_METHOD, RETURN_CALL_SITE_ARRAY);
-                    _DUP();
-                    _INVOKESTATIC(INSTRUMENTED_TYPE, "groovyCallSites", RETURN_VOID_FROM_CALL_SITE_ARRAY);
-                    _ARETURN();
-                    visitMaxs(2, 0);
-                    visitEnd();
-                }
-            };
+            new MethodVisitorScope(visitStaticPrivateMethod(INSTRUMENTED_CALL_SITE_METHOD, RETURN_CALL_SITE_ARRAY)) {{
+                _INVOKESTATIC(className, CREATE_CALL_SITE_ARRAY_METHOD, RETURN_CALL_SITE_ARRAY);
+                _DUP();
+                _INVOKESTATIC(INSTRUMENTED_TYPE, "groovyCallSites", RETURN_VOID_FROM_CALL_SITE_ARRAY);
+                _ARETURN();
+                visitMaxs(2, 0);
+                visitEnd();
+            }};
         }
 
         private MethodVisitor visitStaticPrivateMethod(String name, String descriptor) {
-            return super.visitMethod(
-                ACC_STATIC | ACC_SYNTHETIC | ACC_PRIVATE,
-                name,
-                descriptor,
-                null,
-                NO_EXCEPTIONS
-            );
+            return super.visitMethod(ACC_STATIC | ACC_SYNTHETIC | ACC_PRIVATE, name, descriptor, null, NO_EXCEPTIONS);
         }
     }
 

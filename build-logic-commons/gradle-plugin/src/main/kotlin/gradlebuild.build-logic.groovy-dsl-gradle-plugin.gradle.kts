@@ -28,7 +28,7 @@ java {
 
 dependencies {
     api(platform(project(":build-platform")))
-    implementation("gradlebuild:code-quality")
+    implementation("gradlebuild:gradle-plugin")
 
     implementation(localGroovy())
     testImplementation("org.spockframework:spock-core")

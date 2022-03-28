@@ -312,6 +312,14 @@ $ gradle -q api:properties
 include::{snippetsPath}/tutorial/projectReports/tests/propertyListReport.out[]
 ----
 
+You can also query a single property with the optional `--property` argument.
+
+.Information about a single property
+----
+$ gradle -q api:properties --property allprojects
+include::{snippetsPath}/tutorial/projectReports/tests/propertyReport.out[]
+----
+
 [[sec:command_line_completion]]
 == Command-line completion
 

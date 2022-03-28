@@ -27,7 +27,6 @@ import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.internal.BuildScopeListenerRegistrationListener;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
@@ -69,7 +68,6 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     private final ListenerBroadcast<TaskExecutionGraphListener> graphListeners;
     private final ListenerBroadcast<org.gradle.api.execution.TaskExecutionListener> taskListeners;
     private final BuildScopeListenerRegistrationListener buildScopeListenerRegistrationListener;
-    private final ProjectStateRegistry projectStateRegistry;
     private final ServiceRegistry globalServices;
     private final BuildOperationExecutor buildOperationExecutor;
     private final ListenerBuildOperationDecorator listenerBuildOperationDecorator;
@@ -86,7 +84,6 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         ListenerBroadcast<TaskExecutionGraphListener> graphListeners,
         ListenerBroadcast<org.gradle.api.execution.TaskExecutionListener> taskListeners,
         BuildScopeListenerRegistrationListener buildScopeListenerRegistrationListener,
-        ProjectStateRegistry projectStateRegistry,
         ServiceRegistry globalServices
     ) {
         this.planExecutor = planExecutor;
@@ -97,7 +94,6 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         this.graphListeners = graphListeners;
         this.taskListeners = taskListeners;
         this.buildScopeListenerRegistrationListener = buildScopeListenerRegistrationListener;
-        this.projectStateRegistry = projectStateRegistry;
         this.globalServices = globalServices;
         this.executionPlan = ExecutionPlan.EMPTY;
     }

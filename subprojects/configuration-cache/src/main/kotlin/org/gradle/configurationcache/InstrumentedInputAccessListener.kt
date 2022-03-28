@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache
 
+import org.gradle.api.file.FileCollection
 import org.gradle.configurationcache.initialization.ConfigurationCacheProblemsListener
 import org.gradle.configurationcache.serialization.Workarounds
 import org.gradle.internal.classpath.Instrumented
@@ -100,5 +101,9 @@ class InstrumentedInputAccessListener(
             return
         }
         broadcast.fileOpened(file, consumer)
+    }
+
+    override fun fileCollectionObserved(fileCollection: FileCollection, consumer: String) {
+        broadcast.fileCollectionObserved(fileCollection, consumer)
     }
 }

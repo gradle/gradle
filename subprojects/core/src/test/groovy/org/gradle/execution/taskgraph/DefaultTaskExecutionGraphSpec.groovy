@@ -58,7 +58,6 @@ import org.gradle.internal.concurrent.ManagedExecutor
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.file.Stat
 import org.gradle.internal.operations.TestBuildOperationExecutor
-import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.work.DefaultWorkerLeaseService
@@ -76,16 +75,15 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
     def nodeExecutor = Mock(NodeExecutor)
     def buildOperationExecutor = new TestBuildOperationExecutor()
     def listenerBuildOperationDecorator = new TestListenerBuildOperationDecorator()
-    def coordinationService = new DefaultResourceLockCoordinationService()
     def parallelismConfiguration = new DefaultParallelismConfiguration(true, 1)
-    def workerLeases = new DefaultWorkerLeaseService(coordinationService, parallelismConfiguration)
+    def workerLeases = new DefaultWorkerLeaseService(coordinator, parallelismConfiguration)
     def executorFactory = Mock(ExecutorFactory)
     def taskNodeFactory = new TaskNodeFactory(thisBuild, Stub(DocumentationRegistry), Stub(BuildTreeWorkGraphController), nodeValidator)
     def dependencyResolver = new TaskDependencyResolver([new TaskNodeDependencyResolver(taskNodeFactory)])
     def projectStateRegistry = Stub(ProjectStateRegistry)
     def executionPlan = newExecutionPlan()
     def taskGraph = new DefaultTaskExecutionGraph(
-        new DefaultPlanExecutor(parallelismConfiguration, executorFactory, workerLeases, cancellationToken, coordinationService),
+        new DefaultPlanExecutor(parallelismConfiguration, executorFactory, workerLeases, cancellationToken, coordinator),
         [nodeExecutor],
         buildOperationExecutor,
         listenerBuildOperationDecorator,
@@ -93,7 +91,6 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         graphListeners,
         taskExecutionListeners,
         listenerRegistrationListener,
-        projectStateRegistry,
         Stub(ServiceRegistry)
     )
     WorkerLeaseRegistry.WorkerLeaseCompletion parentWorkerLease
@@ -382,7 +379,6 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
             graphListeners,
             taskExecutionListeners,
             listenerRegistrationListener,
-            projectStateRegistry,
             Stub(ServiceRegistry)
         )
         TaskExecutionGraphListener listener = Mock(TaskExecutionGraphListener)
@@ -419,7 +415,6 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
             graphListeners,
             taskExecutionListeners,
             listenerRegistrationListener,
-            projectStateRegistry,
             Stub(ServiceRegistry)
         )
         def closure = Mock(Closure)
@@ -614,7 +609,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
     }
 
     private DefaultExecutionPlan newExecutionPlan() {
-        return new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, dependencyResolver, new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, Stub(Stat)), new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, Stub(Stat)), new DefaultResourceLockCoordinationService())
+        return new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, dependencyResolver, new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, Stub(Stat)), new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, Stub(Stat)), coordinator)
     }
 
     def task(String name, Task... dependsOn = []) {

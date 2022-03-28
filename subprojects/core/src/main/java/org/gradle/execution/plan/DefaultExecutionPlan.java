@@ -213,10 +213,6 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                     if (!visiting.contains(targetNode)) {
                         queue.addFirst(targetNode);
                     }
-                    if (node instanceof TaskNode && targetNode instanceof TaskNode) {
-                        // if the dependency doesn't already have an ordinal assigned, then inherit the ordinal from this node
-                        ((TaskNode) targetNode).maybeSetOrdinal(((TaskNode) node).getOrdinal());
-                    }
                 });
                 if (node.isRequired()) {
                     for (Node successor : node.getDependencySuccessors()) {
@@ -345,6 +341,9 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                         }
                     }
                     nodeQueue.addFirst(new NodeInVisitingSegment(successor, currentSegment));
+                    if (node instanceof TaskNode && successor instanceof TaskNode) {
+                        ((TaskNode) successor).maybeInheritOrdinalAsDependency((TaskNode) node);
+                    }
                 }
                 path.push(node);
             } else {
@@ -364,6 +363,9 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                     if (!visitingNodes.containsKey(finalizer)) {
                         int position = finalizerTaskPosition(finalizer, nodeQueue);
                         nodeQueue.add(position, new NodeInVisitingSegment(finalizer, visitingSegmentCounter++));
+                        if (node instanceof TaskNode && finalizer instanceof TaskNode) {
+                            ((TaskNode) finalizer).maybeInheritOrdinalAsFinalizer((TaskNode) node);
+                        }
                     }
                 }
 
@@ -633,6 +635,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
     @Override
     public State executionState() {
+        lockCoordinator.assertHasStateLock();
         if (executionQueue.isEmpty()) {
             return State.NoMoreNodesToStart;
         } else if (maybeNodesSelectable) {
@@ -643,7 +646,31 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     }
 
     @Override
+    public Diagnostics healthDiagnostics() {
+        lockCoordinator.assertHasStateLock();
+        State state = executionState();
+        // If no nodes are ready and nothing is running, then cannot make progress
+        boolean cannotMakeProgress = state == State.NoNodesReadyToStart && runningNodes.isEmpty();
+        if (cannotMakeProgress) {
+            List<String> nodes = new ArrayList<>(executionQueue.size());
+            for (Node node : executionQueue) {
+                if (!node.isReady()) {
+                    nodes.add(node + " (not ready)");
+                } else if (!node.allDependenciesComplete()) {
+                    nodes.add(node + " (dependencies not complete)");
+                } else {
+                    nodes.add(node.toString());
+                }
+            }
+            return new Diagnostics(false, nodes);
+        } else {
+            return new Diagnostics(true, Collections.emptyList());
+        }
+    }
+
+    @Override
     public NodeSelection selectNext() {
+        lockCoordinator.assertHasStateLock();
         if (executionQueue.isEmpty()) {
             return NO_MORE_NODES_TO_START;
         }
@@ -929,6 +956,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
     @Override
     public void finishedExecuting(Node node) {
+        lockCoordinator.assertHasStateLock();
         if (!node.isExecuting()) {
             throw new IllegalStateException(String.format("Cannot finish executing %s as it is in an unexpected state.", node));
         }
@@ -994,6 +1022,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
     @Override
     public void abortAllAndFail(Throwable t) {
+        lockCoordinator.assertHasStateLock();
         abortExecution(true);
         this.failureCollector.addFailure(t);
     }
@@ -1026,6 +1055,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
     @Override
     public void cancelExecution() {
+        lockCoordinator.assertHasStateLock();
         buildCancelled = abortExecution() || buildCancelled;
     }
 

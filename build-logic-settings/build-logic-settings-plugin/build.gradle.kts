@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,4 +17,5 @@
 plugins {
    `kotlin-dsl`
 }
-description = "Provides a plugin that fails the build if configuration caching is enabled with tasks that do not support configuration caching"
+
+description = "Provides settings plugins for main build"

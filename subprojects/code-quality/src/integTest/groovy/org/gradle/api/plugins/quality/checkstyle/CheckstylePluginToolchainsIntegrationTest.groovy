@@ -75,6 +75,35 @@ class CheckstylePluginToolchainsIntegrationTest extends MultiVersionIntegrationS
         outputContains("Running checkstyle with toolchain '${Jvm.current().javaHome.absolutePath}'")
     }
 
+    def "respects memory options settings"() {
+        given:
+        goodCode()
+        writeDummyConfig()
+        writeBuildFile()
+
+        when:
+        buildFile << """
+            import org.gradle.workers.internal.WorkerDaemonClientsManager
+            import org.gradle.internal.jvm.Jvm
+
+            tasks.named('checkstyleMain').configure {
+                minHeapSize.set("128m")
+                maxHeapSize.set("256m")
+
+                doLast {
+                    assert services.get(WorkerDaemonClientsManager).idleClients.find {
+                        new File(it.forkOptions.javaForkOptions.executable).canonicalPath == Jvm.current().javaExecutable.canonicalPath &&
+                        it.forkOptions.javaForkOptions.minHeapSize == "128m" &&
+                        it.forkOptions.javaForkOptions.maxHeapSize == "256m"
+                    }
+                }
+            }
+        """
+
+        then:
+        succeeds("checkstyleMain")
+    }
+
     def "analyze good code with the toolchain JDK"() {
         goodCode()
         def jdk = setupExecutorForToolchains()
