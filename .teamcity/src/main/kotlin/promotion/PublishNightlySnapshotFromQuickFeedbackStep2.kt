@@ -21,7 +21,6 @@ import vcsroots.gradlePromotionBranches
 
 class PublishNightlySnapshotFromQuickFeedbackStep2(branch: VersionedSettingsBranch) : BasePublishGradleDistribution(
     promotedBranch = branch.branchName,
-    task = branch.promoteNightlyTaskName(),
     triggerName = "QuickFeedback",
     vcsRootId = gradlePromotionBranches,
     cleanCheckout = false
@@ -32,12 +31,13 @@ class PublishNightlySnapshotFromQuickFeedbackStep2(branch: VersionedSettingsBran
         description = "Promotes a previously built distribution on this agent on '${branch.branchName}' from Quick Feedback as a new nightly snapshot"
 
         steps {
-            buildStep2(
+            buildStep(
                 this@PublishNightlySnapshotFromQuickFeedbackStep2.extraParameters,
                 this@PublishNightlySnapshotFromQuickFeedbackStep2.gitUserName,
                 this@PublishNightlySnapshotFromQuickFeedbackStep2.gitUserEmail,
                 this@PublishNightlySnapshotFromQuickFeedbackStep2.triggerName,
-                this@PublishNightlySnapshotFromQuickFeedbackStep2.task
+                branch.prepNightlyTaskName(),
+                branch.promoteNightlyTaskName()
             )
         }
     }

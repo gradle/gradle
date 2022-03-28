@@ -20,13 +20,15 @@ import common.VersionedSettingsBranch
 import jetbrains.buildServer.configs.kotlin.v2019_2.ParameterDisplay
 
 abstract class PublishRelease(
-    task: String,
+    prepTask: String,
+    step2TargetTask: String,
     requiredConfirmationCode: String,
     promotedBranch: String,
     init: PublishRelease.() -> Unit = {}
 ) : PublishGradleDistributionBothSteps(
     promotedBranch = promotedBranch,
-    task = task,
+    prepTask = prepTask,
+    step2TargetTask = step2TargetTask,
     triggerName = "ReadyforRelease",
     gitUserEmail = "%gitUserEmail%",
     gitUserName = "%gitUserName%",
@@ -70,7 +72,8 @@ abstract class PublishRelease(
 
 class PublishFinalRelease(branch: VersionedSettingsBranch) : PublishRelease(
     promotedBranch = branch.branchName,
-    task = "promoteFinalRelease",
+    prepTask = "String",
+    step2TargetTask = "promoteFinalRelease",
     requiredConfirmationCode = "final",
     init = {
         id("Promotion_FinalRelease")
@@ -81,7 +84,8 @@ class PublishFinalRelease(branch: VersionedSettingsBranch) : PublishRelease(
 
 class PublishReleaseCandidate(branch: VersionedSettingsBranch) : PublishRelease(
     promotedBranch = branch.branchName,
-    task = "promoteRc",
+    prepTask = "String",
+    step2TargetTask = "promoteRc",
     requiredConfirmationCode = "rc",
     init = {
         id("Promotion_ReleaseCandidate")
@@ -92,7 +96,8 @@ class PublishReleaseCandidate(branch: VersionedSettingsBranch) : PublishRelease(
 
 class PublishMilestone(branch: VersionedSettingsBranch) : PublishRelease(
     promotedBranch = branch.branchName,
-    task = "promoteMilestone",
+    prepTask = "String",
+    step2TargetTask = "promoteMilestone",
     requiredConfirmationCode = "milestone",
     init = {
         id("Promotion_Milestone")

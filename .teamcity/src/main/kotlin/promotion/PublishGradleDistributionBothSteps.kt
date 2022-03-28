@@ -24,33 +24,26 @@ import vcsroots.gradlePromotionMaster
 abstract class PublishGradleDistributionBothSteps(
     // The branch to be promoted
     promotedBranch: String,
-    task: String,
+    prepTask: String,
+    step2TargetTask: String,
     triggerName: String,
     gitUserName: String = "bot-teamcity",
     gitUserEmail: String = "bot-teamcity@gradle.com",
     extraParameters: String = "",
     vcsRootId: String = gradlePromotionMaster
-) : BasePublishGradleDistribution(promotedBranch, task, triggerName, gitUserName, gitUserEmail, extraParameters, vcsRootId) {
+) : BasePublishGradleDistribution(promotedBranch, triggerName, gitUserName, gitUserEmail, extraParameters, vcsRootId) {
     init {
         steps {
-            buildStep1(extraParameters, gitUserName, gitUserEmail, triggerName)
-            buildStep2(extraParameters, gitUserName, gitUserEmail, triggerName, task)
+            buildStep(extraParameters, gitUserName, gitUserEmail, triggerName, prepTask, "uploadAll")
+            buildStep(extraParameters, gitUserName, gitUserEmail, triggerName, prepTask, step2TargetTask)
         }
     }
 }
 
-fun BuildSteps.buildStep1(extraParameters: String, gitUserName: String, gitUserEmail: String, triggerName: String) {
+fun BuildSteps.buildStep(extraParameters: String, gitUserName: String, gitUserEmail: String, triggerName: String, prepTask: String, targetTask: String) {
     gradleWrapper {
         name = "Promote"
-        tasks = "uploadAll"
-        gradleParams = """-PcommitId=%dep.${RelativeId("Check_Stage_${triggerName}_Trigger")}.build.vcs.number% $extraParameters "-PgitUserName=$gitUserName" "-PgitUserEmail=$gitUserEmail" %additional.gradle.parameters% """
-    }
-}
-
-fun BuildSteps.buildStep2(extraParameters: String, gitUserName: String, gitUserEmail: String, triggerName: String, task: String) {
-    gradleWrapper {
-        name = "Promote"
-        tasks = task
+        tasks = "$prepTask $targetTask"
         gradleParams = """-PcommitId=%dep.${RelativeId("Check_Stage_${triggerName}_Trigger")}.build.vcs.number% $extraParameters "-PgitUserName=$gitUserName" "-PgitUserEmail=$gitUserEmail" %additional.gradle.parameters% """
     }
 }

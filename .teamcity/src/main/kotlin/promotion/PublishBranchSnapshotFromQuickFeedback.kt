@@ -23,7 +23,9 @@ import vcsroots.gradlePromotionBranches
 object PublishBranchSnapshotFromQuickFeedback : PublishGradleDistributionBothSteps(
     promotedBranch = "%branch.to.promote%",
     triggerName = "QuickFeedback",
-    task = "promoteSnapshot",
+    prepTask = "prepSnapshot",
+    step1TargetTask = "uploadAll",
+    step2TargetTask = "promoteSnapshot",
     extraParameters = "-PpromotedBranch=%branch.qualifier% ",
     vcsRootId = gradlePromotionBranches
 ) {

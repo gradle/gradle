@@ -23,7 +23,6 @@ import vcsroots.gradlePromotionMaster
 abstract class BasePublishGradleDistribution(
     // The branch to be promoted
     val promotedBranch: String,
-    val task: String,
     val triggerName: String,
     val gitUserName: String = "bot-teamcity",
     val gitUserEmail: String = "bot-teamcity@gradle.com",
@@ -46,10 +45,4 @@ abstract class BasePublishGradleDistribution(
             }
         }
     }
-}
-
-fun VersionedSettingsBranch.promoteNightlyTaskName(): String = when {
-    isMaster -> "promoteNightly"
-    isRelease -> "promoteReleaseNightly"
-    else -> "promotePatchReleaseNightly"
 }
