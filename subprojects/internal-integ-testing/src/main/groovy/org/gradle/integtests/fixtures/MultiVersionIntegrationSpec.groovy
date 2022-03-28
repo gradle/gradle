@@ -28,8 +28,9 @@ import javax.annotation.Nullable
 @MultiVersionTest
 @MultiVersionTestCategory
 abstract class MultiVersionIntegrationSpec extends AbstractIntegrationSpec {
+    static final def CLASSIFIER_PATTERN = /^(.*?)(:.*)?$/
+
     static def version
-    static def CLASSIFIER_PATTERN = /^(.*?)(:.*)?$/
 
     static VersionNumber getVersionNumber() {
         def m = version.toString() =~ CLASSIFIER_PATTERN
