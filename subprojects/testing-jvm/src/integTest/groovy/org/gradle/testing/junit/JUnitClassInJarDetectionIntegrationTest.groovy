@@ -32,6 +32,14 @@ import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE
 @TargetCoverage({ JUNIT_4_LATEST + JUNIT_VINTAGE })
 class JUnitClassInJarDetectionIntegrationTest extends JUnitMultiVersionIntegrationSpec {
 
+    def setup() {
+        buildFile << """
+            apply plugin: 'java'
+            ${mavenCentralRepository()}
+            dependencies { testImplementation '${dependencyNotation}' }
+        """.stripIndent()
+    }
+
     def jarName = "testFramework.jar"
     def jarNameNew = "anotherTestFramework.jar"
     def jar = new File(testDirectory, "build/libs/$jarName")
