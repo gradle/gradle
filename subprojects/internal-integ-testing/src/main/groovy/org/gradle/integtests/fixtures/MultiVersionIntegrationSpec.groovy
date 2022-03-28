@@ -20,6 +20,8 @@ import org.gradle.integtests.fixtures.compatibility.MultiVersionTest
 import org.gradle.integtests.fixtures.compatibility.MultiVersionTestCategory
 import org.gradle.util.internal.VersionNumber
 
+import javax.annotation.Nullable
+
 /**
  * See {@link org.gradle.integtests.fixtures.compatibility.AbstractContextualMultiVersionTestInterceptor} for information on running these tests.
  */
@@ -27,10 +29,16 @@ import org.gradle.util.internal.VersionNumber
 @MultiVersionTestCategory
 abstract class MultiVersionIntegrationSpec extends AbstractIntegrationSpec {
     static def version
+    static def CLASSIFIER_PATTERN = /^(.*?)(:.*)?$/
 
     static VersionNumber getVersionNumber() {
-        // Split off a potential classifier
-        def m = version.toString() =~ /^(.*?)(?::.*)?$/
+        def m = version.toString() =~ CLASSIFIER_PATTERN
         VersionNumber.parse(m[0][1])
+    }
+
+    @Nullable
+    static String getVersionClassifier() {
+        def m = version.toString() =~ CLASSIFIER_PATTERN
+        return m[0][2]
     }
 }

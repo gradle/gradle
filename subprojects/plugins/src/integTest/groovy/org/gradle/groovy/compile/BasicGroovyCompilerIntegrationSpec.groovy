@@ -48,14 +48,6 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         version.split(":", 2)[0]
     }
 
-    def getGroovyJarVariants() {
-        // Do not test with groovy-all with Groovy 4 for now because it doesn't work as a platform currently
-        // See https://issues.apache.org/jira/browse/GROOVY-10543
-        versionNumber.major >= 4
-            ? ["groovy"]
-            : ["groovy-all", "groovy"]
-    }
-
     def setup() {
         // necessary for picking up some of the output/errorOutput when forked executer is used
         executer.withArgument("-i")
@@ -64,6 +56,13 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
     }
 
     def "compileGoodCode"() {
+        if (module == "groovy-all") {
+            // Do not test with groovy-all with Groovy 4 for now because it doesn't work as a platform currently
+            // See https://issues.apache.org/jira/browse/GROOVY-10543
+            Assume.assumeTrue(versionNumber.major < 4)
+            // No groovy-all for indy variant
+            Assume.assumeTrue(versionClassifier != "indy")
+        }
         groovyDependency = groovyModuleDependency(module, versionNumber)
 
         expect:
@@ -72,7 +71,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         groovyClassFile("Address.class").exists()
 
         where:
-        module << groovyJarVariants
+        module << ["groovy", "groovy-all"]
     }
 
     def "compileWithAnnotationProcessor"() {
