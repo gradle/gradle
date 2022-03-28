@@ -5,6 +5,20 @@ plugins {
 
 description = "Configuration cache implementation"
 
+val configurationCacheReportPath by configurations.creating {
+    isVisible = false
+    isCanBeConsumed = false
+    attributes { attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named("configuration-cache-report")) }
+}
+
+dependencies {
+    configurationCacheReportPath(libs.configurationCacheReport)
+}
+
+tasks.processResources {
+    from(zipTree(provider { configurationCacheReportPath.files.first() })) { into("org/gradle/configurationcache/problems") }
+}
+
 // The integration tests in this project do not need to run in 'config cache' mode.
 tasks.configCacheIntegTest {
     enabled = false
@@ -62,7 +76,6 @@ dependencies {
     implementation(project(":build-option"))
 
     implementation(libs.capsule)
-    implementation(libs.configurationCacheReport)
     implementation(libs.groovy)
     implementation(libs.groovyJson)
     implementation(libs.slf4jApi)
