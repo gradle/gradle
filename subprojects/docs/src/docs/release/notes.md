@@ -180,6 +180,10 @@ The following are the features that have been promoted in this Gradle release.
 ### Example promoted
 -->
 
+### Support for Groovy 4
+
+Gradle now supports building software using Groovy 4.0.
+
 ## Fixed issues
 
 ## Known issues
