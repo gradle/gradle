@@ -40,6 +40,7 @@ class SourcePathProviderTest : FolderBasedTest() {
         assertThat(
             sourcePathFor(
                 classPath = ClassPath.EMPTY,
+                scriptFile = null,
                 projectDir = folder("project"),
                 gradleHomeDir = folder("gradle"),
                 sourceDistributionResolver = mock()
@@ -77,6 +78,7 @@ class SourcePathProviderTest : FolderBasedTest() {
         assertThat(
             sourcePathFor(
                 classPath = ClassPath.EMPTY,
+                scriptFile = null,
                 projectDir = folder("project"),
                 gradleHomeDir = folder("gradle"),
                 sourceDistributionResolver = resolver
