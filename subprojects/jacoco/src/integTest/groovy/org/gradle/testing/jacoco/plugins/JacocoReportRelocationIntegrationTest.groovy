@@ -16,13 +16,14 @@
 
 package org.gradle.testing.jacoco.plugins
 
-import org.gradle.api.JavaVersion
+
 import org.gradle.integtests.fixtures.AbstractTaskRelocationIntegrationTest
 import org.gradle.testing.jacoco.plugins.fixtures.JavaProjectUnderTest
-import spock.lang.IgnoreIf
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 // JaCoCo does not support Java 18 yet
-@IgnoreIf({ JavaVersion.current() >= JavaVersion.VERSION_18 })
+@Requires(TestPrecondition.JDK17_OR_EARLIER)
 class JacocoReportRelocationIntegrationTest extends AbstractTaskRelocationIntegrationTest {
 
     private final JavaProjectUnderTest javaProjectUnderTest = new JavaProjectUnderTest(testDirectory)

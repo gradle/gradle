@@ -16,15 +16,16 @@
 
 package org.gradle.testing.jacoco.plugins
 
-import org.gradle.api.JavaVersion
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testing.jacoco.plugins.fixtures.JavaProjectUnderTest
-import spock.lang.IgnoreIf
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 // JaCoCo does not support Java 18 yet
-@IgnoreIf({ JavaVersion.current() >= JavaVersion.VERSION_18 })
+@Requires(TestPrecondition.JDK17_OR_EARLIER)
 class JacocoCachingIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
 
     private final JavaProjectUnderTest javaProjectUnderTest = new JavaProjectUnderTest(testDirectory)

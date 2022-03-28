@@ -17,15 +17,13 @@
 package org.gradle.integtests.tooling.m8
 
 import org.apache.commons.io.output.TeeOutputStream
-import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.tooling.fixture.TestOutputStream
 import org.gradle.integtests.tooling.fixture.ToolingApiLoggingSpecification
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.GradleVersion
-
-import static org.junit.Assume.assumeFalse
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 @LeaksFileHandles
 class ToolingApiLoggingCrossVersionSpec extends ToolingApiLoggingSpecification {
@@ -92,11 +90,8 @@ project.logger.debug("debug logging yyy");
         shouldNotContainProviderLogging(err)
     }
 
+    @Requires(TestPrecondition.SUPPORTS_UTF8_STDOUT)
     def "client receives same standard output and standard error as if running from the command-line"() {
-        assumeFalse(
-            "Java 18 currently creates issues with System.out charset resulting in these tests failing",
-            OperatingSystem.current().isWindows() && JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_18)
-        )
         toolingApi.verboseLogging = false
 
         file("build.gradle") << """

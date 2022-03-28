@@ -16,15 +16,16 @@
 
 package org.gradle.testing.jacoco.plugins
 
-import org.gradle.api.JavaVersion
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.testing.jacoco.plugins.fixtures.JacocoReportXmlFixture
-import spock.lang.IgnoreIf
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 import static org.hamcrest.CoreMatchers.startsWith
 
 // JaCoCo does not support Java 18 yet
-@IgnoreIf({ JavaVersion.current() >= JavaVersion.VERSION_18 })
+@Requires(TestPrecondition.JDK17_OR_EARLIER)
 class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         multiProjectBuild("root", ["application", "direct", "transitive"]) {

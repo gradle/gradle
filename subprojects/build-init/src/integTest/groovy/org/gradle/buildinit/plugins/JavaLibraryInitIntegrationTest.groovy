@@ -16,11 +16,12 @@
 
 package org.gradle.buildinit.plugins
 
-import org.gradle.api.JavaVersion
+
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework
-import spock.lang.IgnoreIf
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.GROOVY
 import static org.hamcrest.CoreMatchers.allOf
@@ -209,7 +210,7 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
     }
 
     // Spock pulls an old version of Groovy that doesn't work with Java 18
-    @IgnoreIf({ JavaVersion.current() >= JavaVersion.VERSION_18 })
+    @Requires(TestPrecondition.JDK17_OR_EARLIER)
     def "creates sample source with package and spock and #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'java-library', '--test-framework', 'spock', '--package', 'my.lib', '--dsl', scriptDsl.id)
@@ -232,7 +233,7 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
     }
 
     // Spock pulls an old version of Groovy that doesn't work with Java 18
-    @IgnoreIf({ JavaVersion.current() >= JavaVersion.VERSION_18 })
+    @Requires(TestPrecondition.JDK17_OR_EARLIER)
     def "creates sample source with package and spock and #scriptDsl build scripts with --incubating"() {
         def dslFixture = dslFixtureFor(scriptDsl)
 

@@ -16,19 +16,19 @@
 
 package org.gradle.testing.junit
 
-import org.gradle.api.JavaVersion
+
 import org.gradle.integtests.fixtures.HtmlTestExecutionResult
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4_LATEST
 import static org.gradle.testing.fixture.JUnitCoverage.JUPITER
 import static org.gradle.testing.fixture.JUnitCoverage.VINTAGE
 import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.CoreMatchers.is
-import static org.junit.Assume.assumeFalse
 
 // https://github.com/junit-team/junit5/issues/1285
 @TargetCoverage({ JUNIT_4_LATEST + [JUPITER, VINTAGE] })
@@ -48,11 +48,8 @@ class JUnitLoggingOutputCaptureIntegrationTest extends JUnitMultiVersionIntegrat
         """
     }
 
+    @Requires(TestPrecondition.SUPPORTS_UTF8_STDOUT)
     def "captures logging output events"() {
-        assumeFalse(
-            "Java 18 currently creates issues with System.out charset resulting in these tests failing",
-            OperatingSystem.current().isWindows() && JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_18)
-        )
         file("src/test/java/OkTest.java") << """
 public class OkTest {
     static {
