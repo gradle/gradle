@@ -49,7 +49,11 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
     }
 
     def getGroovyJarVariants() {
-        ["groovy-all", "groovy"]
+        // Do not test with groovy-all with Groovy 4 for now because it doesn't work as a platform currently
+        // See https://issues.apache.org/jira/browse/GROOVY-10543
+        versionNumber.major >= 4
+            ? ["groovy"]
+            : ["groovy-all", "groovy"]
     }
 
     def setup() {
