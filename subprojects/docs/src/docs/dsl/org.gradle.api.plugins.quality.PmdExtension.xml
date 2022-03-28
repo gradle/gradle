@@ -52,6 +52,10 @@
                 <td>incrementalAnalysis</td>
                 <td><literal>false</literal></td>
             </tr>
+            <tr>
+                <td>threads</td>
+                <td><literal>1</literal></td>
+            </tr>
         </table>
     </section>
     <section>
