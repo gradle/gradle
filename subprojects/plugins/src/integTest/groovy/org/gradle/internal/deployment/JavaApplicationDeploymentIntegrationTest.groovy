@@ -17,6 +17,7 @@
 package org.gradle.internal.deployment
 
 import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.TestFile
 
@@ -28,7 +29,7 @@ class JavaApplicationDeploymentIntegrationTest extends AbstractContinuousIntegra
             apply plugin: 'java'
 
             task run(type: ${RunApplication.canonicalName}) {
-                classpath = sourceSets.main.runtimeClasspath
+                classpath.from(sourceSets.main.runtimeClasspath)
                 mainClassName = "org.gradle.deployment.Main"
                 arguments = [ file("log").absolutePath, file("ready").absolutePath, "Hello, World!" ]
             }
@@ -46,6 +47,7 @@ class JavaApplicationDeploymentIntegrationTest extends AbstractContinuousIntegra
             public class Main {
                 public static void main(String... args) throws Exception {
                     PrintWriter writer = new PrintWriter(new FileOutputStream(args[0], true));
+                    writer.println("Running on " + System.getProperty("java.specification.version"));
                     for (String arg : args) {
                         writer.println(Message.message + " > " + arg);
                     }
@@ -92,7 +94,7 @@ class JavaApplicationDeploymentIntegrationTest extends AbstractContinuousIntegra
     def "deployment is not automatically restarted with changeBehavior=NONE"() {
         buildFile << """
             run {
-                changeBehavior = "NONE"
+                changeBehavior = org.gradle.deployment.internal.DeploymentRegistry.ChangeBehavior.NONE
             }
         """
         when:
@@ -106,6 +108,31 @@ class JavaApplicationDeploymentIntegrationTest extends AbstractContinuousIntegra
         buildTriggeredAndSucceeded()
         then:
         assertLogDoesNotHasMessage("[NEW] > Hello, World!")
+    }
+
+    def "can run application with different version of the JDK than the current one"() {
+        def differentJdk = AvailableJavaHomes.getDifferentVersion()
+        buildFile << """
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(${differentJdk.getJavaVersion().getMajorVersion()})
+                }
+            }
+            run {
+                javaLauncher = javaToolchains.launcherFor {
+                    languageVersion = JavaLanguageVersion.of(${differentJdk.getJavaVersion().getMajorVersion()})
+                }
+            }
+        """
+        executer.beforeExecute({
+            withArgument("-Porg.gradle.java.installations.paths=" + differentJdk.getJavaHome().getAbsolutePath())
+        })
+        when:
+        succeeds("run")
+        then:
+        assertApplicationReady()
+        assertLogHasMessage("Running on " + differentJdk.getJavaVersion())
+        assertLogHasMessage("[APP] > Hello, World!")
     }
 
     void assertApplicationReady() {

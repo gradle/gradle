@@ -17,53 +17,42 @@
 package org.gradle.internal.deployment;
 
 import org.gradle.api.DefaultTask;
-import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.deployment.internal.DeploymentRegistry;
 import org.gradle.internal.jvm.Jvm;
+import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.process.internal.JavaExecHandleFactory;
 import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
-import java.util.Collection;
 
 @DisableCachingByDefault(because = "Produces no cacheable output")
-public class RunApplication extends DefaultTask {
-    private String mainClassName;
-    private Collection<String> arguments;
-    private FileCollection classpath;
-    private DeploymentRegistry.ChangeBehavior changeBehavior = DeploymentRegistry.ChangeBehavior.RESTART;
+public abstract class RunApplication extends DefaultTask {
+    @Inject
+    protected abstract DeploymentRegistry getDeploymentRegistry();
+    @Inject
+    protected abstract JavaExecHandleFactory getExecActionFactory();
 
+    @Internal
+    public abstract Property<DeploymentRegistry.ChangeBehavior> getChangeBehavior();
+    @Nested
+    @Optional
+    public abstract Property<JavaLauncher> getJavaLauncher();
     @Classpath
-    public FileCollection getClasspath() {
-        return classpath;
-    }
-
-    public void setClasspath(FileCollection classpath) {
-        this.classpath = classpath;
-    }
-
+    public abstract ConfigurableFileCollection getClasspath();
     @Input
-    public Collection<String> getArguments() {
-        return arguments;
-    }
-
-    public void setArguments(Collection<String> arguments) {
-        this.arguments = arguments;
-    }
-
+    public abstract Property<String> getMainClassName();
     @Input
-    public String getMainClassName() {
-        return mainClassName;
-    }
-
-    public void setMainClassName(String mainClassName) {
-        this.mainClassName = mainClassName;
-    }
+    public abstract ListProperty<String> getArguments();
 
     @TaskAction
     public void startApplication() {
@@ -71,30 +60,15 @@ public class RunApplication extends DefaultTask {
         JavaApplicationHandle handle = registry.get(getPath(), JavaApplicationHandle.class);
         if (handle == null) {
             JavaExecHandleBuilder builder = getExecActionFactory().newJavaExec();
-            builder.setExecutable(Jvm.current().getJavaExecutable());
-            builder.setClasspath(classpath);
-            builder.getMainClass().set(mainClassName);
-            builder.setArgs(arguments);
-            registry.start(getPath(), changeBehavior, JavaApplicationHandle.class, builder);
+            if (getJavaLauncher().isPresent()) {
+                builder.setExecutable(getJavaLauncher().get().getExecutablePath().getAsFile());
+            } else {
+                builder.setExecutable(Jvm.current().getJavaExecutable());
+            }
+            builder.setClasspath(getClasspath());
+            builder.getMainClass().set(getMainClassName());
+            builder.setArgs(getArguments().get());
+            registry.start(getPath(), getChangeBehavior().getOrElse(DeploymentRegistry.ChangeBehavior.RESTART), JavaApplicationHandle.class, builder);
         }
-    }
-
-    @Inject
-    protected DeploymentRegistry getDeploymentRegistry() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    protected JavaExecHandleFactory getExecActionFactory() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Internal
-    public DeploymentRegistry.ChangeBehavior getChangeBehavior() {
-        return changeBehavior;
-    }
-
-    public void setChangeBehavior(DeploymentRegistry.ChangeBehavior changeBehavior) {
-        this.changeBehavior = changeBehavior;
     }
 }
