@@ -47,7 +47,7 @@ object SourcePathProvider {
             KotlinScriptTypeMatch.forFile(it)?.scriptType
         }
         // We also add the "buildSrc" sources onto the source path.
-        // Only exception is the settings script, which is evaluated before "buildSrc",
+        // Only exception is the "settings.gradle.kts" script, which is evaluated before "buildSrc", so it shouldn't see the sources
         val projectBuildSrcRoots = when (scriptType) {
             KotlinScriptType.SETTINGS -> emptyList()
             else -> buildSrcRootsOf(projectDir)
