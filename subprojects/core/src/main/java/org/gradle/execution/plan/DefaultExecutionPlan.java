@@ -404,8 +404,8 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
             if (taskClassifier.isDestroyer()) {
                 // Create (or get) a destroyer ordinal node that depends on the dependencies of this task node
-                Node ordinalNode = ordinalNodeAccess.getOrCreateDestroyableLocationNode(taskNode.getOrdinal());
-                taskNode.getHardSuccessors().forEach(ordinalNode::addDependencySuccessor);
+                OrdinalNode ordinalNode = ordinalNodeAccess.getOrCreateDestroyableLocationNode(taskNode.getOrdinal());
+                ordinalNode.addDependenciesFrom(taskNode);
 
                 if (taskNode.getOrdinal() > 0) {
                     // Depend on any previous producer ordinal nodes (i.e. any producer ordinal nodes with a lower
@@ -415,8 +415,8 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                 }
             } else if (taskClassifier.isProducer()) {
                 // Create (or get) a producer ordinal node that depends on the dependencies of this task node
-                Node ordinalNode = ordinalNodeAccess.getOrCreateOutputLocationNode(taskNode.getOrdinal());
-                taskNode.getHardSuccessors().forEach(ordinalNode::addDependencySuccessor);
+                OrdinalNode ordinalNode = ordinalNodeAccess.getOrCreateOutputLocationNode(taskNode.getOrdinal());
+                ordinalNode.addDependenciesFrom(taskNode);
 
                 if (taskNode.getOrdinal() > 0) {
                     // Depend on any previous destroyer ordinal nodes (i.e. any destroyer ordinal nodes with a lower
