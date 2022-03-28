@@ -32,13 +32,6 @@ public class RegistryAwareClassLoaderHierarchyHasher extends ConfigurableClassLo
     private static Map<ClassLoader, String> collectKnownClassLoaders(ClassLoaderRegistry registry) {
         Map<ClassLoader, String> knownClassLoaders = Maps.newHashMap();
 
-        String javaVmVersion = String.format("%s|%s", System.getProperty("java.vm.name"), System.getProperty("java.vm.vendor"));
-        ClassLoader systemClassLoader = ClassLoader.getSystemClassLoader();
-        if (systemClassLoader != null) {
-            addClassLoader(knownClassLoaders, systemClassLoader, "system-app" + javaVmVersion);
-            addClassLoader(knownClassLoaders, systemClassLoader.getParent(), "system-ext" + javaVmVersion);
-        }
-
         String gradleVersion = GradleVersion.current().getVersion();
         addClassLoader(knownClassLoaders, registry.getRuntimeClassLoader(), "runtime:" + gradleVersion);
         addClassLoader(knownClassLoaders, registry.getGradleApiClassLoader(), "gradle-api:" + gradleVersion);
