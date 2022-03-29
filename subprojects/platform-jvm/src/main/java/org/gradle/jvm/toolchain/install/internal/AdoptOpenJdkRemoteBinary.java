@@ -148,7 +148,7 @@ public class AdoptOpenJdkRemoteBinary {
             case amd64:
                 return "x64";
             case aarch64:
-                if (javaLanguageVersion.asInt() <= 8 && (osString.equalsIgnoreCase("mac") || osString.equals("windows"))) {
+                if (javaLanguageVersion.asInt() <= 8 && (osString.equalsIgnoreCase("mac") || osString.equalsIgnoreCase("windows"))) {
                     return "x64";
                 } else {
                     return "aarch64";
