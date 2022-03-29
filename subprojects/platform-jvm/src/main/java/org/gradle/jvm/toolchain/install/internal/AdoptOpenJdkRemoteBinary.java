@@ -87,14 +87,15 @@ public class AdoptOpenJdkRemoteBinary {
     }
 
     private URI constructUri(JavaToolchainSpec spec) {
+        JavaLanguageVersion javaLanguageVersion = determineLanguageVersion(spec);
         return URI.create(getServerBaseUri() +
-            "v3/binary/latest/" + determineLanguageVersion(spec).toString() +
+            "v3/binary/latest/" + javaLanguageVersion.toString() +
             "/" +
             determineReleaseState() +
             "/" +
             determineOs() +
             "/" +
-            determineArch() +
+            determineArch(javaLanguageVersion) +
             "/jdk/" +
             determineImplementation(spec) +
             "/normal/adoptopenjdk");
@@ -137,14 +138,18 @@ public class AdoptOpenJdkRemoteBinary {
         return spec.getLanguageVersion().get();
     }
 
-    private String determineArch() {
+    private String determineArch(JavaLanguageVersion javaLanguageVersion) {
         switch (systemInfo.getArchitecture()) {
             case i386:
                 return "x32";
             case amd64:
                 return "x64";
             case aarch64:
-                return "aarch64";
+                if(!javaLanguageVersion.canCompileOrRun(9)) {
+                    return "x64";
+                } else {
+                    return "aarch64";
+                }
         }
         return systemInfo.getArchitectureName();
     }
