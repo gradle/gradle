@@ -40,7 +40,7 @@ class SettingsIncludeManyIntegrationTest extends AbstractIntegrationSpec {
         expect:
         def result = fails("projects")
         result.assertHasDescription("A problem occurred evaluating settings 'root'.")
-        failureCauseContains("org.codehaus.groovy.runtime.ArrayUtil.createArray")
+        failureHasCause("bootstrap method initialization exception")
 
         where:
         includeFunction << ["include", "includeFlat"]
@@ -57,8 +57,8 @@ class SettingsIncludeManyIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         def result = fails("projects")
-        result.assertThatDescription(containsNormalizedString("Could not compile settings file"))
-        failureCauseContains("The max number of supported arguments is 255, but found 301")
+        result.assertHasDescription("A problem occurred evaluating settings 'root'.")
+        failureHasCause("java.lang.IllegalArgumentException: bad parameter count 302")
 
         where:
         includeFunction << ["include", "includeFlat"]
