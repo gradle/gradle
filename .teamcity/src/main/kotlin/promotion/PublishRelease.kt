@@ -72,7 +72,7 @@ abstract class PublishRelease(
 
 class PublishFinalRelease(branch: VersionedSettingsBranch) : PublishRelease(
     promotedBranch = branch.branchName,
-    prepTask = "String",
+    prepTask = "prepFinalRelease",
     step2TargetTask = "promoteFinalRelease",
     requiredConfirmationCode = "final",
     init = {
@@ -84,7 +84,7 @@ class PublishFinalRelease(branch: VersionedSettingsBranch) : PublishRelease(
 
 class PublishReleaseCandidate(branch: VersionedSettingsBranch) : PublishRelease(
     promotedBranch = branch.branchName,
-    prepTask = "String",
+    prepTask = "prepRc",
     step2TargetTask = "promoteRc",
     requiredConfirmationCode = "rc",
     init = {
@@ -96,7 +96,7 @@ class PublishReleaseCandidate(branch: VersionedSettingsBranch) : PublishRelease(
 
 class PublishMilestone(branch: VersionedSettingsBranch) : PublishRelease(
     promotedBranch = branch.branchName,
-    prepTask = "String",
+    prepTask = "prepMilestone",
     step2TargetTask = "promoteMilestone",
     requiredConfirmationCode = "milestone",
     init = {
