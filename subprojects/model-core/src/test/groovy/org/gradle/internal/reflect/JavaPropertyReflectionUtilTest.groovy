@@ -355,7 +355,7 @@ class WithProperties {
 
     void setWriteOnly(String s1) { }
 
-    Boolean isSomething() { return null }
+    boolean isSomething() { return null }
 
     boolean isSomethingElse() { return true }
 
