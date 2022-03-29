@@ -20,8 +20,6 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 
-import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryDefinition
-
 class IsolatedAntBuilderMemoryLeakIntegrationTest extends AbstractIntegrationSpec {
 
     private void goodCode(String groovyVersion, TestFile root = testDirectory) {
@@ -125,11 +123,11 @@ class IsolatedAntBuilderMemoryLeakIntegrationTest extends AbstractIntegrationSpe
         buildFile << """
             buildscript {
               repositories {
-                ${gradlePluginRepositoryDefinition()}
+                ${mavenCentralRepository()}
               }
 
               dependencies {
-                classpath "org.ajoberstar:gradle-git:1.3.0"
+                classpath "org.ajoberstar.grgit:grgit-core:5.0.0"
               }
             }
 
