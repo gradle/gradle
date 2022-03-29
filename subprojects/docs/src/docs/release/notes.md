@@ -3,7 +3,12 @@ The Gradle team is excited to announce Gradle @version@.
 This is the second patch release for Gradle 7.4.
 
 It fixes the following issues:
-* TODO
+* [#20272](https://github.com/gradle/gradle/issues/20272) Tasks that show up later on the command line can be mysteriously skipped
+* [#20195](https://github.com/gradle/gradle/issues/20195) A task that is finalized by a task specified earlier on the command line causes the build to hang
+* [#20269](https://github.com/gradle/gradle/issues/20269) Deadlock between test task execution and dependency resolution 
+* [#18587](https://github.com/gradle/gradle/issues/18587) Race condition with build service registration and configuration on demand 
+* [#20203](https://github.com/gradle/gradle/issues/20203) Using a Version Catalog plugin in the plugins block still produces an @Incubating warning in 7.4.1 
+* [#20246](https://github.com/gradle/gradle/issues/20246) NPE when VerificationException is thrown by a task and configuration cache is enabled
 
 Issues fixed in the first patch release:
 * [#14536](https://github.com/gradle/gradle/issues/14536) Applying Build Scan Plugin (--scan) cause the following error 'Cannot mutate content repository descriptor 'Gradle Central Plugin Repository' after repository has been used'
