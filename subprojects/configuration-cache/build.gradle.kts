@@ -16,7 +16,10 @@ dependencies {
 }
 
 tasks.processResources {
-    from(zipTree(provider { configurationCacheReportPath.files.first() })) { into("org/gradle/configurationcache/problems") }
+    from(zipTree(provider { configurationCacheReportPath.files.first() })) {
+        into("org/gradle/configurationcache/problems")
+        exclude("META-INF/**")
+    }
 }
 
 // The integration tests in this project do not need to run in 'config cache' mode.
