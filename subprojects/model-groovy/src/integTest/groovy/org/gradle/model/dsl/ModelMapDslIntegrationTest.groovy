@@ -256,7 +256,7 @@ model {
         fails "model"
         failure.assertHasLineNumber(18)
         failure.assertHasCause('Exception thrown while executing model rule: create(main) { ... } @ build.gradle line 17, column 9')
-        failure.assertHasCause('Could not find method create()')
+        failure.assertHasCause('No signature of method: Thing.create() is applicable for argument types')
     }
 
     def "nested rule can reference vars defined in outer closure"() {
