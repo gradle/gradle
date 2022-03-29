@@ -20,7 +20,7 @@ import gradlebuild.modules.model.License
 
 abstract class ExternalModulesExtension {
 
-    val groovyVersion = "4.0.1-SNAPSHOT"
+    val groovyVersion = "4.0.2-SNAPSHOT"
     val kotlinVersion = "1.6.10"
 
     fun futureKotlin(module: String) = "org.jetbrains.kotlin:kotlin-$module:$kotlinVersion"
