@@ -617,7 +617,7 @@ The value of this property is derived from: <source>""")
         def value = property.calculateExecutionTimeValue()
         value.isFixedValue()
         !value.hasChangingContent()
-        value.fixedValue.isEmpty()
+        value.getFixedValue().isEmpty()
     }
 
     def "has no producer and missing execution time value when element provider with no value added"() {
@@ -656,7 +656,7 @@ The value of this property is derived from: <source>""")
         def value = property.calculateExecutionTimeValue()
         value.isFixedValue()
         !value.hasChangingContent()
-        value.fixedValue == toImmutable(["a", "b"])
+        value.getFixedValue() == toImmutable(["a", "b"])
     }
 
     def "has no producer and fixed execution time value when elements added"() {
@@ -668,7 +668,7 @@ The value of this property is derived from: <source>""")
         assertHasNoProducer(property)
         def value = property.calculateExecutionTimeValue()
         value.isFixedValue()
-        value.fixedValue == toImmutable(["a", "b", "c"])
+        value.getFixedValue() == toImmutable(["a", "b", "c"])
     }
 
     def "has no producer and fixed execution time value when element provider added"() {
@@ -680,7 +680,7 @@ The value of this property is derived from: <source>""")
         assertHasNoProducer(property)
         def value = property.calculateExecutionTimeValue()
         value.isFixedValue()
-        value.fixedValue == toImmutable(["a", "b"])
+        value.getFixedValue() == toImmutable(["a", "b"])
     }
 
     def "has no producer and fixed execution time value when elements provider added"() {
@@ -692,7 +692,7 @@ The value of this property is derived from: <source>""")
         assertHasNoProducer(property)
         def value = property.calculateExecutionTimeValue()
         value.isFixedValue()
-        value.fixedValue == toImmutable(["a", "b", "c"])
+        value.getFixedValue() == toImmutable(["a", "b", "c"])
     }
 
     def "has no producer and changing execution time value when elements provider with changing value added"() {
@@ -704,8 +704,8 @@ The value of this property is derived from: <source>""")
         assertHasNoProducer(property)
         def value = property.calculateExecutionTimeValue()
         value.isChangingValue()
-        value.changingValue.get() == toImmutable(["a", "b", "c"])
-        value.changingValue.get() == toImmutable(["a", "c"])
+        value.getChangingValue().get() == toImmutable(["a", "b", "c"])
+        value.getChangingValue().get() == toImmutable(["a", "c"])
     }
 
     def "has union of producer task from providers unless producer task attached"() {

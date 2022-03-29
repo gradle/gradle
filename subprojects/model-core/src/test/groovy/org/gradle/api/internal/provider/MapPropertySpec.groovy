@@ -507,7 +507,7 @@ The value of this property is derived from: <source>""")
         def value = property.calculateExecutionTimeValue()
         value.isFixedValue()
         !value.hasChangingContent()
-        value.fixedValue.isEmpty()
+        value.getFixedValue().isEmpty()isEmpty()
     }
 
     def "has no producer and missing execution time value when element provider with no value added"() {
@@ -546,7 +546,7 @@ The value of this property is derived from: <source>""")
         def value = property.calculateExecutionTimeValue()
         value.isFixedValue()
         !value.hasChangingContent()
-        value.fixedValue == [a: '1', b: '2']
+        value.getFixedValue() == [a: '1', b: '2']
     }
 
     def "has no producer and fixed execution time value when elements added"() {
@@ -559,7 +559,7 @@ The value of this property is derived from: <source>""")
         def value = property.calculateExecutionTimeValue()
         value.isFixedValue()
         !value.hasChangingContent()
-        value.fixedValue == [a: '1', b: '2']
+        value.getFixedValue() == [a: '1', b: '2']
     }
 
     def "has no producer and fixed execution time value when element provider added"() {
@@ -572,7 +572,7 @@ The value of this property is derived from: <source>""")
         def value = property.calculateExecutionTimeValue()
         value.isFixedValue()
         !value.hasChangingContent()
-        value.fixedValue == [a: '1', b: '2']
+        value.getFixedValue() == [a: '1', b: '2']
     }
 
     def "has no producer and fixed execution time value when elements provider added"() {
@@ -585,7 +585,7 @@ The value of this property is derived from: <source>""")
         def value = property.calculateExecutionTimeValue()
         value.isFixedValue()
         !value.hasChangingContent()
-        value.fixedValue == [a: '1', b: '2']
+        value.getFixedValue() == [a: '1', b: '2']
     }
 
     def "has no producer and changing execution time value when elements provider with changing value added"() {
@@ -597,8 +597,8 @@ The value of this property is derived from: <source>""")
         assertHasNoProducer(property)
         def value = property.calculateExecutionTimeValue()
         value.isChangingValue()
-        value.changingValue.get() == [a: '1', b: '2', c: '3']
-        value.changingValue.get() == [a: '1b', c: '3']
+        value.getChangingValue().get() == [a: '1', b: '2', c: '3']
+        value.getChangingValue().get() == [a: '1b', c: '3']
     }
 
     def "has union of producer task from providers unless producer task attached"() {
