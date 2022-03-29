@@ -22,6 +22,7 @@ abstract class ExternalModulesExtension {
 
     val groovyVersion = "3.0.10"
     val kotlinVersion = "1.6.10"
+    val configurationCacheReportVersion = "1.0.1"
 
     fun futureKotlin(module: String) = "org.jetbrains.kotlin:kotlin-$module:$kotlinVersion"
 
@@ -50,6 +51,7 @@ abstract class ExternalModulesExtension {
     val commonsLang = "commons-lang:commons-lang"
     val commonsLang3 = "org.apache.commons:commons-lang3"
     val commonsMath = "org.apache.commons:commons-math3"
+    val configurationCacheReport = "org.gradle.buildtool.internal:configuration-cache-report:$configurationCacheReportVersion"
     val fastutil = "it.unimi.dsi:fastutil"
     val gcs = "com.google.apis:google-api-services-storage"
     val googleApiClient = "com.google.api-client:google-api-client"
@@ -197,6 +199,7 @@ abstract class ExternalModulesExtension {
         commonsLang to License.Apache2,
         commonsLang3 to License.Apache2,
         commonsMath to License.Apache2,
+        configurationCacheReport to License.Apache2,
         fastutil to License.Apache2,
         gcs to License.Apache2,
         googleApiClient to License.Apache2,
