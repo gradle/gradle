@@ -50,9 +50,11 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
 
         where:
         jdkVersion | operatingSystemName | architecture                    | expectedPath
+        8          | "Windows"           | SystemInfo.Architecture.aarch64 | "/8/ga/windows/x64/jdk/hotspot/normal/adoptopenjdk"
         11         | "Windows"           | SystemInfo.Architecture.amd64   | "/11/ga/windows/x64/jdk/hotspot/normal/adoptopenjdk"
         12         | "Windows"           | SystemInfo.Architecture.i386    | "/12/ga/windows/x32/jdk/hotspot/normal/adoptopenjdk"
         13         | "Windows"           | SystemInfo.Architecture.aarch64 | "/13/ga/windows/aarch64/jdk/hotspot/normal/adoptopenjdk"
+        8          | "Linux"             | SystemInfo.Architecture.aarch64 | "/8/ga/linux/aarch64/jdk/hotspot/normal/adoptopenjdk"
         11         | "Linux"             | SystemInfo.Architecture.amd64   | "/11/ga/linux/x64/jdk/hotspot/normal/adoptopenjdk"
         12         | "Linux"             | SystemInfo.Architecture.i386    | "/12/ga/linux/x32/jdk/hotspot/normal/adoptopenjdk"
         13         | "Linux"             | SystemInfo.Architecture.aarch64 | "/13/ga/linux/aarch64/jdk/hotspot/normal/adoptopenjdk"
