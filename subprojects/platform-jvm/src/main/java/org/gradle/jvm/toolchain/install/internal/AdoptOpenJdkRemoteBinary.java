@@ -124,7 +124,8 @@ public class AdoptOpenJdkRemoteBinary {
     }
 
     public String toFilename(JavaToolchainSpec spec) {
-        return String.format("%s-%s-%s-%s-%s.%s", determineVendor(spec), determineLanguageVersion(spec), determineArch(), determineImplementation(spec), determineOs(), determineFileExtension());
+        JavaLanguageVersion javaLanguageVersion = determineLanguageVersion(spec);
+        return String.format("%s-%s-%s-%s-%s.%s", determineVendor(spec), javaLanguageVersion, determineArch(javaLanguageVersion), determineImplementation(spec), determineOs(), determineFileExtension());
     }
 
     private String determineFileExtension() {
@@ -145,7 +146,7 @@ public class AdoptOpenJdkRemoteBinary {
             case amd64:
                 return "x64";
             case aarch64:
-                if(!javaLanguageVersion.canCompileOrRun(9)) {
+                if(javaLanguageVersion.asInt() <= 8) {
                     return "x64";
                 } else {
                     return "aarch64";

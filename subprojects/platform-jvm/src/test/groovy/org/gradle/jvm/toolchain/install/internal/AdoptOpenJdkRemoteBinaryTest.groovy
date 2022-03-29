@@ -58,7 +58,7 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         13         | "Linux"             | SystemInfo.Architecture.aarch64 | "/13/ga/linux/aarch64/jdk/hotspot/normal/adoptopenjdk"
         11         | "Mac OS X"          | SystemInfo.Architecture.amd64   | "/11/ga/mac/x64/jdk/hotspot/normal/adoptopenjdk"
         12         | "Darwin"            | SystemInfo.Architecture.i386    | "/12/ga/mac/x32/jdk/hotspot/normal/adoptopenjdk"
-        8          | "OSX"               | SystemInfo.Architecture.aarch64 | "/11/ga/mac/x64/jdk/hotspot/normal/adoptopenjdk"
+        8          | "OSX"               | SystemInfo.Architecture.aarch64 | "/8/ga/mac/x64/jdk/hotspot/normal/adoptopenjdk"
         13         | "OSX"               | SystemInfo.Architecture.aarch64 | "/13/ga/mac/aarch64/jdk/hotspot/normal/adoptopenjdk"
         13         | "Solaris"           | SystemInfo.Architecture.i386    | "/13/ga/solaris/x32/jdk/hotspot/normal/adoptopenjdk"
     }
