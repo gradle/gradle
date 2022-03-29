@@ -22,7 +22,6 @@ import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.GradleVersion
 
 import static org.hamcrest.MatcherAssert.assertThat
-import static org.hamcrest.Matchers.not
 
 @TargetGradleVersion(">=5.4")
 class KotlinSettingsScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCrossVersionTest {
@@ -99,35 +98,33 @@ class KotlinSettingsScriptModelCrossVersionSpec extends AbstractKotlinScriptMode
     }
 
     @LeaksFileHandles("Kotlin compiler daemon on buildSrc jar")
-    def "sourcePath does not include buildSrc source roots"() {
+    def "sourcePath includes buildSrc source roots"() {
 
         given:
         withKotlinBuildSrc()
-        def settings = withDefaultSettings() << """
+        def settings = withDefaultSettings().append("""
             include(":sub")
-        """
+        """)
 
         expect:
         assertThat(
             sourcePathFor(settings),
-            not(matchesProjectsSourceRoots(withMainSourceSetJavaKotlinIn("buildSrc")))
-        )
+            matchesProjectsSourceRoots(withMainSourceSetJavaKotlinIn("buildSrc")))
     }
 
     @LeaksFileHandles("Kotlin compiler daemon on buildSrc jar")
-    def "sourcePath does not include buildSrc project dependencies source roots"() {
+    def "sourcePath includes buildSrc project dependencies source roots"() {
 
         given:
         def sourceRoots = withMultiProjectKotlinBuildSrc()
-        def settings = withDefaultSettings() << """
+        def settings = withDefaultSettings().append("""
             include(":sub")
-        """
+        """)
 
         expect:
         assertThat(
             sourcePathFor(settings),
-            not(matchesProjectsSourceRoots(sourceRoots))
-        )
+            matchesProjectsSourceRoots(sourceRoots))
     }
 
     void assertAppropriatelyContainsBuildSrc(List<File> classPath) {
