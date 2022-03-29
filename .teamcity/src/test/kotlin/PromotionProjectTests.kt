@@ -100,7 +100,7 @@ class PromotionProjectTests {
 
         val step = gradleStep(steps, 0)
         step.assertTasks("clean promoteStartReleaseCycle")
-        assertEquals("""-PconfirmationCode=startCycle -PtestRun=1""", step.gradleParams)
+        assertTrue(step.gradleParams!!.startsWith("""-PconfirmationCode=startCycle -PtestRun=1"""))
     }
 
     @Test
