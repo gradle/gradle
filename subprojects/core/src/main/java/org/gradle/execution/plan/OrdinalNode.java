@@ -24,7 +24,6 @@ import org.gradle.internal.resources.ResourceLock;
 import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Stream;
 
 import static java.util.stream.StreamSupport.stream;
