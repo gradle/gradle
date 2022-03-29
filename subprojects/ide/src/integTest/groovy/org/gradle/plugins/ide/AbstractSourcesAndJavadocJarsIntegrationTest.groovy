@@ -32,7 +32,7 @@ abstract class AbstractSourcesAndJavadocJarsIntegrationTest extends AbstractIdeI
     @Rule
     HttpServer server
 
-    String groovyVersion = "3.0.10"
+    String groovyVersion = GroovySystem.version
 
     def setup() {
         server.start()
