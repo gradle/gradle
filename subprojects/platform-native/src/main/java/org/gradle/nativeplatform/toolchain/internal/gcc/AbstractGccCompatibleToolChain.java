@@ -94,6 +94,8 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
 
         target(new Intel32Architecture());
         target(new Intel64Architecture());
+        target(new OsxIntelArchitecture());
+        target(new OsxArmArchitecture());
         configInsertLocation = 0;
     }
 
@@ -298,6 +300,7 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
         @Override
         public boolean supportsPlatform(NativePlatformInternal targetPlatform) {
             return targetPlatform.getOperatingSystem().isCurrent()
+                && !targetPlatform.getOperatingSystem().isMacOsX()
                 && targetPlatform.getArchitecture().isAmd64();
         }
 
@@ -316,6 +319,60 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
             gccToolChain.getObjcppCompiler().withArguments(m64args);
             gccToolChain.getLinker().withArguments(m64args);
             gccToolChain.getAssembler().withArguments(m64args);
+        }
+    }
+
+    private static class OsxIntelArchitecture implements TargetPlatformConfiguration {
+        @Override
+        public boolean supportsPlatform(NativePlatformInternal targetPlatform) {
+            return targetPlatform.getOperatingSystem().isCurrent()
+                && targetPlatform.getOperatingSystem().isMacOsX()
+                && targetPlatform.getArchitecture().isAmd64();
+        }
+
+        @Override
+        public void apply(DefaultGccPlatformToolChain gccToolChain) {
+            gccToolChain.compilerProbeArgs("-arch", "x86_64");
+            Action<List<String>> architectureArgs = new Action<List<String>>() {
+                @Override
+                public void execute(List<String> args) {
+                    args.add("-arch");
+                    args.add("x86_64");
+                }
+            };
+            gccToolChain.getCppCompiler().withArguments(architectureArgs);
+            gccToolChain.getcCompiler().withArguments(architectureArgs);
+            gccToolChain.getObjcCompiler().withArguments(architectureArgs);
+            gccToolChain.getObjcppCompiler().withArguments(architectureArgs);
+            gccToolChain.getLinker().withArguments(architectureArgs);
+            gccToolChain.getAssembler().withArguments(architectureArgs);
+        }
+    }
+
+    private static class OsxArmArchitecture implements TargetPlatformConfiguration {
+        @Override
+        public boolean supportsPlatform(NativePlatformInternal targetPlatform) {
+            return targetPlatform.getOperatingSystem().isCurrent()
+                && targetPlatform.getOperatingSystem().isMacOsX()
+                && targetPlatform.getArchitecture().isArm();
+        }
+
+        @Override
+        public void apply(DefaultGccPlatformToolChain gccToolChain) {
+            gccToolChain.compilerProbeArgs("-arch", "arm64");
+            Action<List<String>> architectureArgs = new Action<List<String>>() {
+                @Override
+                public void execute(List<String> args) {
+                    args.add("-arch");
+                    args.add("arm64");
+                }
+            };
+            gccToolChain.getCppCompiler().withArguments(architectureArgs);
+            gccToolChain.getcCompiler().withArguments(architectureArgs);
+            gccToolChain.getObjcCompiler().withArguments(architectureArgs);
+            gccToolChain.getObjcppCompiler().withArguments(architectureArgs);
+            gccToolChain.getLinker().withArguments(architectureArgs);
+            gccToolChain.getAssembler().withArguments(architectureArgs);
         }
     }
 
@@ -363,5 +420,4 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
             return delegate.getCompilerType();
         }
     }
-
 }
