@@ -507,7 +507,7 @@ The value of this property is derived from: <source>""")
         def value = property.calculateExecutionTimeValue()
         value.isFixedValue()
         !value.hasChangingContent()
-        value.getFixedValue().isEmpty()isEmpty()
+        value.getFixedValue().isEmpty()
     }
 
     def "has no producer and missing execution time value when element provider with no value added"() {
