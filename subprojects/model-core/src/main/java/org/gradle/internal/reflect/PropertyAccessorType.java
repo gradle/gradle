@@ -104,8 +104,8 @@ public enum PropertyAccessorType {
             if (isGetGetterName(methodName)) {
                 return GET_GETTER;
             }
-            // is method that returns Boolean is not a getter according to JavaBeans, but include it for compatibility with Groovy
-            if (isIsGetterName(methodName) && (method.getReturnType().equals(Boolean.TYPE) || method.getReturnType().equals(Boolean.class))) {
+            // is method that returns Boolean is not a getter according to JavaBeans
+            if (isIsGetterName(methodName) && method.getReturnType().equals(Boolean.TYPE)) {
                 return IS_GETTER;
             }
         }
