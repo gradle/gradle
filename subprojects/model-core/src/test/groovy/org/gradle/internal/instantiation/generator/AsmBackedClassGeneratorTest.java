@@ -733,7 +733,8 @@ public class AsmBackedClassGeneratorTest {
         });
 
         assertThat(bean.getMixedB(), equalTo(true));
-        assertThat(bean.isMixedB(), equalTo(Boolean.TRUE));
+        // Since Groovy 4 is-getters for non-boolean properties are not supported
+        assertThat(bean.isMixedB(), equalTo(null));
     }
 
     @Test
