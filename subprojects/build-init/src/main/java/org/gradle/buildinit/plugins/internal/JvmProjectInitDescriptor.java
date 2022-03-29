@@ -21,6 +21,7 @@ import org.gradle.buildinit.plugins.internal.model.Description;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.buildinit.plugins.internal.modifiers.Language;
 import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
+import org.gradle.util.internal.VersionNumber;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -198,8 +199,11 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
     private void addStandardDependencies(BuildScriptBuilder buildScriptBuilder, boolean constraintsDefined) {
         if (getLanguage() == Language.GROOVY) {
             String groovyVersion = libraryVersionProvider.getVersion("groovy");
-            String groovyAllCoordinates = groovyGroupName(groovyVersion) + ":" + (constraintsDefined ? "groovy-all" : "groovy-all:" + groovyVersion);
-            buildScriptBuilder.implementationDependency("Use the latest Groovy version for building this library", groovyAllCoordinates);
+            String moduleName = VersionNumber.parse(groovyVersion).getMajor() >= 4
+                ? "groovy"
+                : "groovy-all";
+            String groovyCoordinates = groovyGroupName(groovyVersion) + ":" + (constraintsDefined ? moduleName : moduleName + ":" + groovyVersion);
+            buildScriptBuilder.implementationDependency("Use the latest Groovy version for building this library", groovyCoordinates);
         }
         if (getLanguage() == Language.KOTLIN) {
             buildScriptBuilder.dependencies().platformDependency("implementation", "Align versions of all Kotlin components", "org.jetbrains.kotlin:kotlin-bom");
