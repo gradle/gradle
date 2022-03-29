@@ -155,7 +155,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 dependsOn test
                 doLast {
                     assert test.testFramework instanceof ${JUnitPlatformTestFramework.canonicalName}
-                    assert configurations.testRuntimeClasspath.files.size() == 8
+                    assert configurations.testRuntimeClasspath.files.size() == 7
                     assert configurations.testRuntimeClasspath.files.any { it.name == "junit-jupiter-${DefaultJvmTestSuite.Frameworks.JUNIT_JUPITER.getDefaultVersion()}.jar" }
                 }
             }
@@ -215,7 +215,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 dependsOn integTest
                 doLast {
                     assert integTest.testFramework instanceof ${JUnitPlatformTestFramework.canonicalName}
-                    assert configurations.integTestRuntimeClasspath.files.size() == 8
+                    assert configurations.integTestRuntimeClasspath.files.size() == 7
                     assert configurations.integTestRuntimeClasspath.files.any { it.name == "junit-jupiter-${DefaultJvmTestSuite.Frameworks.JUNIT_JUPITER.getDefaultVersion()}.jar" }
                 }
             }
@@ -291,7 +291,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 dependsOn integTest
                 doLast {
                     assert integTest.testFramework instanceof ${JUnitPlatformTestFramework.canonicalName}
-                    assert configurations.integTestRuntimeClasspath.files.size() == 8
+                    assert configurations.integTestRuntimeClasspath.files.size() == 7
                     assert configurations.integTestRuntimeClasspath.files.any { it.name == "junit-jupiter-${DefaultJvmTestSuite.Frameworks.JUNIT_JUPITER.getDefaultVersion()}.jar" }
                 }
             }
@@ -352,7 +352,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                     assert integTest.testFramework instanceof ${JUnitTestFramework.canonicalName}
 
                     // but test suite still adds JUnit Jupiter
-                    assert configurations.integTestRuntimeClasspath.files.size() == 8
+                    assert configurations.integTestRuntimeClasspath.files.size() == 7
                     assert configurations.integTestRuntimeClasspath.files.any { it.name == "junit-jupiter-${DefaultJvmTestSuite.Frameworks.JUNIT_JUPITER.getDefaultVersion()}.jar" }
                 }
             }
