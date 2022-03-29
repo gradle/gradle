@@ -551,7 +551,7 @@ Plugin authors migrate to extensions if they replicate the changes we've done in
 ==== Deprecated `base` plugin conventions
 
 The convention properties contributed by the `base` plugin have been deprecated and scheduled for removal in Gradle 8.0.
-The conventions are replaced by the the `base { }` configuration block backed by link:{groovyDslPath}/org.gradle.api.plugins.BasePluginExtension.html[BasePluginExtension].
+The conventions are replaced by the `base { }` configuration block backed by link:{groovyDslPath}/org.gradle.api.plugins.BasePluginExtension.html[BasePluginExtension].
 
 The old convention object defines the `distsDirName`, `libsDirName` and `archivesBaseName` properties with simple getter and setter methods.
 Those methods are available in the extension only to maintain backwards compatibility.
@@ -574,7 +574,7 @@ Now, it is officially annotated as deprecated and scheduled for removal in Gradl
 ==== Deprecated `java` plugin conventions
 
 The convention properties contributed by the `java` plugin have been deprecated and scheduled for removal in Gradle 8.0.
-They are replaced by the the properties of link:{groovyDslPath}/org.gradle.api.plugins.JavaPluginExtension.html[JavaPluginExtension] which can be configured in the `java {}` block.
+They are replaced by the properties of link:{groovyDslPath}/org.gradle.api.plugins.JavaPluginExtension.html[JavaPluginExtension] which can be configured in the `java {}` block.
 
 [[plugin_configuration_consumption]]
 ==== Deprecated consumption of internal plugin configurations
