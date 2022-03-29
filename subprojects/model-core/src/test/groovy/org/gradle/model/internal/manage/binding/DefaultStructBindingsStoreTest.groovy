@@ -528,7 +528,7 @@ class DefaultStructBindingsStoreTest extends Specification {
     }
 
     @Managed
-    interface IsAllowedWithBoxedBoolean {
+    interface IsNotAllowedWithBoxedBoolean {
         Boolean isThing()
         void setThing(Boolean thing)
     }
@@ -540,11 +540,11 @@ class DefaultStructBindingsStoreTest extends Specification {
 - Property 'thing' is not valid: it must both have an abstract getter and a setter"""
     }
 
-    def "allows 'is' as a prefix for getter on non primitive Boolean in #type"() {
-        def bindings = extract(IsAllowedWithBoxedBoolean)
-
-        expect:
-        bindings.getManagedProperty("thing")
+    def "does not allow 'is' as a prefix for getter on non primitive Boolean in #type"() {
+        when: extract(IsNotAllowedWithBoxedBoolean)
+        then: def ex = thrown InvalidManagedTypeException
+        ex.message == """Type ${fullyQualifiedNameOf(IsNotAllowedForOtherTypeThanBoolean)} is not a valid managed type:
+- Property 'thing' is not valid: it must both have an abstract getter and a setter"""
     }
 
     @Managed
