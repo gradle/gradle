@@ -21,6 +21,10 @@ We would like to thank the following community members for their contributions t
 [Jonathan Leitschuh](https://github.com/JLLeitschuh),
 [Jamie Tanna](https://github.com/jamietanna),
 [Xin Wang](https://github.com/scaventz),
+[Atsuto Yamashita](https://github.com/att55),
+[Taeik Lim](https://github.com/acktsap),
+[David Op de Beeck](https://github.com/DavidOpDeBeeck),
+[Peter Gafert](https://github.com/codecholeric),
 [Alex Landau](https://github.com/AlexLandau)
 
 <!-- 
