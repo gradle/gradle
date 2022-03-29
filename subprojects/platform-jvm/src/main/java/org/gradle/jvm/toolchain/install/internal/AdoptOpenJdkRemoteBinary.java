@@ -71,7 +71,7 @@ public class AdoptOpenJdkRemoteBinary {
 
         if (vendorSpec.test(JvmVendor.KnownJvmVendor.ADOPTOPENJDK.asJvmVendor())) {
             DeprecationLogger.deprecateBehaviour("Due to changes in AdoptOpenJDK download endpoint, downloading a JDK with an explicit vendor of AdoptOpenJDK should be replaced with a spec without a vendor or using Eclipse Temurin / IBM Semeru.")
-                .willBeRemovedInGradle8().withUpgradeGuideSection(7, "adoptopenjdk_download").nagUser();
+                    .willBeRemovedInGradle8().withUpgradeGuideSection(7, "adoptopenjdk_download").nagUser();
             return true;
         }
 
@@ -88,17 +88,18 @@ public class AdoptOpenJdkRemoteBinary {
 
     private URI constructUri(JavaToolchainSpec spec) {
         JavaLanguageVersion javaLanguageVersion = determineLanguageVersion(spec);
+        String osString = determineOs();
         return URI.create(getServerBaseUri() +
-            "v3/binary/latest/" + javaLanguageVersion.toString() +
-            "/" +
-            determineReleaseState() +
-            "/" +
-            determineOs() +
-            "/" +
-            determineArch(javaLanguageVersion) +
-            "/jdk/" +
-            determineImplementation(spec) +
-            "/normal/adoptopenjdk");
+                "v3/binary/latest/" + javaLanguageVersion +
+                "/" +
+                determineReleaseState() +
+                "/" +
+                osString +
+                "/" +
+                determineArch(javaLanguageVersion, osString) +
+                "/jdk/" +
+                determineImplementation(spec) +
+                "/normal/adoptopenjdk");
     }
 
     private String determineImplementation(JavaToolchainSpec spec) {
@@ -139,14 +140,14 @@ public class AdoptOpenJdkRemoteBinary {
         return spec.getLanguageVersion().get();
     }
 
-    private String determineArch(JavaLanguageVersion javaLanguageVersion) {
+    private String determineArch(JavaLanguageVersion javaLanguageVersion, String osString) {
         switch (systemInfo.getArchitecture()) {
             case i386:
                 return "x32";
             case amd64:
                 return "x64";
             case aarch64:
-                if(javaLanguageVersion.asInt() <= 8) {
+                if (javaLanguageVersion.asInt() <= 8 && (osString.equalsIgnoreCase("mac") || osString.equals("windows"))) {
                     return "x64";
                 } else {
                     return "aarch64";
