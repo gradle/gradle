@@ -33,9 +33,20 @@ trait ProviderAssertions {
         producer.visitContentProducerTasks { assert false }
     }
 
-    void assertHasProducer(ProviderInternal<?> provider, Task task, Task... additional) {
-        def expected = [task] + (additional as List)
+    // Varargs blown up because of Groovy compiler issue: https://issues.apache.org/jira/browse/GROOVY-10521
+    void assertHasProducer(ProviderInternal<?> provider, Task task) {
+        assertHasProducerInternal(provider, [task])
+    }
 
+    void assertHasProducer(ProviderInternal<?> provider, Task task1, Task task2) {
+        assertHasProducerInternal(provider, [task1, task2])
+    }
+
+    void assertHasProducer(ProviderInternal<?> provider, Task task1, Task task2, task3) {
+        assertHasProducerInternal(provider, [task1, task2, task3])
+    }
+
+    private void assertHasProducerInternal(ProviderInternal<?> provider, List<Task> expected) {
         def producer = provider.producer
         assert producer.known
         def tasks = []
