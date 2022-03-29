@@ -177,6 +177,7 @@ public class HelpTasksPlugin implements Plugin<Project> {
             task.setDescription("Displays the insight into a specific dependency in " + projectName + ".");
             task.setGroup(HELP_GROUP);
             task.setImpliesSubProjects(true);
+            task.getShowingAllVariants().convention(false);
             ComponentRegistry componentRegistry = ((ProjectInternal) task.getProject()).getServices().get(ComponentRegistry.class);
             new DslObject(task).getConventionMapping().map("configuration", () -> {
                 BuildableJavaComponent javaProject = componentRegistry.getMainComponent();

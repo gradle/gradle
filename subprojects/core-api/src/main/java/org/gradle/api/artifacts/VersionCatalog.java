@@ -85,6 +85,9 @@ public interface VersionCatalog extends Named {
 
     /**
      * Returns the list of aliases defined in this version catalog.
+     * <p>
+     * Note: Returned aliases are normalized: '-', '_' and '.' have been replaced with '.'
+     * </p>
      * @return the list of dependency aliases
      *
      * @since 7.1
@@ -95,6 +98,9 @@ public interface VersionCatalog extends Named {
 
     /**
      * Returns the list of aliases defined in this version catalog.
+     * <p>
+     * Note: Returned aliases are normalized: '-', '_' and '.' have been replaced with '.'
+     * </p>
      * @return the list of library aliases
      *
      * @since 7.4
@@ -103,6 +109,9 @@ public interface VersionCatalog extends Named {
 
     /**
      * Returns the list of bundles defined in this version catalog.
+     * <p>
+     * Note: Returned aliases are normalized: '-', '_' and '.' have been replaced with '.'
+     * </p>
      * @return the list of bundle aliases
      *
      * @since 7.1
@@ -111,6 +120,9 @@ public interface VersionCatalog extends Named {
 
     /**
      * Returns the list of version aliases defined in this version catalog.
+     * <p>
+     * Note: Returned aliases are normalized: '-', '_' and '.' have been replaced with '.'
+     * </p>
      * @return the list of version aliases
      *
      * @since 7.1
@@ -119,6 +131,9 @@ public interface VersionCatalog extends Named {
 
     /**
      * Returns the list of plugin aliases defined in this version catalog.
+     * <p>
+     * Note: Returned aliases are normalized: '-', '_' and '.' have been replaced with '.'
+     * </p>
      * @return the list of plugin aliases
      *
      * @since 7.2

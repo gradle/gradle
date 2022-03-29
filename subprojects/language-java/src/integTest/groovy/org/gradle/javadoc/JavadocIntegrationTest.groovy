@@ -322,6 +322,83 @@ Joe!""")
         succeeds "javadoc"
     }
 
+    def "can use custom stylesheet file"() {
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+            javadoc {
+                options.stylesheetFile = file('src/docs/custom.css')
+            }
+        """
+        writeSourceFile()
+        file("src/docs/custom.css") << """
+            /* This is a custom stylesheet */
+            h1 {
+                color red
+            }
+        """
+
+        when:
+        succeeds "javadoc"
+        then:
+        file("build/docs/javadoc/custom.css").assertContents(containsNormalizedString("/* This is a custom stylesheet */"))
+
+        when:
+        succeeds("javadoc")
+        then:
+        skipped(":javadoc")
+
+        when:
+        file("src/docs/custom.css") << """
+            a {
+                color blue
+            }
+        """
+        succeeds("javadoc")
+        then:
+        executed(":javadoc")
+    }
+
+    def "can use custom stylesheet file with a different name"() {
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+            javadoc {
+                options.stylesheetFile = file('src/docs/custom.css')
+            }
+        """
+        writeSourceFile()
+        file("src/docs/custom.css") << """
+            /* This is a custom stylesheet */
+            h1 {
+                color red
+            }
+        """
+
+        when:
+        succeeds "javadoc"
+        then:
+        file("build/docs/javadoc/custom.css").assertContents(containsNormalizedString("/* This is a custom stylesheet */"))
+
+        when:
+        succeeds("javadoc")
+        then:
+        skipped(":javadoc")
+
+        when:
+        file("src/docs/custom.css").moveToDirectory(file("src/not-docs"))
+        buildFile << """
+            javadoc {
+                options.stylesheetFile = file('src/not-docs/custom.css')
+            }
+        """
+        succeeds("javadoc")
+        then:
+        skipped(":javadoc")
+    }
+
     private TestFile writeSourceFile() {
         file("src/main/java/Foo.java") << "public class Foo {}"
     }

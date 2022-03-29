@@ -24,9 +24,9 @@ class KotlinGradlePluginVersions {
     // https://search.maven.org/search?q=g:org.jetbrains.kotlin%20AND%20a:kotlin-project&core=gav
     private static final List<String> LATEST_VERSIONS = [
         '1.3.72',
-        '1.4.0', '1.4.10', '1.4.21', '1.4.31',
+        '1.4.0', '1.4.31',
         '1.5.0', '1.5.31',
-        '1.6.0', '1.6.10',
+        '1.6.0', '1.6.10', '1.6.20-RC2'
     ]
 
     List<String> getLatests() {

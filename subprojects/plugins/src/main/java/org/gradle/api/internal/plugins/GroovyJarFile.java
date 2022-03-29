@@ -22,6 +22,8 @@ import java.io.File;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static org.gradle.util.internal.GroovyDependencyUtil.groovyModuleDependency;
+
 public class GroovyJarFile {
     private static final Pattern FILE_NAME_PATTERN = Pattern.compile("(groovy(?:-all)?)-(\\d.*?)(-indy)?.jar");
 
@@ -54,15 +56,7 @@ public class GroovyJarFile {
     }
 
     public String getDependencyNotation() {
-        String result = getGroupId() + ":" + getBaseName() + ":" + getVersion();
-        if (isIndy()) {
-            result += ":indy";
-        }
-        return result;
-    }
-
-    private String getGroupId() {
-        return getVersion().getMajor() < 4 ? "org.codehaus.groovy" : "org.apache.groovy";
+        return groovyModuleDependency(getBaseName(), getVersion(), isIndy() ? "indy" : null);
     }
 
     @Nullable

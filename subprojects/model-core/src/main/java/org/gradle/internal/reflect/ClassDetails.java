@@ -52,5 +52,5 @@ public interface ClassDetails {
     /**
      * Returns all instance fields of this class. Includes inherited fields.
      */
-    Collection<Field> getInstanceFields();
+    List<Field> getInstanceFields();
 }

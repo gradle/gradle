@@ -17,7 +17,7 @@ const val MAX_PROJECT_NUMBER_IN_BUCKET = 11
  *
  * Usage: `mvn compile exec:java@update-test-buckets -DinputTestClassDataJson=/path/to/test-class-data.json`.
  */
-fun main(args: Array<String>) {
+fun main() {
     val model = CIBuildModel(
         projectId = "Check",
         branch = VersionedSettingsBranch("master", true),
@@ -168,7 +168,7 @@ class FunctionalTestBucketGenerator(private val model: CIBuildModel, testTimeDat
         val result = mutableMapOf<TestCoverage, List<BuildTypeBucket>>()
         for (stage in model.stages) {
             for (testCoverage in stage.functionalTests) {
-                if (testCoverage.testType !in listOf(TestType.allVersionsCrossVersion, TestType.quickFeedbackCrossVersion)) {
+                if (testCoverage.testType !in listOf(TestType.allVersionsCrossVersion, TestType.quickFeedbackCrossVersion, TestType.soak)) {
                     result[testCoverage] = splitBucketsByTestClassesForBuildProject(testCoverage, stage, buildProjectClassTimes)
                 }
             }

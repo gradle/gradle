@@ -26,7 +26,12 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.jvm.toolchain.JavaLauncher;
+import org.gradle.jvm.toolchain.JavaToolchainService;
+import org.gradle.jvm.toolchain.JavaToolchainSpec;
+import org.gradle.jvm.toolchain.internal.CurrentJvmToolchainSpec;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -54,6 +59,11 @@ public class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
         return Checkstyle.class;
     }
 
+    @Inject
+    protected JavaToolchainService getToolchainService() {
+        throw new UnsupportedOperationException();
+    }
+
     @Override
     protected CodeQualityExtension createExtension() {
         extension = project.getExtensions().create("checkstyle", CheckstyleExtension.class, project);
@@ -76,6 +86,7 @@ public class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
         Configuration configuration = project.getConfigurations().getAt(getConfigurationName());
         configureTaskConventionMapping(configuration, task);
         configureReportsConventionMapping(task, baseName);
+        configureToolchains(task);
     }
 
     private void configureDefaultDependencies(Configuration configuration) {
@@ -93,7 +104,6 @@ public class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
         taskMapping.map("showViolations", (Callable<Boolean>) () -> extension.isShowViolations());
         taskMapping.map("maxErrors", (Callable<Integer>) () -> extension.getMaxErrors());
         taskMapping.map("maxWarnings", (Callable<Integer>) () -> extension.getMaxWarnings());
-
         task.getConfigDirectory().convention(extension.getConfigDirectory());
     }
 
@@ -110,6 +120,15 @@ public class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
                 }))
             );
         }));
+    }
+
+    private void configureToolchains(Checkstyle task) {
+        Provider<JavaLauncher> javaLauncherProvider = getToolchainService().launcherFor(new CurrentJvmToolchainSpec(project.getObjects()));
+        task.getJavaLauncher().convention(javaLauncherProvider);
+        project.getPluginManager().withPlugin("java-base", p -> {
+            JavaToolchainSpec toolchain = getJavaPluginExtension().getToolchain();
+            task.getJavaLauncher().convention(getToolchainService().launcherFor(toolchain).orElse(javaLauncherProvider));
+        });
     }
 
     @Override

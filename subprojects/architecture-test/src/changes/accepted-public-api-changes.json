@@ -7,7 +7,8 @@
             "changes": [
                 "Method is now abstract"
             ]
-        }, {
+        },
+        {
             "type": "org.gradle.api.tasks.diagnostics.OutgoingVariantsReportTask",
             "member": "Method org.gradle.api.tasks.diagnostics.OutgoingVariantsReportTask.getVariantName()",
             "acceptation": "Task semantics are changing anyways, task type is now abstract",
@@ -21,6 +22,31 @@
             "acceptation": "We are now basing our AntBuilder on the non-deprecated groovy.ant.AntBuilder instead of the deprecated groovy.util.AntBuilder",
             "changes": [
                 "Abstract method has been added in implemented interface"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.DependencyInsightReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.setLegacyShowSinglePathToDependency(boolean)",
+            "acceptation": "Method is deprecated for removal",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS",
+                "ANNOTATION_DEPRECATED_ADDED"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.DependencyInsightReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.getConfiguration()",
+            "acceptation": "Method always could return null",
+            "changes": [
+                "From non-null returning to null returning breaking change"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.DependencyInsightReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.getDependencySpec()",
+            "acceptation": "Method always could return null",
+            "changes": [
+                "From non-null returning to null returning breaking change"
             ]
         }
     ]

@@ -13,7 +13,14 @@ We would like to thank the following community members for their contributions t
 [Anja Papatola](https://github.com/apalopta),
 [Björn Kautler](https://github.com/Vampire),
 [David Burström](https://github.com/davidburstrom),
-[Vladimir Sitnikov](https://github.com/vlsi)
+[Vladimir Sitnikov](https://github.com/vlsi),
+[Roland Weisleder](https://github.com/rweisleder),
+[Konstantin Gribov](https://github.com/grossws),
+[aSemy](https://github.com/aSemy),
+[Rene Groeschke](https://github.com/breskeby)
+[Jonathan Leitschuh](https://github.com/JLLeitschuh),
+[Jamie Tanna](https://github.com/jamietanna)
+[Xin Wang](https://github.com/scaventz)
 <!-- 
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
@@ -57,6 +64,17 @@ Example:
 ==========================================================
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
+
+### JVM toolchains improvements
+
+[Java toolchains](userguide/toolchains.html) provide an easy way to declare which Java version your project should be built with.
+By default, Gradle will [detect installed JDKs](userguide/toolchains.html#sec:auto_detection) or automatically download new toolchain versions.
+
+#### Checkstyle tasks execute in parallel by default
+
+The [Checkstyle plugin](userguide/checkstyle_plugin.html) now uses the Gradle worker API and JVM toolchains. Checkstyle analysis now runs as an external worker process. Checkstyle tasks may now run in parallel within one project.
+
+In Java projects, Checkstyle will use the same version of Java required by the project. In other types of projects, Checkstyle will use the same version of Java that is used by the Gradle daemon.
 
 ### Improved test sources separation in the `eclipse` plugin
 
@@ -126,6 +144,24 @@ This means that Gradle picks up changes nearly instantly on all platforms and fi
 
 For more information see the section on [continuous build](userguide/command_line_interface.html#sec:continuous_build) in the user manual.
 
+### Query a single property with the `properties` task
+
+The built-in `properties` task prints all project properties to the console. Now, the task takes an optional `--property` argument which configures it to display the selected property only.
+```
+$ gradle properties --property buildFile
+
+> Task :properties
+
+------------------------------------------------------------
+Root project 'example-project'
+------------------------------------------------------------
+
+buildFile: /path/to/project/build.gradle
+
+BUILD SUCCESSFUL in 550ms
+1 actionable task: 1 executed 
+```
+
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
 ==========================================================
@@ -143,6 +179,10 @@ The following are the features that have been promoted in this Gradle release.
 <!--
 ### Example promoted
 -->
+
+### Support for Groovy 4
+
+Gradle now supports building software using Groovy 4.0.
 
 ## Fixed issues
 

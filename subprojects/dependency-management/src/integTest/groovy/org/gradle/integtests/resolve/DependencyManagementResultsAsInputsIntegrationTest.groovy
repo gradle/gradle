@@ -53,6 +53,17 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
                 }
             """
         }
+        def unselectedVariantDeclaration = { sysPropName ->
+            """
+                def myUnselectedAttribute = Attribute.of("my.unselected.attribute.name", String)
+                dependencies.attributesSchema { attribute(myUnselectedAttribute) }
+                configurations {
+                    mainSourceElements {
+                        attributes { attribute(myUnselectedAttribute, System.getProperty('$sysPropName', 'default-value')) }
+                    }
+                }
+            """
+        }
         file('composite-lib/settings.gradle') << ""
         file('composite-lib/build.gradle') << """
             plugins { id 'java-library' }
@@ -75,6 +86,7 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
             project(':project-lib') {
                 apply plugin: 'java-library'
                 ${variantDeclaration('projectLibAttrValue')}
+                ${unselectedVariantDeclaration('projectUnselectedLibAttrValue')}
             }
             apply plugin: 'java-library'
             repositories { maven { url "${mavenHttpRepo.uri}" } }
@@ -471,8 +483,7 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
         executedAndNotSkipped ":verify"
     }
 
-    def "can use ResolvedComponentResult result as task input"() {
-        given:
+    private def resolvedComponentResultSetup() {
         buildFile << """
             abstract class TaskWithGraphInput extends DefaultTask {
 
@@ -491,79 +502,144 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
                 }
             }
         """
+    }
 
-        when:
+    def "can use ResolvedComponentResult result as task input and changing source in '#changeLoc' doesn't invalidate the cache"() {
+        given:
+        resolvedComponentResultSetup()
+
+        when: "Task without changes is executed & not skipped"
         succeeds "verify"
 
         then:
         executedAndNotSkipped ":verify"
         notExecuted ":project-lib:jar", ":composite-lib:jar"
 
-        when:
-        succeeds "verify"
-
-        then:
-        skipped ":verify"
-        notExecuted ":project-lib:jar", ":composite-lib:jar"
-
-        when:
-        withChangedSourceIn("project-lib")
-        succeeds "verify"
-
-        then:
-        skipped ":verify"
-        notExecuted ":project-lib:jar", ":composite-lib:jar"
-
-        when:
-        withChangedSourceIn("composite-lib")
+        when: "Running it again with the same environment skips the task"
         succeeds "verify"
 
         then:
         skipped ":verify"
         notExecuted ":project-lib:jar", ":composite-lib:jar"
 
-        when:
-        withNewExternalDependency()
-        succeeds "verify"
-
-        then:
-        executedAndNotSkipped ":verify"
-        notExecuted ":project-lib:jar", ":composite-lib:jar"
-
-        when:
+        when: "The change doesn't invalidate the cache"
+        withChangedSourceIn(changeLoc)
         succeeds "verify"
 
         then:
         skipped ":verify"
         notExecuted ":project-lib:jar", ":composite-lib:jar"
 
-        when: "changing selection reason"
-        succeeds "verify", "-DselectionReason=changed"
+        where:
+        changeLoc << ['project-lib', 'composite-lib']
+    }
+
+    def "can use ResolvedComponentResult result as task input and '#changeDesc' invalidates the cache"() {
+        given:
+        resolvedComponentResultSetup()
+        buildFile << """
+            if (Boolean.getBoolean("externalDependency")) {
+                dependencies { implementation 'org.external:external-tool:1.0' }
+            }
+        """
+
+        when: "Task without changes is executed & not skipped"
+        succeeds "verify"
 
         then:
         executedAndNotSkipped ":verify"
         notExecuted ":project-lib:jar", ":composite-lib:jar"
 
-        when: "changing project library variant metadata"
-        succeeds "verify", "-DprojectLibAttrValue=new-value"
+        when: "Running it again with the same environment skips the task"
+        succeeds "verify"
+
+        then:
+        skipped ":verify"
+        notExecuted ":project-lib:jar", ":composite-lib:jar"
+
+        when: "Making a change invalidates the cache"
+        succeeds "verify", changeArg
 
         then:
         executedAndNotSkipped ":verify"
         notExecuted ":project-lib:jar", ":composite-lib:jar"
 
-        when: "changing included library variant metadata"
-        succeeds "verify", "-DcompositeLibAttrValue=new-value"
+        when: "Keeping the change skips the task again"
+        succeeds "verify", changeArg
+
+        then:
+        skipped ":verify"
+        notExecuted ":project-lib:jar", ":composite-lib:jar"
+
+        when: "Losing the change invalidates the cache"
+        succeeds "verify"
 
         then:
         executedAndNotSkipped ":verify"
         notExecuted ":project-lib:jar", ":composite-lib:jar"
 
-        when: "changing external library variant metadata"
-        succeeds "verify", "-DexternalLibAttrValue=new-value"
+        where:
+        changeDesc                                             | changeArg
+        "a new external dependency"                            | "-DexternalDependency=true"
+        "changing selection reasons"                           | "-DselectionReason=changed"
+        "changing project library variant metadata"            | "-DprojectLibAttrValue=new-value"
+        "changing included library variant metadata"           | "-DcompositeLibAttrValue=new-value"
+        "changing external library variant metadata"           | "-DexternalLibAttrValue=new-value"
+    }
+
+    def "can use ResolvedComponentResult result as task input and '#changeDesc' invalidates the cache (returnAllVariants=true)"() {
+        given:
+        resolvedComponentResultSetup()
+        buildFile << """
+            if (Boolean.getBoolean("externalDependency")) {
+                dependencies { implementation 'org.external:external-tool:1.0' }
+            }
+            configurations.runtimeClasspath.returnAllVariants = true
+        """
+
+        when: "Task without changes is executed & not skipped"
+        succeeds "verify"
 
         then:
         executedAndNotSkipped ":verify"
         notExecuted ":project-lib:jar", ":composite-lib:jar"
+
+        when: "Running it again with the same environment skips the task"
+        succeeds "verify"
+
+        then:
+        skipped ":verify"
+        notExecuted ":project-lib:jar", ":composite-lib:jar"
+
+        when: "The change invalidates the cache"
+        succeeds "verify", changeArg
+
+        then:
+        executedAndNotSkipped ":verify"
+        notExecuted ":project-lib:jar", ":composite-lib:jar"
+
+        when: "Keeping the change skips the task again"
+        succeeds "verify", changeArg
+
+        then:
+        skipped ":verify"
+        notExecuted ":project-lib:jar", ":composite-lib:jar"
+
+        when: "Losing the change invalidates the cache"
+        succeeds "verify"
+
+        then:
+        executedAndNotSkipped ":verify"
+        notExecuted ":project-lib:jar", ":composite-lib:jar"
+
+        where:
+        changeDesc                                             | changeArg
+        "a new external dependency"                            | "-DexternalDependency=true"
+        "changing selection reasons"                           | "-DselectionReason=changed"
+        "changing project library variant metadata"            | "-DprojectLibAttrValue=new-value"
+        "changing unselected project library variant metadata" | "-DprojectUnselectedLibAttrValue=new-value"
+        "changing included library variant metadata"           | "-DcompositeLibAttrValue=new-value"
+        "changing external library variant metadata"           | "-DexternalLibAttrValue=new-value"
     }
 
     private void withOriginalSourceIn(String basePath) {

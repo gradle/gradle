@@ -77,7 +77,9 @@ As you have seen, Gradle supports a concept of <<rich_versions.adoc#rich-version
 ** If a version declared as `strictly` is lower than that version, selection will fail.
 * If ranges are involved:
 ** If there is a non range version that falls within the specified ranges or is higher than their upper bound, it will be selected.
-** If there are only ranges, the highest _existing_ version of the range with the highest upper bound will be selected.
+** If there are only ranges, the selection will depend on the intersection of ranges:
+*** If all the ranges intersect, then the highest _existing_ version of the intersection will be selected.
+*** If there is no clear intersection between all the ranges, the highest _existing_ version will be selected from the highest range. If there is no version available for the highest range, the resolution will fail.
 ** If a version declared as `strictly` is lower than that version, selection will fail.
 
 Note that in the case where ranges come into play, Gradle requires metadata to determine which versions do exist for the considered range.
@@ -263,7 +265,8 @@ If multiple incompatible Gradle versions are in play, all should be used when se
 
 | `modules-2`           | `files-2.1`           | `metadata-2.96`           | Gradle 6.4 to Gradle 6.7
 
-| `modules-2`           | `files-2.1`           | `metadata-2.97`           | Gradle 6.8 and above
+| `modules-2`           | `files-2.1`           | `metadata-2.97`           | Gradle 6.8 to Gradle 7.4
+| `modules-2`           | `files-2.1`           | `metadata-2.98`           | Gradle 7.5 and above
 |===
 
 [[sub:shared-readonly-cache]]

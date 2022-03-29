@@ -1,0 +1,10 @@
+name: 'Auto Assign PR to Author'
+on:
+  pull_request:
+    types: [opened]
+
+jobs:
+  add-reviews:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: kentaro-m/auto-assign-action@v1.2.1

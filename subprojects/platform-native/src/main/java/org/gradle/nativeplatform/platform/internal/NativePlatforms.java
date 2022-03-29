@@ -41,7 +41,7 @@ public class NativePlatforms {
         ArchitectureInternal x64 = Architectures.forInput("x86_64");
         ArchitectureInternal ia64 = Architectures.forInput("ia64");
         ArchitectureInternal armv7 = Architectures.forInput("armv7");
-        ArchitectureInternal armv8 = Architectures.forInput("armv8");
+        ArchitectureInternal aarch64 = Architectures.forInput("aarch64");
         ArchitectureInternal sparc = Architectures.forInput("sparc");
         ArchitectureInternal ultrasparc = Architectures.forInput("ultrasparc");
         ArchitectureInternal ppc = Architectures.forInput("ppc");
@@ -55,24 +55,25 @@ public class NativePlatforms {
         platforms.add(createPlatform(freebsd, x86));
         platforms.add(createPlatform(freebsd, x64));
         platforms.add(createPlatform(freebsd, armv7));
-        platforms.add(createPlatform(freebsd, armv8));
+        platforms.add(createPlatform(freebsd, aarch64));
         platforms.add(createPlatform(freebsd, ppc));
         platforms.add(createPlatform(freebsd, ppc64));
 
         platforms.add(createPlatform(unix, x86));
         platforms.add(createPlatform(unix, x64));
         platforms.add(createPlatform(unix, armv7));
-        platforms.add(createPlatform(unix, armv8));
+        platforms.add(createPlatform(unix, aarch64));
         platforms.add(createPlatform(unix, ppc));
         platforms.add(createPlatform(unix, ppc64));
 
         platforms.add(createPlatform(linux, x64));
         platforms.add(createPlatform(linux, x86));
         platforms.add(createPlatform(linux, armv7));
-        platforms.add(createPlatform(linux, armv8));
+        platforms.add(createPlatform(linux, aarch64));
 
         platforms.add(createPlatform(osx, x86));
         platforms.add(createPlatform(osx, x64));
+        platforms.add(createPlatform(osx, aarch64));
 
         platforms.add(createPlatform(solaris, x64));
         platforms.add(createPlatform(solaris, x86));

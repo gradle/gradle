@@ -16,7 +16,6 @@
 package org.gradle.api.tasks;
 
 import com.google.common.collect.Iterables;
-import groovy.lang.GroovySystem;
 import org.gradle.api.Buildable;
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
@@ -41,6 +40,7 @@ import java.util.Set;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static java.util.stream.StreamSupport.stream;
+import static org.gradle.util.internal.GroovyDependencyUtil.groovyModuleDependency;
 
 /**
  * Provides information related to the Groovy runtime(s) used in a project. Added by the
@@ -130,19 +130,8 @@ public class GroovyRuntime {
 
                 if (groovyVersion.getMajor() <= 2) {
                     return inferGroovyAllClasspath(groovyJar.getDependencyNotation(), groovyVersion);
-                } else if (groovyVersion.getMajor() == 3) {
-                    return inferGroovyClasspath("org.codehaus.groovy", groovyVersion);
                 } else {
-                    // We may already have the required pieces on classpath via localGroovy()
-                    if (groovyVersion.equals(VersionNumber.parse(GroovySystem.getVersion()))) {
-                        Set<String> groovyJarNames = groovyJarNamesFor(groovyVersion);
-                        List<File> groovyClasspath = collectJarsFromClasspath(classpath, groovyJarNames);
-                        if (groovyClasspath.size() == GROOVY_LIBS.size()) {
-                            return project.getLayout().files(groovyClasspath);
-                        }
-                    }
-
-                    return inferGroovyClasspath("org.apache.groovy", groovyVersion);
+                    return inferGroovyClasspath(groovyVersion);
                 }
             }
 
@@ -172,10 +161,17 @@ public class GroovyRuntime {
                 return detachedRuntimeClasspath(dependencies.toArray(new Dependency[0]));
             }
 
-            private FileCollection inferGroovyClasspath(String groupId, VersionNumber groovyVersion) {
+            private FileCollection inferGroovyClasspath(VersionNumber groovyVersion) {
+                // We may already have the required pieces on classpath via localGroovy()
+                Set<String> groovyJarNames = groovyJarNamesFor(groovyVersion);
+                List<File> groovyClasspath = collectJarsFromClasspath(classpath, groovyJarNames);
+                if (groovyClasspath.size() == GROOVY_LIBS.size()) {
+                    return project.getLayout().files(groovyClasspath);
+                }
+
                 return detachedRuntimeClasspath(
                     GROOVY_LIBS.stream()
-                        .map(libName -> project.getDependencies().create(groupId + ":" + libName + ":" + groovyVersion))
+                        .map(libName -> project.getDependencies().create(groovyModuleDependency(libName, groovyVersion)))
                         .toArray(Dependency[]::new)
                 );
             }

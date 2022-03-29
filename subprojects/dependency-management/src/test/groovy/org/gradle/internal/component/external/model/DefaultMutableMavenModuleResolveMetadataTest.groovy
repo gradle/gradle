@@ -131,13 +131,13 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         when: 'metadata has non-standard packaging'
         copy.packaging = 'hk2-jar'
 
-        then: 'master configuration has no artifacts'
+        then:
         def immutable3 = copy.asImmutable()
         immutable3.packaging == 'hk2-jar'
         immutable3.getConfiguration("compile").artifacts.size() == 1
         immutable3.getConfiguration("runtime").artifacts.size() == 1
         immutable3.getConfiguration("default").artifacts.size() == 1
-        immutable3.getConfiguration("master").artifacts.empty
+        immutable3.getConfiguration("master").artifacts.size() == 1
         !immutable.getConfiguration("unknown")
     }
 

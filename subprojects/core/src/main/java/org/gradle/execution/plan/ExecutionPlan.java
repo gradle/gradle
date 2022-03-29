@@ -20,7 +20,6 @@ import org.gradle.api.Describable;
 import org.gradle.api.Task;
 import org.gradle.api.specs.Spec;
 
-import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.util.Collection;
 import java.util.Collections;
@@ -32,6 +31,44 @@ import java.util.function.Consumer;
  * Represents a graph of dependent work items, returned in execution order.
  */
 public interface ExecutionPlan extends Describable, Closeable {
+    enum State {
+        /**
+         * There may be nodes ready to start. The worker thread should call {@link #selectNext()} to select the next node.
+         * Note this does not mean that {@link #selectNext()} will necessarily return a node, only that it is likely to.
+         * {@link #selectNext()} may not return a node, for example when some other worker thread takes the work.
+         */
+        MaybeNodesReadyToStart,
+        /**
+         * No nodes are ready to start, but there are nodes still queued to start. The worker thread should wait for a change and check again.
+         */
+        NoNodesReadyToStart,
+        /**
+         * All nodes have started (but not necessarily finished) and there are no further nodes to start. The worker thread should finish.
+         * Note that this does not mean that all work has completed.
+         */
+        NoMoreNodesToStart
+    }
+
+    abstract class NodeSelection {
+        public static NodeSelection of(Node node) {
+            return new NodeSelection() {
+                @Override
+                public Node getNode() {
+                    return node;
+                }
+            };
+        }
+
+        public Node getNode() {
+            throw new IllegalStateException();
+        }
+    }
+
+    NodeSelection NO_NODES_READY_TO_START = new NodeSelection() {
+    };
+    NodeSelection NO_MORE_NODES_TO_START = new NodeSelection() {
+    };
+
     ExecutionPlan EMPTY = new ExecutionPlan() {
         @Override
         public void useFilter(Spec<? super Task> filter) {
@@ -43,10 +80,14 @@ public interface ExecutionPlan extends Describable, Closeable {
             throw new IllegalStateException();
         }
 
-        @Nullable
         @Override
-        public Node selectNext() {
-            return null;
+        public State executionState() {
+            return State.NoMoreNodesToStart;
+        }
+
+        @Override
+        public NodeSelection selectNext() {
+            return NO_MORE_NODES_TO_START;
         }
 
         @Override
@@ -121,13 +162,13 @@ public interface ExecutionPlan extends Describable, Closeable {
         }
 
         @Override
-        public boolean allNodesComplete() {
+        public boolean allExecutionComplete() {
             return true;
         }
 
         @Override
-        public boolean hasNodesRemaining() {
-            return false;
+        public Diagnostics healthDiagnostics() {
+            return new Diagnostics(true, Collections.emptyList());
         }
 
         @Override
@@ -150,16 +191,35 @@ public interface ExecutionPlan extends Describable, Closeable {
     void setContinueOnFailure(boolean continueOnFailure);
 
     /**
-     * Selects a work item to run, returns null if there is no work remaining _or_ if no queued work is ready to run.
+     * Returns the current execution state of this plan.
+     *
+     * <p>Note: the caller does not need to hold a worker lease to call this method.</p>
+     *
+     * <p>The implementation of this method may prefer to return {@link ExecutionPlan.State#NO_NODES_READY_TO_START} in certain cases, to limit
+     * the amount of work that happens in this method, which is called many, many times and should be fast.</p>
      */
-    @Nullable
-    Node selectNext();
+    State executionState();
+
+    /**
+     * Selects a node to start, returns {@link #NO_NODES_READY_TO_START} when there are no nodes that are ready to start (but some are queued for execution)
+     * and {@link #NO_MORE_NODES_TO_START} when there are no nodes remaining to start.
+     *
+     * <p>Note: the caller must hold a worker lease.</p>
+     *
+     * <p>The caller must call {@link #finishedExecuting(Node)} when execution is complete.</p>
+     */
+    NodeSelection selectNext();
 
     void finishedExecuting(Node node);
 
     void abortAllAndFail(Throwable t);
 
     void cancelExecution();
+
+    /**
+     * Returns some diagnostic information about the state of this plan. This is used to monitor the health of the plan.
+     */
+    Diagnostics healthDiagnostics();
 
     /**
      * Returns the node for the supplied task that is part of this execution plan.
@@ -197,9 +257,14 @@ public interface ExecutionPlan extends Describable, Closeable {
      */
     void collectFailures(Collection<? super Throwable> failures);
 
-    boolean allNodesComplete();
-
-    boolean hasNodesRemaining();
+    /**
+     * Has all execution completed?
+     *
+     * <p>When this method returns {@code true}, there is definitely no further work to start and no work in progress.</p>
+     *
+     * <p>When this method returns {@code false}, there may be further work yet to complete.</p>
+     */
+    boolean allExecutionComplete();
 
     /**
      * Returns the number of work items in the plan.
@@ -213,4 +278,34 @@ public interface ExecutionPlan extends Describable, Closeable {
 
     @Override
     void close();
+
+    /**
+     * Some basic diagnostic information about the state of the plan.
+     */
+    class Diagnostics {
+        private final boolean canMakeProgress;
+        private final List<String> queuedNodes;
+
+        public Diagnostics(boolean canMakeProgress, List<String> queuedNodes) {
+            this.canMakeProgress = canMakeProgress;
+            this.queuedNodes = queuedNodes;
+        }
+
+        /**
+         * Returns true when this plan is either finished or is still able to select further nodes.
+         * Returns false when there are nodes queued but none of them will be able to be selected, without some external change (eg completion of a node in an included build).
+         *
+         * this method should never return false.
+         */
+        public boolean canMakeProgress() {
+            return canMakeProgress;
+        }
+
+        /**
+         * A description of each queued node. Is empty when {@link #canMakeProgress()} returns true (as this information is not required in that case).
+         */
+        public List<String> getQueuedNodes() {
+            return queuedNodes;
+        }
+    }
 }
