@@ -24,7 +24,6 @@ object PublishBranchSnapshotFromQuickFeedback : PublishGradleDistributionBothSte
     promotedBranch = "%branch.to.promote%",
     triggerName = "QuickFeedback",
     prepTask = "prepSnapshot",
-    step1TargetTask = "uploadAll",
     step2TargetTask = "promoteSnapshot",
     extraParameters = "-PpromotedBranch=%branch.qualifier% ",
     vcsRootId = gradlePromotionBranches

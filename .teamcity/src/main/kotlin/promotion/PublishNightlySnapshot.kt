@@ -24,7 +24,6 @@ import vcsroots.gradlePromotionBranches
 class PublishNightlySnapshot(branch: VersionedSettingsBranch) : PublishGradleDistributionBothSteps(
     promotedBranch = branch.branchName,
     prepTask = branch.prepNightlyTaskName(),
-    step1TargetTask = "uploadAll",
     step2TargetTask = branch.promoteNightlyTaskName(),
     triggerName = "ReadyforNightly",
     vcsRootId = gradlePromotionBranches

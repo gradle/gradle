@@ -66,11 +66,11 @@ class PromotionProjectTests {
         val sanityCheck = model.findBuildTypeByName("Nightly Snapshot")
         val steps = sanityCheck.steps.items
         val upload = gradleStep(steps, 0)
-        upload.assertTasks("uploadAll")
+        upload.assertTasks("prepReleaseNightly uploadAll")
         assertEquals("""-PcommitId=%dep.Gradle_release_Check_Stage_ReadyforNightly_Trigger.build.vcs.number%  "-PgitUserName=bot-teamcity" "-PgitUserEmail=bot-teamcity@gradle.com" %additional.gradle.parameters% """, upload.gradleParams)
 
         val promote = gradleStep(steps, 1)
-        promote.assertTasks("promoteReleaseNightly")
+        promote.assertTasks("prepReleaseNightly promoteReleaseNightly")
         assertEquals("""-PcommitId=%dep.Gradle_release_Check_Stage_ReadyforNightly_Trigger.build.vcs.number%  "-PgitUserName=bot-teamcity" "-PgitUserEmail=bot-teamcity@gradle.com" %additional.gradle.parameters% """, promote.gradleParams)
     }
 
