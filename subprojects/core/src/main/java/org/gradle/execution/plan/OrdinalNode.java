@@ -24,6 +24,10 @@ import org.gradle.internal.resources.ResourceLock;
 import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Stream;
+
+import static java.util.stream.StreamSupport.stream;
 
 /**
  * Represents a node in the graph that controls ordinality of destroyers and producers as they are
@@ -93,5 +97,11 @@ public class OrdinalNode extends Node implements SelfExecutingNode {
 
     public int getOrdinal() {
         return ordinal;
+    }
+
+    public void addDependenciesFrom(TaskNode taskNode) {
+        // Only add hard successors that will actually be executed
+        Stream<Node> executingSuccessors = stream(taskNode.getHardSuccessors().spliterator(), false).filter(Node::isRequired);
+        executingSuccessors.forEach(this::addDependencySuccessor);
     }
 }
