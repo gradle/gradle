@@ -20,7 +20,6 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection
 import org.gradle.api.plugins.GroovyBasePlugin
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
-import org.gradle.util.internal.VersionNumber
 
 class GroovyRuntimeTest extends AbstractProjectBuilderSpec {
 
@@ -43,9 +42,7 @@ class GroovyRuntimeTest extends AbstractProjectBuilderSpec {
         classifier << ["", "-indy"]
     }
 
-    def "inferred Groovy class path uses 'groovy' jars from classpath if all required pieces are found and match the runtime Groovy version"() {
-        def groovyVersion = GroovySystem.version
-
+    def "inferred Groovy class path uses 'groovy' jars from classpath if all required pieces are found and match the runtime Groovy version #groovyVersion"() {
         when:
         def classpath = project.groovyRuntime.inferGroovyClasspath([
             project.file("other.jar"),
@@ -79,6 +76,9 @@ class GroovyRuntimeTest extends AbstractProjectBuilderSpec {
         classpath.files.contains(project.file("groovy-nio-${groovyVersion}.jar"))
         classpath.files.contains(project.file("groovy-sql-${groovyVersion}.jar"))
         classpath.files.contains(project.file("groovy-test-${groovyVersion}.jar"))
+
+        where:
+        groovyVersion << ([GroovySystem.version, "3.0.10", "4.0.0"] as Set)
     }
 
     def "inferred Groovy #groovyVersion#classifier class path uses repository dependency if 'groovy' Jar is found on class path (to get transitive dependencies right)"() {
@@ -98,21 +98,21 @@ class GroovyRuntimeTest extends AbstractProjectBuilderSpec {
             dependencies.size() == expectedDependencies.size()
             expectedDependencies.each { expectedJar ->
                 assert dependencies.any {
-                    def expectedGroup = groupNameFor(VersionNumber.parse(groovyVersion))
-                    it.group == expectedGroup && it.name == expectedJar && it.version == groovyVersion } // not sure how to check classifier
+                    it.group == expectedGroup && it.name == expectedJar && it.version == groovyVersion
+                    // not sure how to check classifier
+                }
             }
         }
 
         where:
-        groovyVersion        | classifier | expectedDependencies
-        "2.1.2"              | ""         | ["groovy", "groovy-ant"]
-        "2.1.2"              | "-indy"    | ["groovy", "groovy-ant"]
-        "2.5.2"              | ""         | ["groovy", "groovy-ant", "groovy-templates"]
-        "2.5.2"              | "-indy"    | ["groovy", "groovy-ant", "groovy-templates"]
-        "3.0.9"              | ""         | ["groovy", "groovy-ant", "groovy-templates", "groovy-json", "groovy-xml", "groovy-groovydoc", "groovy-astbuilder", "groovy-console", "groovy-datetime", "groovy-dateutil", "groovy-nio", "groovy-sql", "groovy-test"]
-        "3.0.9"              | "-indy"    | ["groovy", "groovy-ant", "groovy-templates", "groovy-json", "groovy-xml", "groovy-groovydoc", "groovy-astbuilder", "groovy-console", "groovy-datetime", "groovy-dateutil", "groovy-nio", "groovy-sql", "groovy-test"]
-        GroovySystem.version | ""         | ["groovy", "groovy-ant", "groovy-templates", "groovy-json", "groovy-xml", "groovy-groovydoc", "groovy-astbuilder", "groovy-console", "groovy-datetime", "groovy-dateutil", "groovy-nio", "groovy-sql", "groovy-test"]
-        GroovySystem.version | "-indy"    | ["groovy", "groovy-ant", "groovy-templates", "groovy-json", "groovy-xml", "groovy-groovydoc", "groovy-astbuilder", "groovy-console", "groovy-datetime", "groovy-dateutil", "groovy-nio", "groovy-sql", "groovy-test"]
+        groovyVersion | classifier | expectedGroup         | expectedDependencies
+        "2.1.2"       | ""         | "org.codehaus.groovy" | ["groovy", "groovy-ant"]
+        "2.1.2"       | "-indy"    | "org.codehaus.groovy" | ["groovy", "groovy-ant"]
+        "2.5.2"       | ""         | "org.codehaus.groovy" | ["groovy", "groovy-ant", "groovy-templates"]
+        "2.5.2"       | "-indy"    | "org.codehaus.groovy" | ["groovy", "groovy-ant", "groovy-templates"]
+        "3.0.10"      | ""         | "org.codehaus.groovy" | ["groovy", "groovy-ant", "groovy-templates", "groovy-json", "groovy-xml", "groovy-groovydoc", "groovy-astbuilder", "groovy-console", "groovy-datetime", "groovy-dateutil", "groovy-nio", "groovy-sql", "groovy-test"]
+        "3.0.10"      | "-indy"    | "org.codehaus.groovy" | ["groovy", "groovy-ant", "groovy-templates", "groovy-json", "groovy-xml", "groovy-groovydoc", "groovy-astbuilder", "groovy-console", "groovy-datetime", "groovy-dateutil", "groovy-nio", "groovy-sql", "groovy-test"]
+        "4.0.0"       | ""         | "org.apache.groovy"   | ["groovy", "groovy-ant", "groovy-templates", "groovy-json", "groovy-xml", "groovy-groovydoc", "groovy-astbuilder", "groovy-console", "groovy-datetime", "groovy-dateutil", "groovy-nio", "groovy-sql", "groovy-test"]
     }
 
     def "useful error message is produced when no groovy runtime could be found on a classpath"() {
@@ -125,9 +125,5 @@ class GroovyRuntimeTest extends AbstractProjectBuilderSpec {
         then:
         def exception = thrown(GradleException)
         exception.message.contains "no Groovy Jar was found on class path: $classpath"
-    }
-
-    private static String groupNameFor(VersionNumber groovyVersion) {
-        return groovyVersion.getMajor() == 4 ? "org.apache.groovy" : "org.codehaus.groovy";
     }
 }

@@ -1132,11 +1132,6 @@
             <sha256 value="6dd87a91ddfe71b12b139efe9b82624af0eb47e525bd5f10259ad54341e347bf" origin="Artifact is not signed"/>
          </artifact>
       </component>
-      <component group="org.assertj" name="assertj-core" version="3.12.2">
-         <artifact name="assertj-core-3.12.2.jar">
-            <pgp value="a778fde933a96dda827840d8e2b3d84202b812d9"/>
-         </artifact>
-      </component>
       <component group="org.assertj" name="assertj-core" version="3.16.1">
          <artifact name="assertj-core-3.16.1.jar">
             <pgp value="77993d3295698c46912e83984b2277c6358670ee"/>

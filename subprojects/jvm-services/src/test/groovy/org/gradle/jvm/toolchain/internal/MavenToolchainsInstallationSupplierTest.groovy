@@ -16,6 +16,7 @@
 
 package org.gradle.jvm.toolchain.internal
 
+import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.internal.SystemProperties
@@ -181,8 +182,14 @@ class MavenToolchainsInstallationSupplierTest extends Specification {
 
     InstallationSupplier createSupplier(String propertyValue, String userhome) {
         SystemProperties.instance.withSystemProperty("user.home", userhome) {
-            new MavenToolchainsInstallationSupplier(createProviderFactory(propertyValue))
+            new MavenToolchainsInstallationSupplier(createProviderFactory(propertyValue), createFileResolver())
         }
+    }
+
+    private FileResolver createFileResolver() {
+        def fileResolver = Mock(FileResolver)
+        fileResolver.resolve(_) >> {String path -> new File(path)}
+        fileResolver
     }
 
     ProviderFactory createProviderFactory(String propertyValue) {

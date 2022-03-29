@@ -36,7 +36,7 @@ import static org.hamcrest.MatcherAssert.assertThat
 
 abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
-    protected static final THIRD_PARTY_LIB_COUNT = 146
+    protected static final THIRD_PARTY_LIB_COUNT = 145
 
     @Rule public final PreconditionVerifier preconditionVerifier = new PreconditionVerifier()
 
@@ -57,7 +57,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
      * Change this whenever you add or remove subprojects for distribution-packaged plugins (lib/plugins).
      */
     int getPackagedPluginsJarCount() {
-        46
+        45
     }
 
     /**

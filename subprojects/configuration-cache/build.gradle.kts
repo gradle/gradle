@@ -46,6 +46,7 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":core-api"))
     implementation(project(":dependency-management"))
+    implementation(project(":enterprise-operations"))
     implementation(project(":execution"))
     implementation(project(":file-collections"))
     implementation(project(":file-temp"))
@@ -87,7 +88,6 @@ dependencies {
     testImplementation(libs.mockitoKotlin2)
     testImplementation(libs.kotlinCoroutinesDebug)
 
-    integTestImplementation(project(":enterprise-operations"))
     integTestImplementation(project(":jvm-services"))
     integTestImplementation(project(":tooling-api"))
     integTestImplementation(project(":platform-jvm"))

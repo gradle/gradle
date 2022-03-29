@@ -17,7 +17,6 @@
 package org.gradle.plugin.devel.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
@@ -901,7 +900,6 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         outputContains('content changed')
     }
 
-    @ToBeFixedForConfigurationCache(because = "groovy precompiled scripts")
     def "a change in project sources invalidates build cache"() {
         given:
         def cacheDir = createDir("cache-dir")

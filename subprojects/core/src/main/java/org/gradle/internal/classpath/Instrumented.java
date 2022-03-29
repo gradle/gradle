@@ -21,6 +21,7 @@ import org.codehaus.groovy.runtime.callsite.AbstractCallSite;
 import org.codehaus.groovy.runtime.callsite.CallSite;
 import org.codehaus.groovy.runtime.callsite.CallSiteArray;
 import org.codehaus.groovy.runtime.wrappers.Wrapper;
+import org.gradle.api.file.FileCollection;
 import org.gradle.internal.SystemProperties;
 
 import javax.annotation.Nullable;
@@ -51,6 +52,10 @@ public class Instrumented {
 
         @Override
         public void fileOpened(File file, String consumer) {
+        }
+
+        @Override
+        public void fileCollectionObserved(FileCollection fileCollection, String consumer) {
         }
     };
 
@@ -283,6 +288,10 @@ public class Instrumented {
         }
     }
 
+    public static void fileCollectionObserved(FileCollection fileCollection, String consumer) {
+        listener().fileCollectionObserved(fileCollection, consumer);
+    }
+
     public static void fileOpened(File file, String consumer) {
         listener().fileOpened(absoluteFileOf(file), consumer);
     }
@@ -380,6 +389,11 @@ public class Instrumented {
          * @param consumer the name of the class that is opening the file
          */
         void fileOpened(File file, String consumer);
+
+        /**
+         * Invoked when configuration logic observes the given file collection.
+         */
+        void fileCollectionObserved(FileCollection inputs, String consumer);
     }
 
     private static class IntegerSystemPropertyCallSite extends AbstractCallSite {

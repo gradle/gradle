@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache
 
+import org.gradle.api.file.FileCollection
 import org.gradle.configurationcache.initialization.ConfigurationCacheProblemsListener
 import org.gradle.configurationcache.serialization.Workarounds
 import org.gradle.internal.classpath.Instrumented
@@ -30,6 +31,8 @@ val allowedProperties = setOf(
     "os.name",
     "os.version",
     "os.arch",
+    // TODO(https://github.com/gradle/gradle/issues/18432) Remove this from the list when a proper support for the modifications is in place.
+    "java.awt.headless", // Some popular plugins modify this property at runtime.
     "java.version",
     "java.version.date",
     "java.vendor",
@@ -98,5 +101,9 @@ class InstrumentedInputAccessListener(
             return
         }
         broadcast.fileOpened(file, consumer)
+    }
+
+    override fun fileCollectionObserved(fileCollection: FileCollection, consumer: String) {
+        broadcast.fileCollectionObserved(fileCollection, consumer)
     }
 }

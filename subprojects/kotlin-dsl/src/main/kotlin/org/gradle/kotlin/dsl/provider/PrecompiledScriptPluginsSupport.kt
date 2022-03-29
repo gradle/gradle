@@ -42,7 +42,9 @@ interface PrecompiledScriptPluginsSupport {
     interface Target {
         val project: Project
         val kotlinSourceDirectorySet: SourceDirectorySet
+        @Deprecated("No longer used.")
         val kotlinCompileTask: TaskProvider<out Task>
+        @Deprecated("No longer used.")
         fun applyKotlinCompilerArgs(args: List<String>)
     }
 }

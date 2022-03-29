@@ -28,26 +28,26 @@ import java.util.stream.Collectors;
  * A factory for creating and accessing ordinal nodes
  */
 public class OrdinalNodeAccess {
-    TreeMap<Integer, Node> destroyerLocationNodes = Maps.newTreeMap();
-    TreeMap<Integer, Node> producerLocationNodes = Maps.newTreeMap();
+    TreeMap<Integer, OrdinalNode> destroyerLocationNodes = Maps.newTreeMap();
+    TreeMap<Integer, OrdinalNode> producerLocationNodes = Maps.newTreeMap();
 
-    Node getOrCreateDestroyableLocationNode(int ordinal) {
+    OrdinalNode getOrCreateDestroyableLocationNode(int ordinal) {
         return destroyerLocationNodes.computeIfAbsent(ordinal, this::createDestroyerLocationNode);
     }
 
-    Node getOrCreateOutputLocationNode(int ordinal) {
+    OrdinalNode getOrCreateOutputLocationNode(int ordinal) {
         return producerLocationNodes.computeIfAbsent(ordinal, this::createProducerLocationNode);
     }
 
-    Collection<Node> getPrecedingDestroyerLocationNodes(int from) {
+    Collection<OrdinalNode> getPrecedingDestroyerLocationNodes(int from) {
         return destroyerLocationNodes.headMap(from).values();
     }
 
-    Collection<Node> getPrecedingProducerLocationNodes(int from) {
+    Collection<OrdinalNode> getPrecedingProducerLocationNodes(int from) {
         return producerLocationNodes.headMap(from).values();
     }
 
-    List<Node> getAllNodes() {
+    List<OrdinalNode> getAllNodes() {
         return Streams.concat(destroyerLocationNodes.values().stream(), producerLocationNodes.values().stream()).collect(Collectors.toList());
     }
 
@@ -61,16 +61,16 @@ public class OrdinalNodeAccess {
         producerLocationNodes.forEach((ordinal, producer) -> getPrecedingDestroyerLocationNodes(ordinal).forEach(producer::addDependencySuccessor));
     }
 
-    private Node createDestroyerLocationNode(int ordinal) {
+    private OrdinalNode createDestroyerLocationNode(int ordinal) {
         return createOrdinalNode(OrdinalNode.Type.DESTROYER, ordinal);
     }
 
-    private Node createProducerLocationNode(int ordinal) {
+    private OrdinalNode createProducerLocationNode(int ordinal) {
         return createOrdinalNode(OrdinalNode.Type.PRODUCER, ordinal);
     }
 
-    private Node createOrdinalNode(OrdinalNode.Type type, int ordinal) {
-        Node ordinalNode = new OrdinalNode(type, ordinal);
+    private OrdinalNode createOrdinalNode(OrdinalNode.Type type, int ordinal) {
+        OrdinalNode ordinalNode = new OrdinalNode(type, ordinal);
         ordinalNode.require();
         return ordinalNode;
     }

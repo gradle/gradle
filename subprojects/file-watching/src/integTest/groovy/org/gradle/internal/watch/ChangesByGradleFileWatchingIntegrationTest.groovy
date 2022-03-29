@@ -234,6 +234,7 @@ class ChangesByGradleFileWatchingIntegrationTest extends AbstractFileSystemWatch
 
             task outputFileTask(type: WithOutputFile) {
                 outputFile = file("build/overlap/outputFile.txt")
+                mustRunAfter localStateTask
             }
         """
         def localStateOutputFile = file("build/localStateOutput.txt")

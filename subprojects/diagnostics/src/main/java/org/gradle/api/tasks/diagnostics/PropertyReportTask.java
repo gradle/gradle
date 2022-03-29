@@ -15,9 +15,14 @@
  */
 package org.gradle.api.tasks.diagnostics;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.Project;
+import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.diagnostics.internal.PropertyReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.ReportRenderer;
+import org.gradle.api.tasks.options.Option;
 import org.gradle.work.DisableCachingByDefault;
 
 import java.util.Map;
@@ -30,6 +35,20 @@ import java.util.TreeMap;
 @DisableCachingByDefault(because = "Not worth caching")
 public class PropertyReportTask extends ProjectBasedReportTask {
     private PropertyReportRenderer renderer = new PropertyReportRenderer();
+    private final Property<String> property = getProject().getObjects().property(String.class);
+
+    /**
+     * Defines a specific property to report. If not set then all properties will appear in the report.
+     *
+     * @since 7.5
+     */
+    @Incubating
+    @Input
+    @Optional
+    @Option(option = "property", description = "A specific property to output")
+    public Property<String> getProperty() {
+        return property;
+    }
 
     @Override
     public ReportRenderer getRenderer() {
@@ -42,11 +61,21 @@ public class PropertyReportTask extends ProjectBasedReportTask {
 
     @Override
     public void generate(Project project) {
-        for (Map.Entry<String, ?> entry : new TreeMap<String, Object>(project.getProperties()).entrySet()) {
-            if (entry.getKey().equals("properties")) {
-                renderer.addProperty(entry.getKey(), "{...}");
+        Map<String, Object> entries = new TreeMap<>(project.getProperties());
+        if (property.isPresent()) {
+            String propertyValue = property.get();
+            if (propertyValue.equals("properties")) {
+                renderer.addProperty(propertyValue, "{...}");
             } else {
-                renderer.addProperty(entry.getKey(), entry.getValue());
+                renderer.addProperty(propertyValue, entries.get(propertyValue));
+            }
+        } else {
+            for (Map.Entry<String, ?> entry : entries.entrySet()) {
+                if (entry.getKey().equals("properties")) {
+                    renderer.addProperty(entry.getKey(), "{...}");
+                } else {
+                    renderer.addProperty(entry.getKey(), entry.getValue());
+                }
             }
         }
     }
