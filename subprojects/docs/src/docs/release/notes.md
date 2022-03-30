@@ -257,6 +257,8 @@ The following are the features that have been promoted in this Gradle release.
 
 ## Fixed issues
 
+[Fixed issues in 7.4](../7.4/release-notes.html#fixed-issues)
+
 ### Idle Connection Timeout
 
 Some CI hosting providers like Azure automatically close idle connections after a certain period of time.
@@ -268,6 +270,8 @@ This release of Gradle fixes this issue by automatically closing idle connection
 ## Known issues
 
 Known issues are problems that were discovered post release that are directly related to changes made in this release.
+
+[Known issues in 7.4](../7.4/release-notes.html#known-issues)
 
 ## External contributions
 
