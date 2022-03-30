@@ -22,9 +22,11 @@ import org.gradle.api.file.FileContents;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.provider.sources.EnvironmentVariableValueSource;
+import org.gradle.api.internal.provider.sources.EnvironmentVariablesPrefixedByValueSource;
 import org.gradle.api.internal.provider.sources.FileBytesValueSource;
 import org.gradle.api.internal.provider.sources.FileTextValueSource;
 import org.gradle.api.internal.provider.sources.GradlePropertyValueSource;
+import org.gradle.api.internal.provider.sources.SystemPropertiesPrefixedByValueSource;
 import org.gradle.api.internal.provider.sources.SystemPropertyValueSource;
 import org.gradle.api.internal.provider.sources.process.DefaultExecOutput;
 import org.gradle.api.internal.provider.sources.process.ProcessOutputProviderFactory;
@@ -40,6 +42,7 @@ import org.gradle.process.ExecSpec;
 import org.gradle.process.JavaExecSpec;
 
 import javax.annotation.Nullable;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.function.BiFunction;
 
@@ -90,6 +93,19 @@ public class DefaultProviderFactory implements ProviderFactory {
     }
 
     @Override
+    public Provider<Map<String, String>> environmentVariablesPrefixedBy(String variableNamePrefix) {
+        return environmentVariablesPrefixedBy(Providers.of(variableNamePrefix));
+    }
+
+    @Override
+    public Provider<Map<String, String>> environmentVariablesPrefixedBy(Provider<String> variableNamePrefix) {
+        return of(
+            EnvironmentVariablesPrefixedByValueSource.class,
+            spec -> spec.getParameters().getPrefix().set(variableNamePrefix)
+        );
+    }
+
+    @Override
     public Provider<String> systemProperty(String propertyName) {
         return systemProperty(Providers.of(propertyName));
     }
@@ -99,6 +115,19 @@ public class DefaultProviderFactory implements ProviderFactory {
         return of(
             SystemPropertyValueSource.class,
             spec -> spec.getParameters().getPropertyName().set(propertyName)
+        );
+    }
+
+    @Override
+    public Provider<Map<String, String>> systemPropertiesPrefixedBy(String variableNamePrefix) {
+        return systemPropertiesPrefixedBy(Providers.of(variableNamePrefix));
+    }
+
+    @Override
+    public Provider<Map<String, String>> systemPropertiesPrefixedBy(Provider<String> variableNamePrefix) {
+        return of(
+            SystemPropertiesPrefixedByValueSource.class,
+            spec -> spec.getParameters().getPrefix().set(variableNamePrefix)
         );
     }
 

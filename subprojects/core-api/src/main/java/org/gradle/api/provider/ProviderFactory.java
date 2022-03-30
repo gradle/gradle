@@ -31,6 +31,7 @@ import org.gradle.process.ExecOutput;
 import org.gradle.process.ExecSpec;
 import org.gradle.process.JavaExecSpec;
 
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.function.BiFunction;
 
@@ -76,6 +77,28 @@ public interface ProviderFactory {
     Provider<String> environmentVariable(Provider<String> variableName);
 
     /**
+     * Creates a {@link Provider} whose value is a name-to-value map of the environment variables with the names starting with the given prefix.
+     * The prefix comparison is case-sensitive. The returned map is immutable.
+     *
+     * @param variableNamePrefix The prefix of the environment variable names
+     * @return The provider. Never returns null.
+     * @since 7.5
+     */
+    @Incubating
+    Provider<Map<String, String>> environmentVariablesPrefixedBy(String variableNamePrefix);
+
+    /**
+     * Creates a {@link Provider} whose value is a name-to-value map of the environment variables with the names starting with the given prefix.
+     * The prefix comparison is case-sensitive. The returned map is immutable.
+     *
+     * @param variableNamePrefix The prefix of the environment variable names
+     * @return The provider. Never returns null.
+     * @since 7.5
+     */
+    @Incubating
+    Provider<Map<String, String>> environmentVariablesPrefixedBy(Provider<String> variableNamePrefix);
+
+    /**
      * Creates a {@link Provider} whose value is fetched from system properties using the given property name.
      *
      * @param propertyName the name of the system property
@@ -92,6 +115,28 @@ public interface ProviderFactory {
      * @since 6.1
      */
     Provider<String> systemProperty(Provider<String> propertyName);
+
+    /**
+     * Creates a {@link Provider} whose value is a name-to-value map of the system properties with the names starting with the given prefix.
+     * The prefix comparison is case-sensitive. The returned map is immutable.
+     *
+     * @param variableNamePrefix The prefix of the system property names
+     * @return The provider. Never returns null.
+     * @since 7.5
+     */
+    @Incubating
+    Provider<Map<String, String>> systemPropertiesPrefixedBy(String variableNamePrefix);
+
+    /**
+     * Creates a {@link Provider} whose value is a name-to-value map of the system properties with the names starting with the given prefix.
+     * The prefix comparison is case-sensitive. The returned map is immutable.
+     *
+     * @param variableNamePrefix The prefix of the system property names
+     * @return The provider. Never returns null.
+     * @since 7.5
+     */
+    @Incubating
+    Provider<Map<String, String>> systemPropertiesPrefixedBy(Provider<String> variableNamePrefix);
 
     /**
      * Creates a {@link Provider} whose value is fetched from the Gradle property of the given name.

@@ -685,6 +685,124 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
         outputContains("CI1 = defined")
     }
 
+    def "build logic can read environment variables with prefix"() {
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile("""
+            def ciVars = providers.environmentVariablesPrefixedBy("CI")
+            ciVars.get().forEach((k, v) -> {
+                println("Configuration: \$k = \$v")
+            })
+
+            tasks.register("print") {
+                doLast {
+                    ciVars.get().forEach((k, v) -> {
+                        println("Execution: \$k = \$v")
+                    })
+                }
+            }
+        """)
+
+        when:
+        EnvVariableInjection.environmentVariable("CI1", "1").setup(this)
+        configurationCacheRun("print")
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("Configuration: CI1 = 1")
+
+        when:
+        EnvVariableInjection.environmentVariable("CI1", "1").setup(this)
+        configurationCacheRun("print")
+        outputContains("Execution: CI1 = 1")
+
+        then:
+        configurationCache.assertStateLoaded()
+
+        when:
+        EnvVariableInjection.environmentVariables(CI1: "1", CI2: "2").setup(this)
+        configurationCacheRun("print")
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("Configuration: CI1 = 1")
+        outputContains("Configuration: CI2 = 2")
+    }
+
+    def "build logic can read system properties with prefix"() {
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile("""
+            def ciVars = providers.systemPropertiesPrefixedBy("some.property.")
+            ciVars.get().forEach((k, v) -> {
+                println("Configuration: \$k = \$v")
+            })
+
+            tasks.register("print") {
+                doLast {
+                    ciVars.get().forEach((k, v) -> {
+                        println("Execution: \$k = \$v")
+                    })
+                }
+            }
+        """)
+
+        when:
+        configurationCacheRun("-Dsome.property.1=1", "print")
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("Configuration: some.property.1 = 1")
+
+        when:
+        configurationCacheRun("-Dsome.property.1=1", "print")
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains("Execution: some.property.1 = 1")
+
+        when:
+        configurationCacheRun("-Dsome.property.1=1", "-Dsome.property.2=2", "print")
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("Configuration: some.property.1 = 1")
+        outputContains("Configuration: some.property.2 = 2")
+    }
+
+    def "system properties overwritten in build logic are not inputs to prefixed system properties"() {
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile("""
+            System.properties.putAll(("some.property.1"): "0")
+            def ciVars = providers.systemPropertiesPrefixedBy("some.property.")
+            ciVars.get().forEach((k, v) -> {
+                println("Configuration: \$k = \$v")
+            })
+
+            tasks.register("print") {
+                doLast {
+                    ciVars.get().forEach((k, v) -> {
+                        println("Execution: \$k = \$v")
+                    })
+                }
+            }
+        """)
+
+        when:
+        configurationCacheRun("-Dsome.property.1=1", "-Dsome.property.2=2", "print")
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("Configuration: some.property.1 = 0")
+        outputContains("Configuration: some.property.2 = 2")
+
+        when:
+        configurationCacheRun("-Dsome.property.1=-1", "-Dsome.property.2=2", "print")
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains("Execution: some.property.1 = 0")
+        outputContains("Execution: some.property.2 = 2")
+    }
+
     def "reports build logic reading files in #title"() {
         def configurationCache = newConfigurationCacheFixture()
         def inputFile = testDirectory.file("testInput.txt") << "some test input"

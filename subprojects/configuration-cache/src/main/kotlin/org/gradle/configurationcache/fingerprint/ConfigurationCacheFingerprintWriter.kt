@@ -37,8 +37,10 @@ import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.internal.provider.sources.EnvironmentVariableValueSource
+import org.gradle.api.internal.provider.sources.EnvironmentVariablesPrefixedByValueSource
 import org.gradle.api.internal.provider.sources.FileContentValueSource
 import org.gradle.api.internal.provider.sources.GradlePropertyValueSource
+import org.gradle.api.internal.provider.sources.SystemPropertiesPrefixedByValueSource
 import org.gradle.api.internal.provider.sources.SystemPropertyValueSource
 import org.gradle.api.internal.provider.sources.process.ProcessOutputValueSource
 import org.gradle.api.provider.ValueSourceParameters
@@ -54,6 +56,7 @@ import org.gradle.configurationcache.problems.PropertyTrace
 import org.gradle.configurationcache.problems.StructuredMessage
 import org.gradle.configurationcache.serialization.DefaultWriteContext
 import org.gradle.configurationcache.services.ConfigurationCacheEnvironment
+import org.gradle.configurationcache.services.EnvironmentChangeTracker
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.internal.execution.TaskExecutionTracker
@@ -77,6 +80,7 @@ class ConfigurationCacheFingerprintWriter(
     private val fileCollectionFactory: FileCollectionFactory,
     private val directoryFileTreeFactory: DirectoryFileTreeFactory,
     private val taskExecutionTracker: TaskExecutionTracker,
+    private val environmentChangeTracker: EnvironmentChangeTracker,
 ) : ValueSourceProviderFactory.Listener,
     WorkInputListener,
     ScriptExecutionListener,
@@ -187,6 +191,9 @@ class ConfigurationCacheFingerprintWriter(
     }
 
     override fun systemPropertyRead(key: String, value: Any?, consumer: String?) {
+        if (isSystemPropertyMutated(key)) {
+            return
+        }
         sink().systemPropertyRead(key, value)
         reportUniqueSystemPropertyInput(key, consumer)
     }
@@ -212,7 +219,14 @@ class ConfigurationCacheFingerprintWriter(
     }
 
     override fun systemPropertiesPrefixedBy(prefix: String, snapshot: Map<String, String?>) {
-        buildScopedSink.write(ConfigurationCacheFingerprint.SystemPropertiesPrefixedBy(prefix, snapshot))
+        val filteredSnapshot = snapshot.mapValues { e ->
+            if (isSystemPropertyMutated(e.key)) {
+                ConfigurationCacheFingerprint.SystemPropertiesPrefixedBy.IGNORED
+            } else {
+                e.value
+            }
+        }
+        buildScopedSink.write(ConfigurationCacheFingerprint.SystemPropertiesPrefixedBy(prefix, filteredSnapshot))
     }
 
     override fun envVariablesPrefixedBy(prefix: String, snapshot: Map<String, String?>) {
@@ -237,8 +251,14 @@ class ConfigurationCacheFingerprintWriter(
             is SystemPropertyValueSource.Parameters -> {
                 systemPropertyRead(parameters.propertyName.get(), obtainedValue.value.get(), null)
             }
+            is SystemPropertiesPrefixedByValueSource.Parameters -> {
+                systemPropertiesPrefixedBy(parameters.prefix.get(), obtainedValue.value.get().uncheckedCast())
+            }
             is EnvironmentVariableValueSource.Parameters -> {
                 envVariableRead(parameters.variableName.get(), obtainedValue.value.get() as? String, null)
+            }
+            is EnvironmentVariablesPrefixedByValueSource.Parameters -> {
+                envVariablesPrefixedBy(parameters.prefix.get(), obtainedValue.value.get().uncheckedCast())
             }
             is ProcessOutputValueSource.Parameters -> {
                 sink().write(ValueSource(obtainedValue.uncheckedCast()))
@@ -255,6 +275,11 @@ class ConfigurationCacheFingerprintWriter(
                 )
             }
         }
+    }
+
+    private
+    fun isSystemPropertyMutated(key: String): Boolean {
+        return environmentChangeTracker.isSystemPropertyMutated(key)
     }
 
     override fun onScriptClassLoaded(source: ScriptSource, scriptClass: Class<*>) {
