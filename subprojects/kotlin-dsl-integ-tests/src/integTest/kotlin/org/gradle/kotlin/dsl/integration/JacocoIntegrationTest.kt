@@ -3,6 +3,8 @@ package org.gradle.kotlin.dsl.integration
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.LeaksFileHandles
+import org.gradle.util.TestPrecondition
+import org.junit.Assume.assumeTrue
 import org.junit.Test
 
 
@@ -11,6 +13,7 @@ class JacocoIntegrationTest : AbstractPluginIntegrationTest() {
 
     @Test
     fun `jacoco ignore codegen`() {
+        assumeTrue("JaCoCo does not support JDK 18 yet", TestPrecondition.JDK17_OR_EARLIER.isFulfilled)
         withBuildScript(
             """
             plugins {
