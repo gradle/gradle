@@ -170,7 +170,7 @@ BUILD SUCCESSFUL in 550ms
 ```
 
 ### Groovydoc exposes more options
-The [`Groovydoc`](https://docs.gradle.org/current/dsl/org.gradle.api.tasks.javadoc.Groovydoc.html) task now exposes more options:
+The [`Groovydoc`](dsl/org.gradle.api.tasks.javadoc.Groovydoc.html) task now exposes more options:
 
 - `access`: for controlling the access levels included in the documentation, defaults to `PROTECTED`
 - `includeAuthor`: for controlling whether the author is displayed in the documentation, defaults to `false`
