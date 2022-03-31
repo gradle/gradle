@@ -115,7 +115,7 @@ The `outgoingVariants` report has been improved to present information more clea
 - Capabilities, Attributes, Artifacts lists all fully sorted
 - Rich Console output coloring improved to highlight important information
 
-See the [OutgoingVariantsReport](https://docs.gradle.org/current/dsl/org.gradle.api.tasks.diagnostics.OutgoingVariantsReport.html) DSL reference for more details.
+See the [OutgoingVariantsReport](dsl/org.gradle.api.tasks.diagnostics.OutgoingVariantsReport.html) DSL reference for more details.
 
 #### Resolvable Configurations
 
@@ -127,7 +127,7 @@ There is a new `resolvableConfigurations` report available which will display in
 - A `--configuration` option can limit this report to a single configuration
 - A `--all` option flag can be set to include legacy configurations which are both resolvable and consumable, these will be hidden by default
 -
-See the [ResolvableConfigurations](https://docs.gradle.org/current/dsl/org.gradle.api.tasks.diagnostics.ResolvableConfigurations.html) DSL reference for more details.
+See the [ResolvableConfigurations](dsl/org.gradle.api.tasks.diagnostics.ResolvableConfigurations.html) DSL reference for more details.
 
 #### Dependency Insights
 
@@ -135,7 +135,7 @@ See the [ResolvableConfigurations](https://docs.gradle.org/current/dsl/org.gradl
 
 ### Description Available on Secondary Variants
 
-When defining secondary variants, there is a new [ConfigurationVariant](https://docs.gradle.org/current/javadoc/org/gradle/api/artifacts/ConfigurationVariant.html#getDescription--) method available to supply a note or description for the variant.
+When defining secondary variants, there is a new [ConfigurationVariant](javadoc/org/gradle/api/artifacts/ConfigurationVariant.html#getDescription--) method available to supply a note or description for the variant.
 These descriptions will be printed by the `outgoingVariants` report and defaults have been added for existing secondary variants produced by the Java plugin.
 ### Continuous build is responsive on Windows and macOS
 
@@ -180,7 +180,7 @@ See the User Manual section on the “[Feature Lifecycle](userguide/feature_life
 
 The following are the features that have been promoted in this Gradle release.
 
-- The [TargetJvmEnvironmant](https://docs.gradle.org/current/javadoc/org/gradle/api/attributes/java/TargetJvmEnvironmant.html) interface is now stable.
+- The [TargetJvmEnvironment](javadoc/org/gradle/api/attributes/java/TargetJvmEnvironment.html) interface is now stable.
 
 <!--
 ### Example promoted
