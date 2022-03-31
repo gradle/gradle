@@ -198,12 +198,7 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
 
     private void addStandardDependencies(BuildScriptBuilder buildScriptBuilder, boolean constraintsDefined) {
         if (getLanguage() == Language.GROOVY) {
-            String groovyVersion = libraryVersionProvider.getVersion("groovy");
-            String moduleName = VersionNumber.parse(groovyVersion).getMajor() >= 4
-                ? "groovy"
-                : "groovy-all";
-            String groovyCoordinates = groovyGroupName(groovyVersion) + ":" + (constraintsDefined ? moduleName : moduleName + ":" + groovyVersion);
-            buildScriptBuilder.implementationDependency("Use the latest Groovy version for building this library", groovyCoordinates);
+            buildScriptBuilder.implementationDependency("Use the latest Groovy version for building this library", getGroovyDependency(constraintsDefined));
         }
         if (getLanguage() == Language.KOTLIN) {
             buildScriptBuilder.dependencies().platformDependency("implementation", "Align versions of all Kotlin components", "org.jetbrains.kotlin:kotlin-bom");
@@ -222,7 +217,7 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
         buildScriptBuilder.implementationDependencyConstraint("Define dependency versions as constraints", "org.apache.commons:commons-text:" + commonsTextVersion);
 
         if (getLanguage() == Language.GROOVY) {
-            buildScriptBuilder.implementationDependencyConstraint(null, groovyModuleDependency("groovy-all", libraryVersionProvider.getVersion("groovy")));
+            buildScriptBuilder.implementationDependencyConstraint(null, getGroovyDependency(false));
         }
         if (getLanguage() == Language.KOTLIN) {
             buildScriptBuilder.dependencies().platformDependency("implementation", "Align versions of all Kotlin components", "org.jetbrains.kotlin:kotlin-bom");
@@ -232,6 +227,15 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
             String scalaLibraryVersion = libraryVersionProvider.getVersion("scala-library");
             buildScriptBuilder.implementationDependencyConstraint(null, "org.scala-lang:scala-library:" + scalaLibraryVersion);
         }
+    }
+
+    // TODO Use Groovy 4's groovy-all as a platform instead?
+    private String getGroovyDependency(boolean constraintsDefined) {
+        String groovyVersion = libraryVersionProvider.getVersion("groovy");
+        String groovyModule = VersionNumber.parse(groovyVersion).getMajor() >= 4
+            ? "groovy"
+            : "groovy-all";
+        return groovyGroupName(groovyVersion) + ":" + (constraintsDefined ? groovyModule : groovyModule + ":" + groovyVersion);
     }
 
     private void addTestFramework(BuildInitTestFramework testFramework, BuildScriptBuilder buildScriptBuilder) {
