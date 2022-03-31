@@ -11,12 +11,17 @@ val configurationCacheReportPath by configurations.creating {
     attributes { attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named("configuration-cache-report")) }
 }
 
+// You can have a faster feedback loop by running `configuration-cache-report` as an included build
+// See https://github.com/gradle/configuration-cache-report#development-with-gradlegradle-and-composite-build
 dependencies {
-    configurationCacheReportPath(project(":configuration-cache-report"))
+    configurationCacheReportPath(libs.configurationCacheReport)
 }
 
 tasks.processResources {
-    from(configurationCacheReportPath) { into("org/gradle/configurationcache/problems") }
+    from(zipTree(provider { configurationCacheReportPath.files.first() })) {
+        into("org/gradle/configurationcache/problems")
+        exclude("META-INF/**")
+    }
 }
 
 // The integration tests in this project do not need to run in 'config cache' mode.
