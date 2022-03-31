@@ -25,6 +25,7 @@ import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.internal.tasks.AntGroovydoc;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.api.provider.Property;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
@@ -89,13 +90,17 @@ public class Groovydoc extends SourceTask {
 
     private Set<Link> links = new LinkedHashSet<Link>();
 
-    private GroovydocAccess access = GroovydocAccess.PROTECTED;
+    private final Property<GroovydocAccess> access = getProject().getObjects().property(GroovydocAccess.class)
+        .convention(GroovydocAccess.PROTECTED);
 
-    private boolean includeAuthor;
+    private final Property<Boolean> includeAuthor = getProject().getObjects().property(Boolean.class)
+        .convention(false);
 
-    private boolean processScripts = true;
+    private final Property<Boolean> processScripts = getProject().getObjects().property(Boolean.class)
+        .convention(true);
 
-    private boolean includeMainForScripts = true;
+    private final Property<Boolean> includeMainForScripts = getProject().getObjects().property(Boolean.class)
+        .convention(true);
 
     public Groovydoc() {
         getLogging().captureStandardOutput(LogLevel.INFO);
@@ -113,9 +118,9 @@ public class Groovydoc extends SourceTask {
         getAntGroovydoc().execute(
             getSource(), destinationDir, isUse(), isNoTimestamp(), isNoVersionStamp(),
             getWindowTitle(), getDocTitle(), getHeader(), getFooter(), getPathToOverview(),
-            getAccess(), getLinks(), getGroovyClasspath(), getClasspath(),
+            getAccess().get(), getLinks(), getGroovyClasspath(), getClasspath(),
             getTemporaryDir(), getServices().get(FileSystemOperations.class),
-            isIncludeAuthor(), isProcessScripts(), isIncludeMainForScripts()
+            getIncludeAuthor().get(), getProcessScripts().get(), getIncludeMainForScripts().get()
         );
     }
 
@@ -351,7 +356,7 @@ public class Groovydoc extends SourceTask {
     /**
      * Returns whether to include classes with private access and above.
      *
-     * @deprecated Equivalent to calling {@link #getAccess()} and checking for equivalence with {@link GroovydocAccess#PRIVATE}
+     * @deprecated Equivalent to calling {@link #getAccess()}{@code .get()} and checking for equivalence with {@link GroovydocAccess#PRIVATE}
      */
     @Internal
     @Deprecated
@@ -361,47 +366,38 @@ public class Groovydoc extends SourceTask {
             .willBeRemovedInGradle8()
             .withUpgradeGuideSection(7, "groovydoc_option_improvements")
             .nagUser();
-        return getAccess() == GroovydocAccess.PRIVATE;
+        return getAccess().get() == GroovydocAccess.PRIVATE;
     }
 
     /**
      * Sets whether to include classes and members with private access and above.
      *
-     * @deprecated Equivalent to calling {@link #setAccess(GroovydocAccess)} with {@link GroovydocAccess#PRIVATE}
-     *             if {@code includePrivate} is {@code true}, {@link GroovydocAccess#PUBLIC} otherwise
+     * @deprecated Equivalent to calling {@link #setAccess(String)} with {@code "private"}
+     *             if {@code includePrivate} is {@code true}, {@code "public"} otherwise
      */
     @Deprecated
     public void setIncludePrivate(boolean includePrivate) {
         DeprecationLogger.deprecateMethod(Groovydoc.class, "setIncludePrivate(boolean)")
-            .replaceWith("setAccess")
+            .replaceWith("getAccess")
             .willBeRemovedInGradle8()
             .withUpgradeGuideSection(7, "groovydoc_option_improvements")
             .nagUser();
-        setAccess(includePrivate ? GroovydocAccess.PRIVATE : GroovydocAccess.PUBLIC);
+        getAccess().set(includePrivate ? GroovydocAccess.PRIVATE : GroovydocAccess.PUBLIC);
     }
 
     /**
-     * Returns the smallest access level to include in the Groovydoc.
-     *
-     * @since 7.5
-     */
-    @Input
-    public GroovydocAccess getAccess() {
-        return access;
-    }
-
-    /**
-     * Sets the smallest access level to include in the Groovydoc.
+     * The smallest access level to include in the Groovydoc.
      *
      * <p>
      * For example, to include classes and members with package, protected, and public access, use {@link GroovydocAccess#PACKAGE}.
      * </p>
      *
-     * @param access the smallest access to include
+     * @return the access property
      * @since 7.5
      */
-    public void setAccess(GroovydocAccess access) {
-        this.access = access;
+    @Input
+    public Property<GroovydocAccess> getAccess() {
+        return access;
     }
 
     /**
@@ -412,58 +408,44 @@ public class Groovydoc extends SourceTask {
      * </p>
      *
      * <p>
-     * Equivalent to calling {@link #setAccess(GroovydocAccess)} with
-     * {@code GroovydocAccess.valueOf(access.toUpperCase(Locale.ROOT))}.
+     * Equivalent to {@code getAccess().set(GroovydocAccess.valueOf(access.toUpperCase(Locale.ROOT)))}.
      * </p>
      *
      * @param access the smallest access to include
      * @since 7.5
      */
     public void setAccess(String access) {
-        setAccess(GroovydocAccess.valueOf(access.toUpperCase(Locale.ROOT)));
+        getAccess().set(GroovydocAccess.valueOf(access.toUpperCase(Locale.ROOT)));
     }
 
     /**
-     * Returns whether to include author paragraphs.
+     * Whether to include author paragraphs.
+     *
+     * @since 7.5
      */
     @Input
-    public boolean isIncludeAuthor() {
+    public Property<Boolean> getIncludeAuthor() {
         return includeAuthor;
     }
 
     /**
-     * Sets whether to include author paragraphs.
-     */
-    public void setIncludeAuthor(boolean includeAuthor) {
-        this.includeAuthor = includeAuthor;
-    }
-
-    /**
-     * Returns whether to process scripts.
+     * Whether to process scripts.
+     *
+     * @since 7.5
      */
     @Input
-    public boolean isProcessScripts() {
+    public Property<Boolean> getProcessScripts() {
         return processScripts;
     }
 
     /**
-     * Sets whether to process scripts.
-     */
-    public void setProcessScripts(boolean processScripts) { this.processScripts = processScripts; }
-
-    /**
-     * Returns whether to include main method for scripts.
+     * Whether to include main method for scripts.
+     *
+     * @since 7.5
      */
     @Input
-    public boolean isIncludeMainForScripts() {
+    public Property<Boolean> getIncludeMainForScripts() {
         return includeMainForScripts;
-    }
-
-    /**
-     * Sets whether to include main method for scripts.
-     */
-    public void setIncludeMainForScripts(boolean includeMainForScripts) {
-        this.includeMainForScripts = includeMainForScripts;
     }
 
     /**
