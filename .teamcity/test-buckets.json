@@ -42,7 +42,6 @@
 				"subprojects":[
 					"scala",
 					"java-compiler-plugin",
-					"configuration-cache-report",
 					"logging-api",
 					"base-services-groovy",
 					"kotlin-dsl-provider-plugins",
@@ -2605,7 +2604,6 @@
 					"scala",
 					"logging-api",
 					"java-compiler-plugin",
-					"configuration-cache-report",
 					"base-services-groovy",
 					"kotlin-dsl-provider-plugins",
 					"native",
@@ -2834,7 +2832,6 @@
 					"functional",
 					"files",
 					"file-temp",
-					"configuration-cache-report",
 					"cli"
 				]
 			},
@@ -4987,8 +4984,7 @@
 					"hashing",
 					"functional",
 					"files",
-					"file-temp",
-					"configuration-cache-report"
+					"file-temp"
 				]
 			},
 			{
@@ -9023,7 +9019,6 @@
 					"wrapper-shared",
 					"logging-api",
 					"java-compiler-plugin",
-					"configuration-cache-report",
 					"base-services-groovy",
 					"kotlin-dsl-provider-plugins",
 					"security",

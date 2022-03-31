@@ -17,10 +17,16 @@ We would like to thank the following community members for their contributions t
 [Roland Weisleder](https://github.com/rweisleder),
 [Konstantin Gribov](https://github.com/grossws),
 [aSemy](https://github.com/aSemy),
-[Rene Groeschke](https://github.com/breskeby)
+[Rene Groeschke](https://github.com/breskeby),
 [Jonathan Leitschuh](https://github.com/JLLeitschuh),
-[Jamie Tanna](https://github.com/jamietanna)
-[Xin Wang](https://github.com/scaventz)
+[Jamie Tanna](https://github.com/jamietanna),
+[Xin Wang](https://github.com/scaventz),
+[Atsuto Yamashita](https://github.com/att55),
+[Taeik Lim](https://github.com/acktsap),
+[David Op de Beeck](https://github.com/DavidOpDeBeeck),
+[Peter Gafert](https://github.com/codecholeric),
+[Alex Landau](https://github.com/AlexLandau)
+
 <!-- 
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)

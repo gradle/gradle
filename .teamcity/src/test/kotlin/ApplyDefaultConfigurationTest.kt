@@ -143,8 +143,8 @@ class ApplyDefaultConfigurationTest {
 
     private
     fun expectedRunnerParam(daemon: String = "--daemon", extraParameters: String = "", os: Os = Os.LINUX): String {
-        val linuxPaths = "-Porg.gradle.java.installations.paths=%linux.java8.oracle.64bit%,%linux.java11.adoptiumopenjdk.64bit%,%linux.java17.adoptiumopenjdk.64bit%,%linux.java18.adoptiumopenjdk.64bit%"
-        val windowsPaths = "-Porg.gradle.java.installations.paths=%windows.java8.oracle.64bit%,%windows.java11.adoptiumopenjdk.64bit%,%windows.java17.adoptiumopenjdk.64bit%,%windows.java18.adoptiumopenjdk.64bit%"
+        val linuxPaths = "-Porg.gradle.java.installations.paths=%linux.java8.oracle.64bit%,%linux.java11.adoptiumopenjdk.64bit%,%linux.java17.adoptiumopenjdk.64bit%,%linux.java18.openjdk.64bit%"
+        val windowsPaths = "-Porg.gradle.java.installations.paths=%windows.java8.oracle.64bit%,%windows.java11.adoptiumopenjdk.64bit%,%windows.java17.adoptiumopenjdk.64bit%,%windows.java18.openjdk.64bit%"
         val expectedInstallationPaths = if (os == Os.WINDOWS) windowsPaths else linuxPaths
         return "-Dorg.gradle.workers.max=%maxParallelForks% -PmaxParallelForks=%maxParallelForks% -Dorg.gradle.internal.plugins.portal.url.override=%gradle.plugins.portal.url% -s --no-configuration-cache %additional.gradle.parameters% $daemon --continue $extraParameters \"-Dscan.tag.Check\" \"-Dscan.tag.\" -PteamCityBuildId=%teamcity.build.id% \"$expectedInstallationPaths\" -Porg.gradle.java.installations.auto-download=false"
     }
