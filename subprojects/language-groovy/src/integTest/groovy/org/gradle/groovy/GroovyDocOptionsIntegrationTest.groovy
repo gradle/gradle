@@ -19,6 +19,10 @@ package org.gradle.groovy
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.fixture.GroovyCoverage
+import org.gradle.util.internal.VersionNumber
+import spock.lang.Requires
+
+import static org.gradle.util.internal.GroovyDependencyUtil.groovyModuleDependency
 
 @TargetCoverage({ GroovyCoverage.SUPPORTS_GROOVYDOC })
 class GroovyDocOptionsIntegrationTest extends MultiVersionIntegrationSpec {
@@ -29,6 +33,15 @@ class GroovyDocOptionsIntegrationTest extends MultiVersionIntegrationSpec {
     private static final String GROOVY_DOC_PROTECTED_PATTERN = /#protectedMethod/
     private static final String GROOVY_DOC_PUBLIC_PATTERN = /#publicMethod/
 
+    private static boolean supportsScriptsInGroovydoc() {
+        return versionNumber >= VersionNumber.parse("1.7.3")
+    }
+
+    // The flags are available in all versions of Groovydoc, but package/protected only works in 1.7 and above
+    private static boolean supportsHidingNonPrivateScopes() {
+        return versionNumber >= VersionNumber.parse("1.7")
+    }
+
     def setup() {
         buildFile << """
             plugins {
@@ -38,17 +51,16 @@ class GroovyDocOptionsIntegrationTest extends MultiVersionIntegrationSpec {
             ${mavenCentralRepository()}
 
             dependencies {
-                implementation "org.codehaus.groovy:groovy:${version}"
+                implementation "${groovyModuleDependency("groovy", versionNumber)}"
             }
         """
 
-        file("src/main/groovy/options/Thing.groovy") << """
-            package options
-            import groovy.transform.PackageScope
+        file("src/main/groovy/options/Thing.java") << """
+            package options;
 
-            class Thing {
+            public class Thing {
                 private void privateMethod(){}
-                @PackageScope void packageMethod(){}
+                void packageMethod(){}
                 protected void protectedMethod(){}
                 public void publicMethod(){}
             }
@@ -59,6 +71,7 @@ class GroovyDocOptionsIntegrationTest extends MultiVersionIntegrationSpec {
         """
     }
 
+    @Requires({ supportsScriptsInGroovydoc() })
     def "scripts are enabled and have main method by default"() {
         when:
         buildFile << "groovydoc {}"
@@ -70,6 +83,7 @@ class GroovyDocOptionsIntegrationTest extends MultiVersionIntegrationSpec {
         doc.text =~ GROOVY_DOC_MAIN_PATTERN
     }
 
+    @Requires({ supportsScriptsInGroovydoc() })
     def "scripts can be disabled"() {
         when:
         buildFile << "groovydoc { processScripts = false }"
@@ -80,6 +94,7 @@ class GroovyDocOptionsIntegrationTest extends MultiVersionIntegrationSpec {
         !doc.exists()
     }
 
+    @Requires({ supportsScriptsInGroovydoc() })
     def "main method can be disabled for scripts"() {
         when:
         buildFile << "groovydoc { includeMainForScripts = false }"
@@ -98,7 +113,7 @@ class GroovyDocOptionsIntegrationTest extends MultiVersionIntegrationSpec {
         then:
         def text = file('build/docs/groovydoc/options/Thing.html').text
         !(text =~ GROOVY_DOC_PRIVATE_PATTERN)
-        !(text =~ GROOVY_DOC_PACKAGE_PATTERN)
+        !supportsHidingNonPrivateScopes() || !(text =~ GROOVY_DOC_PACKAGE_PATTERN)
         text =~ GROOVY_DOC_PROTECTED_PATTERN
         text =~ GROOVY_DOC_PUBLIC_PATTERN
     }
@@ -137,8 +152,8 @@ class GroovyDocOptionsIntegrationTest extends MultiVersionIntegrationSpec {
         then:
         def text = file('build/docs/groovydoc/options/Thing.html').text
         !(text =~ GROOVY_DOC_PRIVATE_PATTERN)
-        !(text =~ GROOVY_DOC_PACKAGE_PATTERN)
-        !(text =~ GROOVY_DOC_PROTECTED_PATTERN)
+        !supportsHidingNonPrivateScopes() || !(text =~ GROOVY_DOC_PACKAGE_PATTERN)
+        !supportsHidingNonPrivateScopes() || !(text =~ GROOVY_DOC_PROTECTED_PATTERN)
         text =~ GROOVY_DOC_PUBLIC_PATTERN
     }
 }

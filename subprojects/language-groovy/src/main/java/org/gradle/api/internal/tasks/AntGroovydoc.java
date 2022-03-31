@@ -87,8 +87,10 @@ public final class AntGroovydoc {
         else if (includePrivate) args.put("private", true);
 
         args.put("author", includeAuthor);
-        args.put("processScripts", processScripts);
-        args.put("includeMainForScripts", includeMainForScripts);
+        if (isAtLeast(version, "1.7.3")) {
+            args.put("processScripts", processScripts);
+            args.put("includeMainForScripts", includeMainForScripts);
+        }
         putIfNotNull(args, "windowtitle", windowTitle);
         putIfNotNull(args, "doctitle", docTitle);
         putIfNotNull(args, "header", header);
