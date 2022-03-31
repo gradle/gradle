@@ -52,10 +52,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-// This import must be here due to a clash in Java 8 between this and java.util.Optional.
-// Be careful running “Optimize Imports” as it will wipe this out.
-// If there's no import below this comment, this has happened.
-
 /**
  * <p>Generates HTML API documentation for Groovy source, and optionally, Java source.
  *
