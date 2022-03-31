@@ -19,6 +19,7 @@ package org.gradle.integtests
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.Ignore
 
 class IsolatedAntBuilderMemoryLeakIntegrationTest extends AbstractIntegrationSpec {
 
@@ -80,6 +81,7 @@ class IsolatedAntBuilderMemoryLeakIntegrationTest extends AbstractIntegrationSpe
         """
     }
 
+    @Ignore("We need to use a version of CodeNarc compatible with Groovy 4")
     void 'CodeNarc does not fail with PermGen space error'() {
         given:
         withCodenarc(groovyVersion)
