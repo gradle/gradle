@@ -142,6 +142,10 @@ BUILD SUCCESSFUL in 550ms
 1 actionable task: 1 executed 
 ```
 
+### Support for Groovy 4
+
+Gradle now supports building software using Groovy 4.0.
+
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
@@ -149,10 +153,6 @@ See the User Manual section on the “[Feature Lifecycle](userguide/feature_life
 The following are the features that have been promoted in this Gradle release.
 
 - The [TargetJvmEnvironment](javadoc/org/gradle/api/attributes/java/TargetJvmEnvironment.html) interface is now stable.
-
-### Support for Groovy 4
-
-Gradle now supports building software using Groovy 4.0.
 
 ## Fixed issues
 
