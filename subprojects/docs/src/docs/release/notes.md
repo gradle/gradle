@@ -25,7 +25,8 @@ We would like to thank the following community members for their contributions t
 [Taeik Lim](https://github.com/acktsap),
 [David Op de Beeck](https://github.com/DavidOpDeBeeck),
 [Peter Gafert](https://github.com/codecholeric),
-[Alex Landau](https://github.com/AlexLandau)
+[Alex Landau](https://github.com/AlexLandau),
+[Jerry Wiltse](https://github.com/solvingj)
 
 <!-- 
 Include only their name, impactful features should be called out separately below.
@@ -167,6 +168,16 @@ buildFile: /path/to/project/build.gradle
 BUILD SUCCESSFUL in 550ms
 1 actionable task: 1 executed 
 ```
+
+### Groovydoc exposes more options
+The [`Groovydoc`](https://docs.gradle.org/current/dsl/org.gradle.api.tasks.javadoc.Groovydoc.html) task now exposes more options:
+
+- `access`: for controlling the access levels included in the documentation, defaults to `PROTECTED`
+- `includeAuthor`: for controlling whether the author is displayed in the documentation, defaults to `false`
+- `processScripts`: for controlling whether scripts are included in the documentation, defaults to `true`
+- `includeMainForScripts`: for controlling whether a script's `main` method is included in the documentation, defaults to `true`
+
+These defaults are the same as what was previously used, so there should be no changes to the default behavior.
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
