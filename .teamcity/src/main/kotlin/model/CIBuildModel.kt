@@ -58,7 +58,7 @@ data class CIBuildModel(
         Stage(
             StageNames.QUICK_FEEDBACK,
             functionalTests = listOf(
-                TestCoverage(2, TestType.quick, Os.WINDOWS, JvmCategory.MIN_VERSION)
+                TestCoverage(2, TestType.quick, Os.WINDOWS, JvmVersion.java8, JvmVendor.adoptiumopenjdk)
             ),
             functionalTestsDependOnSpecificBuilds = true,
             dependsOnSanityCheck = true
