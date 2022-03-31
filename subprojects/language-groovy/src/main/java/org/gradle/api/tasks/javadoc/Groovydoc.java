@@ -90,17 +90,13 @@ public class Groovydoc extends SourceTask {
 
     private Set<Link> links = new LinkedHashSet<Link>();
 
-    private final Property<GroovydocAccess> access = getProject().getObjects().property(GroovydocAccess.class)
-        .convention(GroovydocAccess.PROTECTED);
+    private final Property<GroovydocAccess> access = getProject().getObjects().property(GroovydocAccess.class);
 
-    private final Property<Boolean> includeAuthor = getProject().getObjects().property(Boolean.class)
-        .convention(false);
+    private final Property<Boolean> includeAuthor = getProject().getObjects().property(Boolean.class);
 
-    private final Property<Boolean> processScripts = getProject().getObjects().property(Boolean.class)
-        .convention(true);
+    private final Property<Boolean> processScripts = getProject().getObjects().property(Boolean.class);
 
-    private final Property<Boolean> includeMainForScripts = getProject().getObjects().property(Boolean.class)
-        .convention(true);
+    private final Property<Boolean> includeMainForScripts = getProject().getObjects().property(Boolean.class);
 
     public Groovydoc() {
         getLogging().captureStandardOutput(LogLevel.INFO);
