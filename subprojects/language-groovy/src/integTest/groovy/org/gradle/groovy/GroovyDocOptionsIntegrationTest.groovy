@@ -120,7 +120,7 @@ class GroovyDocOptionsIntegrationTest extends MultiVersionIntegrationSpec {
 
     def "package scope can be enabled"() {
         when:
-        buildFile << "groovydoc { includePackage = true }"
+        buildFile << "groovydoc { access = 'package' }"
         run "groovydoc"
 
         then:
@@ -133,7 +133,7 @@ class GroovyDocOptionsIntegrationTest extends MultiVersionIntegrationSpec {
 
     def "private scope can be enabled"() {
         when:
-        buildFile << "groovydoc { includePrivate = true }"
+        buildFile << "groovydoc { access = 'private' }"
         run "groovydoc"
 
         then:
@@ -146,7 +146,7 @@ class GroovyDocOptionsIntegrationTest extends MultiVersionIntegrationSpec {
 
     def "can limit to only public members"() {
         when:
-        buildFile << "groovydoc { includePublic = true }"
+        buildFile << "groovydoc { access = 'public' }"
         run "groovydoc"
 
         then:

@@ -37,6 +37,7 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.file.Deleter;
 
 import javax.annotation.Nullable;
@@ -50,6 +51,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 /**
@@ -87,13 +89,7 @@ public class Groovydoc extends SourceTask {
 
     private Set<Link> links = new LinkedHashSet<Link>();
 
-    private boolean includePrivate;
-
-    private boolean includePackage;
-
-    private boolean includeProtected;
-
-    private boolean includePublic;
+    private GroovydocAccess access = GroovydocAccess.PROTECTED;
 
     private boolean includeAuthor;
 
@@ -116,10 +112,9 @@ public class Groovydoc extends SourceTask {
         }
         getAntGroovydoc().execute(
             getSource(), destinationDir, isUse(), isNoTimestamp(), isNoVersionStamp(),
-            getWindowTitle(), getDocTitle(), getHeader(), getFooter(), getPathToOverview(), isIncludePrivate(),
-            getLinks(), getGroovyClasspath(), getClasspath(),
+            getWindowTitle(), getDocTitle(), getHeader(), getFooter(), getPathToOverview(),
+            getAccess(), getLinks(), getGroovyClasspath(), getClasspath(),
             getTemporaryDir(), getServices().get(FileSystemOperations.class),
-            isIncludePackage(), isIncludeProtected(), isIncludePublic(),
             isIncludeAuthor(), isProcessScripts(), isIncludeMainForScripts()
         );
     }
@@ -354,63 +349,78 @@ public class Groovydoc extends SourceTask {
     }
 
     /**
-     * Returns whether to include classes with private scope.
+     * Returns whether to include classes with private access and above.
+     *
+     * @deprecated Equivalent to calling {@link #getAccess()} and checking for equivalence with {@link GroovydocAccess#PRIVATE}
      */
-    @Input
+    @Internal
+    @Deprecated
     public boolean isIncludePrivate() {
-        return includePrivate;
+        DeprecationLogger.deprecateMethod(Groovydoc.class, "isIncludePrivate()")
+            .replaceWith("getAccess")
+            .willBeRemovedInGradle8()
+            .withUpgradeGuideSection(7, "groovydoc_option_improvements")
+            .nagUser();
+        return getAccess() == GroovydocAccess.PRIVATE;
     }
 
     /**
-     * Sets whether to include classes and members with private scope if set to true.
+     * Sets whether to include classes and members with private access and above.
+     *
+     * @deprecated Equivalent to calling {@link #setAccess(GroovydocAccess)} with {@link GroovydocAccess#PRIVATE}
+     *             if {@code includePrivate} is {@code true}, {@link GroovydocAccess#PUBLIC} otherwise
      */
+    @Deprecated
     public void setIncludePrivate(boolean includePrivate) {
-        this.includePrivate = includePrivate;
+        DeprecationLogger.deprecateMethod(Groovydoc.class, "setIncludePrivate(boolean)")
+            .replaceWith("setAccess")
+            .willBeRemovedInGradle8()
+            .withUpgradeGuideSection(7, "groovydoc_option_improvements")
+            .nagUser();
+        setAccess(includePrivate ? GroovydocAccess.PRIVATE : GroovydocAccess.PUBLIC);
     }
 
     /**
-     * Returns whether to include classes and members with package scope.
+     * Returns the smallest access level to include in the Groovydoc.
+     *
+     * @since 7.5
      */
     @Input
-    public boolean isIncludePackage() {
-        return includePackage;
+    public GroovydocAccess getAccess() {
+        return access;
     }
 
     /**
-     * Sets whether to include classes and members with package scope if set to true.
+     * Sets the smallest access level to include in the Groovydoc.
+     *
+     * <p>
+     * For example, to include classes and members with package, protected, and public access, use {@link GroovydocAccess#PACKAGE}.
+     * </p>
+     *
+     * @param access the smallest access to include
+     * @since 7.5
      */
-    public void setIncludePackage(boolean includePackage) {
-        this.includePackage = includePackage;
+    public void setAccess(GroovydocAccess access) {
+        this.access = access;
     }
 
     /**
-     * Returns whether to include classes and members with protected scope.
+     * Sets the smallest access level to include in the Groovydoc.
+     *
+     * <p>
+     * For example, to include classes and members with package, protected, and public access, use {@code "package"}.
+     * </p>
+     *
+     * <p>
+     * Equivalent to calling {@link #setAccess(GroovydocAccess)} with
+     * {@code GroovydocAccess.valueOf(access.toUpperCase(Locale.ROOT))}.
+     * </p>
+     *
+     * @param access the smallest access to include
+     * @since 7.5
      */
-    @Input
-    public boolean isIncludeProtected() {
-        return includeProtected;
-    }
-
-    /**
-     * Sets whether to include classes and members with protected scope if set to true.
-     */
-    public void setIncludeProtected(boolean includeProtected) {
-        this.includeProtected = includeProtected;
-    }
-
-    /**
-     * Returns whether to include classes and members with public scope.
-     */
-    @Input
-    public boolean isIncludePublic() {
-        return includePublic;
-    }
-
-    /**
-     * Sets whether to include classes and members with public scope if set to true.
-     */
-    public void setIncludePublic(boolean includePublic) {
-        this.includePublic = includePublic;
+    public void setAccess(String access) {
+        setAccess(GroovydocAccess.valueOf(access.toUpperCase(Locale.ROOT)));
     }
 
     /**
