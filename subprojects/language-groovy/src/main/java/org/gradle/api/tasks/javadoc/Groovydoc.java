@@ -358,7 +358,7 @@ public class Groovydoc extends SourceTask {
     @Deprecated
     public boolean isIncludePrivate() {
         DeprecationLogger.deprecateMethod(Groovydoc.class, "isIncludePrivate()")
-            .replaceWith("getAccess")
+            .replaceWith("getAccess()")
             .willBeRemovedInGradle8()
             .withUpgradeGuideSection(7, "groovydoc_option_improvements")
             .nagUser();
@@ -374,7 +374,7 @@ public class Groovydoc extends SourceTask {
     @Deprecated
     public void setIncludePrivate(boolean includePrivate) {
         DeprecationLogger.deprecateMethod(Groovydoc.class, "setIncludePrivate(boolean)")
-            .replaceWith("getAccess")
+            .replaceWith("getAccess()")
             .willBeRemovedInGradle8()
             .withUpgradeGuideSection(7, "groovydoc_option_improvements")
             .nagUser();
