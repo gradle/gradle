@@ -142,6 +142,10 @@ BUILD SUCCESSFUL in 550ms
 1 actionable task: 1 executed 
 ```
 
+### Support for Java 18
+
+Gradle now supports running on and building with [Java 18](https://openjdk.java.net/projects/jdk/18/).
+
 ### Support for Groovy 4
 
 Gradle now supports building software using Groovy 4.0.
