@@ -91,7 +91,7 @@ abstract class PmdInvoker {
                     ruleSets = ['basic']
                 }
                 if (incrementalAnalysis) {
-                    assertUnsupportedIncrementalAnalysis(version)
+                    PmdInvoker.assertUnsupportedIncrementalAnalysis(version)
                 }
             } else if (version < VersionNumber.parse("6.0.0")) {
                 // 5.x
@@ -99,7 +99,7 @@ abstract class PmdInvoker {
                     ruleSets = ['java-basic']
                 }
                 if (incrementalAnalysis) {
-                    assertUnsupportedIncrementalAnalysis(version)
+                    PmdInvoker.assertUnsupportedIncrementalAnalysis(version)
                 }
                 antPmdArgs['threads'] = threads
             } else {
