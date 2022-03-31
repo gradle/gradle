@@ -214,7 +214,7 @@ fun Test.configureJvmForTest() {
         project.testJavaVendor.map {
             when (it.toLowerCase()) {
                 "oracle" -> vendor.set(JvmVendorSpec.ORACLE)
-                "openjdk" -> vendor.set(JvmVendorSpec.ADOPTOPENJDK)
+                "openjdk" -> vendor.set(JvmVendorSpec.ADOPTIUM)
             }
         }.getOrNull()
     }
