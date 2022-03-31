@@ -207,4 +207,7 @@ public class TextUtil {
     public static String toLowerCaseLocaleSafe(String s) {
         return s.toLowerCase(Locale.ENGLISH);
     }
+    public static String toUpperCaseLocaleSafe(String s) {
+        return s.toUpperCase(Locale.ENGLISH);
+    }
 }

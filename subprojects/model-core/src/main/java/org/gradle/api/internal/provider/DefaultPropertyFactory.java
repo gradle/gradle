@@ -25,7 +25,11 @@ public class DefaultPropertyFactory implements PropertyFactory {
 
     @Override
     public <T> DefaultProperty<T> property(Class<T> type) {
-        return new DefaultProperty<>(propertyHost, type);
+        if (type.isEnum()) {
+            return new DefaultEnumProperty<>(propertyHost, type);
+        } else {
+            return new DefaultProperty<>(propertyHost, type);
+        }
     }
 
     @Override
