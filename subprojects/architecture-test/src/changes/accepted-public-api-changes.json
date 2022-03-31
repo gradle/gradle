@@ -74,14 +74,6 @@
             ]
         },
         {
-            "type": "org.gradle.api.tasks.javadoc.Groovydoc",
-            "member": "Method org.gradle.api.tasks.javadoc.Groovydoc.setAccess(java.lang.String)",
-            "acceptation": "Skipping @Incubating due to simplicity",
-            "changes": [
-                "METHOD_ADDED_TO_PUBLIC_CLASS"
-            ]
-        },
-        {
             "type": "org.gradle.api.tasks.javadoc.GroovydocAccess",
             "member": "Class org.gradle.api.tasks.javadoc.GroovydocAccess",
             "acceptation": "Skipping @Incubating due to simplicity",

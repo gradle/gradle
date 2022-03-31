@@ -20,7 +20,7 @@ package org.gradle.api.tasks.javadoc;
  * Represents the setting for the access levels that are included in the Groovydoc.
  *
  * <p>
- * Scopes include all bigger access levels, e.g. the package access level also includes protected and public classes.
+ * Each level include all less restrictive access levels, e.g. {@link #PACKAGE} also includes items with protected and public access.
  * </p>
  *
  * @since 7.5

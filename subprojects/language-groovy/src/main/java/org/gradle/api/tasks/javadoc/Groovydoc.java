@@ -382,7 +382,7 @@ public class Groovydoc extends SourceTask {
     }
 
     /**
-     * The smallest access level to include in the Groovydoc.
+     * The most restrictive access level to include in the Groovydoc.
      *
      * <p>
      * For example, to include classes and members with package, protected, and public access, use {@link GroovydocAccess#PACKAGE}.
@@ -394,24 +394,6 @@ public class Groovydoc extends SourceTask {
     @Input
     public Property<GroovydocAccess> getAccess() {
         return access;
-    }
-
-    /**
-     * Sets the smallest access level to include in the Groovydoc.
-     *
-     * <p>
-     * For example, to include classes and members with package, protected, and public access, use {@code "package"}.
-     * </p>
-     *
-     * <p>
-     * Equivalent to {@code getAccess().set(GroovydocAccess.valueOf(access.toUpperCase(Locale.ROOT)))}.
-     * </p>
-     *
-     * @param access the smallest access to include
-     * @since 7.5
-     */
-    public void setAccess(String access) {
-        getAccess().set(GroovydocAccess.valueOf(access.toUpperCase(Locale.ROOT)));
     }
 
     /**
