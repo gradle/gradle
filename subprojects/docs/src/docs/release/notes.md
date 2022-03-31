@@ -45,32 +45,6 @@ For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility 
 
 <!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. -->
 
-<!--
-
-================== TEMPLATE ==============================
-
-<a name="FILL-IN-KEY-AREA"></a>
-### FILL-IN-KEY-AREA improvements
-
-<<<FILL IN CONTEXT FOR KEY AREA>>>
-Example:
-> The [configuration cache](userguide/configuration_cache.html) improves build performance by caching the result of
-> the configuration phase. Using the configuration cache, Gradle can skip the configuration phase entirely when
-> nothing that affects the build configuration has changed.
-
-#### FILL-IN-FEATURE
-> HIGHLIGHT the usecase or existing problem the feature solves
-> EXPLAIN how the new release addresses that problem or use case
-> PROVIDE a screenshot or snippet illustrating the new feature, if applicable
-> LINK to the full documentation for more details
-
-================== END TEMPLATE ==========================
-
-
-==========================================================
-ADD RELEASE FEATURES BELOW
-vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
-
 ### JVM toolchains improvements
 
 [Java toolchains](userguide/toolchains.html) provide an easy way to declare which Java version your project should be built with.
@@ -168,12 +142,6 @@ BUILD SUCCESSFUL in 550ms
 1 actionable task: 1 executed 
 ```
 
-<!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-ADD RELEASE FEATURES ABOVE
-==========================================================
-
--->
-
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
@@ -181,10 +149,6 @@ See the User Manual section on the “[Feature Lifecycle](userguide/feature_life
 The following are the features that have been promoted in this Gradle release.
 
 - The [TargetJvmEnvironment](javadoc/org/gradle/api/attributes/java/TargetJvmEnvironment.html) interface is now stable.
-
-<!--
-### Example promoted
--->
 
 ### Support for Groovy 4
 
