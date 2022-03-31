@@ -110,6 +110,7 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
             """
 
             task("test") {
+                doNotTrackState("no state")
                 doLast {
 
                     // Coroutines are no longer experimental

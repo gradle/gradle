@@ -39,6 +39,7 @@ import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.Transformer;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.ClassLoaderUtils;
+import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classloader.ImplementationHashAware;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.classpath.ClassPath;
@@ -107,18 +108,43 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
     }
 
     private void compileScript(ScriptSource source, ClassLoader classLoader, CompilerConfiguration configuration, File metadataDir,
-                               final CompileOperation<?> extractingTransformer, final Action<? super ClassNode> customVerifier) {
+                               final CompileOperation<?> extractingTransformer, final Action<? super ClassNode> customVerifier
+    ) {
         final Transformer transformer = extractingTransformer != null ? extractingTransformer.getTransformer() : null;
         logger.info("Compiling {} using {}.", source.getDisplayName(), transformer != null ? transformer.getClass().getSimpleName() : "no transformer");
 
         final EmptyScriptDetector emptyScriptDetector = new EmptyScriptDetector();
         final PackageStatementDetector packageDetector = new PackageStatementDetector();
+
+        FilteringClassLoader.Spec groovyCompilerClassLoaderSpec = new FilteringClassLoader.Spec();
+        groovyCompilerClassLoaderSpec.allowPackage("org.codehaus.groovy");
+        groovyCompilerClassLoaderSpec.allowPackage("groovy");
+        groovyCompilerClassLoaderSpec.allowPackage("groovyjarjarasm");
+        // Disallow classes from Groovy Jar that reference external classes. Such classes must be loaded from astTransformClassLoader,
+        // or a NoClassDefFoundError will occur. Essentially this is drawing a line between the Groovy compiler and the Groovy
+        // library, albeit only for selected classes that run a high risk of being statically referenced from a transform.
+        groovyCompilerClassLoaderSpec.disallowClass("groovy.util.GroovyTestCase");
+        groovyCompilerClassLoaderSpec.disallowClass("org.codehaus.groovy.transform.NotYetImplementedASTTransformation");
+        groovyCompilerClassLoaderSpec.disallowPackage("groovy.servlet");
+        FilteringClassLoader groovyCompilerClassLoader = new FilteringClassLoader(GroovyClassLoader.class.getClassLoader(), groovyCompilerClassLoaderSpec);
+
+        // AST transforms need their own class loader that shares compiler classes with the compiler itself
+        // can't delegate to compileClasspathLoader because this would result in ASTTransformation interface
+        // (which is implemented by the transform class) being loaded by compileClasspathClassLoader (which is
+        // where the transform class is loaded from)
+        GroovyClassLoader astTransformClassLoader = new GroovyClassLoader(groovyCompilerClassLoader, null);
+
         GroovyClassLoader groovyClassLoader = new GroovyClassLoader(classLoader, configuration, false) {
             @Override
             protected CompilationUnit createCompilationUnit(CompilerConfiguration compilerConfiguration,
                                                             CodeSource codeSource) {
 
-                CompilationUnit compilationUnit = new CustomCompilationUnit(compilerConfiguration, codeSource, customVerifier, this, simpleNameToFQN);
+                CompilationUnit compilationUnit = new CustomCompilationUnit(compilerConfiguration, codeSource, customVerifier, this, simpleNameToFQN) {
+                    @Override
+                    public GroovyClassLoader getTransformLoader() {
+                        return astTransformClassLoader;
+                    }
+                };
 
                 if (transformer != null) {
                     transformer.register(compilationUnit);
