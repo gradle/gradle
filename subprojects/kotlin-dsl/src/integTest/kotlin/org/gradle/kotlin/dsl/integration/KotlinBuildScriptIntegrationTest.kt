@@ -119,6 +119,7 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
             }
 
             task("test") {
+                doNotTrackState("no state")
                 doLast {
                     // Capturing when
                     when (val value = coroutine.first()) {

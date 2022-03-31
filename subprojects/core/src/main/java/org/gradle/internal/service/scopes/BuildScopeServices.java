@@ -18,6 +18,8 @@ package org.gradle.internal.service.scopes;
 
 import org.gradle.StartParameter;
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.SelfResolvingDependency;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DefaultClassPathProvider;
@@ -29,8 +31,11 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.artifacts.DefaultModule;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
+import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
+import org.gradle.api.internal.artifacts.dsl.dependencies.UnknownProjectFinder;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.classpath.PluginModuleRegistry;
 import org.gradle.api.internal.component.ComponentTypeRegistry;
@@ -43,6 +48,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.initialization.DefaultScriptClassPathResolver;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
+import org.gradle.api.internal.initialization.RootScriptDomainObjectContext;
 import org.gradle.api.internal.initialization.ScriptClassPathInitializer;
 import org.gradle.api.internal.initialization.ScriptClassPathResolver;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
@@ -117,6 +123,7 @@ import org.gradle.groovy.scripts.internal.CrossBuildInMemoryCachingScriptClassCa
 import org.gradle.groovy.scripts.internal.DefaultScriptCompilationHandler;
 import org.gradle.groovy.scripts.internal.DefaultScriptRunnerFactory;
 import org.gradle.groovy.scripts.internal.FileCacheBackedScriptClassCompiler;
+import org.gradle.groovy.scripts.internal.GroovyScriptClasspathProvider;
 import org.gradle.groovy.scripts.internal.ScriptRunnerFactory;
 import org.gradle.initialization.BuildLoader;
 import org.gradle.initialization.BuildOperationFiringSettingsPreparer;
@@ -207,7 +214,9 @@ import org.gradle.process.internal.ExecFactory;
 import org.gradle.tooling.provider.model.internal.BuildScopeToolingModelBuilderRegistryAction;
 import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry;
 
+import java.io.File;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Contains the singleton services for a single build invocation.
@@ -416,6 +425,44 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             new TaskFactory());
     }
 
+    protected GroovyScriptClasspathProvider createGroovyScriptClasspathProvider(
+        ClassLoaderScopeRegistry classLoaderScopeRegistry,
+        DependencyManagementServices dependencyManagementServices,
+        FileResolver fileResolver,
+        FileCollectionFactory fileCollectionFactory,
+        DependencyMetaDataProvider dependencyMetaDataProvider,
+        DependencyFactory dependencyFactory
+    ) {
+        DependencyResolutionServices resolutionServices = dependencyManagementServices.create(
+            fileResolver,
+            fileCollectionFactory,
+            dependencyMetaDataProvider,
+            new UnknownProjectFinder("Some unknown project"),
+            RootScriptDomainObjectContext.PLUGINS
+        );
+        return new GroovyScriptClasspathProvider(
+            classLoaderScopeRegistry.getCoreAndPluginsScope(),
+            () -> {
+                String version = System.getProperty("org.gradle.api.version");
+                return version == null
+                    ? gradleApisFromCurrentGradle(dependencyFactory)
+                    : gradleApisFromRepository(resolutionServices, dependencyFactory, version);
+            },
+            () -> ((SelfResolvingDependency) dependencyFactory.createDependency(DependencyFactory.ClassPathNotation.LOCAL_GROOVY)).resolve());
+    }
+
+    private Set<File> gradleApisFromCurrentGradle(DependencyFactory dependencyFactory) {
+        SelfResolvingDependency gradleApiDependency = (SelfResolvingDependency) dependencyFactory.createDependency(DependencyFactory.ClassPathNotation.GRADLE_API);
+        return gradleApiDependency.resolve();
+
+    }
+    private Set<File> gradleApisFromRepository(DependencyResolutionServices dependencyResolutionServices, DependencyFactory dependencyFactory, String version) {
+        String repositoryUrl = System.getProperty("gradle.api.repository.url", "https://repo.gradle.org/gradle/libs-releases");
+        dependencyResolutionServices.getResolveRepositoryHandler().maven(repo -> repo.setUrl(repositoryUrl));
+        Configuration detachedConfiguration = dependencyResolutionServices.getConfigurationContainer().detachedConfiguration(dependencyFactory.createDependency("org.gradle:gradle-api:" + version));
+        return detachedConfiguration.resolve();
+    }
+
     protected ScriptCompilerFactory createScriptCompileFactory(
         FileCacheBackedScriptClassCompiler scriptCompiler,
         CrossBuildInMemoryCachingScriptClassCache cache,
@@ -433,14 +480,16 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         DefaultScriptCompilationHandler scriptCompilationHandler,
         CachedClasspathTransformer classpathTransformer,
-        ProgressLoggerFactory progressLoggerFactory
+        ProgressLoggerFactory progressLoggerFactory,
+        GroovyScriptClasspathProvider groovyScriptClasspathProvider
     ) {
         return new FileCacheBackedScriptClassCompiler(
             cacheRepository,
             new BuildOperationBackedScriptCompilationHandler(scriptCompilationHandler, buildOperationExecutor),
             progressLoggerFactory,
             classLoaderHierarchyHasher,
-            classpathTransformer);
+            classpathTransformer,
+            groovyScriptClasspathProvider);
     }
 
     protected ScriptPluginFactory createScriptPluginFactory(InstantiatorFactory instantiatorFactory, BuildOperationExecutor buildOperationExecutor, UserCodeApplicationContext userCodeApplicationContext) {

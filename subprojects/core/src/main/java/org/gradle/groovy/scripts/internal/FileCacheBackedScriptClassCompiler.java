@@ -50,6 +50,7 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.net.URLClassLoader;
 
 import static org.gradle.internal.classpath.CachedClasspathTransformer.StandardTransform.BuildLogic;
 
@@ -63,16 +64,22 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
     private final GlobalScopedCache cacheRepository;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final CachedClasspathTransformer classpathTransformer;
+    private final GroovyScriptClasspathProvider groovyScriptClasspathProvider;
 
     public FileCacheBackedScriptClassCompiler(
-        GlobalScopedCache cacheRepository, ScriptCompilationHandler scriptCompilationHandler,
-        ProgressLoggerFactory progressLoggerFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
-        CachedClasspathTransformer classpathTransformer) {
+        GlobalScopedCache cacheRepository,
+        ScriptCompilationHandler scriptCompilationHandler,
+        ProgressLoggerFactory progressLoggerFactory,
+        ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
+        CachedClasspathTransformer classpathTransformer,
+        GroovyScriptClasspathProvider groovyScriptClasspathProvider
+    ) {
         this.cacheRepository = cacheRepository;
         this.scriptCompilationHandler = scriptCompilationHandler;
         this.progressLoggerFactory = progressLoggerFactory;
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
         this.classpathTransformer = classpathTransformer;
+        this.groovyScriptClasspathProvider = groovyScriptClasspathProvider;
     }
 
     @Override
@@ -80,13 +87,16 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
                                                               final ClassLoaderScope targetScope,
                                                               final CompileOperation<M> operation,
                                                               final Class<T> scriptBaseClass,
-                                                              final Action<? super ClassNode> verifier) {
+                                                              final Action<? super ClassNode> verifier
+    ) {
         assert source.getResource().isContentCached();
         if (source.getResource().getHasEmptyContent()) {
             return emptyCompiledScript(operation);
         }
 
         ClassLoader classLoader = targetScope.getExportClassLoader();
+        ClassPath compilationClasspath = groovyScriptClasspathProvider.compilationClassPathOf(targetScope);
+        ClassLoader compileClassLoader = new URLClassLoader(compilationClasspath.getAsURLArray(), ClassLoader.getSystemClassLoader().getParent());
         HashCode sourceHashCode = source.getResource().getContentHash();
         final String dslId = operation.getId();
         HashCode classLoaderHash = classLoaderHierarchyHasher.getClassLoaderHash(classLoader);
@@ -99,6 +109,10 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         hasher.putString(dslId);
         hasher.putHash(sourceHashCode);
         hasher.putHash(classLoaderHash);
+        for (File jar : compilationClasspath.getAsFiles()) {
+            // TODO: Snapshot the contents here.
+            hasher.putString(jar.getName());
+        }
         String key = hasher.hash().toCompactString();
 
         // Caching involves 2 distinct caches, so that 2 scripts with the same (hash, classpath) do not get compiled twice
@@ -111,7 +125,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
             .withDisplayName(dslId + " generic class cache for " + source.getDisplayName())
             .withInitializer(new ProgressReportingInitializer(
                 progressLoggerFactory,
-                new CompileToCrossBuildCacheAction(remapped, classLoader, operation, verifier, scriptBaseClass),
+                new CompileToCrossBuildCacheAction(remapped, compileClassLoader, operation, verifier, scriptBaseClass),
                 "Compiling " + source.getShortDisplayName()))
             .open();
         try {
