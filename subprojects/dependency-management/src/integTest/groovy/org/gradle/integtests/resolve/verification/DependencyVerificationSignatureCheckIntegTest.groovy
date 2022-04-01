@@ -1678,15 +1678,13 @@ This can indicate that a dependency has been compromised. Please carefully verif
 This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums. Key servers are disabled, this can indicate that you need to update the local keyring with the missing keys."""
     }
 
-    def "doesn't fail validating signature for variant"() {
+    def "doesn't fail validating signature for variant that has file name different than real name"() {
         createMetadataFile {
             keyServer(keyServerFixture.uri)
             verifySignatures()
-            addTrustedKey("org:foo:1.0", validPublicKeyHexString)
             addTrustedKey("org:foo:1.0", validPublicKeyHexString, "pom", "pom")
             addTrustedKey("org:foo:1.0", validPublicKeyHexString, "module", "module")
-            addTrustedKeyByFileName("org:foo-linux64:1.0", "foo-linux64-1.0.klib", validPublicKeyHexString)
-            addTrustedKey("org:foo-linux64:1.0", validPublicKeyHexString, "module", "module")
+            addTrustedKeyByFileName("org:foo:1.0", "foo-linux64-1.0.klib", validPublicKeyHexString)
         }
 
         given:
@@ -1698,34 +1696,23 @@ This can indicate that a dependency has been compromised. Please carefully verif
             withoutDefaultVariants()
             withVariant("linux64") {
                 attribute(Usage.USAGE_ATTRIBUTE.name, "linux64")
-                availableAt("../../foo-linux64/1.0/foo-linux64-1.0.module", "org", "foo-linux64", "1.0")
-                useDefaultArtifacts = false
-            }
-        }.withModuleMetadata().publish()
-        uncheckedModule("org", "foo-linux64", "1.0") {
-            withSignature {
-                signAsciiArmored(it)
-            }
-            withoutDefaultVariants()
-            withVariant("linux64") {
                 attribute("org.gradle.category", "library")
                 useDefaultArtifacts = false
                 artifact("foo.klib", "foo-linux64-1.0.klib")
             }
         }.withModuleMetadata().publish()
         buildFile << """
-            def myConfig = configurations.create("myConfig")
+            FileCollection customConfiguration = configurations.create("customConfiguration")
             dependencies {
-                add("myConfig", "org:foo:1.0") {
+                add("customConfiguration", "org:foo:1.0") {
                     attributes {
                         attribute(Attribute.of(Usage.USAGE_ATTRIBUTE.name, String), "linux64")
                     }
                 }
             }
             tasks.register("myTask") {
-                FileCollection fc = myConfig
                 doFirst {
-                    println(fc.files)
+                    customConfiguration.resolve()
                 }
             }
         """
@@ -1734,7 +1721,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
         serveValidKey()
 
         then:
-        succeeds ":dependencies", "--configuration", "myConfig", "myTask"
+        succeeds "myTask"
     }
 
     private static void tamperWithFile(File file) {
