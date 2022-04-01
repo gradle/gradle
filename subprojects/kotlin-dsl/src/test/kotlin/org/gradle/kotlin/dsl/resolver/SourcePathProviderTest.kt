@@ -125,10 +125,12 @@ class SourcePathProviderTest : FolderBasedTest() {
         )
         assertThat(
             sourcePath,
-            not(anyOf(
-                hasItem(folder("project/buildSrc/src/main/foo")),
-                hasItem(folder("project/buildSrc/src/main/bar"))
-            ))
+            not(
+                anyOf(
+                    hasItem(folder("project/buildSrc/src/main/foo")),
+                    hasItem(folder("project/buildSrc/src/main/bar"))
+                )
+            )
         )
     }
 
