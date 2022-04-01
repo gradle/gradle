@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.resolve.verification
 
+import org.gradle.api.attributes.Category
 import org.gradle.api.attributes.Usage
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
@@ -1696,7 +1697,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
             withoutDefaultVariants()
             withVariant("linux64") {
                 attribute(Usage.USAGE_ATTRIBUTE.name, "linux64")
-                attribute("org.gradle.category", "library")
+                attribute(Category.CATEGORY_ATTRIBUTE.name, Category.LIBRARY)
                 useDefaultArtifacts = false
                 artifact("foo.klib", "foo-linux64-1.0.klib")
             }

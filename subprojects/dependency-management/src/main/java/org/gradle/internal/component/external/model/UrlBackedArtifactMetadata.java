@@ -40,9 +40,17 @@ public class UrlBackedArtifactMetadata implements ModuleComponentArtifactMetadat
 
     public UrlBackedArtifactMetadata(ModuleComponentIdentifier componentIdentifier, String fileName, String relativeUrl) {
         this.componentIdentifier = componentIdentifier;
-        this.fileName = fileName;
+        this.fileName = maybeFixFileName(fileName, relativeUrl);
         this.relativeUrl = relativeUrl;
-        id = createArtifactId(componentIdentifier, fileName);
+        id = createArtifactId(componentIdentifier, relativeUrl);
+    }
+
+    private String maybeFixFileName(String fileName, String relativeUrl) {
+        if (relativeUrl.isEmpty() || relativeUrl.endsWith(fileName)) {
+            return fileName;
+        }
+        String[] split = relativeUrl.split("/");
+        return split[split.length - 1];
     }
 
     private ModuleComponentArtifactIdentifier createArtifactId(ModuleComponentIdentifier componentIdentifier, String fileName) {
