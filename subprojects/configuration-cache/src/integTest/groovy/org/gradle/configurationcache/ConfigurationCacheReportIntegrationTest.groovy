@@ -18,6 +18,8 @@ package org.gradle.configurationcache
 
 import com.microsoft.playwright.Playwright
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import spock.lang.IgnoreIf
 
 import java.util.function.Consumer
@@ -25,10 +27,11 @@ import java.util.function.Consumer
 import static org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheProblemsFixture.resolveConfigurationCacheReport
 
 
+@Requires(TestPrecondition.NOT_LINUX) // Playwright has package dependencies on linux
 @IgnoreIf({ GradleContextualExecuter.isNoDaemon() })
 class ConfigurationCacheReportIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
-    def "report with problem loads successfuly"() {
+    def "report with problem loads successfully"() {
         given:
         buildFile '''
             tasks.register('notOk') {
