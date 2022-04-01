@@ -729,9 +729,9 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
 
         variants.each {
             it.artifacts.findAll { it.name }.each {
-                def variantArtifact = moduleDir.file(it.name)
+                def variantArtifact = moduleDir.file(it.url)
                 publish(variantArtifact) { Writer writer ->
-                    writer << "${it.name} : Variant artifact $it.name"
+                    writer << "${it.name} : Variant artifact $it.url"
                 }
             }
         }
