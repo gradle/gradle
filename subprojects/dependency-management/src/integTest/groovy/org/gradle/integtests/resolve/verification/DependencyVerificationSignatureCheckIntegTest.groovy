@@ -1679,6 +1679,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
 This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums. Key servers are disabled, this can indicate that you need to update the local keyring with the missing keys."""
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/20098")
     def "doesn't fail validating signature for variant that has file name different than real name"() {
         createMetadataFile {
             keyServer(keyServerFixture.uri)
