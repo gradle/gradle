@@ -40,29 +40,17 @@ public class UrlBackedArtifactMetadata implements ModuleComponentArtifactMetadat
 
     public UrlBackedArtifactMetadata(ModuleComponentIdentifier componentIdentifier, String fileName, String relativeUrl) {
         this.componentIdentifier = componentIdentifier;
-        this.fileName = maybeFixFileName(fileName, relativeUrl);
+        this.fileName = fileName;
         this.relativeUrl = relativeUrl;
-        id = createArtifactId(componentIdentifier, relativeUrl);
+        id = createArtifactId(componentIdentifier);
     }
 
-    private String maybeFixFileName(String fileName, String relativeUrl) {
-        if (relativeUrl.isEmpty() || relativeUrl.endsWith(fileName)) {
-            return fileName;
-        }
-        String[] split = relativeUrl.split("/");
-        return split[split.length - 1];
-    }
-
-    private ModuleComponentArtifactIdentifier createArtifactId(ModuleComponentIdentifier componentIdentifier, String fileName) {
-        if (componentIdentifier instanceof MavenUniqueSnapshotComponentIdentifier) {
-            // This special case is for Maven snapshots with Gradle Module Metadata when we need to remap the file name, which
-            // corresponds to the unique timestamp, to the SNAPSHOT version, for backwards compatibility
-            return new DefaultModuleComponentArtifactIdentifier(
-                componentIdentifier,
-                getName()
-            );
-        }
-        return new ModuleComponentFileArtifactIdentifier(componentIdentifier, fileName);
+    private ModuleComponentArtifactIdentifier createArtifactId(ModuleComponentIdentifier componentIdentifier) {
+        // This makes sure that next cases are handled correctly:
+        // 1. Maven snapshots with Gradle Module Metadata when we need to remap the file name, which
+        //    corresponds to the unique timestamp, to the SNAPSHOT version, for backwards compatibility
+        // 2. Variants with Gradle Module Metadata when file name doesn't match relative url
+        return new DefaultModuleComponentArtifactIdentifier(componentIdentifier, getName());
     }
 
     @Override
