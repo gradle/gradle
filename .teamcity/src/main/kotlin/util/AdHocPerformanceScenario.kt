@@ -52,7 +52,7 @@ abstract class AdHocPerformanceScenario(os: Os) : BuildType({
         text("testJavaVersion", "8", display = ParameterDisplay.PROMPT, allowEmpty = false, description = "The java version to run the performance tests, e.g. 8/11/17")
         select(
             "testJavaVendor",
-            JvmVendor.adoptiumopenjdk.name,
+            JvmVendor.openjdk.name,
             display = ParameterDisplay.PROMPT,
             description = "The java vendor to run the performance tests",
             options = JvmVendor.values().map { it.displayName to it.name }

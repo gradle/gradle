@@ -10,7 +10,6 @@ import common.functionalTestParameters
 import common.gradleWrapper
 import common.killProcessStep
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildFeatures
-import jetbrains.buildServer.configs.kotlin.v2019_2.BuildStep
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
 import jetbrains.buildServer.configs.kotlin.v2019_2.FailureAction
@@ -19,7 +18,6 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.RelativeId
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildFeatures.PullRequests
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildFeatures.commitStatusPublisher
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildFeatures.pullRequests
-import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.script
 import model.CIBuildModel
 import model.StageNames
 
@@ -123,40 +121,6 @@ fun BaseGradleBuildType.gradleRunnerStep(model: CIBuildModel, gradleTasks: Strin
     }
 }
 
-private
-fun BuildType.attachFileLeakDetector() {
-    steps {
-        script {
-            name = "ATTACH_FILE_LEAK_DETECTOR"
-            executionMode = BuildStep.ExecutionMode.ALWAYS
-            scriptContent = """
-            "%windows.java11.openjdk.64bit%\bin\java" gradle/AttachAgentToDaemon.java
-            """.trimIndent()
-        }
-    }
-}
-
-private
-fun BuildType.dumpOpenFiles() {
-    steps {
-        // This is a workaround for https://youtrack.jetbrains.com/issue/TW-24782
-        script {
-            name = "SET_BUILD_SUCCESS_ENV"
-            executionMode = BuildStep.ExecutionMode.RUN_ON_SUCCESS
-            scriptContent = """
-                echo "##teamcity[setParameter name='env.PREV_BUILD_STATUS' value='SUCCESS']"
-            """.trimIndent()
-        }
-        script {
-            name = "DUMP_OPEN_FILES_ON_FAILURE"
-            executionMode = BuildStep.ExecutionMode.ALWAYS
-            scriptContent = """
-                "%windows.java11.openjdk.64bit%\bin\java" gradle\DumpOpenFilesOnFailure.java
-            """.trimIndent()
-        }
-    }
-}
-
 fun applyDefaults(
     model: CIBuildModel,
     buildType: BaseGradleBuildType,
@@ -199,17 +163,10 @@ fun applyTestDefaults(
         preSteps()
     }
 
-    if (os == Os.WINDOWS) {
-        buildType.attachFileLeakDetector()
-    }
-
     buildType.killProcessStep("KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS", daemon)
 
     buildType.gradleRunnerStep(model, gradleTasks, os, extraParameters, daemon)
 
-    if (os == Os.WINDOWS) {
-        buildType.dumpOpenFiles()
-    }
     buildType.killProcessStep("KILL_PROCESSES_STARTED_BY_GRADLE", daemon)
 
     buildType.steps {

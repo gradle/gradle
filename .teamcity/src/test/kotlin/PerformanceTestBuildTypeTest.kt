@@ -65,7 +65,7 @@ class PerformanceTestBuildTypeTest {
                 ),
                 functionalTests = listOf(
                     TestCoverage(1, TestType.platform, Os.LINUX, JvmVersion.java8),
-                    TestCoverage(2, TestType.platform, Os.WINDOWS, JvmVersion.java11, vendor = JvmVendor.adoptiumopenjdk)
+                    TestCoverage(2, TestType.platform, Os.WINDOWS, JvmVersion.java11, vendor = JvmVendor.openjdk)
                 ),
                 performanceTests = listOf(PerformanceTestCoverage(1, PerformanceTestType.per_commit, Os.LINUX))
             ),
@@ -93,7 +93,7 @@ class PerformanceTestBuildTypeTest {
             "-PautoDownloadAndroidStudio=true",
             "-PrunAndroidStudioInHeadlessMode=true",
             "-Porg.gradle.java.installations.auto-download=false",
-            "\"-Porg.gradle.java.installations.paths=%linux.java8.oracle.64bit%,%linux.java11.adoptiumopenjdk.64bit%,%linux.java17.adoptiumopenjdk.64bit%,%linux.java18.openjdk.64bit%\"",
+            "\"-Porg.gradle.java.installations.paths=%linux.java8.oracle.64bit%,%linux.java11.openjdk.64bit%,%linux.java17.openjdk.64bit%,%linux.java18.openjdk.64bit%\"",
             "\"-Porg.gradle.performance.branchName=%teamcity.build.branch%\"",
             "\"-Porg.gradle.performance.db.url=%performance.db.url%\"",
             "\"-Porg.gradle.performance.db.username=%performance.db.username%\"",
