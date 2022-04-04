@@ -44,7 +44,11 @@ class AccessTrackingPropertiesNonStringTest extends Specification {
     }
 
     protected Properties getMapUnderTestToWrite() {
-        return new AccessTrackingProperties(propertiesWithContent(innerMap), listener)
+        return getMapUnderTestToWrite(innerMap)
+    }
+
+    protected Properties getMapUnderTestToWrite(Map<Object, Object> contents) {
+        return new AccessTrackingProperties(propertiesWithContent(contents), listener)
     }
 
     def "get(#key) is tracked for non-strings"() {
@@ -340,6 +344,34 @@ class AccessTrackingPropertiesNonStringTest extends Specification {
         'keyWithNonStringValue' | NON_STRING_VALUE      | NON_STRING_VALUE | true
         'keyWithNonStringValue' | NON_STRING_VALUE      | OTHER_VALUE      | false
         'keyWithNonStringValue' | NON_STRING_VALUE      | null             | false
+    }
+
+    def "replaceAll() uses equals for primitive wrappers and Strings"() {
+        def map = getMapUnderTestToWrite(intValue: 100500, stringValue: "value")
+        when:
+        map.replaceAll { k, v ->
+            switch (k) {
+                case "intValue": return Integer.valueOf((int) v)
+                case "stringValue": return new String((String) v)
+            }
+        }
+
+        then:
+        0 * listener.onChange(_, _)
+    }
+
+    def "replaceAll() uses reference equality for non-primitives"() {
+        def value1 = [1]
+        def value2 = [1]
+
+        def map = getMapUnderTestToWrite(value: value1)
+        when:
+        map.replaceAll { k, v ->
+            return value2
+        }
+
+        then:
+        1 * listener.onChange("value", value2)
     }
 
     private static Properties propertiesWithContent(Map<Object, Object> contents) {

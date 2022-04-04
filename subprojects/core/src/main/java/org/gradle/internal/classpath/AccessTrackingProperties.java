@@ -16,6 +16,8 @@
 
 package org.gradle.internal.classpath;
 
+import com.google.common.primitives.Primitives;
+
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
@@ -126,9 +128,10 @@ class AccessTrackingProperties extends Properties {
         synchronized (delegate) {
             delegate.replaceAll((k, v) -> {
                 Object newValue = function.apply(k, v);
-                if (v != newValue) {
-                    // Doing reference comparison may be overzealous for strings,
-                    // but it is safer for user types with potentially poorly defined equals.
+                // It is a bit of optimization to avoid storing unnecessary stores when the value doesn't change.
+                // Strings and primitive wrappers are tested with "equals", user types are tested for reference
+                // equality to avoid problems with poorly-defined user-provided equality.
+                if (!simpleOrRefEquals(newValue, v)) {
                     listener.onChange(k, newValue);
                 }
                 return newValue;
@@ -453,6 +456,31 @@ class AccessTrackingProperties extends Properties {
     private void reportAggregatingAccess() {
         // Mark all map contents as inputs if some aggregating access is used.
         delegate.forEach(this::reportKeyAndValue);
+    }
+
+    /**
+     * Tests equality two objects with {@code equals} if the objects are Strings or primitive wrappers. Otherwise, the equality of references is tested (i.e. {@code lhs == rhs}).
+     *
+     * @param lhs the first object (can be {@code null})
+     * @param rhs the second object (can be {@code null})
+     * @return {@code true} if the objects are equal in the sense described above
+     */
+    private static boolean simpleOrRefEquals(@Nullable Object lhs, @Nullable Object rhs) {
+        if (lhs == rhs) {
+            return true;
+        }
+        if (lhs == null || rhs == null) {
+            return false;
+        }
+        Class<?> lhsClass = lhs.getClass();
+        if (lhsClass == rhs.getClass() && isSimpleType(lhsClass)) {
+            return Objects.equals(lhs, rhs);
+        }
+        return false;
+    }
+
+    private static boolean isSimpleType(Class<?> clazz) {
+        return clazz == String.class || Primitives.isWrapperType(clazz);
     }
 
     private AccessTrackingSet.Listener trackingListener() {
