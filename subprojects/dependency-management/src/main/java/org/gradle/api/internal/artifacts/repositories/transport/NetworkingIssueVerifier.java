@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.repositories.transport;
 
 import org.apache.http.HttpStatus;
+import org.apache.http.NoHttpResponseException;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.resource.transport.http.HttpErrorStatusCodeException;
 
@@ -35,7 +36,7 @@ public class NetworkingIssueVerifier {
      * </ul>
      */
     public static <E extends Throwable> boolean isLikelyTransientNetworkingIssue(E failure) {
-        if (failure instanceof SocketException || failure instanceof SocketTimeoutException) {
+        if (failure instanceof SocketException || failure instanceof NoHttpResponseException || failure instanceof SocketTimeoutException) {
             return true;
         }
         if (failure instanceof DefaultMultiCauseException) {
