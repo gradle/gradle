@@ -108,7 +108,7 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
         out.println();
     }
 
-    private static class BuiltInActions implements CommandLineActionCreator {
+    private static class BuiltInActionCreator implements CommandLineActionCreator {
         @Override
         public void configureCommandLineParser(CommandLineParser parser) {
             parser.option(HELP, "?", "help").hasDescription("Shows this help message.");
@@ -119,10 +119,10 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
         @Override
         public Action<? super ExecutionListener> createAction(CommandLineParser parser, ParsedCommandLine commandLine) {
             if (commandLine.hasOption(HELP)) {
-                return Actions.toAction(new ShowUsageAction(parser));
+                return new ShowUsageAction(parser);
             }
             if (commandLine.hasOption(VERSION)) {
-                return Actions.toAction(new ShowVersionAction());
+                return new ShowVersionAction();
             }
             return null;
         }
@@ -145,7 +145,7 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
         @Override
         public Action<? super ExecutionListener> createAction(CommandLineParser parser, ParsedCommandLine commandLine) {
             if (commandLine.hasOption(DefaultCommandLineActionFactory.VERSION_CONTINUE)) {
-                Action<? super ExecutionListener> action1 = Actions.toAction(new DefaultCommandLineActionFactory.ShowVersionAction());
+                Action<? super ExecutionListener> action1 = new ShowVersionAction();
                 Action<? super ExecutionListener> action2 = createSecondAction(parser, commandLine);
                 if (action1 != null && action2 != null) {
                     return Actions.composite(action1, action2);
@@ -184,7 +184,7 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
         }
     }
 
-    private static class ShowUsageAction implements Runnable {
+    private static class ShowUsageAction implements Action<ExecutionListener> {
         private final CommandLineParser parser;
 
         public ShowUsageAction(CommandLineParser parser) {
@@ -192,14 +192,14 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
         }
 
         @Override
-        public void run() {
+        public void execute(ExecutionListener executionListener) {
             showUsage(System.out, parser);
         }
     }
 
-    public static class ShowVersionAction implements Runnable {
+    public static class ShowVersionAction implements Action<ExecutionListener> {
         @Override
-        public void run() {
+        public void execute(ExecutionListener executionListener) {
             DefaultGradleVersion currentVersion = DefaultGradleVersion.current();
 
             final StringBuilder sb = new StringBuilder();
@@ -222,6 +222,49 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
             sb.append("%n");
 
             System.out.println(String.format(sb.toString()));
+        }
+    }
+
+    private class ParseAndBuildAction implements Action<ExecutionListener> {
+        private final ServiceRegistry loggingServices;
+        private final List<String> args;
+
+        private ParseAndBuildAction(ServiceRegistry loggingServices, List<String> args) {
+            this.loggingServices = loggingServices;
+            this.args = args;
+        }
+
+        @Override
+        public void execute(ExecutionListener executionListener) {
+            List<CommandLineActionCreator> actionCreators = new ArrayList<>();
+            actionCreators.add(new BuiltInActionCreator());
+            createBuildActionFactoryActionCreator(loggingServices, actionCreators);
+            createComposingCreator(actionCreators);
+
+            CommandLineParser parser = new CommandLineParser();
+            for (CommandLineActionCreator actionCreator : actionCreators) {
+                actionCreator.configureCommandLineParser(parser);
+            }
+
+            Action<? super ExecutionListener> action;
+            try {
+                ParsedCommandLine commandLine = parser.parse(args);
+                action = createAction(actionCreators, parser, commandLine);
+            } catch (CommandLineArgumentException e) {
+                action = new CommandLineParseFailureAction(parser, e);
+            }
+
+            action.execute(executionListener);
+        }
+
+        private Action<? super ExecutionListener> createAction(List<CommandLineActionCreator> actionCreators, CommandLineParser parser, ParsedCommandLine commandLine) {
+            for (CommandLineActionCreator actionCreator : actionCreators) {
+                Action<? super ExecutionListener> action = actionCreator.createAction(parser, commandLine);
+                if (action != null) {
+                    return action;
+                }
+            }
+            throw new UnsupportedOperationException("No action factory for specified command-line arguments.");
         }
     }
 
@@ -286,49 +329,6 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
             } finally {
                 loggingManager.stop();
             }
-        }
-    }
-
-    private class ParseAndBuildAction implements Action<ExecutionListener> {
-        private final ServiceRegistry loggingServices;
-        private final List<String> args;
-
-        private ParseAndBuildAction(ServiceRegistry loggingServices, List<String> args) {
-            this.loggingServices = loggingServices;
-            this.args = args;
-        }
-
-        @Override
-        public void execute(ExecutionListener executionListener) {
-            List<CommandLineActionCreator> actionCreators = new ArrayList<>();
-            actionCreators.add(new BuiltInActions());
-            createBuildActionFactoryActionCreator(loggingServices, actionCreators);
-            createComposingCreator(actionCreators);
-
-            CommandLineParser parser = new CommandLineParser();
-            for (CommandLineActionCreator actionCreator : actionCreators) {
-                actionCreator.configureCommandLineParser(parser);
-            }
-
-            Action<? super ExecutionListener> action;
-            try {
-                ParsedCommandLine commandLine = parser.parse(args);
-                action = createAction(actionCreators, parser, commandLine);
-            } catch (CommandLineArgumentException e) {
-                action = new CommandLineParseFailureAction(parser, e);
-            }
-
-            action.execute(executionListener);
-        }
-
-        private Action<? super ExecutionListener> createAction(Iterable<CommandLineActionCreator> actionCreators, CommandLineParser parser, ParsedCommandLine commandLine) {
-            for (CommandLineActionCreator actionCreator : actionCreators) {
-                Action<? super ExecutionListener> action = actionCreator.createAction(parser, commandLine);
-                if (action != null) {
-                    return action;
-                }
-            }
-            throw new UnsupportedOperationException("No action factory for specified command-line arguments.");
         }
     }
 }
